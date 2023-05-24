@@ -15,6 +15,14 @@ SELECT topic, selfAccount, peerAccount
 FROM Threads
 WHERE selfAccount = ?;
 
+checkIfAccountsHaveExistingThread:
+SELECT EXISTS (
+    SELECT 1
+    FROM Threads
+    WHERE selfAccount = ? AND peerAccount = ?
+    LIMIT 1
+);
+
 getThreadByTopic:
 SELECT topic, selfAccount, peerAccount
 FROM Threads

@@ -8,6 +8,7 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
 import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
 import com.walletconnect.chat.common.exceptions.AccountsAlreadyHaveInviteException
+import com.walletconnect.chat.common.exceptions.AccountsAlreadyHaveThreadException
 import com.walletconnect.chat.common.exceptions.InviteMessageTooLongException
 import com.walletconnect.chat.common.json_rpc.ChatParams
 import com.walletconnect.chat.common.json_rpc.ChatRpc
@@ -20,6 +21,7 @@ import com.walletconnect.chat.engine.sync.use_case.requests.SetSentInviteToChatS
 import com.walletconnect.chat.jwt.use_case.EncodeInviteProposalDidJwtPayloadUseCase
 import com.walletconnect.chat.storage.ContactStorageRepository
 import com.walletconnect.chat.storage.InvitesStorageRepository
+import com.walletconnect.chat.storage.ThreadsStorageRepository
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
@@ -33,6 +35,7 @@ internal class SendInviteUseCase(
     private val keyserverUrl: String,
     private val logger: Logger,
     private val invitesRepository: InvitesStorageRepository,
+    private val threadsRepository: ThreadsStorageRepository,
     private val keyManagementRepository: KeyManagementRepository,
     private val identitiesInteractor: IdentitiesInteractor,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -45,13 +48,17 @@ internal class SendInviteUseCase(
             return onError(InviteMessageTooLongException())
         }
 
-        if (invitesRepository.checkIfAccountsHaveExistingInvite(invite.inviterAccount.value, invite.inviteeAccount.value)) {
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        if (runBlocking(scope.coroutineContext) { invitesRepository.checkIfAccountsHaveExistingInvite(invite.inviterAccount.value, invite.inviteeAccount.value) }) {
             return onError(AccountsAlreadyHaveInviteException)
+        }
+
+        if (runBlocking(scope.coroutineContext) { threadsRepository.checkIfAccountsHaveExistingThread(invite.inviterAccount.value, invite.inviteeAccount.value) }) {
+            return onError(AccountsAlreadyHaveThreadException)
         }
 
         val decodedInviteePublicKey = decodeX25519DidKey(invite.inviteePublicKey)
 
-        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         runCatching { runBlocking(scope.coroutineContext) { setContact(invite.inviteeAccount, decodedInviteePublicKey) } }.getOrElse { error -> return onError(error) }
 
         val inviterPublicKey = runCatching { keyManagementRepository.generateAndStoreX25519KeyPair() }.getOrElse { error -> return onError(error) }

@@ -8,6 +8,8 @@ import com.walletconnect.foundation.common.model.Topic
 internal class ThreadsStorageRepository(private val threads: ThreadsQueries) {
     suspend fun insertThread(topic: String, selfAccount: String, peerAccount: String) = threads.insertOrAbortThread(topic, selfAccount, peerAccount)
     suspend fun getThreadsForSelfAccount(account: String): List<Thread> = threads.getThreadsForSelfAccount(account, ::dbToThread).executeAsList()
+    suspend fun checkIfAccountsHaveExistingThread(accountOne: String, accountTwo: String): Boolean =
+        threads.checkIfAccountsHaveExistingThread(accountOne, accountTwo).executeAsOne() || threads.checkIfAccountsHaveExistingThread(accountTwo, accountOne).executeAsOne()
     suspend fun deleteThreadByTopic(topic: String) = threads.deleteThreadByTopic(topic)
     suspend fun getThreadByTopic(topic: String): Thread = threads.getThreadByTopic(topic, ::dbToThread).executeAsOne()
     suspend fun getAllThreads(): List<Thread> = threads.getAllThreads(::dbToThread).executeAsList()

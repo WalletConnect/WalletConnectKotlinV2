@@ -99,6 +99,7 @@ internal fun engineModule() = module {
             jsonRpcInteractor = get(),
             contactRepository = get(),
             setSentInviteToChatSentInvitesStoreUseCase = get(),
+            threadsRepository = get()
         )
     }
 
@@ -122,7 +123,7 @@ internal fun engineModule() = module {
     single { SendPingUseCase(logger = get(), jsonRpcInteractor = get()) }
     single { OnMessageResponseUseCase(logger = get()) }
     single { OnLeaveResponseUseCase(logger = get()) }
-    single { OnInviteRequestUseCase(logger = get(), identitiesInteractor = get(), accountsRepository = get(), invitesRepository = get(), keyManagementRepository = get()) }
+    single { OnInviteRequestUseCase(logger = get(), identitiesInteractor = get(), accountsRepository = get(), invitesRepository = get(), keyManagementRepository = get(), threadsRepository = get()) }
     single { OnMessageRequestUseCase(logger = get(), identitiesInteractor = get(), messageRepository = get(), keyserverUrl = get(named(AndroidCommonDITags.KEYSERVER_URL)), jsonRpcInteractor = get()) }
     single { OnLeaveRequestUseCase(messageRepository = get(), jsonRpcInteractor = get(), threadsRepository = get()) }
     single {

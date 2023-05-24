@@ -7,6 +7,7 @@ import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
 import com.walletconnect.chat.common.exceptions.AccountsAlreadyHaveInviteException
+import com.walletconnect.chat.common.exceptions.AccountsAlreadyHaveThreadException
 import com.walletconnect.chat.common.exceptions.InvalidActClaims
 import com.walletconnect.chat.common.json_rpc.ChatParams
 import com.walletconnect.chat.common.model.Events
@@ -16,6 +17,7 @@ import com.walletconnect.chat.common.model.InviteStatus
 import com.walletconnect.chat.jwt.ChatDidJwtClaims
 import com.walletconnect.chat.storage.AccountsStorageRepository
 import com.walletconnect.chat.storage.InvitesStorageRepository
+import com.walletconnect.chat.storage.ThreadsStorageRepository
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.foundation.util.jwt.decodeX25519DidKey
 import com.walletconnect.utils.extractTimestamp
@@ -23,12 +25,14 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 internal class OnInviteRequestUseCase(
     private val logger: Logger,
     private val identitiesInteractor: IdentitiesInteractor,
     private val accountsRepository: AccountsStorageRepository,
     private val invitesRepository: InvitesStorageRepository,
+    private val threadsRepository: ThreadsStorageRepository,
     private val keyManagementRepository: KeyManagementRepository,
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
@@ -51,9 +55,12 @@ internal class OnInviteRequestUseCase(
             logger.log("Invite received. Resolved identity: $inviterAccountId")
 
             runCatching { accountsRepository.getAccountByInviteTopic(wcRequest.topic) }.fold(onSuccess = { inviteeAccount ->
-                if (invitesRepository.checkIfAccountsHaveExistingInvite(inviterAccountId.value, inviteeAccount.accountId.value)) {
-                    logger.error(AccountsAlreadyHaveInviteException)
-                    return@launch
+                if (runBlocking(scope.coroutineContext) { invitesRepository.checkIfAccountsHaveExistingInvite(inviterAccountId.value, inviteeAccount.accountId.value) }) {
+                    return@launch logger.error(AccountsAlreadyHaveInviteException)
+                }
+
+                if (runBlocking(scope.coroutineContext) { threadsRepository.checkIfAccountsHaveExistingThread(inviterAccountId.value, inviteeAccount.accountId.value) }) {
+                    return@launch logger.error(AccountsAlreadyHaveThreadException)
                 }
 
                 val inviteePublicKey = inviteeAccount.publicInviteKey ?: throw Throwable("Missing publicInviteKey")
