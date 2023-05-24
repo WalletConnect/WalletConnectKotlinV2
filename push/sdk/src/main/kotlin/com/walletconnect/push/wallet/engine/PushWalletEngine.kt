@@ -200,8 +200,8 @@ internal class PushWalletEngine(
 
         suspend fun extractPushConfig(): Result<List<TypeDTO>> = withContext(Dispatchers.IO) {
             val pushConfigDappUri = dappUri.run {
-                if (this.path?.contains(".well-known/wc-push-config.json") == false) {
-                    this.buildUpon().appendPath(".well-known/wc-push-config.json")
+                if (this.path?.contains(WC_PUSH_CONFIG_JSON) == false) {
+                    this.buildUpon().appendPath(WC_PUSH_CONFIG_JSON)
                 } else {
                     this
                 }
@@ -214,8 +214,8 @@ internal class PushWalletEngine(
 
         suspend fun extractDidJson(dappUri: Uri): Result<PublicKey> = withContext(Dispatchers.IO) {
             val didJsonDappUri = dappUri.run {
-                if (this.path?.contains(".well-known/did.json") == false) {
-                    this.buildUpon().appendPath(".well-known/did.json").build()
+                if (this.path?.contains(DID_JSON) == false) {
+                    this.buildUpon().appendPath(DID_JSON).build()
                 } else {
                     this
                 }
@@ -587,5 +587,10 @@ internal class PushWalletEngine(
     private suspend fun resubscribeToSubscriptions() {
         val subscriptionTopics = getListOfActiveSubscriptions().keys.toList()
         jsonRpcInteractor.batchSubscribe(subscriptionTopics) { error -> scope.launch { _engineEvent.emit(SDKError(error)) } }
+    }
+
+    private companion object {
+        const val DID_JSON = ".well-known/did.json"
+        const val WC_PUSH_CONFIG_JSON = ".well-known/wc-push-config.json"
     }
 }
