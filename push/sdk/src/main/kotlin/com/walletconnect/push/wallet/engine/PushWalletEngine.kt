@@ -588,12 +588,4 @@ internal class PushWalletEngine(
         val subscriptionTopics = getListOfActiveSubscriptions().keys.toList()
         jsonRpcInteractor.batchSubscribe(subscriptionTopics) { error -> scope.launch { _engineEvent.emit(SDKError(error)) } }
     }
-
-//    private fun calcExpiry(): Long {
-//        val currentTimeMs = System.currentTimeMillis()
-//        val currentTimeSeconds = TimeUnit.SECONDS.convert(currentTimeMs, TimeUnit.MILLISECONDS)
-//        val expiryTimeSeconds = currentTimeSeconds + MONTH_IN_SECONDS
-//
-//        return Expiry(expiryTimeSeconds).seconds
-//    }
 }
