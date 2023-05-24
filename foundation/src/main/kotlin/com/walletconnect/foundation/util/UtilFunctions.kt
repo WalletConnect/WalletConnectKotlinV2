@@ -2,7 +2,6 @@
 
 package com.walletconnect.util
 
-import io.ipfs.multibase.Base16
 import jakarta.ws.rs.core.UriBuilder
 import java.security.SecureRandom
 import kotlin.math.pow
