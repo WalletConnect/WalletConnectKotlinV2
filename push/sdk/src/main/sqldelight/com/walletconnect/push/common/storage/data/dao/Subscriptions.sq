@@ -18,7 +18,7 @@ CREATE TABLE Subscriptions (
    metadata_description TEXT NOT NULL,
    metadata_url TEXT NOT NULL,
    metadata_icons TEXT AS List<String> NOT NULL,
-   metadata_native TEXT AS String,
+   metadata_native TEXT,
    did_jwt TEXT NOT NULL,
    map_of_scope TEXT AS Map<String, Pair<String, Boolean>> NOT NULL,
    expiry INTEGER NOT NULL
