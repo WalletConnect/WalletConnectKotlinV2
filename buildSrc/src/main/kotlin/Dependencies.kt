@@ -170,18 +170,18 @@ fun DependencyHandlerScope.fcm() {
 }
 
 fun DependencyHandlerScope.compose() {
-    "api"(platform("androidx.compose:compose-bom:$composeBomVersion"))
-    "api"("androidx.compose.ui:ui")
-    "api"("androidx.compose.ui:ui-tooling-preview")
-    "api"("androidx.compose.material:material")
-    "debugApi"("androidx.compose.ui:ui-tooling")
-    "debugApi"("androidx.compose.ui:ui-test-manifest")
+    "implementation"(platform("androidx.compose:compose-bom:$composeBomVersion"))
+    "implementation"("androidx.compose.ui:ui")
+    "implementation"("androidx.compose.ui:ui-tooling-preview")
+    "implementation"("androidx.compose.material:material")
+    "debugImplementation"("androidx.compose.ui:ui-tooling")
+    "debugImplementation"("androidx.compose.ui:ui-test-manifest")
 }
 
 fun DependencyHandlerScope.accompanist() {
     "api"("com.google.accompanist:accompanist-navigation-material:$accompanistVersion")
-    "api"("com.google.accompanist:accompanist-drawablepainter:$accompanistVersion")
-    "api"("com.google.accompanist:accompanist-navigation-animation:$accompanistVersion")
+    "implementation"("com.google.accompanist:accompanist-drawablepainter:$accompanistVersion")
+    "implementation"("com.google.accompanist:accompanist-navigation-animation:$accompanistVersion")
     "implementation"("com.google.accompanist:accompanist-systemuicontroller:$accompanistVersion")
     "implementation"("com.google.accompanist:accompanist-pager:$accompanistVersion")
     "implementation"("com.google.accompanist:accompanist-pager-indicators:$accompanistVersion")
