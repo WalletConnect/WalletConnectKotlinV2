@@ -62,6 +62,7 @@ import com.walletconnect.sample.wallet.domain.hexToBytes
 import com.walletconnect.sample.wallet.domain.model.PushNotification
 import com.walletconnect.sample.wallet.domain.toEthAddress
 import com.walletconnect.sample_common.CompletePreviews
+import com.walletconnect.sample_common.tag
 import com.walletconnect.sample_common.ui.WCTopAppBar
 import com.walletconnect.sample_common.ui.theme.PreviewTheme
 import java.net.URL
@@ -120,10 +121,10 @@ private fun NotificationScreen(
                         PushWalletClient.subscribe(
                             params = subscribeParams,
                             onSuccess = {
-                                Log.e("Talha", "Subscribe Success")
+                                Log.e(tag(this), "Subscribe Success")
                             },
                             onError = {
-                                Log.e("Talha", it.throwable.stackTraceToString())
+                                Log.e(tag(this), it.throwable.stackTraceToString())
                             }
                         )
                     }
