@@ -1,5 +1,3 @@
-@file:JvmSynthetic
-
 package com.walletconnect.android.internal.common.explorer.data.model
 
 data class SupportedStandard(
