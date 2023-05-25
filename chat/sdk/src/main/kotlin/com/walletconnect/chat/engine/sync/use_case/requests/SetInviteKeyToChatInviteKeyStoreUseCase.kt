@@ -22,19 +22,11 @@ internal class SetInviteKeyToChatInviteKeyStoreUseCase(
     operator fun invoke(account: AccountId, invitePublicKey: PublicKey, invitePrivateKey: PrivateKey, onSuccess: (Boolean) -> Unit, onError: (Throwable) -> Unit) {
         val syncedInviteKeys = (invitePublicKey to invitePrivateKey).toSync(account)
         val payload = moshi.adapter(SyncedInviteKeys::class.java).toJson(syncedInviteKeys)
-        logger.log("SyncedInviteKeys: $payload")
-
 
         syncClient.set(
             Sync.Params.Set(account, Store(ChatSyncStores.CHAT_INVITE_KEYS.value), account.value, payload),
-            onSuccess = { didUpdate ->
-                logger.log("Did update on ${ChatSyncStores.CHAT_INVITE_KEYS.value} happen: $didUpdate")
-                onSuccess(didUpdate)
-            },
-            onError = { error ->
-                logger.error(error.throwable)
-                onError(error.throwable)
-            }
+            onSuccess = { didUpdate -> onSuccess(didUpdate) },
+            onError = { error -> onError(error.throwable).also { logger.error(error.throwable) } }
         )
     }
 }

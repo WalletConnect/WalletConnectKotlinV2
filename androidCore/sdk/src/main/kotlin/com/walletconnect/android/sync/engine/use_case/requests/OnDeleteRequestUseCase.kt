@@ -21,12 +21,10 @@ internal class OnDeleteRequestUseCase(
 
     suspend operator fun invoke(params: SyncParams.DeleteParams, request: WCRequest) {
         val (accountId, store) = runCatching { storesRepository.getAccountIdAndStoreByTopic(request.topic) }.getOrElse { error -> return logger.error(error) }
-        logger.log("$store | ${request.id} DELETE -> ${params.key} ")
 
         // Return/finish when the value was already set
         runCatching { storesRepository.getStoreValue(accountId, store, params.key) }
             .onSuccess { (_, _, timestamp) -> if (request.id < timestamp) return logger.error("Received request is older than current state. Received: ${request.id} - stored: $timestamp") }
-            .getOrElse { return logger.log("$accountId, store: $store, key: ${params.key}") }
 
         // Trigger on_syncUpdate event in onSuccess when the value was deleted
         runCatching { storesRepository.deleteStoreValue(accountId, store, params.key) }.fold(

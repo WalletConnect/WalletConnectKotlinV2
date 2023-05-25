@@ -35,7 +35,6 @@ internal class GoPublicUseCase(
         fun onSuccess(invitePublicKey: PublicKey, invitePrivateKey: PrivateKey) {
             scope.launch {
                 supervisorScope {
-
                     val inviteTopic = keyManagementRepository.getTopicFromKey(invitePublicKey)
                     keyManagementRepository.setKey(invitePublicKey, accountId.getInviteTag())
                     keyManagementRepository.setKey(invitePublicKey, inviteTopic.getParticipantTag())
@@ -61,10 +60,7 @@ internal class GoPublicUseCase(
                     identityPrivateKey,
                     EncodeRegisterInviteKeyDidJwtPayloadUseCase(encodeX25519DidKey(invitePublicKey.keyAsBytes), accountId),
                     EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
-                ).getOrElse() { error ->
-                    onError(error)
-                    return@goPublic
-                }
+                ).getOrElse() { error -> return@goPublic onError(error) }
 
                 scope.launch {
                     supervisorScope {

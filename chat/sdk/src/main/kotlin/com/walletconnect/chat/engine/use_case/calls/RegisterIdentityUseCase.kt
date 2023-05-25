@@ -29,11 +29,7 @@ internal class RegisterIdentityUseCase(
                         val didKey = encodeEd25519DidKey(identityPublicKey.keyAsBytes)
                         setupSyncInChatUseCase(accountId, onSign, onError = onError, onSuccess = {
                             if (!private) {
-                                goPublicUseCase.goPublic(
-                                    accountId,
-                                    onSuccess = { onSuccess(didKey) },
-                                    onError = { error -> onError(error) }
-                                )
+                                goPublicUseCase.goPublic(accountId, onSuccess = { onSuccess(didKey) }, onError = { error -> onError(error) })
                             } else {
                                 onSuccess(didKey)
                             }

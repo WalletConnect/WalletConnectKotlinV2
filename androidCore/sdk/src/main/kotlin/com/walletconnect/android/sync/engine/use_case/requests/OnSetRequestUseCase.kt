@@ -21,7 +21,6 @@ internal class OnSetRequestUseCase(
 
     suspend operator fun invoke(params: SyncParams.SetParams, request: WCRequest) {
         val (accountId, store) = runCatching { storesRepository.getAccountIdAndStoreByTopic(request.topic) }.getOrElse { error -> return logger.error(error) }
-        logger.log("$store | ${request.id} SET -> ${params.key}: ${params.value} ")
 
         // Return/finish when the value was already set
         runCatching { storesRepository.getStoreValue(accountId, store, params.key) }

@@ -49,7 +49,7 @@ internal class AcceptInviteUseCase(
                 }
 
                 val invite = invitesRepository.getReceivedInviteByInviteId(inviteId)
-                if (invite.status == InviteStatus.APPROVED || invite.status == InviteStatus.REJECTED){
+                if (invite.status == InviteStatus.APPROVED || invite.status == InviteStatus.REJECTED) {
                     logger.error(InviteWasAlreadyRespondedTo)
                     return@launch onError(InviteWasAlreadyRespondedTo)
                 }
@@ -70,10 +70,7 @@ internal class AcceptInviteUseCase(
                     identityPrivateKey,
                     EncodeInviteApprovalDidJwtPayloadUseCase(publicKey, inviterAccountId),
                     EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
-                ).getOrElse() { error ->
-                    onError(error)
-                    return@launch
-                }
+                ).getOrElse() { error -> return@launch onError(error) }
 
                 val acceptanceParams = CoreChatParams.AcceptanceParams(responseAuth = didJwt.value)
                 val responseParams = JsonRpcResponse.JsonRpcResult(jsonRpcHistoryEntry.id, result = acceptanceParams)

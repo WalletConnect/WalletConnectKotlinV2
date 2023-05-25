@@ -8,7 +8,6 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
 import com.walletconnect.chat.common.model.Events
-import com.walletconnect.chat.storage.MessageStorageRepository
 import com.walletconnect.chat.storage.ThreadsStorageRepository
 import com.walletconnect.foundation.common.model.Ttl
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -17,7 +16,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
 internal class OnLeaveRequestUseCase(
-    private val messageRepository: MessageStorageRepository,
     private val threadsRepository: ThreadsStorageRepository,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
 ) {
@@ -29,7 +27,6 @@ internal class OnLeaveRequestUseCase(
         // Maybe just forgetting thread symkey is better solution?
         scope.launch {
             threadsRepository.deleteThreadByTopic(wcRequest.topic.value)
-            messageRepository.deleteMessagesByTopic(wcRequest.topic.value)
         }
 
         scope.launch {

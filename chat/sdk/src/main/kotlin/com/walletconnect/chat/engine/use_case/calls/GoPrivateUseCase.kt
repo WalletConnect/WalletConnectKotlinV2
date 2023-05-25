@@ -40,11 +40,7 @@ internal class GoPrivateUseCase(
                     identityPrivateKey,
                     EncodeUnregisterInviteKeyDidJwtPayloadUseCase(encodeX25519DidKey(invitePublicKey.keyAsBytes), accountId),
                     EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
-                )
-                    .getOrElse() { error ->
-                        onError(error)
-                        return@goPrivate
-                    }
+                ).getOrElse() { error -> return@goPrivate onError(error) }
 
                 scope.launch {
                     supervisorScope {

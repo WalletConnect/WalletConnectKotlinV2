@@ -21,7 +21,6 @@ internal class OnChatReceivedInviteRejectedStatusUpdateEventUseCase(
 
         // When the chat sent invite update comes it means someone sent an invite or updated the status from other client
         if (event.update is SyncUpdate.SyncSet) {
-            logger.log(event.toString())
             val update = (event.update as SyncUpdate.SyncSet)
             val syncedReceivedInviteRejectedStatus: SyncedReceivedInviteRejectedStatus = moshi.adapter(SyncedReceivedInviteRejectedStatus::class.java).fromJson(update.value) ?: return logger.error(event.toString())
             val (receivedInviteId, receivedInviteStatus) = runCatching { syncedReceivedInviteRejectedStatus.toCommon() }.getOrElse { error -> return logger.error(error) }

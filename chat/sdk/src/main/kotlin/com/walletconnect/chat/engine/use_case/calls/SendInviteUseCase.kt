@@ -90,7 +90,6 @@ internal class SendInviteUseCase(
             val irnParams = IrnParams(Tags.CHAT_INVITE, Ttl(MONTH_IN_SECONDS), true)
             jsonRpcInteractor.publishJsonRpcRequest(inviteTopic, irnParams, payload, EnvelopeType.ONE, participants,
                 {
-                    logger.log("Chat invite sent successfully")
                     val sentInvite = Invite.Sent(
                         inviteId, invite.inviterAccount, invite.inviteeAccount, invite.message, inviterPublicKey,
                         InviteStatus.PENDING, acceptTopic, symmetricKey, inviterPrivateKey,
@@ -102,7 +101,7 @@ internal class SendInviteUseCase(
                     onSuccess(inviteId)
                 },
                 { throwable ->
-                    logger.log("Chat invite error: $throwable")
+                    logger.error(throwable)
                     jsonRpcInteractor.unsubscribe(acceptTopic)
                     onError(throwable)
                 }

@@ -11,10 +11,7 @@ import com.walletconnect.android.sync.common.json_rpc.SyncParams
 import com.walletconnect.android.sync.engine.use_case.calls.*
 import com.walletconnect.android.sync.engine.use_case.requests.OnDeleteRequestUseCase
 import com.walletconnect.android.sync.engine.use_case.requests.OnSetRequestUseCase
-import com.walletconnect.android.sync.engine.use_case.responses.OnDeleteResponseUseCase
-import com.walletconnect.android.sync.engine.use_case.responses.OnSetResponseUseCase
 import com.walletconnect.android.sync.engine.use_case.subscriptions.SubscribeToAllStoresUpdatesUseCase
-import com.walletconnect.foundation.util.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
@@ -24,6 +21,7 @@ import kotlinx.coroutines.launch
 internal class SyncEngine(
     private val getStoresUseCase: GetStoresUseCase,
     private val registerAccountUseCase: RegisterAccountUseCase,
+    private val isAccountRegisteredUseCase: IsAccountRegisteredUseCase,
     private val createStoreUseCase: CreateStoreUseCase,
     private val deleteStoreValueUseCase: DeleteStoreValueUseCase,
     private val setStoreValueUseCase: SetStoreValueUseCase,
@@ -31,19 +29,16 @@ internal class SyncEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val onSetRequestUseCase: OnSetRequestUseCase,
     private val onDeleteRequestUseCase: OnDeleteRequestUseCase,
-    private val onSetResponseUseCase: OnSetResponseUseCase,
-    private val onDeleteResponseUseCase: OnDeleteResponseUseCase,
     private val subscribeToAllStoresUpdatesUseCase: SubscribeToAllStoresUpdatesUseCase,
-    private val logger: Logger
 ) : GetMessageUseCaseInterface by GetMessageUseCase,
     CreateUseCaseInterface by createStoreUseCase,
     GetStoresUseCaseInterface by getStoresUseCase,
-    RegisterUseCaseInterface by registerAccountUseCase,
+    RegisterAccountUseCaseInterface by registerAccountUseCase,
+    IsAccountRegisteredUseCaseInterface by isAccountRegisteredUseCase,
     DeleteUseCaseInterface by deleteStoreValueUseCase,
     SetUseCaseInterface by setStoreValueUseCase {
 
     private var jsonRpcRequestsJob: Job? = null
-    private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
     private var internalUseCaseJob: Job? = null
 
@@ -70,9 +65,6 @@ internal class SyncEngine(
                 if (jsonRpcRequestsJob == null) {
                     jsonRpcRequestsJob = collectJsonRpcRequests()
                 }
-                if (jsonRpcResponsesJob == null) {
-                    jsonRpcResponsesJob = collectPeerResponses()
-                }
                 if (internalErrorsJob == null) {
                     internalErrorsJob = collectInternalErrors()
                 }
@@ -93,16 +85,6 @@ internal class SyncEngine(
                 }
             }.launchIn(scope)
 
-    private fun collectPeerResponses(): Job =
-        scope.launch {
-            jsonRpcInteractor.peerResponse.collect { response ->
-                when (val params = response.params) {
-                    is SyncParams.SetParams -> onSetResponseUseCase(params, response)
-                    is SyncParams.DeleteParams -> onDeleteResponseUseCase(params, response)
-                }
-            }
-        }
-
     private fun collectInternalErrors(): Job =
         merge(jsonRpcInteractor.internalErrors, pairingHandler.findWrongMethodsFlow)
             .onEach { exception -> _events.emit(exception) }
@@ -110,7 +92,6 @@ internal class SyncEngine(
 
     private fun collectUseCaseEvents(): Job =
         merge(onSetRequestUseCase.events, onDeleteRequestUseCase.events)
-            .onEach { event -> logger.log(event.toString()) }
             .onEach { event -> _events.emit(event) }
             .launchIn(scope)
 }

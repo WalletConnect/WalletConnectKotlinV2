@@ -63,6 +63,7 @@ class IdentitiesInteractor(
     }
 
     private suspend fun resolveIdentity(identityKey: String): Result<AccountId> = resolveIdentityLocally(identityKey).recover { resolveAndStoreIdentityRemotely(identityKey).getOrThrow() }
+
     suspend fun resolveIdentityDidKey(identityDidKey: String): Result<AccountId> = resolveIdentity(identityDidKey.split(DID_DELIMITER).last())
 
     private suspend fun resolveIdentityLocally(identityKey: String): Result<AccountId> = runCatching { identitiesRepository.getAccountId(identityKey) }

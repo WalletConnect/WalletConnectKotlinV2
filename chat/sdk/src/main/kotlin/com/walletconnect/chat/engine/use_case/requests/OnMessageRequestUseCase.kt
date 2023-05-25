@@ -37,9 +37,7 @@ internal class OnMessageRequestUseCase(
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
     operator fun invoke(wcRequest: WCRequest, params: ChatParams.MessageParams) {
-        logger.log("Message received")
-        val claims = extractVerifiedDidJwtClaims<ChatDidJwtClaims.ChatMessage>(params.messageAuth)
-            .getOrElse() { error -> return@invoke logger.error(error) }
+        val claims = extractVerifiedDidJwtClaims<ChatDidJwtClaims.ChatMessage>(params.messageAuth).getOrElse() { error -> return@invoke logger.error(error) }
         if (claims.action != ChatDidJwtClaims.ChatMessage.ACT) return logger.error(InvalidActClaims(ChatDidJwtClaims.ChatMessage.ACT))
 
         scope.launch {

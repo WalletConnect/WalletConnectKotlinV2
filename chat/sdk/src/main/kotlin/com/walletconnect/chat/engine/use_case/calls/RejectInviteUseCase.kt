@@ -32,17 +32,11 @@ internal class RejectInviteUseCase(
     override fun reject(inviteId: Long, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
         scope.launch {
             try {
-                val jsonRpcHistoryEntry = getPendingJsonRpcHistoryEntryByIdUseCase(inviteId)
-
-                if (jsonRpcHistoryEntry == null) {
-                    logger.error(MissingInviteRequestException)
-                    return@launch onError(MissingInviteRequestException)
-                }
+                val jsonRpcHistoryEntry = getPendingJsonRpcHistoryEntryByIdUseCase(inviteId) ?: return@launch onError(MissingInviteRequestException).also { logger.error(MissingInviteRequestException) }
 
                 val invite = invitesRepository.getReceivedInviteByInviteId(inviteId)
                 if (invite.status == InviteStatus.APPROVED || invite.status == InviteStatus.REJECTED) {
-                    logger.error(InviteWasAlreadyRespondedTo)
-                    return@launch onError(InviteWasAlreadyRespondedTo)
+                    return@launch onError(InviteWasAlreadyRespondedTo).also { logger.error(InviteWasAlreadyRespondedTo) }
                 }
 
                 val inviterPublicKey = invite.inviterPublicKey

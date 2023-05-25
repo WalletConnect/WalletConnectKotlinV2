@@ -27,7 +27,6 @@ internal class OnThreadsUpdateEventUseCase(
 
         // When the chat thread update comes it means someone either accepted invite or someone received on invite accepted response
         if (event.update is SyncUpdate.SyncSet) {
-            logger.log(event.toString())
             val update = (event.update as SyncUpdate.SyncSet)
             val syncedThread: SyncedThread = moshi.adapter(SyncedThread::class.java).fromJson(update.value) ?: return logger.error(event.toString())
             val (thread, symmetricKey) = syncedThread.toCommon()

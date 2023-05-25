@@ -63,12 +63,9 @@ internal class SendMessageUseCase(
             messageRepository.insertMessage(Message(messageId, Topic(topic), message.message, authorAccountId, messageTimestampInMs, message.media))
             jsonRpcInteractor.publishJsonRpcRequest(
                 Topic(topic), irnParams, payload,
-                onSuccess = {
-                    logger.log("Chat message sent successfully")
-                    onSuccess()
-                },
+                onSuccess = { onSuccess() },
                 onFailure = { throwable ->
-                    logger.log("Chat message error: $throwable")
+                    logger.error(throwable)
                     scope.launch { messageRepository.deleteMessageByMessageId(messageId) }
                     onError(throwable)
                 })

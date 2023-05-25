@@ -80,7 +80,7 @@ internal class JsonRpcInteractor(
 
             relay.publish(topic.value, encryptedRequest, params.toRelay()) { result ->
                 result.fold(
-                    onSuccess = { onSuccess().also { logger.log("Published: ${payload.id}") } },
+                    onSuccess = { onSuccess()},
                     onFailure = { error -> onFailure(error) }
                 )
             }
@@ -108,7 +108,7 @@ internal class JsonRpcInteractor(
         relay.publish(topic.value, encryptedResponse, params.toRelay()) { result ->
             result.fold(
                 onSuccess = {
-                    jsonRpcHistory.updateRequestWithResponse(response.id, responseJson).also { logger.log("Responded: ${response.id}") }
+                    jsonRpcHistory.updateRequestWithResponse(response.id, responseJson)
                     onSuccess()
                 },
                 onFailure = { error -> onFailure(error) }
@@ -131,7 +131,7 @@ internal class JsonRpcInteractor(
                 logger.error("Cannot send the response, error: $error")
                 onFailure(error)
             }
-        ).also { logger.log("Responded: ${request.id}") }
+        )
     }
 
     override fun respondWithParams(
@@ -164,7 +164,7 @@ internal class JsonRpcInteractor(
 
         try {
             publishJsonRpcResponse(request.topic, irnParams, result, envelopeType = envelopeType, participants = participants,
-                onFailure = { error -> handleError("Cannot send the responseWithSuccess, error: ${error.stackTraceToString()}") }).also { logger.log("Responded: ${request.id}") }
+                onFailure = { error -> handleError("Cannot send the responseWithSuccess, error: ${error.stackTraceToString()}") })
         } catch (e: Exception) {
             handleError("publishFailure; ${e.stackTraceToString()}")
         }
@@ -189,7 +189,7 @@ internal class JsonRpcInteractor(
                 onFailure = { failure ->
                     onFailure(failure)
                     handleError("Cannot send respondWithError: ${failure.stackTraceToString()}")
-                }).also { logger.log("Responded: ${request.id}") }
+                })
         } catch (e: Exception) {
             handleError("publishFailure; ${e.stackTraceToString()}")
         }
@@ -214,7 +214,7 @@ internal class JsonRpcInteractor(
                 onFailure = { failure ->
                     onFailure(failure)
                     handleError("Cannot send respondWithError: ${failure.stackTraceToString()}")
-                }).also { logger.log("Responded: ${requestId}") }
+                })
         } catch (e: Exception) {
             handleError("publishFailure; ${e.stackTraceToString()}")
         }

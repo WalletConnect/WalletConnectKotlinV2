@@ -20,21 +20,13 @@ internal class SetThreadWithSymmetricKeyToChatThreadsStoreUseCase(
     private val moshi = _moshi.build()
 
     operator fun invoke(thread: Thread, symmetricKey: SymmetricKey, onSuccess: (Boolean) -> Unit, onError: (Throwable) -> Unit) {
-        logger.log(thread.toString())
         val syncedThread = thread.toSync(symmetricKey)
         val payload = moshi.adapter(SyncedThread::class.java).toJson(syncedThread)
-        logger.log("SyncedThread: $payload")
 
         syncClient.set(
             Sync.Params.Set(thread.selfAccount, Store(ChatSyncStores.CHAT_THREADS.value), thread.topic.value, payload),
-            onSuccess = { didUpdate ->
-                logger.log("Did update on ${ChatSyncStores.CHAT_THREADS.value} happen: $didUpdate")
-                onSuccess(didUpdate)
-            },
-            onError = { error ->
-                logger.error(error.throwable)
-                onError(error.throwable)
-            }
+            onSuccess = { didUpdate -> onSuccess(didUpdate) },
+            onError = { error -> onError(error.throwable).also { logger.error(error.throwable) } }
         )
     }
 }

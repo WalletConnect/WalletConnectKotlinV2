@@ -17,27 +17,51 @@ internal class SetupSyncInChatUseCase(
     private val logger: Logger,
 ) {
     operator fun invoke(accountId: AccountId, onSign: (String) -> Cacao.Signature?, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
-        // todo check if someone already register before, possible only after https://github.com/WalletConnect/walletconnect-docs/pull/680 is merged
+        syncClient.isRegistered(Sync.Params.IsRegistered(accountId), onError = { onError(Throwable("Failed to check account is registered")) }, onSuccess = { isRegistered ->
+            // Lambda that register required chat stores within sync client
+            val registerChatStoresInSync = { registerChatStoresInSync(accountId, onSuccess, onError) }
+
+            if (!isRegistered) {
+                // If account is not registered then register in sync client and later register required chat stores
+                registerAccountInSync(accountId, onSign, onAccountRegisterSuccess = registerChatStoresInSync, onError)
+            } else {
+                // If account is registered then only register required chat stores
+                registerChatStoresInSync()
+            }
+        })
+    }
+
+    /**
+     * Registers account in Sync Client and calls [onAccountRegisterSuccess] on success
+     */
+    private fun registerAccountInSync(accountId: AccountId, onSign: (String) -> Cacao.Signature?, onAccountRegisterSuccess: () -> Unit, onError: (Throwable) -> Unit) {
         val syncSignature = onSign(syncClient.getMessage(Sync.Params.GetMessage(accountId))) ?: return onError(Throwable("Signing Sync SDK message is required to use Chat SDK"))
 
         val params = Sync.Params.Register(accountId, Sync.Model.Signature(syncSignature.t, syncSignature.s, syncSignature.m), SignatureType.headerOf(syncSignature.t))
 
-        syncClient.register(params, onSuccess = {
+        syncClient.register(params, onSuccess = { onAccountRegisterSuccess() }, onError = { error -> onError(error.throwable) })
+    }
 
-            // Register blocking current thread all stores necessary to sync chat state
-            val countDownLatch = CountDownLatch(ChatSyncStores.values().size)
 
-            // Note: When I tried registering all stores simultaneously I had issues with getting right values, when doing it sequentially it works
-            ChatSyncStores.values().forEach { store ->
-                logger.log("Registering store: $store")
-                syncClient.create(Sync.Params.Create(accountId, Store(store.value)), onSuccess = { countDownLatch.countDown() }, onError = {})
-            }
+    /**
+     * Creates required Chat stores in Sync Client and calls [onStoreRegisterSuccess] on success
+     */
+    private fun registerChatStoresInSync(accountId: AccountId, onStoreRegisterSuccess: () -> Unit, onError: (Throwable) -> Unit) {
+        // Register blocking current thread all stores necessary to sync chat state
+        val countDownLatch = CountDownLatch(ChatSyncStores.values().size)
 
-            if (!countDownLatch.await(5, TimeUnit.SECONDS)) {
-                onError(ChatSyncStoresInitializationTimeoutException)
-            } else {
-                onSuccess()
-            }
-        }, onError = { error -> onError(error.throwable) })
+        // Note: When I tried registering all stores simultaneously I had issues with getting right values, when doing it sequentially it works
+        ChatSyncStores.values().forEach { store ->
+            syncClient.create(Sync.Params.Create(accountId, Store(store.value)),
+                onSuccess = { countDownLatch.countDown() },
+                onError = { error -> logger.error("Error while registering ${store.value}: ${error.throwable.stackTraceToString()}") }
+            )
+        }
+
+        if (!countDownLatch.await(5, TimeUnit.SECONDS)) {
+            onError(ChatSyncStoresInitializationTimeoutException)
+        } else {
+            onStoreRegisterSuccess()
+        }
     }
 }

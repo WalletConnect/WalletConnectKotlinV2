@@ -14,7 +14,7 @@ internal class DeleteInviteKeyFromChatInviteKeyStoreUseCase(
     operator fun invoke(account: AccountId) {
         syncClient.delete(
             Sync.Params.Delete(account, Store(ChatSyncStores.CHAT_INVITE_KEYS.value), account.value),
-            onSuccess = { logger.log("Did update on ${ChatSyncStores.CHAT_INVITE_KEYS.value} happen: $it") },
+            onSuccess = { },
             onError = { logger.error(it.throwable) }
         )
     }

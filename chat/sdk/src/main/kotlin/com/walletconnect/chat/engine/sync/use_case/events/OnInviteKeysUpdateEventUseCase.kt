@@ -23,7 +23,6 @@ internal class OnInviteKeysUpdateEventUseCase(
     private val moshi = _moshi.build()
 
     suspend operator fun invoke(event: Events.OnSyncUpdate) {
-        logger.log(event.toString())
         val accountId = AccountId(event.update.key)
         val storedAccount = runCatching { accountsRepository.getAccountByAccountId(accountId) }.getOrNull()
 
@@ -41,7 +40,6 @@ internal class OnInviteKeysUpdateEventUseCase(
                     keyManagementRepository.setKey(invitePublicKey, inviteTopic.getParticipantTag())
                     accountsRepository.setAccountPublicInviteKey(accountId, invitePublicKey, inviteTopic)
                     jsonRpcInteractor.subscribe(inviteTopic)
-                    logger.log("InviteKeysSync $accountId, $inviteTopic, $invitePublicKey, $invitePrivateKey")
                 }
             }
             is SyncUpdate.SyncDelete -> {

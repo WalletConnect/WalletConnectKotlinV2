@@ -31,17 +31,17 @@ internal class CreateStoreUseCase(
     // note(Szymon): generation of symmetric keys for store topic must not be done in parallel
     private val mutex = Mutex()
 
-    override fun create(accountId: AccountId, store: Store, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
+    override fun create(accountId: AccountId, store: Store, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
         scope.launch {
             supervisorScope {
                 mutex.withLock {
-                    validateAccountId(accountId) { error -> return@withLock onFailure(error) }
+                    validateAccountId(accountId) { error -> return@withLock onError(error) }
 
                     // When store exists then return call onSuccess() and finish use case invocation
                     if (!storesRepository.doesStoreNotExists(accountId, store)) return@withLock onSuccess()
 
                     val keyPath = store.getDerivationPath()
-                    val entropy = runCatching { accountsRepository.getAccount(accountId).entropy }.getOrElse { error -> return@withLock onFailure(error) }
+                    val entropy = runCatching { accountsRepository.getAccount(accountId).entropy }.getOrElse { error -> return@withLock onError(error) }
                     val mnemonic = MnemonicWords(entropyToMnemonic(entropy.toBytes(), WORDLIST_ENGLISH))
                     val storeSymmetricKey = SymmetricKey(mnemonic.toKey(keyPath).keyPair.privateKey.key.toByteArray().bytesToHex().takeLast(64))
                     val storeTopic = Topic(sha256(storeSymmetricKey.keyAsBytes))
@@ -49,8 +49,8 @@ internal class CreateStoreUseCase(
                     keyManagementRepository.setKey(storeSymmetricKey, storeTopic.value)
 
                     runCatching { storesRepository.createStore(accountId, store, storeSymmetricKey, storeTopic) }.fold(
-                        onSuccess = { subscribeToStoreUpdatesUseCase(storeTopic, onSuccess = { onSuccess() }, onError = { error -> onFailure(error) }) },
-                        onFailure = { error -> onFailure(error) }
+                        onSuccess = { subscribeToStoreUpdatesUseCase(storeTopic, onSuccess = { onSuccess() }, onError = { error -> onError(error) }) },
+                        onFailure = { error -> onError(error) }
                     )
                 }
             }
@@ -59,5 +59,5 @@ internal class CreateStoreUseCase(
 }
 
 internal interface CreateUseCaseInterface {
-    fun create(accountId: AccountId, store: Store, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit)
+    fun create(accountId: AccountId, store: Store, onSuccess: () -> Unit, onError: (Throwable) -> Unit)
 }

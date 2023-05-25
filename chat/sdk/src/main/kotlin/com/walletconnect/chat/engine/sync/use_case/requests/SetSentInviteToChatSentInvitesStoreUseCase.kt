@@ -18,22 +18,13 @@ internal class SetSentInviteToChatSentInvitesStoreUseCase(
     private val moshi = _moshi.build()
 
     operator fun invoke(sentInvite: Invite.Sent, onSuccess: (Boolean) -> Unit, onError: (Throwable) -> Unit) {
-        logger.log(sentInvite.toString())
-
         val syncedSentInvite = sentInvite.toSync()
         val payload = moshi.adapter(SyncedSentInvite::class.java).toJson(syncedSentInvite)
-        logger.log("SyncedSentInvite: $payload")
 
         syncClient.set(
             Sync.Params.Set(sentInvite.inviterAccount, Store(ChatSyncStores.CHAT_SENT_INVITES.value), sentInvite.acceptTopic.value, payload),
-            onSuccess = { didUpdate ->
-                logger.log("Did update on ${ChatSyncStores.CHAT_SENT_INVITES.value} happen: $didUpdate")
-                onSuccess(didUpdate)
-            },
-            onError = { error ->
-                logger.error(error.throwable)
-                onError(error.throwable)
-            }
+            onSuccess = { didUpdate -> onSuccess(didUpdate) },
+            onError = { error -> onError(error.throwable).also { logger.error(error.throwable) } }
         )
     }
 }

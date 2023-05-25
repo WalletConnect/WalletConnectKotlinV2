@@ -39,20 +39,11 @@ internal class OnInviteRequestUseCase(
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
     operator fun invoke(wcRequest: WCRequest, params: ChatParams.InviteParams) {
-        val claims = extractVerifiedDidJwtClaims<ChatDidJwtClaims.InviteProposal>(params.inviteAuth)
-            .getOrElse() { error ->
-                logger.error(error)
-                return@invoke
-            }
+        val claims = extractVerifiedDidJwtClaims<ChatDidJwtClaims.InviteProposal>(params.inviteAuth).getOrElse() { error -> return@invoke logger.error(error) }
         if (claims.action != ChatDidJwtClaims.InviteProposal.ACT) return logger.error(InvalidActClaims(ChatDidJwtClaims.InviteProposal.ACT))
 
         scope.launch {
-            val inviterAccountId = identitiesInteractor.resolveIdentityDidKey(claims.issuer)
-                .getOrElse() { error ->
-                    logger.error(error)
-                    return@launch
-                }
-            logger.log("Invite received. Resolved identity: $inviterAccountId")
+            val inviterAccountId = identitiesInteractor.resolveIdentityDidKey(claims.issuer).getOrElse() { error -> return@launch logger.error(error) }
 
             runCatching { accountsRepository.getAccountByInviteTopic(wcRequest.topic) }.fold(onSuccess = { inviteeAccount ->
                 if (runBlocking(scope.coroutineContext) { invitesRepository.checkIfAccountsHaveExistingInvite(inviterAccountId.value, inviteeAccount.accountId.value) }) {

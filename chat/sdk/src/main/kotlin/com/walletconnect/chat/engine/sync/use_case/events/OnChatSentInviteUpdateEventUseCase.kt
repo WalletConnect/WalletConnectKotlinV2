@@ -25,7 +25,6 @@ internal class OnChatSentInviteUpdateEventUseCase(
 
         // When the chat sent invite update comes it means someone sent an invite or updated the status from other client
         if (event.update is SyncUpdate.SyncSet) {
-            logger.log(event.toString())
             val update = (event.update as SyncUpdate.SyncSet)
             val syncedSentInvite: SyncedSentInvite = moshi.adapter(SyncedSentInvite::class.java).fromJson(update.value) ?: return logger.error(event.toString())
             val sentInvite = syncedSentInvite.toCommon()

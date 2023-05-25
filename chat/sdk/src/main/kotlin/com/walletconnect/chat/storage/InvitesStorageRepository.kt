@@ -33,7 +33,7 @@ internal class InvitesStorageRepository(private val invites: InvitesQueries) {
         }
     }
 
-    fun checkIfAccountsHaveExistingInvite(inviterAccount: String, inviteeAccount: String): Boolean = invites.checkIfAccountsHaveExistingInvite(inviterAccount, inviteeAccount).executeAsOne()
+    suspend fun checkIfAccountsHaveExistingInvite(inviterAccount: String, inviteeAccount: String): Boolean = invites.checkIfAccountsHaveExistingInvite(inviterAccount, inviteeAccount).executeAsOne()
 
     suspend fun getAllPendingSentInvites() = invites.getAllPendingSentInvites(::dbToSentInvite).executeAsList()
 

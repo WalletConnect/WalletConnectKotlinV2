@@ -18,22 +18,13 @@ internal class SetReceivedInviteRejectedStatusToChatSentInvitesStoreUseCase(
     private val moshi = _moshi.build()
 
     operator fun invoke(account: AccountId, inviteId: Long, onSuccess: (Boolean) -> Unit, onError: (Throwable) -> Unit) {
-
-
         val syncedReceivedInviteRejectedStatus = inviteId.toSync()
         val payload = moshi.adapter(SyncedReceivedInviteRejectedStatus::class.java).toJson(syncedReceivedInviteRejectedStatus)
-        logger.log("SyncedReceivedInviteStatus: $payload")
 
         syncClient.set(
             Sync.Params.Set(account, Store(ChatSyncStores.CHAT_RECEIVED_INVITE_STATUSES.value), inviteId.toString(), payload),
-            onSuccess = { didUpdate ->
-                logger.log("Did update on ${ChatSyncStores.CHAT_RECEIVED_INVITE_STATUSES.value} happen: $didUpdate")
-                onSuccess(didUpdate)
-            },
-            onError = { error ->
-                logger.error(error.throwable)
-                onError(error.throwable)
-            }
+            onSuccess = { didUpdate -> onSuccess(didUpdate) },
+            onError = { error -> onError(error.throwable).also { logger.error(error.throwable) } }
         )
     }
 }

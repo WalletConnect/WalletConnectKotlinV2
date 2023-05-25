@@ -29,17 +29,14 @@ internal class SendPingUseCase(
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, pingPayload,
             onSuccess = { pingSuccess(pingPayload, onSuccess, topic, onError) },
-            onFailure = { error ->
-                logger.log("Ping sent error: $error")
-                onError(error)
-            })
+            onFailure = { error -> onError(error).also { logger.error("Ping sent error: $error") } })
     }
 
     private fun pingSuccess(
         pingPayload: ChatRpc.ChatPing,
         onSuccess: (String) -> Unit,
         topic: String,
-        onFailure: (Throwable) -> Unit,
+        onError: (Throwable) -> Unit,
     ) {
         logger.log("Ping sent successfully")
         scope.launch {
@@ -54,12 +51,12 @@ internal class SendPingUseCase(
                             },
                             onFailure = { error ->
                                 logger.log("Ping peer response error: $error")
-                                onFailure(error)
+                                onError(error)
                             })
                     }
                 }
             } catch (e: TimeoutCancellationException) {
-                onFailure(e)
+                onError(e)
             }
         }
     }

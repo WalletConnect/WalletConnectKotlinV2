@@ -114,7 +114,7 @@ internal fun engineModule() = module {
         )
     }
 
-    single { LeaveThreadUseCase(logger = get(), jsonRpcInteractor = get(), threadsRepository = get(), messageRepository = get()) }
+    single { LeaveThreadUseCase(logger = get(), jsonRpcInteractor = get(), threadsRepository = get()) }
     single { ResolveAccountUseCase(resolveInviteUseCase = get()) }
     single { GetThreadsUseCase(get()) }
     single { GetMessagesUseCase(get()) }
@@ -125,7 +125,8 @@ internal fun engineModule() = module {
     single { OnLeaveResponseUseCase(logger = get()) }
     single { OnInviteRequestUseCase(logger = get(), identitiesInteractor = get(), accountsRepository = get(), invitesRepository = get(), keyManagementRepository = get(), threadsRepository = get()) }
     single { OnMessageRequestUseCase(logger = get(), identitiesInteractor = get(), messageRepository = get(), keyserverUrl = get(named(AndroidCommonDITags.KEYSERVER_URL)), jsonRpcInteractor = get()) }
-    single { OnLeaveRequestUseCase(messageRepository = get(), jsonRpcInteractor = get(), threadsRepository = get()) }
+    single { OnLeaveRequestUseCase( jsonRpcInteractor = get(), threadsRepository = get()) }
+
     single {
         OnInviteResponseUseCase(
             logger = get(), invitesRepository = get(), keyManagementRepository = get(), identitiesInteractor = get(), threadsRepository = get(), jsonRpcInteractor = get(),
@@ -133,6 +134,7 @@ internal fun engineModule() = module {
             setSentInviteToChatSentInvitesStoreUseCase = get()
         )
     }
+
     single { SubscribeToChatTopicsUseCase(logger = get(), invitesRepository = get(), accountsRepository = get(), threadsRepository = get(), jsonRpcInteractor = get()) }
 
     single {

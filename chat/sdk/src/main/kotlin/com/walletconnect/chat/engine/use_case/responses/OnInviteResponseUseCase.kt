@@ -39,7 +39,7 @@ internal class OnInviteResponseUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val setSentInviteToChatSentInvitesStoreUseCase: SetSentInviteToChatSentInvitesStoreUseCase,
     private val setThreadWithSymmetricKeyToChatThreadsStoreUseCase: SetThreadWithSymmetricKeyToChatThreadsStoreUseCase,
-    ) {
+) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
@@ -51,7 +51,6 @@ internal class OnInviteResponseUseCase(
     }
 
     private suspend fun onRejected(wcResponse: WCResponse) {
-        logger.log("Chat invite was rejected")
         scope.launch {
             invitesRepository.updateStatusByInviteId(wcResponse.response.id, InviteStatus.REJECTED)
             val sentInvite = invitesRepository.getSentInviteByInviteId(wcResponse.response.id)
@@ -61,14 +60,12 @@ internal class OnInviteResponseUseCase(
     }
 
     private suspend fun onAccepted(response: JsonRpcResponse.JsonRpcResult, wcResponse: WCResponse) {
-        logger.log("Chat invite was accepted")
         val acceptParams = response.result as CoreChatParams.AcceptanceParams
-        val claims = extractVerifiedDidJwtClaims<ChatDidJwtClaims.InviteApproval>(acceptParams.responseAuth).getOrElse() { error ->
-            logger.error(error)
-//          Discuss what state is invite in if not verified
-//          invitesRepository.updateStatusByInviteId(wcResponse.response.id, InviteStatus.?????????)
-            return@onAccepted
-        }
+
+        // TODO
+        //  Discuss what state is invite in if not verified
+        //  invitesRepository.updateStatusByInviteId(wcResponse.response.id, InviteStatus.?????????)
+        val claims = extractVerifiedDidJwtClaims<ChatDidJwtClaims.InviteApproval>(acceptParams.responseAuth).getOrElse() { error -> return@onAccepted logger.error(error) }
         if (claims.action != ChatDidJwtClaims.InviteApproval.ACT) return logger.error(InvalidActClaims(ChatDidJwtClaims.InviteApproval.ACT))
 
         try {
