@@ -17,7 +17,7 @@ internal class IsAccountRegisteredUseCase(private val accountsRepository: Accoun
 
                 // When account exists then return call onSuccess() and finish use case invocation
                 runCatching { accountsRepository.doesAccountNotExists(accountId) }.fold(
-                    onSuccess = { isRegistered -> onSuccess(isRegistered) },
+                    onSuccess = { doesNotExists -> onSuccess(!doesNotExists) },
                     onFailure = { throwable -> onError(throwable) }
                 )
             }
