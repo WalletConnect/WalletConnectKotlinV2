@@ -30,6 +30,14 @@ object PushWalletDelegate: PushWalletClient.Delegate {
     override fun onPushDelete(deletedTopic: Push.Wallet.Event.Delete) {
     }
 
+    override fun onPushSubscription(pushSubscribe: Push.Wallet.Event.Subscription) {
+        TODO("Not yet implemented")
+    }
+
+    override fun onPushUpdate(pushUpdate: Push.Wallet.Event.Update) {
+        TODO("Not yet implemented")
+    }
+
     override fun onError(error: Push.Model.Error) {
     }
 }

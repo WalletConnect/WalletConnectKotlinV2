@@ -45,6 +45,10 @@ android {
     kotlinOptions {
         jvmTarget = jvmVersion.toString()
     }
+
+    sourceSets {
+        getByName("test").resources.srcDirs("src/test/resources")
+    }
 }
 
 sqldelight {
@@ -75,5 +79,6 @@ dependencies {
 
     jUnit5()
     jUnit5Android()
+    robolectric()
     mockk()
 }

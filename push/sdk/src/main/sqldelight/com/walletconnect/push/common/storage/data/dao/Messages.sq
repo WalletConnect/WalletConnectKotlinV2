@@ -1,4 +1,4 @@
-CREATE TABLE Message (
+CREATE TABLE Messages (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     request_id INTEGER UNIQUE NOT NULL,
     topic TEXT NOT NULL,
@@ -6,18 +6,19 @@ CREATE TABLE Message (
     title TEXT NOT NULL,
     body TEXT NOT NULL,
     icon TEXT,
-    url TEXT
+    url TEXT,
+    type TEXT NOT NULL
 );
 
 insertMessage:
-INSERT OR REPLACE INTO Message(request_id, topic, published_at, title, body, icon, url)
-VALUES (?, ?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO Messages(request_id, topic, published_at, title, body, icon, url, type)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 
 getMessagesByTopic:
-SELECT request_id, topic, published_at, title, body, icon, url
-FROM Message
+SELECT request_id, topic, published_at, title, body, icon, url, type
+FROM Messages
 WHERE topic = ?;
 
 deleteMessageByRequestId:
-DELETE FROM Message
+DELETE FROM Messages
 WHERE request_id = ?;

@@ -20,6 +20,7 @@ import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.foundation.util.jwt.decodeX25519DidKey
 import com.walletconnect.push.common.JsonRpcMethod
+import com.walletconnect.push.common.calcExpiry
 import com.walletconnect.push.common.data.jwt.PushSubscriptionJwtClaim
 import com.walletconnect.push.common.model.EngineDO
 import com.walletconnect.push.common.model.PushRpc
@@ -111,7 +112,7 @@ internal class PushDappEngine(
         message: EngineDO.PushMessage,
         onFailure: (Throwable) -> Unit,
     ) {
-        val messageParams = PushParams.MessageParams(message.title, message.body, message.icon, message.url)
+        val messageParams = PushParams.MessageParams(message.title, message.body, message.icon, message.url, message.type)
         val request = PushRpc.PushMessage(params = messageParams)
         val irnParams = IrnParams(Tags.PUSH_MESSAGE, Ttl(DAY_IN_SECONDS))
 
@@ -135,7 +136,7 @@ internal class PushDappEngine(
                         },
                         onFailure
                     )
-                }
+                } ?: onFailure(IllegalStateException("No account found for topic: $pushTopic"))
             }
         }
 
@@ -177,8 +178,8 @@ internal class PushDappEngine(
 
     suspend fun getListOfActiveSubscriptions(): Map<String, EngineDO.PushSubscription> =
         subscriptionStorageRepository.getAllSubscriptions()
-            .filter { subscription -> !subscription.topic.isNullOrBlank() }
-            .associateBy { subscription -> subscription.topic!! }
+            .filter { subscription -> !subscription.subscriptionTopic?.value.isNullOrBlank() }
+            .associateBy { subscription -> subscription.subscriptionTopic!!.value }
 
     private fun collectJsonRpcRequests(): Job =
         jsonRpcInteractor.clientSyncJsonRpc
@@ -222,31 +223,40 @@ internal class PushDappEngine(
                     }
                     val walletPublicKey = decodeX25519DidKey(pushSubscriptionJwtClaim.issuer)
                     val pushTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, walletPublicKey)
+                    val expiry = Expiry(calcExpiry())
                     val respondedSubscription = EngineDO.PushSubscription(
-                        wcResponse.response.id,
-                        wcResponse.topic.value,
-                        walletPublicKey.keyAsHex,
-                        pushTopic.value,
-                        AccountId(params.account),
-                        RelayProtocolOptions(),
-                        params.metaData
+                        requestId = wcResponse.response.id,
+                        keyAgreementTopic = Topic(""),
+                        responseTopic = wcResponse.topic,
+                        peerPublicKey = PublicKey(walletPublicKey.keyAsHex),
+                        subscriptionTopic = pushTopic,
+                        account = AccountId(params.account),
+                        relay = RelayProtocolOptions(),
+                        metadata = params.metaData,
+                        didJwt = pushRequestResponse.subscriptionAuth,
+                        scope = emptyMap(),
+                        expiry = expiry
                     )
 
                     withContext(Dispatchers.IO) {
                         with(respondedSubscription) {
                             subscriptionStorageRepository.insertSubscription(
-                                requestId,
-                                pairingTopic,
-                                peerPublicKeyAsHex,
-                                topic,
-                                account.value,
-                                relay.protocol,
-                                relay.data,
-                                metadata.name,
-                                metadata.description,
-                                metadata.url,
-                                metadata.icons,
-                                metadata.redirect?.native
+                                requestId = requestId,
+                                keyAgreementTopic = keyAgreementTopic.value,
+                                responseTopic = responseTopic.value,
+                                peerPublicKeyAsHex = peerPublicKey?.keyAsHex,
+                                subscriptionTopic = subscriptionTopic?.value,
+                                account = account.value,
+                                relayProtocol = relay.protocol,
+                                relayData = relay.data,
+                                name = metadata.name,
+                                description = metadata.description,
+                                url = metadata.url,
+                                icons = metadata.icons,
+                                native = metadata.redirect?.native,
+                                didJwt = pushRequestResponse.subscriptionAuth,
+                                mapOfScope = emptyMap(),
+                                expiry = expiry.seconds
                             )
                         }
 

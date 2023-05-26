@@ -121,10 +121,11 @@ class SessionViewModel : ViewModel() {
         val pushTopic = PushDappDelegate.activePushSubscription?.topic
             ?: PushDappClient.getActiveSubscriptions().keys.firstOrNull() ?: return
         val pushMessage = Push.Model.Message(
-            "Kotlin Dapp Title",
-            "Kotlin Dapp Body",
-            "https://raw.githubusercontent.com/WalletConnect/walletconnect-assets/master/Icon/Gradient/Icon.png",
-            "https://walletconnect.com"
+            title = "Kotlin Dapp Title",
+            body = "Kotlin Dapp Body",
+            icon = "https://raw.githubusercontent.com/WalletConnect/walletconnect-assets/master/Icon/Gradient/Icon.png",
+            url = "https://walletconnect.com",
+            type = ""
         )
         val notifyParams = Push.Dapp.Params.Notify(pushTopic, pushMessage)
 

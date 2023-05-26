@@ -10,6 +10,10 @@ interface PushWalletInterface {
 
         fun onPushDelete(pushDelete: Push.Wallet.Event.Delete)
 
+        fun onPushSubscription(pushSubscribe: Push.Wallet.Event.Subscription)
+
+        fun onPushUpdate(pushUpdate: Push.Wallet.Event.Update)
+
         fun onError(error: Push.Model.Error)
     }
 
@@ -20,6 +24,10 @@ interface PushWalletInterface {
     fun approve(params: Push.Wallet.Params.Approve, onSuccess: () -> Unit, onError: (Push.Model.Error) -> Unit)
 
     fun reject(params: Push.Wallet.Params.Reject, onSuccess: () -> Unit, onError: (Push.Model.Error) -> Unit)
+
+    fun subscribe(params: Push.Wallet.Params.Subscribe, onSuccess: () -> Unit, onError: (Push.Model.Error) -> Unit)
+
+    fun update(params: Push.Wallet.Params.Update, onSuccess: () -> Unit, onError: (Push.Model.Error) -> Unit)
 
     /**
      * Caution: This function is blocking and runs on the current thread.
