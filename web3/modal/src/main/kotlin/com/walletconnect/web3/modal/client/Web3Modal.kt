@@ -32,19 +32,20 @@ object Web3Modal {
     ) {
         SignClient.initialize(
             init = Sign.Params.Init(init.core),
+            onSuccess = {
+                runCatching {
+                    wcKoinApp.modules(
+                        web3ModalModule()
+                    )
+                    setDelegate(Web3ModalDelegate)
+                }.onFailure { error -> onError(Modal.Model.Error(error)) }
+                onSuccess()
+            },
             onError = { error ->
                 onError(Modal.Model.Error(error.throwable))
                 return@initialize
             }
         )
-
-        runCatching {
-            wcKoinApp.modules(
-                web3ModalModule()
-            )
-            setDelegate(Web3ModalDelegate)
-        }.onFailure { error -> onError(Modal.Model.Error(error)) }
-        onSuccess()
     }
 
     @Throws(IllegalStateException::class)

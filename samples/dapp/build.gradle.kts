@@ -70,6 +70,8 @@ dependencies {
     implementation ("io.insert-koin:koin-androidx-compose:3.4.3")
     implementation ("io.coil-kt:coil-compose:2.3.0")
 
+    compose()
+
     // Firebase
     implementation(platform("com.google.firebase:firebase-bom:31.1.1"))
     implementation("com.google.firebase:firebase-crashlytics-ktx")
