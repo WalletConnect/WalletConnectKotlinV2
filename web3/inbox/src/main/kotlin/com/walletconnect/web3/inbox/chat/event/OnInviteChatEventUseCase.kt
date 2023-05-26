@@ -13,7 +13,7 @@ internal class OnInviteChatEventUseCase(
         call(Web3InboxRPC.Call.Chat.Invite(params = model.toParams()))
 
     private fun Chat.Model.Events.OnInvite.toParams() = with(invite) {
-        Web3InboxParams.Call.Chat.InviteParams(id, inviterAccount.value, inviteeAccount.value, message.value, inviterPublicKey, inviteePublicKey, status.name.lowercase())
+        Web3InboxParams.Call.Chat.InviteParams(id, inviterAccount.value, inviteeAccount.value, message.value, inviterPublicKey, status.name.lowercase())
     }
 }
 

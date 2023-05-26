@@ -49,10 +49,12 @@ class Web3WalletApplication : Application() {
             metaData = appMetaData
         ) { error ->
             Firebase.crashlytics.recordException(error.throwable)
+            Log.e(tag(this), error.throwable.stackTraceToString())
         }
 
         Web3Wallet.initialize(Wallet.Params.Init(core = CoreClient)) { error ->
             Firebase.crashlytics.recordException(error.throwable)
+            Log.e(tag(this), error.throwable.stackTraceToString())
         }
 
         PushWalletClient.initialize(Push.Wallet.Params.Init(CoreClient)) { error ->
@@ -63,6 +65,7 @@ class Web3WalletApplication : Application() {
             onSign = { message -> CacaoSigner.sign(message, EthAccountDelegate.privateKey.hexToBytes(), SignatureType.EIP191) }
         )) { error ->
             Firebase.crashlytics.recordException(error.throwable)
+            Log.e(tag(this), error.throwable.stackTraceToString())
         }
 
         // For testing purposes only

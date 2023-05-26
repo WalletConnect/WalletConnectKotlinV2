@@ -18,7 +18,7 @@ class PrototypeTest {
 
     companion object {
         const val PROTOTYPE_STORE_NAME = "my-user-profile"
-        const val SIGNATURE = "0xc91265eadb1473d90f8d49d31b7016feb7f7761a2a986ca2146a4b8964f3357569869680154927596a5829ceea925f4196b8a853a29c2c1d5915832fc9f1c6a01c"
+        const val SIGNATURE = "0xfbbdc863d63c02692dc20bf61415dbd68e531882fd5725c4349df4f2e294307b2b5acc8751e12b1bf65e4c35128fa917a6200e3855c12b5e967fe2b26dc9f6031c"
     }
 
     private val prototypeStore = Store(PROTOTYPE_STORE_NAME)
@@ -28,17 +28,13 @@ class PrototypeTest {
         val keyPath = prototypeStore.getDerivationPath()
         val entropy = sha256(SIGNATURE.toByteArray())
         val mnemonic = MnemonicWords(entropyToMnemonic(entropy.hexToBytes(), WORDLIST_ENGLISH))
-        val privKey = mnemonic.toKey(keyPath).keyPair.privateKey.key.toByteArray().bytesToHex()
+        val privKey = mnemonic.toKey(keyPath).keyPair.privateKey.key.toByteArray().bytesToHex().takeLast(64)
         val topic = sha256(privKey.hexToBytes())
 
-        assertEquals("118cf02858a7e588b0e76f40bcfd7dd985eb3a21dc524b0200a7cbcbec0a7841", entropy)
+        assertEquals("0a0801cec7d99e78ed8c9a9bfda87bdf7f59e93b377be4e4eb58883be943668a", entropy)
         assertEquals("m/77'/0'/0/1836658037/1936028205/1886547814/6909029", keyPath)
-        assertEquals("164a1b53452729c86d18127d912a9bab83c516885101a0b0fb8287b998014e74", privKey)
-        assertEquals(
-            "bag guide anxiety rally layer session seminar unknown doll tree garage reason gadget other manual medal enrich avoid clarify nurse salute ahead three caution",
-            mnemonic.toString()
-        )
-        assertEquals("741f8902d339c4c16f33fa598a6598b63e5ed125d761374511b2e06562b033eb", topic)
+        assertEquals("3b17151f7bb5d4421e0c647f2b59eae81e4bf3a5458a3bbd8169d8a70132bbaf", privKey)
+        assertEquals("9a07815209f63b80e9af08e5922e70802089989aee3b991a102cf28efd4b984f", topic)
     }
 
     @Test

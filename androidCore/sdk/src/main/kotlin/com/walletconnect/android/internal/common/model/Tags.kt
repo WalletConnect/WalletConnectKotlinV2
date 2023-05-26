@@ -64,10 +64,8 @@ enum class Tags(val id: Int) {
     PUSH_UPDATE_RESPONSE(4009),
 
     SYNC_SET(5000),
-    SYNC_SET_RESPONSE(5001),
 
     SYNC_DELETE(5002),
-    SYNC_DELETE_RESPONSE(5003),
 
     //todo: Discuss: Should Tags be in specific SDKs?
 }

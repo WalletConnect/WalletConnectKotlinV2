@@ -15,7 +15,7 @@ internal class AccountsStorageRepository(private val accounts: AccountsQueries) 
     suspend fun getAccount(accountId: AccountId): Account =
         accounts.getAccountByAccountId(accountId.value, ::dbToAccount).executeAsOne()
 
-    private suspend fun doesAccountNotExists(accountId: AccountId) = accounts.doesAccountNotExists(accountId.value).executeAsOne()
+    suspend fun doesAccountNotExists(accountId: AccountId) = accounts.doesAccountNotExists(accountId.value).executeAsOne()
 
     private fun dbToAccount(accountId: String, entropy: String): Account =
         Account(AccountId(accountId), Entropy(entropy))
