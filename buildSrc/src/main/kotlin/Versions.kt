@@ -17,7 +17,7 @@ const val WEB_3_INBOX = "1.0.0-alpha08"
 const val WEB_3_MODAL = "1.0.0-alpha01"
 
 val jvmVersion = JavaVersion.VERSION_11
-const val MIN_SDK: Int = 23
+const val MIN_SDK: Int = 21
 const val TARGET_SDK: Int = 33
 const val COMPILE_SDK: Int = TARGET_SDK
 val SAMPLE_VERSION_CODE = BOM_VERSION.split(".").run { "${this[1]}${this[2]}" }.toInt()

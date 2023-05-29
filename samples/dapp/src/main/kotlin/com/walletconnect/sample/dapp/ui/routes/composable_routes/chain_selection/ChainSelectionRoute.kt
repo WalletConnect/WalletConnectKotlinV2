@@ -25,6 +25,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.walletconnect.sample.dapp.R
 import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.sample.dapp.ui.routes.Route
 import com.walletconnect.sample.dapp.ui.routes.bottom_routes.PairingSelectionResult
@@ -36,7 +37,6 @@ import com.walletconnect.sample_common.ui.commons.BlueButton
 import com.walletconnect.sample_common.ui.theme.PreviewTheme
 import com.walletconnect.web3.modal.domain.configuration.Config
 import com.walletconnect.web3.modal.ui.navigateToWeb3Modal
-import timber.log.Timber
 
 @Composable
 fun ChainSelectionRoute(navController: NavController) {
@@ -75,23 +75,22 @@ fun ChainSelectionRoute(navController: NavController) {
 
     ChainSelectionScreen(
         chains = chainsState,
-        onChainClick = viewModel::updateChainSelectState,
-        onConnectClick = {
-            if (viewModel.isAnyChainSelected) {
-                if (viewModel.isAnySettledParingExist) {
-                    navController.navigate(Route.ParingSelection.path) {
-                        popUpTo(Route.ChainSelection.path)
-                    }
-                } else {
-                    viewModel.connectToWallet { uri ->
-                        navController.navigateToWeb3Modal(Config.Connect(uri = uri))
-                    }
+        onChainClick = viewModel::updateChainSelectState
+    ) {
+        if (viewModel.isAnyChainSelected) {
+            if (viewModel.isAnySettledParingExist) {
+                navController.navigate(Route.ParingSelection.path) {
+                    popUpTo(Route.ChainSelection.path)
                 }
             } else {
-                Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
+                viewModel.connectToWallet { uri ->
+                    navController.navigateToWeb3Modal(Config.Connect(uri = uri))
+                }
             }
+        } else {
+            Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
         }
-    )
+    }
 }
 
 @Composable
@@ -165,7 +164,8 @@ private fun ChainItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
-            imageVector = ImageVector.vectorResource(id = chain.icon),
+            //TODO: for Android 21 test purposes, change
+            imageVector = ImageVector.vectorResource(id = R.drawable.ic_ethereum),
             contentDescription = "${chain.chainName} icon"
         )
         Spacer(modifier = Modifier.width(12.dp))
@@ -181,9 +181,8 @@ private fun ChainSelectionScreenPreview(
     PreviewTheme {
         ChainSelectionScreen(
             chains = chains,
-            onChainClick = { _, _ -> },
-            onConnectClick = {}
-        )
+            onChainClick = { _, _ -> }
+        ) {}
     }
 }
 

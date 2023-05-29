@@ -2,7 +2,6 @@
 
 package com.walletconnect.sample.dapp.ui.routes.composable_routes.session
 
-import android.net.Uri
 import android.widget.Toast
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.*
@@ -29,11 +28,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.walletconnect.sample_common.ui.WCTopAppBar
 import com.walletconnect.sample.dapp.R
 import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.sample.dapp.ui.navigateToAccount
 import com.walletconnect.sample.dapp.ui.routes.Route
+import com.walletconnect.sample_common.ui.WCTopAppBar
 import com.walletconnect.sample_common.ui.commons.BlueButton
 import com.walletconnect.sample_common.ui.themedColor
 
@@ -211,7 +210,8 @@ private fun LazyItemScope.SessionChainItem(
             )
         }
         Image(
-            imageVector = ImageVector.vectorResource(id = R.drawable.ic_forward_chevron),
+            //TODO: for Android 21 test purposes, change
+            imageVector = ImageVector.vectorResource(id = R.drawable.ic_wallet_connect_logo),
             contentDescription = "ForwardIcon",
             modifier = Modifier
                 .padding(end = 8.dp)
