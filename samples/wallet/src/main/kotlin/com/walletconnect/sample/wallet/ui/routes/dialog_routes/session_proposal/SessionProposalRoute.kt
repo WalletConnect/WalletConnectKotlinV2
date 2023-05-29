@@ -5,11 +5,7 @@ package com.walletconnect.sample.wallet.ui.routes.dialog_routes.session_proposal
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
@@ -29,12 +25,8 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
-import com.walletconnect.sample.wallet.ui.common.Buttons
-import com.walletconnect.sample.wallet.ui.common.Content
-import com.walletconnect.sample.wallet.ui.common.SemiTransparentDialog
+import com.walletconnect.sample.wallet.ui.common.*
 import com.walletconnect.sample.wallet.ui.common.blue.BlueLabelTexts
-import com.walletconnect.sample.wallet.ui.common.getAllEventsByChainId
-import com.walletconnect.sample.wallet.ui.common.getAllMethodsByChainId
 import com.walletconnect.sample.wallet.ui.common.peer.Peer
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.showSnackbar
@@ -66,7 +58,13 @@ fun SessionProposalRoute(navController: NavHostController, sessionProposalViewMo
         Permissions(sessionProposalUI = sessionProposalUI)
         Spacer(modifier = Modifier.height(16.dp))
         Buttons(onDecline = {
-            sessionProposalViewModel.reject()
+            sessionProposalViewModel.reject() { redirect ->
+                try {
+                    context.startActivity(Intent(Intent.ACTION_VIEW, redirect.toUri()))
+                } catch (exception: ActivityNotFoundException) {
+                    // There is no app to handle deep link
+                }
+            }
             navController.popBackStack(route = Route.Connections.path, inclusive = false)
         }, onAllow = {
             composableScope.launch {
