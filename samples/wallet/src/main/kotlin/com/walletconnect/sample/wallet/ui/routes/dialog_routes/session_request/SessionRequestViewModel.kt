@@ -5,11 +5,20 @@ import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
+import com.walletconnect.android.cacao.signature.SignatureType
+import com.walletconnect.android.internal.common.signing.eip191.EIP191Signer
+import com.walletconnect.android.internal.common.signing.signature.toCacaoSignature
+import com.walletconnect.android.utils.cacao.sign
+import com.walletconnect.sample.wallet.domain.EthAccountDelegate
 import com.walletconnect.sample.wallet.domain.WCDelegate
 import com.walletconnect.sample.wallet.ui.common.peer.PeerUI
 import com.walletconnect.sample_common.Chains
+import com.walletconnect.util.hexToBytes
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
+import com.walletconnect.web3.wallet.utils.CacaoSigner
+import org.json.JSONArray
+import org.web3j.utils.Numeric.hexStringToByteArray
 
 class SessionRequestViewModel : ViewModel() {
     var sessionRequest: SessionRequestUI = generateSessionRequestUI(WCDelegate.sessionRequest)
@@ -40,11 +49,29 @@ class SessionRequestViewModel : ViewModel() {
         }
     }
 
+    private fun extractParamFromPersonalSign(input: String): ByteArray {
+        return hexStringToByteArray(extractParamFromWalletAuthenticate(input))
+    }
+
+    private fun extractParamFromWalletAuthenticate(input: String): String {
+        return try {
+            val jsonArray = JSONArray(input)
+            if (jsonArray.length() > 0) {
+                jsonArray.getString(0)
+            } else {
+                ""
+            }
+        } catch (e: Exception) {
+           ""
+        }
+    }
+
     fun approve(sendSessionRequestResponseDeepLink: (Uri) -> Unit) {
         val sessionRequest = sessionRequest as? SessionRequestUI.Content
         if (sessionRequest != null) {
             val result: String = when {
-                //TODO: calculate proper values
+                sessionRequest.method == "personal_sign" -> EIP191Signer.sign(extractParamFromPersonalSign(sessionRequest.param), EthAccountDelegate.privateKey.hexToBytes()).toCacaoSignature()
+                sessionRequest.method == "eth_sign" -> CacaoSigner.sign(extractParamFromWalletAuthenticate(sessionRequest.param), EthAccountDelegate.privateKey.hexToBytes(), SignatureType.EIP191).s
                 sessionRequest.chain?.contains(
                     Chains.Info.Eth.chain,
                     true
