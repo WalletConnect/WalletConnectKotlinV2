@@ -50,7 +50,7 @@ internal class OnInviteRequestUseCase(
                     return@launch logger.error(AccountsAlreadyHaveInviteException)
                 }
 
-                if (runBlocking(scope.coroutineContext) { threadsRepository.checkIfAccountsHaveExistingThread(inviterAccountId.value, inviteeAccount.accountId.value) }) {
+                if (runBlocking(scope.coroutineContext) { threadsRepository.checkIfSelfAccountHaveThreadWithPeerAccount(inviteeAccount.accountId.value, inviterAccountId.value) }) {
                     return@launch logger.error(AccountsAlreadyHaveThreadException)
                 }
 

@@ -8,8 +8,6 @@ import com.walletconnect.chat.storage.InvitesStorageRepository
 import com.walletconnect.chat.storage.ThreadsStorageRepository
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -26,13 +24,9 @@ internal class SubscribeToChatTopicsUseCase(
     val errors: SharedFlow<SDKError> = _errors.asSharedFlow()
 
     suspend operator fun invoke() {
-        coroutineScope {
-            launch(Dispatchers.IO) {
-                trySubscribeToInviteTopics()
-                trySubscribeToPendingAcceptTopics()
-                trySubscribeToThreadTopics()
-            }
-        }
+        trySubscribeToInviteTopics()
+        trySubscribeToPendingAcceptTopics()
+        trySubscribeToThreadTopics()
     }
 
     private suspend fun trySubscribeToInviteTopics() = accountsRepository.getAllInviteTopics()

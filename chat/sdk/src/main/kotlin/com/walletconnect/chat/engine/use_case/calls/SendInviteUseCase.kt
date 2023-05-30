@@ -53,7 +53,11 @@ internal class SendInviteUseCase(
             return onError(AccountsAlreadyHaveInviteException)
         }
 
-        if (runBlocking(scope.coroutineContext) { threadsRepository.checkIfAccountsHaveExistingThread(invite.inviterAccount.value, invite.inviteeAccount.value) }) {
+        if (runBlocking(scope.coroutineContext) { threadsRepository.checkIfSelfAccountHaveThreadWithPeerAccount(invite.inviterAccount.value, invite.inviteeAccount.value) }) {
+            return onError(AccountsAlreadyHaveThreadException)
+        }
+
+        if (runBlocking(scope.coroutineContext) { threadsRepository.checkIfSelfAccountHaveThreadWithPeerAccount(invite.inviteeAccount.value, invite.inviterAccount.value) }) {
             return onError(AccountsAlreadyHaveThreadException)
         }
 
@@ -86,7 +90,7 @@ internal class SendInviteUseCase(
 
             keyManagementRepository.setKey(symmetricKey, acceptTopic.value)
             jsonRpcInteractor.subscribe(acceptTopic) { error -> return@subscribe onError(error) }
-
+            logger.error("inviteTopic: $inviteTopic")
             val irnParams = IrnParams(Tags.CHAT_INVITE, Ttl(MONTH_IN_SECONDS), true)
             jsonRpcInteractor.publishJsonRpcRequest(inviteTopic, irnParams, payload, EnvelopeType.ONE, participants,
                 {
