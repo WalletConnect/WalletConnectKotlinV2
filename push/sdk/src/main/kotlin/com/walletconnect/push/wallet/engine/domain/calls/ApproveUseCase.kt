@@ -1,4 +1,4 @@
-package com.walletconnect.push.wallet.engine.domain
+package com.walletconnect.push.wallet.engine.domain.calls
 
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.crypto.sha256

@@ -49,11 +49,9 @@ import com.walletconnect.push.common.model.EngineDO
 import com.walletconnect.push.common.model.PushRpc
 import com.walletconnect.push.common.model.toEngineDO
 import com.walletconnect.push.wallet.data.MessagesRepository
-import com.walletconnect.push.wallet.engine.domain.ApproveUseCase
-import com.walletconnect.push.wallet.engine.domain.ApproveUseCaseInterface
-import com.walletconnect.push.wallet.engine.domain.SubscribeToDappUseCase
-import com.walletconnect.push.wallet.engine.domain.SubscribeToDappUseCaseInterface
 import com.walletconnect.util.generateId
+import com.walletconnect.push.wallet.engine.domain.calls.ApproveUseCaseInterface
+import com.walletconnect.push.wallet.engine.domain.calls.SubscribeToDappUseCaseInterface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -79,10 +77,10 @@ internal class PushWalletEngine(
     private val identitiesInteractor: IdentitiesInteractor,
     private val serializer: JsonRpcSerializer,
     private val logger: Logger,
-    private val subscriptToDappUseCase: SubscribeToDappUseCase,
-    private val approveUseCase: ApproveUseCase,
+    private val subscriptToDappUseCase: SubscribeToDappUseCaseInterface,
+    private val approveUseCase: ApproveUseCaseInterface,
 ) : SubscribeToDappUseCaseInterface by subscriptToDappUseCase,
-    ApproveUseCaseInterface by approveUseCase {
+    ApproveUseCaseInterface by approveUseCase,
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
