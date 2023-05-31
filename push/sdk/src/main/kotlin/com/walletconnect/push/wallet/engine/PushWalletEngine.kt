@@ -51,6 +51,7 @@ import com.walletconnect.push.common.model.toEngineDO
 import com.walletconnect.push.wallet.data.MessagesRepository
 import com.walletconnect.util.generateId
 import com.walletconnect.push.wallet.engine.domain.calls.ApproveUseCaseInterface
+import com.walletconnect.push.wallet.engine.domain.calls.RejectUseCaseInterface
 import com.walletconnect.push.wallet.engine.domain.calls.SubscribeToDappUseCaseInterface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -79,8 +80,10 @@ internal class PushWalletEngine(
     private val logger: Logger,
     private val subscriptToDappUseCase: SubscribeToDappUseCaseInterface,
     private val approveUseCase: ApproveUseCaseInterface,
+    private val rejectUseCase: RejectUseCaseInterface,
 ) : SubscribeToDappUseCaseInterface by subscriptToDappUseCase,
     ApproveUseCaseInterface by approveUseCase,
+    RejectUseCaseInterface by rejectUseCase,
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
@@ -120,20 +123,6 @@ internal class PushWalletEngine(
             .launchIn(scope)
     }
 
-    suspend fun reject(requestId: Long, reason: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
-        try {
-            val respondedSubscription = subscriptionStorageRepository.getSubscriptionsByRequestId(requestId)
-            val irnParams = IrnParams(Tags.PUSH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
-
-            jsonRpcInteractor.respondWithError(respondedSubscription.requestId, respondedSubscription.responseTopic, PeerError.Rejected.UserRejected(reason), irnParams) { error ->
-                return@respondWithError onFailure(error)
-            }
-
-            onSuccess()
-        } catch (e: Exception) {
-            onFailure(e)
-        }
-    }
 
     suspend fun update(topic: String, scopes: List<String>, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         val subscription = subscriptionStorageRepository.getAllSubscriptions().firstOrNull { subscription -> subscription.subscriptionTopic?.value == topic }
