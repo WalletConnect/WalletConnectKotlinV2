@@ -4,6 +4,7 @@ import com.walletconnect.chat.common.model.InviteType;
 -- migration from 1.db to 2.db
 
 DROP TABLE IF EXISTS Invites;
+DROP TABLE IF EXISTS Threads;
 
 CREATE TABLE Invites (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -21,18 +22,11 @@ CREATE TABLE Invites (
     UNIQUE(inviterAccount, inviteeAccount)
 );
 
-CREATE TABLE Threads_temp (
+
+CREATE TABLE Threads (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     topic TEXT UNIQUE NOT NULL,
     selfAccount TEXT NOT NULL,
     peerAccount TEXT NOT NULL,
     UNIQUE(selfAccount, peerAccount)
 );
-
-INSERT INTO Threads_temp
-SELECT id, topic, selfAccount, peerAccount
-FROM Threads;
-
-DROP TABLE Threads;
-
-ALTER TABLE Threads_temp RENAME TO Threads;
