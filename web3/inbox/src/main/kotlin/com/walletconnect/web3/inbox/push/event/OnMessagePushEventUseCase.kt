@@ -13,7 +13,10 @@ internal class OnMessagePushEventUseCase(
         call(Web3InboxRPC.Call.Push.Message(params = model.toParams()))
 
     private fun Push.Wallet.Event.Message.toParams() =
-        Web3InboxParams.Call.Push.MessageParams(id, topic, publishedAt, message.toParams())
+        Web3InboxParams.Call.Push.MessageParams(message.toParams())
+
+    private fun Push.Model.MessageRecord.toParams() =
+        Web3InboxParams.Call.Push.MessageParams.MessageRecord(id, topic, publishedAt, message.toParams())
 
 
     private fun Push.Model.Message.toParams() = Web3InboxParams.Call.Push.MessageParams.Message(title, body, icon, url)

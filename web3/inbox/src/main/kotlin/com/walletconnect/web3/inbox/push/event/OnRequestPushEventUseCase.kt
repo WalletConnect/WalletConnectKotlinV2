@@ -17,5 +17,6 @@ internal class OnRequestPushEventUseCase(
         Web3InboxParams.Call.Push.RequestParams(id, metadata.toParams())
 
 
-    private fun Core.Model.AppMetaData.toParams() = Web3InboxParams.Call.Push.RequestParams.AppMetaData(name, description, url, icons, redirect, verifyUrl)
+    private fun Core.Model.AppMetaData.toParams() =
+        Web3InboxParams.AppMetaDataParams(name, description, url, icons, redirect, verifyUrl)
 }

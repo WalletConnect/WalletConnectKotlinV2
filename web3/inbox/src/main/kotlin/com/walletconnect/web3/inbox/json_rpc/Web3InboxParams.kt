@@ -2,7 +2,6 @@ package com.walletconnect.web3.inbox.json_rpc
 
 import com.squareup.moshi.JsonClass
 import com.walletconnect.android.internal.common.model.type.ClientParams
-import com.walletconnect.push.common.Push
 
 internal sealed interface Web3InboxParams : ClientParams {
 
@@ -92,12 +91,9 @@ internal sealed interface Web3InboxParams : ClientParams {
 
             @JsonClass(generateAdapter = true)
             data class SubscribeParams(
-                val metadata: AppMetaData,
+                val metadata: AppMetaDataParams,
                 val account: String,
-            ) : Push {
-                @JsonClass(generateAdapter = true)
-                data class AppMetaData(val name: String, val description: String, val url: String, val icons: List<String>, val redirect: String?, val verifyUrl: String? = null)
-            }
+            ) : Push
 
             @JsonClass(generateAdapter = true)
             data class UpdateParams(
@@ -175,15 +171,9 @@ internal sealed interface Web3InboxParams : ClientParams {
                 val requestId: Long,
                 val topic: String,
                 val account: String,
-                val relay: Relay,
-                val metadata: AppMetaData,
-            ) : Response {
-                @JsonClass(generateAdapter = true)
-                data class Relay(val protocol: String, val data: String?)
-
-                @JsonClass(generateAdapter = true)
-                data class AppMetaData(val name: String, val description: String, val url: String, val icons: List<String>, val redirect: String?, val verifyUrl: String? = null)
-            }
+                val relay: RelayParams,
+                val metadata: AppMetaDataParams,
+            ) : Response
         }
     }
 
@@ -239,32 +229,12 @@ internal sealed interface Web3InboxParams : ClientParams {
             data class InviteAcceptedParams(
                 val topic: String,
                 val invite: InviteParams,
-            ) : Chat {
-                @JsonClass(generateAdapter = true)
-                data class InviteParams(
-                    val id: Long,
-                    val inviterAccount: String,
-                    val inviteeAccount: String,
-                    val message: String,
-                    val inviterPublicKey: String,
-                    val status: String,
-                )
-            }
+            ) : Chat
 
             @JsonClass(generateAdapter = true)
             data class InviteRejectedParams(
                 val invite: InviteParams,
-            ) : Chat {
-                @JsonClass(generateAdapter = true)
-                data class InviteParams(
-                    val id: Long,
-                    val inviterAccount: String,
-                    val inviteeAccount: String,
-                    val message: String,
-                    val inviterPublicKey: String,
-                    val status: String,
-                )
-            }
+            ) : Chat
 
             @JsonClass(generateAdapter = true)
             data class LeaveParams(
@@ -277,33 +247,20 @@ internal sealed interface Web3InboxParams : ClientParams {
             @JsonClass(generateAdapter = true)
             data class RequestParams(
                 val id: Long,
-                val metadata: AppMetaData,
-            ) : Push {
-                @JsonClass(generateAdapter = true)
-                data class AppMetaData(
-                    val name: String,
-                    val description: String,
-                    val url: String,
-                    val icons: List<String>,
-                    val redirect: String?,
-                    val verifyUrl: String? = null,
-                )
-            }
-
-            @JsonClass(generateAdapter = true)
-            data class SubscriptionParams(
-                val id: Long,
-            ) : Push {
-                //todo First merge https://github.com/WalletConnect/WalletConnectKotlinV2/pull/875
-            }
+                val metadata: AppMetaDataParams,
+            ) : Push
 
             @JsonClass(generateAdapter = true)
             data class MessageParams(
-                val id: String,
-                val topic: String,
-                val publishedAt: Long,
-                val message: Message,
+                val message: MessageRecord,
             ) : Push {
+                data class MessageRecord(
+                    val id: String,
+                    val topic: String,
+                    val publishedAt: Long,
+                    val message: Message,
+                )
+
                 data class Message(
                     val title: String,
                     val body: String,
@@ -312,19 +269,46 @@ internal sealed interface Web3InboxParams : ClientParams {
                 )
             }
 
-            @JsonClass(generateAdapter = true)
-            data class UpdateParams(
-                val id: Long,
-            ) : Push {
-                //todo First merge https://github.com/WalletConnect/WalletConnectKotlinV2/pull/875
+            sealed interface Subscription : Push {
+                @JsonClass(generateAdapter = true)
+                data class ResultParams(val subscription: SubscriptionParams) : Subscription
+
+                @JsonClass(generateAdapter = true)
+                data class ErrorParams(val id: Long, val reason: String) : Subscription
+            }
+
+            sealed interface Update : Push {
+                @JsonClass(generateAdapter = true)
+                data class ResultParams(val subscription: SubscriptionParams) : Update
+
+                @JsonClass(generateAdapter = true)
+                data class ErrorParams(val id: Long, val reason: String) : Update
             }
 
             @JsonClass(generateAdapter = true)
             data class DeleteParams(
                 val topic: String,
-            ) : Push {
-
-            }
+            ) : Push
         }
     }
+
+    @JsonClass(generateAdapter = true)
+    data class SubscriptionParams(
+        val requestId: Long,
+        val topic: String,
+        val account: String,
+        val relay: RelayParams,
+        val metadata: AppMetaDataParams,
+        val scope: Map<String, ScopeSettingParams>,
+        val expiry: Long,
+    ) : Web3InboxParams
+
+    @JsonClass(generateAdapter = true)
+    data class RelayParams(val protocol: String, val data: String?) : Web3InboxParams
+
+    @JsonClass(generateAdapter = true)
+    data class AppMetaDataParams(val name: String, val description: String, val url: String, val icons: List<String>, val redirect: String?, val verifyUrl: String? = null) : Web3InboxParams
+
+    @JsonClass(generateAdapter = true)
+    data class ScopeSettingParams(val description: String, val enabled: Boolean) : Web3InboxParams
 }

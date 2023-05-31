@@ -16,7 +16,7 @@ internal class OnInviteRejectedChatEventUseCase(
         Web3InboxParams.Call.Chat.InviteRejectedParams(invite.toParams())
 
     private fun Chat.Model.Invite.Sent.toParams() =
-        Web3InboxParams.Call.Chat.InviteRejectedParams.InviteParams(id, inviterAccount.value, inviteeAccount.value, message.value, inviterPublicKey, status.toParams())
+        Web3InboxParams.Call.Chat.InviteParams(id, inviterAccount.value, inviteeAccount.value, message.value, inviterPublicKey, status.toParams())
 
     private fun Chat.Type.InviteStatus.toParams(): String = name.lowercase()
 }

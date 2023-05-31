@@ -343,7 +343,7 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
                 override val params: Web3InboxParams.Call.Push.MessageParams,
             ) : Push
 
-            @JsonClass(generateAdapter = true)
+            @JsonClass(generateAdapter = false)
             data class Subscription(
                 @Json(name = "id")
                 override val id: Long = generateId(),
@@ -352,10 +352,10 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
                 @Json(name = "method")
                 override val method: String = Web3InboxMethods.Call.Push.SUBSCRIPTION,
                 @Json(name = "params")
-                override val params: Web3InboxParams.Call.Push.SubscriptionParams,
+                override val params: Web3InboxParams.Call.Push.Subscription,
             ) : Push
 
-            @JsonClass(generateAdapter = true)
+            @JsonClass(generateAdapter = false)
             data class Update(
                 @Json(name = "id")
                 override val id: Long = generateId(),
@@ -364,7 +364,7 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
                 @Json(name = "method")
                 override val method: String = Web3InboxMethods.Call.Push.UPDATE,
                 @Json(name = "params")
-                override val params: Web3InboxParams.Call.Push.UpdateParams,
+                override val params: Web3InboxParams.Call.Push.Update,
             ) : Push
 
             @JsonClass(generateAdapter = true)

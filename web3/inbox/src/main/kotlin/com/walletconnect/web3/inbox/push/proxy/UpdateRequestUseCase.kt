@@ -12,12 +12,10 @@ internal class UpdateRequestUseCase(
 ) : PushRequestUseCase<Web3InboxParams.Request.Push.UpdateParams>(proxyInteractor) {
 
     override fun invoke(rpc: Web3InboxRPC, params: Web3InboxParams.Request.Push.UpdateParams) {
-        respondWithError(rpc, Push.Model.Error(Throwable("First merge https://github.com/WalletConnect/WalletConnectKotlinV2/pull/875")))
-
-//        pushWalletClient.reject(
-//            Push.Wallet.Params.Reject(params.id, params.reason),
-//            onSuccess = { respondWithVoid(rpc) },
-//            onError = { error -> respondWithError(rpc, error) }
-//        )
+        pushWalletClient.update(
+            Push.Wallet.Params.Update(params.topic, params.scope),
+            onSuccess = { respondWithVoid(rpc) },
+            onError = { error -> respondWithError(rpc, error) }
+        )
     }
 }

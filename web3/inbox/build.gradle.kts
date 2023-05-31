@@ -63,6 +63,8 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:31.0.0"))
     implementation("com.google.firebase:firebase-messaging")
 
+    moshiKsp()
+
     // WalletConnect
     debugImplementation(project(":chat:sdk"))
     debugImplementation(project(":push:sdk"))

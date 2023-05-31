@@ -12,9 +12,11 @@ import com.walletconnect.web3.inbox.proxy.ProxyRequestHandler
 import com.walletconnect.web3.inbox.proxy.PushProxyInteractor
 import com.walletconnect.web3.inbox.proxy.request.*
 import com.walletconnect.web3.inbox.push.PushEventHandler
+import com.walletconnect.web3.inbox.push.event.*
 import com.walletconnect.web3.inbox.push.event.OnDeletePushEventUseCase
 import com.walletconnect.web3.inbox.push.event.OnMessagePushEventUseCase
 import com.walletconnect.web3.inbox.push.event.OnRequestPushEventUseCase
+import com.walletconnect.web3.inbox.push.event.OnSubscriptionPushEventUseCase
 import com.walletconnect.web3.inbox.push.event.OnSyncUpdatePushEventUseCase
 import com.walletconnect.web3.inbox.push.proxy.*
 import com.walletconnect.web3.inbox.webview.WebViewPresenter
@@ -56,7 +58,7 @@ internal fun proxyModule(
     single { GetActiveSubscriptionsRequestUseCase(pushWalletClient, get()) }
     single { ApproveRequestUseCase(pushWalletClient, get(), onSign) }
     single { RejectRequestUseCase(pushWalletClient, get()) }
-    single { SubscribeRequestUseCase(pushWalletClient, get()) }
+    single { SubscribeRequestUseCase(pushWalletClient, onSign, get()) }
     single { UpdateRequestUseCase(pushWalletClient, get()) }
     single { DeleteSubscriptionRequestUseCase(pushWalletClient, get()) }
     single { GetMessageHistoryRequestUseCase(pushWalletClient, get()) }
@@ -66,9 +68,10 @@ internal fun proxyModule(
     single { OnMessagePushEventUseCase(get()) }
     single { OnDeletePushEventUseCase(get()) }
     single { OnSyncUpdatePushEventUseCase(get()) }
-    //todo add OnSubscriptionPushEventUseCase and OnUpdatePushEventUseCase once merged https://github.com/WalletConnect/WalletConnectKotlinV2/pull/875
+    single { OnSubscriptionPushEventUseCase(get()) }
+    single { OnUpdatePushEventUseCase(get()) }
 
-    single { PushEventHandler(get(), get(), get(), get()) }
+    single { PushEventHandler(get(), get(), get(), get(), get(), get()) }
 
     single { ProxyRequestHandler(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
     single { WebViewPresenter(get(), get(), get(), onPageFinished) }
