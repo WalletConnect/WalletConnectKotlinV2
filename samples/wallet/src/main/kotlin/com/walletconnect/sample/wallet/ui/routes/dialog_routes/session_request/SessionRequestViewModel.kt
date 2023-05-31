@@ -6,8 +6,6 @@ import androidx.lifecycle.ViewModel
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
 import com.walletconnect.android.cacao.signature.SignatureType
-import com.walletconnect.android.internal.common.signing.eip191.EIP191Signer
-import com.walletconnect.android.internal.common.signing.signature.toCacaoSignature
 import com.walletconnect.android.utils.cacao.sign
 import com.walletconnect.sample.wallet.domain.EthAccountDelegate
 import com.walletconnect.sample.wallet.domain.WCDelegate
@@ -49,20 +47,12 @@ class SessionRequestViewModel : ViewModel() {
         }
     }
 
-    private fun extractParamFromPersonalSign(input: String): ByteArray {
-        return hexStringToByteArray(extractParamFromWalletAuthenticate(input))
-    }
-
-    private fun extractParamFromWalletAuthenticate(input: String): String {
-        return try {
-            val jsonArray = JSONArray(input)
-            if (jsonArray.length() > 0) {
-                jsonArray.getString(0)
-            } else {
-                ""
-            }
-        } catch (e: Exception) {
-           ""
+    private fun extractMessageParamFromPersonalSign(input: String): String {
+        val jsonArray = JSONArray(input)
+        return if (jsonArray.length() > 0) {
+            String(hexStringToByteArray(jsonArray.getString(0)))
+        } else {
+            throw IllegalArgumentException()
         }
     }
 
@@ -70,8 +60,11 @@ class SessionRequestViewModel : ViewModel() {
         val sessionRequest = sessionRequest as? SessionRequestUI.Content
         if (sessionRequest != null) {
             val result: String = when {
-                sessionRequest.method == "personal_sign" -> EIP191Signer.sign(extractParamFromPersonalSign(sessionRequest.param), EthAccountDelegate.privateKey.hexToBytes()).toCacaoSignature()
-                sessionRequest.method == "eth_sign" -> CacaoSigner.sign(extractParamFromWalletAuthenticate(sessionRequest.param), EthAccountDelegate.privateKey.hexToBytes(), SignatureType.EIP191).s
+                sessionRequest.method == PERSONAL_SIGN_METHOD -> CacaoSigner.sign(
+                    sessionRequest.param,
+                    EthAccountDelegate.privateKey.hexToBytes(),
+                    SignatureType.EIP191
+                ).s
                 sessionRequest.chain?.contains(
                     Chains.Info.Eth.chain,
                     true
@@ -117,10 +110,12 @@ class SessionRequestViewModel : ViewModel() {
                 ),
                 topic = sessionRequest.topic,
                 requestId = sessionRequest.request.id,
-                param = sessionRequest.request.params,
+                param = if(sessionRequest.request.method == PERSONAL_SIGN_METHOD) extractMessageParamFromPersonalSign(sessionRequest.request.params) else sessionRequest.request.params  ,
                 chain = sessionRequest.chainId,
                 method = sessionRequest.request.method
             )
         } else SessionRequestUI.Initial
     }
 }
+
+private const val PERSONAL_SIGN_METHOD = "personal_sign"

@@ -2,8 +2,6 @@
 
 package com.walletconnect.sample.wallet.ui.routes.dialog_routes.session_proposal
 
-import android.content.ActivityNotFoundException
-import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Text
@@ -31,6 +29,7 @@ import com.walletconnect.sample.wallet.ui.common.peer.Peer
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import com.walletconnect.sample_common.CompletePreviews
+import com.walletconnect.sample_common.sendResponseDeepLink
 import com.walletconnect.sample_common.ui.theme.PreviewTheme
 import com.walletconnect.sample_common.ui.themedColor
 import com.walletconnect.web3.wallet.client.Wallet
@@ -58,25 +57,12 @@ fun SessionProposalRoute(navController: NavHostController, sessionProposalViewMo
         Permissions(sessionProposalUI = sessionProposalUI)
         Spacer(modifier = Modifier.height(16.dp))
         Buttons(onDecline = {
-            sessionProposalViewModel.reject() { redirect ->
-                try {
-                    context.startActivity(Intent(Intent.ACTION_VIEW, redirect.toUri()))
-                } catch (exception: ActivityNotFoundException) {
-                    // There is no app to handle deep link
-                }
-            }
+            sessionProposalViewModel.reject() { redirect -> context.sendResponseDeepLink(redirect.toUri()) }
             navController.popBackStack(route = Route.Connections.path, inclusive = false)
         }, onAllow = {
             composableScope.launch {
                 try {
-                    sessionProposalViewModel.approve { redirect ->
-                        try {
-                            context.startActivity(Intent(Intent.ACTION_VIEW, redirect.toUri()))
-                        } catch (exception: ActivityNotFoundException) {
-                            // There is no app to handle deep link
-                        }
-
-                    }
+                    sessionProposalViewModel.approve { redirect -> context.sendResponseDeepLink(redirect.toUri()) }
                     navController.popBackStack(route = Route.Connections.path, inclusive = false)
                 } catch (e: Exception) {
                     navController.popBackStack(route = Route.Connections.path, inclusive = false)
