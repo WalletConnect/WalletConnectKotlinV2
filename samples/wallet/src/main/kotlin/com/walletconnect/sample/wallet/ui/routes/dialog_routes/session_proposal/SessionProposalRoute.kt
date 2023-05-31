@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalPagerApi::class, ExperimentalPagerApi::class)
-
 package com.walletconnect.sample.wallet.ui.routes.dialog_routes.session_proposal
 
 import androidx.compose.foundation.background
@@ -19,7 +17,6 @@ import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
