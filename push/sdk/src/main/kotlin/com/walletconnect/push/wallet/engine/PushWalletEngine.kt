@@ -55,6 +55,7 @@ import com.walletconnect.push.wallet.engine.domain.calls.DecryptMessageUseCaseIn
 import com.walletconnect.push.wallet.engine.domain.calls.DeleteMessageUseCaseInterface
 import com.walletconnect.push.wallet.engine.domain.calls.DeleteSubscriptionUseCaseInterface
 import com.walletconnect.push.wallet.engine.domain.calls.GetListOfActiveSubscriptionsUseCaseInterface
+import com.walletconnect.push.wallet.engine.domain.calls.GetListOfMessagesUseCaseInterface
 import com.walletconnect.push.wallet.engine.domain.calls.RejectUseCaseInterface
 import com.walletconnect.push.wallet.engine.domain.calls.SubscribeToDappUseCaseInterface
 import com.walletconnect.push.wallet.engine.domain.calls.UpdateUseCaseInterface
@@ -91,6 +92,7 @@ internal class PushWalletEngine(
     private val deleteMessageUseCaseInterface: DeleteMessageUseCaseInterface,
     private val decryptMessageUseCase: DecryptMessageUseCaseInterface,
     private val getListOfActiveSubscriptionsUseCaseInterface: GetListOfActiveSubscriptionsUseCaseInterface,
+    private val getListOfMessagesUseCaseInterface: GetListOfMessagesUseCaseInterface,
 ) : SubscribeToDappUseCaseInterface by subscriptToDappUseCase,
     ApproveUseCaseInterface by approveUseCase,
     RejectUseCaseInterface by rejectUseCase,
@@ -99,6 +101,7 @@ internal class PushWalletEngine(
     DeleteMessageUseCaseInterface by deleteMessageUseCaseInterface,
     DecryptMessageUseCaseInterface by decryptMessageUseCase,
     GetListOfActiveSubscriptionsUseCaseInterface by getListOfActiveSubscriptionsUseCaseInterface,
+    GetListOfMessagesUseCaseInterface by getListOfMessagesUseCaseInterface {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
@@ -136,25 +139,6 @@ internal class PushWalletEngine(
                 }
             }
             .launchIn(scope)
-    }
-
-    suspend fun getListOfMessages(topic: String): Map<Long, EngineDO.PushRecord> = supervisorScope {
-        messagesRepository.getMessagesByTopic(topic).map { messageRecord ->
-            EngineDO.PushRecord(
-                id = messageRecord.id,
-                topic = messageRecord.topic,
-                publishedAt = messageRecord.publishedAt,
-                message = EngineDO.PushMessage(
-                    title = messageRecord.message.title,
-                    body = messageRecord.message.body,
-                    icon = messageRecord.message.icon,
-                    url = messageRecord.message.url,
-                    type = messageRecord.message.type,
-                )
-            )
-        }.associateBy { pushRecord ->
-            pushRecord.id
-        }
     }
 
     private suspend fun collectJsonRpcRequests(): Job =
