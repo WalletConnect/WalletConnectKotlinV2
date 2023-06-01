@@ -51,6 +51,7 @@ import com.walletconnect.push.common.model.toEngineDO
 import com.walletconnect.push.wallet.data.MessagesRepository
 import com.walletconnect.util.generateId
 import com.walletconnect.push.wallet.engine.domain.calls.ApproveUseCaseInterface
+import com.walletconnect.push.wallet.engine.domain.calls.DeleteSubscriptionUseCaseInterface
 import com.walletconnect.push.wallet.engine.domain.calls.RejectUseCaseInterface
 import com.walletconnect.push.wallet.engine.domain.calls.SubscribeToDappUseCaseInterface
 import com.walletconnect.push.wallet.engine.domain.calls.UpdateUseCaseInterface
@@ -83,10 +84,12 @@ internal class PushWalletEngine(
     private val approveUseCase: ApproveUseCaseInterface,
     private val rejectUseCase: RejectUseCaseInterface,
     private val updateUseCase: UpdateUseCaseInterface,
+    private val deleteSubscriptionUseCaseInterface: DeleteSubscriptionUseCaseInterface,
 ) : SubscribeToDappUseCaseInterface by subscriptToDappUseCase,
     ApproveUseCaseInterface by approveUseCase,
     RejectUseCaseInterface by rejectUseCase,
     UpdateUseCaseInterface by updateUseCase,
+    DeleteSubscriptionUseCaseInterface by deleteSubscriptionUseCaseInterface,
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
@@ -124,52 +127,6 @@ internal class PushWalletEngine(
                 }
             }
             .launchIn(scope)
-    }
-
-    private suspend fun registerIdentityAndReturnDidJwt(
-        account: AccountId,
-        metadataUrl: String,
-        scopes: List<String>,
-        onSign: (String) -> Cacao.Signature?,
-        onFailure: (Throwable) -> Unit,
-    ): Result<DidJwt> = supervisorScope {
-        withContext(Dispatchers.IO) {
-            identitiesInteractor.registerIdentity(account, keyserverUrl, onSign).getOrElse {
-                onFailure(it)
-                this.cancel()
-            }
-        }
-
-        val joinedScope = scopes.joinToString(" ")
-        val (identityPublicKey, identityPrivateKey) = identitiesInteractor.getIdentityKeyPair(account)
-
-        return@supervisorScope encodeDidJwt(
-            identityPrivateKey,
-            EncodePushAuthDidJwtPayloadUseCase(metadataUrl, account, joinedScope),
-            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
-        )
-    }
-
-    suspend fun deleteSubscription(topic: String, onFailure: (Throwable) -> Unit) = supervisorScope {
-        val deleteParams = PushParams.DeleteParams(6000, "User Disconnected")
-        val request = PushRpc.PushDelete(id = generateId(), params = deleteParams)
-        val irnParams = IrnParams(Tags.PUSH_DELETE, Ttl(DAY_IN_SECONDS))
-
-        subscriptionStorageRepository.deleteSubscription(topic)
-
-        jsonRpcInteractor.unsubscribe(Topic(topic))
-        jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, request,
-            onSuccess = {
-                CoreClient.Echo.unregister({
-                    logger.log("Delete sent successfully")
-                }, {
-                    onFailure(it)
-                })
-            },
-            onFailure = {
-                onFailure(it)
-            }
-        )
     }
 
     suspend fun deleteMessage(requestId: Long, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
