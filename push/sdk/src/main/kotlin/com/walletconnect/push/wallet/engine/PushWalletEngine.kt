@@ -54,6 +54,7 @@ import com.walletconnect.push.wallet.engine.domain.calls.ApproveUseCaseInterface
 import com.walletconnect.push.wallet.engine.domain.calls.DecryptMessageUseCaseInterface
 import com.walletconnect.push.wallet.engine.domain.calls.DeleteMessageUseCaseInterface
 import com.walletconnect.push.wallet.engine.domain.calls.DeleteSubscriptionUseCaseInterface
+import com.walletconnect.push.wallet.engine.domain.calls.GetListOfActiveSubscriptionsUseCaseInterface
 import com.walletconnect.push.wallet.engine.domain.calls.RejectUseCaseInterface
 import com.walletconnect.push.wallet.engine.domain.calls.SubscribeToDappUseCaseInterface
 import com.walletconnect.push.wallet.engine.domain.calls.UpdateUseCaseInterface
@@ -89,6 +90,7 @@ internal class PushWalletEngine(
     private val deleteSubscriptionUseCaseInterface: DeleteSubscriptionUseCaseInterface,
     private val deleteMessageUseCaseInterface: DeleteMessageUseCaseInterface,
     private val decryptMessageUseCase: DecryptMessageUseCaseInterface,
+    private val getListOfActiveSubscriptionsUseCaseInterface: GetListOfActiveSubscriptionsUseCaseInterface,
 ) : SubscribeToDappUseCaseInterface by subscriptToDappUseCase,
     ApproveUseCaseInterface by approveUseCase,
     RejectUseCaseInterface by rejectUseCase,
@@ -96,6 +98,7 @@ internal class PushWalletEngine(
     DeleteSubscriptionUseCaseInterface by deleteSubscriptionUseCaseInterface,
     DeleteMessageUseCaseInterface by deleteMessageUseCaseInterface,
     DecryptMessageUseCaseInterface by decryptMessageUseCase,
+    GetListOfActiveSubscriptionsUseCaseInterface by getListOfActiveSubscriptionsUseCaseInterface,
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
@@ -134,11 +137,6 @@ internal class PushWalletEngine(
             }
             .launchIn(scope)
     }
-
-    suspend fun getListOfActiveSubscriptions(): Map<String, EngineDO.PushSubscription> =
-        subscriptionStorageRepository.getAllSubscriptions()
-            .filter { subscription -> subscription.subscriptionTopic?.value.isNullOrBlank().not() }
-            .associateBy { subscription -> subscription.subscriptionTopic!!.value }
 
     suspend fun getListOfMessages(topic: String): Map<Long, EngineDO.PushRecord> = supervisorScope {
         messagesRepository.getMessagesByTopic(topic).map { messageRecord ->
