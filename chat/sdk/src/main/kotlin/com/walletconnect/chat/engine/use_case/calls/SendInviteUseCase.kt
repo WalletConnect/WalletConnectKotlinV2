@@ -43,13 +43,13 @@ internal class SendInviteUseCase(
     private val setSentInviteToChatSentInvitesStoreUseCase: SetSentInviteToChatSentInvitesStoreUseCase,
 ) : SendInviteUseCaseInterface {
 
-    override fun invite(invite: SendInvite, onSuccess: (Long) -> Unit, onError: (Throwable) -> Unit) {
+    override suspend fun invite(invite: SendInvite, onSuccess: (Long) -> Unit, onError: (Throwable) -> Unit) {
         if (!ChatValidator.isInviteMessageValid(invite.message.value)) {
             return onError(InviteMessageTooLongException())
         }
 
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-        if (runBlocking(scope.coroutineContext) { invitesRepository.checkIfAccountsHaveExistingInvite(invite.inviterAccount.value, invite.inviteeAccount.value) }) {
+        if (withContext(scope.coroutineContext) { invitesRepository.checkIfAccountsHaveExistingInvite(invite.inviterAccount.value, invite.inviteeAccount.value) }) {
             return onError(AccountsAlreadyHaveInviteException)
         }
 
@@ -63,7 +63,7 @@ internal class SendInviteUseCase(
 
         val decodedInviteePublicKey = decodeX25519DidKey(invite.inviteePublicKey)
 
-        runCatching { runBlocking(scope.coroutineContext) { setContact(invite.inviteeAccount, decodedInviteePublicKey) } }.getOrElse { error -> return onError(error) }
+        runCatching { withContext(scope.coroutineContext) { setContact(invite.inviteeAccount, decodedInviteePublicKey) } }.getOrElse { error -> return onError(error) }
 
         val inviterPublicKey = runCatching { keyManagementRepository.generateAndStoreX25519KeyPair() }.getOrElse { error -> return onError(error) }
         val inviterPrivateKey = keyManagementRepository.getKeyPair(inviterPublicKey).second
@@ -90,7 +90,7 @@ internal class SendInviteUseCase(
 
             keyManagementRepository.setKey(symmetricKey, acceptTopic.value)
             jsonRpcInteractor.subscribe(acceptTopic) { error -> return@subscribe onError(error) }
-            logger.error("inviteTopic: $inviteTopic")
+
             val irnParams = IrnParams(Tags.CHAT_INVITE, Ttl(MONTH_IN_SECONDS), true)
             jsonRpcInteractor.publishJsonRpcRequest(inviteTopic, irnParams, payload, EnvelopeType.ONE, participants,
                 {
@@ -124,5 +124,5 @@ internal class SendInviteUseCase(
 }
 
 internal interface SendInviteUseCaseInterface {
-    fun invite(invite: SendInvite, onSuccess: (Long) -> Unit, onError: (Throwable) -> Unit)
+    suspend fun invite(invite: SendInvite, onSuccess: (Long) -> Unit, onError: (Throwable) -> Unit)
 }
