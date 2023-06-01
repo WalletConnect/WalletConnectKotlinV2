@@ -14,7 +14,7 @@ internal class GetReceivedInvitesRequestUseCase(
     override fun invoke(rpc: Web3InboxRPC, params: Web3InboxParams.Request.Chat.GetReceivedInvitesParams) =
         runCatching { chatClient.getReceivedInvites(Chat.Params.GetReceivedInvites(Chat.Type.AccountId(params.account))) }.fold(
             // Web3Inbox UI expects only Pending Invites on this call
-            onSuccess = { result -> respondWithResult(rpc, result.filter { it.value.status == Chat.Type.InviteStatus.PENDING }) },
+            onSuccess = { result -> respondWithResult(rpc, result.filter { it.value.status == Chat.Type.InviteStatus.PENDING }.toResult()) },
             onFailure = { error -> respondWithError(rpc, Chat.Model.Error(error)) }
         )
 
