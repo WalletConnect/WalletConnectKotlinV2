@@ -51,6 +51,7 @@ import com.walletconnect.push.common.model.toEngineDO
 import com.walletconnect.push.wallet.data.MessagesRepository
 import com.walletconnect.util.generateId
 import com.walletconnect.push.wallet.engine.domain.calls.ApproveUseCaseInterface
+import com.walletconnect.push.wallet.engine.domain.calls.DecryptMessageUseCaseInterface
 import com.walletconnect.push.wallet.engine.domain.calls.DeleteMessageUseCaseInterface
 import com.walletconnect.push.wallet.engine.domain.calls.DeleteSubscriptionUseCaseInterface
 import com.walletconnect.push.wallet.engine.domain.calls.RejectUseCaseInterface
@@ -87,12 +88,14 @@ internal class PushWalletEngine(
     private val updateUseCase: UpdateUseCaseInterface,
     private val deleteSubscriptionUseCaseInterface: DeleteSubscriptionUseCaseInterface,
     private val deleteMessageUseCaseInterface: DeleteMessageUseCaseInterface,
+    private val decryptMessageUseCase: DecryptMessageUseCaseInterface,
 ) : SubscribeToDappUseCaseInterface by subscriptToDappUseCase,
     ApproveUseCaseInterface by approveUseCase,
     RejectUseCaseInterface by rejectUseCase,
     UpdateUseCaseInterface by updateUseCase,
     DeleteSubscriptionUseCaseInterface by deleteSubscriptionUseCaseInterface,
     DeleteMessageUseCaseInterface by deleteMessageUseCaseInterface,
+    DecryptMessageUseCaseInterface by decryptMessageUseCase,
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
@@ -130,21 +133,6 @@ internal class PushWalletEngine(
                 }
             }
             .launchIn(scope)
-    }
-
-    fun decryptMessage(topic: String, message: String, onSuccess: (EngineDO.PushMessage) -> Unit, onFailure: (Throwable) -> Unit) {
-        try {
-            val codec = wcKoinApp.koin.get<Codec>()
-            val decryptedMessageString = codec.decrypt(Topic(topic), message)
-            // How to look in JsonRpcHistory for dupes without Rpc ID
-            val clientJsonRpc = serializer.tryDeserialize<ClientJsonRpc>(decryptedMessageString) ?: return onFailure(IllegalArgumentException("Unable to deserialize message"))
-            val pushMessage = serializer.deserialize(clientJsonRpc.method, decryptedMessageString)
-            val pushMessageEngineDO = PushParams.MessageParams::class.safeCast(pushMessage)?.toEngineDO() ?: return onFailure(IllegalArgumentException("Unable to deserialize message"))
-
-            onSuccess(pushMessageEngineDO)
-        } catch (e: Exception) {
-            onFailure(e)
-        }
     }
 
     suspend fun getListOfActiveSubscriptions(): Map<String, EngineDO.PushSubscription> =
