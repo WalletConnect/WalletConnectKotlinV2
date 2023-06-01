@@ -53,6 +53,7 @@ import com.walletconnect.util.generateId
 import com.walletconnect.push.wallet.engine.domain.calls.ApproveUseCaseInterface
 import com.walletconnect.push.wallet.engine.domain.calls.RejectUseCaseInterface
 import com.walletconnect.push.wallet.engine.domain.calls.SubscribeToDappUseCaseInterface
+import com.walletconnect.push.wallet.engine.domain.calls.UpdateUseCaseInterface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -81,9 +82,11 @@ internal class PushWalletEngine(
     private val subscriptToDappUseCase: SubscribeToDappUseCaseInterface,
     private val approveUseCase: ApproveUseCaseInterface,
     private val rejectUseCase: RejectUseCaseInterface,
+    private val updateUseCase: UpdateUseCaseInterface,
 ) : SubscribeToDappUseCaseInterface by subscriptToDappUseCase,
     ApproveUseCaseInterface by approveUseCase,
     RejectUseCaseInterface by rejectUseCase,
+    UpdateUseCaseInterface by updateUseCase,
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
@@ -121,20 +124,6 @@ internal class PushWalletEngine(
                 }
             }
             .launchIn(scope)
-    }
-
-
-    suspend fun update(topic: String, scopes: List<String>, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
-        val subscription = subscriptionStorageRepository.getAllSubscriptions().firstOrNull { subscription -> subscription.subscriptionTopic?.value == topic }
-            ?: return@supervisorScope onFailure(Exception("No subscription found for topic $topic"))
-        val didJwt = registerIdentityAndReturnDidJwt(subscription.account, subscription.metadata.url, scopes, { null }, onFailure).getOrElse { error ->
-            return@supervisorScope onFailure(error)
-        }
-
-        val updateParams = PushParams.UpdateParams(didJwt.value)
-        val request = PushRpc.PushUpdate(params = updateParams)
-        val irnParams = IrnParams(Tags.PUSH_UPDATE, Ttl(DAY_IN_SECONDS))
-        jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, request, onSuccess = onSuccess, onFailure = onFailure)
     }
 
     private suspend fun registerIdentityAndReturnDidJwt(
