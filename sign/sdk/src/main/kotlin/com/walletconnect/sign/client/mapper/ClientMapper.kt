@@ -94,6 +94,8 @@ internal fun EngineDO.Session.toClientActiveSession(): Sign.Model.Session =
         pairingTopic,
         topic.value,
         expiry.seconds,
+        requiredNamespaces.toMapOfClientNamespacesProposal(),
+        optionalNamespaces?.toMapOfClientNamespacesProposal(),
         namespaces.toMapOfClientNamespacesSession(),
         peerAppMetaData?.toClient()
     )
@@ -104,6 +106,8 @@ internal fun EngineDO.SessionExtend.toClientActiveSession(): Sign.Model.Session 
         pairingTopic,
         topic.value,
         expiry.seconds,
+        requiredNamespaces.toMapOfClientNamespacesProposal(),
+        optionalNamespaces?.toMapOfClientNamespacesProposal(),
         namespaces.toMapOfClientNamespacesSession(),
         peerAppMetaData?.toClient()
     )
