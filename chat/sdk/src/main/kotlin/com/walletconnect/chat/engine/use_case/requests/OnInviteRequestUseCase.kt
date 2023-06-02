@@ -4,7 +4,6 @@ import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementReposit
 import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtClaims
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.type.EngineEvent
-import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
 import com.walletconnect.chat.common.exceptions.AccountsAlreadyHaveInviteException
 import com.walletconnect.chat.common.exceptions.AccountsAlreadyHaveThreadException
@@ -24,8 +23,6 @@ import com.walletconnect.utils.extractTimestamp
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 internal class OnInviteRequestUseCase(
     private val logger: Logger,
@@ -38,36 +35,33 @@ internal class OnInviteRequestUseCase(
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
-    operator fun invoke(wcRequest: WCRequest, params: ChatParams.InviteParams) {
-        val claims = extractVerifiedDidJwtClaims<ChatDidJwtClaims.InviteProposal>(params.inviteAuth).getOrElse() { error -> return@invoke logger.error(error) }
+    suspend operator fun invoke(wcRequest: WCRequest, params: ChatParams.InviteParams) {
+        val claims = extractVerifiedDidJwtClaims<ChatDidJwtClaims.InviteProposal>(params.inviteAuth).getOrElse() { error -> return logger.error(error) }
         if (claims.action != ChatDidJwtClaims.InviteProposal.ACT) return logger.error(InvalidActClaims(ChatDidJwtClaims.InviteProposal.ACT))
 
-        scope.launch {
-            val inviterAccountId = identitiesInteractor.resolveIdentityDidKey(claims.issuer).getOrElse() { error -> return@launch logger.error(error) }
+        val inviterAccountId = identitiesInteractor.resolveIdentityDidKey(claims.issuer).getOrElse() { error -> return logger.error(error) }
 
-            runCatching { accountsRepository.getAccountByInviteTopic(wcRequest.topic) }.fold(onSuccess = { inviteeAccount ->
-                if (runBlocking(scope.coroutineContext) { invitesRepository.checkIfAccountsHaveExistingInvite(inviterAccountId.value, inviteeAccount.accountId.value) }) {
-                    return@launch logger.error(AccountsAlreadyHaveInviteException)
-                }
+        runCatching { accountsRepository.getAccountByInviteTopic(wcRequest.topic) }.fold(onSuccess = { inviteeAccount ->
+            if (invitesRepository.checkIfAccountsHaveExistingInvite(inviterAccountId.value, inviteeAccount.accountId.value)) {
+                return logger.error(AccountsAlreadyHaveInviteException)
+            }
 
-                if (runBlocking(scope.coroutineContext) { threadsRepository.checkIfAccountsHaveExistingThread(inviterAccountId.value, inviteeAccount.accountId.value) }) {
-                    return@launch logger.error(AccountsAlreadyHaveThreadException)
-                }
+            if (threadsRepository.checkIfSelfAccountHaveThreadWithPeerAccount(inviteeAccount.accountId.value, inviterAccountId.value)) {
+                return logger.error(AccountsAlreadyHaveThreadException)
+            }
 
-                val inviteePublicKey = inviteeAccount.publicInviteKey ?: throw Throwable("Missing publicInviteKey")
-                val inviterPublicKey = decodeX25519DidKey(claims.inviterPublicKey)
-                val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(inviteePublicKey, inviterPublicKey)
-                val acceptTopic = keyManagementRepository.getTopicFromKey(symmetricKey)
-                val invite = Invite.Received(
-                    wcRequest.id, inviterAccountId, inviteeAccount.accountId, InviteMessage(claims.subject),
-                    inviterPublicKey, InviteStatus.PENDING, acceptTopic, symmetricKey, inviterPrivateKey = null,
-                    //todo: use publishedAt from relay https://github.com/WalletConnect/WalletConnectKotlinV2/issues/872
-                    timestamp = wcRequest.id.extractTimestamp()
-                )
+            val inviteePublicKey = inviteeAccount.publicInviteKey ?: throw Throwable("Missing publicInviteKey")
+            val inviterPublicKey = decodeX25519DidKey(claims.inviterPublicKey)
+            val symmetricKey = keyManagementRepository.generateSymmetricKeyFromKeyAgreement(inviteePublicKey, inviterPublicKey)
+            val acceptTopic = keyManagementRepository.getTopicFromKey(symmetricKey)
+            val invite = Invite.Received(
+                wcRequest.id, inviterAccountId, inviteeAccount.accountId, InviteMessage(claims.subject), inviterPublicKey, InviteStatus.PENDING, acceptTopic, symmetricKey, inviterPrivateKey = null,
+                //todo: use publishedAt from relay https://github.com/WalletConnect/WalletConnectKotlinV2/issues/872
+                timestamp = wcRequest.id.extractTimestamp()
+            )
 
-                invitesRepository.insertInvite(invite)
-                _events.emit(Events.OnInvite(invite))
-            }, onFailure = { error -> logger.error(error) })
-        }
+            invitesRepository.insertInvite(invite)
+            _events.emit(Events.OnInvite(invite))
+        }, onFailure = { error -> logger.error(error) })
     }
 }
