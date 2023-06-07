@@ -6,6 +6,7 @@ import android.content.res.Resources.NotFoundException
 import androidx.core.net.toUri
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
+import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtClaims
 import com.walletconnect.android.internal.common.model.ConnectionState
@@ -116,25 +117,6 @@ internal class PushWalletEngine(
                 }
             }
             .launchIn(scope)
-    }
-
-    suspend fun getListOfMessages(topic: String): Map<Long, EngineDO.PushRecord> = supervisorScope {
-        messagesRepository.getMessagesByTopic(topic).map { messageRecord ->
-            EngineDO.PushRecord(
-                id = messageRecord.id,
-                topic = messageRecord.topic,
-                publishedAt = messageRecord.publishedAt,
-                message = EngineDO.PushMessage(
-                    title = messageRecord.message.title,
-                    body = messageRecord.message.body,
-                    icon = messageRecord.message.icon,
-                    url = messageRecord.message.url,
-                    type = messageRecord.message.type,
-                )
-            )
-        }.associateBy { pushRecord ->
-            pushRecord.id
-        }
     }
 
     private suspend fun collectJsonRpcRequests(): Job =
