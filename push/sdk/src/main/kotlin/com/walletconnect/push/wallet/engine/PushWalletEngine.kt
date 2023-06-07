@@ -390,9 +390,4 @@ internal class PushWalletEngine(
         val subscriptionTopics = getListOfActiveSubscriptions().keys.toList()
         jsonRpcInteractor.batchSubscribe(subscriptionTopics) { error -> scope.launch { _engineEvent.emit(SDKError(error)) } }
     }
-
-    private companion object {
-        const val DID_JSON = ".well-known/did.json"
-        const val WC_PUSH_CONFIG_JSON = ".well-known/wc-push-config.json"
-    }
 }
