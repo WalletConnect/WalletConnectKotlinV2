@@ -72,7 +72,9 @@ internal fun Wallet.Model.PayloadParams.toSign(): Auth.Model.PayloadParams =
     )
 
 @JvmSynthetic
-internal fun Sign.Model.Session.toWallet(): Wallet.Model.Session = Wallet.Model.Session(pairingTopic, topic, expiry, namespaces.toWallet(), metaData)
+internal fun Sign.Model.Session.toWallet(): Wallet.Model.Session = Wallet.Model.Session(
+    pairingTopic, topic, expiry, requiredNamespaces.toWalletProposalNamespaces(), optionalNamespaces?.toWalletProposalNamespaces(), namespaces.toWallet(), metaData
+)
 
 @JvmSynthetic
 internal fun List<Sign.Model.PendingRequest>.mapToPendingRequests(): List<Wallet.Model.PendingSessionRequest> = map { request ->
