@@ -24,6 +24,18 @@ internal sealed class PushRpc : JsonRpcClientSync<PushParams> {
     ) : PushRpc()
 
     @JsonClass(generateAdapter = true)
+    internal data class PushPropose(
+        @Json(name = "id")
+        override val id: Long = generateId(),
+        @Json(name = "jsonrpc")
+        override val jsonrpc: String = "2.0",
+        @Json(name = "method")
+        override val method: String = JsonRpcMethod.WC_PUSH_PROPOSE,
+        @Json(name = "params")
+        override val params: PushParams.ProposeParams,
+    ) : PushRpc()
+
+    @JsonClass(generateAdapter = true)
     internal data class PushMessage(
         @Json(name = "id")
         override val id: Long = generateId(),

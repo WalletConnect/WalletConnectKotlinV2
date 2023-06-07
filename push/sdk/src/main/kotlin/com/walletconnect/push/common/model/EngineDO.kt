@@ -7,11 +7,34 @@ import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
-import javax.crypto.KeyAgreement
 
 sealed class EngineDO : EngineEvent {
 
     data class PushRequest(
+        val id: Long,
+        val topic: String,
+        val account: String,
+        val relay: RelayProtocolOptions,
+        val metaData: AppMetaData,
+    ) : EngineDO()
+
+    sealed class PushScope : EngineDO() {
+        abstract val name: String
+        abstract val description: String
+
+        data class Remote(
+            override val name: String,
+            override val description: String,
+        ) : PushScope()
+
+        data class Cached(
+            override val name: String,
+            override val description: String,
+            val isSelected: Boolean,
+        ) : PushScope()
+    }
+
+    data class PushPropose(
         val id: Long,
         val topic: String,
         val account: String,
@@ -31,7 +54,7 @@ sealed class EngineDO : EngineEvent {
         val body: String,
         val icon: String?,
         val url: String?,
-        val type: String
+        val type: String,
     ) : EngineDO()
 
     data class PushSubscription(
@@ -44,8 +67,8 @@ sealed class EngineDO : EngineEvent {
         val relay: RelayProtocolOptions,
         val metadata: AppMetaData,
         val didJwt: String,
-        val scope: Map<String, Pair<String, Boolean>>,
-        val expiry: Expiry
+        val scope: Map<String, PushScope.Cached>,
+        val expiry: Expiry,
     ) : EngineDO()
 
     data class PushUpdate(
@@ -57,8 +80,8 @@ sealed class EngineDO : EngineEvent {
         val relay: RelayProtocolOptions,
         val metadata: AppMetaData,
         val didJwt: String,
-        val scope: Map<String, Pair<String, Boolean>>,
-        val expiry: Expiry
+        val scope: Map<String, PushScope.Cached>,
+        val expiry: Expiry,
     ) : EngineDO()
 
     data class PushRequestResponse(

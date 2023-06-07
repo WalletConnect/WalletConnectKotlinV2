@@ -5,7 +5,6 @@ import androidx.annotation.Keep
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.cacao.SignatureInterface
-import java.net.URL
 
 object Push {
 
@@ -55,6 +54,8 @@ object Push {
 
             data class Request(val account: String, val pairingTopic: String) : Params()
 
+            data class Propose(val account: String, val scope: List<String>, val pairingTopic: String) : Params()
+
             data class Notify(val topic: String, val message: Push.Model.Message) : Params()
 
             data class Delete(val topic: String) : Params()
@@ -66,6 +67,8 @@ object Push {
         sealed class Event {
 
             data class Request(val id: Long, val metadata: Core.Model.AppMetaData) : Event()
+
+            data class Proposal(val id: Long, val account: String, val metadata: Core.Model.AppMetaData) : Event()
 
             data class Message(val message: Model.MessageRecord) : Event()
 

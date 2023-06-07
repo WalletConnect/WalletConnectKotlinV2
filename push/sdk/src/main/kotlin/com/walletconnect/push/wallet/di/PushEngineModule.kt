@@ -110,6 +110,10 @@ internal fun walletEngineModule() = module {
             pairingHandler = get(),
             subscriptionStorageRepository = get(),
             messagesRepository = get(),
+            identitiesInteractor = get(),
+            serializer = get(),
+            explorerRepository = get(),
+            extractPushConfigUseCase = get(),
             subscriptToDappUseCase = get(),
             approveUseCase = get(),
             rejectUseCase = get(),
@@ -119,6 +123,7 @@ internal fun walletEngineModule() = module {
             decryptMessageUseCase = get(),
             getListOfActiveSubscriptionsUseCaseInterface = get(),
             getListOfMessagesUseCaseInterface = get(),
+            logger = get()
         )
     }
 }
