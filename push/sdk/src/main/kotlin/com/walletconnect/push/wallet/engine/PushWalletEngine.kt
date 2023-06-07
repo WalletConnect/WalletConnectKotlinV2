@@ -5,6 +5,7 @@ package com.walletconnect.push.wallet.engine
 import android.content.res.Resources.NotFoundException
 import android.net.Uri
 import android.util.Base64
+import androidx.core.net.toUri
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.codec.Codec
@@ -12,6 +13,7 @@ import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementReposit
 import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.explorer.ExplorerRepository
+import com.walletconnect.android.internal.common.explorer.data.model.Listing
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.jwt.did.EncodeDidJwtPayloadUseCase
 import com.walletconnect.android.internal.common.jwt.did.encodeDidJwt
@@ -24,6 +26,7 @@ import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Participants
+import com.walletconnect.android.internal.common.model.Redirect
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.WCRequest
@@ -49,15 +52,15 @@ import com.walletconnect.push.common.calcExpiry
 import com.walletconnect.push.common.data.jwt.EncodePushAuthDidJwtPayloadUseCase
 import com.walletconnect.push.common.data.jwt.PushSubscriptionJwtClaim
 import com.walletconnect.push.common.data.storage.SubscriptionStorageRepository
+import com.walletconnect.push.common.domain.ExtractPushConfigUseCase
 import com.walletconnect.push.common.model.EngineDO
 import com.walletconnect.push.common.model.PushRpc
 import com.walletconnect.push.common.model.toEngineDO
 import com.walletconnect.push.wallet.data.MessagesRepository
-import com.walletconnect.push.wallet.data.wellknown.config.PushConfigDTO
-import com.walletconnect.push.wallet.data.wellknown.config.TypeDTO
 import com.walletconnect.push.wallet.data.wellknown.did.DidJsonDTO
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.generateId
+import com.walletconnect.util.hexToBytes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -85,6 +88,7 @@ internal class PushWalletEngine(
     private val identitiesInteractor: IdentitiesInteractor,
     private val serializer: JsonRpcSerializer,
     private val explorerRepository: ExplorerRepository,
+    private val extractPushConfigUseCase: ExtractPushConfigUseCase,
     private val logger: Logger,
 ) {
     private var jsonRpcRequestsJob: Job? = null
@@ -127,31 +131,40 @@ internal class PushWalletEngine(
     }
 
     suspend fun subscribeToDapp(dappUri: Uri, account: String, onSign: (String) -> Cacao.Signature?, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
-        suspend fun createSubscription(dappPublicKey: PublicKey, dappScopes: List<Pair<String, String>>) {
+        suspend fun createSubscription(dappPublicKey: PublicKey, dappScopes: List<EngineDO.PushScope.Remote>) {
             val subscribeTopic = Topic(sha256(dappPublicKey.keyAsBytes))
             val selfPublicKey = crypto.generateAndStoreX25519KeyPair()
             val responseTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, dappPublicKey)
-
-            val (dappHomepageHost, dappListing) = withContext(Dispatchers.IO) {
+            val dappMetaData: AppMetaData = withContext(Dispatchers.IO) {
+                // Fetch dapp metadata from explorer api
                 val listOfDappHomepages = runCatching {
                     explorerRepository.getAllDapps().listings.associateBy { listing -> listing.homepage.host }
-                }.getOrDefault(emptyMap())
+                }.getOrElse { error ->
+                    return@withContext Result.failure(error)
+                }
 
-                listOfDappHomepages.entries.filter { (dappHomepageHost, dappListing) ->
+                // Find dapp metadata for dapp uri
+                val (dappHomepageHost: String?, dappListing: Listing) = listOfDappHomepages.entries.filter { (dappHomepageHost, dappListing) ->
                     dappHomepageHost != null && dappListing.description != null
                 }.firstOrNull { (dappHomepageHost, _) ->
                     dappHomepageHost != null && dappHomepageHost.contains(dappUri.host!!)
-                }
-            } ?: return onFailure(IllegalArgumentException("Invalid dapp uri: $dappUri"))
+                } ?: return@withContext Result.failure<AppMetaData>(IllegalArgumentException("Unable to find dapp listing for $dappUri"))
 
-            val dappMetadata = AppMetaData(
-                name = dappListing.name,
-                description = dappListing.description!!,
-                icons = listOf(dappListing.imageUrl.sm, dappListing.imageUrl.md, dappListing.imageUrl.lg),
-                url = dappHomepageHost!!
-            )
+                // Return dapp metadata
+                return@withContext Result.success(
+                    AppMetaData(
+                        name = dappListing.name,
+                        description = dappListing.description!!,
+                        icons = listOf(dappListing.imageUrl.sm, dappListing.imageUrl.md, dappListing.imageUrl.lg),
+                        url = dappHomepageHost!!,
+                        redirect = Redirect(dappListing.app.android)
+                    )
+                )
+            }.getOrElse {
+                return onFailure(it)
+            }
 
-            val didJwt = registerIdentityAndReturnDidJwt(AccountId(account), dappUri.toString(), dappScopes.map { it.first }, onSign, onFailure).getOrElse { error ->
+            val didJwt = registerIdentityAndReturnDidJwt(AccountId(account), dappUri.toString(), dappScopes.map { it.name }, onSign, onFailure).getOrElse { error ->
                 return onFailure(error)
             }
             val params = PushParams.SubscribeParams(didJwt.value)
@@ -163,30 +176,30 @@ internal class PushWalletEngine(
             }
 
             jsonRpcInteractor.publishJsonRpcRequest(
-                subscribeTopic,
-                irnParams,
-                request,
+                topic = subscribeTopic,
+                params = irnParams,
+                payload = request,
                 envelopeType = EnvelopeType.ONE,
                 participants = Participants(selfPublicKey, dappPublicKey),
                 onSuccess = {
                     runBlocking {
                         subscriptionStorageRepository.insertSubscription(
-                            request.id,
-                            responseTopic.value,
-                            subscribeTopic.value,
-                            null,
-                            null,
-                            account,
-                            null,
-                            null,
-                            dappMetadata.name,
-                            dappMetadata.description,
-                            dappMetadata.url,
-                            dappMetadata.icons,
-                            dappListing.app.android,
-                            didJwt.value,
-                            dappScopes.associate { scope -> scope.first to Pair(scope.second, true) },
-                            calcExpiry()
+                            requestId = request.id,
+                            keyAgreementTopic = responseTopic.value,
+                            responseTopic = subscribeTopic.value,
+                            peerPublicKeyAsHex = null,
+                            subscriptionTopic = null,
+                            account = account,
+                            relayProtocol = null,
+                            relayData = null,
+                            name = dappMetaData.name,
+                            description = dappMetaData.description,
+                            url = dappMetaData.url,
+                            icons = dappMetaData.icons,
+                            native = dappMetaData.redirect?.native,
+                            didJwt = didJwt.value,
+                            mapOfScope = dappScopes.associate { scope -> scope.name to Pair(scope.description, true) },
+                            expiry = calcExpiry()
                         )
                     }
 
@@ -196,20 +209,6 @@ internal class PushWalletEngine(
                     onFailure(error)
                 }
             )
-        }
-
-        suspend fun extractPushConfig(): Result<List<TypeDTO>> = withContext(Dispatchers.IO) {
-            val pushConfigDappUri = dappUri.run {
-                if (this.path?.contains(WC_PUSH_CONFIG_JSON) == false) {
-                    this.buildUpon().appendPath(WC_PUSH_CONFIG_JSON)
-                } else {
-                    this
-                }
-            }
-
-            val wellKnownPushConfigString = URL(pushConfigDappUri.toString()).openStream().bufferedReader().use { it.readText() }
-            val pushConfig = serializer.tryDeserialize<PushConfigDTO>(wellKnownPushConfigString) ?: return@withContext Result.failure(Exception("Failed to parse well-known/wc-push-config.json"))
-            Result.success(pushConfig.types)
         }
 
         suspend fun extractDidJson(dappUri: Uri): Result<PublicKey> = withContext(Dispatchers.IO) {
@@ -230,8 +229,8 @@ internal class PushWalletEngine(
             Result.success(PublicKey(publicKey))
         }
 
-        val dappWellKnownProperties: Result<Pair<PublicKey, List<Pair<String, String>>>> = runCatching {
-            extractDidJson(dappUri).getOrThrow() to extractPushConfig().getOrThrow().map { type -> type.name to type.description }
+        val dappWellKnownProperties: Result<Pair<PublicKey, List<EngineDO.PushScope.Remote>>> = runCatching {
+            extractDidJson(dappUri).getOrThrow() to extractPushConfigUseCase(dappUri).getOrThrow()
         }
 
         dappWellKnownProperties.fold(
@@ -243,7 +242,7 @@ internal class PushWalletEngine(
     suspend fun approve(requestId: Long, onSign: (String) -> Cacao.Signature?, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         val respondedSubscription = subscriptionStorageRepository.getSubscriptionsByRequestId(requestId)
         val dappPublicKey = respondedSubscription.peerPublicKey ?: return@supervisorScope onFailure(IllegalArgumentException("Invalid dapp public key"))
-        val responseTopic = sha256(dappPublicKey.keyAsBytes)
+        val responseTopic = respondedSubscription.responseTopic //sha256(dappPublicKey.keyAsBytes)
 
         val didJwt = registerIdentityAndReturnDidJwt(respondedSubscription.account, respondedSubscription.metadata.url, emptyList(), onSign, onFailure).getOrElse { error ->
             return@supervisorScope onFailure(error)
@@ -253,14 +252,14 @@ internal class PushWalletEngine(
         val approvalParams = PushParams.RequestResponseParams(didJwt.value)
         val irnParams = IrnParams(Tags.PUSH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
 
-        subscriptionStorageRepository.updateSubscriptionToRespondedByApproval(responseTopic, pushTopic.value, calcExpiry())
+        subscriptionStorageRepository.updateSubscriptionToRespondedByApproval(responseTopic.value, pushTopic.value, didJwt.value, calcExpiry())
 
         jsonRpcInteractor.subscribe(pushTopic) { error ->
             return@subscribe onFailure(error)
         }
         jsonRpcInteractor.respondWithParams(
             respondedSubscription.requestId,
-            Topic(responseTopic),
+            responseTopic,
             approvalParams,
             irnParams,
             envelopeType = EnvelopeType.ONE,
@@ -401,6 +400,7 @@ internal class PushWalletEngine(
                 when (val requestParams = request.params) {
                     is PushParams.RequestParams -> onPushRequest(request, requestParams)
                     is PushParams.MessageParams -> onPushMessage(request, requestParams)
+                    is PushParams.ProposeParams -> onPushPropose(request, requestParams)
                     is PushParams.DeleteParams -> onPushDelete(request)
                 }
             }.launchIn(scope)
@@ -446,6 +446,58 @@ internal class PushWalletEngine(
 
             _engineEvent.emit(
                 EngineDO.PushRequest(
+                    newSubscription.requestId,
+                    newSubscription.responseTopic.value,
+                    newSubscription.account.value,
+                    newSubscription.relay,
+                    newSubscription.metadata
+                )
+            )
+        } catch (e: Exception) {
+            jsonRpcInteractor.respondWithError(
+                request,
+                Uncategorized.GenericError("Cannot handle the push request: ${e.message}, topic: ${request.topic}"),
+                irnParams
+            )
+
+            _engineEvent.emit(SDKError(e))
+        }
+    }
+
+    private suspend fun onPushPropose(request: WCRequest, params: PushParams.ProposeParams) = supervisorScope {
+        val irnParams = IrnParams(Tags.PUSH_PROPOSE_RESPONSE, Ttl(DAY_IN_SECONDS))
+
+        val dappPushScope: List<EngineDO.PushScope.Remote> = extractPushConfigUseCase.invoke(params.metaData.url.toUri()).getOrElse {
+            return@supervisorScope _engineEvent.emit(SDKError(Exception("")))
+        }
+        val mapOfScope: Map<String, EngineDO.PushScope.Cached> = dappPushScope.associate {
+            it.name to EngineDO.PushScope.Cached(it.name, it.description, it.name in params.scope)
+        }
+
+        try {
+            subscriptionStorageRepository.insertSubscription(
+                requestId = request.id,
+                keyAgreementTopic = request.topic.value,
+                responseTopic = sha256(params.publicKey.hexToBytes()),
+                peerPublicKeyAsHex = params.publicKey,
+                subscriptionTopic = null,
+                account = params.account,
+                relayProtocol = null,
+                relayData = null,
+                name = params.metaData.name,
+                description = params.metaData.description,
+                url = params.metaData.url,
+                icons = params.metaData.icons,
+                native = params.metaData.redirect?.native,
+                didJwt = "",
+                mapOfScope = mapOfScope.mapValues { entry -> entry.value.description to entry.value.isSelected },
+                expiry = calcExpiry()
+            )
+
+            val newSubscription = subscriptionStorageRepository.getSubscriptionsByRequestId(request.id)
+
+            _engineEvent.emit(
+                EngineDO.PushPropose(
                     newSubscription.requestId,
                     newSubscription.responseTopic.value,
                     newSubscription.account.value,
@@ -514,8 +566,9 @@ internal class PushWalletEngine(
                         SDKError(NotFoundException("Cannot find subscription for topic: ${wcResponse.topic.value}"))
                     )
                     val selfPublicKey = crypto.getSelfPublicFromKeyAgreement(subscription.keyAgreementTopic)
-                    val dappPublicKey =
-                        PublicKey((((wcResponse.response as JsonRpcResponse.JsonRpcResult).result as Map<*, *>)["publicKey"] as String)) // TODO: Add an entry in JsonRpcResultAdapter and create data class for response
+                    val dappPublicKey = PublicKey(
+                        (((wcResponse.response as JsonRpcResponse.JsonRpcResult).result as Map<*, *>)["publicKey"] as String)
+                    ) // TODO: Add an entry in JsonRpcResultAdapter and create data class for response
                     val pushTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, dappPublicKey)
                     val updatedExpiry = calcExpiry()
                     subscriptionStorageRepository.updateSubscriptionToResponded(subscription.responseTopic.value, pushTopic.value, dappPublicKey.keyAsHex, updatedExpiry)
@@ -549,15 +602,20 @@ internal class PushWalletEngine(
                         return@supervisorScope
                     }
                     val listOfUpdateScopeNames = pushUpdateJwtClaim.scope.split(" ")
-                    val updateScopeMap: Map<String, Pair<String, Boolean>> = subscription.scope.entries.associate { (scopeName, descAndValue) ->
-                        val (desc, _) = descAndValue
+                    val updateScopeMap: Map<String, EngineDO.PushScope.Cached> = subscription.scope.entries.associate { (scopeName, scopeDescIsSelected) ->
+                        val (desc, _) = scopeDescIsSelected
                         val isNewScopeTrue = listOfUpdateScopeNames.contains(scopeName)
 
-                        scopeName to Pair(desc, isNewScopeTrue)
+                        scopeName to EngineDO.PushScope.Cached(scopeName, desc, isNewScopeTrue)
                     }
                     val newExpiry = calcExpiry()
 
-                    subscriptionStorageRepository.updateSubscriptionScopeAndJwt(wcResponse.topic.value, updateScopeMap, updateParams.subscriptionAuth, newExpiry)
+                    subscriptionStorageRepository.updateSubscriptionScopeAndJwt(
+                        wcResponse.topic.value,
+                        updateScopeMap.mapValues { (_, pushScope) -> pushScope.description to pushScope.isSelected },
+                        updateParams.subscriptionAuth,
+                        newExpiry
+                    )
 
                     _engineEvent.emit(
                         EngineDO.PushUpdate(
