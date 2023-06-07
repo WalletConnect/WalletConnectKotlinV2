@@ -13,7 +13,6 @@ internal class DeleteMessageUseCase(private val messagesRepository: MessagesRepo
             onFailure(e)
         }
     }
-
 }
 
 internal interface DeleteMessageUseCaseInterface {

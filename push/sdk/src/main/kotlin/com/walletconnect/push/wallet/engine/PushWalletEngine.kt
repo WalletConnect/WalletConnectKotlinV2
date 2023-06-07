@@ -150,15 +150,6 @@ internal class PushWalletEngine(
             .launchIn(scope)
     }
 
-    suspend fun deleteMessage(requestId: Long, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
-        try {
-            messagesRepository.deleteMessage(requestId)
-            onSuccess()
-        } catch (e: Exception) {
-            onFailure(e)
-        }
-    }
-
     fun decryptMessage(topic: String, message: String, onSuccess: (EngineDO.PushMessage) -> Unit, onFailure: (Throwable) -> Unit) {
         try {
             val codec = wcKoinApp.koin.get<Codec>()
