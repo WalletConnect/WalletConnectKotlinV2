@@ -151,11 +151,6 @@ internal class PushWalletEngine(
             .launchIn(scope)
     }
 
-    suspend fun getListOfActiveSubscriptions(): Map<String, EngineDO.PushSubscription> =
-        subscriptionStorageRepository.getAllSubscriptions()
-            .filter { subscription -> subscription.subscriptionTopic?.value.isNullOrBlank().not() }
-            .associateBy { subscription -> subscription.subscriptionTopic!!.value }
-
     suspend fun getListOfMessages(topic: String): Map<Long, EngineDO.PushRecord> = supervisorScope {
         messagesRepository.getMessagesByTopic(topic).map { messageRecord ->
             EngineDO.PushRecord(
