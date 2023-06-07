@@ -8,6 +8,7 @@ import android.util.Base64
 import androidx.core.net.toUri
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.internal.common.JsonRpcResponse
+import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.explorer.ExplorerRepository
@@ -16,7 +17,10 @@ import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.jwt.did.EncodeDidJwtPayloadUseCase
 import com.walletconnect.android.internal.common.jwt.did.encodeDidJwt
 import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtClaims
+import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.ConnectionState
+import com.walletconnect.android.internal.common.model.DidJwt
+import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Participants
@@ -26,20 +30,28 @@ import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.params.PushParams
+import com.walletconnect.android.internal.common.model.sync.ClientJsonRpc
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.internal.utils.CURRENT_TIME_IN_SECONDS
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
+import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.foundation.common.model.PublicKey
+import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.push.common.JsonRpcMethod
+import com.walletconnect.push.common.PeerError
 import com.walletconnect.push.common.calcExpiry
+import com.walletconnect.push.common.data.jwt.EncodePushAuthDidJwtPayloadUseCase
 import com.walletconnect.push.common.data.jwt.PushSubscriptionJwtClaim
 import com.walletconnect.push.common.data.storage.SubscriptionStorageRepository
 import com.walletconnect.push.common.domain.ExtractPushConfigUseCase
 import com.walletconnect.push.common.model.EngineDO
+import com.walletconnect.push.common.model.PushRpc
 import com.walletconnect.push.common.model.toEngineDO
 import com.walletconnect.push.wallet.data.MessagesRepository
 import com.walletconnect.push.wallet.data.wellknown.did.DidJsonDTO
@@ -57,6 +69,7 @@ import com.walletconnect.util.generateId
 import com.walletconnect.util.hexToBytes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -65,7 +78,9 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.withContext
 
 internal class PushWalletEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -133,115 +148,6 @@ internal class PushWalletEngine(
                 }
             }
             .launchIn(scope)
-    }
-
-    suspend fun subscribeToDapp(dappUri: Uri, account: String, onSign: (String) -> Cacao.Signature?, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
-        suspend fun createSubscription(dappPublicKey: PublicKey, dappScopes: List<EngineDO.PushScope.Remote>) {
-            val subscribeTopic = Topic(sha256(dappPublicKey.keyAsBytes))
-            val selfPublicKey = crypto.generateAndStoreX25519KeyPair()
-            val responseTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, dappPublicKey)
-            val dappMetaData: AppMetaData = withContext(Dispatchers.IO) {
-                // Fetch dapp metadata from explorer api
-                val listOfDappHomepages = runCatching {
-                    explorerRepository.getAllDapps().listings.associateBy { listing -> listing.homepage.host }
-                }.getOrElse { error ->
-                    return@withContext Result.failure(error)
-                }
-
-                // Find dapp metadata for dapp uri
-                val (dappHomepageHost: String?, dappListing: Listing) = listOfDappHomepages.entries.filter { (dappHomepageHost, dappListing) ->
-                    dappHomepageHost != null && dappListing.description != null
-                }.firstOrNull { (dappHomepageHost, _) ->
-                    dappHomepageHost != null && dappHomepageHost.contains(dappUri.host!!)
-                } ?: return@withContext Result.failure<AppMetaData>(IllegalArgumentException("Unable to find dapp listing for $dappUri"))
-
-                // Return dapp metadata
-                return@withContext Result.success(
-                    AppMetaData(
-                        name = dappListing.name,
-                        description = dappListing.description!!,
-                        icons = listOf(dappListing.imageUrl.sm, dappListing.imageUrl.md, dappListing.imageUrl.lg),
-                        url = dappHomepageHost!!,
-                        redirect = Redirect(dappListing.app.android)
-                    )
-                )
-            }.getOrElse {
-                return onFailure(it)
-            }
-
-            val didJwt = registerIdentityAndReturnDidJwt(AccountId(account), dappUri.toString(), dappScopes.map { it.name }, onSign, onFailure).getOrElse { error ->
-                return onFailure(error)
-            }
-            val params = PushParams.SubscribeParams(didJwt.value)
-            val request = PushRpc.PushSubscribe(params = params)
-            val irnParams = IrnParams(Tags.PUSH_SUBSCRIBE, Ttl(DAY_IN_SECONDS))
-
-            jsonRpcInteractor.subscribe(responseTopic) { error ->
-                return@subscribe onFailure(error)
-            }
-
-            jsonRpcInteractor.publishJsonRpcRequest(
-                topic = subscribeTopic,
-                params = irnParams,
-                payload = request,
-                envelopeType = EnvelopeType.ONE,
-                participants = Participants(selfPublicKey, dappPublicKey),
-                onSuccess = {
-                    runBlocking {
-                        subscriptionStorageRepository.insertSubscription(
-                            requestId = request.id,
-                            keyAgreementTopic = responseTopic.value,
-                            responseTopic = subscribeTopic.value,
-                            peerPublicKeyAsHex = null,
-                            subscriptionTopic = null,
-                            account = account,
-                            relayProtocol = null,
-                            relayData = null,
-                            name = dappMetaData.name,
-                            description = dappMetaData.description,
-                            url = dappMetaData.url,
-                            icons = dappMetaData.icons,
-                            native = dappMetaData.redirect?.native,
-                            didJwt = didJwt.value,
-                            mapOfScope = dappScopes.associate { scope -> scope.name to Pair(scope.description, true) },
-                            expiry = calcExpiry()
-                        )
-                    }
-
-                    onSuccess()
-                },
-                onFailure = { error ->
-                    onFailure(error)
-                }
-            )
-        }
-
-        suspend fun extractDidJson(dappUri: Uri): Result<PublicKey> = withContext(Dispatchers.IO) {
-            val didJsonDappUri = dappUri.run {
-                if (this.path?.contains(DID_JSON) == false) {
-                    this.buildUpon().appendPath(DID_JSON).build()
-                } else {
-                    this
-                }
-            }
-
-            val wellKnownDidJsonString = URL(didJsonDappUri.toString()).openStream().bufferedReader().use { it.readText() }
-            val didJson = serializer.tryDeserialize<DidJsonDTO>(wellKnownDidJsonString) ?: return@withContext Result.failure(Exception("Failed to parse well-known/did.json"))
-            val verificationKey = didJson.keyAgreement.first()
-            val jwkPublicKey = didJson.verificationMethod.first { it.id == verificationKey }.publicKeyJwk.x
-            val replacedJwk = jwkPublicKey.replace("-", "+").replace("_", "/")
-            val publicKey = Base64.decode(replacedJwk, Base64.DEFAULT).bytesToHex()
-            Result.success(PublicKey(publicKey))
-        }
-
-        val dappWellKnownProperties: Result<Pair<PublicKey, List<EngineDO.PushScope.Remote>>> = runCatching {
-            extractDidJson(dappUri).getOrThrow() to extractPushConfigUseCase(dappUri).getOrThrow()
-        }
-
-        dappWellKnownProperties.fold(
-            onSuccess = { (dappPublicKey, dappScope) -> createSubscription(dappPublicKey, dappScope) },
-            onFailure = { error -> return@supervisorScope onFailure(error) }
-        )
     }
 
     suspend fun approve(requestId: Long, onSign: (String) -> Cacao.Signature?, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {

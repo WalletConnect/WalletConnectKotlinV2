@@ -7,12 +7,14 @@ import android.util.Base64
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.explorer.ExplorerRepository
+import com.walletconnect.android.internal.common.explorer.data.model.Listing
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Participants
+import com.walletconnect.android.internal.common.model.Redirect
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.params.PushParams
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
@@ -23,9 +25,9 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.push.common.calcExpiry
 import com.walletconnect.push.common.data.storage.SubscriptionStorageRepository
+import com.walletconnect.push.common.domain.ExtractPushConfigUseCase
+import com.walletconnect.push.common.model.EngineDO
 import com.walletconnect.push.common.model.PushRpc
-import com.walletconnect.push.wallet.data.wellknown.config.PushConfigDTO
-import com.walletconnect.push.wallet.data.wellknown.config.TypeDTO
 import com.walletconnect.push.wallet.data.wellknown.did.DidJsonDTO
 import com.walletconnect.util.bytesToHex
 import kotlinx.coroutines.Dispatchers
@@ -41,44 +43,54 @@ internal class SubscribeToDappUseCase(
     private val registerIdentityAndReturnDidJwtUseCase: RegisterIdentityAndReturnDidJwtUseCase,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val subscriptionStorageRepository: SubscriptionStorageRepository,
+    private val extractPushConfigUseCase: ExtractPushConfigUseCase,
 ): SubscribeToDappUseCaseInterface {
 
     override suspend fun subscribeToDapp(dappUri: Uri, account: String, onSign: (String) -> Cacao.Signature?, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
-        val dappWellKnownProperties: Result<Pair<PublicKey, List<Pair<String, String>>>> = runCatching {
-            extractDidJson(dappUri).getOrThrow() to extractPushConfig(dappUri).getOrThrow().map { type -> type.name to type.description }
+        val dappWellKnownProperties: Result<Pair<PublicKey, List<EngineDO.PushScope.Remote>>> = runCatching {
+            extractDidJson(dappUri).getOrThrow() to extractPushConfigUseCase(dappUri).getOrThrow()
         }
 
         dappWellKnownProperties.fold(
             onSuccess = { (dappPublicKey, dappScope) -> createSubscription(dappUri, account, onSign, dappPublicKey, dappScope, onSuccess, onFailure) },
-            onFailure = { error -> onFailure(error) }
+            onFailure = { error -> return@supervisorScope onFailure(error) }
         )
     }
 
-    private suspend fun createSubscription(dappUri: Uri, account: String, onSign: (String) -> Cacao.Signature?, dappPublicKey: PublicKey, dappScopes: List<Pair<String, String>>, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
+    private suspend fun createSubscription(dappUri: Uri, account: String, onSign: (String) -> Cacao.Signature?, dappPublicKey: PublicKey, dappScopes: List<EngineDO.PushScope.Remote>, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         val subscribeTopic = Topic(sha256(dappPublicKey.keyAsBytes))
         val selfPublicKey = crypto.generateAndStoreX25519KeyPair()
         val responseTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, dappPublicKey)
-
-        val (dappHomepageHost, dappListing) = withContext(Dispatchers.IO) {
+        val dappMetaData: AppMetaData = withContext(Dispatchers.IO) {
+            // Fetch dapp metadata from explorer api
             val listOfDappHomepages = runCatching {
                 explorerRepository.getAllDapps().listings.associateBy { listing -> listing.homepage.host }
-            }.getOrDefault(emptyMap())
+            }.getOrElse { error ->
+                return@withContext Result.failure(error)
+            }
 
-            listOfDappHomepages.entries.filter { (dappHomepageHost, dappListing) ->
+            // Find dapp metadata for dapp uri
+            val (dappHomepageHost: String?, dappListing: Listing) = listOfDappHomepages.entries.filter { (dappHomepageHost, dappListing) ->
                 dappHomepageHost != null && dappListing.description != null
             }.firstOrNull { (dappHomepageHost, _) ->
                 dappHomepageHost != null && dappHomepageHost.contains(dappUri.host!!)
-            }
-        } ?: return onFailure(IllegalArgumentException("Invalid dapp uri: $dappUri"))
+            } ?: return@withContext Result.failure<AppMetaData>(IllegalArgumentException("Unable to find dapp listing for $dappUri"))
 
-        val dappMetadata = AppMetaData(
-            name = dappListing.name,
-            description = dappListing.description!!,
-            icons = listOf(dappListing.imageUrl.sm, dappListing.imageUrl.md, dappListing.imageUrl.lg),
-            url = dappHomepageHost!!
-        )
+            // Return dapp metadata
+            return@withContext Result.success(
+                AppMetaData(
+                    name = dappListing.name,
+                    description = dappListing.description!!,
+                    icons = listOf(dappListing.imageUrl.sm, dappListing.imageUrl.md, dappListing.imageUrl.lg),
+                    url = dappHomepageHost!!,
+                    redirect = Redirect(dappListing.app.android)
+                )
+            )
+        }.getOrElse {
+            return onFailure(it)
+        }
 
-        val didJwt = registerIdentityAndReturnDidJwtUseCase(AccountId(account), dappUri.toString(), dappScopes.map { it.first }, onSign, onFailure).getOrElse { error ->
+        val didJwt = registerIdentityAndReturnDidJwtUseCase(AccountId(account), dappUri.toString(), dappScopes.map { it.name }, onSign, onFailure).getOrElse { error ->
             return onFailure(error)
         }
         val params = PushParams.SubscribeParams(didJwt.value)
@@ -90,30 +102,30 @@ internal class SubscribeToDappUseCase(
         }
 
         jsonRpcInteractor.publishJsonRpcRequest(
-            subscribeTopic,
-            irnParams,
-            request,
+            topic = subscribeTopic,
+            params = irnParams,
+            payload = request,
             envelopeType = EnvelopeType.ONE,
             participants = Participants(selfPublicKey, dappPublicKey),
             onSuccess = {
                 runBlocking {
                     subscriptionStorageRepository.insertSubscription(
-                        request.id,
-                        responseTopic.value,
-                        subscribeTopic.value,
-                        null,
-                        null,
-                        account,
-                        null,
-                        null,
-                        dappMetadata.name,
-                        dappMetadata.description,
-                        dappMetadata.url,
-                        dappMetadata.icons,
-                        dappListing.app.android,
-                        didJwt.value,
-                        dappScopes.associate { scope -> scope.first to Pair(scope.second, true) },
-                        calcExpiry()
+                        requestId = request.id,
+                        keyAgreementTopic = responseTopic.value,
+                        responseTopic = subscribeTopic.value,
+                        peerPublicKeyAsHex = null,
+                        subscriptionTopic = null,
+                        account = account,
+                        relayProtocol = null,
+                        relayData = null,
+                        name = dappMetaData.name,
+                        description = dappMetaData.description,
+                        url = dappMetaData.url,
+                        icons = dappMetaData.icons,
+                        native = dappMetaData.redirect?.native,
+                        didJwt = didJwt.value,
+                        mapOfScope = dappScopes.associate { scope -> scope.name to Pair(scope.description, true) },
+                        expiry = calcExpiry()
                     )
                 }
 
@@ -123,20 +135,6 @@ internal class SubscribeToDappUseCase(
                 onFailure(error)
             }
         )
-    }
-
-    private suspend fun extractPushConfig(dappUri: Uri): Result<List<TypeDTO>> = withContext(Dispatchers.IO) {
-        val pushConfigDappUri = dappUri.run {
-            if (this.path?.contains(WC_PUSH_CONFIG_JSON) == false) {
-                this.buildUpon().appendPath(WC_PUSH_CONFIG_JSON)
-            } else {
-                this
-            }
-        }
-
-        val wellKnownPushConfigString = URL(pushConfigDappUri.toString()).openStream().bufferedReader().use { it.readText() }
-        val pushConfig = serializer.tryDeserialize<PushConfigDTO>(wellKnownPushConfigString) ?: return@withContext Result.failure(Exception("Failed to parse well-known/wc-push-config.json"))
-        Result.success(pushConfig.types)
     }
 
     private suspend fun extractDidJson(dappUri: Uri): Result<PublicKey> = withContext(Dispatchers.IO) {
@@ -159,7 +157,6 @@ internal class SubscribeToDappUseCase(
 
     private companion object {
         const val DID_JSON = ".well-known/did.json"
-        const val WC_PUSH_CONFIG_JSON = ".well-known/wc-push-config.json"
     }
 }
 
