@@ -6,6 +6,7 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.push.common.Push
 import com.walletconnect.push.common.di.commonModule
+import com.walletconnect.push.common.di.pushEngineUseCaseModules
 import com.walletconnect.push.common.di.pushJsonRpcModule
 import com.walletconnect.push.common.di.pushStorageModule
 import com.walletconnect.push.common.model.EngineDO
@@ -35,7 +36,8 @@ class PushWalletProtocol : PushWalletInterface {
                 pushStorageModule(DBUtils.PUSH_WALLET_SDK_DB_NAME),
                 walletEngineModule(),
                 messageModule(),
-                commonModule()
+                commonModule(),
+                pushEngineUseCaseModules()
             )
 
             pushWalletEngine = wcKoinApp.koin.get()
@@ -51,6 +53,7 @@ class PushWalletProtocol : PushWalletInterface {
         pushWalletEngine.engineEvent.onEach { event ->
             when (event) {
                 is EngineDO.PushRequest -> delegate.onPushRequest(event.toWalletClient())
+                is EngineDO.PushPropose -> delegate.onPushProposal(event.toWalletClient())
                 is EngineDO.PushRecord -> delegate.onPushMessage(Push.Wallet.Event.Message(event.toWalletClient()))
                 is EngineDO.PushDelete -> delegate.onPushDelete(event.toWalletClient())
                 is EngineDO.PushSubscription -> delegate.onPushSubscription(event.toWalletClient())
