@@ -56,6 +56,9 @@ class Web3WalletViewModel : ViewModel() {
 
                 PushRequest(requestId, peerName, peerDesc, icon, redirect)
             }
+            is Push.Wallet.Event.Proposal -> {
+                Log.e(tag(this), "PushEvent.Proposal: $pushEvent")
+            }
             is Push.Wallet.Event.Message -> {
                 PushMessage(pushEvent.message.message.title, pushEvent.message.message.body, pushEvent.message.message.icon, pushEvent.message.message.url)
             }
