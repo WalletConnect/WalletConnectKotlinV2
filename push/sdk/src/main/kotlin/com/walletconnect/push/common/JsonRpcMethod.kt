@@ -8,6 +8,9 @@ internal object JsonRpcMethod {
     const val WC_PUSH_REQUEST: String = "wc_pushRequest"
 
     @get:JvmSynthetic
+    const val WC_PUSH_PROPOSE: String = "wc_pushPropose"
+
+    @get:JvmSynthetic
     const val WC_PUSH_MESSAGE: String = "wc_pushMessage"
 
     @get:JvmSynthetic
