@@ -3,58 +3,35 @@
 package com.walletconnect.push.wallet.engine
 
 import android.content.res.Resources.NotFoundException
-import android.net.Uri
-import android.util.Base64
 import androidx.core.net.toUri
-import com.walletconnect.android.CoreClient
 import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.Uncategorized
-import com.walletconnect.android.internal.common.explorer.ExplorerRepository
-import com.walletconnect.android.internal.common.explorer.data.model.Listing
-import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
-import com.walletconnect.android.internal.common.jwt.did.EncodeDidJwtPayloadUseCase
-import com.walletconnect.android.internal.common.jwt.did.encodeDidJwt
 import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtClaims
-import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.ConnectionState
-import com.walletconnect.android.internal.common.model.DidJwt
-import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.IrnParams
-import com.walletconnect.android.internal.common.model.Participants
-import com.walletconnect.android.internal.common.model.Redirect
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.params.PushParams
-import com.walletconnect.android.internal.common.model.sync.ClientJsonRpc
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.internal.utils.CURRENT_TIME_IN_SECONDS
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
-import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.foundation.common.model.PublicKey
-import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
-import com.walletconnect.foundation.util.Logger
 import com.walletconnect.push.common.JsonRpcMethod
-import com.walletconnect.push.common.PeerError
 import com.walletconnect.push.common.calcExpiry
-import com.walletconnect.push.common.data.jwt.EncodePushAuthDidJwtPayloadUseCase
 import com.walletconnect.push.common.data.jwt.PushSubscriptionJwtClaim
 import com.walletconnect.push.common.data.storage.SubscriptionStorageRepository
 import com.walletconnect.push.common.domain.ExtractPushConfigUseCase
 import com.walletconnect.push.common.model.EngineDO
-import com.walletconnect.push.common.model.PushRpc
 import com.walletconnect.push.common.model.toEngineDO
 import com.walletconnect.push.wallet.data.MessagesRepository
-import com.walletconnect.push.wallet.data.wellknown.did.DidJsonDTO
 import com.walletconnect.push.wallet.engine.domain.calls.ApproveUseCaseInterface
 import com.walletconnect.push.wallet.engine.domain.calls.DecryptMessageUseCaseInterface
 import com.walletconnect.push.wallet.engine.domain.calls.DeleteMessageUseCaseInterface
@@ -64,12 +41,9 @@ import com.walletconnect.push.wallet.engine.domain.calls.GetListOfMessagesUseCas
 import com.walletconnect.push.wallet.engine.domain.calls.RejectUseCaseInterface
 import com.walletconnect.push.wallet.engine.domain.calls.SubscribeToDappUseCaseInterface
 import com.walletconnect.push.wallet.engine.domain.calls.UpdateUseCaseInterface
-import com.walletconnect.util.bytesToHex
-import com.walletconnect.util.generateId
 import com.walletconnect.util.hexToBytes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -78,10 +52,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
-import kotlinx.coroutines.withContext
-import kotlin.reflect.full.safeCast
 
 internal class PushWalletEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -89,9 +60,6 @@ internal class PushWalletEngine(
     private val pairingHandler: PairingControllerInterface,
     private val subscriptionStorageRepository: SubscriptionStorageRepository,
     private val messagesRepository: MessagesRepository,
-    private val identitiesInteractor: IdentitiesInteractor,
-    private val serializer: JsonRpcSerializer,
-    private val explorerRepository: ExplorerRepository,
     private val extractPushConfigUseCase: ExtractPushConfigUseCase,
     private val subscriptToDappUseCase: SubscribeToDappUseCaseInterface,
     private val approveUseCase: ApproveUseCaseInterface,
@@ -102,7 +70,6 @@ internal class PushWalletEngine(
     private val decryptMessageUseCase: DecryptMessageUseCaseInterface,
     private val getListOfActiveSubscriptionsUseCaseInterface: GetListOfActiveSubscriptionsUseCaseInterface,
     private val getListOfMessagesUseCaseInterface: GetListOfMessagesUseCaseInterface,
-    private val logger: Logger,
 ) : SubscribeToDappUseCaseInterface by subscriptToDappUseCase,
     ApproveUseCaseInterface by approveUseCase,
     RejectUseCaseInterface by rejectUseCase,
