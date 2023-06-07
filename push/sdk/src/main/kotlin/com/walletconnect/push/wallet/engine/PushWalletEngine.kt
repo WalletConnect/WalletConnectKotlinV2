@@ -150,38 +150,6 @@ internal class PushWalletEngine(
             .launchIn(scope)
     }
 
-    suspend fun approve(requestId: Long, onSign: (String) -> Cacao.Signature?, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
-        val respondedSubscription = subscriptionStorageRepository.getSubscriptionsByRequestId(requestId)
-        val dappPublicKey = respondedSubscription.peerPublicKey ?: return@supervisorScope onFailure(IllegalArgumentException("Invalid dapp public key"))
-        val responseTopic = respondedSubscription.responseTopic //sha256(dappPublicKey.keyAsBytes)
-
-        val didJwt = registerIdentityAndReturnDidJwt(respondedSubscription.account, respondedSubscription.metadata.url, emptyList(), onSign, onFailure).getOrElse { error ->
-            return@supervisorScope onFailure(error)
-        }
-        val selfPublicKey = crypto.generateAndStoreX25519KeyPair()
-        val pushTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, dappPublicKey)
-        val approvalParams = PushParams.RequestResponseParams(didJwt.value)
-        val irnParams = IrnParams(Tags.PUSH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
-
-        subscriptionStorageRepository.updateSubscriptionToRespondedByApproval(responseTopic.value, pushTopic.value, didJwt.value, calcExpiry())
-
-        jsonRpcInteractor.subscribe(pushTopic) { error ->
-            return@subscribe onFailure(error)
-        }
-        jsonRpcInteractor.respondWithParams(
-            respondedSubscription.requestId,
-            responseTopic,
-            approvalParams,
-            irnParams,
-            envelopeType = EnvelopeType.ONE,
-            participants = Participants(selfPublicKey, dappPublicKey)
-        ) { error ->
-            return@respondWithParams onFailure(error)
-        }
-
-        onSuccess()
-    }
-
     suspend fun reject(requestId: Long, reason: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         try {
             val respondedSubscription = subscriptionStorageRepository.getSubscriptionsByRequestId(requestId)
