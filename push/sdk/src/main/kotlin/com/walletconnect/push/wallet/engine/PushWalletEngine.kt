@@ -150,28 +150,6 @@ internal class PushWalletEngine(
             .launchIn(scope)
     }
 
-    suspend fun deleteSubscription(topic: String, onFailure: (Throwable) -> Unit) = supervisorScope {
-        val deleteParams = PushParams.DeleteParams(6000, "User Disconnected")
-        val request = PushRpc.PushDelete(id = generateId(), params = deleteParams)
-        val irnParams = IrnParams(Tags.PUSH_DELETE, Ttl(DAY_IN_SECONDS))
-
-        subscriptionStorageRepository.deleteSubscription(topic)
-
-        jsonRpcInteractor.unsubscribe(Topic(topic))
-        jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, request,
-            onSuccess = {
-                CoreClient.Echo.unregister({
-                    logger.log("Delete sent successfully")
-                }, {
-                    onFailure(it)
-                })
-            },
-            onFailure = {
-                onFailure(it)
-            }
-        )
-    }
-
     suspend fun deleteMessage(requestId: Long, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         try {
             messagesRepository.deleteMessage(requestId)

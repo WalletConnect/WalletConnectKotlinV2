@@ -29,7 +29,9 @@ internal class DeleteSubscriptionUseCase(
 
         jsonRpcInteractor.unsubscribe(Topic(topic))
         jsonRpcInteractor.publishJsonRpcRequest(
-            Topic(topic), irnParams, request,
+            topic = Topic(topic),
+            params = irnParams,
+            payload = request,
             onSuccess = {
                 CoreClient.Echo.unregister({
                     logger.log("Delete sent successfully")
