@@ -36,7 +36,8 @@ internal fun walletEngineModule() = module {
             explorerRepository = get(),
             registerIdentityAndReturnDidJwtUseCase = get(),
             jsonRpcInteractor = get(),
-            subscriptionStorageRepository = get()
+            subscriptionStorageRepository = get(),
+            extractPushConfigUseCase = get()
         )
     }
 
@@ -80,7 +81,8 @@ internal fun walletEngineModule() = module {
 
     single<DecryptMessageUseCaseInterface> {
         DecryptMessageUseCase(
-            serializer = get()
+            serializer = get(),
+            codec = get()
         )
     }
 
