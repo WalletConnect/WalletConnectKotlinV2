@@ -42,6 +42,7 @@ import com.walletconnect.push.wallet.engine.domain.calls.GetListOfMessagesUseCas
 import com.walletconnect.push.wallet.engine.domain.calls.RejectUseCaseInterface
 import com.walletconnect.push.wallet.engine.domain.calls.SubscribeToDappUseCaseInterface
 import com.walletconnect.push.wallet.engine.domain.calls.UpdateUseCaseInterface
+import com.walletconnect.push.wallet.engine.domain.requests.OnPushRequestUseCaseInterface
 import com.walletconnect.util.hexToBytes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -71,6 +72,7 @@ internal class PushWalletEngine(
     private val decryptMessageUseCase: DecryptMessageUseCaseInterface,
     private val getListOfActiveSubscriptionsUseCaseInterface: GetListOfActiveSubscriptionsUseCaseInterface,
     private val getListOfMessagesUseCaseInterface: GetListOfMessagesUseCaseInterface,
+    private val onPushRequestUseCaseInterface: OnPushRequestUseCaseInterface
 ) : SubscribeToDappUseCaseInterface by subscriptToDappUseCase,
     ApproveUseCaseInterface by approveUseCase,
     RejectUseCaseInterface by rejectUseCase,
@@ -79,10 +81,11 @@ internal class PushWalletEngine(
     DeleteMessageUseCaseInterface by deleteMessageUseCaseInterface,
     DecryptMessageUseCaseInterface by decryptMessageUseCase,
     GetListOfActiveSubscriptionsUseCaseInterface by getListOfActiveSubscriptionsUseCaseInterface,
-    GetListOfMessagesUseCaseInterface by getListOfMessagesUseCaseInterface {
+    GetListOfMessagesUseCaseInterface by getListOfMessagesUseCaseInterface{
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
+    private var internalUseCaseJob: Job? = null
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val engineEvent: SharedFlow<EngineEvent> = _engineEvent.asSharedFlow()
 
@@ -115,6 +118,10 @@ internal class PushWalletEngine(
                 if (internalErrorsJob == null) {
                     internalErrorsJob = collectInternalErrors()
                 }
+
+                if (internalUseCaseJob == null) {
+                    internalUseCaseJob = collectUseCaseEvents()
+                }
             }
             .launchIn(scope)
     }
@@ -124,9 +131,9 @@ internal class PushWalletEngine(
             .filter { request -> request.params is PushParams }
             .onEach { request ->
                 when (val requestParams = request.params) {
-                    is PushParams.RequestParams -> onPushRequest(request, requestParams)
-                    is PushParams.MessageParams -> onPushMessage(request, requestParams)
+                    is PushParams.RequestParams -> onPushRequestUseCaseInterface(request, requestParams)
                     is PushParams.ProposeParams -> onPushPropose(request, requestParams)
+                    is PushParams.MessageParams -> onPushMessage(request, requestParams)
                     is PushParams.DeleteParams -> onPushDelete(request)
                 }
             }.launchIn(scope)
@@ -144,51 +151,6 @@ internal class PushWalletEngine(
         merge(jsonRpcInteractor.internalErrors, pairingHandler.findWrongMethodsFlow)
             .onEach { exception -> _engineEvent.emit(exception) }
             .launchIn(scope)
-
-    private suspend fun onPushRequest(request: WCRequest, params: PushParams.RequestParams) = supervisorScope {
-        val irnParams = IrnParams(Tags.PUSH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
-
-        try {
-            subscriptionStorageRepository.insertSubscription(
-                requestId = request.id,
-                keyAgreementTopic = "",
-                responseTopic = request.topic.value,
-                peerPublicKeyAsHex = params.publicKey,
-                subscriptionTopic = null,
-                account = params.account,
-                relayProtocol = null,
-                relayData = null,
-                name = params.metaData.name,
-                description = params.metaData.description,
-                url = params.metaData.url,
-                icons = params.metaData.icons,
-                native = params.metaData.redirect?.native,
-                "",
-                emptyMap(),
-                calcExpiry()
-            )
-
-            val newSubscription = subscriptionStorageRepository.getSubscriptionsByRequestId(request.id)
-
-            _engineEvent.emit(
-                EngineDO.PushRequest(
-                    newSubscription.requestId,
-                    newSubscription.responseTopic.value,
-                    newSubscription.account.value,
-                    newSubscription.relay,
-                    newSubscription.metadata
-                )
-            )
-        } catch (e: Exception) {
-            jsonRpcInteractor.respondWithError(
-                request,
-                Uncategorized.GenericError("Cannot handle the push request: ${e.message}, topic: ${request.topic}"),
-                irnParams
-            )
-
-            _engineEvent.emit(SDKError(e))
-        }
-    }
 
     private suspend fun onPushPropose(request: WCRequest, params: PushParams.ProposeParams) = supervisorScope {
         val irnParams = IrnParams(Tags.PUSH_PROPOSE_RESPONSE, Ttl(DAY_IN_SECONDS))
@@ -367,6 +329,11 @@ internal class PushWalletEngine(
             _engineEvent.emit(SDKError(exception))
         }
     }
+
+    private suspend fun collectUseCaseEvents(): Job =
+        merge(onPushRequestUseCaseInterface.engineEvent)
+            .onEach { event -> _engineEvent.emit(event) }
+            .launchIn(scope)
 
     private suspend fun resubscribeToSubscriptions() {
         val subscriptionTopics = getListOfActiveSubscriptions().keys.toList()
