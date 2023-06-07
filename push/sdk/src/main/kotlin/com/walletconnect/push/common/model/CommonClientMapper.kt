@@ -16,9 +16,9 @@ internal fun RelayProtocolOptions.toClient(): Push.Model.Subscription.Relay {
 }
 
 @JvmSynthetic
-internal fun Map<String, Pair<String, Boolean>>.toClient(): Map<Push.Model.Subscription.ScopeName, Push.Model.Subscription.ScopeSetting> {
+internal fun Map<String, EngineDO.PushScope.Cached>.toClient(): Map<Push.Model.Subscription.ScopeName, Push.Model.Subscription.ScopeSetting> {
     return map { (key, value) ->
-        Push.Model.Subscription.ScopeName(key) to Push.Model.Subscription.ScopeSetting(value.first, value.second)
+        Push.Model.Subscription.ScopeName(key) to Push.Model.Subscription.ScopeSetting(value.description, value.isSelected)
     }.toMap()
 }
 

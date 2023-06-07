@@ -15,6 +15,11 @@ internal fun EngineDO.PushRequest.toWalletClient(): Push.Wallet.Event.Request {
 }
 
 @JvmSynthetic
+internal fun EngineDO.PushPropose.toWalletClient(): Push.Wallet.Event.Proposal {
+    return Push.Wallet.Event.Proposal(id, account, metaData.toClient())
+}
+
+@JvmSynthetic
 internal fun EngineDO.PushMessage.toWalletClient(): Push.Model.Message {
     return Push.Model.Message(title, body, icon, url, type)
 }

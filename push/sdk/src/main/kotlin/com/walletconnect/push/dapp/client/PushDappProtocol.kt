@@ -6,6 +6,7 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.push.common.Push
 import com.walletconnect.push.common.di.commonModule
+import com.walletconnect.push.common.di.pushEngineUseCaseModules
 import com.walletconnect.push.common.di.pushJsonRpcModule
 import com.walletconnect.push.common.di.pushStorageModule
 import com.walletconnect.push.common.model.EngineDO
@@ -15,8 +16,10 @@ import com.walletconnect.push.common.model.toEngineDO
 import com.walletconnect.push.dapp.di.castModule
 import com.walletconnect.push.dapp.di.dappEngineModule
 import com.walletconnect.push.dapp.engine.PushDappEngine
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 internal class PushDappProtocol : PushDappInterface {
@@ -49,7 +52,7 @@ internal class PushDappProtocol : PushDappInterface {
 
         pushDappEngine.engineEvent
             .onEach { event ->
-                when(event) {
+                when (event) {
                     is EngineDO.PushRequestResponse -> delegate.onPushResponse(event.toDappClient())
                     is EngineDO.PushRequestRejected -> delegate.onPushRejected(event.toDappClient())
                     is EngineDO.PushDelete -> delegate.onDelete(event.toDappClient())
@@ -58,26 +61,49 @@ internal class PushDappProtocol : PushDappInterface {
             }.launchIn(scope)
     }
 
+    @Deprecated("Request is deprecated. Use propose instead", level = DeprecationLevel.WARNING)
     override fun request(params: Push.Dapp.Params.Request, onSuccess: (Push.Dapp.Model.RequestId) -> Unit, onError: (Push.Model.Error) -> Unit) {
         checkEngineInitialization()
 
-        try {
-            pushDappEngine.request(params.pairingTopic, params.account,
-                { requestId -> onSuccess(Push.Dapp.Model.RequestId(requestId)) },
-                { exception -> onError(Push.Model.Error(exception)) }
-            )
-        } catch (e: Exception) {
-            onError(Push.Model.Error(e))
+        scope.launch(Dispatchers.IO) {
+            try {
+                pushDappEngine.request(params.pairingTopic, params.account,
+                    { requestId -> onSuccess(Push.Dapp.Model.RequestId(requestId)) },
+                    { exception -> onError(Push.Model.Error(exception)) }
+                )
+            } catch (e: Exception) {
+                onError(Push.Model.Error(e))
+            }
+        }
+    }
+
+    override fun propose(params: Push.Dapp.Params.Propose, onSuccess: (Push.Dapp.Model.RequestId) -> Unit, onError: (Push.Model.Error) -> Unit) {
+        checkEngineInitialization()
+
+        scope.launch(Dispatchers.IO) {
+            try {
+                pushDappEngine.propose(
+                    params.account,
+                    params.scope,
+                    params.pairingTopic,
+                    { requestId -> onSuccess(Push.Dapp.Model.RequestId(requestId)) },
+                    { exception -> onError(Push.Model.Error(exception)) }
+                )
+            } catch (e: Exception) {
+                onError(Push.Model.Error(e))
+            }
         }
     }
 
     override fun notify(params: Push.Dapp.Params.Notify, onError: (Push.Model.Error) -> Unit) {
         checkEngineInitialization()
 
-        try {
-            pushDappEngine.notify(params.topic, params.message.toEngineDO()) { exception -> onError(Push.Model.Error(exception)) }
-        } catch (e: Exception) {
-            onError(Push.Model.Error(e))
+        scope.launch(Dispatchers.IO) {
+            try {
+                pushDappEngine.notify(params.topic, params.message.toEngineDO()) { exception -> onError(Push.Model.Error(exception)) }
+            } catch (e: Exception) {
+                onError(Push.Model.Error(e))
+            }
         }
     }
 
@@ -94,10 +120,12 @@ internal class PushDappProtocol : PushDappInterface {
     override fun deleteSubscription(params: Push.Dapp.Params.Delete, onError: (Push.Model.Error) -> Unit) {
         checkEngineInitialization()
 
-        try {
-            pushDappEngine.delete(params.topic) { error -> onError(Push.Model.Error(error)) }
-        } catch (e: Exception) {
-            onError(Push.Model.Error(e))
+        scope.launch(Dispatchers.IO) {
+            try {
+                pushDappEngine.delete(params.topic) { error -> onError(Push.Model.Error(error)) }
+            } catch (e: Exception) {
+                onError(Push.Model.Error(e))
+            }
         }
     }
 
