@@ -22,6 +22,8 @@ import com.walletconnect.foundation.util.jwt.decodeX25519DidKey
 import com.walletconnect.push.common.JsonRpcMethod
 import com.walletconnect.push.common.calcExpiry
 import com.walletconnect.push.common.data.jwt.PushSubscriptionJwtClaim
+import com.walletconnect.push.common.data.storage.SubscriptionStorageRepository
+import com.walletconnect.push.common.domain.ExtractPushConfigUseCase
 import com.walletconnect.push.common.model.EngineDO
 import com.walletconnect.push.common.model.PushRpc
 import com.walletconnect.push.common.data.storage.SubscriptionStorageRepository
@@ -32,11 +34,12 @@ import kotlinx.coroutines.flow.*
 import org.koin.core.qualifier.named
 
 internal class PushDappEngine(
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
-    private val crypto: KeyManagementRepository,
-    private val pairingHandler: PairingControllerInterface,
-    private val subscriptionStorageRepository: SubscriptionStorageRepository,
     private val selfAppMetaData: AppMetaData,
+    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val pairingHandler: PairingControllerInterface,
+    private val extractPushConfigUseCase: ExtractPushConfigUseCase,
+    private val crypto: KeyManagementRepository,
+    private val subscriptionStorageRepository: SubscriptionStorageRepository,
     private val castRepository: CastRepository,
     private val logger: Logger,
 ) {

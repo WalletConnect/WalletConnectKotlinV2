@@ -33,7 +33,8 @@ internal class PushDappProtocol : PushDappInterface {
                 pushStorageModule(DBUtils.PUSH_DAPP_SDK_DB_NAME),
                 dappEngineModule(),
                 castModule(init.castUrl),
-                commonModule()
+                commonModule(),
+                pushEngineUseCaseModules()
             )
 
             pushDappEngine = wcKoinApp.koin.get()
