@@ -23,6 +23,8 @@ import com.walletconnect.push.wallet.engine.domain.calls.SubscribeToDappUseCase
 import com.walletconnect.push.wallet.engine.domain.calls.SubscribeToDappUseCaseInterface
 import com.walletconnect.push.wallet.engine.domain.calls.UpdateUseCase
 import com.walletconnect.push.wallet.engine.domain.calls.UpdateUseCaseInterface
+import com.walletconnect.push.wallet.engine.domain.requests.OnPushRequestUseCase
+import com.walletconnect.push.wallet.engine.domain.requests.OnPushRequestUseCaseInterface
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
@@ -98,12 +100,17 @@ internal fun walletEngineModule() = module {
         )
     }
 
+    single<OnPushRequestUseCaseInterface> {
+        OnPushRequestUseCase(subscriptionStorageRepository = get(), jsonRpcInteractor = get())
+    }
+
     single {
         RegisterIdentityAndReturnDidJwtUseCase(
             identitiesInteractor = get(),
             keyserverUrl = get(named(AndroidCommonDITags.KEYSERVER_URL))
         )
     }
+
 
     single {
         PushWalletEngine(
@@ -121,7 +128,8 @@ internal fun walletEngineModule() = module {
             deleteMessageUseCaseInterface = get(),
             decryptMessageUseCase = get(),
             getListOfActiveSubscriptionsUseCaseInterface = get(),
-            getListOfMessagesUseCaseInterface = get()
+            getListOfMessagesUseCaseInterface = get(),
+            onPushRequestUseCaseInterface = get()
         )
     }
 }
