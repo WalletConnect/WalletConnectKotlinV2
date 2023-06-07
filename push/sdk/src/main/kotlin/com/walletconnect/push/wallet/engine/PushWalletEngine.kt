@@ -81,6 +81,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
+import kotlin.reflect.full.safeCast
 
 internal class PushWalletEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -148,21 +149,6 @@ internal class PushWalletEngine(
                 }
             }
             .launchIn(scope)
-    }
-
-    fun decryptMessage(topic: String, message: String, onSuccess: (EngineDO.PushMessage) -> Unit, onFailure: (Throwable) -> Unit) {
-        try {
-            val codec = wcKoinApp.koin.get<Codec>()
-            val decryptedMessageString = codec.decrypt(Topic(topic), message)
-            // How to look in JsonRpcHistory for dupes without Rpc ID
-            val clientJsonRpc = serializer.tryDeserialize<ClientJsonRpc>(decryptedMessageString) ?: return onFailure(IllegalArgumentException("Unable to deserialize message"))
-            val pushMessage = serializer.deserialize(clientJsonRpc.method, decryptedMessageString)
-            val pushMessageEngineDO = PushParams.MessageParams::class.safeCast(pushMessage)?.toEngineDO() ?: return onFailure(IllegalArgumentException("Unable to deserialize message"))
-
-            onSuccess(pushMessageEngineDO)
-        } catch (e: Exception) {
-            onFailure(e)
-        }
     }
 
     suspend fun getListOfActiveSubscriptions(): Map<String, EngineDO.PushSubscription> =
