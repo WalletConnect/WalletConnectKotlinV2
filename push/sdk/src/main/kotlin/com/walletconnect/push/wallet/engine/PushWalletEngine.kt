@@ -150,19 +150,6 @@ internal class PushWalletEngine(
             .launchIn(scope)
     }
 
-    suspend fun update(topic: String, scopes: List<String>, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
-        val subscription = subscriptionStorageRepository.getAllSubscriptions().firstOrNull { subscription -> subscription.subscriptionTopic?.value == topic }
-            ?: return@supervisorScope onFailure(Exception("No subscription found for topic $topic"))
-        val didJwt = registerIdentityAndReturnDidJwt(subscription.account, subscription.metadata.url, scopes, { null }, onFailure).getOrElse { error ->
-            return@supervisorScope onFailure(error)
-        }
-
-        val updateParams = PushParams.UpdateParams(didJwt.value)
-        val request = PushRpc.PushUpdate(params = updateParams)
-        val irnParams = IrnParams(Tags.PUSH_UPDATE, Ttl(DAY_IN_SECONDS))
-        jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, request, onSuccess = onSuccess, onFailure = onFailure)
-    }
-
     private suspend fun registerIdentityAndReturnDidJwt(
         account: AccountId,
         metadataUrl: String,
