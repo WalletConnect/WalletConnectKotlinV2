@@ -150,30 +150,6 @@ internal class PushWalletEngine(
             .launchIn(scope)
     }
 
-    private suspend fun registerIdentityAndReturnDidJwt(
-        account: AccountId,
-        metadataUrl: String,
-        scopes: List<String>,
-        onSign: (String) -> Cacao.Signature?,
-        onFailure: (Throwable) -> Unit,
-    ): Result<DidJwt> = supervisorScope {
-        withContext(Dispatchers.IO) {
-            identitiesInteractor.registerIdentity(account, keyserverUrl, onSign).getOrElse {
-                onFailure(it)
-                this.cancel()
-            }
-        }
-
-        val joinedScope = scopes.joinToString(" ")
-        val (identityPublicKey, identityPrivateKey) = identitiesInteractor.getIdentityKeyPair(account)
-
-        return@supervisorScope encodeDidJwt(
-            identityPrivateKey,
-            EncodePushAuthDidJwtPayloadUseCase(metadataUrl, account, joinedScope),
-            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
-        )
-    }
-
     suspend fun deleteSubscription(topic: String, onFailure: (Throwable) -> Unit) = supervisorScope {
         val deleteParams = PushParams.DeleteParams(6000, "User Disconnected")
         val request = PushRpc.PushDelete(id = generateId(), params = deleteParams)
