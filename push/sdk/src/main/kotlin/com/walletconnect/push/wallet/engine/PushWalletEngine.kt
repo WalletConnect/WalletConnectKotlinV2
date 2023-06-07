@@ -150,21 +150,6 @@ internal class PushWalletEngine(
             .launchIn(scope)
     }
 
-    suspend fun reject(requestId: Long, reason: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
-        try {
-            val respondedSubscription = subscriptionStorageRepository.getSubscriptionsByRequestId(requestId)
-            val irnParams = IrnParams(Tags.PUSH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
-
-            jsonRpcInteractor.respondWithError(respondedSubscription.requestId, respondedSubscription.responseTopic, PeerError.Rejected.UserRejected(reason), irnParams) { error ->
-                return@respondWithError onFailure(error)
-            }
-
-            onSuccess()
-        } catch (e: Exception) {
-            onFailure(e)
-        }
-    }
-
     suspend fun update(topic: String, scopes: List<String>, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         val subscription = subscriptionStorageRepository.getAllSubscriptions().firstOrNull { subscription -> subscription.subscriptionTopic?.value == topic }
             ?: return@supervisorScope onFailure(Exception("No subscription found for topic $topic"))
