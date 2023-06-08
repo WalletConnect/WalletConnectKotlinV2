@@ -25,8 +25,11 @@ internal class ApproveUseCase(
         val respondedSubscription = subscriptionStorageRepository.getSubscriptionsByRequestId(requestId)
         val dappPublicKey = respondedSubscription.peerPublicKey ?: return@supervisorScope onFailure(IllegalArgumentException("Invalid dapp public key"))
         val responseTopic = respondedSubscription.responseTopic
+        val listOfAcceptedPushScope = respondedSubscription.scope
+            .filter { (_, descAndIsSelected) -> descAndIsSelected.isSelected }
+            .map { (name, _) -> name }
 
-        val didJwt = registerIdentityAndReturnDidJwtUseCase(respondedSubscription.account, respondedSubscription.metadata.url, emptyList(), onSign, onFailure).getOrElse { error ->
+        val didJwt = registerIdentityAndReturnDidJwtUseCase(respondedSubscription.account, respondedSubscription.metadata.url, listOfAcceptedPushScope, onSign, onFailure).getOrElse { error ->
             return@supervisorScope onFailure(error)
         }
         val selfPublicKey = crypto.generateAndStoreX25519KeyPair()
