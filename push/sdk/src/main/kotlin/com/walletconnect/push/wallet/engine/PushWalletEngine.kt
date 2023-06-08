@@ -92,7 +92,11 @@ internal class PushWalletEngine(
     init {
         pairingHandler.register(
             JsonRpcMethod.WC_PUSH_REQUEST,
-            JsonRpcMethod.WC_PUSH_MESSAGE
+            JsonRpcMethod.WC_PUSH_MESSAGE,
+            JsonRpcMethod.WC_PUSH_DELETE,
+            JsonRpcMethod.WC_PUSH_PROPOSE,
+            JsonRpcMethod.WC_PUSH_SUBSCRIBE,
+            JsonRpcMethod.WC_PUSH_UPDATE,
         )
     }
 
