@@ -143,7 +143,9 @@ internal class PushWalletEngine(
             }.launchIn(scope)
 
     private fun collectJsonRpcResponses(): Job =
-        jsonRpcInteractor.peerResponse.onEach { response ->
+        jsonRpcInteractor.peerResponse
+            .filter { response -> response.params is PushParams }
+            .onEach { response ->
             when (val responseParams = response.params) {
                 is PushParams.DeleteParams -> onPushDeleteResponse()
                 is PushParams.SubscribeParams -> onPushSubscribeResponse(response)
