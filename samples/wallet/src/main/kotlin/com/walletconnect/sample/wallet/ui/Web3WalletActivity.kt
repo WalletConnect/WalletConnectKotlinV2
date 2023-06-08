@@ -124,6 +124,30 @@ class Web3WalletActivity : ComponentActivity() {
                             navController.navigate(route)
                         }
                     }
+                    is PushProposal -> {
+                        val peerName = URLEncoder.encode(event.peerName, Charsets.UTF_8.name())
+                        val peerDesc = URLEncoder.encode(event.peerDesc, Charsets.UTF_8.name())
+                        val iconUrl = event.icon?.run { URLEncoder.encode(this, Charsets.UTF_8.name()) }
+                        val redirectUrl = event.redirect?.run { URLEncoder.encode(this, Charsets.UTF_8.name()) }
+                        val route = StringBuilder(Route.PushProposal.path)
+                            .append("?")
+                            .append("${Route.PushProposal.KEY_REQUEST_ID}=${event.requestId}")
+                            .append("&")
+                            .append("${Route.PushProposal.KEY_PEER_NAME}=$peerName")
+                            .append("&")
+                            .append("${Route.PushProposal.KEY_PEER_DESC}=$peerDesc")
+                            .append("&")
+                            .append("${Route.PushProposal.KEY_ICON_URL}=$iconUrl")
+
+                        if (redirectUrl != null) {
+                            route.append("&")
+                                .append("${Route.PushProposal.KEY_REDIRECT}=$redirectUrl")
+                        }
+
+                        withContext(Dispatchers.Main) {
+                            navController.navigate(route.toString())
+                        }
+                    }
                     is PushMessage -> {
                         val notificationBuilder = NotificationCompat.Builder(this, "Push")
                             .setSmallIcon(R.drawable.ic_walletconnect_circle_blue)

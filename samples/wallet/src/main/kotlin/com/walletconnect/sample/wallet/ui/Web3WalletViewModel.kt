@@ -57,7 +57,13 @@ class Web3WalletViewModel : ViewModel() {
                 PushRequest(requestId, peerName, peerDesc, icon, redirect)
             }
             is Push.Wallet.Event.Proposal -> {
-                Log.e(tag(this), "PushEvent.Proposal: $pushEvent")
+                val requestId = pushEvent.id.toString()
+                val peerName = pushEvent.metadata.name
+                val peerDesc = pushEvent.metadata.description
+                val icon = pushEvent.metadata.icons.firstOrNull()
+                val redirect = pushEvent.metadata.redirect
+
+                PushProposal(requestId, peerName, peerDesc, icon, redirect)
             }
             is Push.Wallet.Event.Message -> {
                 PushMessage(pushEvent.message.message.title, pushEvent.message.message.body, pushEvent.message.message.icon, pushEvent.message.message.url)

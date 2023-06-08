@@ -111,6 +111,27 @@ fun Web3WalletNavGraph(
                             backStackEntry.arguments?.getString("redirect"),
                         )
                     }
+                    dialog("${Route.PushProposal.path}?${Route.PushProposal.KEY_REQUEST_ID}={requestId}&${Route.PushProposal.KEY_PEER_NAME}={peerName}&${Route.PushProposal.KEY_PEER_DESC}={peerDesc}&${Route.PushProposal.KEY_ICON_URL}={iconUrl}&${Route.PushProposal.KEY_REDIRECT}={redirect}",
+                        arguments = listOf(
+                            navArgument("requestId") { type = NavType.LongType },
+                            navArgument("peerName") { type = NavType.StringType },
+                            navArgument("peerDesc") { type = NavType.StringType },
+                            navArgument("iconUrl") { type = NavType.StringType },
+                            navArgument("redirect") {
+                                nullable = true
+                                type = NavType.StringType
+                            }
+                        ),
+                        dialogProperties = DialogProperties(usePlatformDefaultWidth = false)) { backStackEntry ->
+                        PushRequestRoute(
+                            navController,
+                            backStackEntry.arguments?.getLong("requestId")!!,
+                            backStackEntry.arguments?.getString("peerName")!!,
+                            backStackEntry.arguments?.getString("peerDesc")!!,
+                            backStackEntry.arguments?.getString("iconUrl"),
+                            backStackEntry.arguments?.getString("redirect"),
+                        )
+                    }
                     dialog(Route.PasteUri.path, dialogProperties = DialogProperties(usePlatformDefaultWidth = false)) {
                         PasteUriRoute(onSubmit = {
                             web3walletViewModel.pair(it)

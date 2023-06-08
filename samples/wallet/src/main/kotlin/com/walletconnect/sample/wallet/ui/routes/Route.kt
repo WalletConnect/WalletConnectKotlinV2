@@ -17,6 +17,13 @@ sealed class Route(val path: String) {
         const val KEY_ICON_URL: String = "icon_url"
         const val KEY_REDIRECT: String = "redirect"
     }
+    object PushProposal : Route("push_proposal") {
+        const val KEY_REQUEST_ID: String = "request_id"
+        const val KEY_PEER_NAME: String = "peer_name"
+        const val KEY_PEER_DESC: String = "peer_desc"
+        const val KEY_ICON_URL: String = "icon_url"
+        const val KEY_REDIRECT: String = "redirect"
+    }
     object ConnectionDetails : Route("connection_details")
     object SnackbarMessage : Route("snackbar_message")
     object Web3Inbox : Route("web3inbox")
