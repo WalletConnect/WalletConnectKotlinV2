@@ -8,6 +8,7 @@ import com.walletconnect.android.internal.common.signing.cacao.toCAIP122Message
 import com.walletconnect.android.internal.common.signing.cacao.toSignature
 import com.walletconnect.android.internal.common.signing.eip191.EIP191Signer
 import com.walletconnect.android.internal.common.signing.eip191.EIP191Verifier
+import com.walletconnect.android.internal.common.signing.model.HexString
 import com.walletconnect.android.internal.common.signing.signature.Signature
 import com.walletconnect.android.utils.cacao.CacaoSignerInterface
 import com.walletconnect.android.utils.cacao.sign
@@ -59,7 +60,7 @@ internal class EIP191SignerTest {
     @Test
     fun signHexAndVerify() {
         val address = Keys.getAddress(ECKeyPair.create(privateKey))
-        val signature = EIP191Signer.signHex(Numeric.toHexString(message.toByteArray()), privateKey)
+        val signature = EIP191Signer.signHex(HexString(Numeric.toHexString(message.toByteArray())), privateKey)
         val result = EIP191Verifier.verify(signature, message, address)
         assertTrue(result)
     }
@@ -75,7 +76,7 @@ internal class EIP191SignerTest {
     @Test
     fun signHexAndVerifyNoPrefix() {
         val address = Keys.getAddress(ECKeyPair.create(privateKey))
-        val signature = EIP191Signer.signHexNoPrefix(Numeric.toHexString(message.toByteArray()), privateKey)
+        val signature = EIP191Signer.signHexNoPrefix(HexString(Numeric.toHexString(message.toByteArray())), privateKey)
         val result = EIP191Verifier.verifyNoPrefix(signature, message, address)
         assertTrue(result)
     }

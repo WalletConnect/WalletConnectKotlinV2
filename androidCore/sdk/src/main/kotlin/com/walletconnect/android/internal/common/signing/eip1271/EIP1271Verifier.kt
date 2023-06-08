@@ -1,7 +1,10 @@
 package com.walletconnect.android.internal.common.signing.eip1271
 
+import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.signing.signature.Signature
 import com.walletconnect.android.internal.common.signing.signature.toCacaoSignature
+import com.walletconnect.android.internal.common.wcKoinApp
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.generateId
 import okhttp3.MediaType
@@ -11,6 +14,7 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import org.koin.core.qualifier.named
 import org.web3j.crypto.Sign
 import org.web3j.utils.Numeric
 
@@ -42,7 +46,7 @@ internal object EIP1271Verifier {
             val messageHash: String = Sign.getEthereumMessageHash(originalMessage.toByteArray()).bytesToHex()
             verify(messageHash, signature, projectId, address)
         } catch (e: Exception) {
-            println(e)
+            wcKoinApp.koin.get<Logger>(named(AndroidCommonDITags.LOGGER)).error(e)
             false
         }
     }
@@ -52,7 +56,7 @@ internal object EIP1271Verifier {
             val messageHash: String = Sign.getEthereumMessageHash(Numeric.hexStringToByteArray(hexMessage)).bytesToHex()
             verify(messageHash, signature, projectId, address)
         } catch (e: Exception) {
-            println(e)
+            wcKoinApp.koin.get<Logger>(named(AndroidCommonDITags.LOGGER)).error(e)
             false
         }
     }
