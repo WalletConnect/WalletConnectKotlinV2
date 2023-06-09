@@ -15,8 +15,7 @@ import com.walletconnect.sign.di.jsonRpcModule
 import com.walletconnect.sign.di.storageModule
 import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.engine.model.EngineDO
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.*
 
 class SignProtocol : SignInterface {
     private lateinit var signEngine: SignEngine
@@ -287,6 +286,12 @@ class SignProtocol : SignInterface {
     override fun getListOfSettledSessions(): List<Sign.Model.Session> {
         checkEngineInitialization()
         return signEngine.getListOfSettledSessions().map(EngineDO.Session::toClientActiveSession)
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun getListOfSettledSessionsFlow(): Flow<List<Sign.Model.Session>> {
+        checkEngineInitialization()
+        return signEngine.getListOfSettledSessionsFlow().map { it.map(EngineDO.Session::toClientSettledSession) }
     }
 
     @Throws(IllegalStateException::class)

@@ -586,6 +586,18 @@ internal class SignEngine(
             .map { session -> session.toEngineDO() }
     }
 
+    internal fun getListOfSettledSessionsFlow(): Flow<List<EngineDO.Session>> {
+        return sessionStorageRepository.getListOfSessionVOsWithoutMetadataFlow()
+            .map {
+                it.filter { session -> session.isAcknowledged && session.expiry.isSequenceValid() }
+                    .map { session ->
+                        val peerMetaData = metadataStorageRepository.getByTopicAndType(session.topic, AppMetaDataType.PEER)
+                        session.copy(selfAppMetaData = selfAppMetaData, peerAppMetaData = peerMetaData)
+                    }
+                    .map { session -> session.toEngineDO() }
+            }
+    }
+
     internal fun getListOfSettledPairings(): List<EngineDO.PairingSettle> {
         return pairingInterface.getPairings().map { pairing ->
             val mappedPairing = pairing.toPairing()

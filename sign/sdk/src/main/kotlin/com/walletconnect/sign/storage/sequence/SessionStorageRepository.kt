@@ -4,6 +4,8 @@ package com.walletconnect.sign.storage.sequence
 
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android.internal.common.model.Expiry
+import com.squareup.sqldelight.runtime.coroutines.asFlow
+import com.squareup.sqldelight.runtime.coroutines.mapToList
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
@@ -15,6 +17,7 @@ import com.walletconnect.sign.storage.data.dao.session.SessionDaoQueries
 import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceDaoQueries
 import com.walletconnect.utils.Empty
 import com.walletconnect.utils.isSequenceValid
+import kotlinx.coroutines.flow.Flow
 
 internal class SessionStorageRepository(
     private val sessionDaoQueries: SessionDaoQueries,
@@ -30,6 +33,10 @@ internal class SessionStorageRepository(
     fun getListOfSessionVOsWithoutMetadata(): List<SessionVO> =
         sessionDaoQueries.getListOfSessionDaos(mapper = this@SessionStorageRepository::mapSessionDaoToSessionVO).executeAsList()
 
+    @JvmSynthetic
+    fun getListOfSessionVOsWithoutMetadataFlow(): Flow<List<SessionVO>> =
+        sessionDaoQueries.getListOfSessionDaos(mapper = this@SessionStorageRepository::mapSessionDaoToSessionVO).asFlow().mapToList()
+        
     // TODO: Maybe move this out and into SignValidator?
     @JvmSynthetic
     fun isSessionValid(topic: Topic): Boolean {

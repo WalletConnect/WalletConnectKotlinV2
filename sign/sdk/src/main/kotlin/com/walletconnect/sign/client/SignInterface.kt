@@ -1,5 +1,7 @@
 package com.walletconnect.sign.client
 
+import kotlinx.coroutines.flow.Flow
+
 interface SignInterface {
     interface WalletDelegate {
         fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal)
@@ -82,6 +84,8 @@ interface SignInterface {
     )
     fun getListOfSettledSessions(): List<Sign.Model.Session>
 
+    fun getListOfSettledSessionsFlow(): Flow<List<Sign.Model.Session>>
+    
     /**
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
