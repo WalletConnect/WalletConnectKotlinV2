@@ -19,8 +19,13 @@ object PushWalletDelegate: PushWalletClient.Delegate {
         PushWalletClient.setDelegate(this)
     }
 
+    @Deprecated("OnPushRequest will be removed in a future version. Use onPushProposal")
     override fun onPushRequest(pushRequest: Push.Wallet.Event.Request) {
         scope.launch { _wcPushEventModels.emit(pushRequest) }
+    }
+
+    override fun onPushProposal(pushProposal: Push.Wallet.Event.Proposal) {
+        scope.launch { _wcPushEventModels.emit(pushProposal) }
     }
 
     override fun onPushMessage(pushMessage: Push.Wallet.Event.Message) {

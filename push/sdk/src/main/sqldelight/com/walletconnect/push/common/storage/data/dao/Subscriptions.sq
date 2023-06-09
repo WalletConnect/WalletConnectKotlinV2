@@ -44,7 +44,7 @@ WHERE request_id = ?;
 
 updateSubscriptionToResponded:
 UPDATE OR REPLACE Subscriptions
-SET topic = ?, expiry = ?
+SET topic = ?, did_jwt = ?, expiry = ?
 WHERE response_topic = ?;
 
 updateSubscriptionWithDappPublicKeyToResponded:

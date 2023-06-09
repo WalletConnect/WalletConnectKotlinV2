@@ -24,6 +24,26 @@ sealed class PushParams: ClientParams {
     ): PushParams()
 
     @JsonClass(generateAdapter = true)
+    data class ProposeParams(
+        @Json(name = "publicKey")
+        val publicKey: String,
+        @Json(name = "metadata")
+        val metaData: AppMetaData,
+        @Json(name = "account")
+        val account: String,
+        @Json(name = "scope")
+        val scope: List<String>
+    ): PushParams()
+
+    @JsonClass(generateAdapter = true)
+    data class ProposeResponseParams(
+        @Json(name = "subscriptionAuth")
+        val subscriptionAuth: String,
+        @Json(name = "subscriptionSymKey")
+        val subscriptionSymKey: String
+    ): PushParams()
+
+    @JsonClass(generateAdapter = true)
     data class MessageParams(
         @Json(name = "title")
         val title: String,

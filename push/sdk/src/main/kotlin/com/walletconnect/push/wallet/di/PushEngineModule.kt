@@ -21,6 +21,7 @@ internal fun walletEngineModule() = module {
             identitiesInteractor = get(),
             serializer = get(),
             explorerRepository = get(),
+            extractPushConfigUseCase = get(),
             logger = get()
         )
     }

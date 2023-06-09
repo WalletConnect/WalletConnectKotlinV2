@@ -56,9 +56,8 @@ class SubscriptionStorageRepository(private val subscriptionQueries: Subscriptio
         subscriptionQueries.updateSubscriptionWithDappPublicKeyToResponded(topic, dappPublicKey, newExpiry, responseTopic)
     }
 
-    suspend fun updateSubscriptionToRespondedByApproval(responseTopic: String, topic: String, newExpiry: Long) = withContext(Dispatchers.IO) {
-        val (relay, data) = RelayProtocolOptions().run { protocol to data }
-        subscriptionQueries.updateSubscriptionToResponded(topic, newExpiry, responseTopic)
+    suspend fun updateSubscriptionToRespondedByApproval(responseTopic: String, topic: String, didJwt: String, newExpiry: Long) = withContext(Dispatchers.IO) {
+        subscriptionQueries.updateSubscriptionToResponded(topic, didJwt, newExpiry, responseTopic)
     }
 
     suspend fun updateSubscriptionScopeAndJwt(subscriptionTopic: String, updateScope: Map<String, Pair<String, Boolean>>, updateJwt: String, newExpiry: Long) = withContext(Dispatchers.IO) {
@@ -103,17 +102,17 @@ class SubscriptionStorageRepository(private val subscriptionQueries: Subscriptio
         val relayProtocolOptions = RelayProtocolOptions(relay_protocol, relay_data)
 
         return EngineDO.PushSubscription(
-            request_id,
-            Topic(keyAgreementTopic),
-            Topic(responseTopic),
-            dappPublicKey?.let { PublicKey(it) },
-            topic?.let { Topic(it) },
-            AccountId(account),
-            relayProtocolOptions,
-            metadata,
-            did_jwt,
-            map_of_scope,
-            Expiry(expiry)
+            requestId = request_id,
+            keyAgreementTopic = Topic(keyAgreementTopic),
+            responseTopic = Topic(responseTopic),
+            peerPublicKey = dappPublicKey?.let { PublicKey(it) },
+            subscriptionTopic = topic?.let { Topic(it) },
+            account = AccountId(account),
+            relay = relayProtocolOptions,
+            metadata = metadata,
+            didJwt = did_jwt,
+            scope = map_of_scope.mapValues { (scopeName, scopeDescIsSelected) -> EngineDO.PushScope.Cached(scopeName, scopeDescIsSelected.first, scopeDescIsSelected.second) },
+            expiry = Expiry(expiry)
         )
     }
 }
