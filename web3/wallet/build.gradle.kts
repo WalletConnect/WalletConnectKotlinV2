@@ -42,6 +42,10 @@ android {
         jvmTarget = jvmVersion.toString()
         freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.time.ExperimentalTime"
     }
+
+    buildFeatures {
+        buildConfig = true
+    }
 }
 
 dependencies {

@@ -13,6 +13,7 @@ project.apply {
 }
 
 android {
+    namespace = "com.walletconnect.chat"
     compileSdk = COMPILE_SDK
 
     defaultConfig {

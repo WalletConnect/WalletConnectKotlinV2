@@ -13,6 +13,7 @@ project.apply {
 }
 
 android {
+    namespace = "com.walletconnect.sign"
     compileSdk = COMPILE_SDK
 
     defaultConfig {
@@ -50,6 +51,10 @@ android {
     testOptions.unitTests {
         isIncludeAndroidResources = true
         isReturnDefaultValues = true
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 }
 

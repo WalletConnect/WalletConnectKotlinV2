@@ -5,6 +5,7 @@ plugins {
 }
 
 android {
+    namespace = "com.walletconnect.sample_common"
     compileSdk = COMPILE_SDK
 
     defaultConfig {
@@ -36,6 +37,7 @@ android {
     buildFeatures {
         compose = true
         viewBinding = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = composeCompilerVersion
