@@ -1,4 +1,4 @@
-package com.walletconnect.web3.inbox.proxy
+package com.walletconnect.web3.inbox.common.proxy
 
 import android.os.Handler
 import android.os.Looper

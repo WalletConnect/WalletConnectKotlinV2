@@ -4,7 +4,7 @@ import android.annotation.SuppressLint
 import android.webkit.*
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.foundation.util.Logger
-import com.walletconnect.web3.inbox.proxy.ProxyRequestHandler
+import com.walletconnect.web3.inbox.common.proxy.ProxyRequestHandler
 import java.lang.ref.WeakReference
 
 internal class WebViewPresenter(

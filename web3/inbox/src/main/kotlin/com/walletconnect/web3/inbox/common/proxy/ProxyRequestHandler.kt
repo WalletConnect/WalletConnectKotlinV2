@@ -1,13 +1,18 @@
 @file:JvmSynthetic
 
-package com.walletconnect.web3.inbox.proxy
+package com.walletconnect.web3.inbox.common.proxy
 
 import android.webkit.JavascriptInterface
 import com.walletconnect.foundation.util.Logger
+import com.walletconnect.web3.inbox.chat.request.*
+import com.walletconnect.web3.inbox.chat.request.AcceptInviteRequestUseCase
+import com.walletconnect.web3.inbox.chat.request.GetMessagesRequestUseCase
+import com.walletconnect.web3.inbox.chat.request.GetReceivedInvitesRequestUseCase
+import com.walletconnect.web3.inbox.chat.request.GetSentInvitesRequestUseCase
+import com.walletconnect.web3.inbox.chat.request.GetThreadsRequestUseCase
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxSerializer
-import com.walletconnect.web3.inbox.proxy.request.*
-import com.walletconnect.web3.inbox.push.proxy.*
+import com.walletconnect.web3.inbox.push.request.*
 
 
 // TODO: split into push and chat
