@@ -17,7 +17,6 @@ internal class ExplorerRepository(
         return explorerApi.getWallets(
             projectId = projectId.value,
             page = page,
-            entries = entries,
             chains = chains.joinToString(",")
         ).body()
     }
