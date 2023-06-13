@@ -1,5 +1,6 @@
 package com.walletconnect.web3.inbox.json_rpc
 
+// TODO: Break up into multiple files
 internal object Web3InboxMethods {
     object Request {
         object Chat {

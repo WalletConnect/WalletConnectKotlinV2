@@ -6,6 +6,7 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcClientSync
 import com.walletconnect.util.generateId
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC.Request
 
+// TODO: Break up into multiple files
 internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
 
     /**

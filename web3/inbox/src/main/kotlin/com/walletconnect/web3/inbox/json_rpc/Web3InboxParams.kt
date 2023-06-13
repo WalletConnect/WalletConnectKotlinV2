@@ -3,6 +3,7 @@ package com.walletconnect.web3.inbox.json_rpc
 import com.squareup.moshi.JsonClass
 import com.walletconnect.android.internal.common.model.type.ClientParams
 
+// TODO: Break up into multiple files
 internal sealed interface Web3InboxParams : ClientParams {
 
     sealed interface Request : Web3InboxParams {
