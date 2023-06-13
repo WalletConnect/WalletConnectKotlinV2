@@ -11,7 +11,7 @@ internal interface ExplorerService {
     suspend fun getWallets(
         @Query("projectId") projectId: String,
         @Query("page") page: Int,
-        @Query("entries") entries: Int,
+//        @Query("entries") entries: Int,
         @Query("chains") chains: String
     ): Response<ExplorerResponse>
 }
