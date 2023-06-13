@@ -1,12 +1,13 @@
-package com.walletconnect.web3.inbox.proxy.request
+package com.walletconnect.web3.inbox.chat.request
 
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.chat.client.Chat
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxParams
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC
-import com.walletconnect.web3.inbox.proxy.ProxyInteractor
+import com.walletconnect.web3.inbox.common.proxy.ChatProxyInteractor
 
-internal abstract class RequestUseCase<T : Web3InboxParams.Request>(val proxyInteractor: ProxyInteractor) {
+//todo note this is used in push as well.
+internal abstract class ChatRequestUseCase<T : Web3InboxParams.Request>(val proxyInteractor: ChatProxyInteractor) {
     abstract operator fun invoke(rpc: Web3InboxRPC, params: T)
 
     //todo: discuss defining errors. Milestone 2
