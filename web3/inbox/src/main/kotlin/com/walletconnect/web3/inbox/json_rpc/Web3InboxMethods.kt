@@ -3,38 +3,38 @@ package com.walletconnect.web3.inbox.json_rpc
 internal object Web3InboxMethods {
     object Request {
         object Chat {
-            // TODO: add chat methods here
+
+            @get:JvmSynthetic
+            const val REGISTER: String = "register"
+
+            @get:JvmSynthetic
+            const val RESOLVE: String = "resolve"
+
+            @get:JvmSynthetic
+            const val GET_RECEIVED_INVITES: String = "getReceivedInvites"
+
+            @get:JvmSynthetic
+            const val GET_SENT_INVITES: String = "getSentInvites"
+
+            @get:JvmSynthetic
+            const val GET_THREADS: String = "getThreads"
+
+            @get:JvmSynthetic
+            const val GET_MESSAGES: String = "getMessages"
+
+            @get:JvmSynthetic
+            const val MESSAGE: String = "message"
+
+            @get:JvmSynthetic
+            const val ACCEPT: String = "accept"
+
+            @get:JvmSynthetic
+            const val REJECT: String = "reject"
+
+            @get:JvmSynthetic
+            const val INVITE: String = "invite"
         }
 
-        @get:JvmSynthetic
-        const val REGISTER: String = "register"
-
-        @get:JvmSynthetic
-        const val RESOLVE: String = "resolve"
-
-        @get:JvmSynthetic
-        const val GET_RECEIVED_INVITES: String = "getReceivedInvites"
-
-        @get:JvmSynthetic
-        const val GET_SENT_INVITES: String = "getSentInvites"
-
-        @get:JvmSynthetic
-        const val GET_THREADS: String = "getThreads"
-
-        @get:JvmSynthetic
-        const val GET_MESSAGES: String = "getMessages"
-
-        @get:JvmSynthetic
-        const val MESSAGE: String = "message"
-
-        @get:JvmSynthetic
-        const val ACCEPT: String = "accept"
-
-        @get:JvmSynthetic
-        const val REJECT: String = "reject"
-
-        @get:JvmSynthetic
-        const val INVITE: String = "invite"
 
         object Push {
             @get:JvmSynthetic

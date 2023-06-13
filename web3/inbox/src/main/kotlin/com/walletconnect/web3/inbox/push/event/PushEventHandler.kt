@@ -1,4 +1,4 @@
-package com.walletconnect.web3.inbox.push
+package com.walletconnect.web3.inbox.push.event
 
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.push.common.Push
@@ -36,6 +36,10 @@ internal class PushEventHandler(
     override fun onPushDelete(pushDelete: Push.Wallet.Event.Delete) {
         logger.log("onPushDelete: $pushDelete")
         onDeletePushEventUseCase(pushDelete)
+    }
+
+    override fun onPushProposal(pushProposal: Push.Wallet.Event.Proposal) {
+        TODO("Not yet implemented")
     }
 
     override fun onPushSubscription(pushSubscribe: Push.Wallet.Event.Subscription) {

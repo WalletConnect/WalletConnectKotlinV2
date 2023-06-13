@@ -4,6 +4,7 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.walletconnect.android.internal.common.model.type.JsonRpcClientSync
 import com.walletconnect.util.generateId
+import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC.Request
 
 internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
 
@@ -21,7 +22,7 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
                 @Json(name = "jsonrpc")
                 override val jsonrpc: String = "2.0",
                 @Json(name = "method")
-                override val method: String = Web3InboxMethods.Request.REGISTER,
+                override val method: String = Web3InboxMethods.Request.Chat.REGISTER,
                 @Json(name = "params")
                 override val params: Web3InboxParams.Request.Chat.RegisterParams,
             ) : Chat
@@ -33,7 +34,7 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
                 @Json(name = "jsonrpc")
                 override val jsonrpc: String = "2.0",
                 @Json(name = "method")
-                override val method: String = Web3InboxMethods.Request.RESOLVE,
+                override val method: String = Web3InboxMethods.Request.Chat.RESOLVE,
                 @Json(name = "params")
                 override val params: Web3InboxParams.Request.Chat.ResolveParams,
             ) : Chat
@@ -46,7 +47,7 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
                 @Json(name = "jsonrpc")
                 override val jsonrpc: String = "2.0",
                 @Json(name = "method")
-                override val method: String = Web3InboxMethods.Request.ACCEPT,
+                override val method: String = Web3InboxMethods.Request.Chat.ACCEPT,
                 @Json(name = "params")
                 override val params: Web3InboxParams.Request.Chat.AcceptParams,
             ) : Chat
@@ -58,7 +59,7 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
                 @Json(name = "jsonrpc")
                 override val jsonrpc: String = "2.0",
                 @Json(name = "method")
-                override val method: String = Web3InboxMethods.Request.REJECT,
+                override val method: String = Web3InboxMethods.Request.Chat.REJECT,
                 @Json(name = "params")
                 override val params: Web3InboxParams.Request.Chat.RejectParams,
             ) : Chat
@@ -70,7 +71,7 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
                 @Json(name = "jsonrpc")
                 override val jsonrpc: String = "2.0",
                 @Json(name = "method")
-                override val method: String = Web3InboxMethods.Request.INVITE,
+                override val method: String = Web3InboxMethods.Request.Chat.INVITE,
                 @Json(name = "params")
                 override val params: Web3InboxParams.Request.Chat.InviteParams,
             ) : Chat
@@ -82,7 +83,7 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
                 @Json(name = "jsonrpc")
                 override val jsonrpc: String = "2.0",
                 @Json(name = "method")
-                override val method: String = Web3InboxMethods.Request.GET_RECEIVED_INVITES,
+                override val method: String = Web3InboxMethods.Request.Chat.GET_RECEIVED_INVITES,
                 @Json(name = "params")
                 override val params: Web3InboxParams.Request.Chat.GetReceivedInvitesParams,
             ) : Chat
@@ -94,7 +95,7 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
                 @Json(name = "jsonrpc")
                 override val jsonrpc: String = "2.0",
                 @Json(name = "method")
-                override val method: String = Web3InboxMethods.Request.GET_SENT_INVITES,
+                override val method: String = Web3InboxMethods.Request.Chat.GET_SENT_INVITES,
                 @Json(name = "params")
                 override val params: Web3InboxParams.Request.Chat.GetSentInvitesParams,
             ) : Chat
@@ -106,7 +107,7 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
                 @Json(name = "jsonrpc")
                 override val jsonrpc: String = "2.0",
                 @Json(name = "method")
-                override val method: String = Web3InboxMethods.Request.GET_THREADS,
+                override val method: String = Web3InboxMethods.Request.Chat.GET_THREADS,
                 @Json(name = "params")
                 override val params: Web3InboxParams.Request.Chat.GetThreadsParams,
             ) : Chat
@@ -118,7 +119,7 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
                 @Json(name = "jsonrpc")
                 override val jsonrpc: String = "2.0",
                 @Json(name = "method")
-                override val method: String = Web3InboxMethods.Request.GET_MESSAGES,
+                override val method: String = Web3InboxMethods.Request.Chat.GET_MESSAGES,
                 @Json(name = "params")
                 override val params: Web3InboxParams.Request.Chat.GetMessagesParams,
             ) : Chat
@@ -130,7 +131,7 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
                 @Json(name = "jsonrpc")
                 override val jsonrpc: String = "2.0",
                 @Json(name = "method")
-                override val method: String = Web3InboxMethods.Request.MESSAGE,
+                override val method: String = Web3InboxMethods.Request.Chat.MESSAGE,
                 @Json(name = "params")
                 override val params: Web3InboxParams.Request.Chat.MessageParams,
             ) : Chat

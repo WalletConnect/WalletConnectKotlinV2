@@ -1,4 +1,4 @@
-package com.walletconnect.web3.inbox.chat
+package com.walletconnect.web3.inbox.chat.event
 
 import com.walletconnect.chat.client.Chat
 import com.walletconnect.chat.client.ChatClient
