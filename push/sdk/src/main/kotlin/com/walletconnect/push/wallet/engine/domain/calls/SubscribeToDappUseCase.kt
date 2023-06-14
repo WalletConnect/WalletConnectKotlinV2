@@ -58,7 +58,6 @@ internal class SubscribeToDappUseCase(
             extractDidJson(dappUri).getOrThrow() to extractPushConfigUseCase(dappUri).getOrThrow()
         }
 
-        Log.e("Talha31", "Fetching dapp well known properties: $dappWellKnownProperties")
         dappWellKnownProperties.fold(
             onSuccess = { (dappPublicKey, dappScope) -> createSubscription(dappUri, account, onSign, dappPublicKey, dappScope, onSuccess, onFailure) },
             onFailure = { error -> return@supervisorScope onFailure(error) }
@@ -66,7 +65,6 @@ internal class SubscribeToDappUseCase(
     }
 
     private suspend fun createSubscription(dappUri: Uri, account: String, onSign: (String) -> Cacao.Signature?, dappPublicKey: PublicKey, dappScopes: List<EngineDO.PushScope.Remote>, onSuccess: (Long, DidJwt) -> Unit, onFailure: (Throwable) -> Unit) {
-        Log.e("Talha32", "creating subscription")
         val subscribeTopic = Topic(sha256(dappPublicKey.keyAsBytes))
         val selfPublicKey = crypto.generateAndStoreX25519KeyPair()
         val responseTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, dappPublicKey)
@@ -96,20 +94,16 @@ internal class SubscribeToDappUseCase(
                 )
             )
         }.getOrElse {
-            Log.e("Talha33", "error fetching dapp metadata")
             return onFailure(it)
         }
 
         val didJwt = registerIdentityAndReturnDidJwtUseCase(AccountId(account), dappUri.toString(), dappScopes.map { it.name }, onSign, onFailure).getOrElse { error ->
-            Log.e("Talha34", "error registering identity")
             return onFailure(error)
         }
-        val params = PushParams.SubscribeParams(didJwt.value.also { Log.e("TalhaSubscriptionAuth", it) })
+        val params = PushParams.SubscribeParams(didJwt.value)
         val request = PushRpc.PushSubscribe(params = params)
         val irnParams = IrnParams(Tags.PUSH_SUBSCRIBE, Ttl(DAY_IN_SECONDS))
 
-        Log.e("Talha42", coroutineContext.job.isCompleted.toString())
-        Log.e("TalhaRequestId1", request.id.toString())
         coroutineScope {
             launch {
                 subscriptionStorageRepository.insertSubscription(
@@ -134,23 +128,19 @@ internal class SubscribeToDappUseCase(
         }
 
         jsonRpcInteractor.subscribe(responseTopic) { error ->
-            Log.e("Talha35", "error subscribing to response topic")
             return@subscribe onFailure(error)
         }
 
         jsonRpcInteractor.publishJsonRpcRequest(
-            topic = subscribeTopic.also { Log.e("TalhaSubscribeTopic", it.value) },
+            topic = subscribeTopic,
             params = irnParams,
             payload = request,
             envelopeType = EnvelopeType.ONE,
             participants = Participants(selfPublicKey, dappPublicKey),
             onSuccess = {
-                Log.e("Talha36", "success subscribing to response topic")
-                Log.e("TalhaRequestId2", request.id.toString())
                 onSuccess(request.id, didJwt)
             },
             onFailure = { error ->
-                Log.e("Talha37", "error subscribing to response topic")
                 onFailure(error)
             }
         )

@@ -152,12 +152,8 @@ internal class PushWalletEngine(
 
     private fun collectJsonRpcResponses(): Job =
         jsonRpcInteractor.peerResponse
-            .filter { response ->
-                Log.e("ÏTalha41", "filtering: ${response.params}")
-                response.params is PushParams
-            }
+            .filter { response -> response.params is PushParams }
             .onEach { response ->
-                Log.e("Talha42", "collectJsonRpcResponses: ${response.params}")
                 when (val responseParams = response.params) {
                     is PushParams.DeleteParams -> onPushDeleteResponse()
                     is PushParams.SubscribeParams -> onPushSubscribeResponse(response)
@@ -191,7 +187,6 @@ internal class PushWalletEngine(
                 )
             )
         } catch (e: Exception) {
-            Log.e("Talha", e.stackTraceToString())
             jsonRpcInteractor.respondWithError(
                 request,
                 Uncategorized.GenericError("Cannot handle the push request: ${e.message}, topic: ${request.topic}"),
@@ -245,14 +240,12 @@ internal class PushWalletEngine(
     }
 
     private suspend fun onPushSubscribeResponse(wcResponse: WCResponse) = supervisorScope {
-        Log.e("Talha40", "onPushSubscribeResponse")
         try {
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcResult -> {
                     val subscription = subscriptionStorageRepository.getAllSubscriptions().firstOrNull { it.responseTopic.value == wcResponse.topic.value } ?: return@supervisorScope _engineEvent.emit(
                         SDKError(NotFoundException("Cannot find subscription for topic: ${wcResponse.topic.value}"))
                     )
-                    Log.e("TalhaRequestId1", subscription.requestId.toString())
                     val selfPublicKey = crypto.getSelfPublicFromKeyAgreement(subscription.keyAgreementTopic)
                     val dappPublicKey = PublicKey(
                         (((wcResponse.response as JsonRpcResponse.JsonRpcResult).result as Map<*, *>)["publicKey"] as String)
@@ -280,25 +273,15 @@ internal class PushWalletEngine(
                         }
                     }
 
-                    Log.e("Talha22", "engineSubscriptionNotifier: $enginePushSubscriptionNotifier")
-                    Log.e("Talha23", "engineSubscriptionNotifier flow: ${enginePushSubscriptionNotifier.newlyCreatedPushSubscription}")
-                    Log.e("Talha25", "engineSubscriptionNotifier flow count: ${enginePushSubscriptionNotifier.newlyCreatedPushSubscription.subscriptionCount.value}")
                     _engineEvent.emit(updatedSubscription)
-                    val result = enginePushSubscriptionNotifier.newlyCreatedPushSubscription.updateAndGet {
-                        Log.e("Talha29", "old subscription: $it new subscription: $updatedSubscription")
-                        updatedSubscription
-                    }
-                    Log.e("Talha24", "engineSubscriptionNotifier flow: $result")
-                    Log.e("Talha26", "engineSubscriptionNotifier flow count: ${enginePushSubscriptionNotifier.newlyCreatedPushSubscription.subscriptionCount.value}")
+                    enginePushSubscriptionNotifier.newlyCreatedPushSubscription.updateAndGet { updatedSubscription }
                 }
 
                 is JsonRpcResponse.JsonRpcError -> {
-                    Log.e("Talha37", "error: ${response.error.message}")
                     _engineEvent.emit(EngineDO.PushSubscribeError(wcResponse.response.id, response.error.message))
                 }
             }
         } catch (exception: Exception) {
-            Log.e("Talha38", "error: ${exception.message}")
             _engineEvent.emit(SDKError(exception))
         }
     }

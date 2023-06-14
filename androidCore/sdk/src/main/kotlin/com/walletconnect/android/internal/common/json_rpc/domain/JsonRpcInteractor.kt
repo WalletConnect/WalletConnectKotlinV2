@@ -90,10 +90,7 @@ internal class JsonRpcInteractor(
 
             relay.publish(topic.value, encryptedRequest, params.toRelay()) { result ->
                 result.fold(
-                    onSuccess = {
-                        Log.e("Talha47", "publishJsonRpcRequest: $it")
-                        onSuccess()
-                                },
+                    onSuccess = { onSuccess() },
                     onFailure = { error -> onFailure(error) }
                 )
             }
