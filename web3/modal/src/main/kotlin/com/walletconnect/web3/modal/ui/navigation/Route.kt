@@ -13,6 +13,8 @@ internal sealed class Route(val path: String) {
     object Help : Route("modal_help")
     object GetAWallet : Route("get_a_wallet")
 
+    object AllWallets : Route("all_wallets")
+
     //Session routes
     object Session : Route("session")
 }
