@@ -31,6 +31,7 @@ import com.walletconnect.android.internal.utils.CURRENT_TIME_IN_SECONDS
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
 import com.walletconnect.android.internal.utils.THIRTY_SECONDS
 import com.walletconnect.android.pairing.engine.model.EngineDO
+import com.walletconnect.android.pairing.model.PairingJsonRpcMethod
 import com.walletconnect.android.pairing.model.PairingParams
 import com.walletconnect.android.pairing.model.PairingRpc
 import com.walletconnect.android.pairing.model.mapper.toClient
@@ -66,8 +67,12 @@ internal class PairingEngine(
     private val pairingRepository: PairingStorageRepositoryInterface
 ) {
     private var jsonRpcRequestsJob: Job? = null
+    private val setOfRegisteredMethods: MutableSet<String> = mutableSetOf()
+    private val registeredMethods: String get() = setOfRegisteredMethods.joinToString(",") { it }
 
     init {
+        setOfRegisteredMethods.addAll(listOf(PairingJsonRpcMethod.WC_PAIRING_DELETE, PairingJsonRpcMethod.WC_PAIRING_PING))
+
         jsonRpcInteractor.isConnectionAvailable
             .filter { isAvailable: Boolean -> isAvailable }
             .onEach {
@@ -82,9 +87,6 @@ internal class PairingEngine(
                 }
             }.launchIn(scope)
     }
-
-    private val setOfRegisteredMethods: MutableSet<String> = mutableSetOf()
-    private val registeredMethods: String get() = setOfRegisteredMethods.joinToString(",") { it }
 
     private val _topicExpiredFlow: MutableSharedFlow<Topic> = MutableSharedFlow()
     val topicExpiredFlow: SharedFlow<Topic> = _topicExpiredFlow.asSharedFlow()
