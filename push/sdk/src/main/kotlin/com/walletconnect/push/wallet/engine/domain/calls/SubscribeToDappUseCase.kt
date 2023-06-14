@@ -104,7 +104,7 @@ internal class SubscribeToDappUseCase(
             Log.e("Talha34", "error registering identity")
             return onFailure(error)
         }
-        val params = PushParams.SubscribeParams(didJwt.value)
+        val params = PushParams.SubscribeParams(didJwt.value.also { Log.e("TalhaSubscriptionAuth", it) })
         val request = PushRpc.PushSubscribe(params = params)
         val irnParams = IrnParams(Tags.PUSH_SUBSCRIBE, Ttl(DAY_IN_SECONDS))
 
@@ -139,7 +139,7 @@ internal class SubscribeToDappUseCase(
         }
 
         jsonRpcInteractor.publishJsonRpcRequest(
-            topic = subscribeTopic,
+            topic = subscribeTopic.also { Log.e("TalhaSubscribeTopic", it.value) },
             params = irnParams,
             payload = request,
             envelopeType = EnvelopeType.ONE,

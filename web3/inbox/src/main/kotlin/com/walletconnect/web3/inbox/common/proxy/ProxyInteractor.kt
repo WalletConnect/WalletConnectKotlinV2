@@ -18,21 +18,25 @@ internal abstract class ProxyInteractor(
 
     @Throws(WebViewIsNullException::class)
     fun <T : JsonRpcResponse> respond(rpc: T) {
-        Handler(Looper.getMainLooper()).post {
-            val rpcAsString = Web3InboxSerializer.serializeRpc(rpc) ?: return@post logger.error("Unable to serialize: $rpc")
-            logger.log("Responding: $rpcAsString")
-            val script = rpcToWeb3InboxCall(rpcAsString)
-            webViewWeakReference.webView.evaluateJavascript(script, null)
+        if (webViewWeakReference.reference.get() != null) {
+            Handler(Looper.getMainLooper()).post {
+                val rpcAsString = Web3InboxSerializer.serializeRpc(rpc) ?: return@post logger.error("Unable to serialize: $rpc")
+                logger.log("Responding: $rpcAsString")
+                val script = rpcToWeb3InboxCall(rpcAsString)
+                webViewWeakReference.webView.evaluateJavascript(script, null)
+            }
         }
     }
 
     @Throws(WebViewIsNullException::class)
     fun <T : Web3InboxRPC.Call> call(rpc: T) {
-        Handler(Looper.getMainLooper()).post {
-            val rpcAsString = Web3InboxSerializer.serializeRpc(rpc) ?: return@post logger.error("Unable to serialize: $rpc")
-            logger.log("Calling: $rpcAsString")
-            val script = rpcToWeb3InboxCall(rpcAsString)
-            webViewWeakReference.webView.evaluateJavascript(script, null)
+        if (webViewWeakReference.reference.get() != null) {
+            Handler(Looper.getMainLooper()).post {
+                val rpcAsString = Web3InboxSerializer.serializeRpc(rpc) ?: return@post logger.error("Unable to serialize: $rpc")
+                logger.log("Calling: $rpcAsString")
+                val script = rpcToWeb3InboxCall(rpcAsString)
+                webViewWeakReference.webView.evaluateJavascript(script, null)
+            }
         }
     }
 }

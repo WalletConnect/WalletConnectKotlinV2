@@ -10,7 +10,7 @@ CREATE TABLE Proposal(
 );
 
 insertProposal:
-INSERT INTO Proposal(request_id, push_propose_topic, dapp_public_key_as_hex, account, dapp_metadata)
+INSERT OR IGNORE INTO Proposal(request_id, push_propose_topic, dapp_public_key_as_hex, account, dapp_metadata)
 VALUES(?, ?, ?, ?, ?);
 
 getProposalByRequestId:
