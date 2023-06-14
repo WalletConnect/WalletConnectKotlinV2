@@ -10,13 +10,10 @@ internal class ExplorerRepository(
     private val projectId by lazy { wcKoinApp.koin.get<ProjectId>() }
 
     suspend fun getWalletsList(
-        page: Int = 1,
-        entries: Int,
         chains: List<String>
     ): ExplorerResponse? {
         return explorerApi.getWallets(
             projectId = projectId.value,
-            page = page,
             chains = chains.joinToString(",")
         ).body()
     }

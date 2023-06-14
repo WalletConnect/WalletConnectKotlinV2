@@ -76,5 +76,9 @@ private fun PreviewWeb3TopBar() {
                 ImageWithMainTint(icon = R.drawable.ic_copy)
             },
             onBackPressed = {})
+        Web3ModalTopBar(
+            title = "What is wallet?",
+            onBackPressed = {}
+        )
     }
 }

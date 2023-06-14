@@ -9,7 +9,6 @@ internal interface GetWalletsUseCase {
     ): List<Wallet>
 }
 
-private const val RECOMMENDED_WALLET_AMOUNT = 9
 
 internal class GetWalletsUseCaseImpl(
     private val explorerRepository: ExplorerRepository
@@ -18,8 +17,6 @@ internal class GetWalletsUseCaseImpl(
         chains: List<String>
     ): List<Wallet> {
         return explorerRepository.getWalletsList(
-            page = 1,
-            entries = RECOMMENDED_WALLET_AMOUNT,
             chains = chains
         )?.wallets?.map { it.toWallet() } ?: listOf()
     }
