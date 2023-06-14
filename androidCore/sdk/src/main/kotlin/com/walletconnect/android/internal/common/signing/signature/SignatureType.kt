@@ -10,15 +10,4 @@ interface ISignatureType {
 
 enum class SignatureType(override val header: String) : ISignatureType {
     EIP191("eip191"), EIP1271("eip1271");
-
-    companion object {
-        fun headerOf(header: String): SignatureType {
-            return when (header) {
-                EIP191.header -> EIP191
-                EIP1271.header -> EIP1271
-                else -> throw Throwable("Header not supported")
-            }
-        }
-    }
-
 }

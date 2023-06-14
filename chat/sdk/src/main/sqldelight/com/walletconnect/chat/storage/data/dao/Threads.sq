@@ -2,8 +2,7 @@ CREATE TABLE Threads (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     topic TEXT UNIQUE NOT NULL,
     selfAccount TEXT NOT NULL,
-    peerAccount TEXT NOT NULL,
-    UNIQUE(selfAccount, peerAccount)
+    peerAccount TEXT NOT NULL
 );
 
 insertOrAbortThread:
@@ -14,14 +13,6 @@ getThreadsForSelfAccount:
 SELECT topic, selfAccount, peerAccount
 FROM Threads
 WHERE selfAccount = ?;
-
-checkIfSelfAccountHaveThreadWithPeerAccount:
-SELECT EXISTS (
-    SELECT 1
-    FROM Threads
-    WHERE selfAccount = ? AND peerAccount = ?
-    LIMIT 1
-);
 
 getThreadByTopic:
 SELECT topic, selfAccount, peerAccount

@@ -7,15 +7,6 @@ import org.koin.dsl.module
 internal fun dappEngineModule() = module {
 
     single {
-        PushDappEngine(
-            selfAppMetaData = get(),
-            jsonRpcInteractor = get(),
-            pairingHandler = get(),
-            extractPushConfigUseCase = get(),
-            crypto = get(),
-            subscriptionStorageRepository = get(),
-            castRepository = get(),
-            logger = get()
-        )
+        PushDappEngine(get(), get(), get(), get(), get(), get(), get())
     }
 }

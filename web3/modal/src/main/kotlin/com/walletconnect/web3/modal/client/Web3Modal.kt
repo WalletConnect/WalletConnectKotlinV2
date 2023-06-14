@@ -32,24 +32,23 @@ object Web3Modal {
     ) {
         SignClient.initialize(
             init = Sign.Params.Init(init.core),
-            onSuccess = {
-                runCatching {
-                    wcKoinApp.modules(
-                        web3ModalModule()
-                    )
-                    setDelegate(Web3ModalDelegate)
-                }.onFailure { error -> onError(Modal.Model.Error(error)) }
-                onSuccess()
-            },
             onError = { error ->
                 onError(Modal.Model.Error(error.throwable))
                 return@initialize
             }
         )
+
+        runCatching {
+            wcKoinApp.modules(
+                web3ModalModule()
+            )
+            setDelegate(Web3ModalDelegate)
+        }.onFailure { error -> onError(Modal.Model.Error(error)) }
+        onSuccess()
     }
 
     @Throws(IllegalStateException::class)
-    fun setDelegate(delegate: ModalDelegate) {
+    internal fun setDelegate(delegate: ModalDelegate) {
         val signDelegate = object : SignClient.DappDelegate {
             override fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession) {
                 delegate.onSessionApproved(approvedSession.toModal())
@@ -93,45 +92,12 @@ object Web3Modal {
     fun connect(
         connect: Modal.Params.Connect,
         onSuccess: () -> Unit,
-        onError: (Modal.Model.Error) -> Unit
+        onError: (Sign.Model.Error) -> Unit
     ) {
         SignClient.connect(
             connect.toSign(),
             onSuccess,
-            { onError(it.toModal()) }
+            onError
         )
     }
-
-    fun request(request: Modal.Params.Request, onSuccess: (Modal.Model.SentRequest) -> Unit = {}, onError: (Modal.Model.Error) -> Unit) {
-        SignClient.request(
-            request.toSign(),
-            { onSuccess(it.toModal()) },
-            { onError(it.toModal()) }
-        )
-    }
-
-    fun ping(ping: Modal.Params.Ping, sessionPing: Modal.Listeners.SessionPing? = null) {
-        SignClient.ping(ping.toSign(), sessionPing?.toSign())
-    }
-
-    fun disconnect(disconnect: Modal.Params.Disconnect, onSuccess: (Modal.Params.Disconnect) -> Unit = {}, onError: (Modal.Model.Error) -> Unit) {
-        SignClient.disconnect(
-            disconnect.toSign(),
-            { onSuccess(it.toModal()) },
-            { onError(it.toModal()) }
-        )
-    }
-
-    /**
-     * Caution: This function is blocking and runs on the current thread.
-     * It is advised that this function be called from background operation
-     */
-    fun getListOfActiveSessions() = SignClient.getListOfActiveSessions().map { it.toModal() }
-
-    /**
-     * Caution: This function is blocking and runs on the current thread.
-     * It is advised that this function be called from background operation
-     */
-    fun getActiveSessionByTopic(topic: String) = SignClient.getActiveSessionByTopic(topic)?.toModal()
-
 }

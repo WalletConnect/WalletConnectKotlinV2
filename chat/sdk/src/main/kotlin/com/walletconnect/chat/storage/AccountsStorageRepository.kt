@@ -18,7 +18,7 @@ internal class AccountsStorageRepository(private val accounts: AccountsQueries) 
         }
 
     private suspend fun updateAccount(account: Account) = with(account) {
-        accounts.updateAccount(publicIdentityKey.keyAsHex, accountId.value)
+        accounts.updateAccount(publicIdentityKey.keyAsHex, publicInviteKey?.keyAsHex, inviteTopic?.value, accountId.value)
     }
 
     private suspend fun createAccount(account: Account) = with(account) {

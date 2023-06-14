@@ -28,13 +28,6 @@ internal fun Signature.verify(originalMessage: String, address: String, type: St
     else -> throw RuntimeException("Invalid signature type")
 }
 
-@JvmSynthetic
-internal fun Signature.verifyHexMessage(hexMessage: String, address: String, type: String, projectId: ProjectId): Boolean = when (type) {
-    SignatureType.EIP191.header -> EIP191Verifier.verifyHex(this, hexMessage, address)
-    SignatureType.EIP1271.header -> EIP1271Verifier.verifyHex(this, hexMessage, address, projectId.value)
-    else -> throw RuntimeException("Invalid signature type")
-}
-
 
 data class Signature(val v: ByteArray, val r: ByteArray, val s: ByteArray) {
     companion object {

@@ -4,6 +4,7 @@ import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.web3.modal.network.ExplorerService
 import com.walletconnect.web3.modal.network.model.ExplorerResponse
+
 internal class ExplorerRepository(
     private val explorerApi: ExplorerService,
 ) {

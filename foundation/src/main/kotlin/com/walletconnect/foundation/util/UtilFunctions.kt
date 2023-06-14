@@ -17,6 +17,7 @@ fun generateClientToServerId(): Long {
     return now.plus((100000..999999).random()).toLong()
 }
 
+
 fun randomBytes(size: Int): ByteArray = ByteArray(size).apply {
     SecureRandom().nextBytes(this)
 }
@@ -36,6 +37,7 @@ fun ByteArray.bytesToHex(): String {
 
     return hexString.toString()
 }
+
 
 fun ByteArray.bytesToInt(size: Int): Int {
     require(this.size <= 4) { "Byte array size must be less than 5" }

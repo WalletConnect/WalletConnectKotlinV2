@@ -12,21 +12,12 @@
         <activity
             android:name="com.walletconnect.sample.dapp.ui.DappSampleActivity"
             android:exported="true"
-            android:launchMode="singleTask"
             android:label="@string/app_name"
             android:theme="@style/Theme.WalletConnect">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data
-                    android:scheme="kotlin-dapp-wc"
-                    android:host="request" />
             </intent-filter>
         </activity>
     </application>

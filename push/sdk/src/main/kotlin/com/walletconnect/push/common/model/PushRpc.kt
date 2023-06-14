@@ -24,18 +24,6 @@ internal sealed class PushRpc : JsonRpcClientSync<PushParams> {
     ) : PushRpc()
 
     @JsonClass(generateAdapter = true)
-    internal data class PushPropose(
-        @Json(name = "id")
-        override val id: Long = generateId(),
-        @Json(name = "jsonrpc")
-        override val jsonrpc: String = "2.0",
-        @Json(name = "method")
-        override val method: String = JsonRpcMethod.WC_PUSH_PROPOSE,
-        @Json(name = "params")
-        override val params: PushParams.ProposeParams,
-    ) : PushRpc()
-
-    @JsonClass(generateAdapter = true)
     internal data class PushMessage(
         @Json(name = "id")
         override val id: Long = generateId(),
@@ -59,27 +47,4 @@ internal sealed class PushRpc : JsonRpcClientSync<PushParams> {
         override val params: PushParams.DeleteParams,
     ) : PushRpc()
 
-    @JsonClass(generateAdapter = true)
-    internal data class PushSubscribe(
-        @Json(name = "id")
-        override val id: Long = generateId(),
-        @Json(name = "jsonrpc")
-        override val jsonrpc: String = "2.0",
-        @Json(name = "method")
-        override val method: String = JsonRpcMethod.WC_PUSH_SUBSCRIBE,
-        @Json(name = "params")
-        override val params: PushParams.SubscribeParams,
-    ): PushRpc()
-
-    @JsonClass(generateAdapter = true)
-    internal data class PushUpdate(
-        @Json(name = "id")
-        override val id: Long = generateId(),
-        @Json(name = "jsonrpc")
-        override val jsonrpc: String = "2.0",
-        @Json(name = "method")
-        override val method: String = JsonRpcMethod.WC_PUSH_UPDATE,
-        @Json(name = "params")
-        override val params: PushParams.UpdateParams,
-    ): PushRpc()
 }
