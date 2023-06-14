@@ -1,5 +1,6 @@
 package com.walletconnect.android.internal.common.json_rpc.domain
 
+import android.util.Log
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.exception.NoRelayConnectionException
@@ -80,7 +81,10 @@ internal class JsonRpcInteractor(
 
             relay.publish(topic.value, encryptedRequest, params.toRelay()) { result ->
                 result.fold(
-                    onSuccess = { onSuccess()},
+                    onSuccess = {
+                        Log.e("Talha47", "publishJsonRpcRequest: $it")
+                        onSuccess()
+                                },
                     onFailure = { error -> onFailure(error) }
                 )
             }

@@ -35,11 +35,12 @@ sealed class EngineDO : EngineEvent {
     }
 
     data class PushPropose(
-        val id: Long,
-        val topic: String,
-        val account: String,
-        val relay: RelayProtocolOptions,
-        val metaData: AppMetaData,
+        val requestId: Long,
+        val proposalTopic: Topic,
+        val dappPublicKey: PublicKey,
+        val accountId: AccountId,
+        val relayProtocolOptions: RelayProtocolOptions,
+        val dappMetaData: AppMetaData,
     ) : EngineDO()
 
     data class PushRecord(

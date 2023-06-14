@@ -4,6 +4,7 @@ package com.walletconnect.push.wallet.engine.domain.calls
 
 import android.net.Uri
 import android.util.Base64
+import android.util.Log
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.explorer.ExplorerRepository
@@ -11,6 +12,7 @@ import com.walletconnect.android.internal.common.explorer.data.model.Listing
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.AppMetaData
+import com.walletconnect.android.internal.common.model.DidJwt
 import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Participants
@@ -31,10 +33,15 @@ import com.walletconnect.push.common.model.PushRpc
 import com.walletconnect.push.wallet.data.wellknown.did.DidJsonDTO
 import com.walletconnect.util.bytesToHex
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import java.net.URL
+import kotlin.coroutines.coroutineContext
+import kotlin.time.measureTimedValue
 
 internal class SubscribeToDappUseCase(
     private val serializer: JsonRpcSerializer,
@@ -46,18 +53,20 @@ internal class SubscribeToDappUseCase(
     private val extractPushConfigUseCase: ExtractPushConfigUseCase,
 ): SubscribeToDappUseCaseInterface {
 
-    override suspend fun subscribeToDapp(dappUri: Uri, account: String, onSign: (String) -> Cacao.Signature?, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
+    override suspend fun subscribeToDapp(dappUri: Uri, account: String, onSign: (String) -> Cacao.Signature?, onSuccess: (Long, DidJwt) -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         val dappWellKnownProperties: Result<Pair<PublicKey, List<EngineDO.PushScope.Remote>>> = runCatching {
             extractDidJson(dappUri).getOrThrow() to extractPushConfigUseCase(dappUri).getOrThrow()
         }
 
+        Log.e("Talha31", "Fetching dapp well known properties: $dappWellKnownProperties")
         dappWellKnownProperties.fold(
             onSuccess = { (dappPublicKey, dappScope) -> createSubscription(dappUri, account, onSign, dappPublicKey, dappScope, onSuccess, onFailure) },
             onFailure = { error -> return@supervisorScope onFailure(error) }
         )
     }
 
-    private suspend fun createSubscription(dappUri: Uri, account: String, onSign: (String) -> Cacao.Signature?, dappPublicKey: PublicKey, dappScopes: List<EngineDO.PushScope.Remote>, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
+    private suspend fun createSubscription(dappUri: Uri, account: String, onSign: (String) -> Cacao.Signature?, dappPublicKey: PublicKey, dappScopes: List<EngineDO.PushScope.Remote>, onSuccess: (Long, DidJwt) -> Unit, onFailure: (Throwable) -> Unit) {
+        Log.e("Talha32", "creating subscription")
         val subscribeTopic = Topic(sha256(dappPublicKey.keyAsBytes))
         val selfPublicKey = crypto.generateAndStoreX25519KeyPair()
         val responseTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, dappPublicKey)
@@ -87,17 +96,45 @@ internal class SubscribeToDappUseCase(
                 )
             )
         }.getOrElse {
+            Log.e("Talha33", "error fetching dapp metadata")
             return onFailure(it)
         }
 
         val didJwt = registerIdentityAndReturnDidJwtUseCase(AccountId(account), dappUri.toString(), dappScopes.map { it.name }, onSign, onFailure).getOrElse { error ->
+            Log.e("Talha34", "error registering identity")
             return onFailure(error)
         }
         val params = PushParams.SubscribeParams(didJwt.value)
         val request = PushRpc.PushSubscribe(params = params)
         val irnParams = IrnParams(Tags.PUSH_SUBSCRIBE, Ttl(DAY_IN_SECONDS))
 
+        Log.e("Talha42", coroutineContext.job.isCompleted.toString())
+        Log.e("TalhaRequestId1", request.id.toString())
+        coroutineScope {
+            launch {
+                subscriptionStorageRepository.insertSubscription(
+                    requestId = request.id,
+                    keyAgreementTopic = responseTopic.value,
+                    responseTopic = subscribeTopic.value,
+                    peerPublicKeyAsHex = null,
+                    subscriptionTopic = null,
+                    account = account,
+                    relayProtocol = null,
+                    relayData = null,
+                    name = dappMetaData.name,
+                    description = dappMetaData.description,
+                    url = dappMetaData.url,
+                    icons = dappMetaData.icons,
+                    native = dappMetaData.redirect?.native,
+                    didJwt = didJwt.value,
+                    mapOfScope = dappScopes.associate { scope -> scope.name to Pair(scope.description, true) },
+                    expiry = calcExpiry()
+                )
+            }
+        }
+
         jsonRpcInteractor.subscribe(responseTopic) { error ->
+            Log.e("Talha35", "error subscribing to response topic")
             return@subscribe onFailure(error)
         }
 
@@ -108,30 +145,12 @@ internal class SubscribeToDappUseCase(
             envelopeType = EnvelopeType.ONE,
             participants = Participants(selfPublicKey, dappPublicKey),
             onSuccess = {
-                runBlocking {
-                    subscriptionStorageRepository.insertSubscription(
-                        requestId = request.id,
-                        keyAgreementTopic = responseTopic.value,
-                        responseTopic = subscribeTopic.value,
-                        peerPublicKeyAsHex = null,
-                        subscriptionTopic = null,
-                        account = account,
-                        relayProtocol = null,
-                        relayData = null,
-                        name = dappMetaData.name,
-                        description = dappMetaData.description,
-                        url = dappMetaData.url,
-                        icons = dappMetaData.icons,
-                        native = dappMetaData.redirect?.native,
-                        didJwt = didJwt.value,
-                        mapOfScope = dappScopes.associate { scope -> scope.name to Pair(scope.description, true) },
-                        expiry = calcExpiry()
-                    )
-                }
-
-                onSuccess()
+                Log.e("Talha36", "success subscribing to response topic")
+                Log.e("TalhaRequestId2", request.id.toString())
+                onSuccess(request.id, didJwt)
             },
             onFailure = { error ->
+                Log.e("Talha37", "error subscribing to response topic")
                 onFailure(error)
             }
         )
@@ -161,5 +180,5 @@ internal class SubscribeToDappUseCase(
 }
 
 internal interface SubscribeToDappUseCaseInterface {
-    suspend fun subscribeToDapp(dappUri: Uri, account: String, onSign: (String) -> Cacao.Signature?, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit)
+    suspend fun subscribeToDapp(dappUri: Uri, account: String, onSign: (String) -> Cacao.Signature?, onSuccess: (Long, DidJwt) -> Unit, onFailure: (Throwable) -> Unit)
 }

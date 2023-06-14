@@ -62,6 +62,7 @@ class Web3WalletActivity : ComponentActivity() {
         setContent(web3walletViewModel, connectionsViewModel)
     }
 
+    @OptIn(ExperimentalMaterialApi::class)
     private fun setContent(
         web3walletViewModel: Web3WalletViewModel,
         connectionsViewModel: ConnectionsViewModel

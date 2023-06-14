@@ -4,6 +4,7 @@ package com.walletconnect.push.wallet.di
 
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.push.wallet.engine.PushWalletEngine
+import com.walletconnect.push.wallet.engine.domain.EnginePushSubscriptionNotifier
 import com.walletconnect.push.wallet.engine.domain.calls.ApproveUseCase
 import com.walletconnect.push.wallet.engine.domain.calls.ApproveUseCaseInterface
 import com.walletconnect.push.wallet.engine.domain.calls.DecryptMessageUseCase
@@ -45,8 +46,9 @@ internal fun walletEngineModule() = module {
 
     single<ApproveUseCaseInterface> {
         ApproveUseCase(
-            subscriptionStorageRepository = get(),
-            registerIdentityAndReturnDidJwtUseCase = get(),
+            proposalStorageRepository = get(),
+            subscribeToDappUseCaseInterface = get(),
+            enginePushSubscriptionNotifier = get(),
             crypto = get(),
             jsonRpcInteractor = get()
         )
@@ -111,6 +113,9 @@ internal fun walletEngineModule() = module {
         )
     }
 
+    single {
+        EnginePushSubscriptionNotifier()
+    }
 
     single {
         PushWalletEngine(
@@ -118,8 +123,9 @@ internal fun walletEngineModule() = module {
             crypto = get(),
             pairingHandler = get(),
             subscriptionStorageRepository = get(),
+            proposalStorageRepository = get(),
             messagesRepository = get(),
-            extractPushConfigUseCase = get(),
+            enginePushSubscriptionNotifier = get(),
             subscriptToDappUseCase = get(),
             approveUseCase = get(),
             rejectUseCase = get(),
@@ -129,7 +135,7 @@ internal fun walletEngineModule() = module {
             decryptMessageUseCase = get(),
             getListOfActiveSubscriptionsUseCaseInterface = get(),
             getListOfMessagesUseCaseInterface = get(),
-            onPushRequestUseCaseInterface = get()
+            onPushRequestUseCaseInterface = get(),
         )
     }
 }

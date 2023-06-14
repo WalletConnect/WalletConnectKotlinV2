@@ -70,7 +70,7 @@ class PushWalletProtocol : PushWalletInterface {
 
         scope.launch {
             try {
-                pushWalletEngine.subscribeToDapp(params.dappUrl, params.account, params.onSign.toWalletClient(), onSuccess) {
+                pushWalletEngine.subscribeToDapp(params.dappUrl, params.account, params.onSign.toWalletClient(), { _, _ -> onSuccess() }) {
                     onError(Push.Model.Error(it))
                 }
             } catch (e: Exception) {
