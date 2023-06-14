@@ -2,6 +2,7 @@
 
 package com.walletconnect.push.common.di
 
+import com.squareup.sqldelight.ColumnAdapter
 import com.walletconnect.android.di.AndroidCoreDITags
 import com.walletconnect.android.di.sdkBaseStorageModule
 import com.walletconnect.android.internal.common.di.deleteDatabase
@@ -16,10 +17,35 @@ import org.koin.dsl.module
 internal fun pushStorageModule(dbName: String) = module {
     fun Scope.createPushDB() = PushDatabase(
         get(),
-        SubscriptionsAdapter = Subscriptions.Adapter(metadata_iconsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)))
+        SubscriptionsAdapter = Subscriptions.Adapter(
+            metadata_iconsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
+            map_of_scopeAdapter = get<ColumnAdapter<Map<String, Pair<String, Boolean>>, String>>()
+        )
     )
 
     includes(sdkBaseStorageModule(PushDatabase.Schema, dbName))
+
+    single<ColumnAdapter<Map<String, Pair<String, Boolean>>, String>> {
+        object: ColumnAdapter<Map<String, Pair<String, Boolean>>, String> {
+            override fun decode(databaseValue: String): Map<String, Pair<String, Boolean>> {
+                // Split string by | to get each entry
+                return databaseValue.split("|").associate { entry ->
+                   // Split each entry by = to get key and value
+                    val entries = entry.split("=")
+                    entries.first().trim() to entries.last().split(",").run {
+                        // Split value by , to get description and isSubscribed
+                        this.first().trim() to this.last().trim().toBoolean()
+                    }
+                }
+            }
+
+            override fun encode(value: Map<String, Pair<String, Boolean>>): String {
+                return value.entries.joinToString(separator = "|") { entry ->
+                    "${entry.key}=${entry.value.first},${entry.value.second}"
+                }
+            }
+        }
+    }
 
     single {
         try {

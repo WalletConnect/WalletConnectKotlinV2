@@ -2,8 +2,16 @@ package com.walletconnect.web3.modal.client
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
+import com.walletconnect.sign.client.Sign
 
 object Modal {
+
+    sealed interface Listeners {
+        interface SessionPing : Listeners {
+            fun onSuccess(pingSuccess: Model.Ping.Success)
+            fun onError(pingError: Model.Ping.Error)
+        }
+    }
     sealed class Params {
         data class Init(
             val core: CoreClient
@@ -15,6 +23,18 @@ object Modal {
             val properties: Map<String, String>? = null,
             val pairing: Core.Model.Pairing
         ): Params()
+
+        data class Disconnect(val sessionTopic: String) : Params()
+
+        data class Ping(val topic: String) : Params()
+
+        data class Request(
+            val sessionTopic: String,
+            val method: String,
+            val params: String,
+            val chainId: String,
+            val expiry: Long? = null
+        ) : Params()
     }
 
     sealed class Model {
@@ -34,6 +54,7 @@ object Modal {
                 val events: List<String>
             ) : Namespace()
         }
+
         data class ApprovedSession(
             val topic: String,
             val metaData: Core.Model.AppMetaData?,
@@ -94,6 +115,19 @@ object Modal {
                 val code: Int,
                 val message: String,
             ) : JsonRpcResponse()
+        }
+
+        data class SentRequest(
+            val requestId: Long,
+            val sessionTopic: String,
+            val method: String,
+            val params: String,
+            val chainId: String
+        ) : Model()
+
+        sealed class Ping : Model() {
+            data class Success(val topic: String) : Ping()
+            data class Error(val error: Throwable) : Ping()
         }
     }
 }

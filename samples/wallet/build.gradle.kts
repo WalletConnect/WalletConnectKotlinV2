@@ -74,20 +74,13 @@ dependencies {
     implementation("com.github.skydoves:landscapist-glide:2.1.0")
 
     // Accompanist
-    implementation("com.google.accompanist:accompanist-navigation-material:0.27.1")
-    implementation("com.google.accompanist:accompanist-systemuicontroller:0.27.1")
-    implementation("com.google.accompanist:accompanist-pager:0.27.1")
-    implementation("com.google.accompanist:accompanist-pager-indicators:0.27.1")
+    accompanist()
 
     // Compose
-    implementation(platform("androidx.compose:compose-bom:2022.11.00"))
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material:material")
+    compose()
+
     implementation("com.google.android.gms:play-services-mlkit-barcode-scanning:18.1.0")
     implementation("androidx.lifecycle:lifecycle-process:2.5.1")
-    debugImplementation("androidx.compose.ui:ui-tooling")
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
     implementation("androidx.navigation:navigation-compose:2.5.3")
     implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
 
