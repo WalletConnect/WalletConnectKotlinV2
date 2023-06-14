@@ -10,9 +10,8 @@ internal class ThreadsStorageRepository(private val threads: ThreadsQueries) {
 
     suspend fun getThreadsForSelfAccount(account: String): List<Thread> = threads.getThreadsForSelfAccount(account, ::dbToThread).executeAsList()
 
-    suspend fun checkIfAccountsHaveExistingThread(accountOne: String, accountTwo: String): Boolean =
-        threads.checkIfAccountsHaveExistingThread(accountOne, accountTwo).executeAsOne()
-                || threads.checkIfAccountsHaveExistingThread(accountTwo, accountOne).executeAsOne()
+    suspend fun checkIfSelfAccountHaveThreadWithPeerAccount(selfAccount: String, peerAccount: String): Boolean =
+        threads.checkIfSelfAccountHaveThreadWithPeerAccount(selfAccount, peerAccount).executeAsOne()
 
     suspend fun deleteThreadByTopic(topic: String) = threads.deleteThreadByTopic(topic)
 

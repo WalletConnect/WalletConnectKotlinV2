@@ -43,23 +43,27 @@ internal class SendInviteUseCase(
     private val setSentInviteToChatSentInvitesStoreUseCase: SetSentInviteToChatSentInvitesStoreUseCase,
 ) : SendInviteUseCaseInterface {
 
-    override fun invite(invite: SendInvite, onSuccess: (Long) -> Unit, onError: (Throwable) -> Unit) {
+    override suspend fun invite(invite: SendInvite, onSuccess: (Long) -> Unit, onError: (Throwable) -> Unit) {
         if (!ChatValidator.isInviteMessageValid(invite.message.value)) {
             return onError(InviteMessageTooLongException())
         }
 
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-        if (runBlocking(scope.coroutineContext) { invitesRepository.checkIfAccountsHaveExistingInvite(invite.inviterAccount.value, invite.inviteeAccount.value) }) {
+        if (withContext(scope.coroutineContext) { invitesRepository.checkIfAccountsHaveExistingInvite(invite.inviterAccount.value, invite.inviteeAccount.value) }) {
             return onError(AccountsAlreadyHaveInviteException)
         }
 
-        if (runBlocking(scope.coroutineContext) { threadsRepository.checkIfAccountsHaveExistingThread(invite.inviterAccount.value, invite.inviteeAccount.value) }) {
+        if (runBlocking(scope.coroutineContext) { threadsRepository.checkIfSelfAccountHaveThreadWithPeerAccount(invite.inviterAccount.value, invite.inviteeAccount.value) }) {
+            return onError(AccountsAlreadyHaveThreadException)
+        }
+
+        if (runBlocking(scope.coroutineContext) { threadsRepository.checkIfSelfAccountHaveThreadWithPeerAccount(invite.inviteeAccount.value, invite.inviterAccount.value) }) {
             return onError(AccountsAlreadyHaveThreadException)
         }
 
         val decodedInviteePublicKey = decodeX25519DidKey(invite.inviteePublicKey)
 
-        runCatching { runBlocking(scope.coroutineContext) { setContact(invite.inviteeAccount, decodedInviteePublicKey) } }.getOrElse { error -> return onError(error) }
+        runCatching { withContext(scope.coroutineContext) { setContact(invite.inviteeAccount, decodedInviteePublicKey) } }.getOrElse { error -> return onError(error) }
 
         val inviterPublicKey = runCatching { keyManagementRepository.generateAndStoreX25519KeyPair() }.getOrElse { error -> return onError(error) }
         val inviterPrivateKey = keyManagementRepository.getKeyPair(inviterPublicKey).second
@@ -120,5 +124,5 @@ internal class SendInviteUseCase(
 }
 
 internal interface SendInviteUseCaseInterface {
-    fun invite(invite: SendInvite, onSuccess: (Long) -> Unit, onError: (Throwable) -> Unit)
+    suspend fun invite(invite: SendInvite, onSuccess: (Long) -> Unit, onError: (Throwable) -> Unit)
 }

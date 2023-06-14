@@ -80,7 +80,7 @@ internal class ChatProtocol : ChatInterface {
 
     @Throws(IllegalStateException::class)
     override fun invite(invite: Chat.Params.Invite, onSuccess: (Long) -> Unit, onError: (Chat.Model.Error) -> Unit) = protocolFunction(onError) {
-        chatEngine.invite(invite.toCommon(), { inviteId -> onSuccess(inviteId) }, { error -> onError(Chat.Model.Error(error)) })
+        scope.launch { chatEngine.invite(invite.toCommon(), { inviteId -> onSuccess(inviteId) }, { error -> onError(Chat.Model.Error(error)) }) }
     }
 
     @Throws(IllegalStateException::class)
@@ -125,7 +125,7 @@ internal class ChatProtocol : ChatInterface {
 
     @Throws(IllegalStateException::class)
     override fun getMessages(getMessages: Chat.Params.GetMessages): List<Chat.Model.Message> = wrapWithEngineInitializationCheck() {
-        chatEngine.getMessages(getMessages.topic).map { message -> message.toClient() }
+        chatEngine.getMessages(getMessages.topic).map { message -> message.toClient() }.sortedBy { message -> message.timestamp }
     }
 
     @Throws(IllegalStateException::class)

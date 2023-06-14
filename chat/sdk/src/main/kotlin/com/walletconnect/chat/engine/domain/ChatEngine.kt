@@ -24,8 +24,11 @@ import com.walletconnect.chat.engine.use_case.responses.OnLeaveResponseUseCase
 import com.walletconnect.chat.engine.use_case.responses.OnMessageResponseUseCase
 import com.walletconnect.chat.json_rpc.JsonRpcMethod
 import com.walletconnect.foundation.common.model.Ttl
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 
 internal class ChatEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -94,7 +97,7 @@ internal class ChatEngine(
             .onEach { isAvailable -> _events.emit(ConnectionState(isAvailable)) }
             .filter { isAvailable: Boolean -> isAvailable }
             .onEach {
-                subscribeToChatTopicsUseCase()
+                coroutineScope { launch(Dispatchers.IO) { subscribeToChatTopicsUseCase() } }
 
                 if (jsonRpcRequestsJob == null) jsonRpcRequestsJob = collectJsonRpcRequests()
                 if (jsonRpcResponsesJob == null) jsonRpcResponsesJob = collectPeerResponses()

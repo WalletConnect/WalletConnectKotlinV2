@@ -9,9 +9,11 @@ import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
 import com.walletconnect.android.internal.common.signing.cacao.toCAIP122Message
 import com.walletconnect.android.utils.cacao.CacaoSignerInterface
 import com.walletconnect.android.utils.cacao.sign
+import com.walletconnect.android.utils.cacao.signHex
 import com.walletconnect.util.hexToBytes
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.web3j.utils.Numeric
 
 internal class CacaoTest {
     private val cacaoVerifier = CacaoVerifier(ProjectId(BuildConfig.PROJECT_ID))
@@ -37,7 +39,18 @@ internal class CacaoTest {
     @Test
     fun signAndVerifyWithEIP191Test() {
         print(payload.toCAIP122Message(chainName))
-        val signature: Cacao.Signature = cacaoSigner.sign(payload.toCAIP122Message(chainName), privateKey, SignatureType.EIP191)
+        val message = payload.toCAIP122Message(chainName)
+        val signature: Cacao.Signature = cacaoSigner.sign(message , privateKey, SignatureType.EIP191)
+        val cacao = Cacao(CacaoType.EIP4361.toHeader(), payload, signature)
+        val result: Boolean = cacaoVerifier.verify(cacao)
+        Assertions.assertTrue(result)
+    }
+
+    @Test
+    fun signHexAndVerifyWithEIP191Test() {
+        print(payload.toCAIP122Message(chainName))
+        val message = payload.toCAIP122Message(chainName)
+        val signature: Cacao.Signature = cacaoSigner.signHex(Numeric.toHexString(message.toByteArray()) , privateKey, SignatureType.EIP191)
         val cacao = Cacao(CacaoType.EIP4361.toHeader(), payload, signature)
         val result: Boolean = cacaoVerifier.verify(cacao)
         Assertions.assertTrue(result)

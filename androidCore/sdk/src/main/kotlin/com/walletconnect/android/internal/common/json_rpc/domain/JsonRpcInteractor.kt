@@ -10,7 +10,12 @@ import com.walletconnect.android.internal.common.json_rpc.model.toJsonRpcError
 import com.walletconnect.android.internal.common.json_rpc.model.toJsonRpcResponse
 import com.walletconnect.android.internal.common.json_rpc.model.toRelay
 import com.walletconnect.android.internal.common.json_rpc.model.toWCResponse
-import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.internal.common.model.EnvelopeType
+import com.walletconnect.android.internal.common.model.IrnParams
+import com.walletconnect.android.internal.common.model.Participants
+import com.walletconnect.android.internal.common.model.SDKError
+import com.walletconnect.android.internal.common.model.WCRequest
+import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.params.CoreChatParams
 import com.walletconnect.android.internal.common.model.sync.ClientJsonRpc
 import com.walletconnect.android.internal.common.model.type.ClientParams
@@ -25,7 +30,11 @@ import com.walletconnect.foundation.common.model.SubscriptionId
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.utils.Empty
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 internal class JsonRpcInteractor(
