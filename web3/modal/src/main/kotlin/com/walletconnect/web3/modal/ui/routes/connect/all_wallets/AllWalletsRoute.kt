@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
@@ -20,7 +19,7 @@ import androidx.navigation.NavController
 import com.walletconnect.web3.modal.R
 import com.walletconnect.web3.modal.domain.model.Wallet
 import com.walletconnect.web3.modal.ui.components.internal.Web3ModalTopBar
-import com.walletconnect.web3.modal.ui.components.internal.commons.WalletListItem
+import com.walletconnect.web3.modal.ui.components.internal.commons.walletsGridItems
 import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
@@ -68,12 +67,7 @@ private fun AllWalletsContent(
                 .padding(horizontal = 4.dp),
             columns = GridCells.Fixed(4)
         ) {
-            itemsIndexed(wallets) { _, item ->
-                WalletListItem(
-                    wallet = item,
-                    onWalletItemClick = onWalletItemClick
-                )
-            }
+            walletsGridItems(wallets, onWalletItemClick)
         }
     }
     

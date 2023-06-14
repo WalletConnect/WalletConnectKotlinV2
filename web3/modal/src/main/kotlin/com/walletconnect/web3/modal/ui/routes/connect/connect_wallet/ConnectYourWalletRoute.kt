@@ -6,7 +6,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -27,6 +29,7 @@ import com.walletconnect.web3.modal.R
 import com.walletconnect.web3.modal.domain.model.Wallet
 import com.walletconnect.web3.modal.ui.components.internal.commons.WalletImage
 import com.walletconnect.web3.modal.ui.components.internal.commons.WalletListItem
+import com.walletconnect.web3.modal.ui.components.internal.commons.walletsGridItems
 import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
@@ -81,20 +84,30 @@ private fun WalletsGrid(
 ) {
     if (wallets.isNotEmpty()) {
         LazyVerticalGrid(
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             columns = GridCells.Fixed(4)
         ) {
-            items(7) {
-                WalletListItem(
-                    wallet = wallets[it],
-                    onWalletItemClick = onWalletItemClick
-                )
-            }
-            item {
-                ViewAllItem(wallets.takeLast(4), onViewAllClick)
+            if (wallets.size <= 8) {
+                walletsGridItems(wallets, onWalletItemClick)
+            } else {
+                walletsGridItemsWithViewAll(wallets, onWalletItemClick, onViewAllClick)
             }
         }
+    }
+}
+private fun LazyGridScope.walletsGridItemsWithViewAll(
+    wallets: List<Wallet>,
+    onWalletItemClick: (Wallet) -> Unit,
+    onViewAllClick: () -> Unit
+) {
+    itemsIndexed(wallets.take(7)) { _, wallet ->
+        WalletListItem(
+            wallet = wallet,
+            onWalletItemClick = onWalletItemClick
+        )
+    }
+    item {
+        ViewAllItem(wallets.subList(7, wallets.size), onViewAllClick)
     }
 }
 

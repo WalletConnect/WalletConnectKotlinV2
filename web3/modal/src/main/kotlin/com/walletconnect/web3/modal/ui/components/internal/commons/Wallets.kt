@@ -4,6 +4,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.grid.LazyGridScope
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -20,6 +22,17 @@ import coil.request.ImageRequest
 import com.walletconnect.web3.modal.domain.model.Wallet
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
+internal fun LazyGridScope.walletsGridItems(
+    wallets: List<Wallet>,
+    onWalletItemClick: (Wallet) -> Unit
+) {
+    itemsIndexed(wallets) { _, wallet ->
+        WalletListItem(
+            wallet = wallet,
+            onWalletItemClick = onWalletItemClick
+        )
+    }
+}
 @Composable
 internal fun WalletImage(url: String, modifier: Modifier) {
     AsyncImage(
