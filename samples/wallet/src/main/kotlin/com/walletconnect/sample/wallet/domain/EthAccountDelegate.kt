@@ -19,13 +19,13 @@ object EthAccountDelegate {
         get() = (sharedPreferences.getString(ACCOUNT_TAG, null) != null) && (sharedPreferences.getString(PRIVATE_KEY_TAG, null) != null) && (sharedPreferences.getString(PUBLIC_KEY_TAG, null) != null)
 
     private fun storeAccount(): Triple<String, String, String> = generateKeys().also { (publicKey, privateKey, address) ->
-        sharedPreferences.edit { putString(ACCOUNT_TAG, address) }
+        sharedPreferences.edit { putString(ACCOUNT_TAG, "0x${address}") }
         sharedPreferences.edit { putString(PRIVATE_KEY_TAG, privateKey) }
         sharedPreferences.edit { putString(PUBLIC_KEY_TAG, publicKey) }
     }
 
     val account: String
-        get() = if (isInitialized) sharedPreferences.getString(ACCOUNT_TAG, null)!! else storeAccount().third
+        get() = if (isInitialized) sharedPreferences.getString(ACCOUNT_TAG, null)!! else "0x${storeAccount().third}"
 
     val privateKey: String
         get() = if (isInitialized) sharedPreferences.getString(PRIVATE_KEY_TAG, null)!! else storeAccount().second
@@ -47,7 +47,7 @@ fun generateKeys(): Triple<String, String, String> {
     val publicKey = keypair.publicKey.toByteArray().bytesToHex()
     val privateKey = keypair.privateKey.toByteArray().bytesToHex()
 
-    return Triple(publicKey, privateKey, Keys.toChecksumAddress(Keys.getAddress(keypair)))
+    return Triple(publicKey, privateKey, Keys.getAddress(keypair))
 }
 
 context(EthAccountDelegate)

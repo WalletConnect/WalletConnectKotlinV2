@@ -5,17 +5,14 @@ package com.walletconnect.sample.dapp.ui
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import androidx.navigation.NavController
-import androidx.navigation.NavDeepLink
-import androidx.navigation.NavHostController
-import androidx.navigation.NavType
+import androidx.navigation.*
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
-import androidx.navigation.navArgument
 import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.google.accompanist.navigation.material.ModalBottomSheetLayout
@@ -48,7 +45,7 @@ fun DappSampleNavGraph(
             composable(Route.ChainSelection.path) {
                 ChainSelectionRoute(navController)
             }
-            composable(Route.Session.path, deepLinks = listOf(NavDeepLink("kotlin-dapp-wc://request"))) {
+            composable(Route.Session.path) {
                 SessionRoute(navController)
             }
             composable(
@@ -70,7 +67,7 @@ fun DappSampleNavGraph(
                     message = checkNotNull(it.arguments?.getString(messageArg))
                 )
             }
-            web3ModalGraph(navController, sheetState)
+            web3ModalGraph(sheetState)
         }
     }
 }

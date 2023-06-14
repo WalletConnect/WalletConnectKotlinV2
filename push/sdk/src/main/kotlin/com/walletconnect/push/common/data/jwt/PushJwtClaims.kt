@@ -12,6 +12,4 @@ data class PushSubscriptionJwtClaim(
     @Json(name = "iat") val issuedAt: Long,
     @Json(name = "exp") val expiration: Long,
     @Json(name = "ksu") val keyserverUrl: String,
-    @Json(name = "act") val action: String = "push_subscription",
-    @Json(name = "scp") val scope: String,
 ) : JwtClaims

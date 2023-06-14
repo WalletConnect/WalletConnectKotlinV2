@@ -180,8 +180,6 @@ object Wallet {
             val pairingTopic: String,
             val topic: String,
             val expiry: Long,
-            val requiredNamespaces: Map<String, Namespace.Proposal>,
-            val optionalNamespaces: Map<String, Namespace.Proposal>?,
             val namespaces: Map<String, Namespace.Session>,
             val metaData: Core.Model.AppMetaData?,
         ) : Model() {

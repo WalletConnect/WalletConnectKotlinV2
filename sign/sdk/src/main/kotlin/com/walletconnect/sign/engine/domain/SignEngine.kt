@@ -6,36 +6,16 @@ import android.database.sqlite.SQLiteException
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
+import com.walletconnect.android.internal.common.exception.*
 import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
-import com.walletconnect.android.internal.common.exception.GenericException
-import com.walletconnect.android.internal.common.exception.Invalid
-import com.walletconnect.android.internal.common.exception.InvalidExpiryException
-import com.walletconnect.android.internal.common.exception.Reason
-import com.walletconnect.android.internal.common.exception.Uncategorized
-import com.walletconnect.android.internal.common.model.AppMetaData
-import com.walletconnect.android.internal.common.model.AppMetaDataType
-import com.walletconnect.android.internal.common.model.ConnectionState
-import com.walletconnect.android.internal.common.model.Expiry
-import com.walletconnect.android.internal.common.model.IrnParams
-import com.walletconnect.android.internal.common.model.Pairing
-import com.walletconnect.android.internal.common.model.RelayProtocolOptions
-import com.walletconnect.android.internal.common.model.SDKError
-import com.walletconnect.android.internal.common.model.Tags
-import com.walletconnect.android.internal.common.model.WCRequest
-import com.walletconnect.android.internal.common.model.WCResponse
+import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
 import com.walletconnect.android.internal.common.model.type.ClientParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
-import com.walletconnect.android.internal.utils.ACTIVE_SESSION
-import com.walletconnect.android.internal.utils.CoreValidator
-import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
-import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
-import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
-import com.walletconnect.android.internal.utils.THIRTY_SECONDS
-import com.walletconnect.android.internal.utils.WEEK_IN_SECONDS
+import com.walletconnect.android.internal.utils.*
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.pairing.model.mapper.toClient
@@ -44,20 +24,8 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
-import com.walletconnect.sign.common.exceptions.InvalidEventException
-import com.walletconnect.sign.common.exceptions.InvalidNamespaceException
-import com.walletconnect.sign.common.exceptions.InvalidPropertiesException
-import com.walletconnect.sign.common.exceptions.InvalidRequestException
-import com.walletconnect.sign.common.exceptions.NO_SEQUENCE_FOR_TOPIC_MESSAGE
-import com.walletconnect.sign.common.exceptions.NotSettledSessionException
-import com.walletconnect.sign.common.exceptions.PeerError
-import com.walletconnect.sign.common.exceptions.SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE
-import com.walletconnect.sign.common.exceptions.UNAUTHORIZED_EMIT_MESSAGE
-import com.walletconnect.sign.common.exceptions.UNAUTHORIZED_EXTEND_MESSAGE
-import com.walletconnect.sign.common.exceptions.UNAUTHORIZED_UPDATE_MESSAGE
-import com.walletconnect.sign.common.exceptions.UnauthorizedEventException
-import com.walletconnect.sign.common.exceptions.UnauthorizedMethodException
-import com.walletconnect.sign.common.exceptions.UnauthorizedPeerException
+import com.walletconnect.sign.common.validator.SignValidator
+import com.walletconnect.sign.common.exceptions.*
 import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.sign.common.model.type.Sequences
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
@@ -68,52 +36,24 @@ import com.walletconnect.sign.common.model.vo.clientsync.session.payload.Session
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionRequestVO
 import com.walletconnect.sign.common.model.vo.proposal.ProposalVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
-import com.walletconnect.sign.common.validator.SignValidator
 import com.walletconnect.sign.engine.model.EngineDO
-import com.walletconnect.sign.engine.model.mapper.toEngineDO
-import com.walletconnect.sign.engine.model.mapper.toEngineDOEvent
-import com.walletconnect.sign.engine.model.mapper.toEngineDOSessionExtend
-import com.walletconnect.sign.engine.model.mapper.toMapOfEngineNamespacesSession
-import com.walletconnect.sign.engine.model.mapper.toMapOfNamespacesVOSession
-import com.walletconnect.sign.engine.model.mapper.toNamespacesVOOptional
-import com.walletconnect.sign.engine.model.mapper.toNamespacesVORequired
-import com.walletconnect.sign.engine.model.mapper.toPeerError
-import com.walletconnect.sign.engine.model.mapper.toSessionApproveParams
-import com.walletconnect.sign.engine.model.mapper.toSessionApproved
-import com.walletconnect.sign.engine.model.mapper.toSessionProposeParams
-import com.walletconnect.sign.engine.model.mapper.toSessionProposeRequest
-import com.walletconnect.sign.engine.model.mapper.toSessionRequest
-import com.walletconnect.sign.engine.model.mapper.toSessionSettleParams
-import com.walletconnect.sign.engine.model.mapper.toVO
-import com.walletconnect.sign.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdUseCase
+import com.walletconnect.sign.engine.model.mapper.*
 import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCase
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
 import com.walletconnect.sign.storage.proposal.ProposalStorageRepository
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
+import com.walletconnect.util.generateId
 import com.walletconnect.utils.Empty
 import com.walletconnect.utils.extractTimestamp
 import com.walletconnect.utils.isSequenceValid
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.merge
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
-import kotlinx.coroutines.withTimeout
-import java.util.Date
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 internal class SignEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val getPendingRequestsUseCase: GetPendingRequestsUseCase,
-    private val getPendingJsonRpcHistoryEntryByIdUseCase: GetPendingJsonRpcHistoryEntryByIdUseCase,
     private val crypto: KeyManagementRepository,
     private val sessionStorageRepository: SessionStorageRepository,
     private val proposalStorageRepository: ProposalStorageRepository,
@@ -347,8 +287,8 @@ internal class SignEngine(
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE${request.topic}")
         }
 
-        val nowInSeconds = TimeUnit.SECONDS.convert(Date().time, TimeUnit.SECONDS)
-        if (!CoreValidator.isExpiryWithinBounds(request.expiry ?: Expiry(300))) {
+        val nowInSeconds = TimeUnit.SECONDS.convert(Date().time, TimeUnit.MILLISECONDS)
+        if (CoreValidator.isExpiryNotWithinBounds(request.expiry, nowInSeconds)) {
             return onFailure(InvalidExpiryException())
         }
 
@@ -385,7 +325,7 @@ internal class SignEngine(
                 onSuccess(sessionPayload.id)
                 scope.launch {
                     try {
-                        withTimeout(TimeUnit.SECONDS.toMillis(requestTtlInSeconds)) {
+                        withTimeout(requestTtlInSeconds) {
                             collectResponse(sessionPayload.id) { cancel() }
                         }
                     } catch (e: TimeoutCancellationException) {
@@ -407,12 +347,13 @@ internal class SignEngine(
         onFailure: (Throwable) -> Unit,
     ) {
         val topicWrapper = Topic(topic)
+
         if (!sessionStorageRepository.isSessionValid(topicWrapper)) {
             return onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic"))
         }
 
-        getPendingJsonRpcHistoryEntryByIdUseCase(jsonRpcResponse.id)?.params?.request?.expiry?.let { expiry ->
-            if (!CoreValidator.isExpiryWithinBounds(expiry)) {
+        sessionStorageRepository.getSessionExpiryByTopic(topicWrapper)?.let { expiry ->
+            if (CoreValidator.isExpiryNotWithinBounds(expiry)) {
                 scope.launch {
                     supervisorScope {
                         val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
@@ -423,7 +364,7 @@ internal class SignEngine(
 
                 return onFailure(InvalidExpiryException())
             }
-        }
+        } ?: return onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic"))
 
         val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
@@ -593,7 +534,7 @@ internal class SignEngine(
         }
     }
 
-    internal fun getPendingRequests(topic: Topic): List<PendingRequest<String>> = getPendingRequestsUseCase(topic)
+    internal fun getPendingRequests(topic: Topic): List<PendingRequest> = getPendingRequestsUseCase(topic)
 
     internal fun getSessionProposals(): List<EngineDO.SessionProposal> = proposalStorageRepository.getProposals().map(ProposalVO::toEngineDO)
 
@@ -690,14 +631,13 @@ internal class SignEngine(
     // listened by DappDelegate
     private fun onSessionSettle(request: WCRequest, settleParams: SignParams.SessionSettleParams) {
         val sessionTopic = request.topic
-        val irnParams = IrnParams(Tags.SESSION_SETTLE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
+        val irnParams = IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS))
         val selfPublicKey: PublicKey = try {
             crypto.getSelfPublicFromKeyAgreement(sessionTopic)
         } catch (e: Exception) {
             jsonRpcInteractor.respondWithError(request, PeerError.Failure.SessionSettlementFailed(e.message ?: String.Empty), irnParams)
             return
         }
-
         val peerMetadata = settleParams.controller.metadata
         val proposal = proposalStorageRepository.getProposalByKey(selfPublicKey.keyAsHex).also { proposalStorageRepository.deleteProposal(selfPublicKey.keyAsHex) }
         val (requiredNamespaces, optionalNamespaces, properties) = proposal.run { Triple(requiredNamespaces, optionalNamespaces, properties) }
@@ -706,7 +646,7 @@ internal class SignEngine(
             return
         }
 
-        scope.launch {
+        scope.launch(Dispatchers.IO) {
             supervisorScope {
                 try {
                     val session = SessionVO.createAcknowledgedSession(
@@ -723,7 +663,7 @@ internal class SignEngine(
                     sessionStorageRepository.insertSession(session, request.id)
                     pairingHandler.updateMetadata(Core.Params.UpdateMetadata(proposal.pairingTopic.value, peerMetadata.toClient(), AppMetaDataType.PEER))
                     metadataStorageRepository.insertOrAbortMetadata(sessionTopic, peerMetadata, AppMetaDataType.PEER)
-                    jsonRpcInteractor.respondWithSuccess(request, irnParams)
+                    jsonRpcInteractor.respondWithSuccess(request, IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS)))
                     _engineEvent.emit(session.toSessionApproved())
                 } catch (e: Exception) {
                     proposalStorageRepository.insertProposal(proposal)
@@ -771,7 +711,7 @@ internal class SignEngine(
         val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
         try {
-            if (!CoreValidator.isExpiryWithinBounds(params.request.expiry)) {
+            if (CoreValidator.isExpiryNotWithinBounds(params.request.expiry)) {
                 jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
                 return
             }
@@ -976,7 +916,6 @@ internal class SignEngine(
                         }
                     }
                 }
-
                 is JsonRpcResponse.JsonRpcError -> {
                     logger.log("Session proposal reject received: ${response.error}")
                     proposalStorageRepository.deleteProposal(params.proposer.publicKey)
@@ -1004,7 +943,6 @@ internal class SignEngine(
                     sessionStorageRepository.acknowledgeSession(sessionTopic)
                     scope.launch { _engineEvent.emit(EngineDO.SettledSessionResponse.Result(session.toEngineDO())) }
                 }
-
                 is JsonRpcResponse.JsonRpcError -> {
                     logger.error("Peer failed to settle session: ${(wcResponse.response as JsonRpcResponse.JsonRpcError).errorMessage}")
                     jsonRpcInteractor.unsubscribe(sessionTopic, onSuccess = {
@@ -1041,7 +979,6 @@ internal class SignEngine(
                         )
                     }
                 }
-
                 is JsonRpcResponse.JsonRpcError -> {
                     logger.error("Peer failed to update session namespaces: ${response.error}")
                     scope.launch { _engineEvent.emit(EngineDO.SessionUpdateNamespacesResponse.Error(response.errorMessage)) }

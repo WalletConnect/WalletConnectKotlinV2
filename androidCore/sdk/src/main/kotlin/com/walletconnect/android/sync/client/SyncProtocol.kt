@@ -7,7 +7,6 @@ import com.walletconnect.android.sync.common.model.Events
 import com.walletconnect.android.sync.common.model.StoreMap
 import com.walletconnect.android.sync.di.commonModule
 import com.walletconnect.android.sync.di.engineModule
-import com.walletconnect.android.sync.di.jsonRpcModule
 import com.walletconnect.android.sync.di.syncStorageModule
 import com.walletconnect.android.sync.engine.domain.SyncEngine
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -29,7 +28,6 @@ internal class SyncProtocol : SyncInterface {
         try {
             wcKoinApp.run {
                 modules(
-                    jsonRpcModule(),
                     commonModule(),
                     syncStorageModule(),
                     engineModule(),
@@ -39,6 +37,7 @@ internal class SyncProtocol : SyncInterface {
             syncEngine = wcKoinApp.koin.get()
             syncEngine.setup()
 
+            //discuss how other protocols should listen to onSyncUpdate. My proposal is to add flow to SyncProtocol as PR shows
             scope.launch {
                 syncEngine.events.collect { event ->
                     when (event) {
@@ -59,11 +58,6 @@ internal class SyncProtocol : SyncInterface {
     @Throws(IllegalStateException::class)
     override fun register(params: Sync.Params.Register, onSuccess: () -> Unit, onError: (Core.Model.Error) -> Unit) = protocolFunction(onError) {
         syncEngine.register(params.accountId, params.signature.s, params.signatureType, onSuccess) { error -> onError(Core.Model.Error(error)) }
-    }
-
-    @Throws(IllegalStateException::class)
-    override fun isRegistered(params: Sync.Params.IsRegistered, onSuccess: (Boolean) -> Unit, onError: (Core.Model.Error) -> Unit) = protocolFunction(onError) {
-        syncEngine.isRegistered(params.accountId, onSuccess) { error -> onError(Core.Model.Error(error)) }
     }
 
     @Throws(IllegalStateException::class)
@@ -88,7 +82,9 @@ internal class SyncProtocol : SyncInterface {
 
     @Throws(IllegalStateException::class)
     private fun <R> wrapWithEngineInitializationCheck(block: () -> R): R {
-        check(::syncEngine.isInitialized) { "SyncClient needs to be initialized first using the initialize function" }
+        check(::syncEngine.isInitialized) {
+            "ChatClient needs to be initialized first using the initialize function"
+        }
         return block()
     }
 

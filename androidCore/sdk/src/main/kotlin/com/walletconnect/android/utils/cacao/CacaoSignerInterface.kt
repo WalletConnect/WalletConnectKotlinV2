@@ -9,13 +9,11 @@ import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.signing.eip191.EIP191Signer
 import com.walletconnect.android.internal.common.signing.signature.toCacaoSignature
-import org.web3j.utils.Numeric.hexStringToByteArray
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.createType
 
 interface CacaoSignerInterface<CoreSignature : SignatureInterface>
 
-/*Kotlin - Sign a plain text message with EIP191*/
 @Suppress("unused")
 inline fun <CoreSignature : SignatureInterface, reified SDKSignature : CoreSignature> CacaoSignerInterface<CoreSignature>.sign(
     message: String,
@@ -27,46 +25,15 @@ inline fun <CoreSignature : SignatureInterface, reified SDKSignature : CoreSigna
             Cacao.Signature(type.header, EIP191Signer.sign(message.toByteArray(), privateKey).toCacaoSignature()).run {
                 SDKSignature::class.constructors.first(KFunction<SDKSignature>::hasCorrectOrderedParametersInConstructor).call(t, s, m)
             }
-
         else -> throw Throwable("SignatureType not recognized")
     }
 
-/*Kotlin - Sign a hex text message with EIP191*/
-@Suppress("unused")
-inline fun <CoreSignature : SignatureInterface, reified SDKSignature : CoreSignature> CacaoSignerInterface<CoreSignature>.signHex(
-    message: String,
-    privateKey: ByteArray,
-    type: ISignatureType,
-): CoreSignature =
-    when (type.header) {
-        SignatureType.EIP191.header, SignatureType.EIP1271.header ->
-            Cacao.Signature(type.header, EIP191Signer.sign(hexStringToByteArray(message), privateKey).toCacaoSignature()).run {
-                SDKSignature::class.constructors.first(KFunction<SDKSignature>::hasCorrectOrderedParametersInConstructor).call(t, s, m)
-            }
-
-        else -> throw Throwable("SignatureType not recognized")
-    }
-
-/*Java - Sign a plain text message with EIP191*/
 fun <T : SignatureInterface> sign(clazz: Class<T>, message: String, privateKey: ByteArray, type: ISignatureType): T =
     when (type.header) {
         SignatureType.EIP191.header, SignatureType.EIP1271.header ->
             Cacao.Signature(type.header, EIP191Signer.sign(message.toByteArray(), privateKey).toCacaoSignature()).run {
                 clazz.kotlin.constructors.first(KFunction<T>::hasCorrectOrderedParametersInConstructor).call(t, s, m)
             }
-
-        else -> throw Throwable("SignatureType not recognized")
-    }
-
-
-/*Java - Sign a hex text message with EIP191*/
-fun <T : SignatureInterface> signHex(clazz: Class<T>, message: String, privateKey: ByteArray, type: ISignatureType): T =
-    when (type.header) {
-        SignatureType.EIP191.header, SignatureType.EIP1271.header ->
-            Cacao.Signature(type.header, EIP191Signer.sign(hexStringToByteArray(message), privateKey).toCacaoSignature()).run {
-                clazz.kotlin.constructors.first(KFunction<T>::hasCorrectOrderedParametersInConstructor).call(t, s, m)
-            }
-
         else -> throw Throwable("SignatureType not recognized")
     }
 

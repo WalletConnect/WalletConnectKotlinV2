@@ -43,7 +43,7 @@ class WalletSampleViewModel : ViewModel() {
                 SampleWalletEvents.PushRequest(arrayOfArgs, arrayOfArgs.size)
             }
             is Push.Wallet.Event.Message -> {
-                SampleWalletEvents.PushMessage(pushEvent.message.message.title, pushEvent.message.message.body, pushEvent.message.message.icon, pushEvent.message.message.url)
+                SampleWalletEvents.PushMessage(pushEvent.message.title, pushEvent.message.body, pushEvent.message.icon, pushEvent.message.url)
             }
             is Push.Wallet.Event.Delete -> {
                 SampleWalletEvents.NoAction

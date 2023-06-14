@@ -18,8 +18,6 @@ object Sync {
 
         data class Register(val accountId: AccountId, val signature: Model.Signature, val signatureType: SignatureType) : Params()
 
-        data class IsRegistered(val accountId: AccountId) : Params()
-
         data class Create(val accountId: AccountId, val store: Store) : Params()
 
         data class Set(val accountId: AccountId, val store: Store, val key: String, val value: String) : Params()

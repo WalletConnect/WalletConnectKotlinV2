@@ -36,13 +36,7 @@ abstract class PushMessageService : FirebaseMessagingService() {
                     )
                 } else if (notification?.isValid() == true) {
                     val pushMessage = with(requireNotNull(notification)) {
-                        Push.Model.Message(
-                            title = title!!,
-                            body = body!!,
-                            icon = icon,
-                            url = imageUrl?.toString(),
-                            type = ""
-                        )
+                        Push.Model.Message(title!!, body!!, icon, imageUrl?.toString())
                     }
 
                     onMessage(pushMessage, this)

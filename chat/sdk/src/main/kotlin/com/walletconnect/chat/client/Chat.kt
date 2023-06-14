@@ -48,6 +48,7 @@ object Chat {
             val inviteeAccount: Type.AccountId
             val message: Type.InviteMessage
             val inviterPublicKey: String
+            val inviteePublicKey: String
             val status: Type.InviteStatus
 
             data class Received(
@@ -56,6 +57,7 @@ object Chat {
                 override val inviteeAccount: Type.AccountId,
                 override val message: Type.InviteMessage,
                 override val inviterPublicKey: String,
+                override val inviteePublicKey: String,
                 override val status: Type.InviteStatus,
             ) : Invite
 
@@ -65,6 +67,7 @@ object Chat {
                 override val inviteeAccount: Type.AccountId,
                 override val message: Type.InviteMessage,
                 override val inviterPublicKey: String,
+                override val inviteePublicKey: String,
                 override val status: Type.InviteStatus,
             ) : Invite
         }
@@ -129,6 +132,7 @@ object Chat {
         data class Message(val topic: String, val message: Type.ChatMessage, val media: Model.Media? = null) : Params()
         data class Ping(val topic: String) : Params()
         data class Leave(val topic: String) : Params()
+        data class SetContact(val account: Type.AccountId, val publicKey: String) : Params()
         data class GetReceivedInvites(val account: Type.AccountId) : Params()
         data class GetSentInvites(val account: Type.AccountId) : Params()
         data class GetThreads(val account: Type.AccountId) : Params()

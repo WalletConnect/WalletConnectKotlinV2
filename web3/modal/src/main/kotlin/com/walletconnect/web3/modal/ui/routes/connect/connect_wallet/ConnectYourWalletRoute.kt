@@ -1,6 +1,5 @@
 package com.walletconnect.web3.modal.ui.routes.connect.connect_wallet
 
-import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -8,6 +7,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
@@ -17,48 +19,43 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.walletconnect.web3.modal.ui.components.internal.Web3ModalTopBar
 import com.walletconnect.web3.modal.R
-import com.walletconnect.web3.modal.domain.model.Wallet
 import com.walletconnect.web3.modal.ui.components.internal.commons.AutoScrollingWalletList
 import com.walletconnect.web3.modal.ui.components.internal.commons.MainButton
 import com.walletconnect.web3.modal.ui.components.internal.commons.RoundedOutLineButton
 import com.walletconnect.web3.modal.ui.navigation.Route
+import com.walletconnect.web3.modal.ui.previews.ConnectYourWalletStateProvider
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
-import com.walletconnect.web3.modal.utils.toDeeplinkUri
-import timber.log.Timber
 
 @Composable
 internal fun ConnectYourWalletRoute(
     navController: NavController,
     uri: String,
-    wallets: List<Wallet>
 ) {
     val context = LocalContext.current
+    val viewModel: ConnectYourWalletViewModel = viewModel()
+    val uiState by viewModel.uiState.collectAsState()
 
-    ConnectYourWalletContent(
-        wallets = wallets,
-        onSelectWallet = { selectWallet(context, uri) },
+    LaunchedEffect(Unit) {
+        viewModel.getWalletRecommendations()
+    }
+
+    ConnectYourWalletContent(uiState = uiState,
+        onSelectWallet = { context.startActivity(Intent(Intent.ACTION_VIEW, uri.toUri())) },
         onScanIconClick = { navController.navigate(Route.ScanQRCode.path) },
         onGetAWalletClick = { navController.navigate(Route.GetAWallet.path) })
 }
 
-private fun selectWallet(context: Context, uri: String) {
-    try {
-        context.startActivity(Intent(Intent.ACTION_VIEW, uri.toDeeplinkUri()))
-    } catch (e: Exception) {
-        Timber.e(e)
-    }
-}
-
 @Composable
 private fun ConnectYourWalletContent(
-    wallets: List<Wallet>,
+    uiState: ConnectYourWalletUI,
     onSelectWallet: () -> Unit,
     onScanIconClick: () -> Unit,
     onGetAWalletClick: () -> Unit,
@@ -70,8 +67,8 @@ private fun ConnectYourWalletContent(
                 contentDescription = "Scan Icon",
                 modifier = Modifier.clickable { onScanIconClick() })
         })
-        SelectWallet(
-            wallets = wallets,
+        SelectWalletState(
+            uiState = uiState,
             onSelectWallet = onSelectWallet
         )
         Box(
@@ -106,8 +103,8 @@ private fun ConnectYourWalletContent(
 }
 
 @Composable
-private fun SelectWallet(
-    wallets: List<Wallet>,
+private fun SelectWalletState(
+    uiState: ConnectYourWalletUI,
     onSelectWallet: () -> Unit,
 ) {
     Box(
@@ -116,8 +113,10 @@ private fun SelectWallet(
             .height(130.dp),
         contentAlignment = Alignment.Center
     ) {
-        if (wallets.isNotEmpty()) {
-            AutoScrollingWalletList(wallets)
+        uiState.wallets?.let { wallets ->
+            if (wallets.isNotEmpty()) {
+                AutoScrollingWalletList(uiState.wallets)
+            }
         }
         MainButton(
             text = "Select Wallet",
@@ -131,8 +130,10 @@ private fun SelectWallet(
 
 @Preview
 @Composable
-private fun ConnectYourWalletPreview() {
+private fun ConnectYourWalletPreview(
+    @PreviewParameter(ConnectYourWalletStateProvider::class) state: ConnectYourWalletUI
+) {
     Web3ModalPreview {
-        ConnectYourWalletContent(listOf(), {}, {}, {})
+        ConnectYourWalletContent(state, {}, {}, {})
     }
 }

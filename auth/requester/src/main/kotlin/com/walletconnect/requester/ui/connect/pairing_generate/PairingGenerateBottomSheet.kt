@@ -1,10 +1,6 @@
 package com.walletconnect.requester.ui.connect.pairing_generate
 
-import android.content.ActivityNotFoundException
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
-import android.content.Intent
+import android.content.*
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -37,7 +33,7 @@ class PairingGenerateBottomSheet : BottomSheetDialogFragment() {
             val data = QrData.Url(uri)
 
             viewLifecycleOwner.lifecycleScope.launch {
-                val threadPolicy = when (Runtime.getRuntime().availableProcessors()) {
+                val threadPolicy = when(Runtime.getRuntime().availableProcessors()){
                     in 1..3 -> ThreadPolicy.SingleThread
                     in 4..6 -> ThreadPolicy.DoubleThread
                     else -> ThreadPolicy.QuadThread
