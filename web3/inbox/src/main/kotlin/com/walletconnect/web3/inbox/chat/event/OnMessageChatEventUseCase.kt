@@ -3,10 +3,10 @@ package com.walletconnect.web3.inbox.chat.event
 import com.walletconnect.chat.client.Chat
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxParams
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC
-import com.walletconnect.web3.inbox.proxy.ProxyInteractor
+import com.walletconnect.web3.inbox.common.proxy.ChatProxyInteractor
 
 internal class OnMessageChatEventUseCase(
-    proxyInteractor: ProxyInteractor,
+    proxyInteractor: ChatProxyInteractor,
 ) : ChatEventUseCase<Chat.Model.Events.OnMessage>(proxyInteractor) {
 
     override fun invoke(model: Chat.Model.Events.OnMessage) =

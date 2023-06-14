@@ -125,7 +125,7 @@ internal class ChatProtocol : ChatInterface {
 
     @Throws(IllegalStateException::class)
     override fun getMessages(getMessages: Chat.Params.GetMessages): List<Chat.Model.Message> = wrapWithEngineInitializationCheck() {
-        chatEngine.getMessages(getMessages.topic).map { message -> message.toClient() }
+        chatEngine.getMessages(getMessages.topic).map { message -> message.toClient() }.sortedBy { message -> message.timestamp }
     }
 
     @Throws(IllegalStateException::class)

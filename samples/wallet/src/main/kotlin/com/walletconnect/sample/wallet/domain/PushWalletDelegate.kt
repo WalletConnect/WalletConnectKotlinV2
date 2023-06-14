@@ -1,5 +1,6 @@
 package com.walletconnect.sample.wallet.domain
 
+import android.util.Log
 import com.walletconnect.push.common.Push
 import com.walletconnect.push.wallet.client.PushWalletClient
 import kotlinx.coroutines.CoroutineScope
@@ -10,7 +11,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 
-object PushWalletDelegate: PushWalletClient.Delegate {
+object PushWalletDelegate : PushWalletClient.Delegate {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val _wcPushEventModels: MutableSharedFlow<Push.Wallet.Event?> = MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     val wcPushEventModels: SharedFlow<Push.Wallet.Event?> = _wcPushEventModels
