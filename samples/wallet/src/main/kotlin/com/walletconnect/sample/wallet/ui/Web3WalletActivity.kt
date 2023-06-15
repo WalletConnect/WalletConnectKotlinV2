@@ -117,11 +117,14 @@ class Web3WalletActivity : ComponentActivity() {
                             .append("${Route.PushRequest.KEY_PEER_DESC}=$peerDesc")
                             .append("&")
                             .append("${Route.PushRequest.KEY_ICON_URL}=$iconUrl")
-                            .append("&")
-                            .append("${Route.PushRequest.KEY_REDIRECT}=$redirectUrl")
-                            .toString()
+
+                        if (redirectUrl != null) {
+                            route.append("&")
+                                .append("${Route.PushRequest.KEY_REDIRECT}=$redirectUrl")
+                        }
+
                         withContext(Dispatchers.Main) {
-                            navController.navigate(route)
+                            navController.navigate(route.toString())
                         }
                     }
                     is PushMessage -> {

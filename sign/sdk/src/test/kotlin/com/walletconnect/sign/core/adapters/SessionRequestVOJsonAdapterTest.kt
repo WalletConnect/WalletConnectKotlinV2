@@ -14,15 +14,12 @@ import kotlin.reflect.jvm.jvmName
 import kotlin.test.assertEquals
 
 internal class SessionRequestVOJsonAdapterTest {
-    private val moshi: Moshi = Moshi.Builder()
-        .add { type, _, moshi ->
+    private val moshi: Moshi = Moshi.Builder().add { type, _, moshi ->
             when (type.getRawType().name) {
                 SessionRequestVO::class.jvmName -> SessionRequestVOJsonAdapter(moshi)
                 else -> null
             }
-        }
-        .addLast(KotlinJsonAdapterFactory())
-        .build()
+        }.addLast(KotlinJsonAdapterFactory()).build()
 
     private lateinit var params: String
     private val stringParamsWithNamedJsonArray by lazy {
@@ -41,6 +38,7 @@ internal class SessionRequestVOJsonAdapterTest {
           }
         """.trimIndent()
     }
+
     private val adapter by lazy { moshi.adapter(SignRpc.SessionRequest::class.java) }
     private val deserializedJson by lazy { adapter.fromJson(stringParamsWithNamedJsonArray) }
     private val serializedParams by lazy { requireNotNull(deserializedJson?.params?.request?.params) }
@@ -186,6 +184,29 @@ internal class SessionRequestVOJsonAdapterTest {
     }
 
     @Test
+    fun verifySignRpcSessionRequestDeserialization() {
+        val t =
+            """{
+              "id": 1686808070602966,
+              "jsonrpc": "2.0",
+              "method": "wc_sessionRequest",
+              "params": {
+                "request": {
+                  "method": "personal_sign",
+                  "params": [
+                    "0x4d7920656d61696c206973206a6f686e40646f652e636f6d202d2031363836383038303730363030",
+                    "0x495143d0A0f8bAB503Dc5d3b071aC716Ffd157CE"
+                  ]
+                },
+                "chainId": "eip155:1"
+              }
+            }""".trimIndent()
+
+        val result = moshi.adapter(SignRpc.SessionRequest::class.java).fromJson(t)
+        println(result)
+    }
+
+    @Test
     fun deserializeToUnNamedJsonArrayMixedType() {
         params = """
             [
@@ -271,8 +292,7 @@ internal class SessionRequestVOJsonAdapterTest {
         params = """
             ["0x022c0c42a80bd19EA4cF0F94c4F9F96645759716","{\"types\":{\"EIP712Domain\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"version\",\"type\":\"string\"},{\"name\":\"chainId\",\"type\":\"uint256\"},{\"name\":\"verifyingContract\",\"type\":\"address\"}],\"Person\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"wallet\",\"type\":\"address\"}],\"Mail\":[{\"name\":\"from\",\"type\":\"Person\"},{\"name\":\"to\",\"type\":\"Person\"},{\"name\":\"contents\",\"type\":\"string\"}]},\"primaryType\":\"Mail\",\"domain\":{\"name\":\"Ether Mail\",\"version\":\"1\",\"chainId\":1,\"verifyingContract\":\"0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC\"},\"message\":{\"from\":{\"name\":\"Cow\",\"wallet\":\"0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826\"},\"to\":{\"name\":\"Bob\",\"wallet\":\"0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB\"},\"contents\":\"Hello, Bob!\"}}"]
         """.trimIndent()
-        @Language("JSON")
-        val expectedSerializableParams = """
+        @Language("JSON") val expectedSerializableParams = """
             ["0x022c0c42a80bd19EA4cF0F94c4F9F96645759716",{"types":{"EIP712Domain":[{"name":"name","type":"string"},{"name":"version","type":"string"},{"name":"chainId","type":"uint256"},{"name":"verifyingContract","type":"address"}],"Person":[{"name":"name","type":"string"},{"name":"wallet","type":"address"}],"Mail":[{"name":"from","type":"Person"},{"name":"to","type":"Person"},{"name":"contents","type":"string"}]},"primaryType":"Mail","domain":{"name":"Ether Mail","version":"1","chainId":1,"verifyingContract":"0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"},"message":{"from":{"name":"Cow","wallet":"0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"},"to":{"name":"Bob","wallet":"0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"},"contents":"Hello, Bob!"}}]
         """.trimIndent()
         val expectedParamsJsonArray = JSONArray(expectedSerializableParams)
@@ -303,8 +323,7 @@ internal class SessionRequestVOJsonAdapterTest {
             ["{\"f_type\":\"Signable\",\"f_vsn\":\"1.0.1\",\"message\":\"464c4f572d56302e302d7472616e73616374696f6e0000000000000000000000f90162f9015eb8cc0a2020202020202020202020207472616e73616374696f6e28613a20537472696e672c20623a20537472696e6729207b0a20202020202020202020202020207072657061726528616363743a20417574684163636f756e7429207b0a202020202020202020202020202020206c6f672861636374290a202020202020202020202020202020206c6f672861290a202020202020202020202020202020206c6f672862290a20202020202020202020202020207d0a2020202020202020202020207d0a20202020202020202020f84ca17b2274797065223a22537472696e67222c2276616c7565223a2248656c6c6f227da97b2274797065223a22537472696e67222c2276616c7565223a2257616c6c6574436f6e6e656374227da07fafbea3a826b777247a14d4b8b950f6d7a84f2be8eba0214a282ceda5240ab28203e788c60b85621495cfac801588c60b85621495cfacc988c60b85621495cfacc0\",\"addr\":\"0xc60b85621495cfac\",\"keyId\":0,\"roles\":{\"proposer\":true,\"authorizer\":true,\"payer\":true,\"param\":false},\"cadence\":\"\\n            transaction(a: String, b: String) {\\n              prepare(acct: AuthAccount) {\\n                log(acct)\\n                log(a)\\n                log(b)\\n              }\\n            }\\n          \",\"args\":[{\"type\":\"String\",\"value\":\"Hello\"},{\"type\":\"String\",\"value\":\"WalletConnect\"}],\"interaction\":{\"tag\":\"TRANSACTION\",\"assigns\":{},\"status\":\"OK\",\"reason\":null,\"accounts\":{\"c60b85621495cfac-0\":{\"kind\":\"ACCOUNT\",\"tempId\":\"c60b85621495cfac-0\",\"addr\":\"c60b85621495cfac\",\"keyId\":0,\"sequenceNum\":21,\"signature\":null,\"resolve\":null,\"role\":{\"proposer\":true,\"authorizer\":true,\"payer\":true,\"param\":false}}},\"params\":{},\"arguments\":{\"0h4pfamnyv\":{\"kind\":\"ARGUMENT\",\"tempId\":\"0h4pfamnyv\",\"value\":\"Hello\",\"asArgument\":{\"type\":\"String\",\"value\":\"Hello\"},\"xform\":{\"label\":\"String\"}},\"emvph2davh\":{\"kind\":\"ARGUMENT\",\"tempId\":\"emvph2davh\",\"value\":\"WalletConnect\",\"asArgument\":{\"type\":\"String\",\"value\":\"WalletConnect\"},\"xform\":{\"label\":\"String\"}}},\"template\":null,\"message\":{\"cadence\":\"\\n            transaction(a: String, b: String) {\\n              prepare(acct: AuthAccount) {\\n                log(acct)\\n                log(a)\\n                log(b)\\n              }\\n            }\\n          \",\"refBlock\":\"7fafbea3a826b777247a14d4b8b950f6d7a84f2be8eba0214a282ceda5240ab2\",\"computeLimit\":999,\"proposer\":null,\"payer\":null,\"authorizations\":[],\"params\":[],\"arguments\":[\"0h4pfamnyv\",\"emvph2davh\"]},\"proposer\":\"c60b85621495cfac-0\",\"authorizations\":[\"c60b85621495cfac-0\"],\"payer\":[\"c60b85621495cfac-0\"],\"events\":{\"eventType\":null,\"start\":null,\"end\":null,\"blockIds\":[]},\"transaction\":{\"id\":null},\"block\":{\"id\":null,\"height\":null,\"isSealed\":null},\"account\":{\"addr\":null},\"collection\":{\"id\":null}},\"voucher\":{\"cadence\":\"\\n            transaction(a: String, b: String) {\\n              prepare(acct: AuthAccount) {\\n                log(acct)\\n                log(a)\\n                log(b)\\n              }\\n            }\\n          \",\"refBlock\":\"7fafbea3a826b777247a14d4b8b950f6d7a84f2be8eba0214a282ceda5240ab2\",\"computeLimit\":999,\"template\":null,\"arguments\":[{\"type\":\"String\",\"value\":\"Hello\"},{\"type\":\"String\",\"value\":\"WalletConnect\"}],\"proposalKey\":{\"address\":\"0xc60b85621495cfac\",\"keyId\":0,\"sequenceNum\":21},\"payer\":\"0xc60b85621495cfac\",\"authorizers\":[\"0xc60b85621495cfac\"],\"payloadSigs\":[],\"envelopeSigs\":[{\"address\":\"0xc60b85621495cfac\",\"keyId\":0,\"sig\":null}]}}"]
         """.trimIndent()
 
-        @Language("JSON")
-        val paramsJson = """
+        @Language("JSON") val paramsJson = """
             [
               {
                 "f_type":"Signable",
@@ -529,9 +548,11 @@ internal class SessionRequestVOJsonAdapterTest {
                 expCurrentItem is JSONObject && actCurrentItem is JSONObject -> {
                     iterateJsonObjects(expCurrentItem, actCurrentItem)
                 }
+
                 expCurrentItem is JSONArray && actCurrentItem is JSONArray -> {
                     iterateJsonArrays(expCurrentItem, actCurrentItem)
                 }
+
                 else -> assertEquals(expCurrentItem, actCurrentItem)
             }
         }

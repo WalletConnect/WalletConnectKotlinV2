@@ -22,7 +22,12 @@ internal abstract class ProxyInteractor(
             val rpcAsString = Web3InboxSerializer.serializeRpc(rpc) ?: return@post logger.error("Unable to serialize: $rpc")
             logger.log("Responding: $rpcAsString")
             val script = rpcToWeb3InboxCall(rpcAsString)
-            webViewWeakReference.webView.evaluateJavascript(script, null)
+
+            try {
+                webViewWeakReference.webView.evaluateJavascript(script, null)
+            } catch (webViewIsNullException: WebViewIsNullException) {
+                logger.error("Unable to call: $rpcAsString")
+            }
         }
     }
 
@@ -32,7 +37,12 @@ internal abstract class ProxyInteractor(
             val rpcAsString = Web3InboxSerializer.serializeRpc(rpc) ?: return@post logger.error("Unable to serialize: $rpc")
             logger.log("Calling: $rpcAsString")
             val script = rpcToWeb3InboxCall(rpcAsString)
-            webViewWeakReference.webView.evaluateJavascript(script, null)
+
+            try {
+                webViewWeakReference.webView.evaluateJavascript(script, null)
+            } catch (webViewIsNullException: WebViewIsNullException) {
+                logger.error("Unable to call: $rpcAsString")
+            }
         }
     }
 }

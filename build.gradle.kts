@@ -1,4 +1,7 @@
+import com.android.build.api.dsl.CommonExtension
 import com.android.build.gradle.BaseExtension
+import com.android.build.gradle.LibraryExtension
+import com.android.build.gradle.TestedExtension
 
 plugins {
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
@@ -35,8 +38,36 @@ allprojects {
 }
 
 subprojects {
+//    pluginManager.withPlugin("com.android.library") {
+//        println("Name: " + this@subprojects.name.toString())
+////        (this@subprojects as com.android.build.api.dsl.CommonExtension<*,*,*,*>).apply {
+////            flavorDimensions += "main"
+////
+////            productFlavors {
+////
+////            }
+////        }
+//    }
+
     afterEvaluate {
         if (hasProperty("android")) {
+            (this as ExtensionAware).extensions.configure("android", Action<TestedExtension> {
+                (this as CommonExtension<*, *, *, *>).buildTypes {
+                    create("localRelease") {
+                        initWith(getByName("release"))
+                    }
+                }
+            })
+//            extensions.configure<CommonExtension<*, *, *, *>> {
+//                flavorDimensions += "main"
+//
+//                productFlavors {
+//                    create("localRelease") {
+//                        dimension = "main"
+//                    }
+//                }
+//            }
+
             extensions.configure(BaseExtension::class.java) {
                 packagingOptions {
                     with(resources.excludes) {
