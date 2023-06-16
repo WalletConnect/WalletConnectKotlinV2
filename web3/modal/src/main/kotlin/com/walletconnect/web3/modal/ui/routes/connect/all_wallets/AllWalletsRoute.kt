@@ -77,7 +77,7 @@ private fun AllWalletsContent(
 
 @Preview
 @Composable
-private fun ConnectYourWalletPreview() {
+private fun AllWalletsPreview() {
     Web3ModalPreview {
         AllWalletsContent(listOf(), {}, {},{})
     }
