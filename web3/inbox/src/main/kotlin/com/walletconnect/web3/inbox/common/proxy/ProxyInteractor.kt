@@ -26,7 +26,7 @@ internal abstract class ProxyInteractor(
             try {
                 webViewWeakReference.webView.evaluateJavascript(script, null)
             } catch (webViewIsNullException: WebViewIsNullException) {
-                logger.error("Unable to call: $rpcAsString")
+                logger.error("Unable to respond: $rpcAsString")
             }
         }
     }
