@@ -12,7 +12,7 @@ import com.walletconnect.utils.addSerializerEntry
 import org.koin.dsl.module
 
 @JvmSynthetic
-internal fun jsonRpcModule() = module {
+internal fun signJsonRpcModule() = module {
     addSerializerEntry(SignRpc.SessionPropose::class)
     addSerializerEntry(SignRpc.SessionPing::class)
     addSerializerEntry(SignRpc.SessionEvent::class)
