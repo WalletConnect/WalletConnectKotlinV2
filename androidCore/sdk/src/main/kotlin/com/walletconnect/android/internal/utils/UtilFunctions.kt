@@ -2,6 +2,8 @@
 
 package com.walletconnect.utils
 
+import com.squareup.moshi.JsonAdapter
+import com.squareup.moshi.Moshi
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.type.SerializableJsonRpc
 import com.walletconnect.android.internal.utils.CURRENT_TIME_IN_SECONDS
@@ -38,6 +40,14 @@ fun Module.addSdkBitsetForUA(bitSet: BitSet): KoinDefinition<BitSet> =
 
 fun Module.addDeserializerEntry(key: String, value: KClass<*>): KoinDefinition<Pair<String, KClass<*>>> =
     single(qualifier = named("${key}_${value.getFullName()}")) { key to value }
+
+// Had to add JsonAdapterEntry because Koin would fetch the wrong values when using Pair instead
+data class JsonAdapterEntry<T>(val type: Class<T>, val adapter: (Moshi) -> JsonAdapter<T>)
+
+fun <T> Module.addJsonAdapter(type: Class<T>, adapter: (Moshi) -> JsonAdapter<T>): KoinDefinition<JsonAdapterEntry<T>> {
+    val jsonAdapterEntry = JsonAdapterEntry(type, adapter)
+    return single(qualifier = named("$jsonAdapterEntry")) { jsonAdapterEntry }
+}
 
 /**
  * When converting a BitSet to a byte array, the BitSet is converted to a byte array with a dynamic size that is divisible by 8 in little-endian (right to left) order.

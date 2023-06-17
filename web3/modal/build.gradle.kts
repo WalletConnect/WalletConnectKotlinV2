@@ -69,7 +69,7 @@ dependencies {
     implementation("androidx.compose.material:material:1.5.0-alpha04")
 
     //coil
-    implementation ("io.coil-kt:coil-compose:2.3.0")
+    implementation("io.coil-kt:coil-compose:2.3.0")
 
     // accompanist
     accompanist()

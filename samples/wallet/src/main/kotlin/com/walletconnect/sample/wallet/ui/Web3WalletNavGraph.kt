@@ -99,7 +99,10 @@ fun Web3WalletNavGraph(
                             navArgument("peerName") { type = NavType.StringType },
                             navArgument("peerDesc") { type = NavType.StringType },
                             navArgument("iconUrl") { type = NavType.StringType },
-                            navArgument("redirect") { type = NavType.StringType }
+                            navArgument("redirect") {
+                                nullable = true
+                                type = NavType.StringType
+                            }
                         ),
                         dialogProperties = DialogProperties(usePlatformDefaultWidth = false)) { backStackEntry ->
                         PushRequestRoute(

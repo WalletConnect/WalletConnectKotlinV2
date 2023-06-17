@@ -66,11 +66,12 @@ dependencies {
     moshiKsp()
 
     // WalletConnect
+    debugImplementation(project(":androidCore:sdk"))
     debugImplementation(project(":chat:sdk"))
     debugImplementation(project(":push:sdk"))
-    debugImplementation(project(":androidCore:sdk"))
 
-    releaseImplementation("com.walletconnect:chat:$CHAT_VERSION")
-    releaseImplementation("com.walletconnect:push:$PUSH_VERSION")
-    releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
+    releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
+    releaseImplementation("com.walletconnect:android-core")
+    releaseImplementation("com.walletconnect:chat")
+    releaseImplementation("com.walletconnect:push")
 }
