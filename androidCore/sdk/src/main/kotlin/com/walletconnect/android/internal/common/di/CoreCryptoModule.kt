@@ -75,8 +75,8 @@ internal fun coreCryptoModule() = module {
             createSharedPreferences()
         } catch (e: Exception) {
             get<Logger>(named(AndroidCommonDITags.LOGGER)).error(e)
-            deleteSharedPreferences()
             deleteMasterKey()
+            deleteSharedPreferences()
             deleteDatabases()
             createSharedPreferences()
         }

@@ -9,8 +9,8 @@ import com.walletconnect.sample.dapp.domain.DappDelegate
 import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.sample.dapp.ui.accountArg
 import com.walletconnect.sample_common.*
-import com.walletconnect.sign.client.Sign
-import com.walletconnect.sign.client.SignClient
+import com.walletconnect.web3.modal.client.Modal
+import com.walletconnect.web3.modal.client.Web3Modal
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -32,24 +32,24 @@ class AccountViewModel(
             .filterNotNull()
             .onEach { walletEvent ->
                 when (walletEvent) {
-                    is Sign.Model.UpdatedSession -> { fetchAccountDetails() }
-                    is Sign.Model.SessionRequestResponse -> {
+                    is Modal.Model.UpdatedSession -> { fetchAccountDetails() }
+                    is Modal.Model.SessionRequestResponse -> {
                         val request = when (walletEvent.result) {
-                            is Sign.Model.JsonRpcResponse.JsonRpcResult -> {
+                            is Modal.Model.JsonRpcResponse.JsonRpcResult -> {
                                 val successResult =
-                                    (walletEvent.result as Sign.Model.JsonRpcResponse.JsonRpcResult)
+                                    (walletEvent.result as Modal.Model.JsonRpcResponse.JsonRpcResult)
                                 DappSampleEvents.RequestSuccess(successResult.result)
                             }
-                            is Sign.Model.JsonRpcResponse.JsonRpcError -> {
+                            is Modal.Model.JsonRpcResponse.JsonRpcError -> {
                                 val errorResult =
-                                    (walletEvent.result as Sign.Model.JsonRpcResponse.JsonRpcError)
+                                    (walletEvent.result as Modal.Model.JsonRpcResponse.JsonRpcError)
                                 DappSampleEvents.RequestPeerError("Error Message: ${errorResult.message}\n Error Code: ${errorResult.code}")
                             }
                         }
 
                         _events.emit(request)
                     }
-                    is Sign.Model.DeletedSession -> {
+                    is Modal.Model.DeletedSession -> {
                         _events.emit(DappSampleEvents.Disconnect)
                     }
                     else -> Unit
@@ -68,14 +68,14 @@ class AccountViewModel(
                 method.equals("eth_signTypedData", true) -> getEthSignTypedData(account)
                 else -> "[]"
             }
-            val requestParams = Sign.Params.Request(
+            val requestParams = Modal.Params.Request(
                 sessionTopic = requireNotNull(DappDelegate.selectedSessionTopic),
                 method = method,
                 params = params, // stringified JSON
                 chainId = "$parentChain:$chainId"
             )
 
-            SignClient.request(requestParams) {
+            Web3Modal.request(requestParams) {
                 viewModelScope.launch {
                     _events.emit(
                         DappSampleEvents.RequestError(
@@ -85,7 +85,7 @@ class AccountViewModel(
                 }
             }
 
-            SignClient.getActiveSessionByTopic(requestParams.sessionTopic)?.redirect?.toUri()
+            Web3Modal.getActiveSessionByTopic(requestParams.sessionTopic)?.redirect?.toUri()
                 ?.let { deepLinkUri -> sendSessionRequestDeepLink(deepLinkUri) }
         }
     }
@@ -97,7 +97,7 @@ class AccountViewModel(
         }
 
         val listOfMethodsByChainId: List<String> =
-            SignClient.getListOfActiveSessions()
+            Web3Modal.getListOfActiveSessions()
                 .filter { session -> session.topic == DappDelegate.selectedSessionTopic }
                 .flatMap { session ->
                     session.namespaces
@@ -106,7 +106,7 @@ class AccountViewModel(
                 }
 
         val listOfMethodsByNamespace: List<String> =
-            SignClient.getListOfActiveSessions()
+            Web3Modal.getListOfActiveSessions()
                 .filter { session -> session.topic == DappDelegate.selectedSessionTopic }
                 .flatMap { session ->
                     session.namespaces

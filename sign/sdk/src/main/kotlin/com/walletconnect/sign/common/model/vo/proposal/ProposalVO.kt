@@ -1,6 +1,7 @@
 package com.walletconnect.sign.common.model.vo.proposal
 
 import com.walletconnect.android.internal.common.model.AppMetaData
+import com.walletconnect.android.internal.common.model.Redirect
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 
@@ -20,5 +21,5 @@ internal data class ProposalVO(
     val relayData: String?,
 ) {
     val appMetaData: AppMetaData
-        get() = AppMetaData(name, description, url, icons)
+        get() = AppMetaData(name, description, url, icons, Redirect(native = redirect))
 }

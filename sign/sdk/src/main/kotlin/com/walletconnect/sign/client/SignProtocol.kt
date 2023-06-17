@@ -11,7 +11,7 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.client.mapper.*
 import com.walletconnect.sign.di.commonModule
 import com.walletconnect.sign.di.engineModule
-import com.walletconnect.sign.di.jsonRpcModule
+import com.walletconnect.sign.di.signJsonRpcModule
 import com.walletconnect.sign.di.storageModule
 import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.engine.model.EngineDO
@@ -30,7 +30,7 @@ class SignProtocol : SignInterface {
         try {
             wcKoinApp.modules(
                 commonModule(),
-                jsonRpcModule(),
+                signJsonRpcModule(),
                 storageModule(),
                 engineModule()
             )

@@ -13,7 +13,7 @@ import kotlin.coroutines.suspendCoroutine
 class SessionProposalViewModel : ViewModel() {
     val sessionProposal: SessionProposalUI? = generateSessionProposalUI(Web3Wallet.getSessionProposals().last())
 
-    suspend fun approve() {
+    suspend fun approve(onRedirect: (String) -> Unit = {}) {
         return suspendCoroutine { continuation ->
             if (Web3Wallet.getSessionProposals().isNotEmpty()) {
                 val sessionProposal: Wallet.Model.SessionProposal = requireNotNull(Web3Wallet.getSessionProposals().last())
@@ -24,15 +24,17 @@ class SessionProposalViewModel : ViewModel() {
                     onError = { error ->
                         continuation.resumeWithException(error.throwable)
                         Firebase.crashlytics.recordException(error.throwable)
+                        onRedirect(sessionProposal.redirect)
                     },
                     onSuccess = {
                         continuation.resume(Unit)
+                        onRedirect(sessionProposal.redirect)
                     })
             }
         }
     }
 
-    fun reject() {
+    fun reject(onRedirect: (String) -> Unit = {}) {
         Web3Wallet.getSessionProposals().last().let { sessionProposal ->
             val rejectionReason = "Reject Session"
             val reject = Wallet.Params.SessionReject(
@@ -43,6 +45,7 @@ class SessionProposalViewModel : ViewModel() {
             Web3Wallet.rejectSession(reject) { error ->
                 Firebase.crashlytics.recordException(error.throwable)
             }
+            onRedirect(sessionProposal.redirect)
         }
     }
 

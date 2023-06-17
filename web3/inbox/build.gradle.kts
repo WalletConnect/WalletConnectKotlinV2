@@ -60,12 +60,18 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
-    // WalletConnect
-    debugImplementation(project(":chat:sdk"))
-//    debugImplementation(project(":push:sdk"))
-    debugImplementation(project(":androidCore:sdk"))
+    implementation(platform("com.google.firebase:firebase-bom:31.0.0"))
+    implementation("com.google.firebase:firebase-messaging")
 
-    releaseImplementation("com.walletconnect:chat:$CHAT_VERSION")
-//    releaseImplementation("com.walletconnect:push:$PUSH_VERSION")
-    releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
+    moshiKsp()
+
+    // WalletConnect
+    debugImplementation(project(":androidCore:sdk"))
+    debugImplementation(project(":chat:sdk"))
+    debugImplementation(project(":push:sdk"))
+
+    releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
+    releaseImplementation("com.walletconnect:android-core")
+    releaseImplementation("com.walletconnect:chat")
+    releaseImplementation("com.walletconnect:push")
 }

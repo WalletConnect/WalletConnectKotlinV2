@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalPagerApi::class, ExperimentalPagerApi::class)
-
 package com.walletconnect.sample.wallet.ui.routes.dialog_routes.session_proposal
 
 import androidx.compose.foundation.background
@@ -10,14 +8,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
@@ -27,6 +26,7 @@ import com.walletconnect.sample.wallet.ui.common.peer.Peer
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import com.walletconnect.sample_common.CompletePreviews
+import com.walletconnect.sample_common.sendResponseDeepLink
 import com.walletconnect.sample_common.ui.theme.PreviewTheme
 import com.walletconnect.sample_common.ui.themedColor
 import com.walletconnect.web3.wallet.client.Wallet
@@ -44,6 +44,7 @@ fun SessionProposalRoutePreview() {
 fun SessionProposalRoute(navController: NavHostController, sessionProposalViewModel: SessionProposalViewModel = viewModel()) {
     val sessionProposalUI = sessionProposalViewModel.sessionProposal ?: throw Exception("Missing session proposal")
     val composableScope = rememberCoroutineScope()
+    val context = LocalContext.current
     SemiTransparentDialog {
         Spacer(modifier = Modifier.height(24.dp))
         Peer(peerUI = sessionProposalUI.peerUI, "would like to connect")
@@ -53,12 +54,12 @@ fun SessionProposalRoute(navController: NavHostController, sessionProposalViewMo
         Permissions(sessionProposalUI = sessionProposalUI)
         Spacer(modifier = Modifier.height(16.dp))
         Buttons(onDecline = {
-            sessionProposalViewModel.reject()
+            sessionProposalViewModel.reject() { redirect -> context.sendResponseDeepLink(redirect.toUri()) }
             navController.popBackStack(route = Route.Connections.path, inclusive = false)
         }, onAllow = {
             composableScope.launch {
                 try {
-                    sessionProposalViewModel.approve()
+                    sessionProposalViewModel.approve { redirect -> context.sendResponseDeepLink(redirect.toUri()) }
                     navController.popBackStack(route = Route.Connections.path, inclusive = false)
                 } catch (e: Exception) {
                     navController.popBackStack(route = Route.Connections.path, inclusive = false)
