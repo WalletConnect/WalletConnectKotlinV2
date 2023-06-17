@@ -1,11 +1,13 @@
 package com.walletconnect.android.internal.common.di
 
+import com.squareup.moshi.Moshi
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.json_rpc.domain.JsonRpcInteractor
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.model.type.SerializableJsonRpc
 import com.walletconnect.android.pairing.model.PairingJsonRpcMethod
 import com.walletconnect.android.pairing.model.PairingRpc
+import com.walletconnect.utils.JsonAdapterEntry
 import com.walletconnect.utils.addDeserializerEntry
 import com.walletconnect.utils.addSerializerEntry
 import org.koin.core.qualifier.named
@@ -26,7 +28,9 @@ fun coreJsonRpcModule() = module {
     factory {
         JsonRpcSerializer(
             serializerEntries = getAll<KClass<SerializableJsonRpc>>().toSet(),
-            deserializerEntries = getAll<Pair<String, KClass<*>>>().toMap()
+            deserializerEntries = getAll<Pair<String, KClass<*>>>().toMap(),
+            jsonAdapterEntries = getAll<JsonAdapterEntry<*>>().toSet(),
+            moshiBuilder = get<Moshi.Builder>(named(AndroidCommonDITags.MOSHI))
         )
     }
 }

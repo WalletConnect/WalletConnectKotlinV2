@@ -5,13 +5,15 @@ import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.model.type.ClientParams
 import com.walletconnect.android.internal.common.model.type.JsonRpcClientSync
 import com.walletconnect.android.internal.common.model.type.SerializableJsonRpc
-import com.walletconnect.android.internal.common.wcKoinApp
+import com.walletconnect.utils.JsonAdapterEntry
 import kotlin.reflect.KClass
 import kotlin.reflect.safeCast
 
 class JsonRpcSerializer(
     val serializerEntries: Set<KClass<*>>,
     val deserializerEntries: Map<String, KClass<*>>,
+    val jsonAdapterEntries: Set<JsonAdapterEntry<*>>,
+    val moshiBuilder: Moshi.Builder,
 ) {
     val moshi: Moshi
         get() = wcKoinApp.koin.getAll<Moshi.Builder>().first().build()
