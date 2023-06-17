@@ -15,8 +15,10 @@ class JsonRpcSerializer(
     val jsonAdapterEntries: Set<JsonAdapterEntry<*>>,
     val moshiBuilder: Moshi.Builder,
 ) {
-    val moshi: Moshi
-        get() = wcKoinApp.koin.getAll<Moshi.Builder>().first().build()
+    val moshi: Moshi = moshiBuilder
+        .add { type, _, moshi ->
+            jsonAdapterEntries.firstOrNull { it.type == type }?.adapter?.invoke(moshi)
+        }.build()
 
     fun deserialize(method: String, json: String): ClientParams? {
         val type = deserializerEntries[method] ?: return null
