@@ -10,8 +10,8 @@ import com.walletconnect.chat.client.ChatClient
 import com.walletconnect.push.common.Push
 import com.walletconnect.push.wallet.client.PushWalletClient
 import com.walletconnect.web3.inbox.chat.event.ChatEventHandler
-import com.walletconnect.web3.inbox.di.jsonRpcModule
 import com.walletconnect.web3.inbox.di.proxyModule
+import com.walletconnect.web3.inbox.di.web3InboxJsonRpcModule
 import com.walletconnect.web3.inbox.push.event.PushEventHandler
 import com.walletconnect.web3.inbox.ui.Web3InboxState
 import com.walletconnect.web3.inbox.ui.Web3InboxView
@@ -31,7 +31,7 @@ object Web3Inbox {
         runCatching {
             account = LateInitAccountId(AccountId(init.account.value))
             wcKoinApp.modules(
-                jsonRpcModule(),
+                web3InboxJsonRpcModule(),
                 proxyModule(ChatClient, PushWalletClient, init.onSign, ::onPageFinished),
             )
             ChatClient.setChatDelegate(wcKoinApp.koin.get<ChatEventHandler>())
