@@ -17,7 +17,14 @@ import kotlin.reflect.KClass
 @JvmSynthetic
 fun coreJsonRpcModule() = module {
 
-    single<JsonRpcInteractorInterface> { JsonRpcInteractor(get(), get(), get(), get(named(AndroidCommonDITags.LOGGER))) }
+    single<JsonRpcInteractorInterface> {
+        JsonRpcInteractor(
+            relay = get(),
+            chaChaPolyCodec = get(),
+            jsonRpcHistory = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER))
+        )
+    }
 
     addSerializerEntry(PairingRpc.PairingPing::class)
     addSerializerEntry(PairingRpc.PairingDelete::class)
