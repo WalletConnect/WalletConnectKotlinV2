@@ -13,7 +13,7 @@ const val AUTH_VERSION = "1.14.0"
 const val CHAT_VERSION = "1.0.0-beta11"
 const val PUSH_VERSION = "1.0.0-alpha06"
 const val WEB_3_WALLET = "1.9.0"
-const val WEB_3_INBOX = "1.0.0-alpha09"
+const val WEB_3_INBOX = "1.0.0-alpha11"
 const val WEB_3_MODAL = "1.0.0-alpha02"
 
 val jvmVersion = JavaVersion.VERSION_11
