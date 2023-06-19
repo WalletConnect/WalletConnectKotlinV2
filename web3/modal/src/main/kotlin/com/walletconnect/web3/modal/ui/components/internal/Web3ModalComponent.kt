@@ -51,16 +51,14 @@ internal fun Web3ModalComponent(
             .collect()
     }
 
-    web3ModalState?.let { state ->
-        Web3ModalRoot(
+    Web3ModalRoot(
+        navController = navController,
+        colors = provideWeb3ModalColors(),
+        closeModal = closeModal
+    ) {
+        Web3ModalNavGraph(
             navController = navController,
-            colors = provideWeb3ModalColors(),
-            closeModal = closeModal
-        ) {
-            Web3ModalNavGraph(
-                navController = navController,
-                web3ModalState = state,
-            )
-        }
+            web3ModalState = web3ModalState,
+        )
     }
 }

@@ -55,7 +55,7 @@ internal fun AutoScrollingWalletList(
             val item = data[index]
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(item.imageUrl)
+                    .data(item.images.medium)
                     .crossfade(true)
                     .build(),
                 contentDescription = null,

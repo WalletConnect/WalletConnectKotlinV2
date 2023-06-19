@@ -12,7 +12,7 @@ internal class GetPendingRequestsUseCase(
     private val jsonRpcHistory: JsonRpcHistory,
     private val serializer: JsonRpcSerializer
 ) {
-    operator fun invoke(topic: Topic): List<PendingRequest<String>> =
+    operator fun invoke(topic: Topic): List<PendingRequest> =
         jsonRpcHistory.getListOfPendingRecordsByTopic(topic)
             .filter { record -> record.method == JsonRpcMethod.WC_SESSION_REQUEST }
             .filter { record -> serializer.tryDeserialize<SignRpc.SessionRequest>(record.body) != null }

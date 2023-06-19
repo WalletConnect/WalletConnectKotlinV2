@@ -9,13 +9,7 @@ import com.walletconnect.android.internal.common.json_rpc.model.toJsonRpcError
 import com.walletconnect.android.internal.common.json_rpc.model.toJsonRpcResponse
 import com.walletconnect.android.internal.common.json_rpc.model.toRelay
 import com.walletconnect.android.internal.common.json_rpc.model.toWCResponse
-import com.walletconnect.android.internal.common.model.EnvelopeType
-import com.walletconnect.android.internal.common.model.IrnParams
-import com.walletconnect.android.internal.common.model.Participants
-import com.walletconnect.android.internal.common.model.SDKError
-import com.walletconnect.android.internal.common.model.WCRequest
-import com.walletconnect.android.internal.common.model.WCResponse
-import com.walletconnect.android.internal.common.model.params.CoreChatParams
+import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.model.sync.ClientJsonRpc
 import com.walletconnect.android.internal.common.model.type.ClientParams
 import com.walletconnect.android.internal.common.model.type.Error
@@ -29,11 +23,7 @@ import com.walletconnect.foundation.common.model.SubscriptionId
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.utils.Empty
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 internal class JsonRpcInteractor(
@@ -83,13 +73,12 @@ internal class JsonRpcInteractor(
         }
 
         val requestJson = serializer.serialize(payload) ?: return onFailure(IllegalStateException("JsonRpcInteractor: Unknown result params"))
-
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
             val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, envelopeType, participants)
 
             relay.publish(topic.value, encryptedRequest, params.toRelay()) { result ->
                 result.fold(
-                    onSuccess = { onSuccess()},
+                    onSuccess = { onSuccess() },
                     onFailure = { error -> onFailure(error) }
                 )
             }
@@ -311,7 +300,6 @@ internal class JsonRpcInteractor(
                         handleError("ManSub: ${e.stackTraceToString()}")
                         String.Empty
                     }
-
                     Pair(message, topic)
                 }.collect { (decryptedMessage, topic) ->
                     if (decryptedMessage.isNotEmpty()) {
@@ -329,7 +317,7 @@ internal class JsonRpcInteractor(
         serializer.tryDeserialize<ClientJsonRpc>(decryptedMessage)?.let { clientJsonRpc ->
             handleRequest(clientJsonRpc, topic, decryptedMessage)
         } ?: serializer.tryDeserialize<JsonRpcResponse.JsonRpcResult>(decryptedMessage)?.let { result ->
-            handleJsonRpcResult(result, topic)
+            handleJsonRpcResult(result)
         } ?: serializer.tryDeserialize<JsonRpcResponse.JsonRpcError>(decryptedMessage)?.let { error ->
             handleJsonRpcError(error)
         } ?: handleError("JsonRpcInteractor: Received unknown object type")
@@ -343,7 +331,7 @@ internal class JsonRpcInteractor(
         }
     }
 
-    private suspend fun handleJsonRpcResult(jsonRpcResult: JsonRpcResponse.JsonRpcResult, topic: Topic) {
+    private suspend fun handleJsonRpcResult(jsonRpcResult: JsonRpcResponse.JsonRpcResult) {
         val serializedResult = serializer.serialize(jsonRpcResult) ?: return handleError("JsonRpcInteractor: Unknown result params")
         val jsonRpcRecord = jsonRpcHistory.updateRequestWithResponse(jsonRpcResult.id, serializedResult)
 
@@ -352,15 +340,7 @@ internal class JsonRpcInteractor(
                 val responseVO = JsonRpcResponse.JsonRpcResult(jsonRpcResult.id, result = jsonRpcResult.result)
                 _peerResponse.emit(jsonRpcRecord.toWCResponse(responseVO, params))
             } ?: handleError("JsonRpcInteractor: Unknown result params")
-        } else {
-            handleJsonRpcResponsesWithoutStoredRequest(jsonRpcResult, topic)
         }
-    }
-
-    private suspend fun handleJsonRpcResponsesWithoutStoredRequest(jsonRpcResult: JsonRpcResponse.JsonRpcResult, topic: Topic) {
-        // todo: HANDLE DUPLICATES! maybe store results to check for duplicates????? https://github.com/WalletConnect/WalletConnectKotlinV2/issues/871
-        //  Currently it's engine/usecase responsibility to handle duplicate responses
-        if (jsonRpcResult.result is CoreChatParams.AcceptanceParams) _peerResponse.emit(WCResponse(topic, String.Empty, jsonRpcResult, jsonRpcResult.result))
     }
 
     private suspend fun handleJsonRpcError(jsonRpcError: JsonRpcResponse.JsonRpcError) {

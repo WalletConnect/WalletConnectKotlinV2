@@ -7,8 +7,8 @@ object DBUtils {
     const val ANDROID_CORE_DB_NAME = "WalletConnectAndroidCore.db"
     const val SIGN_SDK_DB_NAME = "WalletConnectV2.db"
     const val CHAT_SDK_DB_NAME = "WalletConnectV2_chat.db"
-    const val PUSH_DAPP_SDK_DB_NAME = "WalletConnectV2_dapp_push.db"
-    const val PUSH_WALLET_SDK_DB_NAME = "WalletConnectV2_wallet_push.db"
+    const val PUSH_DAPP_SDK_DB_NAME = "WalletConnectV2_DappPush.db"
+    const val PUSH_WALLET_SDK_DB_NAME = "WalletConnectV2_WalletPush.db"
 
     val dbNames: List<String> = listOf(ANDROID_CORE_DB_NAME, SIGN_SDK_DB_NAME, CHAT_SDK_DB_NAME, PUSH_DAPP_SDK_DB_NAME, PUSH_WALLET_SDK_DB_NAME)
 }

@@ -70,20 +70,24 @@ dependencies {
     implementation ("io.insert-koin:koin-androidx-compose:3.4.3")
     implementation ("io.coil-kt:coil-compose:2.3.0")
 
-    compose()
-
     // Firebase
     implementation(platform("com.google.firebase:firebase-bom:31.1.1"))
     implementation("com.google.firebase:firebase-crashlytics-ktx")
     implementation("com.google.firebase:firebase-analytics-ktx")
     implementation("com.google.firebase:firebase-messaging")
 
+    // Accompanist
+    implementation("com.google.accompanist:accompanist-navigation-material:0.27.1")
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.27.1")
+
     debugImplementation(project(":androidCore:sdk"))
+    debugImplementation(project(":sign:sdk"))
     debugImplementation(project(":push:sdk"))
     debugImplementation(project(":web3:modal"))
 
     releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
     releaseImplementation("com.walletconnect:android-core")
+    releaseImplementation("com.walletconnect:sign")
     releaseImplementation("com.walletconnect:push")
     releaseImplementation(project(":web3:modal"))
 }

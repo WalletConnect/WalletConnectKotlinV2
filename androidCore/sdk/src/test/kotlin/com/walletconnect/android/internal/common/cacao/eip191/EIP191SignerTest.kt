@@ -4,12 +4,11 @@ import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
-import com.walletconnect.android.internal.common.signing.cacao.toCAIP122Message
-import com.walletconnect.android.internal.common.signing.cacao.toSignature
+import com.walletconnect.android.internal.common.signing.signature.Signature
 import com.walletconnect.android.internal.common.signing.eip191.EIP191Signer
 import com.walletconnect.android.internal.common.signing.eip191.EIP191Verifier
-import com.walletconnect.android.internal.common.signing.model.HexString
-import com.walletconnect.android.internal.common.signing.signature.Signature
+import com.walletconnect.android.internal.common.signing.cacao.toCAIP122Message
+import com.walletconnect.android.internal.common.signing.cacao.toSignature
 import com.walletconnect.android.utils.cacao.CacaoSignerInterface
 import com.walletconnect.android.utils.cacao.sign
 import com.walletconnect.util.bytesToHex
@@ -21,7 +20,6 @@ import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.Hash
 import org.web3j.crypto.Keys
 import org.web3j.crypto.Sign.getEthereumMessageHash
-import org.web3j.utils.Numeric
 
 internal class EIP191SignerTest {
 
@@ -58,25 +56,9 @@ internal class EIP191SignerTest {
     }
 
     @Test
-    fun signHexAndVerify() {
-        val address = Keys.getAddress(ECKeyPair.create(privateKey))
-        val signature = EIP191Signer.signHex(HexString(Numeric.toHexString(message.toByteArray())), privateKey)
-        val result = EIP191Verifier.verify(signature, message, address)
-        assertTrue(result)
-    }
-
-    @Test
     fun signAndVerifyNoPrefix() {
         val address = Keys.getAddress(ECKeyPair.create(privateKey))
         val signature = EIP191Signer.signNoPrefix(message, privateKey)
-        val result = EIP191Verifier.verifyNoPrefix(signature, message, address)
-        assertTrue(result)
-    }
-
-    @Test
-    fun signHexAndVerifyNoPrefix() {
-        val address = Keys.getAddress(ECKeyPair.create(privateKey))
-        val signature = EIP191Signer.signHexNoPrefix(HexString(Numeric.toHexString(message.toByteArray())), privateKey)
         val result = EIP191Verifier.verifyNoPrefix(signature, message, address)
         assertTrue(result)
     }

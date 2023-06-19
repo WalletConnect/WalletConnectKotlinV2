@@ -60,7 +60,6 @@ object CoreClient {
                 corePairingModule(Pairing),
                 coreSyncModule(Sync),
                 keyServerModule(keyServerUrl),
-                explorerModule()
             )
         }
 

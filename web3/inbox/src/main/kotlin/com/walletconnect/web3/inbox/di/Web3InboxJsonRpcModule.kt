@@ -10,6 +10,7 @@ import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC
 import com.walletconnect.web3.inbox.push.di.pushJsonRpcModule
 import org.koin.dsl.module
 
+
 @JvmSynthetic
 internal fun web3InboxJsonRpcModule() = module {
     includes(pushJsonRpcModule(), chatJsonRpcModule())

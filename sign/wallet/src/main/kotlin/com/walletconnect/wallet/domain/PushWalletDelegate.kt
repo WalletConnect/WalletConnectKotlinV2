@@ -23,23 +23,11 @@ object PushWalletDelegate: PushWalletClient.Delegate {
         scope.launch { _wcPushEventModels.emit(pushRequest) }
     }
 
-    override fun onPushProposal(pushProposal: Push.Wallet.Event.Proposal) {
-        scope.launch { _wcPushEventModels.emit(pushProposal) }
+    override fun onPushMessage(message: Push.Wallet.Event.Message) {
+        scope.launch { _wcPushEventModels.emit(message) }
     }
 
-    override fun onPushMessage(pushMessage: Push.Wallet.Event.Message) {
-        scope.launch { _wcPushEventModels.emit(pushMessage) }
-    }
-
-    override fun onPushDelete(pushDelete: Push.Wallet.Event.Delete) {
-    }
-
-    override fun onPushSubscription(pushSubscribe: Push.Wallet.Event.Subscription) {
-        TODO("Not yet implemented")
-    }
-
-    override fun onPushUpdate(pushUpdate: Push.Wallet.Event.Update) {
-        TODO("Not yet implemented")
+    override fun onPushDelete(deletedTopic: Push.Wallet.Event.Delete) {
     }
 
     override fun onError(error: Push.Model.Error) {

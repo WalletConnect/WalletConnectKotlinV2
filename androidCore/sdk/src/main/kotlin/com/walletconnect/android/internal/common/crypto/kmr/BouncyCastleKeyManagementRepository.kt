@@ -105,7 +105,7 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
         }
     }
 
-    override fun setKeyPair(publicKey: PublicKey, privateKey: PrivateKey) {
+    internal fun setKeyPair(publicKey: PublicKey, privateKey: PrivateKey) {
         keyChain.setKeys(publicKey.keyAsHex, publicKey, privateKey)
     }
 

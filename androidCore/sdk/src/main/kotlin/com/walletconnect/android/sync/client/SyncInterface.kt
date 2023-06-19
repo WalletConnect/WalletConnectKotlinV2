@@ -19,8 +19,6 @@ interface SyncInterface {
 
     fun register(params: Sync.Params.Register, onSuccess: () -> Unit, onError: (Core.Model.Error) -> Unit)
 
-    fun isRegistered(params: Sync.Params.IsRegistered, onSuccess: (Boolean) -> Unit, onError: (Core.Model.Error) -> Unit)
-
     fun create(params: Sync.Params.Create, onSuccess: () -> Unit, onError: (Core.Model.Error) -> Unit)
 
     fun set(params: Sync.Params.Set, onSuccess: (Boolean) -> Unit, onError: (Core.Model.Error) -> Unit)

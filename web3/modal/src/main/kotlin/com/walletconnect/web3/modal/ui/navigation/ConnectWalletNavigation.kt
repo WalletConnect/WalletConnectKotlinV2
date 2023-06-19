@@ -15,8 +15,7 @@ internal fun NavGraphBuilder.connectWalletNavGraph(
     animatedComposable(route = Route.ConnectYourWallet.path) {
         ConnectYourWalletRoute(
             navController = navController,
-            uri = web3ModalState.uri,
-            wallets = web3ModalState.wallets
+            uri = web3ModalState.uri
         )
     }
     animatedComposable(route = Route.ScanQRCode.path) {
@@ -29,9 +28,6 @@ internal fun NavGraphBuilder.connectWalletNavGraph(
         HelpRoute(navController = navController)
     }
     animatedComposable(Route.GetAWallet.path) {
-        GetAWalletRoute(
-            navController = navController,
-            wallets = web3ModalState.wallets
-        )
+        GetAWalletRoute(navController = navController)
     }
 }

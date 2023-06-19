@@ -3,7 +3,7 @@ package com.walletconnect.android.internal
 import com.walletconnect.android.internal.common.crypto.codec.ChaChaPolyCodec
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.model.*
-import com.walletconnect.android.internal.utils.getParticipantTag
+import com.walletconnect.android.internal.utils.SELF_PARTICIPANT_CONTEXT
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.utils.Empty
@@ -47,7 +47,7 @@ class ChaChaPolyCodecTest {
         every { keyManagementRepository.getSymmetricKey(topic.value) } returns symmetricKey
         every { keyManagementRepository.generateSymmetricKeyFromKeyAgreement(self, peer) } returns symmetricKey
         every { keyManagementRepository.generateSymmetricKeyFromKeyAgreement(peer, self) } returns symmetricKey
-        every { keyManagementRepository.getPublicKey(topic.getParticipantTag()) } returns peer
+        every { keyManagementRepository.getPublicKey("$SELF_PARTICIPANT_CONTEXT${topic.value}") } returns peer
 
         listOf("secretMessage", "", "👍🏻").forEach { message ->
             val encryptedMessage = codec.encrypt(topic, message, EnvelopeType.ONE, participants)
@@ -67,7 +67,7 @@ class ChaChaPolyCodecTest {
         assertThrows(MissingKeyException::class.java) {
             every { keyManagementRepository.getSymmetricKey(topic.value) } returns symmetricKey
             every { keyManagementRepository.generateSymmetricKeyFromKeyAgreement(self, peer) } returns symmetricKey
-            every { keyManagementRepository.getPublicKey(topic.getParticipantTag()) } throws MissingKeyException("Missing key")
+            every { keyManagementRepository.getPublicKey("$SELF_PARTICIPANT_CONTEXT${topic.value}") } throws MissingKeyException("Missing key")
 
             val encryptedMessage = codec.encrypt(topic, MESSAGE, EnvelopeType.ONE, participants)
             codec.decrypt(topic, encryptedMessage)

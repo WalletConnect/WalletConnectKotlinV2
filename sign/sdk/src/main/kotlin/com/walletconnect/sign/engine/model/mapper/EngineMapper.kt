@@ -3,11 +3,7 @@
 package com.walletconnect.sign.engine.model.mapper
 
 import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.model.AppMetaData
-import com.walletconnect.android.internal.common.model.Expiry
-import com.walletconnect.android.internal.common.model.RelayProtocolOptions
-import com.walletconnect.android.internal.common.model.SessionProposer
-import com.walletconnect.android.internal.common.model.WCRequest
+import com.walletconnect.android.internal.common.model.*
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
@@ -114,23 +110,14 @@ internal fun SessionVO.toEngineDO(): EngineDO.Session =
         topic,
         expiry,
         pairingTopic,
-        requiredNamespaces.toMapOfEngineNamespacesRequired(),
-        optionalNamespaces?.toMapOfEngineNamespacesOptional(),
         sessionNamespaces.toMapOfEngineNamespacesSession(),
         peerAppMetaData
     )
 
 @JvmSynthetic
 internal fun SessionVO.toEngineDOSessionExtend(expiryVO: Expiry): EngineDO.SessionExtend =
-    EngineDO.SessionExtend(
-        topic,
-        expiryVO,
-        pairingTopic,
-        requiredNamespaces.toMapOfEngineNamespacesRequired(),
-        optionalNamespaces?.toMapOfEngineNamespacesOptional(),
-        sessionNamespaces.toMapOfEngineNamespacesSession(),
-        selfAppMetaData
-    )
+    EngineDO.SessionExtend(topic, expiryVO, pairingTopic, sessionNamespaces.toMapOfEngineNamespacesSession(), selfAppMetaData)
+
 
 @JvmSynthetic
 internal fun SessionVO.toSessionApproved(): EngineDO.SessionApproved =
@@ -253,7 +240,7 @@ internal fun SignParams.EventParams.toEngineDOEvent(): EngineDO.Event =
     EngineDO.Event(event.name, event.data.toString(), chainId)
 
 @JvmSynthetic
-internal fun PendingRequest<String>.toSessionRequest(peerAppMetaData: AppMetaData?): EngineDO.SessionRequest =
+internal fun PendingRequest.toSessionRequest(peerAppMetaData: AppMetaData?): EngineDO.SessionRequest =
     EngineDO.SessionRequest(topic.value, chainId, peerAppMetaData, EngineDO.SessionRequest.JSONRPCRequest(id, method, params))
 
 
