@@ -1,5 +1,6 @@
 package com.walletconnect.push.common
 
+import android.net.Uri
 import androidx.annotation.Keep
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
@@ -9,13 +10,18 @@ object Push {
 
     sealed class Model {
 
-        data class Message(val title: String, val body: String, val icon: String?, val url: String?) : Model()
+        data class Message(val title: String, val body: String, val icon: String?, val url: String?, val type: String) : Model()
 
-        data class MessageRecord(val id: String, val topic: String, val publishedAt: Long, val message: Model.Message) : Model()
+        data class MessageRecord(val id: String, val topic: String, val publishedAt: Long, val message: Message) : Model()
 
-        data class Subscription(val requestId: Long, val topic: String, val account: String, val relay: Relay, val metadata: Core.Model.AppMetaData) : Model() {
+        data class Subscription(val requestId: Long, val topic: String, val account: String, val relay: Relay, val metadata: Core.Model.AppMetaData, val scope: Map<ScopeName, ScopeSetting>, val expiry: Long) : Model() {
 
             data class Relay(val protocol: String, val data: String?)
+
+            @JvmInline
+            value class ScopeName(val value: String)
+
+            data class ScopeSetting(val description: String, val enabled: Boolean)
         }
 
         object Cacao : Model() {
@@ -48,6 +54,8 @@ object Push {
 
             data class Request(val account: String, val pairingTopic: String) : Params()
 
+            data class Propose(val account: String, val scope: List<String>, val pairingTopic: String) : Params()
+
             data class Notify(val topic: String, val message: Push.Model.Message) : Params()
 
             data class Delete(val topic: String) : Params()
@@ -60,9 +68,25 @@ object Push {
 
             data class Request(val id: Long, val metadata: Core.Model.AppMetaData) : Event()
 
-            data class Message(val id: String, val topic: String, val publishedAt: Long, val message: Model.Message) : Event()
+            data class Proposal(val id: Long, val account: String, val metadata: Core.Model.AppMetaData) : Event()
+
+            data class Message(val message: Model.MessageRecord) : Event()
 
             data class Delete(val topic: String) : Event()
+
+            sealed class Subscription: Event() {
+
+                data class Result(val subscription: Model.Subscription): Subscription()
+
+                data class Error(val id: Long, val reason: String): Subscription()
+            }
+
+            sealed class Update: Event() {
+
+                data class Result(val subscription: Model.Subscription): Update()
+
+                data class Error(val id: Long, val reason: String): Update()
+            }
         }
 
         sealed class Params {
@@ -73,7 +97,11 @@ object Push {
 
             data class Reject(val id: Long, val reason: String) : Params()
 
-            data class MessageHistory(val topic: String) : Params()
+            data class Subscribe(val dappUrl: Uri, val account: String, val onSign: (String) -> Model.Cacao.Signature?): Params()
+
+            data class Update(val topic: String, val scope: List<String>): Params()
+
+            data class MessageHistory(val topic: String): Params()
 
             data class DeleteSubscription(val topic: String) : Params()
 

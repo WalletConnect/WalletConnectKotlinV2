@@ -14,13 +14,13 @@ data class PushNotification(
 )
 
 fun Push.Wallet.Event.Message.toPushNotification() = PushNotification(
-    id = id,
-    topic = topic,
-    date = publishedAt.convertSecondsToDate(),
-    title = message.title,
-    body = message.body,
-    url = message.url,
-    icon = message.icon
+    id = message.id,
+    topic = message.topic,
+    date = message.publishedAt.convertSecondsToDate(),
+    title = message.message.title,
+    body = message.message.body,
+    url = message.message.url,
+    icon = message.message.icon
 )
 
 fun Push.Model.MessageRecord.toPushNotification() = PushNotification(

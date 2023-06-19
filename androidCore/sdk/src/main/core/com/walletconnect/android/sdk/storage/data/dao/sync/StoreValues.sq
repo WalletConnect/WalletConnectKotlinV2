@@ -3,27 +3,28 @@ CREATE TABLE StoreValues (
     storeId INTEGER NOT NULL,
     key TEXT NOT NULL,
     value TEXT NOT NULL,
+    timestamp INTEGER NOT NULL,
     UNIQUE(storeId, key)
 );
 
 insertOrAbortStoreValue:
-INSERT OR ABORT INTO StoreValues(storeId, key, value)
-VALUES (?, ?, ?);
+INSERT OR ABORT INTO StoreValues(storeId, key, value, timestamp)
+VALUES (?, ?, ?, ?);
 
 getStoreValuesByStoreId:
-SELECT key, value
+SELECT key, value, timestamp
 FROM StoreValues
 WHERE storeId = ?;
 
 getStoreValueByStoreIdAndKey:
-SELECT key, value
+SELECT key, value, timestamp
 FROM StoreValues
 WHERE storeId = ? AND key = ?;
 
 
 updateStoreValue:
 UPDATE OR ABORT StoreValues
-SET value = ?
+SET value = ?, timestamp = ?
 WHERE storeId = ? AND key = ?;
 
 deleteStoreValue:

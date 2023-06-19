@@ -5,11 +5,18 @@ import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
+import com.walletconnect.android.cacao.signature.SignatureType
+import com.walletconnect.android.utils.cacao.sign
+import com.walletconnect.sample.wallet.domain.EthAccountDelegate
 import com.walletconnect.sample.wallet.domain.WCDelegate
 import com.walletconnect.sample.wallet.ui.common.peer.PeerUI
 import com.walletconnect.sample_common.Chains
+import com.walletconnect.util.hexToBytes
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
+import com.walletconnect.web3.wallet.utils.CacaoSigner
+import org.json.JSONArray
+import org.web3j.utils.Numeric.hexStringToByteArray
 
 class SessionRequestViewModel : ViewModel() {
     var sessionRequest: SessionRequestUI = generateSessionRequestUI(WCDelegate.sessionRequest)
@@ -40,11 +47,24 @@ class SessionRequestViewModel : ViewModel() {
         }
     }
 
+    private fun extractMessageParamFromPersonalSign(input: String): String {
+        val jsonArray = JSONArray(input)
+        return if (jsonArray.length() > 0) {
+            String(hexStringToByteArray(jsonArray.getString(0)))
+        } else {
+            throw IllegalArgumentException()
+        }
+    }
+
     fun approve(sendSessionRequestResponseDeepLink: (Uri) -> Unit) {
         val sessionRequest = sessionRequest as? SessionRequestUI.Content
         if (sessionRequest != null) {
             val result: String = when {
-                //TODO: calculate proper values
+                sessionRequest.method == PERSONAL_SIGN_METHOD -> CacaoSigner.sign(
+                    sessionRequest.param,
+                    EthAccountDelegate.privateKey.hexToBytes(),
+                    SignatureType.EIP191
+                ).s
                 sessionRequest.chain?.contains(
                     Chains.Info.Eth.chain,
                     true
@@ -90,10 +110,12 @@ class SessionRequestViewModel : ViewModel() {
                 ),
                 topic = sessionRequest.topic,
                 requestId = sessionRequest.request.id,
-                param = sessionRequest.request.params,
+                param = if(sessionRequest.request.method == PERSONAL_SIGN_METHOD) extractMessageParamFromPersonalSign(sessionRequest.request.params) else sessionRequest.request.params  ,
                 chain = sessionRequest.chainId,
                 method = sessionRequest.request.method
             )
         } else SessionRequestUI.Initial
     }
 }
+
+private const val PERSONAL_SIGN_METHOD = "personal_sign"

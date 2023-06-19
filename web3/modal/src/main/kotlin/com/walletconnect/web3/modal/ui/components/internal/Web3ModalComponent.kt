@@ -8,7 +8,10 @@ package com.walletconnect.web3.modal.ui.components.internal
 
 import android.widget.Toast
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -51,14 +54,16 @@ internal fun Web3ModalComponent(
             .collect()
     }
 
-    Web3ModalRoot(
-        navController = navController,
-        colors = provideWeb3ModalColors(),
-        closeModal = closeModal
-    ) {
-        Web3ModalNavGraph(
+    web3ModalState?.let { state ->
+        Web3ModalRoot(
             navController = navController,
-            web3ModalState = web3ModalState,
-        )
+            colors = provideWeb3ModalColors(),
+            closeModal = closeModal
+        ) {
+            Web3ModalNavGraph(
+                navController = navController,
+                web3ModalState = state,
+            )
+        }
     }
 }
