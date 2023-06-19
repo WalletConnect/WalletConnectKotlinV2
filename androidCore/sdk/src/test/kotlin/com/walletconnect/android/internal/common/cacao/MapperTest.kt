@@ -30,6 +30,7 @@ internal class MapperTest {
         val message = "service.invalid wants you to sign in with your Ethereum account:\n" +
                 "0x15bca56b6e2728aec2532df9d436bd1600e86688\n" +
                 "\n" +
+                "\n" +
                 "URI: https://service.invalid/login\n" +
                 "Version: 1\n" +
                 "Chain ID: 1\n" +
@@ -57,6 +58,7 @@ internal class MapperTest {
 
         val message = "service.invalid wants you to sign in with your Ethereum account:\n" +
                 "0x15bca56b6e2728aec2532df9d436bd1600e86688\n" +
+                "\n" +
                 "\n" +
                 "URI: https://service.invalid/login\n" +
                 "Version: 1\n" +
@@ -88,6 +90,7 @@ internal class MapperTest {
 
         val message = "service.invalid wants you to sign in with your Ethereum account:\n" +
                 "0x15bca56b6e2728aec2532df9d436bd1600e86688\n" +
+                "\n" +
                 "\n" +
                 "URI: https://service.invalid/login\n" +
                 "Version: 1\n" +
@@ -148,6 +151,7 @@ internal class MapperTest {
         val message = "service.invalid wants you to sign in with your Ethereum account:\n" +
                 "0x15bca56b6e2728aec2532df9d436bd1600e86688\n" +
                 "\n" +
+                "\n" +
                 "URI: https://service.invalid/login\n" +
                 "Version: 1\n" +
                 "Chain ID: 1\n" +
@@ -176,6 +180,7 @@ internal class MapperTest {
 
         val message = "service.invalid wants you to sign in with your Ethereum account:\n" +
                 "0x15bca56b6e2728aec2532df9d436bd1600e86688\n" +
+                "\n" +
                 "\n" +
                 "URI: https://service.invalid/login\n" +
                 "Version: 1\n" +

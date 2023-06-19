@@ -31,7 +31,7 @@ internal object ExpiryAdapter: JsonAdapter<Expiry>() {
         if (value != null) {
             writer.value(value.seconds)
         } else {
-            writer.value(0)
+            writer.value(300)
         }
     }
 

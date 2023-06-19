@@ -1,6 +1,7 @@
 package com.walletconnect.web3.modal.ui.components.internal.commons
 
-import androidx.compose.animation.core.*
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -8,7 +9,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
@@ -55,7 +57,7 @@ internal fun AutoScrollingWalletList(
             val item = data[index]
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(item.images.medium)
+                    .data(item.imageUrl)
                     .crossfade(true)
                     .build(),
                 contentDescription = null,

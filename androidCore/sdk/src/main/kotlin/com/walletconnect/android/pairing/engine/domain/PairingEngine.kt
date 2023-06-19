@@ -7,8 +7,22 @@ import com.walletconnect.android.internal.PAIRING_NOW_ALLOWED_MESSAGE
 import com.walletconnect.android.internal.Validator
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
-import com.walletconnect.android.internal.common.exception.*
-import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
+import com.walletconnect.android.internal.common.exception.Invalid
+import com.walletconnect.android.internal.common.exception.MalformedWalletConnectUri
+import com.walletconnect.android.internal.common.exception.PairWithExistingPairingIsNotAllowed
+import com.walletconnect.android.internal.common.exception.Uncategorized
+import com.walletconnect.android.internal.common.model.AppMetaData
+import com.walletconnect.android.internal.common.model.AppMetaDataType
+import com.walletconnect.android.internal.common.model.Expiry
+import com.walletconnect.android.internal.common.model.IrnParams
+import com.walletconnect.android.internal.common.model.Pairing
+import com.walletconnect.android.internal.common.model.RelayProtocolOptions
+import com.walletconnect.android.internal.common.model.SDKError
+import com.walletconnect.android.internal.common.model.SymmetricKey
+import com.walletconnect.android.internal.common.model.Tags
+import com.walletconnect.android.internal.common.model.WCRequest
+import com.walletconnect.android.internal.common.model.WalletConnectUri
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
@@ -17,6 +31,7 @@ import com.walletconnect.android.internal.utils.CURRENT_TIME_IN_SECONDS
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
 import com.walletconnect.android.internal.utils.THIRTY_SECONDS
 import com.walletconnect.android.pairing.engine.model.EngineDO
+import com.walletconnect.android.pairing.model.PairingJsonRpcMethod
 import com.walletconnect.android.pairing.model.PairingParams
 import com.walletconnect.android.pairing.model.PairingRpc
 import com.walletconnect.android.pairing.model.mapper.toClient
@@ -25,8 +40,22 @@ import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.randomBytes
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.withTimeout
+import java.util.concurrent.TimeUnit
 
 //Split into PairingProtocolEngine and PairingControllerEngine
 internal class PairingEngine(
@@ -38,8 +67,12 @@ internal class PairingEngine(
     private val pairingRepository: PairingStorageRepositoryInterface
 ) {
     private var jsonRpcRequestsJob: Job? = null
+    private val setOfRegisteredMethods: MutableSet<String> = mutableSetOf()
+    private val registeredMethods: String get() = setOfRegisteredMethods.joinToString(",") { it }
 
     init {
+        setOfRegisteredMethods.addAll(listOf(PairingJsonRpcMethod.WC_PAIRING_DELETE, PairingJsonRpcMethod.WC_PAIRING_PING))
+
         jsonRpcInteractor.isConnectionAvailable
             .filter { isAvailable: Boolean -> isAvailable }
             .onEach {
@@ -54,9 +87,6 @@ internal class PairingEngine(
                 }
             }.launchIn(scope)
     }
-
-    private val setOfRegisteredMethods: MutableSet<String> = mutableSetOf()
-    private val registeredMethods: String get() = setOfRegisteredMethods.joinToString(",") { it }
 
     private val _topicExpiredFlow: MutableSharedFlow<Topic> = MutableSharedFlow()
     val topicExpiredFlow: SharedFlow<Topic> = _topicExpiredFlow.asSharedFlow()
@@ -243,7 +273,7 @@ internal class PairingEngine(
     ) {
         scope.launch {
             try {
-                withTimeout(THIRTY_SECONDS) {
+                withTimeout(TimeUnit.SECONDS.toMillis(THIRTY_SECONDS)) {
                     jsonRpcInteractor.peerResponse
                         .filter { response -> response.response.id == pingPayload.id }
                         .collect { response ->

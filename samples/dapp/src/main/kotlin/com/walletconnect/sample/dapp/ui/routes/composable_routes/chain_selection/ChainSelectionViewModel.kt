@@ -8,10 +8,15 @@ import com.walletconnect.sample.dapp.domain.DappDelegate
 import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.sample_common.Chains
 import com.walletconnect.sample_common.tag
-import com.walletconnect.sign.client.Sign
-import com.walletconnect.sign.client.SignClient
+import com.walletconnect.web3.modal.client.Modal
+import com.walletconnect.web3.modal.client.Web3Modal
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
@@ -30,10 +35,10 @@ class ChainSelectionViewModel : ViewModel() {
     val isAnySettledParingExist: Boolean
         get() = CoreClient.Pairing.getPairings().isNotEmpty()
 
-    val walletEvents = DappDelegate.wcEventModels.map { walletEvent: Sign.Model? ->
+    val walletEvents = DappDelegate.wcEventModels.map { walletEvent: Modal.Model? ->
         when (walletEvent) {
-            is Sign.Model.ApprovedSession -> DappSampleEvents.SessionApproved
-            is Sign.Model.RejectedSession -> DappSampleEvents.SessionRejected
+            is Modal.Model.ApprovedSession -> DappSampleEvents.SessionApproved
+            is Modal.Model.RejectedSession -> DappSampleEvents.SessionRejected
             else -> DappSampleEvents.NoAction
         }
     }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
@@ -54,12 +59,12 @@ class ChainSelectionViewModel : ViewModel() {
             }!!
         }
 
-        val namespaces: Map<String, Sign.Model.Namespace.Proposal> =
+        val namespaces: Map<String, Modal.Model.Namespace.Proposal> =
             uiState.value
                 .filter { it.isSelected && it.chainId != Chains.POLYGON_MATIC.chainId && it.chainId != Chains.ETHEREUM_KOVAN.chainId }
                 .groupBy { it.chainNamespace }
                 .map { (key: String, selectedChains: List<ChainSelectionUi>) ->
-                    key to Sign.Model.Namespace.Proposal(
+                    key to Modal.Model.Namespace.Proposal(
                         chains = selectedChains.map { it.chainId }, //OR uncomment if chainId is an index
                         methods = selectedChains.flatMap { it.methods }.distinct(),
                         events = selectedChains.flatMap { it.events }.distinct()
@@ -71,18 +76,18 @@ class ChainSelectionViewModel : ViewModel() {
             .filter { it.isSelected && it.chainId == Chains.ETHEREUM_KOVAN.chainId }
             .groupBy { it.chainId }
             .map { (key: String, selectedChains: List<ChainSelectionUi>) ->
-                key to Sign.Model.Namespace.Proposal(
+                key to Modal.Model.Namespace.Proposal(
                     methods = selectedChains.flatMap { it.methods }.distinct(),
                     events = selectedChains.flatMap { it.events }.distinct()
                 )
             }.toMap()
 
-        val optionalNamespaces: Map<String, Sign.Model.Namespace.Proposal> =
+        val optionalNamespaces: Map<String, Modal.Model.Namespace.Proposal> =
             uiState.value
                 .filter { it.isSelected && it.chainId == Chains.POLYGON_MATIC.chainId }
                 .groupBy { it.chainId }
                 .map { (key: String, selectedChains: List<ChainSelectionUi>) ->
-                    key to Sign.Model.Namespace.Proposal(
+                    key to Modal.Model.Namespace.Proposal(
                         methods = selectedChains.flatMap { it.methods }.distinct(),
                         events = selectedChains.flatMap { it.events }.distinct()
                     )
@@ -93,14 +98,14 @@ class ChainSelectionViewModel : ViewModel() {
         val properties: Map<String, String> = mapOf("sessionExpiry" to "$expiry")
 
         val connectParams =
-            Sign.Params.Connect(
+            Modal.Params.Connect(
                 namespaces = namespaces.toMutableMap().plus(tmp),
                 optionalNamespaces = optionalNamespaces,
                 properties = properties,
                 pairing = pairing
             )
 
-        SignClient.connect(connectParams,
+        Web3Modal.connect(connectParams,
             onSuccess = {
                 viewModelScope.launch(Dispatchers.Main) {
                     onProposedSequence(pairing.uri)

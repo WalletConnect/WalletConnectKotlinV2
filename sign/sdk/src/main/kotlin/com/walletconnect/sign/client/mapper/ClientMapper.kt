@@ -94,6 +94,8 @@ internal fun EngineDO.Session.toClientActiveSession(): Sign.Model.Session =
         pairingTopic,
         topic.value,
         expiry.seconds,
+        requiredNamespaces.toMapOfClientNamespacesProposal(),
+        optionalNamespaces?.toMapOfClientNamespacesProposal(),
         namespaces.toMapOfClientNamespacesSession(),
         peerAppMetaData?.toClient()
     )
@@ -104,6 +106,8 @@ internal fun EngineDO.SessionExtend.toClientActiveSession(): Sign.Model.Session 
         pairingTopic,
         topic.value,
         expiry.seconds,
+        requiredNamespaces.toMapOfClientNamespacesProposal(),
+        optionalNamespaces?.toMapOfClientNamespacesProposal(),
         namespaces.toMapOfClientNamespacesSession(),
         peerAppMetaData?.toClient()
     )
@@ -147,7 +151,7 @@ internal fun EngineDO.PairingSettle.toClientSettledPairing(): Sign.Model.Pairing
     Sign.Model.Pairing(topic.value, appMetaData?.toClient())
 
 @JvmSynthetic
-internal fun List<PendingRequest>.mapToPendingRequests(): List<Sign.Model.PendingRequest> = map { request ->
+internal fun List<PendingRequest<String>>.mapToPendingRequests(): List<Sign.Model.PendingRequest> = map { request ->
     Sign.Model.PendingRequest(
         request.id,
         request.topic.value,
