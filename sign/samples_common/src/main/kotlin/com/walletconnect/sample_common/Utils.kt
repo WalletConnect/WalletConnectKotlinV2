@@ -1,5 +1,10 @@
 package com.walletconnect.sample_common
 
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -11,6 +16,15 @@ import androidx.lifecycle.Observer
 import androidx.viewbinding.ViewBinding
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
+
+
+fun Context.sendResponseDeepLink(sessionRequestDeeplinkUri: Uri) {
+    try {
+        startActivity(Intent(Intent.ACTION_VIEW, sessionRequestDeeplinkUri))
+    } catch (exception: ActivityNotFoundException) {
+        Log.e(tag(this), exception.stackTraceToString())
+    }
+}
 
 inline fun <reified T : Any> tag(currentClass: T): String {
     return ("Wallet" + currentClass::class.java.canonicalName!!.substringAfterLast(".")).take(23)

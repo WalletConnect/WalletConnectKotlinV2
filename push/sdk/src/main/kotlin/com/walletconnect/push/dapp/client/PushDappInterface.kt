@@ -8,6 +8,7 @@ interface PushDappInterface {
 
         fun onPushResponse(pushResponse: Push.Dapp.Event.Response)
 
+        @Deprecated("OnPushRejected will be removed in a future version. Use onPushResponse", level = DeprecationLevel.WARNING)
         fun onPushRejected(rejection: Push.Dapp.Event.Rejected)
 
         fun onDelete(pushDelete: Push.Dapp.Event.Delete)
@@ -19,7 +20,10 @@ interface PushDappInterface {
 
     fun initialize(init: Push.Dapp.Params.Init, onError: (Push.Model.Error) -> Unit)
 
+    @Deprecated("Request is deprecated. Use propose instead", level = DeprecationLevel.WARNING)
     fun request(params: Push.Dapp.Params.Request, onSuccess: (Push.Dapp.Model.RequestId) -> Unit, onError: (Push.Model.Error) -> Unit)
+
+    fun propose(params: Push.Dapp.Params.Propose, onSuccess: (Push.Dapp.Model.RequestId) -> Unit, onError: (Push.Model.Error) -> Unit)
 
     fun notify(params: Push.Dapp.Params.Notify, onError: (Push.Model.Error) -> Unit)
 

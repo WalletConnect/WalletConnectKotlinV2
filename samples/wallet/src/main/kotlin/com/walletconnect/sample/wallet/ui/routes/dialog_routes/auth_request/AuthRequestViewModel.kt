@@ -2,7 +2,7 @@ package com.walletconnect.sample.wallet.ui.routes.dialog_routes.auth_request
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.walletconnect.android.utils.cacao.sign
+import com.walletconnect.android.utils.cacao.signHex
 import com.walletconnect.sample.wallet.domain.ISSUER
 import com.walletconnect.sample.wallet.domain.PRIVATE_KEY_1
 import com.walletconnect.sample.wallet.domain.WCDelegate
@@ -12,6 +12,7 @@ import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import com.walletconnect.web3.wallet.utils.CacaoSigner
 import com.walletconnect.web3.wallet.utils.SignatureType
+import org.web3j.utils.Numeric.toHexString
 
 class AuthRequestViewModel : ViewModel() {
     val authRequest: AuthRequestUI?
@@ -25,7 +26,7 @@ class AuthRequestViewModel : ViewModel() {
             Web3Wallet.respondAuthRequest(
                 Wallet.Params.AuthRequestResponse.Result(
                     id = request.id,
-                    signature = CacaoSigner.sign(message, PRIVATE_KEY_1, SignatureType.EIP191),
+                    signature = CacaoSigner.signHex(toHexString(message.toByteArray()), PRIVATE_KEY_1, SignatureType.EIP191),
                     issuer = ISSUER
                 )
             ) { error ->

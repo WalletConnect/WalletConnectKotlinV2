@@ -3,8 +3,13 @@
 package com.walletconnect.android.internal.common.crypto.codec
 
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
-import com.walletconnect.android.internal.common.model.*
-import com.walletconnect.android.internal.utils.SELF_PARTICIPANT_CONTEXT
+import com.walletconnect.android.internal.common.model.EnvelopeType
+import com.walletconnect.android.internal.common.model.MissingKeyException
+import com.walletconnect.android.internal.common.model.MissingParticipantsException
+import com.walletconnect.android.internal.common.model.Participants
+import com.walletconnect.android.internal.common.model.SymmetricKey
+import com.walletconnect.android.internal.common.model.UnknownEnvelopeTypeException
+import com.walletconnect.android.internal.utils.getParticipantTag
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.util.bytesToHex
@@ -49,10 +54,7 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
 
         return when (val envelopeType = encryptedPayloadBytes.envelopeType) {
             EnvelopeType.ZERO.id -> decryptType0(topic, encryptedPayloadBytes)
-            EnvelopeType.ONE.id -> decryptType1(
-                encryptedPayloadBytes,
-                keyManagementRepository.getPublicKey("$SELF_PARTICIPANT_CONTEXT${topic.value}")
-            )
+            EnvelopeType.ONE.id -> decryptType1(encryptedPayloadBytes, keyManagementRepository.getPublicKey(topic.getParticipantTag()))
             else -> throw UnknownEnvelopeTypeException("Decrypt; Unknown envelope type: $envelopeType")
         }
     }

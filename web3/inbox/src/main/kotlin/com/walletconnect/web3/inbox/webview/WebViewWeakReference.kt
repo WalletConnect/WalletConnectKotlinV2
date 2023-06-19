@@ -6,5 +6,12 @@ import java.lang.ref.WeakReference
 
 internal class WebViewWeakReference {
     lateinit var reference: WeakReference<WebView>
-    val webView get() = reference.get() ?: throw WebViewIsNullException()
+    val webView: WebView
+        get() {
+            return if (::reference.isInitialized) {
+                reference.get() ?: throw WebViewIsNullException()
+            } else {
+                throw WebViewIsNullException()
+            }
+        }
 }

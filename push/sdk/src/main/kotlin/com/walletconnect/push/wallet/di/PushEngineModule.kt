@@ -17,9 +17,11 @@ internal fun walletEngineModule() = module {
             crypto = get(),
             pairingHandler = get(),
             subscriptionStorageRepository = get(),
-            messageRepository = get(),
+            messagesRepository = get(),
             identitiesInteractor = get(),
             serializer = get(),
+            explorerRepository = get(),
+            extractPushConfigUseCase = get(),
             logger = get()
         )
     }

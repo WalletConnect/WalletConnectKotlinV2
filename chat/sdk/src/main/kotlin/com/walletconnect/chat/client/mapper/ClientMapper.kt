@@ -2,12 +2,22 @@
 
 package com.walletconnect.chat.client.mapper
 
-import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
+import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.chat.client.Chat
-import com.walletconnect.chat.common.model.*
+import com.walletconnect.chat.common.model.ChatMessage
+import com.walletconnect.chat.common.model.Events
+import com.walletconnect.chat.common.model.Invite
+import com.walletconnect.chat.common.model.InviteMessage
+import com.walletconnect.chat.common.model.InviteStatus
+import com.walletconnect.chat.common.model.Media
+import com.walletconnect.chat.common.model.MediaData
+import com.walletconnect.chat.common.model.Message
+import com.walletconnect.chat.common.model.SendInvite
+import com.walletconnect.chat.common.model.SendMessage
+import com.walletconnect.chat.common.model.Thread
 import com.walletconnect.foundation.common.model.Topic
 
 @JvmSynthetic
@@ -35,11 +45,11 @@ internal fun InviteStatus.toClient(): Chat.Type.InviteStatus = when (this) {
 
 @JvmSynthetic
 internal fun Invite.Received.toClient(): Chat.Model.Invite.Received =
-    Chat.Model.Invite.Received(id, inviterAccount.toClient(), inviteeAccount.toClient(), message.toClient(), inviterPublicKey.keyAsHex, inviteePublicKey.keyAsHex, status.toClient())
+    Chat.Model.Invite.Received(id, inviterAccount.toClient(), inviteeAccount.toClient(), message.toClient(), inviterPublicKey.keyAsHex, status.toClient())
 
 @JvmSynthetic
 internal fun Invite.Sent.toClient(): Chat.Model.Invite.Sent =
-    Chat.Model.Invite.Sent(id, inviterAccount.toClient(), inviteeAccount.toClient(), message.toClient(), inviterPublicKey.keyAsHex, inviteePublicKey.keyAsHex, status.toClient())
+    Chat.Model.Invite.Sent(id, inviterAccount.toClient(), inviteeAccount.toClient(), message.toClient(), inviterPublicKey.keyAsHex, status.toClient())
 
 @JvmSynthetic
 internal fun AccountId.toClient(): Chat.Type.AccountId = Chat.Type.AccountId(value)

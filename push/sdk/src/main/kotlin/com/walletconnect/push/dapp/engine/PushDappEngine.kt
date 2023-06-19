@@ -2,11 +2,21 @@
 
 package com.walletconnect.push.dapp.engine
 
+import androidx.core.net.toUri
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtClaims
-import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.internal.common.model.AccountId
+import com.walletconnect.android.internal.common.model.AppMetaData
+import com.walletconnect.android.internal.common.model.ConnectionState
+import com.walletconnect.android.internal.common.model.Expiry
+import com.walletconnect.android.internal.common.model.IrnParams
+import com.walletconnect.android.internal.common.model.RelayProtocolOptions
+import com.walletconnect.android.internal.common.model.SDKError
+import com.walletconnect.android.internal.common.model.Tags
+import com.walletconnect.android.internal.common.model.WCRequest
+import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.params.PushParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
@@ -20,22 +30,35 @@ import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.foundation.util.jwt.decodeX25519DidKey
 import com.walletconnect.push.common.JsonRpcMethod
+import com.walletconnect.push.common.calcExpiry
 import com.walletconnect.push.common.data.jwt.PushSubscriptionJwtClaim
+import com.walletconnect.push.common.data.storage.SubscriptionStorageRepository
+import com.walletconnect.push.common.domain.ExtractPushConfigUseCase
 import com.walletconnect.push.common.model.EngineDO
 import com.walletconnect.push.common.model.PushRpc
-import com.walletconnect.push.common.data.storage.SubscriptionStorageRepository
 import com.walletconnect.push.dapp.data.CastRepository
 import com.walletconnect.push.dapp.di.PushDITags
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.withContext
 import org.koin.core.qualifier.named
 
 internal class PushDappEngine(
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
-    private val crypto: KeyManagementRepository,
-    private val pairingHandler: PairingControllerInterface,
-    private val subscriptionStorageRepository: SubscriptionStorageRepository,
     private val selfAppMetaData: AppMetaData,
+    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val pairingHandler: PairingControllerInterface,
+    private val extractPushConfigUseCase: ExtractPushConfigUseCase,
+    private val crypto: KeyManagementRepository,
+    private val subscriptionStorageRepository: SubscriptionStorageRepository,
     private val castRepository: CastRepository,
     private val logger: Logger,
 ) {
@@ -80,12 +103,12 @@ internal class PushDappEngine(
             .launchIn(scope)
     }
 
-    fun request(
+    suspend fun request(
         pairingTopic: String,
         account: String,
         onSuccess: (Long) -> Unit,
         onFailure: (Throwable) -> Unit,
-    ) {
+    ) = supervisorScope {
         val selfPublicKey = crypto.generateAndStoreX25519KeyPair()
         val requestParams = PushParams.RequestParams(selfPublicKey.keyAsHex, selfAppMetaData, account)
         val request = PushRpc.PushRequest(params = requestParams)
@@ -106,38 +129,61 @@ internal class PushDappEngine(
         )
     }
 
-    fun notify(
+    suspend fun propose(
+        account: String,
+        scope: List<String>,
+        pairingTopic: String,
+        onSuccess: (Long) -> Unit,
+        onFailure: (Throwable) -> Unit,
+    ) = supervisorScope {
+        val selfPublicKey = crypto.generateAndStoreX25519KeyPair()
+        val proposeParams = PushParams.ProposeParams(selfPublicKey.keyAsHex, selfAppMetaData, account, scope)
+        val propose = PushRpc.PushPropose(params = proposeParams)
+        val irnParams = IrnParams(Tags.PUSH_PROPOSE, Ttl(DAY_IN_SECONDS), true)
+        val responseTopic = sha256(selfPublicKey.keyAsBytes)
+
+        jsonRpcInteractor.subscribe(Topic(responseTopic)) { error -> return@subscribe onFailure(error) }
+
+        jsonRpcInteractor.publishJsonRpcRequest(Topic(pairingTopic), irnParams, propose,
+            onSuccess = {
+                logger.log("Push Request sent successfully")
+                onSuccess(propose.id)
+            },
+            onFailure = { error ->
+                logger.error("Failed to send a push request: $error")
+                onFailure(error)
+            }
+        )
+    }
+
+    suspend fun notify(
         pushTopic: String,
         message: EngineDO.PushMessage,
         onFailure: (Throwable) -> Unit,
-    ) {
-        val messageParams = PushParams.MessageParams(message.title, message.body, message.icon, message.url)
+    ) = supervisorScope {
+        val messageParams = PushParams.MessageParams(message.title, message.body, message.icon, message.url, message.type)
         val request = PushRpc.PushMessage(params = messageParams)
         val irnParams = IrnParams(Tags.PUSH_MESSAGE, Ttl(DAY_IN_SECONDS))
 
-        scope.launch {
-            supervisorScope {
-                subscriptionStorageRepository.getAccountByTopic(pushTopic)?.let { caip10Account ->
-                    val account = if (caip10Account.contains(Regex(".:.:."))) {
-                        caip10Account.split(":").last()
-                    } else {
-                        caip10Account
-                    }
-
-                    castRepository.notify(
-                        message.title,
-                        message.body,
-                        message.icon,
-                        message.url,
-                        listOf(account),
-                        { castNotifyResponse ->
-                            logger.log("$castNotifyResponse")
-                        },
-                        onFailure
-                    )
-                }
+        subscriptionStorageRepository.getAccountByTopic(pushTopic)?.let { caip10Account ->
+            val account = if (caip10Account.contains(Regex(".:.:."))) {
+                caip10Account.split(":").last()
+            } else {
+                caip10Account
             }
-        }
+
+            castRepository.notify(
+                message.title,
+                message.body,
+                message.icon,
+                message.url,
+                listOf(account),
+                { castNotifyResponse ->
+                    logger.log("$castNotifyResponse")
+                },
+                onFailure
+            )
+        } ?: onFailure(IllegalStateException("No account found for topic: $pushTopic"))
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(pushTopic), irnParams, request,
             onSuccess = {
@@ -150,19 +196,13 @@ internal class PushDappEngine(
         )
     }
 
-    fun delete(topic: String, onFailure: (Throwable) -> Unit) {
+    suspend fun delete(topic: String, onFailure: (Throwable) -> Unit) = supervisorScope {
         val deleteParams = PushParams.DeleteParams(6000, "User Disconnected")
         val request = PushRpc.PushDelete(params = deleteParams)
         val irnParams = IrnParams(Tags.PUSH_DELETE, Ttl(DAY_IN_SECONDS))
 
-        scope.launch {
-            supervisorScope {
-                subscriptionStorageRepository.deleteSubscription(topic)
-            }
-            supervisorScope {
-                castRepository.deletePendingRequest(topic)
-            }
-        }
+        subscriptionStorageRepository.deleteSubscription(topic)
+        castRepository.deletePendingRequest(topic)
 
         jsonRpcInteractor.unsubscribe(Topic(topic))
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, request,
@@ -177,10 +217,10 @@ internal class PushDappEngine(
 
     suspend fun getListOfActiveSubscriptions(): Map<String, EngineDO.PushSubscription> =
         subscriptionStorageRepository.getAllSubscriptions()
-            .filter { subscription -> !subscription.topic.isNullOrBlank() }
-            .associateBy { subscription -> subscription.topic!! }
+            .filter { subscription -> !subscription.subscriptionTopic?.value.isNullOrBlank() }
+            .associateBy { subscription -> subscription.subscriptionTopic!!.value }
 
-    private fun collectJsonRpcRequests(): Job =
+    private suspend fun collectJsonRpcRequests(): Job =
         jsonRpcInteractor.clientSyncJsonRpc
             .filter { request -> request.params is PushParams }
             .onEach { request ->
@@ -189,16 +229,19 @@ internal class PushDappEngine(
                 }
             }.launchIn(scope)
 
-    private fun collectJsonRpcResponses(): Job =
-        jsonRpcInteractor.peerResponse.onEach { response ->
-            when (val params = response.params) {
-                is PushParams.RequestParams -> onPushRequestResponse(response, params)
-                is PushParams.MessageParams -> onPushMessageResponse()
-                is PushParams.DeleteParams -> onPushDeleteResponse()
-            }
-        }.launchIn(scope)
+    private suspend fun collectJsonRpcResponses(): Job =
+        jsonRpcInteractor.peerResponse
+            .filter { response -> response.params is PushParams }
+            .onEach { response ->
+                when (val params = response.params) {
+                    is PushParams.RequestParams -> onPushRequestResponse(response, params)
+                    is PushParams.ProposeParams -> onPushProposeResponse(response, params)
+                    is PushParams.MessageParams -> onPushMessageResponse()
+                    is PushParams.DeleteParams -> onPushDeleteResponse()
+                }
+            }.launchIn(scope)
 
-    private fun collectInternalErrors(): Job =
+    private suspend fun collectInternalErrors(): Job =
         merge(jsonRpcInteractor.internalErrors, pairingHandler.findWrongMethodsFlow)
             .onEach { exception -> _engineEvent.emit(exception) }
             .launchIn(scope)
@@ -215,6 +258,81 @@ internal class PushDappEngine(
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcResult -> {
                     val selfPublicKey = PublicKey(params.publicKey)
+                    val pushRequestResponse = response.result as PushParams.ProposeResponseParams
+                    val pushSubscriptionJwtClaim = extractVerifiedDidJwtClaims<PushSubscriptionJwtClaim>(pushRequestResponse.subscriptionAuth).getOrElse { error ->
+                        _engineEvent.emit(SDKError(error))
+                        return@supervisorScope
+                    }
+                    val walletPublicKey = decodeX25519DidKey(pushSubscriptionJwtClaim.issuer)
+                    val pushTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, walletPublicKey)
+                    val expiry = Expiry(calcExpiry())
+                    val respondedSubscription = EngineDO.PushSubscription(
+                        requestId = wcResponse.response.id,
+                        keyAgreementTopic = Topic(""),
+                        responseTopic = wcResponse.topic,
+                        peerPublicKey = PublicKey(walletPublicKey.keyAsHex),
+                        subscriptionTopic = pushTopic,
+                        account = AccountId(params.account),
+                        relay = RelayProtocolOptions(),
+                        metadata = params.metaData,
+                        didJwt = pushRequestResponse.subscriptionAuth,
+                        scope = emptyMap(),
+                        expiry = expiry
+                    )
+
+                    withContext(Dispatchers.IO) {
+                        with(respondedSubscription) {
+                            subscriptionStorageRepository.insertSubscription(
+                                requestId = requestId,
+                                keyAgreementTopic = keyAgreementTopic.value,
+                                responseTopic = responseTopic.value,
+                                peerPublicKeyAsHex = peerPublicKey?.keyAsHex,
+                                subscriptionTopic = subscriptionTopic?.value,
+                                account = account.value,
+                                relayProtocol = relay.protocol,
+                                relayData = relay.data,
+                                name = metadata.name,
+                                description = metadata.description,
+                                url = metadata.url,
+                                icons = metadata.icons,
+                                native = metadata.redirect?.native,
+                                didJwt = pushRequestResponse.subscriptionAuth,
+                                mapOfScope = emptyMap(),
+                                expiry = expiry.seconds
+                            )
+                        }
+                    }
+
+                    jsonRpcInteractor.subscribe(pushTopic)
+
+                    val symKey = crypto.getSymmetricKey(pushTopic.value)
+                    val relayUrl = wcKoinApp.koin.get<String>(named(PushDITags.CAST_SERVER_URL))
+                    val account = if (params.account.contains(Regex(".:.:."))) {
+                        params.account.split(":").last()
+                    } else {
+                        params.account
+                    }
+                    castRepository.register(account, symKey.keyAsHex, pushRequestResponse.subscriptionAuth, relayUrl, wcResponse.topic.value) { error ->
+                        _engineEvent.emit(SDKError(error))
+                    }
+
+                    _engineEvent.emit(EngineDO.PushRequestResponse(respondedSubscription))
+                }
+
+                is JsonRpcResponse.JsonRpcError -> {
+                    _engineEvent.emit(EngineDO.PushRequestRejected(wcResponse.response.id, response.error.message))
+                }
+            }
+        } catch (e: Exception) {
+            _engineEvent.emit(SDKError(e))
+        }
+    }
+
+    private suspend fun onPushProposeResponse(wcResponse: WCResponse, params: PushParams.ProposeParams) = supervisorScope {
+        try {
+            when (val response = wcResponse.response) {
+                is JsonRpcResponse.JsonRpcResult -> {
+                    val selfPublicKey = PublicKey(params.publicKey)
                     val pushRequestResponse = response.result as PushParams.RequestResponseParams
                     val pushSubscriptionJwtClaim = extractVerifiedDidJwtClaims<PushSubscriptionJwtClaim>(pushRequestResponse.subscriptionAuth).getOrElse { error ->
                         _engineEvent.emit(SDKError(error))
@@ -222,56 +340,76 @@ internal class PushDappEngine(
                     }
                     val walletPublicKey = decodeX25519DidKey(pushSubscriptionJwtClaim.issuer)
                     val pushTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, walletPublicKey)
+                    val expiry = Expiry(calcExpiry())
+
+                    val dappScopesFromPushConfigs: Map<String, EngineDO.PushScope.Cached> = extractPushConfigUseCase(params.metaData.url.toUri())
+                        .getOrDefault(emptyList())
+                        .associate { pushScopeRemote ->
+                            pushScopeRemote.name to EngineDO.PushScope.Cached(pushScopeRemote.name, pushScopeRemote.description, true)
+                        }
+                    val respondedPushScope = dappScopesFromPushConfigs.mapValues { (_, pushScopeCached) ->
+                        pushScopeCached.copy(isSelected = pushScopeCached.name in params.scope)
+                    }
+
                     val respondedSubscription = EngineDO.PushSubscription(
-                        wcResponse.response.id,
-                        wcResponse.topic.value,
-                        walletPublicKey.keyAsHex,
-                        pushTopic.value,
-                        AccountId(params.account),
-                        RelayProtocolOptions(),
-                        params.metaData
+                        requestId = wcResponse.response.id,
+                        keyAgreementTopic = Topic(""),
+                        responseTopic = wcResponse.topic,
+                        peerPublicKey = PublicKey(walletPublicKey.keyAsHex),
+                        subscriptionTopic = pushTopic,
+                        account = AccountId(params.account),
+                        relay = RelayProtocolOptions(),
+                        metadata = params.metaData,
+                        didJwt = pushRequestResponse.subscriptionAuth,
+                        scope = respondedPushScope,
+                        expiry = expiry
                     )
 
                     withContext(Dispatchers.IO) {
                         with(respondedSubscription) {
                             subscriptionStorageRepository.insertSubscription(
-                                requestId,
-                                pairingTopic,
-                                peerPublicKeyAsHex,
-                                topic,
-                                account.value,
-                                relay.protocol,
-                                relay.data,
-                                metadata.name,
-                                metadata.description,
-                                metadata.url,
-                                metadata.icons,
-                                metadata.redirect?.native
+                                requestId = requestId,
+                                keyAgreementTopic = keyAgreementTopic.value,
+                                responseTopic = responseTopic.value,
+                                peerPublicKeyAsHex = peerPublicKey?.keyAsHex,
+                                subscriptionTopic = subscriptionTopic?.value,
+                                account = account.value,
+                                relayProtocol = relay.protocol,
+                                relayData = relay.data,
+                                name = metadata.name,
+                                description = metadata.description,
+                                url = metadata.url,
+                                icons = metadata.icons,
+                                native = metadata.redirect?.native,
+                                didJwt = pushRequestResponse.subscriptionAuth,
+                                mapOfScope = scope.mapValues { (_, pushScopeCached) -> pushScopeCached.description to pushScopeCached.isSelected },
+                                expiry = expiry.seconds
                             )
                         }
-
-                        jsonRpcInteractor.subscribe(pushTopic)
-
-                        val symKey = crypto.getSymmetricKey(pushTopic.value)
-                        val relayUrl = wcKoinApp.koin.get<String>(named(PushDITags.CAST_SERVER_URL))
-                        val account = if (params.account.contains(Regex(".:.:."))) {
-                            params.account.split(":").last()
-                        } else {
-                            params.account
-                        }
-                        castRepository.register(account, symKey.keyAsHex, pushRequestResponse.subscriptionAuth, relayUrl, wcResponse.topic.value) { error ->
-                            _engineEvent.emit(SDKError(error))
-                        }
-
-                        _engineEvent.emit(EngineDO.PushRequestResponse(respondedSubscription))
                     }
+
+                    jsonRpcInteractor.subscribe(pushTopic)
+
+                    val symKey = crypto.getSymmetricKey(pushTopic.value)
+                    val relayUrl = wcKoinApp.koin.get<String>(named(PushDITags.CAST_SERVER_URL))
+                    val account = if (params.account.contains(Regex(".:.:."))) {
+                        params.account.split(":").last()
+                    } else {
+                        params.account
+                    }
+                    castRepository.register(account, symKey.keyAsHex, pushRequestResponse.subscriptionAuth, relayUrl, wcResponse.topic.value) { error ->
+                        _engineEvent.emit(SDKError(error))
+                    }
+
+                    _engineEvent.emit(EngineDO.PushRequestResponse(respondedSubscription))
                 }
+
                 is JsonRpcResponse.JsonRpcError -> {
-                    scope.launch { _engineEvent.emit(EngineDO.PushRequestRejected(wcResponse.response.id, response.error.message)) }
+                    _engineEvent.emit(EngineDO.PushRequestRejected(wcResponse.response.id, response.error.message))
                 }
             }
         } catch (e: Exception) {
-            scope.launch { _engineEvent.emit(SDKError(e)) }
+            _engineEvent.emit(SDKError(e))
         }
     }
 

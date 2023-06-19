@@ -13,7 +13,7 @@ interface KeyManagementRepository {
     fun getPublicKey(tag: String): PublicKey
     fun getSymmetricKey(tag: String): SymmetricKey
     fun getKeyPair(key: PublicKey): Pair<PublicKey, PrivateKey>
-
+    fun setKeyPair(publicKey: PublicKey, privateKey: PrivateKey)
     fun generateAndStoreEd25519KeyPair(): PublicKey
     fun generateAndStoreX25519KeyPair(): PublicKey
     fun setKeyAgreement(topic: Topic, self: PublicKey, peer: PublicKey)
