@@ -3,13 +3,14 @@ package com.walletconnect.web3.wallet.client
 import androidx.annotation.Keep
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
+import com.walletconnect.android.CoreInterface
 import com.walletconnect.android.cacao.SignatureInterface
 import java.net.URI
 
 object Wallet {
 
     sealed class Params {
-        data class Init constructor(val core: CoreClient) : Params()
+        data class Init constructor(val core: CoreInterface<CoreClient.CoreDelegate>) : Params()
 
         data class Pair(val uri: String) : Params()
 

@@ -1,9 +1,8 @@
 package com.walletconnect.push.dapp.client
 
-import com.walletconnect.android.internal.common.di.DBUtils
+import com.walletconnect.android.internal.common.di.DatabaseConfig
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.push.common.Push
 import com.walletconnect.push.common.di.commonModule
 import com.walletconnect.push.common.di.pushEngineUseCaseModules
@@ -31,16 +30,16 @@ internal class PushDappProtocol : PushDappInterface {
 
     override fun initialize(init: Push.Dapp.Params.Init, onError: (Push.Model.Error) -> Unit) {
         try {
-            wcKoinApp.modules(
+            init.core.koinApp.modules(
                 pushJsonRpcModule(),
-                pushStorageModule(DBUtils.PUSH_DAPP_SDK_DB_NAME),
+                pushStorageModule(init.core.koinApp.koin.get<DatabaseConfig>().PUSH_DAPP_SDK_DB_NAME),
                 dappEngineModule(),
                 castModule(init.castUrl),
                 commonModule(),
                 pushEngineUseCaseModules()
             )
 
-            pushDappEngine = wcKoinApp.koin.get()
+            pushDappEngine = init.core.koinApp.koin.get()
             pushDappEngine.setup()
         } catch (e: Exception) {
             onError(Push.Model.Error(e))

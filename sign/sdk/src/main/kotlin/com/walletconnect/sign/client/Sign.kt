@@ -2,6 +2,7 @@ package com.walletconnect.sign.client
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
+import com.walletconnect.android.CoreInterface
 import java.net.URI
 
 object Sign {
@@ -179,7 +180,7 @@ object Sign {
     sealed class Params {
 
         data class Init constructor(
-            val core: CoreClient
+            val core: CoreInterface<CoreClient.CoreDelegate>
         ) : Params()
 
         data class Connect(

@@ -27,13 +27,13 @@ internal class AuthProtocol : AuthInterface {
     @Throws(IllegalStateException::class)
     override fun initialize(params: Auth.Params.Init, onSuccess: () -> Unit, onError: (Auth.Model.Error) -> Unit) {
         try {
-            wcKoinApp.modules(
+            params.core.koinApp.modules(
                 jsonRpcModule(),
                 engineModule(),
                 commonModule()
             )
 
-            authEngine = wcKoinApp.koin.get()
+            authEngine = params.core.koinApp.koin.get()
             authEngine.setup()
             onSuccess()
         } catch (e: Exception) {

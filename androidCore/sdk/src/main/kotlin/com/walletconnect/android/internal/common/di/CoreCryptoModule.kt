@@ -26,17 +26,17 @@ private const val SHARED_PREFS_FILE = "wc_key_store"
 private const val KEY_STORE_ALIAS = "wc_keystore_key"
 
 @JvmSynthetic
-internal fun coreCryptoModule() = module {
+fun coreCryptoModule(sharedPrefsFile: String = SHARED_PREFS_FILE, keyStoreAlias: String = KEY_STORE_ALIAS) = module {
 
     @Synchronized
     fun Scope.createSharedPreferences(): SharedPreferences {
-        val masterKey = MasterKey.Builder(androidContext(), KEY_STORE_ALIAS)
+        val masterKey = MasterKey.Builder(androidContext(), keyStoreAlias)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
             .build()
 
         return EncryptedSharedPreferences.create(
             androidContext(),
-            SHARED_PREFS_FILE,
+            sharedPrefsFile,
             masterKey,
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
@@ -47,7 +47,7 @@ internal fun coreCryptoModule() = module {
     fun deleteMasterKey() {
         KeyStore.getInstance(ANDROID_KEY_STORE).run {
             load(null)
-            deleteEntry(KEY_STORE_ALIAS)
+            deleteEntry(keyStoreAlias)
         }
     }
 
@@ -55,13 +55,13 @@ internal fun coreCryptoModule() = module {
     fun Scope.deleteSharedPreferences() {
         try {
             androidContext().run {
-                if (getSharedPreferences(SHARED_PREFS_FILE, Context.MODE_PRIVATE) != null) {
+                if (getSharedPreferences(sharedPrefsFile, Context.MODE_PRIVATE) != null) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                        deleteSharedPreferences(SHARED_PREFS_FILE)
+                        deleteSharedPreferences(sharedPrefsFile)
                     } else {
-                        getSharedPreferences(SHARED_PREFS_FILE, Context.MODE_PRIVATE).edit().clear().apply()
+                        getSharedPreferences(sharedPrefsFile, Context.MODE_PRIVATE).edit().clear().apply()
                         val dir = File(applicationInfo.dataDir, "shared_prefs")
-                        File(dir, "$SHARED_PREFS_FILE.xml").delete()
+                        File(dir, "$sharedPrefsFile.xml").delete()
                     }
                 }
             }

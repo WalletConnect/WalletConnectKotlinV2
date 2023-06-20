@@ -3,9 +3,8 @@ package com.walletconnect.chat.di
 import com.squareup.sqldelight.ColumnAdapter
 import com.squareup.sqldelight.EnumColumnAdapter
 import com.walletconnect.android.di.sdkBaseStorageModule
-import com.walletconnect.android.internal.common.di.DBUtils
+import com.walletconnect.android.internal.common.di.DatabaseConfig
 import com.walletconnect.android.internal.common.di.deleteDatabase
-import com.walletconnect.android.internal.common.storage.IdentitiesStorageRepository
 import com.walletconnect.chat.ChatDatabase
 import com.walletconnect.chat.common.model.InviteStatus
 import com.walletconnect.chat.common.model.InviteType
@@ -16,7 +15,7 @@ import org.koin.core.scope.Scope
 import org.koin.dsl.module
 
 @JvmSynthetic
-internal fun storageModule() = module {
+internal fun storageModule(dbName: String) = module {
     fun Scope.createChatDB(): ChatDatabase = ChatDatabase(
         get(), InvitesAdapter = Invites.Adapter(
             statusAdapter = get(named(ChatDITags.COLUMN_ADAPTER_INVITE_STATUS)),
@@ -24,7 +23,7 @@ internal fun storageModule() = module {
         )
     )
 
-    includes(sdkBaseStorageModule(ChatDatabase.Schema, DBUtils.CHAT_SDK_DB_NAME))
+    includes(sdkBaseStorageModule(ChatDatabase.Schema, dbName))
 
     single {
         try {
@@ -32,7 +31,7 @@ internal fun storageModule() = module {
                 it.contactsQueries.doesContactNotExists("").executeAsOneOrNull()
             }
         } catch (e: Exception) {
-            deleteDatabase(DBUtils.CHAT_SDK_DB_NAME)
+            deleteDatabase(dbName)
             createChatDB()
         }
     }

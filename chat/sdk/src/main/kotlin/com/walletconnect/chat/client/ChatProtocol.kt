@@ -2,11 +2,11 @@
 
 package com.walletconnect.chat.client
 
+import com.walletconnect.android.internal.common.di.DatabaseConfig
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.chat.client.mapper.toClient
 import com.walletconnect.chat.client.mapper.toClientError
 import com.walletconnect.chat.client.mapper.toCommon
@@ -25,17 +25,17 @@ internal class ChatProtocol : ChatInterface {
     @Throws(IllegalStateException::class)
     override fun initialize(init: Chat.Params.Init, onError: (Chat.Model.Error) -> Unit) {
         try {
-            wcKoinApp.run {
+            init.core.koinApp.run {
                 modules(
                     jsonRpcModule(),
-                    storageModule(),
+                    storageModule(init.core.koinApp.koin.get<DatabaseConfig>().CHAT_SDK_DB_NAME),
                     syncInChatModule(),
                     engineModule(),
                     commonModule()
                 )
             }
 
-            chatEngine = wcKoinApp.koin.get()
+            chatEngine = init.core.koinApp.koin.get()
             chatEngine.setup()
         } catch (e: Exception) {
             onError(Chat.Model.Error(e))

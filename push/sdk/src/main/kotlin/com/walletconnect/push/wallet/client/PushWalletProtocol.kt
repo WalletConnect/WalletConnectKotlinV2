@@ -1,9 +1,8 @@
 package com.walletconnect.push.wallet.client
 
-import com.walletconnect.android.internal.common.di.DBUtils
+import com.walletconnect.android.internal.common.di.DatabaseConfig
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.push.common.Push
 import com.walletconnect.push.common.di.commonModule
 import com.walletconnect.push.common.di.pushEngineUseCaseModules
@@ -31,16 +30,16 @@ class PushWalletProtocol : PushWalletInterface {
 
     override fun initialize(init: Push.Wallet.Params.Init, onError: (Push.Model.Error) -> Unit) {
         try {
-            wcKoinApp.modules(
+            init.core.koinApp.modules(
                 pushJsonRpcModule(),
-                pushStorageModule(DBUtils.PUSH_WALLET_SDK_DB_NAME),
+                pushStorageModule(init.core.koinApp.koin.get<DatabaseConfig>().PUSH_WALLET_SDK_DB_NAME),
                 walletEngineModule(),
                 messageModule(),
                 commonModule(),
                 pushEngineUseCaseModules()
             )
 
-            pushWalletEngine = wcKoinApp.koin.get()
+            pushWalletEngine = init.core.koinApp.koin.get()
             pushWalletEngine.setup()
         } catch (e: Exception) {
             onError(Push.Model.Error(e))

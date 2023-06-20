@@ -2,6 +2,7 @@
 
 package com.walletconnect.sign.client
 
+import com.walletconnect.android.internal.common.di.DatabaseConfig
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
@@ -28,14 +29,14 @@ class SignProtocol : SignInterface {
     override fun initialize(init: Sign.Params.Init, onSuccess: () -> Unit, onError: (Sign.Model.Error) -> Unit) {
         // TODO: re-init scope
         try {
-            wcKoinApp.modules(
+            init.core.koinApp.modules(
                 commonModule(),
                 signJsonRpcModule(),
-                storageModule(),
+                storageModule(init.core.koinApp.koin.get<DatabaseConfig>().SIGN_SDK_DB_NAME),
                 engineModule()
             )
 
-            signEngine = wcKoinApp.koin.get()
+            signEngine = init.core.koinApp.koin.get()
             signEngine.setup()
             onSuccess()
         } catch (e: Exception) {

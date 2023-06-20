@@ -2,6 +2,7 @@ package com.walletconnect.web3.wallet.client
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
+import com.walletconnect.android.CoreInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.auth.client.Auth
@@ -14,7 +15,7 @@ import org.koin.dsl.module
 import java.util.*
 
 object Web3Wallet {
-    private lateinit var coreClient: CoreClient
+    private lateinit var coreClient: CoreInterface<CoreClient.CoreDelegate>
 
     interface WalletDelegate {
         fun onSessionProposal(sessionProposal: Wallet.Model.SessionProposal)

@@ -2,6 +2,7 @@ package com.walletconnect.chat.client
 
 import androidx.annotation.Keep
 import com.walletconnect.android.CoreClient
+import com.walletconnect.android.CoreInterface
 import com.walletconnect.android.cacao.SignatureInterface
 
 object Chat {
@@ -121,7 +122,7 @@ object Chat {
     }
 
     sealed class Params {
-        data class Init(val core: CoreClient) : Params()
+        data class Init(val core: CoreInterface<CoreClient.CoreDelegate>) : Params()
         data class Resolve(val account: Type.AccountId) : Params()
         data class Invite(val inviterAccount: Type.AccountId, val inviteeAccount: Type.AccountId, val message: Type.InviteMessage, val inviteePublicKey: String) : Params()
         data class Accept(val inviteId: Long) : Params()

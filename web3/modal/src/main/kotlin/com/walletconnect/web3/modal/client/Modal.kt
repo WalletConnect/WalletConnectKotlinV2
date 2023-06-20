@@ -2,6 +2,7 @@ package com.walletconnect.web3.modal.client
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
+import com.walletconnect.android.CoreInterface
 
 object Modal {
 
@@ -13,7 +14,7 @@ object Modal {
     }
     sealed class Params {
         data class Init(
-            val core: CoreClient
+            val core: CoreInterface<CoreClient.CoreDelegate>
         ) : Params()
 
         data class Connect(

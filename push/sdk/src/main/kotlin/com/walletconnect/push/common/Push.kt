@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.annotation.Keep
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
+import com.walletconnect.android.CoreInterface
 import com.walletconnect.android.cacao.SignatureInterface
 
 object Push {
@@ -50,7 +51,7 @@ object Push {
 
         sealed class Params {
 
-            data class Init(val core: CoreClient, val castUrl: String?) : Params()
+            data class Init(val core: CoreInterface<CoreClient.CoreDelegate>, val castUrl: String?) : Params()
 
             data class Request(val account: String, val pairingTopic: String) : Params()
 
@@ -91,7 +92,7 @@ object Push {
 
         sealed class Params {
 
-            class Init(val core: CoreClient) : Params()
+            class Init(val core: CoreInterface<CoreClient.CoreDelegate>) : Params()
 
             data class Approve(val id: Long, val onSign: (String) -> Model.Cacao.Signature?) : Params()
 

@@ -2,6 +2,7 @@ package com.walletconnect.web3.inbox.client
 
 import androidx.annotation.Keep
 import com.walletconnect.android.CoreClient
+import com.walletconnect.android.CoreInterface
 import com.walletconnect.android.cacao.SignatureInterface
 import com.walletconnect.chat.client.Chat
 
@@ -9,7 +10,7 @@ import com.walletconnect.chat.client.Chat
 object Inbox {
     sealed class Params {
         data class Init(
-            val core: CoreClient,
+            val core: CoreInterface<CoreClient.CoreDelegate>,
             val account: Type.AccountId,
             val onSign: (message: String) -> Model.Cacao.Signature
         ) : Params()

@@ -2,7 +2,6 @@ package com.walletconnect.android.sync.client
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.sync.common.model.Events
 import com.walletconnect.android.sync.common.model.StoreMap
 import com.walletconnect.android.sync.di.commonModule
@@ -14,6 +13,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import org.koin.core.KoinApplication
 
 internal class SyncProtocol : SyncInterface {
     private lateinit var syncEngine: SyncEngine
@@ -25,9 +25,9 @@ internal class SyncProtocol : SyncInterface {
         val instance = SyncProtocol()
     }
 
-    override fun initialize(onError: (Core.Model.Error) -> Unit) {
+    override fun initialize(koinApplication: KoinApplication, onError: (Core.Model.Error) -> Unit) {
         try {
-            wcKoinApp.run {
+            koinApplication.run {
                 modules(
                     jsonRpcModule(),
                     commonModule(),
@@ -36,7 +36,7 @@ internal class SyncProtocol : SyncInterface {
                 )
             }
 
-            syncEngine = wcKoinApp.koin.get()
+            syncEngine = koinApplication.koin.get()
             syncEngine.setup()
 
             scope.launch {

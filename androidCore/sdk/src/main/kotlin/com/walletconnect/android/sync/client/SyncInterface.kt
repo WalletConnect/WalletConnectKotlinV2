@@ -4,10 +4,11 @@ import com.walletconnect.android.Core
 import com.walletconnect.android.sync.common.model.Events
 import com.walletconnect.android.sync.common.model.StoreMap
 import kotlinx.coroutines.flow.SharedFlow
+import org.koin.core.KoinApplication
 
 
 interface SyncInterface {
-    fun initialize(onError: (Core.Model.Error) -> Unit)
+    fun initialize(koinApplication: KoinApplication, onError: (Core.Model.Error) -> Unit)
 
     val onSyncUpdateEvents: SharedFlow<Events.OnSyncUpdate>
 

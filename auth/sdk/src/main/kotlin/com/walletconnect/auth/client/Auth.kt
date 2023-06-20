@@ -2,6 +2,7 @@ package com.walletconnect.auth.client
 
 import androidx.annotation.Keep
 import com.walletconnect.android.CoreClient
+import com.walletconnect.android.CoreInterface
 import com.walletconnect.android.cacao.SignatureInterface
 import com.walletconnect.android.internal.common.signing.cacao.Issuer
 
@@ -88,7 +89,7 @@ object Auth {
 
     sealed class Params {
 
-        data class Init(val core: CoreClient) : Params()
+        data class Init(val core: CoreInterface<CoreClient.CoreDelegate>) : Params()
 
         data class Request(
             val topic: String,
