@@ -13,6 +13,7 @@ class CoreValidatorTest {
         CoreValidator.isChainIdCAIP2Compliant("").apply { assertEquals(this, false) }
         CoreValidator.isChainIdCAIP2Compliant("bip122:000000000019d6689c085ae165831e93").apply { assertEquals(this, true) }
         CoreValidator.isChainIdCAIP2Compliant("cosmos:cosmoshub-2").apply { assertEquals(this, true) }
+        CoreValidator.isChainIdCAIP2Compliant("cosmos:kava_2222-10").apply { assertEquals(this, true) }
         CoreValidator.isChainIdCAIP2Compliant("chainstd:23-33").apply { assertEquals(this, true) }
         CoreValidator.isChainIdCAIP2Compliant("chainasdasdasdasdasdasdasdsastd:23-33").apply { assertEquals(this, false) }
         CoreValidator.isChainIdCAIP2Compliant("cosmoscosmoshub-2").apply { assertEquals(this, false) }
