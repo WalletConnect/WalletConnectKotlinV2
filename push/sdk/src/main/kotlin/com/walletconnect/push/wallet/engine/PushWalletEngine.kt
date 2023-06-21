@@ -5,7 +5,6 @@ package com.walletconnect.push.wallet.engine
 import android.content.res.Resources.NotFoundException
 import android.net.Uri
 import android.util.Base64
-import androidx.core.net.toUri
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.codec.Codec
@@ -27,6 +26,7 @@ import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Participants
 import com.walletconnect.android.internal.common.model.Redirect
+import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.WCRequest
@@ -60,7 +60,6 @@ import com.walletconnect.push.wallet.data.MessagesRepository
 import com.walletconnect.push.wallet.data.wellknown.did.DidJsonDTO
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.generateId
-import com.walletconnect.util.hexToBytes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -467,51 +466,30 @@ internal class PushWalletEngine(
     }
 
     private suspend fun onPushPropose(request: WCRequest, params: PushParams.ProposeParams) = supervisorScope {
-        val irnParams = IrnParams(Tags.PUSH_PROPOSE_RESPONSE, Ttl(DAY_IN_SECONDS))
-
-        val dappPushScope: List<EngineDO.PushScope.Remote> = extractPushConfigUseCase.invoke(params.metaData.url.toUri()).getOrElse {
-            return@supervisorScope _engineEvent.emit(SDKError(Exception("")))
-        }
-        val mapOfScope: Map<String, EngineDO.PushScope.Cached> = dappPushScope.associate {
-            it.name to EngineDO.PushScope.Cached(it.name, it.description, it.name in params.scope)
-        }
-
         try {
-            subscriptionStorageRepository.insertSubscription(
+            proposalStorageRepository.insertProposal(
                 requestId = request.id,
-                keyAgreementTopic = request.topic.value,
-                responseTopic = sha256(params.publicKey.hexToBytes()),
-                peerPublicKeyAsHex = params.publicKey,
-                subscriptionTopic = null,
-                account = params.account,
-                relayProtocol = null,
-                relayData = null,
-                name = params.metaData.name,
-                description = params.metaData.description,
-                url = params.metaData.url,
-                icons = params.metaData.icons,
-                native = params.metaData.redirect?.native,
-                didJwt = "",
-                mapOfScope = mapOfScope.mapValues { entry -> entry.value.description to entry.value.isSelected },
-                expiry = calcExpiry()
+                proposalTopic = request.topic.value,
+                dappPublicKeyAsHex = params.publicKey,
+                dappMetaData = params.metaData,
+                accountId = params.account,
             )
-
-            val newSubscription = subscriptionStorageRepository.getSubscriptionsByRequestId(request.id)
 
             _engineEvent.emit(
                 EngineDO.PushPropose(
-                    newSubscription.requestId,
-                    newSubscription.responseTopic.value,
-                    newSubscription.account.value,
-                    newSubscription.relay,
-                    newSubscription.metadata
+                    request.id,
+                    Topic(request.topic.value),
+                    PublicKey(params.publicKey),
+                    AccountId(params.account),
+                    RelayProtocolOptions(),
+                    params.metaData
                 )
             )
         } catch (e: Exception) {
             jsonRpcInteractor.respondWithError(
                 request,
                 Uncategorized.GenericError("Cannot handle the push request: ${e.message}, topic: ${request.topic}"),
-                irnParams
+                IrnParams(Tags.PUSH_PROPOSE_RESPONSE, Ttl(DAY_IN_SECONDS))
             )
 
             _engineEvent.emit(SDKError(e))
