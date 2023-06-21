@@ -1,4 +1,4 @@
-name: SDKs Unit Tests
+name: SDKs Instrumented Tests
 
 on:
   push:
