@@ -3,8 +3,15 @@ package com.walletconnect.android.internal.common.di
 import com.squareup.sqldelight.ColumnAdapter
 import com.squareup.sqldelight.EnumColumnAdapter
 import com.walletconnect.android.di.AndroidCoreDITags
+import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.AppMetaDataType
-import com.walletconnect.android.internal.common.storage.*
+import com.walletconnect.android.internal.common.model.Redirect
+import com.walletconnect.android.internal.common.storage.IdentitiesStorageRepository
+import com.walletconnect.android.internal.common.storage.JsonRpcHistory
+import com.walletconnect.android.internal.common.storage.MetadataStorageRepository
+import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
+import com.walletconnect.android.internal.common.storage.PairingStorageRepository
+import com.walletconnect.android.internal.common.storage.PairingStorageRepositoryInterface
 import com.walletconnect.android.sdk.core.AndroidCoreDatabase
 import com.walletconnect.android.sdk.storage.data.dao.MetaData
 import com.walletconnect.android.sync.di.syncStorageModule
@@ -52,6 +59,51 @@ fun baseStorageModule() = module {
     }
 
     single<ColumnAdapter<AppMetaDataType, String>>(named(AndroidCoreDITags.COLUMN_ADAPTER_APPMETADATATYPE)) { EnumColumnAdapter() }
+
+    single<ColumnAdapter<AppMetaData, String>>(named(AndroidCoreDITags.COLUMN_ADAPTER_APPMETADATA)) {
+        object : ColumnAdapter<AppMetaData, String> {
+            override fun decode(databaseValue: String): AppMetaData =
+                if (databaseValue.isBlank()) {
+                    AppMetaData("", "", "", listOf())
+                } else {
+                    databaseValue.split("|").associate { entry ->
+                        val entries = entry.split("=")
+                        entries.first().trim() to entries.last().trim()
+                    }.let {
+                        val redirectNative = it["redirect_native"].run { if (this.equals("null", true)) null else this }
+                        val redirectUniversal = it["redirect_universal"].run { if (this.equals("null", true)) null else this }
+
+                        val redirect = if (!redirectNative.isNullOrBlank() || !redirectUniversal.isNullOrBlank()) {
+                            Redirect(redirectNative, redirectUniversal)
+                        } else {
+                            null
+                        }
+
+                        AppMetaData(
+                            name = it["name"] ?: "",
+                            description = it["description"] ?: "",
+                            url = it["url"] ?: "",
+                            icons = it["icons"]?.split(",") ?: listOf(),
+                            redirect = redirect
+                        )
+                    }
+                }
+
+            override fun encode(value: AppMetaData): String = buildString {
+                append("name=${value.name}")
+                append("|")
+                append("description=${value.description}")
+                append("|")
+                append("url=${value.url}")
+                append("|")
+                append("icons=${value.icons.joinToString("")}")
+                append("|")
+                append("redirect_native=${value.redirect?.native}")
+                append("|")
+                append("redirect_universal=${value.redirect?.universal}")
+            }
+        }
+    }
 
     single<AndroidCoreDatabase>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)) {
         try {
