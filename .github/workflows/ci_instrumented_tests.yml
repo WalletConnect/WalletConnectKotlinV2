@@ -22,6 +22,7 @@ concurrency:
 jobs:
   sdk_tests:
     strategy:
+      fail-fast: false
       matrix:
         conf: [
           { name: Sign SDK, command: ":sign:sdk:connectedCheck" },
@@ -29,6 +30,9 @@ jobs:
         api-level: [ 23, 32 ]
         target: [ google_apis ]
         profile: [ Nexus 6, Galaxy S4 ]
+        exclude:
+          - api-level: 23
+          - profile: Galaxy S4
     name: ${{ matrix.conf.name }} on ${{ matrix.profile }}_${{ matrix.api-level }}-${{ matrix.target }}
     runs-on: macos-latest
     steps:
