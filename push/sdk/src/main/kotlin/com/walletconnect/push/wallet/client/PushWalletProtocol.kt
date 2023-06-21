@@ -71,9 +71,14 @@ class PushWalletProtocol : PushWalletInterface {
         scope.launch {
             supervisorScope {
                 try {
-                    pushWalletEngine.subscribeToDapp(params.dappUrl, params.account, params.onSign.toWalletClient(), onSuccess) {
-                        onError(Push.Model.Error(it))
-                    }
+                    pushWalletEngine.subscribeToDapp(params.dappUrl, params.account, params.onSign.toWalletClient(),
+                        onSuccess = { _, _ ->
+                            onSuccess()
+                        },
+                        onFailure = {
+                            onError(Push.Model.Error(it))
+                        }
+                    )
                 } catch (e: Exception) {
                     onError(Push.Model.Error(e))
                 }
