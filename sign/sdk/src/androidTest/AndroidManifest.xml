@@ -7,7 +7,7 @@
 
     <application>
         <activity
-            android:name=".test.activity.IntegrationTestActivity"
+            android:name=".test.activity.InstrumentedTestActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
