@@ -552,14 +552,28 @@ internal class PushWalletEngine(
                     val pushTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, dappPublicKey)
                     val updatedExpiry = calcExpiry()
                     subscriptionStorageRepository.updateSubscriptionToResponded(subscription.responseTopic.value, pushTopic.value, dappPublicKey.keyAsHex, updatedExpiry)
-
-                    _engineEvent.emit(
-                        subscription.copy(
-                            subscriptionTopic = pushTopic,
-                            peerPublicKey = PublicKey(dappPublicKey.keyAsHex),
-                            expiry = Expiry(updatedExpiry)
-                        )
+                    val updatedSubscription = subscription.copy(
+                        subscriptionTopic = pushTopic,
+                        peerPublicKey = PublicKey(dappPublicKey.keyAsHex),
+                        expiry = Expiry(updatedExpiry)
                     )
+
+                    jsonRpcInteractor.subscribe(pushTopic) { error ->
+                        launch {
+                            _engineEvent.emit(SDKError(error))
+                            cancel()
+                        }
+                    }
+
+                    jsonRpcInteractor.unsubscribe(wcResponse.topic) { error ->
+                        launch {
+                            _engineEvent.emit(SDKError(error))
+                            cancel()
+                        }
+                    }
+
+                    _engineEvent.emit(updatedSubscription)
+                    enginePushSubscriptionNotifier.newlyCreatedPushSubscription.updateAndGet { updatedSubscription }
                 }
 
                 is JsonRpcResponse.JsonRpcError -> {
