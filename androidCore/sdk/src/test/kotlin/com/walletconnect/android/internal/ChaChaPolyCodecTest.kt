@@ -2,7 +2,11 @@ package com.walletconnect.android.internal
 
 import com.walletconnect.android.internal.common.crypto.codec.ChaChaPolyCodec
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
-import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.internal.common.model.EnvelopeType
+import com.walletconnect.android.internal.common.model.MissingKeyException
+import com.walletconnect.android.internal.common.model.MissingParticipantsException
+import com.walletconnect.android.internal.common.model.Participants
+import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.internal.utils.getParticipantTag
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic

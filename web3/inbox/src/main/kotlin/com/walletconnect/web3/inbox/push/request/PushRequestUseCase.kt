@@ -2,9 +2,9 @@ package com.walletconnect.web3.inbox.push.request
 
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.push.common.Push
+import com.walletconnect.web3.inbox.common.proxy.PushProxyInteractor
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxParams
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC
-import com.walletconnect.web3.inbox.common.proxy.PushProxyInteractor
 
 //todo note this is used in push as well.
 internal abstract class PushRequestUseCase<T : Web3InboxParams.Request>(val proxyInteractor: PushProxyInteractor) {

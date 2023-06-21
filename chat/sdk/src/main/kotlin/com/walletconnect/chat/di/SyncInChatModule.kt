@@ -4,8 +4,16 @@ package com.walletconnect.chat.di
 
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.chat.engine.sync.use_case.SetupSyncInChatUseCase
-import com.walletconnect.chat.engine.sync.use_case.events.*
-import com.walletconnect.chat.engine.sync.use_case.requests.*
+import com.walletconnect.chat.engine.sync.use_case.events.OnChatReceivedInviteRejectedStatusUpdateEventUseCase
+import com.walletconnect.chat.engine.sync.use_case.events.OnChatSentInviteUpdateEventUseCase
+import com.walletconnect.chat.engine.sync.use_case.events.OnInviteKeysUpdateEventUseCase
+import com.walletconnect.chat.engine.sync.use_case.events.OnSyncUpdateEventUseCase
+import com.walletconnect.chat.engine.sync.use_case.events.OnThreadsUpdateEventUseCase
+import com.walletconnect.chat.engine.sync.use_case.requests.DeleteInviteKeyFromChatInviteKeyStoreUseCase
+import com.walletconnect.chat.engine.sync.use_case.requests.SetInviteKeyToChatInviteKeyStoreUseCase
+import com.walletconnect.chat.engine.sync.use_case.requests.SetReceivedInviteRejectedStatusToChatSentInvitesStoreUseCase
+import com.walletconnect.chat.engine.sync.use_case.requests.SetSentInviteToChatSentInvitesStoreUseCase
+import com.walletconnect.chat.engine.sync.use_case.requests.SetThreadWithSymmetricKeyToChatThreadsStoreUseCase
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 

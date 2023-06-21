@@ -22,6 +22,7 @@ sealed class JsonRpcResponse : SerializableJsonRpc {
         val errorMessage: String = "${error.message} : code: ${error.code}"
     }
 
+    @JsonClass(generateAdapter = true)
     data class Error(
         val code: Int,
         val message: String,

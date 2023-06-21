@@ -15,7 +15,6 @@ import com.walletconnect.web3.wallet.client.Web3Wallet
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
-import org.bouncycastle.asn1.x500.style.RFC4519Style.title
 
 class Web3WalletViewModel : ViewModel() {
     val walletEvents = WCDelegate.walletEvents.map { wcEvent ->

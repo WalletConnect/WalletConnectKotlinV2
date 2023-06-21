@@ -1,8 +1,8 @@
 package com.walletconnect.push.common.data.jwt
 
-import com.walletconnect.foundation.util.jwt.JwtClaims
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import com.walletconnect.foundation.util.jwt.JwtClaims
 
 @JsonClass(generateAdapter = true)
 data class PushSubscriptionJwtClaim(

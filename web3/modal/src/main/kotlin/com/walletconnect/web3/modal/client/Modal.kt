@@ -2,7 +2,6 @@ package com.walletconnect.web3.modal.client
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
-import com.walletconnect.sign.client.Sign
 
 object Modal {
 

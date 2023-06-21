@@ -13,7 +13,15 @@ import com.walletconnect.sample_common.Chains
 import com.walletconnect.sample_common.tag
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 class SessionViewModel : ViewModel() {

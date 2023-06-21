@@ -2,7 +2,6 @@
 
 package com.walletconnect.web3.inbox.chat.request
 
-import com.walletconnect.web3.inbox.chat.request.*
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC
 
 

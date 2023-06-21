@@ -3,7 +3,11 @@ package com.walletconnect.chat.engine.use_case.requests
 import com.walletconnect.android.internal.common.jwt.did.EncodeDidJwtPayloadUseCase
 import com.walletconnect.android.internal.common.jwt.did.encodeDidJwt
 import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtClaims
-import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.internal.common.model.AccountId
+import com.walletconnect.android.internal.common.model.EnvelopeType
+import com.walletconnect.android.internal.common.model.IrnParams
+import com.walletconnect.android.internal.common.model.Tags
+import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.params.CoreChatParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface

@@ -27,7 +27,10 @@ import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.signing.cacao.CacaoType
 import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
 import com.walletconnect.android.internal.common.signing.cacao.Issuer
-import com.walletconnect.android.internal.utils.*
+import com.walletconnect.android.internal.utils.CoreValidator
+import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
+import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
+import com.walletconnect.android.internal.utils.getParticipantTag
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.pairing.model.mapper.toClient

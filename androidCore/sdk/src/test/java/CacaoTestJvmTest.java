@@ -1,11 +1,9 @@
-import static org.junit.jupiter.params.shadow.com.univocity.parsers.common.ArgumentUtils.toByteArray;
-
 import com.walletconnect.android.cacao.signature.SignatureType;
+import com.walletconnect.android.internal.common.model.ProjectId;
 import com.walletconnect.android.internal.common.signing.cacao.Cacao;
+import com.walletconnect.android.internal.common.signing.cacao.CacaoKt;
 import com.walletconnect.android.internal.common.signing.cacao.CacaoType;
 import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier;
-import com.walletconnect.android.internal.common.model.ProjectId;
-import com.walletconnect.android.internal.common.signing.cacao.CacaoKt;
 import com.walletconnect.android.utils.cacao.CacaoSignerUtil;
 import com.walletconnect.util.UtilFunctionsKt;
 

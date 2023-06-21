@@ -1,7 +1,11 @@
 package com.walletconnect.android.keyserver.domain
 
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
-import com.walletconnect.android.internal.common.exception.*
+import com.walletconnect.android.internal.common.exception.AccountHasNoIdentityStored
+import com.walletconnect.android.internal.common.exception.InvalidAccountIdException
+import com.walletconnect.android.internal.common.exception.InvalidIdentityCacao
+import com.walletconnect.android.internal.common.exception.UnableToExtractDomainException
+import com.walletconnect.android.internal.common.exception.UserRejectedSigning
 import com.walletconnect.android.internal.common.jwt.did.EncodeDidJwtPayloadUseCase
 import com.walletconnect.android.internal.common.jwt.did.EncodeIdentityKeyDidJwtPayloadUseCase
 import com.walletconnect.android.internal.common.jwt.did.encodeDidJwt
@@ -28,7 +32,8 @@ import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.randomBytes
 import java.net.URI
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
+import java.util.Locale
 
 class IdentitiesInteractor(
     private val identitiesRepository: IdentitiesStorageRepository,

@@ -2,7 +2,6 @@ package com.walletconnect.sample.wallet.domain.model
 
 import com.walletconnect.push.common.Push
 import com.walletconnect.sample_common.convertSecondsToDate
-import org.bouncycastle.asn1.x500.style.RFC4519Style.title
 
 data class PushNotification(
     val id: String,

@@ -2,17 +2,7 @@
 
 package com.walletconnect.web3.inbox.push.request
 
-import android.webkit.JavascriptInterface
-import com.walletconnect.foundation.util.Logger
-import com.walletconnect.web3.inbox.chat.request.*
-import com.walletconnect.web3.inbox.chat.request.AcceptInviteRequestUseCase
-import com.walletconnect.web3.inbox.chat.request.GetMessagesRequestUseCase
-import com.walletconnect.web3.inbox.chat.request.GetReceivedInvitesRequestUseCase
-import com.walletconnect.web3.inbox.chat.request.GetSentInvitesRequestUseCase
-import com.walletconnect.web3.inbox.chat.request.GetThreadsRequestUseCase
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC
-import com.walletconnect.web3.inbox.json_rpc.Web3InboxSerializer
-import com.walletconnect.web3.inbox.push.request.*
 
 
 internal class PushProxyRequestHandler(

@@ -2,19 +2,14 @@
 
 package com.walletconnect.web3.inbox.push.di
 
-import com.squareup.moshi.Moshi
-import com.tinder.scarlet.utils.getRawType
-import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.utils.addDeserializerEntry
+import com.walletconnect.utils.addJsonAdapter
 import com.walletconnect.utils.addSerializerEntry
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxMethods
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPCCallPushSubscriptionJsonAdapter
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPCCallPushUpdateJsonAdapter
-import org.koin.core.qualifier.named
 import org.koin.dsl.module
-import kotlin.reflect.jvm.jvmName
-
 
 @JvmSynthetic
 internal fun pushJsonRpcModule() = module {
@@ -49,14 +44,6 @@ internal fun pushJsonRpcModule() = module {
     addDeserializerEntry(Web3InboxMethods.Call.Push.UPDATE, Web3InboxRPC.Call.Push.Update::class)
     addDeserializerEntry(Web3InboxMethods.Call.Push.DELETE, Web3InboxRPC.Call.Push.Delete::class)
 
-    single {
-        get<Moshi.Builder>(named(AndroidCommonDITags.MOSHI))
-            .add { type, _, moshi ->
-                when (type.getRawType().name) {
-                    Web3InboxRPC.Call.Push.Subscription::class.jvmName -> Web3InboxRPCCallPushSubscriptionJsonAdapter(moshi)
-                    Web3InboxRPC.Call.Push.Update::class.jvmName -> Web3InboxRPCCallPushUpdateJsonAdapter(moshi)
-                    else -> null
-                }
-            }
-    }
+    addJsonAdapter(Web3InboxRPC.Call.Push.Subscription::class.java, ::Web3InboxRPCCallPushSubscriptionJsonAdapter)
+    addJsonAdapter(Web3InboxRPC.Call.Push.Update::class.java, ::Web3InboxRPCCallPushUpdateJsonAdapter)
 }

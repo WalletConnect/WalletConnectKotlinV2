@@ -4,9 +4,9 @@ import com.walletconnect.chat.client.Chat
 import com.walletconnect.chat.client.ChatInterface
 import com.walletconnect.web3.inbox.client.Inbox
 import com.walletconnect.web3.inbox.client.toChat
+import com.walletconnect.web3.inbox.common.proxy.ChatProxyInteractor
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxParams
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC
-import com.walletconnect.web3.inbox.common.proxy.ChatProxyInteractor
 
 internal class RegisterRequestUseCase(
     private val chatClient: ChatInterface,

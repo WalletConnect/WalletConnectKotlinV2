@@ -1,6 +1,5 @@
 package com.walletconnect.sample.wallet.domain
 
-import android.util.Log
 import com.walletconnect.push.common.Push
 import com.walletconnect.push.wallet.client.PushWalletClient
 import kotlinx.coroutines.CoroutineScope

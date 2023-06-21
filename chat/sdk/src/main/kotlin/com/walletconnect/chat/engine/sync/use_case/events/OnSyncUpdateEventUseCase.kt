@@ -1,7 +1,10 @@
 package com.walletconnect.chat.engine.sync.use_case.events
 
 import com.walletconnect.android.sync.common.model.Events
-import com.walletconnect.chat.engine.sync.ChatSyncStores.*
+import com.walletconnect.chat.engine.sync.ChatSyncStores.CHAT_INVITE_KEYS
+import com.walletconnect.chat.engine.sync.ChatSyncStores.CHAT_RECEIVED_INVITE_STATUSES
+import com.walletconnect.chat.engine.sync.ChatSyncStores.CHAT_SENT_INVITES
+import com.walletconnect.chat.engine.sync.ChatSyncStores.CHAT_THREADS
 
 
 internal class OnSyncUpdateEventUseCase(

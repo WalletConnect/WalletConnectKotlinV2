@@ -23,7 +23,6 @@ import com.walletconnect.android.internal.common.explorer.data.network.model.Met
 import com.walletconnect.android.internal.common.explorer.data.network.model.MobileDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.SupportedStandardDTO
 import com.walletconnect.android.internal.common.model.ProjectId
-import com.walletconnect.android.internal.common.wcKoinApp
 
 class ExplorerRepository(private val explorerService: ExplorerService, private val projectId: ProjectId) {
 

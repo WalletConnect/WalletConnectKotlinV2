@@ -36,7 +36,6 @@ import com.walletconnect.sample_common.ui.commons.BlueButton
 import com.walletconnect.sample_common.ui.theme.PreviewTheme
 import com.walletconnect.web3.modal.domain.configuration.Config
 import com.walletconnect.web3.modal.ui.navigateToWeb3Modal
-import timber.log.Timber
 
 @Composable
 fun ChainSelectionRoute(navController: NavController) {

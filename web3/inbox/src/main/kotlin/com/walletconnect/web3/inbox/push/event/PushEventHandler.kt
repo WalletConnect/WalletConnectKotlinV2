@@ -3,11 +3,6 @@ package com.walletconnect.web3.inbox.push.event
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.push.common.Push
 import com.walletconnect.push.wallet.client.PushWalletClient
-import com.walletconnect.web3.inbox.push.event.*
-import com.walletconnect.web3.inbox.push.event.OnDeletePushEventUseCase
-import com.walletconnect.web3.inbox.push.event.OnMessagePushEventUseCase
-import com.walletconnect.web3.inbox.push.event.OnRequestPushEventUseCase
-import com.walletconnect.web3.inbox.push.event.OnSubscriptionPushEventUseCase
 
 
 internal class PushEventHandler(

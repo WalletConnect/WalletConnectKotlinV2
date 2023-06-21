@@ -8,7 +8,6 @@ import com.walletconnect.web3.inbox.json_rpc.Web3InboxMethods
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC
 import org.koin.dsl.module
 
-
 @JvmSynthetic
 internal fun chatJsonRpcModule() = module {
     addSerializerEntry(Web3InboxRPC.Request.Chat.Register::class)

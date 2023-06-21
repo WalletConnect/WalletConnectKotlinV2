@@ -1,6 +1,6 @@
 package com.walletconnect.web3.modal.domain.configuration
 
-import com.squareup.moshi.*
+import com.squareup.moshi.JsonClass
 
 internal const val CONFIG_ARG = "modal_config_arg"
 

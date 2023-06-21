@@ -2,7 +2,6 @@ package com.walletconnect.chat.engine.sync.model
 
 import com.squareup.moshi.JsonClass
 import com.walletconnect.android.internal.common.model.AccountId
-import com.walletconnect.chat.common.model.Account
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
 

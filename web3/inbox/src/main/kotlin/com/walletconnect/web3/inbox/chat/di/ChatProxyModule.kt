@@ -4,9 +4,23 @@ package com.walletconnect.web3.inbox.chat.di
 
 import com.walletconnect.chat.client.ChatInterface
 import com.walletconnect.web3.inbox.chat.event.ChatEventHandler
+import com.walletconnect.web3.inbox.chat.event.OnInviteAcceptedChatEventUseCase
+import com.walletconnect.web3.inbox.chat.event.OnInviteChatEventUseCase
+import com.walletconnect.web3.inbox.chat.event.OnInviteRejectedChatEventUseCase
+import com.walletconnect.web3.inbox.chat.event.OnLeftChatEventUseCase
+import com.walletconnect.web3.inbox.chat.event.OnMessageChatEventUseCase
+import com.walletconnect.web3.inbox.chat.event.OnSyncUpdateChatEventUseCase
+import com.walletconnect.web3.inbox.chat.request.AcceptInviteRequestUseCase
 import com.walletconnect.web3.inbox.chat.request.ChatProxyRequestHandler
-import com.walletconnect.web3.inbox.chat.event.*
-import com.walletconnect.web3.inbox.chat.request.*
+import com.walletconnect.web3.inbox.chat.request.GetMessagesRequestUseCase
+import com.walletconnect.web3.inbox.chat.request.GetReceivedInvitesRequestUseCase
+import com.walletconnect.web3.inbox.chat.request.GetSentInvitesRequestUseCase
+import com.walletconnect.web3.inbox.chat.request.GetThreadsRequestUseCase
+import com.walletconnect.web3.inbox.chat.request.InviteRequestUseCase
+import com.walletconnect.web3.inbox.chat.request.MessageRequestUseCase
+import com.walletconnect.web3.inbox.chat.request.RegisterRequestUseCase
+import com.walletconnect.web3.inbox.chat.request.RejectInviteRequestUseCase
+import com.walletconnect.web3.inbox.chat.request.ResolveRequestUseCase
 import com.walletconnect.web3.inbox.client.Inbox
 import com.walletconnect.web3.inbox.common.proxy.ChatProxyInteractor
 import org.koin.dsl.module
