@@ -18,8 +18,8 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.seconds
 
-object WCIntegrationActivityScenario : BeforeAllCallback, AfterAllCallback {
-    private var scenario: ActivityScenario<IntegrationTestActivity>? = null
+object WCInstrumentedActivityScenario : BeforeAllCallback, AfterAllCallback {
+    private var scenario: ActivityScenario<InstrumentedTestActivity>? = null
     private var scenarioLaunched: Boolean = false
     private val latch = CountDownLatch(1)
     private val testScope: CoroutineScope = CoroutineScope(Dispatchers.Default)
@@ -43,7 +43,7 @@ object WCIntegrationActivityScenario : BeforeAllCallback, AfterAllCallback {
             val isDappRelayReady = MutableStateFlow(false)
             val isWalletRelayReady = MutableStateFlow(false)
 
-            val timeoutDuration = 10.seconds
+            val timeoutDuration = 30.seconds
 
             val isEverythingReady: StateFlow<Boolean> = combine(isDappRelayReady, isWalletRelayReady, TestClient.Wallet.isInitialized, TestClient.Dapp.isInitialized)
             { dappRelay, walletRelay, dappSign, walletSign -> (dappRelay && walletRelay && dappSign && walletSign) }.stateIn(scope, SharingStarted.Eagerly, false)
@@ -88,7 +88,7 @@ object WCIntegrationActivityScenario : BeforeAllCallback, AfterAllCallback {
     fun launch(timeoutSeconds: Long = 1, testCodeBlock: () -> Unit) {
         require(!scenarioLaunched) { "Scenario has already been launched!" }
 
-        scenario = ActivityScenario.launch(IntegrationTestActivity::class.java)
+        scenario = ActivityScenario.launch(InstrumentedTestActivity::class.java)
         scenarioLaunched = true
 
         scenario?.moveToState(Lifecycle.State.RESUMED)

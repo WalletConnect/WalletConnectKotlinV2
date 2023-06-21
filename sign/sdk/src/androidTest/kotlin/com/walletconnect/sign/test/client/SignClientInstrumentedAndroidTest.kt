@@ -3,17 +3,17 @@ package com.walletconnect.sign.test.client
 import com.walletconnect.android.Core
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
-import com.walletconnect.sign.test.activity.WCIntegrationActivityScenario
+import com.walletconnect.sign.test.activity.WCInstrumentedActivityScenario
 import com.walletconnect.sign.test.utils.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.fail
 import timber.log.Timber
 
-@ExtendWith(WCIntegrationActivityScenario::class)
-class SignClientIntegrationAndroidTest {
+@ExtendWith(WCInstrumentedActivityScenario::class)
+class SignClientInstrumentedAndroidTest {
 
-    val scenarioExtension = WCIntegrationActivityScenario
+    val scenarioExtension = WCInstrumentedActivityScenario
 
     private fun setDelegates(walletDelegate: SignClient.WalletDelegate, dappDelegate: SignClient.DappDelegate) {
         WalletSignClient.setWalletDelegate(walletDelegate)
@@ -24,7 +24,7 @@ class SignClientIntegrationAndroidTest {
     fun pair() {
         setDelegates(WalletDelegate(), DappDelegate())
 
-        scenarioExtension.launch(10L) {
+        scenarioExtension.launch(30L) {
             TestClient.Dapp.Pairing.getPairings().let { pairings ->
                 if (pairings.isEmpty()) {
                     Timber.d("pairings.isEmpty() == true")
@@ -78,7 +78,7 @@ class SignClientIntegrationAndroidTest {
 
         setDelegates(walletDelegate, dappDelegate)
 
-        scenarioExtension.launch(10L) {
+        scenarioExtension.launch(30L) {
             val namespaces: Map<String, Sign.Model.Namespace.Proposal> = mapOf("eip155" to Sign.Model.Namespace.Proposal(listOf("eip155:1"), listOf("someMethod"), listOf("someEvent")))
 
             val dappClientConnect = { pairing: Core.Model.Pairing ->
