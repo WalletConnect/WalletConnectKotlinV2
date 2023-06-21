@@ -60,8 +60,10 @@ import com.walletconnect.push.wallet.data.MessagesRepository
 import com.walletconnect.push.wallet.data.wellknown.did.DidJsonDTO
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.generateId
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -238,36 +240,49 @@ internal class PushWalletEngine(
         )
     }
 
-    suspend fun approve(requestId: Long, onSign: (String) -> Cacao.Signature?, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
-        val respondedSubscription = subscriptionStorageRepository.getSubscriptionsByRequestId(requestId)
-        val dappPublicKey = respondedSubscription.peerPublicKey ?: return@supervisorScope onFailure(IllegalArgumentException("Invalid dapp public key"))
-        val responseTopic = respondedSubscription.responseTopic //sha256(dappPublicKey.keyAsBytes)
+    suspend fun approve(proposalRequestId: Long, onSign: (String) -> Cacao.Signature?, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
+        val proposal = proposalStorageRepository.getProposalByRequestId(proposalRequestId) ?: return@supervisorScope onFailure(IllegalArgumentException("Invalid proposal request id"))
 
-        val didJwt = registerIdentityAndReturnDidJwt(respondedSubscription.account, respondedSubscription.metadata.url, emptyList(), onSign, onFailure).getOrElse { error ->
-            return@supervisorScope onFailure(error)
-        }
-        val selfPublicKey = crypto.generateAndStoreX25519KeyPair()
-        val pushTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, dappPublicKey)
-        val approvalParams = PushParams.RequestResponseParams(didJwt.value)
-        val irnParams = IrnParams(Tags.PUSH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
+        subscribeToDapp(
+            dappUri = proposal.dappMetaData.url.toUri(),
+            account = proposal.accountId.value,
+            onSign = onSign,
+            onSuccess = { subscriptionRequestId, didJwt ->
+                CoroutineScope(SupervisorJob() + scope.coroutineContext).launch(Dispatchers.IO) {
+                    enginePushSubscriptionNotifier.newlyCreatedPushSubscription.asStateFlow()
+                        .filter { subscription ->
+                            subscription != null && subscription.requestId == subscriptionRequestId && subscription.subscriptionTopic != null
+                        }
+                        .filterNotNull()
+                        .onEach { subscription ->
+                            val responseTopic = Topic(sha256(proposal.dappPublicKey.keyAsBytes))
+                            // Wallet generates key pair Z
+                            val selfPublicKey = crypto.generateAndStoreX25519KeyPair()
+                            val symKey = crypto.getSymmetricKey(subscription.subscriptionTopic!!.value)
+                            val params = PushParams.ProposeResponseParams(didJwt.value, symKey.keyAsHex)
 
-        subscriptionStorageRepository.updateSubscriptionToRespondedByApproval(responseTopic.value, pushTopic.value, didJwt.value, calcExpiry())
+                            jsonRpcInteractor.respondWithParams(
+                                proposal.requestId,
+                                responseTopic,
+                                clientParams = params,
+                                irnParams = IrnParams(tag = Tags.PUSH_PROPOSE_RESPONSE, ttl = Ttl(DAY_IN_SECONDS)),
+                                envelopeType = EnvelopeType.ONE,
+                                participants = Participants(
+                                    senderPublicKey = selfPublicKey,
+                                    receiverPublicKey = proposal.dappPublicKey
+                                )
+                            ) { error ->
+                                return@respondWithParams onFailure(error)
+                            }
 
-        jsonRpcInteractor.subscribe(pushTopic) { error ->
-            return@subscribe onFailure(error)
-        }
-        jsonRpcInteractor.respondWithParams(
-            respondedSubscription.requestId,
-            responseTopic,
-            approvalParams,
-            irnParams,
-            envelopeType = EnvelopeType.ONE,
-            participants = Participants(selfPublicKey, dappPublicKey)
-        ) { error ->
-            return@respondWithParams onFailure(error)
-        }
-
-        onSuccess()
+                            onSuccess()
+                        }.launchIn(this)
+                }
+            },
+            onFailure = {
+                onFailure(it)
+            }
+        )
     }
 
     suspend fun reject(requestId: Long, reason: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
