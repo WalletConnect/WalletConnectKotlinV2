@@ -5,6 +5,7 @@ package com.walletconnect.push.wallet.engine
 import android.content.res.Resources.NotFoundException
 import android.net.Uri
 import android.util.Base64
+import androidx.core.net.toUri
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.codec.Codec
@@ -65,6 +66,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -76,7 +78,6 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import java.net.URL
@@ -141,7 +142,7 @@ internal class PushWalletEngine(
             .launchIn(scope)
     }
 
-    suspend fun subscribeToDapp(dappUri: Uri, account: String, onSign: (String) -> Cacao.Signature?, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
+    suspend fun subscribeToDapp(dappUri: Uri, account: String, onSign: (String) -> Cacao.Signature?, onSuccess: (Long, DidJwt) -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         suspend fun createSubscription(dappPublicKey: PublicKey, dappScopes: List<EngineDO.PushScope.Remote>) {
             val subscribeTopic = Topic(sha256(dappPublicKey.keyAsBytes))
             val selfPublicKey = crypto.generateAndStoreX25519KeyPair()
@@ -182,6 +183,29 @@ internal class PushWalletEngine(
             val request = PushRpc.PushSubscribe(params = params)
             val irnParams = IrnParams(Tags.PUSH_SUBSCRIBE, Ttl(DAY_IN_SECONDS))
 
+            coroutineScope {
+                launch {
+                    subscriptionStorageRepository.insertSubscription(
+                        requestId = request.id,
+                        keyAgreementTopic = responseTopic.value,
+                        responseTopic = subscribeTopic.value,
+                        peerPublicKeyAsHex = null,
+                        subscriptionTopic = null,
+                        account = account,
+                        relayProtocol = null,
+                        relayData = null,
+                        name = dappMetaData.name,
+                        description = dappMetaData.description,
+                        url = dappMetaData.url,
+                        icons = dappMetaData.icons,
+                        native = dappMetaData.redirect?.native,
+                        didJwt = didJwt.value,
+                        mapOfScope = dappScopes.associate { scope -> scope.name to Pair(scope.description, true) },
+                        expiry = calcExpiry()
+                    )
+                }
+            }
+
             jsonRpcInteractor.subscribe(responseTopic) { error ->
                 return@subscribe onFailure(error)
             }
@@ -193,28 +217,7 @@ internal class PushWalletEngine(
                 envelopeType = EnvelopeType.ONE,
                 participants = Participants(selfPublicKey, dappPublicKey),
                 onSuccess = {
-                    runBlocking {
-                        subscriptionStorageRepository.insertSubscription(
-                            requestId = request.id,
-                            keyAgreementTopic = responseTopic.value,
-                            responseTopic = subscribeTopic.value,
-                            peerPublicKeyAsHex = null,
-                            subscriptionTopic = null,
-                            account = account,
-                            relayProtocol = null,
-                            relayData = null,
-                            name = dappMetaData.name,
-                            description = dappMetaData.description,
-                            url = dappMetaData.url,
-                            icons = dappMetaData.icons,
-                            native = dappMetaData.redirect?.native,
-                            didJwt = didJwt.value,
-                            mapOfScope = dappScopes.associate { scope -> scope.name to Pair(scope.description, true) },
-                            expiry = calcExpiry()
-                        )
-                    }
-
-                    onSuccess()
+                    onSuccess(request.id, didJwt)
                 },
                 onFailure = { error ->
                     onFailure(error)
