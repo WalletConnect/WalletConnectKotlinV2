@@ -34,7 +34,7 @@ internal class PushEventHandler(
     }
 
     override fun onPushProposal(pushProposal: Push.Wallet.Event.Proposal) {
-        TODO("Not yet implemented")
+        logger.log("onPushProposal: $pushProposal")
     }
 
     override fun onPushSubscription(pushSubscribe: Push.Wallet.Event.Subscription) {
