@@ -399,20 +399,22 @@ internal class PushWalletEngine(
             .onEach { request ->
                 when (val requestParams = request.params) {
                     is PushParams.RequestParams -> onPushRequest(request, requestParams)
-                    is PushParams.MessageParams -> onPushMessage(request, requestParams)
                     is PushParams.ProposeParams -> onPushPropose(request, requestParams)
+                    is PushParams.MessageParams -> onPushMessage(request, requestParams)
                     is PushParams.DeleteParams -> onPushDelete(request)
                 }
             }.launchIn(scope)
 
     private fun collectJsonRpcResponses(): Job =
-        jsonRpcInteractor.peerResponse.onEach { response ->
-            when (val responseParams = response.params) {
-                is PushParams.DeleteParams -> onPushDeleteResponse()
-                is PushParams.SubscribeParams -> onPushSubscribeResponse(response)
-                is PushParams.UpdateParams -> onPushUpdateResponse(response, responseParams)
-            }
-        }.launchIn(scope)
+        jsonRpcInteractor.peerResponse
+            .filter { response -> response.params is PushParams }
+            .onEach { response ->
+                when (val responseParams = response.params) {
+                    is PushParams.DeleteParams -> onPushDeleteResponse()
+                    is PushParams.SubscribeParams -> onPushSubscribeResponse(response)
+                    is PushParams.UpdateParams -> onPushUpdateResponse(response, responseParams)
+                }
+            }.launchIn(scope)
 
     private fun collectInternalErrors(): Job =
         merge(jsonRpcInteractor.internalErrors, pairingHandler.findWrongMethodsFlow)
