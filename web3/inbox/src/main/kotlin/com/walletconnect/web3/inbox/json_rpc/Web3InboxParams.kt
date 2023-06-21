@@ -252,6 +252,13 @@ internal sealed interface Web3InboxParams : ClientParams {
             ) : Push
 
             @JsonClass(generateAdapter = true)
+            data class ProposeParams(
+                val id: Long,
+                val account: String,
+                val metadata: AppMetaDataParams,
+            ) : Push
+
+            @JsonClass(generateAdapter = true)
             data class MessageParams(
                 val message: MessageRecord,
             ) : Push {

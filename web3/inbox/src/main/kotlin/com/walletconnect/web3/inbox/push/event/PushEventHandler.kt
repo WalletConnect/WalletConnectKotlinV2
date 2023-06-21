@@ -8,6 +8,7 @@ import com.walletconnect.push.wallet.client.PushWalletClient
 internal class PushEventHandler(
     private val logger: Logger,
     private val onRequestPushEventUseCase: OnRequestPushEventUseCase,
+    private val onProposePushEventUseCase: OnProposePushEventUseCase,
     private val onMessagePushEventUseCase: OnMessagePushEventUseCase,
     private val onDeletePushEventUseCase: OnDeletePushEventUseCase,
     private val onSubscriptionPushEventUseCase: OnSubscriptionPushEventUseCase,
@@ -35,6 +36,7 @@ internal class PushEventHandler(
 
     override fun onPushProposal(pushProposal: Push.Wallet.Event.Proposal) {
         logger.log("onPushProposal: $pushProposal")
+        onProposePushEventUseCase(pushProposal)
     }
 
     override fun onPushSubscription(pushSubscribe: Push.Wallet.Event.Subscription) {
