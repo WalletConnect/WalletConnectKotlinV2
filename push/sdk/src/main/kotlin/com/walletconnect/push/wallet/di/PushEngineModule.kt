@@ -12,17 +12,16 @@ internal fun walletEngineModule() = module {
 
     single {
         PushWalletEngine(
-            keyserverUrl = get(named(AndroidCommonDITags.KEYSERVER_URL)),
-            jsonRpcInteractor = get(),
-            crypto = get(),
-            pairingHandler = get(),
-            subscriptionStorageRepository = get(),
+            keyserverUrl = get(named(AndroidCommonDITags.KEYSERVER_URL)), get(), get(), get(), get(),
+            proposalStorageRepository = get(),
             messagesRepository = get(),
+            enginePushSubscriptionNotifier = get(),
             identitiesInteractor = get(),
             serializer = get(),
             explorerRepository = get(),
             extractPushConfigUseCase = get(),
-            logger = get()
+            codec = get(),
+            logger = get(),
         )
     }
 }
