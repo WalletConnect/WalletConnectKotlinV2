@@ -85,6 +85,7 @@ internal class PushWalletEngine(
     private val crypto: KeyManagementRepository,
     private val pairingHandler: PairingControllerInterface,
     private val subscriptionStorageRepository: SubscriptionStorageRepository,
+    private val proposalStorageRepository: ProposalStorageRepository,
     private val messagesRepository: MessagesRepository,
     private val identitiesInteractor: IdentitiesInteractor,
     private val serializer: JsonRpcSerializer,
