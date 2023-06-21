@@ -333,7 +333,7 @@ internal class PushDappEngine(
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcResult -> {
                     val selfPublicKey = PublicKey(params.publicKey)
-                    val pushRequestResponse = response.result as PushParams.RequestResponseParams
+                    val pushRequestResponse = response.result as PushParams.ProposeResponseParams
                     val pushSubscriptionJwtClaim = extractVerifiedDidJwtClaims<PushSubscriptionJwtClaim>(pushRequestResponse.subscriptionAuth).getOrElse { error ->
                         _engineEvent.emit(SDKError(error))
                         return@supervisorScope
