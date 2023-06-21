@@ -28,7 +28,7 @@ jobs:
         ]
         api-level: [ 23, 32 ]
         target: [ google_apis ]
-    name: ${{ matrix.conf.name }}
+    name: ${{ matrix.conf.name }} on ${{ matrix.api-level }}-${{ matrix.target }}
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
