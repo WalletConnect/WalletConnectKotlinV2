@@ -37,7 +37,6 @@ import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
-import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.internal.utils.CURRENT_TIME_IN_SECONDS
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
 import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
@@ -95,6 +94,7 @@ internal class PushWalletEngine(
     private val serializer: JsonRpcSerializer,
     private val explorerRepository: ExplorerRepository,
     private val extractPushConfigUseCase: ExtractPushConfigUseCase,
+    private val codec: Codec,
     private val logger: Logger,
 ) {
     private var jsonRpcRequestsJob: Job? = null
@@ -377,14 +377,13 @@ internal class PushWalletEngine(
         }
     }
 
-    fun decryptMessage(topic: String, message: String, onSuccess: (EngineDO.PushMessage) -> Unit, onFailure: (Throwable) -> Unit) {
+    suspend fun decryptMessage(topic: String, message: String, onSuccess: (EngineDO.PushMessage) -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         try {
-            val codec = wcKoinApp.koin.get<Codec>()
             val decryptedMessageString = codec.decrypt(Topic(topic), message)
             // How to look in JsonRpcHistory for dupes without Rpc ID
-            val clientJsonRpc = serializer.tryDeserialize<ClientJsonRpc>(decryptedMessageString) ?: return onFailure(IllegalArgumentException("Unable to deserialize message"))
+            val clientJsonRpc = serializer.tryDeserialize<ClientJsonRpc>(decryptedMessageString) ?: return@supervisorScope onFailure(IllegalArgumentException("Unable to deserialize message"))
             val pushMessage = serializer.deserialize(clientJsonRpc.method, decryptedMessageString)
-            val pushMessageEngineDO = PushParams.MessageParams::class.safeCast(pushMessage)?.toEngineDO() ?: return onFailure(IllegalArgumentException("Unable to deserialize message"))
+            val pushMessageEngineDO = PushParams.MessageParams::class.safeCast(pushMessage)?.toEngineDO() ?: return@supervisorScope onFailure(IllegalArgumentException("Unable to deserialize message"))
 
             onSuccess(pushMessageEngineDO)
         } catch (e: Exception) {
