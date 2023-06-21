@@ -50,6 +50,7 @@ import com.walletconnect.push.common.PeerError
 import com.walletconnect.push.common.calcExpiry
 import com.walletconnect.push.common.data.jwt.EncodePushAuthDidJwtPayloadUseCase
 import com.walletconnect.push.common.data.jwt.PushSubscriptionJwtClaim
+import com.walletconnect.push.common.data.storage.ProposalStorageRepository
 import com.walletconnect.push.common.data.storage.SubscriptionStorageRepository
 import com.walletconnect.push.common.domain.ExtractPushConfigUseCase
 import com.walletconnect.push.common.model.EngineDO
