@@ -89,7 +89,7 @@ internal class JsonRpcInteractor(
 
             relay.publish(topic.value, encryptedRequest, params.toRelay()) { result ->
                 result.fold(
-                    onSuccess = { onSuccess()},
+                    onSuccess = { onSuccess() },
                     onFailure = { error -> onFailure(error) }
                 )
             }

@@ -13,7 +13,7 @@ interface EncodeDidJwtPayloadUseCase<R: JwtClaims> {
     operator fun invoke(params: Params): R
 
     data class Params(val identityPublicKey: PublicKey, val keyserverUrl: String) {
-        private val iatAndExp = jwtIatAndExp(timeunit = TimeUnit.MILLISECONDS, expirySourceDuration = 30, expiryTimeUnit = TimeUnit.DAYS)
+        private val iatAndExp = jwtIatAndExp(timeunit = TimeUnit.SECONDS, expirySourceDuration = 30, expiryTimeUnit = TimeUnit.DAYS)
 
         val issuedAt: Long
             get() = iatAndExp.first
