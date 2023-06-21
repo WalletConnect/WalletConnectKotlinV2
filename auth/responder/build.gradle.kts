@@ -43,9 +43,12 @@ dependencies {
     debugImplementation(project(":androidCore:sdk"))
     debugImplementation(project(":auth:sdk"))
 
-    releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
-    releaseImplementation("com.walletconnect:android-core")
-    releaseImplementation("com.walletconnect:auth")
+    releaseImplementation(project(":androidCore:sdk"))
+    releaseImplementation(project(":auth:sdk"))
+
+//    releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
+//    releaseImplementation("com.walletconnect:android-core")
+//    releaseImplementation("com.walletconnect:auth")
 
     glide_N_kapt()
     scanner()

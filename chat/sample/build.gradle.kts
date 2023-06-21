@@ -45,9 +45,12 @@ dependencies {
     debugImplementation(project(":androidCore:sdk"))
     debugImplementation(project(":chat:sdk"))
 
-    releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
-    releaseImplementation("com.walletconnect:android-core")
-    releaseImplementation("com.walletconnect:chat")
+    releaseImplementation(project(":androidCore:sdk"))
+    releaseImplementation(project(":chat:sdk"))
+
+//    releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
+//    releaseImplementation("com.walletconnect:android-core")
+//    releaseImplementation("com.walletconnect:chat")
 
     lifecycle()
     navigationComponent()

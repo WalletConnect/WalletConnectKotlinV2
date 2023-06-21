@@ -23,7 +23,11 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.walletconnect.sample_common.viewBinding
-import com.walletconnect.wallet.*
+import com.walletconnect.wallet.PUSH_REQUEST_ARGS_NUM_KEY
+import com.walletconnect.wallet.PUSH_REQUEST_KEY
+import com.walletconnect.wallet.R
+import com.walletconnect.wallet.SESSION_REQUEST_ARGS_NUM_KEY
+import com.walletconnect.wallet.SESSION_REQUEST_KEY
 import com.walletconnect.wallet.databinding.ActivityWalletBinding
 import com.walletconnect.wallet.ui.SampleWalletEvents
 import kotlinx.coroutines.flow.launchIn
@@ -74,7 +78,7 @@ class WalletSampleActivity : AppCompatActivity() {
                     }
                     is SampleWalletEvents.PushMessage -> {
                         val notificationBuilder = NotificationCompat.Builder(this, "Push")
-                            .setSmallIcon(R.drawable.ic_walletconnect_circle_blue)
+                            .setSmallIcon(com.walletconnect.sample_common.R.drawable.ic_walletconnect_circle_blue)
                             .setContentText(event.title)
                             .setContentText(event.body)
                             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
