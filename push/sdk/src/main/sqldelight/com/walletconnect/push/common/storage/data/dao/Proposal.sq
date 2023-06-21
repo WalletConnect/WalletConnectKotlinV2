@@ -1,0 +1,19 @@
+import com.walletconnect.android.internal.common.model.AppMetaData;
+
+CREATE TABLE Proposal(
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    request_id INTEGER UNIQUE NOT NULL,
+    push_propose_topic TEXT UNIQUE NOT NULL,
+    dapp_public_key_as_hex TEXT NOT NULL,
+    account TEXT NOT NULL,
+    dapp_metadata TEXT AS AppMetaData NOT NULL
+);
+
+insertProposal:
+INSERT OR IGNORE INTO Proposal(request_id, push_propose_topic, dapp_public_key_as_hex, account, dapp_metadata)
+VALUES(?, ?, ?, ?, ?);
+
+getProposalByRequestId:
+SELECT request_id, push_propose_topic, dapp_public_key_as_hex, account, dapp_metadata
+FROM Proposal
+WHERE request_id = ?;
