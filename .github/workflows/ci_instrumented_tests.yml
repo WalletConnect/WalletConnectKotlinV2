@@ -27,16 +27,17 @@ jobs:
         conf: [
           { name: Sign SDK, command: ":sign:sdk:connectedCheck" },
         ]
-        api-level: [ 32 ]
+        api-level: [ 23, 32 ]
         target: [ google_apis ]
-        profile: [ Nexus 6, Galaxy S4 ]
-        include:
-          - api-level: 23
-            target: google_apis
-            profile: Nexus 6
-            conf: { name: Sign SDK, command: ":sign:sdk:connectedCheck" }
+        profile: [ Nexus 6 ]
+#        Example of adding individual entry:
+#        include:
+#          - api-level: 23
+#            target: google_apis
+#            profile: Nexus 6
+#            conf: { name: Sign SDK, command: ":sign:sdk:connectedCheck" }
 
-    name: ${{ matrix.conf.name }} on ${{ matrix.profile }}_${{ matrix.api-level }}-${{ matrix.target }}
+    name: ${{ matrix.conf.name }} Profile ${{ matrix.profile }}, API ${{ matrix.api-level }}, Target ${{ matrix.target }}
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
