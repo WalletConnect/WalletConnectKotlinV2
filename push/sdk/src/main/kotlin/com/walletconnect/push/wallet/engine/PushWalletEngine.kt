@@ -59,6 +59,7 @@ import com.walletconnect.push.common.model.PushRpc
 import com.walletconnect.push.common.model.toEngineDO
 import com.walletconnect.push.wallet.data.MessagesRepository
 import com.walletconnect.push.wallet.data.wellknown.did.DidJsonDTO
+import com.walletconnect.push.wallet.engine.domain.EnginePushSubscriptionNotifier
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.generateId
 import kotlinx.coroutines.CoroutineScope

@@ -1,4 +1,6 @@
-package com.walletconnect.push.wallet.engine
+@file:JvmSynthetic
+
+package com.walletconnect.push.wallet.engine.domain
 
 import com.walletconnect.push.common.model.EngineDO
 import kotlinx.coroutines.flow.MutableStateFlow
