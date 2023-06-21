@@ -2,7 +2,10 @@
 
 package com.walletconnect.sign.common.adapters
 
-import com.squareup.moshi.*
+import com.squareup.moshi.JsonAdapter
+import com.squareup.moshi.JsonReader
+import com.squareup.moshi.JsonWriter
+import com.squareup.moshi.Moshi
 import com.squareup.moshi.internal.Util
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionRequestVO
 import org.json.JSONArray
@@ -107,7 +110,7 @@ internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRe
                         is Number -> rootArray.put(value.toString())
                         else -> throw IllegalArgumentException("Failed Deserializing Unknown Type $value")
                     }
-                } catch (e: JsonEncodingException) {
+                } catch (e: Exception) {
                     rootArray.put(value)
                 }
                 is Number -> {
