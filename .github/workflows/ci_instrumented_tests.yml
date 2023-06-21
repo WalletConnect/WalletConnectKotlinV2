@@ -32,8 +32,10 @@ jobs:
         profile: [ Nexus 6, Galaxy S4 ]
         include:
           - api-level: 23
-          - target:  google_apis
+          - target: google_apis
           - profile: Nexus 6
+          - conf: { name: Sign SDK, command: ":sign:sdk:connectedCheck" }
+
     name: ${{ matrix.conf.name }} on ${{ matrix.profile }}_${{ matrix.api-level }}-${{ matrix.target }}
     runs-on: macos-latest
     steps:
@@ -61,6 +63,9 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api-level }}
+          target: ${{ matrix.target }}
+          arch: x86_64
+          profile: ${{ matrix.profile }}
           force-avd-creation: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: false
