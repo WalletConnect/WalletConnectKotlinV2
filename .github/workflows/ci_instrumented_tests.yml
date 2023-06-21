@@ -32,9 +32,9 @@ jobs:
         profile: [ Nexus 6, Galaxy S4 ]
         include:
           - api-level: 23
-          - target: google_apis
-          - profile: Nexus 6
-          - conf: { name: Sign SDK, command: ":sign:sdk:connectedCheck" }
+            target: google_apis
+            profile: Nexus 6
+            conf: { name: Sign SDK, command: ":sign:sdk:connectedCheck" }
 
     name: ${{ matrix.conf.name }} on ${{ matrix.profile }}_${{ matrix.api-level }}-${{ matrix.target }}
     runs-on: macos-latest
