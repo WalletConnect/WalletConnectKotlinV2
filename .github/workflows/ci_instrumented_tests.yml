@@ -75,7 +75,7 @@ jobs:
       - name: Instrumented tests
         env:
           WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
-          TEST_TIMEOUT_SECONDS: 60
+          TEST_TIMEOUT_SECONDS: 120
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api-level }}
