@@ -28,21 +28,20 @@ jobs:
         conf: [
           { name: Sign SDK, command: ":sign:sdk:connectedCheck" },
         ]
-        api-level: [ 23, 32, 33, 34 ]
+        api-level: [ 26, 32, 33, 34 ] # JUnit5 only supports API younger or equal to 26
         target: [ google_apis ]
         profile: [ Nexus 6 ]
         arch: [ x86_64 ]
-#        Example of adding individual entry:
-#        include:
-#          - api-level: 23
-#            target: google_apis
-#            profile: Nexus 6
-#            conf: { name: Sign SDK, command: ":sign:sdk:connectedCheck" }
 
     name: ${{ matrix.conf.name }} API ${{ matrix.api-level }}-${{ matrix.target }}-${{ matrix.profile }}-${{ matrix.arch }}
     runs-on: macos-latest-xl
     steps:
       - uses: actions/checkout@v3
+
+      - name: Display test timeout in seconds
+        env:
+            TEST_TIMEOUT_SECONDS: 180
+        run: echo $TEST_TIMEOUT_SECONDS
 
       - uses: actions/setup-java@v3
         with:
