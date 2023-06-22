@@ -26,13 +26,12 @@ jobs:
       fail-fast: false
       matrix:
         conf: [
-          { name: Sign SDK, command: ":sign:sdk:connectedCheck" },
+          { name: Sign SDK, command: ":sign:sdk:connectedCheck", report: file:///Users/runner/work/WalletConnectKotlinV2/WalletConnectKotlinV2/sign/sdk/build/reports/androidTests/connected/index.html },
         ]
         api-level: [ 26, 32, 33, 34 ] # JUnit5 only supports API younger or equal to 26
         target: [ google_apis ]
         profile: [ Nexus 6 ]
         arch: [ x86_64 ]
-        report: [ file:///Users/runner/work/WalletConnectKotlinV2/WalletConnectKotlinV2/sign/sdk/build/reports/androidTests/connected/index.html ]
 
     name: ${{ matrix.conf.name }} API ${{ matrix.api-level }}-${{ matrix.target }}-${{ matrix.profile }}-${{ matrix.arch }}
     runs-on: macos-latest
@@ -99,7 +98,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.conf.name }} API ${{ matrix.api-level }}-${{ matrix.target }}-${{ matrix.profile }}-${{ matrix.arch }}
-          path: ${{ matrix.report }}
+          path: ${{ matrix.conf.report }}
 
       - name: Stop Gradle
         run: ./gradlew --stop
