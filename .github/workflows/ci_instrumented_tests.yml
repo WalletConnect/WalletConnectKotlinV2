@@ -38,7 +38,7 @@ jobs:
 #            profile: Nexus 6
 #            conf: { name: Sign SDK, command: ":sign:sdk:connectedCheck" }
 
-    name: ${{ matrix.conf.name }} API ${{ matrix.api-level }}-${{ matrix.target }}-${{ matrix.profile }}
+    name: ${{ matrix.conf.name }} API ${{ matrix.api-level }}-${{ matrix.target }}-${{ matrix.profile }}-${{ matrix.arch }}
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
