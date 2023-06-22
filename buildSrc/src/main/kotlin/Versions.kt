@@ -16,7 +16,7 @@ const val WEB_3_WALLET = "1.9.1"
 const val WEB_3_INBOX = "1.0.0-alpha12"
 const val WEB_3_MODAL = "1.0.0-alpha03"
 
-val jvmVersion = JavaVersion.VERSION_11
+val jvmVersion = JavaVersion.VERSION_17
 const val MIN_SDK: Int = 23
 const val TARGET_SDK: Int = 33
 const val COMPILE_SDK: Int = TARGET_SDK
