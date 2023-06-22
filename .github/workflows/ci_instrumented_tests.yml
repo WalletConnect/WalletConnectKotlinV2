@@ -39,7 +39,7 @@ jobs:
 #            conf: { name: Sign SDK, command: ":sign:sdk:connectedCheck" }
 
     name: ${{ matrix.conf.name }} API ${{ matrix.api-level }}-${{ matrix.target }}-${{ matrix.profile }}-${{ matrix.arch }}
-    runs-on: macos-latest
+    runs-on: macos-latest-xl
     steps:
       - uses: actions/checkout@v3
 
@@ -76,7 +76,7 @@ jobs:
       - name: Instrumented tests
         env:
           WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
-          TEST_TIMEOUT_SECONDS: 120
+          TEST_TIMEOUT_SECONDS: 180
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api-level }}
