@@ -20,6 +20,11 @@ class SignClientInstrumentedAndroidTest {
         DappSignClient.setDappDelegate(dappDelegate)
     }
 
+    private fun launch(walletDelegate: SignClient.WalletDelegate, dappDelegate: SignClient.DappDelegate) {
+        setDelegates(walletDelegate, dappDelegate)
+        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { pairAndConnect() }
+    }
+
     @Test
     fun pair() {
         setDelegates(WalletDelegate(), DappDelegate())
@@ -31,9 +36,7 @@ class SignClientInstrumentedAndroidTest {
     fun establishSession() {
         val walletDelegate = AutoApproveSessionWalletDelegate()
         val dappDelegate = AutoApproveDappDelegate { scenarioExtension.closeAsSuccess() }
-        setDelegates(walletDelegate, dappDelegate)
-
-        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { pairAndConnect() }
+        launch(walletDelegate, dappDelegate)
     }
 
     @Test
@@ -49,10 +52,7 @@ class SignClientInstrumentedAndroidTest {
                 scenarioExtension.closeAsSuccess()
             }
         }
-
-        setDelegates(walletDelegate, dappDelegate)
-
-        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { pairAndConnect() }
+        launch(walletDelegate, dappDelegate)
     }
 
     @Test
@@ -73,10 +73,7 @@ class SignClientInstrumentedAndroidTest {
 
         val dappDelegate = AutoApproveDappDelegate(onSessionApprovedSuccess)
 
-        setDelegates(walletDelegate, dappDelegate)
-
-        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong())
-        { pairAndConnect() }
+        launch(walletDelegate, dappDelegate)
     }
 
     @Test
@@ -96,10 +93,7 @@ class SignClientInstrumentedAndroidTest {
                 scenarioExtension.closeAsSuccess()
             }
         }
-
-        setDelegates(walletDelegate, dappDelegate)
-
-        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { pairAndConnect() }
+        launch(walletDelegate, dappDelegate)
     }
 
     @Test
@@ -122,10 +116,7 @@ class SignClientInstrumentedAndroidTest {
                 }
             }
         }
-
-        setDelegates(walletDelegate, dappDelegate)
-
-        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { pairAndConnect() }
+        launch(walletDelegate, dappDelegate)
     }
 
     @Test
@@ -148,10 +139,7 @@ class SignClientInstrumentedAndroidTest {
                 }
             }
         }
-
-        setDelegates(walletDelegate, dappDelegate)
-
-        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { pairAndConnect() }
+        launch(walletDelegate, dappDelegate)
     }
 
     @Test
@@ -168,10 +156,7 @@ class SignClientInstrumentedAndroidTest {
                 scenarioExtension.closeAsSuccess()
             }
         }
-
-        setDelegates(walletDelegate, dappDelegate)
-
-        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { pairAndConnect() }
+        launch(walletDelegate, dappDelegate)
     }
 
     @Test
@@ -189,10 +174,7 @@ class SignClientInstrumentedAndroidTest {
                 scenarioExtension.closeAsSuccess()
             }
         }
-
-        setDelegates(walletDelegate, dappDelegate)
-
-        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { pairAndConnect() }
+        launch(walletDelegate, dappDelegate)
     }
 
     @Test
@@ -209,8 +191,6 @@ class SignClientInstrumentedAndroidTest {
             }
         }
 
-        setDelegates(walletDelegate, dappDelegate)
-
-        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { pairAndConnect() }
+        launch(walletDelegate, dappDelegate)
     }
 }
