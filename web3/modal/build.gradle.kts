@@ -78,18 +78,14 @@ dependencies {
     // Qrcode generator
     implementation("com.github.alexzhirkevich:custom-qr-generator:1.6.1")
 
-//    releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
-//    releaseImplementation("com.walletconnect:android-core")
-//    releaseImplementation("com.walletconnect:sign")
-//    releaseImplementation("com.walletconnect:auth")
+    releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
+    releaseImplementation("com.walletconnect:android-core")
+    releaseImplementation("com.walletconnect:sign")
+    releaseImplementation("com.walletconnect:auth")
 
     debugImplementation(project(":androidCore:sdk"))
     debugImplementation(project(":sign:sdk"))
     debugImplementation(project(":auth:sdk"))
-
-    releaseImplementation(project(":androidCore:sdk"))
-    releaseImplementation(project(":sign:sdk"))
-    releaseImplementation(project(":auth:sdk"))
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

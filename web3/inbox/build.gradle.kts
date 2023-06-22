@@ -71,11 +71,7 @@ dependencies {
     debugImplementation(project(":push:sdk"))
     debugImplementation(project(":androidCore:sdk"))
 
-    releaseImplementation(project(":chat:sdk"))
-    releaseImplementation(project(":push:sdk"))
-    releaseImplementation(project(":androidCore:sdk"))
-
-//    releaseImplementation("com.walletconnect:chat:$CHAT_VERSION")
-//    releaseImplementation("com.walletconnect:push:$PUSH_VERSION")
-//    releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
+    releaseImplementation("com.walletconnect:chat:$CHAT_VERSION")
+    releaseImplementation("com.walletconnect:push:$PUSH_VERSION")
+    releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
 }

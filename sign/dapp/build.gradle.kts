@@ -48,14 +48,10 @@ dependencies {
     debugImplementation(project(":sign:sdk"))
     debugImplementation(project(":push:sdk"))
 
-    releaseImplementation(project(":androidCore:sdk"))
-    releaseImplementation(project(":sign:sdk"))
-    releaseImplementation(project(":push:sdk"))
-
-//    releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
-//    releaseImplementation("com.walletconnect:android-core")
-//    releaseImplementation("com.walletconnect:sign")
-//    releaseImplementation("com.walletconnect:push")
+    releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
+    releaseImplementation("com.walletconnect:android-core")
+    releaseImplementation("com.walletconnect:sign")
+    releaseImplementation("com.walletconnect:push")
 
     glide_N_kapt()
     implementation("com.github.kenglxn.QRGen:android:2.6.0")
