@@ -95,5 +95,10 @@ jobs:
           disable-animations: true
           script: ./gradlew ${{ matrix.conf.command }}
 
+      - uses: actions/upload-artifact@v3
+        with:
+          name: sign_report
+          path: file:///Users/runner/work/WalletConnectKotlinV2/WalletConnectKotlinV2/sign/sdk/build/reports/androidTests/connected/index.html
+
       - name: Stop Gradle
         run: ./gradlew --stop
