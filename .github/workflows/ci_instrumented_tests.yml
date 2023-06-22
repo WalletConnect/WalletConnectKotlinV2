@@ -26,7 +26,7 @@ jobs:
       fail-fast: false
       matrix:
         conf: [
-          { name: Sign SDK, command: ":sign:sdk:connectedCheck", report: '/Users/runner/work/WalletConnectKotlinV2/WalletConnectKotlinV2/sign/sdk/build/reports/androidTests/connected/index.html' },
+          { name: Sign SDK, command: ":sign:sdk:connectedCheck", report: '/Users/runner/work/WalletConnectKotlinV2/WalletConnectKotlinV2/sign/sdk/build/reports/androidTests/connected/**/*' },
         ]
         api-level: [ 32 ] # JUnit5 only supports API younger or equal to 26
         target: [ google_apis ]
@@ -34,7 +34,7 @@ jobs:
         arch: [ x86_64 ]
 
     name: ${{ matrix.conf.name }} API ${{ matrix.api-level }}-${{ matrix.target }}-${{ matrix.profile }}-${{ matrix.arch }}
-    runs-on: macos-latest-xl
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
 
