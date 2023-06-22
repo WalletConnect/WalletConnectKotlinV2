@@ -28,8 +28,9 @@ jobs:
           { name: Sign SDK, command: ":sign:sdk:connectedCheck" },
         ]
         api-level: [ 23, 32, 33, 34 ]
-        target: [ google_apis ]
+        target: [ default ]
         profile: [ Nexus 6 ]
+        arch: [ x86_64 ]
 #        Example of adding individual entry:
 #        include:
 #          - api-level: 23
@@ -65,7 +66,7 @@ jobs:
         with:
           api-level: ${{ matrix.api-level }}
           target: ${{ matrix.target }}
-          arch: x86_64
+          arch: ${{ matrix.arch }}
           profile: ${{ matrix.profile }}
           force-avd-creation: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
@@ -80,7 +81,7 @@ jobs:
         with:
           api-level: ${{ matrix.api-level }}
           target: ${{ matrix.target }}
-          arch: x86_64
+          arch: ${{ matrix.arch }}
           profile: ${{ matrix.profile }}
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
