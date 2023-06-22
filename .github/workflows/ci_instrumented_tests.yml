@@ -96,6 +96,7 @@ jobs:
           script: ./gradlew ${{ matrix.conf.command }}
 
       - uses: actions/upload-artifact@v3
+        if: always()
         with:
           name: ${{ matrix.conf.name }} API ${{ matrix.api-level }}-${{ matrix.target }}-${{ matrix.profile }}-${{ matrix.arch }}
           path: ${{ matrix.conf.report }}
