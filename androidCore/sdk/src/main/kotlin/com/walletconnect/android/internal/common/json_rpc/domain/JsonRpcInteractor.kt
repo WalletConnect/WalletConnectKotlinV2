@@ -312,8 +312,6 @@ internal class JsonRpcInteractor(
                         String.Empty
                     }
 
-                    println("kobe; Message: $message")
-
                     Pair(message, topic)
                 }.collect { (decryptedMessage, topic) ->
                     if (decryptedMessage.isNotEmpty()) {
