@@ -128,7 +128,7 @@ fun DependencyHandlerScope.jUnit5() {
 fun DependencyHandlerScope.jUnit5Android() {
     "testImplementation"(platform("org.junit:junit-bom:$jUnit5Version"))
     "androidTestImplementation"("org.junit.jupiter:junit-jupiter-api")
-    "testRuntimeOnly"("org.junit.jupiter:junit-jupiter-engine")
+    "androidTestRuntimeOnly"("org.junit.jupiter:junit-jupiter-engine")
 }
 
 fun DependencyHandlerScope.androidXTest() {

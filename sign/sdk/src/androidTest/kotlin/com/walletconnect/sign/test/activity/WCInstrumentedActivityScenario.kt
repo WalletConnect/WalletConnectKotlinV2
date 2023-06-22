@@ -99,12 +99,8 @@ object WCInstrumentedActivityScenario : BeforeAllCallback, AfterAllCallback {
 
         try {
             assertTrue(latch.await(timeoutSeconds, TimeUnit.SECONDS))
-        } catch (exception: InterruptedException) {
-            Assert.fail(exception.stackTraceToString())
-            testScope.cancel()
-        } catch (exception: IllegalArgumentException) {
-            Assert.fail(exception.stackTraceToString())
-            testScope.cancel()
+        } catch (exception: Exception) {
+            fail(exception)
         }
     }
 

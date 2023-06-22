@@ -1,6 +1,7 @@
 name: SDKs Instrumented Tests
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - develop
@@ -8,7 +9,7 @@ on:
     branches:
       - develop
       - master
-  workflow_dispatch:
+
 
 concurrency:
   # Support push/pr as event types with different behaviors each:
