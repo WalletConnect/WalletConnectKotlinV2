@@ -28,7 +28,7 @@ jobs:
           { name: Sign SDK, command: ":sign:sdk:connectedCheck" },
         ]
         api-level: [ 23, 32, 33, 34 ]
-        target: [ default ]
+        target: [ google_apis ]
         profile: [ Nexus 6 ]
         arch: [ x86_64 ]
 #        Example of adding individual entry:
