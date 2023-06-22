@@ -15,6 +15,7 @@ import com.walletconnect.sign.client.SignProtocol
 import com.walletconnect.sign.di.overrideModule
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.junit.jupiter.api.fail
 import org.koin.core.KoinApplication
 import timber.log.Timber
 
@@ -95,5 +96,25 @@ internal object TestClient {
     }
 }
 
-val WalletSignClient = TestClient.Wallet.signClient
-val DappSignClient = TestClient.Dapp.signClient
+fun pair(onPairSuccess: (pairing: Core.Model.Pairing) -> Unit) {
+    TestClient.Dapp.Pairing.getPairings().let { pairings ->
+        if (pairings.isEmpty()) {
+            Timber.d("pairings.isEmpty() == true")
+
+            val pairing = TestClient.Dapp.Pairing.create(onError = ::globalOnError) ?: fail("Unable to create a Pairing")
+            Timber.d("DappClient.pairing.create: $pairing")
+
+            TestClient.Wallet.Pairing.pair(Core.Params.Pair(pairing.uri), onError = ::globalOnError, onSuccess = {
+                Timber.d("WalletClient.pairing.pair: $pairing")
+                onPairSuccess(pairing)
+            })
+        } else {
+            Timber.d("pairings.isEmpty() == false")
+            onPairSuccess(pairings.first())
+        }
+    }
+}
+
+fun pairAndConnect() {
+    pair { pairing -> dappClientConnect(pairing) }
+}

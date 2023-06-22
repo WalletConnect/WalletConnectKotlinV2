@@ -9,7 +9,6 @@ import com.walletconnect.sign.test.utils.TestClient
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import org.junit.Assert
 import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.ExtensionContext
@@ -104,7 +103,7 @@ object WCInstrumentedActivityScenario : BeforeAllCallback, AfterAllCallback {
         }
     }
 
-    fun close() {
+    fun closeAsSuccess() {
         latch.countDown()
     }
 }

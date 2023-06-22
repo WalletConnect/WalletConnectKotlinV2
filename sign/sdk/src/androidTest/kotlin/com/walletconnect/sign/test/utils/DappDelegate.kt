@@ -2,22 +2,8 @@ package com.walletconnect.sign.test.utils
 
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
+import org.junit.jupiter.api.fail
 import timber.log.Timber
-
-
-open class WalletDelegate : SignClient.WalletDelegate {
-    override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest) {}
-    override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {}
-    override fun onSessionSettleResponse(settleSessionResponse: Sign.Model.SettledSessionResponse) {}
-    override fun onSessionUpdateResponse(sessionUpdateResponse: Sign.Model.SessionUpdateResponse) {}
-    override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal) {}
-    override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {
-        Timber.d("onConnectionStateChange: $state")
-    }
-    override fun onError(error: Sign.Model.Error) {
-        globalOnError(error)
-    }
-}
 
 open class DappDelegate : SignClient.DappDelegate {
     override fun onSessionRejected(rejectedSession: Sign.Model.RejectedSession) {}
@@ -30,7 +16,23 @@ open class DappDelegate : SignClient.DappDelegate {
     override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {
         Timber.d("onConnectionStateChange: $state")
     }
+
     override fun onError(error: Sign.Model.Error) {
         globalOnError(error)
     }
+}
+
+fun Sign.Model.ApprovedSession.onSessionApproved(onSuccess: () -> Unit) {
+    Timber.d("dappDelegate: onSessionApproved")
+
+    DappSignClient.ping(Sign.Params.Ping(topic), object : Sign.Listeners.SessionPing {
+        override fun onSuccess(pingSuccess: Sign.Model.Ping.Success) {
+            Timber.d("dappDelegate: onPingSuccess")
+            onSuccess()
+        }
+
+        override fun onError(pingError: Sign.Model.Ping.Error) {
+            fail(pingError.error)
+        }
+    })
 }
