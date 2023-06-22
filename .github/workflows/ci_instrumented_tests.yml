@@ -32,6 +32,7 @@ jobs:
         target: [ google_apis ]
         profile: [ Nexus 6 ]
         arch: [ x86_64 ]
+        report: [ file:///Users/runner/work/WalletConnectKotlinV2/WalletConnectKotlinV2/sign/sdk/build/reports/androidTests/connected/index.html ]
 
     name: ${{ matrix.conf.name }} API ${{ matrix.api-level }}-${{ matrix.target }}-${{ matrix.profile }}-${{ matrix.arch }}
     runs-on: macos-latest
@@ -97,8 +98,8 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
-          name: sign_report
-          path: file:///Users/runner/work/WalletConnectKotlinV2/WalletConnectKotlinV2/sign/sdk/build/reports/androidTests/connected/index.html
+          name: ${{ matrix.conf.name }} API ${{ matrix.api-level }}-${{ matrix.target }}-${{ matrix.profile }}-${{ matrix.arch }}
+          path: ${{ matrix.report }}
 
       - name: Stop Gradle
         run: ./gradlew --stop
