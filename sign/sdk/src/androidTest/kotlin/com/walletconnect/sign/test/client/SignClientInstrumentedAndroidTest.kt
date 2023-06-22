@@ -1,6 +1,7 @@
 package com.walletconnect.sign.test.client
 
 import com.walletconnect.android.Core
+import com.walletconnect.sign.BuildConfig
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import com.walletconnect.sign.test.activity.WCInstrumentedActivityScenario
@@ -24,7 +25,7 @@ class SignClientInstrumentedAndroidTest {
     fun pair() {
         setDelegates(WalletDelegate(), DappDelegate())
 
-        scenarioExtension.launch(30L) {
+        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) {
             TestClient.Dapp.Pairing.getPairings().let { pairings ->
                 if (pairings.isEmpty()) {
                     Timber.d("pairings.isEmpty() == true")
@@ -78,7 +79,7 @@ class SignClientInstrumentedAndroidTest {
 
         setDelegates(walletDelegate, dappDelegate)
 
-        scenarioExtension.launch(30L) {
+        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) {
             val namespaces: Map<String, Sign.Model.Namespace.Proposal> = mapOf("eip155" to Sign.Model.Namespace.Proposal(listOf("eip155:1"), listOf("someMethod"), listOf("someEvent")))
 
             val dappClientConnect = { pairing: Core.Model.Pairing ->

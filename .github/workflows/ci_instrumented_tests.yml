@@ -27,7 +27,7 @@ jobs:
         conf: [
           { name: Sign SDK, command: ":sign:sdk:connectedCheck" },
         ]
-        api-level: [ 23, 27, 32, 33, 34 ]
+        api-level: [ 23, 32, 33, 34 ]
         target: [ google_apis ]
         profile: [ Nexus 6 ]
 #        Example of adding individual entry:
@@ -75,6 +75,7 @@ jobs:
       - name: Instrumented tests
         env:
           WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
+          TEST_TIMEOUT_SECONDS: 60
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api-level }}

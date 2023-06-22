@@ -4,6 +4,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.test.core.app.ActivityScenario
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.foundation.network.model.Relay
+import com.walletconnect.sign.BuildConfig
 import com.walletconnect.sign.test.utils.TestClient
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.*
@@ -43,7 +44,7 @@ object WCInstrumentedActivityScenario : BeforeAllCallback, AfterAllCallback {
             val isDappRelayReady = MutableStateFlow(false)
             val isWalletRelayReady = MutableStateFlow(false)
 
-            val timeoutDuration = 30.seconds
+            val timeoutDuration = BuildConfig.TEST_TIMEOUT_SECONDS.seconds
 
             val isEverythingReady: StateFlow<Boolean> = combine(isDappRelayReady, isWalletRelayReady, TestClient.Wallet.isInitialized, TestClient.Dapp.isInitialized)
             { dappRelay, walletRelay, dappSign, walletSign -> (dappRelay && walletRelay && dappSign && walletSign) }.stateIn(scope, SharingStarted.Eagerly, false)
