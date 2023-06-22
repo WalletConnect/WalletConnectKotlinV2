@@ -27,7 +27,7 @@ jobs:
         conf: [
           { name: Sign SDK, command: ":sign:sdk:connectedCheck" },
         ]
-        api-level: [ 23, 32 ]
+        api-level: [ 23, 27, 32, 33, 34 ]
         target: [ google_apis ]
         profile: [ Nexus 6 ]
 #        Example of adding individual entry:
@@ -84,7 +84,7 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          script: ./gradlew -d ${{ matrix.conf.command }}
+          script: ./gradlew ${{ matrix.conf.command }}
 
       - name: Stop Gradle
         run: ./gradlew --stop
