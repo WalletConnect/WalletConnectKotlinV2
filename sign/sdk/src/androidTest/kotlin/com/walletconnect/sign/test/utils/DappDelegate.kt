@@ -22,6 +22,12 @@ open class DappDelegate : SignClient.DappDelegate {
     }
 }
 
+open class AutoApproveDappDelegate(val onSessionApprovedSuccess: (approvedSession: Sign.Model.ApprovedSession) -> Unit) : DappDelegate() {
+    override fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession) {
+        approvedSession.onSessionApproved { onSessionApprovedSuccess(approvedSession) }
+    }
+}
+
 fun Sign.Model.ApprovedSession.onSessionApproved(onSuccess: () -> Unit) {
     Timber.d("dappDelegate: onSessionApproved")
 

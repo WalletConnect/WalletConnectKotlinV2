@@ -24,34 +24,20 @@ class SignClientInstrumentedAndroidTest {
     fun pair() {
         setDelegates(WalletDelegate(), DappDelegate())
 
-        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) {
-            pair() { scenarioExtension.closeAsSuccess() }
-        }
+        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { pair() { scenarioExtension.closeAsSuccess() } }
     }
 
     @Test
     fun establishSession() {
-        val walletDelegate = object : WalletDelegate() {
-            override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal) {
-                sessionProposal.approveOnSessionProposal()
-            }
-        }
-
-        val dappDelegate = object : DappDelegate() {
-            override fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession) {
-                approvedSession.onSessionApproved { scenarioExtension.closeAsSuccess() }
-            }
-        }
-
+        val walletDelegate = AutoApproveSessionWalletDelegate()
+        val dappDelegate = AutoApproveDappDelegate { scenarioExtension.closeAsSuccess() }
         setDelegates(walletDelegate, dappDelegate)
 
-        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) {
-            pairAndConnect()
-        }
+        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { pairAndConnect() }
     }
 
     @Test
-    fun rejectSession() {
+    fun receiveRejectSession() {
         val walletDelegate = object : WalletDelegate() {
             override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal) {
                 sessionProposal.rejectOnSessionProposal()
@@ -66,61 +52,46 @@ class SignClientInstrumentedAndroidTest {
 
         setDelegates(walletDelegate, dappDelegate)
 
-        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) {
-            pairAndConnect()
-        }
+        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { pairAndConnect() }
     }
 
     @Test
-    fun disconnectSessionFromDapp() {
-        val walletDelegate = object : WalletDelegate() {
-            override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal) {
-                sessionProposal.approveOnSessionProposal()
-            }
-
+    fun receiveDisconnectSessionFromDapp() {
+        val walletDelegate = object : AutoApproveSessionWalletDelegate() {
             override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {
                 scenarioExtension.closeAsSuccess()
             }
         }
 
-        val dappDelegate = object : DappDelegate() {
-            override fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession) {
-                approvedSession.onSessionApproved {
-                    DappSignClient.disconnect(
-                        Sign.Params.Disconnect(approvedSession.topic),
-                        onSuccess = { Timber.d("Dapp: disconnectOnSuccess") },
-                        onError = ::globalOnError
-                    )
-                }
-            }
+        val onSessionApprovedSuccess = { approvedSession: Sign.Model.ApprovedSession ->
+            DappSignClient.disconnect(
+                Sign.Params.Disconnect(approvedSession.topic),
+                onSuccess = { Timber.d("Dapp: disconnectOnSuccess") },
+                onError = ::globalOnError
+            )
         }
+
+        val dappDelegate = AutoApproveDappDelegate(onSessionApprovedSuccess)
 
         setDelegates(walletDelegate, dappDelegate)
 
-        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) {
-            pairAndConnect()
-        }
+        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong())
+        { pairAndConnect() }
     }
 
     @Test
-    fun disconnectSessionFromWallet() {
-        val walletDelegate = object : WalletDelegate() {
-            override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal) {
-                sessionProposal.approveOnSessionProposal()
-            }
+    fun receiveDisconnectSessionFromWallet() {
+        val walletDelegate = AutoApproveSessionWalletDelegate()
+
+        val onSessionApprovedSuccess = { approvedSession: Sign.Model.ApprovedSession ->
+            WalletSignClient.disconnect(
+                Sign.Params.Disconnect(approvedSession.topic),
+                onSuccess = { Timber.d("Wallet: disconnectOnSuccess") },
+                onError = ::globalOnError
+            )
         }
 
-        val dappDelegate = object : DappDelegate() {
-            override fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession) {
-                approvedSession.onSessionApproved {
-                    WalletSignClient.disconnect(
-                        Sign.Params.Disconnect(approvedSession.topic),
-                        onSuccess = { Timber.d("Wallet: disconnectOnSuccess") },
-                        onError = ::globalOnError
-                    )
-                }
-            }
-
+        val dappDelegate = object : AutoApproveDappDelegate(onSessionApprovedSuccess) {
             override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {
                 scenarioExtension.closeAsSuccess()
             }
@@ -128,30 +99,22 @@ class SignClientInstrumentedAndroidTest {
 
         setDelegates(walletDelegate, dappDelegate)
 
-        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) {
-            pairAndConnect()
-        }
+        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { pairAndConnect() }
     }
 
     @Test
-    fun respondWithResultToSessionRequest() {
-        val walletDelegate = object : WalletDelegate() {
-            override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal) {
-                sessionProposal.approveOnSessionProposal()
-            }
-
+    fun receiveRespondWithResultToSessionRequest() {
+        val walletDelegate = object : AutoApproveSessionWalletDelegate() {
             override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest) {
-                respondToRequest(sessionRequest.topic, Sign.Model.JsonRpcResponse.JsonRpcResult(sessionRequest.request.id, "dummy"))
+                walletClientRespondToRequest(sessionRequest.topic, Sign.Model.JsonRpcResponse.JsonRpcResult(sessionRequest.request.id, "dummy"))
             }
         }
 
-        val dappDelegate = object : DappDelegate() {
-            override fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession) {
-                approvedSession.onSessionApproved {
-                    dappClientSendRequest(approvedSession.topic)
-                }
-            }
+        val onSessionApprovedSuccess = { approvedSession: Sign.Model.ApprovedSession ->
+            dappClientSendRequest(approvedSession.topic)
+        }
 
+        val dappDelegate = object : AutoApproveDappDelegate(onSessionApprovedSuccess) {
             override fun onSessionRequestResponse(response: Sign.Model.SessionRequestResponse) {
                 when (response.result) {
                     is Sign.Model.JsonRpcResponse.JsonRpcError -> fail("Expected result response not error")
@@ -162,30 +125,22 @@ class SignClientInstrumentedAndroidTest {
 
         setDelegates(walletDelegate, dappDelegate)
 
-        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) {
-            pairAndConnect()
-        }
+        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { pairAndConnect() }
     }
 
     @Test
-    fun respondWithErrorToSessionRequest() {
-        val walletDelegate = object : WalletDelegate() {
-            override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal) {
-                sessionProposal.approveOnSessionProposal()
-            }
-
+    fun receiveRespondWithErrorToSessionRequest() {
+        val walletDelegate = object : AutoApproveSessionWalletDelegate() {
             override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest) {
-                respondToRequest(sessionRequest.topic, Sign.Model.JsonRpcResponse.JsonRpcError(sessionRequest.request.id, 0, "test error"))
+                walletClientRespondToRequest(sessionRequest.topic, Sign.Model.JsonRpcResponse.JsonRpcError(sessionRequest.request.id, 0, "test error"))
             }
         }
 
-        val dappDelegate = object : DappDelegate() {
-            override fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession) {
-                approvedSession.onSessionApproved {
-                    dappClientSendRequest(approvedSession.topic)
-                }
-            }
+        val onSessionApprovedSuccess = { approvedSession: Sign.Model.ApprovedSession ->
+            dappClientSendRequest(approvedSession.topic)
+        }
 
+        val dappDelegate = object : AutoApproveDappDelegate(onSessionApprovedSuccess) {
             override fun onSessionRequestResponse(response: Sign.Model.SessionRequestResponse) {
                 when (response.result) {
                     is Sign.Model.JsonRpcResponse.JsonRpcError -> scenarioExtension.closeAsSuccess()
@@ -196,8 +151,66 @@ class SignClientInstrumentedAndroidTest {
 
         setDelegates(walletDelegate, dappDelegate)
 
-        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) {
-            pairAndConnect()
+        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { pairAndConnect() }
+    }
+
+    @Test
+    fun receiveSessionUpdate() {
+        val walletDelegate = AutoApproveSessionWalletDelegate()
+
+        val onSessionApprovedSuccess = { approvedSession: Sign.Model.ApprovedSession ->
+            walletClientUpdateSession(approvedSession.topic)
         }
+
+        val dappDelegate = object : AutoApproveDappDelegate(onSessionApprovedSuccess) {
+            override fun onSessionUpdate(updatedSession: Sign.Model.UpdatedSession) {
+                assert(updatedSession.namespaces[sessionNamespaceKey]?.chains?.size == sessionChains.size + 1)
+                scenarioExtension.closeAsSuccess()
+            }
+        }
+
+        setDelegates(walletDelegate, dappDelegate)
+
+        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { pairAndConnect() }
+    }
+
+    @Test
+    fun receiveSessionEvent() {
+        val walletDelegate = AutoApproveSessionWalletDelegate()
+
+        val onSessionApprovedSuccess = { approvedSession: Sign.Model.ApprovedSession ->
+            walletClientEmitEvent(approvedSession.topic)
+        }
+
+        val dappDelegate = object : AutoApproveDappDelegate(onSessionApprovedSuccess) {
+            override fun onSessionEvent(sessionEvent: Sign.Model.SessionEvent) {
+                assert(sessionEvent.name == sessionEvents.first())
+                assert(sessionEvent.data == "dummy")
+                scenarioExtension.closeAsSuccess()
+            }
+        }
+
+        setDelegates(walletDelegate, dappDelegate)
+
+        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { pairAndConnect() }
+    }
+
+    @Test
+    fun receiveSessionExtend() {
+        val walletDelegate = AutoApproveSessionWalletDelegate()
+
+        val onSessionApprovedSuccess = { approvedSession: Sign.Model.ApprovedSession ->
+            walletClientExtendSession(approvedSession.topic)
+        }
+
+        val dappDelegate = object : AutoApproveDappDelegate(onSessionApprovedSuccess) {
+            override fun onSessionExtend(session: Sign.Model.Session) {
+                scenarioExtension.closeAsSuccess()
+            }
+        }
+
+        setDelegates(walletDelegate, dappDelegate)
+
+        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { pairAndConnect() }
     }
 }

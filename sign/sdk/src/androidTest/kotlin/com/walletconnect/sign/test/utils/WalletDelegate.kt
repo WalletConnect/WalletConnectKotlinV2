@@ -14,8 +14,15 @@ open class WalletDelegate : SignClient.WalletDelegate {
     override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {
         Timber.d("onConnectionStateChange: $state")
     }
+
     override fun onError(error: Sign.Model.Error) {
         globalOnError(error)
+    }
+}
+
+open class AutoApproveSessionWalletDelegate : WalletDelegate() {
+    override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal) {
+        sessionProposal.approveOnSessionProposal()
     }
 }
 
