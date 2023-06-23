@@ -31,14 +31,15 @@ open class AutoApproveDappDelegate(val onSessionApprovedSuccess: (approvedSessio
 fun Sign.Model.ApprovedSession.onSessionApproved(onSuccess: () -> Unit) {
     Timber.d("dappDelegate: onSessionApproved")
 
-    DappSignClient.ping(Sign.Params.Ping(topic), object : Sign.Listeners.SessionPing {
-        override fun onSuccess(pingSuccess: Sign.Model.Ping.Success) {
-            Timber.d("dappDelegate: onPingSuccess")
-            onSuccess()
-        }
-
-        override fun onError(pingError: Sign.Model.Ping.Error) {
-            fail(pingError.error)
-        }
-    })
+    onSuccess()
+//
+//    DappSignClient.ping(Sign.Params.Ping(topic), object : Sign.Listeners.SessionPing {
+//        override fun onSuccess(pingSuccess: Sign.Model.Ping.Success) {
+//            Timber.d("dappDelegate: onPingSuccess")
+//        }
+//
+//        override fun onError(pingError: Sign.Model.Ping.Error) {
+//            fail(pingError.error)
+//        }
+//    })
 }
