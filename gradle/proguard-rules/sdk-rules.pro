@@ -6,3 +6,4 @@
 -dontshrink
 -dontoptimize
 -dontusemixedcaseclassnames
+-dontwarn java.lang.invoke.StringConcatFactory

@@ -1,7 +1,6 @@
 plugins {
     id("com.android.library")
     kotlin("android")
-    kotlin("kapt")
     id("com.squareup.sqldelight")
     id("com.google.devtools.ksp") version kspVersion
     id("publish-module-android")
@@ -14,6 +13,7 @@ project.apply {
 }
 
 android {
+    namespace = "com.walletconnect.auth"
     compileSdk = COMPILE_SDK
 
     defaultConfig {
@@ -38,6 +38,10 @@ android {
 
     kotlinOptions {
         jvmTarget = jvmVersion.toString()
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 }
 

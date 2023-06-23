@@ -13,6 +13,7 @@ project.apply {
 }
 
 android {
+    namespace = "com.walletconnect.android"
     compileSdk = COMPILE_SDK
 
     defaultConfig {
@@ -48,6 +49,10 @@ android {
 
     sourceSets {
         getByName("test").resources.srcDirs("src/test/resources")
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 }
 

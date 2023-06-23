@@ -2,6 +2,8 @@
 
 # JSR 305 annotations are for embedding nullability information.
 -dontwarn javax.annotation.**
+-adaptresourcefilenames okhttp3/internal/publicsuffix/PublicSuffixDatabase.gz
+-dontwarn org.codehaus.mojo.animal_sniffer.*
 
 -keepclasseswithmembers class * {
     @com.squareup.moshi.* <methods>;
