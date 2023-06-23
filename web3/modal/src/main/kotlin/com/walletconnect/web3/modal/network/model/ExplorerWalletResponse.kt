@@ -24,7 +24,7 @@ internal data class ExplorerWalletResponse(
 @JsonClass(generateAdapter = true)
 internal data class Mobile(
     @Json(name = "native")
-    val native: String,
+    val native: String?,
     @Json(name = "universal")
     val universal: String?
 )

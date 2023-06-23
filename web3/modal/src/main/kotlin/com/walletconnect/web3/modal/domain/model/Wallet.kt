@@ -8,7 +8,7 @@ internal data class Wallet(
     val id: String,
     val name: String,
     val imageId: String,
-    val nativeLink: String,
+    val nativeLink: String?,
     val universalLink: String?,
     val playStoreLink: String,
 ) {
