@@ -96,7 +96,7 @@ jobs:
           script: |
             touch emulator.log                    
             chmod 777 emulator.log                
-            adb logcat >> emulator.log &
+            adb logcat -s "WalletConnectV2" >> emulator.log &
             ./gradlew ${{ matrix.conf.command }}
 
       - uses: actions/upload-artifact@v3
