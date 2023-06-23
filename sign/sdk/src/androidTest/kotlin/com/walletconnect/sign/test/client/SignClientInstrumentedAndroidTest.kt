@@ -27,20 +27,25 @@ class SignClientInstrumentedAndroidTest {
 
     @Test
     fun pair() {
+        Timber.d("pair: start")
         setDelegates(WalletDelegate(), DappDelegate())
 
-        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { pair() { scenarioExtension.closeAsSuccess() } }
+        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { pair() { scenarioExtension.closeAsSuccess().also { Timber.d("pair: finish") } } }
     }
 
     @Test
     fun establishSession() {
+        Timber.d("establishSession: start")
+
         val walletDelegate = AutoApproveSessionWalletDelegate()
-        val dappDelegate = AutoApproveDappDelegate { scenarioExtension.closeAsSuccess() }
+        val dappDelegate = AutoApproveDappDelegate { scenarioExtension.closeAsSuccess().also { Timber.d("establishSession: finish") } }
         launch(walletDelegate, dappDelegate)
     }
 
     @Test
     fun receiveRejectSession() {
+        Timber.d("receiveRejectSession: start")
+
         val walletDelegate = object : WalletDelegate() {
             override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal) {
                 sessionProposal.rejectOnSessionProposal()
@@ -49,7 +54,7 @@ class SignClientInstrumentedAndroidTest {
 
         val dappDelegate = object : DappDelegate() {
             override fun onSessionRejected(rejectedSession: Sign.Model.RejectedSession) {
-                scenarioExtension.closeAsSuccess()
+                scenarioExtension.closeAsSuccess().also { Timber.d("receiveRejectSession: finish") }
             }
         }
         launch(walletDelegate, dappDelegate)
@@ -57,9 +62,11 @@ class SignClientInstrumentedAndroidTest {
 
     @Test
     fun receiveDisconnectSessionFromDapp() {
+        Timber.d("receiveDisconnectSessionFromDapp: start")
+
         val walletDelegate = object : AutoApproveSessionWalletDelegate() {
             override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {
-                scenarioExtension.closeAsSuccess()
+                scenarioExtension.closeAsSuccess().also { Timber.d("receiveDisconnectSessionFromDapp: finish") }
             }
         }
 
@@ -78,6 +85,8 @@ class SignClientInstrumentedAndroidTest {
 
     @Test
     fun receiveDisconnectSessionFromWallet() {
+        Timber.d("receiveDisconnectSessionFromWallet: start")
+
         val walletDelegate = AutoApproveSessionWalletDelegate()
 
         val onSessionApprovedSuccess = { approvedSession: Sign.Model.ApprovedSession ->
@@ -90,7 +99,7 @@ class SignClientInstrumentedAndroidTest {
 
         val dappDelegate = object : AutoApproveDappDelegate(onSessionApprovedSuccess) {
             override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {
-                scenarioExtension.closeAsSuccess()
+                scenarioExtension.closeAsSuccess().also { Timber.d("receiveDisconnectSessionFromWallet: finish") }
             }
         }
         launch(walletDelegate, dappDelegate)
@@ -98,6 +107,8 @@ class SignClientInstrumentedAndroidTest {
 
     @Test
     fun receiveRespondWithResultToSessionRequest() {
+        Timber.d("receiveRespondWithResultToSessionRequest: start")
+
         val walletDelegate = object : AutoApproveSessionWalletDelegate() {
             override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest) {
                 walletClientRespondToRequest(sessionRequest.topic, Sign.Model.JsonRpcResponse.JsonRpcResult(sessionRequest.request.id, "dummy"))
@@ -112,7 +123,7 @@ class SignClientInstrumentedAndroidTest {
             override fun onSessionRequestResponse(response: Sign.Model.SessionRequestResponse) {
                 when (response.result) {
                     is Sign.Model.JsonRpcResponse.JsonRpcError -> fail("Expected result response not error")
-                    is Sign.Model.JsonRpcResponse.JsonRpcResult -> scenarioExtension.closeAsSuccess()
+                    is Sign.Model.JsonRpcResponse.JsonRpcResult -> scenarioExtension.closeAsSuccess().also { Timber.d("receiveRespondWithResultToSessionRequest: finish") }
                 }
             }
         }
@@ -121,6 +132,8 @@ class SignClientInstrumentedAndroidTest {
 
     @Test
     fun receiveRespondWithErrorToSessionRequest() {
+        Timber.d("receiveRespondWithErrorToSessionRequest: start")
+
         val walletDelegate = object : AutoApproveSessionWalletDelegate() {
             override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest) {
                 walletClientRespondToRequest(sessionRequest.topic, Sign.Model.JsonRpcResponse.JsonRpcError(sessionRequest.request.id, 0, "test error"))
@@ -134,7 +147,7 @@ class SignClientInstrumentedAndroidTest {
         val dappDelegate = object : AutoApproveDappDelegate(onSessionApprovedSuccess) {
             override fun onSessionRequestResponse(response: Sign.Model.SessionRequestResponse) {
                 when (response.result) {
-                    is Sign.Model.JsonRpcResponse.JsonRpcError -> scenarioExtension.closeAsSuccess()
+                    is Sign.Model.JsonRpcResponse.JsonRpcError -> scenarioExtension.closeAsSuccess().also { Timber.d("receiveRespondWithErrorToSessionRequest: finish") }
                     is Sign.Model.JsonRpcResponse.JsonRpcResult -> fail("Expected error response not result")
                 }
             }
@@ -144,6 +157,8 @@ class SignClientInstrumentedAndroidTest {
 
     @Test
     fun receiveSessionUpdate() {
+        Timber.d("receiveSessionUpdate: start")
+
         val walletDelegate = AutoApproveSessionWalletDelegate()
 
         val onSessionApprovedSuccess = { approvedSession: Sign.Model.ApprovedSession ->
@@ -153,7 +168,7 @@ class SignClientInstrumentedAndroidTest {
         val dappDelegate = object : AutoApproveDappDelegate(onSessionApprovedSuccess) {
             override fun onSessionUpdate(updatedSession: Sign.Model.UpdatedSession) {
                 assert(updatedSession.namespaces[sessionNamespaceKey]?.chains?.size == sessionChains.size + 1)
-                scenarioExtension.closeAsSuccess()
+                scenarioExtension.closeAsSuccess().also { Timber.d("receiveSessionUpdate: finish") }
             }
         }
         launch(walletDelegate, dappDelegate)
@@ -161,6 +176,8 @@ class SignClientInstrumentedAndroidTest {
 
     @Test
     fun receiveSessionEvent() {
+        Timber.d("receiveSessionEvent: start")
+
         val walletDelegate = AutoApproveSessionWalletDelegate()
 
         val onSessionApprovedSuccess = { approvedSession: Sign.Model.ApprovedSession ->
@@ -171,7 +188,7 @@ class SignClientInstrumentedAndroidTest {
             override fun onSessionEvent(sessionEvent: Sign.Model.SessionEvent) {
                 assert(sessionEvent.name == sessionEvents.first())
                 assert(sessionEvent.data == "dummy")
-                scenarioExtension.closeAsSuccess()
+                scenarioExtension.closeAsSuccess().also { Timber.d("receiveSessionEvent: finish") }
             }
         }
         launch(walletDelegate, dappDelegate)
@@ -179,6 +196,8 @@ class SignClientInstrumentedAndroidTest {
 
     @Test
     fun receiveSessionExtend() {
+        Timber.d("receiveSessionExtend: start")
+
         val walletDelegate = AutoApproveSessionWalletDelegate()
 
         val onSessionApprovedSuccess = { approvedSession: Sign.Model.ApprovedSession ->
@@ -187,7 +206,7 @@ class SignClientInstrumentedAndroidTest {
 
         val dappDelegate = object : AutoApproveDappDelegate(onSessionApprovedSuccess) {
             override fun onSessionExtend(session: Sign.Model.Session) {
-                scenarioExtension.closeAsSuccess()
+                scenarioExtension.closeAsSuccess().also { Timber.d("receiveSessionExtend: finish") }
             }
         }
 
