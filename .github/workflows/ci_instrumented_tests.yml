@@ -46,7 +46,7 @@ jobs:
       - uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: 11
+          java-version: 17
 
       - name: Cache Gradle
         uses: actions/cache@v3
@@ -67,7 +67,7 @@ jobs:
             ~/.android/adb*
           key: avd-${{ matrix.api-level }}-${{ matrix.target }}-${{ matrix.arch }}
 
-      - name: create AVD and generate snapshot for caching
+      - name: Create AVD and generate snapshot for caching
         if: steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -79,6 +79,9 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: false
           script: echo "Generated AVD snapshot for caching."
+
+      - name: Redirect logcat to file
+        run: adb logcat > logs.txt
 
       - name: Instrumented tests
         env:
@@ -99,7 +102,9 @@ jobs:
         if: always()
         with:
           name: ${{ matrix.conf.name }} API ${{ matrix.api-level }}-${{ matrix.target }}-${{ matrix.profile }}-${{ matrix.arch }}
-          path: ${{ matrix.conf.report }}
+          path: |
+            ${{ matrix.conf.report }}
+            logs.txt
 
       - name: Stop Gradle
         run: ./gradlew --stop

@@ -110,7 +110,7 @@ fun pair(onPairSuccess: (pairing: Core.Model.Pairing) -> Unit) {
             })
         } else {
             Timber.d("pairings.isEmpty() == false")
-            onPairSuccess(pairings.first())
+            fail("Pairing already exists. Storage must be cleared in between runs")
         }
     }
 }
