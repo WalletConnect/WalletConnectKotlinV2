@@ -8,10 +8,14 @@ runs:
     - name: Setup Java JDK
       uses: actions/setup-java@v3.3.0
       with:
-        distribution: 'zulu'
         java-version: '17'
+        distribution: 'temurin'
         architecture: x86_64
-        cache: 'gradle'
+#      with:
+#        distribution: 'zulu'
+#        java-version: '17'
+#        architecture: x86_64
+#        cache: 'gradle'
 
     - name: Relay integration tests
 # TODO: Add SDK_VERSION env var
