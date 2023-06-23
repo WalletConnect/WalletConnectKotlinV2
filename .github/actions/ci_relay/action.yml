@@ -10,7 +10,7 @@ runs:
         distribution: 'zulu' # See 'Supported distributions' for available options
         java-version: '17'
         architecture: x86_64
-        cache: 'gradle'
+#        cache: 'gradle'
 
 #        architecture: x86_64
     #      with:
