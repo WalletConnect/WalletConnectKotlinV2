@@ -1,7 +1,6 @@
 package com.walletconnect.web3.modal.client
 
 import com.walletconnect.android.Core
-import com.walletconnect.android.CoreClient
 import com.walletconnect.android.CoreInterface
 
 object Modal {
@@ -12,17 +11,18 @@ object Modal {
             fun onError(pingError: Model.Ping.Error)
         }
     }
+
     sealed class Params {
         data class Init(
-            val core: CoreInterface<CoreClient.CoreDelegate>
+            val core: CoreInterface,
         ) : Params()
 
         data class Connect(
             val namespaces: Map<String, Model.Namespace.Proposal>? = null,
             val optionalNamespaces: Map<String, Model.Namespace.Proposal>? = null,
             val properties: Map<String, String>? = null,
-            val pairing: Core.Model.Pairing
-        ): Params()
+            val pairing: Core.Model.Pairing,
+        ) : Params()
 
         data class Disconnect(val sessionTopic: String) : Params()
 
@@ -33,7 +33,7 @@ object Modal {
             val method: String,
             val params: String,
             val chainId: String,
-            val expiry: Long? = null
+            val expiry: Long? = null,
         ) : Params()
     }
 
@@ -44,14 +44,14 @@ object Modal {
             data class Proposal(
                 val chains: List<String>? = null,
                 val methods: List<String>,
-                val events: List<String>
+                val events: List<String>,
             ) : Namespace()
 
             data class Session(
                 val chains: List<String>? = null,
                 val accounts: List<String>,
                 val methods: List<String>,
-                val events: List<String>
+                val events: List<String>,
             ) : Namespace()
         }
 
@@ -66,7 +66,7 @@ object Modal {
 
         data class UpdatedSession(
             val topic: String,
-            val namespaces: Map<String, Namespace.Session>
+            val namespaces: Map<String, Namespace.Session>,
         ) : Model()
 
         data class SessionEvent(
@@ -122,7 +122,7 @@ object Modal {
             val sessionTopic: String,
             val method: String,
             val params: String,
-            val chainId: String
+            val chainId: String,
         ) : Model()
 
         sealed class Ping : Model() {

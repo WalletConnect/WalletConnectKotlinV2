@@ -4,6 +4,7 @@ package com.walletconnect.android.pairing.client
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.pairing.engine.domain.PairingEngine
 import com.walletconnect.android.pairing.engine.model.EngineDO
 import com.walletconnect.android.pairing.model.mapper.toClient
@@ -16,15 +17,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import org.koin.core.KoinApplication
 
-internal class PairingProtocol : PairingInterface {
+internal class PairingProtocol(private val koinApp: KoinApplication = wcKoinApp) : PairingInterface {
     private lateinit var pairingEngine: PairingEngine
     private lateinit var logger: Logger
     private lateinit var relayClient: RelayConnectionInterface
 
-    override fun initialize(koinApplication: KoinApplication) {
-        pairingEngine = koinApplication.koin.get()
-        relayClient = koinApplication.koin.get()
-        logger = koinApplication.koin.get()
+    override fun initialize() {
+        pairingEngine = koinApp.koin.get()
+        relayClient = koinApp.koin.get()
+        logger = koinApp.koin.get()
     }
 
     override fun setDelegate(delegate: PairingInterface.Delegate) {

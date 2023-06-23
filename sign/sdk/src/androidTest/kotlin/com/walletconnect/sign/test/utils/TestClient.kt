@@ -5,7 +5,6 @@ import androidx.test.core.app.ApplicationProvider
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.CoreProtocol
-import com.walletconnect.android.internal.common.createNewWCKoinApp
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.relay.RelayClient
 import com.walletconnect.sign.BuildConfig
@@ -23,6 +22,7 @@ import timber.log.Timber
 internal object TestClient {
     const val RELAY_URL = "wss://relay.walletconnect.com?projectId=${BuildConfig.PROJECT_ID}"
     private val app = ApplicationProvider.getApplicationContext<Application>()
+    fun KoinApplication.Companion.createNewWCKoinApp(): KoinApplication = KoinApplication.init().apply { createEagerInstances() }
 
     object Wallet {
 
@@ -63,22 +63,22 @@ internal object TestClient {
             redirect = null
         )
 
-        private val coreProtocol = CoreProtocol().apply {
-            Timber.d("Dapp CP start: ")
-            koinApp = KoinApplication.createNewWCKoinApp()
+        private val dappKoinApp = KoinApplication.createNewWCKoinApp()
 
+        private val coreProtocol = CoreProtocol(dappKoinApp).apply {
+            Timber.d("Dapp CP start: ")
             initialize(metadata, RELAY_URL, ConnectionType.MANUAL, app) { Timber.e(it.throwable) }
 
             // Override of previous Relay necessary for reinitialization of `eventsFlow`
-            Relay = RelayClient()
+            Relay = RelayClient(dappKoinApp)
 
             // Override of storage instances and depending objects
-            koinApp.modules(overrideModule(Relay, Pairing, PairingController))
+            dappKoinApp.modules(overrideModule(Relay, Pairing, PairingController))
 
             // Necessary reinit of Relay, Pairing and PairingController
-            Relay.initialize(koinApp, RELAY_URL, ConnectionType.MANUAL) { Timber.e(it) }
-            Pairing.initialize(koinApp)
-            PairingController.initialize(koinApp)
+            Relay.initialize(RELAY_URL, ConnectionType.MANUAL) { Timber.e(it) }
+            Pairing.initialize()
+            PairingController.initialize()
 
             Relay.connect(::globalOnError)
         }
@@ -86,7 +86,7 @@ internal object TestClient {
         private val initParams = Sign.Params.Init(coreProtocol)
         private var _isInitialized = MutableStateFlow(false)
         internal var isInitialized = _isInitialized.asStateFlow()
-        internal val signClient = SignProtocol().apply {
+        internal val signClient = SignProtocol(dappKoinApp).apply {
             initialize(initParams, onSuccess = { _isInitialized.tryEmit(true) }, onError = { Timber.e(it.throwable) })
             Timber.d("Dapp CP finish: ")
         }

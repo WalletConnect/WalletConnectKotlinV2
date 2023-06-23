@@ -3,6 +3,7 @@ package com.walletconnect.push.wallet.client
 import com.walletconnect.android.internal.common.di.DatabaseConfig
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.push.common.Push
 import com.walletconnect.push.common.di.commonModule
 import com.walletconnect.push.common.di.pushEngineUseCaseModules
@@ -20,8 +21,9 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
+import org.koin.core.KoinApplication
 
-class PushWalletProtocol : PushWalletInterface {
+class PushWalletProtocol(private val koinApp: KoinApplication = wcKoinApp) : PushWalletInterface {
     private lateinit var pushWalletEngine: PushWalletEngine
 
     companion object {
@@ -30,16 +32,16 @@ class PushWalletProtocol : PushWalletInterface {
 
     override fun initialize(init: Push.Wallet.Params.Init, onError: (Push.Model.Error) -> Unit) {
         try {
-            init.core.koinApp.modules(
+            koinApp.modules(
                 pushJsonRpcModule(),
-                pushStorageModule(init.core.koinApp.koin.get<DatabaseConfig>().PUSH_WALLET_SDK_DB_NAME),
+                pushStorageModule(koinApp.koin.get<DatabaseConfig>().PUSH_WALLET_SDK_DB_NAME),
                 walletEngineModule(),
                 messageModule(),
                 commonModule(),
                 pushEngineUseCaseModules()
             )
 
-            pushWalletEngine = init.core.koinApp.koin.get()
+            pushWalletEngine = koinApp.koin.get()
             pushWalletEngine.setup()
         } catch (e: Exception) {
             onError(Push.Model.Error(e))

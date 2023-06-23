@@ -1,7 +1,6 @@
 package com.walletconnect.sign.client
 
 import com.walletconnect.android.Core
-import com.walletconnect.android.CoreClient
 import com.walletconnect.android.CoreInterface
 import java.net.URI
 
@@ -65,7 +64,7 @@ object Sign {
             val sessionTopic: String,
             val method: String,
             val params: String,
-            val chainId: String
+            val chainId: String,
         ) : Params()
 
         sealed class Namespace : Model() {
@@ -74,14 +73,14 @@ object Sign {
             data class Proposal(
                 val chains: List<String>? = null,
                 val methods: List<String>,
-                val events: List<String>
+                val events: List<String>,
             ) : Namespace()
 
             data class Session(
                 val chains: List<String>? = null,
                 val accounts: List<String>,
                 val methods: List<String>,
-                val events: List<String>
+                val events: List<String>,
             ) : Namespace()
         }
 
@@ -114,7 +113,7 @@ object Sign {
 
         data class UpdatedSession(
             val topic: String,
-            val namespaces: Map<String, Namespace.Session>
+            val namespaces: Map<String, Namespace.Session>,
         ) : Model()
 
         data class ApprovedSession(
@@ -180,14 +179,14 @@ object Sign {
     sealed class Params {
 
         data class Init constructor(
-            val core: CoreInterface<CoreClient.CoreDelegate>
+            val core: CoreInterface,
         ) : Params()
 
         data class Connect(
             val namespaces: Map<String, Model.Namespace.Proposal>? = null,
             val optionalNamespaces: Map<String, Model.Namespace.Proposal>? = null,
             val properties: Map<String, String>? = null,
-            val pairing: Core.Model.Pairing
+            val pairing: Core.Model.Pairing,
         ) : Params()
 
         data class Pair(val uri: String) : Params()
@@ -209,7 +208,7 @@ object Sign {
             val method: String,
             val params: String,
             val chainId: String,
-            val expiry: Long? = null
+            val expiry: Long? = null,
         ) : Params()
 
         data class Update(

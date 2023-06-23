@@ -9,22 +9,19 @@ import com.walletconnect.android.relay.NetworkClientTimeout
 import com.walletconnect.android.relay.RelayConnectionInterface
 import com.walletconnect.android.sync.client.SyncInterface
 import com.walletconnect.android.verify.VerifyInterface
-import org.koin.core.KoinApplication
 
 
-interface CoreInterface<T : CoreInterface.CoreDelegate> {
+interface CoreInterface {
     val Pairing: PairingInterface
     val PairingController: PairingControllerInterface
     val Relay: RelayConnectionInterface
     val Echo: EchoInterface
     val Verify: VerifyInterface
     val Sync: SyncInterface
-    var koinApp: KoinApplication
 
-    interface CoreDelegate : PairingInterface.Delegate
+    interface Delegate : PairingInterface.Delegate
 
-    // Generic required not to break previous CoreClient.CoreDelegate invocations
-    fun setDelegate(delegate: T)
+    fun setDelegate(delegate: Delegate)
 
     fun initialize(
         metaData: Core.Model.AppMetaData,

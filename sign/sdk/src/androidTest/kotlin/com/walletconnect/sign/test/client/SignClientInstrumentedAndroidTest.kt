@@ -123,7 +123,10 @@ class SignClientInstrumentedAndroidTest {
             override fun onSessionRequestResponse(response: Sign.Model.SessionRequestResponse) {
                 when (response.result) {
                     is Sign.Model.JsonRpcResponse.JsonRpcError -> fail("Expected result response not error")
-                    is Sign.Model.JsonRpcResponse.JsonRpcResult -> scenarioExtension.closeAsSuccess().also { Timber.d("receiveRespondWithResultToSessionRequest: finish") }
+                    is Sign.Model.JsonRpcResponse.JsonRpcResult -> {
+                        // Validate the result
+                        scenarioExtension.closeAsSuccess().also { Timber.d("receiveRespondWithResultToSessionRequest: finish") }
+                    }
                 }
             }
         }

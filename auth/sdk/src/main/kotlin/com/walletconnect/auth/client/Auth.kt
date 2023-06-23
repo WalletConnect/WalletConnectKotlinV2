@@ -1,7 +1,6 @@
 package com.walletconnect.auth.client
 
 import androidx.annotation.Keep
-import com.walletconnect.android.CoreClient
 import com.walletconnect.android.CoreInterface
 import com.walletconnect.android.cacao.SignatureInterface
 import com.walletconnect.android.internal.common.signing.cacao.Issuer
@@ -12,7 +11,7 @@ object Auth {
         data class AuthRequest(
             val id: Long,
             val pairingTopic: String,
-            val payloadParams: Model.PayloadParams
+            val payloadParams: Model.PayloadParams,
         ) : Event()
 
         data class AuthResponse(val response: Model.Response) : Event()
@@ -22,7 +21,7 @@ object Auth {
         ) : Event()
 
         data class Error(
-            val error: Model.Error
+            val error: Model.Error,
         ) : Event()
     }
 
@@ -35,7 +34,7 @@ object Auth {
         data class PendingRequest(
             val id: Long,
             val pairingTopic: String,
-            val payloadParams: PayloadParams
+            val payloadParams: PayloadParams,
         ) : Model()
 
         data class PayloadParams(
@@ -89,7 +88,7 @@ object Auth {
 
     sealed class Params {
 
-        data class Init(val core: CoreInterface<CoreClient.CoreDelegate>) : Params()
+        data class Init(val core: CoreInterface) : Params()
 
         data class Request(
             val topic: String,
@@ -103,7 +102,7 @@ object Auth {
             val statement: String?,
             val requestId: String?,
             val resources: List<String>?,
-            val expiry: Long? = null
+            val expiry: Long? = null,
         ) : Params()
 
         sealed class Respond : Params() {

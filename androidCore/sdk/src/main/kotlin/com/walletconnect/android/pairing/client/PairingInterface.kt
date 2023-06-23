@@ -1,11 +1,10 @@
 package com.walletconnect.android.pairing.client
 
 import com.walletconnect.android.Core
-import org.koin.core.KoinApplication
 
 interface PairingInterface {
 
-    fun initialize(koinApplication: KoinApplication)
+    fun initialize()
 
     /**
      * Caution: This function is blocking and runs on the current thread.

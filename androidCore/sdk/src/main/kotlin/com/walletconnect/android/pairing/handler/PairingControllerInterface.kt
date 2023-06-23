@@ -5,13 +5,12 @@ import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.foundation.common.model.Topic
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
-import org.koin.core.KoinApplication
 
 interface PairingControllerInterface {
     val topicExpiredFlow: SharedFlow<Topic>
     val findWrongMethodsFlow: Flow<SDKError>
 
-    fun initialize(koinApplication: KoinApplication)
+    fun initialize()
 
     fun activate(activate: Core.Params.Activate, onError: (Core.Model.Error) -> Unit = {})
 

@@ -28,20 +28,19 @@ import org.koin.core.KoinApplication
 import org.koin.dsl.module
 
 
-class CoreProtocol : CoreInterface<CoreClient.CoreDelegate> {
-    override val Pairing: PairingInterface = PairingProtocol()
-    override val PairingController: PairingControllerInterface = PairingController()
-    override var Relay = RelayClient()
+class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInterface {
+    override val Pairing: PairingInterface = PairingProtocol(koinApp)
+    override val PairingController: PairingControllerInterface = PairingController(koinApp)
+    override var Relay = RelayClient(koinApp)
     override val Echo: EchoInterface = EchoClient
     override val Verify: VerifyInterface = VerifyClient
-    override val Sync: SyncInterface = SyncClient // Needs to be protocol for tests
-    override var koinApp: KoinApplication = wcKoinApp
+    override val Sync: SyncInterface = SyncClient
 
     init {
         plantTimber()
     }
 
-    override fun setDelegate(delegate: CoreClient.CoreDelegate) {
+    override fun setDelegate(delegate: CoreInterface.Delegate) {
         Pairing.setDelegate(delegate)
     }
 
@@ -79,12 +78,12 @@ class CoreProtocol : CoreInterface<CoreClient.CoreDelegate> {
         }
 
         if (relay == null) {
-            Relay.initialize(koinApp, relayServerUrl, connectionType, networkClientTimeout) { error -> onError(Core.Model.Error(error)) }
+            Relay.initialize(relayServerUrl, connectionType, networkClientTimeout) { error -> onError(Core.Model.Error(error)) }
         }
 
         Verify.initialize(metaData.verifyUrl)
-        Pairing.initialize(koinApp)
-        PairingController.initialize(koinApp)
-        Sync.initialize(koinApp) { error -> onError(Core.Model.Error(error.throwable)) }
+        Pairing.initialize()
+        PairingController.initialize()
+        Sync.initialize() { error -> onError(Core.Model.Error(error.throwable)) }
     }
 }

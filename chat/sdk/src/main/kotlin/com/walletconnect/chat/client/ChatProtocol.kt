@@ -7,6 +7,7 @@ import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.chat.client.mapper.toClient
 import com.walletconnect.chat.client.mapper.toClientError
 import com.walletconnect.chat.client.mapper.toCommon
@@ -14,8 +15,9 @@ import com.walletconnect.chat.common.model.Events
 import com.walletconnect.chat.di.*
 import com.walletconnect.chat.engine.domain.ChatEngine
 import kotlinx.coroutines.launch
+import org.koin.core.KoinApplication
 
-internal class ChatProtocol : ChatInterface {
+internal class ChatProtocol(private val koinApp: KoinApplication = wcKoinApp) : ChatInterface {
     private lateinit var chatEngine: ChatEngine
 
     companion object {
@@ -25,17 +27,17 @@ internal class ChatProtocol : ChatInterface {
     @Throws(IllegalStateException::class)
     override fun initialize(init: Chat.Params.Init, onError: (Chat.Model.Error) -> Unit) {
         try {
-            init.core.koinApp.run {
+            koinApp.run {
                 modules(
                     jsonRpcModule(),
-                    storageModule(init.core.koinApp.koin.get<DatabaseConfig>().CHAT_SDK_DB_NAME),
+                    storageModule(koinApp.koin.get<DatabaseConfig>().CHAT_SDK_DB_NAME),
                     syncInChatModule(),
                     engineModule(),
                     commonModule()
                 )
             }
 
-            chatEngine = init.core.koinApp.koin.get()
+            chatEngine = koinApp.koin.get()
             chatEngine.setup()
         } catch (e: Exception) {
             onError(Chat.Model.Error(e))

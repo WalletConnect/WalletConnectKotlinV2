@@ -1,6 +1,7 @@
 package com.walletconnect.android
 
-object CoreClient : CoreInterface<CoreClient.CoreDelegate> by CoreProtocol.instance {
+object CoreClient : CoreInterface by CoreProtocol.instance {
 
-    interface CoreDelegate : CoreInterface.CoreDelegate
+    interface CoreDelegate : CoreInterface.Delegate
+
 }

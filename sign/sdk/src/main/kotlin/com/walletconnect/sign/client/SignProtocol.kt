@@ -18,8 +18,9 @@ import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.engine.model.EngineDO
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import org.koin.core.KoinApplication
 
-class SignProtocol : SignInterface {
+class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInterface {
     private lateinit var signEngine: SignEngine
 
     companion object {
@@ -29,14 +30,14 @@ class SignProtocol : SignInterface {
     override fun initialize(init: Sign.Params.Init, onSuccess: () -> Unit, onError: (Sign.Model.Error) -> Unit) {
         // TODO: re-init scope
         try {
-            init.core.koinApp.modules(
+            koinApp.modules(
                 commonModule(),
                 signJsonRpcModule(),
-                storageModule(init.core.koinApp.koin.get<DatabaseConfig>().SIGN_SDK_DB_NAME),
+                storageModule(koinApp.koin.get<DatabaseConfig>().SIGN_SDK_DB_NAME),
                 engineModule()
             )
 
-            signEngine = init.core.koinApp.koin.get()
+            signEngine = koinApp.koin.get()
             signEngine.setup()
             onSuccess()
         } catch (e: Exception) {
@@ -157,7 +158,7 @@ class SignProtocol : SignInterface {
         request: Sign.Params.Request,
         onSuccess: (Sign.Params.Request) -> Unit,
         onSuccessWithSentRequest: (Sign.Model.SentRequest) -> Unit,
-        onError: (Sign.Model.Error) -> Unit
+        onError: (Sign.Model.Error) -> Unit,
     ) {
         checkEngineInitialization()
         try {
@@ -271,6 +272,7 @@ class SignProtocol : SignInterface {
             onError(Sign.Model.Error(error))
         }
     }
+
     @Throws(IllegalStateException::class)
     override fun getListOfActiveSessions(): List<Sign.Model.Session> {
         checkEngineInitialization()
