@@ -26,7 +26,7 @@ jobs:
       fail-fast: false
       matrix:
         conf: [
-          { name: Sign SDK, command: ":sign:sdk:connectedCheck", report: '/Users/runner/work/WalletConnectKotlinV2/WalletConnectKotlinV2/sign/sdk/build/reports/androidTests/connected/**/*' },
+          { name: Sign SDK, command: ":sign:sdk:connectedCheck", report: '/Users/runner/work/WalletConnectKotlinV2/WalletConnectKotlinV2/sign/sdk/build/reports/androidTests/connected/**' },
         ]
         api-level: [ 32 ] # JUnit5 only supports API younger or equal to 26
         target: [ google_apis ]
@@ -80,9 +80,6 @@ jobs:
           disable-animations: false
           script: echo "Generated AVD snapshot for caching."
 
-      - name: Redirect logcat to file
-        run: adb logcat > logs.txt
-
       - name: Instrumented tests
         env:
           WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
@@ -96,7 +93,11 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          script: ./gradlew ${{ matrix.conf.command }}
+          script: |
+            touch emulator.log                    
+            chmod 777 emulator.log                
+            adb logcat >> emulator.log &
+            ./gradlew ${{ matrix.conf.command }}
 
       - uses: actions/upload-artifact@v3
         if: always()
@@ -104,7 +105,7 @@ jobs:
           name: ${{ matrix.conf.name }} API ${{ matrix.api-level }}-${{ matrix.target }}-${{ matrix.profile }}-${{ matrix.arch }}
           path: |
             ${{ matrix.conf.report }}
-            logs.txt
+            emulator.log
 
       - name: Stop Gradle
         run: ./gradlew --stop
