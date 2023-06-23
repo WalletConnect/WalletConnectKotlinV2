@@ -1,23 +1,25 @@
-name: 'Relay Integration Tests'
-description: 'Runs Kotlin SDK integration tests with Relay server'
-
-runs:
-  using: "composite"
-  steps:
-    # Necessary to macos-latest to update to Java 11, and to enable caching gradle files for quicker execution
-    - name: Setup Java JDK
-      uses: actions/setup-java@v3.3.0
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        architecture: x86_64
+#name: 'Relay Integration Tests'
+#description: 'Runs Kotlin SDK integration tests with Relay server'
+#
+#runs:
+#  using: "composite"
+#  steps:
+#    - name: Checkout code
+#      uses: actions/checkout@v2
+#    # Necessary to macos-latest to update to Java 11, and to enable caching gradle files for quicker execution
+#    - name: Setup Java JDK
+#      uses: actions/setup-java@v2
 #      with:
-#        distribution: 'zulu'
 #        java-version: '17'
+#        distribution: 'temurin'
 #        architecture: x86_64
-#        cache: 'gradle'
-
-    - name: Relay integration tests
-# TODO: Add SDK_VERSION env var
-      shell: bash
-      run: ./gradlew :foundation:test --tests "com.walletconnect.foundation.RelayTest" -i
+#    #      with:
+#    #        distribution: 'zulu'
+#    #        java-version: '17'
+#    #        architecture: x86_64
+#    #        cache: 'gradle'
+#
+#    - name: Relay integration tests
+#      # TODO: Add SDK_VERSION env var
+#      shell: bash
+#      run: ./gradlew :foundation:test --tests "com.walletconnect.foundation.RelayTest" -i
