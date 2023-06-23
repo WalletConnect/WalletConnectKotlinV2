@@ -20,6 +20,7 @@ import com.walletconnect.android.internal.common.jwt.did.encodeDidJwt
 import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtClaims
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.AppMetaData
+import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.DidJwt
 import com.walletconnect.android.internal.common.model.EnvelopeType
@@ -38,6 +39,7 @@ import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
+import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.CURRENT_TIME_IN_SECONDS
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
 import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
@@ -91,6 +93,7 @@ internal class PushWalletEngine(
     private val pairingHandler: PairingControllerInterface,
     private val subscriptionStorageRepository: SubscriptionStorageRepository,
     private val proposalStorageRepository: ProposalStorageRepository,
+    private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val messagesRepository: MessagesRepository,
     private val enginePushSubscriptionNotifier: EnginePushSubscriptionNotifier,
     private val identitiesInteractor: IdentitiesInteractor,
@@ -494,12 +497,24 @@ internal class PushWalletEngine(
     }
 
     private suspend fun onPushPropose(request: WCRequest, params: PushParams.ProposeParams) = supervisorScope {
+        val metadataId = try {
+            metadataStorageRepository.insertOrAbortMetadata(
+                request.topic,
+                params.metaData,
+                AppMetaDataType.PEER
+            )
+
+            metadataStorageRepository.lastInsertedId()
+        } catch (e: Exception) {
+            metadataStorageRepository.getIdByTopicAndType(request.topic, AppMetaDataType.PEER)
+        }
+
         try {
             proposalStorageRepository.insertProposal(
                 requestId = request.id,
                 proposalTopic = request.topic.value,
                 dappPublicKeyAsHex = params.publicKey,
-                dappMetaData = params.metaData,
+                dappMetaDataId = metadataId,
                 accountId = params.account,
             )
 

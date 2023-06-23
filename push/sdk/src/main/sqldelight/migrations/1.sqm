@@ -1,4 +1,3 @@
-import com.walletconnect.android.internal.common.model.AppMetaData;
 import kotlin.Boolean;
 import kotlin.Pair;
 import kotlin.String;
@@ -54,5 +53,5 @@ CREATE TABLE IF NOT EXISTS Proposal(
     push_propose_topic TEXT UNIQUE NOT NULL,
     dapp_public_key_as_hex TEXT NOT NULL,
     account TEXT NOT NULL,
-    dapp_metadata TEXT AS AppMetaData NOT NULL
+    dapp_metadata_id INTEGER NOT NULL
 );
