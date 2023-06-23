@@ -32,6 +32,12 @@ allprojects {
         maven(url = "https://s01.oss.sonatype.org/content/repositories/snapshots/")
         jcenter() // Warning: this repository is going to shut down soon
     }
+
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        kotlinOptions {
+            jvmTarget = jvmVersion.toString()
+        }
+    }
 }
 
 subprojects {

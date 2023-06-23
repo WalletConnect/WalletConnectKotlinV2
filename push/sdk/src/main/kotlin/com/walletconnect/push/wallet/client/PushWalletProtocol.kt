@@ -72,9 +72,14 @@ class PushWalletProtocol(private val koinApp: KoinApplication = wcKoinApp) : Pus
         scope.launch {
             supervisorScope {
                 try {
-                    pushWalletEngine.subscribeToDapp(params.dappUrl, params.account, params.onSign.toWalletClient(), onSuccess) {
-                        onError(Push.Model.Error(it))
-                    }
+                    pushWalletEngine.subscribeToDapp(params.dappUrl, params.account, params.onSign.toWalletClient(),
+                        onSuccess = { _, _ ->
+                            onSuccess()
+                        },
+                        onFailure = {
+                            onError(Push.Model.Error(it))
+                        }
+                    )
                 } catch (e: Exception) {
                     onError(Push.Model.Error(e))
                 }
@@ -178,13 +183,16 @@ class PushWalletProtocol(private val koinApp: KoinApplication = wcKoinApp) : Pus
     }
 
     override fun decryptMessage(params: Push.Wallet.Params.DecryptMessage, onSuccess: (Push.Model.Message) -> Unit, onError: (Push.Model.Error) -> Unit) {
-        pushWalletEngine.decryptMessage(params.topic, params.encryptedMessage,
-            onSuccess = { pushMessage ->
-                onSuccess(pushMessage.toWalletClient())
-            },
-            onFailure = { error ->
-                onError(Push.Model.Error(error))
-            })
+        scope.launch {
+            pushWalletEngine.decryptMessage(params.topic, params.encryptedMessage,
+                onSuccess = { pushMessage ->
+                    onSuccess(pushMessage.toWalletClient())
+                },
+                onFailure = { error ->
+                    onError(Push.Model.Error(error))
+                }
+            )
+        }
     }
 
     @Throws(IllegalStateException::class)

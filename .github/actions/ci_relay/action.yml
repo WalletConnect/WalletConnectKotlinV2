@@ -4,16 +4,17 @@ description: 'Runs Kotlin SDK integration tests with Relay server'
 runs:
   using: "composite"
   steps:
-    # Necessary to macos-latest to update to Java 11, and to enable caching gradle files for quicker execution
-    - name: Setup Java JDK
-      uses: actions/setup-java@v3.3.0
+    - uses: actions/checkout@v3
+
+    - name: Setup Java 17
+      uses: actions/setup-java@v3
       with:
         distribution: 'zulu'
-        java-version: '11'
+        java-version: '17'
         architecture: x86_64
         cache: 'gradle'
 
     - name: Relay integration tests
-# TODO: Add SDK_VERSION env var
+      # TODO: Add SDK_VERSION env var
       shell: bash
       run: ./gradlew :foundation:test --tests "com.walletconnect.foundation.RelayTest" -i

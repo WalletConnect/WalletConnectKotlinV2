@@ -4,6 +4,7 @@ plugins {
 }
 
 android {
+    namespace = "com.walletconnect.chatsample"
     compileSdk = COMPILE_SDK
 
     defaultConfig {
@@ -33,6 +34,7 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
     packagingOptions {
         exclude("META-INF/LICENSE-notice.md")

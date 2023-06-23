@@ -14,6 +14,7 @@ project.apply {
 }
 
 android {
+    namespace = "com.walletconnect.push"
     compileSdk = COMPILE_SDK
 
     defaultConfig {
@@ -49,6 +50,9 @@ android {
     testOptions.unitTests {
         isIncludeAndroidResources = true
         isReturnDefaultValues = true
+    }
+    buildFeatures {
+        buildConfig = true
     }
 }
 

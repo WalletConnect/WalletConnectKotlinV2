@@ -14,6 +14,7 @@ project.apply {
 }
 
 android {
+    namespace = "com.walletconnect.sign"
     compileSdk = COMPILE_SDK
 
     defaultConfig {
@@ -61,6 +62,9 @@ android {
         }
     }
 
+    buildFeatures {
+        buildConfig = true
+    }
 }
 
 sqldelight {

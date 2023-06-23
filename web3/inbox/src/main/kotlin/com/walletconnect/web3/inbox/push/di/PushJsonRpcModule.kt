@@ -24,6 +24,7 @@ internal fun pushJsonRpcModule() = module {
     addSerializerEntry(Web3InboxRPC.Request.Push.DeletePushMessage::class)
 
     addSerializerEntry(Web3InboxRPC.Call.Push.Request::class)
+    addSerializerEntry(Web3InboxRPC.Call.Push.Propose::class)
     addSerializerEntry(Web3InboxRPC.Call.Push.Message::class)
     addSerializerEntry(Web3InboxRPC.Call.Push.Subscription::class)
     addSerializerEntry(Web3InboxRPC.Call.Push.Update::class)
@@ -39,6 +40,7 @@ internal fun pushJsonRpcModule() = module {
     addDeserializerEntry(Web3InboxMethods.Request.Push.DELETE_PUSH_MESSAGE, Web3InboxRPC.Request.Push.DeletePushMessage::class)
 
     addDeserializerEntry(Web3InboxMethods.Call.Push.REQUEST, Web3InboxRPC.Call.Push.Request::class)
+    addDeserializerEntry(Web3InboxMethods.Call.Push.PROPOSE, Web3InboxRPC.Call.Push.Propose::class)
     addDeserializerEntry(Web3InboxMethods.Call.Push.MESSAGE, Web3InboxRPC.Call.Push.Message::class)
     addDeserializerEntry(Web3InboxMethods.Call.Push.SUBSCRIPTION, Web3InboxRPC.Call.Push.Subscription::class)
     addDeserializerEntry(Web3InboxMethods.Call.Push.UPDATE, Web3InboxRPC.Call.Push.Update::class)

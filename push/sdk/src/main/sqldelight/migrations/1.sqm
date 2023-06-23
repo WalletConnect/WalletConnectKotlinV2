@@ -1,6 +1,6 @@
-import kotlin.String;
 import kotlin.Boolean;
 import kotlin.Pair;
+import kotlin.String;
 import kotlin.collections.List;
 import kotlin.collections.Map;
 
@@ -45,4 +45,13 @@ CREATE TABLE IF NOT EXISTS Messages (
     icon TEXT,
     url TEXT,
     type TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS Proposal(
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    request_id INTEGER UNIQUE NOT NULL,
+    push_propose_topic TEXT UNIQUE NOT NULL,
+    dapp_public_key_as_hex TEXT NOT NULL,
+    account TEXT NOT NULL,
+    dapp_metadata_id INTEGER NOT NULL
 );
