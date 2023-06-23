@@ -5,6 +5,7 @@ plugins {
 }
 
 android {
+    namespace = "com.walletconnect.requester"
     compileSdk = COMPILE_SDK
 
     defaultConfig {

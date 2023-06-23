@@ -44,6 +44,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = composeCompilerVersion
@@ -66,11 +67,11 @@ dependencies {
     moshiKsp()
 
     // WalletConnect
-    debugImplementation(project(":androidCore:sdk"))
     debugImplementation(project(":chat:sdk"))
     debugImplementation(project(":push:sdk"))
+    debugImplementation(project(":androidCore:sdk"))
 
-    releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
     releaseImplementation("com.walletconnect:chat:$CHAT_VERSION")
     releaseImplementation("com.walletconnect:push:$PUSH_VERSION")
+    releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
 }

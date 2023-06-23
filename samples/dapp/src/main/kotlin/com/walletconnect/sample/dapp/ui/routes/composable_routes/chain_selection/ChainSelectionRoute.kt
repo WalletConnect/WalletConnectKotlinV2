@@ -36,31 +36,33 @@ import com.walletconnect.sample_common.ui.commons.BlueButton
 import com.walletconnect.sample_common.ui.theme.PreviewTheme
 import com.walletconnect.web3.modal.domain.configuration.Config
 import com.walletconnect.web3.modal.ui.navigateToWeb3Modal
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
+import timber.log.Timber
 
 @Composable
 fun ChainSelectionRoute(navController: NavController) {
     val context = LocalContext.current
     val viewModel: ChainSelectionViewModel = viewModel()
     val chainsState by viewModel.uiState.collectAsState()
-    val selectionResult = navController.currentBackStackEntry
-        ?.savedStateHandle
-        ?.getStateFlow<PairingSelectionResult>(
-            pairingSelectionResultKey,
-            PairingSelectionResult.None
-        )
-        ?.collectAsState()?.value ?: PairingSelectionResult.None
 
-    LaunchedEffect(selectionResult) {
-        when (selectionResult) {
-            PairingSelectionResult.NewPairing -> {
-                viewModel.connectToWallet { uri ->
-                    navController.navigateToWeb3Modal(Config.Connect(uri = uri))
+    LaunchedEffect(Unit) {
+        navController.currentBackStackEntryFlow.collectLatest { event ->
+            event.savedStateHandle.get<PairingSelectionResult>(
+                pairingSelectionResultKey
+            )?.let {
+                navController.currentBackStackEntry?.savedStateHandle?.remove<PairingSelectionResult>(pairingSelectionResultKey)
+                when(it) {
+                    PairingSelectionResult.NewPairing -> {
+                        viewModel.connectToWallet { uri ->
+                            navController.navigateToWeb3Modal(Config.Connect(uri = uri))
+                        }
+                    }
+                    PairingSelectionResult.None -> Unit
+                    is PairingSelectionResult.SelectedPairing -> viewModel.connectToWallet(it.position)
                 }
             }
-            is PairingSelectionResult.SelectedPairing -> viewModel.connectToWallet(selectionResult.position)
-            PairingSelectionResult.None -> Unit
         }
-        navController.currentBackStackEntry?.savedStateHandle?.remove<PairingSelectionResult>(pairingSelectionResultKey)
     }
 
     LaunchedEffect(Unit) {

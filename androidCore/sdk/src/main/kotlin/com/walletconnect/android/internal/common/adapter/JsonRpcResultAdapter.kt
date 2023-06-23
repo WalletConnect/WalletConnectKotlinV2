@@ -30,6 +30,8 @@ internal class JsonRpcResultAdapter(val moshi: Moshi) : JsonAdapter<JsonRpcRespo
         moshi.adapter(CoreChatParams.AcceptanceParams::class.java, emptySet(), "result")
     private val pushRequestResponseParamsAdapter: JsonAdapter<PushParams.RequestResponseParams> =
         moshi.adapter(PushParams.RequestResponseParams::class.java, emptySet(), "result")
+    private val pushProposeResponseParamsAdapter: JsonAdapter<PushParams.ProposeResponseParams> =
+        moshi.adapter(PushParams.ProposeResponseParams::class.java, emptySet(), "result")
 
     @Volatile
     private var constructorRef: Constructor<JsonRpcResponse.JsonRpcResult>? = null
@@ -58,15 +60,23 @@ internal class JsonRpcResultAdapter(val moshi: Moshi) : JsonAdapter<JsonRpcRespo
                         runCatching { approvalParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> {
                             approvalParamsAdapter.fromJson(reader)
                         }
+
                         runCatching { cacaoAdapter.fromJson(reader.peekJson()) }.isSuccess -> {
                             cacaoAdapter.fromJson(reader)
                         }
+
                         runCatching { acceptanceParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> {
                             acceptanceParamsAdapter.fromJson(reader)
                         }
+
                         runCatching { pushRequestResponseParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> {
                             pushRequestResponseParamsAdapter.fromJson(reader)
                         }
+
+                        runCatching { pushProposeResponseParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> {
+                            pushProposeResponseParamsAdapter.fromJson(reader)
+                        }
+
                         else -> anyAdapter.fromJson(reader)
                     }
                 }
@@ -141,10 +151,18 @@ internal class JsonRpcResultAdapter(val moshi: Moshi) : JsonAdapter<JsonRpcRespo
                     it.writeUtf8(approvalParamsString)
                 }
             }
+
             (value_.result as? PushParams.RequestResponseParams) != null -> {
                 val pushRequestParamsString = pushRequestResponseParamsAdapter.toJson(value_.result)
                 writer.valueSink().use {
                     it.writeUtf8(pushRequestParamsString)
+                }
+            }
+
+            (value_.result as? PushParams.ProposeResponseParams) != null -> {
+                val pushProposeParamsString = pushProposeResponseParamsAdapter.toJson(value_.result)
+                writer.valueSink().use {
+                    it.writeUtf8(pushProposeParamsString)
                 }
             }
 
@@ -153,6 +171,7 @@ internal class JsonRpcResultAdapter(val moshi: Moshi) : JsonAdapter<JsonRpcRespo
                     it.writeUtf8(JSONObject(value_.result).toString())
                 }
             }
+
             value_.result is String && value_.result.startsWith("[") -> {
                 writer.valueSink().use {
                     it.writeUtf8(JSONArray(value_.result).toString())

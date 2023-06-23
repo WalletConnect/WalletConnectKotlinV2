@@ -6,7 +6,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
@@ -33,17 +42,20 @@ import com.google.accompanist.pager.rememberPagerState
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
 import com.skydoves.landscapist.glide.GlideImage
+import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.wallet.domain.accounts
-import com.walletconnect.sample.wallet.ui.common.*
+import com.walletconnect.sample.wallet.ui.common.Content
+import com.walletconnect.sample.wallet.ui.common.InnerContent
 import com.walletconnect.sample.wallet.ui.common.blue.BlueLabelTexts
+import com.walletconnect.sample.wallet.ui.common.getAllEventsByChainId
+import com.walletconnect.sample.wallet.ui.common.getAllMethodsByChainId
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionType
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionUI
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
 import com.walletconnect.sample.wallet.ui.routes.showSnackbar
+import com.walletconnect.sample_common.ui.themedColor
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
-import com.walletconnect.sample.wallet.R
-import com.walletconnect.sample_common.ui.themedColor
 
 @Composable
 fun ConnectionDetailsRoute(navController: NavController, connectionId: Int?, connectionsViewModel: ConnectionsViewModel) {
@@ -208,7 +220,7 @@ fun TopButtons(navController: NavController, isEmitVisible: Boolean, onEmit: () 
             .clickable(interactionSource = interactionSourceRow, indication = null) { navController.popBackStack() }
             .padding(5.dp)
         ) {
-            Icon(tint = color, imageVector = ImageVector.vectorResource(id = R.drawable.chevron_left), contentDescription = "Go back")
+            Icon(tint = color, imageVector = ImageVector.vectorResource(id = com.walletconnect.sample_common.R.drawable.chevron_left), contentDescription = "Go back")
             Spacer(modifier = Modifier.width(5.dp))
             Text(text = "Connections", style = style)
         }
