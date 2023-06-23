@@ -9,7 +9,7 @@ CREATE TABLE Proposal(
     dapp_metadata TEXT AS AppMetaData NOT NULL
 );
 
-insertProposal:
+insertOrIgnoreProposal:
 INSERT OR IGNORE INTO Proposal(request_id, push_propose_topic, dapp_public_key_as_hex, account, dapp_metadata)
 VALUES(?, ?, ?, ?, ?);
 

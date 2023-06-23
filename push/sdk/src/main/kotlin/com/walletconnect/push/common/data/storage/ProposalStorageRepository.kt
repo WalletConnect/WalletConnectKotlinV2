@@ -15,7 +15,7 @@ import kotlinx.coroutines.withContext
 internal class ProposalStorageRepository(private val proposalQueries: ProposalQueries) {
 
     suspend fun insertProposal(requestId: Long, proposalTopic: String, dappPublicKeyAsHex: String, dappMetaData: AppMetaData, accountId: String) = withContext(Dispatchers.IO) {
-        proposalQueries.insertProposal(requestId, proposalTopic, dappPublicKeyAsHex, accountId, dappMetaData)
+        proposalQueries.insertOrIgnoreProposal(requestId, proposalTopic, dappPublicKeyAsHex, accountId, dappMetaData)
     }
 
     suspend fun getProposalByRequestId(requestId: Long): EngineDO.PushPropose? = withContext(Dispatchers.IO) {
