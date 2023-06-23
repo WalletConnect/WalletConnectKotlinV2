@@ -38,11 +38,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Display test timeout in seconds
-        env:
-            TEST_TIMEOUT_SECONDS: 180
-        run: echo $TEST_TIMEOUT_SECONDS
-
       - uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
@@ -83,7 +78,7 @@ jobs:
       - name: Instrumented tests
         env:
           WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
-          TEST_TIMEOUT_SECONDS: 180
+          TEST_TIMEOUT_SECONDS: 60
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api-level }}
