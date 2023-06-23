@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalComposeUiApi::class)
-
 package com.walletconnect.sample.wallet.ui
 
 import androidx.compose.foundation.layout.padding
@@ -7,7 +5,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -19,7 +16,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
 import androidx.navigation.navArgument
-import com.google.accompanist.navigation.material.*
+import com.google.accompanist.navigation.material.BottomSheetNavigator
+import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
+import com.google.accompanist.navigation.material.ModalBottomSheetLayout
+import com.google.accompanist.navigation.material.bottomSheet
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.bottomsheet_routes.scan_uri.ScanUriRoute
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connection_details.ConnectionDetailsRoute
@@ -94,6 +94,27 @@ fun Web3WalletNavGraph(
                         SessionRequestRoute(navController)
                     }
                     dialog("${Route.PushRequest.path}?${Route.PushRequest.KEY_REQUEST_ID}={requestId}&${Route.PushRequest.KEY_PEER_NAME}={peerName}&${Route.PushRequest.KEY_PEER_DESC}={peerDesc}&${Route.PushRequest.KEY_ICON_URL}={iconUrl}&${Route.PushRequest.KEY_REDIRECT}={redirect}",
+                        arguments = listOf(
+                            navArgument("requestId") { type = NavType.LongType },
+                            navArgument("peerName") { type = NavType.StringType },
+                            navArgument("peerDesc") { type = NavType.StringType },
+                            navArgument("iconUrl") { type = NavType.StringType },
+                            navArgument("redirect") {
+                                nullable = true
+                                type = NavType.StringType
+                            }
+                        ),
+                        dialogProperties = DialogProperties(usePlatformDefaultWidth = false)) { backStackEntry ->
+                        PushRequestRoute(
+                            navController,
+                            backStackEntry.arguments?.getLong("requestId")!!,
+                            backStackEntry.arguments?.getString("peerName")!!,
+                            backStackEntry.arguments?.getString("peerDesc")!!,
+                            backStackEntry.arguments?.getString("iconUrl"),
+                            backStackEntry.arguments?.getString("redirect"),
+                        )
+                    }
+                    dialog("${Route.PushProposal.path}?${Route.PushProposal.KEY_REQUEST_ID}={requestId}&${Route.PushProposal.KEY_PEER_NAME}={peerName}&${Route.PushProposal.KEY_PEER_DESC}={peerDesc}&${Route.PushProposal.KEY_ICON_URL}={iconUrl}&${Route.PushProposal.KEY_REDIRECT}={redirect}",
                         arguments = listOf(
                             navArgument("requestId") { type = NavType.LongType },
                             navArgument("peerName") { type = NavType.StringType },
