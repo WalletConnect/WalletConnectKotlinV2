@@ -34,9 +34,3 @@ interface CoreInterface {
         onError: (Core.Model.Error) -> Unit,
     )
 }
-
-
-/** Create an instrumented test to verify CoreClient works on one app?
- * - Same pairing on wallet and dapp
- * - Is metadata table all good -> two entries that only differ in peer type
- */
