@@ -2,6 +2,11 @@ name: SDKs Instrumented Tests
 
 on:
   workflow_dispatch:
+    inputs:
+      testTimeoutSeconds:
+        description: 'Seconds for test timeout'
+        required: true
+        default: 40
   push:
     branches:
       - develop
@@ -10,6 +15,9 @@ on:
       - develop
       - master
 
+
+env:
+  TEST_TIMEOUT_SECONDS: 40 # Predefined timeout for integration tests
 
 concurrency:
   # Support push/pr as event types with different behaviors each:
@@ -26,10 +34,10 @@ jobs:
       fail-fast: false
       matrix:
         conf: [
-          { name: Sign SDK, command: ":sign:sdk:connectedCheck", report: '/Users/runner/work/WalletConnectKotlinV2/WalletConnectKotlinV2/sign/sdk/build/reports/androidTests/connected/**' },
+          { name: Sign SDK, command: ":sign:sdk:connectedCheck", report: '/Users/runner/work/WalletConnectKotlinV2/WalletConnectKotlinV2/sign/sdk/build/reports/**' },
         ]
-        api-level: [ 28 ] # JUnit5 only supports API younger or equal to 26
-        target: [ playstore ]
+        api-level: [ 32 ] # JUnit5 only supports API younger or equal to 26
+        target: [ google_apis ]
         profile: [ Nexus 6 ]
         arch: [ x86_64 ]
 
@@ -78,7 +86,7 @@ jobs:
       - name: Instrumented tests
         env:
           WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
-          TEST_TIMEOUT_SECONDS: 1200 # 20 minutes
+          TEST_TIMEOUT_SECONDS: ${{ github.event.inputs.testTimeoutSeconds || env.TEST_TIMEOUT_SECONDS }} # Prioritise dispatch input timeout over env one
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api-level }}
