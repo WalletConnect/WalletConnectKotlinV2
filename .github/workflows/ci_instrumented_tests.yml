@@ -28,7 +28,7 @@ jobs:
         conf: [
           { name: Sign SDK, command: ":sign:sdk:connectedCheck", report: '/Users/runner/work/WalletConnectKotlinV2/WalletConnectKotlinV2/sign/sdk/build/reports/androidTests/connected/**' },
         ]
-        api-level: [ 27 ] # JUnit5 only supports API younger or equal to 26
+        api-level: [ 25 ] # JUnit5 only supports API younger or equal to 26
         target: [ playstore ]
         profile: [ Nexus 6 ]
         arch: [ x86_64 ]
