@@ -62,7 +62,7 @@ fun baseStorageModule() = module {
         try {
             createCoreDB().also { database -> database.jsonRpcHistoryQueries.selectLastInsertedRowId().executeAsOneOrNull() }
         } catch (e: Exception) {
-            deleteDatabase(DBUtils.ANDROID_CORE_DB_NAME)
+            deleteDatabase(get<DatabaseConfig>().ANDROID_CORE_DB_NAME)
             createCoreDB()
         }
     }

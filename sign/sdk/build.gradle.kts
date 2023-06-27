@@ -4,6 +4,7 @@ plugins {
     id("com.squareup.sqldelight")
     id("com.google.devtools.ksp") version kspVersion
     id("publish-module-android")
+    id("de.mannodermaus.android-junit5") version "1.9.3.0"
 }
 
 project.apply {
@@ -26,7 +27,10 @@ android {
         }
 
         buildConfigField(type = "String", name = "SDK_VERSION", value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\"")
-        testInstrumentationRunner = "com.walletconnect.sign.test.utils.WCTestRunner"
+        buildConfigField("String", "PROJECT_ID", "\"${System.getenv("WC_CLOUD_PROJECT_ID") ?: ""}\"")
+        buildConfigField("Integer", "TEST_TIMEOUT_SECONDS", "${System.getenv("TEST_TIMEOUT_SECONDS") ?: 10}")
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         testInstrumentationRunnerArguments += mutableMapOf("runnerBuilder" to "de.mannodermaus.junit5.AndroidJUnit5Builder")
         testInstrumentationRunnerArguments += mutableMapOf("clearPackageData" to "true")
     }
@@ -48,9 +52,14 @@ android {
         freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.time.ExperimentalTime"
     }
 
-    testOptions.unitTests {
-        isIncludeAndroidResources = true
-        isReturnDefaultValues = true
+    testOptions {
+        testOptions {
+            execution = "ANDROIDX_TEST_ORCHESTRATOR"
+        }
+        unitTests {
+            isIncludeAndroidResources = true
+            isReturnDefaultValues = true
+        }
     }
 
     buildFeatures {
@@ -70,9 +79,14 @@ dependencies {
     debugImplementation(project(":androidCore:sdk"))
     releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
 
+    androidTestImplementation("androidx.test:runner:1.5.2")
+    androidTestUtil ("androidx.test:orchestrator:1.4.2")
+
+
     moshiKsp()
     androidXTest()
     jUnit5()
+    jUnit5Android()
     robolectric()
     mockk()
     testJson()
