@@ -19,13 +19,11 @@ import org.koin.core.KoinApplication
 
 internal class PairingProtocol(private val koinApp: KoinApplication = wcKoinApp) : PairingInterface {
     private lateinit var pairingEngine: PairingEngine
-    private lateinit var logger: Logger
-    private lateinit var relayClient: RelayConnectionInterface
+    private val logger: Logger by lazy { koinApp.koin.get() }
+    private val relayClient: RelayConnectionInterface by lazy { koinApp.koin.get() }
 
     override fun initialize() {
         pairingEngine = koinApp.koin.get()
-        relayClient = koinApp.koin.get()
-        logger = koinApp.koin.get()
     }
 
     override fun setDelegate(delegate: PairingInterface.Delegate) {

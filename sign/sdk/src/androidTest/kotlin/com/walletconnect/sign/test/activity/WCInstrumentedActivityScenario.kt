@@ -18,7 +18,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.seconds
 
-object WCInstrumentedActivityScenario : BeforeAllCallback, AfterAllCallback {
+class WCInstrumentedActivityScenario : BeforeAllCallback, AfterAllCallback {
     private var scenario: ActivityScenario<InstrumentedTestActivity>? = null
     private var scenarioLaunched: Boolean = false
     private val latch = CountDownLatch(1)
@@ -66,7 +66,7 @@ object WCInstrumentedActivityScenario : BeforeAllCallback, AfterAllCallback {
 
             runCatching {
                 withTimeout(timeoutDuration) {
-                    while (!isEverythingReady.value) {
+                    while (!(isDappRelayReady.value && isWalletRelayReady.value && TestClient.Wallet.isInitialized.value && TestClient.Dapp.isInitialized.value)) {
                         delay(100)
                     }
                 }

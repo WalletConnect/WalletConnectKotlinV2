@@ -4,7 +4,7 @@ import com.walletconnect.utils.Empty
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.scope.Scope
 
-class DatabaseConfig(var storagePrefix: String = String.Empty) {
+class DatabaseConfig(private val storagePrefix: String = String.Empty) {
     val ANDROID_CORE_DB_NAME
         get() = storagePrefix + "WalletConnectAndroidCore.db"
 

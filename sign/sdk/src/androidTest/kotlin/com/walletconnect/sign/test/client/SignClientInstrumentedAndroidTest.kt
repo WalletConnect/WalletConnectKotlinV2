@@ -13,7 +13,7 @@ import timber.log.Timber
 @ExtendWith(WCInstrumentedActivityScenario::class)
 class SignClientInstrumentedAndroidTest {
 
-    val scenarioExtension = WCInstrumentedActivityScenario
+    val scenarioExtension = WCInstrumentedActivityScenario()
 
     private fun setDelegates(walletDelegate: SignClient.WalletDelegate, dappDelegate: SignClient.DappDelegate) {
         WalletSignClient.setWalletDelegate(walletDelegate)
