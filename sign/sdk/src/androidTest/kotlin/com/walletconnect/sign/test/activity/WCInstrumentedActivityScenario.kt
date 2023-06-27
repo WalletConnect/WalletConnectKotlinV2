@@ -18,6 +18,9 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.seconds
 
+// TODO: Replace testScope and runBlocking with kotlin.coroutines test dependency
+
+
 class WCInstrumentedActivityScenario : BeforeAllCallback, AfterAllCallback {
     private var scenario: ActivityScenario<InstrumentedTestActivity>? = null
     private var scenarioLaunched: Boolean = false
@@ -63,10 +66,11 @@ class WCInstrumentedActivityScenario : BeforeAllCallback, AfterAllCallback {
                 }
             }.launchIn(scope)
 
+            fun isEverythingReady() = isDappRelayReady.value && isWalletRelayReady.value && TestClient.Wallet.isInitialized.value && TestClient.Dapp.isInitialized.value
 
             runCatching {
                 withTimeout(timeoutDuration) {
-                    while (!(isDappRelayReady.value && isWalletRelayReady.value && TestClient.Wallet.isInitialized.value && TestClient.Dapp.isInitialized.value)) {
+                    while (!isEverythingReady()) {
                         delay(100)
                     }
                 }
