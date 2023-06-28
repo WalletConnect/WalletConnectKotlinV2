@@ -16,8 +16,9 @@ import com.walletconnect.auth.di.jsonRpcModule
 import com.walletconnect.auth.engine.domain.AuthEngine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import org.koin.core.KoinApplication
 
-internal class AuthProtocol : AuthInterface {
+internal class AuthProtocol(private val koinApp: KoinApplication = wcKoinApp) : AuthInterface {
     private lateinit var authEngine: AuthEngine
 
     companion object {
@@ -27,13 +28,13 @@ internal class AuthProtocol : AuthInterface {
     @Throws(IllegalStateException::class)
     override fun initialize(params: Auth.Params.Init, onSuccess: () -> Unit, onError: (Auth.Model.Error) -> Unit) {
         try {
-            wcKoinApp.modules(
+            koinApp.modules(
                 jsonRpcModule(),
                 engineModule(),
                 commonModule()
             )
 
-            authEngine = wcKoinApp.koin.get()
+            authEngine = koinApp.koin.get()
             authEngine.setup()
             onSuccess()
         } catch (e: Exception) {

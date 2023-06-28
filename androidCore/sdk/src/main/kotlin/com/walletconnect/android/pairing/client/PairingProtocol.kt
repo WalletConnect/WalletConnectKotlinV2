@@ -3,28 +3,30 @@
 package com.walletconnect.android.pairing.client
 
 import com.walletconnect.android.Core
-import com.walletconnect.android.CoreClient
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.pairing.engine.domain.PairingEngine
 import com.walletconnect.android.pairing.engine.model.EngineDO
 import com.walletconnect.android.pairing.model.mapper.toClient
+import com.walletconnect.android.relay.RelayConnectionInterface
 import com.walletconnect.foundation.util.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
+import org.koin.core.KoinApplication
 
-internal object PairingProtocol : PairingInterface {
+internal class PairingProtocol(private val koinApp: KoinApplication = wcKoinApp) : PairingInterface {
     private lateinit var pairingEngine: PairingEngine
-    private val logger: Logger by lazy { wcKoinApp.koin.get() }
+    private val logger: Logger by lazy { koinApp.koin.get() }
+    private val relayClient: RelayConnectionInterface by lazy { koinApp.koin.get() }
 
-    internal fun initialize() {
-        pairingEngine = wcKoinApp.koin.get()
+    override fun initialize() {
+        pairingEngine = koinApp.koin.get()
     }
 
-    fun setDelegate(delegate: PairingInterface.Delegate) {
+    override fun setDelegate(delegate: PairingInterface.Delegate) {
         checkEngineInitialization()
 
         pairingEngine.engineEvent.onEach { event ->
@@ -50,7 +52,7 @@ internal object PairingProtocol : PairingInterface {
     override fun pair(
         pair: Core.Params.Pair,
         onSuccess: (Core.Params.Pair) -> Unit,
-        onError: (Core.Model.Error) -> Unit
+        onError: (Core.Model.Error) -> Unit,
     ) {
         checkEngineInitialization()
 
@@ -96,7 +98,6 @@ internal object PairingProtocol : PairingInterface {
         }
     }
 
-
     @Throws(IllegalStateException::class)
     override fun ping(ping: Core.Params.Ping, pairingPing: Core.Listeners.PairingPing?) {
         checkEngineInitialization()
@@ -121,7 +122,7 @@ internal object PairingProtocol : PairingInterface {
         try {
             withTimeout(5000) {
                 while (true) {
-                    if (CoreClient.Relay.isConnectionAvailable.value) {
+                    if (relayClient.isConnectionAvailable.value) {
                         onConnection()
                         return@withTimeout
                     }

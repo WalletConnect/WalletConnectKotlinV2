@@ -3,6 +3,9 @@ package com.walletconnect.android.pairing.client
 import com.walletconnect.android.Core
 
 interface PairingInterface {
+
+    fun initialize()
+
     /**
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
@@ -12,7 +15,7 @@ interface PairingInterface {
     fun pair(
         pair: Core.Params.Pair,
         onSuccess: (Core.Params.Pair) -> Unit = {},
-        onError: (Core.Model.Error) -> Unit = {}
+        onError: (Core.Model.Error) -> Unit = {},
     )
 
     @Deprecated(
@@ -34,4 +37,6 @@ interface PairingInterface {
     interface Delegate {
         fun onPairingDelete(deletedPairing: Core.Model.DeletedPairing)
     }
+
+    fun setDelegate(delegate: PairingInterface.Delegate)
 }

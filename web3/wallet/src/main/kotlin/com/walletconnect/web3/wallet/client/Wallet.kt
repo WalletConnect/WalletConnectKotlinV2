@@ -2,14 +2,14 @@ package com.walletconnect.web3.wallet.client
 
 import androidx.annotation.Keep
 import com.walletconnect.android.Core
-import com.walletconnect.android.CoreClient
+import com.walletconnect.android.CoreInterface
 import com.walletconnect.android.cacao.SignatureInterface
 import java.net.URI
 
 object Wallet {
 
     sealed class Params {
-        data class Init constructor(val core: CoreClient) : Params()
+        data class Init constructor(val core: CoreInterface) : Params()
 
         data class Pair(val uri: String) : Params()
 
@@ -78,7 +78,7 @@ object Wallet {
         data class AuthRequest(
             val id: Long,
             val pairingTopic: String,
-            val payloadParams: PayloadParams
+            val payloadParams: PayloadParams,
         ) : Model()
 
         sealed class SettledSessionResponse : Model() {
@@ -102,14 +102,14 @@ object Wallet {
             data class Proposal(
                 val chains: List<String>? = null,
                 val methods: List<String>,
-                val events: List<String>
+                val events: List<String>,
             ) : Namespace()
 
             data class Session(
                 val chains: List<String>? = null,
                 val accounts: List<String>,
                 val methods: List<String>,
-                val events: List<String>
+                val events: List<String>,
             ) : Namespace()
         }
 
@@ -199,7 +199,7 @@ object Wallet {
         data class PendingAuthRequest(
             val id: Long,
             val pairingTopic: String,
-            val payloadParams: PayloadParams
+            val payloadParams: PayloadParams,
         ) : Model()
     }
 }
