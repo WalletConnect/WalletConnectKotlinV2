@@ -15,6 +15,8 @@ const val PUSH_VERSION = "1.0.0-alpha08"
 const val WEB_3_WALLET = "1.10.0"
 const val WEB_3_INBOX = "1.0.0-alpha13"
 const val WEB_3_MODAL = "1.0.0-alpha04"
+const val WC_MODAL_VERSION = "1.0.0-alpha01"
+const val MODAL_CORE_VERSION = "1.0.0-alpha01"
 
 val jvmVersion = JavaVersion.VERSION_11
 const val MIN_SDK: Int = 23

@@ -82,10 +82,12 @@ dependencies {
     releaseImplementation("com.walletconnect:android-core")
     releaseImplementation("com.walletconnect:sign")
     releaseImplementation("com.walletconnect:auth")
+    releaseImplementation(project(":core:modalCore"))
 
     debugImplementation(project(":androidCore:sdk"))
     debugImplementation(project(":sign:sdk"))
     debugImplementation(project(":auth:sdk"))
+    debugImplementation(project(":core:modalCore"))
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

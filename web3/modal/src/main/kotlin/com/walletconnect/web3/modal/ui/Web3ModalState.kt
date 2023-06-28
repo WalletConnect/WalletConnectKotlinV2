@@ -1,6 +1,6 @@
 package com.walletconnect.web3.modal.ui
 
-import com.walletconnect.web3.modal.domain.model.Wallet
+import com.walletconnect.android.internal.common.explorer.data.model.Wallet
 import com.walletconnect.web3.modal.ui.navigation.Route
 
 internal sealed class Web3ModalState {
