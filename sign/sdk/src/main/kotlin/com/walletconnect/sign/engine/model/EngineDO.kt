@@ -134,6 +134,8 @@ internal sealed class EngineDO {
         override val topic: Topic,
         override val expiry: Expiry,
         val pairingTopic: String,
+        val requiredNamespaces: Map<String, Namespace.Proposal>,
+        val optionalNamespaces: Map<String, Namespace.Proposal>?,
         val namespaces: Map<String, Namespace.Session>,
         val peerAppMetaData: AppMetaData?,
     ) : EngineDO(), Sequence, EngineEvent
@@ -142,6 +144,8 @@ internal sealed class EngineDO {
         override val topic: Topic,
         override val expiry: Expiry,
         val pairingTopic: String,
+        val requiredNamespaces: Map<String, Namespace.Proposal>,
+        val optionalNamespaces: Map<String, Namespace.Proposal>?,
         val namespaces: Map<String, Namespace.Session>,
         val peerAppMetaData: AppMetaData?,
     ) : EngineDO(), Sequence, EngineEvent

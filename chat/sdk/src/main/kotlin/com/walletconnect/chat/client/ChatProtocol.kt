@@ -2,6 +2,7 @@
 
 package com.walletconnect.chat.client
 
+import com.walletconnect.android.internal.common.di.DatabaseConfig
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
@@ -13,10 +14,10 @@ import com.walletconnect.chat.client.mapper.toCommon
 import com.walletconnect.chat.common.model.Events
 import com.walletconnect.chat.di.*
 import com.walletconnect.chat.engine.domain.ChatEngine
-import com.walletconnect.foundation.common.model.PublicKey
 import kotlinx.coroutines.launch
+import org.koin.core.KoinApplication
 
-internal class ChatProtocol : ChatInterface {
+internal class ChatProtocol(private val koinApp: KoinApplication = wcKoinApp) : ChatInterface {
     private lateinit var chatEngine: ChatEngine
 
     companion object {
@@ -26,16 +27,17 @@ internal class ChatProtocol : ChatInterface {
     @Throws(IllegalStateException::class)
     override fun initialize(init: Chat.Params.Init, onError: (Chat.Model.Error) -> Unit) {
         try {
-            wcKoinApp.run {
+            koinApp.run {
                 modules(
                     jsonRpcModule(),
-                    storageModule(),
+                    storageModule(koinApp.koin.get<DatabaseConfig>().CHAT_SDK_DB_NAME),
+                    syncInChatModule(),
                     engineModule(),
                     commonModule()
                 )
             }
 
-            chatEngine = wcKoinApp.koin.get()
+            chatEngine = koinApp.koin.get()
             chatEngine.setup()
         } catch (e: Exception) {
             onError(Chat.Model.Error(e))
@@ -80,7 +82,7 @@ internal class ChatProtocol : ChatInterface {
 
     @Throws(IllegalStateException::class)
     override fun invite(invite: Chat.Params.Invite, onSuccess: (Long) -> Unit, onError: (Chat.Model.Error) -> Unit) = protocolFunction(onError) {
-        chatEngine.invite(invite.toCommon(), { inviteId -> onSuccess(inviteId) }, { error -> onError(Chat.Model.Error(error)) })
+        scope.launch { chatEngine.invite(invite.toCommon(), { inviteId -> onSuccess(inviteId) }, { error -> onError(Chat.Model.Error(error)) }) }
     }
 
     @Throws(IllegalStateException::class)
@@ -109,13 +111,6 @@ internal class ChatProtocol : ChatInterface {
     }
 
     @Throws(IllegalStateException::class)
-    override fun setContact(setContact: Chat.Params.SetContact, onError: (Chat.Model.Error) -> Unit) = protocolFunction(onError) {
-        chatEngine.setContact(setContact.account.toCommon(), PublicKey(setContact.publicKey)) { error ->
-            onError(Chat.Model.Error(error))
-        }
-    }
-
-    @Throws(IllegalStateException::class)
     override fun getReceivedInvites(getReceivedInvites: Chat.Params.GetReceivedInvites): Map<Long, Chat.Model.Invite.Received> = wrapWithEngineInitializationCheck() {
         chatEngine.getReceivedInvites(getReceivedInvites.account.value).mapValues { (_, invite) -> invite.toClient() }
     }
@@ -127,17 +122,17 @@ internal class ChatProtocol : ChatInterface {
 
     @Throws(IllegalStateException::class)
     override fun getThreads(getThreads: Chat.Params.GetThreads): Map<String, Chat.Model.Thread> = wrapWithEngineInitializationCheck() {
-        chatEngine.getThreadsByAccount(getThreads.account.value).mapValues { (_, thread) -> thread.toClient() }
+        chatEngine.getThreads(getThreads.account.value).mapValues { (_, thread) -> thread.toClient() }
     }
 
     @Throws(IllegalStateException::class)
     override fun getMessages(getMessages: Chat.Params.GetMessages): List<Chat.Model.Message> = wrapWithEngineInitializationCheck() {
-        chatEngine.getMessagesByTopic(getMessages.topic).map { message -> message.toClient() }
+        chatEngine.getMessages(getMessages.topic).map { message -> message.toClient() }.sortedBy { message -> message.timestamp }
     }
 
     @Throws(IllegalStateException::class)
     override fun register(register: Chat.Params.Register, listener: Chat.Listeners.Register) = protocolFunction(listener::onError) {
-        chatEngine.registerIdentity(
+        chatEngine.register(
             register.account.toCommon(),
             onSign = { message -> listener.onSign(message).toCommon() },
             { didKey -> listener.onSuccess(didKey) },
@@ -148,7 +143,7 @@ internal class ChatProtocol : ChatInterface {
 
     @Throws(IllegalStateException::class)
     override fun unregister(unregister: Chat.Params.Unregister, listener: Chat.Listeners.Unregister) = protocolFunction(listener::onError) {
-        chatEngine.unregisterIdentity(
+        chatEngine.unregister(
             unregister.account.toCommon(),
             { didKey -> listener.onSuccess(didKey) },
             { throwable -> listener.onError(Chat.Model.Error(throwable)) },

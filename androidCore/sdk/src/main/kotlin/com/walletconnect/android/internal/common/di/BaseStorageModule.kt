@@ -6,6 +6,12 @@ import com.walletconnect.android.di.AndroidCoreDITags
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.Validation
 import com.walletconnect.android.internal.common.storage.*
+import com.walletconnect.android.internal.common.storage.IdentitiesStorageRepository
+import com.walletconnect.android.internal.common.storage.JsonRpcHistory
+import com.walletconnect.android.internal.common.storage.MetadataStorageRepository
+import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
+import com.walletconnect.android.internal.common.storage.PairingStorageRepository
+import com.walletconnect.android.internal.common.storage.PairingStorageRepositoryInterface
 import com.walletconnect.android.sdk.core.AndroidCoreDatabase
 import com.walletconnect.android.sdk.storage.data.dao.MetaData
 import com.walletconnect.android.sdk.storage.data.dao.VerifyContext
@@ -64,7 +70,7 @@ fun baseStorageModule() = module {
         try {
             createCoreDB().also { database -> database.jsonRpcHistoryQueries.selectLastInsertedRowId().executeAsOneOrNull() }
         } catch (e: Exception) {
-            deleteDatabase(DBUtils.ANDROID_CORE_DB_NAME)
+            deleteDatabase(get<DatabaseConfig>().ANDROID_CORE_DB_NAME)
             createCoreDB()
         }
     }

@@ -9,6 +9,7 @@ import com.walletconnect.push.common.Push
 import com.walletconnect.sample.wallet.domain.ISSUER
 import com.walletconnect.sample.wallet.domain.PushWalletDelegate
 import com.walletconnect.sample.wallet.domain.WCDelegate
+import com.walletconnect.sample_common.tag
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import kotlinx.coroutines.flow.SharingStarted
@@ -54,13 +55,30 @@ class Web3WalletViewModel : ViewModel() {
 
                 PushRequest(requestId, peerName, peerDesc, icon, redirect)
             }
+            is Push.Wallet.Event.Proposal -> {
+                val requestId = pushEvent.id.toString()
+                val peerName = pushEvent.metadata.name
+                val peerDesc = pushEvent.metadata.description
+                val icon = pushEvent.metadata.icons.firstOrNull()
+                val redirect = pushEvent.metadata.redirect
+
+                PushProposal(requestId, peerName, peerDesc, icon, redirect)
+            }
             is Push.Wallet.Event.Message -> {
-                PushMessage(pushEvent.message.title, pushEvent.message.body, pushEvent.message.icon, pushEvent.message.url)
+                PushMessage(pushEvent.message.message.title, pushEvent.message.message.body, pushEvent.message.message.icon, pushEvent.message.message.url)
             }
             is Push.Wallet.Event.Delete -> {
                 NoAction
             }
-            else -> NoAction
+            is Push.Wallet.Event.Subscription.Result -> {
+                Log.e(tag(this), "PushEvent.Subscription.Result: ${pushEvent.subscription}")
+            }
+            is Push.Wallet.Event.Subscription.Error -> {
+                Log.e(tag(this), "PushEvent.Subscription.Error: ${pushEvent.reason}")
+            }
+            else -> {
+                NoAction
+            }
         }
     }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 

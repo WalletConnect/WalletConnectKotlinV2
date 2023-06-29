@@ -5,6 +5,7 @@ plugins {
 }
 
 android {
+    namespace = "com.walletconnect.responder"
     compileSdk = COMPILE_SDK
 
     defaultConfig {

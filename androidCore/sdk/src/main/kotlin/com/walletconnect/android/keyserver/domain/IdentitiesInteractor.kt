@@ -1,11 +1,11 @@
 package com.walletconnect.android.keyserver.domain
 
-import com.walletconnect.android.internal.common.signing.cacao.Cacao
-import com.walletconnect.android.internal.common.signing.cacao.CacaoType
-import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
-import com.walletconnect.android.internal.common.signing.cacao.toCAIP122Message
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
-import com.walletconnect.android.internal.common.exception.*
+import com.walletconnect.android.internal.common.exception.AccountHasNoIdentityStored
+import com.walletconnect.android.internal.common.exception.InvalidAccountIdException
+import com.walletconnect.android.internal.common.exception.InvalidIdentityCacao
+import com.walletconnect.android.internal.common.exception.UnableToExtractDomainException
+import com.walletconnect.android.internal.common.exception.UserRejectedSigning
 import com.walletconnect.android.internal.common.jwt.did.EncodeDidJwtPayloadUseCase
 import com.walletconnect.android.internal.common.jwt.did.EncodeIdentityKeyDidJwtPayloadUseCase
 import com.walletconnect.android.internal.common.jwt.did.encodeDidJwt
@@ -13,13 +13,18 @@ import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.DidJwt
 import com.walletconnect.android.internal.common.model.MissingKeyException
 import com.walletconnect.android.internal.common.model.ProjectId
+import com.walletconnect.android.internal.common.signing.cacao.Cacao
+import com.walletconnect.android.internal.common.signing.cacao.CacaoType
+import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
+import com.walletconnect.android.internal.common.signing.cacao.toCAIP122Message
 import com.walletconnect.android.internal.common.storage.IdentitiesStorageRepository
-import com.walletconnect.android.internal.utils.SELF_IDENTITY_PUBLIC_KEY_CONTEXT
+import com.walletconnect.android.internal.utils.getIdentityTag
 import com.walletconnect.android.keyserver.domain.use_case.RegisterIdentityUseCase
 import com.walletconnect.android.keyserver.domain.use_case.ResolveIdentityUseCase
 import com.walletconnect.android.keyserver.domain.use_case.UnregisterIdentityUseCase
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
+import com.walletconnect.foundation.util.jwt.DID_DELIMITER
 import com.walletconnect.foundation.util.jwt.decodeDidPkh
 import com.walletconnect.foundation.util.jwt.encodeDidPkh
 import com.walletconnect.foundation.util.jwt.encodeEd25519DidKey
@@ -27,7 +32,8 @@ import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.randomBytes
 import java.net.URI
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
+import java.util.Locale
 
 class IdentitiesInteractor(
     private val identitiesRepository: IdentitiesStorageRepository,
@@ -61,7 +67,9 @@ class IdentitiesInteractor(
         throw AccountHasNoIdentityStored(accountId)
     }
 
-    suspend fun resolveIdentity(identityKey: String): Result<AccountId> = resolveIdentityLocally(identityKey).recover { resolveAndStoreIdentityRemotely(identityKey).getOrThrow() }
+    private suspend fun resolveIdentity(identityKey: String): Result<AccountId> = resolveIdentityLocally(identityKey).recover { resolveAndStoreIdentityRemotely(identityKey).getOrThrow() }
+
+    suspend fun resolveIdentityDidKey(identityDidKey: String): Result<AccountId> = resolveIdentity(identityDidKey.split(DID_DELIMITER).last())
 
     private suspend fun resolveIdentityLocally(identityKey: String): Result<AccountId> = runCatching { identitiesRepository.getAccountId(identityKey) }
 
@@ -106,8 +114,6 @@ class IdentitiesInteractor(
         val domain: String = uri.host
         if (domain.startsWith("www.")) domain.substring(4) else domain
     }
-
-    private fun AccountId.getIdentityTag(): String = "$SELF_IDENTITY_PUBLIC_KEY_CONTEXT${this.value}"
 
     private fun generatePayload(accountId: AccountId, keyserverUrl: String, identityKey: PublicKey): Result<Cacao.Payload> = Result.success(
         Cacao.Payload(

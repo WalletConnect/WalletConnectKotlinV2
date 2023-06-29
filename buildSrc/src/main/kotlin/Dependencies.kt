@@ -111,17 +111,24 @@ fun DependencyHandlerScope.wsRestJava() {
     "testImplementation"("org.glassfish.jersey.core:jersey-common:3.1.0")
 }
 
+// TODO: Replace JUnit5 with JUnit4 since Android tooling does not support JUnit5 yet
 fun DependencyHandlerScope.jUnit5() {
     "testImplementation"(platform("org.junit:junit-bom:$jUnit5Version"))
-    "testImplementation"("org.junit.jupiter:junit-jupiter-api:$jUnit5Version")
-    "testRuntimeOnly"("org.junit.jupiter:junit-jupiter-engine:$jUnit5Version")
+    "testImplementation"("org.junit.jupiter:junit-jupiter-api")
+    "testRuntimeOnly"("org.junit.jupiter:junit-jupiter-engine")
+    "testImplementation"("org.junit.jupiter:junit-jupiter-params")
+
+    // JUnit 4 support
+    "testImplementation"("junit:junit:4.13.2")
+    "testRuntimeOnly"("org.junit.vintage:junit-vintage-engine")
+
     "testImplementation"("org.jetbrains.kotlin:kotlin-test-junit5:$kotlinVersion")
 }
 
 fun DependencyHandlerScope.jUnit5Android() {
-    "androidTestImplementation"("org.junit.jupiter:junit-jupiter-api:$jUnit5Version")
-    "androidTestImplementation"("de.mannodermaus.junit5:android-test-core:1.3.0")
-    "androidTestRuntimeOnly"("de.mannodermaus.junit5:android-test-runner:1.3.0")
+    "testImplementation"(platform("org.junit:junit-bom:$jUnit5Version"))
+    "androidTestImplementation"("org.junit.jupiter:junit-jupiter-api")
+    "androidTestRuntimeOnly"("org.junit.jupiter:junit-jupiter-engine")
 }
 
 fun DependencyHandlerScope.androidXTest() {
@@ -170,10 +177,19 @@ fun DependencyHandlerScope.fcm() {
 }
 
 fun DependencyHandlerScope.compose() {
-    "api"(platform("androidx.compose:compose-bom:$composeBomVersion"))
-    "api"("androidx.compose.ui:ui")
-    "api"("androidx.compose.ui:ui-tooling-preview")
-    "api"("androidx.compose.material:material")
-    "debugApi"("androidx.compose.ui:ui-tooling")
-    "debugApi"("androidx.compose.ui:ui-test-manifest")
+    "implementation"(platform("androidx.compose:compose-bom:$composeBomVersion"))
+    "implementation"("androidx.compose.ui:ui")
+    "implementation"("androidx.compose.ui:ui-tooling-preview")
+    "implementation"("androidx.compose.material:material")
+    "debugImplementation"("androidx.compose.ui:ui-tooling")
+    "debugImplementation"("androidx.compose.ui:ui-test-manifest")
+}
+
+fun DependencyHandlerScope.accompanist() {
+    "api"("com.google.accompanist:accompanist-navigation-material:$accompanistVersion")
+    "implementation"("com.google.accompanist:accompanist-drawablepainter:$accompanistVersion")
+    "implementation"("com.google.accompanist:accompanist-navigation-animation:$accompanistVersion")
+    "implementation"("com.google.accompanist:accompanist-systemuicontroller:$accompanistVersion")
+    "implementation"("com.google.accompanist:accompanist-pager:$accompanistVersion")
+    "implementation"("com.google.accompanist:accompanist-pager-indicators:$accompanistVersion")
 }

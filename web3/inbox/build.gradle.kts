@@ -44,6 +44,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = composeCompilerVersion
@@ -60,12 +61,17 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
+    implementation(platform("com.google.firebase:firebase-bom:31.0.0"))
+    implementation("com.google.firebase:firebase-messaging")
+
+    moshiKsp()
+
     // WalletConnect
     debugImplementation(project(":chat:sdk"))
-//    debugImplementation(project(":push:sdk"))
+    debugImplementation(project(":push:sdk"))
     debugImplementation(project(":androidCore:sdk"))
 
     releaseImplementation("com.walletconnect:chat:$CHAT_VERSION")
-//    releaseImplementation("com.walletconnect:push:$PUSH_VERSION")
+    releaseImplementation("com.walletconnect:push:$PUSH_VERSION")
     releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
 }

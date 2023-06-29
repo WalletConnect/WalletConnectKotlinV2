@@ -7,11 +7,9 @@ import retrofit2.http.Query
 
 internal interface ExplorerService {
 
-    @GET("/v3/wallets")
+    @GET("/w3m/v1/getAndroidListings")
     suspend fun getWallets(
         @Query("projectId") projectId: String,
-        @Query("page") page: Int,
-        @Query("entries") entries: Int,
         @Query("chains") chains: String
     ): Response<ExplorerResponse>
 }

@@ -45,6 +45,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = composeCompilerVersion
@@ -59,18 +60,20 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
     implementation("com.google.android.material:material:1.8.0")
 
+    // Navigation
     implementation("androidx.navigation:navigation-compose:2.5.3")
+    implementation("androidx.navigation:navigation-fragment-ktx:2.5.3")
 
     //compose
     compose()
+    //override compose material to fix crash at modalsheet
+    implementation("androidx.compose.material:material:1.5.0-alpha04")
 
     //coil
-    implementation ("io.coil-kt:coil-compose:2.3.0")
+    implementation("io.coil-kt:coil-compose:2.3.0")
 
-// accompanist
-    implementation("com.google.accompanist:accompanist-navigation-material:0.30.0")
-    implementation("com.google.accompanist:accompanist-drawablepainter:0.30.0")
-    implementation("com.google.accompanist:accompanist-navigation-animation:0.30.0")
+    // accompanist
+    accompanist()
 
     // Qrcode generator
     implementation("com.github.alexzhirkevich:custom-qr-generator:1.6.1")

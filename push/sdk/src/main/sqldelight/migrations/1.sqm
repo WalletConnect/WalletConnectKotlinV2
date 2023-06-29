@@ -1,0 +1,57 @@
+import kotlin.Boolean;
+import kotlin.Pair;
+import kotlin.String;
+import kotlin.collections.List;
+import kotlin.collections.Map;
+
+-- This file is for the migration from version 1 to version 2 of the schema
+
+DROP TABLE IF EXISTS Subscription;
+DROP TABLE IF EXISTS Subscriptions;
+
+CREATE TABLE IF NOT EXISTS Subscriptions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    request_id INTEGER UNIQUE NOT NULL,
+    key_agreement_topic TEXT NOT NULL,
+    response_topic TEXT NOT NULL,
+    dapp_public_key TEXT DEFAULT NULL,
+    topic TEXT,
+    account TEXT NOT NULL,
+    relay_protocol TEXT NOT NULL,
+    relay_data TEXT,
+    metadata_name TEXT NOT NULL,
+    metadata_description TEXT NOT NULL,
+    metadata_url TEXT NOT NULL,
+    metadata_icons TEXT AS List<String> NOT NULL,
+    metadata_native TEXT,
+    did_jwt TEXT NOT NULL,
+    map_of_scope TEXT AS Map<String, Pair<String, Boolean>> NOT NULL,
+    expiry INTEGER NOT NULL
+);
+
+-- delete unused table
+DROP TABLE IF EXISTS Subscribe;
+
+-- Migration from old Message table to new Message table
+DROP TABLE IF EXISTS Message;
+
+CREATE TABLE IF NOT EXISTS Messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    request_id INTEGER UNIQUE NOT NULL,
+    topic TEXT NOT NULL,
+    published_at INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    body TEXT NOT NULL,
+    icon TEXT,
+    url TEXT,
+    type TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS Proposal(
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    request_id INTEGER UNIQUE NOT NULL,
+    push_propose_topic TEXT UNIQUE NOT NULL,
+    dapp_public_key_as_hex TEXT NOT NULL,
+    account TEXT NOT NULL,
+    dapp_metadata_id INTEGER NOT NULL
+);

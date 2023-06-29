@@ -4,7 +4,6 @@ package com.walletconnect.sign.di
 
 import com.walletconnect.android.di.AndroidCoreDITags
 import com.walletconnect.android.di.sdkBaseStorageModule
-import com.walletconnect.android.internal.common.di.DBUtils
 import com.walletconnect.android.internal.common.di.deleteDatabase
 import com.walletconnect.sign.SignDatabase
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceDao
@@ -21,7 +20,7 @@ import org.koin.core.scope.Scope
 import org.koin.dsl.module
 
 @JvmSynthetic
-internal fun storageModule(): Module = module {
+internal fun storageModule(dbName: String): Module = module {
     fun Scope.createSignDB(): SignDatabase = SignDatabase(
         get(),
         NamespaceDaoAdapter = NamespaceDao.Adapter(
@@ -55,13 +54,13 @@ internal fun storageModule(): Module = module {
         )
     )
 
-    includes(sdkBaseStorageModule(SignDatabase.Schema, DBUtils.SIGN_SDK_DB_NAME))
+    includes(sdkBaseStorageModule(SignDatabase.Schema, dbName))
 
     single {
         try {
             createSignDB().also { signDatabase -> signDatabase.sessionDaoQueries.lastInsertedRow().executeAsOneOrNull() }
         } catch (e: Exception) {
-            deleteDatabase(DBUtils.SIGN_SDK_DB_NAME)
+            deleteDatabase(dbName)
             createSignDB()
         }
     }

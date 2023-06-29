@@ -2,8 +2,17 @@ package com.walletconnect.web3.modal.ui.routes.connect.get_wallet
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -22,22 +31,27 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.walletconnect.web3.modal.ui.components.internal.commons.RoundedMainButton
-import com.walletconnect.web3.modal.ui.components.internal.Web3ModalTopBar
-import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 import com.walletconnect.web3.modal.R
+import com.walletconnect.web3.modal.domain.model.Wallet
+import com.walletconnect.web3.modal.ui.components.internal.Web3ModalTopBar
+import com.walletconnect.web3.modal.ui.components.internal.commons.RoundedMainButton
+import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 @Composable
-internal fun GetAWalletRoute(navController: NavController) {
+internal fun GetAWalletRoute(
+    navController: NavController,
+    wallets: List<Wallet>,
+) {
     GetAWalletContent(
+        wallets = wallets,
         onBackPressed = navController::popBackStack,
-
-        )
+    )
 }
 
 @Composable
 private fun GetAWalletContent(
     onBackPressed: () -> Unit,
+    wallets: List<Wallet>,
 ) {
     val uriHandler = LocalUriHandler.current
 
@@ -48,48 +62,52 @@ private fun GetAWalletContent(
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
         ) {
-        }
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 12.dp, horizontal = 12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Not what you're looking for?", style = TextStyle(
-                    color = Web3ModalTheme.colors.textColor,
-                    textAlign = TextAlign.Center,
-                    fontSize = 18.sp
-                )
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "With hundreds of wallets out there, there’s something for everyone",
-                style = TextStyle(
-                    color = Web3ModalTheme.colors.secondaryTextColor,
-                    textAlign = TextAlign.Center,
-                    fontSize = 14.sp
-                )
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            RoundedMainButton(
-                text = "Explore Wallets",
-                onClick = { uriHandler.openUri("https://explorer.walletconnect.com/?type=wallet") },
-                endIcon = {
-                    Image(
-                        imageVector = ImageVector.vectorResource(id = R.drawable.ic_external_link),
-                        colorFilter = ColorFilter.tint(Web3ModalTheme.colors.onMainColor),
-                        contentDescription = null,
+            itemsIndexed(wallets.take(6)) { _, wallet ->
+                WalletListItem(wallet = wallet)
+            }
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp, horizontal = 12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Not what you're looking for?", style = TextStyle(
+                            color = Web3ModalTheme.colors.textColor,
+                            textAlign = TextAlign.Center,
+                            fontSize = 18.sp
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "With hundreds of wallets out there, there’s something for everyone",
+                        style = TextStyle(
+                            color = Web3ModalTheme.colors.secondaryTextColor,
+                            textAlign = TextAlign.Center,
+                            fontSize = 14.sp
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    RoundedMainButton(
+                        text = "Explore Wallets",
+                        onClick = { uriHandler.openUri("https://explorer.walletconnect.com/?type=wallet") },
+                        endIcon = {
+                            Image(
+                                imageVector = ImageVector.vectorResource(id = R.drawable.ic_external_link),
+                                colorFilter = ColorFilter.tint(Web3ModalTheme.colors.onMainColor),
+                                contentDescription = null,
+                            )
+                        }
                     )
                 }
-            )
+            }
         }
     }
 }
 
 @Composable
-private fun WalletListItem() {
-    val url = "https://play.google.com/store/apps/details?id=me.rainbow"
+private fun WalletListItem(wallet: Wallet) {
     val uriHandler = LocalUriHandler.current
     Column {
         Row(
@@ -100,7 +118,7 @@ private fun WalletListItem() {
         ) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data("https://explorer-api.walletconnect.com/v3/logo/md/7a33d7f1-3d12-4b5c-f3ee-5cd83cb1b500?projectId=a7f155fbc59c18b6ad4fb5650067dd41")
+                    .data(wallet.imageUrl)
                     .crossfade(true)
                     .build(),
                 contentDescription = null,
@@ -110,7 +128,7 @@ private fun WalletListItem() {
             )
             Spacer(modifier = Modifier.width(12.dp))
             Text(
-                text = "Wallet Name",
+                text = wallet.name,
                 style = TextStyle(
                     fontSize = 16.sp,
                     color = Web3ModalTheme.colors.onBackgroundColor,
@@ -119,7 +137,7 @@ private fun WalletListItem() {
             )
             RoundedMainButton(
                 text = "Get",
-                onClick = { uriHandler.openUri(url) },
+                onClick = { uriHandler.openUri(wallet.playStoreLink) },
                 endIcon = {
                     Image(
                         imageVector = ImageVector.vectorResource(id = R.drawable.ic_forward_chevron),

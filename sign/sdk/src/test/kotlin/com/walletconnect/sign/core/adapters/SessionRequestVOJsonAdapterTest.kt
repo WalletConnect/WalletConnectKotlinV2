@@ -186,6 +186,54 @@ internal class SessionRequestVOJsonAdapterTest {
     }
 
     @Test
+    fun personalSignWithEmptyString() {
+        params = """
+            [
+              "0x4d7920656d61696c206973206a6f686e40646f652e636f6d202d2031363539353332343934303431", ""
+            ]
+        """.trimIndent()
+
+        val expectedParamsJsonArray = JSONArray(params)
+        val actualParamsJsonArray = JSONArray(serializedParams)
+
+        assertEquals(expectedParamsJsonArray.length(), actualParamsJsonArray.length())
+
+        iterateJsonArrays(expectedParamsJsonArray, actualParamsJsonArray)
+    }
+
+    @Test
+    fun personalSignWithStringifiedNull() {
+        params = """
+            [
+              "0x4d7920656d61696c206973206a6f686e40646f652e636f6d202d2031363539353332343934303431", "null"
+            ]
+        """.trimIndent()
+
+        val expectedParamsJsonArray = JSONArray(params)
+        val actualParamsJsonArray = JSONArray(serializedParams)
+
+        assertEquals(expectedParamsJsonArray.length(), actualParamsJsonArray.length())
+
+        iterateJsonArrays(expectedParamsJsonArray, actualParamsJsonArray)
+    }
+
+    @Test
+    fun personalSignWithNull() {
+        params = """
+            [
+              "0x4d7920656d61696c206973206a6f686e40646f652e636f6d202d2031363539353332343934303431", null
+            ]
+        """.trimIndent()
+
+        val expectedParamsJsonArray = JSONArray(params)
+        val actualParamsJsonArray = JSONArray(serializedParams)
+
+        assertEquals(expectedParamsJsonArray.length(), actualParamsJsonArray.length())
+
+        iterateJsonArrays(expectedParamsJsonArray, actualParamsJsonArray)
+    }
+
+    @Test
     fun deserializeToUnNamedJsonArrayMixedType() {
         params = """
             [

@@ -1,11 +1,12 @@
 package com.walletconnect.sample.wallet.ui.routes.dialog_routes.session_request
 
-import android.content.ActivityNotFoundException
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Text
@@ -32,16 +33,9 @@ import com.walletconnect.sample.wallet.ui.common.peer.Peer
 import com.walletconnect.sample.wallet.ui.common.peer.PeerUI
 import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import com.walletconnect.sample_common.CompletePreviews
+import com.walletconnect.sample_common.sendResponseDeepLink
 import com.walletconnect.sample_common.ui.theme.PreviewTheme
 import com.walletconnect.sample_common.ui.themedColor
-
-private fun sendResponseDeepLink(context: Context, sessionRequestDeeplinkUri: Uri) {
-    try {
-        context.startActivity(Intent(Intent.ACTION_VIEW, sessionRequestDeeplinkUri))
-    } catch (exception: ActivityNotFoundException) {
-        // There is no app to handle deep link
-    }
-}
 
 
 @CompletePreviews
@@ -66,11 +60,11 @@ fun SessionRequestRoute(navController: NavHostController, sessionRequestViewMode
                 Request(sessionRequestUI = sessionRequestUI)
                 Spacer(modifier = Modifier.height(16.dp))
                 Buttons(onDecline = {
-                    sessionRequestViewModel.reject() { uri -> sendResponseDeepLink(context, uri) }
+                    sessionRequestViewModel.reject() { uri -> context.sendResponseDeepLink(uri) }
                     navController.popBackStack()
                     navController.showSnackbar("Session Request declined")
                 }, onAllow = {
-                    sessionRequestViewModel.approve() { uri -> sendResponseDeepLink(context, uri) }
+                    sessionRequestViewModel.approve() { uri -> context.sendResponseDeepLink(uri) }
                     navController.popBackStack()
                     navController.showSnackbar("Session Request approved")
                 })

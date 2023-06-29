@@ -2,6 +2,7 @@
 
 package com.walletconnect.sign.client
 
+import com.walletconnect.android.internal.common.di.DatabaseConfig
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
@@ -11,15 +12,16 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.client.mapper.*
 import com.walletconnect.sign.di.commonModule
 import com.walletconnect.sign.di.engineModule
-import com.walletconnect.sign.di.jsonRpcModule
+import com.walletconnect.sign.di.signJsonRpcModule
 import com.walletconnect.sign.di.storageModule
 import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.engine.model.EngineDO
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import org.koin.core.KoinApplication
 import kotlinx.coroutines.runBlocking
 
-class SignProtocol : SignInterface {
+class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInterface {
     private lateinit var signEngine: SignEngine
 
     companion object {
@@ -29,14 +31,14 @@ class SignProtocol : SignInterface {
     override fun initialize(init: Sign.Params.Init, onSuccess: () -> Unit, onError: (Sign.Model.Error) -> Unit) {
         // TODO: re-init scope
         try {
-            wcKoinApp.modules(
+            koinApp.modules(
                 commonModule(),
-                jsonRpcModule(),
-                storageModule(),
+                signJsonRpcModule(),
+                storageModule(koinApp.koin.get<DatabaseConfig>().SIGN_SDK_DB_NAME),
                 engineModule()
             )
 
-            signEngine = wcKoinApp.koin.get()
+            signEngine = koinApp.koin.get()
             signEngine.setup()
             onSuccess()
         } catch (e: Exception) {
@@ -157,7 +159,7 @@ class SignProtocol : SignInterface {
         request: Sign.Params.Request,
         onSuccess: (Sign.Params.Request) -> Unit,
         onSuccessWithSentRequest: (Sign.Model.SentRequest) -> Unit,
-        onError: (Sign.Model.Error) -> Unit
+        onError: (Sign.Model.Error) -> Unit,
     ) {
         checkEngineInitialization()
         try {

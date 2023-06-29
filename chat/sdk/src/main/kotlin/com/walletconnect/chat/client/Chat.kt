@@ -1,7 +1,7 @@
 package com.walletconnect.chat.client
 
 import androidx.annotation.Keep
-import com.walletconnect.android.CoreClient
+import com.walletconnect.android.CoreInterface
 import com.walletconnect.android.cacao.SignatureInterface
 
 object Chat {
@@ -48,7 +48,6 @@ object Chat {
             val inviteeAccount: Type.AccountId
             val message: Type.InviteMessage
             val inviterPublicKey: String
-            val inviteePublicKey: String
             val status: Type.InviteStatus
 
             data class Received(
@@ -57,7 +56,6 @@ object Chat {
                 override val inviteeAccount: Type.AccountId,
                 override val message: Type.InviteMessage,
                 override val inviterPublicKey: String,
-                override val inviteePublicKey: String,
                 override val status: Type.InviteStatus,
             ) : Invite
 
@@ -67,7 +65,6 @@ object Chat {
                 override val inviteeAccount: Type.AccountId,
                 override val message: Type.InviteMessage,
                 override val inviterPublicKey: String,
-                override val inviteePublicKey: String,
                 override val status: Type.InviteStatus,
             ) : Invite
         }
@@ -124,7 +121,7 @@ object Chat {
     }
 
     sealed class Params {
-        data class Init(val core: CoreClient) : Params()
+        data class Init(val core: CoreInterface) : Params()
         data class Resolve(val account: Type.AccountId) : Params()
         data class Invite(val inviterAccount: Type.AccountId, val inviteeAccount: Type.AccountId, val message: Type.InviteMessage, val inviteePublicKey: String) : Params()
         data class Accept(val inviteId: Long) : Params()
@@ -132,7 +129,6 @@ object Chat {
         data class Message(val topic: String, val message: Type.ChatMessage, val media: Model.Media? = null) : Params()
         data class Ping(val topic: String) : Params()
         data class Leave(val topic: String) : Params()
-        data class SetContact(val account: Type.AccountId, val publicKey: String) : Params()
         data class GetReceivedInvites(val account: Type.AccountId) : Params()
         data class GetSentInvites(val account: Type.AccountId) : Params()
         data class GetThreads(val account: Type.AccountId) : Params()

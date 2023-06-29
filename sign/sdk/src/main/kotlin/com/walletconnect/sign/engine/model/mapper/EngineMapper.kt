@@ -115,14 +115,23 @@ internal fun SessionVO.toEngineDO(): EngineDO.Session =
         topic,
         expiry,
         pairingTopic,
+        requiredNamespaces.toMapOfEngineNamespacesRequired(),
+        optionalNamespaces?.toMapOfEngineNamespacesOptional(),
         sessionNamespaces.toMapOfEngineNamespacesSession(),
         peerAppMetaData
     )
 
 @JvmSynthetic
 internal fun SessionVO.toEngineDOSessionExtend(expiryVO: Expiry): EngineDO.SessionExtend =
-    EngineDO.SessionExtend(topic, expiryVO, pairingTopic, sessionNamespaces.toMapOfEngineNamespacesSession(), selfAppMetaData)
-
+    EngineDO.SessionExtend(
+        topic,
+        expiryVO,
+        pairingTopic,
+        requiredNamespaces.toMapOfEngineNamespacesRequired(),
+        optionalNamespaces?.toMapOfEngineNamespacesOptional(),
+        sessionNamespaces.toMapOfEngineNamespacesSession(),
+        selfAppMetaData
+    )
 
 @JvmSynthetic
 internal fun SessionVO.toSessionApproved(): EngineDO.SessionApproved =

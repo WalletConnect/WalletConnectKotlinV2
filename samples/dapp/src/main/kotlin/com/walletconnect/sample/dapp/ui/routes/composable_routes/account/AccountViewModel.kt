@@ -8,10 +8,22 @@ import androidx.lifecycle.viewModelScope
 import com.walletconnect.sample.dapp.domain.DappDelegate
 import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.sample.dapp.ui.accountArg
-import com.walletconnect.sample_common.*
+import com.walletconnect.sample_common.Chains
+import com.walletconnect.sample_common.getEthSendTransaction
+import com.walletconnect.sample_common.getEthSignBody
+import com.walletconnect.sample_common.getEthSignTypedData
+import com.walletconnect.sample_common.getPersonalSignBody
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 class AccountViewModel(

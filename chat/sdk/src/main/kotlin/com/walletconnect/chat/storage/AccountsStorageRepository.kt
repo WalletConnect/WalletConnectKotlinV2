@@ -1,7 +1,7 @@
 package com.walletconnect.chat.storage
 
-import com.walletconnect.chat.common.model.Account
 import com.walletconnect.android.internal.common.model.AccountId
+import com.walletconnect.chat.common.model.Account
 import com.walletconnect.chat.storage.data.dao.AccountsQueries
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
@@ -18,7 +18,7 @@ internal class AccountsStorageRepository(private val accounts: AccountsQueries) 
         }
 
     private suspend fun updateAccount(account: Account) = with(account) {
-        accounts.updateAccount(publicIdentityKey.keyAsHex, publicInviteKey?.keyAsHex, inviteTopic?.value, accountId.value)
+        accounts.updateAccount(publicIdentityKey.keyAsHex, accountId.value)
     }
 
     private suspend fun createAccount(account: Account) = with(account) {

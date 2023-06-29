@@ -2,16 +2,28 @@ package com.walletconnect.foundation
 
 import com.walletconnect.foundation.crypto.data.repository.ClientIdJwtRepository
 import com.walletconnect.foundation.di.FoundationDITags
-import com.walletconnect.foundation.di.foundationCommonModule
 import com.walletconnect.foundation.di.cryptoModule
+import com.walletconnect.foundation.di.foundationCommonModule
 import com.walletconnect.foundation.di.networkModule
 import com.walletconnect.foundation.network.BaseRelayClient
 import com.walletconnect.foundation.network.RelayInterface
 import com.walletconnect.foundation.network.model.Relay
 import com.walletconnect.util.addUserAgent
 import com.walletconnect.util.bytesToHex
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.CompletableJob
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.koin.core.KoinApplication
 import org.koin.core.qualifier.named
@@ -209,7 +221,7 @@ class RelayTest {
             delay(10)
         }
 
-        if (didTimeout(start, 10000L)) { throw Exception("Unable to establish socket connection") }
+        if (didTimeout(start, 50000L)) { throw Exception("Unable to establish socket connection") }
 
         clientAJob.cancel()
         clientBJob.cancel()

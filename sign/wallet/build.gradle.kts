@@ -6,6 +6,7 @@ plugins {
 }
 
 android {
+    namespace = "com.walletconnect.wallet"
     compileSdk = COMPILE_SDK
 
     defaultConfig {

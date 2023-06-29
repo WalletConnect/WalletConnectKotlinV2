@@ -1,7 +1,7 @@
 package com.walletconnect.web3.wallet.client
 
 import com.walletconnect.android.Core
-import com.walletconnect.android.CoreClient
+import com.walletconnect.android.CoreInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.auth.client.Auth
@@ -14,7 +14,7 @@ import org.koin.dsl.module
 import java.util.*
 
 object Web3Wallet {
-    private lateinit var coreClient: CoreClient
+    private lateinit var coreClient: CoreInterface
 
     interface WalletDelegate {
         fun onSessionProposal(sessionProposal: Wallet.Model.SessionProposal, verifyContext: Wallet.Model.VerifyContext)
@@ -108,7 +108,7 @@ object Web3Wallet {
     fun approveSession(
         params: Wallet.Params.SessionApprove,
         onSuccess: (Wallet.Params.SessionApprove) -> Unit = {},
-        onError: (Wallet.Model.Error) -> Unit
+        onError: (Wallet.Model.Error) -> Unit,
     ) {
         val signParams = Sign.Params.Approve(params.proposerPublicKey, params.namespaces.toSign(), params.relayProtocol)
         SignClient.approveSession(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
@@ -123,7 +123,7 @@ object Web3Wallet {
     fun rejectSession(
         params: Wallet.Params.SessionReject,
         onSuccess: (Wallet.Params.SessionReject) -> Unit = {},
-        onError: (Wallet.Model.Error) -> Unit
+        onError: (Wallet.Model.Error) -> Unit,
     ) {
         val signParams = Sign.Params.Reject(params.proposerPublicKey, params.reason)
         SignClient.rejectSession(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
@@ -133,7 +133,7 @@ object Web3Wallet {
     fun updateSession(
         params: Wallet.Params.SessionUpdate,
         onSuccess: (Wallet.Params.SessionUpdate) -> Unit = {},
-        onError: (Wallet.Model.Error) -> Unit
+        onError: (Wallet.Model.Error) -> Unit,
     ) {
         val signParams = Sign.Params.Update(params.sessionTopic, params.namespaces.toSign())
         SignClient.update(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
@@ -143,7 +143,7 @@ object Web3Wallet {
     fun extendSession(
         params: Wallet.Params.SessionExtend,
         onSuccess: (Wallet.Params.SessionExtend) -> Unit = {},
-        onError: (Wallet.Model.Error) -> Unit
+        onError: (Wallet.Model.Error) -> Unit,
     ) {
         val signParams = Sign.Params.Extend(params.topic)
         SignClient.extend(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
@@ -153,7 +153,7 @@ object Web3Wallet {
     fun respondSessionRequest(
         params: Wallet.Params.SessionRequestResponse,
         onSuccess: (Wallet.Params.SessionRequestResponse) -> Unit = {},
-        onError: (Wallet.Model.Error) -> Unit
+        onError: (Wallet.Model.Error) -> Unit,
     ) {
         val signParams = Sign.Params.Response(params.sessionTopic, params.jsonRpcResponse.toSign())
         SignClient.respond(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
@@ -163,7 +163,7 @@ object Web3Wallet {
     fun emitSessionEvent(
         params: Wallet.Params.SessionEmit,
         onSuccess: (Wallet.Params.SessionEmit) -> Unit = {},
-        onError: (Wallet.Model.Error) -> Unit
+        onError: (Wallet.Model.Error) -> Unit,
     ) {
         val signParams = Sign.Params.Emit(params.topic, params.event.toSign(), params.chainId)
         SignClient.emit(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
@@ -173,7 +173,7 @@ object Web3Wallet {
     fun disconnectSession(
         params: Wallet.Params.SessionDisconnect,
         onSuccess: (Wallet.Params.SessionDisconnect) -> Unit = {},
-        onError: (Wallet.Model.Error) -> Unit
+        onError: (Wallet.Model.Error) -> Unit,
     ) {
         val signParams = Sign.Params.Disconnect(params.sessionTopic)
         SignClient.disconnect(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
@@ -193,7 +193,7 @@ object Web3Wallet {
     fun respondAuthRequest(
         params: Wallet.Params.AuthRequestResponse,
         onSuccess: (Wallet.Params.AuthRequestResponse) -> Unit = {},
-        onError: (Wallet.Model.Error) -> Unit
+        onError: (Wallet.Model.Error) -> Unit,
     ) {
         AuthClient.respond(params.toAuth(), { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }

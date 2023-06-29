@@ -719,7 +719,7 @@ internal class SignEngine(
     // listened by DappDelegate
     private fun onSessionSettle(request: WCRequest, settleParams: SignParams.SessionSettleParams) {
         val sessionTopic = request.topic
-        val irnParams = IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS))
+        val irnParams = IrnParams(Tags.SESSION_SETTLE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
         val selfPublicKey: PublicKey = try {
             crypto.getSelfPublicFromKeyAgreement(sessionTopic)
         } catch (e: Exception) {
@@ -752,7 +752,7 @@ internal class SignEngine(
                     sessionStorageRepository.insertSession(session, request.id)
                     pairingController.updateMetadata(Core.Params.UpdateMetadata(proposal.pairingTopic.value, peerMetadata.toClient(), AppMetaDataType.PEER))
                     metadataStorageRepository.insertOrAbortMetadata(sessionTopic, peerMetadata, AppMetaDataType.PEER)
-                    jsonRpcInteractor.respondWithSuccess(request, IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS)))
+                    jsonRpcInteractor.respondWithSuccess(request, irnParams)
                     _engineEvent.emit(session.toSessionApproved())
                 } catch (e: Exception) {
                     proposalStorageRepository.insertProposal(proposal)

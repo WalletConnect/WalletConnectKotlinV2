@@ -20,4 +20,6 @@ enum class AndroidCommonDITags {
     VERIFY_RETROFIT,
     VERIFY_URL,
     VERIFY_SERVICE
+    EXPLORER_URL,
+    EXPLORER_RETROFIT,
 }

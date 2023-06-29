@@ -5,7 +5,7 @@ import com.squareup.moshi.JsonClass
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.type.ClientParams
 
-sealed class PushParams: ClientParams {
+sealed class PushParams : ClientParams {
 
     @JsonClass(generateAdapter = true)
     data class RequestParams(
@@ -14,14 +14,36 @@ sealed class PushParams: ClientParams {
         @Json(name = "metadata")
         val metaData: AppMetaData,
         @Json(name = "account")
-        val account: String
-    ): PushParams()
+        val account: String,
+    ) : PushParams()
 
     @JsonClass(generateAdapter = true)
     data class RequestResponseParams(
         @Json(name = "subscriptionAuth")
-        val subscriptionAuth: String
-    ): PushParams()
+        val subscriptionAuth: String,
+        @Json(name = "subscriptionSymKey")
+        val subscriptionSymKey: String,
+    ) : PushParams()
+
+    @JsonClass(generateAdapter = true)
+    data class ProposeParams(
+        @Json(name = "publicKey")
+        val publicKey: String,
+        @Json(name = "metadata")
+        val metaData: AppMetaData,
+        @Json(name = "account")
+        val account: String,
+        @Json(name = "scope")
+        val scope: List<String>,
+    ) : PushParams()
+
+    @JsonClass(generateAdapter = true)
+    data class ProposeResponseParams(
+        @Json(name = "subscriptionAuth")
+        val subscriptionAuth: String,
+        @Json(name = "subscriptionSymKey")
+        val subscriptionSymKey: String,
+    ) : PushParams()
 
     @JsonClass(generateAdapter = true)
     data class MessageParams(
@@ -33,13 +55,27 @@ sealed class PushParams: ClientParams {
         val icon: String?,
         @Json(name = "url")
         val url: String?,
-    ): PushParams()
+        @Json(name = "type")
+        val type: String,
+    ) : PushParams()
 
     @JsonClass(generateAdapter = true)
     data class DeleteParams(
         @Json(name = "code")
         val code: Long,
         @Json(name = "message")
-        val message: String
-    ): PushParams()
+        val message: String,
+    ) : PushParams()
+
+    @JsonClass(generateAdapter = true)
+    data class SubscribeParams(
+        @Json(name = "subscriptionAuth")
+        val subscriptionAuth: String,
+    ) : PushParams()
+
+    @JsonClass(generateAdapter = true)
+    data class UpdateParams(
+        @Json(name = "subscriptionAuth")
+        val subscriptionAuth: String,
+    ) : PushParams()
 }

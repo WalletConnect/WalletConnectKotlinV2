@@ -9,14 +9,15 @@ import com.walletconnect.foundation.common.model.Topic
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.merge
+import org.koin.core.KoinApplication
 
-internal object PairingController : PairingControllerInterface {
+internal class PairingController(private val koinApp: KoinApplication = wcKoinApp) : PairingControllerInterface {
     private lateinit var pairingEngine: PairingEngine
     override val topicExpiredFlow: SharedFlow<Topic> by lazy { pairingEngine.topicExpiredFlow }
     override val findWrongMethodsFlow: Flow<SDKError> by lazy { merge(pairingEngine.internalErrorFlow, pairingEngine.jsonRpcErrorFlow) }
 
-    internal fun initialize() {
-        pairingEngine = wcKoinApp.koin.get()
+    override fun initialize() {
+        pairingEngine = koinApp.koin.get()
     }
 
     @Throws(IllegalStateException::class)

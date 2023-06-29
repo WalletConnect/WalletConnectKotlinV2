@@ -1,7 +1,7 @@
 package com.walletconnect.android.internal.common.storage
 
-import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.AppMetaData
+import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.foundation.common.model.Topic
 
 interface MetadataStorageRepositoryInterface {
@@ -17,4 +17,8 @@ interface MetadataStorageRepositoryInterface {
     fun getByTopicAndType(topic: Topic, type: AppMetaDataType): AppMetaData
 
     fun upsertPairingPeerMetadata(topic: Topic, appMetaData: AppMetaData, appMetaDataType: AppMetaDataType)
+
+    fun lastInsertedId(): Long
+
+    fun getIdByTopicAndType(topic: Topic, type: AppMetaDataType): Long
 }
