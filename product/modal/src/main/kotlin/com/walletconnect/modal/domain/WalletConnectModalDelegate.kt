@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 internal object WalletConnectModalDelegate : WalletConnectModal.ModalDelegate {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -62,6 +63,6 @@ internal object WalletConnectModalDelegate : WalletConnectModal.ModalDelegate {
     }
 
     override fun onError(error: Modal.Model.Error) {
-
+        Timber.e(error.throwable)
     }
 }

@@ -18,6 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.walletconnect.modal.R
 import com.walletconnect.modal.ui.navigation.Route
 import com.walletconnect.modal.ui.preview.ComponentPreview
@@ -92,6 +93,6 @@ private fun CircleButtonsPreview() {
     ComponentPreview {
         CloseIconButton({})
         VerticalSpacer(4.dp)
-//        QuestionMarkIconButton(navController = rememberNav)
+        QuestionMarkIconButton(navController = rememberNavController())
     }
 }

@@ -27,7 +27,6 @@ import com.walletconnect.android.internal.common.explorer.data.network.model.Wal
 import com.walletconnect.android.internal.common.explorer.data.network.model.SupportedStandardDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.WalletListingDTO
 import com.walletconnect.android.internal.common.model.ProjectId
-import com.walletconnect.util.Empty
 
 class ExplorerRepository(private val explorerService: ExplorerService, private val projectId: ProjectId, private val explorerApiUrl: String) {
 
@@ -45,7 +44,7 @@ class ExplorerRepository(private val explorerService: ExplorerService, private v
         return with(
             explorerService.getAndroidWallets(
                 projectId = projectId.value,
-                chains = chains ?: String.Empty,
+                chains = chains,
             )
         ) {
             if (isSuccessful && body() != null) {

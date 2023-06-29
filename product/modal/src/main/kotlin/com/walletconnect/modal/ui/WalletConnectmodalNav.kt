@@ -15,12 +15,10 @@ import com.google.accompanist.navigation.material.ExperimentalMaterialNavigation
 import com.google.accompanist.navigation.material.bottomSheet
 import com.walletconnect.modal.ui.navigation.Route
 
-
 internal const val MODAL_URI_ARG = "modal_uri_arg"
 internal const val MODAL_URI_KEY = "uri"
 internal const val MODAL_CHAINS_ARG = "modal_chains_arg"
 internal const val MODAL_CHAINS_KEY = "chains"
-
 
 fun NavGraphBuilder.walletConnectModal() {
     dialog<WalletConnectSheet>(route = Route.WalletConnectModalRoot.path + "/{$MODAL_URI_ARG}?$MODAL_CHAINS_KEY={$MODAL_CHAINS_ARG}") {
@@ -34,7 +32,7 @@ fun NavGraphBuilder.walletConnectModal() {
         }
     }
 }
-//
+
 fun NavController.openWalletConnectModal(
     @IdRes id: Int,
     uri: String,

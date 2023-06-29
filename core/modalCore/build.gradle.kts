@@ -13,7 +13,7 @@ project.apply {
 
 android {
     namespace = "com.walletconnect.modalcore"
-    compileSdk = 33
+    compileSdk = COMPILE_SDK
 
     defaultConfig {
         minSdk = MIN_SDK
@@ -53,32 +53,16 @@ android {
 
 dependencies {
 
-    implementation("androidx.core:core-ktx:1.10.1")
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
-    implementation("com.google.android.material:material:1.8.0")
-
-    // Navigation
-    implementation("androidx.navigation:navigation-compose:2.5.3")
-    implementation("androidx.navigation:navigation-fragment-ktx:2.5.3")
-
-    //compose
+    appCompat()
+    accompanist()
     compose()
+    coil()
+    lifecycle()
+    navigationComponent()
+    qrCodeGenerator()
+    timber()
     //override compose material to fix crash at modalsheet
     implementation("androidx.compose.material:material:1.5.0-alpha04")
 
-    //coil
-    implementation("io.coil-kt:coil-compose:2.3.0")
-
-    // accompanist
-    accompanist()
-
-    // Qrcode generator
-    implementation("com.github.alexzhirkevich:custom-qr-generator:1.6.1")
-
-    //utils
-    timber()
-
-    testImplementation("junit:junit:4.13.2")
+    jUnit5()
 }
