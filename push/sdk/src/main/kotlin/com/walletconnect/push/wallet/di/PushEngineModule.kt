@@ -28,6 +28,7 @@ internal fun walletEngineModule() = module {
             extractPushConfigUseCase = get(),
             codec = get(),
             logger = get(),
+            historyInterface = get()
         )
     }
 }
