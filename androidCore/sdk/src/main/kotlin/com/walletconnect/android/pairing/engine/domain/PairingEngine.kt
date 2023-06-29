@@ -191,7 +191,7 @@ internal class PairingEngine(
     }
 
     fun getPairings(): List<Pairing> {
-        return pairingRepository.getListOfPairings().filter { pairing -> pairing.isValid() && pairing.isActive }
+        return pairingRepository.getListOfPairings().filter { pairing -> pairing.isExpired() && pairing.isActive }
     }
 
     fun register(vararg method: String) {
@@ -200,7 +200,7 @@ internal class PairingEngine(
 
     fun activate(topic: String, onFailure: (Throwable) -> Unit) {
         pairingRepository.getPairingOrNullByTopic(Topic(topic))?.let { pairing ->
-            if (pairing.isValid()) {
+            if (pairing.isExpired()) {
                 pairingRepository.activatePairing(pairing.topic)
             } else {
                 onFailure(IllegalStateException("Pairing for topic $topic is expired"))
@@ -210,7 +210,7 @@ internal class PairingEngine(
 
     fun updateExpiry(topic: String, expiry: Expiry, onFailure: (Throwable) -> Unit) {
         val pairing: Pairing = pairingRepository.getPairingOrNullByTopic(Topic(topic))?.run {
-            this.takeIf { pairing -> pairing.isValid() } ?: return onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic"))
+            this.takeIf { pairing -> pairing.isExpired() } ?: return onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic"))
         } ?: return onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic"))
 
         val newExpiration = pairing.expiry.seconds + expiry.seconds
@@ -282,6 +282,7 @@ internal class PairingEngine(
                                     cancel()
                                     onSuccess(topic)
                                 }
+
                                 is JsonRpcResponse.JsonRpcError -> {
                                     cancel()
                                     onFailure(Throwable(result.errorMessage))
@@ -299,21 +300,25 @@ internal class PairingEngine(
         if (pairing == null) {
             return@let false
         } else {
-            return@let pairing.isValid()
+            return@let pairing.isExpired()
         }
     }
 
     private fun generateTopic(): Topic = Topic(randomBytes(32).bytesToHex())
 
-    private fun Pairing.isValid(): Boolean = (expiry.seconds > CURRENT_TIME_IN_SECONDS).also { isPairingValid ->
-        if (!isPairingValid) {
+    private fun Pairing.isExpired(): Boolean = (expiry.seconds > CURRENT_TIME_IN_SECONDS).also { isValid ->
+        if (!isValid) {
             scope.launch {
-                jsonRpcInteractor.unsubscribe(topic = this@isValid.topic)
-                pairingRepository.deletePairing(this@isValid.topic)
-                metadataRepository.deleteMetaData(this@isValid.topic)
-                crypto.removeKeys(this@isValid.topic.value)
+                try {
+                    jsonRpcInteractor.unsubscribe(topic = this@isExpired.topic)
+                    pairingRepository.deletePairing(this@isExpired.topic)
+                    metadataRepository.deleteMetaData(this@isExpired.topic)
+                    crypto.removeKeys(this@isExpired.topic.value)
 
-                _topicExpiredFlow.emit(this@isValid.topic)
+                    _topicExpiredFlow.emit(this@isExpired.topic)
+                } catch (e: Exception) {
+                    _topicExpiredFlow.emit(this@isExpired.topic)
+                }
             }
         }
     }
