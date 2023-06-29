@@ -2,7 +2,13 @@ package com.walletconnect.sample.wallet.ui.common.peer
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -65,23 +71,17 @@ fun Peer(peerUI: PeerUI, actionText: String?, peerContextUI: PeerContextUI? = nu
             )
             Spacer(modifier = Modifier.height(8.dp))
             if (peerContextUI != null) {
-                Text(
-                    color = getValidationColor(peerContextUI.validation),
-                    text = peerContextUI.validation.name, maxLines = 1,
-                    style = TextStyle(
-                        fontWeight = FontWeight.Bold, fontSize = 15.sp, color = themedColor(darkColor = Color(0xFFC9C9CF).copy(alpha = .6f), lightColor = Color(0xFF3C3C43).copy(alpha = .6f))
-                    )
-                )
+                Image(modifier = Modifier.size(30.dp), painter = painterResource(id = getValidationIcon(peerContextUI.validation)), contentDescription = null)
                 Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }
 }
 
-private fun getValidationColor(validation: Validation): Color {
+private fun getValidationIcon(validation: Validation): Int {
     return when (validation) {
-        Validation.VALID -> Green
-        Validation.INVALID -> Red
-        Validation.UNKNOWN -> Orange
+        Validation.VALID -> R.drawable.green_check
+        Validation.INVALID -> R.drawable.red_dangerous
+        Validation.UNKNOWN -> R.drawable.orange_warning
     }
 }
