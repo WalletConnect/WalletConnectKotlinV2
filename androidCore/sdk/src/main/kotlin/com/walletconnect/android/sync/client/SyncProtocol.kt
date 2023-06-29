@@ -14,8 +14,9 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import org.koin.core.KoinApplication
 
-internal class SyncProtocol : SyncInterface {
+internal class SyncProtocol(private val koinApp: KoinApplication = wcKoinApp) : SyncInterface {
     private lateinit var syncEngine: SyncEngine
 
     private val _onSyncUpdateEvents: MutableSharedFlow<Events.OnSyncUpdate> = MutableSharedFlow()
@@ -27,7 +28,7 @@ internal class SyncProtocol : SyncInterface {
 
     override fun initialize(onError: (Core.Model.Error) -> Unit) {
         try {
-            wcKoinApp.run {
+            koinApp.run {
                 modules(
                     jsonRpcModule(),
                     commonModule(),
@@ -36,7 +37,7 @@ internal class SyncProtocol : SyncInterface {
                 )
             }
 
-            syncEngine = wcKoinApp.koin.get()
+            syncEngine = koinApp.koin.get()
             syncEngine.setup()
 
             scope.launch {

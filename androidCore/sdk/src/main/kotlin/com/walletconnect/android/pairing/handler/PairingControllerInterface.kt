@@ -10,6 +10,8 @@ interface PairingControllerInterface {
     val topicExpiredFlow: SharedFlow<Topic>
     val findWrongMethodsFlow: Flow<SDKError>
 
+    fun initialize()
+
     fun activate(activate: Core.Params.Activate, onError: (Core.Model.Error) -> Unit = {})
 
     fun updateExpiry(updateExpiry: Core.Params.UpdateExpiry, onError: (Core.Model.Error) -> Unit = {})
