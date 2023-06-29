@@ -123,7 +123,6 @@ internal class PushWalletEngine(
     }
 
     fun setup() {
-        scope.launch { registerTagsInHistory() }
         jsonRpcInteractor.isConnectionAvailable
             .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
             .filter { isAvailable: Boolean -> isAvailable }
@@ -147,10 +146,6 @@ internal class PushWalletEngine(
                 }
             }
             .launchIn(scope)
-    }
-
-    private suspend fun registerTagsInHistory() {
-        historyInterface.registerTags(tags = listOf(Tags.PUSH_SUBSCRIBE, Tags.PUSH_MESSAGE), {}, {})
     }
 
     suspend fun subscribeToDapp(dappUri: Uri, account: String, onSign: (String) -> Cacao.Signature?, onSuccess: (Long, DidJwt) -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
