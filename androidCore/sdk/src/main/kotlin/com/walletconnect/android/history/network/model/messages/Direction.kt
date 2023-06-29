@@ -1,3 +1,3 @@
 package com.walletconnect.android.history.network.model.messages
 
-enum class Direction { FORWARD, BACKWARD }
+enum class Direction { forward, backward }
