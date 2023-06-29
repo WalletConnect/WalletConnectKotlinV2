@@ -103,7 +103,6 @@ internal class PushWalletEngine(
     private val extractPushConfigUseCase: ExtractPushConfigUseCase,
     private val codec: Codec,
     private val logger: Logger,
-    private val historyInterface: HistoryInterface,
     ) {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
