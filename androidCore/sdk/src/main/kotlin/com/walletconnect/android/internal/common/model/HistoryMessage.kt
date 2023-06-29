@@ -3,7 +3,6 @@ package com.walletconnect.android.internal.common.model
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.walletconnect.foundation.network.model.Relay
-import com.walletconnect.util.generateId
 
 @JsonClass(generateAdapter = true)
 data class HistoryMessage(
@@ -16,7 +15,7 @@ data class HistoryMessage(
     val clientId: String,
 ) {
     fun toRelay() = Relay.Model.Call.Subscription.Request(
-        generateId(), //todo: this is very wrong! Duplicates may occur. Needs refactor to message_id instead of rpc_id
+        id = 0L, // id is only used for ack the relay, any value is meaningless
         params = Relay.Model.Call.Subscription.Request.Params(messageId, Relay.Model.Call.Subscription.Request.Params.SubscriptionData(topic, message))
     )
 }
