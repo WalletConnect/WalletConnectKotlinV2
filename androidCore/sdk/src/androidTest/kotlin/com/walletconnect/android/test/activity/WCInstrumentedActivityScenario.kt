@@ -1,11 +1,11 @@
-package com.walletconnect.sign.test.activity
+package com.walletconnect.android.test.activity
 
 import androidx.lifecycle.Lifecycle
 import androidx.test.core.app.ActivityScenario
+import com.walletconnect.android.BuildConfig
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.foundation.network.model.Relay
-import com.walletconnect.sign.BuildConfig
-import com.walletconnect.sign.test.utils.TestClient
+import com.walletconnect.android.test.utils.TestClient
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -18,8 +18,6 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.seconds
 
-// TODO: Replace testScope and runBlocking with kotlin.coroutines test dependency
-//  Research why switching this to class made tests run 10x longer
 
 class WCInstrumentedActivityScenario : BeforeAllCallback, AfterAllCallback {
     private var scenario: ActivityScenario<InstrumentedTestActivity>? = null
@@ -39,38 +37,39 @@ class WCInstrumentedActivityScenario : BeforeAllCallback, AfterAllCallback {
         }
     }
 
+    init {
+        initLogging()
+        Timber.d("init")
+    }
+
     override fun beforeAll(context: ExtensionContext?) {
-        runBlocking {
-            initLogging()
+        runBlocking(testScope.coroutineContext) {
             Timber.d("beforeAll")
             val isDappRelayReady = MutableStateFlow(false)
             val isWalletRelayReady = MutableStateFlow(false)
 
             val timeoutDuration = BuildConfig.TEST_TIMEOUT_SECONDS.seconds
 
-            val isEverythingReady: StateFlow<Boolean> = combine(isDappRelayReady, isWalletRelayReady, TestClient.Wallet.isInitialized, TestClient.Dapp.isInitialized)
+            val isEverythingReady: StateFlow<Boolean> = combine(isDappRelayReady, isWalletRelayReady, TestClient.Primary.isInitialized, TestClient.Secondary.isInitialized)
             { dappRelay, walletRelay, dappSign, walletSign -> (dappRelay && walletRelay && dappSign && walletSign) }.stateIn(scope, SharingStarted.Eagerly, false)
 
-            val dappRelayJob = TestClient.Dapp.Relay.eventsFlow.onEach { event ->
+            val dappRelayJob = TestClient.Secondary.Relay.eventsFlow.onEach { event ->
                 when (event) {
                     is Relay.Model.Event.OnConnectionOpened<*> -> isDappRelayReady.compareAndSet(expect = false, update = true)
                     else -> {}
                 }
             }.launchIn(scope)
 
-
-            val walletRelayJob = TestClient.Wallet.Relay.eventsFlow.onEach { event ->
+            val walletRelayJob = TestClient.Primary.Relay.eventsFlow.onEach { event ->
                 when (event) {
                     is Relay.Model.Event.OnConnectionOpened<*> -> isWalletRelayReady.compareAndSet(expect = false, update = true)
                     else -> {}
                 }
             }.launchIn(scope)
 
-            fun isEverythingReady() = isDappRelayReady.value && isWalletRelayReady.value && TestClient.Wallet.isInitialized.value && TestClient.Dapp.isInitialized.value
-
             runCatching {
                 withTimeout(timeoutDuration) {
-                    while (!isEverythingReady()) {
+                    while (!(isDappRelayReady.value && isWalletRelayReady.value && TestClient.Primary.isInitialized.value && TestClient.Secondary.isInitialized.value)) {
                         delay(100)
                     }
                 }
@@ -89,7 +88,7 @@ class WCInstrumentedActivityScenario : BeforeAllCallback, AfterAllCallback {
         scenario?.close()
     }
 
-    fun launch(timeoutSeconds: Long = 1, testCodeBlock: suspend () -> Unit) {
+    fun launch(timeoutSeconds: Long = 1, testCodeBlock: suspend (scope: CoroutineScope) -> Unit) {
         require(!scenarioLaunched) { "Scenario has already been launched!" }
 
         scenario = ActivityScenario.launch(InstrumentedTestActivity::class.java)
@@ -98,7 +97,7 @@ class WCInstrumentedActivityScenario : BeforeAllCallback, AfterAllCallback {
         scenario?.moveToState(Lifecycle.State.RESUMED)
         assert(scenario?.state?.isAtLeast(Lifecycle.State.RESUMED) == true)
 
-        testScope.launch { testCodeBlock() }
+        testScope.launch { testCodeBlock(testScope) }
 
         try {
             assertTrue(latch.await(timeoutSeconds, TimeUnit.SECONDS))

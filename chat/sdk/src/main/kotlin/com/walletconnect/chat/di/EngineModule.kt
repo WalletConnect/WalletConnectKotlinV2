@@ -178,7 +178,8 @@ internal fun engineModule() = module {
             onLeaveRequestUseCase = get(),
             onLeaveResponseUseCase = get(),
             onMessageResponseUseCase = get(),
-            subscribeToChatTopicsUseCase = get()
+            subscribeToChatTopicsUseCase = get(),
+            historyInterface = get(),
         )
     }
 }
