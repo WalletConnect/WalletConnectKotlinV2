@@ -13,7 +13,7 @@ internal class RegisterTagsUseCase(
     private val logger: Logger,
 ) {
     suspend operator fun invoke(tags: List<Tags>, relayUrl: String): Result<Unit> = runCatching {
-        val authorization = "Bearer ${generateJwtStoreClientIdUseCase(historyServerUrl)}"
+        val authorization = BEARER_PREFIX + generateJwtStoreClientIdUseCase(historyServerUrl)
         val tagsAsStrings = tags.map { tag -> tag.id.toString() }
 
         with(service.register(RegisterBody(tagsAsStrings, relayUrl), authorization)) {
@@ -29,8 +29,9 @@ internal class RegisterTagsUseCase(
         }
     }
 
-    companion object {
-        private const val SUCCESS_STATUS = "SUCCESS"
+    private companion object {
+        const val SUCCESS_STATUS = "SUCCESS"
+        const val BEARER_PREFIX = "Bearer "
     }
 }
 
