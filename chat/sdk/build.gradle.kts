@@ -60,7 +60,6 @@ dependencies {
     moshiKsp()
     androidXTest()
     jUnit4()
-//    jUnit5Android()
     robolectric()
     mockk()
     testJson()
