@@ -1,4 +1,4 @@
-package com.walletconnect.sign
+package com.walletconnect.sign.validator
 
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SymmetricKey
@@ -7,29 +7,6 @@ import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
 import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
 import com.walletconnect.android.internal.utils.WEEK_IN_SECONDS
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.sign.ValidatorTest.Accounts.COSMOSHUB_4_1
-import com.walletconnect.sign.ValidatorTest.Accounts.ETHEREUM_1
-import com.walletconnect.sign.ValidatorTest.Accounts.ETHEREUM_2
-import com.walletconnect.sign.ValidatorTest.Accounts.ETHEREUM_3
-import com.walletconnect.sign.ValidatorTest.Accounts.ETHEREUM_4
-import com.walletconnect.sign.ValidatorTest.Accounts.ETHEREUM_5
-import com.walletconnect.sign.ValidatorTest.Accounts.KOVAN_1
-import com.walletconnect.sign.ValidatorTest.Accounts.MATIC_1
-import com.walletconnect.sign.ValidatorTest.Chains.COSMOSHUB_4
-import com.walletconnect.sign.ValidatorTest.Chains.ETHEREUM
-import com.walletconnect.sign.ValidatorTest.Chains.KOVAN
-import com.walletconnect.sign.ValidatorTest.Chains.MATIC
-import com.walletconnect.sign.ValidatorTest.Chains.OPTIMISM
-import com.walletconnect.sign.ValidatorTest.Events.ACCOUNTS_CHANGED
-import com.walletconnect.sign.ValidatorTest.Events.CHAIN_CHANGED
-import com.walletconnect.sign.ValidatorTest.Events.COSMOS_EVENT
-import com.walletconnect.sign.ValidatorTest.Events.SOME_EVENT
-import com.walletconnect.sign.ValidatorTest.Methods.COSMOS_GET_ACCOUNTS
-import com.walletconnect.sign.ValidatorTest.Methods.COSMOS_SIGNDIRECT
-import com.walletconnect.sign.ValidatorTest.Methods.ETH_SIGN
-import com.walletconnect.sign.ValidatorTest.Methods.PERSONAL_SIGN
-import com.walletconnect.sign.ValidatorTest.Namespaces.COSMOS
-import com.walletconnect.sign.ValidatorTest.Namespaces.EIP155
 import com.walletconnect.sign.common.exceptions.EMPTY_NAMESPACES_MESSAGE
 import com.walletconnect.sign.common.exceptions.INVALID_EVENT_MESSAGE
 import com.walletconnect.sign.common.exceptions.INVALID_EXTEND_TIME
@@ -50,11 +27,34 @@ import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.validator.SignValidator
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toAbsoluteString
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import com.walletconnect.sign.validator.ValidatorTest.Accounts.COSMOSHUB_4_1
+import com.walletconnect.sign.validator.ValidatorTest.Accounts.ETHEREUM_1
+import com.walletconnect.sign.validator.ValidatorTest.Accounts.ETHEREUM_2
+import com.walletconnect.sign.validator.ValidatorTest.Accounts.ETHEREUM_3
+import com.walletconnect.sign.validator.ValidatorTest.Accounts.ETHEREUM_4
+import com.walletconnect.sign.validator.ValidatorTest.Accounts.ETHEREUM_5
+import com.walletconnect.sign.validator.ValidatorTest.Accounts.KOVAN_1
+import com.walletconnect.sign.validator.ValidatorTest.Accounts.MATIC_1
+import com.walletconnect.sign.validator.ValidatorTest.Chains.COSMOSHUB_4
+import com.walletconnect.sign.validator.ValidatorTest.Chains.ETHEREUM
+import com.walletconnect.sign.validator.ValidatorTest.Chains.KOVAN
+import com.walletconnect.sign.validator.ValidatorTest.Chains.MATIC
+import com.walletconnect.sign.validator.ValidatorTest.Chains.OPTIMISM
+import com.walletconnect.sign.validator.ValidatorTest.Events.ACCOUNTS_CHANGED
+import com.walletconnect.sign.validator.ValidatorTest.Events.CHAIN_CHANGED
+import com.walletconnect.sign.validator.ValidatorTest.Events.COSMOS_EVENT
+import com.walletconnect.sign.validator.ValidatorTest.Events.SOME_EVENT
+import com.walletconnect.sign.validator.ValidatorTest.Methods.COSMOS_GET_ACCOUNTS
+import com.walletconnect.sign.validator.ValidatorTest.Methods.COSMOS_SIGNDIRECT
+import com.walletconnect.sign.validator.ValidatorTest.Methods.ETH_SIGN
+import com.walletconnect.sign.validator.ValidatorTest.Methods.PERSONAL_SIGN
+import com.walletconnect.sign.validator.ValidatorTest.Namespaces.COSMOS
+import com.walletconnect.sign.validator.ValidatorTest.Namespaces.EIP155
+import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertNotNull
+import junit.framework.TestCase.assertNull
+import junit.framework.TestCase.assertTrue
+import org.junit.Test
 
 class ValidatorTest {
 
@@ -1037,8 +1037,8 @@ class ValidatorTest {
         SignValidator.validateWCUri("").apply { assertEquals(null, this) }
         SignValidator.validateWCUri(validUri).apply {
             assertNotNull(this)
-            assertEquals("7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9", this.topic.value)
-            assertEquals("irn", this.relay.protocol)
+            assertEquals("7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9", this!!.topic.value)
+            assertEquals("irn", this!!.relay.protocol)
             assertEquals("587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303", this.symKey.keyAsHex)
             assertEquals("2", this.version)
         }
@@ -1068,8 +1068,8 @@ class ValidatorTest {
         SignValidator.validateWCUri("").apply { assertEquals(null, this) }
         SignValidator.validateWCUri(validUri).apply {
             assertNotNull(this)
-            assertEquals("7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9", this.topic.value)
-            assertEquals("irn", this.relay.protocol)
+            assertEquals("7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9", this!!.topic.value)
+            assertEquals("irn", this!!.relay.protocol)
             assertEquals("testData", this.relay.data)
             assertEquals("587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303", this.symKey.keyAsHex)
             assertEquals("2", this.version)
