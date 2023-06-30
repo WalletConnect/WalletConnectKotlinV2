@@ -7,12 +7,22 @@ import com.walletconnect.foundation.network.model.Relay
 import com.walletconnect.sign.BuildConfig
 import com.walletconnect.sign.test.utils.TestClient
 import junit.framework.TestCase.assertTrue
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
-import org.junit.jupiter.api.extension.AfterAllCallback
-import org.junit.jupiter.api.extension.BeforeAllCallback
-import org.junit.jupiter.api.extension.ExtensionContext
-import org.junit.jupiter.api.fail
+import junit.framework.TestCase.fail
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
+import org.junit.AfterClass
+import org.junit.BeforeClass
 import timber.log.Timber
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -21,7 +31,8 @@ import kotlin.time.Duration.Companion.seconds
 // TODO: Replace testScope and runBlocking with kotlin.coroutines test dependency
 //  Research why switching this to class made tests run 10x longer
 
-class WCInstrumentedActivityScenario : BeforeAllCallback, AfterAllCallback {
+class WCInstrumentedActivityScenario {
+    //: BeforeAllCallback, AfterAllCallback {
     private var scenario: ActivityScenario<InstrumentedTestActivity>? = null
     private var scenarioLaunched: Boolean = false
     private val latch = CountDownLatch(1)
@@ -39,7 +50,8 @@ class WCInstrumentedActivityScenario : BeforeAllCallback, AfterAllCallback {
         }
     }
 
-    override fun beforeAll(context: ExtensionContext?) {
+    @BeforeClass
+    fun beforeAll() {
         runBlocking {
             initLogging()
             Timber.d("beforeAll")
@@ -84,7 +96,8 @@ class WCInstrumentedActivityScenario : BeforeAllCallback, AfterAllCallback {
         }
     }
 
-    override fun afterAll(context: ExtensionContext?) {
+    @AfterClass
+    fun afterAll() {
         Timber.d("afterAll")
         scenario?.close()
     }
@@ -103,7 +116,7 @@ class WCInstrumentedActivityScenario : BeforeAllCallback, AfterAllCallback {
         try {
             assertTrue(latch.await(timeoutSeconds, TimeUnit.SECONDS))
         } catch (exception: Exception) {
-            fail(exception)
+            fail(exception.message)
         }
     }
 

@@ -67,6 +67,5 @@ dependencies {
     scarletTest()
     sqlDelightTest()
     jUnit4()
-//    jUnit5Android()
     web3jCrypto()
 }

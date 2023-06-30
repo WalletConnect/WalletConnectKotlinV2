@@ -59,5 +59,4 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
 
     jUnit4()
-//    jUnit5Android()
 }

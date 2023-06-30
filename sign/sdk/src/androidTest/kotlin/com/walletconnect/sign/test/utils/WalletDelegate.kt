@@ -4,7 +4,6 @@ import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import timber.log.Timber
 
-
 open class WalletDelegate : SignClient.WalletDelegate {
     override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest) {}
     override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {}

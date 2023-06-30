@@ -12,12 +12,11 @@ import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import com.walletconnect.sign.client.SignProtocol
 import com.walletconnect.sign.di.overrideModule
+import junit.framework.TestCase.fail
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import org.junit.jupiter.api.fail
 import org.koin.core.KoinApplication
 import timber.log.Timber
-
 
 internal object TestClient {
     const val RELAY_URL = "wss://relay.walletconnect.com?projectId=${BuildConfig.PROJECT_ID}"
@@ -101,7 +100,7 @@ fun pair(onPairSuccess: (pairing: Core.Model.Pairing) -> Unit) {
         if (pairings.isEmpty()) {
             Timber.d("pairings.isEmpty() == true")
 
-            val pairing = TestClient.Dapp.Pairing.create(onError = ::globalOnError) ?: fail("Unable to create a Pairing")
+            val pairing: Core.Model.Pairing = (TestClient.Dapp.Pairing.create(onError = ::globalOnError) ?: fail("Unable to create a Pairing")) as Core.Model.Pairing
             Timber.d("DappClient.pairing.create: $pairing")
 
             TestClient.Wallet.Pairing.pair(Core.Params.Pair(pairing.uri), onError = ::globalOnError, onSuccess = {
