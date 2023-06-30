@@ -35,11 +35,12 @@ jobs:
       matrix:
         conf: [
           { name: Sign SDK, command: ":sign:sdk:connectedCheck", report: '/Users/runner/work/WalletConnectKotlinV2/WalletConnectKotlinV2/sign/sdk/build/reports/**' },
+          { name: Android Core SDK, command: ":android:sdk:connectedCheck", report: '/Users/runner/work/WalletConnectKotlinV2/WalletConnectKotlinV2/androidCore/sdk/build/reports/**' },
         ]
         api-level: [ 32 ] # JUnit5 only supports API younger or equal to 26
         target: [ google_apis ]
         profile: [ Nexus 6 ]
-        arch: [ x86_64 ]
+        arch: [ arm64-v8a]
 
     name: ${{ matrix.conf.name }} API ${{ matrix.api-level }}-${{ matrix.target }}-${{ matrix.profile }}-${{ matrix.arch }}
 #    runs-on: macos-latest

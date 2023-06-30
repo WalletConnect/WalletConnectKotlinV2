@@ -1,7 +1,9 @@
 package com.walletconnect.android.sync.engine.domain
 
+import com.walletconnect.android.history.HistoryInterface
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
+import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
@@ -49,6 +51,7 @@ internal class SyncEngine(
     private val onSetRequestUseCase: OnSetRequestUseCase,
     private val onDeleteRequestUseCase: OnDeleteRequestUseCase,
     private val subscribeToAllStoresUpdatesUseCase: SubscribeToAllStoresUpdatesUseCase,
+    private val historyInterface: HistoryInterface,
 ) : GetMessageUseCaseInterface by GetMessageUseCase,
     CreateUseCaseInterface by createStoreUseCase,
     GetStoresUseCaseInterface by getStoresUseCase,
@@ -72,6 +75,7 @@ internal class SyncEngine(
     }
 
     fun setup() {
+        scope.launch { registerTagsInHistory() }
         jsonRpcInteractor.isConnectionAvailable
             .onEach { isAvailable -> _events.emit(ConnectionState(isAvailable)) }
             .filter { isAvailable: Boolean -> isAvailable }
@@ -92,7 +96,14 @@ internal class SyncEngine(
                 }
             }
             .launchIn(scope)
+
     }
+
+
+    private suspend fun registerTagsInHistory() {
+        historyInterface.registerTags(tags = listOf(Tags.SYNC_SET, Tags.SYNC_DELETE), {}, {})
+    }
+
 
     private fun collectJsonRpcRequests(): Job =
         jsonRpcInteractor.clientSyncJsonRpc
