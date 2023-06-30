@@ -3,12 +3,10 @@ package com.walletconnect.modal.ui
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.walletconnect.android.internal.common.explorer.domain.usecase.GetWalletsUseCase
+import com.walletconnect.android.internal.common.explorer.domain.usecase.GetWalletsUseCaseInterface
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.modal.client.Modal
 import com.walletconnect.modal.domain.WalletConnectModalDelegate
-import com.walletconnect.util.Empty
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -25,7 +23,7 @@ internal class WalletConnectModalViewModel(
     private val uri = savedStateHandle.get<String>(MODAL_URI_ARG)
     private val chains = savedStateHandle.get<String?>(MODAL_CHAINS_ARG)
 
-    private val getWalletsUseCase: GetWalletsUseCase = wcKoinApp.koin.get()
+    private val getWalletsUseCase: GetWalletsUseCaseInterface = wcKoinApp.koin.get()
 
     private val _modalState: MutableStateFlow<WalletConnectModalState?> = MutableStateFlow(null)
 

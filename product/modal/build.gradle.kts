@@ -60,8 +60,6 @@ dependencies {
     lifecycle()
     navigationComponent()
     qrCodeGenerator()
-    //override compose material to fix crash at modalsheet
-    implementation("androidx.compose.material:material:1.5.0-alpha04")
 
     jUnit5()
 
