@@ -62,22 +62,6 @@ internal class PushDappProtocol(private val koinApp: KoinApplication = wcKoinApp
             }.launchIn(scope)
     }
 
-    @Deprecated("Request is deprecated. Use propose instead", level = DeprecationLevel.WARNING)
-    override fun request(params: Push.Dapp.Params.Request, onSuccess: (Push.Dapp.Model.RequestId) -> Unit, onError: (Push.Model.Error) -> Unit) {
-        checkEngineInitialization()
-
-        scope.launch(Dispatchers.IO) {
-            try {
-                pushDappEngine.request(params.pairingTopic, params.account,
-                    { requestId -> onSuccess(Push.Dapp.Model.RequestId(requestId)) },
-                    { exception -> onError(Push.Model.Error(exception)) }
-                )
-            } catch (e: Exception) {
-                onError(Push.Model.Error(e))
-            }
-        }
-    }
-
     override fun propose(params: Push.Dapp.Params.Propose, onSuccess: (Push.Dapp.Model.RequestId) -> Unit, onError: (Push.Model.Error) -> Unit) {
         checkEngineInitialization()
 
