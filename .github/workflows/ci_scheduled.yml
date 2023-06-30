@@ -2,7 +2,7 @@ name: Kotlin Scheduled Integration
 
 on:
   schedule:
-    - cron: '0/5 * * * *' # Runs every day at 0:00 and 12:00 UTC
+    - cron: '0 0,12 * * *' # Runs every day at 0:00 and 12:00 UTC
 
 jobs:
   integration_tests:
