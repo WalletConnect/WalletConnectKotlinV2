@@ -89,31 +89,6 @@ internal fun EngineDO.PushUpdateError.toWalletClient(): Push.Wallet.Event.Update
     return Push.Wallet.Event.Update.Error(requestId, rejectionReason)
 }
 
-//@JvmSynthetic
-//internal fun EngineDO.PushRequestResponse.toDappClient(): Push.Dapp.Event.Response {
-//    return Push.Dapp.Event.Response(
-//        Push.Model.Subscription(
-//            requestId = subscription.requestId,
-//            topic = subscription.subscriptionTopic!!.value,
-//            account = subscription.account.value,
-//            relay = subscription.relay.toClient(),
-//            metadata = subscription.metadata.toClient(),
-//            scope = subscription.scope.toClient(),
-//            expiry = subscription.expiry.seconds,
-//        )
-//    )
-//}
-
-//@JvmSynthetic
-//internal fun EngineDO.PushDelete.toDappClient(): Push.Dapp.Event.Delete {
-//    return Push.Dapp.Event.Delete(topic)
-//}
-//
-//@JvmSynthetic
-//internal fun EngineDO.PushRequestRejected.toDappClient(): Push.Dapp.Event.Rejected {
-//    return Push.Dapp.Event.Rejected(rejectionReason)
-//}
-
 @JvmSynthetic
 internal fun EngineDO.PushLegacySubscription.toDappClient(): Push.Model.Subscription {
     return Push.Model.Subscription(

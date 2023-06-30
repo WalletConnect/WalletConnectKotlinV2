@@ -49,7 +49,6 @@ internal class PushDappProtocol(private val koinApp: KoinApplication = wcKoinApp
 //        pushDappEngine.engineEvent
 //            .onEach { event ->
 //                when (event) {
-//                    is EngineDO.PushRequestResponse -> delegate.onPushResponse(event.toDappClient())
 //                    is EngineDO.PushRequestRejected -> delegate.onPushRejected(event.toDappClient())
 //                    is EngineDO.PushDelete -> delegate.onDelete(event.toDappClient())
 //                    is SDKError -> delegate.onError(event.toClient())
