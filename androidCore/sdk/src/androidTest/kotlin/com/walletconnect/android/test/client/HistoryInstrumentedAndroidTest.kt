@@ -92,7 +92,7 @@ class HistoryInstrumentedAndroidTest {
 
                             testScope.launch {
                                 TestClient.Secondary.History.getMessages(
-                                    MessagesParams(topic.value, null, 5L, Direction.backward),
+                                    MessagesParams(topic.value, null, 5L, Direction.BACKWARD),
                                     onSuccess = { messages ->
                                         Assertions.assertEquals(1, messages.size)
                                         scenarioExtension.closeAsSuccess()
@@ -156,7 +156,7 @@ class HistoryInstrumentedAndroidTest {
 
                             testScope.launch {
                                 TestClient.Secondary.History.getMessages(
-                                    MessagesParams(topic.value, null, 5L, Direction.backward),
+                                    MessagesParams(topic.value, null, 5L, Direction.BACKWARD),
                                     onSuccess = { messages -> Assertions.assertEquals(1, messages.size) },
                                     onError = ::globalOnError
                                 )

@@ -13,7 +13,7 @@ data class MessagesParams(
         return mutableMapOf("topic" to topic).apply {
             if (originId != null) this["originId"] = originId.toString()
             if (messageCount != null) this["messageCount"] = messageCount.toString()
-            if (direction != null) this["direction"] = direction.name.lowercase()
+            if (direction != null) this["direction"] = direction.toString()
         }
     }
 }
