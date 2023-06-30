@@ -50,7 +50,7 @@ internal fun EngineDO.PushDelete.toWalletClient(): Push.Wallet.Event.Delete {
 }
 
 @JvmSynthetic
-internal fun EngineDO.PushSubscribe.RespondedWMetaData.toWalletClient(): Push.Wallet.Event.Subscription.Result {
+internal fun EngineDO.PushSubscribe.RespondedWithMetaData.toWalletClient(): Push.Wallet.Event.Subscription.Result {
     return Push.Wallet.Event.Subscription.Result(
         Push.Model.Subscription(
             requestId = requestId,

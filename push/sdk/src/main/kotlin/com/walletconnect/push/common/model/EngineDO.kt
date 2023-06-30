@@ -100,7 +100,7 @@ sealed class EngineDO : EngineEvent {
             val pushTopic: Topic,
         ) : PushSubscribe()
 
-        data class RespondedWMetaData(
+        data class RespondedWithMetaData(
             override val requestId: Long,
             override val subscribeTopic: Topic,
             override val dappDidPublicKey: PublicKey,

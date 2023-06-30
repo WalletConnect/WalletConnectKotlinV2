@@ -7,7 +7,6 @@ import android.net.Uri
 import android.util.Base64
 import androidx.core.net.toUri
 import com.walletconnect.android.CoreClient
-import com.walletconnect.android.history.HistoryInterface
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
@@ -590,7 +589,7 @@ internal class PushWalletEngine(
                     subscribeStorageRepository.updateSubscribeToResponded(subscription.requestId, pushTopic.value, dappGeneratedPublicKey.keyAsHex, updatedExpiry.seconds)
 
                     val updatedSubscription = with(subscription) {
-                        EngineDO.PushSubscribe.RespondedWMetaData(
+                        EngineDO.PushSubscribe.RespondedWithMetaData(
                             requestId = requestId,
                             subscribeTopic = subscribeTopic,
                             dappDidPublicKey = dappDidPublicKey,
