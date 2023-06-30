@@ -37,10 +37,6 @@ class SubscribeStorageRepository(private val subscriptionQueries: SubscriptionsQ
         )
     }
 
-    suspend fun getRespondedSubscribeByRequestId(requestId: Long): EngineDO.PushSubscribe.Responded? = withContext(Dispatchers.IO) {
-        subscriptionQueries.getSubscribeByRequestId(requestId, ::toSubscription).executeAsOneOrNull() as? EngineDO.PushSubscribe.Responded
-    }
-
     suspend fun getSubscribeByPeerPublicKey(peerPublicKey: String): EngineDO.PushSubscribe.Responded? = withContext(Dispatchers.IO) {
         subscriptionQueries.getSubscribeByDappGeneratedPublicKey(peerPublicKey, ::toSubscription).executeAsOneOrNull() as? EngineDO.PushSubscribe.Responded
     }

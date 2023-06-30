@@ -296,7 +296,7 @@ internal class PushWalletEngine(
                             val selfPublicKey = crypto.generateAndStoreX25519KeyPair()
                             // Response topic is derived from hash of public key X
                             val responseTopic = Topic(sha256(proposalWithMetadata.dappPublicKey.keyAsBytes))
-                            val symKey = crypto.getSymmetricKey(subscription.subscribeTopic.value)
+                            val symKey = crypto.getSymmetricKey(subscription.responseTopic.value)
                             val params = PushParams.ProposeResponseParams(didJwt.value, symKey.keyAsHex)
 
                             // Wallet responds with type 1 envelope on response topic to Dapp with subscriptionAuth and subscription symmetric key
@@ -576,9 +576,10 @@ internal class PushWalletEngine(
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcResult -> {
                     // wcResponse.topic should be the response topic, but this topic matches the Subscribe topic
-                    val subscription: EngineDO.PushSubscribe.Responded = subscribeStorageRepository.getRespondedSubscribeByRequestId(response.id) ?: return@supervisorScope _engineEvent.emit(
-                        SDKError(NotFoundException("Cannot find subscription for topic: ${wcResponse.topic.value}"))
-                    )
+                    val subscription: EngineDO.PushSubscribe =
+                        subscribeStorageRepository.getAllSubscriptions().firstOrNull { pushSubscribe -> pushSubscribe.requestId == response.id } ?: return@supervisorScope _engineEvent.emit(
+                            SDKError(NotFoundException("Cannot find subscription for topic: ${wcResponse.topic.value}"))
+                        )
                     // TODO: Add an entry in JsonRpcResultAdapter and create data class for response
                     val dappGeneratedPublicKey = PublicKey((((wcResponse.response as JsonRpcResponse.JsonRpcResult).result as Map<*, *>)["publicKey"] as String))
                     val pushTopic = crypto.generateTopicFromKeyAgreement(subscription.selfPublicKey, dappGeneratedPublicKey)
