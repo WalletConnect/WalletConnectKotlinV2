@@ -29,7 +29,10 @@ class HistoryProtocol(
     override suspend fun registerTags(tags: List<Tags>, onSuccess: () -> Unit, onError: (Core.Model.Error) -> Unit) {
         registerTagsUseCase(tags, relayServerUrl).fold(
             onFailure = { error -> onError(Core.Model.Error(error)) },
-            onSuccess = { onSuccess().also { logger.log("Registered: $tags") } }
+            onSuccess = { 
+               logger.log("Registered: $tags")
+               onSuccess() 
+            }
         )
     }
 
