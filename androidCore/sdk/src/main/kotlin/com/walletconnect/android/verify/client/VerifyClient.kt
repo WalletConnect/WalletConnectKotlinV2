@@ -1,16 +1,14 @@
 package com.walletconnect.android.verify.client
 
-import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.di.verifyModule
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.verify.data.VerifyService
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
-import org.koin.core.qualifier.named
 
 internal object VerifyClient : VerifyInterface {
-    private val verifyService get() = wcKoinApp.koin.get<VerifyService>(named(AndroidCommonDITags.VERIFY_SERVICE))
+    private val verifyService get() = wcKoinApp.koin.get<VerifyService>()
 
     override fun initialize(verifyUrl: String?) {
         wcKoinApp.modules(verifyModule(verifyUrl))

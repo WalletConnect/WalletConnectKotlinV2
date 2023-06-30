@@ -21,11 +21,11 @@ internal fun verifyModule(verifyServerUrl: String?) = module {
             .build()
     }
 
-    single(named(AndroidCommonDITags.VERIFY_SERVICE)) {
+    single {
         get<Retrofit>(named(AndroidCommonDITags.VERIFY_RETROFIT)).create(VerifyService::class.java)
     }
 
-    single { ResolveAttestationIdUseCase(get(), get()) }
+    single { ResolveAttestationIdUseCase(get(), get(), get(named(AndroidCommonDITags.VERIFY_URL))) }
 }
 
 private const val VERIFY_SERVER_URL = "https://verify.walletconnect.com/"
