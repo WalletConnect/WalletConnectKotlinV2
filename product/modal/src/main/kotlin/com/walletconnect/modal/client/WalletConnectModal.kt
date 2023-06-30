@@ -22,8 +22,6 @@ object WalletConnectModal {
         fun onError(error: Modal.Model.Error)
     }
 
-    // Todo set theme here maybe?
-    // add exclude/recommended wallets
     fun initialize(
         init: Modal.Params.Init,
         onSuccess: () -> Unit = {},

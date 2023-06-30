@@ -185,6 +185,9 @@ fun DependencyHandlerScope.compose() {
     "debugImplementation"("androidx.compose.ui:ui-test-manifest")
     "implementation"("androidx.navigation:navigation-compose:$composeNavigationVersion")
     "implementation"("androidx.lifecycle:lifecycle-viewmodel-compose:$composeViewModelVersion")
+
+    //override compose material to fix crash at modalsheet
+    "implementation"("androidx.compose.material:material:1.5.0-alpha04")
 }
 
 fun DependencyHandlerScope.accompanist() {
