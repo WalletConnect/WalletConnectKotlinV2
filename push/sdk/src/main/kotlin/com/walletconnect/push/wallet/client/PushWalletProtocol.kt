@@ -56,8 +56,8 @@ class PushWalletProtocol(private val koinApp: KoinApplication = wcKoinApp) : Pus
                 is EngineDO.PushPropose.WithMetaData -> delegate.onPushProposal(event.toWalletClient())
                 is EngineDO.PushRecord -> delegate.onPushMessage(Push.Wallet.Event.Message(event.toWalletClient()))
                 is EngineDO.PushDelete -> delegate.onPushDelete(event.toWalletClient())
-                is EngineDO.PushSubscription -> delegate.onPushSubscription(event.toWalletClient())
-                is EngineDO.PushSubscribeError -> delegate.onPushSubscription(event.toWalletClient())
+                is EngineDO.PushSubscribe.RespondedWMetaData -> delegate.onPushSubscription(event.toWalletClient())
+                is EngineDO.PushSubscribe.Error -> delegate.onPushSubscription(event.toWalletClient())
                 is EngineDO.PushUpdate -> delegate.onPushUpdate(event.toWalletClient())
                 is EngineDO.PushUpdateError -> delegate.onPushUpdate(event.toWalletClient())
                 is SDKError -> delegate.onError(event.toClient())
@@ -134,8 +134,8 @@ class PushWalletProtocol(private val koinApp: KoinApplication = wcKoinApp) : Pus
         checkEngineInitialization()
 
         return runBlocking {
-            pushWalletEngine.getListOfActiveSubscriptions().mapValues { (_, subscription) ->
-                subscription.toCommonClient()
+            pushWalletEngine.getListOfActiveSubscriptions().mapValues { (_, subscriptionWMetadata) ->
+                subscriptionWMetadata.toCommonClient()
             }
         }
     }

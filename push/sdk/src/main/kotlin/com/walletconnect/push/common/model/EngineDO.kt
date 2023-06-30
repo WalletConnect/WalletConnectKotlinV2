@@ -66,19 +66,59 @@ sealed class EngineDO : EngineEvent {
         val type: String,
     ) : EngineDO()
 
-    data class PushSubscription(
-        val requestId: Long,
-        val keyAgreementTopic: Topic,
-        val responseTopic: Topic,
-        val peerPublicKey: PublicKey?,
-        val subscriptionTopic: Topic?,
-        val account: AccountId,
-        val relay: RelayProtocolOptions,
-        val metadata: AppMetaData,
-        val didJwt: String,
-        val scope: Map<String, PushScope.Cached>,
-        val expiry: Expiry,
-    ) : EngineDO()
+    sealed class PushSubscribe : EngineDO() {
+        abstract val requestId: Long
+        abstract val subscribeTopic: Topic
+        abstract val dappDidPublicKey: PublicKey
+        abstract val selfPublicKey: PublicKey
+        abstract val responseTopic: Topic
+        abstract val account: AccountId
+        abstract val mapOfScope: Map<String, PushScope.Cached>
+        abstract val expiry: Expiry
+
+        data class Requested(
+            override val requestId: Long,
+            override val subscribeTopic: Topic,
+            override val dappDidPublicKey: PublicKey,
+            override val selfPublicKey: PublicKey,
+            override val responseTopic: Topic,
+            override val account: AccountId,
+            override val mapOfScope: Map<String, PushScope.Cached>,
+            override val expiry: Expiry,
+        ) : PushSubscribe()
+
+        data class Responded(
+            override val requestId: Long,
+            override val subscribeTopic: Topic,
+            override val dappDidPublicKey: PublicKey,
+            override val selfPublicKey: PublicKey,
+            override val responseTopic: Topic,
+            override val account: AccountId,
+            override val mapOfScope: Map<String, PushScope.Cached>,
+            override val expiry: Expiry,
+            val dappGeneratedPublicKey: PublicKey,
+            val pushTopic: Topic,
+        ) : PushSubscribe()
+
+        data class RespondedWMetaData(
+            override val requestId: Long,
+            override val subscribeTopic: Topic,
+            override val dappDidPublicKey: PublicKey,
+            override val selfPublicKey: PublicKey,
+            override val responseTopic: Topic,
+            override val account: AccountId,
+            override val mapOfScope: Map<String, PushScope.Cached>,
+            override val expiry: Expiry,
+            val dappGeneratedPublicKey: PublicKey,
+            val pushTopic: Topic,
+            val dappMetaData: AppMetaData,
+        ) : PushSubscribe()
+
+        data class Error(
+            val requestId: Long,
+            val rejectionReason: String,
+        ) : EngineDO()
+    }
 
     data class PushLegacySubscription(
         val requestId: Long,

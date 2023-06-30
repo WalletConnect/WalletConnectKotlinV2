@@ -13,7 +13,7 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.push.common.JsonRpcMethod
-import com.walletconnect.push.common.data.storage.SubscriptionStorageRepository
+import com.walletconnect.push.common.data.storage.SubscribeStorageRepository
 import com.walletconnect.push.common.domain.ExtractPushConfigUseCase
 import com.walletconnect.push.common.model.EngineDO
 import com.walletconnect.push.dapp.data.CastRepository
@@ -33,7 +33,7 @@ internal class PushDappEngine(
     private val pairingHandler: PairingControllerInterface,
     private val extractPushConfigUseCase: ExtractPushConfigUseCase,
     private val crypto: KeyManagementRepository,
-    private val subscriptionStorageRepository: SubscriptionStorageRepository,
+    private val subscribeStorageRepository: SubscribeStorageRepository,
     private val castRepository: CastRepository,
     private val logger: Logger,
 ) {

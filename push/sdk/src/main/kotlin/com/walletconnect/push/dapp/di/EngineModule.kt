@@ -13,7 +13,7 @@ internal fun dappEngineModule() = module {
             pairingHandler = get(),
             extractPushConfigUseCase = get(),
             crypto = get(),
-            subscriptionStorageRepository = get(),
+            subscribeStorageRepository = get(),
             castRepository = get(),
             logger = get()
         )

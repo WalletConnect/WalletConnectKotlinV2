@@ -3,14 +3,12 @@
 package com.walletconnect.push.common.di
 
 import com.squareup.sqldelight.ColumnAdapter
-import com.walletconnect.android.di.AndroidCoreDITags
 import com.walletconnect.android.di.sdkBaseStorageModule
 import com.walletconnect.android.internal.common.di.deleteDatabase
 import com.walletconnect.push.PushDatabase
 import com.walletconnect.push.common.data.storage.ProposalStorageRepository
-import com.walletconnect.push.common.data.storage.SubscriptionStorageRepository
+import com.walletconnect.push.common.data.storage.SubscribeStorageRepository
 import com.walletconnect.push.common.storage.data.dao.Subscriptions
-import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
 
@@ -20,7 +18,6 @@ internal fun pushStorageModule(dbName: String) = module {
     fun Scope.createPushDB() = PushDatabase(
         get(),
         SubscriptionsAdapter = Subscriptions.Adapter(
-            metadata_iconsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
             map_of_scopeAdapter = get<ColumnAdapter<Map<String, Pair<String, Boolean>>, String>>()
         )
     )
@@ -64,7 +61,7 @@ internal fun pushStorageModule(dbName: String) = module {
 
     single { get<PushDatabase>().proposalQueries }
 
-    single { SubscriptionStorageRepository(get()) }
+    single { SubscribeStorageRepository(get()) }
 
-    single { ProposalStorageRepository(get(), get()) }
+    single { ProposalStorageRepository(get()) }
 }
