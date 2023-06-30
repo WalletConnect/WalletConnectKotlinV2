@@ -3,6 +3,8 @@ package com.walletconnect.sign.client
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreInterface
 import java.net.URI
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 object Sign {
 
@@ -227,7 +229,7 @@ object Sign {
             val namespaces: Map<String, Model.Namespace.Session>,
         ) : Params()
 
-        data class Ping(val topic: String) : Params()
+        data class Ping(val topic: String, val timeout: Duration = 30.seconds) : Params()
 
         data class Emit(val topic: String, val event: Model.SessionEvent, val chainId: String) :
             Params()

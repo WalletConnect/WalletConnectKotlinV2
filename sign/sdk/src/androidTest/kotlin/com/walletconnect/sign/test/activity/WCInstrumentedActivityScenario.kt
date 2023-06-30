@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.seconds
 
 // TODO: Replace testScope and runBlocking with kotlin.coroutines test dependency
-
+//  Research why switching this to class made tests run 10x longer
 
 class WCInstrumentedActivityScenario : BeforeAllCallback, AfterAllCallback {
     private var scenario: ActivityScenario<InstrumentedTestActivity>? = null

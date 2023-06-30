@@ -253,7 +253,8 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
             signEngine.ping(
                 ping.topic,
                 { topic -> sessionPing?.onSuccess(Sign.Model.Ping.Success(topic)) },
-                { error -> sessionPing?.onError(Sign.Model.Ping.Error(error)) }
+                { error -> sessionPing?.onError(Sign.Model.Ping.Error(error)) },
+                ping.timeout
             )
         } catch (error: Exception) {
             sessionPing?.onError(Sign.Model.Ping.Error(error))

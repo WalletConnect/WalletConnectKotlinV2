@@ -2,8 +2,10 @@ package com.walletconnect.sign.test.utils
 
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
+import com.walletconnect.sign.test.BuildConfig
 import org.junit.jupiter.api.fail
 import timber.log.Timber
+import kotlin.time.Duration.Companion.seconds
 
 open class DappDelegate : SignClient.DappDelegate {
     override fun onSessionRejected(rejectedSession: Sign.Model.RejectedSession) {}
@@ -31,7 +33,7 @@ open class AutoApproveDappDelegate(val onSessionApprovedSuccess: (approvedSessio
 fun Sign.Model.ApprovedSession.onSessionApproved(onSuccess: () -> Unit) {
     Timber.d("dappDelegate: onSessionApproved")
 
-    DappSignClient.ping(Sign.Params.Ping(topic), object : Sign.Listeners.SessionPing {
+    DappSignClient.ping(Sign.Params.Ping(topic, BuildConfig.TEST_TIMEOUT_SECONDS.seconds), object : Sign.Listeners.SessionPing {
         override fun onSuccess(pingSuccess: Sign.Model.Ping.Success) {
             Timber.d("dappDelegate: onPingSuccess")
             onSuccess()
