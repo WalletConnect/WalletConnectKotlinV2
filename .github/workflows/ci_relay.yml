@@ -1,6 +1,8 @@
 name: Relay Integration Tests
 
 on:
+  schedule:
+    - cron: '0 0,12 * * *'
   push:
     branches:
       - develop
@@ -25,14 +27,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-
-      - name: Setup Java 17
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'zulu'
-          java-version: '17'
-          architecture: x86_64
-          cache: 'gradle'
 
       - name: Run Relay CI
         env:
