@@ -22,7 +22,8 @@ fun coreJsonRpcModule() = module {
             relay = get(),
             chaChaPolyCodec = get(),
             jsonRpcHistory = get(),
-            logger = get(named(AndroidCommonDITags.LOGGER))
+            logger = get(named(AndroidCommonDITags.LOGGER)),
+            historyMessageNotifier = get()
         )
     }
 
