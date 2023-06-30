@@ -3,10 +3,10 @@ package com.walletconnect.android.internal
 import com.walletconnect.utils.combineListOfBitSetsWithOrOperator
 import com.walletconnect.utils.removeLeadingZeros
 import com.walletconnect.utils.toBinaryString
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
-import java.util.*
-import kotlin.test.assertEquals
+import junit.framework.TestCase.assertEquals
+import org.junit.Assert.assertThrows
+import org.junit.Test
+import java.util.BitSet
 
 class UserAgentFormattingTest {
 
@@ -100,7 +100,7 @@ class UserAgentFormattingTest {
 
     @Test
     fun `reducing a list empty BitSets should throw`() {
-        assertThrows<UnsupportedOperationException> {
+        assertThrows(UnsupportedOperationException::class.java) {
             combineListOfBitSetsWithOrOperator(emptyList())
         }
     }

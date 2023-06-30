@@ -20,16 +20,21 @@ import com.walletconnect.foundation.network.model.Relay
 import com.walletconnect.foundation.network.model.RelayDTO
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.utils.Empty
-import io.mockk.*
+import io.mockk.Called
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.spyk
+import io.mockk.verify
+import junit.framework.TestCase.assertFalse
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Test
-import kotlin.test.assertFalse
+import org.junit.BeforeClass
+import org.junit.Test
 
 @ExperimentalCoroutinesApi
 internal class RelayerInteractorTest {
@@ -129,8 +134,8 @@ internal class RelayerInteractorTest {
     companion object {
         private const val DEFAULT_ID = -1L
 
-        @BeforeAll
         @JvmStatic
+        @BeforeClass
         fun beforeAll() {
             mockkObject(wcKoinApp)
 

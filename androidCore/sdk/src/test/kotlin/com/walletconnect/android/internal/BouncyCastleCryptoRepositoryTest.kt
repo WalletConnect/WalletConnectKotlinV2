@@ -7,10 +7,10 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.utils.Empty
 import io.mockk.spyk
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
+import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertNotNull
+import org.junit.Before
+import org.junit.Test
 
 internal class BouncyCastleCryptoRepositoryTest {
     private val publicKey = PublicKey("590c2c627be7af08597091ff80dd41f7fa28acd10ef7191d7e830e116d3a186a")
@@ -19,7 +19,7 @@ internal class BouncyCastleCryptoRepositoryTest {
     private val sut = spyk(BouncyCastleKeyManagementRepository(keyChain), recordPrivateCalls = true)
     private val topicVO = Topic("topic")
 
-    @BeforeEach
+    @Before
     fun setUp() {
         sut.setKeyPair(publicKey, privateKey)
     }

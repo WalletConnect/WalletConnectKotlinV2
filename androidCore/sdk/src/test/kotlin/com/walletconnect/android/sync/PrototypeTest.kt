@@ -5,12 +5,12 @@ import com.walletconnect.android.sync.common.model.Store
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.bytesToInt
 import com.walletconnect.util.hexToBytes
-import org.junit.jupiter.api.Test
+import junit.framework.TestCase.assertEquals
+import org.junit.Test
 import org.kethereum.bip39.entropyToMnemonic
 import org.kethereum.bip39.model.MnemonicWords
 import org.kethereum.bip39.toKey
 import org.kethereum.bip39.wordlists.WORDLIST_ENGLISH
-import kotlin.test.assertEquals
 
 // Based on javascript prototype test https://github.com/WalletConnect/sync-api-prototype/blob/main/src/index.ts
 

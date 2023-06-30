@@ -82,8 +82,7 @@ dependencies {
     kethereum()
     retrofit()
 
-    jUnit5()
-    jUnit5Android()
+    jUnit4()
     robolectric()
     mockk()
 }

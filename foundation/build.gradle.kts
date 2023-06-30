@@ -40,6 +40,6 @@ dependencies {
     multibaseJava()
     wsRestJava()
 
-    jUnit5()
+    jUnit4()
     mockk()
 }

@@ -85,8 +85,8 @@ dependencies {
 
     moshiKsp()
     androidXTest()
-    jUnit5()
-    jUnit5Android()
+    jUnit4()
+//    jUnit5Android()
     robolectric()
     mockk()
     testJson()

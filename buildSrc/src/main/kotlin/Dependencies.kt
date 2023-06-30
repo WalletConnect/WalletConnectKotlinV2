@@ -111,25 +111,24 @@ fun DependencyHandlerScope.wsRestJava() {
     "testImplementation"("org.glassfish.jersey.core:jersey-common:3.1.0")
 }
 
-// TODO: Replace JUnit5 with JUnit4 since Android tooling does not support JUnit5 yet
-fun DependencyHandlerScope.jUnit5() {
-    "testImplementation"(platform("org.junit:junit-bom:$jUnit5Version"))
-    "testImplementation"("org.junit.jupiter:junit-jupiter-api")
-    "testRuntimeOnly"("org.junit.jupiter:junit-jupiter-engine")
-    "testImplementation"("org.junit.jupiter:junit-jupiter-params")
+fun DependencyHandlerScope.jUnit4() {
+//    "testImplementation"(platform("org.junit:junit-bom:$jUnit4Version"))
+//    "testImplementation"("org.junit.jupiter:junit-jupiter-api")
+//    "testRuntimeOnly"("org.junit.jupiter:junit-jupiter-engine")
+//    "testImplementation"("org.junit.jupiter:junit-jupiter-params")
 
     // JUnit 4 support
-    "testImplementation"("junit:junit:4.13.2")
+    "testImplementation"("junit:junit:$jUnit4Version")
     "testRuntimeOnly"("org.junit.vintage:junit-vintage-engine")
 
-    "testImplementation"("org.jetbrains.kotlin:kotlin-test-junit5:$kotlinVersion")
+//    "testImplementation"("org.jetbrains.kotlin:kotlin-test-junit5:$kotlinVersion")
 }
 
-fun DependencyHandlerScope.jUnit5Android() {
-    "testImplementation"(platform("org.junit:junit-bom:$jUnit5Version"))
-    "androidTestImplementation"("org.junit.jupiter:junit-jupiter-api")
-    "androidTestRuntimeOnly"("org.junit.jupiter:junit-jupiter-engine")
-}
+//fun DependencyHandlerScope.jUnit5Android() {
+//    "testImplementation"(platform("org.junit:junit-bom:$jUnit4Version"))
+//    "androidTestImplementation"("org.junit.jupiter:junit-jupiter-api")
+//    "androidTestRuntimeOnly"("org.junit.jupiter:junit-jupiter-engine")
+//}
 
 fun DependencyHandlerScope.androidXTest() {
     "testImplementation"("androidx.test.ext:junit-ktx:1.1.3")
