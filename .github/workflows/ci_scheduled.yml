@@ -18,8 +18,14 @@ jobs:
         uses: ./.github/actions/ci_relay
 
       - name: Send GitHub Action trigger data to Slack workflow
-        if: failure()
+#        if: failure()
         id: slack
         uses: slackapi/slack-github-action@v1.24.0
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_SCHEDULED_CI_WEBHOOK_URL }}
+          with:
+            # This data can be any valid JSON from a previous step in the GitHub Action
+            payload: |
+              {
+                "action_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+              }
