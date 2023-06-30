@@ -26,14 +26,30 @@ sealed class EngineDO : EngineEvent {
         ) : PushScope()
     }
 
-    data class PushPropose(
-        val requestId: Long,
-        val proposalTopic: Topic,
-        val dappPublicKey: PublicKey,
-        val accountId: AccountId,
-        val relayProtocolOptions: RelayProtocolOptions,
-        val dappMetaData: AppMetaData,
-    ) : EngineDO()
+    sealed class PushPropose : EngineDO() {
+        abstract val requestId: Long
+        abstract val proposalTopic: Topic
+        abstract val dappPublicKey: PublicKey
+        abstract val accountId: AccountId
+        abstract val relayProtocolOptions: RelayProtocolOptions
+
+        data class WithoutMetaData(
+            override val requestId: Long,
+            override val proposalTopic: Topic,
+            override val dappPublicKey: PublicKey,
+            override val accountId: AccountId,
+            override val relayProtocolOptions: RelayProtocolOptions,
+        ) : PushPropose()
+
+        data class WithMetaData(
+            override val requestId: Long,
+            override val proposalTopic: Topic,
+            override val dappPublicKey: PublicKey,
+            override val accountId: AccountId,
+            override val relayProtocolOptions: RelayProtocolOptions,
+            val dappMetadata: AppMetaData,
+        ) : PushPropose()
+    }
 
     data class PushRecord(
         val id: Long,

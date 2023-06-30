@@ -258,11 +258,17 @@ internal class PushWalletEngine(
     }
 
     suspend fun approve(proposalRequestId: Long, onSign: (String) -> Cacao.Signature?, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
-        val proposal = proposalStorageRepository.getProposalByRequestId(proposalRequestId) ?: return@supervisorScope onFailure(IllegalArgumentException("Invalid proposal request id"))
+        val proposalWithoutMetadata =
+            proposalStorageRepository.getProposalByRequestId(proposalRequestId) ?: return@supervisorScope onFailure(IllegalArgumentException("Invalid proposal request id $proposalRequestId"))
+        val dappMetadata = metadataStorageRepository.getByTopicAndType(proposalWithoutMetadata.proposalTopic, AppMetaDataType.PEER)
+        val proposalWithMetadata = with(proposalWithoutMetadata) {
+            EngineDO.PushPropose.WithMetaData(requestId, proposalTopic, dappPublicKey, accountId, relayProtocolOptions, dappMetadata)
+        }
 
+        // Wallet sends push subscribe request to Push Server with subscriptionAuth
         subscribeToDapp(
-            dappUri = proposal.dappMetaData.url.toUri(),
-            account = proposal.accountId.value,
+            dappUri = proposalWithMetadata.dappMetadata.url.toUri(),
+            account = proposalWithMetadata.accountId.value,
             onSign = onSign,
             onSuccess = { subscriptionRequestId, didJwt ->
                 CoroutineScope(SupervisorJob() + scope.coroutineContext).launch(Dispatchers.IO) {
@@ -279,14 +285,14 @@ internal class PushWalletEngine(
                             val params = PushParams.ProposeResponseParams(didJwt.value, symKey.keyAsHex)
 
                             jsonRpcInteractor.respondWithParams(
-                                proposal.requestId,
+                                proposalWithMetadata.requestId,
                                 responseTopic,
                                 clientParams = params,
                                 irnParams = IrnParams(tag = Tags.PUSH_PROPOSE_RESPONSE, ttl = Ttl(DAY_IN_SECONDS)),
                                 envelopeType = EnvelopeType.ONE,
                                 participants = Participants(
                                     senderPublicKey = selfPublicKey,
-                                    receiverPublicKey = proposal.dappPublicKey
+                                    receiverPublicKey = proposalWithMetadata.dappPublicKey
                                 )
                             ) { error ->
                                 return@respondWithParams onFailure(error)
@@ -459,10 +465,8 @@ internal class PushWalletEngine(
                 params.metaData,
                 AppMetaDataType.PEER
             )
-
-            metadataStorageRepository.lastInsertedId()
         } catch (e: Exception) {
-            metadataStorageRepository.getIdByTopicAndType(request.topic, AppMetaDataType.PEER)
+            logger.error("Cannot insert metadata: ${e.message}")
         }
 
         try {
@@ -475,7 +479,7 @@ internal class PushWalletEngine(
             )
 
             _engineEvent.emit(
-                EngineDO.PushPropose(
+                EngineDO.PushPropose.WithMetaData(
                     request.id,
                     Topic(request.topic.value),
                     PublicKey(params.publicKey),
@@ -642,6 +646,5 @@ internal class PushWalletEngine(
 
     private companion object {
         const val DID_JSON = ".well-known/did.json"
-        const val WC_PUSH_CONFIG_JSON = ".well-known/wc-push-config.json"
     }
 }
