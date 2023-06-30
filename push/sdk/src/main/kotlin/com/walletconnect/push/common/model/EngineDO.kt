@@ -80,6 +80,20 @@ sealed class EngineDO : EngineEvent {
         val expiry: Expiry,
     ) : EngineDO()
 
+    data class PushLegacySubscription(
+        val requestId: Long,
+        val keyAgreementTopic: Topic,
+        val responseTopic: Topic,
+        val peerPublicKey: PublicKey?,
+        val subscriptionTopic: Topic?,
+        val account: AccountId,
+        val relay: RelayProtocolOptions,
+        val metadata: AppMetaData,
+        val didJwt: String,
+        val scope: Map<String, PushScope.Cached>,
+        val expiry: Expiry,
+    ) : EngineDO()
+
     data class PushUpdate(
         val requestId: Long,
         val responseTopic: String,

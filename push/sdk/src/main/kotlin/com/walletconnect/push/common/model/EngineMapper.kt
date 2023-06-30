@@ -114,7 +114,7 @@ internal fun EngineDO.PushRequestRejected.toDappClient(): Push.Dapp.Event.Reject
 }
 
 @JvmSynthetic
-internal fun EngineDO.PushSubscription.toDappClient(): Push.Model.Subscription {
+internal fun EngineDO.PushLegacySubscription.toDappClient(): Push.Model.Subscription {
     return Push.Model.Subscription(
         requestId = requestId,
         topic = subscriptionTopic!!.value,

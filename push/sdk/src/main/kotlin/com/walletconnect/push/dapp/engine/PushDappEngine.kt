@@ -164,7 +164,7 @@ internal class PushDappEngine(
 //        )
     }
 
-    suspend fun getListOfActiveSubscriptions(): Map<String, EngineDO.PushSubscription> = emptyMap()
+    suspend fun getListOfActiveSubscriptions(): Map<String, EngineDO.PushLegacySubscription> = emptyMap()
 //        subscriptionStorageRepository.getAllSubscriptions()
 //            .filter { subscription -> !subscription.subscriptionTopic?.value.isNullOrBlank() }
 //            .associateBy { subscription -> subscription.subscriptionTopic!!.value }
