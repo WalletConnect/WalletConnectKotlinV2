@@ -10,11 +10,6 @@ internal fun PushParams.MessageParams.toEngineDO(): EngineDO.PushMessage =
     EngineDO.PushMessage(title, body, icon, url, type)
 
 @JvmSynthetic
-internal fun EngineDO.PushRequest.toWalletClient(): Push.Wallet.Event.Request {
-    return Push.Wallet.Event.Request(id, metaData.toClient())
-}
-
-@JvmSynthetic
 internal fun EngineDO.PushPropose.toWalletClient(): Push.Wallet.Event.Proposal {
     return Push.Wallet.Event.Proposal(requestId, accountId.value, dappMetaData.toClient())
 }

@@ -10,14 +10,6 @@ import com.walletconnect.foundation.common.model.Topic
 
 sealed class EngineDO : EngineEvent {
 
-    data class PushRequest(
-        val id: Long,
-        val topic: String,
-        val account: String,
-        val relay: RelayProtocolOptions,
-        val metaData: AppMetaData,
-    ) : EngineDO()
-
     sealed class PushScope : EngineDO() {
         abstract val name: String
         abstract val description: String

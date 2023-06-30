@@ -451,53 +451,9 @@ internal class PushWalletEngine(
             .onEach { exception -> _engineEvent.emit(exception) }
             .launchIn(scope)
 
-    private suspend fun onPushRequest(request: WCRequest, params: PushParams.RequestParams) = supervisorScope {
-        val irnParams = IrnParams(Tags.PUSH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
-
-        try {
-            subscriptionStorageRepository.insertSubscription(
-                requestId = request.id,
-                keyAgreementTopic = "",
-                responseTopic = request.topic.value,
-                peerPublicKeyAsHex = params.publicKey,
-                subscriptionTopic = null,
-                account = params.account,
-                relayProtocol = null,
-                relayData = null,
-                name = params.metaData.name,
-                description = params.metaData.description,
-                url = params.metaData.url,
-                icons = params.metaData.icons,
-                native = params.metaData.redirect?.native,
-                "",
-                emptyMap(),
-                calcExpiry()
-            )
-
-            val newSubscription = subscriptionStorageRepository.getSubscriptionsByRequestId(request.id)
-
-            _engineEvent.emit(
-                EngineDO.PushRequest(
-                    newSubscription.requestId,
-                    newSubscription.responseTopic.value,
-                    newSubscription.account.value,
-                    newSubscription.relay,
-                    newSubscription.metadata
-                )
-            )
-        } catch (e: Exception) {
-            jsonRpcInteractor.respondWithError(
-                request,
-                Uncategorized.GenericError("Cannot handle the push request: ${e.message}, topic: ${request.topic}"),
-                irnParams
-            )
-
-            _engineEvent.emit(SDKError(e))
-        }
-    }
-
+    // Wallet receives push proposal with public key X on pairing topic
     private suspend fun onPushPropose(request: WCRequest, params: PushParams.ProposeParams) = supervisorScope {
-        val metadataId = try {
+        try {
             metadataStorageRepository.insertOrAbortMetadata(
                 request.topic,
                 params.metaData,

@@ -53,7 +53,6 @@ class PushWalletProtocol(private val koinApp: KoinApplication = wcKoinApp) : Pus
 
         pushWalletEngine.engineEvent.onEach { event ->
             when (event) {
-                is EngineDO.PushRequest -> delegate.onPushRequest(event.toWalletClient())
                 is EngineDO.PushPropose -> delegate.onPushProposal(event.toWalletClient())
                 is EngineDO.PushRecord -> delegate.onPushMessage(Push.Wallet.Event.Message(event.toWalletClient()))
                 is EngineDO.PushDelete -> delegate.onPushDelete(event.toWalletClient())
