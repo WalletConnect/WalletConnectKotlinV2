@@ -30,7 +30,7 @@ class HistoryProtocol(
         registerTagsUseCase(tags, relayServerUrl).fold(
             onFailure = { error -> onError(Core.Model.Error(error)) },
             onSuccess = { 
-               logger.log("Registered: $tags")
+               logger.log("Registered in History: $tags")
                onSuccess() 
             }
         )
@@ -42,7 +42,8 @@ class HistoryProtocol(
             onSuccess = { response ->
                 (response.messages ?: emptyList()).also { messages ->
                     messages.onEach { request -> historyMessageNotifier.requestsSharedFlow.emit(request.toRelay()) }
-                    onSuccess(messages).also { logger.log("Fetched ${messages.size} messages") }
+                    logger.log("Fetched from History ${messages.size} messages")
+                    onSuccess(messages)
                 }
             }
         )
