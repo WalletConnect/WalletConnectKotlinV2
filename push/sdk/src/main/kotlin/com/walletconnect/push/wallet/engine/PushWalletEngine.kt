@@ -7,6 +7,7 @@ import android.net.Uri
 import android.util.Base64
 import androidx.core.net.toUri
 import com.walletconnect.android.CoreClient
+import com.walletconnect.android.history.HistoryInterface
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
@@ -102,7 +103,7 @@ internal class PushWalletEngine(
     private val extractPushConfigUseCase: ExtractPushConfigUseCase,
     private val codec: Codec,
     private val logger: Logger,
-) {
+    ) {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
