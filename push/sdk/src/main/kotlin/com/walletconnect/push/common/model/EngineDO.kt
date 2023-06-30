@@ -111,16 +111,6 @@ sealed class EngineDO : EngineEvent {
 //        val subscription: PushSubscription,
 //    ) : EngineDO()
 
-    data class PushRequestRejected(
-        val requestId: Long,
-        val rejectionReason: String,
-    ) : EngineDO()
-
-    data class PushSubscribeError(
-        val requestId: Long,
-        val rejectionReason: String,
-    ) : EngineDO()
-
     data class PushUpdateError(
         val requestId: Long,
         val rejectionReason: String,
