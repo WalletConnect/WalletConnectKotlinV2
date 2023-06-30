@@ -1,8 +1,6 @@
 name: Relay Integration Tests
 
 on:
-  schedule:
-    - cron: '0 0,12 * * *'
   push:
     branches:
       - develop
