@@ -30,7 +30,22 @@ import com.walletconnect.sign.ValidatorTest.Methods.ETH_SIGN
 import com.walletconnect.sign.ValidatorTest.Methods.PERSONAL_SIGN
 import com.walletconnect.sign.ValidatorTest.Namespaces.COSMOS
 import com.walletconnect.sign.ValidatorTest.Namespaces.EIP155
-import com.walletconnect.sign.common.exceptions.*
+import com.walletconnect.sign.common.exceptions.EMPTY_NAMESPACES_MESSAGE
+import com.walletconnect.sign.common.exceptions.INVALID_EVENT_MESSAGE
+import com.walletconnect.sign.common.exceptions.INVALID_EXTEND_TIME
+import com.walletconnect.sign.common.exceptions.INVALID_REQUEST_MESSAGE
+import com.walletconnect.sign.common.exceptions.NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE
+import com.walletconnect.sign.common.exceptions.NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE
+import com.walletconnect.sign.common.exceptions.NAMESPACE_CHAINS_CAIP_2_MESSAGE
+import com.walletconnect.sign.common.exceptions.NAMESPACE_CHAINS_MISSING_MESSAGE
+import com.walletconnect.sign.common.exceptions.NAMESPACE_CHAINS_UNDEFINED_MISSING_MESSAGE
+import com.walletconnect.sign.common.exceptions.NAMESPACE_CHAINS_WRONG_NAMESPACE_MESSAGE
+import com.walletconnect.sign.common.exceptions.NAMESPACE_EVENTS_MISSING_MESSAGE
+import com.walletconnect.sign.common.exceptions.NAMESPACE_KEYS_INVALID_FORMAT
+import com.walletconnect.sign.common.exceptions.NAMESPACE_KEYS_MISSING_MESSAGE
+import com.walletconnect.sign.common.exceptions.NAMESPACE_METHODS_MISSING_MESSAGE
+import com.walletconnect.sign.common.exceptions.UNAUTHORIZED_EVENT_MESSAGE
+import com.walletconnect.sign.common.exceptions.UNAUTHORIZED_METHOD_MESSAGE
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.validator.SignValidator
 import com.walletconnect.sign.engine.model.EngineDO
@@ -98,6 +113,14 @@ class ValidatorTest {
     @Test
     fun `Proposal namespaces MAY be empty`() {
         val namespaces = emptyMap<String, NamespaceVO.Proposal>()
+        var errorMessage: String? = null
+        SignValidator.validateProposalNamespaces(namespaces) { error -> errorMessage = error.message }
+        assertNull(errorMessage)
+    }
+
+    @Test
+    fun `Proposal namespaces MAY have empty events`() {
+        val namespaces = mapOf(EIP155 to NamespaceVO.Proposal(chains = listOf(ETHEREUM), methods = listOf(ETH_SIGN), events = listOf()))
         var errorMessage: String? = null
         SignValidator.validateProposalNamespaces(namespaces) { error -> errorMessage = error.message }
         assertNull(errorMessage)
