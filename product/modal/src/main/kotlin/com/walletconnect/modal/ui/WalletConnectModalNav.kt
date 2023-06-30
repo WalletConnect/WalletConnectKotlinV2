@@ -19,9 +19,10 @@ internal const val MODAL_URI_ARG = "modal_uri_arg"
 internal const val MODAL_URI_KEY = "uri"
 internal const val MODAL_CHAINS_ARG = "modal_chains_arg"
 internal const val MODAL_CHAINS_KEY = "chains"
+private val MODAL_PATH = Route.WalletConnectModalRoot.path + "?$MODAL_URI_KEY={$MODAL_URI_ARG}&$MODAL_CHAINS_KEY={$MODAL_CHAINS_ARG}"
 
 fun NavGraphBuilder.walletConnectModal() {
-    dialog<WalletConnectSheet>(route = Route.WalletConnectModalRoot.path + "/{$MODAL_URI_ARG}?$MODAL_CHAINS_KEY={$MODAL_CHAINS_ARG}") {
+    dialog<WalletConnectModalSheet>(route = MODAL_PATH) {
         argument(MODAL_URI_ARG) {
             type = NavType.StringType
         }
@@ -66,9 +67,7 @@ fun NavGraphBuilder.walletConnectModalGraph(
     navController: NavController,
     sheetState: ModalBottomSheetState
 ) {
-    bottomSheet(
-        route = Route.WalletConnectModalRoot.path + "?$MODAL_URI_KEY={$MODAL_URI_ARG}&$MODAL_CHAINS_KEY={$MODAL_CHAINS_ARG}"
-    ) {
+    bottomSheet(route = MODAL_PATH) {
         WalletConnectModal(navController = navController, sheetState = sheetState)
     }
 }

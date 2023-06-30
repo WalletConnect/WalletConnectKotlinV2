@@ -16,7 +16,7 @@ import androidx.navigation.NavHostController
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
-class WalletConnectSheet : BottomSheetDialogFragment() {
+class WalletConnectModalSheet : BottomSheetDialogFragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -35,12 +35,12 @@ class WalletConnectSheet : BottomSheetDialogFragment() {
     private fun ModalComposeView() {
         val navController = rememberAnimatedNavController()
         (dialog as? ComponentDialog)?.onBackPressedDispatcher?.addCallback(
-            this@WalletConnectSheet,
+            this@WalletConnectModalSheet,
             onBackPressedCallback(navController)
         )
         WalletConnectModalComponent(
             navController = navController,
-            closeModal = { this@WalletConnectSheet.dismiss() }
+            closeModal = { this@WalletConnectModalSheet.dismiss() }
         )
     }
 
