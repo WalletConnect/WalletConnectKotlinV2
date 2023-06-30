@@ -10,6 +10,7 @@ import com.walletconnect.android.sync.di.engineModule
 import com.walletconnect.android.sync.di.jsonRpcModule
 import com.walletconnect.android.sync.di.syncStorageModule
 import com.walletconnect.android.sync.engine.domain.SyncEngine
+import com.walletconnect.foundation.util.Logger
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -36,7 +37,6 @@ internal class SyncProtocol(private val koinApp: KoinApplication = wcKoinApp) : 
                     engineModule(),
                 )
             }
-
             syncEngine = koinApp.koin.get()
             syncEngine.setup()
 

@@ -567,7 +567,7 @@ internal class SignEngine(
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionDelete,
             onSuccess = {
-                logger.error("Disconnect sent successfully")
+                logger.log("Disconnect sent successfully")
                 onSuccess()
             },
             onFailure = { error ->
@@ -700,7 +700,13 @@ internal class SignEngine(
         }
 
         val peerMetadata = settleParams.controller.metadata
-        val proposal = proposalStorageRepository.getProposalByKey(selfPublicKey.keyAsHex).also { proposalStorageRepository.deleteProposal(selfPublicKey.keyAsHex) }
+        val proposal = try {
+            proposalStorageRepository.getProposalByKey(selfPublicKey.keyAsHex).also { proposalStorageRepository.deleteProposal(selfPublicKey.keyAsHex) }
+        } catch (e: Exception) {
+            jsonRpcInteractor.respondWithError(request, PeerError.Failure.SessionSettlementFailed(e.message ?: String.Empty), irnParams)
+            return
+        }
+
         val (requiredNamespaces, optionalNamespaces, properties) = proposal.run { Triple(requiredNamespaces, optionalNamespaces, properties) }
         SignValidator.validateSessionNamespace(settleParams.namespaces, requiredNamespaces) { error ->
             jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)

@@ -52,9 +52,8 @@ android {
     }
 
     testOptions {
-        testOptions {
-            execution = "ANDROIDX_TEST_ORCHESTRATOR"
-        }
+        execution = "ANDROIDX_TEST_ORCHESTRATOR"
+
         unitTests {
             isIncludeAndroidResources = true
             isReturnDefaultValues = true
@@ -79,7 +78,7 @@ dependencies {
     releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
 
     androidTestImplementation("androidx.test:runner:1.5.2")
-    androidTestUtil ("androidx.test:orchestrator:1.4.2")
+    androidTestUtil("androidx.test:orchestrator:1.4.2")
 
     moshiKsp()
     androidXTest()

@@ -22,13 +22,16 @@ android {
 
         buildConfigField(type = "String", name = "SDK_VERSION", value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\"")
         buildConfigField("String", "PROJECT_ID", "\"${System.getenv("WC_CLOUD_PROJECT_ID") ?: ""}\"")
+        buildConfigField("Integer", "TEST_TIMEOUT_SECONDS", "${System.getenv("TEST_TIMEOUT_SECONDS") ?: 30}")
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunnerArguments += mutableMapOf("clearPackageData" to "true")
 
         File("${rootDir.path}/gradle/consumer-rules").listFiles()?.let { proguardFiles ->
             consumerProguardFiles(*proguardFiles)
         }
 
-        ndk.abiFilters += listOf("armeabi-v7a", "x86", "x86_64", "arm64_v8a")
+        ndk.abiFilters += listOf("armeabi-v7a", "x86", "x86_64", "arm64-v8a")
     }
 
     buildTypes {
@@ -53,6 +56,15 @@ android {
 
     buildFeatures {
         buildConfig = true
+    }
+
+    testOptions {
+        execution = "ANDROIDX_TEST_ORCHESTRATOR"
+
+        unitTests {
+            isIncludeAndroidResources = true
+            isReturnDefaultValues = true
+        }
     }
 }
 
@@ -83,6 +95,11 @@ dependencies {
     retrofit()
 
     jUnit4()
+    androidXTest()
     robolectric()
     mockk()
+    testJson()
+    coroutinesTest()
+    scarletTest()
+    sqlDelightTest()
 }
