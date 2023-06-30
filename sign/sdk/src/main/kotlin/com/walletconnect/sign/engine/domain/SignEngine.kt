@@ -109,6 +109,8 @@ import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withTimeout
 import java.util.Date
 import java.util.concurrent.TimeUnit
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 internal class SignEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -121,7 +123,7 @@ internal class SignEngine(
     private val pairingInterface: PairingInterface,
     private val pairingHandler: PairingControllerInterface,
     private val selfAppMetaData: AppMetaData,
-    private val logger: Logger
+    private val logger: Logger,
 ) {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
@@ -442,8 +444,7 @@ internal class SignEngine(
         )
     }
 
-    // TODO: Do we still want Session Ping
-    internal fun ping(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
+    internal fun ping(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit, timeout: Duration = THIRTY_SECONDS_TIMEOUT) {
         if (sessionStorageRepository.isSessionValid(Topic(topic))) {
             val pingPayload = SignRpc.SessionPing(params = SignParams.PingParams())
             val irnParams = IrnParams(Tags.SESSION_PING, Ttl(THIRTY_SECONDS))
@@ -453,7 +454,7 @@ internal class SignEngine(
                     logger.log("Ping sent successfully")
                     scope.launch {
                         try {
-                            withTimeout(THIRTY_SECONDS_TIMEOUT) {
+                            withTimeout(timeout) {
                                 collectResponse(pingPayload.id) { result ->
                                     cancel()
                                     result.fold(
@@ -1114,7 +1115,6 @@ internal class SignEngine(
     }
 
     private companion object {
-        const val THIRTY_SECONDS_TIMEOUT: Long = 30000L
-        const val FIVE_MINUTES_TIMEOUT: Long = 300000L
+        val THIRTY_SECONDS_TIMEOUT: Duration = 30.seconds
     }
 }
