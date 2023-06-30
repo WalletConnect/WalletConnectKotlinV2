@@ -107,9 +107,9 @@ sealed class EngineDO : EngineEvent {
         val expiry: Expiry,
     ) : EngineDO()
 
-    data class PushRequestResponse(
-        val subscription: PushSubscription,
-    ) : EngineDO()
+//    data class PushRequestResponse(
+//        val subscription: PushSubscription,
+//    ) : EngineDO()
 
     data class PushRequestRejected(
         val requestId: Long,

@@ -1,5 +1,6 @@
 package com.walletconnect.push.common.model
 
+import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.params.PushParams
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.pairing.model.mapper.toClient
@@ -49,22 +50,22 @@ internal fun EngineDO.PushDelete.toWalletClient(): Push.Wallet.Event.Delete {
 }
 
 @JvmSynthetic
-internal fun EngineDO.PushSubscription.toWalletClient(): Push.Wallet.Event.Subscription.Result {
+internal fun EngineDO.PushSubscribe.RespondedWMetaData.toWalletClient(): Push.Wallet.Event.Subscription.Result {
     return Push.Wallet.Event.Subscription.Result(
         Push.Model.Subscription(
             requestId = requestId,
-            topic = subscriptionTopic!!.value,
+            topic = subscribeTopic.value,
             account = account.value,
-            relay = relay.toClient(),
-            metadata = metadata.toClient(),
-            scope = scope.toClient(),
+            relay = RelayProtocolOptions().toClient(),
+            metadata = dappMetaData.toClient(),
+            scope = mapOfScope.toClient(),
             expiry = expiry.seconds,
         )
     )
 }
 
 @JvmSynthetic
-internal fun EngineDO.PushSubscribeError.toWalletClient(): Push.Wallet.Event.Subscription.Error {
+internal fun EngineDO.PushSubscribe.Error.toWalletClient(): Push.Wallet.Event.Subscription.Error {
     return Push.Wallet.Event.Subscription.Error(requestId, rejectionReason)
 }
 
@@ -88,30 +89,30 @@ internal fun EngineDO.PushUpdateError.toWalletClient(): Push.Wallet.Event.Update
     return Push.Wallet.Event.Update.Error(requestId, rejectionReason)
 }
 
-@JvmSynthetic
-internal fun EngineDO.PushRequestResponse.toDappClient(): Push.Dapp.Event.Response {
-    return Push.Dapp.Event.Response(
-        Push.Model.Subscription(
-            requestId = subscription.requestId,
-            topic = subscription.subscriptionTopic!!.value,
-            account = subscription.account.value,
-            relay = subscription.relay.toClient(),
-            metadata = subscription.metadata.toClient(),
-            scope = subscription.scope.toClient(),
-            expiry = subscription.expiry.seconds,
-        )
-    )
-}
+//@JvmSynthetic
+//internal fun EngineDO.PushRequestResponse.toDappClient(): Push.Dapp.Event.Response {
+//    return Push.Dapp.Event.Response(
+//        Push.Model.Subscription(
+//            requestId = subscription.requestId,
+//            topic = subscription.subscriptionTopic!!.value,
+//            account = subscription.account.value,
+//            relay = subscription.relay.toClient(),
+//            metadata = subscription.metadata.toClient(),
+//            scope = subscription.scope.toClient(),
+//            expiry = subscription.expiry.seconds,
+//        )
+//    )
+//}
 
-@JvmSynthetic
-internal fun EngineDO.PushDelete.toDappClient(): Push.Dapp.Event.Delete {
-    return Push.Dapp.Event.Delete(topic)
-}
-
-@JvmSynthetic
-internal fun EngineDO.PushRequestRejected.toDappClient(): Push.Dapp.Event.Rejected {
-    return Push.Dapp.Event.Rejected(rejectionReason)
-}
+//@JvmSynthetic
+//internal fun EngineDO.PushDelete.toDappClient(): Push.Dapp.Event.Delete {
+//    return Push.Dapp.Event.Delete(topic)
+//}
+//
+//@JvmSynthetic
+//internal fun EngineDO.PushRequestRejected.toDappClient(): Push.Dapp.Event.Rejected {
+//    return Push.Dapp.Event.Rejected(rejectionReason)
+//}
 
 @JvmSynthetic
 internal fun EngineDO.PushLegacySubscription.toDappClient(): Push.Model.Subscription {
