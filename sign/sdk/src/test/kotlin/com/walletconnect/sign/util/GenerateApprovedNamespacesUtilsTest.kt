@@ -73,6 +73,32 @@ class GenerateApprovedNamespacesUtilsTest {
     /* All test cases and configs can be found: https://docs.google.com/spreadsheets/d/1uc7lLWvx7tjgq_iQYylHVLNcs4F5z7jsnq_2f7ouGM8/edit#gid=0 */
 
     @Test
+    fun `test if methods in optional namespaces are satisfied if events are empty`() {
+        val required = mapOf("eip155" to Sign.Model.Namespace.Proposal(chains = listOf("eip155:1"), methods = listOf(), events = listOf()))
+        val optional = mapOf("eip155" to Sign.Model.Namespace.Proposal(chains = listOf("eip155:1"), methods = listOf("eth_sendTransaction"), events = listOf("")))
+        val supported = mapOf(
+            "eip155" to Sign.Model.Namespace.Session(
+                chains = listOf("eip155:1"),
+                methods = listOf("personal_sign", "eth_sendTransaction"),
+                events = listOf("chainChanged"),
+                accounts = listOf("eip155:1:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092")
+            )
+        )
+        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
+
+        val approved = generateApprovedNamespaces(proposal, supported)
+        val expected = mapOf(
+            "eip155" to Sign.Model.Namespace.Session(
+                chains = listOf("eip155:1"),
+                methods = listOf("eth_sendTransaction"),
+                events = listOf(),
+                accounts = listOf("eip155:1:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092")
+            )
+        )
+
+        assertEquals(expected, approved)
+    }
+    @Test
     fun `generate approved namespaces - config 1 - optional method`() {
         val required = mapOf("eip155" to Sign.Model.Namespace.Proposal(chains = listOf("eip155:1"), methods = listOf("personal_sign"), events = listOf("chainChanged")))
         val optional = mapOf("eip155" to Sign.Model.Namespace.Proposal(chains = listOf("eip155:1"), methods = listOf("eth_sendTransaction"), events = listOf("")))
