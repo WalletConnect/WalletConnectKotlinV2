@@ -1,62 +1,56 @@
-import kotlin.String;
 import kotlin.Boolean;
+import kotlin.String;
 import kotlin.Pair;
-import kotlin.collections.List;
 import kotlin.collections.Map;
 
 CREATE TABLE Subscriptions (
-   id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-   request_id INTEGER UNIQUE NOT NULL,
-   key_agreement_topic TEXT NOT NULL,
-   response_topic TEXT NOT NULL,
-   dapp_public_key TEXT DEFAULT NULL,
-   topic TEXT,
-   account TEXT NOT NULL,
-   relay_protocol TEXT NOT NULL,
-   relay_data TEXT,
-   metadata_name TEXT NOT NULL,
-   metadata_description TEXT NOT NULL,
-   metadata_url TEXT NOT NULL,
-   metadata_icons TEXT AS List<String> NOT NULL,
-   metadata_native TEXT,
-   did_jwt TEXT NOT NULL,
-   map_of_scope TEXT AS Map<String, Pair<String, Boolean>> NOT NULL,
-   expiry INTEGER NOT NULL
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    request_id INTEGER UNIQUE NOT NULL,
+    subscribe_topic TEXT NOT NULL,
+    dapp_did_public_key TEXT NOT NULL,
+    self_public_key TEXT NOT NULL,
+    response_topic TEXT NOT NULL,
+    account TEXT NOT NULL,
+    dapp_uri TEXT NOT NULL,
+    did_jwt TEXT NOT NULL,
+    map_of_scope TEXT AS Map<String, Pair<String, Boolean>> NOT NULL,
+    expiry INTEGER NOT NULL,
+    dapp_generated_public_key TEXT DEFAULT NULL,
+    push_topic TEXT DEFAULT NULL
 );
 
-insertSubscription:
-INSERT OR REPLACE INTO Subscriptions(request_id, key_agreement_topic, response_topic, dapp_public_key, topic, account, relay_protocol, relay_data, metadata_name, metadata_description, metadata_url, metadata_icons, metadata_native, did_jwt, map_of_scope, expiry)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+insertOrReplaceSubscribeRequested:
+INSERT OR REPLACE INTO Subscriptions(request_id, subscribe_topic, dapp_did_public_key, self_public_key, response_topic, account, dapp_uri, did_jwt, map_of_scope, expiry)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 getAllSubscriptions:
-SELECT request_id, key_agreement_topic, response_topic, dapp_public_key, topic, account, relay_protocol, relay_data, metadata_name, metadata_description, metadata_url, metadata_icons, metadata_native, did_jwt, map_of_scope, expiry
+SELECT request_id, subscribe_topic, dapp_did_public_key, self_public_key, response_topic, account, dapp_uri, did_jwt, map_of_scope, expiry, dapp_generated_public_key, push_topic
 FROM Subscriptions;
 
-getSubscriptionByTopic:
-SELECT request_id, key_agreement_topic, response_topic, dapp_public_key, topic, account, relay_protocol, relay_data, metadata_name, metadata_description, metadata_url, metadata_icons, metadata_native, did_jwt, map_of_scope, expiry
-FROM Subscriptions
-WHERE topic = ?;
+updateSubscriptionScopeAndJwtByPushTopic:
+UPDATE OR REPLACE Subscriptions
+SET map_of_scope = ?, did_jwt = ?, expiry = ?
+WHERE push_topic = ?;
 
-getSubscriptionByRequestId:
-SELECT request_id, key_agreement_topic, response_topic, dapp_public_key, topic, account, relay_protocol, relay_data, metadata_name, metadata_description, metadata_url, metadata_icons, metadata_native, did_jwt, map_of_scope, expiry
+deleteByTopicByPushTopic    :
+DELETE FROM Subscriptions
+WHERE push_topic = ?;
+
+deleteByTopicByRequestId:
+DELETE FROM Subscriptions
+WHERE request_id = ?;
+
+getSubscribeByRequestId:
+SELECT request_id, subscribe_topic, dapp_did_public_key, self_public_key, response_topic, account, dapp_uri, did_jwt, map_of_scope, expiry, dapp_generated_public_key, push_topic
 FROM Subscriptions
 WHERE request_id = ?;
 
-updateSubscriptionToResponded:
-UPDATE OR REPLACE Subscriptions
-SET topic = ?, did_jwt = ?, expiry = ?
-WHERE response_topic = ?;
+getSubscribeByDappGeneratedPublicKey:
+SELECT request_id, subscribe_topic, dapp_did_public_key, self_public_key, response_topic, account, dapp_uri, did_jwt, map_of_scope, expiry, dapp_generated_public_key, push_topic
+FROM Subscriptions
+WHERE dapp_generated_public_key = ?;
 
-updateSubscriptionWithDappPublicKeyToResponded:
+updateOrReplaceToResponded:
 UPDATE OR REPLACE Subscriptions
-SET dapp_public_key = ?, topic = ?, expiry = ?
-WHERE response_topic = ?;
-
-updateSubscriptionScopeAndJwt:
-UPDATE OR REPLACE Subscriptions
-SET map_of_scope = ?, did_jwt = ?, expiry = ?
-WHERE response_topic = ?;
-
-deleteByTopic:
-DELETE FROM Subscriptions
-WHERE topic = ?;
+SET dapp_generated_public_key = ?, push_topic = ?, expiry = ?
+WHERE request_id = ?;
