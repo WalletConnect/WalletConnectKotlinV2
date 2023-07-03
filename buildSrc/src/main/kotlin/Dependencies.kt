@@ -112,23 +112,9 @@ fun DependencyHandlerScope.wsRestJava() {
 }
 
 fun DependencyHandlerScope.jUnit4() {
-//    "testImplementation"(platform("org.junit:junit-bom:$jUnit4Version"))
-//    "testImplementation"("org.junit.jupiter:junit-jupiter-api")
-//    "testRuntimeOnly"("org.junit.jupiter:junit-jupiter-engine")
-//    "testImplementation"("org.junit.jupiter:junit-jupiter-params")
-
-    // JUnit 4 support
     "testImplementation"("junit:junit:$jUnit4Version")
     "testRuntimeOnly"("org.junit.vintage:junit-vintage-engine")
-
-//    "testImplementation"("org.jetbrains.kotlin:kotlin-test-junit5:$kotlinVersion")
 }
-
-//fun DependencyHandlerScope.jUnit5Android() {
-//    "testImplementation"(platform("org.junit:junit-bom:$jUnit4Version"))
-//    "androidTestImplementation"("org.junit.jupiter:junit-jupiter-api")
-//    "androidTestRuntimeOnly"("org.junit.jupiter:junit-jupiter-engine")
-//}
 
 fun DependencyHandlerScope.androidXTest() {
     "testImplementation"("androidx.test.ext:junit-ktx:1.1.3")

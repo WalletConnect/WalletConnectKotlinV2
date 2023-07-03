@@ -4,7 +4,6 @@ plugins {
     id("com.squareup.sqldelight")
     id("com.google.devtools.ksp") version kspVersion
     id("publish-module-android")
-    id("de.mannodermaus.android-junit5") version "1.9.3.0"
 }
 
 project.apply {

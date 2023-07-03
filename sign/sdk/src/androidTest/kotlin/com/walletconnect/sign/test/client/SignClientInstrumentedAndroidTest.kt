@@ -27,7 +27,6 @@ import org.junit.Test
 import timber.log.Timber
 
 class SignClientInstrumentedAndroidTest {
-
     val scenarioExtension = WCInstrumentedActivityScenario()
 
     private fun setDelegates(walletDelegate: SignClient.WalletDelegate, dappDelegate: SignClient.DappDelegate) {

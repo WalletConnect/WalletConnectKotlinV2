@@ -32,7 +32,6 @@ import kotlin.time.Duration.Companion.seconds
 //  Research why switching this to class made tests run 10x longer
 
 class WCInstrumentedActivityScenario {
-    //: BeforeAllCallback, AfterAllCallback {
     private var scenario: ActivityScenario<InstrumentedTestActivity>? = null
     private var scenarioLaunched: Boolean = false
     private val latch = CountDownLatch(1)
