@@ -274,7 +274,7 @@ internal class PushWalletEngine(
     suspend fun approve(proposalRequestId: Long, onSign: (String) -> Cacao.Signature?, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         val proposalWithoutMetadata =
             proposalStorageRepository.getProposalByRequestId(proposalRequestId) ?: return@supervisorScope onFailure(IllegalArgumentException("Invalid proposal request id $proposalRequestId"))
-        val dappMetadata = metadataStorageRepository.getByTopicAndType(proposalWithoutMetadata.proposalTopic, AppMetaDataType.PEER)
+        val dappMetadata: AppMetaData = metadataStorageRepository.getByTopicAndType(proposalWithoutMetadata.proposalTopic, AppMetaDataType.PEER)
         val proposalWithMetadata = with(proposalWithoutMetadata) {
             EngineDO.PushPropose.WithMetaData(requestId, proposalTopic, dappPublicKey, accountId, relayProtocolOptions, dappMetadata)
         }
@@ -344,7 +344,7 @@ internal class PushWalletEngine(
     suspend fun update(topic: String, scopes: List<String>, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         val subscription = subscribeStorageRepository.getAllSubscriptions().firstOrNull { subscription -> subscription.subscribeTopic.value == topic }
             ?: return@supervisorScope onFailure(Exception("No subscription found for topic $topic"))
-        val metadata = metadataStorageRepository.getByTopicAndType(subscription.subscribeTopic, AppMetaDataType.PEER)
+        val metadata: AppMetaData = metadataStorageRepository.getByTopicAndType(subscription.subscribeTopic, AppMetaDataType.PEER)
         val didJwt = registerIdentityAndReturnDidJwt(subscription.account, metadata.url, scopes, { null }, onFailure).getOrElse { error ->
             return@supervisorScope onFailure(error)
         }
@@ -431,7 +431,7 @@ internal class PushWalletEngine(
                 val metadata = metadataStorageRepository.getByTopicAndType(subscription.subscribeTopic, AppMetaDataType.PEER)
                 subscription to metadata
             }
-            .associateBy { (subscription, _) -> subscription.subscribeTopic.value }
+            .associateBy { (subscription, _: AppMetaData) -> subscription.subscribeTopic.value }
 
     suspend fun getListOfMessages(topic: String): Map<Long, EngineDO.PushRecord> = supervisorScope {
         messagesRepository.getMessagesByTopic(topic).map { messageRecord ->
@@ -584,7 +584,7 @@ internal class PushWalletEngine(
                     val dappGeneratedPublicKey = PublicKey((((wcResponse.response as JsonRpcResponse.JsonRpcResult).result as Map<*, *>)["publicKey"] as String))
                     val pushTopic = crypto.generateTopicFromKeyAgreement(subscription.selfPublicKey, dappGeneratedPublicKey)
                     val updatedExpiry = calcExpiry()
-                    val dappMetaData = metadataStorageRepository.getByTopicAndType(subscription.subscribeTopic, AppMetaDataType.PEER)
+                    val dappMetaData: AppMetaData = metadataStorageRepository.getByTopicAndType(subscription.subscribeTopic, AppMetaDataType.PEER)
 
                     subscribeStorageRepository.updateSubscribeToResponded(subscription.requestId, pushTopic.value, dappGeneratedPublicKey.keyAsHex, updatedExpiry.seconds)
 
