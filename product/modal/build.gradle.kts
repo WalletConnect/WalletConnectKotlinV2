@@ -63,14 +63,11 @@ dependencies {
 
     jUnit5()
 
-    releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
-    releaseImplementation("com.walletconnect:android-core")
-    releaseImplementation("com.walletconnect:sign")
-    releaseImplementation("com.walletconnect:auth")
-    releaseImplementation(project(":core:modalCore"))
+    releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
+    releaseImplementation("com.walletconnect:sign:$SIGN_VERSION")
+    releaseImplementation("com.walletconnect:modal-core:$MODAL_CORE_VERSION")
 
     debugImplementation(project(":androidCore:sdk"))
     debugImplementation(project(":sign:sdk"))
-    debugImplementation(project(":auth:sdk"))
     debugImplementation(project(":core:modalCore"))
 }
