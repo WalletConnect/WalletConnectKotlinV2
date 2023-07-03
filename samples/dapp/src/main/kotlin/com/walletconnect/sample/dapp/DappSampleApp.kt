@@ -6,13 +6,13 @@ import com.google.firebase.ktx.Firebase
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.relay.ConnectionType
+import com.walletconnect.modal.client.Modal
+import com.walletconnect.modal.client.WalletConnectModal
 import com.walletconnect.push.common.Push
 import com.walletconnect.push.dapp.client.PushDappClient
 import com.walletconnect.sample_common.BuildConfig
 import com.walletconnect.sample_common.WALLET_CONNECT_PROD_RELAY_URL
 import com.walletconnect.sample_common.tag
-import com.walletconnect.web3.modal.client.Modal
-import com.walletconnect.web3.modal.client.Web3Modal
 import timber.log.Timber
 
 class DappSampleApp : Application() {
@@ -42,7 +42,7 @@ class DappSampleApp : Application() {
             Timber.e(tag(this), error.throwable.stackTraceToString())
         }
 
-        Web3Modal.initialize(Modal.Params.Init(CoreClient)) {error ->
+        WalletConnectModal.initialize(Modal.Params.Init(CoreClient)) { error ->
             Timber.e(tag(this), error.throwable.stackTraceToString())
         }
     }

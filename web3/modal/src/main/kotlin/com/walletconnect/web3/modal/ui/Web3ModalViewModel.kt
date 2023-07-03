@@ -3,13 +3,13 @@ package com.walletconnect.web3.modal.ui
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.walletconnect.android.internal.common.explorer.domain.usecase.GetWalletsUseCaseInterface
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.domain.configuration.CONFIG_ARG
 import com.walletconnect.web3.modal.domain.configuration.Config
 import com.walletconnect.web3.modal.domain.configuration.Web3ModalConfigSerializer
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
-import com.walletconnect.web3.modal.domain.usecases.GetWalletsUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -25,7 +25,7 @@ internal class Web3ModalViewModel(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val getWalletsRecommendationsUseCase: GetWalletsUseCase = wcKoinApp.koin.get()
+    private val getWalletsRecommendationsUseCase: GetWalletsUseCaseInterface = wcKoinApp.koin.get()
 
     private val configuration = savedStateHandle.get<String>(CONFIG_ARG)?.let { config ->
         Web3ModalConfigSerializer.deserialize(config)
@@ -64,7 +64,7 @@ internal class Web3ModalViewModel(
 
     private suspend fun Config.Connect.connectionState() {
         try {
-            val wallets = getWalletsRecommendationsUseCase(chains ?: listOf())
+            val wallets = getWalletsRecommendationsUseCase(chains?.joinToString())
             _modalState.value = Web3ModalState.ConnectState(uri, wallets)
         } catch (e: Exception) {
             Timber.e(e)

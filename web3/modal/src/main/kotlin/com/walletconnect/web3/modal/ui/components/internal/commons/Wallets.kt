@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.walletconnect.web3.modal.domain.model.Wallet
+import com.walletconnect.android.internal.common.explorer.data.model.Wallet
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 internal fun LazyGridScope.walletsGridItems(

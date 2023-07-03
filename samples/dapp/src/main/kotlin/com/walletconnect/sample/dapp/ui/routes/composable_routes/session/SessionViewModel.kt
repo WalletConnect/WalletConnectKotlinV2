@@ -2,6 +2,9 @@ package com.walletconnect.sample.dapp.ui.routes.composable_routes.session
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.walletconnect.android.CoreClient
+import com.walletconnect.modal.client.Modal
+import com.walletconnect.modal.client.WalletConnectModal
 import com.walletconnect.push.common.Push
 import com.walletconnect.push.dapp.client.PushDappClient
 import com.walletconnect.sample.dapp.domain.DappDelegate
@@ -49,7 +52,7 @@ class SessionViewModel : ViewModel() {
     }
 
     private fun getSessions(topic: String? = null): List<SessionUi> {
-        return Web3Modal.getListOfActiveSessions().filter {
+        return WalletConnectModal.getListOfActiveSessions().filter {
             if (topic != null) {
                 it.topic == topic
             } else {
@@ -70,7 +73,7 @@ class SessionViewModel : ViewModel() {
     fun ping() {
         val pingParams = Modal.Params.Ping(topic = requireNotNull(DappDelegate.selectedSessionTopic))
 
-        Web3Modal.ping(pingParams, object : Modal.Listeners.SessionPing {
+        WalletConnectModal.ping(pingParams, object : Modal.Listeners.SessionPing {
             override fun onSuccess(pingSuccess: Modal.Model.Ping.Success) {
                 viewModelScope.launch {
                     _sessionEvents.emit(DappSampleEvents.PingSuccess(pingSuccess.topic))
@@ -90,7 +93,7 @@ class SessionViewModel : ViewModel() {
             val disconnectParams =
                 Modal.Params.Disconnect(sessionTopic = requireNotNull(DappDelegate.selectedSessionTopic))
 
-            Web3Modal.disconnect(disconnectParams) { error ->
+            WalletConnectModal.disconnect(disconnectParams) { error ->
                 Timber.tag(tag(this)).e(error.throwable.stackTraceToString())
             }
             DappDelegate.deselectAccountDetails()
@@ -110,10 +113,10 @@ class SessionViewModel : ViewModel() {
     fun pushRequest() {
         //TODO: commented out since it's not a part of PushDappClient any more
 //        val pairingTopic = CoreClient.Pairing.getPairings().map { it.topic }.first { pairingTopic ->
-//            Web3Modal.getListOfActiveSessions()
+//            WalletConnectModal.getListOfActiveSessions()
 //                .any { session -> session.pairingTopic == pairingTopic }
 //        }
-//        val ethAccount = Web3Modal.getListOfActiveSessions().first { session ->
+//        val ethAccount = WalletConnectModal.getListOfActiveSessions().first { session ->
 //            session.pairingTopic == pairingTopic
 //        }.namespaces.entries.first().value.accounts.first()
 //
