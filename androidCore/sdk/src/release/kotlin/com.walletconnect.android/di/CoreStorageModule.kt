@@ -180,7 +180,7 @@ fun coreStorageModule() = module {
         AndroidSqliteDriver(
             schema = AndroidCoreDatabase.Schema,
             context = androidContext(),
-            name = DBUtils.ANDROID_CORE_DB_NAME,
+            name = get<DatabaseConfig>().ANDROID_CORE_DB_NAME,
             factory = getSupportFactory(androidContext(), get(named(AndroidCoreDITags.DB_PASSPHRASE)), null, false) //todo: create a separate DB_PASSHPHRASE
         )
     }

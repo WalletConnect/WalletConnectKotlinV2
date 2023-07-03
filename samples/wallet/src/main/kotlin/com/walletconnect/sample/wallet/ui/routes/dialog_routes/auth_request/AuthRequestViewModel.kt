@@ -7,6 +7,7 @@ import com.walletconnect.sample.wallet.domain.ISSUER
 import com.walletconnect.sample.wallet.domain.PRIVATE_KEY_1
 import com.walletconnect.sample.wallet.domain.WCDelegate
 import com.walletconnect.sample.wallet.ui.common.peer.PeerUI
+import com.walletconnect.sample.wallet.ui.common.peer.toPeerUI
 import com.walletconnect.sample_common.tag
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
@@ -16,11 +17,11 @@ import org.web3j.utils.Numeric.toHexString
 
 class AuthRequestViewModel : ViewModel() {
     val authRequest: AuthRequestUI?
-        get() = generateAuthRequestUI(WCDelegate.authRequest)
+        get() = generateAuthRequestUI()
 
     fun approve() {
-        if (WCDelegate.authRequest != null) {
-            val request = requireNotNull(WCDelegate.authRequest)
+        if (WCDelegate.authRequestEvent != null) {
+            val request = requireNotNull(WCDelegate.authRequestEvent!!.first)
             val message = Web3Wallet.formatMessage(Wallet.Params.FormatMessage(request.payloadParams, ISSUER)) ?: throw Exception("Error formatting message")
 
             Web3Wallet.respondAuthRequest(
@@ -36,13 +37,13 @@ class AuthRequestViewModel : ViewModel() {
             }
 
             AuthRequestStore.addActiveSession(request)
-            WCDelegate.authRequest = null
+            WCDelegate.authRequestEvent = null
         }
     }
 
     fun reject() {
-        if (WCDelegate.authRequest != null) {
-            val request = requireNotNull(WCDelegate.authRequest)
+        if (WCDelegate.authRequestEvent != null) {
+            val request = requireNotNull(WCDelegate.authRequestEvent!!.first)
             //todo: Define Error Codes
             Web3Wallet.respondAuthRequest(
                 Wallet.Params.AuthRequestResponse.Error(
@@ -52,12 +53,13 @@ class AuthRequestViewModel : ViewModel() {
                 Log.e(tag(this), error.throwable.stackTraceToString())
             }
 
-            WCDelegate.authRequest = null
+            WCDelegate.authRequestEvent = null
         }
     }
 
-    private fun generateAuthRequestUI(authRequest: Wallet.Model.AuthRequest?): AuthRequestUI? {
-        return if (authRequest != null) {
+    private fun generateAuthRequestUI(): AuthRequestUI? {
+        return if (WCDelegate.authRequestEvent != null) {
+            val (authRequest, authContext) = WCDelegate.authRequestEvent!!
             val message = Web3Wallet.formatMessage(Wallet.Params.FormatMessage(authRequest.payloadParams, ISSUER)) ?: throw Exception("Error formatting message")
 
             AuthRequestUI(
@@ -67,7 +69,8 @@ class AuthRequestViewModel : ViewModel() {
                     peerUri = "https://walletconnect.com/",
                     peerDescription = "The communications protocol for web3.",
                 ),
-                message = message
+                message = message,
+                peerContextUI = authContext.toPeerUI()
             )
         } else null
     }

@@ -12,6 +12,8 @@ import com.walletconnect.sample.dapp.domain.PushDappDelegate
 import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.sample_common.Chains
 import com.walletconnect.sample_common.tag
+import com.walletconnect.web3.modal.client.Modal
+import com.walletconnect.web3.modal.client.Web3Modal
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -109,20 +111,21 @@ class SessionViewModel : ViewModel() {
     }
 
     fun pushRequest() {
-        val pairingTopic = CoreClient.Pairing.getPairings().map { it.topic }.first { pairingTopic ->
-            WalletConnectModal.getListOfActiveSessions()
-                .any { session -> session.pairingTopic == pairingTopic }
-        }
-        val ethAccount = WalletConnectModal.getListOfActiveSessions().first { session ->
-            session.pairingTopic == pairingTopic
-        }.namespaces.entries.first().value.accounts.first()
-
-        PushDappClient.request(Push.Dapp.Params.Request(ethAccount, pairingTopic),
-            { pushRequestId ->
-                Timber.tag(tag(this)).e("Request sent with id " + pushRequestId.id)
-            }, {
-                Timber.tag(tag(this)).e(it.throwable.stackTraceToString())
-            })
+        //TODO: commented out since it's not a part of PushDappClient any more
+//        val pairingTopic = CoreClient.Pairing.getPairings().map { it.topic }.first { pairingTopic ->
+//            WalletConnectModal.getListOfActiveSessions()
+//                .any { session -> session.pairingTopic == pairingTopic }
+//        }
+//        val ethAccount = WalletConnectModal.getListOfActiveSessions().first { session ->
+//            session.pairingTopic == pairingTopic
+//        }.namespaces.entries.first().value.accounts.first()
+//
+//        PushDappClient.request(Push.Dapp.Params.Request(ethAccount, pairingTopic),
+//            { pushRequestId ->
+//                Timber.tag(tag(this)).e("Request sent with id " + pushRequestId.id)
+//            }, {
+//                Timber.tag(tag(this)).e(it.throwable.stackTraceToString())
+//            })
     }
 
     fun pushNotify() {

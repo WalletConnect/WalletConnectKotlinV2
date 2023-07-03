@@ -2,7 +2,13 @@ package com.walletconnect.sample.wallet.ui.common.peer
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -25,7 +31,7 @@ import com.walletconnect.sample_common.ui.themedColor
 
 
 @Composable
-fun Peer(peerUI: PeerUI, actionText: String?) {
+fun Peer(peerUI: PeerUI, actionText: String?, peerContextUI: PeerContextUI? = null) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
             val iconModifier = Modifier
@@ -64,6 +70,18 @@ fun Peer(peerUI: PeerUI, actionText: String?) {
                 )
             )
             Spacer(modifier = Modifier.height(8.dp))
+            if (peerContextUI != null) {
+                Image(modifier = Modifier.size(30.dp), painter = painterResource(id = getValidationIcon(peerContextUI.validation)), contentDescription = null)
+                Spacer(modifier = Modifier.height(8.dp))
+            }
         }
+    }
+}
+
+private fun getValidationIcon(validation: Validation): Int {
+    return when (validation) {
+        Validation.VALID -> R.drawable.green_check
+        Validation.INVALID -> R.drawable.red_dangerous
+        Validation.UNKNOWN -> R.drawable.orange_warning
     }
 }

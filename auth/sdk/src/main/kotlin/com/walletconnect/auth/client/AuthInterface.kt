@@ -12,7 +12,7 @@ interface AuthInterface {
     }
 
     interface ResponderDelegate : AuthDelegate {
-        fun onAuthRequest(authRequest: Auth.Event.AuthRequest)
+        fun onAuthRequest(authRequest: Auth.Event.AuthRequest, verifyContext: Auth.Event.VerifyContext)
     }
 
     fun setRequesterDelegate(delegate: RequesterDelegate)
@@ -36,4 +36,16 @@ interface AuthInterface {
      * It is advised that this function be called from background operation
      */
     fun getPendingRequest(): List<Auth.Model.PendingRequest>
+
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+    fun getVerifyContext(id: Long): Auth.Model.VerifyContext?
+
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+    fun getListOfVerifyContexts(): List<Auth.Model.VerifyContext>
 }

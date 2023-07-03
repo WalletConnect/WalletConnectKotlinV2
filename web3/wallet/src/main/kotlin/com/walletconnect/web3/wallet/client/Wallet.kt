@@ -61,6 +61,17 @@ object Wallet {
             val relayData: String?,
         ) : Model()
 
+        data class VerifyContext(
+            val id: Long,
+            val origin: String,
+            val validation: Validation,
+            val verifyUrl: String
+        ) : Model()
+
+        enum class Validation {
+            VALID, INVALID, UNKNOWN
+        }
+
         data class SessionRequest(
             val topic: String,
             val chainId: String?,

@@ -28,8 +28,6 @@ internal class JsonRpcResultAdapter(val moshi: Moshi) : JsonAdapter<JsonRpcRespo
         moshi.adapter(CoreAuthParams.ResponseParams::class.java, emptySet(), "result")
     private val acceptanceParamsAdapter: JsonAdapter<CoreChatParams.AcceptanceParams> =
         moshi.adapter(CoreChatParams.AcceptanceParams::class.java, emptySet(), "result")
-    private val pushRequestResponseParamsAdapter: JsonAdapter<PushParams.RequestResponseParams> =
-        moshi.adapter(PushParams.RequestResponseParams::class.java, emptySet(), "result")
     private val pushProposeResponseParamsAdapter: JsonAdapter<PushParams.ProposeResponseParams> =
         moshi.adapter(PushParams.ProposeResponseParams::class.java, emptySet(), "result")
 
@@ -67,10 +65,6 @@ internal class JsonRpcResultAdapter(val moshi: Moshi) : JsonAdapter<JsonRpcRespo
 
                         runCatching { acceptanceParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> {
                             acceptanceParamsAdapter.fromJson(reader)
-                        }
-
-                        runCatching { pushRequestResponseParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> {
-                            pushRequestResponseParamsAdapter.fromJson(reader)
                         }
 
                         runCatching { pushProposeResponseParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> {
@@ -149,13 +143,6 @@ internal class JsonRpcResultAdapter(val moshi: Moshi) : JsonAdapter<JsonRpcRespo
                     acceptanceParamsAdapter.toJson(value_.result)
                 writer.valueSink().use {
                     it.writeUtf8(approvalParamsString)
-                }
-            }
-
-            (value_.result as? PushParams.RequestResponseParams) != null -> {
-                val pushRequestParamsString = pushRequestResponseParamsAdapter.toJson(value_.result)
-                writer.valueSink().use {
-                    it.writeUtf8(pushRequestParamsString)
                 }
             }
 

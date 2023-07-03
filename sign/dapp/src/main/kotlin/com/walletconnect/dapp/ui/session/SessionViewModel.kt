@@ -3,7 +3,6 @@ package com.walletconnect.dapp.ui.session
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.walletconnect.android.CoreClient
 import com.walletconnect.dapp.domain.DappDelegate
 import com.walletconnect.dapp.domain.PushDappDelegate
 import com.walletconnect.dapp.ui.SampleDappEvents
@@ -107,18 +106,19 @@ class SessionViewModel : ViewModel() {
     }
 
     fun pushRequest() {
-        val pairingTopic = CoreClient.Pairing.getPairings().map { it.topic }.first { pairingTopic ->
-            SignClient.getListOfActiveSessions().any { session -> session.pairingTopic == pairingTopic }
-        }
-        val ethAccount = SignClient.getListOfActiveSessions().first { session ->
-            session.pairingTopic == pairingTopic
-        }.namespaces.entries.first().value.accounts.first()
-
-        PushDappClient.request(Push.Dapp.Params.Request(ethAccount, pairingTopic), { pushRequestId ->
-            Log.e(tag(this), "Request sent with id ${pushRequestId.id}")
-        }, {
-            Log.e(tag(this), it.throwable.stackTraceToString())
-        })
+        //TODO: commented out since it's not a part of PushDappClient any more
+//        val pairingTopic = CoreClient.Pairing.getPairings().map { it.topic }.first { pairingTopic ->
+//            SignClient.getListOfActiveSessions().any { session -> session.pairingTopic == pairingTopic }
+//        }
+//        val ethAccount = SignClient.getListOfActiveSessions().first { session ->
+//            session.pairingTopic == pairingTopic
+//        }.namespaces.entries.first().value.accounts.first()
+//
+//        PushDappClient.request(Push.Dapp.Params.Request(ethAccount, pairingTopic), { pushRequestId ->
+//            Log.e(tag(this), "Request sent with id ${pushRequestId.id}")
+//        }, {
+//            Log.e(tag(this), it.throwable.stackTraceToString())
+//        })
     }
 
     fun pushNotify() {
