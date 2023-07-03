@@ -1,0 +1,30 @@
+name: Kotlin Scheduled Integration
+
+on:
+  schedule:
+    - cron: '0 0,12 * * *' # Runs every day at 0:00 and 12:00 UTC
+
+jobs:
+  integration_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Run Relay CI
+        env:
+          TEST_RELAY_URL: wss://relay.walletconnect.com
+          TEST_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
+        uses: ./.github/actions/ci_relay
+
+      - name: Send GitHub Action trigger data to Slack workflow
+#        if: failure()
+        id: slack
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "action_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_SCHEDULED_CI_WEBHOOK_URL }}

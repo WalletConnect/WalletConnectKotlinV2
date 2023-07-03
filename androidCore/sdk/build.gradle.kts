@@ -4,6 +4,7 @@ plugins {
     id("publish-module-android")
     id("com.squareup.sqldelight")
     id("com.google.devtools.ksp") version kspVersion
+    id("de.mannodermaus.android-junit5") version "1.9.3.0"
 }
 
 project.apply {
@@ -22,13 +23,17 @@ android {
 
         buildConfigField(type = "String", name = "SDK_VERSION", value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\"")
         buildConfigField("String", "PROJECT_ID", "\"${System.getenv("WC_CLOUD_PROJECT_ID") ?: ""}\"")
+        buildConfigField("Integer", "TEST_TIMEOUT_SECONDS", "${System.getenv("TEST_TIMEOUT_SECONDS") ?: 30}")
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunnerArguments += mutableMapOf("runnerBuilder" to "de.mannodermaus.junit5.AndroidJUnit5Builder")
+        testInstrumentationRunnerArguments += mutableMapOf("clearPackageData" to "true")
 
         File("${rootDir.path}/gradle/consumer-rules").listFiles()?.let { proguardFiles ->
             consumerProguardFiles(*proguardFiles)
         }
 
-        ndk.abiFilters += listOf("armeabi-v7a", "x86", "x86_64", "arm64_v8a")
+        ndk.abiFilters += listOf("armeabi-v7a", "x86", "x86_64", "arm64-v8a")
     }
 
     buildTypes {
@@ -53,6 +58,15 @@ android {
 
     buildFeatures {
         buildConfig = true
+    }
+
+    testOptions {
+        execution = "ANDROIDX_TEST_ORCHESTRATOR"
+
+        unitTests {
+            isIncludeAndroidResources = true
+            isReturnDefaultValues = true
+        }
     }
 }
 
@@ -82,8 +96,13 @@ dependencies {
     kethereum()
     retrofit()
 
+    androidXTest()
     jUnit5()
     jUnit5Android()
     robolectric()
     mockk()
+    testJson()
+    coroutinesTest()
+    scarletTest()
+    sqlDelightTest()
 }

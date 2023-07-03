@@ -89,7 +89,7 @@ class WCInstrumentedActivityScenario : BeforeAllCallback, AfterAllCallback {
         scenario?.close()
     }
 
-    fun launch(timeoutSeconds: Long = 1, testCodeBlock: () -> Unit) {
+    fun launch(timeoutSeconds: Long = 1, testCodeBlock: suspend () -> Unit) {
         require(!scenarioLaunched) { "Scenario has already been launched!" }
 
         scenario = ActivityScenario.launch(InstrumentedTestActivity::class.java)

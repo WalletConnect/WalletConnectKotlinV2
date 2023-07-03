@@ -1,5 +1,6 @@
 package com.walletconnect.android.internal.domain
 
+import com.walletconnect.android.history.HistoryMessageNotifier
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.exception.WalletConnectException
@@ -22,6 +23,7 @@ import com.walletconnect.foundation.util.Logger
 import com.walletconnect.utils.Empty
 import io.mockk.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -47,6 +49,10 @@ internal class RelayerInteractorTest {
         every { encrypt(any(), any(), any()) } returns ""
     }
 
+    private val historyMessageNotifier: HistoryMessageNotifier = mockk {
+        every { requestsSharedFlow } returns MutableSharedFlow()
+    }
+
     private val logger: Logger = object : Logger {
         override fun log(logMsg: String?) {
             println(logMsg)
@@ -66,7 +72,7 @@ internal class RelayerInteractorTest {
     }
 
     private val sut =
-        spyk(JsonRpcInteractor(relay, codec, jsonRpcHistory, logger), recordPrivateCalls = true) {
+        spyk(JsonRpcInteractor(relay, codec, jsonRpcHistory, logger, historyMessageNotifier), recordPrivateCalls = true) {
             every { checkConnectionWorking() } answers { }
         }
 
