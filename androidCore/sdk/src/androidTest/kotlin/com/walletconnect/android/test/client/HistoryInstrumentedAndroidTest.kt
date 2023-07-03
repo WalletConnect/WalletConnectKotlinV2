@@ -21,13 +21,14 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.junit.Rule
 import org.junit.Test
 import timber.log.Timber
 import kotlin.time.Duration.Companion.seconds
 
-//@ExtendWith(WCInstrumentedActivityScenario::class)
 class HistoryInstrumentedAndroidTest {
-    private val scenarioExtension = WCInstrumentedActivityScenario()
+    @get:Rule
+    val scenarioExtension = WCInstrumentedActivityScenario()
 
     @Test
     fun registerTagsByPrimaryClient() {

@@ -23,10 +23,12 @@ import com.walletconnect.sign.test.utils.walletClientExtendSession
 import com.walletconnect.sign.test.utils.walletClientRespondToRequest
 import com.walletconnect.sign.test.utils.walletClientUpdateSession
 import junit.framework.TestCase.fail
+import org.junit.Rule
 import org.junit.Test
 import timber.log.Timber
 
 class SignClientInstrumentedAndroidTest {
+    @get:Rule
     val scenarioExtension = WCInstrumentedActivityScenario()
 
     private fun setDelegates(walletDelegate: SignClient.WalletDelegate, dappDelegate: SignClient.DappDelegate) {
@@ -61,7 +63,7 @@ class SignClientInstrumentedAndroidTest {
         Timber.d("receiveRejectSession: start")
 
         val walletDelegate = object : WalletDelegate() {
-            override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal) {
+            override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal, verifyContext: Sign.Model.VerifyContext) {
                 sessionProposal.rejectOnSessionProposal()
             }
         }
@@ -124,7 +126,7 @@ class SignClientInstrumentedAndroidTest {
         Timber.d("receiveRespondWithResultToSessionRequest: start")
 
         val walletDelegate = object : AutoApproveSessionWalletDelegate() {
-            override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest) {
+            override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest, verifyContext: Sign.Model.VerifyContext) {
                 walletClientRespondToRequest(sessionRequest.topic, Sign.Model.JsonRpcResponse.JsonRpcResult(sessionRequest.request.id, "dummy"))
             }
         }
@@ -152,7 +154,7 @@ class SignClientInstrumentedAndroidTest {
         Timber.d("receiveRespondWithErrorToSessionRequest: start")
 
         val walletDelegate = object : AutoApproveSessionWalletDelegate() {
-            override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest) {
+            override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest, verifyContext: Sign.Model.VerifyContext) {
                 walletClientRespondToRequest(sessionRequest.topic, Sign.Model.JsonRpcResponse.JsonRpcError(sessionRequest.request.id, 0, "test error"))
             }
         }

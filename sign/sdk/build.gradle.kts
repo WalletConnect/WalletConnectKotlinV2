@@ -4,6 +4,7 @@ plugins {
     id("com.squareup.sqldelight")
     id("com.google.devtools.ksp") version kspVersion
     id("publish-module-android")
+//    id("de.mannodermaus.android-junit5") version "1.9.3.0"
 }
 
 project.apply {
@@ -76,9 +77,7 @@ dependencies {
     debugImplementation(project(":androidCore:sdk"))
     releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
 
-    androidTestImplementation("androidx.test:runner:1.5.2")
     androidTestUtil("androidx.test:orchestrator:1.4.2")
-
     moshiKsp()
     androidXTest()
     jUnit4()
