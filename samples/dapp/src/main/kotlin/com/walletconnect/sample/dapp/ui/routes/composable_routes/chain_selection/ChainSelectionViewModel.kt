@@ -4,12 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
+import com.walletconnect.modal.client.Modal
+import com.walletconnect.modal.client.WalletConnectModal
 import com.walletconnect.sample.dapp.domain.DappDelegate
 import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.sample_common.Chains
 import com.walletconnect.sample_common.tag
-import com.walletconnect.web3.modal.client.Modal
-import com.walletconnect.web3.modal.client.Web3Modal
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -105,7 +105,7 @@ class ChainSelectionViewModel : ViewModel() {
                 pairing = pairing
             )
 
-        Web3Modal.connect(connectParams,
+        WalletConnectModal.connect(connectParams,
             onSuccess = {
                 viewModelScope.launch(Dispatchers.Main) {
                     onProposedSequence(pairing.uri)

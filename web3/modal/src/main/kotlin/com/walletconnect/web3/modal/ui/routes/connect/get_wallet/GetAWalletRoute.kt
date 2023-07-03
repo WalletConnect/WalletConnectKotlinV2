@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -31,11 +32,13 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.walletconnect.android.internal.common.explorer.data.model.Wallet
+import com.walletconnect.modalcore.utils.openPlayStore
 import com.walletconnect.web3.modal.R
-import com.walletconnect.web3.modal.domain.model.Wallet
 import com.walletconnect.web3.modal.ui.components.internal.Web3ModalTopBar
 import com.walletconnect.web3.modal.ui.components.internal.commons.RoundedMainButton
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
+import timber.log.Timber
 
 @Composable
 internal fun GetAWalletRoute(
@@ -137,7 +140,7 @@ private fun WalletListItem(wallet: Wallet) {
             )
             RoundedMainButton(
                 text = "Get",
-                onClick = { uriHandler.openUri(wallet.playStoreLink) },
+                onClick = { uriHandler.openPlayStore(wallet.playStoreLink) },
                 endIcon = {
                     Image(
                         imageVector = ImageVector.vectorResource(id = R.drawable.ic_forward_chevron),
@@ -155,3 +158,4 @@ private fun WalletListItem(wallet: Wallet) {
         )
     }
 }
+

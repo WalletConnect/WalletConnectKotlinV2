@@ -30,21 +30,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.walletconnect.android.internal.common.explorer.data.model.Wallet
+import com.walletconnect.modalcore.utils.goToNativeWallet
 import com.walletconnect.web3.modal.ui.components.internal.Web3ModalTopBar
 import com.walletconnect.web3.modal.R
-import com.walletconnect.web3.modal.domain.model.Wallet
 import com.walletconnect.web3.modal.ui.components.internal.commons.WalletImage
 import com.walletconnect.web3.modal.ui.components.internal.commons.WalletListItem
 import com.walletconnect.web3.modal.ui.components.internal.commons.walletsGridItems
-import com.walletconnect.web3.modal.ui.components.internal.Web3ModalTopBar
-import com.walletconnect.web3.modal.ui.components.internal.commons.AutoScrollingWalletList
-import com.walletconnect.web3.modal.ui.components.internal.commons.MainButton
-import com.walletconnect.web3.modal.ui.components.internal.commons.RoundedOutLineButton
-import com.walletconnect.web3.modal.ui.components.internal.commons.VerticalSpacer
 import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
-import com.walletconnect.web3.modal.utils.goToNativeWallet
 
 @Composable
 internal fun ConnectYourWalletRoute(
@@ -57,7 +52,7 @@ internal fun ConnectYourWalletRoute(
     ConnectYourWalletContent(
         wallets = wallets,
         onWalletItemClick = {
-            uriHandler.goToNativeWallet(uri, it)
+            uriHandler.goToNativeWallet(uri, it.nativeLink, it.universalLink, it.playStoreLink)
         },
         onViewAllClick = { navController.navigate(Route.AllWallets.path) },
         onScanIconClick = { navController.navigate(Route.ScanQRCode.path) }

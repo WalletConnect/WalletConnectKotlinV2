@@ -20,13 +20,13 @@ import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.google.accompanist.navigation.material.ModalBottomSheetLayout
 import com.google.accompanist.navigation.material.bottomSheet
+import com.walletconnect.modal.ui.walletConnectModalGraph
 import com.walletconnect.sample.dapp.ui.routes.Route
 import com.walletconnect.sample.dapp.ui.routes.bottom_routes.PairingSelectionRoute
 import com.walletconnect.sample.dapp.ui.routes.composable_routes.account.AccountRoute
 import com.walletconnect.sample.dapp.ui.routes.composable_routes.chain_selection.ChainSelectionRoute
 import com.walletconnect.sample.dapp.ui.routes.composable_routes.session.SessionRoute
 import com.walletconnect.sample.dapp.ui.routes.dialog_routes.MessageDialogRoute
-import com.walletconnect.web3.modal.ui.web3ModalGraph
 
 @Composable
 fun DappSampleNavGraph(
@@ -70,7 +70,7 @@ fun DappSampleNavGraph(
                     message = checkNotNull(it.arguments?.getString(messageArg))
                 )
             }
-            web3ModalGraph(navController, sheetState)
+            walletConnectModalGraph(navController, sheetState)
         }
     }
 }

@@ -11,6 +11,8 @@ import com.walletconnect.android.internal.common.explorer.data.model.Listing
 import com.walletconnect.android.internal.common.explorer.data.model.Metadata
 import com.walletconnect.android.internal.common.explorer.data.model.Mobile
 import com.walletconnect.android.internal.common.explorer.data.model.SupportedStandard
+import com.walletconnect.android.internal.common.explorer.data.model.Wallet
+import com.walletconnect.android.internal.common.explorer.data.model.WalletListing
 import com.walletconnect.android.internal.common.explorer.data.network.ExplorerService
 import com.walletconnect.android.internal.common.explorer.data.network.model.AppDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.ColorsDTO
@@ -21,10 +23,12 @@ import com.walletconnect.android.internal.common.explorer.data.network.model.Inj
 import com.walletconnect.android.internal.common.explorer.data.network.model.ListingDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.MetadataDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.MobileDTO
+import com.walletconnect.android.internal.common.explorer.data.network.model.WalletDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.SupportedStandardDTO
+import com.walletconnect.android.internal.common.explorer.data.network.model.WalletListingDTO
 import com.walletconnect.android.internal.common.model.ProjectId
 
-class ExplorerRepository(private val explorerService: ExplorerService, private val projectId: ProjectId) {
+class ExplorerRepository(private val explorerService: ExplorerService, private val projectId: ProjectId, private val explorerApiUrl: String) {
 
     suspend fun getAllDapps(): DappListings {
         return with(explorerService.getAllDapps(projectId.value)) {
@@ -34,6 +38,43 @@ class ExplorerRepository(private val explorerService: ExplorerService, private v
                 throw Throwable(errorBody()?.string())
             }
         }
+    }
+
+    suspend fun getMobileWallets(chains: String?): WalletListing {
+        return with(
+            explorerService.getAndroidWallets(
+                projectId = projectId.value,
+                chains = chains,
+            )
+        ) {
+            if (isSuccessful && body() != null) {
+                body()!!.toWalletListing()
+            } else {
+                throw Throwable(errorBody()?.string())
+            }
+        }
+    }
+
+    private fun WalletListingDTO.toWalletListing(): WalletListing {
+        return WalletListing(
+            listing = listings.values.map { it.toWallet() },
+            count = count,
+            total = total
+        )
+    }
+    private fun WalletDTO.toWallet(): Wallet {
+        return Wallet(
+            id = id,
+            name = name,
+            imageUrl = imageId.buildWalletImageUrl(),
+            nativeLink = mobile.native,
+            universalLink = mobile.universal,
+            playStoreLink = app.android
+        )
+    }
+
+    private fun String.buildWalletImageUrl(): String {
+        return "$explorerApiUrl/w3m/v1/getWalletImage/$this?projectId=${projectId.value}"
     }
 
     private fun DappListingsDTO.toDappListing(): DappListings {

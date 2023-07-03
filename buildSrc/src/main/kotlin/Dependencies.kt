@@ -183,6 +183,11 @@ fun DependencyHandlerScope.compose() {
     "implementation"("androidx.compose.material:material")
     "debugImplementation"("androidx.compose.ui:ui-tooling")
     "debugImplementation"("androidx.compose.ui:ui-test-manifest")
+    "implementation"("androidx.navigation:navigation-compose:$composeNavigationVersion")
+    "implementation"("androidx.lifecycle:lifecycle-viewmodel-compose:$composeViewModelVersion")
+
+    //override compose material to fix crash at modalsheet
+    "implementation"("androidx.compose.material:material:1.5.0-alpha04")
 }
 
 fun DependencyHandlerScope.accompanist() {
@@ -192,4 +197,18 @@ fun DependencyHandlerScope.accompanist() {
     "implementation"("com.google.accompanist:accompanist-systemuicontroller:$accompanistVersion")
     "implementation"("com.google.accompanist:accompanist-pager:$accompanistVersion")
     "implementation"("com.google.accompanist:accompanist-pager-indicators:$accompanistVersion")
+}
+
+fun DependencyHandlerScope.appCompat() {
+    "implementation"("androidx.core:core-ktx:$coreKtxVersion")
+    "implementation"("androidx.appcompat:appcompat:$appCompatVersion")
+    "implementation"("com.google.android.material:material:$materialVersion")
+}
+
+fun DependencyHandlerScope.coil() {
+    "implementation"("io.coil-kt:coil-compose:$coilVersion")
+}
+
+fun DependencyHandlerScope.qrCodeGenerator() {
+    "implementation"("com.github.alexzhirkevich:custom-qr-generator:$customQrGeneratorVersion")
 }
