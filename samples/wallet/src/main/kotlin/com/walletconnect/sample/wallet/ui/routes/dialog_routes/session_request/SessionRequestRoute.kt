@@ -49,13 +49,13 @@ fun SessionRequestRoutePreview() {
 
 @Composable
 fun SessionRequestRoute(navController: NavHostController, sessionRequestViewModel: SessionRequestViewModel = viewModel()) {
-    val sessionRequestUI = sessionRequestViewModel.sessionRequest ?: throw Exception("Missing session request")
+    val sessionRequestUI = sessionRequestViewModel.sessionRequest
     val context = LocalContext.current
     when (sessionRequestUI) {
         is SessionRequestUI.Content -> {
             SemiTransparentDialog {
                 Spacer(modifier = Modifier.height(24.dp))
-                Peer(peerUI = sessionRequestUI.peerUI, "sends a request")
+                Peer(peerUI = sessionRequestUI.peerUI, "sends a request", sessionRequestUI.peerContextUI)
                 Spacer(modifier = Modifier.height(16.dp))
                 Request(sessionRequestUI = sessionRequestUI)
                 Spacer(modifier = Modifier.height(16.dp))

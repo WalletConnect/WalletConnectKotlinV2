@@ -4,6 +4,8 @@ import com.squareup.sqldelight.ColumnAdapter
 import com.squareup.sqldelight.EnumColumnAdapter
 import com.walletconnect.android.di.AndroidCoreDITags
 import com.walletconnect.android.internal.common.model.AppMetaDataType
+import com.walletconnect.android.internal.common.model.Validation
+import com.walletconnect.android.internal.common.storage.*
 import com.walletconnect.android.internal.common.storage.IdentitiesStorageRepository
 import com.walletconnect.android.internal.common.storage.JsonRpcHistory
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepository
@@ -12,6 +14,7 @@ import com.walletconnect.android.internal.common.storage.PairingStorageRepositor
 import com.walletconnect.android.internal.common.storage.PairingStorageRepositoryInterface
 import com.walletconnect.android.sdk.core.AndroidCoreDatabase
 import com.walletconnect.android.sdk.storage.data.dao.MetaData
+import com.walletconnect.android.sdk.storage.data.dao.VerifyContext
 import com.walletconnect.android.sync.di.syncStorageModule
 import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
@@ -25,6 +28,9 @@ fun baseStorageModule() = module {
             iconsAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)),
             typeAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_APPMETADATATYPE))
         ),
+        VerifyContextAdapter = VerifyContext.Adapter(
+            validationAdapter = get(named(AndroidCoreDITags.COLUMN_ADAPTER_VALIDATION))
+        )
     )
 
     single<ColumnAdapter<List<String>, String>>(named(AndroidCoreDITags.COLUMN_ADAPTER_LIST)) {
@@ -58,6 +64,8 @@ fun baseStorageModule() = module {
 
     single<ColumnAdapter<AppMetaDataType, String>>(named(AndroidCoreDITags.COLUMN_ADAPTER_APPMETADATATYPE)) { EnumColumnAdapter() }
 
+    single<ColumnAdapter<Validation, String>>(named(AndroidCoreDITags.COLUMN_ADAPTER_VALIDATION)) { EnumColumnAdapter() }
+
     single<AndroidCoreDatabase>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)) {
         try {
             createCoreDB().also { database -> database.jsonRpcHistoryQueries.selectLastInsertedRowId().executeAsOneOrNull() }
@@ -75,6 +83,8 @@ fun baseStorageModule() = module {
 
     single { get<AndroidCoreDatabase>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)).identitiesQueries }
 
+    single { get<AndroidCoreDatabase>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE)).verifyContextQueries }
+
     single<MetadataStorageRepositoryInterface> { MetadataStorageRepository(get()) }
 
     single<PairingStorageRepositoryInterface> { PairingStorageRepository(get()) }
@@ -82,6 +92,8 @@ fun baseStorageModule() = module {
     single { JsonRpcHistory(get(), get()) }
 
     single { IdentitiesStorageRepository(get()) }
+
+    single { VerifyContextStorageRepository(get()) }
 
     includes(syncStorageModule())
 }

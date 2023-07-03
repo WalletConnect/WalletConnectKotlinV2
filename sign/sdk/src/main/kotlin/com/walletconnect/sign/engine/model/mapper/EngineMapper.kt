@@ -9,6 +9,7 @@ import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SessionProposer
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
+import com.walletconnect.android.verify.data.model.VerifyContext
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.exceptions.PeerError
@@ -79,8 +80,8 @@ internal fun ProposalVO.toSessionProposeRequest(): WCRequest =
         method = JsonRpcMethod.WC_SESSION_PROPOSE,
         params = SignParams.SessionProposeParams(
             relays = listOf(RelayProtocolOptions(protocol = relayProtocol, data = relayData)),
-            proposer = SessionProposer(proposerPublicKey, AppMetaData(name, description, url, icons)),
-            requiredNamespaces, optionalNamespaces, properties
+            proposer = SessionProposer(proposerPublicKey, AppMetaData(name = name, description = description, url = url, icons = icons)),
+            requiredNamespaces = requiredNamespaces, optionalNamespaces = optionalNamespaces, properties = properties
         )
     )
 
@@ -196,13 +197,13 @@ private fun convertToURI(it: String) = try {
 @JvmSynthetic
 internal fun Map<String, EngineDO.Namespace.Proposal>.toNamespacesVORequired(): Map<String, NamespaceVO.Proposal> =
     this.mapValues { (_, namespace) ->
-        NamespaceVO.Proposal(namespace.chains, namespace.methods, namespace.events)
+        NamespaceVO.Proposal(chains = namespace.chains, methods = namespace.methods, events = namespace.events)
     }
 
 @JvmSynthetic
 internal fun Map<String, EngineDO.Namespace.Proposal>.toNamespacesVOOptional(): Map<String, NamespaceVO.Proposal> =
     this.mapValues { (_, namespace) ->
-        NamespaceVO.Proposal(namespace.chains, namespace.methods, namespace.events)
+        NamespaceVO.Proposal(chains = namespace.chains, methods = namespace.methods, events = namespace.events)
     }
 
 @JvmSynthetic
@@ -273,3 +274,7 @@ internal fun ValidationError.toPeerError() = when (this) {
     is ValidationError.InvalidSessionProperties -> PeerError.CAIP25.InvalidSessionPropertiesObject(message)
     is ValidationError.EmptyNamespaces -> PeerError.CAIP25.EmptySessionNamespaces(message)
 }
+
+@JvmSynthetic
+internal fun VerifyContext.toEngineDO(): EngineDO.VerifyContext =
+    EngineDO.VerifyContext(id, origin, validation, verifyUrl)

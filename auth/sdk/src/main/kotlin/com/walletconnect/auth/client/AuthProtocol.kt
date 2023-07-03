@@ -8,6 +8,8 @@ import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.auth.client.mapper.toClient
+import com.walletconnect.auth.client.mapper.toClientAuthContext
+import com.walletconnect.auth.client.mapper.toClientAuthRequest
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.model.Events
 import com.walletconnect.auth.di.commonModule
@@ -16,6 +18,7 @@ import com.walletconnect.auth.di.jsonRpcModule
 import com.walletconnect.auth.engine.domain.AuthEngine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.runBlocking
 import org.koin.core.KoinApplication
 
 internal class AuthProtocol(private val koinApp: KoinApplication = wcKoinApp) : AuthInterface {
@@ -61,7 +64,7 @@ internal class AuthProtocol(private val koinApp: KoinApplication = wcKoinApp) : 
             when (event) {
                 is ConnectionState -> delegate.onConnectionStateChange(event.toClient())
                 is SDKError -> delegate.onError(event.toClient())
-                is Events.OnAuthRequest -> delegate.onAuthRequest(event.toClient())
+                is Events.OnAuthRequest -> delegate.onAuthRequest(event.toClientAuthRequest(), event.toClientAuthContext())
             }
         }.launchIn(scope)
     }
@@ -107,6 +110,18 @@ internal class AuthProtocol(private val koinApp: KoinApplication = wcKoinApp) : 
         checkEngineInitialization()
 
         return authEngine.getPendingRequests().toClient()
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun getVerifyContext(id: Long): Auth.Model.VerifyContext? {
+        checkEngineInitialization()
+        return runBlocking { authEngine.getVerifyContext(id)?.toClient() }
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun getListOfVerifyContexts(): List<Auth.Model.VerifyContext> {
+        checkEngineInitialization()
+        return runBlocking { authEngine.getListOfVerifyContext().map { verifyContext -> verifyContext.toClient() } }
     }
 
     @Throws(IllegalStateException::class)

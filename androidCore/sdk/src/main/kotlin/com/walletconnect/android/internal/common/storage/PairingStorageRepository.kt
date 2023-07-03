@@ -52,7 +52,7 @@ class PairingStorageRepository(private val pairingQueries: PairingQueries) : Pai
         native: String?,
     ): Pairing {
         val peerAppMetaData: AppMetaData? = if (peerName != null && peerDesc != null && peerUrl != null && peerIcons != null) {
-            AppMetaData(peerName, peerDesc, peerUrl, peerIcons, Redirect(native = native))
+            AppMetaData(name = peerName, description = peerDesc, url = peerUrl, icons = peerIcons, redirect = Redirect(native = native))
         } else {
             null
         }

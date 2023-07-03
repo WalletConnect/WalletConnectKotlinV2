@@ -35,11 +35,3 @@ WHERE sequence_topic = ? AND type = ?;
 deleteMetaDataFromTopic:
 DELETE FROM MetaData
 WHERE sequence_topic = ?;
-
-getMetadataById:
-SELECT name, description, url, icons, native
-FROM MetaData
-WHERE id = ?;
-
-lastInsertedRowId:
-SELECT last_insert_rowid();

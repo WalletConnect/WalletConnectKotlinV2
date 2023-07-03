@@ -5,18 +5,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
-import com.walletconnect.dapp.domain.DappDelegate
 import com.walletconnect.dapp.ui.SampleDappEvents
 import com.walletconnect.dapp.ui.connect.chain_select.ChainSelectionUI
-import com.walletconnect.push.common.Push
-import com.walletconnect.push.dapp.client.PushDappClient
 import com.walletconnect.sample_common.Chains
 import com.walletconnect.sample_common.tag
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
@@ -37,27 +35,28 @@ class ConnectViewModel : ViewModel() {
     val navigation: Flow<SampleDappEvents> = _navigation.receiveAsFlow()
 
     init {
-        DappDelegate.wcEventModels.map { walletEvent: Sign.Model? ->
-            when (walletEvent) {
-                is Sign.Model.ApprovedSession -> {
-                    viewModelScope.launch(Dispatchers.IO) {
-                        val pairingTopic = CoreClient.Pairing.getPairings().first().topic
-                        val account = walletEvent.accounts.first()
-                        PushDappClient.request(Push.Dapp.Params.Request(account, pairingTopic), { pushRequestId ->
-                            Log.e(tag(this), "Request sent with id ${pushRequestId.id}")
-                        }, {
-                            Log.e(tag(this), it.throwable.stackTraceToString())
-                        })
-                    }
-
-                    SampleDappEvents.SessionApproved
-                }
-                is Sign.Model.RejectedSession -> SampleDappEvents.SessionRejected
-                else -> SampleDappEvents.NoAction
-            }
-        }.onEach { event ->
-            _navigation.trySend(event)
-        }.launchIn(viewModelScope)
+        //TODO: commented out since it's not a part of PushDappClient any more
+//        DappDelegate.wcEventModels.map { walletEvent: Sign.Model? ->
+//            when (walletEvent) {
+//                is Sign.Model.ApprovedSession -> {
+//                    viewModelScope.launch(Dispatchers.IO) {
+//                        val pairingTopic = CoreClient.Pairing.getPairings().first().topic
+//                        val account = walletEvent.accounts.first()
+//                        PushDappClient.request(Push.Dapp.Params.Request(account, pairingTopic), { pushRequestId ->
+//                            Log.e(tag(this), "Request sent with id ${pushRequestId.id}")
+//                        }, {
+//                            Log.e(tag(this), it.throwable.stackTraceToString())
+//                        })
+//                    }
+//
+//                    SampleDappEvents.SessionApproved
+//                }
+//                is Sign.Model.RejectedSession -> SampleDappEvents.SessionRejected
+//                else -> SampleDappEvents.NoAction
+//            }
+//        }.onEach { event ->
+//            _navigation.trySend(event)
+//        }.launchIn(viewModelScope)
     }
 
     fun updateSelectedChainUI(position: Int, isChecked: Boolean) {

@@ -1,13 +1,24 @@
 package com.walletconnect.push.common.model
 
+import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.push.common.Push
 
 @JvmSynthetic
-internal fun EngineDO.PushSubscription.toCommonClient(): Push.Model.Subscription {
-    return Push.Model.Subscription(requestId, subscriptionTopic!!.value, account.value, relay.toClient(), metadata.toClient(), scope.toClient(), expiry.seconds)
+internal fun Pair<EngineDO.PushSubscribe.Responded, AppMetaData?>.toCommonClient(): Push.Model.Subscription {
+    val (subscription, metadata) = this
+
+    return Push.Model.Subscription(
+        subscription.requestId,
+        subscription.subscribeTopic.value,
+        subscription.account.value,
+        RelayProtocolOptions().toClient(),
+        metadata.toClient(),
+        subscription.mapOfScope.toClient(),
+        subscription.expiry.seconds
+    )
 }
 
 @JvmSynthetic
