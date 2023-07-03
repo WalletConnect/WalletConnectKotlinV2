@@ -5,7 +5,7 @@ import kotlinx.parcelize.Parcelize
 
 data class PairingSelectionUi(
     val name: String,
-    val iconUrl: String
+    val iconUrl: String?
 )
 
 const val pairingSelectionResultKey = "pairingSelectionResultKey"

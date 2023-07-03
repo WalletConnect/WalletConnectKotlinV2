@@ -2,14 +2,14 @@ package com.walletconnect.android
 
 import android.app.Application
 import com.walletconnect.android.echo.EchoInterface
+import com.walletconnect.android.history.HistoryInterface
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.relay.NetworkClientTimeout
 import com.walletconnect.android.relay.RelayConnectionInterface
 import com.walletconnect.android.sync.client.SyncInterface
-import com.walletconnect.android.verify.VerifyInterface
-
+import com.walletconnect.android.verify.client.VerifyInterface
 
 interface CoreInterface {
     val Pairing: PairingInterface
@@ -18,6 +18,7 @@ interface CoreInterface {
     val Echo: EchoInterface
     val Verify: VerifyInterface
     val Sync: SyncInterface
+    val History: HistoryInterface
 
     interface Delegate : PairingInterface.Delegate
 

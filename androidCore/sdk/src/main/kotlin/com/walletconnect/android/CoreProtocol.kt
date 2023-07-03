@@ -4,7 +4,25 @@ import android.app.Application
 import com.walletconnect.android.di.coreStorageModule
 import com.walletconnect.android.echo.EchoClient
 import com.walletconnect.android.echo.EchoInterface
-import com.walletconnect.android.internal.common.di.*
+import com.walletconnect.android.internal.common.di.coreCommonModule
+import com.walletconnect.android.internal.common.di.coreCryptoModule
+import com.walletconnect.android.internal.common.di.coreJsonRpcModule
+import com.walletconnect.android.internal.common.di.corePairingModule
+import com.walletconnect.android.internal.common.di.coreSyncModule
+import com.walletconnect.android.internal.common.di.echoModule
+import com.walletconnect.android.internal.common.di.explorerModule
+import com.walletconnect.android.internal.common.di.keyServerModule
+import com.walletconnect.android.history.HistoryInterface
+import com.walletconnect.android.history.HistoryProtocol
+import com.walletconnect.android.internal.common.di.coreCommonModule
+import com.walletconnect.android.internal.common.di.coreCryptoModule
+import com.walletconnect.android.internal.common.di.coreJsonRpcModule
+import com.walletconnect.android.internal.common.di.corePairingModule
+import com.walletconnect.android.internal.common.di.coreSyncModule
+import com.walletconnect.android.internal.common.di.echoModule
+import com.walletconnect.android.internal.common.di.explorerModule
+import com.walletconnect.android.internal.common.di.historyModule
+import com.walletconnect.android.internal.common.di.keyServerModule
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.android.internal.common.model.Redirect
@@ -21,12 +39,12 @@ import com.walletconnect.android.sync.client.SyncClient
 import com.walletconnect.android.sync.client.SyncInterface
 import com.walletconnect.android.utils.plantTimber
 import com.walletconnect.android.utils.projectId
-import com.walletconnect.android.verify.VerifyClient
-import com.walletconnect.android.verify.VerifyInterface
+import com.walletconnect.android.verify.client.VerifyClient
+import com.walletconnect.android.verify.client.VerifyInterface
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.KoinApplication
 import org.koin.dsl.module
-
+import timber.log.Timber
 
 class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInterface {
     override val Pairing: PairingInterface = PairingProtocol(koinApp)
@@ -35,6 +53,7 @@ class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInter
     override val Echo: EchoInterface = EchoClient
     override val Verify: VerifyInterface = VerifyClient
     override val Sync: SyncInterface = SyncClient
+    override val History: HistoryInterface = HistoryProtocol(koinApp)
 
     init {
         plantTimber()
@@ -67,13 +86,15 @@ class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInter
                 coreStorageModule(),
                 echoModule(),
                 module { single { relay ?: Relay } },
-                module { single { with(metaData) { AppMetaData(name, description, url, icons, Redirect(redirect)) } } },
+                module { single { with(metaData) { AppMetaData(name = name, description = description, url = url, icons = icons, redirect = Redirect(redirect)) } } },
                 module { single { Echo } },
+                module { single { Verify } },
                 coreJsonRpcModule(),
                 corePairingModule(Pairing, PairingController),
                 coreSyncModule(Sync),
                 keyServerModule(keyServerUrl),
-                explorerModule()
+                explorerModule(),
+                historyModule(History, timeout = networkClientTimeout)
             )
         }
 
@@ -84,6 +105,7 @@ class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInter
         Verify.initialize(metaData.verifyUrl)
         Pairing.initialize()
         PairingController.initialize()
+        History.initialize(relayServerUrl)
         Sync.initialize() { error -> onError(Core.Model.Error(error.throwable)) }
     }
 }

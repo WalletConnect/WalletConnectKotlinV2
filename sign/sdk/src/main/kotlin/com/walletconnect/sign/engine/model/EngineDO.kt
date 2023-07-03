@@ -6,6 +6,7 @@ import com.squareup.moshi.JsonClass
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.SymmetricKey
+import com.walletconnect.android.internal.common.model.Validation
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.Sequence
 import com.walletconnect.foundation.common.model.Topic
@@ -14,14 +15,24 @@ import com.walletconnect.android.internal.common.model.RelayProtocolOptions as C
 
 internal sealed class EngineDO {
 
-    internal class WalletConnectUri(
+    class WalletConnectUri(
         val topic: Topic,
         val symKey: SymmetricKey,
         val relay: CoreRelayProtocolOptions,
         val version: String = "2",
     ) : EngineDO()
 
-    internal data class SessionProposal(
+    data class SessionProposalEvent(
+        val proposal: SessionProposal,
+        val context: VerifyContext
+    ) : EngineDO(), EngineEvent
+
+    data class SessionRequestEvent(
+        val request: SessionRequest,
+        val context: VerifyContext
+    ) : EngineDO(), EngineEvent
+
+    data class SessionProposal(
         val pairingTopic: String,
         val name: String,
         val description: String,
@@ -36,7 +47,14 @@ internal sealed class EngineDO {
         val relayData: String?,
     ) : EngineDO(), EngineEvent
 
-    internal sealed class Namespace : EngineDO() {
+    data class VerifyContext(
+        val id: Long,
+        val origin: String,
+        val validation: Validation,
+        val verifyUrl: String
+    ) : EngineDO()
+
+    sealed class Namespace : EngineDO() {
 
         //Required and Optional
         data class Proposal(
@@ -53,66 +71,66 @@ internal sealed class EngineDO {
         ) : Namespace()
     }
 
-    internal data class SessionRequest(
+    data class SessionRequest(
         val topic: String,
         val chainId: String?,
         val peerAppMetaData: AppMetaData?,
         val request: JSONRPCRequest,
     ) : EngineDO(), EngineEvent {
 
-        internal data class JSONRPCRequest(
+        data class JSONRPCRequest(
             val id: Long,
             val method: String,
             val params: String,
         ) : EngineDO()
     }
 
-    internal data class SessionPayloadResponse(
+    data class SessionPayloadResponse(
         val topic: String,
         val chainId: String?,
         val method: String,
         val result: JsonRpcResponse,
     ) : EngineDO(), EngineEvent
 
-    internal data class SessionDelete(
+    data class SessionDelete(
         val topic: String,
         val reason: String,
     ) : EngineDO(), EngineEvent
 
-    internal data class SessionEvent(
+    data class SessionEvent(
         val topic: String,
         val name: String,
         val data: String,
         val chainId: String?,
     ) : EngineDO(), EngineEvent
 
-    internal sealed class SettledSessionResponse : EngineDO(), EngineEvent {
+    sealed class SettledSessionResponse : EngineDO(), EngineEvent {
         data class Result(val settledSession: Session) : SettledSessionResponse()
         data class Error(val errorMessage: String) : SettledSessionResponse()
     }
 
-    internal sealed class SessionUpdateNamespacesResponse : EngineDO(), EngineEvent {
+    sealed class SessionUpdateNamespacesResponse : EngineDO(), EngineEvent {
         data class Result(val topic: Topic, val namespaces: Map<String, Namespace.Session>) : SessionUpdateNamespacesResponse()
         data class Error(val errorMessage: String) : SessionUpdateNamespacesResponse()
     }
 
-    internal data class SessionRejected(
+    data class SessionRejected(
         val topic: String,
         val reason: String,
     ) : EngineDO(), EngineEvent
 
-    internal data class SessionApproved(
+    data class SessionApproved(
         val topic: String,
         val peerAppMetaData: AppMetaData?,
         val accounts: List<String>,
         val namespaces: Map<String, Namespace.Session>,
     ) : EngineDO(), EngineEvent
 
-    internal data class PairingSettle(val topic: Topic, val appMetaData: AppMetaData?) : EngineDO(), EngineEvent
+    data class PairingSettle(val topic: Topic, val appMetaData: AppMetaData?) : EngineDO(), EngineEvent
 
-    internal data class SessionUpdateNamespaces(val topic: Topic, val namespaces: Map<String, Namespace.Session>) : EngineDO(), EngineEvent
+    data class SessionUpdateNamespaces(val topic: Topic, val namespaces: Map<String, Namespace.Session>) : EngineDO(), EngineEvent
 
-    internal data class SessionExtend(
+    data class SessionExtend(
         override val topic: Topic,
         override val expiry: Expiry,
         val pairingTopic: String,
@@ -122,7 +140,7 @@ internal sealed class EngineDO {
         val peerAppMetaData: AppMetaData?,
     ) : EngineDO(), Sequence, EngineEvent
 
-    internal data class Session(
+    data class Session(
         override val topic: Topic,
         override val expiry: Expiry,
         val pairingTopic: String,
@@ -132,36 +150,36 @@ internal sealed class EngineDO {
         val peerAppMetaData: AppMetaData?,
     ) : EngineDO(), Sequence, EngineEvent
 
-    internal data class Event(
+    data class Event(
         val name: String,
         val data: String,
         val chainId: String,
     ) : EngineDO()
 
-    internal sealed class JsonRpcResponse : EngineDO() {
+    sealed class JsonRpcResponse : EngineDO() {
         abstract val id: Long
 
         @JsonClass(generateAdapter = true)
-        internal data class JsonRpcResult(
+        data class JsonRpcResult(
             override val id: Long,
             val jsonrpc: String = "2.0",
             val result: String,
         ) : JsonRpcResponse()
 
         @JsonClass(generateAdapter = true)
-        internal data class JsonRpcError(
+        data class JsonRpcError(
             override val id: Long,
             val jsonrpc: String = "2.0",
             val error: Error,
         ) : JsonRpcResponse()
 
-        internal data class Error(
+        data class Error(
             val code: Int,
             val message: String,
         )
     }
 
-    internal data class Request(
+    data class Request(
         val topic: String,
         val method: String,
         val params: String,

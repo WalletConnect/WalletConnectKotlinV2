@@ -19,6 +19,7 @@ import com.walletconnect.sign.engine.model.EngineDO
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.koin.core.KoinApplication
+import kotlinx.coroutines.runBlocking
 
 class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInterface {
     private lateinit var signEngine: SignEngine
@@ -51,8 +52,8 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
 
         signEngine.engineEvent.onEach { event ->
             when (event) {
-                is EngineDO.SessionProposal -> delegate.onSessionProposal(event.toClientSessionProposal())
-                is EngineDO.SessionRequest -> delegate.onSessionRequest(event.toClientSessionRequest())
+                is EngineDO.SessionProposalEvent -> delegate.onSessionProposal(event.proposal.toClientSessionProposal(), event.context.toClient())
+                is EngineDO.SessionRequestEvent -> delegate.onSessionRequest(event.request.toClientSessionRequest(), event.context.toClient())
                 is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
                 //Responses
                 is EngineDO.SettledSessionResponse -> delegate.onSessionSettleResponse(event.toClientSettledSessionResponse())
@@ -252,7 +253,8 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
             signEngine.ping(
                 ping.topic,
                 { topic -> sessionPing?.onSuccess(Sign.Model.Ping.Success(topic)) },
-                { error -> sessionPing?.onError(Sign.Model.Ping.Error(error)) }
+                { error -> sessionPing?.onError(Sign.Model.Ping.Error(error)) },
+                ping.timeout
             )
         } catch (error: Exception) {
             sessionPing?.onError(Sign.Model.Ping.Error(error))
@@ -329,6 +331,22 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     override fun getSessionProposals(): List<Sign.Model.SessionProposal> {
         checkEngineInitialization()
         return signEngine.getSessionProposals().map(EngineDO.SessionProposal::toClientSessionProposal)
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun getVerifyContext(id: Long): Sign.Model.VerifyContext? {
+        checkEngineInitialization()
+        return runBlocking {
+            signEngine.getVerifyContext(id)?.toClient()
+        }
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun getListOfVerifyContexts(): List<Sign.Model.VerifyContext> {
+        checkEngineInitialization()
+        return runBlocking {
+            signEngine.getListOfVerifyContexts().map { verifyContext -> verifyContext.toClient() }
+        }
     }
 
     // TODO: Uncomment once reinit scope logic is added

@@ -20,7 +20,7 @@ object ResponderDelegate: AuthInterface.ResponderDelegate {
         AuthClient.setResponderDelegate(this)
     }
 
-    override fun onAuthRequest(authRequest: Auth.Event.AuthRequest) {
+    override fun onAuthRequest(authRequest: Auth.Event.AuthRequest, verifyContext: Auth.Event.VerifyContext) {
         scope.launch {
             _wcEvents.emit(authRequest)
         }
