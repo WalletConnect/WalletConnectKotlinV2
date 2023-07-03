@@ -7,10 +7,10 @@ import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
 import java.util.concurrent.TimeUnit
 
 @JvmSynthetic
-internal fun calcExpiry(): Long {
+internal fun calcExpiry(): Expiry {
     val currentTimeMs = System.currentTimeMillis()
     val currentTimeSeconds = TimeUnit.SECONDS.convert(currentTimeMs, TimeUnit.MILLISECONDS)
     val expiryTimeSeconds = currentTimeSeconds + MONTH_IN_SECONDS
 
-    return Expiry(expiryTimeSeconds).seconds
+    return Expiry(expiryTimeSeconds)
 }
