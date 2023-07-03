@@ -47,7 +47,7 @@ sealed class EngineDO : EngineEvent {
             override val dappPublicKey: PublicKey,
             override val accountId: AccountId,
             override val relayProtocolOptions: RelayProtocolOptions,
-            val dappMetadata: AppMetaData,
+            val dappMetadata: AppMetaData?,
         ) : PushPropose()
     }
 
@@ -111,7 +111,7 @@ sealed class EngineDO : EngineEvent {
             override val expiry: Expiry,
             val dappGeneratedPublicKey: PublicKey,
             val pushTopic: Topic,
-            val dappMetaData: AppMetaData,
+            val dappMetaData: AppMetaData?,
         ) : PushSubscribe()
 
         data class Error(

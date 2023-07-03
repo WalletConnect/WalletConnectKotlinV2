@@ -2,7 +2,6 @@ package com.walletconnect.sample.dapp.ui.routes.composable_routes.session
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.walletconnect.android.CoreClient
 import com.walletconnect.push.common.Push
 import com.walletconnect.push.dapp.client.PushDappClient
 import com.walletconnect.sample.dapp.domain.DappDelegate
@@ -109,20 +108,21 @@ class SessionViewModel : ViewModel() {
     }
 
     fun pushRequest() {
-        val pairingTopic = CoreClient.Pairing.getPairings().map { it.topic }.first { pairingTopic ->
-            Web3Modal.getListOfActiveSessions()
-                .any { session -> session.pairingTopic == pairingTopic }
-        }
-        val ethAccount = Web3Modal.getListOfActiveSessions().first { session ->
-            session.pairingTopic == pairingTopic
-        }.namespaces.entries.first().value.accounts.first()
-
-        PushDappClient.request(Push.Dapp.Params.Request(ethAccount, pairingTopic),
-            { pushRequestId ->
-                Timber.tag(tag(this)).e("Request sent with id " + pushRequestId.id)
-            }, {
-                Timber.tag(tag(this)).e(it.throwable.stackTraceToString())
-            })
+        //TODO: commented out since it's not a part of PushDappClient any more
+//        val pairingTopic = CoreClient.Pairing.getPairings().map { it.topic }.first { pairingTopic ->
+//            Web3Modal.getListOfActiveSessions()
+//                .any { session -> session.pairingTopic == pairingTopic }
+//        }
+//        val ethAccount = Web3Modal.getListOfActiveSessions().first { session ->
+//            session.pairingTopic == pairingTopic
+//        }.namespaces.entries.first().value.accounts.first()
+//
+//        PushDappClient.request(Push.Dapp.Params.Request(ethAccount, pairingTopic),
+//            { pushRequestId ->
+//                Timber.tag(tag(this)).e("Request sent with id " + pushRequestId.id)
+//            }, {
+//                Timber.tag(tag(this)).e(it.throwable.stackTraceToString())
+//            })
     }
 
     fun pushNotify() {

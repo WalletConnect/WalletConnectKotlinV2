@@ -7,6 +7,7 @@ import com.walletconnect.android.internal.common.model.Pairing
 import com.walletconnect.android.internal.common.model.Redirect
 import com.walletconnect.android.pairing.engine.model.EngineDO
 import com.walletconnect.foundation.common.model.Topic
+import com.walletconnect.utils.Empty
 
 @JvmSynthetic
 internal fun EngineDO.PairingDelete.toClient(): Core.Model.DeletedPairing =
@@ -39,6 +40,6 @@ fun Core.Model.Pairing.toPairing(): Pairing =
     )
 
 @JvmSynthetic
-internal fun Core.Model.AppMetaData.toAppMetaData() = AppMetaData(name = name, description = description, url =  url, icons = icons, redirect = Redirect(redirect))
+internal fun Core.Model.AppMetaData.toAppMetaData() = AppMetaData(name = name, description = description, url = url, icons = icons, redirect = Redirect(redirect))
 
-fun AppMetaData.toClient() = Core.Model.AppMetaData(name, description, url, icons, redirect?.native)
+fun AppMetaData?.toClient() = Core.Model.AppMetaData(this?.name ?: String.Empty, this?.description ?: String.Empty, this?.url ?: String.Empty, this?.icons ?: emptyList(), this?.redirect?.native)
