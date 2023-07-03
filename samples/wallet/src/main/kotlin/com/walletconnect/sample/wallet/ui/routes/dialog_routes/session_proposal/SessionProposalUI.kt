@@ -1,12 +1,15 @@
 package com.walletconnect.sample.wallet.ui.routes.dialog_routes.session_proposal
 
 import com.walletconnect.sample.wallet.domain.ACCOUNTS_1_EIP155_ADDRESS
+import com.walletconnect.sample.wallet.ui.common.peer.PeerContextUI
 import com.walletconnect.sample.wallet.ui.common.peer.PeerUI
 import com.walletconnect.web3.wallet.client.Wallet
 
 data class SessionProposalUI(
     val peerUI: PeerUI,
     val namespaces: Map<String, Wallet.Model.Namespace.Proposal>,
+    val peerContext: PeerContextUI,
+    val redirect: String
 )
 
 data class WalletMetaData(

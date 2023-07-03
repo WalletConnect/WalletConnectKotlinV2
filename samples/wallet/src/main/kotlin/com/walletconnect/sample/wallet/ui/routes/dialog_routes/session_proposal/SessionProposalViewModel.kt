@@ -3,7 +3,9 @@ package com.walletconnect.sample.wallet.ui.routes.dialog_routes.session_proposal
 import androidx.lifecycle.ViewModel
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
+import com.walletconnect.sample.wallet.domain.WCDelegate
 import com.walletconnect.sample.wallet.ui.common.peer.PeerUI
+import com.walletconnect.sample.wallet.ui.common.peer.toPeerUI
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import kotlin.coroutines.resume
@@ -11,7 +13,7 @@ import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
 class SessionProposalViewModel : ViewModel() {
-    val sessionProposal: SessionProposalUI? = generateSessionProposalUI(Web3Wallet.getSessionProposals().last())
+    val sessionProposal: SessionProposalUI? = generateSessionProposalUI()
 
     suspend fun approve(onRedirect: (String) -> Unit = {}) {
         return suspendCoroutine { continuation ->
@@ -25,10 +27,12 @@ class SessionProposalViewModel : ViewModel() {
                         continuation.resumeWithException(error.throwable)
                         Firebase.crashlytics.recordException(error.throwable)
                         onRedirect(sessionProposal.redirect)
+                        WCDelegate.sessionProposalEvent = null
                     },
                     onSuccess = {
                         continuation.resume(Unit)
                         onRedirect(sessionProposal.redirect)
+                        WCDelegate.sessionProposalEvent = null
                     })
             }
         }
@@ -42,23 +46,29 @@ class SessionProposalViewModel : ViewModel() {
                 reason = rejectionReason
             )
 
-            Web3Wallet.rejectSession(reject) { error ->
+            Web3Wallet.rejectSession(reject, {
+                WCDelegate.sessionProposalEvent = null
+            }, { error ->
                 Firebase.crashlytics.recordException(error.throwable)
-            }
-            onRedirect(sessionProposal.redirect)
+                WCDelegate.sessionProposalEvent = null
+            })
         }
+        onRedirect(sessionProposal?.redirect ?: "")
     }
 
-    private fun generateSessionProposalUI(sessionProposal: Wallet.Model.SessionProposal?): SessionProposalUI? {
-        return if (sessionProposal != null) {
+    private fun generateSessionProposalUI(): SessionProposalUI? {
+        return if (WCDelegate.sessionProposalEvent != null) {
+            val (proposal, context) = WCDelegate.sessionProposalEvent!!
             SessionProposalUI(
                 peerUI = PeerUI(
-                    peerIcon = sessionProposal.icons.firstOrNull().toString(),
-                    peerName = sessionProposal.name,
-                    peerDescription = sessionProposal.description,
-                    peerUri = sessionProposal.url,
+                    peerIcon = proposal.icons.firstOrNull().toString(),
+                    peerName = proposal.name,
+                    peerDescription = proposal.description,
+                    peerUri = proposal.url,
                 ),
-                namespaces = sessionProposal.requiredNamespaces
+                namespaces = proposal.requiredNamespaces,
+                peerContext = context.toPeerUI(),
+                redirect = proposal.redirect
             )
         } else null
     }

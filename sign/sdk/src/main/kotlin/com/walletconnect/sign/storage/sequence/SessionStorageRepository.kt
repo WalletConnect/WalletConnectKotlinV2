@@ -239,13 +239,13 @@ internal class SessionStorageRepository(
 
     private fun getRequiredNamespaces(id: Long): Map<String, NamespaceVO.Proposal> {
         return requiredNamespaceDaoQueries.getProposalNamespaces(id) { key, chains, methods, events ->
-            key to NamespaceVO.Proposal(chains, methods, events)
+            key to NamespaceVO.Proposal(chains = chains, methods = methods, events = events)
         }.executeAsList().toMap()
     }
 
     private fun getOptionalNamespaces(id: Long): Map<String, NamespaceVO.Proposal> {
         return optionalNamespaceDaoQueries.getOptionalNamespaces(id) { key, chains, methods, events ->
-            key to NamespaceVO.Proposal(chains, methods, events)
+            key to NamespaceVO.Proposal(chains = chains, methods = methods, events = events)
         }.executeAsList().toMap()
     }
 

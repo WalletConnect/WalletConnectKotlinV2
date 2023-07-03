@@ -19,10 +19,6 @@ object PushWalletDelegate: PushWalletClient.Delegate {
         PushWalletClient.setDelegate(this)
     }
 
-    override fun onPushRequest(pushRequest: Push.Wallet.Event.Request) {
-        scope.launch { _wcPushEventModels.emit(pushRequest) }
-    }
-
     override fun onPushProposal(pushProposal: Push.Wallet.Event.Proposal) {
         scope.launch { _wcPushEventModels.emit(pushProposal) }
     }

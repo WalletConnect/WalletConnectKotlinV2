@@ -4,6 +4,14 @@ import android.app.Application
 import com.walletconnect.android.di.coreStorageModule
 import com.walletconnect.android.echo.EchoClient
 import com.walletconnect.android.echo.EchoInterface
+import com.walletconnect.android.internal.common.di.coreCommonModule
+import com.walletconnect.android.internal.common.di.coreCryptoModule
+import com.walletconnect.android.internal.common.di.coreJsonRpcModule
+import com.walletconnect.android.internal.common.di.corePairingModule
+import com.walletconnect.android.internal.common.di.coreSyncModule
+import com.walletconnect.android.internal.common.di.echoModule
+import com.walletconnect.android.internal.common.di.explorerModule
+import com.walletconnect.android.internal.common.di.keyServerModule
 import com.walletconnect.android.history.HistoryInterface
 import com.walletconnect.android.history.HistoryProtocol
 import com.walletconnect.android.internal.common.di.coreCommonModule
@@ -31,13 +39,12 @@ import com.walletconnect.android.sync.client.SyncClient
 import com.walletconnect.android.sync.client.SyncInterface
 import com.walletconnect.android.utils.plantTimber
 import com.walletconnect.android.utils.projectId
-import com.walletconnect.android.verify.VerifyClient
-import com.walletconnect.android.verify.VerifyInterface
+import com.walletconnect.android.verify.client.VerifyClient
+import com.walletconnect.android.verify.client.VerifyInterface
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.KoinApplication
 import org.koin.dsl.module
 import timber.log.Timber
-
 
 class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInterface {
     override val Pairing: PairingInterface = PairingProtocol(koinApp)
@@ -79,8 +86,9 @@ class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInter
                 coreStorageModule(),
                 echoModule(),
                 module { single { relay ?: Relay } },
-                module { single { with(metaData) { AppMetaData(name, description, url, icons, Redirect(redirect)) } } },
+                module { single { with(metaData) { AppMetaData(name = name, description = description, url = url, icons = icons, redirect = Redirect(redirect)) } } },
                 module { single { Echo } },
+                module { single { Verify } },
                 coreJsonRpcModule(),
                 corePairingModule(Pairing, PairingController),
                 coreSyncModule(Sync),

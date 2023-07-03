@@ -11,13 +11,13 @@ internal sealed class NamespaceVO {
     abstract val methods: List<String>
     abstract val events: List<String>
 
-//    Proposal Namespaces -> Required or Optional Namespaces
+    //    Proposal Namespaces -> Required or Optional Namespaces
     @JsonClass(generateAdapter = true)
     internal data class Proposal(
-        @Json(name = "chains")
-        override val chains: List<String>? = null,
         @Json(name = "methods")
         override val methods: List<String>,
+        @Json(name = "chains")
+        override val chains: List<String>? = null,
         @Json(name = "events")
         override val events: List<String>
     ) : NamespaceVO()

@@ -1,7 +1,9 @@
 package com.walletconnect.sample.wallet.ui.routes.dialog_routes.auth_request
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -12,11 +14,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.walletconnect.sample.wallet.ui.common.Buttons
+import com.walletconnect.sample.wallet.ui.common.Content
 import com.walletconnect.sample.wallet.ui.common.InnerContent
 import com.walletconnect.sample.wallet.ui.common.SemiTransparentDialog
 import com.walletconnect.sample.wallet.ui.common.peer.Peer
 import com.walletconnect.sample.wallet.ui.routes.showSnackbar
-import com.walletconnect.sample.wallet.ui.common.*
 import com.walletconnect.sample_common.ui.themedColor
 
 @Composable
@@ -24,7 +26,7 @@ fun AuthRequestRoute(navController: NavHostController, authRequestViewModel: Aut
     val authRequestUI = authRequestViewModel.authRequest ?: throw Exception("Missing auth request")
     SemiTransparentDialog {
         Spacer(modifier = Modifier.height(24.dp))
-        Peer(peerUI = authRequestUI.peerUI, "would like to connect")
+        Peer(peerUI = authRequestUI.peerUI, "would like to connect", authRequestUI.peerContextUI)
         Spacer(modifier = Modifier.height(16.dp))
         Message(authRequestUI = authRequestUI)
         Spacer(modifier = Modifier.height(16.dp))

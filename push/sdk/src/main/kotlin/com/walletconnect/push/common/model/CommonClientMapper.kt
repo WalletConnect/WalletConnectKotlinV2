@@ -7,7 +7,7 @@ import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.push.common.Push
 
 @JvmSynthetic
-internal fun Pair<EngineDO.PushSubscribe.Responded, AppMetaData>.toCommonClient(): Push.Model.Subscription {
+internal fun Pair<EngineDO.PushSubscribe.Responded, AppMetaData?>.toCommonClient(): Push.Model.Subscription {
     val (subscription, metadata) = this
 
     return Push.Model.Subscription(

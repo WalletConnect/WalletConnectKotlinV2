@@ -2,8 +2,8 @@ package com.walletconnect.sign.client
 
 interface SignInterface {
     interface WalletDelegate {
-        fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal)
-        fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest)
+        fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal, verifyContext: Sign.Model.VerifyContext)
+        fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest, verifyContext: Sign.Model.VerifyContext)
         fun onSessionDelete(deletedSession: Sign.Model.DeletedSession)
 
         //Responses
@@ -47,11 +47,18 @@ interface SignInterface {
     fun pair(pair: Sign.Params.Pair, onSuccess: (Sign.Params.Pair) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun approveSession(approve: Sign.Params.Approve, onSuccess: (Sign.Params.Approve) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun rejectSession(reject: Sign.Params.Reject, onSuccess: (Sign.Params.Reject) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
+
     @Deprecated(
         message = "The onSuccess callback has been replaced with a new callback that returns Sign.Model.SentRequest",
         replaceWith = ReplaceWith(expression = "this.request(request, onSuccessWithSentRequest, onError)", imports = ["com.walletconnect.sign.client"])
     )
-    fun request(request: Sign.Params.Request, onSuccess: (Sign.Params.Request) -> Unit = {}, onSuccessWithSentRequest: (Sign.Model.SentRequest) -> Unit = { it: Sign.Model.SentRequest -> Unit}, onError: (Sign.Model.Error) -> Unit)
+    fun request(
+        request: Sign.Params.Request,
+        onSuccess: (Sign.Params.Request) -> Unit = {},
+        onSuccessWithSentRequest: (Sign.Model.SentRequest) -> Unit = { it: Sign.Model.SentRequest -> Unit },
+        onError: (Sign.Model.Error) -> Unit
+    )
+
     fun request(request: Sign.Params.Request, onSuccess: (Sign.Model.SentRequest) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun respond(response: Sign.Params.Response, onSuccess: (Sign.Params.Response) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun update(update: Sign.Params.Update, onSuccess: (Sign.Params.Update) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
@@ -123,4 +130,16 @@ interface SignInterface {
      * It is advised that this function be called from background operation
      */
     fun getSessionProposals(): List<Sign.Model.SessionProposal>
+
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+    fun getVerifyContext(id: Long): Sign.Model.VerifyContext?
+
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+    fun getListOfVerifyContexts(): List<Sign.Model.VerifyContext>
 }
