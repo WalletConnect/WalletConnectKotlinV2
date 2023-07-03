@@ -8,16 +8,6 @@ import com.walletconnect.android.internal.common.model.type.ClientParams
 sealed class PushParams : ClientParams {
 
     @JsonClass(generateAdapter = true)
-    data class RequestParams(
-        @Json(name = "publicKey")
-        val publicKey: String,
-        @Json(name = "metadata")
-        val metaData: AppMetaData,
-        @Json(name = "account")
-        val account: String,
-    ) : PushParams()
-
-    @JsonClass(generateAdapter = true)
     data class RequestResponseParams(
         @Json(name = "subscriptionAuth")
         val subscriptionAuth: String,

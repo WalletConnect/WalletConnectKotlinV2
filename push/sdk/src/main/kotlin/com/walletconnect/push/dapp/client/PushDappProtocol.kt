@@ -1,7 +1,6 @@
 package com.walletconnect.push.dapp.client
 
 import com.walletconnect.android.internal.common.di.DatabaseConfig
-import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.push.common.Push
@@ -9,16 +8,12 @@ import com.walletconnect.push.common.di.commonModule
 import com.walletconnect.push.common.di.pushEngineUseCaseModules
 import com.walletconnect.push.common.di.pushJsonRpcModule
 import com.walletconnect.push.common.di.pushStorageModule
-import com.walletconnect.push.common.model.EngineDO
-import com.walletconnect.push.common.model.toClient
 import com.walletconnect.push.common.model.toDappClient
 import com.walletconnect.push.common.model.toEngineDO
 import com.walletconnect.push.dapp.di.castModule
 import com.walletconnect.push.dapp.di.dappEngineModule
 import com.walletconnect.push.dapp.engine.PushDappEngine
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.koin.core.KoinApplication
@@ -51,31 +46,14 @@ internal class PushDappProtocol(private val koinApp: KoinApplication = wcKoinApp
     override fun setDelegate(delegate: PushDappInterface.Delegate) {
         checkEngineInitialization()
 
-        pushDappEngine.engineEvent
-            .onEach { event ->
-                when (event) {
-                    is EngineDO.PushRequestResponse -> delegate.onPushResponse(event.toDappClient())
-                    is EngineDO.PushRequestRejected -> delegate.onPushRejected(event.toDappClient())
-                    is EngineDO.PushDelete -> delegate.onDelete(event.toDappClient())
-                    is SDKError -> delegate.onError(event.toClient())
-                }
-            }.launchIn(scope)
-    }
-
-    @Deprecated("Request is deprecated. Use propose instead", level = DeprecationLevel.WARNING)
-    override fun request(params: Push.Dapp.Params.Request, onSuccess: (Push.Dapp.Model.RequestId) -> Unit, onError: (Push.Model.Error) -> Unit) {
-        checkEngineInitialization()
-
-        scope.launch(Dispatchers.IO) {
-            try {
-                pushDappEngine.request(params.pairingTopic, params.account,
-                    { requestId -> onSuccess(Push.Dapp.Model.RequestId(requestId)) },
-                    { exception -> onError(Push.Model.Error(exception)) }
-                )
-            } catch (e: Exception) {
-                onError(Push.Model.Error(e))
-            }
-        }
+//        pushDappEngine.engineEvent
+//            .onEach { event ->
+//                when (event) {
+//                    is EngineDO.PushRequestRejected -> delegate.onPushRejected(event.toDappClient())
+//                    is EngineDO.PushDelete -> delegate.onDelete(event.toDappClient())
+//                    is SDKError -> delegate.onError(event.toClient())
+//                }
+//            }.launchIn(scope)
     }
 
     override fun propose(params: Push.Dapp.Params.Propose, onSuccess: (Push.Dapp.Model.RequestId) -> Unit, onError: (Push.Model.Error) -> Unit) {
