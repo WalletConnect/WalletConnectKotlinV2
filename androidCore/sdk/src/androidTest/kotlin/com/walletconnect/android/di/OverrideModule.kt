@@ -1,6 +1,5 @@
 package com.walletconnect.android.di
 
-import com.walletconnect.android.di.coreStorageModule
 import com.walletconnect.android.internal.common.di.coreCryptoModule
 import com.walletconnect.android.internal.common.di.coreJsonRpcModule
 import com.walletconnect.android.internal.common.di.corePairingModule

@@ -13,6 +13,7 @@ import com.walletconnect.android.test.utils.TestClient
 import com.walletconnect.android.test.utils.globalOnError
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Ttl
+import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
@@ -20,15 +21,12 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.Test
 import timber.log.Timber
 import kotlin.time.Duration.Companion.seconds
 
-@ExtendWith(WCInstrumentedActivityScenario::class)
+//@ExtendWith(WCInstrumentedActivityScenario::class)
 class HistoryInstrumentedAndroidTest {
-
     private val scenarioExtension = WCInstrumentedActivityScenario()
 
     @Test
@@ -68,7 +66,7 @@ class HistoryInstrumentedAndroidTest {
 
                     val primarySymmetricKey = TestClient.Primary.keyManagementRepository.generateSymmetricKeyFromKeyAgreement(primaryPublicKey, secondaryPublicKey)
                     val secondarySymmetricKey = TestClient.Secondary.keyManagementRepository.generateSymmetricKeyFromKeyAgreement(secondaryPublicKey, primaryPublicKey)
-                    Assertions.assertEquals(primarySymmetricKey, secondarySymmetricKey)
+                    assertEquals(primarySymmetricKey, secondarySymmetricKey)
 
                     val topic = TestClient.Primary.keyManagementRepository.getTopicFromKey(primarySymmetricKey)
                     TestClient.Primary.keyManagementRepository.setKey(primarySymmetricKey, topic.value)
@@ -94,7 +92,7 @@ class HistoryInstrumentedAndroidTest {
                                 TestClient.Secondary.History.getMessages(
                                     MessagesParams(topic.value, null, 5L, Direction.BACKWARD),
                                     onSuccess = { messages ->
-                                        Assertions.assertEquals(1, messages.size)
+                                        assertEquals(1, messages.size)
                                         scenarioExtension.closeAsSuccess()
                                     },
                                     onError = ::globalOnError
@@ -120,7 +118,7 @@ class HistoryInstrumentedAndroidTest {
 
                     val primarySymmetricKey = TestClient.Primary.keyManagementRepository.generateSymmetricKeyFromKeyAgreement(primaryPublicKey, secondaryPublicKey)
                     val secondarySymmetricKey = TestClient.Secondary.keyManagementRepository.generateSymmetricKeyFromKeyAgreement(secondaryPublicKey, primaryPublicKey)
-                    Assertions.assertEquals(primarySymmetricKey, secondarySymmetricKey)
+                    assertEquals(primarySymmetricKey, secondarySymmetricKey)
 
                     val topic = TestClient.Primary.keyManagementRepository.getTopicFromKey(primarySymmetricKey)
                     TestClient.Primary.keyManagementRepository.setKey(primarySymmetricKey, topic.value)
@@ -157,7 +155,7 @@ class HistoryInstrumentedAndroidTest {
                             testScope.launch {
                                 TestClient.Secondary.History.getMessages(
                                     MessagesParams(topic.value, null, 5L, Direction.BACKWARD),
-                                    onSuccess = { messages -> Assertions.assertEquals(1, messages.size) },
+                                    onSuccess = { messages -> assertEquals(1, messages.size) },
                                     onError = ::globalOnError
                                 )
                             }
