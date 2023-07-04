@@ -71,6 +71,9 @@ internal object TestClient {
             // Override of previous Relay necessary for reinitialization of `eventsFlow`
             Relay = RelayClient(dappKoinApp)
 
+//            // Override of previous Verify
+//            Verify = VerifyClient(dappKoinApp)
+
             // Override of storage instances and depending objects
             dappKoinApp.modules(overrideModule(Relay, Pairing, PairingController))
 

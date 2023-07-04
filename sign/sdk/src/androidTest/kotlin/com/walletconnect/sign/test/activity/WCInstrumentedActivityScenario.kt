@@ -59,7 +59,7 @@ class WCInstrumentedActivityScenario : TestRule {
     private fun beforeAll() {
         runBlocking {
             initLogging()
-            Timber.d("beforeAll")
+            Timber.d("kobe; beforeAll")
             val isDappRelayReady = MutableStateFlow(false)
             val isWalletRelayReady = MutableStateFlow(false)
 
@@ -91,6 +91,7 @@ class WCInstrumentedActivityScenario : TestRule {
             }.fold(
                 onSuccess = { Timber.d("Connection established with: ${TestClient.RELAY_URL}") },
                 onFailure = {
+                    //todo change message
                     fail("Unable to establish connection within $timeoutDuration")
                 }
             )
@@ -106,6 +107,9 @@ class WCInstrumentedActivityScenario : TestRule {
     }
 
     fun launch(timeoutSeconds: Long = 1, testCodeBlock: suspend () -> Unit) {
+
+        println("kobe; Launch")
+
         require(!scenarioLaunched) { "Scenario has already been launched!" }
 
         scenario = ActivityScenario.launch(InstrumentedTestActivity::class.java)

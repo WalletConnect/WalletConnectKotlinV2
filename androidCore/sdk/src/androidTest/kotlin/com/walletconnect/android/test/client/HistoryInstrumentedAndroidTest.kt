@@ -27,6 +27,7 @@ import timber.log.Timber
 import kotlin.time.Duration.Companion.seconds
 
 class HistoryInstrumentedAndroidTest {
+
     @get:Rule
     val scenarioExtension = WCInstrumentedActivityScenario()
 
