@@ -28,7 +28,6 @@ import org.junit.Test
 import timber.log.Timber
 
 class SignClientInstrumentedAndroidTest {
-
     @get:Rule
     val scenarioExtension = WCInstrumentedActivityScenario()
 

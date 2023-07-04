@@ -21,7 +21,7 @@ import timber.log.Timber
 internal object TestClient {
     const val RELAY_URL = "wss://relay.walletconnect.com?projectId=${BuildConfig.PROJECT_ID}"
     private val app = ApplicationProvider.getApplicationContext<Application>()
-    fun KoinApplication.Companion.createNewWCKoinApp(): KoinApplication = KoinApplication.init().apply { createEagerInstances() }
+    fun KoinApplication.Companion.createNewWCKoinApp(): KoinApplication = init().apply { createEagerInstances() }
 
     object Wallet {
 
@@ -70,9 +70,6 @@ internal object TestClient {
 
             // Override of previous Relay necessary for reinitialization of `eventsFlow`
             Relay = RelayClient(dappKoinApp)
-
-//            // Override of previous Verify
-//            Verify = VerifyClient(dappKoinApp)
 
             // Override of storage instances and depending objects
             dappKoinApp.modules(overrideModule(Relay, Pairing, PairingController))
