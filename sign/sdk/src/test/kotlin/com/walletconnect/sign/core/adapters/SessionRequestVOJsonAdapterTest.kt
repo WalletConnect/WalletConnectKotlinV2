@@ -6,12 +6,12 @@ import com.tinder.scarlet.utils.getRawType
 import com.walletconnect.sign.common.adapters.SessionRequestVOJsonAdapter
 import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpc
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionRequestVO
+import junit.framework.TestCase.assertEquals
 import org.intellij.lang.annotations.Language
 import org.json.JSONArray
 import org.json.JSONObject
-import org.junit.jupiter.api.Test
+import org.junit.Test
 import kotlin.reflect.jvm.jvmName
-import kotlin.test.assertEquals
 
 internal class SessionRequestVOJsonAdapterTest {
     private val moshi: Moshi = Moshi.Builder()

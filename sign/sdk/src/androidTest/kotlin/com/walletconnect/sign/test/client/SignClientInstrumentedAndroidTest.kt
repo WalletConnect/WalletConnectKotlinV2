@@ -4,15 +4,31 @@ import com.walletconnect.sign.BuildConfig
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import com.walletconnect.sign.test.activity.WCInstrumentedActivityScenario
-import com.walletconnect.sign.test.utils.*
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
-import org.junit.jupiter.api.fail
+import com.walletconnect.sign.test.utils.AutoApproveDappDelegate
+import com.walletconnect.sign.test.utils.AutoApproveSessionWalletDelegate
+import com.walletconnect.sign.test.utils.DappDelegate
+import com.walletconnect.sign.test.utils.DappSignClient
+import com.walletconnect.sign.test.utils.WalletDelegate
+import com.walletconnect.sign.test.utils.WalletSignClient
+import com.walletconnect.sign.test.utils.dappClientSendRequest
+import com.walletconnect.sign.test.utils.globalOnError
+import com.walletconnect.sign.test.utils.pair
+import com.walletconnect.sign.test.utils.pairAndConnect
+import com.walletconnect.sign.test.utils.rejectOnSessionProposal
+import com.walletconnect.sign.test.utils.sessionChains
+import com.walletconnect.sign.test.utils.sessionEvents
+import com.walletconnect.sign.test.utils.sessionNamespaceKey
+import com.walletconnect.sign.test.utils.walletClientEmitEvent
+import com.walletconnect.sign.test.utils.walletClientExtendSession
+import com.walletconnect.sign.test.utils.walletClientRespondToRequest
+import com.walletconnect.sign.test.utils.walletClientUpdateSession
+import junit.framework.TestCase.fail
+import org.junit.Rule
+import org.junit.Test
 import timber.log.Timber
 
-@ExtendWith(WCInstrumentedActivityScenario::class)
 class SignClientInstrumentedAndroidTest {
-
+    @get:Rule
     val scenarioExtension = WCInstrumentedActivityScenario()
 
     private fun setDelegates(walletDelegate: SignClient.WalletDelegate, dappDelegate: SignClient.DappDelegate) {
@@ -47,7 +63,7 @@ class SignClientInstrumentedAndroidTest {
         Timber.d("receiveRejectSession: start")
 
         val walletDelegate = object : WalletDelegate() {
-            override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal) {
+            override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal, verifyContext: Sign.Model.VerifyContext) {
                 sessionProposal.rejectOnSessionProposal()
             }
         }
@@ -110,7 +126,7 @@ class SignClientInstrumentedAndroidTest {
         Timber.d("receiveRespondWithResultToSessionRequest: start")
 
         val walletDelegate = object : AutoApproveSessionWalletDelegate() {
-            override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest) {
+            override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest, verifyContext: Sign.Model.VerifyContext) {
                 walletClientRespondToRequest(sessionRequest.topic, Sign.Model.JsonRpcResponse.JsonRpcResult(sessionRequest.request.id, "dummy"))
             }
         }
@@ -138,7 +154,7 @@ class SignClientInstrumentedAndroidTest {
         Timber.d("receiveRespondWithErrorToSessionRequest: start")
 
         val walletDelegate = object : AutoApproveSessionWalletDelegate() {
-            override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest) {
+            override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest, verifyContext: Sign.Model.VerifyContext) {
                 walletClientRespondToRequest(sessionRequest.topic, Sign.Model.JsonRpcResponse.JsonRpcError(sessionRequest.request.id, 0, "test error"))
             }
         }

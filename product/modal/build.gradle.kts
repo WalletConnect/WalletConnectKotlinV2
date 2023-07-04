@@ -61,7 +61,7 @@ dependencies {
     navigationComponent()
     qrCodeGenerator()
 
-    jUnit5()
+    jUnit4()
 
     releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
     releaseImplementation("com.walletconnect:sign:$SIGN_VERSION")

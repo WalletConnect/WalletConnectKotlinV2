@@ -3,10 +3,10 @@ package com.walletconnect.android.internal.common.explorer.data.network.model
 import androidx.core.net.toUri
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import junit.framework.Assert.assertNotNull
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import kotlin.test.assertNotNull
 
 @RunWith(RobolectricTestRunner::class)
 internal class DappListingsDTOJunit4Test {
@@ -39,9 +39,11 @@ internal class DappListingsDTOJunit4Test {
 
     @Test
     fun `Comparing uri host of the same uri with differing paths`() {
-        val uri1 = assertNotNull("https://gm.walletconnect.com/path1".toUri().host)
-        val uri2 = assertNotNull("https://gm.walletconnect.com/path2".toUri().host)
-        assert(uri1.contains(uri2))
+        val uri1 = "https://gm.walletconnect.com/path1".toUri().host
+        val uri2 = "https://gm.walletconnect.com/path2".toUri().host
+        assertNotNull(uri1)
+        assertNotNull(uri2)
+        assert(uri1!!.contains(uri2.toString()))
     }
 
     @Test

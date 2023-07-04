@@ -3,10 +3,10 @@ package com.walletconnect.sign.adapters
 import com.squareup.moshi.JsonDataException
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import junit.framework.TestCase.assertNotNull
+import junit.framework.TestCase.assertNull
 import org.intellij.lang.annotations.Language
-import org.junit.jupiter.api.Test
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
+import org.junit.Test
 
 internal class GenericPayloadsTest {
     private val moshi: Moshi = Moshi.Builder()

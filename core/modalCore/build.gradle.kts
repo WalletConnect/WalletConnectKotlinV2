@@ -52,7 +52,6 @@ android {
 }
 
 dependencies {
-
     appCompat()
     accompanist()
     compose()
@@ -62,5 +61,5 @@ dependencies {
     qrCodeGenerator()
     timber()
 
-    jUnit5()
+    jUnit4()
 }

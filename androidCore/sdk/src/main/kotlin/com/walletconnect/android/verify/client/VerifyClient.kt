@@ -6,12 +6,13 @@ import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.verify.data.VerifyService
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import org.koin.core.KoinApplication
 
-internal object VerifyClient : VerifyInterface {
-    private val verifyService get() = wcKoinApp.koin.get<VerifyService>()
+internal class VerifyClient(private val koinApp: KoinApplication = wcKoinApp) : VerifyInterface {
+    private val verifyService get() = koinApp.koin.get<VerifyService>()
 
     override fun initialize(verifyUrl: String?) {
-        wcKoinApp.modules(verifyModule(verifyUrl))
+        koinApp.modules(verifyModule(verifyUrl))
     }
 
     override fun register(attestationId: String, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {

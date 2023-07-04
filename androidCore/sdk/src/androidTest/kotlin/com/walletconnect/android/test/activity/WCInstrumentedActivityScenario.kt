@@ -4,26 +4,42 @@ import androidx.lifecycle.Lifecycle
 import androidx.test.core.app.ActivityScenario
 import com.walletconnect.android.BuildConfig
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.foundation.network.model.Relay
 import com.walletconnect.android.test.utils.TestClient
+import com.walletconnect.foundation.network.model.Relay
 import junit.framework.TestCase.assertTrue
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
-import org.junit.jupiter.api.extension.AfterAllCallback
-import org.junit.jupiter.api.extension.BeforeAllCallback
-import org.junit.jupiter.api.extension.ExtensionContext
-import org.junit.jupiter.api.fail
+import junit.framework.TestCase.fail
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
+import org.junit.rules.TestRule
+import org.junit.runner.Description
+import org.junit.runners.model.Statement
 import timber.log.Timber
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.seconds
 
-
-class WCInstrumentedActivityScenario : BeforeAllCallback, AfterAllCallback {
+class WCInstrumentedActivityScenario : TestRule {
     private var scenario: ActivityScenario<InstrumentedTestActivity>? = null
     private var scenarioLaunched: Boolean = false
     private val latch = CountDownLatch(1)
     private val testScope: CoroutineScope = CoroutineScope(Dispatchers.Default)
+
+    override fun apply(base: Statement, description: Description): Statement {
+        return object : Statement() {
+            override fun evaluate() {
+                beforeAll()
+                base.evaluate()
+                afterAll()
+            }
+        }
+    }
 
     private fun initLogging() {
         if (Timber.treeCount == 0) {
@@ -37,21 +53,13 @@ class WCInstrumentedActivityScenario : BeforeAllCallback, AfterAllCallback {
         }
     }
 
-    init {
-        initLogging()
-        Timber.d("init")
-    }
-
-    override fun beforeAll(context: ExtensionContext?) {
+    private fun beforeAll() {
         runBlocking(testScope.coroutineContext) {
-            Timber.d("beforeAll")
+            initLogging()
+            Timber.d("init")
             val isDappRelayReady = MutableStateFlow(false)
             val isWalletRelayReady = MutableStateFlow(false)
-
             val timeoutDuration = BuildConfig.TEST_TIMEOUT_SECONDS.seconds
-
-            val isEverythingReady: StateFlow<Boolean> = combine(isDappRelayReady, isWalletRelayReady, TestClient.Primary.isInitialized, TestClient.Secondary.isInitialized)
-            { dappRelay, walletRelay, dappSign, walletSign -> (dappRelay && walletRelay && dappSign && walletSign) }.stateIn(scope, SharingStarted.Eagerly, false)
 
             val dappRelayJob = TestClient.Secondary.Relay.eventsFlow.onEach { event ->
                 when (event) {
@@ -83,7 +91,7 @@ class WCInstrumentedActivityScenario : BeforeAllCallback, AfterAllCallback {
         }
     }
 
-    override fun afterAll(context: ExtensionContext?) {
+    private fun afterAll() {
         Timber.d("afterAll")
         scenario?.close()
     }
@@ -102,7 +110,7 @@ class WCInstrumentedActivityScenario : BeforeAllCallback, AfterAllCallback {
         try {
             assertTrue(latch.await(timeoutSeconds, TimeUnit.SECONDS))
         } catch (exception: Exception) {
-            fail(exception)
+            fail(exception.message)
         }
     }
 

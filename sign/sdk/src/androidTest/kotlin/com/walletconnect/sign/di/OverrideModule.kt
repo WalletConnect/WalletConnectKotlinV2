@@ -14,7 +14,12 @@ private const val KEY_STORE_ALIAS = "wc_keystore_key"
 
 // When called more that once, different `storagePrefix` must be defined.
 @JvmSynthetic
-internal fun overrideModule(relay: RelayConnectionInterface, pairing: PairingInterface, pairingController: PairingControllerInterface, storagePrefix: String = "test_") = module {
+internal fun overrideModule(
+    relay: RelayConnectionInterface,
+    pairing: PairingInterface,
+    pairingController: PairingControllerInterface,
+    storagePrefix: String = "test_"
+) = module {
     val sharedPrefsFile = storagePrefix + SHARED_PREFS_FILE
     val keyStoreAlias = storagePrefix + KEY_STORE_ALIAS
 

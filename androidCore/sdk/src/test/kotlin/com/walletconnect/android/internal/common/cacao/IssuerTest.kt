@@ -1,9 +1,9 @@
 package com.walletconnect.android.internal.common.cacao
 
 import com.walletconnect.android.internal.common.signing.cacao.Issuer
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
-import kotlin.test.assertEquals
+import junit.framework.TestCase.assertEquals
+import org.junit.Assert.assertThrows
+import org.junit.Test
 
 class IssuerTest {
     @Test
@@ -18,7 +18,7 @@ class IssuerTest {
     @Test
     fun getChainIdAndAccountIdFromInvalidIssuerTest() {
         val iss = Issuer("did:pkh:0x46586f7F766955CAF22A54dDA7570E6eFA94c16c")
-        assertThrows<java.lang.IndexOutOfBoundsException> { iss.address }
-        assertThrows<java.lang.IndexOutOfBoundsException> { iss.chainIdReference }
+        assertThrows(java.lang.IndexOutOfBoundsException::class.java) { iss.address }
+        assertThrows(java.lang.IndexOutOfBoundsException::class.java) { iss.chainIdReference }
     }
 }

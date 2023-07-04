@@ -5,11 +5,11 @@ import com.tinder.scarlet.utils.getRawType
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.adapter.JsonRpcResultAdapter
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
-import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.model.params.CoreAuthParams
 import com.walletconnect.android.internal.common.model.params.CoreChatParams
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
-import org.junit.jupiter.api.Test
+import com.walletconnect.android.internal.common.signing.cacao.Cacao
+import org.junit.Test
 import kotlin.reflect.jvm.jvmName
 
 internal class JsonRpcResponseJsonRpcResultJsonAdapterTest {

@@ -4,7 +4,6 @@ plugins {
     id("publish-module-android")
     id("com.squareup.sqldelight")
     id("com.google.devtools.ksp") version kspVersion
-    id("de.mannodermaus.android-junit5") version "1.9.3.0"
 }
 
 project.apply {
@@ -26,7 +25,6 @@ android {
         buildConfigField("Integer", "TEST_TIMEOUT_SECONDS", "${System.getenv("TEST_TIMEOUT_SECONDS") ?: 30}")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        testInstrumentationRunnerArguments += mutableMapOf("runnerBuilder" to "de.mannodermaus.junit5.AndroidJUnit5Builder")
         testInstrumentationRunnerArguments += mutableMapOf("clearPackageData" to "true")
 
         File("${rootDir.path}/gradle/consumer-rules").listFiles()?.let { proguardFiles ->
@@ -96,9 +94,8 @@ dependencies {
     kethereum()
     retrofit()
 
+    jUnit4()
     androidXTest()
-    jUnit5()
-    jUnit5Android()
     robolectric()
     mockk()
     testJson()

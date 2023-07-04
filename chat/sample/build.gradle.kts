@@ -58,6 +58,5 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
 
-    jUnit5()
-    jUnit5Android()
+    jUnit4()
 }
