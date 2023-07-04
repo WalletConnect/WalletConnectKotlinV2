@@ -25,6 +25,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.walletconnect.modal.ui.openWalletConnectModal
 import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.sample.dapp.ui.routes.Route
 import com.walletconnect.sample.dapp.ui.routes.bottom_routes.PairingSelectionResult
@@ -34,11 +35,7 @@ import com.walletconnect.sample_common.CompletePreviews
 import com.walletconnect.sample_common.ui.*
 import com.walletconnect.sample_common.ui.commons.BlueButton
 import com.walletconnect.sample_common.ui.theme.PreviewTheme
-import com.walletconnect.web3.modal.domain.configuration.Config
-import com.walletconnect.web3.modal.ui.navigateToWeb3Modal
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
-import timber.log.Timber
 
 @Composable
 fun ChainSelectionRoute(navController: NavController) {
@@ -55,7 +52,7 @@ fun ChainSelectionRoute(navController: NavController) {
                 when(it) {
                     PairingSelectionResult.NewPairing -> {
                         viewModel.connectToWallet { uri ->
-                            navController.navigateToWeb3Modal(Config.Connect(uri = uri))
+                            navController.openWalletConnectModal(uri)
                         }
                     }
                     PairingSelectionResult.None -> Unit
@@ -85,7 +82,7 @@ fun ChainSelectionRoute(navController: NavController) {
                     }
                 } else {
                     viewModel.connectToWallet { uri ->
-                        navController.navigateToWeb3Modal(Config.Connect(uri = uri))
+                        navController.openWalletConnectModal(uri = uri)
                     }
                 }
             } else {

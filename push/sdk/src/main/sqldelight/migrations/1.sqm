@@ -12,21 +12,17 @@ DROP TABLE IF EXISTS Subscriptions;
 CREATE TABLE IF NOT EXISTS Subscriptions (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     request_id INTEGER UNIQUE NOT NULL,
-    key_agreement_topic TEXT NOT NULL,
+    subscribe_topic TEXT NOT NULL,
+    dapp_did_public_key TEXT NOT NULL,
+    self_public_key TEXT NOT NULL,
     response_topic TEXT NOT NULL,
-    dapp_public_key TEXT DEFAULT NULL,
-    topic TEXT,
     account TEXT NOT NULL,
-    relay_protocol TEXT NOT NULL,
-    relay_data TEXT,
-    metadata_name TEXT NOT NULL,
-    metadata_description TEXT NOT NULL,
-    metadata_url TEXT NOT NULL,
-    metadata_icons TEXT AS List<String> NOT NULL,
-    metadata_native TEXT,
+    dapp_uri TEXT NOT NULL,
     did_jwt TEXT NOT NULL,
     map_of_scope TEXT AS Map<String, Pair<String, Boolean>> NOT NULL,
-    expiry INTEGER NOT NULL
+    expiry INTEGER NOT NULL,
+    dapp_generated_public_key TEXT DEFAULT NULL,
+    push_topic TEXT DEFAULT NULL
 );
 
 -- delete unused table
@@ -52,6 +48,5 @@ CREATE TABLE IF NOT EXISTS Proposal(
     request_id INTEGER UNIQUE NOT NULL,
     push_propose_topic TEXT UNIQUE NOT NULL,
     dapp_public_key_as_hex TEXT NOT NULL,
-    account TEXT NOT NULL,
-    dapp_metadata_id INTEGER NOT NULL
+    account TEXT NOT NULL
 );

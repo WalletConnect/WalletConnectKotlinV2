@@ -1,8 +1,10 @@
 package com.walletconnect.sign.client
 
 import com.walletconnect.android.Core
-import com.walletconnect.android.CoreClient
+import com.walletconnect.android.CoreInterface
 import java.net.URI
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 object Sign {
 
@@ -45,6 +47,17 @@ object Sign {
             val relayData: String?,
         ) : Model()
 
+        data class VerifyContext(
+            val id: Long,
+            val origin: String,
+            val validation: Validation,
+            val verifyUrl: String
+        ) : Model()
+
+        enum class Validation {
+            VALID, INVALID, UNKNOWN
+        }
+
         data class SessionRequest(
             val topic: String,
             val chainId: String?,
@@ -64,7 +77,7 @@ object Sign {
             val sessionTopic: String,
             val method: String,
             val params: String,
-            val chainId: String
+            val chainId: String,
         ) : Params()
 
         sealed class Namespace : Model() {
@@ -73,14 +86,14 @@ object Sign {
             data class Proposal(
                 val chains: List<String>? = null,
                 val methods: List<String>,
-                val events: List<String>
+                val events: List<String>,
             ) : Namespace()
 
             data class Session(
                 val chains: List<String>? = null,
                 val accounts: List<String>,
                 val methods: List<String>,
-                val events: List<String>
+                val events: List<String>,
             ) : Namespace()
         }
 
@@ -113,7 +126,7 @@ object Sign {
 
         data class UpdatedSession(
             val topic: String,
-            val namespaces: Map<String, Namespace.Session>
+            val namespaces: Map<String, Namespace.Session>,
         ) : Model()
 
         data class ApprovedSession(
@@ -179,14 +192,14 @@ object Sign {
     sealed class Params {
 
         data class Init constructor(
-            val core: CoreClient
+            val core: CoreInterface,
         ) : Params()
 
         data class Connect(
             val namespaces: Map<String, Model.Namespace.Proposal>? = null,
             val optionalNamespaces: Map<String, Model.Namespace.Proposal>? = null,
             val properties: Map<String, String>? = null,
-            val pairing: Core.Model.Pairing
+            val pairing: Core.Model.Pairing,
         ) : Params()
 
         data class Pair(val uri: String) : Params()
@@ -208,7 +221,7 @@ object Sign {
             val method: String,
             val params: String,
             val chainId: String,
-            val expiry: Long? = null
+            val expiry: Long? = null,
         ) : Params()
 
         data class Update(
@@ -216,7 +229,7 @@ object Sign {
             val namespaces: Map<String, Model.Namespace.Session>,
         ) : Params()
 
-        data class Ping(val topic: String) : Params()
+        data class Ping(val topic: String, val timeout: Duration = 30.seconds) : Params()
 
         data class Emit(val topic: String, val event: Model.SessionEvent, val chainId: String) :
             Params()

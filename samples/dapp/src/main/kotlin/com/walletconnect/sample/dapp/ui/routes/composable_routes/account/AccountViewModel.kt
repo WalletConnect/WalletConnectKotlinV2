@@ -5,6 +5,8 @@ import androidx.core.net.toUri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.walletconnect.modal.client.Modal
+import com.walletconnect.modal.client.WalletConnectModal
 import com.walletconnect.sample.dapp.domain.DappDelegate
 import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.sample.dapp.ui.accountArg
@@ -13,8 +15,6 @@ import com.walletconnect.sample_common.getEthSendTransaction
 import com.walletconnect.sample_common.getEthSignBody
 import com.walletconnect.sample_common.getEthSignTypedData
 import com.walletconnect.sample_common.getPersonalSignBody
-import com.walletconnect.web3.modal.client.Modal
-import com.walletconnect.web3.modal.client.Web3Modal
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -87,7 +87,7 @@ class AccountViewModel(
                 chainId = "$parentChain:$chainId"
             )
 
-            Web3Modal.request(requestParams) {
+            WalletConnectModal.request(requestParams) {
                 viewModelScope.launch {
                     _events.emit(
                         DappSampleEvents.RequestError(
@@ -97,7 +97,7 @@ class AccountViewModel(
                 }
             }
 
-            Web3Modal.getActiveSessionByTopic(requestParams.sessionTopic)?.redirect?.toUri()
+            WalletConnectModal.getActiveSessionByTopic(requestParams.sessionTopic)?.redirect?.toUri()
                 ?.let { deepLinkUri -> sendSessionRequestDeepLink(deepLinkUri) }
         }
     }
@@ -109,7 +109,7 @@ class AccountViewModel(
         }
 
         val listOfMethodsByChainId: List<String> =
-            Web3Modal.getListOfActiveSessions()
+            WalletConnectModal.getListOfActiveSessions()
                 .filter { session -> session.topic == DappDelegate.selectedSessionTopic }
                 .flatMap { session ->
                     session.namespaces
@@ -118,7 +118,7 @@ class AccountViewModel(
                 }
 
         val listOfMethodsByNamespace: List<String> =
-            Web3Modal.getListOfActiveSessions()
+            WalletConnectModal.getListOfActiveSessions()
                 .filter { session -> session.topic == DappDelegate.selectedSessionTopic }
                 .flatMap { session ->
                     session.namespaces

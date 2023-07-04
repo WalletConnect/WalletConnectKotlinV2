@@ -23,13 +23,13 @@ object WalletDelegate : SignClient.WalletDelegate {
         SignClient.setWalletDelegate(this)
     }
 
-    override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal) {
+    override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal, verifyContext: Sign.Model.VerifyContext) {
         scope.launch {
             _wcEventModels.emit(sessionProposal)
         }
     }
 
-    override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest) {
+    override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest, verifyContext: Sign.Model.VerifyContext) {
         scope.launch {
             _wcEventModels.emit(sessionRequest)
         }

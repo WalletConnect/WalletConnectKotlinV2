@@ -2,10 +2,12 @@
 
 package com.walletconnect.auth.client.mapper
 
-import com.walletconnect.android.internal.common.signing.cacao.Cacao
-import com.walletconnect.android.internal.common.signing.cacao.CacaoType
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
+import com.walletconnect.android.internal.common.model.Validation
+import com.walletconnect.android.internal.common.signing.cacao.Cacao
+import com.walletconnect.android.internal.common.signing.cacao.CacaoType
+import com.walletconnect.android.verify.data.model.VerifyContext
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.auth.common.model.*
 import java.text.SimpleDateFormat
@@ -25,7 +27,19 @@ internal fun ConnectionState.toClient(): Auth.Event.ConnectionStateChange =
 internal fun SDKError.toClient(): Auth.Event.Error = Auth.Event.Error(Auth.Model.Error(this.exception))
 
 @JvmSynthetic
-internal fun Events.OnAuthRequest.toClient(): Auth.Event.AuthRequest = Auth.Event.AuthRequest(id, pairingTopic, payloadParams.toClient())
+internal fun Events.OnAuthRequest.toClientAuthRequest(): Auth.Event.AuthRequest = Auth.Event.AuthRequest(id, pairingTopic, payloadParams.toClient())
+
+@JvmSynthetic
+internal fun Events.OnAuthRequest.toClientAuthContext(): Auth.Event.VerifyContext =
+    Auth.Event.VerifyContext(id, verifyContext.origin, verifyContext.validation.toClientValidation(), verifyContext.verifyUrl)
+
+@JvmSynthetic
+internal fun Validation.toClientValidation(): Auth.Model.Validation =
+    when (this) {
+        Validation.VALID -> Auth.Model.Validation.VALID
+        Validation.INVALID -> Auth.Model.Validation.INVALID
+        Validation.UNKNOWN -> Auth.Model.Validation.UNKNOWN
+    }
 
 internal fun PayloadParams.toClient(): Auth.Model.PayloadParams =
     Auth.Model.PayloadParams(
@@ -107,3 +121,6 @@ internal fun Cacao.Payload.toClient(): Auth.Model.Cacao.Payload =
 
 @JvmSynthetic
 internal fun Cacao.Signature.toClient(): Auth.Model.Cacao.Signature = Auth.Model.Cacao.Signature(t, s, m)
+
+@JvmSynthetic
+internal fun VerifyContext.toClient(): Auth.Model.VerifyContext = Auth.Model.VerifyContext(id, origin, validation.toClientValidation(), verifyUrl)

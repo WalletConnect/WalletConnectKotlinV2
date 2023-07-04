@@ -20,9 +20,6 @@ interface PushDappInterface {
 
     fun initialize(init: Push.Dapp.Params.Init, onError: (Push.Model.Error) -> Unit)
 
-    @Deprecated("Request is deprecated. Use propose instead", level = DeprecationLevel.WARNING)
-    fun request(params: Push.Dapp.Params.Request, onSuccess: (Push.Dapp.Model.RequestId) -> Unit, onError: (Push.Model.Error) -> Unit)
-
     fun propose(params: Push.Dapp.Params.Propose, onSuccess: (Push.Dapp.Model.RequestId) -> Unit, onError: (Push.Model.Error) -> Unit)
 
     fun notify(params: Push.Dapp.Params.Notify, onError: (Push.Model.Error) -> Unit)

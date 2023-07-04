@@ -3,7 +3,7 @@ package com.walletconnect.push.common
 import android.net.Uri
 import androidx.annotation.Keep
 import com.walletconnect.android.Core
-import com.walletconnect.android.CoreClient
+import com.walletconnect.android.CoreInterface
 import com.walletconnect.android.cacao.SignatureInterface
 
 object Push {
@@ -14,7 +14,15 @@ object Push {
 
         data class MessageRecord(val id: String, val topic: String, val publishedAt: Long, val message: Message) : Model()
 
-        data class Subscription(val requestId: Long, val topic: String, val account: String, val relay: Relay, val metadata: Core.Model.AppMetaData, val scope: Map<ScopeName, ScopeSetting>, val expiry: Long) : Model() {
+        data class Subscription(
+            val requestId: Long,
+            val topic: String,
+            val account: String,
+            val relay: Relay,
+            val metadata: Core.Model.AppMetaData,
+            val scope: Map<ScopeName, ScopeSetting>,
+            val expiry: Long,
+        ) : Model() {
 
             data class Relay(val protocol: String, val data: String?)
 
@@ -50,7 +58,7 @@ object Push {
 
         sealed class Params {
 
-            data class Init(val core: CoreClient, val castUrl: String?) : Params()
+            data class Init(val core: CoreInterface, val castUrl: String?) : Params()
 
             data class Request(val account: String, val pairingTopic: String) : Params()
 
@@ -74,34 +82,34 @@ object Push {
 
             data class Delete(val topic: String) : Event()
 
-            sealed class Subscription: Event() {
+            sealed class Subscription : Event() {
 
-                data class Result(val subscription: Model.Subscription): Subscription()
+                data class Result(val subscription: Model.Subscription) : Subscription()
 
-                data class Error(val id: Long, val reason: String): Subscription()
+                data class Error(val id: Long, val reason: String) : Subscription()
             }
 
-            sealed class Update: Event() {
+            sealed class Update : Event() {
 
-                data class Result(val subscription: Model.Subscription): Update()
+                data class Result(val subscription: Model.Subscription) : Update()
 
-                data class Error(val id: Long, val reason: String): Update()
+                data class Error(val id: Long, val reason: String) : Update()
             }
         }
 
         sealed class Params {
 
-            class Init(val core: CoreClient) : Params()
+            class Init(val core: CoreInterface) : Params()
 
             data class Approve(val id: Long, val onSign: (String) -> Model.Cacao.Signature?) : Params()
 
             data class Reject(val id: Long, val reason: String) : Params()
 
-            data class Subscribe(val dappUrl: Uri, val account: String, val onSign: (String) -> Model.Cacao.Signature?): Params()
+            data class Subscribe(val dappUrl: Uri, val account: String, val onSign: (String) -> Model.Cacao.Signature?) : Params()
 
-            data class Update(val topic: String, val scope: List<String>): Params()
+            data class Update(val topic: String, val scope: List<String>) : Params()
 
-            data class MessageHistory(val topic: String): Params()
+            data class MessageHistory(val topic: String) : Params()
 
             data class DeleteSubscription(val topic: String) : Params()
 

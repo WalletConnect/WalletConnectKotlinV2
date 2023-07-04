@@ -1,6 +1,6 @@
 package com.walletconnect.push.wallet.client
 
-import com.walletconnect.android.internal.common.di.DBUtils
+import com.walletconnect.android.internal.common.di.DatabaseConfig
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
@@ -21,8 +21,9 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
+import org.koin.core.KoinApplication
 
-class PushWalletProtocol : PushWalletInterface {
+class PushWalletProtocol(private val koinApp: KoinApplication = wcKoinApp) : PushWalletInterface {
     private lateinit var pushWalletEngine: PushWalletEngine
 
     companion object {
@@ -31,16 +32,16 @@ class PushWalletProtocol : PushWalletInterface {
 
     override fun initialize(init: Push.Wallet.Params.Init, onError: (Push.Model.Error) -> Unit) {
         try {
-            wcKoinApp.modules(
+            koinApp.modules(
                 pushJsonRpcModule(),
-                pushStorageModule(DBUtils.PUSH_WALLET_SDK_DB_NAME),
+                pushStorageModule(koinApp.koin.get<DatabaseConfig>().PUSH_WALLET_SDK_DB_NAME),
                 walletEngineModule(),
                 messageModule(),
                 commonModule(),
                 pushEngineUseCaseModules()
             )
 
-            pushWalletEngine = wcKoinApp.koin.get()
+            pushWalletEngine = koinApp.koin.get()
             pushWalletEngine.setup()
         } catch (e: Exception) {
             onError(Push.Model.Error(e))
@@ -52,12 +53,11 @@ class PushWalletProtocol : PushWalletInterface {
 
         pushWalletEngine.engineEvent.onEach { event ->
             when (event) {
-                is EngineDO.PushRequest -> delegate.onPushRequest(event.toWalletClient())
-                is EngineDO.PushPropose -> delegate.onPushProposal(event.toWalletClient())
+                is EngineDO.PushPropose.WithMetaData -> delegate.onPushProposal(event.toWalletClient())
                 is EngineDO.PushRecord -> delegate.onPushMessage(Push.Wallet.Event.Message(event.toWalletClient()))
                 is EngineDO.PushDelete -> delegate.onPushDelete(event.toWalletClient())
-                is EngineDO.PushSubscription -> delegate.onPushSubscription(event.toWalletClient())
-                is EngineDO.PushSubscribeError -> delegate.onPushSubscription(event.toWalletClient())
+                is EngineDO.PushSubscribe.RespondedWithMetaData -> delegate.onPushSubscription(event.toWalletClient())
+                is EngineDO.PushSubscribe.Error -> delegate.onPushSubscription(event.toWalletClient())
                 is EngineDO.PushUpdate -> delegate.onPushUpdate(event.toWalletClient())
                 is EngineDO.PushUpdateError -> delegate.onPushUpdate(event.toWalletClient())
                 is SDKError -> delegate.onError(event.toClient())
@@ -72,12 +72,8 @@ class PushWalletProtocol : PushWalletInterface {
             supervisorScope {
                 try {
                     pushWalletEngine.subscribeToDapp(params.dappUrl, params.account, params.onSign.toWalletClient(),
-                        onSuccess = { _, _ ->
-                            onSuccess()
-                        },
-                        onFailure = {
-                            onError(Push.Model.Error(it))
-                        }
+                        onSuccess = { _, _ -> onSuccess() },
+                        onFailure = { onError(Push.Model.Error(it)) }
                     )
                 } catch (e: Exception) {
                     onError(Push.Model.Error(e))
@@ -138,8 +134,8 @@ class PushWalletProtocol : PushWalletInterface {
         checkEngineInitialization()
 
         return runBlocking {
-            pushWalletEngine.getListOfActiveSubscriptions().mapValues { (_, subscription) ->
-                subscription.toCommonClient()
+            pushWalletEngine.getListOfActiveSubscriptions().mapValues { (_, subscriptionWMetadata) ->
+                subscriptionWMetadata.toCommonClient()
             }
         }
     }

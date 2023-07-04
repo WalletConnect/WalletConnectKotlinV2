@@ -4,8 +4,6 @@ import com.walletconnect.push.common.Push
 
 interface PushWalletInterface {
     interface Delegate {
-        @Deprecated("OnPushRequest will be removed in a future version. Use onPushProposal")
-        fun onPushRequest(pushRequest: Push.Wallet.Event.Request)
 
         fun onPushProposal(pushProposal: Push.Wallet.Event.Proposal)
 

@@ -81,10 +81,10 @@ dependencies {
 
     debugImplementation(project(":androidCore:sdk"))
     debugImplementation(project(":push:sdk"))
-    debugImplementation(project(":web3:modal"))
+    debugImplementation(project(":product:modal"))
 
     releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
     releaseImplementation("com.walletconnect:android-core")
     releaseImplementation("com.walletconnect:push")
-    releaseImplementation(project(":web3:modal"))
+    releaseImplementation(project(":product:modal"))
 }
