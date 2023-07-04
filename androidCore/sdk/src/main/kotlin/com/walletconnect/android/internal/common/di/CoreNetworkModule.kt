@@ -23,11 +23,14 @@ import com.walletconnect.utils.removeLeadingZeros
 import com.walletconnect.utils.toBinaryString
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.android.ext.koin.androidApplication
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import java.util.*
 import java.util.concurrent.TimeUnit
+
+const val USER_AGENT_HEADER = "User-Agent"
 
 @Suppress("LocalVariableName")
 @JvmSynthetic
@@ -60,17 +63,21 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
 
     single(named(AndroidCommonDITags.INTERCEPTOR)) {
         Interceptor { chain ->
-            val updatedRequest = chain.request().newBuilder()
-                .addHeader("User-Agent", get(named(AndroidCommonDITags.USER_AGENT)))
-                .build()
-
-            chain.proceed(updatedRequest)
+            if (chain.request().headers.names().any { it == USER_AGENT_HEADER}) {
+                chain.proceed(chain.request())
+            } else {
+                val updatedRequest = chain.request().newBuilder()
+                    .addHeader(USER_AGENT_HEADER, get(named(AndroidCommonDITags.USER_AGENT)))
+                    .build()
+                chain.proceed(updatedRequest)
+            }
         }
     }
 
     single(named(AndroidCommonDITags.OK_HTTP)) {
         OkHttpClient.Builder()
             .addInterceptor(get<Interceptor>(named(AndroidCommonDITags.INTERCEPTOR)))
+            .addInterceptor(HttpLoggingInterceptor().apply { setLevel(HttpLoggingInterceptor.Level.BODY) })
             .authenticator(authenticator = { _, response ->
                 response.request.run {
                     if (Uri.parse(serverUrl).host == this.url.host) {
