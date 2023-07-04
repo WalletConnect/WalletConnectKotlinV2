@@ -39,6 +39,8 @@ fun compileListOfSDKs(): List<Triple<String, String?, String>> = listOf(
     Triple("web3", "wallet", "android"),
     Triple("web3", "inbox", "android"),
     Triple("androidCore", "bom", "jvm"),
+    Triple("core", "modalCore", "android"),
+    Triple("product", "modal", "android")
 )
 
 // This extension function will determine which task to run based on the type passed
