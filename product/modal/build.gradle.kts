@@ -24,6 +24,7 @@ android {
             targetSdk = TARGET_SDK
         }
 
+        buildConfigField(type = "String", name = "MODAL_VERSION", value = "\"${requireNotNull(extra.get(KEY_PUBLISH_ARTIFACT_ID))}-${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\"")
         buildConfigField(type = "String", name = "SDK_VERSION", value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

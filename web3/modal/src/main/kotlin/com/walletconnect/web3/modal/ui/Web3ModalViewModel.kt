@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.internal.common.explorer.domain.usecase.GetWalletsUseCaseInterface
 import com.walletconnect.android.internal.common.wcKoinApp
+import com.walletconnect.web3.modal.BuildConfig
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.domain.configuration.CONFIG_ARG
 import com.walletconnect.web3.modal.domain.configuration.Config
@@ -64,7 +65,7 @@ internal class Web3ModalViewModel(
 
     private suspend fun Config.Connect.connectionState() {
         try {
-            val wallets = getWalletsRecommendationsUseCase(chains?.joinToString())
+            val wallets = getWalletsRecommendationsUseCase(BuildConfig.MODAL_VERSION, chains?.joinToString())
             _modalState.value = Web3ModalState.ConnectState(uri, wallets)
         } catch (e: Exception) {
             Timber.e(e)

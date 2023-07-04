@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.internal.common.explorer.domain.usecase.GetWalletsUseCaseInterface
 import com.walletconnect.android.internal.common.wcKoinApp
+import com.walletconnect.modal.BuildConfig
 import com.walletconnect.modal.client.Modal
 import com.walletconnect.modal.domain.WalletConnectModalDelegate
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -57,7 +58,7 @@ internal class WalletConnectModalViewModel(
 
     private suspend fun createModalState(uri: String) {
         try {
-            val wallets = getWalletsUseCase(chains)
+            val wallets = getWalletsUseCase(BuildConfig.MODAL_VERSION, chains)
             _modalState.value = WalletConnectModalState(uri, wallets)
         } catch (e: Exception) {
             Timber.e(e)
