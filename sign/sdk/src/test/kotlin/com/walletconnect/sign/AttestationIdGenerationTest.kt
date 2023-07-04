@@ -9,8 +9,8 @@ import com.walletconnect.android.internal.common.model.SessionProposer
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpc
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
+import junit.framework.TestCase.assertEquals
+import org.junit.Test
 
 class AttestationIdGenerationTest {
 
