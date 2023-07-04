@@ -29,7 +29,7 @@ tasks.register("releaseAllSDKs") {
 fun generateListOfModuleTasks(type: ReleaseType): List<Task> = compileListOfSDKs().extractListOfPublishingTasks(type)
 
 // Triple consists of the root module name, the child module name, and if it's a JVM or Android module
-fun compileListOfSDKs(): List<Triple<String, String?, String>> = listOf(
+fun compileListOfSDKs(): List<Triple<String, String?, String>> = mutableListOf(
     Triple("foundation", null, "jvm"),
     Triple("androidCore", "sdk", "android"),
     Triple("sign", "sdk", "android"),
@@ -38,10 +38,12 @@ fun compileListOfSDKs(): List<Triple<String, String?, String>> = listOf(
     Triple("push", "sdk", "android"),
     Triple("web3", "wallet", "android"),
     Triple("web3", "inbox", "android"),
-    Triple("androidCore", "bom", "jvm"),
     Triple("core", "modalCore", "android"),
-    Triple("product", "modal", "android")
-)
+    Triple("product", "modal", "android"),
+).apply {
+    // The BOM has to be last artifact
+    add(Triple("androidCore", "bom", "jvm"))
+}
 
 // This extension function will determine which task to run based on the type passed
 fun List<Triple<String, String?, String>>.extractListOfPublishingTasks(type: ReleaseType): List<Task> = map { (parentModule, childModule, env) ->
