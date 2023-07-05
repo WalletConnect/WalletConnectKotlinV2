@@ -8,16 +8,23 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.walletconnect.android.internal.common.explorer.data.model.Wallet
 import com.walletconnect.modal.R
+import com.walletconnect.modal.ui.components.ModalSearchTopBar
 import com.walletconnect.modal.ui.components.ModalTopBar
 import com.walletconnect.modal.ui.components.walletsGridItems
 import com.walletconnect.modal.ui.navigation.Route
@@ -38,7 +45,6 @@ internal fun AllWalletsRoute(
         onWalletItemClick = {
             uriHandler.goToNativeWallet(uri, it.nativeLink, it.universalLink, it.playStoreLink)
         },
-        onScanIconClick = { navController.navigate(Route.ScanQRCode.path) },
         onBackClick = navController::popBackStack
     )
 }
@@ -47,19 +53,19 @@ internal fun AllWalletsRoute(
 private fun AllWalletsContent(
     wallets: List<Wallet>,
     onWalletItemClick: (Wallet) -> Unit,
-    onScanIconClick: () -> Unit,
     onBackClick: () -> Unit,
 ) {
+    var value by rememberSaveable() {
+        mutableStateOf("")
+    }
+
     Column {
-        ModalTopBar(
-            title = "Connect your wallet",
+        ModalSearchTopBar(
+            searchValue = value,
+            onSearchValueChange = {
+                value = it
+            },
             onBackPressed = onBackClick,
-            endIcon = {
-                Image(imageVector = ImageVector.vectorResource(id = R.drawable.ic_scan),
-                    colorFilter = ColorFilter.tint(ModalTheme.colors.main),
-                    contentDescription = "Scan Icon",
-                    modifier = Modifier.clickable { onScanIconClick() })
-            }
         )
         LazyVerticalGrid(
             modifier = Modifier
@@ -67,18 +73,18 @@ private fun AllWalletsContent(
                 .padding(horizontal = 4.dp),
             columns = GridCells.Fixed(4)
         ) {
-            walletsGridItems(wallets, onWalletItemClick)
+            walletsGridItems(wallets.filteredWallets(value), onWalletItemClick)
         }
     }
-    
+
 }
 
-
+private fun List<Wallet>.filteredWallets(value: String): List<Wallet> = this.filter { it.name.startsWith(prefix = value, ignoreCase = true) }
 
 @Preview
 @Composable
 private fun AllWalletsPreview() {
     ModalPreview {
-        AllWalletsContent(listOf(), {}, {},{})
+        AllWalletsContent(listOf(), {}, {})
     }
 }
