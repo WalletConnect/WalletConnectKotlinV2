@@ -28,6 +28,10 @@ internal fun walletEngineModule() = module {
             extractPushConfigUseCase = get(),
             codec = get(),
             logger = get(),
+            syncClient = get(),
+            onSyncUpdateEventUseCase = get(),
+            setupSyncInPushUseCase = get(),
+            setSubscriptionWithSymmetricKeyToPushSubscriptionStoreUseCase = get()
         )
     }
 }

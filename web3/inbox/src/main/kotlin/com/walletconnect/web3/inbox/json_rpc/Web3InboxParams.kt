@@ -302,7 +302,6 @@ internal sealed interface Web3InboxParams : ClientParams {
 
     @JsonClass(generateAdapter = true)
     data class SubscriptionParams(
-        val requestId: Long,
         val topic: String,
         val account: String,
         val relay: RelayParams,

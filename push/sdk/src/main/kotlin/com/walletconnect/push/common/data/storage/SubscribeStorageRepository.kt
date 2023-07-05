@@ -2,103 +2,114 @@ package com.walletconnect.push.common.data.storage
 
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.Expiry
+import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.push.common.model.EngineDO
-import com.walletconnect.push.common.storage.data.dao.SubscriptionsQueries
+import com.walletconnect.push.common.storage.data.dao.ActiveSubscriptionsQueries
+import com.walletconnect.push.common.storage.data.dao.RequestedSubscriptionQueries
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class SubscribeStorageRepository(private val subscriptionQueries: SubscriptionsQueries) {
+class SubscribeStorageRepository(
+    private val requestedSubscriptionQueries: RequestedSubscriptionQueries,
+    private val activeSubscriptionsQueries: ActiveSubscriptionsQueries,
+) {
 
-    suspend fun insertOrReplaceSubscriptionRequested(
-        requestId: Long,
+    suspend fun insertOrAbortRequestedSubscription(
         subscribeTopic: String,
-        dappDidPublicKey: String,
-        selfPublicKey: String,
         responseTopic: String,
         account: String,
-        dappUri: String,
-        didJwt: String,
         mapOfScope: Map<String, Pair<String, Boolean>>,
         expiry: Long,
     ) = withContext(Dispatchers.IO) {
-        subscriptionQueries.insertOrReplaceSubscribeRequested(
-            request_id = requestId,
+        requestedSubscriptionQueries.insertOrAbortRequestedSubscribtion(
             subscribe_topic = subscribeTopic,
-            dapp_did_public_key = dappDidPublicKey,
-            self_public_key = selfPublicKey,
             response_topic = responseTopic,
             account = account,
-            dapp_uri = dappUri,
-            did_jwt = didJwt,
             map_of_scope = mapOfScope,
-            expiry = expiry
+            expiry = expiry,
         )
     }
 
-    suspend fun getSubscribeByPeerPublicKey(peerPublicKey: String): EngineDO.PushSubscribe.Responded? = withContext(Dispatchers.IO) {
-        subscriptionQueries.getSubscribeByDappGeneratedPublicKey(peerPublicKey, ::toSubscription).executeAsOneOrNull() as? EngineDO.PushSubscribe.Responded
+    suspend fun isAlreadyRequested(account: String, subscribeTopic: String): Boolean = withContext(Dispatchers.IO) {
+        requestedSubscriptionQueries.isAlreadyRequested(account, subscribeTopic).executeAsOneOrNull() ?: false
     }
 
-    suspend fun updateSubscribeToResponded(requestId: Long, dappGeneratedPublicKey: String, pushTopic: String, updatedExpiry: Long) = withContext(Dispatchers.IO) {
-        subscriptionQueries.updateOrReplaceToResponded(dappGeneratedPublicKey, pushTopic, updatedExpiry, requestId)
+    //todo: this might need to be replaced by pushTopic
+    suspend fun getSubscriptionByDappGeneratedPublicKey(peerPublicKey: String): EngineDO.Subscription.Active? = withContext(Dispatchers.IO) {
+        activeSubscriptionsQueries.getSubscriptionByDappGeneratedPublicKey(peerPublicKey, ::toActiveSubscriptionWithoutMetadata).executeAsOneOrNull()
     }
 
-    suspend fun updateSubscriptionScopeAndJwtByPushTopic(pushTopic: String, updateScope: Map<String, Pair<String, Boolean>>, updateJwt: String, newExpiry: Long) = withContext(Dispatchers.IO) {
-        subscriptionQueries.updateSubscriptionScopeAndJwtByPushTopic(updateScope, updateJwt, newExpiry, pushTopic)
+    suspend fun insertOrAbortActiveSubscription(
+        account: String,
+        updatedExpiry: Long,
+        relayProtocol: String,
+        relayData: String?,
+        mapOfScope: Map<String, Pair<String, Boolean>>,
+        dappGeneratedPublicKey: String,
+        pushTopic: String,
+        responseTopic: String,
+    ) = withContext(Dispatchers.IO) {
+        activeSubscriptionsQueries.insertOrAbortActiveSubscribtion(account, updatedExpiry, relayProtocol, relayData, mapOfScope, dappGeneratedPublicKey, pushTopic, responseTopic)
     }
 
-    suspend fun getAllSubscriptions(): List<EngineDO.PushSubscribe> = withContext(Dispatchers.IO) {
-        subscriptionQueries.getAllSubscriptions(::toSubscription).executeAsList()
+    suspend fun updateSubscriptionScopeAndJwtByPushTopic(pushTopic: String, updateScope: Map<String, Pair<String, Boolean>>, newExpiry: Long) = withContext(Dispatchers.IO) {
+        activeSubscriptionsQueries.updateSubscriptionScopeAndExpiryByPushTopic(updateScope, newExpiry, pushTopic)
+    }
+
+    suspend fun getActiveSubscriptionByPushTopic(pushTopic: String): EngineDO.Subscription.Active? = withContext(Dispatchers.IO) {
+        activeSubscriptionsQueries.getActiveSubscriptionByPushTopic(pushTopic, ::toActiveSubscriptionWithoutMetadata).executeAsOneOrNull()
+    }
+
+    suspend fun getAllActiveSubscriptions(): List<EngineDO.Subscription.Active> = withContext(Dispatchers.IO) {
+        activeSubscriptionsQueries.getAllActiveSubscriptions(::toActiveSubscriptionWithoutMetadata).executeAsList()
+    }
+
+    suspend fun getRequestedSubscriptionByResponseTopic(responseTopic: String): EngineDO.Subscription.Requested? = withContext(Dispatchers.IO) {
+        requestedSubscriptionQueries.getRequestedSubscriptionByResponseTopic(responseTopic, ::toRequestedSubscription).executeAsOneOrNull()
     }
 
     suspend fun deleteSubscriptionByPushTopic(pushTopic: String) = withContext(Dispatchers.IO) {
-        subscriptionQueries.deleteByTopicByPushTopic(pushTopic)
-    }
-
-    suspend fun deleteSubscriptionByRequestId(requestId: Long) = withContext(Dispatchers.IO) {
-        subscriptionQueries.deleteByTopicByRequestId(requestId)
-    }
-
-    private fun toSubscription(
-        request_id: Long,
-        subscribe_topic: String,
-        dapp_did_public_key: String,
-        self_public_key: String,
-        response_topic: String,
-        account: String,
-        dapp_uri: String,
-        did_jwt: String,
-        map_of_scope: Map<String, Pair<String, Boolean>>,
-        expiry: Long,
-        dapp_generated_public_key: String?,
-        push_topic: String?,
-    ): EngineDO.PushSubscribe {
-        return if (!dapp_generated_public_key.isNullOrBlank() && !push_topic.isNullOrBlank()) {
-            EngineDO.PushSubscribe.Responded(
-                requestId = request_id,
-                subscribeTopic = Topic(subscribe_topic),
-                dappDidPublicKey = PublicKey(dapp_did_public_key),
-                selfPublicKey = PublicKey(self_public_key),
-                responseTopic = Topic(response_topic),
-                account = AccountId(account),
-                mapOfScope = map_of_scope.map { entry -> entry.key to EngineDO.PushScope.Cached(entry.key, entry.value.first, entry.value.second) }.toMap(),
-                expiry = Expiry(expiry),
-                dappGeneratedPublicKey = PublicKey(dapp_generated_public_key),
-                pushTopic = Topic(push_topic)
-            )
-        } else {
-            EngineDO.PushSubscribe.Requested(
-                requestId = request_id,
-                subscribeTopic = Topic(subscribe_topic),
-                dappDidPublicKey = PublicKey(dapp_did_public_key),
-                selfPublicKey = PublicKey(self_public_key),
-                responseTopic = Topic(response_topic),
-                account = AccountId(account),
-                mapOfScope = map_of_scope.map { entry -> entry.key to EngineDO.PushScope.Cached(entry.key, entry.value.first, entry.value.second) }.toMap(),
-                expiry = Expiry(expiry),
-            )
+        activeSubscriptionsQueries.transaction {
+            val responseTopic = activeSubscriptionsQueries.getActiveSubscriptionResponseTopicByPushTopic(pushTopic).executeAsOneOrNull() ?: rollback()
+            requestedSubscriptionQueries.deleteByResponseTopic(responseTopic)
+            activeSubscriptionsQueries.deleteByPushTopic(pushTopic)
         }
     }
+
+    private fun toActiveSubscriptionWithoutMetadata(
+        account: String,
+        expiry: Long,
+        relay_protocol: String,
+        relay_data: String?,
+        map_of_scope: Map<String, Pair<String, Boolean>>,
+        dapp_generated_public_key: String,
+        push_topic: String,
+        response_topic: String,
+    ): EngineDO.Subscription.Active = EngineDO.Subscription.Active(
+        responseTopic = Topic(response_topic),
+        account = AccountId(account),
+        mapOfScope = map_of_scope.map { entry -> entry.key to EngineDO.PushScope.Cached(entry.key, entry.value.first, entry.value.second) }.toMap(),
+        expiry = Expiry(expiry),
+        relay = RelayProtocolOptions(relay_protocol, relay_data),
+        dappGeneratedPublicKey = PublicKey(dapp_generated_public_key),
+        pushTopic = Topic(push_topic),
+        dappMetaData = null
+    )
+
+
+    private fun toRequestedSubscription(
+        subscribe_topic: String,
+        account: String,
+        map_of_scope: Map<String, Pair<String, Boolean>>,
+        response_topic: String,
+        expiry: Long,
+    ): EngineDO.Subscription.Requested = EngineDO.Subscription.Requested(
+        responseTopic = Topic(response_topic),
+        account = AccountId(account),
+        mapOfScope = map_of_scope.map { entry -> entry.key to EngineDO.PushScope.Cached(entry.key, entry.value.first, entry.value.second) }.toMap(),
+        expiry = Expiry(expiry),
+        subscribeTopic = Topic(subscribe_topic),
+    )
 }

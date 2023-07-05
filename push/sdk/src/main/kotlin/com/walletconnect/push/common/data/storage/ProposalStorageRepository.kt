@@ -19,7 +19,7 @@ internal class ProposalStorageRepository(
         proposalQueries.insertOrIgnoreProposal(requestId, proposalTopic, dappPublicKeyAsHex, accountId)
     }
 
-    suspend fun getProposalByRequestId(requestId: Long): EngineDO.PushPropose.WithoutMetaData? = withContext(Dispatchers.IO) {
+    suspend fun getProposalByRequestId(requestId: Long): EngineDO.PushProposal? = withContext(Dispatchers.IO) {
         proposalQueries.getProposalByRequestId(requestId, mapper = ::toPushPropose).executeAsOneOrNull()
     }
 
@@ -28,7 +28,7 @@ internal class ProposalStorageRepository(
         push_propose_topic: String,
         dapp_public_key_as_hex: String,
         accountId: String,
-    ): EngineDO.PushPropose.WithoutMetaData = EngineDO.PushPropose.WithoutMetaData(
+    ): EngineDO.PushProposal = EngineDO.PushProposal(
         requestId = requestId,
         proposalTopic = Topic(push_propose_topic),
         dappPublicKey = PublicKey(dapp_public_key_as_hex),
