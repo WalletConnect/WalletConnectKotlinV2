@@ -23,4 +23,5 @@ enum class AndroidCommonDITags {
     HISTORY_SERVER_RETROFIT,
     EXPLORER_URL,
     EXPLORER_RETROFIT,
+    EXPLORER_OKHTTP
 }

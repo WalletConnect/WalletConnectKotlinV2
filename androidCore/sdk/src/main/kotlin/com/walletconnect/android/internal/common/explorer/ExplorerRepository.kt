@@ -3,7 +3,6 @@ package com.walletconnect.android.internal.common.explorer
 import android.os.Build
 import androidx.core.net.toUri
 import com.walletconnect.android.BuildConfig
-import com.walletconnect.android.internal.common.di.USER_AGENT_HEADER
 import com.walletconnect.android.internal.common.explorer.data.model.App
 import com.walletconnect.android.internal.common.explorer.data.model.Colors
 import com.walletconnect.android.internal.common.explorer.data.model.DappListings
@@ -66,7 +65,7 @@ class ExplorerRepository(
     }
 
     private fun buildModalListingHeaders(modalVersion: String): Map<String, String> = mapOf(
-        Pair(USER_AGENT_HEADER, "$modalVersion/kotlin-${BuildConfig.SDK_VERSION}/android-${Build.VERSION.RELEASE}"),
+        Pair("user-agent", "$modalVersion/kotlin-${BuildConfig.SDK_VERSION}/android-${Build.VERSION.RELEASE}"),
         Pair("referer", selfAppMetaData.name)
     )
 
