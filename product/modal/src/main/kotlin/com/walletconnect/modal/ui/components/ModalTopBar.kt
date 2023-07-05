@@ -108,7 +108,7 @@ internal fun ModalSearchTopBar(
                     HorizontalSpacer(width = 4.dp)
                     Icon(
                         tint = ModalTheme.colors.secondaryTextColor,
-                        imageVector = ImageVector.vectorResource(id = R.drawable.ic_lens),
+                        imageVector = ImageVector.vectorResource(id = R.drawable.ic_search),
                         contentDescription = "lens",
                     )
                     HorizontalSpacer(width = 8.dp)
