@@ -51,7 +51,7 @@ internal fun ModalTopBar(
         )
         onBackPressed?.let { onBackClick ->
             Icon(
-                tint = Color(0xFF3496ff),
+                tint = ModalTheme.colors.main,
                 imageVector = ImageVector.vectorResource(id = R.drawable.chevron_left),
                 contentDescription = "BackArrow",
                 modifier = Modifier
@@ -80,7 +80,7 @@ internal fun ModalSearchTopBar(
             .padding(horizontal = 20.dp),
     ) {
         Icon(
-            tint = Color(0xFF3496ff),
+            tint = ModalTheme.colors.main,
             imageVector = ImageVector.vectorResource(id = R.drawable.chevron_left),
             contentDescription = "BackArrow",
             modifier = Modifier
