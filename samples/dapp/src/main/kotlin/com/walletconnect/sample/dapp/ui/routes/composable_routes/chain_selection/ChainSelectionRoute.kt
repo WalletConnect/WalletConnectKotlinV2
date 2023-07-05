@@ -43,7 +43,8 @@ fun ChainSelectionRoute(navController: NavController) {
     val context = LocalContext.current
     val viewModel: ChainSelectionViewModel = viewModel()
     val chainsState by viewModel.uiState.collectAsState()
-    val isModalOpen by rememberModalState(navController = navController).isOpenState
+    val isModalState = rememberModalState(navController = navController)
+    val isOpen by isModalState.isOpenFlow.collectAsState(initial = isModalState.isOpen)
 
     LaunchedEffect(Unit) {
         navController.currentBackStackEntryFlow.collectLatest { event ->

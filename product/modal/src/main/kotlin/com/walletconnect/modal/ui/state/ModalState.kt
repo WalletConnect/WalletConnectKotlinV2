@@ -25,9 +25,6 @@ class ModalState(
     val isOpen: Boolean
         get() = navController.currentDestination.isModal()
 
-    val isOpenState: State<Boolean>
-        @Composable get() = isOpenFlow.collectAsState(initial = false)
-
     val isOpenFlow
         get() = navController.currentBackStackEntryFlow.mapLatest { it.destination.isModal() }
 
