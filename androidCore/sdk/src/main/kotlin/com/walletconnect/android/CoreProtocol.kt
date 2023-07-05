@@ -4,14 +4,6 @@ import android.app.Application
 import com.walletconnect.android.di.coreStorageModule
 import com.walletconnect.android.echo.EchoClient
 import com.walletconnect.android.echo.EchoInterface
-import com.walletconnect.android.internal.common.di.coreCommonModule
-import com.walletconnect.android.internal.common.di.coreCryptoModule
-import com.walletconnect.android.internal.common.di.coreJsonRpcModule
-import com.walletconnect.android.internal.common.di.corePairingModule
-import com.walletconnect.android.internal.common.di.coreSyncModule
-import com.walletconnect.android.internal.common.di.echoModule
-import com.walletconnect.android.internal.common.di.explorerModule
-import com.walletconnect.android.internal.common.di.keyServerModule
 import com.walletconnect.android.history.HistoryInterface
 import com.walletconnect.android.history.HistoryProtocol
 import com.walletconnect.android.internal.common.di.coreCommonModule
@@ -44,14 +36,13 @@ import com.walletconnect.android.verify.client.VerifyInterface
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.KoinApplication
 import org.koin.dsl.module
-import timber.log.Timber
 
 class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInterface {
     override val Pairing: PairingInterface = PairingProtocol(koinApp)
     override val PairingController: PairingControllerInterface = PairingController(koinApp)
     override var Relay = RelayClient(koinApp)
     override val Echo: EchoInterface = EchoClient
-    override val Verify: VerifyInterface = VerifyClient
+    override val Verify: VerifyInterface = VerifyClient(koinApp)
     override val Sync: SyncInterface = SyncClient
     override val History: HistoryInterface = HistoryProtocol(koinApp)
 

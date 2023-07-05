@@ -2,8 +2,8 @@ package com.walletconnect.sign.adapters
 
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
+import junit.framework.TestCase.assertEquals
+import org.junit.Test
 
 private val moshi: Moshi = Moshi.Builder()
     .addLast(KotlinJsonAdapterFactory())
@@ -27,13 +27,13 @@ class SessionRequestParamsParsingTest {
             val gasLimit = (sendTx[0] as Map<String, Long>).getValue("gasLimit")
             val value = (sendTx[0] as Map<String, Int>).getValue("value")
 
-            Assertions.assertEquals("0x022c0c42a80bd19EA4cF0F94c4F9F96645759716", from)
-            Assertions.assertEquals("0x022c0c42a80bd19EA4cF0F94c4F9F96645759716", to)
-            Assertions.assertEquals("0x", data)
-            Assertions.assertEquals(0.0, nonce)
-            Assertions.assertEquals(27000000000, gasPrice)
-            Assertions.assertEquals(21000, gasLimit)
-            Assertions.assertEquals(0, value)
+            assertEquals("0x022c0c42a80bd19EA4cF0F94c4F9F96645759716", from)
+            assertEquals("0x022c0c42a80bd19EA4cF0F94c4F9F96645759716", to)
+            assertEquals("0x", data)
+            assertEquals(0.0, nonce)
+            assertEquals(27000000000, gasPrice)
+            assertEquals(21000, gasLimit)
+            assertEquals(0, value)
         }
     }
 }

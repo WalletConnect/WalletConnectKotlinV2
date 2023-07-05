@@ -6,12 +6,13 @@ import com.walletconnect.android.internal.common.signing.cacao.Cacao.Payload.Com
 import com.walletconnect.android.internal.common.signing.cacao.Issuer
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.auth.engine.mapper.toCacaoPayload
-import org.junit.jupiter.api.Test
+import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertTrue
+import org.junit.Test
 import java.text.SimpleDateFormat
-import java.time.*
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-import kotlin.test.fail
+import java.time.Clock
+import java.time.Duration
+import java.time.Instant
 
 internal class ClientMapperTest {
     private val iss = "did:pkh:eip155:1:0x15bca56b6e2728aec2532df9d436bd1600e86688"
@@ -74,8 +75,8 @@ internal class ClientMapperTest {
             resources = listOf("ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/", "https://example.com/my-web2-claim.json")
         ).toCacaoPayload(iss)
 
-        val sd = SimpleDateFormat(ISO_8601_PATTERN).parse(payload.iat) ?: fail("Cannot parse iat")
-        val iat = Instant.ofEpochMilli(sd.time)
+        val sd = SimpleDateFormat(ISO_8601_PATTERN).parse(payload.iat)
+        val iat = Instant.ofEpochMilli(sd!!.time)
         val isAfter = Instant.now().isAfter(iat)
         val isBefore = before.isBefore(iat)
         assertTrue(isAfter)

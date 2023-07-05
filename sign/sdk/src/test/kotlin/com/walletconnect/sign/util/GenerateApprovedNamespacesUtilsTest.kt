@@ -4,9 +4,9 @@ import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.utils.generateApprovedNamespaces
 import com.walletconnect.sign.client.utils.normalizeNamespaces
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
-import kotlin.test.assertEquals
+import junit.framework.TestCase.assertEquals
+import org.junit.Assert.assertThrows
+import org.junit.Test
 
 class GenerateApprovedNamespacesUtilsTest {
 
@@ -72,6 +72,32 @@ class GenerateApprovedNamespacesUtilsTest {
 
     /* All test cases and configs can be found: https://docs.google.com/spreadsheets/d/1uc7lLWvx7tjgq_iQYylHVLNcs4F5z7jsnq_2f7ouGM8/edit#gid=0 */
 
+    @Test
+    fun `test if methods in optional namespaces are satisfied if events are empty`() {
+        val required = mapOf("eip155" to Sign.Model.Namespace.Proposal(chains = listOf("eip155:1"), methods = listOf(), events = listOf()))
+        val optional = mapOf("eip155" to Sign.Model.Namespace.Proposal(chains = listOf("eip155:1"), methods = listOf("eth_sendTransaction"), events = listOf("")))
+        val supported = mapOf(
+            "eip155" to Sign.Model.Namespace.Session(
+                chains = listOf("eip155:1"),
+                methods = listOf("personal_sign", "eth_sendTransaction"),
+                events = listOf("chainChanged"),
+                accounts = listOf("eip155:1:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092")
+            )
+        )
+        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
+
+        val approved = generateApprovedNamespaces(proposal, supported)
+        val expected = mapOf(
+            "eip155" to Sign.Model.Namespace.Session(
+                chains = listOf("eip155:1"),
+                methods = listOf("eth_sendTransaction"),
+                events = listOf(),
+                accounts = listOf("eip155:1:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092")
+            )
+        )
+
+        assertEquals(expected, approved)
+    }
     @Test
     fun `generate approved namespaces - config 1 - optional method`() {
         val required = mapOf("eip155" to Sign.Model.Namespace.Proposal(chains = listOf("eip155:1"), methods = listOf("personal_sign"), events = listOf("chainChanged")))
@@ -511,7 +537,7 @@ class GenerateApprovedNamespacesUtilsTest {
             )
         )
         val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
-        val exception = assertThrows<Exception> { generateApprovedNamespaces(proposal, supported) }
+        val exception = assertThrows(Exception::class.java) { generateApprovedNamespaces(proposal, supported) }
         assertEquals("All required namespaces must be approved", "${exception.message}")
     }
 
@@ -543,7 +569,7 @@ class GenerateApprovedNamespacesUtilsTest {
             )
         )
         val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
-        val exception = assertThrows<Exception> { generateApprovedNamespaces(proposal, supported) }
+        val exception = assertThrows(Exception::class.java) { generateApprovedNamespaces(proposal, supported) }
         assertEquals("All required namespaces must be approved", "${exception.message}")
     }
 
@@ -572,7 +598,7 @@ class GenerateApprovedNamespacesUtilsTest {
             )
         )
         val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
-        val exception = assertThrows<Exception> { generateApprovedNamespaces(proposal, supported) }
+        val exception = assertThrows(Exception::class.java) { generateApprovedNamespaces(proposal, supported) }
         assertEquals("All required namespaces must be approved: not all methods are approved", "${exception.message}")
     }
 
@@ -601,7 +627,7 @@ class GenerateApprovedNamespacesUtilsTest {
             )
         )
         val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
-        val exception = assertThrows<Exception> { generateApprovedNamespaces(proposal, supported) }
+        val exception = assertThrows(Exception::class.java) { generateApprovedNamespaces(proposal, supported) }
         assertEquals("All required namespaces must be approved: not all methods are approved", "${exception.message}")
     }
 
@@ -630,7 +656,7 @@ class GenerateApprovedNamespacesUtilsTest {
             )
         )
         val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
-        val exception = assertThrows<Exception> { generateApprovedNamespaces(proposal, supported) }
+        val exception = assertThrows(Exception::class.java) { generateApprovedNamespaces(proposal, supported) }
         assertEquals("Accounts must be defined in matching namespace", "${exception.message}")
     }
 
@@ -662,7 +688,7 @@ class GenerateApprovedNamespacesUtilsTest {
             )
         )
         val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
-        val exception = assertThrows<Exception> { generateApprovedNamespaces(proposal, supported) }
+        val exception = assertThrows(Exception::class.java) { generateApprovedNamespaces(proposal, supported) }
         assertEquals("Accounts must be defined in matching namespace", "${exception.message}")
     }
 
@@ -694,7 +720,7 @@ class GenerateApprovedNamespacesUtilsTest {
             )
         )
         val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
-        val exception = assertThrows<Exception> { generateApprovedNamespaces(proposal, supported) }
+        val exception = assertThrows(Exception::class.java) { generateApprovedNamespaces(proposal, supported) }
         assertEquals("Accounts must be CAIP-10 compliant", "${exception.message}")
     }
 }

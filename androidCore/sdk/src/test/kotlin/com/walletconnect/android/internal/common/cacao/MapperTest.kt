@@ -3,8 +3,8 @@ package com.walletconnect.android.internal.common.cacao
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.signing.cacao.toCAIP122Message
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
+import junit.framework.TestCase.assertEquals
+import org.junit.Test
 
 internal class MapperTest {
     private val iss = "did:pkh:eip155:1:0x15bca56b6e2728aec2532df9d436bd1600e86688"
