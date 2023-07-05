@@ -4,7 +4,6 @@ plugins {
     id("com.squareup.sqldelight")
     id("com.google.devtools.ksp") version kspVersion
     id("publish-module-android")
-    id("de.mannodermaus.android-junit5") version "1.9.3.0"
 }
 
 project.apply {
@@ -27,7 +26,6 @@ android {
         }
 
         buildConfigField(type = "String", name = "SDK_VERSION", value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\"")
-        testInstrumentationRunnerArguments += mutableMapOf("runnerBuilder" to "de.mannodermaus.junit5.AndroidJUnit5Builder", "clearPackageData" to "true")
     }
 
     buildTypes {
@@ -72,7 +70,7 @@ dependencies {
     moshiKsp()
     androidXTest()
     fcm()
-    jUnit5()
+    jUnit4()
     robolectric()
     mockk()
     testJson()

@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import org.koin.core.KoinApplication
 import timber.log.Timber
 
-
 internal object TestClient {
     const val RELAY_URL = "wss://relay.walletconnect.com?projectId=${BuildConfig.PROJECT_ID}"
     private val app = ApplicationProvider.getApplicationContext<Application>()

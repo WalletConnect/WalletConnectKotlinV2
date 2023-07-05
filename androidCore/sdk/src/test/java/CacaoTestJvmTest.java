@@ -7,10 +7,10 @@ import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier;
 import com.walletconnect.android.utils.cacao.CacaoSignerUtil;
 import com.walletconnect.util.UtilFunctionsKt;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.Assert;
+import org.junit.Test;
+import org.web3j.utils.Assertions;
 import org.web3j.utils.Numeric;
-
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
@@ -47,7 +47,7 @@ class CacaoTestJvmTest {
         Cacao cacao = new Cacao(CacaoType.EIP4361.toHeader(), payload, cacaoSig);
 
         boolean result = cacaoVerifier.verify(cacao);
-        Assertions.assertTrue(result);
+        Assert.assertTrue(result);
     }
 
     @Test
@@ -79,6 +79,6 @@ class CacaoTestJvmTest {
         Cacao cacao = new Cacao(CacaoType.EIP4361.toHeader(), payload, cacaoSig);
 
         boolean result = cacaoVerifier.verify(cacao);
-        Assertions.assertTrue(result);
+        Assert.assertTrue(result);
     }
 }

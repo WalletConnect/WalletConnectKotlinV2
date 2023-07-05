@@ -14,9 +14,9 @@ import com.walletconnect.android.utils.cacao.CacaoSignerInterface
 import com.walletconnect.android.utils.cacao.sign
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.hexToBytes
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Test
+import junit.framework.TestCase.assertFalse
+import junit.framework.TestCase.assertTrue
+import org.junit.Test
 import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.Hash
 import org.web3j.crypto.Keys

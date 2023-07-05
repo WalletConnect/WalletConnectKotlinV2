@@ -13,9 +13,9 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.utils.Empty
 import io.mockk.every
 import io.mockk.mockk
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertThrows
-import org.junit.jupiter.api.Test
+import junit.framework.TestCase.assertEquals
+import org.junit.Assert.assertThrows
+import org.junit.Test
 
 class ChaChaPolyCodecTest {
     private val keyManagementRepository: KeyManagementRepository = mockk()

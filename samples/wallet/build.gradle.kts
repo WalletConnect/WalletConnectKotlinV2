@@ -94,7 +94,7 @@ dependencies {
     implementation("com.google.zxing:core:3.5.0")
 
     // Unit Tests
-    jUnit5()
+    jUnit4()
     mockk()
 
     // WalletConnect

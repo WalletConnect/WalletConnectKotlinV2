@@ -16,6 +16,7 @@ import com.walletconnect.android.internal.common.di.*
 import com.walletconnect.android.sdk.core.AndroidCoreDatabase
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.util.randomBytes
+import com.walletconnect.utils.Empty
 import net.sqlcipher.database.SupportFactory
 import net.sqlcipher.database.SQLiteDatabaseHook
 import org.koin.android.ext.koin.androidContext
@@ -95,7 +96,7 @@ private fun getSecretKey(): SecretKey {
 
 @Synchronized
 private fun signingModule() = module {
-    single<ByteArray>(named(AndroidCoreDITags.DB_PASSPHRASE)) {
+    single<ByteArray>(named(AndroidBuildVariantDITags.DB_PASSPHRASE)) {
         val SP_ENCRYPTED_KEY = "encryptedDBKey"
         val sharedPreferences: SharedPreferences = try {
             createSharedPreferences()
@@ -172,16 +173,16 @@ private fun loadSqlCipherLibrary(context: Context) {
     }
 }
 
-fun coreStorageModule() = module {
+fun coreStorageModule(storagePrefix: String = String.Empty) = module {
 
-    includes(baseStorageModule(), signingModule())
+    includes(baseStorageModule(storagePrefix), signingModule())
 
-    single<SqlDriver>(named(AndroidCoreDITags.ANDROID_CORE_DATABASE_DRIVER)) {
+    single<SqlDriver>(named(AndroidBuildVariantDITags.ANDROID_CORE_DATABASE_DRIVER)) {
         AndroidSqliteDriver(
             schema = AndroidCoreDatabase.Schema,
             context = androidContext(),
             name = get<DatabaseConfig>().ANDROID_CORE_DB_NAME,
-            factory = getSupportFactory(androidContext(), get(named(AndroidCoreDITags.DB_PASSPHRASE)), null, false) //todo: create a separate DB_PASSHPHRASE
+            factory = getSupportFactory(androidContext(), get(named(AndroidBuildVariantDITags.DB_PASSPHRASE)), null, false) //todo: create a separate DB_PASSHPHRASE
         )
     }
 }
@@ -194,7 +195,7 @@ fun sdkBaseStorageModule(databaseSchema: SqlDriver.Schema, databaseName: String)
             schema = databaseSchema,
             context = androidContext(),
             name = databaseName,
-            factory = getSupportFactory(androidContext(), get(named(AndroidCoreDITags.DB_PASSPHRASE)), null, false)
+            factory = getSupportFactory(androidContext(), get(named(AndroidBuildVariantDITags.DB_PASSPHRASE)), null, false)
         )
     }
 }

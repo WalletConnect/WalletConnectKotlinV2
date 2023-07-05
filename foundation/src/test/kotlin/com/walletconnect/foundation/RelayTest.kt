@@ -10,6 +10,8 @@ import com.walletconnect.foundation.network.RelayInterface
 import com.walletconnect.foundation.network.model.Relay
 import com.walletconnect.util.addUserAgent
 import com.walletconnect.util.bytesToHex
+import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.fail
 import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,12 +26,10 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.Test
+import org.junit.Test
 import org.koin.core.KoinApplication
 import org.koin.core.qualifier.named
 import kotlin.random.Random
-import kotlin.test.assertEquals
-import kotlin.test.fail
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
 
