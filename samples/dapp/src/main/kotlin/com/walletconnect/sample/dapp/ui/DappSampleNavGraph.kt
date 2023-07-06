@@ -1,9 +1,7 @@
-@file:OptIn(ExperimentalMaterialNavigationApi::class, ExperimentalMaterialApi::class, ExperimentalMaterialNavigationApi::class)
+@file:OptIn(ExperimentalMaterialNavigationApi::class)
 
 package com.walletconnect.sample.dapp.ui
 
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
