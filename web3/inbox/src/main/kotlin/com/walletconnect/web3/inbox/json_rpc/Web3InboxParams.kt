@@ -169,7 +169,6 @@ internal sealed interface Web3InboxParams : ClientParams {
         sealed interface Push : Response {
             @JsonClass(generateAdapter = true)
             data class GetActiveSubscriptionsResult(
-                val requestId: Long,
                 val topic: String,
                 val account: String,
                 val relay: RelayParams,

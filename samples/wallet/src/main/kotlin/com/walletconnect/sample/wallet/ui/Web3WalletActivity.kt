@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.net.URLEncoder
 import kotlin.random.Random
 import kotlin.random.nextUInt
@@ -148,7 +149,8 @@ class Web3WalletActivity : ComponentActivity() {
                         }
 
                         withContext(Dispatchers.Main) {
-                            navController.navigate(route.toString())
+                            Timber.d("Received PushProposal but it's handled by Web3Inbox")
+//                            navController.navigate(route.toString())
                         }
                     }
 

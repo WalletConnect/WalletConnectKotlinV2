@@ -6,5 +6,5 @@ import com.walletconnect.push.common.model.EngineDO
 import kotlinx.coroutines.flow.MutableStateFlow
 
 internal class EnginePushSubscriptionNotifier {
-    val newlyCreatedPushSubscription = MutableStateFlow<EngineDO.Subscription.Active?>(null)
+    val newlyRespondedRequestedSubscriptionId = MutableStateFlow<Pair<Long, EngineDO.Subscription.Active>?>(null)
 }

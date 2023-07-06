@@ -27,7 +27,6 @@ import org.koin.dsl.module
 internal fun pushProxyModule(
     pushWalletClient: PushWalletInterface,
     onSign: (message: String) -> Inbox.Model.Cacao.Signature,
-    onPageFinished: () -> Unit,
 ) = module {
 
     single { PushProxyInteractor(get(), get()) }

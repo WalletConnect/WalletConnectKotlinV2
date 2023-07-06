@@ -10,6 +10,7 @@ import com.walletconnect.push.common.storage.data.dao.ActiveSubscriptionsQueries
 import com.walletconnect.push.common.storage.data.dao.RequestedSubscriptionQueries
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 class SubscribeStorageRepository(
     private val requestedSubscriptionQueries: RequestedSubscriptionQueries,
@@ -17,6 +18,7 @@ class SubscribeStorageRepository(
 ) {
 
     suspend fun insertOrAbortRequestedSubscription(
+        requestId: Long,
         subscribeTopic: String,
         responseTopic: String,
         account: String,
@@ -24,6 +26,7 @@ class SubscribeStorageRepository(
         expiry: Long,
     ) = withContext(Dispatchers.IO) {
         requestedSubscriptionQueries.insertOrAbortRequestedSubscribtion(
+            request_id = requestId,
             subscribe_topic = subscribeTopic,
             response_topic = responseTopic,
             account = account,
@@ -36,11 +39,6 @@ class SubscribeStorageRepository(
         requestedSubscriptionQueries.isAlreadyRequested(account, subscribeTopic).executeAsOneOrNull() ?: false
     }
 
-    //todo: this might need to be replaced by pushTopic
-    suspend fun getSubscriptionByDappGeneratedPublicKey(peerPublicKey: String): EngineDO.Subscription.Active? = withContext(Dispatchers.IO) {
-        activeSubscriptionsQueries.getSubscriptionByDappGeneratedPublicKey(peerPublicKey, ::toActiveSubscriptionWithoutMetadata).executeAsOneOrNull()
-    }
-
     suspend fun insertOrAbortActiveSubscription(
         account: String,
         updatedExpiry: Long,
@@ -49,9 +47,9 @@ class SubscribeStorageRepository(
         mapOfScope: Map<String, Pair<String, Boolean>>,
         dappGeneratedPublicKey: String,
         pushTopic: String,
-        responseTopic: String,
+        requestedSubscriptionRequestId: Long?,
     ) = withContext(Dispatchers.IO) {
-        activeSubscriptionsQueries.insertOrAbortActiveSubscribtion(account, updatedExpiry, relayProtocol, relayData, mapOfScope, dappGeneratedPublicKey, pushTopic, responseTopic)
+        activeSubscriptionsQueries.insertOrAbortActiveSubscribtion(account, updatedExpiry, relayProtocol, relayData, mapOfScope, dappGeneratedPublicKey, pushTopic, requestedSubscriptionRequestId)
     }
 
     suspend fun updateSubscriptionScopeAndJwtByPushTopic(pushTopic: String, updateScope: Map<String, Pair<String, Boolean>>, newExpiry: Long) = withContext(Dispatchers.IO) {
@@ -66,16 +64,16 @@ class SubscribeStorageRepository(
         activeSubscriptionsQueries.getAllActiveSubscriptions(::toActiveSubscriptionWithoutMetadata).executeAsList()
     }
 
-    suspend fun getRequestedSubscriptionByResponseTopic(responseTopic: String): EngineDO.Subscription.Requested? = withContext(Dispatchers.IO) {
-        requestedSubscriptionQueries.getRequestedSubscriptionByResponseTopic(responseTopic, ::toRequestedSubscription).executeAsOneOrNull()
+    suspend fun getRequestedSubscriptionByRequestId(requestId: Long): EngineDO.Subscription.Requested? = withContext(Dispatchers.IO) {
+        requestedSubscriptionQueries.getRequestedSubscriptionByRequestId(requestId, ::toRequestedSubscription).executeAsOneOrNull()
     }
 
     suspend fun deleteSubscriptionByPushTopic(pushTopic: String) = withContext(Dispatchers.IO) {
-        activeSubscriptionsQueries.transaction {
-            val responseTopic = activeSubscriptionsQueries.getActiveSubscriptionResponseTopicByPushTopic(pushTopic).executeAsOneOrNull() ?: rollback()
-            requestedSubscriptionQueries.deleteByResponseTopic(responseTopic)
-            activeSubscriptionsQueries.deleteByPushTopic(pushTopic)
-        }
+        val requestedSubscriptionRequestId = activeSubscriptionsQueries.getActiveSubscriptionForeignRequestedSubscriptionIdByPushTopic(pushTopic).executeAsOneOrNull()?.requested_subscription_id
+        if (requestedSubscriptionRequestId != null) requestedSubscriptionQueries.deleteByRequestId(requestedSubscriptionRequestId)
+        activeSubscriptionsQueries.deleteByPushTopic(pushTopic)
+        Timber.d("deleteSubscriptionByPushTopic")
+        Timber.d(requestedSubscriptionRequestId.toString())
     }
 
     private fun toActiveSubscriptionWithoutMetadata(
@@ -86,26 +84,28 @@ class SubscribeStorageRepository(
         map_of_scope: Map<String, Pair<String, Boolean>>,
         dapp_generated_public_key: String,
         push_topic: String,
-        response_topic: String,
+        requested_subscription_id: Long?,
     ): EngineDO.Subscription.Active = EngineDO.Subscription.Active(
-        responseTopic = Topic(response_topic),
         account = AccountId(account),
         mapOfScope = map_of_scope.map { entry -> entry.key to EngineDO.PushScope.Cached(entry.key, entry.value.first, entry.value.second) }.toMap(),
         expiry = Expiry(expiry),
         relay = RelayProtocolOptions(relay_protocol, relay_data),
         dappGeneratedPublicKey = PublicKey(dapp_generated_public_key),
         pushTopic = Topic(push_topic),
-        dappMetaData = null
+        dappMetaData = null,
+        requestedSubscriptionId = requested_subscription_id
     )
 
 
     private fun toRequestedSubscription(
+        request_id: Long,
         subscribe_topic: String,
         account: String,
         map_of_scope: Map<String, Pair<String, Boolean>>,
         response_topic: String,
         expiry: Long,
     ): EngineDO.Subscription.Requested = EngineDO.Subscription.Requested(
+        requestId = request_id,
         responseTopic = Topic(response_topic),
         account = AccountId(account),
         mapOfScope = map_of_scope.map { entry -> entry.key to EngineDO.PushScope.Cached(entry.key, entry.value.first, entry.value.second) }.toMap(),

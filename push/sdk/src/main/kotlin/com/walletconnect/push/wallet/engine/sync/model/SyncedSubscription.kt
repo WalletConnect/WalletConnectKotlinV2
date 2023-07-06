@@ -91,11 +91,10 @@ internal fun EngineDO.Subscription.Active.toSync(symmetricKey: SymmetricKey) = S
 )
 
 internal fun SyncedSubscription.toCommon(): EngineDO.Subscription.Active= EngineDO.Subscription.Active(
-    responseTopic = Topic(""),
     account = AccountId(account),
     mapOfScope = scope.toCommon(),
     expiry = Expiry(expiry),
-    dappGeneratedPublicKey = PublicKey("0xdeadbeef"),
+    dappGeneratedPublicKey = PublicKey("There is no dapp generated public key from sync"),
     pushTopic = Topic(topic),
     relay = RelayProtocolOptions(relay.protocol, relay.data),
     dappMetaData = metadata?.toCommon()

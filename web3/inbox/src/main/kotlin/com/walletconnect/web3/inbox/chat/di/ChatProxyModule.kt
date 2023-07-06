@@ -3,6 +3,7 @@
 package com.walletconnect.web3.inbox.chat.di
 
 import com.walletconnect.chat.client.ChatInterface
+import com.walletconnect.push.wallet.client.PushWalletInterface
 import com.walletconnect.web3.inbox.chat.event.ChatEventHandler
 import com.walletconnect.web3.inbox.chat.event.OnInviteAcceptedChatEventUseCase
 import com.walletconnect.web3.inbox.chat.event.OnInviteChatEventUseCase
@@ -29,11 +30,11 @@ import org.koin.dsl.module
 internal fun chatProxyModule(
     chatClient: ChatInterface,
     onSign: (message: String) -> Inbox.Model.Cacao.Signature,
-    onPageFinished: () -> Unit,
-) = module {
+    pushWalletClient: PushWalletInterface,
+    ) = module {
     single { ChatProxyInteractor(get(), get()) }
 
-    single { RegisterRequestUseCase(chatClient, get(), onSign) }
+    single { RegisterRequestUseCase(chatClient, get(), onSign, pushWalletClient) }
     single { GetReceivedInvitesRequestUseCase(chatClient, get()) }
     single { GetSentInvitesRequestUseCase(chatClient, get()) }
     single { GetThreadsRequestUseCase(chatClient, get()) }

@@ -12,30 +12,29 @@ CREATE TABLE ActiveSubscriptions (
     map_of_scope TEXT AS Map<String, Pair<String, Boolean>> NOT NULL,
     dapp_generated_public_key TEXT NOT NULL,
     push_topic TEXT UNIQUE NOT NULL,
-    response_topic TEXT UNIQUE NOT NULL
+    requested_subscription_id INTEGER UNIQUE DEFAULT NULL
 );
 
 insertOrAbortActiveSubscribtion:
-INSERT OR ABORT INTO ActiveSubscriptions(account, expiry, relay_protocol, relay_data, map_of_scope, dapp_generated_public_key, push_topic, response_topic)
+INSERT OR ABORT INTO ActiveSubscriptions(account, expiry, relay_protocol, relay_data, map_of_scope, dapp_generated_public_key, push_topic, requested_subscription_id)
 VALUES ( ?, ?, ?, ?, ? , ?, ?, ?);
 
-
 getSubscriptionByDappGeneratedPublicKey:
-SELECT account, expiry, relay_protocol, relay_data, map_of_scope, dapp_generated_public_key, push_topic, response_topic
+SELECT account, expiry, relay_protocol, relay_data, map_of_scope, dapp_generated_public_key, push_topic, requested_subscription_id
 FROM ActiveSubscriptions
 WHERE dapp_generated_public_key = ?;
 
 getAllActiveSubscriptions:
-SELECT account, expiry, relay_protocol, relay_data, map_of_scope, dapp_generated_public_key, push_topic, response_topic
+SELECT account, expiry, relay_protocol, relay_data, map_of_scope, dapp_generated_public_key, push_topic, requested_subscription_id
 FROM ActiveSubscriptions;
 
 getActiveSubscriptionByPushTopic:
-SELECT account, expiry, relay_protocol, relay_data, map_of_scope, dapp_generated_public_key, push_topic, response_topic
+SELECT account, expiry, relay_protocol, relay_data, map_of_scope, dapp_generated_public_key, push_topic, requested_subscription_id
 FROM ActiveSubscriptions
 WHERE push_topic = ?;
 
-getActiveSubscriptionResponseTopicByPushTopic:
-SELECT response_topic
+getActiveSubscriptionForeignRequestedSubscriptionIdByPushTopic:
+SELECT requested_subscription_id
 FROM ActiveSubscriptions
 WHERE push_topic = ?;
 

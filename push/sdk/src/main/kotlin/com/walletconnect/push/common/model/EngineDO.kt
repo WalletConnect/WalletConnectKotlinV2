@@ -51,27 +51,27 @@ sealed class EngineDO : EngineEvent {
     ) : EngineDO()
 
     sealed class Subscription : EngineDO() {
-        abstract val responseTopic: Topic
         abstract val account: AccountId
         abstract val mapOfScope: Map<String, PushScope.Cached>
         abstract val expiry: Expiry
 
         data class Requested(
-            override val responseTopic: Topic,
             override val account: AccountId,
             override val mapOfScope: Map<String, PushScope.Cached>,
             override val expiry: Expiry,
+            val responseTopic: Topic,
             val subscribeTopic: Topic,
+            val requestId: Long,
         ) : Subscription()
 
         data class Active(
-            override val responseTopic: Topic,
             override val account: AccountId,
             override val mapOfScope: Map<String, PushScope.Cached>,
             override val expiry: Expiry,
             val dappGeneratedPublicKey: PublicKey,
             val pushTopic: Topic,
-            var dappMetaData: AppMetaData? = null,
+            val dappMetaData: AppMetaData? = null,
+            val requestedSubscriptionId: Long? = null,
             val relay: RelayProtocolOptions = RelayProtocolOptions(),
         ) : Subscription()
 
@@ -83,7 +83,6 @@ sealed class EngineDO : EngineEvent {
 
     sealed class PushUpdate : EngineDO() {
         data class Result(
-            val responseTopic: Topic,
             val account: AccountId,
             val mapOfScope: Map<String, PushScope.Cached>,
             val expiry: Expiry,

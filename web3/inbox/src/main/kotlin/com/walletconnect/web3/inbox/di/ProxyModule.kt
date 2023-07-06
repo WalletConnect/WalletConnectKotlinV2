@@ -20,8 +20,8 @@ internal fun proxyModule(
     onPageFinished: () -> Unit,
 ) = module {
     includes(
-        pushProxyModule(pushWalletClient, onSign, onPageFinished),
-        chatProxyModule(chatClient, onSign, onPageFinished)
+        pushProxyModule(pushWalletClient, onSign),
+        chatProxyModule(chatClient, onSign, pushWalletClient)
     )
 
     single { WebViewWeakReference() }
