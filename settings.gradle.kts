@@ -1,6 +1,7 @@
 rootProject.name = "WalletConnect"
 
 val excludedDirs = listOf(
+    ".temp",
     ".idea",
     ".git",
     "build",
