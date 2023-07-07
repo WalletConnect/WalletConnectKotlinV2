@@ -39,6 +39,6 @@ app/build.gradle.kts
 ```gradle
 implementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
 implementation("com.walletconnect:android-core")
-implementation("com.walletconnect:modal")
+implementation("com.walletconnect:walletconnect-modal")
 ```
 
