@@ -86,5 +86,5 @@ dependencies {
     releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
     releaseImplementation("com.walletconnect:android-core")
     releaseImplementation("com.walletconnect:push")
-    releaseImplementation(project(":product:modal"))
+    releaseImplementation("com.walletconnect:walletconnect-modal")
 }
