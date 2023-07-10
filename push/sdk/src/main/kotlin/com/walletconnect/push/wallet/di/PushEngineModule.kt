@@ -32,7 +32,9 @@ internal fun walletEngineModule() = module {
             onSyncUpdateEventUseCase = get(),
             setupSyncInPushUseCase = get(),
             setSubscriptionWithSymmetricKeyToPushSubscriptionStoreUseCase = get(),
-            historyInterface = get()
+            historyInterface = get(),
+            getMessagesFromHistoryUseCase = get(),
+            deleteSubscriptionToPushSubscriptionStoreUseCase = get()
         )
     }
 }

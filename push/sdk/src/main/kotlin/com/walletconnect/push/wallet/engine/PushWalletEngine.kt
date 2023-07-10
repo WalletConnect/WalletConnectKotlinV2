@@ -65,8 +65,10 @@ import com.walletconnect.push.common.model.toEngineDO
 import com.walletconnect.push.wallet.data.MessagesRepository
 import com.walletconnect.push.wallet.data.wellknown.did.DidJsonDTO
 import com.walletconnect.push.wallet.engine.domain.EnginePushSubscriptionNotifier
+import com.walletconnect.push.wallet.engine.sync.use_case.GetMessagesFromHistoryUseCase
 import com.walletconnect.push.wallet.engine.sync.use_case.SetupSyncInPushUseCase
 import com.walletconnect.push.wallet.engine.sync.use_case.events.OnSyncUpdateEventUseCase
+import com.walletconnect.push.wallet.engine.sync.use_case.requests.DeleteSubscriptionToPushSubscriptionStoreUseCase
 import com.walletconnect.push.wallet.engine.sync.use_case.requests.SetSubscriptionWithSymmetricKeyToPushSubscriptionStoreUseCase
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.generateId
@@ -112,7 +114,9 @@ internal class PushWalletEngine(
     private val syncClient: SyncInterface,
     private val onSyncUpdateEventUseCase: OnSyncUpdateEventUseCase,
     private val setupSyncInPushUseCase: SetupSyncInPushUseCase,
+    private val getMessagesFromHistoryUseCase: GetMessagesFromHistoryUseCase,
     private val setSubscriptionWithSymmetricKeyToPushSubscriptionStoreUseCase: SetSubscriptionWithSymmetricKeyToPushSubscriptionStoreUseCase,
+    private val deleteSubscriptionToPushSubscriptionStoreUseCase: DeleteSubscriptionToPushSubscriptionStoreUseCase,
     private val historyInterface: HistoryInterface,
 ) {
     private var jsonRpcRequestsJob: Job? = null
@@ -165,7 +169,8 @@ internal class PushWalletEngine(
     }
 
     private suspend fun registerTagsInHistory() {
-        historyInterface.registerTags(tags = listOf(Tags.PUSH_MESSAGE), {}, { error -> logger.error(error.throwable) })
+        // Sync are here since History Server expects only one register call
+        historyInterface.registerTags(tags = listOf(Tags.PUSH_MESSAGE, Tags.SYNC_SET, Tags.SYNC_DELETE), {}, { error -> logger.error(error.throwable) })
     }
 
     suspend fun subscribeToDapp(dappUri: Uri, account: String, onSign: (String) -> Cacao.Signature?, onSuccess: (Long, DidJwt) -> Unit, onFailure: (Throwable) -> Unit) =
@@ -400,7 +405,11 @@ internal class PushWalletEngine(
         val request = PushRpc.PushDelete(id = generateId(), params = deleteParams)
         val irnParams = IrnParams(Tags.PUSH_DELETE, Ttl(DAY_IN_SECONDS))
 
+        val activeSubscription: EngineDO.Subscription.Active =
+            subscribeStorageRepository.getActiveSubscriptionByPushTopic(pushTopic) ?: return@supervisorScope onFailure(IllegalStateException("Subscription does not exists for $pushTopic"))
+
         subscribeStorageRepository.deleteSubscriptionByPushTopic(pushTopic)
+        messagesRepository.deleteMessagesByTopic(pushTopic)
 
         jsonRpcInteractor.unsubscribe(Topic(pushTopic))
         jsonRpcInteractor.publishJsonRpcRequest(Topic(pushTopic), irnParams, request,
@@ -415,6 +424,8 @@ internal class PushWalletEngine(
                 onFailure(it)
             }
         )
+
+        deleteSubscriptionToPushSubscriptionStoreUseCase(activeSubscription.account, activeSubscription.pushTopic, onSuccess = {}, onError = {})
     }
 
     suspend fun deleteMessage(requestId: Long, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
@@ -441,7 +452,9 @@ internal class PushWalletEngine(
     }
 
     suspend fun enableSync(account: String, onSign: (String) -> Cacao.Signature?, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
-        setupSyncInPushUseCase(AccountId(account), onSign, onSuccess, onFailure)
+        setupSyncInPushUseCase(AccountId(account), onSign, onSuccess = {
+            scope.launch { getMessagesFromHistoryUseCase(AccountId(account), onSuccess, onFailure) }
+        }, onFailure)
     }
 
     suspend fun getListOfActiveSubscriptions(): Map<String, EngineDO.Subscription.Active> =
@@ -549,7 +562,7 @@ internal class PushWalletEngine(
         try {
             jsonRpcInteractor.respondWithSuccess(request, irnParams)
             // TODO: refactor to use the RPC published at value 
-            val currentTime = CURRENT_TIME_IN_SECONDS
+            val currentTime = request.id
             messagesRepository.insertMessage(request.id, request.topic.value, currentTime, params.title, params.body, params.icon, params.url, params.type)
             val messageRecord = EngineDO.PushRecord(
                 id = request.id,

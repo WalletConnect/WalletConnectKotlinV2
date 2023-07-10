@@ -17,7 +17,7 @@ internal data class SyncedSubscription(
     val topic: String,
     val account: String,
     val relay: SyncedRelayProtocolOptions,
-    val metadata: SyncedMetadata?,
+    val metadata: SyncedMetadata,
     val scope: Map<String, SyncedScopeSetting>,
     val expiry: Long,
     val symKey: String,
@@ -31,7 +31,6 @@ internal data class SyncedRelayProtocolOptions(
 
 @JsonClass(generateAdapter = true)
 internal data class SyncedScopeSetting(
-    val name: String,
     val description: String,
     val enabled: Boolean,
 )
@@ -74,7 +73,6 @@ internal fun Redirect.toSync() = SyncedRedirect(
 
 internal fun Map<String, EngineDO.PushScope.Cached>.toSync(): Map<String, SyncedScopeSetting> = mapValues {
     SyncedScopeSetting(
-        name = it.value.name,
         description = it.value.description,
         enabled = it.value.isSelected
     )
@@ -84,7 +82,7 @@ internal fun EngineDO.Subscription.Active.toSync(symmetricKey: SymmetricKey) = S
     topic = pushTopic.value,
     account = account.value,
     relay = relay.toSync(),
-    metadata = dappMetaData?.toSync(),
+    metadata = dappMetaData!!.toSync(),
     scope = mapOfScope.toSync(),
     expiry = expiry.seconds,
     symKey = symmetricKey.keyAsHex
@@ -97,13 +95,13 @@ internal fun SyncedSubscription.toCommon(): EngineDO.Subscription.Active= Engine
     dappGeneratedPublicKey = PublicKey("There is no dapp generated public key from sync"),
     pushTopic = Topic(topic),
     relay = RelayProtocolOptions(relay.protocol, relay.data),
-    dappMetaData = metadata?.toCommon()
+    dappMetaData = metadata.toCommon()
 )
 
 
 internal fun Map<String, SyncedScopeSetting>.toCommon(): Map<String, EngineDO.PushScope.Cached> = mapValues {
     EngineDO.PushScope.Cached(
-        name = it.value.name,
+        name = it.key,
         description = it.value.description,
         isSelected = it.value.enabled
     )

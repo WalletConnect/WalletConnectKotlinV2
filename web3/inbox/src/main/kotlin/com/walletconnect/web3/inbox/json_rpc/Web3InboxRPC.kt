@@ -232,6 +232,18 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
                 @Json(name = "params")
                 override val params: Web3InboxParams.Request.Push.DeletePushMessageParams,
             ) : Push
+
+            @JsonClass(generateAdapter = true)
+            data class EnableSync(
+                @Json(name = "id")
+                override val id: Long,
+                @Json(name = "jsonrpc")
+                override val jsonrpc: String = "2.0",
+                @Json(name = "method")
+                override val method: String = Web3InboxMethods.Request.Push.ENABLE_SYNC,
+                @Json(name = "params")
+                override val params: Web3InboxParams.Request.Push.EnableSyncParams,
+            ) : Push
         }
     }
 
@@ -250,7 +262,7 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
             @Json(name = "method")
             override val method: String = Web3InboxMethods.Call.SYNC_UPDATE,
             @Json(name = "params")
-            override val params: Web3InboxParams.Call.SyncUpdateParams,
+            override val params: Web3InboxParams.Call.Empty =  Web3InboxParams.Call.Empty(),
         ) : Push, Chat
 
         sealed interface Chat : Call {
