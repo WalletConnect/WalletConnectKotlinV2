@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.internal.common.explorer.domain.usecase.GetWalletsUseCaseInterface
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.web3.modal.BuildConfig
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.domain.configuration.CONFIG_ARG
 import com.walletconnect.web3.modal.domain.configuration.Config
@@ -22,7 +21,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
-private const val W3M = "w3m"
+private const val W3M_SDK = "w3m"
 
 internal class Web3ModalViewModel(
     savedStateHandle: SavedStateHandle
@@ -67,7 +66,7 @@ internal class Web3ModalViewModel(
 
     private suspend fun Config.Connect.connectionState() {
         try {
-            val wallets = getWalletsRecommendationsUseCase(BuildConfig.SDK_VERSION, W3M, chains?.joinToString())
+            val wallets = getWalletsRecommendationsUseCase(W3M_SDK, chains?.joinToString())
             _modalState.value = Web3ModalState.ConnectState(uri, wallets)
         } catch (e: Exception) {
             Timber.e(e)

@@ -1,6 +1,7 @@
 package com.walletconnect.android.internal.common.explorer
 
 import androidx.core.net.toUri
+import com.walletconnect.android.BuildConfig
 import com.walletconnect.android.internal.common.explorer.data.model.App
 import com.walletconnect.android.internal.common.explorer.data.model.Colors
 import com.walletconnect.android.internal.common.explorer.data.model.DappListings
@@ -45,7 +46,6 @@ class ExplorerRepository(
     }
 
     suspend fun getMobileWallets(
-        sdkVersion: String,
         sdkType: String,
         chains: String?
     ): WalletListing {
@@ -54,7 +54,7 @@ class ExplorerRepository(
                 projectId = projectId.value,
                 chains = chains,
                 sdkType = sdkType,
-                sdkVersion = sdkVersion
+                sdkVersion = BuildConfig.SDK_VERSION
             )
         ) {
             if (isSuccessful && body() != null) {
