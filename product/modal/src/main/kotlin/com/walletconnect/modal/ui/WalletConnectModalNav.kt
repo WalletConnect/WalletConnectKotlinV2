@@ -6,7 +6,6 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.annotation.IdRes
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.ModalBottomSheetState
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
@@ -63,11 +62,8 @@ private fun buildPath(uri: String, chains: List<String>?): String {
     return builder.toString()
 }
 
-fun NavGraphBuilder.walletConnectModalGraph(
-    navController: NavController,
-    sheetState: ModalBottomSheetState
-) {
+fun NavGraphBuilder.walletConnectModalGraph(navController: NavController) {
     bottomSheet(route = MODAL_PATH) {
-        WalletConnectModal(navController = navController, sheetState = sheetState)
+        WalletConnectModal(navController = navController)
     }
 }
