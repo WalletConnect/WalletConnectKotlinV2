@@ -15,7 +15,6 @@ internal class RegisterRequestUseCase(
     private val chatClient: ChatInterface,
     proxyInteractor: ChatProxyInteractor,
     private val onSign: (message: String) -> Inbox.Model.Cacao.Signature,
-    private val pushWalletClient: PushWalletInterface,
 ) : ChatRequestUseCase<Web3InboxParams.Request.Chat.RegisterParams>(proxyInteractor) {
 
     override fun invoke(rpc: Web3InboxRPC, params: Web3InboxParams.Request.Chat.RegisterParams) {
@@ -24,9 +23,6 @@ internal class RegisterRequestUseCase(
             override fun onError(error: Chat.Model.Error) = respondWithError(rpc, error)
             override fun onSign(message: String): Chat.Model.Cacao.Signature = this@RegisterRequestUseCase.onSign(message).toChat()
         })
-
-
-        pushWalletClient.enableSync(Push.Wallet.Params.EnableSync(params.account) { onSign(it).toPush() }, onSuccess = {}, onError = {})
     }
 }
 
