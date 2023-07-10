@@ -6,6 +6,7 @@ import com.walletconnect.android.internal.common.explorer.data.network.model.Dap
 import com.walletconnect.android.internal.common.explorer.data.network.model.WalletListingDTO
 import retrofit2.Response
 import retrofit2.http.GET
+import retrofit2.http.HeaderMap
 import retrofit2.http.Query
 
 interface ExplorerService {
@@ -16,6 +17,8 @@ interface ExplorerService {
     @GET("w3m/v1/getAndroidListings")
     suspend fun getAndroidWallets(
         @Query("projectId") projectId: String,
-        @Query("chains") chains: String?
+        @Query("chains") chains: String?,
+        @Query("sdk_type") sdkType: String,
+        @Query("sdk_version") sdkVersion: String
     ): Response<WalletListingDTO>
 }
