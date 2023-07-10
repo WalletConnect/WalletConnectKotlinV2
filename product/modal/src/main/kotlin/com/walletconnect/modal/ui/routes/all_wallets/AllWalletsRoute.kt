@@ -1,7 +1,5 @@
 package com.walletconnect.modal.ui.routes.all_wallets
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
@@ -10,26 +8,17 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.walletconnect.android.internal.common.explorer.data.model.Wallet
-import com.walletconnect.modal.R
 import com.walletconnect.modal.ui.components.ModalSearchTopBar
-import com.walletconnect.modal.ui.components.ModalTopBar
 import com.walletconnect.modal.ui.components.walletsGridItems
-import com.walletconnect.modal.ui.navigation.Route
 import com.walletconnect.modal.ui.preview.ModalPreview
-import com.walletconnect.modal.ui.theme.ModalTheme
 import com.walletconnect.modalcore.utils.goToNativeWallet
 
 @Composable
@@ -55,15 +44,15 @@ private fun AllWalletsContent(
     onWalletItemClick: (Wallet) -> Unit,
     onBackClick: () -> Unit,
 ) {
-    var value by rememberSaveable() {
+    var searchInputValue by rememberSaveable() {
         mutableStateOf("")
     }
 
     Column {
         ModalSearchTopBar(
-            searchValue = value,
+            searchValue = searchInputValue,
             onSearchValueChange = {
-                value = it
+                searchInputValue = it
             },
             onBackPressed = onBackClick,
         )
@@ -73,7 +62,7 @@ private fun AllWalletsContent(
                 .padding(horizontal = 4.dp),
             columns = GridCells.Fixed(4)
         ) {
-            walletsGridItems(wallets.filteredWallets(value), onWalletItemClick)
+            walletsGridItems(wallets.filteredWallets(searchInputValue), onWalletItemClick)
         }
     }
 
