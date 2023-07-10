@@ -36,7 +36,13 @@ internal fun explorerModule() = module {
 
     single { get<Retrofit>(named(AndroidCommonDITags.EXPLORER_RETROFIT)).create(ExplorerService::class.java) }
 
-    single { ExplorerRepository(explorerService = get(), projectId = get(), explorerApiUrl = get(named(AndroidCommonDITags.EXPLORER_URL)), selfAppMetaData = get()) }
+    single {
+        ExplorerRepository(
+            explorerService = get(),
+            projectId = get(),
+            explorerApiUrl = get(named(AndroidCommonDITags.EXPLORER_URL)),
+        )
+    }
 
     single<GetWalletsUseCaseInterface> { GetWalletsUseCase(get()) }
 }

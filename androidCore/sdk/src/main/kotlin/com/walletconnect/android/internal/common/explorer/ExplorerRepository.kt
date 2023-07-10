@@ -1,8 +1,6 @@
 package com.walletconnect.android.internal.common.explorer
 
-import android.os.Build
 import androidx.core.net.toUri
-import com.walletconnect.android.BuildConfig
 import com.walletconnect.android.internal.common.explorer.data.model.App
 import com.walletconnect.android.internal.common.explorer.data.model.Colors
 import com.walletconnect.android.internal.common.explorer.data.model.DappListings
@@ -28,14 +26,12 @@ import com.walletconnect.android.internal.common.explorer.data.network.model.Mob
 import com.walletconnect.android.internal.common.explorer.data.network.model.WalletDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.SupportedStandardDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.WalletListingDTO
-import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.ProjectId
 
 class ExplorerRepository(
     private val explorerService: ExplorerService,
     private val projectId: ProjectId,
-    private val explorerApiUrl: String,
-    private val selfAppMetaData: AppMetaData,
+    private val explorerApiUrl: String
 ) {
 
     suspend fun getAllDapps(): DappListings {
@@ -48,12 +44,17 @@ class ExplorerRepository(
         }
     }
 
-    suspend fun getMobileWallets(modalVersion: String, chains: String?): WalletListing {
+    suspend fun getMobileWallets(
+        sdkVersion: String,
+        sdkType: String,
+        chains: String?
+    ): WalletListing {
         return with(
             explorerService.getAndroidWallets(
-                explorerModalListingHeaders = buildModalListingHeaders(modalVersion),
                 projectId = projectId.value,
                 chains = chains,
+                sdkType = sdkType,
+                sdkVersion = sdkVersion
             )
         ) {
             if (isSuccessful && body() != null) {
@@ -63,11 +64,6 @@ class ExplorerRepository(
             }
         }
     }
-
-    private fun buildModalListingHeaders(modalVersion: String): Map<String, String> = mapOf(
-        Pair("user-agent", "$modalVersion/kotlin-${BuildConfig.SDK_VERSION}/android-${Build.VERSION.RELEASE}"),
-        Pair("referer", selfAppMetaData.name)
-    )
 
     private fun WalletListingDTO.toWalletListing(): WalletListing {
         return WalletListing(

@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
+private const val WCM = "wcm"
+
 internal class WalletConnectModalViewModel(
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -58,7 +60,7 @@ internal class WalletConnectModalViewModel(
 
     private suspend fun createModalState(uri: String) {
         try {
-            val wallets = getWalletsUseCase(BuildConfig.MODAL_VERSION, chains)
+            val wallets = getWalletsUseCase(BuildConfig.SDK_VERSION, WCM, chains)
             _modalState.value = WalletConnectModalState(uri, wallets)
         } catch (e: Exception) {
             Timber.e(e)

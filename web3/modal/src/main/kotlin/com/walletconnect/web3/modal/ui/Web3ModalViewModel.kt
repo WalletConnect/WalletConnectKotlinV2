@@ -22,6 +22,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
+private const val W3M = "w3m"
+
 internal class Web3ModalViewModel(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -65,7 +67,7 @@ internal class Web3ModalViewModel(
 
     private suspend fun Config.Connect.connectionState() {
         try {
-            val wallets = getWalletsRecommendationsUseCase(BuildConfig.MODAL_VERSION, chains?.joinToString())
+            val wallets = getWalletsRecommendationsUseCase(BuildConfig.SDK_VERSION, W3M, chains?.joinToString())
             _modalState.value = Web3ModalState.ConnectState(uri, wallets)
         } catch (e: Exception) {
             Timber.e(e)

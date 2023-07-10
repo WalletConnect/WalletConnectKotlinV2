@@ -16,8 +16,9 @@ interface ExplorerService {
 
     @GET("w3m/v1/getAndroidListings")
     suspend fun getAndroidWallets(
-        @HeaderMap explorerModalListingHeaders: Map<String, String>,
         @Query("projectId") projectId: String,
-        @Query("chains") chains: String?
+        @Query("chains") chains: String?,
+        @Query("sdk_type") sdkType: String,
+        @Query("sdk_version") sdkVersion: String
     ): Response<WalletListingDTO>
 }
