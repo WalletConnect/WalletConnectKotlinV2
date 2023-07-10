@@ -27,5 +27,7 @@ object Sync {
         data class Delete(val accountId: AccountId, val store: Store, val key: String) : Params()
 
         data class GetStores(val accountId: AccountId) : Params()
+
+        data class GetStoreTopics(val accountId: AccountId, val store: String) : Params()
     }
 }
