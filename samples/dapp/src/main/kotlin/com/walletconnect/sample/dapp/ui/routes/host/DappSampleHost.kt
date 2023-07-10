@@ -56,7 +56,6 @@ fun DappSampleHost() {
                 ConnectionIndicator()
             }
             DappSampleNavGraph(
-                sheetState = sheetState,
                 bottomSheetNavigator = bottomSheetNavigator,
                 navController = navController,
                 startDestination = Route.ChainSelection.path
