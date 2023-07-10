@@ -1,8 +1,10 @@
 package com.walletconnect.android.sync.client
 
 import com.walletconnect.android.Core
+import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.sync.common.model.Events
 import com.walletconnect.android.sync.common.model.StoreMap
+import com.walletconnect.foundation.common.model.Topic
 import kotlinx.coroutines.flow.SharedFlow
 
 
@@ -32,4 +34,10 @@ interface SyncInterface {
      * It is advised that this function be called from background operation
      */
     fun getStores(params: Sync.Params.GetStores): StoreMap?
+
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+    fun getStoreTopic(params: Sync.Params.GetStoreTopics): Topic?
 }

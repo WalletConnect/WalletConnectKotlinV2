@@ -1,16 +1,18 @@
 package com.walletconnect.android.sync.client
 
 import com.walletconnect.android.Core
+import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.sync.common.model.Events
+import com.walletconnect.android.sync.common.model.Store
 import com.walletconnect.android.sync.common.model.StoreMap
 import com.walletconnect.android.sync.di.commonModule
 import com.walletconnect.android.sync.di.engineModule
 import com.walletconnect.android.sync.di.jsonRpcModule
 import com.walletconnect.android.sync.di.syncStorageModule
 import com.walletconnect.android.sync.engine.domain.SyncEngine
-import com.walletconnect.foundation.util.Logger
+import com.walletconnect.foundation.common.model.Topic
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -85,6 +87,11 @@ internal class SyncProtocol(private val koinApp: KoinApplication = wcKoinApp) : 
     @Throws(IllegalStateException::class)
     override fun getStores(params: Sync.Params.GetStores): StoreMap? = wrapWithEngineInitializationCheck {
         syncEngine.getStores(params.accountId)
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun getStoreTopic(params: Sync.Params.GetStoreTopics): Topic? = wrapWithEngineInitializationCheck {
+        syncEngine.getStoreTopic(params.accountId, Store(params.store))
     }
 
     @Throws(IllegalStateException::class)
