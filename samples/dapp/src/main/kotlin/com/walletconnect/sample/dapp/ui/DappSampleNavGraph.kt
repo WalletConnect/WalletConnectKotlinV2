@@ -1,9 +1,7 @@
-@file:OptIn(ExperimentalMaterialNavigationApi::class, ExperimentalMaterialApi::class)
+@file:OptIn(ExperimentalMaterialNavigationApi::class)
 
 package com.walletconnect.sample.dapp.ui
 
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -30,7 +28,6 @@ import com.walletconnect.sample.dapp.ui.routes.dialog_routes.MessageDialogRoute
 
 @Composable
 fun DappSampleNavGraph(
-    sheetState: ModalBottomSheetState,
     bottomSheetNavigator: BottomSheetNavigator,
     navController: NavHostController,
     startDestination: String,
@@ -70,7 +67,7 @@ fun DappSampleNavGraph(
                     message = checkNotNull(it.arguments?.getString(messageArg))
                 )
             }
-            walletConnectModalGraph(navController, sheetState)
+            walletConnectModalGraph(navController)
         }
     }
 }
