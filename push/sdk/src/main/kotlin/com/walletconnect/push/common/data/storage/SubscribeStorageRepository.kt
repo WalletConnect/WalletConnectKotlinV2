@@ -72,8 +72,6 @@ class SubscribeStorageRepository(
         val requestedSubscriptionRequestId = activeSubscriptionsQueries.getActiveSubscriptionForeignRequestedSubscriptionIdByPushTopic(pushTopic).executeAsOneOrNull()?.requested_subscription_id
         if (requestedSubscriptionRequestId != null) requestedSubscriptionQueries.deleteByRequestId(requestedSubscriptionRequestId)
         activeSubscriptionsQueries.deleteByPushTopic(pushTopic)
-        Timber.d("deleteSubscriptionByPushTopic")
-        Timber.d(requestedSubscriptionRequestId.toString())
     }
 
     private fun toActiveSubscriptionWithoutMetadata(
