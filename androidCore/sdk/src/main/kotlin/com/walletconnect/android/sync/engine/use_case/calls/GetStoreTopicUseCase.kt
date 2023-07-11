@@ -12,7 +12,7 @@ import kotlinx.coroutines.runBlocking
 
 internal class GetStoreTopicUseCase(private val storesRepository: StoresStorageRepository) : GetStoreTopicUseCaseInterface {
 
-    override fun getStoreTopic(accountId: AccountId, store: Store): Topic? {
+    override suspend fun getStoreTopic(accountId: AccountId, store: Store): Topic? {
         validateAccountId(accountId) { error -> throw error }
 
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -23,5 +23,5 @@ internal class GetStoreTopicUseCase(private val storesRepository: StoresStorageR
 }
 
 internal interface GetStoreTopicUseCaseInterface {
-    fun getStoreTopic(accountId: AccountId, store: Store): Topic?
+    suspend fun getStoreTopic(accountId: AccountId, store: Store): Topic?
 }

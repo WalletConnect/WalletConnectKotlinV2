@@ -1,7 +1,6 @@
 package com.walletconnect.android.sync.client
 
 import com.walletconnect.android.Core
-import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.sync.common.model.Events
@@ -17,6 +16,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.koin.core.KoinApplication
 
 internal class SyncProtocol(private val koinApp: KoinApplication = wcKoinApp) : SyncInterface {
@@ -91,7 +91,7 @@ internal class SyncProtocol(private val koinApp: KoinApplication = wcKoinApp) : 
 
     @Throws(IllegalStateException::class)
     override fun getStoreTopic(params: Sync.Params.GetStoreTopics): Topic? = wrapWithEngineInitializationCheck {
-        syncEngine.getStoreTopic(params.accountId, Store(params.store))
+        runBlocking(scope.coroutineContext) { syncEngine.getStoreTopic(params.accountId, Store(params.store)) }
     }
 
     @Throws(IllegalStateException::class)
