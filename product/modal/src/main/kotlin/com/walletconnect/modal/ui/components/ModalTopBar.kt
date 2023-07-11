@@ -15,7 +15,6 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
@@ -112,9 +111,10 @@ internal fun ModalSearchTopBar(
                         contentDescription = "lens",
                     )
                     HorizontalSpacer(width = 8.dp)
-                    if (searchValue.isBlank()) {
-                        Text(text = "Search wallets", style = TextStyle(color = ModalTheme.colors.secondaryTextColor))
-                    } else {
+                    Box {
+                        if (searchValue.isBlank()) {
+                            Text(text = "Search wallets", style = TextStyle(color = ModalTheme.colors.secondaryTextColor))
+                        }
                         innerTextField()
                     }
                 }
