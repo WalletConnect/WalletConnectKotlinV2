@@ -12,7 +12,7 @@ import com.walletconnect.android.sync.common.model.Events
 import com.walletconnect.android.sync.common.model.SyncUpdate
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
-import com.walletconnect.push.common.data.storage.SubscribeStorageRepository
+import com.walletconnect.push.common.data.storage.SubscriptionRepository
 import com.walletconnect.push.common.model.toDb
 import com.walletconnect.push.wallet.data.MessagesRepository
 import com.walletconnect.push.wallet.engine.sync.model.SyncedSubscription
@@ -25,7 +25,7 @@ internal class OnSubscriptionUpdateEventUseCase(
     private val messagesRepository: MessagesRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val historyInterface: HistoryInterface,
-    private val subscribeStorageRepository: SubscribeStorageRepository,
+    private val subscriptionRepository: SubscriptionRepository,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     _moshi: Moshi.Builder,
 ) {
@@ -42,7 +42,7 @@ internal class OnSubscriptionUpdateEventUseCase(
 
                 with(activeSubscription) {
                     runCatching {
-                        subscribeStorageRepository.insertOrAbortActiveSubscription(
+                        subscriptionRepository.insertOrAbortActiveSubscription(
                             account.value,
                             expiry.seconds,
                             relay.protocol,
@@ -71,7 +71,7 @@ internal class OnSubscriptionUpdateEventUseCase(
 
             is SyncUpdate.SyncDelete -> {
                 val pushTopic = update.key
-                subscribeStorageRepository.deleteSubscriptionByPushTopic(pushTopic)
+                subscriptionRepository.deleteSubscriptionByPushTopic(pushTopic)
                 messagesRepository.deleteMessagesByTopic(pushTopic)
                 jsonRpcInteractor.unsubscribe(Topic(pushTopic))
                 Timber.d("Sync deleting: $pushTopic")

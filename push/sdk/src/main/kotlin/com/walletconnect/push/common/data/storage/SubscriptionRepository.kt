@@ -10,9 +10,8 @@ import com.walletconnect.push.common.storage.data.dao.ActiveSubscriptionsQueries
 import com.walletconnect.push.common.storage.data.dao.RequestedSubscriptionQueries
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 
-class SubscribeStorageRepository(
+class SubscriptionRepository(
     private val requestedSubscriptionQueries: RequestedSubscriptionQueries,
     private val activeSubscriptionsQueries: ActiveSubscriptionsQueries,
 ) {

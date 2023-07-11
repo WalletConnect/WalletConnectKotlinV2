@@ -21,7 +21,7 @@ internal fun syncInPushModule() = module {
             messagesRepository = get(),
             metadataStorageRepository = get(),
             historyInterface = get(),
-            subscribeStorageRepository = get(),
+            subscriptionRepository = get(),
             jsonRpcInteractor = get(),
             _moshi = get(named(AndroidCommonDITags.MOSHI))
         )

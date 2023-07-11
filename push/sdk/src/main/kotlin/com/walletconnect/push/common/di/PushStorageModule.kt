@@ -7,7 +7,7 @@ import com.walletconnect.android.di.sdkBaseStorageModule
 import com.walletconnect.android.internal.common.di.deleteDatabase
 import com.walletconnect.push.PushDatabase
 import com.walletconnect.push.common.data.storage.ProposalStorageRepository
-import com.walletconnect.push.common.data.storage.SubscribeStorageRepository
+import com.walletconnect.push.common.data.storage.SubscriptionRepository
 import com.walletconnect.push.common.storage.data.dao.ActiveSubscriptions
 import com.walletconnect.push.common.storage.data.dao.RequestedSubscriptions
 import org.koin.core.scope.Scope
@@ -66,7 +66,7 @@ internal fun pushStorageModule(dbName: String) = module {
 
     single { get<PushDatabase>().proposalQueries }
 
-    single { SubscribeStorageRepository(get(), get()) }
+    single { SubscriptionRepository(get(), get()) }
 
     single { ProposalStorageRepository(get()) }
 }
