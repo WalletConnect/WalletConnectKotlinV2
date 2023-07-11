@@ -136,8 +136,8 @@ internal class PushWalletEngine(
         )
     }
 
-    fun setup() {
-        scope.launch { registerTagsInHistory() }
+    suspend fun setup() {
+        registerTagsInHistory()
         jsonRpcInteractor.isConnectionAvailable
             .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
             .filter { isAvailable: Boolean -> isAvailable }

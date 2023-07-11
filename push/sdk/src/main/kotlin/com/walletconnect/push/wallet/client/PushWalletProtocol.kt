@@ -11,9 +11,9 @@ import com.walletconnect.push.common.di.pushJsonRpcModule
 import com.walletconnect.push.common.di.pushStorageModule
 import com.walletconnect.push.common.model.EngineDO
 import com.walletconnect.push.common.model.toClient
-import com.walletconnect.push.common.model.toWalletClient
 import com.walletconnect.push.common.model.toEvent
 import com.walletconnect.push.common.model.toModel
+import com.walletconnect.push.common.model.toWalletClient
 import com.walletconnect.push.wallet.di.messageModule
 import com.walletconnect.push.wallet.di.syncInPushModule
 import com.walletconnect.push.wallet.di.walletEngineModule
@@ -45,7 +45,7 @@ class PushWalletProtocol(private val koinApp: KoinApplication = wcKoinApp) : Pus
             )
 
             pushWalletEngine = koinApp.koin.get()
-            pushWalletEngine.setup()
+            runBlocking(scope.coroutineContext) { pushWalletEngine.setup() }
         } catch (e: Exception) {
             onError(Push.Model.Error(e))
         }
