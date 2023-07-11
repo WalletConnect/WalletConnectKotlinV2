@@ -64,7 +64,7 @@ class Web3WalletActivity : ComponentActivity() {
 
     private fun setContent(
         web3walletViewModel: Web3WalletViewModel,
-        connectionsViewModel: ConnectionsViewModel
+        connectionsViewModel: ConnectionsViewModel,
     ) {
         setContent {
             val sheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden, skipHalfExpanded = true)
@@ -92,6 +92,7 @@ class Web3WalletActivity : ComponentActivity() {
                         connectionsViewModel.refreshConnections()
                         navController.navigate(Route.Connections.path)
                     }
+
                     else -> Unit
                 }
             }
@@ -129,29 +130,7 @@ class Web3WalletActivity : ComponentActivity() {
                     }
 
                     is PushProposal -> {
-                        val peerName = URLEncoder.encode(event.peerName, Charsets.UTF_8.name())
-                        val peerDesc = URLEncoder.encode(event.peerDesc, Charsets.UTF_8.name())
-                        val iconUrl = event.icon?.run { URLEncoder.encode(this, Charsets.UTF_8.name()) }
-                        val redirectUrl = event.redirect?.run { URLEncoder.encode(this, Charsets.UTF_8.name()) }
-                        val route = StringBuilder(Route.PushProposal.path)
-                            .append("?")
-                            .append("${Route.PushProposal.KEY_REQUEST_ID}=${event.requestId}")
-                            .append("&")
-                            .append("${Route.PushProposal.KEY_PEER_NAME}=$peerName")
-                            .append("&")
-                            .append("${Route.PushProposal.KEY_PEER_DESC}=$peerDesc")
-                            .append("&")
-                            .append("${Route.PushProposal.KEY_ICON_URL}=$iconUrl")
-
-                        if (redirectUrl != null) {
-                            route.append("&")
-                                .append("${Route.PushProposal.KEY_REDIRECT}=$redirectUrl")
-                        }
-
-                        withContext(Dispatchers.Main) {
-                            Timber.d("Received PushProposal but it's handled by Web3Inbox")
-//                            navController.navigate(route.toString())
-                        }
+                        Timber.d("Received PushProposal but it's handled by Web3Inbox")
                     }
 
                     is PushMessage -> {
@@ -173,6 +152,7 @@ class Web3WalletActivity : ComponentActivity() {
                         }
                         NotificationManagerCompat.from(this).notify(Random.nextUInt().toInt(), notificationBuilder.build())
                     }
+
                     else -> Unit
                 }
             }
@@ -182,7 +162,7 @@ class Web3WalletActivity : ComponentActivity() {
 
     private fun handleWeb3WalletEvents(
         web3walletViewModel: Web3WalletViewModel,
-        connectionsViewModel: ConnectionsViewModel
+        connectionsViewModel: ConnectionsViewModel,
     ) {
         web3walletViewModel.walletEvents
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
@@ -194,6 +174,7 @@ class Web3WalletActivity : ComponentActivity() {
                         connectionsViewModel.refreshConnections()
                         navController.navigate(Route.Connections.path)
                     }
+
                     is AuthEvent.OnRequest -> navController.navigate(Route.AuthRequest.path)
 
                     else -> Unit
