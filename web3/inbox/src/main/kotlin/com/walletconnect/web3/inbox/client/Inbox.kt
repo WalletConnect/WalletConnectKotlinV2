@@ -6,16 +6,25 @@ import com.walletconnect.android.cacao.SignatureInterface
 
 
 object Inbox {
+
+
     sealed class Params {
         data class Init(
             val core: CoreInterface,
             val account: Type.AccountId,
             val onSign: (message: String) -> Model.Cacao.Signature,
+            val config: Model.Config = Model.Config()
         ) : Params()
     }
 
     sealed class Model {
         data class Error(val throwable: Throwable) : Model()
+
+        data class Config(
+            val isChatEnabled: Boolean = false,
+            val isPushEnabled: Boolean = true,
+            val areSettingsEnabled: Boolean = false
+        ) : Model()
 
         sealed class Events : Model() {
             data class OnSign(val message: String) : Events()

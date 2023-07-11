@@ -16,6 +16,8 @@ import com.walletconnect.android.sync.engine.use_case.calls.DeleteStoreValueUseC
 import com.walletconnect.android.sync.engine.use_case.calls.DeleteUseCaseInterface
 import com.walletconnect.android.sync.engine.use_case.calls.GetMessageUseCase
 import com.walletconnect.android.sync.engine.use_case.calls.GetMessageUseCaseInterface
+import com.walletconnect.android.sync.engine.use_case.calls.GetStoreTopicUseCase
+import com.walletconnect.android.sync.engine.use_case.calls.GetStoreTopicUseCaseInterface
 import com.walletconnect.android.sync.engine.use_case.calls.GetStoresUseCase
 import com.walletconnect.android.sync.engine.use_case.calls.GetStoresUseCaseInterface
 import com.walletconnect.android.sync.engine.use_case.calls.IsAccountRegisteredUseCase
@@ -41,6 +43,7 @@ import kotlinx.coroutines.launch
 
 internal class SyncEngine(
     private val getStoresUseCase: GetStoresUseCase,
+    private val getStoreTopicUseCase: GetStoreTopicUseCase,
     private val registerAccountUseCase: RegisterAccountUseCase,
     private val isAccountRegisteredUseCase: IsAccountRegisteredUseCase,
     private val createStoreUseCase: CreateStoreUseCase,
@@ -55,6 +58,7 @@ internal class SyncEngine(
 ) : GetMessageUseCaseInterface by GetMessageUseCase,
     CreateUseCaseInterface by createStoreUseCase,
     GetStoresUseCaseInterface by getStoresUseCase,
+    GetStoreTopicUseCaseInterface by getStoreTopicUseCase,
     RegisterAccountUseCaseInterface by registerAccountUseCase,
     IsAccountRegisteredUseCaseInterface by isAccountRegisteredUseCase,
     DeleteUseCaseInterface by deleteStoreValueUseCase,
@@ -75,7 +79,6 @@ internal class SyncEngine(
     }
 
     fun setup() {
-        scope.launch { registerTagsInHistory() }
         jsonRpcInteractor.isConnectionAvailable
             .onEach { isAvailable -> _events.emit(ConnectionState(isAvailable)) }
             .filter { isAvailable: Boolean -> isAvailable }
@@ -101,7 +104,9 @@ internal class SyncEngine(
 
 
     private suspend fun registerTagsInHistory() {
-        historyInterface.registerTags(tags = listOf(Tags.SYNC_SET, Tags.SYNC_DELETE), {}, {})
+        // TODO: Has to be one register call per clientId
+        //  Currently moved to PushWalletEgnine
+//        historyInterface.registerTags(tags = listOf(Tags.SYNC_SET, Tags.SYNC_DELETE), {}, {})
     }
 
 

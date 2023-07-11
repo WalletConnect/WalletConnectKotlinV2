@@ -22,3 +22,7 @@ WHERE topic = ?;
 deleteMessageByRequestId:
 DELETE FROM Messages
 WHERE request_id = ?;
+
+deleteMessagesByTopic:
+DELETE FROM Messages
+WHERE topic = ?;

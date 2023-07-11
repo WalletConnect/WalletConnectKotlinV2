@@ -14,6 +14,7 @@ internal class PushProxyRequestHandler(
     private val deleteSubscriptionRequestUseCase: DeleteSubscriptionRequestUseCase,
     private val getMessageHistoryRequestUseCase: GetMessageHistoryRequestUseCase,
     private val deletePushMessageRequestUseCase: DeletePushMessageRequestUseCase,
+    private val enableSyncRequestUseCase: EnableSyncRequestUseCase,
 ) {
 
     fun handleRequest(rpc: Web3InboxRPC.Request.Push) {
@@ -21,6 +22,7 @@ internal class PushProxyRequestHandler(
             is Web3InboxRPC.Request.Push.GetActiveSubscriptions -> getActiveSubscriptionsRequestUseCase(rpc, rpc.params)
             is Web3InboxRPC.Request.Push.Approve -> approveRequestUseCase(rpc, rpc.params)
             is Web3InboxRPC.Request.Push.DeletePushMessage -> deletePushMessageRequestUseCase(rpc, rpc.params)
+            is Web3InboxRPC.Request.Push.EnableSync -> enableSyncRequestUseCase(rpc, rpc.params)
             is Web3InboxRPC.Request.Push.DeleteSubscription -> deleteSubscriptionRequestUseCase(rpc, rpc.params)
             is Web3InboxRPC.Request.Push.GetMessageHistory -> getMessageHistoryRequestUseCase(rpc, rpc.params)
             is Web3InboxRPC.Request.Push.Reject -> rejectRequestUseCase(rpc, rpc.params)

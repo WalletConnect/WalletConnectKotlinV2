@@ -2,8 +2,11 @@ package com.walletconnect.web3.inbox.chat.request
 
 import com.walletconnect.chat.client.Chat
 import com.walletconnect.chat.client.ChatInterface
+import com.walletconnect.push.common.Push
+import com.walletconnect.push.wallet.client.PushWalletInterface
 import com.walletconnect.web3.inbox.client.Inbox
 import com.walletconnect.web3.inbox.client.toChat
+import com.walletconnect.web3.inbox.client.toPush
 import com.walletconnect.web3.inbox.common.proxy.ChatProxyInteractor
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxParams
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC

@@ -22,6 +22,11 @@ UPDATE MetaData
 SET name = ?, description = ?, url = ?, icons = ?, native = ?, type = ?
 WHERE sequence_topic = ?;
 
+updateOrAbortMetaDataTopic:
+UPDATE OR ABORT MetaData
+SET sequence_topic = ?
+WHERE sequence_topic = ?;
+
 getMetadataByTopicAndType:
 SELECT name, description, url, icons, native
 FROM MetaData
