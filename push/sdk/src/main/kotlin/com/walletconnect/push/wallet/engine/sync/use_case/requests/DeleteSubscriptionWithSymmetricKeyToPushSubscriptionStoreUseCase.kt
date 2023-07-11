@@ -13,7 +13,7 @@ internal class DeleteSubscriptionToPushSubscriptionStoreUseCase(
     private val syncClient: SyncInterface,
 ) {
 
-    operator fun invoke(accountId: AccountId, pushTopic: Topic, onSuccess: (Boolean) -> Unit, onError: (Throwable) -> Unit) {
+    suspend operator fun invoke(accountId: AccountId, pushTopic: Topic, onSuccess: (Boolean) -> Unit, onError: (Throwable) -> Unit) {
         syncClient.delete(
             Sync.Params.Delete(accountId, Store(PushSyncStores.PUSH_SUBSCRIPTION.value), pushTopic.value),
             onSuccess = { didUpdate -> onSuccess(didUpdate) },
