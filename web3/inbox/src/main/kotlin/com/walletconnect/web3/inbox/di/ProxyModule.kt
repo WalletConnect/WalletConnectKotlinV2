@@ -19,7 +19,6 @@ internal fun proxyModule(
     chatClient: ChatInterface,
     pushWalletClient: PushWalletInterface,
     onSign: (message: String) -> Inbox.Model.Cacao.Signature,
-    onPageFinished: () -> Unit,
     config: Inbox.Model.Config,
 ) = module {
     includes(
@@ -31,5 +30,5 @@ internal fun proxyModule(
     single { config.toCommon() }
     single { WebViewWeakReference() }
     single { ProxyRequestHandler(get(), get(), get()) }
-    single { WebViewPresenter(get(), get(), get(), onPageFinished, get()) }
+    single { WebViewPresenter(get(), get(), get(), get()) }
 }

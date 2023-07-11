@@ -31,7 +31,7 @@ object Web3Inbox {
             account = LateInitAccountId(AccountId(init.account.value))
             wcKoinApp.modules(
                 web3InboxJsonRpcModule(),
-                proxyModule(ChatClient, PushWalletClient, init.onSign, ::onPageFinished, init.config),
+                proxyModule(ChatClient, PushWalletClient, init.onSign, init.config),
             )
             ChatClient.setChatDelegate(wcKoinApp.koin.get<ChatEventHandler>())
             PushWalletClient.setDelegate(wcKoinApp.koin.get<PushEventHandler>())
@@ -55,10 +55,6 @@ object Web3Inbox {
     @Throws(IllegalStateException::class)
     fun View(modifier: Modifier = Modifier, state: Web3InboxState) = wrapComposableWithInitializationCheck {
         Web3InboxView(modifier, wcKoinApp.koin.get(), state)
-    }
-
-    private fun onPageFinished() = wrapWithInitializationCheck {
-        // Is this still being used somewhere?
     }
 
     @Composable

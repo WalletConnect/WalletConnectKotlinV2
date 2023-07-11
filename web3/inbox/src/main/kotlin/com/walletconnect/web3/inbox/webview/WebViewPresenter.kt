@@ -12,15 +12,9 @@ internal class WebViewPresenter(
     private val proxyRequestHandler: ProxyRequestHandler,
     private val webViewWeakReference: WebViewWeakReference,
     private val logger: Logger,
-    private val onPageFinished: () -> Unit,
     private val config: Config
 ) {
-    private val _webViewClient: WebViewClient = object : WebViewClient() {
-        override fun onPageFinished(view: WebView?, url: String?) {
-            super.onPageFinished(view, url)
-            onPageFinished()
-        }
-    }
+    private val _webViewClient: WebViewClient = WebViewClient()
 
     private val _webChromeClient = object : WebChromeClient() {
         override fun onConsoleMessage(message: ConsoleMessage): Boolean {
