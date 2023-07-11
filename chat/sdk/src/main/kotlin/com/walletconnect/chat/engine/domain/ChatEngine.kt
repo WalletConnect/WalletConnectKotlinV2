@@ -130,7 +130,6 @@ internal class ChatEngine(
     }
 
     fun setup() {
-//        scope.launch { registerTagsInHistory() }
         jsonRpcInteractor.isConnectionAvailable
             .onEach { isAvailable -> _events.emit(ConnectionState(isAvailable)) }
             .filter { isAvailable: Boolean -> isAvailable }
