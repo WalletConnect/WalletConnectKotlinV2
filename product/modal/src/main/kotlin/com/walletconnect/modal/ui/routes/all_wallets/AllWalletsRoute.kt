@@ -19,11 +19,13 @@ import androidx.navigation.NavController
 import com.walletconnect.android.internal.common.explorer.data.model.Wallet
 import com.walletconnect.modal.R
 import com.walletconnect.modal.ui.components.ModalTopBar
+import com.walletconnect.modal.ui.components.WalletsLazyGridView
 import com.walletconnect.modal.ui.components.walletsGridItems
 import com.walletconnect.modal.ui.navigation.Route
 import com.walletconnect.modal.ui.preview.ModalPreview
 import com.walletconnect.modal.ui.theme.ModalTheme
 import com.walletconnect.modalcore.utils.goToNativeWallet
+import com.walletconnect.modalcore.utils.isLandscape
 
 @Composable
 internal fun AllWalletsRoute(
@@ -50,6 +52,7 @@ private fun AllWalletsContent(
     onScanIconClick: () -> Unit,
     onBackClick: () -> Unit,
 ) {
+    val gridFraction = if (isLandscape) 1f else .8f
     Column {
         ModalTopBar(
             title = "Connect your wallet",
@@ -61,24 +64,22 @@ private fun AllWalletsContent(
                     modifier = Modifier.clickable { onScanIconClick() })
             }
         )
-        LazyVerticalGrid(
+        WalletsLazyGridView(
             modifier = Modifier
-                .fillMaxHeight(.8f)
+                .fillMaxHeight(gridFraction)
                 .padding(horizontal = 4.dp),
-            columns = GridCells.Fixed(4)
         ) {
             walletsGridItems(wallets, onWalletItemClick)
         }
     }
-    
-}
 
+}
 
 
 @Preview
 @Composable
 private fun AllWalletsPreview() {
     ModalPreview {
-        AllWalletsContent(listOf(), {}, {},{})
+        AllWalletsContent(listOf(), {}, {}, {})
     }
 }

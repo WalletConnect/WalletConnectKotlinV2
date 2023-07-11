@@ -12,9 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridScope
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
@@ -36,11 +34,13 @@ import com.walletconnect.modal.R
 import com.walletconnect.modal.ui.components.ModalTopBar
 import com.walletconnect.modal.ui.components.WalletImage
 import com.walletconnect.modal.ui.components.WalletListItem
+import com.walletconnect.modal.ui.components.WalletsLazyGridView
 import com.walletconnect.modal.ui.components.walletsGridItems
 import com.walletconnect.modal.ui.navigation.Route
 import com.walletconnect.modal.ui.preview.ModalPreview
 import com.walletconnect.modal.ui.theme.ModalTheme
 import com.walletconnect.modalcore.utils.goToNativeWallet
+import com.walletconnect.modalcore.utils.isLandscape
 
 @Composable
 internal fun ConnectYourWalletRoute(
@@ -89,32 +89,39 @@ private fun WalletsGrid(
     onWalletItemClick: (Wallet) -> Unit,
     onViewAllClick: () -> Unit
 ) {
+    val isLandscape = isLandscape
     if (wallets.isNotEmpty()) {
-        LazyVerticalGrid(
+        WalletsLazyGridView(
             modifier = Modifier.fillMaxWidth(),
-            columns = GridCells.Fixed(4)
-        ) {
-            if (wallets.size <= 8) {
+        ) { walletsInColumn ->
+            if (wallets.size <= walletsInColumn) {
                 walletsGridItems(wallets, onWalletItemClick)
             } else {
-                walletsGridItemsWithViewAll(wallets, onWalletItemClick, onViewAllClick)
+                walletsGridItemsWithViewAll(
+                    if (isLandscape) walletsInColumn else walletsInColumn*2,
+                    wallets,
+                    onWalletItemClick,
+                    onViewAllClick
+                )
             }
         }
     }
 }
 private fun LazyGridScope.walletsGridItemsWithViewAll(
+    walletsMaxSize: Int,
     wallets: List<Wallet>,
     onWalletItemClick: (Wallet) -> Unit,
     onViewAllClick: () -> Unit
 ) {
-    itemsIndexed(wallets.take(7)) { _, wallet ->
+    val walletTakenSize = walletsMaxSize - 1
+    itemsIndexed(wallets.take(walletTakenSize)) { _, wallet ->
         WalletListItem(
             wallet = wallet,
             onWalletItemClick = onWalletItemClick
         )
     }
     item {
-        ViewAllItem(wallets.subList(7, wallets.size), onViewAllClick)
+        ViewAllItem(wallets.subList(walletTakenSize, wallets.size), onViewAllClick)
     }
 }
 
