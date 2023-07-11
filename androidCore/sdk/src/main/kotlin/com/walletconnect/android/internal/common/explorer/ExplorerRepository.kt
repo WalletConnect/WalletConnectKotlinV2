@@ -1,6 +1,7 @@
 package com.walletconnect.android.internal.common.explorer
 
 import androidx.core.net.toUri
+import com.walletconnect.android.BuildConfig
 import com.walletconnect.android.internal.common.explorer.data.model.App
 import com.walletconnect.android.internal.common.explorer.data.model.Colors
 import com.walletconnect.android.internal.common.explorer.data.model.DappListings
@@ -28,7 +29,11 @@ import com.walletconnect.android.internal.common.explorer.data.network.model.Sup
 import com.walletconnect.android.internal.common.explorer.data.network.model.WalletListingDTO
 import com.walletconnect.android.internal.common.model.ProjectId
 
-class ExplorerRepository(private val explorerService: ExplorerService, private val projectId: ProjectId, private val explorerApiUrl: String) {
+class ExplorerRepository(
+    private val explorerService: ExplorerService,
+    private val projectId: ProjectId,
+    private val explorerApiUrl: String
+) {
 
     suspend fun getAllDapps(): DappListings {
         return with(explorerService.getAllDapps(projectId.value)) {
@@ -40,11 +45,16 @@ class ExplorerRepository(private val explorerService: ExplorerService, private v
         }
     }
 
-    suspend fun getMobileWallets(chains: String?): WalletListing {
+    suspend fun getMobileWallets(
+        sdkType: String,
+        chains: String?
+    ): WalletListing {
         return with(
             explorerService.getAndroidWallets(
                 projectId = projectId.value,
                 chains = chains,
+                sdkType = sdkType,
+                sdkVersion = BuildConfig.SDK_VERSION
             )
         ) {
             if (isSuccessful && body() != null) {
