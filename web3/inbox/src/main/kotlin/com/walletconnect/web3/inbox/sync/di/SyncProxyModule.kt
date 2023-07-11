@@ -9,6 +9,6 @@ import org.koin.dsl.module
 @JvmSynthetic
 internal fun syncProxyModule(
 ) = module {
-    single { OnSyncUpdateEventUseCase(get(), get()) }
-    single { SyncEventHandler(get(), get(), get()) }
+    single { OnSyncUpdateEventUseCase(onSyncUpdateChatEventUseCase = get(), onSyncUpdatePushEventUseCase = get()) }
+    single { SyncEventHandler(syncClient = get(), jsonRpcInteractor = get(), onSyncUpdateEventUseCase = get()) }
 }
