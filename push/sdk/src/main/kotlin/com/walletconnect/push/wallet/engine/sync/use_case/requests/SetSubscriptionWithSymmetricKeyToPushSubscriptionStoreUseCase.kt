@@ -18,7 +18,7 @@ internal class SetSubscriptionWithSymmetricKeyToPushSubscriptionStoreUseCase(
 ) {
     private val moshi = _moshi.build()
 
-    operator fun invoke(subscription: EngineDO.Subscription.Active, symmetricKey: SymmetricKey, onSuccess: (Boolean) -> Unit, onError: (Throwable) -> Unit) {
+    suspend operator fun invoke(subscription: EngineDO.Subscription.Active, symmetricKey: SymmetricKey, onSuccess: (Boolean) -> Unit, onError: (Throwable) -> Unit) {
         val syncedSubscription = subscription.toSync(symmetricKey)
         val payload = moshi.adapter(SyncedSubscription::class.java).toJson(syncedSubscription)
 
