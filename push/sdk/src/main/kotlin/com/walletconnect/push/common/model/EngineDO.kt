@@ -26,30 +26,14 @@ sealed class EngineDO : EngineEvent {
         ) : PushScope()
     }
 
-    sealed class PushPropose : EngineDO() {
-        abstract val requestId: Long
-        abstract val proposalTopic: Topic
-        abstract val dappPublicKey: PublicKey
-        abstract val accountId: AccountId
-        abstract val relayProtocolOptions: RelayProtocolOptions
-
-        data class WithoutMetaData(
-            override val requestId: Long,
-            override val proposalTopic: Topic,
-            override val dappPublicKey: PublicKey,
-            override val accountId: AccountId,
-            override val relayProtocolOptions: RelayProtocolOptions,
-        ) : PushPropose()
-
-        data class WithMetaData(
-            override val requestId: Long,
-            override val proposalTopic: Topic,
-            override val dappPublicKey: PublicKey,
-            override val accountId: AccountId,
-            override val relayProtocolOptions: RelayProtocolOptions,
-            val dappMetadata: AppMetaData?,
-        ) : PushPropose()
-    }
+    data class PushProposal(
+        val requestId: Long,
+        val proposalTopic: Topic,
+        val dappPublicKey: PublicKey,
+        val accountId: AccountId,
+        val relayProtocolOptions: RelayProtocolOptions,
+        val dappMetadata: AppMetaData? = null,
+    ) : EngineDO()
 
     data class PushRecord(
         val id: Long,
@@ -66,59 +50,54 @@ sealed class EngineDO : EngineEvent {
         val type: String,
     ) : EngineDO()
 
-    sealed class PushSubscribe : EngineDO() {
-        abstract val requestId: Long
-        abstract val subscribeTopic: Topic
-        abstract val dappDidPublicKey: PublicKey
-        abstract val selfPublicKey: PublicKey
-        abstract val responseTopic: Topic
+    sealed class Subscription : EngineDO() {
         abstract val account: AccountId
         abstract val mapOfScope: Map<String, PushScope.Cached>
         abstract val expiry: Expiry
 
         data class Requested(
-            override val requestId: Long,
-            override val subscribeTopic: Topic,
-            override val dappDidPublicKey: PublicKey,
-            override val selfPublicKey: PublicKey,
-            override val responseTopic: Topic,
             override val account: AccountId,
             override val mapOfScope: Map<String, PushScope.Cached>,
             override val expiry: Expiry,
-        ) : PushSubscribe()
+            val responseTopic: Topic,
+            val subscribeTopic: Topic,
+            val requestId: Long,
+        ) : Subscription()
 
-        data class Responded(
-            override val requestId: Long,
-            override val subscribeTopic: Topic,
-            override val dappDidPublicKey: PublicKey,
-            override val selfPublicKey: PublicKey,
-            override val responseTopic: Topic,
+        data class Active(
             override val account: AccountId,
             override val mapOfScope: Map<String, PushScope.Cached>,
             override val expiry: Expiry,
             val dappGeneratedPublicKey: PublicKey,
             val pushTopic: Topic,
-        ) : PushSubscribe()
-
-        data class RespondedWithMetaData(
-            override val requestId: Long,
-            override val subscribeTopic: Topic,
-            override val dappDidPublicKey: PublicKey,
-            override val selfPublicKey: PublicKey,
-            override val responseTopic: Topic,
-            override val account: AccountId,
-            override val mapOfScope: Map<String, PushScope.Cached>,
-            override val expiry: Expiry,
-            val dappGeneratedPublicKey: PublicKey,
-            val pushTopic: Topic,
-            val dappMetaData: AppMetaData?,
-        ) : PushSubscribe()
+            val dappMetaData: AppMetaData? = null,
+            val requestedSubscriptionId: Long? = null,
+            val relay: RelayProtocolOptions = RelayProtocolOptions(),
+        ) : Subscription()
 
         data class Error(
             val requestId: Long,
             val rejectionReason: String,
         ) : EngineDO()
     }
+
+    sealed class PushUpdate : EngineDO() {
+        data class Result(
+            val account: AccountId,
+            val mapOfScope: Map<String, PushScope.Cached>,
+            val expiry: Expiry,
+            val dappGeneratedPublicKey: PublicKey,
+            val pushTopic: Topic,
+            var dappMetaData: AppMetaData? = null,
+            val relay: RelayProtocolOptions = RelayProtocolOptions(),
+        ) : PushUpdate()
+
+        data class Error(
+            val requestId: Long,
+            val rejectionReason: String,
+        ) : PushUpdate()
+    }
+
 
     data class PushLegacySubscription(
         val requestId: Long,
@@ -132,24 +111,6 @@ sealed class EngineDO : EngineEvent {
         val didJwt: String,
         val scope: Map<String, PushScope.Cached>,
         val expiry: Expiry,
-    ) : EngineDO()
-
-    data class PushUpdate(
-        val requestId: Long,
-        val responseTopic: String,
-        val peerPublicKeyAsHex: String?,
-        val subscriptionTopic: String?,
-        val account: AccountId,
-        val relay: RelayProtocolOptions,
-        val metadata: AppMetaData,
-        val didJwt: String,
-        val scope: Map<String, PushScope.Cached>,
-        val expiry: Expiry,
-    ) : EngineDO()
-
-    data class PushUpdateError(
-        val requestId: Long,
-        val rejectionReason: String,
     ) : EngineDO()
 
     data class PushDelete(val topic: String) : EngineDO()

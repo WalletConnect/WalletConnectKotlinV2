@@ -15,7 +15,6 @@ object Push {
         data class MessageRecord(val id: String, val topic: String, val publishedAt: Long, val message: Message) : Model()
 
         data class Subscription(
-            val requestId: Long,
             val topic: String,
             val account: String,
             val relay: Relay,
@@ -116,6 +115,8 @@ object Push {
             data class DeleteMessage(val id: Long) : Params()
 
             data class DecryptMessage(val topic: String, val encryptedMessage: String) : Params()
+
+            data class EnableSync(val account: String, val onSign: (String) -> Model.Cacao.Signature?) : Params()
         }
     }
 }

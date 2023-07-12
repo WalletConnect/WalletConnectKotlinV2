@@ -19,7 +19,7 @@ internal class GetActiveSubscriptionsRequestUseCase(
         map { it.key to it.value.toResult() }.toMap()
 
     private fun Push.Model.Subscription.toResult(): Web3InboxParams.Response.Push.GetActiveSubscriptionsResult =
-        Web3InboxParams.Response.Push.GetActiveSubscriptionsResult(requestId, topic, account, relay.toResult(), metadata.toResult())
+        Web3InboxParams.Response.Push.GetActiveSubscriptionsResult(topic, account, relay.toResult(), metadata.toResult())
 
     private fun Push.Model.Subscription.Relay.toResult() =
         Web3InboxParams.RelayParams(protocol, data)

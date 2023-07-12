@@ -27,18 +27,18 @@ private const val ANDROID_KEY_STORE = "AndroidKeyStore"
 private const val SHARED_PREFS_FILE = "wc_key_store"
 private const val KEY_STORE_ALIAS = "wc_keystore_key"
 private const val KEY_SIZE = 256
-private val keyGenParameterSpec: KeyGenParameterSpec =
-    KeyGenParameterSpec.Builder(KEY_STORE_ALIAS, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
-        .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-        .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-        .setKeySize(KEY_SIZE)
-        .build()
-
 @JvmSynthetic
 fun coreCryptoModule(sharedPrefsFile: String = SHARED_PREFS_FILE, keyStoreAlias: String = KEY_STORE_ALIAS) = module {
 
     @Synchronized
     fun Scope.createSharedPreferences(): SharedPreferences {
+        val keyGenParameterSpec: KeyGenParameterSpec =
+            KeyGenParameterSpec.Builder(keyStoreAlias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
+                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                .setKeySize(KEY_SIZE)
+                .build()
+
         val masterKey = MasterKey.Builder(androidContext(), keyStoreAlias)
             .setKeyGenParameterSpec(keyGenParameterSpec)
             .build()

@@ -20,6 +20,12 @@ class MetadataStorageRepository(private val metaDataQueries: MetaDataQueries): M
     }
 
     @Throws(SQLiteException::class)
+    override suspend fun updateOrAbortMetaDataTopic(oldTopic: Topic, newTopic: Topic) {
+        metaDataQueries.updateOrAbortMetaDataTopic(newTopic.value, oldTopic.value)
+    }
+
+
+    @Throws(SQLiteException::class)
     override fun upsertPairingPeerMetadata(topic: Topic, appMetaData: AppMetaData, appMetaDataType: AppMetaDataType) {
         if (!existsByTopicAndType(topic, appMetaDataType)) {
             insertOrAbortMetadata(topic, appMetaData, appMetaDataType)
