@@ -9,10 +9,10 @@ import com.tinder.scarlet.lifecycle.android.AndroidLifecycle
 import com.tinder.scarlet.messageadapter.moshi.MoshiMessageAdapter
 import com.tinder.scarlet.retry.LinearBackoffStrategy
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
+import com.walletconnect.android.BuildConfig
 import com.walletconnect.android.internal.common.connection.ConnectivityState
 import com.walletconnect.android.internal.common.connection.ManualConnectionLifecycle
 import com.walletconnect.android.internal.common.jwt.clientid.GenerateJwtStoreClientIdUseCase
-import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.relay.NetworkClientTimeout
 import com.walletconnect.foundation.network.data.ConnectionController
@@ -44,11 +44,11 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
     var wasFailOvered = false
 
     factory(named(AndroidCommonDITags.RELAY_URL)) {
-        val jwt = wcKoinApp.koin.get<GenerateJwtStoreClientIdUseCase>().invoke(SERVER_URL)
+        val jwt = get<GenerateJwtStoreClientIdUseCase>().invoke(SERVER_URL)
         Uri.parse(SERVER_URL)
             .buildUpon()
             .appendQueryParameter("auth", jwt)
-            .appendQueryParameter("ua", wcKoinApp.koin.get(named(AndroidCommonDITags.USER_AGENT)))
+            .appendQueryParameter("ua", get(named(AndroidCommonDITags.USER_AGENT)))
             .build()
             .toString()
     }
@@ -72,6 +72,14 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
                 .build()
 
             chain.proceed(updatedRequest)
+        }
+    }
+
+    single<Interceptor?>(named(AndroidCommonDITags.LOGGING_INTERCEPTOR)) {
+        if (BuildConfig.DEBUG) {
+            HttpLoggingInterceptor().apply { setLevel(HttpLoggingInterceptor.Level.BODY) }
+        } else {
+            null
         }
     }
 
@@ -110,7 +118,7 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
 
     single(named(AndroidCommonDITags.OK_HTTP)) {
         OkHttpClient.Builder()
-            .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+            .addInterceptor(get<Interceptor>(named(AndroidCommonDITags.LOGGING_INTERCEPTOR)))
             .addInterceptor(get<Interceptor>(named(AndroidCommonDITags.USER_AGENT_INTERCEPTOR)))
             .addInterceptor(get<Interceptor>(named(AndroidCommonDITags.FAIL_OVER_INTERCEPTOR)))
             .authenticator((get(named(AndroidCommonDITags.AUTHENTICATOR))))
