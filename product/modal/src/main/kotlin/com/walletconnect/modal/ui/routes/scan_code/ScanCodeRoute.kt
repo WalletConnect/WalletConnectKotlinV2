@@ -3,6 +3,7 @@ package com.walletconnect.modal.ui.routes.scan_code
 import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.ClipboardManager
@@ -47,7 +49,7 @@ private fun ScanQRCodeContent(
 ) {
     val context = LocalContext.current
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
-    val qrCodeModifier = if (isLandscape) Modifier else Modifier.padding(10.dp)
+    val qrCodeModifier = if (isLandscape) Modifier else Modifier.padding(horizontal = 20.dp)
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally

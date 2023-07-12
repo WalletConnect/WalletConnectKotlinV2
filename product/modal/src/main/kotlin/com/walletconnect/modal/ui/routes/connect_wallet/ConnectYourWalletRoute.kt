@@ -138,8 +138,10 @@ private fun ViewAllItem(
             modifier = Modifier
                 .size(80.dp)
                 .padding(10.dp)
-                .background(ModalTheme.colors.secondaryBackgroundColor, shape = RoundedCornerShape(10.dp))
-                .border(1.dp, ModalTheme.colors.dividerColor, shape = RoundedCornerShape(10.dp)),
+                .background(ModalTheme.colors.secondaryBackgroundColor, shape = RoundedCornerShape(14.dp))
+                .border(1.dp, ModalTheme.colors.dividerColor, shape = RoundedCornerShape(14.dp))
+                .padding(1.dp)
+            ,
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -149,8 +151,8 @@ private fun ViewAllItem(
                         WalletImage(
                             url = item.imageUrl, Modifier
                                 .size(30.dp)
-                                .padding(4.dp)
-                                .clip(RoundedCornerShape(10.dp))
+                                .padding(5.dp)
+                                .clip(RoundedCornerShape(4.dp))
                         )
                     }
                 }

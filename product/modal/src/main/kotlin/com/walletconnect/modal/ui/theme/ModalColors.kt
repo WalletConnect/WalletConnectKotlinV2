@@ -12,7 +12,8 @@ internal data class ModalColors(
     val secondaryBackgroundColor: Color,
     val textColor: Color,
     val secondaryTextColor: Color,
-    val dividerColor: Color
+    val dividerColor: Color,
+    val border: Color
 )
 
 @Composable
@@ -33,7 +34,8 @@ private val defaultLightWeb3ModalColors = ModalColors(
     textColor = Color.Black,
     secondaryTextColor = Color(0xFF798686),
     secondaryBackgroundColor = Color(0xFFF1F3F3),
-    dividerColor = Color(0xFFE4E7E7)
+    dividerColor = Color(0xFFE4E7E7),
+    border = Color(0x16062B2B)
 )
 
 private val defaultDarkWeb3ModalColors = ModalColors(
@@ -44,5 +46,6 @@ private val defaultDarkWeb3ModalColors = ModalColors(
     textColor = Color.White,
     secondaryTextColor = Color(0xFF949E9E),
     secondaryBackgroundColor = Color(0xFF272A2A),
-    dividerColor = Color(0xFF3B4040)
+    dividerColor = Color(0xFF3B4040),
+    border = Color(0x16062B2B)
 )

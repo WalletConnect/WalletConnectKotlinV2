@@ -1,5 +1,6 @@
 package com.walletconnect.modal.ui.components
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -44,6 +45,7 @@ internal fun WalletsLazyGridView(
         )
     }
 }
+
 internal fun LazyGridScope.walletsGridItems(
     wallets: List<Wallet>,
     onWalletItemClick: (Wallet) -> Unit
@@ -82,7 +84,8 @@ internal fun WalletListItem(
             modifier = Modifier
                 .size(80.dp)
                 .padding(10.dp)
-                .clip(RoundedCornerShape(10.dp))
+                .clip(RoundedCornerShape(14.dp))
+                .border(1.dp, color = ModalTheme.colors.border, RoundedCornerShape(14.dp))
         )
         Text(
             text = wallet.name,

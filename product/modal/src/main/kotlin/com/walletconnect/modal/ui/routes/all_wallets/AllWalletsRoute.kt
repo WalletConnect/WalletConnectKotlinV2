@@ -11,6 +11,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -52,6 +57,7 @@ private fun AllWalletsContent(
 ) {
     val gridFraction = if (isLandscape) 1f else .9f
     var searchInputValue by rememberSaveable() { mutableStateOf("") }
+    val color = ModalTheme.colors.background
 
     Column(
         modifier = Modifier
@@ -69,12 +75,26 @@ private fun AllWalletsContent(
         if (searchedWallets.isEmpty()) {
             NoWalletsFoundItem()
         } else {
-            WalletsLazyGridView {
+            WalletsLazyGridView(
+                modifier = Modifier
+                    .padding(top = 5.dp)
+                    .graphicsLayer { alpha = 0.99f }
+                    .drawWithContent {
+                        val colors = listOf(
+                            Color.Transparent,
+                            color
+                        )
+                        drawContent()
+                        drawRect(
+                            brush = Brush.verticalGradient(colors, startY = 0f, endY = 40f),
+                            blendMode = BlendMode.DstIn,
+                        )
+                    }
+            ) {
                 walletsGridItems(searchedWallets, onWalletItemClick)
             }
         }
     }
-
 }
 
 @Composable
@@ -90,7 +110,6 @@ fun NoWalletsFoundItem() {
 }
 
 private fun List<Wallet>.filteredWallets(value: String): List<Wallet> = this.filter { it.name.startsWith(prefix = value, ignoreCase = true) }
-
 
 @Preview
 @Composable
