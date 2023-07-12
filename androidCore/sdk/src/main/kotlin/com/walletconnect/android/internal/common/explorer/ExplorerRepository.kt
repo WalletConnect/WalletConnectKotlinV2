@@ -47,14 +47,18 @@ class ExplorerRepository(
 
     suspend fun getMobileWallets(
         sdkType: String,
-        chains: String?
+        chains: String?,
+        excludedIds: String? = null,
+        recommendedIds: String? = null
     ): WalletListing {
         return with(
             explorerService.getAndroidWallets(
                 projectId = projectId.value,
                 chains = chains,
                 sdkType = sdkType,
-                sdkVersion = BuildConfig.SDK_VERSION
+                sdkVersion = BuildConfig.SDK_VERSION,
+                excludedIds = excludedIds,
+                recommendedIds = recommendedIds
             )
         ) {
             if (isSuccessful && body() != null) {

@@ -197,3 +197,7 @@ fun DependencyHandlerScope.coil() {
 fun DependencyHandlerScope.qrCodeGenerator() {
     "implementation"("com.github.alexzhirkevich:custom-qr-generator:$customQrGeneratorVersion")
 }
+
+fun DependencyHandlerScope.turbine() {
+    "testImplementation"("app.cash.turbine:turbine:$turbineVersion")
+}
