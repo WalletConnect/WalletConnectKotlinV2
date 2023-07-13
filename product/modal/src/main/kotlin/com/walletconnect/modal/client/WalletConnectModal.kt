@@ -46,15 +46,6 @@ object WalletConnectModal {
             }
         )
     }
-
-    fun setExcludedWallets(excludedWalletIds: List<String>) {
-        this.excludedWalletsIds = excludedWalletIds
-    }
-
-    fun setRecommendedWalletsIds(recommendedWalletsIds: List<String>) {
-        this.recommendedWalletsIds = recommendedWalletsIds
-    }
-
     @Throws(IllegalStateException::class)
     fun setDelegate(delegate: ModalDelegate) {
         val signDelegate = object : SignClient.DappDelegate {

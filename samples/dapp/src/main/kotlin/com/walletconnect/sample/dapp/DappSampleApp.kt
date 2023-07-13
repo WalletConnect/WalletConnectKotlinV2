@@ -43,11 +43,7 @@ class DappSampleApp : Application() {
         }
 
         WalletConnectModal.initialize(
-            Modal.Params.Init(
-                core = CoreClient,
-                excludedWalletIds = listOf("c57ca95b47569778a828d19178114f4db188b89b763c899ba0be274e97267d96"),
-                recommendedWalletsIds = listOf("20459438007b75f4f4acb98bf29aa3b800550309646d375da5fd4aac6c2a2c66", "47bb07617af518642f3413a201ec5859faa63acb1dd175ca95085d35d38afb83")
-            )
+            Modal.Params.Init(core = CoreClient)
         ) { error ->
             Timber.e(tag(this), error.throwable.stackTraceToString())
         }

@@ -63,7 +63,7 @@ internal class WalletConnectModalViewModel(
             val wallets = if (WalletConnectModal.recommendedWalletsIds.isEmpty()) {
                 getWalletsUseCase(sdkType = WCM_SDK, chains = chains, excludedIds = WalletConnectModal.excludedWalletsIds)
             } else {
-                getWalletsUseCase(sdkType = WCM_SDK, chains = chains, recommendedIds = WalletConnectModal.recommendedWalletsIds).union(
+                getWalletsUseCase(sdkType = WCM_SDK, chains = chains,  excludedIds = WalletConnectModal.excludedWalletsIds, recommendedIds = WalletConnectModal.recommendedWalletsIds).union(
                     getWalletsUseCase(sdkType = WCM_SDK, chains = chains, excludedIds = WalletConnectModal.excludedWalletsIds)
                 ).toList()
             }
