@@ -1,17 +1,23 @@
 package com.walletconnect.modal.ui.routes.scan_code
 
+import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.AnnotatedString
@@ -23,6 +29,7 @@ import com.walletconnect.modal.ui.components.ModalTopBar
 import com.walletconnect.modal.ui.preview.ModalPreview
 import com.walletconnect.modal.ui.theme.ModalTheme
 import com.walletconnect.modalcore.ui.components.qr.WalletConnectQRCode
+import com.walletconnect.modalcore.utils.isLandscape
 
 @Composable
 internal fun ScanQRCodeRoute(
@@ -42,8 +49,11 @@ private fun ScanQRCodeContent(
 ) {
     val context = LocalContext.current
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
+    val qrCodeModifier = if (isLandscape) Modifier else Modifier.padding(horizontal = 20.dp)
 
-    Column {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         ModalTopBar(
             title = "Scan the code",
             onBackPressed = onBackArrowClick,
@@ -59,11 +69,11 @@ private fun ScanQRCodeContent(
                 )
             }
         )
-        Spacer(modifier = Modifier.height(8.dp))
         WalletConnectQRCode(
             qrData = uri,
             primaryColor = ModalTheme.colors.onBackgroundColor,
-            logoColor = ModalTheme.colors.main
+            logoColor = ModalTheme.colors.main,
+            modifier = qrCodeModifier
         )
         Spacer(modifier = Modifier.height(8.dp))
     }
