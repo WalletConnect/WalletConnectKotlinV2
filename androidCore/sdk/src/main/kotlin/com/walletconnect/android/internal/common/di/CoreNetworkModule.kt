@@ -29,6 +29,8 @@ import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.android.ext.koin.androidApplication
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import java.io.IOException
+import java.net.SocketException
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -93,7 +95,7 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
                     chain.proceed(request)
                 }
             } catch (e: Exception) {
-                if (request.url.host == DEFAULT_RELAY_URL) {
+                if (request.url.host == DEFAULT_RELAY_URL && isFailOverException(e)) {
                     SERVER_URL = "$FAIL_OVER_RELAY_URL?projectId=${Uri.parse(SERVER_URL).getQueryParameter("projectId")}"
                     wasFailOvered = true
                     chain.proceed(request.newBuilder().url(get<String>(named(AndroidCommonDITags.RELAY_URL))).build())
@@ -169,3 +171,5 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
         ConnectivityState(androidApplication())
     }
 }
+
+private fun isFailOverException(e: Exception) = (e is SocketException || e is IOException)
