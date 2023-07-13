@@ -11,8 +11,6 @@ import com.walletconnect.android.CoreClient
 import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.utils.cacao.sign
-import com.walletconnect.push.common.Push
-import com.walletconnect.push.wallet.client.PushWalletClient
 import com.walletconnect.sample.wallet.domain.EthAccountDelegate
 import com.walletconnect.sample.wallet.domain.toEthAddress
 import com.walletconnect.sample_common.tag
@@ -57,10 +55,6 @@ class Web3WalletApplication : Application() {
             Log.e(tag(this), error.throwable.stackTraceToString())
         }
 
-        //todo might collidate with w3i initialze
-        PushWalletClient.initialize(Push.Wallet.Params.Init(CoreClient)) { error ->
-            Log.e(tag(this), error.throwable.stackTraceToString())
-        }
 
         Web3Inbox.initialize(Inbox.Params.Init(core = CoreClient, account = Inbox.Type.AccountId(with(EthAccountDelegate) { account.toEthAddress() }),
             onSign = { message ->

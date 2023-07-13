@@ -7,8 +7,9 @@ import com.walletconnect.android.di.sdkBaseStorageModule
 import com.walletconnect.android.internal.common.di.deleteDatabase
 import com.walletconnect.push.PushDatabase
 import com.walletconnect.push.common.data.storage.ProposalStorageRepository
-import com.walletconnect.push.common.data.storage.SubscribeStorageRepository
-import com.walletconnect.push.common.storage.data.dao.Subscriptions
+import com.walletconnect.push.common.data.storage.SubscriptionRepository
+import com.walletconnect.push.common.storage.data.dao.ActiveSubscriptions
+import com.walletconnect.push.common.storage.data.dao.RequestedSubscriptions
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
 
@@ -17,7 +18,10 @@ import org.koin.dsl.module
 internal fun pushStorageModule(dbName: String) = module {
     fun Scope.createPushDB() = PushDatabase(
         get(),
-        SubscriptionsAdapter = Subscriptions.Adapter(
+        ActiveSubscriptionsAdapter = ActiveSubscriptions.Adapter(
+            map_of_scopeAdapter = get<ColumnAdapter<Map<String, Pair<String, Boolean>>, String>>()
+        ),
+        RequestedSubscriptionsAdapter = RequestedSubscriptions.Adapter(
             map_of_scopeAdapter = get<ColumnAdapter<Map<String, Pair<String, Boolean>>, String>>()
         )
     )
@@ -25,7 +29,7 @@ internal fun pushStorageModule(dbName: String) = module {
     includes(sdkBaseStorageModule(PushDatabase.Schema, dbName))
 
     single<ColumnAdapter<Map<String, Pair<String, Boolean>>, String>> {
-        object: ColumnAdapter<Map<String, Pair<String, Boolean>>, String> {
+        object : ColumnAdapter<Map<String, Pair<String, Boolean>>, String> {
             override fun decode(databaseValue: String): Map<String, Pair<String, Boolean>> {
                 // Split string by | to get each entry
                 return databaseValue.split("|").associate { entry ->
@@ -49,7 +53,7 @@ internal fun pushStorageModule(dbName: String) = module {
     single {
         try {
             createPushDB().also {
-                it.subscriptionsQueries.getAllSubscriptions().executeAsOneOrNull()
+                it.activeSubscriptionsQueries.getAllActiveSubscriptions().executeAsOneOrNull()
             }
         } catch (e: Exception) {
             deleteDatabase(dbName)
@@ -57,11 +61,12 @@ internal fun pushStorageModule(dbName: String) = module {
         }
     }
 
-    single { get<PushDatabase>().subscriptionsQueries }
+    single { get<PushDatabase>().activeSubscriptionsQueries }
+    single { get<PushDatabase>().requestedSubscriptionQueries }
 
     single { get<PushDatabase>().proposalQueries }
 
-    single { SubscribeStorageRepository(get()) }
+    single { SubscriptionRepository(get(), get()) }
 
     single { ProposalStorageRepository(get()) }
 }

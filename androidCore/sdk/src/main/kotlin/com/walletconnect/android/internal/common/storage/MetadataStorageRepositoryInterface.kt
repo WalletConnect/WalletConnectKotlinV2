@@ -10,6 +10,8 @@ interface MetadataStorageRepositoryInterface {
 
     fun updateMetaData(topic: Topic, appMetaData: AppMetaData, appMetaDataType: AppMetaDataType)
 
+    suspend fun updateOrAbortMetaDataTopic(oldTopic: Topic, newTopic: Topic)
+
     fun deleteMetaData(topic: Topic)
 
     fun existsByTopicAndType(topic: Topic, type: AppMetaDataType): Boolean

@@ -28,7 +28,10 @@ internal fun ModalRoot(
     ) {
         ProvideModalThemeComposition {
             Column(
-                modifier = Modifier.background(ModalTheme.colors.main)
+                modifier = Modifier.background(
+                    color = ModalTheme.colors.main,
+                    shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                )
             ) {
                 Row(
                     modifier = Modifier

@@ -130,7 +130,6 @@ internal class ChatEngine(
     }
 
     fun setup() {
-        scope.launch { registerTagsInHistory() }
         jsonRpcInteractor.isConnectionAvailable
             .onEach { isAvailable -> _events.emit(ConnectionState(isAvailable)) }
             .filter { isAvailable: Boolean -> isAvailable }
@@ -146,7 +145,8 @@ internal class ChatEngine(
     }
 
     private suspend fun registerTagsInHistory() {
-        historyInterface.registerTags(tags = listOf(Tags.CHAT_MESSAGE), {}, {})
+        // Has to be one register call per clientId
+//        historyInterface.registerTags(tags = listOf(Tags.CHAT_MESSAGE), {}, {})
     }
 
     private fun collectJsonRpcRequests(): Job = jsonRpcInteractor.clientSyncJsonRpc

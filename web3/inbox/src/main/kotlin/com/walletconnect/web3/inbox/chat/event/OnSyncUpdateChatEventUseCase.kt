@@ -2,6 +2,7 @@ package com.walletconnect.web3.inbox.chat.event
 
 import com.walletconnect.android.sync.common.model.Events
 import com.walletconnect.android.sync.common.model.SyncUpdate
+import com.walletconnect.web3.inbox.chat.event.ChatEventUseCase
 import com.walletconnect.web3.inbox.common.proxy.ChatProxyInteractor
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxParams
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC
@@ -9,15 +10,6 @@ import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC
 internal class OnSyncUpdateChatEventUseCase(
     proxyInteractor: ChatProxyInteractor,
 ) : ChatEventUseCase<Events.OnSyncUpdate>(proxyInteractor) {
-
-    override fun invoke(model: Events.OnSyncUpdate) =
-        call(Web3InboxRPC.Call.SyncUpdate(params = model.toParams()))
-
-    private fun Events.OnSyncUpdate.toParams() = Web3InboxParams.Call.SyncUpdateParams(accountId.value, store.value, update.toParams())
-
-    private fun SyncUpdate.toParams() = when (this) {
-        is SyncUpdate.SyncDelete -> Web3InboxParams.Call.SyncUpdateParams.SyncUpdate.SyncDelete(id, key)
-        is SyncUpdate.SyncSet -> Web3InboxParams.Call.SyncUpdateParams.SyncUpdate.SyncSet(id, key, value)
-    }
+    override fun invoke(model: Events.OnSyncUpdate) = call(Web3InboxRPC.Call.SyncUpdate())
 }
 

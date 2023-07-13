@@ -47,4 +47,6 @@ interface PushWalletInterface {
     fun deletePushMessage(params: Push.Wallet.Params.DeleteMessage, onSuccess:() -> Unit, onError: (Push.Model.Error) -> Unit)
 
     fun decryptMessage(params: Push.Wallet.Params.DecryptMessage, onSuccess: (Push.Model.Message) -> Unit, onError: (Push.Model.Error) -> Unit)
+
+    fun enableSync(params: Push.Wallet.Params.EnableSync, onSuccess:() -> Unit, onError: (Push.Model.Error) -> Unit)
 }

@@ -7,7 +7,7 @@ CREATE TABLE Proposal(
 );
 
 insertOrIgnoreProposal:
-INSERT OR IGNORE INTO Proposal(request_id, push_propose_topic, dapp_public_key_as_hex, account)
+INSERT OR REPLACE INTO Proposal(request_id, push_propose_topic, dapp_public_key_as_hex, account)
 VALUES(?, ?, ?, ?);
 
 getProposalByRequestId:

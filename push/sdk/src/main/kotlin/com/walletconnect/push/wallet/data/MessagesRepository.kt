@@ -30,6 +30,10 @@ internal class MessagesRepository(private val messagesQueries: MessagesQueries) 
         messagesQueries.deleteMessageByRequestId(requestId)
     }
 
+    suspend fun deleteMessagesByTopic(topic: String) = withContext(Dispatchers.IO) {
+        messagesQueries.deleteMessagesByTopic(topic)
+    }
+
     private fun mapToMessageRecord(
         requestId: Long,
         topic: String,

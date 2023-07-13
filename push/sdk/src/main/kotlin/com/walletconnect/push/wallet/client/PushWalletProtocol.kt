@@ -11,9 +11,11 @@ import com.walletconnect.push.common.di.pushJsonRpcModule
 import com.walletconnect.push.common.di.pushStorageModule
 import com.walletconnect.push.common.model.EngineDO
 import com.walletconnect.push.common.model.toClient
-import com.walletconnect.push.common.model.toCommonClient
+import com.walletconnect.push.common.model.toEvent
+import com.walletconnect.push.common.model.toModel
 import com.walletconnect.push.common.model.toWalletClient
 import com.walletconnect.push.wallet.di.messageModule
+import com.walletconnect.push.wallet.di.syncInPushModule
 import com.walletconnect.push.wallet.di.walletEngineModule
 import com.walletconnect.push.wallet.engine.PushWalletEngine
 import kotlinx.coroutines.flow.launchIn
@@ -35,6 +37,7 @@ class PushWalletProtocol(private val koinApp: KoinApplication = wcKoinApp) : Pus
             koinApp.modules(
                 pushJsonRpcModule(),
                 pushStorageModule(koinApp.koin.get<DatabaseConfig>().PUSH_WALLET_SDK_DB_NAME),
+                syncInPushModule(),
                 walletEngineModule(),
                 messageModule(),
                 commonModule(),
@@ -42,7 +45,7 @@ class PushWalletProtocol(private val koinApp: KoinApplication = wcKoinApp) : Pus
             )
 
             pushWalletEngine = koinApp.koin.get()
-            pushWalletEngine.setup()
+            runBlocking(scope.coroutineContext) { pushWalletEngine.setup() }
         } catch (e: Exception) {
             onError(Push.Model.Error(e))
         }
@@ -53,13 +56,13 @@ class PushWalletProtocol(private val koinApp: KoinApplication = wcKoinApp) : Pus
 
         pushWalletEngine.engineEvent.onEach { event ->
             when (event) {
-                is EngineDO.PushPropose.WithMetaData -> delegate.onPushProposal(event.toWalletClient())
+                is EngineDO.PushProposal -> delegate.onPushProposal(event.toWalletClient())
                 is EngineDO.PushRecord -> delegate.onPushMessage(Push.Wallet.Event.Message(event.toWalletClient()))
                 is EngineDO.PushDelete -> delegate.onPushDelete(event.toWalletClient())
-                is EngineDO.PushSubscribe.RespondedWithMetaData -> delegate.onPushSubscription(event.toWalletClient())
-                is EngineDO.PushSubscribe.Error -> delegate.onPushSubscription(event.toWalletClient())
-                is EngineDO.PushUpdate -> delegate.onPushUpdate(event.toWalletClient())
-                is EngineDO.PushUpdateError -> delegate.onPushUpdate(event.toWalletClient())
+                is EngineDO.Subscription.Active -> delegate.onPushSubscription(event.toEvent())
+                is EngineDO.Subscription.Error -> delegate.onPushSubscription(event.toWalletClient())
+                is EngineDO.PushUpdate.Result -> delegate.onPushUpdate(event.toWalletClient())
+                is EngineDO.PushUpdate.Error -> delegate.onPushUpdate(event.toWalletClient())
                 is SDKError -> delegate.onError(event.toClient())
             }
         }.launchIn(scope)
@@ -135,7 +138,7 @@ class PushWalletProtocol(private val koinApp: KoinApplication = wcKoinApp) : Pus
 
         return runBlocking {
             pushWalletEngine.getListOfActiveSubscriptions().mapValues { (_, subscriptionWMetadata) ->
-                subscriptionWMetadata.toCommonClient()
+                subscriptionWMetadata.toModel()
             }
         }
     }
@@ -187,6 +190,16 @@ class PushWalletProtocol(private val koinApp: KoinApplication = wcKoinApp) : Pus
                     onError(Push.Model.Error(error))
                 }
             )
+        }
+    }
+
+    override fun enableSync(params: Push.Wallet.Params.EnableSync, onSuccess: () -> Unit, onError: (Push.Model.Error) -> Unit) {
+        checkEngineInitialization()
+
+        scope.launch {
+            supervisorScope {
+                pushWalletEngine.enableSync(params.account, params.onSign.toWalletClient(), onSuccess, onFailure = { error -> onError(Push.Model.Error(error)) })
+            }
         }
     }
 

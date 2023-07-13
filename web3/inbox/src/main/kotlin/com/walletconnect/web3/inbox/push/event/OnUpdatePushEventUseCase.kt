@@ -26,7 +26,7 @@ internal class OnUpdatePushEventUseCase(
         Web3InboxParams.Call.Push.Update.ResultParams(subscription.toParams())
 
     private fun Push.Model.Subscription.toParams() =
-        Web3InboxParams.SubscriptionParams(requestId, topic, account, relay.toParams(), metadata.toParams(), scope.toParams(), expiry)
+        Web3InboxParams.SubscriptionParams(topic, account, relay.toParams(), metadata.toParams(), scope.toParams(), expiry)
 
     private fun Push.Model.Subscription.Relay.toParams() =
         Web3InboxParams.RelayParams(protocol, data)
