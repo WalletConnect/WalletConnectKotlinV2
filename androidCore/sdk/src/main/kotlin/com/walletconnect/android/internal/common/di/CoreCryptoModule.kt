@@ -3,6 +3,8 @@ package com.walletconnect.android.internal.common.di
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Build
+import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyProperties
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.walletconnect.android.internal.common.crypto.codec.ChaChaPolyCodec
@@ -24,15 +26,23 @@ import com.walletconnect.android.internal.common.storage.KeyStore as WCKeyStore
 private const val ANDROID_KEY_STORE = "AndroidKeyStore"
 private const val SHARED_PREFS_FILE = "wc_key_store"
 private const val KEY_STORE_ALIAS = "wc_keystore_key"
-
+private const val KEY_SIZE = 256
 @JvmSynthetic
 fun coreCryptoModule(sharedPrefsFile: String = SHARED_PREFS_FILE, keyStoreAlias: String = KEY_STORE_ALIAS) = module {
 
     @Synchronized
     fun Scope.createSharedPreferences(): SharedPreferences {
+        val keyGenParameterSpec: KeyGenParameterSpec =
+            KeyGenParameterSpec.Builder(keyStoreAlias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
+                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                .setKeySize(KEY_SIZE)
+                .build()
+
         val masterKey = MasterKey.Builder(androidContext(), keyStoreAlias)
-            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .setKeyGenParameterSpec(keyGenParameterSpec)
             .build()
+
 
         return EncryptedSharedPreferences.create(
             androidContext(),

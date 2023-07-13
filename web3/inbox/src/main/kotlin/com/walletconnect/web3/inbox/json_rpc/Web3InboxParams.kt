@@ -116,6 +116,12 @@ internal sealed interface Web3InboxParams : ClientParams {
             data class DeletePushMessageParams(
                 val id: Long,
             ) : Push
+
+            @JsonClass(generateAdapter = true)
+            data class EnableSyncParams(
+                val account: String,
+                val private: Boolean?,
+            ) : Push
         }
     }
 
@@ -169,7 +175,6 @@ internal sealed interface Web3InboxParams : ClientParams {
         sealed interface Push : Response {
             @JsonClass(generateAdapter = true)
             data class GetActiveSubscriptionsResult(
-                val requestId: Long,
                 val topic: String,
                 val account: String,
                 val relay: RelayParams,
@@ -180,22 +185,14 @@ internal sealed interface Web3InboxParams : ClientParams {
 
     sealed interface Call : Web3InboxParams {
 
+        // note: If this is an object it breaks serialization
+        class Empty : Call {
+            override fun equals(other: Any?): Boolean {
+                return this === other
+            }
 
-        @JsonClass(generateAdapter = true)
-        data class SyncUpdateParams(
-            val account: String,
-            val store: String,
-            val syncUpdate: SyncUpdate,
-        ) : Chat, Push {
-            sealed interface SyncUpdate {
-                val id: Long
-                val key: String
-
-                // https://github.com/WalletConnect/WalletConnectKotlinV2/issues/800 -> update params to have StoreKey and StoreValue
-                data class SyncSet(override val id: Long, override val key: String, val value: String) : SyncUpdate
-
-                // https://github.com/WalletConnect/WalletConnectKotlinV2/issues/800 -> update params to have StoreKey
-                data class SyncDelete(override val id: Long, override val key: String) : SyncUpdate
+            override fun hashCode(): Int {
+                return System.identityHashCode(this)
             }
         }
 
@@ -302,7 +299,6 @@ internal sealed interface Web3InboxParams : ClientParams {
 
     @JsonClass(generateAdapter = true)
     data class SubscriptionParams(
-        val requestId: Long,
         val topic: String,
         val account: String,
         val relay: RelayParams,

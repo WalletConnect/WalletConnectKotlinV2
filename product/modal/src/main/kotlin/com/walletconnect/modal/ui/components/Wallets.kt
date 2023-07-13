@@ -1,10 +1,14 @@
 package com.walletconnect.modal.ui.components
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridScope
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
@@ -23,6 +27,25 @@ import com.walletconnect.android.internal.common.explorer.data.model.Wallet
 import com.walletconnect.modal.ui.theme.ModalTheme
 import com.walletconnect.modalcore.ui.components.common.VerticalSpacer
 
+@Composable
+internal fun WalletsLazyGridView(
+    modifier: Modifier = Modifier,
+    content: LazyGridScope.(Int) -> Unit
+) {
+    val walletItemWidth = 100.dp
+    BoxWithConstraints(
+        modifier = modifier
+    ) {
+        val maxColumnsNumber = maxOf((maxWidth / walletItemWidth).toInt(), 1)
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(maxColumnsNumber),
+            content = {
+                content(maxColumnsNumber)
+            }
+        )
+    }
+}
+
 internal fun LazyGridScope.walletsGridItems(
     wallets: List<Wallet>,
     onWalletItemClick: (Wallet) -> Unit
@@ -34,6 +57,7 @@ internal fun LazyGridScope.walletsGridItems(
         )
     }
 }
+
 @Composable
 internal fun WalletImage(url: String, modifier: Modifier) {
     AsyncImage(
@@ -60,7 +84,8 @@ internal fun WalletListItem(
             modifier = Modifier
                 .size(80.dp)
                 .padding(10.dp)
-                .clip(RoundedCornerShape(10.dp))
+                .clip(RoundedCornerShape(14.dp))
+                .border(1.dp, color = ModalTheme.colors.border, RoundedCornerShape(14.dp))
         )
         Text(
             text = wallet.name,

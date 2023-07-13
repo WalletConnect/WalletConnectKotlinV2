@@ -29,8 +29,7 @@ import org.koin.dsl.module
 internal fun chatProxyModule(
     chatClient: ChatInterface,
     onSign: (message: String) -> Inbox.Model.Cacao.Signature,
-    onPageFinished: () -> Unit,
-) = module {
+    ) = module {
     single { ChatProxyInteractor(get(), get()) }
 
     single { RegisterRequestUseCase(chatClient, get(), onSign) }

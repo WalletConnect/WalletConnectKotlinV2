@@ -7,6 +7,7 @@ import com.walletconnect.android.internal.common.signing.message.MessageSignatur
 import com.walletconnect.android.sync.engine.domain.SyncEngine
 import com.walletconnect.android.sync.engine.use_case.calls.CreateStoreUseCase
 import com.walletconnect.android.sync.engine.use_case.calls.DeleteStoreValueUseCase
+import com.walletconnect.android.sync.engine.use_case.calls.GetStoreTopicUseCase
 import com.walletconnect.android.sync.engine.use_case.calls.GetStoresUseCase
 import com.walletconnect.android.sync.engine.use_case.calls.IsAccountRegisteredUseCase
 import com.walletconnect.android.sync.engine.use_case.calls.RegisterAccountUseCase
@@ -25,6 +26,7 @@ internal fun engineModule() = module {
     single { DeleteStoreValueUseCase(get(), get()) }
     single { SetStoreValueUseCase(get(), get()) }
     single { GetStoresUseCase(get()) }
+    single { GetStoreTopicUseCase(get()) }
     single { RegisterAccountUseCase(get(), get()) }
     single { IsAccountRegisteredUseCase(get()) }
 
@@ -37,6 +39,7 @@ internal fun engineModule() = module {
     single {
         SyncEngine(
             getStoresUseCase = get(),
+            getStoreTopicUseCase = get(),
             registerAccountUseCase = get(),
             isAccountRegisteredUseCase = get(),
             createStoreUseCase = get(),
@@ -47,7 +50,7 @@ internal fun engineModule() = module {
             onSetRequestUseCase = get(),
             onDeleteRequestUseCase = get(),
             subscribeToAllStoresUpdatesUseCase = get(),
-            historyInterface = get()
+            historyInterface = get(),
         )
     }
 }

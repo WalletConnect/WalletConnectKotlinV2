@@ -61,6 +61,9 @@ internal object Web3InboxMethods {
 
             @get:JvmSynthetic
             const val DELETE_PUSH_MESSAGE: String = "deletePushMessage"
+
+            @get:JvmSynthetic
+            const val ENABLE_SYNC: String = "enableSync"
         }
     }
 

@@ -1,6 +1,7 @@
 package com.walletconnect.push.common.model
 
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
+import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.params.PushParams
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.pairing.model.mapper.toClient
@@ -11,7 +12,7 @@ internal fun PushParams.MessageParams.toEngineDO(): EngineDO.PushMessage =
     EngineDO.PushMessage(title, body, icon, url, type)
 
 @JvmSynthetic
-internal fun EngineDO.PushPropose.WithMetaData.toWalletClient(): Push.Wallet.Event.Proposal {
+internal fun EngineDO.PushProposal.toWalletClient(): Push.Wallet.Event.Proposal {
     return Push.Wallet.Event.Proposal(requestId, accountId.value, dappMetadata.toClient())
 }
 
@@ -50,13 +51,12 @@ internal fun EngineDO.PushDelete.toWalletClient(): Push.Wallet.Event.Delete {
 }
 
 @JvmSynthetic
-internal fun EngineDO.PushSubscribe.RespondedWithMetaData.toWalletClient(): Push.Wallet.Event.Subscription.Result {
+internal fun EngineDO.Subscription.Active.toEvent(): Push.Wallet.Event.Subscription.Result {
     return Push.Wallet.Event.Subscription.Result(
         Push.Model.Subscription(
-            requestId = requestId,
-            topic = subscribeTopic.value,
+            topic = pushTopic.value,
             account = account.value,
-            relay = RelayProtocolOptions().toClient(),
+            relay = relay.toClient(),
             metadata = dappMetaData.toClient(),
             scope = mapOfScope.toClient(),
             expiry = expiry.seconds,
@@ -65,34 +65,44 @@ internal fun EngineDO.PushSubscribe.RespondedWithMetaData.toWalletClient(): Push
 }
 
 @JvmSynthetic
-internal fun EngineDO.PushSubscribe.Error.toWalletClient(): Push.Wallet.Event.Subscription.Error {
+internal fun EngineDO.Subscription.Active.toModel(): Push.Model.Subscription {
+    return Push.Model.Subscription(
+        topic = pushTopic.value,
+        account = account.value,
+        relay = relay.toClient(),
+        metadata = dappMetaData.toClient(),
+        scope = mapOfScope.toClient(),
+        expiry = expiry.seconds,
+    )
+}
+
+@JvmSynthetic
+internal fun EngineDO.Subscription.Error.toWalletClient(): Push.Wallet.Event.Subscription.Error {
     return Push.Wallet.Event.Subscription.Error(requestId, rejectionReason)
 }
 
 @JvmSynthetic
-internal fun EngineDO.PushUpdate.toWalletClient(): Push.Wallet.Event.Update.Result {
+internal fun EngineDO.PushUpdate.Result.toWalletClient(): Push.Wallet.Event.Update.Result {
     return Push.Wallet.Event.Update.Result(
         Push.Model.Subscription(
-            requestId = requestId,
-            topic = subscriptionTopic!!,
+            topic = pushTopic.value,
             account = account.value,
             relay = relay.toClient(),
-            metadata = metadata.toClient(),
-            scope = scope.toClient(),
+            metadata = dappMetaData.toClient(),
+            scope = mapOfScope.toClient(),
             expiry = expiry.seconds,
         )
     )
 }
 
 @JvmSynthetic
-internal fun EngineDO.PushUpdateError.toWalletClient(): Push.Wallet.Event.Update.Error {
+internal fun EngineDO.PushUpdate.Error.toWalletClient(): Push.Wallet.Event.Update.Error {
     return Push.Wallet.Event.Update.Error(requestId, rejectionReason)
 }
 
 @JvmSynthetic
 internal fun EngineDO.PushLegacySubscription.toDappClient(): Push.Model.Subscription {
     return Push.Model.Subscription(
-        requestId = requestId,
         topic = subscriptionTopic!!.value,
         account = account.value,
         relay = relay.toClient(),
@@ -104,3 +114,24 @@ internal fun EngineDO.PushLegacySubscription.toDappClient(): Push.Model.Subscrip
 
 @JvmSynthetic
 internal fun Push.Model.Message.toEngineDO(): EngineDO.PushMessage = EngineDO.PushMessage(title, body, icon, url, type)
+
+@JvmSynthetic
+internal fun RelayProtocolOptions.toClient(): Push.Model.Subscription.Relay {
+    return Push.Model.Subscription.Relay(protocol, data)
+}
+
+@JvmSynthetic
+internal fun Map<String, EngineDO.PushScope.Cached>.toClient(): Map<Push.Model.Subscription.ScopeName, Push.Model.Subscription.ScopeSetting> {
+    return map { (key, value) ->
+        Push.Model.Subscription.ScopeName(key) to Push.Model.Subscription.ScopeSetting(value.description, value.isSelected)
+    }.toMap()
+}
+
+@JvmSynthetic
+internal fun SDKError.toClient(): Push.Model.Error {
+    return Push.Model.Error(exception)
+}
+
+@JvmSynthetic
+internal fun Map<String, EngineDO.PushScope.Cached>.toDb(): Map<String, Pair<String, Boolean>> =
+    mapValues { (_, value) -> Pair(value.description, true) }
