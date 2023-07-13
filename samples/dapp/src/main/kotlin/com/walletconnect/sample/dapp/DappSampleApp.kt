@@ -42,7 +42,9 @@ class DappSampleApp : Application() {
             Timber.e(tag(this), error.throwable.stackTraceToString())
         }
 
-        WalletConnectModal.initialize(Modal.Params.Init(CoreClient)) { error ->
+        WalletConnectModal.initialize(
+            Modal.Params.Init(core = CoreClient)
+        ) { error ->
             Timber.e(tag(this), error.throwable.stackTraceToString())
         }
     }

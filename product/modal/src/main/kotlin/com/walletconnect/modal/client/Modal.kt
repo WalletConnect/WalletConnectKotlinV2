@@ -13,7 +13,9 @@ object Modal {
     }
     sealed class Params {
         data class Init(
-            val core: CoreClient
+            val core: CoreClient,
+            val excludedWalletIds: List<String> = listOf(),
+            val recommendedWalletsIds: List<String> = listOf()
         ) : Params()
 
         data class Connect(

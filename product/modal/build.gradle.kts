@@ -62,6 +62,9 @@ dependencies {
     qrCodeGenerator()
 
     jUnit4()
+    mockk()
+    coroutinesTest()
+    turbine()
 
     releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
     releaseImplementation("com.walletconnect:sign:$SIGN_VERSION")

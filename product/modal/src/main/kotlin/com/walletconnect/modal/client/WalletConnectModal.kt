@@ -1,11 +1,14 @@
 package com.walletconnect.modal.client
 
-import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.modal.domain.WalletConnectModalDelegate
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 
 object WalletConnectModal {
+
+    internal var excludedWalletsIds: List<String> = listOf()
+    internal var recommendedWalletsIds: List<String> = listOf()
+
     interface ModalDelegate {
         fun onSessionApproved(approvedSession: Modal.Model.ApprovedSession)
         fun onSessionRejected(rejectedSession: Modal.Model.RejectedSession)
@@ -30,6 +33,8 @@ object WalletConnectModal {
         SignClient.initialize(
             init = Sign.Params.Init(init.core),
             onSuccess = {
+                this.excludedWalletsIds = init.excludedWalletIds
+                this.recommendedWalletsIds = init.recommendedWalletsIds
                 runCatching {
                     setDelegate(WalletConnectModalDelegate)
                 }.onFailure { error -> onError(Modal.Model.Error(error)) }
@@ -41,7 +46,6 @@ object WalletConnectModal {
             }
         )
     }
-
     @Throws(IllegalStateException::class)
     fun setDelegate(delegate: ModalDelegate) {
         val signDelegate = object : SignClient.DappDelegate {
