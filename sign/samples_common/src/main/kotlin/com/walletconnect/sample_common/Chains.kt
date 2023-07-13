@@ -126,8 +126,8 @@ enum class Chains(
         chainReference = "56",
         icon = R.drawable.bnb,
         color = "#F3BA2F",
-        methods = Info.Cosmos.defaultMethods,
-        events = Info.Cosmos.defaultEvents,
+        methods = Info.Eth.defaultMethods,
+        events = Info.Eth.defaultEvents,
         order = 8
     );
 
