@@ -32,7 +32,7 @@ class Web3WalletApplication : Application() {
         Log.d(tag(this), "Account: ${EthAccountDelegate.account}")
 
         val projectId = BuildConfig.PROJECT_ID
-        val relayUrl = "rela.walletconnect.com"
+        val relayUrl = "relay.walletconnect.com"
         val serverUrl = "wss://$relayUrl?projectId=${projectId}"
         val appMetaData = Core.Model.AppMetaData(
             name = "Kotlin Wallet",
