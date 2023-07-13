@@ -9,6 +9,7 @@ import com.tinder.scarlet.lifecycle.android.AndroidLifecycle
 import com.tinder.scarlet.messageadapter.moshi.MoshiMessageAdapter
 import com.tinder.scarlet.retry.LinearBackoffStrategy
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
+import com.walletconnect.android.BuildConfig
 import com.walletconnect.android.internal.common.connection.ConnectivityState
 import com.walletconnect.android.internal.common.connection.ManualConnectionLifecycle
 import com.walletconnect.android.internal.common.jwt.clientid.GenerateJwtStoreClientIdUseCase
@@ -21,20 +22,38 @@ import com.walletconnect.utils.Empty
 import com.walletconnect.utils.combineListOfBitSetsWithOrOperator
 import com.walletconnect.utils.removeLeadingZeros
 import com.walletconnect.utils.toBinaryString
+import okhttp3.Authenticator
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.android.ext.koin.androidApplication
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import java.io.IOException
+import java.net.SocketException
 import java.util.*
 import java.util.concurrent.TimeUnit
+
+private const val FAIL_OVER_RELAY_URL: String = "wss://relay.walletconnect.org"
+private const val DEFAULT_RELAY_URL: String = "relay.walletconnect.com"
 
 @Suppress("LocalVariableName")
 @JvmSynthetic
 fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, sdkVersion: String, timeout: NetworkClientTimeout? = null) = module {
     val DEFAULT_BACKOFF_SECONDS = 5L
-
     val networkClientTimeout = timeout ?: NetworkClientTimeout.getDefaultTimeout()
+    var SERVER_URL: String = serverUrl
+    var wasFailOvered = false
+
+    factory(named(AndroidCommonDITags.RELAY_URL)) {
+        val jwt = get<GenerateJwtStoreClientIdUseCase>().invoke(SERVER_URL)
+        Uri.parse(SERVER_URL)
+            .buildUpon()
+            .appendQueryParameter("auth", jwt)
+            .appendQueryParameter("ua", get(named(AndroidCommonDITags.USER_AGENT)))
+            .build()
+            .toString()
+    }
 
     factory(named(AndroidCommonDITags.USER_AGENT)) {
         val listOfSdkBitsets = getAll<BitSet>().takeUnless { it.isEmpty() } ?: listOf(BitSet())
@@ -44,21 +63,11 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
         """wc-2/kotlin-${sdkVersion}x$sdkBitwiseFlags/android-${Build.VERSION.RELEASE}"""
     }
 
-    factory(named(AndroidCommonDITags.RELAY_URL)) {
-        val jwt = get<GenerateJwtStoreClientIdUseCase>().invoke(serverUrl)
-        Uri.parse(serverUrl)
-            .buildUpon()
-            .appendQueryParameter("auth", jwt)
-            .appendQueryParameter("ua", get(named(AndroidCommonDITags.USER_AGENT)))
-            .build()
-            .toString()
-    }
-
     single {
         GenerateJwtStoreClientIdUseCase(get(), get())
     }
 
-    single(named(AndroidCommonDITags.INTERCEPTOR)) {
+    single(named(AndroidCommonDITags.USER_AGENT_INTERCEPTOR)) {
         Interceptor { chain ->
             val updatedRequest = chain.request().newBuilder()
                 .addHeader("User-Agent", get(named(AndroidCommonDITags.USER_AGENT)))
@@ -68,19 +77,53 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
         }
     }
 
+    single<Interceptor?>(named(AndroidCommonDITags.LOGGING_INTERCEPTOR)) {
+        if (BuildConfig.DEBUG) {
+            HttpLoggingInterceptor().apply { setLevel(HttpLoggingInterceptor.Level.BODY) }
+        } else {
+            null
+        }
+    }
+
+    single(named(AndroidCommonDITags.FAIL_OVER_INTERCEPTOR)) {
+        Interceptor { chain ->
+            val request = chain.request()
+            try {
+                if (wasFailOvered && request.url.host == DEFAULT_RELAY_URL) {
+                    chain.proceed(request.newBuilder().url(get<String>(named(AndroidCommonDITags.RELAY_URL))).build())
+                } else {
+                    chain.proceed(request)
+                }
+            } catch (e: Exception) {
+                if (request.url.host == DEFAULT_RELAY_URL && isFailOverException(e)) {
+                    SERVER_URL = "$FAIL_OVER_RELAY_URL?projectId=${Uri.parse(SERVER_URL).getQueryParameter("projectId")}"
+                    wasFailOvered = true
+                    chain.proceed(request.newBuilder().url(get<String>(named(AndroidCommonDITags.RELAY_URL))).build())
+                } else {
+                    chain.proceed(request)
+                }
+            }
+        }
+    }
+
+    single(named(AndroidCommonDITags.AUTHENTICATOR)) {
+        Authenticator { _, response ->
+            response.request.run {
+                if (Uri.parse(SERVER_URL).host == this.url.host) {
+                    this.newBuilder().url(get<String>(named(AndroidCommonDITags.RELAY_URL))).build()
+                } else {
+                    null
+                }
+            }
+        }
+    }
+
     single(named(AndroidCommonDITags.OK_HTTP)) {
         OkHttpClient.Builder()
-            .addInterceptor(get<Interceptor>(named(AndroidCommonDITags.INTERCEPTOR)))
-            .authenticator(authenticator = { _, response ->
-                response.request.run {
-                    if (Uri.parse(serverUrl).host == this.url.host) {
-                        val relayUrl = get<String>(named(AndroidCommonDITags.RELAY_URL))
-                        this.newBuilder().url(relayUrl).build()
-                    } else {
-                        null
-                    }
-                }
-            })
+            .addInterceptor(get<Interceptor>(named(AndroidCommonDITags.LOGGING_INTERCEPTOR)))
+            .addInterceptor(get<Interceptor>(named(AndroidCommonDITags.USER_AGENT_INTERCEPTOR)))
+            .addInterceptor(get<Interceptor>(named(AndroidCommonDITags.FAIL_OVER_INTERCEPTOR)))
+            .authenticator((get(named(AndroidCommonDITags.AUTHENTICATOR))))
             .writeTimeout(networkClientTimeout.timeout, networkClientTimeout.timeUnit)
             .readTimeout(networkClientTimeout.timeout, networkClientTimeout.timeUnit)
             .callTimeout(networkClientTimeout.timeout, networkClientTimeout.timeUnit)
@@ -128,3 +171,5 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
         ConnectivityState(androidApplication())
     }
 }
+
+private fun isFailOverException(e: Exception) = (e is SocketException || e is IOException)
