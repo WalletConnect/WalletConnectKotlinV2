@@ -1,6 +1,0 @@
-<resources>
-    <string name="app_name">WC Chat</string>
-    <string name="selected_thread">selected_thread</string>
-    <string name="selected_invite">selected_invite</string>
-    <string name="tos">By connecting your wallet, you agree\nwith our <font color='#2BEE6C'>Terms of Service</font></string>
-</resources>
