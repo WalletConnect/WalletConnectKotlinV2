@@ -31,11 +31,11 @@ import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.sample.dapp.ui.routes.Route
 import com.walletconnect.sample.dapp.ui.routes.bottom_routes.PairingSelectionResult
 import com.walletconnect.sample.dapp.ui.routes.bottom_routes.pairingSelectionResultKey
-import com.walletconnect.sample_common.Chains
-import com.walletconnect.sample_common.CompletePreviews
-import com.walletconnect.sample_common.ui.*
-import com.walletconnect.sample_common.ui.commons.BlueButton
-import com.walletconnect.sample_common.ui.theme.PreviewTheme
+import com.walletconnect.sample.common.Chains
+import com.walletconnect.sample.common.CompletePreviews
+import com.walletconnect.sample.common.ui.*
+import com.walletconnect.sample.common.ui.commons.BlueButton
+import com.walletconnect.sample.common.ui.theme.PreviewTheme
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable

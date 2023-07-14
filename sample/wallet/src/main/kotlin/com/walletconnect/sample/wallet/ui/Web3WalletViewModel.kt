@@ -9,7 +9,7 @@ import com.walletconnect.push.common.Push
 import com.walletconnect.sample.wallet.domain.ISSUER
 import com.walletconnect.sample.wallet.domain.PushWalletDelegate
 import com.walletconnect.sample.wallet.domain.WCDelegate
-import com.walletconnect.sample_common.tag
+import com.walletconnect.sample.common.tag
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import kotlinx.coroutines.flow.SharingStarted

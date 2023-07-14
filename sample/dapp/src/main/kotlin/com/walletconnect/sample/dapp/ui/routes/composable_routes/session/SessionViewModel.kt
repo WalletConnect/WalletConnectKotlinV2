@@ -9,8 +9,8 @@ import com.walletconnect.push.dapp.client.PushDappClient
 import com.walletconnect.sample.dapp.domain.DappDelegate
 import com.walletconnect.sample.dapp.domain.PushDappDelegate
 import com.walletconnect.sample.dapp.ui.DappSampleEvents
-import com.walletconnect.sample_common.Chains
-import com.walletconnect.sample_common.tag
+import com.walletconnect.sample.common.Chains
+import com.walletconnect.sample.common.tag
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow

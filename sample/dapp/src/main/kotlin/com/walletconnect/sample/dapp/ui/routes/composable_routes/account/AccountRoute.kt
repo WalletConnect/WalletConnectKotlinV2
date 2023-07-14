@@ -33,8 +33,8 @@ import coil.compose.AsyncImage
 import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.sample.dapp.ui.openMessageDialog
 import com.walletconnect.sample.dapp.ui.routes.Route
-import com.walletconnect.sample_common.ui.commons.BlueButton
-import com.walletconnect.sample_common.ui.commons.FullScreenLoader
+import com.walletconnect.sample.common.ui.commons.BlueButton
+import com.walletconnect.sample.common.ui.commons.FullScreenLoader
 import timber.log.Timber
 
 @Composable

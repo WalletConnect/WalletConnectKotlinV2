@@ -53,10 +53,10 @@ import com.walletconnect.sample.wallet.domain.EthAccountDelegate
 import com.walletconnect.sample.wallet.domain.hexToBytes
 import com.walletconnect.sample.wallet.domain.model.PushNotification
 import com.walletconnect.sample.wallet.domain.toEthAddress
-import com.walletconnect.sample_common.CompletePreviews
-import com.walletconnect.sample_common.tag
-import com.walletconnect.sample_common.ui.WCTopAppBar
-import com.walletconnect.sample_common.ui.theme.PreviewTheme
+import com.walletconnect.sample.common.CompletePreviews
+import com.walletconnect.sample.common.tag
+import com.walletconnect.sample.common.ui.WCTopAppBar
+import com.walletconnect.sample.common.ui.theme.PreviewTheme
 
 @Composable
 fun NotificationsScreenRoute(navController: NavHostController) {

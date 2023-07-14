@@ -5,15 +5,15 @@ import android.util.Log
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
-import com.walletconnect.android.BuildConfig
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.utils.cacao.sign
+import com.walletconnect.sample.common.BuildConfig
+import com.walletconnect.sample.common.tag
 import com.walletconnect.sample.wallet.domain.EthAccountDelegate
 import com.walletconnect.sample.wallet.domain.toEthAddress
-import com.walletconnect.sample_common.tag
 import com.walletconnect.util.hexToBytes
 import com.walletconnect.web3.inbox.cacao.CacaoSigner
 import com.walletconnect.web3.inbox.client.Inbox

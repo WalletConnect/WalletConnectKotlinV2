@@ -1,4 +1,4 @@
-package com.walletconnect.sample_common.ui
+package com.walletconnect.sample.common.ui
 
 import android.app.Activity
 import android.content.Context

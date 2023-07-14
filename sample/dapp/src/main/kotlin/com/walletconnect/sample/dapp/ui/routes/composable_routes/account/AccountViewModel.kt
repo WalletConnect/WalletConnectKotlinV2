@@ -10,11 +10,11 @@ import com.walletconnect.modal.client.WalletConnectModal
 import com.walletconnect.sample.dapp.domain.DappDelegate
 import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.sample.dapp.ui.accountArg
-import com.walletconnect.sample_common.Chains
-import com.walletconnect.sample_common.getEthSendTransaction
-import com.walletconnect.sample_common.getEthSignBody
-import com.walletconnect.sample_common.getEthSignTypedData
-import com.walletconnect.sample_common.getPersonalSignBody
+import com.walletconnect.sample.common.Chains
+import com.walletconnect.sample.common.getEthSendTransaction
+import com.walletconnect.sample.common.getEthSignBody
+import com.walletconnect.sample.common.getEthSignTypedData
+import com.walletconnect.sample.common.getPersonalSignBody
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow

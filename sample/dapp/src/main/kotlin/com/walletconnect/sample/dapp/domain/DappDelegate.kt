@@ -2,7 +2,7 @@ package com.walletconnect.sample.dapp.domain
 
 import com.walletconnect.modal.client.Modal
 import com.walletconnect.modal.client.WalletConnectModal
-import com.walletconnect.sample_common.tag
+import com.walletconnect.sample.common.tag
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

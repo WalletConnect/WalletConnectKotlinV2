@@ -12,7 +12,7 @@ import com.walletconnect.push.wallet.client.PushWalletClient
 import com.walletconnect.sample.wallet.domain.EthAccountDelegate
 import com.walletconnect.sample.wallet.domain.hexToBytes
 import com.walletconnect.sample.wallet.ui.common.peer.PeerUI
-import com.walletconnect.sample_common.tag
+import com.walletconnect.sample.common.tag
 import java.net.URLDecoder
 
 class PushRequestViewModel : ViewModel() {

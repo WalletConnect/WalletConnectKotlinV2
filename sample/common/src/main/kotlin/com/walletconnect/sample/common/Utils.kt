@@ -1,4 +1,4 @@
-package com.walletconnect.sample_common
+package com.walletconnect.sample.common
 
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -16,7 +16,6 @@ import androidx.lifecycle.Observer
 import androidx.viewbinding.ViewBinding
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
-
 
 fun Context.sendResponseDeepLink(sessionRequestDeeplinkUri: Uri) {
     try {

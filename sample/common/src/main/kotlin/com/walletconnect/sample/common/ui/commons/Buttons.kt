@@ -1,4 +1,4 @@
-package com.walletconnect.sample_common.ui.commons
+package com.walletconnect.sample.common.ui.commons
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button

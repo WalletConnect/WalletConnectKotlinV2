@@ -16,7 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.walletconnect.sample_common.ui.themedColor
+import com.walletconnect.sample.common.ui.themedColor
 
 @Composable
 fun MessageDialogRoute(

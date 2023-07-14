@@ -53,7 +53,7 @@ import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.C
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionUI
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
 import com.walletconnect.sample.wallet.ui.routes.showSnackbar
-import com.walletconnect.sample_common.ui.themedColor
+import com.walletconnect.sample.common.ui.themedColor
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 
@@ -220,7 +220,7 @@ fun TopButtons(navController: NavController, isEmitVisible: Boolean, onEmit: () 
             .clickable(interactionSource = interactionSourceRow, indication = null) { navController.popBackStack() }
             .padding(5.dp)
         ) {
-            Icon(tint = color, imageVector = ImageVector.vectorResource(id = com.walletconnect.sample_common.R.drawable.chevron_left), contentDescription = "Go back")
+            Icon(tint = color, imageVector = ImageVector.vectorResource(id = com.walletconnect.sample.common.R.drawable.chevron_left), contentDescription = "Go back")
             Spacer(modifier = Modifier.width(5.dp))
             Text(text = "Connections", style = style)
         }

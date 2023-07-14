@@ -1,4 +1,4 @@
-package com.walletconnect.sample_common
+package com.walletconnect.sample.common
 
 import java.text.SimpleDateFormat
 import java.util.*

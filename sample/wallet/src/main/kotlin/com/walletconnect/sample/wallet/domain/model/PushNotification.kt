@@ -1,7 +1,7 @@
 package com.walletconnect.sample.wallet.domain.model
 
 import com.walletconnect.push.common.Push
-import com.walletconnect.sample_common.convertSecondsToDate
+import com.walletconnect.sample.common.convertSecondsToDate
 
 data class PushNotification(
     val id: String,

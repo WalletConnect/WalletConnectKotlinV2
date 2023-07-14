@@ -1,6 +1,6 @@
 package com.walletconnect.sample.dapp.ui.routes.composable_routes.chain_selection
 
-import com.walletconnect.sample_common.Chains
+import com.walletconnect.sample.common.Chains
 
 data class ChainSelectionUi(
     val chainName: String,

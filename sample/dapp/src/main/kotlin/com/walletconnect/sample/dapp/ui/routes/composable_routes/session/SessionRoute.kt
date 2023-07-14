@@ -29,13 +29,13 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.walletconnect.sample_common.ui.WCTopAppBar
+import com.walletconnect.sample.common.ui.WCTopAppBar
 import com.walletconnect.sample.dapp.R
 import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.sample.dapp.ui.navigateToAccount
 import com.walletconnect.sample.dapp.ui.routes.Route
-import com.walletconnect.sample_common.ui.commons.BlueButton
-import com.walletconnect.sample_common.ui.themedColor
+import com.walletconnect.sample.common.ui.commons.BlueButton
+import com.walletconnect.sample.common.ui.themedColor
 
 @Composable
 fun SessionRoute(

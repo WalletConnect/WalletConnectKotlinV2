@@ -15,7 +15,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
-import com.walletconnect.sample_common.ui.themedColor
+import com.walletconnect.sample.common.ui.themedColor
 
 @Composable
 fun Welcome(modifier: Modifier = Modifier) {

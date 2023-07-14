@@ -20,7 +20,7 @@ import com.walletconnect.sample.wallet.ui.common.generated.GetStarted
 import com.walletconnect.sample.wallet.ui.common.generated.Welcome
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.R
-import com.walletconnect.sample_common.ui.findActivity
+import com.walletconnect.sample.common.ui.findActivity
 import timber.log.Timber
 
 @Composable

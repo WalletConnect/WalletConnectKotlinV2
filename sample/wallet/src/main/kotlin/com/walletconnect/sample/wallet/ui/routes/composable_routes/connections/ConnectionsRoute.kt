@@ -45,9 +45,9 @@ import com.walletconnect.sample.wallet.BuildConfig
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.wallet.ui.Web3WalletViewModel
 import com.walletconnect.sample.wallet.ui.routes.Route
-import com.walletconnect.sample_common.ui.WCTopAppBar
-import com.walletconnect.sample_common.ui.findActivity
-import com.walletconnect.sample_common.ui.themedColor
+import com.walletconnect.sample.common.ui.WCTopAppBar
+import com.walletconnect.sample.common.ui.findActivity
+import com.walletconnect.sample.common.ui.themedColor
 
 @Composable
 fun ConnectionsRoute(navController: NavController, connectionsViewModel: ConnectionsViewModel, web3WalletViewModel: Web3WalletViewModel) {

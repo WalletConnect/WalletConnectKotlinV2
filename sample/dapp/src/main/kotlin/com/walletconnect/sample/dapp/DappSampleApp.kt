@@ -10,9 +10,9 @@ import com.walletconnect.modal.client.Modal
 import com.walletconnect.modal.client.WalletConnectModal
 import com.walletconnect.push.common.Push
 import com.walletconnect.push.dapp.client.PushDappClient
-import com.walletconnect.sample_common.BuildConfig
-import com.walletconnect.sample_common.WALLET_CONNECT_PROD_RELAY_URL
-import com.walletconnect.sample_common.tag
+import com.walletconnect.sample.common.BuildConfig
+import com.walletconnect.sample.common.WALLET_CONNECT_PROD_RELAY_URL
+import com.walletconnect.sample.common.tag
 import timber.log.Timber
 
 class DappSampleApp : Application() {

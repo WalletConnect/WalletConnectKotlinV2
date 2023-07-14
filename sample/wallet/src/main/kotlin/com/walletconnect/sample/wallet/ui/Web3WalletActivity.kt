@@ -29,7 +29,7 @@ import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
-import com.walletconnect.sample_common.ui.theme.WCSampleAppTheme
+import com.walletconnect.sample.common.ui.theme.WCSampleAppTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
@@ -135,7 +135,7 @@ class Web3WalletActivity : ComponentActivity() {
 
                     is PushMessage -> {
                         val notificationBuilder = NotificationCompat.Builder(this, "Push")
-                            .setSmallIcon(com.walletconnect.sample_common.R.drawable.ic_walletconnect_circle_blue)
+                            .setSmallIcon(com.walletconnect.sample.common.R.drawable.ic_walletconnect_circle_blue)
                             .setContentText(event.title)
                             .setContentText(event.body)
                             .setPriority(NotificationCompat.PRIORITY_DEFAULT)

@@ -8,7 +8,7 @@ import com.walletconnect.sample.wallet.domain.PRIVATE_KEY_1
 import com.walletconnect.sample.wallet.domain.WCDelegate
 import com.walletconnect.sample.wallet.ui.common.peer.PeerUI
 import com.walletconnect.sample.wallet.ui.common.peer.toPeerUI
-import com.walletconnect.sample_common.tag
+import com.walletconnect.sample.common.tag
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import com.walletconnect.web3.wallet.utils.CacaoSigner

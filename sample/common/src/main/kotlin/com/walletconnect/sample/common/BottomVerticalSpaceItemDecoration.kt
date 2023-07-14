@@ -1,4 +1,4 @@
-package com.walletconnect.sample_common
+package com.walletconnect.sample.common
 
 import android.graphics.Rect
 import android.view.View
