@@ -1,13 +1,13 @@
-package com.walletconnect.sign.test.activity
+package com.walletconnect.sign.test.scenario
 
 import androidx.lifecycle.Lifecycle
 import androidx.test.core.app.ActivityScenario
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.foundation.network.model.Relay
 import com.walletconnect.sign.test.BuildConfig
+import com.walletconnect.sign.test.activity.InstrumentedTestActivity
 import com.walletconnect.sign.test.utils.TestClient
-import junit.framework.TestCase.assertTrue
-import junit.framework.TestCase.fail
+import junit.framework.TestCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -25,10 +25,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.seconds
 
-// TODO: Replace testScope and runBlocking with kotlin.coroutines test dependency
-//  Research why switching this to class made tests run 10x longer
-
-class WCInstrumentedActivityScenario : TestRule {
+class HybridAppInstrumentedActivityScenario : TestRule {
     private var scenario: ActivityScenario<InstrumentedTestActivity>? = null
     private var scenarioLaunched: Boolean = false
     private val latch = CountDownLatch(1)
@@ -61,6 +58,7 @@ class WCInstrumentedActivityScenario : TestRule {
             initLogging()
             val isDappRelayReady = MutableStateFlow(false)
             val isWalletRelayReady = MutableStateFlow(false)
+            val isHybridAppRelayReady = MutableStateFlow(false)
 
             val timeoutDuration = BuildConfig.TEST_TIMEOUT_SECONDS.seconds
 
@@ -79,7 +77,15 @@ class WCInstrumentedActivityScenario : TestRule {
                 }
             }.launchIn(scope)
 
-            fun isEverythingReady() = isDappRelayReady.value && isWalletRelayReady.value && TestClient.Wallet.isInitialized.value && TestClient.Dapp.isInitialized.value
+            val hybridAppRelayJob = TestClient.Hybrid.Relay.eventsFlow.onEach { event ->
+                when (event) {
+                    is Relay.Model.Event.OnConnectionOpened<*> -> isHybridAppRelayReady.compareAndSet(expect = false, update = true)
+                    else -> {}
+                }
+            }.launchIn(scope)
+
+            fun isEverythingReady() = isDappRelayReady.value && isWalletRelayReady.value && isHybridAppRelayReady.value &&
+                    TestClient.Wallet.isInitialized.value && TestClient.Dapp.isInitialized.value && TestClient.Hybrid.isInitialized.value
 
             runCatching {
                 withTimeout(timeoutDuration) {
@@ -89,11 +95,12 @@ class WCInstrumentedActivityScenario : TestRule {
                 }
             }.fold(
                 onSuccess = { Timber.d("Connection established and peers initialized with: ${TestClient.RELAY_URL}") },
-                onFailure = { fail("Unable to establish connection OR initialize peers within $timeoutDuration") }
+                onFailure = { TestCase.fail("Unable to establish connection OR initialize peers within $timeoutDuration") }
             )
 
             dappRelayJob.cancel()
             walletRelayJob.cancel()
+            hybridAppRelayJob.cancel()
         }
     }
 
@@ -114,9 +121,9 @@ class WCInstrumentedActivityScenario : TestRule {
         testScope.launch { testCodeBlock() }
 
         try {
-            assertTrue(latch.await(timeoutSeconds, TimeUnit.SECONDS))
+            TestCase.assertTrue(latch.await(timeoutSeconds, TimeUnit.SECONDS))
         } catch (exception: Exception) {
-            fail(exception.message)
+            TestCase.fail(exception.message)
         }
     }
 
