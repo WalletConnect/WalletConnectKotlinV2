@@ -1,4 +1,4 @@
-package com.walletconnect.modalcore.utils
+package com.walletconnect.modal.utils
 
 import androidx.compose.ui.platform.UriHandler
 import timber.log.Timber

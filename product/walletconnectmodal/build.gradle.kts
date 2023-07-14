@@ -70,5 +70,5 @@ dependencies {
 
     debugImplementation(project(":core:android"))
     debugImplementation(project(":protocol:sign"))
-    debugImplementation(project(":core:modalCore"))
+    debugImplementation(project(":core:modal"))
 }

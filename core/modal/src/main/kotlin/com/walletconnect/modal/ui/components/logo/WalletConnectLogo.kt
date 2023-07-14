@@ -1,4 +1,4 @@
-package com.walletconnect.modalcore.ui.components.logo
+package com.walletconnect.modal.ui.components.logo
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Row
@@ -14,9 +14,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.walletconnect.modal.ui.ComponentPreview
+import com.walletconnect.modal.ui.components.common.HorizontalSpacer
 import com.walletconnect.modalcore.R
-import com.walletconnect.modalcore.ui.ComponentPreview
-import com.walletconnect.modalcore.ui.components.common.HorizontalSpacer
 
 @Composable
 fun WalletConnectLogo(modifier: Modifier = Modifier, color: Color) {

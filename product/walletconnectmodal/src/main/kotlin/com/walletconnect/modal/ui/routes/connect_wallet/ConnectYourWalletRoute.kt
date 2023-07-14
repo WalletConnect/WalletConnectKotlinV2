@@ -39,8 +39,8 @@ import com.walletconnect.modal.ui.components.walletsGridItems
 import com.walletconnect.modal.ui.navigation.Route
 import com.walletconnect.modal.ui.preview.ModalPreview
 import com.walletconnect.modal.ui.theme.ModalTheme
-import com.walletconnect.modalcore.utils.goToNativeWallet
-import com.walletconnect.modalcore.utils.isLandscape
+import com.walletconnect.modal.utils.goToNativeWallet
+import com.walletconnect.modal.utils.isLandscape
 
 @Composable
 internal fun ConnectYourWalletRoute(

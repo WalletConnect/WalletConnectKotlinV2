@@ -24,11 +24,11 @@ import androidx.navigation.NavController
 import com.walletconnect.modal.R
 import com.walletconnect.modal.ui.components.ModalTopBar
 import com.walletconnect.modal.ui.components.RoundedMainButton
+import com.walletconnect.modal.ui.components.common.HorizontalSpacer
+import com.walletconnect.modal.ui.components.common.VerticalSpacer
 import com.walletconnect.modal.ui.navigation.Route
 import com.walletconnect.modal.ui.preview.ModalPreview
 import com.walletconnect.modal.ui.theme.ModalTheme
-import com.walletconnect.modalcore.ui.components.common.HorizontalSpacer
-import com.walletconnect.modalcore.ui.components.common.VerticalSpacer
 
 @Composable
 internal fun HelpRoute(

@@ -13,7 +13,7 @@ dependencies {
     constraints {
         api(project(":foundation"))
         api(project(":core:android"))
-        api(project(":core:modalCore"))
+        api(project(":core:modal"))
         api(project(":protocol:sign"))
         api(project(":protocol:auth"))
         api(project(":protocol:chat"))

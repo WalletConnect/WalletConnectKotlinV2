@@ -1,4 +1,4 @@
-package com.walletconnect.modalcore.utils
+package com.walletconnect.modal.utils
 
 import android.content.res.Configuration
 import androidx.compose.runtime.Composable

@@ -1,4 +1,4 @@
-package com.walletconnect.modalcore.ui.components.qr
+package com.walletconnect.modal.ui.components.qr
 
 import android.content.Context
 import android.graphics.Path
@@ -12,13 +12,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import com.github.alexzhirkevich.customqrgenerator.QrData
-import com.github.alexzhirkevich.customqrgenerator.style.*
+import com.github.alexzhirkevich.customqrgenerator.style.Neighbors
 import com.github.alexzhirkevich.customqrgenerator.vector.QrCodeDrawable
 import com.github.alexzhirkevich.customqrgenerator.vector.createQrVectorOptions
-import com.github.alexzhirkevich.customqrgenerator.vector.style.*
+import com.github.alexzhirkevich.customqrgenerator.vector.style.QrVectorBallShape
+import com.github.alexzhirkevich.customqrgenerator.vector.style.QrVectorColor
+import com.github.alexzhirkevich.customqrgenerator.vector.style.QrVectorFrameShape
+import com.github.alexzhirkevich.customqrgenerator.vector.style.QrVectorLogoPadding
+import com.github.alexzhirkevich.customqrgenerator.vector.style.QrVectorPixelShape
+import com.github.alexzhirkevich.customqrgenerator.vector.style.QrVectorShapeModifier
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
+import com.walletconnect.modal.ui.ComponentPreview
 import com.walletconnect.modalcore.R
-import com.walletconnect.modalcore.ui.ComponentPreview
 import androidx.compose.ui.graphics.Color as ComposeColor
 
 

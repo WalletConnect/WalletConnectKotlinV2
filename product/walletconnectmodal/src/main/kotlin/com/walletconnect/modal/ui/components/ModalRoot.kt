@@ -13,9 +13,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.walletconnect.modal.ui.theme.ProvideModalThemeComposition
+import com.walletconnect.modal.ui.components.logo.WalletConnectLogo
 import com.walletconnect.modal.ui.theme.ModalTheme
-import com.walletconnect.modalcore.ui.components.logo.WalletConnectLogo
+import com.walletconnect.modal.ui.theme.ProvideModalThemeComposition
 
 @Composable
 internal fun ModalRoot(
