@@ -18,11 +18,9 @@ android {
 
     defaultConfig {
         minSdk = MIN_SDK
-        targetSdk = TARGET_SDK
 
         aarMetadata {
             minCompileSdk = MIN_SDK
-            targetSdk = TARGET_SDK
         }
 
         buildConfigField(type = "String", name = "SDK_VERSION", value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\"")

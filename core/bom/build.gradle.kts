@@ -13,13 +13,14 @@ dependencies {
     constraints {
         api(project(":foundation"))
         api(project(":core:android"))
+        api(project(":core:modalCore"))
         api(project(":protocol:sign"))
         api(project(":protocol:auth"))
         api(project(":protocol:chat"))
         api(project(":protocol:push"))
-//        api(project(":product:web3wallet"))
-//        api(project(":product::web3inbox"))
-//        api(project(":product::web3wallet"))
-//        api(project(":product:walletconnectmodal"))
+        api(project(":product:web3wallet"))
+        api(project(":product::web3inbox"))
+        api(project(":product::web3wallet"))
+        api(project(":product:walletconnectmodal"))
     }
 }
