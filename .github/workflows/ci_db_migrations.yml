@@ -24,11 +24,11 @@ jobs:
     strategy:
       matrix:
         conf: [
-          { name: Android-Core SDK, command: ":androidCore:sdk:verifyDebugAndroidCoreDatabaseMigration" },
-          { name: Sign SDK, command: ":sign:sdk:verifyDebugSignDatabaseMigration" },
-          { name: Auth SDK, command: ":auth:sdk:verifyDebugAuthDatabaseMigration" },
-          { name: Chat SDK, command: ":chat:sdk:verifyDebugChatDatabaseMigration" },
-          { name: Push SDK, command: ":push:sdk:verifyDebugPushDatabaseMigration" },
+          { name: Android-Core SDK, command: ":core:android:verifyDebugAndroidCoreDatabaseMigration" },
+          { name: Sign SDK, command: ":protocol:sign:verifyDebugSignDatabaseMigration" },
+          { name: Auth SDK, command: ":protocol:auth:verifyDebugAuthDatabaseMigration" },
+          { name: Chat SDK, command: ":protocol:chat:verifyDebugChatDatabaseMigration" },
+          { name: Push SDK, command: ":protocol:push:verifyDebugPushDatabaseMigration" },
         ]
     name: ${{ matrix.conf.name }}
     runs-on: ubuntu-latest

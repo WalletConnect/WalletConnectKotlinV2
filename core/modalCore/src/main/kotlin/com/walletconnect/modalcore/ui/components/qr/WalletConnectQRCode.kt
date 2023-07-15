@@ -4,13 +4,11 @@ import android.content.Context
 import android.graphics.Path
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import com.github.alexzhirkevich.customqrgenerator.QrData
@@ -29,6 +27,7 @@ fun WalletConnectQRCode(
     qrData: String,
     primaryColor: ComposeColor,
     logoColor: ComposeColor,
+    modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val qrDrawable =
@@ -40,9 +39,7 @@ fun WalletConnectQRCode(
     Image(
         painter = rememberDrawablePainter(drawable = qrDrawable),
         contentDescription = "content description",
-        modifier = Modifier
-            .padding(10.dp)
-            .aspectRatio(1f)
+        modifier = Modifier.aspectRatio(1f).then(modifier)
     )
 }
 

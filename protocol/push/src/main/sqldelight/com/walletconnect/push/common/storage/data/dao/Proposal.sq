@@ -1,0 +1,16 @@
+CREATE TABLE Proposal(
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    request_id INTEGER UNIQUE NOT NULL,
+    push_propose_topic TEXT UNIQUE NOT NULL,
+    dapp_public_key_as_hex TEXT NOT NULL,
+    account TEXT NOT NULL
+);
+
+insertOrIgnoreProposal:
+INSERT OR REPLACE INTO Proposal(request_id, push_propose_topic, dapp_public_key_as_hex, account)
+VALUES(?, ?, ?, ?);
+
+getProposalByRequestId:
+SELECT request_id, push_propose_topic, dapp_public_key_as_hex, account
+FROM Proposal
+WHERE request_id = ?;

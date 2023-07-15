@@ -8,8 +8,8 @@ jobs:
     strategy:
       matrix:
         conf: [
-          { name: wallet, command: ":samples:wallet:assembleRelease :samples:wallet:appDistributionUploadRelease" },
-          { name: dapp, command: ":samples:dapp:assembleRelease :samples:dapp:appDistributionUploadRelease" }
+          { name: wallet, command: ":sample:wallet:assembleRelease :sample:wallet:appDistributionUploadRelease" },
+          { name: dapp, command: ":sample:dapp:assembleRelease :sample:dapp:appDistributionUploadRelease" }
         ]
     name: ${{ matrix.conf.name }}
     runs-on: ubuntu-latest
