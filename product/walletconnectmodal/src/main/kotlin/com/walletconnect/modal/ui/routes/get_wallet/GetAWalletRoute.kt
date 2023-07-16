@@ -37,7 +37,7 @@ import com.walletconnect.modal.R
 import com.walletconnect.modal.ui.components.ModalTopBar
 import com.walletconnect.modal.ui.components.RoundedMainButton
 import com.walletconnect.modal.ui.theme.ModalTheme
-import com.walletconnect.modalcore.utils.openPlayStore
+import com.walletconnect.modal.utils.openPlayStore
 import timber.log.Timber
 
 @Composable

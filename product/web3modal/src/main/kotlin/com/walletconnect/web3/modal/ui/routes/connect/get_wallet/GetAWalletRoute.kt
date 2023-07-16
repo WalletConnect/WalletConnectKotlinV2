@@ -33,7 +33,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.walletconnect.android.internal.common.explorer.data.model.Wallet
-import com.walletconnect.modalcore.utils.openPlayStore
+import com.walletconnect.modal.utils.openPlayStore
 import com.walletconnect.web3.modal.R
 import com.walletconnect.web3.modal.ui.components.internal.Web3ModalTopBar
 import com.walletconnect.web3.modal.ui.components.internal.commons.RoundedMainButton

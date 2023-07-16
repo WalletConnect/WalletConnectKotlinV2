@@ -32,7 +32,7 @@ fun generateListOfModuleTasks(type: ReleaseType): List<Task> = compileListOfSDKs
 fun compileListOfSDKs(): List<Triple<String, String?, String>> = mutableListOf(
     Triple("foundation", null, "jvm"),
     Triple("core", "android", "android"),
-    Triple("core", "modalCore", "android"),
+    Triple("core", "modal", "android"),
     Triple("protocol", "sign", "android"),
     Triple("protocol", "auth", "android"),
     Triple("protocol", "chat", "android"),

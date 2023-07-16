@@ -17,7 +17,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.walletconnect.android.internal.common.explorer.data.model.Wallet
-import com.walletconnect.modalcore.utils.goToNativeWallet
+import com.walletconnect.modal.utils.goToNativeWallet
 import com.walletconnect.web3.modal.R
 import com.walletconnect.web3.modal.ui.components.internal.Web3ModalTopBar
 import com.walletconnect.web3.modal.ui.components.internal.commons.walletsGridItems

@@ -24,8 +24,8 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.walletconnect.android.internal.common.explorer.data.model.Wallet
+import com.walletconnect.modal.ui.components.common.VerticalSpacer
 import com.walletconnect.modal.ui.theme.ModalTheme
-import com.walletconnect.modalcore.ui.components.common.VerticalSpacer
 
 @Composable
 internal fun WalletsLazyGridView(

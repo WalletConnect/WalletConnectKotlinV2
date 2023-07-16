@@ -20,10 +20,10 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.walletconnect.modal.R
+import com.walletconnect.modal.ui.components.common.VerticalSpacer
 import com.walletconnect.modal.ui.navigation.Route
 import com.walletconnect.modal.ui.preview.ComponentPreview
 import com.walletconnect.modal.ui.theme.ModalTheme
-import com.walletconnect.modalcore.ui.components.common.VerticalSpacer
 
 
 @Composable

@@ -1,4 +1,4 @@
-package com.walletconnect.modalcore.ui
+package com.walletconnect.modal.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
