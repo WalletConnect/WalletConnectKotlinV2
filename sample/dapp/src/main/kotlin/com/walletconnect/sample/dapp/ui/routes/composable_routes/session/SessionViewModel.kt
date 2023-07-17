@@ -2,8 +2,8 @@ package com.walletconnect.sample.dapp.ui.routes.composable_routes.session
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.walletconnect.modal.client.Modal
-import com.walletconnect.modal.client.WalletConnectModal
+import com.walletconnect.wcmodal.client.Modal
+import com.walletconnect.wcmodal.client.WalletConnectModal
 import com.walletconnect.push.common.Push
 import com.walletconnect.push.dapp.client.PushDappClient
 import com.walletconnect.sample.dapp.domain.DappDelegate

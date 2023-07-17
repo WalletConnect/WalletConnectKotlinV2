@@ -6,8 +6,8 @@ import com.google.firebase.ktx.Firebase
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.relay.ConnectionType
-import com.walletconnect.modal.client.Modal
-import com.walletconnect.modal.client.WalletConnectModal
+import com.walletconnect.wcmodal.client.Modal
+import com.walletconnect.wcmodal.client.WalletConnectModal
 import com.walletconnect.push.common.Push
 import com.walletconnect.push.dapp.client.PushDappClient
 import com.walletconnect.sample.common.BuildConfig
