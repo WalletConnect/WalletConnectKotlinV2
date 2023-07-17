@@ -1,10 +1,10 @@
 package com.walletconnect.modal.ui.components.qr
 
 import android.content.Context
-import android.graphics.Path
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
@@ -12,7 +12,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import com.github.alexzhirkevich.customqrgenerator.QrData
-import com.github.alexzhirkevich.customqrgenerator.style.Neighbors
 import com.github.alexzhirkevich.customqrgenerator.vector.QrCodeDrawable
 import com.github.alexzhirkevich.customqrgenerator.vector.createQrVectorOptions
 import com.github.alexzhirkevich.customqrgenerator.vector.style.QrVectorBallShape
@@ -20,7 +19,6 @@ import com.github.alexzhirkevich.customqrgenerator.vector.style.QrVectorColor
 import com.github.alexzhirkevich.customqrgenerator.vector.style.QrVectorFrameShape
 import com.github.alexzhirkevich.customqrgenerator.vector.style.QrVectorLogoPadding
 import com.github.alexzhirkevich.customqrgenerator.vector.style.QrVectorPixelShape
-import com.github.alexzhirkevich.customqrgenerator.vector.style.QrVectorShapeModifier
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.walletconnect.modal.ui.ComponentPreview
 import com.walletconnect.modalcore.R
@@ -35,11 +33,12 @@ fun WalletConnectQRCode(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val qrDrawable =
+    val qrDrawable = remember(qrData, context, logoColor, primaryColor) {
         QrCodeDrawable(
             data = QrData.Url(qrData),
             options = createQROptions(context, logoColor, primaryColor)
         )
+    }
 
     Image(
         painter = rememberDrawablePainter(drawable = qrDrawable),
@@ -83,49 +82,6 @@ private fun createQROptions(
         shapes {
             frame = QrVectorFrameShape.RoundCorners(.4f)
             ball = QrVectorBallShape.RoundCorners(.2f)
-            darkPixel = VerticalStripesShape()
+            darkPixel = QrVectorPixelShape.RoundCornersVertical(.95f)
         }
     }
-
-private val Neighbors.hasVertical: Boolean
-    get() = top && bottom
-
-private class VerticalStripesShape() : QrVectorPixelShape {
-    override fun createPath(size: Float, neighbors: Neighbors): Path {
-        val shape: QrVectorPixelShape = when {
-            neighbors.hasVertical -> DefaultVectorShape()
-            neighbors.top -> RoundTopCornersVerticalVectorShape()
-            neighbors.bottom -> RoundBottomCornersVerticalVectorShape()
-            else -> CircleVectorShape()
-        }
-        return shape.createPath(size, neighbors)
-    }
-}
-
-private class CircleVectorShape : QrVectorPixelShape, QrVectorShapeModifier {
-    override fun createPath(size: Float, neighbors: Neighbors) = Path().apply {
-        addCircle(size/2f, size/2f, size/2 * 0.9f, Path.Direction.CW)
-    }
-}
-
-private class DefaultVectorShape : QrVectorPixelShape, QrVectorShapeModifier {
-    override fun createPath(size: Float, neighbors: Neighbors): Path = Path().apply {
-        val padding = size * .95f
-        addRect(padding, 0f, size - padding, size, Path.Direction.CW)
-    }
-}
-private class RoundTopCornersVerticalVectorShape : QrVectorPixelShape, QrVectorShapeModifier {
-    override fun createPath(size: Float, neighbors: Neighbors) = Path().apply {
-        val padding = .05f
-        addRect((size*padding), 0f, size - (size*padding), size / 2f, Path.Direction.CW)
-        addCircle(size / 2, size / 2, (size / 2f) * 0.9f , Path.Direction.CW)
-    }
-}
-
-private class RoundBottomCornersVerticalVectorShape : QrVectorPixelShape, QrVectorShapeModifier {
-    override fun createPath(size: Float, neighbors: Neighbors) = Path().apply {
-        val padding = .05f
-        addRect((size*padding), size / 2f, size - (size*padding), size, Path.Direction.CW)
-        addCircle(size / 2, size / 2, (size / 2f) * 0.9f , Path.Direction.CW)
-    }
-}
