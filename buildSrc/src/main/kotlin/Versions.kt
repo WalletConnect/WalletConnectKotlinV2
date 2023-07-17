@@ -18,7 +18,7 @@ const val WEB_3_MODAL = "1.0.0-alpha05"
 const val WC_MODAL_VERSION = "1.0.0-alpha01"
 const val MODAL_CORE_VERSION = "1.0.0-alpha01"
 
-val jvmVersion = JavaVersion.VERSION_11
+val jvmVersion = JavaVersion.VERSION_17
 const val MIN_SDK: Int = 23
 const val TARGET_SDK: Int = 33
 const val COMPILE_SDK: Int = TARGET_SDK
