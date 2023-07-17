@@ -75,7 +75,6 @@ dependencies {
     debugImplementation(project(":core:android"))
     releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
 
-    androidTestUtil("androidx.test:orchestrator:1.4.2")
     moshiKsp()
     androidXTest()
     jUnit4()
