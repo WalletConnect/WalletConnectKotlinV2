@@ -22,6 +22,10 @@ fun generateApprovedNamespaces(
     SignValidator.validateProposalNamespaces(normalizedOptionalNamespaces) { error -> throw Exception(error.message) }
     SignValidator.validateSupportedNamespace(supportedNamespacesVO, normalizedRequiredNamespaces) { error -> throw Exception(error.message) }
 
+    if (proposal.requiredNamespaces.isEmpty() && proposal.optionalNamespaces.isEmpty()) {
+        return supportedNamespacesVO.toClient()
+    }
+
     val approvedNamespaces = mutableMapOf<String, NamespaceVO.Session>()
     normalizedRequiredNamespaces.forEach { (key, requiredNamespace) ->
         val chains = supportedNamespacesVO[key]?.chains?.filter { chain -> requiredNamespace.chains!!.contains(chain) } ?: emptyList()
