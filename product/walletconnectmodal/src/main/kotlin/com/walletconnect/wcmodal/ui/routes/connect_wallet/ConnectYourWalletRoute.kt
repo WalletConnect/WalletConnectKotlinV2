@@ -1,18 +1,18 @@
-package com.walletconnect.web3.modal.ui.routes.connect.connect_wallet
+package com.walletconnect.wcmodal.ui.routes.connect_wallet
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.LazyGridScope
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
@@ -30,15 +30,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.walletconnect.android.internal.common.explorer.data.model.Wallet
+import com.walletconnect.modal.R
+import com.walletconnect.wcmodal.ui.components.ModalTopBar
+import com.walletconnect.wcmodal.ui.components.WalletImage
+import com.walletconnect.wcmodal.ui.components.WalletListItem
+import com.walletconnect.wcmodal.ui.components.WalletsLazyGridView
+import com.walletconnect.wcmodal.ui.components.walletsGridItems
+import com.walletconnect.wcmodal.ui.navigation.Route
+import com.walletconnect.wcmodal.ui.preview.ModalPreview
+import com.walletconnect.wcmodal.ui.theme.ModalTheme
 import com.walletconnect.modal.utils.goToNativeWallet
-import com.walletconnect.web3.modal.ui.components.internal.Web3ModalTopBar
-import com.walletconnect.web3.modal.R
-import com.walletconnect.web3.modal.ui.components.internal.commons.WalletImage
-import com.walletconnect.web3.modal.ui.components.internal.commons.WalletListItem
-import com.walletconnect.web3.modal.ui.components.internal.commons.walletsGridItems
-import com.walletconnect.web3.modal.ui.navigation.Route
-import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
-import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
+import com.walletconnect.modal.utils.isLandscape
 
 @Composable
 internal fun ConnectYourWalletRoute(
@@ -66,9 +68,9 @@ private fun ConnectYourWalletContent(
     onScanIconClick: () -> Unit,
 ) {
     Column {
-        Web3ModalTopBar(title = "Connect your wallet", endIcon = {
+        ModalTopBar(title = "Connect your wallet", endIcon = {
             Image(imageVector = ImageVector.vectorResource(id = R.drawable.ic_scan),
-                colorFilter = ColorFilter.tint(Web3ModalTheme.colors.main100),
+                colorFilter = ColorFilter.tint(ModalTheme.colors.main),
                 contentDescription = "Scan Icon",
                 modifier = Modifier.clickable { onScanIconClick() })
         })
@@ -87,32 +89,39 @@ private fun WalletsGrid(
     onWalletItemClick: (Wallet) -> Unit,
     onViewAllClick: () -> Unit
 ) {
+    val isLandscape = isLandscape
     if (wallets.isNotEmpty()) {
-        LazyVerticalGrid(
+        WalletsLazyGridView(
             modifier = Modifier.fillMaxWidth(),
-            columns = GridCells.Fixed(4)
-        ) {
-            if (wallets.size <= 8) {
+        ) { walletsInColumn ->
+            if (wallets.size <= walletsInColumn) {
                 walletsGridItems(wallets, onWalletItemClick)
             } else {
-                walletsGridItemsWithViewAll(wallets, onWalletItemClick, onViewAllClick)
+                walletsGridItemsWithViewAll(
+                    if (isLandscape) walletsInColumn else walletsInColumn*2,
+                    wallets,
+                    onWalletItemClick,
+                    onViewAllClick
+                )
             }
         }
     }
 }
 private fun LazyGridScope.walletsGridItemsWithViewAll(
+    maxGridElementsSize: Int,
     wallets: List<Wallet>,
     onWalletItemClick: (Wallet) -> Unit,
     onViewAllClick: () -> Unit
 ) {
-    itemsIndexed(wallets.take(7)) { _, wallet ->
+    val walletsSize = maxGridElementsSize - 1
+    itemsIndexed(wallets.take(walletsSize)) { _, wallet ->
         WalletListItem(
             wallet = wallet,
             onWalletItemClick = onWalletItemClick
         )
     }
     item {
-        ViewAllItem(wallets.subList(7, wallets.size), onViewAllClick)
+        ViewAllItem(wallets.subList(walletsSize, wallets.size), onViewAllClick)
     }
 }
 
@@ -129,33 +138,35 @@ private fun ViewAllItem(
             modifier = Modifier
                 .size(80.dp)
                 .padding(10.dp)
-                .background(Web3ModalTheme.colors.background.color200, shape = RoundedCornerShape(10.dp))
-                .border(1.dp, Web3ModalTheme.colors.foreground.color125, shape = RoundedCornerShape(10.dp)),
+                .background(ModalTheme.colors.secondaryBackgroundColor, shape = RoundedCornerShape(14.dp))
+                .border(1.dp, ModalTheme.colors.dividerColor, shape = RoundedCornerShape(14.dp))
+                .padding(1.dp)
+            ,
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             wallets.chunked(2).forEach {
-                Row() {
+                Row {
                     it.forEach { item ->
                         WalletImage(
                             url = item.imageUrl, Modifier
                                 .size(30.dp)
-                                .padding(4.dp)
-                                .clip(RoundedCornerShape(10.dp))
+                                .padding(5.dp)
+                                .clip(RoundedCornerShape(4.dp))
                         )
                     }
                 }
             }
 
         }
-        Text(text = "View All", style = TextStyle(color = Web3ModalTheme.colors.foreground.color100, fontSize = 12.sp))
+        Text(text = "View All", style = TextStyle(color = ModalTheme.colors.onBackgroundColor, fontSize = 12.sp))
     }
 }
 
 @Preview
 @Composable
 private fun ConnectYourWalletPreview() {
-    Web3ModalPreview {
+    ModalPreview {
         ConnectYourWalletContent(listOf(), {}, {}, {})
     }
 }

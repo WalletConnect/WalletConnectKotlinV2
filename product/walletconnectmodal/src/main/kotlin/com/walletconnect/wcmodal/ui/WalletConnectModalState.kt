@@ -1,0 +1,8 @@
+package com.walletconnect.wcmodal.ui
+
+import com.walletconnect.android.internal.common.explorer.data.model.Wallet
+
+internal data class WalletConnectModalState(
+    val uri: String,
+    val wallets: List<Wallet> = listOf()
+)
