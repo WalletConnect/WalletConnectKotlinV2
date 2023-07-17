@@ -40,6 +40,18 @@ class HybridAppInstrumentedAndroidTest {
         }
     }
 
+//    @Test
+//    fun pairDappWithHybriApp() {
+//        Timber.d("Pair Dapp with HybridWallet: start pairing")
+//
+//        setDelegates(WalletDelegate(), DappDelegate(), HybridAppWalletDelegate(), HybridAppDappDelegate())
+//        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) {
+//            pairDappWithHybrid {
+//                scenarioExtension.closeAsSuccess().also { Timber.d("Pair Dapp with HybridWallet: finish pairing") }
+//            }
+//        }
+//    }
+
     @Test
     fun pairHybridAppWithWallet() {
         Timber.d("Pair HybridApp with Wallet: start pairing")
@@ -74,6 +86,29 @@ class HybridAppInstrumentedAndroidTest {
         setDelegates(WalletDelegate(), sessionApproveDappDelegate, approveSessionWalletDelegate, HybridAppDappDelegate())
         scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { pairDappWithHybrid { pairing -> dappClientConnect(pairing) } }
     }
+
+//    @Test
+//    fun establishSessionBetweenDappAndHybridAppAndWallet() {
+//        Timber.d("Establish session between Dapp and hybrid wallet: start")
+//
+//        val approveSessionWalletDelegate = object : HybridAppWalletDelegate() {
+//            override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal, verifyContext: Sign.Model.VerifyContext) {
+//                Timber.d("HybridAppWalletDelegate: onSessionProposal: $sessionProposal")
+//
+//                HybridSignClient.approveSession(Sign.Params.Approve(sessionProposal.proposerPublicKey, sessionNamespaces), onSuccess = {}, onError = ::globalOnError)
+//                Timber.d("HybridAppWalletDelegate: approveSession")
+//            }
+//        }
+//
+//        val sessionApproveDappDelegate = object : DappDelegate() {
+//            override fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession) {
+//                scenarioExtension.closeAsSuccess().also { Timber.d("DappDelegate: establishSession finish") }
+//            }
+//        }
+//
+//        setDelegates(WalletDelegate(), sessionApproveDappDelegate, approveSessionWalletDelegate, HybridAppDappDelegate())
+//        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { pairDappWithHybrid { pairing -> dappClientConnect(pairing) } }
+//    }
 
     @Test
     fun establishSessionBetweenHybridAppAndWallet() {
