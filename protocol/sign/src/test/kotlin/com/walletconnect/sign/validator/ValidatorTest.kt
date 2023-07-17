@@ -213,7 +213,7 @@ class ValidatorTest {
     }
 
     @Test
-    fun `Session Namespaces MAY include anything when when Proposal and Required Namespaces are empty`() {
+    fun `Session Namespaces MAY include anything when when Required Namespaces are empty`() {
         val requiredNamespaces = emptyMap<String, NamespaceVO.Proposal>()
 
         val sessionNamespaces = mapOf(
@@ -765,16 +765,6 @@ class ValidatorTest {
     @Test
     fun `Session Namespaces MAY include one optional namespaces when required are empty`() {
         val requiredNamespaces = emptyMap<String, NamespaceVO.Proposal>()
-        val optionalNamespaces = mapOf(
-            COSMOS to NamespaceVO.Proposal(
-                methods = listOf(COSMOS_SIGNDIRECT, COSMOS_GET_ACCOUNTS), events = listOf(COSMOS_EVENT), chains = listOf(COSMOSHUB_4)
-            ),
-            EIP155 to NamespaceVO.Proposal(
-                chains = listOf(ETHEREUM),
-                methods = listOf(ETH_SIGN),
-                events = listOf(ACCOUNTS_CHANGED)
-            ),
-        )
 
         val namespaces = mapOf(
             COSMOS to NamespaceVO.Session(
