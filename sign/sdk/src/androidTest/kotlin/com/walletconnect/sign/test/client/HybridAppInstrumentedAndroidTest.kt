@@ -90,6 +90,110 @@ class HybridAppInstrumentedAndroidTest {
         scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { pairHybridWithWallet { pairing -> hybridClientConnect(pairing) } }
     }
 
+    @Test
+    fun receiveRejectSessionOnDappFromHybdridApp() {
+        Timber.d("Receive Reject Session On Hybrid Wallet From External Dapp: start")
+
+        val walletHybridDelegate = object : HybridAppWalletDelegate() {
+            override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal, verifyContext: Sign.Model.VerifyContext) {
+                Timber.d("HybridAppWalletDelegate: onSessionProposal: $sessionProposal")
+
+                HybridSignClient.rejectSession(Sign.Params.Reject(sessionProposal.proposerPublicKey, "test reason"), onSuccess = {}, onError = ::globalOnError)
+                Timber.d("HybridSignClient: rejectSession")
+            }
+        }
+
+        val dappDelegate = object : DappDelegate() {
+            override fun onSessionRejected(rejectedSession: Sign.Model.RejectedSession) {
+                scenarioExtension.closeAsSuccess().also { Timber.d("receiveRejectSession: finish") }
+            }
+        }
+        setDelegates(WalletDelegate(), dappDelegate, walletHybridDelegate, HybridAppDappDelegate())
+        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { pairDappWithHybrid { pairing -> dappClientConnect(pairing) } }
+    }
+
+    @Test
+    fun receiveRejectSessionOnHybridAppFromWallet() {
+        Timber.d("Receive Reject Session On HybridApp From Wallet: start")
+
+        val walletDelegate = object : WalletDelegate() {
+            override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal, verifyContext: Sign.Model.VerifyContext) {
+                Timber.d("WalletDelegate: onSessionProposal: $sessionProposal")
+
+                WalletSignClient.rejectSession(Sign.Params.Reject(sessionProposal.proposerPublicKey, "test reason"), onSuccess = {}, onError = ::globalOnError)
+                Timber.d("WalletSignClient: rejectSession")
+            }
+        }
+
+        val dappHybridDelegate = object : HybridAppDappDelegate() {
+            override fun onSessionRejected(rejectedSession: Sign.Model.RejectedSession) {
+                scenarioExtension.closeAsSuccess().also { Timber.d("receiveRejectSession: finish") }
+            }
+        }
+        setDelegates(walletDelegate, DappDelegate(), HybridAppWalletDelegate(), dappHybridDelegate)
+        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { pairHybridWithWallet { pairing -> hybridClientConnect(pairing) } }
+    }
+
+    @Test
+    fun getActiveSessionFromHybridWallet() {
+        Timber.d("Get Active Session From Hybrid Wallet: start")
+
+        val approveSessionWalletDelegate = object : HybridAppWalletDelegate() {
+            override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal, verifyContext: Sign.Model.VerifyContext) {
+                Timber.d("HybridAppWalletDelegate: onSessionProposal: $sessionProposal")
+
+                HybridSignClient.approveSession(Sign.Params.Approve(sessionProposal.proposerPublicKey, sessionNamespaces), onSuccess = {}, onError = ::globalOnError)
+                Timber.d("HybridAppWalletDelegate: approveSession")
+            }
+
+            override fun onSessionSettleResponse(settleSessionResponse: Sign.Model.SettledSessionResponse) {
+                val sessionTopic = (settleSessionResponse as Sign.Model.SettledSessionResponse.Result).session.topic
+                HybridSignClient.getActiveSessionByTopic(sessionTopic).let { session ->
+                    if (session != null) {
+                        scenarioExtension.closeAsSuccess().also { Timber.d("getActiveSessionFromHybridApp: finish: $session") }
+                    }
+                }
+            }
+        }
+
+        val sessionApproveDappDelegate = object : DappDelegate() {
+            override fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession) {
+                Timber.d("DappDelegate: establishSession finish")
+            }
+        }
+
+        setDelegates(WalletDelegate(), sessionApproveDappDelegate, approveSessionWalletDelegate, HybridAppDappDelegate())
+        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { pairDappWithHybrid { pairing -> dappClientConnect(pairing) } }
+    }
+
+    @Test
+    fun getActiveSessionFromHybridDapp() {
+        Timber.d("Get Active Session From Hybrid Dapp: start")
+
+        val walletDelegate = object : WalletDelegate() {
+            override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal, verifyContext: Sign.Model.VerifyContext) {
+                Timber.d("WalletDelegate: onSessionProposal: $sessionProposal")
+
+                WalletSignClient.approveSession(Sign.Params.Approve(sessionProposal.proposerPublicKey, sessionNamespaces), onSuccess = {}, onError = ::globalOnError)
+                Timber.d("WalletSignClient: approveSession")
+            }
+        }
+
+        val sessionApproveDappDelegate = object : HybridAppDappDelegate() {
+            override fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession) {
+                val sessionTopic = approvedSession.topic
+                HybridSignClient.getActiveSessionByTopic(sessionTopic).let { session ->
+                    if (session != null) {
+                        scenarioExtension.closeAsSuccess().also { Timber.d("getActiveSessionFromHybridApp: finish: $session") }
+                    }
+                }
+            }
+        }
+
+        setDelegates(walletDelegate, DappDelegate(), HybridAppWalletDelegate(), sessionApproveDappDelegate)
+        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { pairHybridWithWallet { pairing -> hybridClientConnect(pairing) } }
+    }
+
     private fun setDelegates(
         walletDelegate: SignClient.WalletDelegate,
         dappDelegate: SignClient.DappDelegate,
