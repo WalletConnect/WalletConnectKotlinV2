@@ -374,11 +374,11 @@ internal class SignEngine(
             throw InvalidRequestException(error.message)
         }
 
-        val namespaces: Map<String, NamespaceVO.Session> =
-            sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic(request.topic)).sessionNamespaces
-        SignValidator.validateChainIdWithMethodAuthorisation(request.chainId, request.method, namespaces) { error ->
-            throw UnauthorizedMethodException(error.message)
-        }
+        // val namespaces: Map<String, NamespaceVO.Session> =
+        //     sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic(request.topic)).sessionNamespaces
+        // SignValidator.validateChainIdWithMethodAuthorisation(request.chainId, request.method, namespaces) { error ->
+        //     throw UnauthorizedMethodException(error.message)
+        // }
 
         val params = SignParams.SessionRequestParams(SessionRequestVO(request.method, request.params), request.chainId)
         val sessionPayload = SignRpc.SessionRequest(params = params)
