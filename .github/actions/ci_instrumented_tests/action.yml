@@ -47,7 +47,7 @@ runs:
       with:
         name: ${{ inputs.name }}
         path: |
-          **/index.html
+          **/reports/**
           emulator.log
 
     - name: Stop Gradle
