@@ -49,7 +49,3 @@ runs:
         path: |
           **/reports/**
           emulator.log
-
-    - name: Stop Gradle
-      shell: bash
-      run: ./gradlew --stop
