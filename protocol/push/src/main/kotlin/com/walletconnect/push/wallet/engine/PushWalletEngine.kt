@@ -199,7 +199,7 @@ internal class PushWalletEngine(
                     val (dappHomepageUri: Uri, dappListing: Listing) = listOfDappHomepages.entries.filter { (_, dappListing) ->
                         dappListing.description != null
                     }.firstOrNull { (dappHomepageUri, _) ->
-                        dappHomepageUri.toString().contains(dappUri.toString())
+                        dappHomepageUri.host != null && dappHomepageUri.host!!.contains(dappUri.host!!)
                     } ?: return@withContext Result.failure<AppMetaData>(IllegalArgumentException("Unable to find dapp listing for $dappUri"))
 
                     // Return dapp metadata
