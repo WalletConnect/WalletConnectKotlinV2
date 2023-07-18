@@ -25,8 +25,8 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.walletconnect.modal.ui.openWalletConnectModal
-import com.walletconnect.modal.ui.state.rememberModalState
+import com.walletconnect.wcmodal.ui.openWalletConnectModal
+import com.walletconnect.wcmodal.ui.state.rememberModalState
 import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.sample.dapp.ui.routes.Route
 import com.walletconnect.sample.dapp.ui.routes.bottom_routes.PairingSelectionResult

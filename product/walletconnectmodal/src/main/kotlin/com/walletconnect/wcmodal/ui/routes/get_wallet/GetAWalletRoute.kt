@@ -1,4 +1,4 @@
-package com.walletconnect.web3.modal.ui.routes.connect.get_wallet
+package com.walletconnect.wcmodal.ui.routes.get_wallet
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -32,11 +32,11 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.walletconnect.android.internal.common.explorer.data.model.Wallet
+import com.walletconnect.modal.R
 import com.walletconnect.modal.utils.openPlayStore
-import com.walletconnect.web3.modal.R
-import com.walletconnect.web3.modal.ui.components.internal.Web3ModalTopBar
-import com.walletconnect.web3.modal.ui.components.internal.commons.RoundedMainButton
-import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
+import com.walletconnect.wcmodal.ui.components.ModalTopBar
+import com.walletconnect.wcmodal.ui.components.RoundedMainButton
+import com.walletconnect.wcmodal.ui.theme.ModalTheme
 
 @Composable
 internal fun GetAWalletRoute(
@@ -57,7 +57,7 @@ private fun GetAWalletContent(
     val uriHandler = LocalUriHandler.current
 
     Column {
-        Web3ModalTopBar(title = "Get a wallet", onBackPressed = onBackPressed)
+        ModalTopBar(title = "Get a wallet", onBackPressed = onBackPressed)
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
@@ -75,7 +75,7 @@ private fun GetAWalletContent(
                 ) {
                     Text(
                         text = "Not what you're looking for?", style = TextStyle(
-                            color = Web3ModalTheme.colors.textColor,
+                            color = ModalTheme.colors.textColor,
                             textAlign = TextAlign.Center,
                             fontSize = 18.sp
                         )
@@ -84,7 +84,7 @@ private fun GetAWalletContent(
                     Text(
                         text = "With hundreds of wallets out there, there’s something for everyone",
                         style = TextStyle(
-                            color = Web3ModalTheme.colors.secondaryTextColor,
+                            color = ModalTheme.colors.secondaryTextColor,
                             textAlign = TextAlign.Center,
                             fontSize = 14.sp
                         )
@@ -96,7 +96,7 @@ private fun GetAWalletContent(
                         endIcon = {
                             Image(
                                 imageVector = ImageVector.vectorResource(id = R.drawable.ic_external_link),
-                                colorFilter = ColorFilter.tint(Web3ModalTheme.colors.onMainColor),
+                                colorFilter = ColorFilter.tint(ModalTheme.colors.onMainColor),
                                 contentDescription = null,
                             )
                         }
@@ -132,7 +132,7 @@ private fun WalletListItem(wallet: Wallet) {
                 text = wallet.name,
                 style = TextStyle(
                     fontSize = 16.sp,
-                    color = Web3ModalTheme.colors.onBackgroundColor,
+                    color = ModalTheme.colors.onBackgroundColor,
                 ),
                 modifier = Modifier.weight(1f)
             )
@@ -142,7 +142,7 @@ private fun WalletListItem(wallet: Wallet) {
                 endIcon = {
                     Image(
                         imageVector = ImageVector.vectorResource(id = R.drawable.ic_forward_chevron),
-                        colorFilter = ColorFilter.tint(Web3ModalTheme.colors.onMainColor),
+                        colorFilter = ColorFilter.tint(ModalTheme.colors.onMainColor),
                         contentDescription = null,
                     )
                 }
@@ -152,8 +152,7 @@ private fun WalletListItem(wallet: Wallet) {
             modifier = Modifier
                 .height(1.dp)
                 .fillMaxWidth()
-                .background(Web3ModalTheme.colors.dividerColor)
+                .background(ModalTheme.colors.dividerColor)
         )
     }
 }
-

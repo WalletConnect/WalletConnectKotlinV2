@@ -1,8 +1,7 @@
-package com.walletconnect.sample.dapp.domain
+package com.walletconnect.wcmodal.domain
 
 import com.walletconnect.wcmodal.client.Modal
 import com.walletconnect.wcmodal.client.WalletConnectModal
-import com.walletconnect.sample.common.tag
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -12,21 +11,12 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
-object DappDelegate : WalletConnectModal.ModalDelegate {
+internal object WalletConnectModalDelegate : WalletConnectModal.ModalDelegate {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val _wcEventModels: MutableSharedFlow<Modal.Model?> = MutableSharedFlow()
     val wcEventModels: SharedFlow<Modal.Model?> =  _wcEventModels.asSharedFlow()
 
-    var selectedSessionTopic: String? = null
-        private set
-
-    init {
-        WalletConnectModal.setDelegate(this)
-    }
-
     override fun onSessionApproved(approvedSession: Modal.Model.ApprovedSession) {
-        selectedSessionTopic = approvedSession.topic
-
         scope.launch {
             _wcEventModels.emit(approvedSession)
         }
@@ -51,8 +41,6 @@ object DappDelegate : WalletConnectModal.ModalDelegate {
     }
 
     override fun onSessionDelete(deletedSession: Modal.Model.DeletedSession) {
-        deselectAccountDetails()
-
         scope.launch {
             _wcEventModels.emit(deletedSession)
         }
@@ -70,21 +58,11 @@ object DappDelegate : WalletConnectModal.ModalDelegate {
         }
     }
 
-    fun deselectAccountDetails() {
-        selectedSessionTopic = null
-    }
-
     override fun onConnectionStateChange(state: Modal.Model.ConnectionState) {
-        Timber.d(tag(this), "onConnectionStateChange($state)")
-        scope.launch {
-            _wcEventModels.emit(state)
-        }
+
     }
 
     override fun onError(error: Modal.Model.Error) {
-        Timber.d(tag(this), error.throwable.stackTraceToString())
-        scope.launch {
-            _wcEventModels.emit(error)
-        }
+        Timber.e(error.throwable)
     }
 }
