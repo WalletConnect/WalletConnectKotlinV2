@@ -33,8 +33,8 @@ jobs:
       fail-fast: false
       matrix:
         conf: [
-          { name: Sign SDK, command: ":protocol:sign:connectedCheck", report: '/Users/runner/work/WalletConnectKotlinV2/WalletConnectKotlinV2/protocol/sign/build/reports/**' },
-          { name: Android Core SDK, command: ":core:android:connectedCheck", report: '/Users/runner/work/WalletConnectKotlinV2/WalletConnectKotlinV2/core/android/build/reports/**' },
+          { name: 'Sign_SDK', command: ":protocol:sign:connectedCheck", report: '/Users/runner/work/WalletConnectKotlinV2/WalletConnectKotlinV2/protocol/sign/build/reports/**' },
+          { name: 'Android_Core_SDK', command: ":core:android:connectedCheck", report: '/Users/runner/work/WalletConnectKotlinV2/WalletConnectKotlinV2/core/android/build/reports/**' },
         ]
         api-level: [ 32 ] # JUnit5 only supports API younger or equal to 26
         target: [ google_apis ]
