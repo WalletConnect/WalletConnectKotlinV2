@@ -56,6 +56,8 @@ android {
             isIncludeAndroidResources = true
             isReturnDefaultValues = true
         }
+
+        registerManagedDevices("Sign")
     }
 
     buildFeatures {

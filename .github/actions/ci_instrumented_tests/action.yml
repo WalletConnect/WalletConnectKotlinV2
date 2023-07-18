@@ -2,8 +2,8 @@ name: SDKs Instrumented Tests
 description: 'Runs various Kotlin SDK instrumented tests'
 
 inputs:
-  shouldCache:
-    description: 'Flag to cache gradle'
+  shouldUseCache:
+    description: 'Flag to use and save cache gradle'
     default: 'true'
   name:
     description: 'Name of test and emulator'
@@ -20,51 +20,34 @@ inputs:
   testTimeoutSeconds:
     description: 'Seconds for test timeout'
     default: '40'
-  api-level:
-    description: 'Emulator Android API '
-    default: '32'
-  target:
-    description: 'Emulator target'
-    default: 'google_apis'
-  profile:
-    description: 'Emulator profile'
-    default: 'Nexus 6'
-  arch:
-    description: 'Emulator CPU architecture'
-    default: 'arm64-v8a'
 
 runs:
   using: "composite"
   steps:
     - name: Gradle cache
+      if: ${{ inputs.shouldUseCache }}
       uses: gradle/gradle-build-action@v2
 
-    - name: Instrumented tests
+    - name: Create log file
+      shell: bash
+      run: |
+        touch emulator.log
+        chmod 777 emulator.log
+        adb logcat -s "WalletConnectV2" >> emulator.log &
+
+    - name: Run instrumented tests
+      shell: bash
       env:
         WC_CLOUD_PROJECT_ID: ${{ inputs.projectId}}
         TEST_TIMEOUT_SECONDS: ${{ inputs.testTimeoutSeconds }}
-      uses: reactivecircus/android-emulator-runner@v2
-      with:
-        avd-name: ${{ inputs.name }}
-        api-level: ${{ inputs.api-level }}
-        target: ${{ inputs.target }}
-        arch: ${{ inputs.arch }}
-        profile: ${{ inputs.profile }}
-        force-avd-creation: false
-        emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-        disable-animations: true
-        script: |
-          touch emulator.log
-          chmod 777 emulator.log
-          adb logcat -s "WalletConnectV2" >> emulator.log &
-          ./gradlew ${{ inputs.command }}
+      run: ./gradlew ${{ inputs.command }}
 
     - uses: actions/upload-artifact@v3
       if: always()
       with:
-        name: ${{ inputs.name }} API ${{ inputs.api-level }}-${{ inputs.target }}-${{ inputs.profile }}-${{ inputs.arch }}
+        name: ${{ inputs.name }}
         path: |
-          ${{ inputs.report }}
+          **/reports/*.html
           emulator.log
 
     - name: Stop Gradle
