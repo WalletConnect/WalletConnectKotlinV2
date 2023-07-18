@@ -11,6 +11,11 @@ fun TestOptions.registerManagedDevices(prefix: String) {
                 apiLevel = 32
                 systemImageSource = "google"
             }
+            create<ManagedVirtualDevice>("${prefix}Google27") {
+                device = "Nexus 6"
+                apiLevel = 27
+                systemImageSource = "google"
+            }
         }
     }
 }
