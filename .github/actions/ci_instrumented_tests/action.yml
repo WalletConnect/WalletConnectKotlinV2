@@ -45,6 +45,7 @@ runs:
         TEST_TIMEOUT_SECONDS: ${{ inputs.testTimeoutSeconds }}
       uses: reactivecircus/android-emulator-runner@v2
       with:
+        avd-name: ${{ inputs.name }}
         api-level: ${{ inputs.api-level }}
         target: ${{ inputs.target }}
         arch: ${{ inputs.arch }}
