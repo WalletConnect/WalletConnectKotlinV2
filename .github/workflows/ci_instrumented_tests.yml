@@ -45,7 +45,7 @@ jobs:
       - name: Run instrumented tests
         uses: ./.github/actions/ci_instrumented_tests
         with:
-          shouldCache: true
+          shouldUseCache: true
           name: ${{ matrix.conf.name }}
           command: ${{ matrix.conf.command }}
           report: ${{ matrix.conf.report }}
