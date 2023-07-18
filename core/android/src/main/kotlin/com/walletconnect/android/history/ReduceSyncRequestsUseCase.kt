@@ -16,7 +16,6 @@ internal class ReduceSyncRequestsUseCase(
     private val logger: Logger,
 ) {
 
-
     /**
      * Reduction algorithm:
      * 1. Decrypt all messages, discard any exceptions
@@ -24,54 +23,67 @@ internal class ReduceSyncRequestsUseCase(
      * 3. !Temporary! Remove messages duplicates by json rpc id
      * 4. Split them by method into sets. Method: wc_syncDelete, wc_syncSet and remaining
      * 5. Reduce any wc_syncDelete along with corresponding wc_syncSet requests
-     * 6. Retain order by retaining initial message only if is within remaining wc_syncDelete, wc_syncSet and remaining requests
+     * 6. Recreate order by retaining initial message only if is within remaining wc_syncDelete, wc_syncSet and remaining requests
      */
     suspend operator fun invoke(historyMessages: List<HistoryMessage>) {
-        val decryptedMessagesSet: MutableSet<Triple<ClientJsonRpc, HistoryMessage, String>> = mutableSetOf()
-
-        historyMessages.forEach { historyMessage ->
-            try {
-                val decryptedMessageString = chaChaPolyCodec.decrypt(Topic(historyMessage.topic), historyMessage.message)
-                val clientJsonRpc = serializer.tryDeserialize<ClientJsonRpc>(decryptedMessageString)
-                    ?: return@forEach logger.error(IllegalArgumentException("Unable to deserialize message:$decryptedMessageString"))
-
-                decryptedMessagesSet.add(Triple(clientJsonRpc, historyMessage, decryptedMessageString))
-            } catch (e: Exception) {
-                return@forEach logger.error(e)
-            }
-        }
+        val decryptedMessages: List<Triple<ClientJsonRpc, HistoryMessage, String>> = historyMessages.decryptMessages()
 
         // Temporary. Can be removed when Archive Server is Topic-centric instead of being Client-centric
-        val decryptedMessagesSetWithoutDuplicates: MutableSet<Triple<ClientJsonRpc, HistoryMessage, String>> =
-            decryptedMessagesSet.distinctBy { (clientJsonRpc, _, _) -> clientJsonRpc.id }.toMutableSet()
+        val decryptedMessagesSetWithoutDuplicates: List<Triple<ClientJsonRpc, HistoryMessage, String>> = decryptedMessages.distinctBy { (clientJsonRpc, _, _) -> clientJsonRpc.id }
         // Temporary
 
-        val syncDeleteParamsSet: MutableSet<Triple<ClientJsonRpc, SyncParams.DeleteParams, HistoryMessage>> = mutableSetOf()
-        val syncSetParamsSet: MutableSet<Triple<ClientJsonRpc, SyncParams.SetParams, HistoryMessage>> = mutableSetOf()
-        val notSyncMessagesSet: MutableSet<HistoryMessage> = mutableSetOf()
+        val reducedHistoryMessages = decryptedMessagesSetWithoutDuplicates.splitByType().reduceSyncSetsForAnySyncDelete()
+        val orderedReducedHistoryMessages = historyMessages.recreateOrder(reducedHistoryMessages)
 
-        decryptedMessagesSetWithoutDuplicates.forEach { (clientJsonRpc, historyMessage, decryptedMessageString) ->
+        logger.log("Reduced fetched history message from: ${historyMessages.size} to: ${orderedReducedHistoryMessages.size}")
+        orderedReducedHistoryMessages.onEach { request -> historyMessageNotifier.requestsSharedFlow.emit(request.toRelay()) }
+    }
+
+    private fun List<HistoryMessage>.decryptMessages(): List<Triple<ClientJsonRpc, HistoryMessage, String>> = this.map { historyMessage ->
+        try {
+            val decryptedMessageString = chaChaPolyCodec.decrypt(Topic(historyMessage.topic), historyMessage.message)
+            val clientJsonRpc = serializer.tryDeserialize<ClientJsonRpc>(decryptedMessageString) ?: run {
+                logger.error(IllegalArgumentException("Unable to deserialize message:$decryptedMessageString"))
+                return@map null
+            }
+            return@map Triple(clientJsonRpc, historyMessage, decryptedMessageString)
+        } catch (e: Exception) {
+            logger.error(e)
+            return@map null
+        }
+    }.filterNotNull()
+
+    private data class SplitByTypeResult(
+        val syncDeleteMessages: MutableList<Triple<ClientJsonRpc, SyncParams.DeleteParams, HistoryMessage>>,
+        val syncSetMessages: MutableList<Triple<ClientJsonRpc, SyncParams.SetParams, HistoryMessage>>,
+        val remainingMessages: List<HistoryMessage>,
+    )
+
+    private fun List<Triple<ClientJsonRpc, HistoryMessage, String>>.splitByType(): SplitByTypeResult {
+        val syncDeleteMessages: MutableList<Triple<ClientJsonRpc, SyncParams.DeleteParams, HistoryMessage>> = mutableListOf()
+        val syncSetMessages: MutableList<Triple<ClientJsonRpc, SyncParams.SetParams, HistoryMessage>> = mutableListOf()
+        val remainingMessages: MutableList<HistoryMessage> = mutableListOf()
+
+        this.forEach { (clientJsonRpc, historyMessage, decryptedMessageString) ->
             when (val clientParams: ClientParams? = serializer.deserialize(clientJsonRpc.method, decryptedMessageString)) {
-                is SyncParams.DeleteParams -> syncDeleteParamsSet.add(Triple(clientJsonRpc, clientParams, historyMessage))
-                is SyncParams.SetParams -> syncSetParamsSet.add(Triple(clientJsonRpc, clientParams, historyMessage))
-                else -> notSyncMessagesSet.add(historyMessage)
+                is SyncParams.DeleteParams -> syncDeleteMessages.add(Triple(clientJsonRpc, clientParams, historyMessage))
+                is SyncParams.SetParams -> syncSetMessages.add(Triple(clientJsonRpc, clientParams, historyMessage))
+                else -> remainingMessages.add(historyMessage)
             }
         }
+        return SplitByTypeResult(syncDeleteMessages, syncSetMessages, remainingMessages)
+    }
 
-        syncDeleteParamsSet.removeAll { (_, deleteParams, deleteHistoryMessage) ->
-            syncSetParamsSet.removeAll { (_, setParams, setHistoryMessage) ->
+    private fun SplitByTypeResult.reduceSyncSetsForAnySyncDelete(): List<HistoryMessage> {
+        syncDeleteMessages.removeAll { (_, deleteParams, deleteHistoryMessage) ->
+            syncSetMessages.removeAll { (_, setParams, setHistoryMessage) ->
                 deleteParams.key == setParams.key && deleteHistoryMessage.topic == setHistoryMessage.topic
             }
         }
-
-        val reducedDeleteHistoryMessages: Set<HistoryMessage> = syncDeleteParamsSet.map { (_, _, deleteHistoryMessage) -> deleteHistoryMessage }.toSet()
-        val reducedSetHistoryMessages: Set<HistoryMessage> = syncSetParamsSet.map { (_, _, setHistoryMessage) -> setHistoryMessage }.toSet()
-
-        val reducedHistoryMessages: Set<HistoryMessage> = reducedDeleteHistoryMessages + reducedSetHistoryMessages + notSyncMessagesSet
-
-        val orderedReducedHistoryMessages: List<HistoryMessage> = historyMessages.filter { historyMessage -> historyMessage in reducedHistoryMessages }
-        logger.log("Reduced fetched history message from: ${historyMessages.size} to: ${orderedReducedHistoryMessages.size}")
-
-        orderedReducedHistoryMessages.onEach { request -> historyMessageNotifier.requestsSharedFlow.emit(request.toRelay()) }
+        val reducedDeleteHistoryMessages: List<HistoryMessage> = syncDeleteMessages.map { (_, _, deleteHistoryMessage) -> deleteHistoryMessage }
+        val reducedSetHistoryMessages: List<HistoryMessage> = syncSetMessages.map { (_, _, setHistoryMessage) -> setHistoryMessage }
+        return reducedDeleteHistoryMessages + reducedSetHistoryMessages + remainingMessages
     }
+
+    private fun List<HistoryMessage>.recreateOrder(reducedHistoryMessages: List<HistoryMessage>): List<HistoryMessage> = filter { historyMessage -> historyMessage in reducedHistoryMessages }
 }
