@@ -6,15 +6,14 @@ on:
       testTimeoutSeconds:
         description: 'Seconds for test timeout'
         required: true
-        default: 40
-#  push:
-#    branches:
-#      - develop
-#  pull_request:
-#    branches:
-#      - develop
-#      - master
-
+        default: 40  # should be same as env.TEST_TIMEOUT_SECONDS
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+      - master
 
 env:
   TEST_TIMEOUT_SECONDS: 40 # Predefined timeout for integration tests
@@ -43,54 +42,20 @@ jobs:
         arch: [ arm64-v8a]
 
     name: ${{ matrix.conf.name }} API ${{ matrix.api-level }}-${{ matrix.target }}-${{ matrix.profile }}-${{ matrix.arch }}
-#    runs-on: macos-latest
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
 
-      - name: Gradle cache
-        uses: gradle/gradle-build-action@v2
-
-      - name: Create AVD and generate snapshot for caching
-        if: steps.avd-cache.outputs.cache-hit != 'true'
-        uses: reactivecircus/android-emulator-runner@v2
+      - name: Run instrumented tests
+        uses: ./.github/actions/ci_instrumented_tests
         with:
+          shouldCache: true
+          name: ${{ matrix.conf.name }}
+          command: ${{ matrix.conf.command }}
+          report: ${{ matrix.conf.report }}
+          projectId: ${{ secrets.WC_CLOUD_PROJECT_ID }}
+          testTimeoutSeconds: ${{ github.event.inputs.testTimeoutSeconds || env.TEST_TIMEOUT_SECONDS }} # Prioritise dispatch input timeout over env one
           api-level: ${{ matrix.api-level }}
           target: ${{ matrix.target }}
-          arch: ${{ matrix.arch }}
           profile: ${{ matrix.profile }}
-          avd-name: ${{ matrix.conf.name }}
-          force-avd-creation: false
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          disable-animations: false
-          script: echo "Generated AVD snapshot for caching."
-
-      - name: Instrumented tests
-        env:
-          WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
-          TEST_TIMEOUT_SECONDS: ${{ github.event.inputs.testTimeoutSeconds || env.TEST_TIMEOUT_SECONDS }} # Prioritise dispatch input timeout over env one
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: ${{ matrix.api-level }}
-          target: ${{ matrix.target }}
           arch: ${{ matrix.arch }}
-          profile: ${{ matrix.profile }}
-          force-avd-creation: false
-          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          disable-animations: true
-          script: |
-            touch emulator.log
-            chmod 777 emulator.log
-            adb logcat -s "WalletConnectV2" >> emulator.log &
-            ./gradlew ${{ matrix.conf.command }}
-
-      - uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: ${{ matrix.conf.name }} API ${{ matrix.api-level }}-${{ matrix.target }}-${{ matrix.profile }}-${{ matrix.arch }}
-          path: |
-            ${{ matrix.conf.report }}
-            emulator.log
-
-      - name: Stop Gradle
-        run: ./gradlew --stop
