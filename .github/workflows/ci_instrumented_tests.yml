@@ -7,6 +7,10 @@ on:
         description: 'Seconds for test timeout'
         required: true
         default: 40  # should be same as env.TEST_TIMEOUT_SECONDS
+      shouldUseCache:
+        description: 'Flag to use and save cache gradle. Tests results are cached!'
+        required: true
+        default: false
   push:
     branches:
       - develop
@@ -45,7 +49,7 @@ jobs:
       - name: Run instrumented tests
         uses: ./.github/actions/ci_instrumented_tests
         with:
-          shouldUseCache: true
+          shouldUseCache: ${{ github.event.inputs.testTimeoutSeconds || true }} # Setting to true faster pass unchanged code
           name: ${{ matrix.conf.name }}
           command: ${{ matrix.conf.command }}
           report: ${{ matrix.conf.report }}
