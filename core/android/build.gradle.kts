@@ -64,6 +64,8 @@ android {
             isIncludeAndroidResources = true
             isReturnDefaultValues = true
         }
+
+        registerManagedDevices("AndroidCore")
     }
 }
 
