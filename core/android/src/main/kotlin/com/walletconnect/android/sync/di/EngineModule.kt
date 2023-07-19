@@ -50,7 +50,6 @@ internal fun engineModule() = module {
             onSetRequestUseCase = get(),
             onDeleteRequestUseCase = get(),
             subscribeToAllStoresUpdatesUseCase = get(),
-            historyInterface = get(),
         )
     }
 }

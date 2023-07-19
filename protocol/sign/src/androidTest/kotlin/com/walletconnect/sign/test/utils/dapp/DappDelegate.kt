@@ -1,8 +1,9 @@
-package com.walletconnect.sign.test.utils
+package com.walletconnect.sign.test.utils.dapp
 
 import com.walletconnect.sign.BuildConfig
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
+import com.walletconnect.sign.test.utils.globalOnError
 import junit.framework.TestCase.fail
 import timber.log.Timber
 import kotlin.time.Duration.Companion.seconds
@@ -16,7 +17,7 @@ open class DappDelegate : SignClient.DappDelegate {
     override fun onSessionRequestResponse(response: Sign.Model.SessionRequestResponse) {}
     override fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession) {}
     override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {
-        Timber.d("onConnectionStateChange: $state")
+        Timber.d("Dapp: onConnectionStateChange: $state")
     }
 
     override fun onError(error: Sign.Model.Error) {
