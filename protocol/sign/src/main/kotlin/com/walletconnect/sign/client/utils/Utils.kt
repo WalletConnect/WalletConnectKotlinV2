@@ -22,6 +22,10 @@ fun generateApprovedNamespaces(
     SignValidator.validateProposalNamespaces(normalizedOptionalNamespaces) { error -> throw Exception(error.message) }
     SignValidator.validateSupportedNamespace(supportedNamespacesVO, normalizedRequiredNamespaces) { error -> throw Exception(error.message) }
 
+    if (proposal.requiredNamespaces.isEmpty() && proposal.optionalNamespaces.isEmpty()) {
+        return supportedNamespacesVO.toClient()
+    }
+
     val approvedNamespaces = mutableMapOf<String, NamespaceVO.Session>()
     normalizedRequiredNamespaces.forEach { (key, requiredNamespace) ->
         val chains = supportedNamespacesVO[key]?.chains?.filter { chain -> requiredNamespace.chains!!.contains(chain) } ?: emptyList()
@@ -40,10 +44,10 @@ fun generateApprovedNamespaces(
         val accounts = chains.flatMap { chain -> supportedNamespaces[key]?.accounts?.filter { account -> SignValidator.getChainFromAccount(account) == chain } ?: emptyList() }
 
         approvedNamespaces[key] = NamespaceVO.Session(
-            chains = approvedNamespaces[key]?.chains?.plus(chains)?.distinct(),
-            methods = approvedNamespaces[key]?.methods?.plus(methods)?.distinct() ?: emptyList(),
-            events = approvedNamespaces[key]?.events?.plus(events)?.distinct() ?: emptyList(),
-            accounts = approvedNamespaces[key]?.accounts?.plus(accounts)?.distinct() ?: emptyList()
+            chains = approvedNamespaces[key]?.chains?.plus(chains)?.distinct() ?: chains,
+            methods = approvedNamespaces[key]?.methods?.plus(methods)?.distinct() ?: methods,
+            events = approvedNamespaces[key]?.events?.plus(events)?.distinct() ?: events,
+            accounts = approvedNamespaces[key]?.accounts?.plus(accounts)?.distinct() ?: accounts
         )
     }
 
