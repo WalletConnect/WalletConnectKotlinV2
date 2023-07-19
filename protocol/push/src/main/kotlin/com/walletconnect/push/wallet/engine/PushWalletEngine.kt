@@ -190,16 +190,16 @@ internal class PushWalletEngine(
                 val dappMetaData: AppMetaData = withContext(Dispatchers.IO) {
                     // Fetch dapp metadata from explorer api
                     val listOfDappHomepages = runCatching {
-                        explorerRepository.getAllDapps().listings.associateBy { listing -> listing.homepage.host }
+                        explorerRepository.getAllDapps().listings.associateBy { listing -> listing.homepage }
                     }.getOrElse { error ->
                         return@withContext Result.failure(error)
                     }
 
                     // Find dapp metadata for dapp uri
-                    val (dappHomepageHost: String?, dappListing: Listing) = listOfDappHomepages.entries.filter { (dappHomepageHost, dappListing) ->
-                        dappHomepageHost != null && dappListing.description != null
-                    }.firstOrNull { (dappHomepageHost, _) ->
-                        dappHomepageHost != null && dappHomepageHost.contains(dappUri.host!!)
+                    val (dappHomepageUri: Uri, dappListing: Listing) = listOfDappHomepages.entries.filter { (_, dappListing) ->
+                        dappListing.description != null
+                    }.firstOrNull { (dappHomepageUri, _) ->
+                        dappHomepageUri.host != null && dappHomepageUri.host!!.contains(dappUri.host!!)
                     } ?: return@withContext Result.failure<AppMetaData>(IllegalArgumentException("Unable to find dapp listing for $dappUri"))
 
                     // Return dapp metadata
@@ -208,7 +208,7 @@ internal class PushWalletEngine(
                             name = dappListing.name,
                             description = dappListing.description!!,
                             icons = listOf(dappListing.imageUrl.sm, dappListing.imageUrl.md, dappListing.imageUrl.lg),
-                            url = dappHomepageHost!!,
+                            url = dappHomepageUri.toString(),
                             redirect = Redirect(dappListing.app.android)
                         )
                     )
