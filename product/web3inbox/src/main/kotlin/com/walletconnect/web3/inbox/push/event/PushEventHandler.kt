@@ -1,8 +1,8 @@
 package com.walletconnect.web3.inbox.push.event
 
 import com.walletconnect.foundation.util.Logger
-import com.walletconnect.push.common.Push
-import com.walletconnect.push.wallet.client.PushWalletClient
+import com.walletconnect.push.client.Push
+import com.walletconnect.push.client.PushWalletClient
 
 
 internal class PushEventHandler(
@@ -18,27 +18,27 @@ internal class PushEventHandler(
         logger.log("PushEventHandler init ")
     }
 
-    override fun onPushMessage(pushMessage: Push.Wallet.Event.Message) {
+    override fun onPushMessage(pushMessage: Push.Event.Message) {
         logger.log("onPushMessage: $pushMessage")
         onMessagePushEventUseCase(pushMessage)
     }
 
-    override fun onPushDelete(pushDelete: Push.Wallet.Event.Delete) {
+    override fun onPushDelete(pushDelete: Push.Event.Delete) {
         logger.log("onPushDelete: $pushDelete")
         onDeletePushEventUseCase(pushDelete)
     }
 
-    override fun onPushProposal(pushProposal: Push.Wallet.Event.Proposal) {
+    override fun onPushProposal(pushProposal: Push.Event.Proposal) {
         logger.log("onPushProposal: $pushProposal")
         onProposePushEventUseCase(pushProposal)
     }
 
-    override fun onPushSubscription(pushSubscribe: Push.Wallet.Event.Subscription) {
+    override fun onPushSubscription(pushSubscribe: Push.Event.Subscription) {
         logger.log("onPushSubscription: $pushSubscribe")
         onSubscriptionPushEventUseCase(pushSubscribe)
     }
 
-    override fun onPushUpdate(pushUpdate: Push.Wallet.Event.Update) {
+    override fun onPushUpdate(pushUpdate: Push.Event.Update) {
         logger.log("onPushUpdate: $pushUpdate")
         onUpdatePushEventUseCase(pushUpdate)
     }

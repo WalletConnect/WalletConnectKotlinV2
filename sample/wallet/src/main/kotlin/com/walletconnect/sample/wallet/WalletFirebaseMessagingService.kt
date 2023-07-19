@@ -11,8 +11,8 @@ import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.RemoteMessage
-import com.walletconnect.push.common.Push
-import com.walletconnect.push.wallet.client.PushMessageService
+import com.walletconnect.push.client.Push
+import com.walletconnect.push.client.PushMessageService
 import com.walletconnect.sample.wallet.ui.Web3WalletActivity
 import kotlin.random.Random
 import kotlin.random.nextUInt

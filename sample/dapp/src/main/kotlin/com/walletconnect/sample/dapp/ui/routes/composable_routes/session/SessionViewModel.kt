@@ -2,15 +2,12 @@ package com.walletconnect.sample.dapp.ui.routes.composable_routes.session
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.walletconnect.wcmodal.client.Modal
-import com.walletconnect.wcmodal.client.WalletConnectModal
-import com.walletconnect.push.common.Push
-import com.walletconnect.push.dapp.client.PushDappClient
-import com.walletconnect.sample.dapp.domain.DappDelegate
-import com.walletconnect.sample.dapp.domain.PushDappDelegate
-import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.sample.common.Chains
 import com.walletconnect.sample.common.tag
+import com.walletconnect.sample.dapp.domain.DappDelegate
+import com.walletconnect.sample.dapp.ui.DappSampleEvents
+import com.walletconnect.wcmodal.client.Modal
+import com.walletconnect.wcmodal.client.WalletConnectModal
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -94,51 +91,10 @@ class SessionViewModel : ViewModel() {
                 Timber.tag(tag(this)).e(error.throwable.stackTraceToString())
             }
             DappDelegate.deselectAccountDetails()
-
-            PushDappClient.getActiveSubscriptions().entries.firstOrNull()?.value?.topic?.let { pushTopic ->
-                PushDappClient.deleteSubscription(Push.Dapp.Params.Delete(pushTopic)) { error ->
-                    Timber.tag(tag(this)).e(error.throwable.stackTraceToString())
-                }
-            }
         }
 
         viewModelScope.launch {
             _sessionEvents.emit(DappSampleEvents.Disconnect)
-        }
-    }
-
-    fun pushRequest() {
-        //TODO: commented out since it's not a part of PushDappClient any more
-//        val pairingTopic = CoreClient.Pairing.getPairings().map { it.topic }.first { pairingTopic ->
-//            WalletConnectModal.getListOfActiveSessions()
-//                .any { session -> session.pairingTopic == pairingTopic }
-//        }
-//        val ethAccount = WalletConnectModal.getListOfActiveSessions().first { session ->
-//            session.pairingTopic == pairingTopic
-//        }.namespaces.entries.first().value.accounts.first()
-//
-//        PushDappClient.request(Push.Dapp.Params.Request(ethAccount, pairingTopic),
-//            { pushRequestId ->
-//                Timber.tag(tag(this)).e("Request sent with id " + pushRequestId.id)
-//            }, {
-//                Timber.tag(tag(this)).e(it.throwable.stackTraceToString())
-//            })
-    }
-
-    fun pushNotify() {
-        val pushTopic = PushDappDelegate.activePushSubscription?.topic
-            ?: PushDappClient.getActiveSubscriptions().keys.firstOrNull() ?: return
-        val pushMessage = Push.Model.Message(
-            title = "Kotlin Dapp Title",
-            body = "Kotlin Dapp Body",
-            icon = "https://raw.githubusercontent.com/WalletConnect/walletconnect-assets/master/Icon/Gradient/Icon.png",
-            url = "https://walletconnect.com",
-            type = ""
-        )
-        val notifyParams = Push.Dapp.Params.Notify(pushTopic, pushMessage)
-
-        PushDappClient.notify(notifyParams) { error ->
-            Timber.tag(tag(this)).e(error.throwable.stackTraceToString())
         }
     }
 

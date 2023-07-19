@@ -1,7 +1,7 @@
 package com.walletconnect.web3.inbox.client
 
 import com.walletconnect.chat.client.Chat
-import com.walletconnect.push.common.Push
+import com.walletconnect.push.client.Push
 import com.walletconnect.web3.inbox.common.model.Config
 
 @JvmSynthetic
