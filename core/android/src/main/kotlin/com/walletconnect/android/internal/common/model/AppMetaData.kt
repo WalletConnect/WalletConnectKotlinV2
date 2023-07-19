@@ -15,5 +15,7 @@ data class AppMetaData(
     val name: String,
     @Json(name = "redirect")
     val redirect: Redirect? = null,
+    @Json(name = "verifyUrl")
+    val verifyUrl: String? = null,
     //todo: Add Type here
 )
