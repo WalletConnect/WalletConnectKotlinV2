@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:startDestination="@id/HomeFragment"
+    android:id="@+id/nav_graph">
+
+    <fragment
+        android:id="@+id/HomeFragment"
+        android:label="HomeFragment"
+        android:name="com.walletconnect.modals.navComponent.HomeFragment">
+    </fragment>
+
+    <dialog
+        android:id="@+id/bottomSheet"
+        android:name="com.walletconnect.web3.modal.ui.Web3ModalSheet" />
+
+</navigation>

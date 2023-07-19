@@ -22,8 +22,8 @@ internal fun MainButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val contentColor = Web3ModalTheme.colors.onMainColor
-    val background = Web3ModalTheme.colors.main
+    val contentColor = Web3ModalTheme.colors.foreground.color100
+    val background = Web3ModalTheme.colors.background.color100
     Button(
         shape = RoundedCornerShape(12.dp),
         modifier = modifier,
@@ -52,7 +52,7 @@ internal fun RoundedOutLineButton(
         modifier = modifier
             .border(
                 width = 1.dp,
-                color = Web3ModalTheme.colors.dividerColor,
+                color = Web3ModalTheme.colors.background.color200,
                 RoundedCornerShape(18.dp)
             )
             .padding(vertical = 8.dp, horizontal = 12.dp),
@@ -61,7 +61,7 @@ internal fun RoundedOutLineButton(
         Text(
             text = text,
             style = TextStyle(
-                color = Web3ModalTheme.colors.main,
+                color = Web3ModalTheme.colors.foreground.color100,
                 textAlign = TextAlign.Center
             ),
         )
@@ -80,7 +80,7 @@ internal fun RoundedMainButton(
         onClick = onClick,
         modifier = modifier
             .background(
-                Web3ModalTheme.colors.main,
+                Web3ModalTheme.colors.main100,
                 shape = RoundedCornerShape(18.dp)
             )
             .padding(vertical = 8.dp, horizontal = 12.dp),
@@ -89,7 +89,7 @@ internal fun RoundedMainButton(
         Text(
             text = text,
             style = TextStyle(
-                color = Web3ModalTheme.colors.onMainColor,
+                color = Web3ModalTheme.colors.foreground.color100,
                 textAlign = TextAlign.Center
             ),
         )

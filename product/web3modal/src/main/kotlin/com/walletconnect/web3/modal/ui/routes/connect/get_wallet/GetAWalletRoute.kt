@@ -77,7 +77,7 @@ private fun GetAWalletContent(
                 ) {
                     Text(
                         text = "Not what you're looking for?", style = TextStyle(
-                            color = Web3ModalTheme.colors.textColor,
+                            color = Web3ModalTheme.colors.foreground.color100,
                             textAlign = TextAlign.Center,
                             fontSize = 18.sp
                         )
@@ -86,7 +86,7 @@ private fun GetAWalletContent(
                     Text(
                         text = "With hundreds of wallets out there, there’s something for everyone",
                         style = TextStyle(
-                            color = Web3ModalTheme.colors.secondaryTextColor,
+                            color = Web3ModalTheme.colors.foreground.color200,
                             textAlign = TextAlign.Center,
                             fontSize = 14.sp
                         )
@@ -98,7 +98,7 @@ private fun GetAWalletContent(
                         endIcon = {
                             Image(
                                 imageVector = ImageVector.vectorResource(id = R.drawable.ic_external_link),
-                                colorFilter = ColorFilter.tint(Web3ModalTheme.colors.onMainColor),
+                                colorFilter = ColorFilter.tint(Web3ModalTheme.colors.foreground.color300),
                                 contentDescription = null,
                             )
                         }
@@ -134,7 +134,7 @@ private fun WalletListItem(wallet: Wallet) {
                 text = wallet.name,
                 style = TextStyle(
                     fontSize = 16.sp,
-                    color = Web3ModalTheme.colors.onBackgroundColor,
+                    color = Web3ModalTheme.colors.foreground.color100,
                 ),
                 modifier = Modifier.weight(1f)
             )
@@ -144,7 +144,7 @@ private fun WalletListItem(wallet: Wallet) {
                 endIcon = {
                     Image(
                         imageVector = ImageVector.vectorResource(id = R.drawable.ic_forward_chevron),
-                        colorFilter = ColorFilter.tint(Web3ModalTheme.colors.onMainColor),
+                        colorFilter = ColorFilter.tint(Web3ModalTheme.colors.background.color100),
                         contentDescription = null,
                     )
                 }
@@ -154,7 +154,7 @@ private fun WalletListItem(wallet: Wallet) {
             modifier = Modifier
                 .height(1.dp)
                 .fillMaxWidth()
-                .background(Web3ModalTheme.colors.dividerColor)
+                .background(Web3ModalTheme.colors.foreground.color300)
         )
     }
 }

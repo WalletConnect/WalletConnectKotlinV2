@@ -32,7 +32,7 @@ fun WalletConnectLogo(modifier: Modifier = Modifier) {
         Text(
             text = "WalletConnect",
             style = TextStyle(
-                color = Web3ModalTheme.colors.onMainColor,
+                color = Web3ModalTheme.colors.foreground.color100,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.SemiBold
             )
