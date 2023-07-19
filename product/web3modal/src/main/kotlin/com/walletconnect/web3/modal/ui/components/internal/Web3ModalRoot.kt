@@ -18,40 +18,19 @@ import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 @Composable
 internal fun Web3ModalRoot(
-    navController: NavController,
-    closeModal: () -> Unit,
     content: @Composable () -> Unit
 ) {
-
     Column(
         verticalArrangement = Arrangement.Bottom
     ) {
         ProvideWeb3ModalThemeComposition() {
-            Column(
-                modifier = Modifier.background(Web3ModalTheme.colors.main100)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 12.dp, horizontal = 20.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    WalletConnectLogo(modifier = Modifier.weight(1f))
-                    QuestionMarkIconButton(navController)
-                    Spacer(modifier = Modifier.width(16.dp))
-                    CloseIconButton { closeModal() }
-                }
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(
-                            Web3ModalTheme.colors.background.color100,
-                            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
-                        )
+                        .background(Web3ModalTheme.colors.background.color100,)
                 ) {
                     content()
                 }
-            }
         }
     }
 }
@@ -59,13 +38,8 @@ internal fun Web3ModalRoot(
 @Composable
 @Preview
 private fun PreviewWeb3ModalRoot() {
-    val navController = rememberNavController()
-
     ComponentPreview {
-        Web3ModalRoot(
-            navController = navController,
-            closeModal = {},
-        ) {
+        Web3ModalRoot {
             Box(modifier = Modifier.size(500.dp))
         }
     }
