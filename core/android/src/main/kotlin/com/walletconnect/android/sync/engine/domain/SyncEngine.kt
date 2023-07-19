@@ -1,9 +1,7 @@
 package com.walletconnect.android.sync.engine.domain
 
-import com.walletconnect.android.history.HistoryInterface
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
-import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
@@ -54,7 +52,6 @@ internal class SyncEngine(
     private val onSetRequestUseCase: OnSetRequestUseCase,
     private val onDeleteRequestUseCase: OnDeleteRequestUseCase,
     private val subscribeToAllStoresUpdatesUseCase: SubscribeToAllStoresUpdatesUseCase,
-    private val historyInterface: HistoryInterface,
 ) : GetMessageUseCaseInterface by GetMessageUseCase,
     CreateUseCaseInterface by createStoreUseCase,
     GetStoresUseCaseInterface by getStoresUseCase,

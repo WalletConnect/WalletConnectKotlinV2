@@ -18,7 +18,7 @@ class HistoryProtocol(
     private val registerTagsUseCase: RegisterTagsUseCase by lazy { koinApp.koin.get() }
     private val getMessagesUseCase: GetMessagesUseCase by lazy { koinApp.koin.get() }
     private val logger: Logger by lazy { koinApp.koin.get(named(AndroidCommonDITags.LOGGER)) }
-    private val historyMessageNotifier: HistoryMessageNotifier by lazy { koinApp.koin.get() }
+    private val reduceSyncRequestsUseCase: ReduceSyncRequestsUseCase by lazy { koinApp.koin.get() }
 
     private lateinit var relayServerUrl: String
 
@@ -29,9 +29,9 @@ class HistoryProtocol(
     override suspend fun registerTags(tags: List<Tags>, onSuccess: () -> Unit, onError: (Core.Model.Error) -> Unit) {
         registerTagsUseCase(tags, relayServerUrl).fold(
             onFailure = { error -> onError(Core.Model.Error(error)) },
-            onSuccess = { 
-               logger.log("Registered in History: $tags")
-               onSuccess() 
+            onSuccess = {
+                logger.log("Registered in History: $tags")
+                onSuccess()
             }
         )
     }
@@ -41,8 +41,8 @@ class HistoryProtocol(
             onFailure = { error -> onError(Core.Model.Error(error)) },
             onSuccess = { response ->
                 (response.messages ?: emptyList()).also { messages ->
-                    messages.onEach { request -> historyMessageNotifier.requestsSharedFlow.emit(request.toRelay()) }
                     logger.log("Fetched from History ${messages.size} messages")
+                    reduceSyncRequestsUseCase(messages)
                     onSuccess(messages)
                 }
             }
