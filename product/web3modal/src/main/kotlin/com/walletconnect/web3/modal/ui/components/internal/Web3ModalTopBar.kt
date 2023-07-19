@@ -35,7 +35,7 @@ internal fun Web3ModalTopBar(
         Text(
             text = title,
             style = TextStyle(
-                color = Web3ModalTheme.colors.textColor,
+                color = Web3ModalTheme.colors.foreground.color100,
                 fontSize = 20.sp
             ),
             modifier = Modifier.align(Alignment.Center)

@@ -1,11 +1,8 @@
-@file:OptIn(ExperimentalMaterialApi::class)
-
 package com.walletconnect.web3.modal.ui.components.internal
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -17,14 +14,11 @@ import com.walletconnect.web3.modal.ui.components.internal.commons.QuestionMarkI
 import com.walletconnect.web3.modal.ui.components.internal.walletconnect.WalletConnectLogo
 import com.walletconnect.web3.modal.ui.previews.ComponentPreview
 import com.walletconnect.web3.modal.ui.theme.ProvideWeb3ModalThemeComposition
-import com.walletconnect.web3.modal.ui.theme.Web3ModalColors
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
-import com.walletconnect.web3.modal.ui.theme.provideWeb3ModalColors
 
 @Composable
 internal fun Web3ModalRoot(
     navController: NavController,
-    colors: Web3ModalColors,
     closeModal: () -> Unit,
     content: @Composable () -> Unit
 ) {
@@ -32,9 +26,9 @@ internal fun Web3ModalRoot(
     Column(
         verticalArrangement = Arrangement.Bottom
     ) {
-        ProvideWeb3ModalThemeComposition(colors = colors) {
+        ProvideWeb3ModalThemeComposition() {
             Column(
-                modifier = Modifier.background(Web3ModalTheme.colors.main)
+                modifier = Modifier.background(Web3ModalTheme.colors.main100)
             ) {
                 Row(
                     modifier = Modifier
@@ -51,7 +45,7 @@ internal fun Web3ModalRoot(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
-                            Web3ModalTheme.colors.background,
+                            Web3ModalTheme.colors.background.color100,
                             shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
                         )
                 ) {
@@ -70,7 +64,6 @@ private fun PreviewWeb3ModalRoot() {
     ComponentPreview {
         Web3ModalRoot(
             navController = navController,
-            colors = provideWeb3ModalColors(),
             closeModal = {},
         ) {
             Box(modifier = Modifier.size(500.dp))

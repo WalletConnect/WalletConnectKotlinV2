@@ -69,7 +69,7 @@ private fun ConnectYourWalletContent(
     Column {
         Web3ModalTopBar(title = "Connect your wallet", endIcon = {
             Image(imageVector = ImageVector.vectorResource(id = R.drawable.ic_scan),
-                colorFilter = ColorFilter.tint(Web3ModalTheme.colors.main),
+                colorFilter = ColorFilter.tint(Web3ModalTheme.colors.main100),
                 contentDescription = "Scan Icon",
                 modifier = Modifier.clickable { onScanIconClick() })
         })
@@ -130,8 +130,8 @@ private fun ViewAllItem(
             modifier = Modifier
                 .size(80.dp)
                 .padding(10.dp)
-                .background(Web3ModalTheme.colors.secondaryBackgroundColor, shape = RoundedCornerShape(10.dp))
-                .border(1.dp, Web3ModalTheme.colors.dividerColor, shape = RoundedCornerShape(10.dp)),
+                .background(Web3ModalTheme.colors.background.color200, shape = RoundedCornerShape(10.dp))
+                .border(1.dp, Web3ModalTheme.colors.foreground.color125, shape = RoundedCornerShape(10.dp)),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -149,7 +149,7 @@ private fun ViewAllItem(
             }
 
         }
-        Text(text = "View All", style = TextStyle(color = Web3ModalTheme.colors.onBackgroundColor, fontSize = 12.sp))
+        Text(text = "View All", style = TextStyle(color = Web3ModalTheme.colors.foreground.color100, fontSize = 12.sp))
     }
 }
 

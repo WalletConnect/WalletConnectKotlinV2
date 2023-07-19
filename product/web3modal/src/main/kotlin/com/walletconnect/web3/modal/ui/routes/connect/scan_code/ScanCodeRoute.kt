@@ -50,7 +50,7 @@ private fun ScanQRCodeContent(
             endIcon = {
                 Image(
                     imageVector = ImageVector.vectorResource(id = R.drawable.ic_copy),
-                    colorFilter = ColorFilter.tint(Web3ModalTheme.colors.main),
+                    colorFilter = ColorFilter.tint(Web3ModalTheme.colors.main100),
                     contentDescription = "Scan Icon",
                     modifier = Modifier.clickable {
                         Toast.makeText(context, "Link copied", Toast.LENGTH_SHORT).show()
@@ -62,8 +62,8 @@ private fun ScanQRCodeContent(
         Spacer(modifier = Modifier.height(8.dp))
         WalletConnectQRCode(
             qrData = uri,
-            primaryColor = Web3ModalTheme.colors.onBackgroundColor,
-            logoColor = Web3ModalTheme.colors.main
+            primaryColor = Web3ModalTheme.colors.foreground.color100,
+            logoColor = Web3ModalTheme.colors.main100
         )
         Spacer(modifier = Modifier.height(8.dp))
     }

@@ -19,6 +19,6 @@ internal fun ImageWithMainTint(
         imageVector = ImageVector.vectorResource(id = icon),
         contentDescription = contentDescription,
         modifier = modifier,
-        colorFilter = ColorFilter.tint(Web3ModalTheme.colors.main)
+        colorFilter = ColorFilter.tint(Web3ModalTheme.colors.main100)
     )
 }
