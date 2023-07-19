@@ -1,7 +1,12 @@
-package com.walletconnect.sign.test.utils
+package com.walletconnect.sign.test.utils.dapp
 
 import com.walletconnect.android.Core
 import com.walletconnect.sign.client.Sign
+import com.walletconnect.sign.test.utils.TestClient
+import com.walletconnect.sign.test.utils.globalOnError
+import com.walletconnect.sign.test.utils.proposalNamespaces
+import com.walletconnect.sign.test.utils.sessionChains
+import com.walletconnect.sign.test.utils.sessionMethods
 import timber.log.Timber
 
 val DappSignClient = TestClient.Dapp.signClient

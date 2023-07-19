@@ -1,6 +1,12 @@
-package com.walletconnect.sign.test.utils
+package com.walletconnect.sign.test.utils.wallet
 
 import com.walletconnect.sign.client.Sign
+import com.walletconnect.sign.test.utils.TestClient
+import com.walletconnect.sign.test.utils.globalOnError
+import com.walletconnect.sign.test.utils.sessionChains
+import com.walletconnect.sign.test.utils.sessionEvents
+import com.walletconnect.sign.test.utils.sessionNamespace
+import com.walletconnect.sign.test.utils.sessionNamespaceKey
 import timber.log.Timber
 
 val WalletSignClient = TestClient.Wallet.signClient

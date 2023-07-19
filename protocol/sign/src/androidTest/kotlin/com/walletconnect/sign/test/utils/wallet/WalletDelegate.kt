@@ -1,7 +1,9 @@
-package com.walletconnect.sign.test.utils
+package com.walletconnect.sign.test.utils.wallet
 
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
+import com.walletconnect.sign.test.utils.globalOnError
+import com.walletconnect.sign.test.utils.sessionNamespaces
 import timber.log.Timber
 
 open class WalletDelegate : SignClient.WalletDelegate {
@@ -11,7 +13,7 @@ open class WalletDelegate : SignClient.WalletDelegate {
     override fun onSessionSettleResponse(settleSessionResponse: Sign.Model.SettledSessionResponse) {}
     override fun onSessionUpdateResponse(sessionUpdateResponse: Sign.Model.SessionUpdateResponse) {}
     override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {
-        Timber.d("onConnectionStateChange: $state")
+        Timber.d("Wallet: onConnectionStateChange: $state")
     }
 
     override fun onError(error: Sign.Model.Error) {
@@ -27,7 +29,7 @@ open class AutoApproveSessionWalletDelegate : WalletDelegate() {
 
 
 internal fun Sign.Model.SessionProposal.approveOnSessionProposal() {
-    Timber.d("walletDelegate: onSessionProposal")
+    Timber.d("walletDelegate: onSessionProposal: $this")
 
     WalletSignClient.approveSession(Sign.Params.Approve(proposerPublicKey, sessionNamespaces), onSuccess = {}, onError = ::globalOnError)
     Timber.d("WalletClient: approveSession")
