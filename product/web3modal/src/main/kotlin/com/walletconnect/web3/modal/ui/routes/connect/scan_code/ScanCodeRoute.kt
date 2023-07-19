@@ -18,8 +18,8 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.walletconnect.modal.ui.components.qr.WalletConnectQRCode
 import com.walletconnect.web3.modal.R
-import com.walletconnect.web3.modal.ui.components.internal.walletconnect.WalletConnectQRCode
 import com.walletconnect.web3.modal.ui.components.internal.Web3ModalTopBar
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme

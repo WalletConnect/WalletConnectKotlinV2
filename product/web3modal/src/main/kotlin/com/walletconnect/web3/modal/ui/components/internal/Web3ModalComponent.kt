@@ -54,10 +54,7 @@ internal fun Web3ModalComponent(
     }
 
     web3ModalState?.let { state ->
-        Web3ModalRoot(
-            navController = navController,
-            closeModal = closeModal
-        ) {
+        Web3ModalRoot {
             Web3ModalNavGraph(
                 navController = navController,
                 web3ModalState = state,
