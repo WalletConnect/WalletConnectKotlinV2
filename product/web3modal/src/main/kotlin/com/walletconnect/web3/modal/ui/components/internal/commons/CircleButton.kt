@@ -49,12 +49,12 @@ internal fun QuestionMarkIconButton(navController: NavController) {
     val background: Color
     val onClick: () -> Unit
     if (currentPath == Route.Help.path) {
-        tint = Web3ModalTheme.colors.background
-        background = Web3ModalTheme.colors.onBackgroundColor
+        tint = Web3ModalTheme.colors.background.color100
+        background = Web3ModalTheme.colors.foreground.color100
         onClick = { navController.popBackStack() }
     } else {
-        tint = Web3ModalTheme.colors.onBackgroundColor
-        background = Web3ModalTheme.colors.background
+        tint = Web3ModalTheme.colors.foreground.color100
+        background = Web3ModalTheme.colors.background.color100
         onClick = { navController.navigate(Route.Help.path) }
     }
     CircleButtonWithIcon(
@@ -77,10 +77,10 @@ internal fun CloseIconButton(onClick: () -> Unit) {
             Image(
                 imageVector = ImageVector.vectorResource(id = R.drawable.ic_close),
                 contentDescription = "CloseIcon",
-                colorFilter = ColorFilter.tint(Web3ModalTheme.colors.onBackgroundColor)
+                colorFilter = ColorFilter.tint(Web3ModalTheme.colors.foreground.color100)
             )
         },
-        backgroundColor = Web3ModalTheme.colors.background,
+        backgroundColor = Web3ModalTheme.colors.background.color100,
         onClick = onClick
     )
 }

@@ -1,19 +1,15 @@
 plugins {
     id("com.android.application")
-    id("kotlin-parcelize")
     kotlin("android")
     kotlin("kapt")
-    id("com.google.gms.google-services")
-    id("com.google.firebase.crashlytics")
-    id("com.google.firebase.appdistribution")
 }
 
 android {
-    namespace = "com.walletconnect.sample.dapp"
+    namespace = "com.walletconnect.modals"
     compileSdk = COMPILE_SDK
 
     defaultConfig {
-        applicationId = "com.walletconnect.sample.dapp"
+        applicationId = "com.walletconnect.modals"
         minSdk = MIN_SDK
         targetSdk = TARGET_SDK
         versionCode = SAMPLE_VERSION_CODE
@@ -24,7 +20,7 @@ android {
             useSupportLibrary = true
         }
         buildConfigField("String", "PROJECT_ID", "\"${System.getenv("WC_CLOUD_PROJECT_ID") ?: ""}\"")
-        buildConfigField("String", "BOM_VERSION", "\"${BOM_VERSION ?: ""}\"")
+        buildConfigField("String", "BOM_VERSION", "\"${BOM_VERSION}\"")
     }
 
     buildTypes {
@@ -33,10 +29,6 @@ android {
             isMinifyEnabled = true
             signingConfig = signingConfigs.getByName("debug")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            firebaseAppDistribution {
-                artifactType = "APK"
-                groups = "javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
-            }
         }
     }
 
@@ -51,6 +43,7 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+        viewBinding = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = composeCompilerVersion
@@ -60,29 +53,30 @@ android {
 dependencies {
     implementation(project(":sample:common"))
 
-    implementation("androidx.core:core-ktx:1.9.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.5.1")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1")
-    implementation("androidx.activity:activity-compose:1.6.1")
-    implementation("androidx.palette:palette:1.0.0")
-
     implementation ("io.insert-koin:koin-androidx-compose:3.4.3")
     implementation ("io.coil-kt:coil-compose:2.3.0")
 
     compose()
+    accompanist()
+    appCompat()
+    lifecycle()
 
-    // Firebase
-    implementation(platform("com.google.firebase:firebase-bom:31.1.1"))
-    implementation("com.google.firebase:firebase-crashlytics-ktx")
-    implementation("com.google.firebase:firebase-analytics-ktx")
-    implementation("com.google.firebase:firebase-messaging")
+    implementation("androidx.navigation:navigation-fragment-ktx:2.6.0")
+    implementation("androidx.navigation:navigation-ui-ktx:2.6.0")
+    implementation("androidx.navigation:navigation-compose:2.6.0")
 
     debugImplementation(project(":core:android"))
-    debugImplementation(project(":protocol:push"))
-    debugImplementation(project(":product:walletconnectmodal"))
+    debugImplementation(project(":product:web3modal"))
 
     releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
     releaseImplementation("com.walletconnect:android-core")
-    releaseImplementation("com.walletconnect:push")
-    releaseImplementation(project(":product:walletconnectmodal"))
+    releaseImplementation(project(":product:web3modal"))
+
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    androidTestImplementation(platform("androidx.compose:compose-bom:2022.10.00"))
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    debugImplementation("androidx.compose.ui:ui-tooling")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
