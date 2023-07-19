@@ -87,8 +87,7 @@ private val defaultDarkWeb3ModalColors = Web3ModalColors(
     purple = Color(0xFF9063F7),
 )
 
-private
-val defaultLightWeb3ModalColors = Web3ModalColors(
+private val defaultLightWeb3ModalColors = Web3ModalColors(
     main100 = Color(0xFF3396FF),
     main90 = Color(0xFF2D7DD2),
     main20 = Color(0xFF2978CC),
