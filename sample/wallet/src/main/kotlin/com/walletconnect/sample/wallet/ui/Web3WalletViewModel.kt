@@ -10,9 +10,11 @@ import com.walletconnect.sample.wallet.domain.ISSUER
 import com.walletconnect.sample.wallet.domain.PushWalletDelegate
 import com.walletconnect.sample.wallet.domain.WCDelegate
 import com.walletconnect.sample.common.tag
+import com.walletconnect.sample.wallet.connectionStateFlow
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 
@@ -33,13 +35,16 @@ class Web3WalletViewModel : ViewModel() {
 
                 SignEvent.SessionRequest(arrayOfArgs, arrayOfArgs.size)
             }
+
             is Wallet.Model.AuthRequest -> {
                 val message = Web3Wallet.formatMessage(Wallet.Params.FormatMessage(wcEvent.payloadParams, ISSUER))
                     ?: throw Exception("Error formatting message")
                 AuthEvent.OnRequest(wcEvent.id, message)
             }
+
             is Wallet.Model.SessionDelete -> SignEvent.Disconnect
             is Wallet.Model.SessionProposal -> SignEvent.SessionProposal
+            is Wallet.Model.ConnectionState -> SignEvent.ConnectionState(wcEvent.isAvailable)
             else -> NoAction
         }
     }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
@@ -55,6 +60,7 @@ class Web3WalletViewModel : ViewModel() {
 
                 PushRequest(requestId, peerName, peerDesc, icon, redirect)
             }
+
             is Push.Wallet.Event.Proposal -> {
                 val requestId = pushEvent.id.toString()
                 val peerName = pushEvent.metadata.name
@@ -64,18 +70,23 @@ class Web3WalletViewModel : ViewModel() {
 
                 PushProposal(requestId, peerName, peerDesc, icon, redirect)
             }
+
             is Push.Wallet.Event.Message -> {
                 PushMessage(pushEvent.message.message.title, pushEvent.message.message.body, pushEvent.message.message.icon, pushEvent.message.message.url)
             }
+
             is Push.Wallet.Event.Delete -> {
                 NoAction
             }
+
             is Push.Wallet.Event.Subscription.Result -> {
                 Log.e(tag(this), "PushEvent.Subscription.Result: ${pushEvent.subscription}")
             }
+
             is Push.Wallet.Event.Subscription.Error -> {
                 Log.e(tag(this), "PushEvent.Subscription.Error: ${pushEvent.reason}")
             }
+
             else -> {
                 NoAction
             }

@@ -20,8 +20,13 @@ import com.walletconnect.web3.inbox.client.Inbox
 import com.walletconnect.web3.inbox.client.Web3Inbox
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 class Web3WalletApplication : Application() {
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onCreate() {
         super.onCreate()
@@ -30,7 +35,7 @@ class Web3WalletApplication : Application() {
         Log.d(tag(this), "Account: ${EthAccountDelegate.account}")
 
         val projectId = BuildConfig.PROJECT_ID
-        val relayUrl = "relay.walletconnect.com"
+        val relayUrl = "relay.walletconnect.com.tetetetetet"
         val serverUrl = "wss://$relayUrl?projectId=${projectId}"
         val appMetaData = Core.Model.AppMetaData(
             name = "Kotlin Wallet",
@@ -48,6 +53,9 @@ class Web3WalletApplication : Application() {
         ) { error ->
             Firebase.crashlytics.recordException(error.throwable)
             Log.e(tag(this), error.throwable.stackTraceToString())
+            scope.launch {
+                connectionStateFlow.emit(ConnectionState.Error(error.throwable.message ?: ""))
+            }
         }
 
         Web3Wallet.initialize(Wallet.Params.Init(core = CoreClient)) { error ->
