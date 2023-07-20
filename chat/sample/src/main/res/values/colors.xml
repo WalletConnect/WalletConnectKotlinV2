@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <color name="primary">#141414</color>
-    <color name="background">#141414</color>
-    <color name="white">#FFFFFF</color>
-    <color name="light_green">#1ec956</color>
-    <color name="swift_accent">#dc7c00</color>
-    <color name="swift_accent_light">#fcba3d</color>
-</resources>

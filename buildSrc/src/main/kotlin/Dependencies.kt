@@ -120,6 +120,8 @@ fun DependencyHandlerScope.androidXTest() {
     "testImplementation"("androidx.test.ext:junit-ktx:1.1.3")
     "testImplementation"("androidx.test:core-ktx:$androidxTestVersion")
 
+    "androidTestUtil"("androidx.test:orchestrator:$androidxTestOrchestratorVersion")
+
     "androidTestImplementation"("androidx.test:core-ktx:$androidxTestVersion")
     "androidTestImplementation"("androidx.test:runner:1.5.2")
     "androidTestImplementation"("androidx.test:rules:$androidxTestVersion")
@@ -196,4 +198,8 @@ fun DependencyHandlerScope.coil() {
 
 fun DependencyHandlerScope.qrCodeGenerator() {
     "implementation"("com.github.alexzhirkevich:custom-qr-generator:$customQrGeneratorVersion")
+}
+
+fun DependencyHandlerScope.turbine() {
+    "testImplementation"("app.cash.turbine:turbine:$turbineVersion")
 }

@@ -1,0 +1,51 @@
+name: SDKs Instrumented Tests
+description: 'Runs various Kotlin SDK instrumented tests'
+
+inputs:
+  shouldUseCache:
+    description: 'Flag to use and save cache gradle'
+    default: 'true'
+  name:
+    description: 'Name of test and emulator'
+    required: true
+  command:
+    description: 'Gradle task being run'
+    required: true
+  report:
+    description: 'Path to report'
+    required: true
+  projectId:
+    description: 'WalletConnect projectId'
+    required: true
+  testTimeoutSeconds:
+    description: 'Seconds for test timeout'
+    default: '40'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Gradle cache
+      if: ${{ inputs.shouldUseCache }}
+      uses: gradle/gradle-build-action@v2
+
+    - name: Create log file
+      shell: bash
+      run: |
+        touch emulator.log
+        chmod 777 emulator.log
+        adb logcat -s "WalletConnectV2" >> emulator.log &
+
+    - name: Run instrumented tests
+      shell: bash
+      env:
+        WC_CLOUD_PROJECT_ID: ${{ inputs.projectId}}
+        TEST_TIMEOUT_SECONDS: ${{ inputs.testTimeoutSeconds }}
+      run: ./gradlew ${{ inputs.command }}
+
+    - uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: ${{ inputs.name }}
+        path: |
+          **/reports/**
+          emulator.log

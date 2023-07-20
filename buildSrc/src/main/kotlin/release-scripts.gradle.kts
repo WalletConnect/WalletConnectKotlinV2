@@ -31,18 +31,18 @@ fun generateListOfModuleTasks(type: ReleaseType): List<Task> = compileListOfSDKs
 // Triple consists of the root module name, the child module name, and if it's a JVM or Android module
 fun compileListOfSDKs(): List<Triple<String, String?, String>> = mutableListOf(
     Triple("foundation", null, "jvm"),
-    Triple("androidCore", "sdk", "android"),
-    Triple("sign", "sdk", "android"),
-    Triple("auth", "sdk", "android"),
-    Triple("chat", "sdk", "android"),
-    Triple("push", "sdk", "android"),
-    Triple("web3", "wallet", "android"),
-    Triple("web3", "inbox", "android"),
-    Triple("core", "modalCore", "android"),
-    Triple("product", "modal", "android"),
+    Triple("core", "android", "android"),
+    Triple("core", "modal", "android"),
+    Triple("protocol", "sign", "android"),
+    Triple("protocol", "auth", "android"),
+    Triple("protocol", "chat", "android"),
+    Triple("protocol", "push", "android"),
+    Triple("product", "web3wallet", "android"),
+    Triple("product", "web3inbox", "android"),
+    Triple("product", "walletconnectmodal", "android"),
 ).apply {
     // The BOM has to be last artifact
-    add(Triple("androidCore", "bom", "jvm"))
+    add(Triple("core", "bom", "jvm"))
 }
 
 // This extension function will determine which task to run based on the type passed
