@@ -9,17 +9,12 @@ import androidx.navigation.compose.rememberNavController
 import com.walletconnect.web3.modal.ui.components.internal.Web3ModalRoot
 import com.walletconnect.web3.modal.ui.theme.ProvideWeb3ModalThemeComposition
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
-import com.walletconnect.web3.modal.ui.theme.provideWeb3ModalColors
 
 @Composable
 internal fun Web3ModalPreview(
     content: @Composable () -> Unit,
 ) {
-    Web3ModalRoot(
-        navController = rememberNavController(),
-        colors = provideWeb3ModalColors(),
-        closeModal = {}
-    ) {
+    Web3ModalRoot{
         content()
     }
 }
@@ -28,10 +23,8 @@ internal fun Web3ModalPreview(
 internal fun ComponentPreview(
     content: @Composable ColumnScope.() -> Unit
 ) {
-    ProvideWeb3ModalThemeComposition(
-        colors = provideWeb3ModalColors()
-    ) {
-        Column(modifier = Modifier.background(Web3ModalTheme.colors.background)) {
+    ProvideWeb3ModalThemeComposition {
+        Column(modifier = Modifier.background(Web3ModalTheme.colors.background.color100)) {
             content()
         }
     }

@@ -86,7 +86,7 @@ private fun HelpButtonRow(
                     imageVector = ImageVector.vectorResource(id = R.drawable.ic_wallet),
                     contentDescription = "Wallet icon",
                     modifier = Modifier.size(14.dp),
-                    colorFilter = ColorFilter.tint(color = Web3ModalTheme.colors.onMainColor)
+                    colorFilter = ColorFilter.tint(color = Web3ModalTheme.colors.foreground.color100)
                 )
             }
         )
@@ -101,7 +101,7 @@ private fun HelpButtonRow(
                     imageVector = ImageVector.vectorResource(id = R.drawable.ic_external_link),
                     contentDescription = "external link icon",
                     modifier = Modifier.size(14.dp),
-                    colorFilter = ColorFilter.tint(color = Web3ModalTheme.colors.onMainColor)
+                    colorFilter = ColorFilter.tint(color = Web3ModalTheme.colors.foreground.color100)
                 )
             }
         )
@@ -136,7 +136,7 @@ private fun HelpSection(
             text = title,
             style = TextStyle(
                 fontSize = 16.sp,
-                color = Web3ModalTheme.colors.textColor,
+                color = Web3ModalTheme.colors.foreground.color100,
                 textAlign = TextAlign.Center
             )
         )
@@ -145,7 +145,7 @@ private fun HelpSection(
             text = body,
             style = TextStyle(
                 fontSize = 14.sp,
-                color = Web3ModalTheme.colors.secondaryTextColor,
+                color = Web3ModalTheme.colors.foreground.color200,
                 textAlign = TextAlign.Center
             )
         )
