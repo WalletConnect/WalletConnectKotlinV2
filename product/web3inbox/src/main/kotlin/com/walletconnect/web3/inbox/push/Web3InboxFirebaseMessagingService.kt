@@ -4,8 +4,8 @@ import android.annotation.SuppressLint
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.walletconnect.android.CoreClient
-import com.walletconnect.push.common.Push
-import com.walletconnect.push.wallet.client.PushWalletClient
+import com.walletconnect.push.client.Push
+import com.walletconnect.push.client.PushWalletClient
 import com.walletconnect.web3.inbox.client.Inbox
 import org.bouncycastle.util.encoders.Base64
 import org.json.JSONObject
@@ -34,7 +34,7 @@ abstract class Web3InboxFirebaseMessagingService : FirebaseMessagingService() {
                 if (data.containsKey("topic") && data.containsKey("blob") && data.containsKey("flags")) {
                     when (MessageFlags.findMessageFlag(data.getValue("flags"))) {
                         MessageFlags.ENCRYPTED -> {
-                            val encryptedMessage = Push.Wallet.Params.DecryptMessage(topic = data.getValue("topic"), encryptedMessage = data.getValue("blob"))
+                            val encryptedMessage = Push.Params.DecryptMessage(topic = data.getValue("topic"), encryptedMessage = data.getValue("blob"))
 
                             PushWalletClient.decryptMessage(encryptedMessage,
                                 onSuccess = { pushMessage ->
