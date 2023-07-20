@@ -2,7 +2,6 @@
 
 package com.walletconnect.sample.dapp.ui.routes.composable_routes.session
 
-import android.net.Uri
 import android.widget.Toast
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.*
@@ -30,12 +29,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.walletconnect.sample.common.ui.WCTopAppBar
+import com.walletconnect.sample.common.ui.commons.BlueButton
+import com.walletconnect.sample.common.ui.themedColor
 import com.walletconnect.sample.dapp.R
 import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.sample.dapp.ui.navigateToAccount
 import com.walletconnect.sample.dapp.ui.routes.Route
-import com.walletconnect.sample.common.ui.commons.BlueButton
-import com.walletconnect.sample.common.ui.themedColor
 
 @Composable
 fun SessionRoute(
@@ -73,8 +72,6 @@ fun SessionRoute(
         onSessionClick = navController::navigateToAccount,
         onPingClick = viewModel::ping,
         onDisconnectClick = viewModel::disconnect,
-        onPushRequestClick = viewModel::pushRequest,
-        onPushNotifyClick = viewModel::pushNotify,
     )
 }
 
@@ -85,15 +82,13 @@ private fun SessionScreen(
     onSessionClick: (String) -> Unit,
     onPingClick: () -> Unit,
     onDisconnectClick: () -> Unit,
-    onPushRequestClick: () -> Unit,
-    onPushNotifyClick: () -> Unit,
 ) {
     Column {
         WCTopAppBar(
             titleText = "Session Chains",
             onBackIconClick = onBackPressed,
         )
-        ChainsAction(onPingClick, onDisconnectClick, onPushRequestClick, onPushNotifyClick)
+        ChainsAction(onPingClick, onDisconnectClick)
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             item {
                 Text(
@@ -118,8 +113,6 @@ private fun SessionScreen(
 private fun ChainsAction(
     onPingClick: () -> Unit,
     onDisconnectClick: () -> Unit,
-    onPushRequestClick: () -> Unit,
-    onPushNotifyClick: () -> Unit
 ) {
     var isExpanded by remember { mutableStateOf(false) }
     Box(modifier = Modifier.fillMaxWidth()) {
@@ -140,9 +133,7 @@ private fun ChainsAction(
             if (isExpanded) {
                 SessionActions(
                     onPingClick = onPingClick,
-                    onDisconnectClick = onDisconnectClick,
-                    onPushRequestClick = onPushRequestClick,
-                    onPushNotifyClick = onPushNotifyClick
+                    onDisconnectClick = onDisconnectClick
                 )
             }
         }
@@ -160,8 +151,6 @@ private fun ChainsAction(
 private fun SessionActions(
     onPingClick: () -> Unit,
     onDisconnectClick: () -> Unit,
-    onPushRequestClick: () -> Unit,
-    onPushNotifyClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -172,10 +161,6 @@ private fun SessionActions(
         BlueButton(text = "Ping", onClick = onPingClick, modifier = modifier)
         Spacer(modifier = Modifier.width(4.dp))
         BlueButton(text = "Disconnect", onClick = onDisconnectClick, modifier = modifier)
-        Spacer(modifier = Modifier.width(4.dp))
-        BlueButton(text = "Push request", onClick = onPushRequestClick, modifier = modifier)
-        Spacer(modifier = Modifier.width(4.dp))
-        BlueButton(text = "Push notify", onClick = onPushNotifyClick, modifier = modifier)
     }
 }
 

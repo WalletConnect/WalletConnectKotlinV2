@@ -5,15 +5,15 @@ import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.params.PushParams
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.pairing.model.mapper.toClient
-import com.walletconnect.push.common.Push
+import com.walletconnect.push.client.Push
 
 @JvmSynthetic
 internal fun PushParams.MessageParams.toEngineDO(): EngineDO.PushMessage =
     EngineDO.PushMessage(title, body, icon, url, type)
 
 @JvmSynthetic
-internal fun EngineDO.PushProposal.toWalletClient(): Push.Wallet.Event.Proposal {
-    return Push.Wallet.Event.Proposal(requestId, accountId.value, dappMetadata.toClient())
+internal fun EngineDO.PushProposal.toWalletClient(): Push.Event.Proposal {
+    return Push.Event.Proposal(requestId, accountId.value, dappMetadata.toClient())
 }
 
 @JvmSynthetic
@@ -46,13 +46,13 @@ internal fun ((String) -> Push.Model.Cacao.Signature?).toWalletClient(): (String
 }
 
 @JvmSynthetic
-internal fun EngineDO.PushDelete.toWalletClient(): Push.Wallet.Event.Delete {
-    return Push.Wallet.Event.Delete(topic)
+internal fun EngineDO.PushDelete.toWalletClient(): Push.Event.Delete {
+    return Push.Event.Delete(topic)
 }
 
 @JvmSynthetic
-internal fun EngineDO.Subscription.Active.toEvent(): Push.Wallet.Event.Subscription.Result {
-    return Push.Wallet.Event.Subscription.Result(
+internal fun EngineDO.Subscription.Active.toEvent(): Push.Event.Subscription.Result {
+    return Push.Event.Subscription.Result(
         Push.Model.Subscription(
             topic = pushTopic.value,
             account = account.value,
@@ -77,13 +77,13 @@ internal fun EngineDO.Subscription.Active.toModel(): Push.Model.Subscription {
 }
 
 @JvmSynthetic
-internal fun EngineDO.Subscription.Error.toWalletClient(): Push.Wallet.Event.Subscription.Error {
-    return Push.Wallet.Event.Subscription.Error(requestId, rejectionReason)
+internal fun EngineDO.Subscription.Error.toWalletClient(): Push.Event.Subscription.Error {
+    return Push.Event.Subscription.Error(requestId, rejectionReason)
 }
 
 @JvmSynthetic
-internal fun EngineDO.PushUpdate.Result.toWalletClient(): Push.Wallet.Event.Update.Result {
-    return Push.Wallet.Event.Update.Result(
+internal fun EngineDO.PushUpdate.Result.toWalletClient(): Push.Event.Update.Result {
+    return Push.Event.Update.Result(
         Push.Model.Subscription(
             topic = pushTopic.value,
             account = account.value,
@@ -96,8 +96,8 @@ internal fun EngineDO.PushUpdate.Result.toWalletClient(): Push.Wallet.Event.Upda
 }
 
 @JvmSynthetic
-internal fun EngineDO.PushUpdate.Error.toWalletClient(): Push.Wallet.Event.Update.Error {
-    return Push.Wallet.Event.Update.Error(requestId, rejectionReason)
+internal fun EngineDO.PushUpdate.Error.toWalletClient(): Push.Event.Update.Error {
+    return Push.Event.Update.Error(requestId, rejectionReason)
 }
 
 @JvmSynthetic
