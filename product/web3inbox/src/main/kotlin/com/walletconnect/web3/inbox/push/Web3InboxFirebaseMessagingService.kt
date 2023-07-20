@@ -10,7 +10,6 @@ import com.walletconnect.web3.inbox.client.Inbox
 import org.bouncycastle.util.encoders.Base64
 import org.json.JSONObject
 
-//todo this will need to be implemented by sdk consumers, add to docs
 @SuppressLint("MissingFirebaseInstanceTokenRefresh")
 abstract class Web3InboxFirebaseMessagingService : FirebaseMessagingService() {
 
