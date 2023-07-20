@@ -1,27 +1,28 @@
 package com.walletconnect.sign.test.client
 
+import com.walletconnect.android.Core
 import com.walletconnect.sign.BuildConfig
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
-import com.walletconnect.sign.test.activity.WCInstrumentedActivityScenario
-import com.walletconnect.sign.test.utils.AutoApproveDappDelegate
-import com.walletconnect.sign.test.utils.AutoApproveSessionWalletDelegate
-import com.walletconnect.sign.test.utils.DappDelegate
-import com.walletconnect.sign.test.utils.DappSignClient
-import com.walletconnect.sign.test.utils.WalletDelegate
-import com.walletconnect.sign.test.utils.WalletSignClient
-import com.walletconnect.sign.test.utils.dappClientSendRequest
+import com.walletconnect.sign.test.scenario.SignClientInstrumentedActivityScenario
+import com.walletconnect.sign.test.utils.TestClient
+import com.walletconnect.sign.test.utils.dapp.AutoApproveDappDelegate
+import com.walletconnect.sign.test.utils.dapp.DappDelegate
+import com.walletconnect.sign.test.utils.dapp.DappSignClient
+import com.walletconnect.sign.test.utils.dapp.dappClientConnect
+import com.walletconnect.sign.test.utils.dapp.dappClientSendRequest
 import com.walletconnect.sign.test.utils.globalOnError
-import com.walletconnect.sign.test.utils.pair
-import com.walletconnect.sign.test.utils.pairAndConnect
-import com.walletconnect.sign.test.utils.rejectOnSessionProposal
 import com.walletconnect.sign.test.utils.sessionChains
 import com.walletconnect.sign.test.utils.sessionEvents
 import com.walletconnect.sign.test.utils.sessionNamespaceKey
-import com.walletconnect.sign.test.utils.walletClientEmitEvent
-import com.walletconnect.sign.test.utils.walletClientExtendSession
-import com.walletconnect.sign.test.utils.walletClientRespondToRequest
-import com.walletconnect.sign.test.utils.walletClientUpdateSession
+import com.walletconnect.sign.test.utils.wallet.AutoApproveSessionWalletDelegate
+import com.walletconnect.sign.test.utils.wallet.WalletDelegate
+import com.walletconnect.sign.test.utils.wallet.WalletSignClient
+import com.walletconnect.sign.test.utils.wallet.rejectOnSessionProposal
+import com.walletconnect.sign.test.utils.wallet.walletClientEmitEvent
+import com.walletconnect.sign.test.utils.wallet.walletClientExtendSession
+import com.walletconnect.sign.test.utils.wallet.walletClientRespondToRequest
+import com.walletconnect.sign.test.utils.wallet.walletClientUpdateSession
 import junit.framework.TestCase.fail
 import org.junit.Rule
 import org.junit.Test
@@ -29,7 +30,7 @@ import timber.log.Timber
 
 class SignClientInstrumentedAndroidTest {
     @get:Rule
-    val scenarioExtension = WCInstrumentedActivityScenario()
+    val scenarioExtension = SignClientInstrumentedActivityScenario()
 
     private fun setDelegates(walletDelegate: SignClient.WalletDelegate, dappDelegate: SignClient.DappDelegate) {
         WalletSignClient.setWalletDelegate(walletDelegate)
@@ -46,7 +47,7 @@ class SignClientInstrumentedAndroidTest {
         Timber.d("pair: start")
         setDelegates(WalletDelegate(), DappDelegate())
 
-        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { pair() { scenarioExtension.closeAsSuccess().also { Timber.d("pair: finish") } } }
+        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { pairDappAndWallet { scenarioExtension.closeAsSuccess().also { Timber.d("pair: finish") } } }
     }
 
     @Test
@@ -230,5 +231,28 @@ class SignClientInstrumentedAndroidTest {
         }
 
         launch(walletDelegate, dappDelegate)
+    }
+
+    private fun pairDappAndWallet(onPairSuccess: (pairing: Core.Model.Pairing) -> Unit) {
+        TestClient.Dapp.Pairing.getPairings().let { pairings ->
+            if (pairings.isEmpty()) {
+                Timber.d("pairings.isEmpty() == true")
+
+                val pairing: Core.Model.Pairing = (TestClient.Dapp.Pairing.create(onError = ::globalOnError) ?: fail("Unable to create a Pairing")) as Core.Model.Pairing
+                Timber.d("DappClient.pairing.create: $pairing")
+
+                TestClient.Wallet.Pairing.pair(Core.Params.Pair(pairing.uri), onError = ::globalOnError, onSuccess = {
+                    Timber.d("WalletClient.pairing.pair: $pairing")
+                    onPairSuccess(pairing)
+                })
+            } else {
+                Timber.d("pairings.isEmpty() == false")
+                fail("Pairing already exists. Storage must be cleared in between runs")
+            }
+        }
+    }
+
+    private fun pairAndConnect() {
+        pairDappAndWallet { pairing -> dappClientConnect(pairing) }
     }
 }

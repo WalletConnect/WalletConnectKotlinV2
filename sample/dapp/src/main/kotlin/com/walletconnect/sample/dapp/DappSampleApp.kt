@@ -6,13 +6,11 @@ import com.google.firebase.ktx.Firebase
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.relay.ConnectionType
-import com.walletconnect.modal.client.Modal
-import com.walletconnect.modal.client.WalletConnectModal
-import com.walletconnect.push.common.Push
-import com.walletconnect.push.dapp.client.PushDappClient
 import com.walletconnect.sample.common.BuildConfig
 import com.walletconnect.sample.common.WALLET_CONNECT_PROD_RELAY_URL
 import com.walletconnect.sample.common.tag
+import com.walletconnect.wcmodal.client.Modal
+import com.walletconnect.wcmodal.client.WalletConnectModal
 import timber.log.Timber
 
 class DappSampleApp : Application() {
@@ -36,10 +34,6 @@ class DappSampleApp : Application() {
             metaData = appMetaData,
         ) {
             Firebase.crashlytics.recordException(it.throwable)
-        }
-
-        PushDappClient.initialize(Push.Dapp.Params.Init(CoreClient, null)) { error ->
-            Timber.e(tag(this), error.throwable.stackTraceToString())
         }
 
         WalletConnectModal.initialize(

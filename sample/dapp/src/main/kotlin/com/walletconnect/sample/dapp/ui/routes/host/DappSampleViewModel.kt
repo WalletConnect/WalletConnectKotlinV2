@@ -2,7 +2,7 @@ package com.walletconnect.sample.dapp.ui.routes.host
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.walletconnect.modal.client.Modal
+import com.walletconnect.wcmodal.client.Modal
 import com.walletconnect.sample.dapp.domain.DappDelegate
 import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import kotlinx.coroutines.flow.SharingStarted

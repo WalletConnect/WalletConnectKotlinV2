@@ -77,12 +77,8 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
         }
     }
 
-    single<Interceptor?>(named(AndroidCommonDITags.LOGGING_INTERCEPTOR)) {
-        if (BuildConfig.DEBUG) {
-            HttpLoggingInterceptor().apply { setLevel(HttpLoggingInterceptor.Level.BODY) }
-        } else {
-            null
-        }
+    single<Interceptor>(named(AndroidCommonDITags.LOGGING_INTERCEPTOR)) {
+        HttpLoggingInterceptor().apply { setLevel(HttpLoggingInterceptor.Level.BODY) }
     }
 
     single(named(AndroidCommonDITags.FAIL_OVER_INTERCEPTOR)) {
@@ -119,8 +115,7 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
     }
 
     single(named(AndroidCommonDITags.OK_HTTP)) {
-        OkHttpClient.Builder()
-            .addInterceptor(get<Interceptor>(named(AndroidCommonDITags.LOGGING_INTERCEPTOR)))
+        val builder = OkHttpClient.Builder()
             .addInterceptor(get<Interceptor>(named(AndroidCommonDITags.USER_AGENT_INTERCEPTOR)))
             .addInterceptor(get<Interceptor>(named(AndroidCommonDITags.FAIL_OVER_INTERCEPTOR)))
             .authenticator((get(named(AndroidCommonDITags.AUTHENTICATOR))))
@@ -128,7 +123,13 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
             .readTimeout(networkClientTimeout.timeout, networkClientTimeout.timeUnit)
             .callTimeout(networkClientTimeout.timeout, networkClientTimeout.timeUnit)
             .connectTimeout(networkClientTimeout.timeout, networkClientTimeout.timeUnit)
-            .build()
+
+        if (BuildConfig.DEBUG) {
+            val loggingInterceptor = get<Interceptor>(named(AndroidCommonDITags.LOGGING_INTERCEPTOR))
+            builder.addInterceptor(loggingInterceptor)
+        }
+
+        builder.build()
     }
 
     single(named(AndroidCommonDITags.MSG_ADAPTER)) { MoshiMessageAdapter.Factory(get<Moshi.Builder>(named(AndroidCommonDITags.MOSHI)).build()) }

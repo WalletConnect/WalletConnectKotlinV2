@@ -6,19 +6,19 @@ import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
 import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.android.utils.cacao.sign
-import com.walletconnect.push.common.Push
+import com.walletconnect.push.client.Push
+import com.walletconnect.push.client.PushWalletClient
 import com.walletconnect.push.common.cacao.CacaoSigner
-import com.walletconnect.push.wallet.client.PushWalletClient
+import com.walletconnect.sample.common.tag
 import com.walletconnect.sample.wallet.domain.EthAccountDelegate
 import com.walletconnect.sample.wallet.domain.hexToBytes
 import com.walletconnect.sample.wallet.ui.common.peer.PeerUI
-import com.walletconnect.sample.common.tag
 import java.net.URLDecoder
 
 class PushRequestViewModel : ViewModel() {
 
     fun reject(requestId: Long, navigateBack: () -> Unit) {
-        val rejectParams = Push.Wallet.Params.Reject(requestId, "Kotlin Wallet Rejected Push Request")
+        val rejectParams = Push.Params.Reject(requestId, "Kotlin Wallet Rejected Push Request")
 
         PushWalletClient.reject(
             rejectParams,
@@ -36,7 +36,7 @@ class PushRequestViewModel : ViewModel() {
 
     fun approve(requestId: Long, navigateBack: () -> Unit) {
 
-        val approveParams = Push.Wallet.Params.Approve(requestId, onSign = fun(message: String): Push.Model.Cacao.Signature? {
+        val approveParams = Push.Params.Approve(requestId, onSign = fun(message: String): Push.Model.Cacao.Signature? {
             return CacaoSigner.sign(message, EthAccountDelegate.privateKey.hexToBytes(), SignatureType.EIP191)
         })
 

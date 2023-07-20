@@ -45,18 +45,18 @@ import androidx.navigation.NavHostController
 import com.skydoves.landscapist.glide.GlideImage
 import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.android.utils.cacao.sign
-import com.walletconnect.push.common.Push
+import com.walletconnect.push.client.Push
+import com.walletconnect.push.client.PushWalletClient
 import com.walletconnect.push.common.cacao.CacaoSigner
-import com.walletconnect.push.wallet.client.PushWalletClient
+import com.walletconnect.sample.common.CompletePreviews
+import com.walletconnect.sample.common.tag
+import com.walletconnect.sample.common.ui.WCTopAppBar
+import com.walletconnect.sample.common.ui.theme.PreviewTheme
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.wallet.domain.EthAccountDelegate
 import com.walletconnect.sample.wallet.domain.hexToBytes
 import com.walletconnect.sample.wallet.domain.model.PushNotification
 import com.walletconnect.sample.wallet.domain.toEthAddress
-import com.walletconnect.sample.common.CompletePreviews
-import com.walletconnect.sample.common.tag
-import com.walletconnect.sample.common.ui.WCTopAppBar
-import com.walletconnect.sample.common.ui.theme.PreviewTheme
 
 @Composable
 fun NotificationsScreenRoute(navController: NavHostController) {
@@ -106,7 +106,7 @@ private fun NotificationScreen(
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),
                     onClick = {
-                        val subscribeParams = Push.Wallet.Params.Subscribe("https://gm.walletconnect.com".toUri(), with(EthAccountDelegate) { account.toEthAddress() }) { message ->
+                        val subscribeParams = Push.Params.Subscribe("https://gm.walletconnect.com".toUri(), with(EthAccountDelegate) { account.toEthAddress() }) { message ->
                             CacaoSigner.sign(message, EthAccountDelegate.privateKey.hexToBytes(), SignatureType.EIP191)
                         }
                         PushWalletClient.subscribe(

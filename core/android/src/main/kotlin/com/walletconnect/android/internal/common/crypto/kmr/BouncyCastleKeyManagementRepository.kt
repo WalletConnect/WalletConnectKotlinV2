@@ -65,7 +65,6 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
         val privateKey = ByteArray(KEY_SIZE)
         X25519.generatePrivateKey(SecureRandom(ByteArray(KEY_SIZE)), privateKey)
         X25519.generatePublicKey(privateKey, 0, publicKey, 0)
-
         setKeyPair(PublicKey(publicKey.bytesToHex().lowercase()), PrivateKey(privateKey.bytesToHex().lowercase()))
         return PublicKey(publicKey.bytesToHex().lowercase())
     }
