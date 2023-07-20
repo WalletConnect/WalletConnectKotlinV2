@@ -7,13 +7,12 @@ import com.walletconnect.android.cacao.SignatureInterface
 
 object Inbox {
 
-
     sealed class Params {
         data class Init(
             val core: CoreInterface,
             val account: Type.AccountId,
             val onSign: (message: String) -> Model.Cacao.Signature,
-            val config: Model.Config = Model.Config()
+            val config: Model.Config = Model.Config(),
         ) : Params()
     }
 
@@ -23,7 +22,7 @@ object Inbox {
         data class Config(
             val isChatEnabled: Boolean = false,
             val isPushEnabled: Boolean = true,
-            val areSettingsEnabled: Boolean = false
+            val areSettingsEnabled: Boolean = false,
         ) : Model()
 
         sealed class Events : Model() {
@@ -59,12 +58,28 @@ object Inbox {
                 }
             }
         }
-    }
 
+        sealed class Message : Model() {
+            abstract val title: String
+            abstract val body: String
+
+            data class Simple(
+                override val title: String,
+                override val body: String,
+            ) : Message()
+
+            data class Decrypted(
+                override val title: String,
+                override val body: String,
+                val icon: String?,
+                val url: String?,
+                val type: String?,
+            ) : Message()
+        }
+    }
 
     sealed interface Type {
         @JvmInline
         value class AccountId(val value: String) : Type //todo: Add common
-
     }
 }
