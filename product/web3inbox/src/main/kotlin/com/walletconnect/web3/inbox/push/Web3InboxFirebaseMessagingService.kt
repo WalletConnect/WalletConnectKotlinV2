@@ -2,8 +2,8 @@ package com.walletconnect.web3.inbox.push
 
 import android.annotation.SuppressLint
 import com.google.firebase.messaging.RemoteMessage
-import com.walletconnect.push.common.Push
-import com.walletconnect.push.wallet.client.PushMessageService
+import com.walletconnect.push.client.Push
+import com.walletconnect.push.client.PushMessageService
 
 
 //todo this will need to be implemented by sdk consumers, add to docs
