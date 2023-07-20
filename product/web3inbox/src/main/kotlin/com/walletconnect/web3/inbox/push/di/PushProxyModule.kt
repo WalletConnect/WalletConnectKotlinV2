@@ -2,6 +2,7 @@
 
 package com.walletconnect.web3.inbox.push.di
 
+import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.push.client.PushWalletInterface
 import com.walletconnect.web3.inbox.client.Inbox
 import com.walletconnect.web3.inbox.common.proxy.PushProxyInteractor
@@ -28,11 +29,12 @@ import org.koin.dsl.module
 internal fun pushProxyModule(
     pushWalletClient: PushWalletInterface,
     onSign: (message: String) -> Inbox.Model.Cacao.Signature,
+    account: AccountId
 ) = module {
 
     single { PushProxyInteractor(get(), get()) }
 
-    single { GetActiveSubscriptionsRequestUseCase(pushWalletClient, get()) }
+    single { GetActiveSubscriptionsRequestUseCase(pushWalletClient, account, get()) }
     single { ApproveRequestUseCase(pushWalletClient, get(), onSign) }
     single { RejectRequestUseCase(pushWalletClient, get()) }
     single { SubscribeRequestUseCase(pushWalletClient, onSign, get()) }
