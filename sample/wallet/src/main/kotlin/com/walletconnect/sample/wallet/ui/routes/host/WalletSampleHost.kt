@@ -49,7 +49,6 @@ fun WalletSampleHost(
     Scaffold(
         scaffoldState = scaffoldState
     ) { innerPadding ->
-        //Box?
         Column(modifier = Modifier.padding(innerPadding)) {
             if (connectionState is ConnectionState.Error) {
                 ErrorBanner(connectionState.message)
@@ -70,13 +69,13 @@ private fun ErrorBanner(message: String) {
             .background(Color(0xFFDC143C))
             .padding(horizontal = 16.dp, vertical = 8.dp),
     ) {
-        Text(text = message, color = Color.White)
-        Spacer(modifier = Modifier.width(4.dp))
         Image(
             imageVector = ImageVector.vectorResource(id = R.drawable.orange_warning),
             contentDescription = null,
             modifier = Modifier.size(24.dp),
             colorFilter = ColorFilter.tint(color = Color.White)
         )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(text = message, color = Color.White)
     }
 }
