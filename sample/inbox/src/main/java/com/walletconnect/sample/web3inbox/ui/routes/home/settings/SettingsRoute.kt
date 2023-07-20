@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.walletconnect.sample.web3inbox.BuildConfig
 import com.walletconnect.sample.web3inbox.domain.SharedPrefStorage
 import com.walletconnect.sample.web3inbox.ui.routes.navigateToSelectAccount
 import kotlinx.coroutines.delay
@@ -59,5 +60,6 @@ fun SettingsRoute(navController: NavController) {
             }) {
             Text(text = "Log out")
         }
+        Text(fontSize = 10.sp, text = BuildConfig.VERSION_NAME)
     }
 }
