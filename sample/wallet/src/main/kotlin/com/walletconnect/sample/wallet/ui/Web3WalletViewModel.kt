@@ -10,8 +10,9 @@ import com.walletconnect.sample.wallet.domain.ISSUER
 import com.walletconnect.sample.wallet.domain.PushWalletDelegate
 import com.walletconnect.sample.wallet.domain.WCDelegate
 import com.walletconnect.sample.common.tag
-import com.walletconnect.sample.wallet.ConnectionState
-import com.walletconnect.sample.wallet.connectionStateFlow
+import com.walletconnect.sample.wallet.ui.state.ConnectionState
+import com.walletconnect.sample.wallet.ui.state.PairingState
+import com.walletconnect.sample.wallet.ui.state.connectionStateFlow
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -28,8 +29,8 @@ class Web3WalletViewModel : ViewModel() {
     private val connectivityStateFlow: MutableStateFlow<ConnectionState> = MutableStateFlow(ConnectionState.Idle)
     val connectionState = merge(connectivityStateFlow.asStateFlow(), connectionStateFlow.asStateFlow())
 
-    private val _pairingErrorSharedFlow: MutableSharedFlow<String> = MutableSharedFlow()
-    val pairingErrorSharedFlow = _pairingErrorSharedFlow.asSharedFlow()
+    private val _pairingStateSharedFlow: MutableSharedFlow<PairingState> = MutableSharedFlow()
+    val pairingStateSharedFlow = _pairingStateSharedFlow.asSharedFlow()
 
     val walletEvents = WCDelegate.walletEvents.map { wcEvent ->
         Log.d("Web3Wallet", "VM: $wcEvent")
@@ -55,7 +56,13 @@ class Web3WalletViewModel : ViewModel() {
             }
 
             is Wallet.Model.SessionDelete -> SignEvent.Disconnect
-            is Wallet.Model.SessionProposal -> SignEvent.SessionProposal
+            is Wallet.Model.SessionProposal -> {
+                viewModelScope.launch {
+                    _pairingStateSharedFlow.emit(PairingState.Success)
+                }
+                SignEvent.SessionProposal
+            }
+
             is Wallet.Model.ConnectionState -> {
                 val connectionState = if (wcEvent.isAvailable) {
                     ConnectionState.Ok
@@ -114,11 +121,15 @@ class Web3WalletViewModel : ViewModel() {
     }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
     fun pair(pairingUri: String) {
+        viewModelScope.launch {
+            _pairingStateSharedFlow.emit(PairingState.Loading)
+        }
+
         val pairingParams = Wallet.Params.Pair(pairingUri)
         Web3Wallet.pair(pairingParams) { error ->
             Firebase.crashlytics.recordException(error.throwable)
             viewModelScope.launch {
-                _pairingErrorSharedFlow.emit(error.throwable.message ?: "")
+                _pairingStateSharedFlow.emit(PairingState.Error(error.throwable.message ?: ""))
             }
         }
     }

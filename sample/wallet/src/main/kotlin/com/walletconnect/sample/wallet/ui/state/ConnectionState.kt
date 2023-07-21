@@ -1,4 +1,4 @@
-package com.walletconnect.sample.wallet
+package com.walletconnect.sample.wallet.ui.state
 
 import kotlinx.coroutines.flow.MutableStateFlow
 

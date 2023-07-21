@@ -14,6 +14,8 @@ import com.walletconnect.sample.common.BuildConfig
 import com.walletconnect.sample.common.tag
 import com.walletconnect.sample.wallet.domain.EthAccountDelegate
 import com.walletconnect.sample.wallet.domain.toEthAddress
+import com.walletconnect.sample.wallet.ui.state.ConnectionState
+import com.walletconnect.sample.wallet.ui.state.connectionStateFlow
 import com.walletconnect.util.hexToBytes
 import com.walletconnect.web3.inbox.cacao.CacaoSigner
 import com.walletconnect.web3.inbox.client.Inbox
