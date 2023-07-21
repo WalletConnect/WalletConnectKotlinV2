@@ -22,9 +22,9 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.walletconnect.modal.R
 import com.walletconnect.modal.ui.components.common.HorizontalSpacer
 import com.walletconnect.modal.ui.components.common.VerticalSpacer
+import com.walletconnect.wcmodal.R
 import com.walletconnect.wcmodal.ui.preview.ComponentPreview
 import com.walletconnect.wcmodal.ui.theme.ModalTheme
 

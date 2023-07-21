@@ -22,7 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -30,7 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.walletconnect.android.internal.common.explorer.data.model.Wallet
-import com.walletconnect.modal.R
+import com.walletconnect.wcmodal.R
 import com.walletconnect.wcmodal.ui.components.ModalTopBar
 import com.walletconnect.wcmodal.ui.components.WalletImage
 import com.walletconnect.wcmodal.ui.components.WalletListItem
@@ -39,22 +38,16 @@ import com.walletconnect.wcmodal.ui.components.walletsGridItems
 import com.walletconnect.wcmodal.ui.navigation.Route
 import com.walletconnect.wcmodal.ui.preview.ModalPreview
 import com.walletconnect.wcmodal.ui.theme.ModalTheme
-import com.walletconnect.modal.utils.goToNativeWallet
 import com.walletconnect.modal.utils.isLandscape
 
 @Composable
 internal fun ConnectYourWalletRoute(
     navController: NavController,
-    uri: String,
     wallets: List<Wallet>
 ) {
-    val uriHandler = LocalUriHandler.current
-
     ConnectYourWalletContent(
         wallets = wallets,
-        onWalletItemClick = {
-            uriHandler.goToNativeWallet(uri, it.nativeLink, it.universalLink, it.playStoreLink)
-        },
+        onWalletItemClick = { navController.navigate(Route.OnHold.path + "/${it.id}") },
         onViewAllClick = { navController.navigate(Route.AllWallets.path) },
         onScanIconClick = { navController.navigate(Route.ScanQRCode.path) }
     )

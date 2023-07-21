@@ -35,9 +35,7 @@ internal fun AllWalletsRoute(
 
     AllWalletsContent(
         wallets = wallets,
-        onWalletItemClick = {
-            uriHandler.goToNativeWallet(uri, it.nativeLink, it.universalLink, it.playStoreLink)
-        },
+        onWalletItemClick = { uriHandler.goToNativeWallet(uri, it.nativeLink) },
         onScanIconClick = { navController.navigate(Route.ScanQRCode.path) },
         onBackClick = navController::popBackStack
     )

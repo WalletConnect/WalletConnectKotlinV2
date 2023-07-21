@@ -51,7 +51,7 @@ internal fun ConnectYourWalletRoute(
     ConnectYourWalletContent(
         wallets = wallets,
         onWalletItemClick = {
-            uriHandler.goToNativeWallet(uri, it.nativeLink, it.universalLink, it.playStoreLink)
+            uriHandler.goToNativeWallet(uri, it.nativeLink)
         },
         onViewAllClick = { navController.navigate(Route.AllWallets.path) },
         onScanIconClick = { navController.navigate(Route.ScanQRCode.path) }
