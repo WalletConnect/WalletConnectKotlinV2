@@ -139,7 +139,7 @@ internal class JsonRpcInteractor(
 
         publishJsonRpcResponse(request.topic, irnParams, result, envelopeType = envelopeType, participants = participants,
             onFailure = { error ->
-                logger.error("Cannot send the response 1, error: $error")
+                logger.error("Cannot send the response, error: $error")
                 onFailure(error)
             }
         )
@@ -158,7 +158,7 @@ internal class JsonRpcInteractor(
 
         publishJsonRpcResponse(topic, irnParams, result, envelopeType = envelopeType, participants = participants,
             onFailure = { error ->
-                logger.error("Cannot send the response 2, error: $error")
+                logger.error("Cannot send the response, error: $error")
                 onFailure(error)
             }
         )
