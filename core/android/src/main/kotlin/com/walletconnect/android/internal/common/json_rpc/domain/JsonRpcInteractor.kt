@@ -66,7 +66,7 @@ internal class JsonRpcInteractor(
 
     override fun checkConnectionWorking() {
         if (!relay.isConnectionAvailable.value) {
-            throw NoRelayConnectionException("No connection available")
+            throw NoRelayConnectionException("Connection error: Please check your Internet connection")
         }
     }
 
@@ -139,7 +139,7 @@ internal class JsonRpcInteractor(
 
         publishJsonRpcResponse(request.topic, irnParams, result, envelopeType = envelopeType, participants = participants,
             onFailure = { error ->
-                logger.error("Cannot send the response, error: $error")
+                logger.error("Cannot send the response 1, error: $error")
                 onFailure(error)
             }
         )
@@ -158,7 +158,7 @@ internal class JsonRpcInteractor(
 
         publishJsonRpcResponse(topic, irnParams, result, envelopeType = envelopeType, participants = participants,
             onFailure = { error ->
-                logger.error("Cannot send the response, error: $error")
+                logger.error("Cannot send the response 2, error: $error")
                 onFailure(error)
             }
         )

@@ -10,15 +10,27 @@ import com.walletconnect.sample.wallet.domain.ISSUER
 import com.walletconnect.sample.wallet.domain.PushWalletDelegate
 import com.walletconnect.sample.wallet.domain.WCDelegate
 import com.walletconnect.sample.common.tag
+import com.walletconnect.sample.wallet.ConnectionState
 import com.walletconnect.sample.wallet.connectionStateFlow
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.launch
 
 class Web3WalletViewModel : ViewModel() {
+    private val connectivityStateFlow: MutableStateFlow<ConnectionState> = MutableStateFlow(ConnectionState.Idle)
+    val connectionState = merge(connectivityStateFlow.asStateFlow(), connectionStateFlow.asStateFlow())
+
+    private val _pairingErrorSharedFlow: MutableSharedFlow<String> = MutableSharedFlow()
+    val pairingErrorSharedFlow = _pairingErrorSharedFlow.asSharedFlow()
+
     val walletEvents = WCDelegate.walletEvents.map { wcEvent ->
         Log.d("Web3Wallet", "VM: $wcEvent")
 
@@ -44,7 +56,15 @@ class Web3WalletViewModel : ViewModel() {
 
             is Wallet.Model.SessionDelete -> SignEvent.Disconnect
             is Wallet.Model.SessionProposal -> SignEvent.SessionProposal
-            is Wallet.Model.ConnectionState -> SignEvent.ConnectionState(wcEvent.isAvailable)
+            is Wallet.Model.ConnectionState -> {
+                val connectionState = if (wcEvent.isAvailable) {
+                    ConnectionState.Ok
+                } else {
+                    ConnectionState.Error("No Internet connection, please check your internet connection and try again")
+                }
+                connectivityStateFlow.emit(connectionState)
+            }
+
             else -> NoAction
         }
     }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
@@ -95,6 +115,11 @@ class Web3WalletViewModel : ViewModel() {
 
     fun pair(pairingUri: String) {
         val pairingParams = Wallet.Params.Pair(pairingUri)
-        Web3Wallet.pair(pairingParams) { error -> Firebase.crashlytics.recordException(error.throwable) }
+        Web3Wallet.pair(pairingParams) { error ->
+            Firebase.crashlytics.recordException(error.throwable)
+            viewModelScope.launch {
+                _pairingErrorSharedFlow.emit(error.throwable.message ?: "")
+            }
+        }
     }
 }

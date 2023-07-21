@@ -2,7 +2,6 @@
 
 package com.walletconnect.sample.wallet.ui.routes.host
 
-import android.content.SharedPreferences
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -18,6 +17,7 @@ import androidx.compose.material.ScaffoldState
 import androidx.compose.material.Text
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,11 +30,13 @@ import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.walletconnect.sample.wallet.ConnectionState
 import com.walletconnect.sample.wallet.R
-import com.walletconnect.sample.wallet.connectionStateFlow
 import com.walletconnect.sample.wallet.ui.Web3WalletNavGraph
 import com.walletconnect.sample.wallet.ui.Web3WalletViewModel
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
+import com.walletconnect.sample.wallet.ui.routes.showSnackbar
+import kotlinx.coroutines.flow.filter
 
+@OptIn(ExperimentalMaterialNavigationApi::class)
 @Composable
 fun WalletSampleHost(
     bottomSheetNavigator: BottomSheetNavigator,
@@ -44,7 +46,7 @@ fun WalletSampleHost(
     getStartedVisited: Boolean
 ) {
     val scaffoldState: ScaffoldState = rememberScaffoldState()
-    val connectionState = connectionStateFlow.collectAsState(ConnectionState.Idle).value
+    val connectionState = web3walletViewModel.connectionState.collectAsState(ConnectionState.Idle).value
 
     Scaffold(
         scaffoldState = scaffoldState
@@ -53,6 +55,13 @@ fun WalletSampleHost(
             if (connectionState is ConnectionState.Error) {
                 ErrorBanner(connectionState.message)
             }
+
+            LaunchedEffect(Unit) {
+                web3walletViewModel.pairingErrorSharedFlow.filter { it.isNotEmpty() }.collect { message ->
+                    navController.showSnackbar(message)
+                }
+            }
+
             Web3WalletNavGraph(
                 bottomSheetNavigator = bottomSheetNavigator, navController = navController,
                 getStartedVisited = getStartedVisited, web3walletViewModel = web3walletViewModel, connectionsViewModel = connectionsViewModel

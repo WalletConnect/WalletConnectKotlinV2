@@ -151,6 +151,7 @@ internal class PairingEngine(
         } catch (e: Exception) {
             crypto.removeKeys(walletConnectUri.topic.value)
             jsonRpcInteractor.unsubscribe(activePairing.topic)
+//            pairingRepository.deletePairing(activePairing.topic)
             onFailure(e)
         }
     }
