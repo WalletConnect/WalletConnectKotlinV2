@@ -54,7 +54,7 @@ private fun AllWalletsContent(
             onBackPressed = onBackClick,
             endIcon = {
                 Image(imageVector = ImageVector.vectorResource(id = R.drawable.ic_scan),
-                    colorFilter = ColorFilter.tint(Web3ModalTheme.colors.main),
+                    colorFilter = ColorFilter.tint(Web3ModalTheme.colors.main100),
                     contentDescription = "Scan Icon",
                     modifier = Modifier.clickable { onScanIconClick() })
             }

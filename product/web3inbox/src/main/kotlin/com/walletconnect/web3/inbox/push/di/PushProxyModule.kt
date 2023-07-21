@@ -2,7 +2,7 @@
 
 package com.walletconnect.web3.inbox.push.di
 
-import com.walletconnect.push.wallet.client.PushWalletInterface
+import com.walletconnect.push.client.PushWalletInterface
 import com.walletconnect.web3.inbox.client.Inbox
 import com.walletconnect.web3.inbox.common.proxy.PushProxyInteractor
 import com.walletconnect.web3.inbox.push.event.OnDeletePushEventUseCase

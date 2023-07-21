@@ -5,11 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
-import com.walletconnect.push.common.Push
+import com.walletconnect.push.client.Push
+import com.walletconnect.sample.common.tag
 import com.walletconnect.sample.wallet.domain.ISSUER
 import com.walletconnect.sample.wallet.domain.PushWalletDelegate
 import com.walletconnect.sample.wallet.domain.WCDelegate
-import com.walletconnect.sample.common.tag
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import kotlinx.coroutines.flow.SharingStarted
@@ -46,7 +46,7 @@ class Web3WalletViewModel : ViewModel() {
 
     val pushEvents = PushWalletDelegate.wcPushEventModels.map { pushEvent ->
         when (pushEvent) {
-            is Push.Wallet.Event.Request -> {
+            is Push.Event.Request -> {
                 val requestId = pushEvent.id.toString()
                 val peerName = pushEvent.metadata.name
                 val peerDesc = pushEvent.metadata.description
@@ -55,7 +55,8 @@ class Web3WalletViewModel : ViewModel() {
 
                 PushRequest(requestId, peerName, peerDesc, icon, redirect)
             }
-            is Push.Wallet.Event.Proposal -> {
+
+            is Push.Event.Proposal -> {
                 val requestId = pushEvent.id.toString()
                 val peerName = pushEvent.metadata.name
                 val peerDesc = pushEvent.metadata.description
@@ -64,18 +65,23 @@ class Web3WalletViewModel : ViewModel() {
 
                 PushProposal(requestId, peerName, peerDesc, icon, redirect)
             }
-            is Push.Wallet.Event.Message -> {
+
+            is Push.Event.Message -> {
                 PushMessage(pushEvent.message.message.title, pushEvent.message.message.body, pushEvent.message.message.icon, pushEvent.message.message.url)
             }
-            is Push.Wallet.Event.Delete -> {
+
+            is Push.Event.Delete -> {
                 NoAction
             }
-            is Push.Wallet.Event.Subscription.Result -> {
+
+            is Push.Event.Subscription.Result -> {
                 Log.e(tag(this), "PushEvent.Subscription.Result: ${pushEvent.subscription}")
             }
-            is Push.Wallet.Event.Subscription.Error -> {
+
+            is Push.Event.Subscription.Error -> {
                 Log.e(tag(this), "PushEvent.Subscription.Error: ${pushEvent.reason}")
             }
+
             else -> {
                 NoAction
             }

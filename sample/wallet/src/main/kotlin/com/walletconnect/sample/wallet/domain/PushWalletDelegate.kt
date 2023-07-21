@@ -1,7 +1,7 @@
 package com.walletconnect.sample.wallet.domain
 
-import com.walletconnect.push.common.Push
-import com.walletconnect.push.wallet.client.PushWalletClient
+import com.walletconnect.push.client.Push
+import com.walletconnect.push.client.PushWalletClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -12,30 +12,30 @@ import kotlinx.coroutines.launch
 
 object PushWalletDelegate : PushWalletClient.Delegate {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val _wcPushEventModels: MutableSharedFlow<Push.Wallet.Event?> = MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    val wcPushEventModels: SharedFlow<Push.Wallet.Event?> = _wcPushEventModels
+    private val _wcPushEventModels: MutableSharedFlow<Push.Event?> = MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    val wcPushEventModels: SharedFlow<Push.Event?> = _wcPushEventModels
 
     init {
         PushWalletClient.setDelegate(this)
     }
 
-    override fun onPushProposal(pushProposal: Push.Wallet.Event.Proposal) {
+    override fun onPushProposal(pushProposal: Push.Event.Proposal) {
         scope.launch { _wcPushEventModels.emit(pushProposal) }
     }
 
-    override fun onPushMessage(pushMessage: Push.Wallet.Event.Message) {
+    override fun onPushMessage(pushMessage: Push.Event.Message) {
         scope.launch { _wcPushEventModels.emit(pushMessage) }
     }
 
-    override fun onPushDelete(pushDelete: Push.Wallet.Event.Delete) {
+    override fun onPushDelete(pushDelete: Push.Event.Delete) {
         scope.launch { _wcPushEventModels.emit(pushDelete) }
     }
 
-    override fun onPushSubscription(pushSubscribe: Push.Wallet.Event.Subscription) {
+    override fun onPushSubscription(pushSubscribe: Push.Event.Subscription) {
         scope.launch { _wcPushEventModels.emit(pushSubscribe) }
     }
 
-    override fun onPushUpdate(pushUpdate: Push.Wallet.Event.Update) {
+    override fun onPushUpdate(pushUpdate: Push.Event.Update) {
         scope.launch { _wcPushEventModels.emit(pushUpdate) }
     }
 

@@ -3,7 +3,7 @@ package com.walletconnect.push.common.domain
 import android.net.Uri
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.push.common.model.EngineDO
-import com.walletconnect.push.wallet.data.wellknown.config.PushConfigDTO
+import com.walletconnect.push.data.wellknown.config.PushConfigDTO
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.URL

@@ -3,7 +3,7 @@
 package com.walletconnect.web3.inbox.di
 
 import com.walletconnect.chat.client.ChatInterface
-import com.walletconnect.push.wallet.client.PushWalletInterface
+import com.walletconnect.push.client.PushWalletInterface
 import com.walletconnect.web3.inbox.chat.di.chatProxyModule
 import com.walletconnect.web3.inbox.client.Inbox
 import com.walletconnect.web3.inbox.client.toCommon
