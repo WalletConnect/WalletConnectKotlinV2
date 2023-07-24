@@ -57,7 +57,6 @@ android {
             isReturnDefaultValues = true
         }
 
-        registerManagedDevices("Sign")
     }
 
     buildFeatures {
