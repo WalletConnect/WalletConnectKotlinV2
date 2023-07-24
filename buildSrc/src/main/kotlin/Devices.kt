@@ -3,7 +3,9 @@ import com.android.build.api.dsl.TestOptions
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.invoke
 
-fun TestOptions.registerManagedDevices(prefix: String) {
+fun TestOptions.registerManagedDevices(moduleName: String) {
+    val githubRunId = System.getenv("GITHUB_RUN_ID") ?: ""
+    val prefix = if (githubRunId.isEmpty()) moduleName else "${githubRunId}_$moduleName"
     managedDevices {
         devices {
             create<ManagedVirtualDevice>("${prefix}Google32") {
