@@ -3,6 +3,16 @@ name: Kotlin Scheduled Integration
 on:
   schedule:
     - cron: '0 0,12 * * *' # Runs every day at 0:00 and 12:00 UTC
+  workflow_dispatch:
+    inputs:
+      testTimeoutSeconds:
+        description: 'Seconds for test timeout'
+        required: true
+        default: 40  # should be same as env.TEST_TIMEOUT_SECONDS
+      shouldUseCache:
+        description: 'Flag to use and save cache gradle. Tests results are cached!'
+        required: true
+        default: false
 
 env:
   TEST_TIMEOUT_SECONDS: 40 # Predefined timeout for integration tests
