@@ -71,8 +71,7 @@ fun SessionProposalRoute(navController: NavHostController, sessionProposalViewMo
                     }
                     navController.popBackStack(route = Route.Connections.path, inclusive = false)
                 } catch (e: Throwable) {
-                    navController.popBackStack(route = Route.Connections.path, inclusive = false)
-                    navController.showSnackbar(e.message ?: "Session rejection error, please check your Internet connection")
+                    closeAndShowError(navController, e.message)
                 }
             }
         }, onAllow = {
@@ -85,13 +84,17 @@ fun SessionProposalRoute(navController: NavHostController, sessionProposalViewMo
                     }
                     navController.popBackStack(route = Route.Connections.path, inclusive = false)
                 } catch (e: Throwable) {
-                    navController.popBackStack(route = Route.Connections.path, inclusive = false)
-                    navController.showSnackbar(e.message ?: "Session approval error: Please check if all Namespaces are supported")
+                    closeAndShowError(navController, e.message)
                 }
             }
         })
         Spacer(modifier = Modifier.height(16.dp))
     }
+}
+
+private fun closeAndShowError(navController: NavHostController, mesage: String?) {
+    navController.popBackStack(route = Route.Connections.path, inclusive = false)
+    navController.showSnackbar(mesage ?: "Session proposal error, please check your Internet connection")
 }
 
 @Composable
