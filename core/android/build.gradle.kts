@@ -65,7 +65,7 @@ android {
             isReturnDefaultValues = true
         }
 
-        registerManagedDevices("AndroidCore")
+        registerManagedDevices()
     }
 }
 
