@@ -34,7 +34,7 @@ concurrency:
 jobs:
   sdk_tests:
     concurrency:
-      group: ${{ github.workflow }}
+      group: ${{ matrix.conf.name }}
     strategy:
       fail-fast: false
       matrix:
