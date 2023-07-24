@@ -56,7 +56,7 @@ runs:
         target: ${{ inputs.target }}
         arch: ${{ inputs.arch }}
         profile: ${{ inputs.profile }}
-        avd-name: ${{ github.run_id }}-${{ github.run_attempt }}
+        avd-name: ${{ github.run_id }}-${{ github.run_number }}
         force-avd-creation: false
         emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
         disable-animations: true
