@@ -2,12 +2,16 @@ package com.walletconnect.sample.wallet.ui.routes.composable_routes.notification
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.walletconnect.push.common.Push
-import com.walletconnect.push.wallet.client.PushWalletClient
+import com.walletconnect.push.client.Push
+import com.walletconnect.push.client.PushWalletClient
 import com.walletconnect.sample.wallet.domain.PushWalletDelegate
 import com.walletconnect.sample.wallet.domain.model.PushNotification
 import com.walletconnect.sample.wallet.domain.model.toPushNotification
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.stateIn
 
 class NotificationsViewModel : ViewModel() {
 
@@ -15,8 +19,8 @@ class NotificationsViewModel : ViewModel() {
 
     val pushEvents = PushWalletDelegate.wcPushEventModels.map { pushEvent ->
         when (pushEvent) {
-            is Push.Wallet.Event.Message -> notifications.addNewNotification(pushEvent)
-            is Push.Wallet.Event.Delete -> getMessageHistory()
+            is Push.Event.Message -> notifications.addNewNotification(pushEvent)
+            is Push.Event.Delete -> getMessageHistory()
             else -> Unit
         }
     }.shareIn(viewModelScope, started = SharingStarted.Eagerly)
@@ -32,7 +36,7 @@ class NotificationsViewModel : ViewModel() {
     fun getMessageHistory() {
         val messages = with(PushWalletClient) {
             getActiveSubscriptions().flatMap { (topic, _) ->
-                getMessageHistory(Push.Wallet.Params.MessageHistory(topic)).values
+                getMessageHistory(Push.Params.MessageHistory(topic)).values
             }
         }.map { messageRecord -> messageRecord.toPushNotification() }
         notifications.value = messages
@@ -40,7 +44,7 @@ class NotificationsViewModel : ViewModel() {
 
     fun deleteNotification(push: PushNotification) {
         PushWalletClient.deletePushMessage(
-            Push.Wallet.Params.DeleteMessage(push.id.toLong()),
+            Push.Params.DeleteMessage(push.id.toLong()),
             onSuccess = {
                 notifications.deleteNotification(push)
             },
@@ -49,7 +53,7 @@ class NotificationsViewModel : ViewModel() {
             })
     }
 
-    private fun MutableStateFlow<List<PushNotification>>.addNewNotification(push: Push.Wallet.Event.Message) {
+    private fun MutableStateFlow<List<PushNotification>>.addNewNotification(push: Push.Event.Message) {
         value = listOf(push.toPushNotification()) + value
     }
 

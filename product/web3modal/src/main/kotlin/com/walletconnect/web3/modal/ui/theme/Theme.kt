@@ -6,11 +6,10 @@ import androidx.compose.runtime.compositionLocalOf
 
 @Composable
 internal fun ProvideWeb3ModalThemeComposition(
-    colors: Web3ModalColors,
     content: @Composable () -> Unit,
 ) {
     CompositionLocalProvider(
-        LocalColorsComposition provides colors,
+        LocalColorsComposition provides provideWeb3ModalColors(),
         content = content
     )
 }

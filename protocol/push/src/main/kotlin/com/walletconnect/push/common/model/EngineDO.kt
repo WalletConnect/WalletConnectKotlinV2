@@ -26,6 +26,7 @@ sealed class EngineDO : EngineEvent {
         ) : PushScope()
     }
 
+    @Deprecated("PushProposal is deprecated and will be removed in a future release")
     data class PushProposal(
         val requestId: Long,
         val proposalTopic: Topic,

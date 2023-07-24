@@ -12,7 +12,6 @@ import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import com.walletconnect.sign.client.SignProtocol
 import com.walletconnect.sign.di.overrideModule
-import junit.framework.TestCase.fail
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.koin.core.KoinApplication
@@ -51,7 +50,6 @@ internal object TestClient {
         internal val Pairing = coreProtocol.Pairing
     }
 
-
     object Dapp {
 
         private val metadata = Core.Model.AppMetaData(
@@ -72,7 +70,7 @@ internal object TestClient {
             Relay = RelayClient(dappKoinApp)
 
             // Override of storage instances and depending objects
-            dappKoinApp.modules(overrideModule(Relay, Pairing, PairingController))
+            dappKoinApp.modules(overrideModule(Relay, Pairing, PairingController, "test_dapp"))
 
             // Necessary reinit of Relay, Pairing and PairingController
             Relay.initialize(RELAY_URL, ConnectionType.MANUAL) { Timber.e(it) }
@@ -93,27 +91,45 @@ internal object TestClient {
         internal val Relay get() = coreProtocol.Relay
         internal val Pairing = coreProtocol.Pairing
     }
-}
 
-fun pair(onPairSuccess: (pairing: Core.Model.Pairing) -> Unit) {
-    TestClient.Dapp.Pairing.getPairings().let { pairings ->
-        if (pairings.isEmpty()) {
-            Timber.d("pairings.isEmpty() == true")
+    object Hybrid {
+        private val metadata = Core.Model.AppMetaData(
+            name = "Kotlin E2E Hybrid App",
+            description = "Hybrid App for automation tests",
+            url = "kotlin.e2e.hybrid",
+            icons = listOf(),
+            redirect = null
+        )
 
-            val pairing: Core.Model.Pairing = (TestClient.Dapp.Pairing.create(onError = ::globalOnError) ?: fail("Unable to create a Pairing")) as Core.Model.Pairing
-            Timber.d("DappClient.pairing.create: $pairing")
+        private val hybridKoinApp = KoinApplication.createNewWCKoinApp()
 
-            TestClient.Wallet.Pairing.pair(Core.Params.Pair(pairing.uri), onError = ::globalOnError, onSuccess = {
-                Timber.d("WalletClient.pairing.pair: $pairing")
-                onPairSuccess(pairing)
-            })
-        } else {
-            Timber.d("pairings.isEmpty() == false")
-            fail("Pairing already exists. Storage must be cleared in between runs")
+        private val coreProtocol = CoreProtocol(hybridKoinApp).apply {
+            Timber.d("Hybrid CP start: ")
+            initialize(metadata, RELAY_URL, ConnectionType.MANUAL, app) { Timber.e(it.throwable) }
+
+            // Override of previous Relay necessary for reinitialization of `eventsFlow`
+            Relay = RelayClient(hybridKoinApp)
+
+            // Override of storage instances and depending objects
+            hybridKoinApp.modules(overrideModule(Relay, Pairing, PairingController, "test_hybrid"))
+
+            // Necessary reinit of Relay, Pairing and PairingController
+            Relay.initialize(RELAY_URL, ConnectionType.MANUAL) { Timber.e(it) }
+            Pairing.initialize()
+            PairingController.initialize()
+
+            Relay.connect(::globalOnError)
         }
-    }
-}
 
-fun pairAndConnect() {
-    pair { pairing -> dappClientConnect(pairing) }
+        private val initParams = Sign.Params.Init(coreProtocol)
+        private var _isInitialized = MutableStateFlow(false)
+        internal var isInitialized = _isInitialized.asStateFlow()
+        internal val signClient = SignProtocol(hybridKoinApp).apply {
+            initialize(initParams, onSuccess = { _isInitialized.tryEmit(true) }, onError = { Timber.e(it.throwable) })
+            Timber.d("Hybrid CP finish: ")
+        }
+
+        internal val Relay get() = coreProtocol.Relay
+        internal val Pairing = coreProtocol.Pairing
+    }
 }

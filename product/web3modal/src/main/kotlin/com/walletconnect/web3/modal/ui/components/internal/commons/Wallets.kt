@@ -63,7 +63,7 @@ internal fun WalletListItem(
         )
         Text(
             text = wallet.name,
-            style = TextStyle(color = Web3ModalTheme.colors.onBackgroundColor, fontSize = 12.sp),
+            style = TextStyle(color = Web3ModalTheme.colors.foreground.color100, fontSize = 12.sp),
             textAlign = TextAlign.Center
         )
         VerticalSpacer(height = 16.dp)
