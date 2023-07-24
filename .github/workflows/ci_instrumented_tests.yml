@@ -8,7 +8,7 @@ on:
         required: true
         default: 40  # should be same as env.TEST_TIMEOUT_SECONDS
       shouldUseCache:
-        description: 'Flag to use and save cache gradle. Tests results are cached!'
+        description: 'Flag to use and save gradle cache.'
         required: true
         default: false
   push:
@@ -37,8 +37,8 @@ jobs:
       fail-fast: false
       matrix:
         conf: [
-          { name: 'Sign_SDK', command: ":protocol:sign:allDevicesCheck"},
-          { name: 'Android_Core_SDK', command: ":core:android:allDevicesCheck"},
+          { name: 'Sign_SDK', command: ":protocol:sign:connectedCheck"},
+          { name: 'Android_Core_SDK', command: ":core:android:connectedCheck"},
         ]
 
     name: ${{ matrix.conf.name }}
