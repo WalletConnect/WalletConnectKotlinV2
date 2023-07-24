@@ -67,6 +67,7 @@ fun SessionRequestRoute(navController: NavHostController, sessionRequestViewMode
                         try {
                             sessionRequestViewModel.reject { uri -> context.sendResponseDeepLink(uri) }
                             navController.popBackStack()
+                            navController.showSnackbar("Session Request declined")
                         } catch (e: Throwable) {
                             closeAndShowError(navController, e.message)
                         }
@@ -76,6 +77,7 @@ fun SessionRequestRoute(navController: NavHostController, sessionRequestViewMode
                         try {
                             sessionRequestViewModel.approve { uri -> context.sendResponseDeepLink(uri) }
                             navController.popBackStack()
+                            navController.showSnackbar("Session Request approved")
                         } catch (e: Throwable) {
                             closeAndShowError(navController, e.message)
                         }

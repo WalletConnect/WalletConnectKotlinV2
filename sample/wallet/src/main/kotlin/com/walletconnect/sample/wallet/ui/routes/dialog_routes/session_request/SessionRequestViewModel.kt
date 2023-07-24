@@ -103,17 +103,17 @@ class SessionRequestViewModel : ViewModel() {
 
                 Web3Wallet.respondSessionRequest(response,
                     onSuccess = {
-                        continuation.resume(Unit)
                         WCDelegate.sessionRequestEvent = null
                         sendResponseDeepLink(sessionRequest, sendSessionRequestResponseDeepLink)
                         clearSessionRequest()
+                        continuation.resume(Unit)
                     },
                     onError = { error ->
-                        continuation.resumeWithException(error.throwable)
                         WCDelegate.sessionRequestEvent = null
                         Firebase.crashlytics.recordException(error.throwable)
                         sendResponseDeepLink(sessionRequest, sendSessionRequestResponseDeepLink)
                         clearSessionRequest()
+                        continuation.resumeWithException(error.throwable)
                     })
             }
         }

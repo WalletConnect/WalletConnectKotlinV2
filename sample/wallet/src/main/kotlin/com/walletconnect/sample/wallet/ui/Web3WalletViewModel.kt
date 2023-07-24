@@ -50,6 +50,9 @@ class Web3WalletViewModel : ViewModel() {
             }
 
             is Wallet.Model.AuthRequest -> {
+                viewModelScope.launch {
+                    _pairingStateSharedFlow.emit(PairingState.Success)
+                }
                 val message = Web3Wallet.formatMessage(Wallet.Params.FormatMessage(wcEvent.payloadParams, ISSUER))
                     ?: throw Exception("Error formatting message")
                 AuthEvent.OnRequest(wcEvent.id, message)
