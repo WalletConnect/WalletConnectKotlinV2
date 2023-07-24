@@ -38,6 +38,7 @@ class Web3InboxViewModel(
     private val sessionRequestMutex = Mutex()
 
     private fun String.getAddressFromCaip10() = this.split(':').last()
+    private fun String.getNamespaceFromCaip10() = this.split(':').first()
 
     sealed interface OnSignResult {
         object Loading : OnSignResult
@@ -77,7 +78,9 @@ class Web3InboxViewModel(
             val localMutex = Mutex()
             Timber.d("sessionRequestMutex: $sessionRequestMutex locked")
 
-            val session: Modal.Model.Session = WalletConnectModal.getListOfActiveSessions().first()
+            val session: Modal.Model.Session = WalletConnectModal.getListOfActiveSessions()
+                .first { session -> session.namespaces[selectedAccount.getNamespaceFromCaip10()]?.accounts?.firstOrNull { account -> account == selectedAccount } != null }
+
             WalletConnectModal.request(Modal.Params.Request(session.topic, "personal_sign", generatePersonalSignParams(message, selectedAccount.getAddressFromCaip10()), "eip155:1"),
                 onSuccess = { viewModelScope.launch { _requestStatus.emit(OnSignRequestStatus.Success(session)) } },
                 onError = { error -> viewModelScope.launch { _requestStatus.emit(OnSignRequestStatus.Failure(error.throwable)) }.also { Timber.e(error.throwable) } }

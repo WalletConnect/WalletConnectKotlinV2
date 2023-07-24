@@ -72,6 +72,10 @@ fun AccountRoute(navController: NavController) {
             return LaunchedEffect(key1 = Unit, block = {
                 navController.navigateToW3I(account)
             })
+        } else {
+            LaunchedEffect(key1 = Unit, block = {
+                viewModel.disconnectOldSessions()
+            })
         }
     }
     Box() {
