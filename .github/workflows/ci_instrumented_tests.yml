@@ -54,6 +54,9 @@ jobs:
           architecture: x86_64
           cache: 'gradle'
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+
       - name: Run instrumented tests
         uses: ./.github/actions/ci_instrumented_tests
         with:
