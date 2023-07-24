@@ -28,6 +28,9 @@ runs:
       if: ${{ inputs.shouldUseCache }}
       uses: gradle/gradle-build-action@v2
 
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v2
+
     - name: Create log file
       shell: bash
       run: |
