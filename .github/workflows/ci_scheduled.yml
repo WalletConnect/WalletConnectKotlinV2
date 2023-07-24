@@ -30,6 +30,7 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_SCHEDULED_CI_WEBHOOK_URL }}
 
+# Copy of ci_instrumented_test.yml
   sdk_tests:
     strategy:
       fail-fast: false
