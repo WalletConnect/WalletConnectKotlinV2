@@ -4,6 +4,9 @@ on:
   schedule:
     - cron: '0 0,12 * * *' # Runs every day at 0:00 and 12:00 UTC
 
+env:
+  TEST_TIMEOUT_SECONDS: 40 # Predefined timeout for integration tests
+
 jobs:
 # Copy of ci_relay.yml
   relay_tests:
