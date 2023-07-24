@@ -26,7 +26,8 @@ import com.walletconnect.wcmodal.ui.routes.scan_code.ScanQRCodeRoute
 internal fun ModalNavGraph(
     navController: NavHostController,
     state: WalletConnectModalState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onWalletClick: (String) -> Unit
 ) {
     NavHost(
         navController = navController,

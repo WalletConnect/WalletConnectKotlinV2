@@ -76,7 +76,8 @@ internal fun WalletConnectModalComponent(
             } else {
                 ModalNavGraph(
                     navController = navController,
-                    state = state
+                    state = state,
+                    onWalletClick = viewModel::updateRecentWalletId
                 )
             }
 

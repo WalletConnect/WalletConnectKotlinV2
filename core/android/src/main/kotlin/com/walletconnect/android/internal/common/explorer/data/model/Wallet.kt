@@ -7,4 +7,6 @@ data class Wallet(
     val nativeLink: String?,
     val universalLink: String?,
     val playStoreLink: String?,
-)
+) {
+    var recent: Boolean = false
+}

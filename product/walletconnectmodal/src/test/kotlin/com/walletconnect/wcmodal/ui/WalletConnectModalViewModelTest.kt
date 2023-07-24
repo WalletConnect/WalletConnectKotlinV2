@@ -6,6 +6,7 @@ import com.walletconnect.android.internal.common.explorer.data.model.Wallet
 import com.walletconnect.android.internal.common.explorer.domain.usecase.GetWalletsUseCaseInterface
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.wcmodal.client.WalletConnectModal
+import com.walletconnect.wcmodal.domain.WalletConnectModalStorage
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -28,6 +29,7 @@ class WalletConnectModalViewModelTest {
     val koin: Koin = mockk()
     val getWalletsUseCase: GetWalletsUseCaseInterface = mockk()
     val savedStateHandle: SavedStateHandle = mockk()
+    val modalStore: WalletConnectModalStorage = mockk()
 
     @Before
     fun setup() {
@@ -35,6 +37,7 @@ class WalletConnectModalViewModelTest {
         every { wcKoinApp } returns koinApp
         every { koinApp.koin } returns koin
         every { koin.get<GetWalletsUseCaseInterface>() } returns getWalletsUseCase
+        every { koin.get<WalletConnectModalStorage>() } returns modalStore
     }
 
     @Test

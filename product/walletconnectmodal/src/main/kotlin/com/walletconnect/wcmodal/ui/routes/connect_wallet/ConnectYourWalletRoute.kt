@@ -45,6 +45,11 @@ internal fun ConnectYourWalletRoute(
     navController: NavController,
     wallets: List<Wallet>
 ) {
+//    onWalletItemClick = {
+//        onWalletClick(it.id)
+//        uriHandler.goToNativeWallet(state.uri, it.nativeLink, it.universalLink, it.playStoreLink)
+//    },
+
     ConnectYourWalletContent(
         wallets = wallets,
         onWalletItemClick = { navController.navigate(Route.OnHold.path + "/${it.id}") },
@@ -107,7 +112,10 @@ private fun LazyGridScope.walletsGridItemsWithViewAll(
     onViewAllClick: () -> Unit
 ) {
     val walletsSize = maxGridElementsSize - 1
-    itemsIndexed(wallets.take(walletsSize)) { _, wallet ->
+    itemsIndexed(
+        wallets.take(walletsSize),
+        key = { _, wallet -> wallet.id }
+    ) { _, wallet ->
         WalletListItem(
             wallet = wallet,
             onWalletItemClick = onWalletItemClick
