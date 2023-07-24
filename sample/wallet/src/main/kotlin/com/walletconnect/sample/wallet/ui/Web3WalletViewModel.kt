@@ -49,6 +49,7 @@ class Web3WalletViewModel : ViewModel() {
 
                 SignEvent.SessionRequest(arrayOfArgs, arrayOfArgs.size)
             }
+
             is Wallet.Model.AuthRequest -> {
                 viewModelScope.launch {
                     _pairingStateSharedFlow.emit(PairingState.Success)
@@ -57,6 +58,7 @@ class Web3WalletViewModel : ViewModel() {
                     ?: throw Exception("Error formatting message")
                 AuthEvent.OnRequest(wcEvent.id, message)
             }
+
             is Wallet.Model.SessionDelete -> SignEvent.Disconnect
             is Wallet.Model.SessionProposal -> {
                 viewModelScope.launch {
