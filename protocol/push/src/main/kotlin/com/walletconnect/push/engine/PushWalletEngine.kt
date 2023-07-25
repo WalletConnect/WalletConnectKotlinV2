@@ -45,8 +45,8 @@ import com.walletconnect.push.engine.calls.DecryptMessageUseCaseInterface
 import com.walletconnect.push.engine.calls.DeleteMessageUseCaseInterface
 import com.walletconnect.push.engine.calls.DeleteSubscriptionUseCaseInterface
 import com.walletconnect.push.engine.calls.EnableSyncUseCaseInterface
-import com.walletconnect.push.engine.calls.GetListOfActiveSubscriptionsUseCase
 import com.walletconnect.push.engine.calls.GetListOfActiveSubscriptionsUseCaseInterface
+import com.walletconnect.push.engine.calls.GetListOfMessagesUseCaseInterface
 import com.walletconnect.push.engine.calls.RejectUseCaseInterface
 import com.walletconnect.push.engine.calls.SubscribeUseCaseInterface
 import com.walletconnect.push.engine.calls.UpdateUseCaseInterface
@@ -66,6 +66,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import org.koin.core.KoinApplication.Companion.init
 
 internal class PushWalletEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -89,7 +90,8 @@ internal class PushWalletEngine(
     private val deleteMessageUseCase: DeleteMessageUseCaseInterface,
     private val decryptMessageUseCase: DecryptMessageUseCaseInterface,
     private val enableSyncUseCase: EnableSyncUseCaseInterface,
-    private val getListOfActiveSubscriptionsUseCase: GetListOfActiveSubscriptionsUseCaseInterface
+    private val getListOfActiveSubscriptionsUseCase: GetListOfActiveSubscriptionsUseCaseInterface,
+    private val getListOfMessages: GetListOfMessagesUseCaseInterface
 ) : SubscribeUseCaseInterface by subscribeUserCase,
     ApproveUseCaseInterface by approveUseCase,
     RejectUseCaseInterface by rejectUserCase,
@@ -98,7 +100,8 @@ internal class PushWalletEngine(
     DeleteMessageUseCaseInterface by deleteMessageUseCase,
     DecryptMessageUseCaseInterface by decryptMessageUseCase,
     EnableSyncUseCaseInterface by enableSyncUseCase,
-    GetListOfActiveSubscriptionsUseCaseInterface by getListOfActiveSubscriptionsUseCase {
+    GetListOfActiveSubscriptionsUseCaseInterface by getListOfActiveSubscriptionsUseCase,
+    GetListOfMessagesUseCaseInterface by getListOfMessages {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
@@ -445,24 +448,24 @@ internal class PushWalletEngine(
 //            }
 //            .associateBy { subscription -> subscription.pushTopic.value }
 
-    suspend fun getListOfMessages(topic: String): Map<Long, EngineDO.PushRecord> = supervisorScope {
-        messagesRepository.getMessagesByTopic(topic).map { messageRecord ->
-            EngineDO.PushRecord(
-                id = messageRecord.id,
-                topic = messageRecord.topic,
-                publishedAt = messageRecord.publishedAt,
-                message = EngineDO.PushMessage(
-                    title = messageRecord.message.title,
-                    body = messageRecord.message.body,
-                    icon = messageRecord.message.icon,
-                    url = messageRecord.message.url,
-                    type = messageRecord.message.type,
-                )
-            )
-        }.associateBy { pushRecord ->
-            pushRecord.id
-        }
-    }
+//    suspend fun getListOfMessages(topic: String): Map<Long, EngineDO.PushRecord> = supervisorScope {
+//        messagesRepository.getMessagesByTopic(topic).map { messageRecord ->
+//            EngineDO.PushRecord(
+//                id = messageRecord.id,
+//                topic = messageRecord.topic,
+//                publishedAt = messageRecord.publishedAt,
+//                message = EngineDO.PushMessage(
+//                    title = messageRecord.message.title,
+//                    body = messageRecord.message.body,
+//                    icon = messageRecord.message.icon,
+//                    url = messageRecord.message.url,
+//                    type = messageRecord.message.type,
+//                )
+//            )
+//        }.associateBy { pushRecord ->
+//            pushRecord.id
+//        }
+//    }
 
     private suspend fun collectJsonRpcRequests(): Job =
         jsonRpcInteractor.clientSyncJsonRpc
