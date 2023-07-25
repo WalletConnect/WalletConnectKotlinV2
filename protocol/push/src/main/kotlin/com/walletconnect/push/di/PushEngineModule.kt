@@ -13,6 +13,8 @@ import com.walletconnect.push.engine.calls.SubscribeUseCaseInterface
 import com.walletconnect.push.engine.calls.UpdateUseCase
 import com.walletconnect.push.engine.calls.UpdateUseCaseInterface
 import com.walletconnect.push.engine.domain.EnginePushSubscriptionNotifier
+import com.walletconnect.push.engine.domain.RegisterIdentityAndReturnDidJwtUseCase
+import com.walletconnect.push.engine.domain.RegisterIdentityAndReturnDidJwtUseCaseInterface
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
@@ -21,6 +23,13 @@ internal fun walletEngineModule() = module {
 
     single {
         EnginePushSubscriptionNotifier()
+    }
+
+    single<RegisterIdentityAndReturnDidJwtUseCaseInterface> {
+        RegisterIdentityAndReturnDidJwtUseCase(
+            keyserverUrl = get(named(AndroidCommonDITags.KEYSERVER_URL)),
+            identitiesInteractor = get()
+        )
     }
 
     single<SubscribeUseCaseInterface> {
