@@ -19,7 +19,7 @@ fun TestOptions.registerManagedDevices() {
                 val taskSuffix = deviceName.replace(" ", "_")
                 create<ManagedVirtualDevice>("Google32_${taskSuffix}") {
                     device = deviceName
-                    apiLevel = 32
+                    apiLevel = 30
                     systemImageSource = "google-atd"
                 }
             }
