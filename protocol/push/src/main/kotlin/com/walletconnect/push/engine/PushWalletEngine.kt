@@ -5,29 +5,17 @@ package com.walletconnect.push.engine
 import android.content.res.Resources.NotFoundException
 import com.walletconnect.android.history.HistoryInterface
 import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtClaims
-import com.walletconnect.android.internal.common.model.AppMetaData
-import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.ConnectionState
-import com.walletconnect.android.internal.common.model.Expiry
-import com.walletconnect.android.internal.common.model.IrnParams
-import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
-import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.params.PushParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
-import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.sync.client.SyncInterface
-import com.walletconnect.foundation.common.model.PublicKey
-import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.push.common.JsonRpcMethod
 import com.walletconnect.push.common.calcExpiry
@@ -45,15 +33,13 @@ import com.walletconnect.push.engine.calls.GetListOfMessagesUseCaseInterface
 import com.walletconnect.push.engine.calls.RejectUseCaseInterface
 import com.walletconnect.push.engine.calls.SubscribeUseCaseInterface
 import com.walletconnect.push.engine.calls.UpdateUseCaseInterface
-import com.walletconnect.push.engine.domain.EnginePushSubscriptionNotifier
 import com.walletconnect.push.engine.requests.OnPushDeleteUseCase
 import com.walletconnect.push.engine.requests.OnPushMessageUseCase
 import com.walletconnect.push.engine.requests.OnPushProposeUseCase
+import com.walletconnect.push.engine.responses.OnPushSubscribeResponseUseCase
 import com.walletconnect.push.engine.sync.use_case.events.OnSyncUpdateEventUseCase
-import com.walletconnect.push.engine.sync.use_case.requests.SetSubscriptionWithSymmetricKeyToPushSubscriptionStoreUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -61,21 +47,16 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
 internal class PushWalletEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
-    private val crypto: KeyManagementRepository,
     private val pairingHandler: PairingControllerInterface,
     private val subscriptionRepository: SubscriptionRepository,
-    private val metadataStorageRepository: MetadataStorageRepositoryInterface,
-    private val enginePushSubscriptionNotifier: EnginePushSubscriptionNotifier,
     private val logger: Logger,
     private val syncClient: SyncInterface,
     private val onSyncUpdateEventUseCase: OnSyncUpdateEventUseCase,
-    private val setSubscriptionWithSymmetricKeyToPushSubscriptionStoreUseCase: SetSubscriptionWithSymmetricKeyToPushSubscriptionStoreUseCase,
     private val historyInterface: HistoryInterface,
     private val subscribeUserCase: SubscribeUseCaseInterface,
     private val approveUseCase: ApproveUseCaseInterface,
@@ -89,7 +70,8 @@ internal class PushWalletEngine(
     private val getListOfMessages: GetListOfMessagesUseCaseInterface,
     private val onPushProposeUseCase: OnPushProposeUseCase,
     private val onPushMessageUseCase: OnPushMessageUseCase,
-    private val onPushDeleteUseCase: OnPushDeleteUseCase
+    private val onPushDeleteUseCase: OnPushDeleteUseCase,
+    private val onPushSubscribeResponseUseCase: OnPushSubscribeResponseUseCase
 ) : SubscribeUseCaseInterface by subscribeUserCase,
     ApproveUseCaseInterface by approveUseCase,
     RejectUseCaseInterface by rejectUserCase,
@@ -472,8 +454,8 @@ internal class PushWalletEngine(
             .filter { response -> response.params is PushParams }
             .onEach { response ->
                 when (val responseParams = response.params) {
+                    is PushParams.SubscribeParams -> onPushSubscribeResponseUseCase(response)
                     is PushParams.DeleteParams -> onPushDeleteResponse()
-                    is PushParams.SubscribeParams -> onPushSubscribeResponse(response)
                     is PushParams.UpdateParams -> onPushUpdateResponse(response, responseParams)
                 }
             }.launchIn(scope)
@@ -487,7 +469,7 @@ internal class PushWalletEngine(
         .onEach { event -> onSyncUpdateEventUseCase(event) }
         .launchIn(scope)
 
-    private fun collectPushEvents(): Job = merge(onPushProposeUseCase.events, onPushMessageUseCase.events, onPushDeleteUseCase.events)
+    private fun collectPushEvents(): Job = merge(onPushProposeUseCase.events, onPushMessageUseCase.events, onPushDeleteUseCase.events, onPushSubscribeResponseUseCase.events)
         .onEach { event -> _engineEvent.emit(event) }
         .launchIn(scope)
 
@@ -542,75 +524,75 @@ internal class PushWalletEngine(
         // TODO: Review if we need this
     }
 
-    private suspend fun onPushSubscribeResponse(wcResponse: WCResponse) = supervisorScope {
-        try {
-            when (val response = wcResponse.response) {
-                is JsonRpcResponse.JsonRpcResult -> {
-                    val requestedSubscription: EngineDO.Subscription.Requested = subscriptionRepository.getRequestedSubscriptionByRequestId(response.id)
-                        ?: return@supervisorScope _engineEvent.emit(SDKError(NotFoundException("Cannot find subscription for topic: ${wcResponse.topic.value}")))
-
-                    // TODO: Add an entry in JsonRpcResultAdapter and create data class for response
-                    val dappGeneratedPublicKey = PublicKey((((wcResponse.response as JsonRpcResponse.JsonRpcResult).result as Map<*, *>)["publicKey"] as String))
-                    val selfPublicKey: PublicKey = crypto.getSelfPublicFromKeyAgreement(requestedSubscription.responseTopic)
-                    val pushTopic: Topic = crypto.generateTopicFromKeyAgreement(selfPublicKey, dappGeneratedPublicKey)
-                    val updatedExpiry: Expiry = calcExpiry()
-                    val relayProtocolOptions = RelayProtocolOptions()
-
-                    runCatching {
-                        with(requestedSubscription) {
-                            subscriptionRepository.insertOrAbortActiveSubscription(
-                                account.value,
-                                updatedExpiry.seconds,
-                                relayProtocolOptions.protocol,
-                                relayProtocolOptions.data,
-                                mapOfScope.toDb(),
-                                dappGeneratedPublicKey.keyAsHex,
-                                pushTopic.value,
-                                requestedSubscription.requestId
-                            )
-                        }
-                    }.mapCatching {
-                        metadataStorageRepository.updateOrAbortMetaDataTopic(requestedSubscription.responseTopic, pushTopic)
-                    }.fold(onSuccess = {
-                        val activeSubscription = with(requestedSubscription) {
-                            val dappMetaData: AppMetaData? = metadataStorageRepository.getByTopicAndType(pushTopic, AppMetaDataType.PEER)
-
-                            EngineDO.Subscription.Active(account, mapOfScope, expiry, dappGeneratedPublicKey, pushTopic, dappMetaData, requestedSubscription.requestId)
-                        }
-
-                        jsonRpcInteractor.subscribe(pushTopic) { error ->
-                            launch {
-                                _engineEvent.emit(SDKError(error))
-                                cancel()
-                            }
-                        }
-
-                        jsonRpcInteractor.unsubscribe(requestedSubscription.responseTopic) { error ->
-                            launch {
-                                _engineEvent.emit(SDKError(error))
-                                cancel()
-                            }
-                        }
-
-                        val symKey = crypto.getSymmetricKey(pushTopic.value.lowercase())
-                        setSubscriptionWithSymmetricKeyToPushSubscriptionStoreUseCase(activeSubscription, symKey, { logger.log("Synced Subscriptions") }, { error -> logger.error(error) })
-
-                        _engineEvent.emit(activeSubscription)
-                        enginePushSubscriptionNotifier.newlyRespondedRequestedSubscriptionId.updateAndGet { requestedSubscription.requestId to activeSubscription }
-                    }, onFailure = {
-                        logger.error(it)
-                        return@supervisorScope _engineEvent.emit(SDKError(NotFoundException("Subscription already exists for topic: ${wcResponse.topic.value}")))
-                    })
-                }
-
-                is JsonRpcResponse.JsonRpcError -> {
-                    _engineEvent.emit(EngineDO.Subscription.Error(wcResponse.response.id, response.error.message))
-                }
-            }
-        } catch (exception: Exception) {
-            _engineEvent.emit(SDKError(exception))
-        }
-    }
+//    private suspend fun onPushSubscribeResponse(wcResponse: WCResponse) = supervisorScope {
+//        try {
+//            when (val response = wcResponse.response) {
+//                is JsonRpcResponse.JsonRpcResult -> {
+//                    val requestedSubscription: EngineDO.Subscription.Requested = subscriptionRepository.getRequestedSubscriptionByRequestId(response.id)
+//                        ?: return@supervisorScope _engineEvent.emit(SDKError(NotFoundException("Cannot find subscription for topic: ${wcResponse.topic.value}")))
+//
+//                    // TODO: Add an entry in JsonRpcResultAdapter and create data class for response
+//                    val dappGeneratedPublicKey = PublicKey((((wcResponse.response as JsonRpcResponse.JsonRpcResult).result as Map<*, *>)["publicKey"] as String))
+//                    val selfPublicKey: PublicKey = crypto.getSelfPublicFromKeyAgreement(requestedSubscription.responseTopic)
+//                    val pushTopic: Topic = crypto.generateTopicFromKeyAgreement(selfPublicKey, dappGeneratedPublicKey)
+//                    val updatedExpiry: Expiry = calcExpiry()
+//                    val relayProtocolOptions = RelayProtocolOptions()
+//
+//                    runCatching {
+//                        with(requestedSubscription) {
+//                            subscriptionRepository.insertOrAbortActiveSubscription(
+//                                account.value,
+//                                updatedExpiry.seconds,
+//                                relayProtocolOptions.protocol,
+//                                relayProtocolOptions.data,
+//                                mapOfScope.toDb(),
+//                                dappGeneratedPublicKey.keyAsHex,
+//                                pushTopic.value,
+//                                requestedSubscription.requestId
+//                            )
+//                        }
+//                    }.mapCatching {
+//                        metadataStorageRepository.updateOrAbortMetaDataTopic(requestedSubscription.responseTopic, pushTopic)
+//                    }.fold(onSuccess = {
+//                        val activeSubscription = with(requestedSubscription) {
+//                            val dappMetaData: AppMetaData? = metadataStorageRepository.getByTopicAndType(pushTopic, AppMetaDataType.PEER)
+//
+//                            EngineDO.Subscription.Active(account, mapOfScope, expiry, dappGeneratedPublicKey, pushTopic, dappMetaData, requestedSubscription.requestId)
+//                        }
+//
+//                        jsonRpcInteractor.subscribe(pushTopic) { error ->
+//                            launch {
+//                                _engineEvent.emit(SDKError(error))
+//                                cancel()
+//                            }
+//                        }
+//
+//                        jsonRpcInteractor.unsubscribe(requestedSubscription.responseTopic) { error ->
+//                            launch {
+//                                _engineEvent.emit(SDKError(error))
+//                                cancel()
+//                            }
+//                        }
+//
+//                        val symKey = crypto.getSymmetricKey(pushTopic.value.lowercase())
+//                        setSubscriptionWithSymmetricKeyToPushSubscriptionStoreUseCase(activeSubscription, symKey, { logger.log("Synced Subscriptions") }, { error -> logger.error(error) })
+//
+//                        _engineEvent.emit(activeSubscription)
+//                        enginePushSubscriptionNotifier.newlyRespondedRequestedSubscriptionId.updateAndGet { requestedSubscription.requestId to activeSubscription }
+//                    }, onFailure = {
+//                        logger.error(it)
+//                        return@supervisorScope _engineEvent.emit(SDKError(NotFoundException("Subscription already exists for topic: ${wcResponse.topic.value}")))
+//                    })
+//                }
+//
+//                is JsonRpcResponse.JsonRpcError -> {
+//                    _engineEvent.emit(EngineDO.Subscription.Error(wcResponse.response.id, response.error.message))
+//                }
+//            }
+//        } catch (exception: Exception) {
+//            _engineEvent.emit(SDKError(exception))
+//        }
+//    }
 
     private suspend fun onPushUpdateResponse(wcResponse: WCResponse, updateParams: PushParams.UpdateParams) = supervisorScope {
         val resultEvent = try {
