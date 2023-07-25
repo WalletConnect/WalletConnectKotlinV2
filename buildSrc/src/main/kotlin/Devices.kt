@@ -12,7 +12,7 @@ val devicesNames = listOf(
 )
 
 fun TestOptions.registerManagedDevices() {
-    val whichDeviceProfile = System.getenv("GITHUB_RUN_NUMBER").toIntOrNull() ?: 0
+    val whichDeviceProfile = (System.getenv("GITHUB_RUN_NUMBER").toIntOrNull() ?: 0).mod(devicesNames.size)
     managedDevices {
         devices {
             devicesNames[whichDeviceProfile].let { deviceName ->
