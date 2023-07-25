@@ -5,10 +5,8 @@ package com.walletconnect.push.engine
 import android.content.res.Resources.NotFoundException
 import com.walletconnect.android.history.HistoryInterface
 import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.Uncategorized
-import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtClaims
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.AppMetaData
@@ -22,7 +20,6 @@ import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.params.PushParams
-import com.walletconnect.android.internal.common.model.sync.ClientJsonRpc
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
@@ -45,7 +42,7 @@ import com.walletconnect.push.common.model.toDb
 import com.walletconnect.push.common.model.toEngineDO
 import com.walletconnect.push.data.MessagesRepository
 import com.walletconnect.push.engine.calls.ApproveUseCaseInterface
-import com.walletconnect.push.engine.calls.DeleteMessageUseCase
+import com.walletconnect.push.engine.calls.DecryptMessageUseCaseInterface
 import com.walletconnect.push.engine.calls.DeleteMessageUseCaseInterface
 import com.walletconnect.push.engine.calls.DeleteSubscriptionUseCaseInterface
 import com.walletconnect.push.engine.calls.RejectUseCaseInterface
@@ -69,7 +66,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
-import kotlin.reflect.full.safeCast
 
 internal class PushWalletEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -80,8 +76,6 @@ internal class PushWalletEngine(
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val messagesRepository: MessagesRepository,
     private val enginePushSubscriptionNotifier: EnginePushSubscriptionNotifier,
-    private val serializer: JsonRpcSerializer,
-    private val codec: Codec,
     private val logger: Logger,
     private val syncClient: SyncInterface,
     private val onSyncUpdateEventUseCase: OnSyncUpdateEventUseCase,
@@ -94,13 +88,15 @@ internal class PushWalletEngine(
     private val rejectUserCase: RejectUseCaseInterface,
     private val updateUseCase: UpdateUseCaseInterface,
     private val deleteSubscriptionUseCase: DeleteSubscriptionUseCaseInterface,
-    private val deleteMessageUseCase: DeleteMessageUseCaseInterface
+    private val deleteMessageUseCase: DeleteMessageUseCaseInterface,
+    private val decryptMessageUseCase: DecryptMessageUseCaseInterface,
 ) : SubscribeUseCaseInterface by subscribeUserCase,
     ApproveUseCaseInterface by approveUseCase,
     RejectUseCaseInterface by rejectUserCase,
     UpdateUseCaseInterface by updateUseCase,
     DeleteSubscriptionUseCaseInterface by deleteSubscriptionUseCase,
-    DeleteMessageUseCaseInterface by deleteMessageUseCase {
+    DeleteMessageUseCaseInterface by deleteMessageUseCase,
+    DecryptMessageUseCaseInterface by decryptMessageUseCase {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
@@ -419,19 +415,19 @@ internal class PushWalletEngine(
 //        }
 //    }
 
-    suspend fun decryptMessage(topic: String, message: String, onSuccess: (EngineDO.PushMessage) -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
-        try {
-            val decryptedMessageString = codec.decrypt(Topic(topic), message)
-            // How to look in JsonRpcHistory for dupes without Rpc ID
-            val clientJsonRpc = serializer.tryDeserialize<ClientJsonRpc>(decryptedMessageString) ?: return@supervisorScope onFailure(IllegalArgumentException("Unable to deserialize message"))
-            val pushMessage = serializer.deserialize(clientJsonRpc.method, decryptedMessageString)
-            val pushMessageEngineDO = PushParams.MessageParams::class.safeCast(pushMessage)?.toEngineDO() ?: return@supervisorScope onFailure(IllegalArgumentException("Unable to deserialize message"))
-
-            onSuccess(pushMessageEngineDO)
-        } catch (e: Exception) {
-            onFailure(e)
-        }
-    }
+//    suspend fun decryptMessage(topic: String, message: String, onSuccess: (EngineDO.PushMessage) -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
+//        try {
+//            val decryptedMessageString = codec.decrypt(Topic(topic), message)
+//            // How to look in JsonRpcHistory for dupes without Rpc ID
+//            val clientJsonRpc = serializer.tryDeserialize<ClientJsonRpc>(decryptedMessageString) ?: return@supervisorScope onFailure(IllegalArgumentException("Unable to deserialize message"))
+//            val pushMessage = serializer.deserialize(clientJsonRpc.method, decryptedMessageString)
+//            val pushMessageEngineDO = PushParams.MessageParams::class.safeCast(pushMessage)?.toEngineDO() ?: return@supervisorScope onFailure(IllegalArgumentException("Unable to deserialize message"))
+//
+//            onSuccess(pushMessageEngineDO)
+//        } catch (e: Exception) {
+//            onFailure(e)
+//        }
+//    }
 
     suspend fun enableSync(account: String, onSign: (String) -> Cacao.Signature?, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         setupSyncInPushUseCase(AccountId(account), onSign, onSuccess = {

@@ -6,6 +6,8 @@ import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.push.engine.PushWalletEngine
 import com.walletconnect.push.engine.calls.ApproveUseCase
 import com.walletconnect.push.engine.calls.ApproveUseCaseInterface
+import com.walletconnect.push.engine.calls.DecryptMessageUseCase
+import com.walletconnect.push.engine.calls.DecryptMessageUseCaseInterface
 import com.walletconnect.push.engine.calls.DeleteMessageUseCase
 import com.walletconnect.push.engine.calls.DeleteMessageUseCaseInterface
 import com.walletconnect.push.engine.calls.DeleteSubscriptionUseCase
@@ -93,6 +95,13 @@ internal fun walletEngineModule() = module {
         )
     }
 
+    single<DecryptMessageUseCaseInterface> {
+        DecryptMessageUseCase(
+            codec = get(),
+            serializer = get()
+        )
+    }
+
     single {
         PushWalletEngine(
             jsonRpcInteractor = get(),
@@ -103,21 +112,20 @@ internal fun walletEngineModule() = module {
             metadataStorageRepository = get(),
             messagesRepository = get(),
             enginePushSubscriptionNotifier = get(),
-            serializer = get(),
-            codec = get(),
             logger = get(),
             syncClient = get(),
             onSyncUpdateEventUseCase = get(),
             setupSyncInPushUseCase = get(),
+            getMessagesFromHistoryUseCase = get(),
             setSubscriptionWithSymmetricKeyToPushSubscriptionStoreUseCase = get(),
             historyInterface = get(),
-            getMessagesFromHistoryUseCase = get(),
             subscribeUserCase = get(),
             approveUseCase = get(),
             rejectUserCase = get(),
             updateUseCase = get(),
             deleteSubscriptionUseCase = get(),
-            deleteMessageUseCase = get()
+            deleteMessageUseCase = get(),
+            decryptMessageUseCase = get()
         )
     }
 }
