@@ -45,6 +45,8 @@ import com.walletconnect.push.engine.calls.DecryptMessageUseCaseInterface
 import com.walletconnect.push.engine.calls.DeleteMessageUseCaseInterface
 import com.walletconnect.push.engine.calls.DeleteSubscriptionUseCaseInterface
 import com.walletconnect.push.engine.calls.EnableSyncUseCaseInterface
+import com.walletconnect.push.engine.calls.GetListOfActiveSubscriptionsUseCase
+import com.walletconnect.push.engine.calls.GetListOfActiveSubscriptionsUseCaseInterface
 import com.walletconnect.push.engine.calls.RejectUseCaseInterface
 import com.walletconnect.push.engine.calls.SubscribeUseCaseInterface
 import com.walletconnect.push.engine.calls.UpdateUseCaseInterface
@@ -87,6 +89,7 @@ internal class PushWalletEngine(
     private val deleteMessageUseCase: DeleteMessageUseCaseInterface,
     private val decryptMessageUseCase: DecryptMessageUseCaseInterface,
     private val enableSyncUseCase: EnableSyncUseCaseInterface,
+    private val getListOfActiveSubscriptionsUseCase: GetListOfActiveSubscriptionsUseCaseInterface
 ) : SubscribeUseCaseInterface by subscribeUserCase,
     ApproveUseCaseInterface by approveUseCase,
     RejectUseCaseInterface by rejectUserCase,
@@ -94,7 +97,8 @@ internal class PushWalletEngine(
     DeleteSubscriptionUseCaseInterface by deleteSubscriptionUseCase,
     DeleteMessageUseCaseInterface by deleteMessageUseCase,
     DecryptMessageUseCaseInterface by decryptMessageUseCase,
-    EnableSyncUseCaseInterface by enableSyncUseCase {
+    EnableSyncUseCaseInterface by enableSyncUseCase,
+    GetListOfActiveSubscriptionsUseCaseInterface by getListOfActiveSubscriptionsUseCase {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
@@ -433,13 +437,13 @@ internal class PushWalletEngine(
 //        }, onFailure)
 //    }
 
-    suspend fun getListOfActiveSubscriptions(): Map<String, EngineDO.Subscription.Active> =
-        subscriptionRepository.getAllActiveSubscriptions()
-            .map { subscription ->
-                val metadata = metadataStorageRepository.getByTopicAndType(subscription.pushTopic, AppMetaDataType.PEER)
-                subscription.copy(dappMetaData = metadata)
-            }
-            .associateBy { subscription -> subscription.pushTopic.value }
+//    suspend fun getListOfActiveSubscriptions(): Map<String, EngineDO.Subscription.Active> =
+//        subscriptionRepository.getAllActiveSubscriptions()
+//            .map { subscription ->
+//                val metadata = metadataStorageRepository.getByTopicAndType(subscription.pushTopic, AppMetaDataType.PEER)
+//                subscription.copy(dappMetaData = metadata)
+//            }
+//            .associateBy { subscription -> subscription.pushTopic.value }
 
     suspend fun getListOfMessages(topic: String): Map<Long, EngineDO.PushRecord> = supervisorScope {
         messagesRepository.getMessagesByTopic(topic).map { messageRecord ->

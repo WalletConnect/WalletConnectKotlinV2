@@ -14,6 +14,8 @@ import com.walletconnect.push.engine.calls.DeleteSubscriptionUseCase
 import com.walletconnect.push.engine.calls.DeleteSubscriptionUseCaseInterface
 import com.walletconnect.push.engine.calls.EnableSyncUseCase
 import com.walletconnect.push.engine.calls.EnableSyncUseCaseInterface
+import com.walletconnect.push.engine.calls.GetListOfActiveSubscriptionsUseCase
+import com.walletconnect.push.engine.calls.GetListOfActiveSubscriptionsUseCaseInterface
 import com.walletconnect.push.engine.calls.RejectUseCase
 import com.walletconnect.push.engine.calls.RejectUseCaseInterface
 import com.walletconnect.push.engine.calls.SubscribeUseCase
@@ -111,6 +113,13 @@ internal fun walletEngineModule() = module {
         )
     }
 
+    single<GetListOfActiveSubscriptionsUseCaseInterface> {
+        GetListOfActiveSubscriptionsUseCase(
+            subscriptionRepository = get(),
+            metadataStorageRepository = get()
+        )
+    }
+
     single {
         PushWalletEngine(
             jsonRpcInteractor = get(),
@@ -133,7 +142,8 @@ internal fun walletEngineModule() = module {
             deleteSubscriptionUseCase = get(),
             deleteMessageUseCase = get(),
             decryptMessageUseCase = get(),
-            enableSyncUseCase = get()
+            enableSyncUseCase = get(),
+            getListOfActiveSubscriptionsUseCase = get()
         )
     }
 }
