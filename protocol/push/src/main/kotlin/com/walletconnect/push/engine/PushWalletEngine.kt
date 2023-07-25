@@ -23,7 +23,6 @@ import com.walletconnect.android.internal.common.model.params.PushParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
@@ -45,12 +44,11 @@ import com.walletconnect.push.engine.calls.ApproveUseCaseInterface
 import com.walletconnect.push.engine.calls.DecryptMessageUseCaseInterface
 import com.walletconnect.push.engine.calls.DeleteMessageUseCaseInterface
 import com.walletconnect.push.engine.calls.DeleteSubscriptionUseCaseInterface
+import com.walletconnect.push.engine.calls.EnableSyncUseCaseInterface
 import com.walletconnect.push.engine.calls.RejectUseCaseInterface
 import com.walletconnect.push.engine.calls.SubscribeUseCaseInterface
 import com.walletconnect.push.engine.calls.UpdateUseCaseInterface
 import com.walletconnect.push.engine.domain.EnginePushSubscriptionNotifier
-import com.walletconnect.push.engine.sync.use_case.GetMessagesFromHistoryUseCase
-import com.walletconnect.push.engine.sync.use_case.SetupSyncInPushUseCase
 import com.walletconnect.push.engine.sync.use_case.events.OnSyncUpdateEventUseCase
 import com.walletconnect.push.engine.sync.use_case.requests.SetSubscriptionWithSymmetricKeyToPushSubscriptionStoreUseCase
 import kotlinx.coroutines.Dispatchers
@@ -79,8 +77,6 @@ internal class PushWalletEngine(
     private val logger: Logger,
     private val syncClient: SyncInterface,
     private val onSyncUpdateEventUseCase: OnSyncUpdateEventUseCase,
-    private val setupSyncInPushUseCase: SetupSyncInPushUseCase,
-    private val getMessagesFromHistoryUseCase: GetMessagesFromHistoryUseCase,
     private val setSubscriptionWithSymmetricKeyToPushSubscriptionStoreUseCase: SetSubscriptionWithSymmetricKeyToPushSubscriptionStoreUseCase,
     private val historyInterface: HistoryInterface,
     private val subscribeUserCase: SubscribeUseCaseInterface,
@@ -90,13 +86,15 @@ internal class PushWalletEngine(
     private val deleteSubscriptionUseCase: DeleteSubscriptionUseCaseInterface,
     private val deleteMessageUseCase: DeleteMessageUseCaseInterface,
     private val decryptMessageUseCase: DecryptMessageUseCaseInterface,
+    private val enableSyncUseCase: EnableSyncUseCaseInterface,
 ) : SubscribeUseCaseInterface by subscribeUserCase,
     ApproveUseCaseInterface by approveUseCase,
     RejectUseCaseInterface by rejectUserCase,
     UpdateUseCaseInterface by updateUseCase,
     DeleteSubscriptionUseCaseInterface by deleteSubscriptionUseCase,
     DeleteMessageUseCaseInterface by deleteMessageUseCase,
-    DecryptMessageUseCaseInterface by decryptMessageUseCase {
+    DecryptMessageUseCaseInterface by decryptMessageUseCase,
+    EnableSyncUseCaseInterface by enableSyncUseCase {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
@@ -429,11 +427,11 @@ internal class PushWalletEngine(
 //        }
 //    }
 
-    suspend fun enableSync(account: String, onSign: (String) -> Cacao.Signature?, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
-        setupSyncInPushUseCase(AccountId(account), onSign, onSuccess = {
-            scope.launch { getMessagesFromHistoryUseCase(AccountId(account), onSuccess, onFailure) }
-        }, onFailure)
-    }
+//    suspend fun enableSync(account: String, onSign: (String) -> Cacao.Signature?, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
+//        setupSyncInPushUseCase(AccountId(account), onSign, onSuccess = {
+//            scope.launch { getMessagesFromHistoryUseCase(AccountId(account), onSuccess, onFailure) }
+//        }, onFailure)
+//    }
 
     suspend fun getListOfActiveSubscriptions(): Map<String, EngineDO.Subscription.Active> =
         subscriptionRepository.getAllActiveSubscriptions()
