@@ -49,8 +49,3 @@ runs:
         path: |
           **/reports/**
           emulator.log
-
-    - name: Clean up
-      if: always()
-      shell: bash
-      run: rm -rf ../../${{ github.event.repository.name }}
