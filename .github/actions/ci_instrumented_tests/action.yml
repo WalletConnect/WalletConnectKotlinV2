@@ -24,10 +24,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Gradle cache
-      if: ${{ inputs.shouldUseCache }}
-      uses: gradle/gradle-build-action@v2
-
     - name: Create log file
       shell: bash
       run: |
