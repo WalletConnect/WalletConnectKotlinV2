@@ -42,11 +42,6 @@ runs:
         TEST_TIMEOUT_SECONDS: ${{ inputs.testTimeoutSeconds }}
       run: ./gradlew ${{ inputs.command }}
 
-    - name: Clean up
-      if: always()
-      shell: bash
-      run: rm -rf ../../${{ github.event.repository.name }}
-
     - uses: actions/upload-artifact@v3
       if: always()
       with:
@@ -54,3 +49,8 @@ runs:
         path: |
           **/reports/**
           emulator.log
+
+    - name: Clean up
+      if: always()
+      shell: bash
+      run: rm -rf ../../${{ github.event.repository.name }}
