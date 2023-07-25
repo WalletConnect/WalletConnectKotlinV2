@@ -27,6 +27,7 @@ import com.walletconnect.push.engine.calls.UpdateUseCaseInterface
 import com.walletconnect.push.engine.domain.EnginePushSubscriptionNotifier
 import com.walletconnect.push.engine.domain.RegisterIdentityAndReturnDidJwtUseCase
 import com.walletconnect.push.engine.domain.RegisterIdentityAndReturnDidJwtUseCaseInterface
+import com.walletconnect.push.engine.requests.OnPushProposeUseCase
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
@@ -129,12 +130,20 @@ internal fun walletEngineModule() = module {
     }
 
     single {
+        OnPushProposeUseCase(
+            jsonRpcInteractor = get(),
+            metadataStorageRepository = get(),
+            proposalStorageRepository = get(),
+            logger = get()
+        )
+    }
+
+    single {
         PushWalletEngine(
             jsonRpcInteractor = get(),
             crypto = get(),
             pairingHandler = get(),
             subscriptionRepository = get(),
-            proposalStorageRepository = get(),
             metadataStorageRepository = get(),
             messagesRepository = get(),
             enginePushSubscriptionNotifier = get(),
@@ -152,7 +161,8 @@ internal fun walletEngineModule() = module {
             decryptMessageUseCase = get(),
             enableSyncUseCase = get(),
             getListOfActiveSubscriptionsUseCase = get(),
-            getListOfMessages = get()
+            getListOfMessages = get(),
+            onPushProposeUseCase = get()
         )
     }
 }

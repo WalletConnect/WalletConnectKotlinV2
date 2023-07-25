@@ -8,7 +8,6 @@ import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtClaims
-import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.ConnectionState
@@ -34,7 +33,6 @@ import com.walletconnect.foundation.util.Logger
 import com.walletconnect.push.common.JsonRpcMethod
 import com.walletconnect.push.common.calcExpiry
 import com.walletconnect.push.common.data.jwt.PushSubscriptionJwtClaim
-import com.walletconnect.push.common.data.storage.ProposalStorageRepository
 import com.walletconnect.push.common.data.storage.SubscriptionRepository
 import com.walletconnect.push.common.model.EngineDO
 import com.walletconnect.push.common.model.toDb
@@ -51,6 +49,7 @@ import com.walletconnect.push.engine.calls.RejectUseCaseInterface
 import com.walletconnect.push.engine.calls.SubscribeUseCaseInterface
 import com.walletconnect.push.engine.calls.UpdateUseCaseInterface
 import com.walletconnect.push.engine.domain.EnginePushSubscriptionNotifier
+import com.walletconnect.push.engine.requests.OnPushProposeUseCase
 import com.walletconnect.push.engine.sync.use_case.events.OnSyncUpdateEventUseCase
 import com.walletconnect.push.engine.sync.use_case.requests.SetSubscriptionWithSymmetricKeyToPushSubscriptionStoreUseCase
 import kotlinx.coroutines.Dispatchers
@@ -66,14 +65,12 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
-import org.koin.core.KoinApplication.Companion.init
 
 internal class PushWalletEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val crypto: KeyManagementRepository,
     private val pairingHandler: PairingControllerInterface,
     private val subscriptionRepository: SubscriptionRepository,
-    private val proposalStorageRepository: ProposalStorageRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val messagesRepository: MessagesRepository,
     private val enginePushSubscriptionNotifier: EnginePushSubscriptionNotifier,
@@ -91,7 +88,8 @@ internal class PushWalletEngine(
     private val decryptMessageUseCase: DecryptMessageUseCaseInterface,
     private val enableSyncUseCase: EnableSyncUseCaseInterface,
     private val getListOfActiveSubscriptionsUseCase: GetListOfActiveSubscriptionsUseCaseInterface,
-    private val getListOfMessages: GetListOfMessagesUseCaseInterface
+    private val getListOfMessages: GetListOfMessagesUseCaseInterface,
+    private val onPushProposeUseCase: OnPushProposeUseCase
 ) : SubscribeUseCaseInterface by subscribeUserCase,
     ApproveUseCaseInterface by approveUseCase,
     RejectUseCaseInterface by rejectUserCase,
@@ -106,6 +104,7 @@ internal class PushWalletEngine(
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
     private var syncUpdateEventsJob: Job? = null
+    private var pushEventsJob: Job? = null
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val engineEvent: SharedFlow<EngineEvent> = _engineEvent.asSharedFlow()
 
@@ -132,21 +131,11 @@ internal class PushWalletEngine(
                     }
                 }
 
-                if (jsonRpcRequestsJob == null) {
-                    jsonRpcRequestsJob = collectJsonRpcRequests()
-                }
-
-                if (jsonRpcResponsesJob == null) {
-                    jsonRpcResponsesJob = collectJsonRpcResponses()
-                }
-
-                if (internalErrorsJob == null) {
-                    internalErrorsJob = collectInternalErrors()
-                }
-
-                if (syncUpdateEventsJob == null) {
-                    syncUpdateEventsJob = collectSyncUpdateEvents()
-                }
+                if (jsonRpcRequestsJob == null) jsonRpcRequestsJob = collectJsonRpcRequests()
+                if (jsonRpcResponsesJob == null) jsonRpcResponsesJob = collectJsonRpcResponses()
+                if (internalErrorsJob == null) internalErrorsJob = collectInternalErrors()
+                if (syncUpdateEventsJob == null) syncUpdateEventsJob = collectSyncUpdateEvents()
+                if (pushEventsJob == null) pushEventsJob = collectChatEvents()
             }
             .launchIn(scope)
     }
@@ -472,7 +461,7 @@ internal class PushWalletEngine(
             .filter { request -> request.params is PushParams }
             .onEach { request ->
                 when (val requestParams = request.params) {
-                    is PushParams.ProposeParams -> onPushPropose(request, requestParams)
+                    is PushParams.ProposeParams -> onPushProposeUseCase(request, requestParams)
                     is PushParams.MessageParams -> onPushMessage(request, requestParams)
                     is PushParams.DeleteParams -> onPushDelete(request)
                 }
@@ -498,46 +487,9 @@ internal class PushWalletEngine(
         .onEach { event -> onSyncUpdateEventUseCase(event) }
         .launchIn(scope)
 
-    // Wallet receives push proposal with public key X on pairing topic
-    private suspend fun onPushPropose(request: WCRequest, params: PushParams.ProposeParams) = supervisorScope {
-        try {
-            metadataStorageRepository.insertOrAbortMetadata(
-                request.topic,
-                params.metaData,
-                AppMetaDataType.PEER
-            )
-        } catch (e: Exception) {
-            logger.error("Cannot insert metadata: ${e.message}")
-        }
-
-        try {
-            proposalStorageRepository.insertProposal(
-                requestId = request.id,
-                proposalTopic = request.topic.value,
-                dappPublicKeyAsHex = params.publicKey,
-                accountId = params.account,
-            )
-
-            _engineEvent.emit(
-                EngineDO.PushProposal(
-                    request.id,
-                    Topic(request.topic.value),
-                    PublicKey(params.publicKey),
-                    AccountId(params.account),
-                    RelayProtocolOptions(),
-                    params.metaData
-                )
-            )
-        } catch (e: Exception) {
-            jsonRpcInteractor.respondWithError(
-                request,
-                Uncategorized.GenericError("Cannot handle the push request: ${e.message}, topic: ${request.topic}"),
-                IrnParams(Tags.PUSH_PROPOSE_RESPONSE, Ttl(DAY_IN_SECONDS))
-            )
-
-            _engineEvent.emit(SDKError(e))
-        }
-    }
+    private fun collectChatEvents(): Job = merge(onPushProposeUseCase.events)
+        .onEach { event -> _engineEvent.emit(event) }
+        .launchIn(scope)
 
     private suspend fun onPushMessage(request: WCRequest, params: PushParams.MessageParams) = supervisorScope {
         val irnParams = IrnParams(Tags.PUSH_MESSAGE_RESPONSE, Ttl(DAY_IN_SECONDS))
@@ -701,9 +653,5 @@ internal class PushWalletEngine(
     private suspend fun resubscribeToSubscriptions() {
         val subscriptionTopics = getListOfActiveSubscriptions().keys.toList()
         jsonRpcInteractor.batchSubscribe(subscriptionTopics) { error -> scope.launch { _engineEvent.emit(SDKError(error)) } }
-    }
-
-    private companion object {
-        const val DID_JSON = ".well-known/did.json"
     }
 }
