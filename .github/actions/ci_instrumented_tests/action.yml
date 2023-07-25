@@ -42,6 +42,10 @@ runs:
         TEST_TIMEOUT_SECONDS: ${{ inputs.testTimeoutSeconds }}
       run: ./gradlew ${{ inputs.command }}
 
+    - name: Clean unused managed devices
+      shell: bash
+      run: ./gradlew cleanManagedDevices --unused-only
+
     - uses: actions/upload-artifact@v3
       if: always()
       with:
