@@ -2,14 +2,10 @@
 
 package com.walletconnect.push.engine
 
-import android.content.res.Resources.NotFoundException
 import com.walletconnect.android.history.HistoryInterface
-import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtClaims
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
-import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.params.PushParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
@@ -18,11 +14,6 @@ import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.sync.client.SyncInterface
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.push.common.JsonRpcMethod
-import com.walletconnect.push.common.calcExpiry
-import com.walletconnect.push.common.data.jwt.PushSubscriptionJwtClaim
-import com.walletconnect.push.common.data.storage.SubscriptionRepository
-import com.walletconnect.push.common.model.EngineDO
-import com.walletconnect.push.common.model.toDb
 import com.walletconnect.push.engine.calls.ApproveUseCaseInterface
 import com.walletconnect.push.engine.calls.DecryptMessageUseCaseInterface
 import com.walletconnect.push.engine.calls.DeleteMessageUseCaseInterface
@@ -37,6 +28,7 @@ import com.walletconnect.push.engine.requests.OnPushDeleteUseCase
 import com.walletconnect.push.engine.requests.OnPushMessageUseCase
 import com.walletconnect.push.engine.requests.OnPushProposeUseCase
 import com.walletconnect.push.engine.responses.OnPushSubscribeResponseUseCase
+import com.walletconnect.push.engine.responses.OnPushUpdateResponseUseCase
 import com.walletconnect.push.engine.sync.use_case.events.OnSyncUpdateEventUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -53,8 +45,6 @@ import kotlinx.coroutines.supervisorScope
 internal class PushWalletEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val pairingHandler: PairingControllerInterface,
-    private val subscriptionRepository: SubscriptionRepository,
-    private val logger: Logger,
     private val syncClient: SyncInterface,
     private val onSyncUpdateEventUseCase: OnSyncUpdateEventUseCase,
     private val historyInterface: HistoryInterface,
@@ -71,7 +61,9 @@ internal class PushWalletEngine(
     private val onPushProposeUseCase: OnPushProposeUseCase,
     private val onPushMessageUseCase: OnPushMessageUseCase,
     private val onPushDeleteUseCase: OnPushDeleteUseCase,
-    private val onPushSubscribeResponseUseCase: OnPushSubscribeResponseUseCase
+    private val onPushSubscribeResponseUseCase: OnPushSubscribeResponseUseCase,
+    private val onPushUpdateResponseUseCase: OnPushUpdateResponseUseCase,
+    private val logger: Logger,
 ) : SubscribeUseCaseInterface by subscribeUserCase,
     ApproveUseCaseInterface by approveUseCase,
     RejectUseCaseInterface by rejectUserCase,
@@ -455,8 +447,7 @@ internal class PushWalletEngine(
             .onEach { response ->
                 when (val responseParams = response.params) {
                     is PushParams.SubscribeParams -> onPushSubscribeResponseUseCase(response)
-                    is PushParams.DeleteParams -> onPushDeleteResponse()
-                    is PushParams.UpdateParams -> onPushUpdateResponse(response, responseParams)
+                    is PushParams.UpdateParams -> onPushUpdateResponseUseCase(response, responseParams)
                 }
             }.launchIn(scope)
 
@@ -469,7 +460,7 @@ internal class PushWalletEngine(
         .onEach { event -> onSyncUpdateEventUseCase(event) }
         .launchIn(scope)
 
-    private fun collectPushEvents(): Job = merge(onPushProposeUseCase.events, onPushMessageUseCase.events, onPushDeleteUseCase.events, onPushSubscribeResponseUseCase.events)
+    private fun collectPushEvents(): Job = merge(onPushProposeUseCase.events, onPushMessageUseCase.events, onPushDeleteUseCase.events, onPushSubscribeResponseUseCase.events, onPushUpdateResponseUseCase.events)
         .onEach { event -> _engineEvent.emit(event) }
         .launchIn(scope)
 
@@ -519,10 +510,6 @@ internal class PushWalletEngine(
 //
 //        _engineEvent.emit(result)
 //    }
-
-    private fun onPushDeleteResponse() {
-        // TODO: Review if we need this
-    }
 
 //    private suspend fun onPushSubscribeResponse(wcResponse: WCResponse) = supervisorScope {
 //        try {
@@ -594,43 +581,43 @@ internal class PushWalletEngine(
 //        }
 //    }
 
-    private suspend fun onPushUpdateResponse(wcResponse: WCResponse, updateParams: PushParams.UpdateParams) = supervisorScope {
-        val resultEvent = try {
-            when (val response = wcResponse.response) {
-                is JsonRpcResponse.JsonRpcResult -> {
-                    val subscription = subscriptionRepository.getActiveSubscriptionByPushTopic(wcResponse.topic.value)
-                        ?: throw NotFoundException("Cannot find subscription for topic: ${wcResponse.topic.value}")
-                    val pushUpdateJwtClaim = extractVerifiedDidJwtClaims<PushSubscriptionJwtClaim>(updateParams.subscriptionAuth).getOrElse { error ->
-                        _engineEvent.emit(SDKError(error))
-                        return@supervisorScope
-                    }
-                    val listOfUpdateScopeNames = pushUpdateJwtClaim.scope.split(" ")
-                    val updateScopeMap: Map<String, EngineDO.PushScope.Cached> = subscription.mapOfScope.entries.associate { (scopeName, scopeDescIsSelected) ->
-                        val (desc, _) = scopeDescIsSelected
-                        val isNewScopeTrue = listOfUpdateScopeNames.contains(scopeName)
-
-                        scopeName to EngineDO.PushScope.Cached(scopeName, desc, isNewScopeTrue)
-                    }
-                    val newExpiry = calcExpiry()
-
-                    subscriptionRepository.updateSubscriptionScopeAndJwtByPushTopic(
-                        subscription.pushTopic.value,
-                        updateScopeMap.toDb(),
-                        newExpiry.seconds
-                    )
-
-                    with(subscription) { EngineDO.PushUpdate.Result(account, mapOfScope, expiry, dappGeneratedPublicKey, pushTopic, dappMetaData, relay) }
-                }
-
-                is JsonRpcResponse.JsonRpcError -> {
-                    EngineDO.PushUpdate.Error(wcResponse.response.id, response.error.message)
-                }
-            }
-        } catch (exception: Exception) {
-            SDKError(exception)
-        }
-        _engineEvent.emit(resultEvent)
-    }
+//    private suspend fun onPushUpdateResponse(wcResponse: WCResponse, updateParams: PushParams.UpdateParams) = supervisorScope {
+//        val resultEvent = try {
+//            when (val response = wcResponse.response) {
+//                is JsonRpcResponse.JsonRpcResult -> {
+//                    val subscription = subscriptionRepository.getActiveSubscriptionByPushTopic(wcResponse.topic.value)
+//                        ?: throw NotFoundException("Cannot find subscription for topic: ${wcResponse.topic.value}")
+//                    val pushUpdateJwtClaim = extractVerifiedDidJwtClaims<PushSubscriptionJwtClaim>(updateParams.subscriptionAuth).getOrElse { error ->
+//                        _engineEvent.emit(SDKError(error))
+//                        return@supervisorScope
+//                    }
+//                    val listOfUpdateScopeNames = pushUpdateJwtClaim.scope.split(" ")
+//                    val updateScopeMap: Map<String, EngineDO.PushScope.Cached> = subscription.mapOfScope.entries.associate { (scopeName, scopeDescIsSelected) ->
+//                        val (desc, _) = scopeDescIsSelected
+//                        val isNewScopeTrue = listOfUpdateScopeNames.contains(scopeName)
+//
+//                        scopeName to EngineDO.PushScope.Cached(scopeName, desc, isNewScopeTrue)
+//                    }
+//                    val newExpiry = calcExpiry()
+//
+//                    subscriptionRepository.updateSubscriptionScopeAndJwtByPushTopic(
+//                        subscription.pushTopic.value,
+//                        updateScopeMap.toDb(),
+//                        newExpiry.seconds
+//                    )
+//
+//                    with(subscription) { EngineDO.PushUpdate.Result(account, mapOfScope, expiry, dappGeneratedPublicKey, pushTopic, dappMetaData, relay) }
+//                }
+//
+//                is JsonRpcResponse.JsonRpcError -> {
+//                    EngineDO.PushUpdate.Error(wcResponse.response.id, response.error.message)
+//                }
+//            }
+//        } catch (exception: Exception) {
+//            SDKError(exception)
+//        }
+//        _engineEvent.emit(resultEvent)
+//    }
 
     private suspend fun resubscribeToSubscriptions() {
         val subscriptionTopics = getListOfActiveSubscriptions().keys.toList()

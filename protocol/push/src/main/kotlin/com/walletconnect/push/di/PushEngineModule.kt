@@ -31,6 +31,7 @@ import com.walletconnect.push.engine.requests.OnPushDeleteUseCase
 import com.walletconnect.push.engine.requests.OnPushMessageUseCase
 import com.walletconnect.push.engine.requests.OnPushProposeUseCase
 import com.walletconnect.push.engine.responses.OnPushSubscribeResponseUseCase
+import com.walletconnect.push.engine.responses.OnPushUpdateResponseUseCase
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
@@ -169,10 +170,15 @@ internal fun walletEngineModule() = module {
     }
 
     single {
+        OnPushUpdateResponseUseCase(
+            subscriptionRepository = get()
+        )
+    }
+
+    single {
         PushWalletEngine(
             jsonRpcInteractor = get(),
             pairingHandler = get(),
-            subscriptionRepository = get(),
             logger = get(),
             syncClient = get(),
             onSyncUpdateEventUseCase = get(),
@@ -190,7 +196,8 @@ internal fun walletEngineModule() = module {
             onPushProposeUseCase = get(),
             onPushMessageUseCase = get(),
             onPushDeleteUseCase = get(),
-            onPushSubscribeResponseUseCase = get()
+            onPushSubscribeResponseUseCase = get(),
+            onPushUpdateResponseUseCase = get()
         )
     }
 }
