@@ -6,6 +6,8 @@ import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.push.engine.PushWalletEngine
 import com.walletconnect.push.engine.calls.ApproveUseCase
 import com.walletconnect.push.engine.calls.ApproveUseCaseInterface
+import com.walletconnect.push.engine.calls.DeleteMessageUseCase
+import com.walletconnect.push.engine.calls.DeleteMessageUseCaseInterface
 import com.walletconnect.push.engine.calls.DeleteSubscriptionUseCase
 import com.walletconnect.push.engine.calls.DeleteSubscriptionUseCaseInterface
 import com.walletconnect.push.engine.calls.RejectUseCase
@@ -85,6 +87,12 @@ internal fun walletEngineModule() = module {
         )
     }
 
+    single<DeleteMessageUseCaseInterface> {
+        DeleteMessageUseCase(
+            messagesRepository = get()
+        )
+    }
+
     single {
         PushWalletEngine(
             jsonRpcInteractor = get(),
@@ -108,7 +116,8 @@ internal fun walletEngineModule() = module {
             approveUseCase = get(),
             rejectUserCase = get(),
             updateUseCase = get(),
-            deleteSubscriptionUseCase = get()
+            deleteSubscriptionUseCase = get(),
+            deleteMessageUseCase = get()
         )
     }
 }

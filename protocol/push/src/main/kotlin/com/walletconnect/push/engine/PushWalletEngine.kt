@@ -45,6 +45,8 @@ import com.walletconnect.push.common.model.toDb
 import com.walletconnect.push.common.model.toEngineDO
 import com.walletconnect.push.data.MessagesRepository
 import com.walletconnect.push.engine.calls.ApproveUseCaseInterface
+import com.walletconnect.push.engine.calls.DeleteMessageUseCase
+import com.walletconnect.push.engine.calls.DeleteMessageUseCaseInterface
 import com.walletconnect.push.engine.calls.DeleteSubscriptionUseCaseInterface
 import com.walletconnect.push.engine.calls.RejectUseCaseInterface
 import com.walletconnect.push.engine.calls.SubscribeUseCaseInterface
@@ -92,11 +94,13 @@ internal class PushWalletEngine(
     private val rejectUserCase: RejectUseCaseInterface,
     private val updateUseCase: UpdateUseCaseInterface,
     private val deleteSubscriptionUseCase: DeleteSubscriptionUseCaseInterface,
+    private val deleteMessageUseCase: DeleteMessageUseCaseInterface
 ) : SubscribeUseCaseInterface by subscribeUserCase,
     ApproveUseCaseInterface by approveUseCase,
     RejectUseCaseInterface by rejectUserCase,
     UpdateUseCaseInterface by updateUseCase,
-    DeleteSubscriptionUseCaseInterface by deleteSubscriptionUseCase {
+    DeleteSubscriptionUseCaseInterface by deleteSubscriptionUseCase,
+    DeleteMessageUseCaseInterface by deleteMessageUseCase {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
@@ -406,14 +410,14 @@ internal class PushWalletEngine(
 //        deleteSubscriptionToPushSubscriptionStoreUseCase(activeSubscription.account, activeSubscription.pushTopic, onSuccess = {}, onError = {})
 //    }
 
-    suspend fun deleteMessage(requestId: Long, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
-        try {
-            messagesRepository.deleteMessage(requestId)
-            onSuccess()
-        } catch (e: Exception) {
-            onFailure(e)
-        }
-    }
+//    suspend fun deleteMessage(requestId: Long, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
+//        try {
+//            messagesRepository.deleteMessage(requestId)
+//            onSuccess()
+//        } catch (e: Exception) {
+//            onFailure(e)
+//        }
+//    }
 
     suspend fun decryptMessage(topic: String, message: String, onSuccess: (EngineDO.PushMessage) -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         try {
