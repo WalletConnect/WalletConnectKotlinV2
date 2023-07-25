@@ -49,3 +49,8 @@ runs:
         path: |
           **/reports/**
           emulator.log
+
+    - name: Clean unused managed devices
+      if: always()
+      shell: bash
+      run: ./gradlew cleanManagedDevices --unused-only
