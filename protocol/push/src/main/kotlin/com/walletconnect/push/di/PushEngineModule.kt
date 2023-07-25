@@ -6,6 +6,8 @@ import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.push.engine.PushWalletEngine
 import com.walletconnect.push.engine.calls.ApproveUseCase
 import com.walletconnect.push.engine.calls.ApproveUseCaseInterface
+import com.walletconnect.push.engine.calls.DeleteSubscriptionUseCase
+import com.walletconnect.push.engine.calls.DeleteSubscriptionUseCaseInterface
 import com.walletconnect.push.engine.calls.RejectUseCase
 import com.walletconnect.push.engine.calls.RejectUseCaseInterface
 import com.walletconnect.push.engine.calls.SubscribeUseCase
@@ -59,8 +61,8 @@ internal fun walletEngineModule() = module {
 
     single<RejectUseCaseInterface> {
         RejectUseCase(
-            get(),
-            get()
+            proposalStorageRepository = get(),
+            jsonRpcInteractor = get()
         )
     }
 
@@ -73,14 +75,26 @@ internal fun walletEngineModule() = module {
         )
     }
 
+    single<DeleteSubscriptionUseCaseInterface> {
+        DeleteSubscriptionUseCase(
+            jsonRpcInteractor = get(),
+            subscriptionRepository = get(),
+            messagesRepository = get(),
+            deleteSubscriptionToPushSubscriptionStore = get(),
+            logger = get()
+        )
+    }
+
     single {
         PushWalletEngine(
-            keyserverUrl = get(named(AndroidCommonDITags.KEYSERVER_URL)), get(), get(), get(), get(),
+            jsonRpcInteractor = get(),
+            crypto = get(),
+            pairingHandler = get(),
+            subscriptionRepository = get(),
             proposalStorageRepository = get(),
             metadataStorageRepository = get(),
             messagesRepository = get(),
             enginePushSubscriptionNotifier = get(),
-            identitiesInteractor = get(),
             serializer = get(),
             codec = get(),
             logger = get(),
@@ -90,11 +104,11 @@ internal fun walletEngineModule() = module {
             setSubscriptionWithSymmetricKeyToPushSubscriptionStoreUseCase = get(),
             historyInterface = get(),
             getMessagesFromHistoryUseCase = get(),
-            deleteSubscriptionToPushSubscriptionStoreUseCase = get(),
             subscribeUserCase = get(),
             approveUseCase = get(),
             rejectUserCase = get(),
-            updateUseCase = get()
+            updateUseCase = get(),
+            deleteSubscriptionUseCase = get()
         )
     }
 }

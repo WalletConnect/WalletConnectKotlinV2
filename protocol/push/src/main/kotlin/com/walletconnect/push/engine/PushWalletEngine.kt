@@ -3,21 +3,17 @@
 package com.walletconnect.push.engine
 
 import android.content.res.Resources.NotFoundException
-import com.walletconnect.android.CoreClient
 import com.walletconnect.android.history.HistoryInterface
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
-import com.walletconnect.android.internal.common.jwt.did.EncodeDidJwtPayloadUseCase
-import com.walletconnect.android.internal.common.jwt.did.encodeDidJwt
 import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtClaims
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.ConnectionState
-import com.walletconnect.android.internal.common.model.DidJwt
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
@@ -33,7 +29,6 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
-import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.sync.client.SyncInterface
 import com.walletconnect.foundation.common.model.PublicKey
@@ -42,16 +37,15 @@ import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.push.common.JsonRpcMethod
 import com.walletconnect.push.common.calcExpiry
-import com.walletconnect.push.common.data.jwt.EncodePushAuthDidJwtPayloadUseCase
 import com.walletconnect.push.common.data.jwt.PushSubscriptionJwtClaim
 import com.walletconnect.push.common.data.storage.ProposalStorageRepository
 import com.walletconnect.push.common.data.storage.SubscriptionRepository
 import com.walletconnect.push.common.model.EngineDO
-import com.walletconnect.push.common.model.PushRpc
 import com.walletconnect.push.common.model.toDb
 import com.walletconnect.push.common.model.toEngineDO
 import com.walletconnect.push.data.MessagesRepository
 import com.walletconnect.push.engine.calls.ApproveUseCaseInterface
+import com.walletconnect.push.engine.calls.DeleteSubscriptionUseCaseInterface
 import com.walletconnect.push.engine.calls.RejectUseCaseInterface
 import com.walletconnect.push.engine.calls.SubscribeUseCaseInterface
 import com.walletconnect.push.engine.calls.UpdateUseCaseInterface
@@ -59,9 +53,7 @@ import com.walletconnect.push.engine.domain.EnginePushSubscriptionNotifier
 import com.walletconnect.push.engine.sync.use_case.GetMessagesFromHistoryUseCase
 import com.walletconnect.push.engine.sync.use_case.SetupSyncInPushUseCase
 import com.walletconnect.push.engine.sync.use_case.events.OnSyncUpdateEventUseCase
-import com.walletconnect.push.engine.sync.use_case.requests.DeleteSubscriptionToPushSubscriptionStoreUseCase
 import com.walletconnect.push.engine.sync.use_case.requests.SetSubscriptionWithSymmetricKeyToPushSubscriptionStoreUseCase
-import com.walletconnect.util.generateId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -75,11 +67,9 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
-import kotlinx.coroutines.withContext
 import kotlin.reflect.full.safeCast
 
 internal class PushWalletEngine(
-    private val keyserverUrl: String,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val crypto: KeyManagementRepository,
     private val pairingHandler: PairingControllerInterface,
@@ -88,7 +78,6 @@ internal class PushWalletEngine(
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val messagesRepository: MessagesRepository,
     private val enginePushSubscriptionNotifier: EnginePushSubscriptionNotifier,
-    private val identitiesInteractor: IdentitiesInteractor,
     private val serializer: JsonRpcSerializer,
     private val codec: Codec,
     private val logger: Logger,
@@ -97,16 +86,17 @@ internal class PushWalletEngine(
     private val setupSyncInPushUseCase: SetupSyncInPushUseCase,
     private val getMessagesFromHistoryUseCase: GetMessagesFromHistoryUseCase,
     private val setSubscriptionWithSymmetricKeyToPushSubscriptionStoreUseCase: SetSubscriptionWithSymmetricKeyToPushSubscriptionStoreUseCase,
-    private val deleteSubscriptionToPushSubscriptionStoreUseCase: DeleteSubscriptionToPushSubscriptionStoreUseCase,
     private val historyInterface: HistoryInterface,
     private val subscribeUserCase: SubscribeUseCaseInterface,
     private val approveUseCase: ApproveUseCaseInterface,
     private val rejectUserCase: RejectUseCaseInterface,
     private val updateUseCase: UpdateUseCaseInterface,
+    private val deleteSubscriptionUseCase: DeleteSubscriptionUseCaseInterface,
 ) : SubscribeUseCaseInterface by subscribeUserCase,
     ApproveUseCaseInterface by approveUseCase,
     RejectUseCaseInterface by rejectUserCase,
-    UpdateUseCaseInterface by updateUseCase {
+    UpdateUseCaseInterface by updateUseCase,
+    DeleteSubscriptionUseCaseInterface by deleteSubscriptionUseCase {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
@@ -364,57 +354,57 @@ internal class PushWalletEngine(
 //        jsonRpcInteractor.publishJsonRpcRequest(Topic(pushTopic), irnParams, request, onSuccess = onSuccess, onFailure = onFailure)
 //    }
 
-    private suspend fun registerIdentityAndReturnDidJwt(
-        account: AccountId,
-        metadataUrl: String,
-        scopes: List<String>,
-        onSign: (String) -> Cacao.Signature?,
-        onFailure: (Throwable) -> Unit,
-    ): Result<DidJwt> = supervisorScope {
-        withContext(Dispatchers.IO) {
-            identitiesInteractor.registerIdentity(account, keyserverUrl, onSign).getOrElse {
-                onFailure(it)
-                this.cancel()
-            }
-        }
+//    private suspend fun registerIdentityAndReturnDidJwt(
+//        account: AccountId,
+//        metadataUrl: String,
+//        scopes: List<String>,
+//        onSign: (String) -> Cacao.Signature?,
+//        onFailure: (Throwable) -> Unit,
+//    ): Result<DidJwt> = supervisorScope {
+//        withContext(Dispatchers.IO) {
+//            identitiesInteractor.registerIdentity(account, keyserverUrl, onSign).getOrElse {
+//                onFailure(it)
+//                this.cancel()
+//            }
+//        }
+//
+//        val joinedScope = scopes.joinToString(" ")
+//        val (identityPublicKey, identityPrivateKey) = identitiesInteractor.getIdentityKeyPair(account)
+//
+//        return@supervisorScope encodeDidJwt(
+//            identityPrivateKey,
+//            EncodePushAuthDidJwtPayloadUseCase(metadataUrl, account, joinedScope),
+//            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
+//        )
+//    }
 
-        val joinedScope = scopes.joinToString(" ")
-        val (identityPublicKey, identityPrivateKey) = identitiesInteractor.getIdentityKeyPair(account)
-
-        return@supervisorScope encodeDidJwt(
-            identityPrivateKey,
-            EncodePushAuthDidJwtPayloadUseCase(metadataUrl, account, joinedScope),
-            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
-        )
-    }
-
-    suspend fun deleteSubscription(pushTopic: String, onFailure: (Throwable) -> Unit) = supervisorScope {
-        val deleteParams = PushParams.DeleteParams(6000, "User Disconnected")
-        val request = PushRpc.PushDelete(id = generateId(), params = deleteParams)
-        val irnParams = IrnParams(Tags.PUSH_DELETE, Ttl(DAY_IN_SECONDS))
-
-        val activeSubscription: EngineDO.Subscription.Active =
-            subscriptionRepository.getActiveSubscriptionByPushTopic(pushTopic) ?: return@supervisorScope onFailure(IllegalStateException("Subscription does not exists for $pushTopic"))
-
-        subscriptionRepository.deleteSubscriptionByPushTopic(pushTopic)
-        messagesRepository.deleteMessagesByTopic(pushTopic)
-
-        jsonRpcInteractor.unsubscribe(Topic(pushTopic))
-        jsonRpcInteractor.publishJsonRpcRequest(Topic(pushTopic), irnParams, request,
-            onSuccess = {
-                CoreClient.Echo.unregister({
-                    logger.log("Delete sent successfully")
-                }, {
-                    onFailure(it)
-                })
-            },
-            onFailure = {
-                onFailure(it)
-            }
-        )
-
-        deleteSubscriptionToPushSubscriptionStoreUseCase(activeSubscription.account, activeSubscription.pushTopic, onSuccess = {}, onError = {})
-    }
+//    suspend fun deleteSubscription(pushTopic: String, onFailure: (Throwable) -> Unit) = supervisorScope {
+//        val deleteParams = PushParams.DeleteParams(6000, "User Disconnected")
+//        val request = PushRpc.PushDelete(id = generateId(), params = deleteParams)
+//        val irnParams = IrnParams(Tags.PUSH_DELETE, Ttl(DAY_IN_SECONDS))
+//
+//        val activeSubscription: EngineDO.Subscription.Active =
+//            subscriptionRepository.getActiveSubscriptionByPushTopic(pushTopic) ?: return@supervisorScope onFailure(IllegalStateException("Subscription does not exists for $pushTopic"))
+//
+//        subscriptionRepository.deleteSubscriptionByPushTopic(pushTopic)
+//        messagesRepository.deleteMessagesByTopic(pushTopic)
+//
+//        jsonRpcInteractor.unsubscribe(Topic(pushTopic))
+//        jsonRpcInteractor.publishJsonRpcRequest(Topic(pushTopic), irnParams, request,
+//            onSuccess = {
+//                CoreClient.Echo.unregister({
+//                    logger.log("Delete sent successfully")
+//                }, {
+//                    onFailure(it)
+//                })
+//            },
+//            onFailure = {
+//                onFailure(it)
+//            }
+//        )
+//
+//        deleteSubscriptionToPushSubscriptionStoreUseCase(activeSubscription.account, activeSubscription.pushTopic, onSuccess = {}, onError = {})
+//    }
 
     suspend fun deleteMessage(requestId: Long, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         try {
