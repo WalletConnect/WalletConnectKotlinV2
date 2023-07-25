@@ -6,7 +6,6 @@ import android.content.res.Resources.NotFoundException
 import com.walletconnect.android.history.HistoryInterface
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
-import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtClaims
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.AppMetaDataType
@@ -36,8 +35,6 @@ import com.walletconnect.push.common.data.jwt.PushSubscriptionJwtClaim
 import com.walletconnect.push.common.data.storage.SubscriptionRepository
 import com.walletconnect.push.common.model.EngineDO
 import com.walletconnect.push.common.model.toDb
-import com.walletconnect.push.common.model.toEngineDO
-import com.walletconnect.push.data.MessagesRepository
 import com.walletconnect.push.engine.calls.ApproveUseCaseInterface
 import com.walletconnect.push.engine.calls.DecryptMessageUseCaseInterface
 import com.walletconnect.push.engine.calls.DeleteMessageUseCaseInterface
@@ -49,6 +46,7 @@ import com.walletconnect.push.engine.calls.RejectUseCaseInterface
 import com.walletconnect.push.engine.calls.SubscribeUseCaseInterface
 import com.walletconnect.push.engine.calls.UpdateUseCaseInterface
 import com.walletconnect.push.engine.domain.EnginePushSubscriptionNotifier
+import com.walletconnect.push.engine.requests.OnPushMessageUseCase
 import com.walletconnect.push.engine.requests.OnPushProposeUseCase
 import com.walletconnect.push.engine.sync.use_case.events.OnSyncUpdateEventUseCase
 import com.walletconnect.push.engine.sync.use_case.requests.SetSubscriptionWithSymmetricKeyToPushSubscriptionStoreUseCase
@@ -72,7 +70,6 @@ internal class PushWalletEngine(
     private val pairingHandler: PairingControllerInterface,
     private val subscriptionRepository: SubscriptionRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
-    private val messagesRepository: MessagesRepository,
     private val enginePushSubscriptionNotifier: EnginePushSubscriptionNotifier,
     private val logger: Logger,
     private val syncClient: SyncInterface,
@@ -89,7 +86,8 @@ internal class PushWalletEngine(
     private val enableSyncUseCase: EnableSyncUseCaseInterface,
     private val getListOfActiveSubscriptionsUseCase: GetListOfActiveSubscriptionsUseCaseInterface,
     private val getListOfMessages: GetListOfMessagesUseCaseInterface,
-    private val onPushProposeUseCase: OnPushProposeUseCase
+    private val onPushProposeUseCase: OnPushProposeUseCase,
+    private val onPushMessageUseCase: OnPushMessageUseCase
 ) : SubscribeUseCaseInterface by subscribeUserCase,
     ApproveUseCaseInterface by approveUseCase,
     RejectUseCaseInterface by rejectUserCase,
@@ -462,7 +460,7 @@ internal class PushWalletEngine(
             .onEach { request ->
                 when (val requestParams = request.params) {
                     is PushParams.ProposeParams -> onPushProposeUseCase(request, requestParams)
-                    is PushParams.MessageParams -> onPushMessage(request, requestParams)
+                    is PushParams.MessageParams -> onPushMessageUseCase(request, requestParams)
                     is PushParams.DeleteParams -> onPushDelete(request)
                 }
             }.launchIn(scope)
@@ -487,33 +485,33 @@ internal class PushWalletEngine(
         .onEach { event -> onSyncUpdateEventUseCase(event) }
         .launchIn(scope)
 
-    private fun collectChatEvents(): Job = merge(onPushProposeUseCase.events)
+    private fun collectChatEvents(): Job = merge(onPushProposeUseCase.events, onPushMessageUseCase.events)
         .onEach { event -> _engineEvent.emit(event) }
         .launchIn(scope)
 
-    private suspend fun onPushMessage(request: WCRequest, params: PushParams.MessageParams) = supervisorScope {
-        val irnParams = IrnParams(Tags.PUSH_MESSAGE_RESPONSE, Ttl(DAY_IN_SECONDS))
-
-        try {
-            jsonRpcInteractor.respondWithSuccess(request, irnParams)
-            // TODO: refactor to use the RPC published at value 
-            val currentTime = request.id
-            messagesRepository.insertMessage(request.id, request.topic.value, currentTime, params.title, params.body, params.icon, params.url, params.type)
-            val messageRecord = EngineDO.PushRecord(
-                id = request.id,
-                topic = request.topic.value,
-                publishedAt = currentTime,
-                message = params.toEngineDO()
-            )
-            scope.launch { _engineEvent.emit(messageRecord) }
-        } catch (e: Exception) {
-            jsonRpcInteractor.respondWithError(
-                request,
-                Uncategorized.GenericError("Cannot handle the push message: ${e.message}, topic: ${request.topic}"),
-                irnParams
-            )
-        }
-    }
+//    private suspend fun onPushMessage(request: WCRequest, params: PushParams.MessageParams) = supervisorScope {
+//        val irnParams = IrnParams(Tags.PUSH_MESSAGE_RESPONSE, Ttl(DAY_IN_SECONDS))
+//
+//        try {
+//            jsonRpcInteractor.respondWithSuccess(request, irnParams)
+//            // TODO: refactor to use the RPC published at value
+//            val currentTime = request.id
+//            messagesRepository.insertMessage(request.id, request.topic.value, currentTime, params.title, params.body, params.icon, params.url, params.type)
+//            val messageRecord = EngineDO.PushRecord(
+//                id = request.id,
+//                topic = request.topic.value,
+//                publishedAt = currentTime,
+//                message = params.toEngineDO()
+//            )
+//            scope.launch { _engineEvent.emit(messageRecord) }
+//        } catch (e: Exception) {
+//            jsonRpcInteractor.respondWithError(
+//                request,
+//                Uncategorized.GenericError("Cannot handle the push message: ${e.message}, topic: ${request.topic}"),
+//                irnParams
+//            )
+//        }
+//    }
 
     private suspend fun onPushDelete(request: WCRequest) = supervisorScope {
         logger.error("onPushDelete: $request")
