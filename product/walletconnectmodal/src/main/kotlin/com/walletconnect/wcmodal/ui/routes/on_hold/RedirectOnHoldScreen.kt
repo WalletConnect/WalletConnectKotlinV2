@@ -15,7 +15,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
@@ -90,7 +92,9 @@ private fun RedirectOnHoldScreen(
     onOpenUniversalLink: () -> Unit,
     onOpenPlayStore: () -> Unit
 ) {
-    Column {
+    Column(
+        modifier = Modifier.verticalScroll(rememberScrollState())
+    ) {
         Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
@@ -100,7 +104,7 @@ private fun RedirectOnHoldScreen(
                 onBackPressed = onBackPressed
             )
             VerticalSpacer(height = 20.dp)
-            LoaderWalletImage(wallet.imageUrl)
+            WalletImageWithLoader(wallet.imageUrl)
             VerticalSpacer(height = 20.dp)
             Text(text = "Continue in ${wallet.name}...", color = ModalTheme.colors.textColor)
             VerticalSpacer(height = 20.dp)
@@ -110,7 +114,7 @@ private fun RedirectOnHoldScreen(
 }
 
 @Composable
-fun LoaderWalletImage(imageUrl: String) {
+fun WalletImageWithLoader(imageUrl: String) {
     val mainColor = ModalTheme.colors.main
     val infiniteTransition = rememberInfiniteTransition()
 
@@ -182,10 +186,12 @@ private fun BottomSection(
             }
         )
         VerticalSpacer(height = 10.dp)
-        Row(Modifier.padding(horizontal = 20.dp, vertical = 6.dp)) {
-            Text(text = "Still doesn't work?", color = ModalTheme.colors.secondaryTextColor)
-            HorizontalSpacer(width = 2.dp)
-            Text(text = "Try this alternate link", color = ModalTheme.colors.main, modifier = Modifier.clickable { onOpenUniversalLink() })
+        if (wallet.universalLink != null) {
+            Row(Modifier.padding(horizontal = 20.dp, vertical = 6.dp)) {
+                Text(text = "Still doesn't work?", color = ModalTheme.colors.secondaryTextColor)
+                HorizontalSpacer(width = 2.dp)
+                Text(text = "Try this alternate link", color = ModalTheme.colors.main, modifier = Modifier.clickable { onOpenUniversalLink() })
+            }
         }
         Divider(
             modifier = Modifier
