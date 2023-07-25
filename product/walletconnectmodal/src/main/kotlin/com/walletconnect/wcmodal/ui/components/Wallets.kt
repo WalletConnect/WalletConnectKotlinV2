@@ -30,7 +30,6 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.walletconnect.android.internal.common.explorer.data.model.Wallet
-import com.walletconnect.modal.ui.components.common.VerticalSpacer
 import com.walletconnect.wcmodal.ui.theme.ModalTheme
 
 @Composable
@@ -109,6 +108,9 @@ internal fun LazyGridItemScope.WalletListItem(
         ) {
             if (wallet.recent) {
                 Text(text = "RECENT", style = TextStyle(fontSize = 10.sp, color = ModalTheme.colors.secondaryTextColor, textAlign = TextAlign.Center))
+            }
+            if (wallet.isWalletInstalled) {
+                Text(text = "INSTALLED", style = TextStyle(color = ModalTheme.colors.secondaryTextColor, fontSize = 10.sp))
             }
         }
     }
