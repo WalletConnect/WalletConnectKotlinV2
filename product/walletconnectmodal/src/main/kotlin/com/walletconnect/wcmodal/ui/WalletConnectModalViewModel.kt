@@ -33,6 +33,7 @@ internal class WalletConnectModalViewModel(
 
     private val _modalState: MutableStateFlow<WalletConnectModalState?> = MutableStateFlow(null)
 
+    private var wallets = emptyList<Wallet>()
     val modalState: StateFlow<WalletConnectModalState?>
         get() = _modalState
 
@@ -63,26 +64,26 @@ internal class WalletConnectModalViewModel(
 
     private suspend fun createModalState(uri: String) {
         try {
-            val wallets = if (WalletConnectModal.recommendedWalletsIds.isEmpty()) {
+            wallets = if (WalletConnectModal.recommendedWalletsIds.isEmpty()) {
                 getWalletsUseCase(sdkType = WCM_SDK, chains = chains, excludedIds = WalletConnectModal.excludedWalletsIds)
             } else {
                 getWalletsUseCase(sdkType = WCM_SDK, chains = chains, excludedIds = WalletConnectModal.excludedWalletsIds, recommendedIds = WalletConnectModal.recommendedWalletsIds).union(
                     getWalletsUseCase(sdkType = WCM_SDK, chains = chains, excludedIds = WalletConnectModal.excludedWalletsIds)
                 ).toList()
-            }.mapRecentWallet(wcModalStorage.getRecentWalletId())
-            _modalState.value = WalletConnectModalState(uri, wallets)
+            }
+            _modalState.value = WalletConnectModalState(uri, wallets.mapRecentWallet(wcModalStorage.getRecentWalletId()))
         } catch (e: Exception) {
             Timber.e(e)
             _modalState.value = WalletConnectModalState(uri)
         }
     }
 
-    fun updateRecentWalletId(id: String) = with(_modalState.value) {
+    fun updateRecentWalletId(id: String) = with(_modalState) {
         wcModalStorage.saveRecentWalletId(id)
-        _modalState.value = this?.copy(wallets = this.wallets.mapRecentWallet(id))
+        value = value?.copy(wallets = wallets.mapRecentWallet(id))
     }
 }
 
 private fun List<Wallet>.mapRecentWallet(id: String?) = map {
-    it.apply { it.recent = it.id == id }
-}.sortedBy { !it.recent }
+    it.apply { it.isRecent = it.id == id }
+}.sortedWith(compareByDescending<Wallet> { it.isRecent }.thenByDescending { it.isWalletInstalled })

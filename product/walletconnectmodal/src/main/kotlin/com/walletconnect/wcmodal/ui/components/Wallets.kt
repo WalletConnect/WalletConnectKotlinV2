@@ -106,11 +106,13 @@ internal fun LazyGridItemScope.WalletListItem(
             modifier = Modifier.height(16.dp),
             contentAlignment = Alignment.Center
         ) {
-            if (wallet.recent) {
-                Text(text = "RECENT", style = TextStyle(fontSize = 10.sp, color = ModalTheme.colors.secondaryTextColor, textAlign = TextAlign.Center))
-            }
-            if (wallet.isWalletInstalled) {
-                Text(text = "INSTALLED", style = TextStyle(color = ModalTheme.colors.secondaryTextColor, fontSize = 10.sp))
+            when {
+                wallet.isRecent -> {
+                    Text(text = "RECENT", style = TextStyle(fontSize = 10.sp, color = ModalTheme.colors.secondaryTextColor, textAlign = TextAlign.Center))
+                }
+                wallet.isWalletInstalled -> {
+                    Text(text = "INSTALLED", style = TextStyle(color = ModalTheme.colors.secondaryTextColor, fontSize = 10.sp))
+                }
             }
         }
     }

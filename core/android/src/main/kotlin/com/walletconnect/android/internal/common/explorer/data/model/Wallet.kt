@@ -11,7 +11,7 @@ data class Wallet(
     val playStoreLink: String?,
 ) {
     val appPackage: String? = playStoreLink?.extractPackage()
-    var recent: Boolean = false
+    var isRecent: Boolean = false
     var isWalletInstalled = false
 }
 
