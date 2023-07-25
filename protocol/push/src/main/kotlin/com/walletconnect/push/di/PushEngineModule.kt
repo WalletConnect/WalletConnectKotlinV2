@@ -6,6 +6,8 @@ import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.push.engine.PushWalletEngine
 import com.walletconnect.push.engine.calls.ApproveUseCase
 import com.walletconnect.push.engine.calls.ApproveUseCaseInterface
+import com.walletconnect.push.engine.calls.RejectUseCase
+import com.walletconnect.push.engine.calls.RejectUseCaseInterface
 import com.walletconnect.push.engine.calls.SubscribeUseCase
 import com.walletconnect.push.engine.calls.SubscribeUseCaseInterface
 import com.walletconnect.push.engine.domain.EnginePushSubscriptionNotifier
@@ -44,6 +46,13 @@ internal fun walletEngineModule() = module {
         )
     }
 
+    single<RejectUseCaseInterface> {
+        RejectUseCase(
+            get(),
+            get()
+        )
+    }
+
     single {
         PushWalletEngine(
             keyserverUrl = get(named(AndroidCommonDITags.KEYSERVER_URL)), get(), get(), get(), get(),
@@ -63,7 +72,8 @@ internal fun walletEngineModule() = module {
             getMessagesFromHistoryUseCase = get(),
             deleteSubscriptionToPushSubscriptionStoreUseCase = get(),
             subscribeUserCase = get(),
-            approveUseCase = get()
+            approveUseCase = get(),
+            rejectUserCase = get()
         )
     }
 }

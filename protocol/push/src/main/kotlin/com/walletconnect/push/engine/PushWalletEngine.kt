@@ -54,6 +54,7 @@ import com.walletconnect.push.common.model.toDb
 import com.walletconnect.push.common.model.toEngineDO
 import com.walletconnect.push.data.MessagesRepository
 import com.walletconnect.push.engine.calls.ApproveUseCaseInterface
+import com.walletconnect.push.engine.calls.RejectUseCaseInterface
 import com.walletconnect.push.engine.calls.SubscribeUseCaseInterface
 import com.walletconnect.push.engine.domain.EnginePushSubscriptionNotifier
 import com.walletconnect.push.engine.sync.use_case.GetMessagesFromHistoryUseCase
@@ -102,8 +103,10 @@ internal class PushWalletEngine(
     private val historyInterface: HistoryInterface,
     private val subscribeUserCase: SubscribeUseCaseInterface,
     private val approveUseCase: ApproveUseCaseInterface,
+    private val rejectUserCase: RejectUseCaseInterface,
 ) : SubscribeUseCaseInterface by subscribeUserCase,
-    ApproveUseCaseInterface by approveUseCase {
+    ApproveUseCaseInterface by approveUseCase,
+    RejectUseCaseInterface by rejectUserCase {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
@@ -328,24 +331,24 @@ internal class PushWalletEngine(
 //        )
 //    }
 
-    suspend fun reject(proposalRequestId: Long, reason: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
-        try {
-            val proposalWithoutMetadata =
-                proposalStorageRepository.getProposalByRequestId(proposalRequestId) ?: return@supervisorScope onFailure(IllegalArgumentException("Invalid proposal request id $proposalRequestId"))
-
-            val responseTopic = Topic(sha256(proposalWithoutMetadata.dappPublicKey.keyAsBytes))
-
-            val irnParams = IrnParams(Tags.PUSH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
-
-            jsonRpcInteractor.respondWithError(proposalWithoutMetadata.requestId, responseTopic, PeerError.Rejected.UserRejected(reason), irnParams) { error ->
-                return@respondWithError onFailure(error)
-            }
-
-            onSuccess()
-        } catch (e: Exception) {
-            onFailure(e)
-        }
-    }
+//    suspend fun reject(proposalRequestId: Long, reason: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
+//        try {
+//            val proposalWithoutMetadata =
+//                proposalStorageRepository.getProposalByRequestId(proposalRequestId) ?: return@supervisorScope onFailure(IllegalArgumentException("Invalid proposal request id $proposalRequestId"))
+//
+//            val responseTopic = Topic(sha256(proposalWithoutMetadata.dappPublicKey.keyAsBytes))
+//
+//            val irnParams = IrnParams(Tags.PUSH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
+//
+//            jsonRpcInteractor.respondWithError(proposalWithoutMetadata.requestId, responseTopic, PeerError.Rejected.UserRejected(reason), irnParams) { error ->
+//                return@respondWithError onFailure(error)
+//            }
+//
+//            onSuccess()
+//        } catch (e: Exception) {
+//            onFailure(e)
+//        }
+//    }
 
     suspend fun update(pushTopic: String, scopes: List<String>, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         val subscription = subscriptionRepository.getActiveSubscriptionByPushTopic(pushTopic)
