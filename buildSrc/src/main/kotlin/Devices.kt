@@ -20,12 +20,12 @@ fun TestOptions.registerManagedDevices() {
                 create<ManagedVirtualDevice>("Google32_${taskSuffix}") {
                     device = deviceName
                     apiLevel = 32
-                    systemImageSource = "google"
+                    systemImageSource = "google-atd"
                 }
                 create<ManagedVirtualDevice>("Google27_${taskSuffix}") {
                     device = deviceName
                     apiLevel = 27
-                    systemImageSource = "google"
+                    systemImageSource = "google-atd"
                 }
             }
         }
