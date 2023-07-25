@@ -4,6 +4,8 @@ package com.walletconnect.push.di
 
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.push.engine.PushWalletEngine
+import com.walletconnect.push.engine.calls.ApproveUseCase
+import com.walletconnect.push.engine.calls.ApproveUseCaseInterface
 import com.walletconnect.push.engine.calls.SubscribeUseCase
 import com.walletconnect.push.engine.calls.SubscribeUseCaseInterface
 import com.walletconnect.push.engine.domain.EnginePushSubscriptionNotifier
@@ -31,6 +33,17 @@ internal fun walletEngineModule() = module {
         )
     }
 
+    single<ApproveUseCaseInterface> {
+        ApproveUseCase(
+            subscribeUseCase = get(),
+            proposalStorageRepository = get(),
+            metadataStorageRepository = get(),
+            crypto = get(),
+            enginePushSubscriptionNotifier = get(),
+            jsonRpcInteractor = get(),
+        )
+    }
+
     single {
         PushWalletEngine(
             keyserverUrl = get(named(AndroidCommonDITags.KEYSERVER_URL)), get(), get(), get(), get(),
@@ -49,7 +62,8 @@ internal fun walletEngineModule() = module {
             historyInterface = get(),
             getMessagesFromHistoryUseCase = get(),
             deleteSubscriptionToPushSubscriptionStoreUseCase = get(),
-            subscribeUserCase = get()
+            subscribeUserCase = get(),
+            approveUseCase = get()
         )
     }
 }

@@ -3,7 +3,6 @@
 package com.walletconnect.push.engine
 
 import android.content.res.Resources.NotFoundException
-import androidx.core.net.toUri
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.history.HistoryInterface
 import com.walletconnect.android.internal.common.JsonRpcResponse
@@ -20,10 +19,8 @@ import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.DidJwt
-import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.IrnParams
-import com.walletconnect.android.internal.common.model.Participants
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
@@ -56,6 +53,7 @@ import com.walletconnect.push.common.model.PushRpc
 import com.walletconnect.push.common.model.toDb
 import com.walletconnect.push.common.model.toEngineDO
 import com.walletconnect.push.data.MessagesRepository
+import com.walletconnect.push.engine.calls.ApproveUseCaseInterface
 import com.walletconnect.push.engine.calls.SubscribeUseCaseInterface
 import com.walletconnect.push.engine.domain.EnginePushSubscriptionNotifier
 import com.walletconnect.push.engine.sync.use_case.GetMessagesFromHistoryUseCase
@@ -65,19 +63,14 @@ import com.walletconnect.push.engine.sync.use_case.requests.DeleteSubscriptionTo
 import com.walletconnect.push.engine.sync.use_case.requests.SetSubscriptionWithSymmetricKeyToPushSubscriptionStoreUseCase
 import com.walletconnect.util.generateId
 import com.walletconnect.utils.Empty
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.updateAndGet
@@ -107,8 +100,10 @@ internal class PushWalletEngine(
     private val setSubscriptionWithSymmetricKeyToPushSubscriptionStoreUseCase: SetSubscriptionWithSymmetricKeyToPushSubscriptionStoreUseCase,
     private val deleteSubscriptionToPushSubscriptionStoreUseCase: DeleteSubscriptionToPushSubscriptionStoreUseCase,
     private val historyInterface: HistoryInterface,
-    private val subscribeUserCase: SubscribeUseCaseInterface
-): SubscribeUseCaseInterface by subscribeUserCase {
+    private val subscribeUserCase: SubscribeUseCaseInterface,
+    private val approveUseCase: ApproveUseCaseInterface,
+) : SubscribeUseCaseInterface by subscribeUserCase,
+    ApproveUseCaseInterface by approveUseCase {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
@@ -283,55 +278,55 @@ internal class PushWalletEngine(
 //            )
 //        }
 
-    suspend fun approve(proposalRequestId: Long, onSign: (String) -> Cacao.Signature?, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
-        val proposalWithoutMetadata =
-            proposalStorageRepository.getProposalByRequestId(proposalRequestId) ?: return@supervisorScope onFailure(IllegalArgumentException("Invalid proposal request id $proposalRequestId"))
-        val dappMetadata: AppMetaData? = metadataStorageRepository.getByTopicAndType(proposalWithoutMetadata.proposalTopic, AppMetaDataType.PEER)
-        val proposalWithMetadata = with(proposalWithoutMetadata) {
-            EngineDO.PushProposal(requestId, proposalTopic, dappPublicKey, accountId, relayProtocolOptions, dappMetadata)
-        }
-
-        // Wallet sends push subscribe request to Push Server with subscriptionAuth
-        subscribeToDapp(
-            dappUri = proposalWithMetadata.dappMetadata?.url?.toUri() ?: String.Empty.toUri(),
-            account = proposalWithMetadata.accountId.value,
-            onSign = onSign,
-            onSuccess = { requestId, didJwt ->
-                CoroutineScope(SupervisorJob() + scope.coroutineContext).launch(Dispatchers.IO) {
-                    enginePushSubscriptionNotifier.newlyRespondedRequestedSubscriptionId.asStateFlow()
-                        .filterNotNull()
-                        .filter { (id, _) -> id == requestId }
-                        .map { (_, activeSubscription) -> activeSubscription }
-                        .onEach { activeSubscription ->
-                            // Wallet generates key pair Z
-                            val selfPublicKey = crypto.generateAndStoreX25519KeyPair()
-                            val symKey = crypto.getSymmetricKey(activeSubscription.pushTopic.value.lowercase())
-                            val params = PushParams.ProposeResponseParams(didJwt.value, symKey.keyAsHex)
-
-                            // Wallet responds with type 1 envelope on response topic to Dapp with subscriptionAuth and subscription symmetric key
-                            jsonRpcInteractor.respondWithParams(
-                                proposalWithMetadata.requestId,
-                                Topic(sha256(proposalWithMetadata.dappPublicKey.keyAsBytes)),
-                                clientParams = params,
-                                irnParams = IrnParams(tag = Tags.PUSH_PROPOSE_RESPONSE, ttl = Ttl(DAY_IN_SECONDS)),
-                                envelopeType = EnvelopeType.ONE,
-                                participants = Participants(
-                                    senderPublicKey = selfPublicKey,
-                                    receiverPublicKey = proposalWithMetadata.dappPublicKey
-                                )
-                            ) { error ->
-                                return@respondWithParams onFailure(error)
-                            }
-
-                            onSuccess()
-                        }.launchIn(this)
-                }
-            },
-            onFailure = {
-                onFailure(it)
-            }
-        )
-    }
+//    suspend fun approve(proposalRequestId: Long, onSign: (String) -> Cacao.Signature?, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
+//        val proposalWithoutMetadata =
+//            proposalStorageRepository.getProposalByRequestId(proposalRequestId) ?: return@supervisorScope onFailure(IllegalArgumentException("Invalid proposal request id $proposalRequestId"))
+//        val dappMetadata: AppMetaData? = metadataStorageRepository.getByTopicAndType(proposalWithoutMetadata.proposalTopic, AppMetaDataType.PEER)
+//        val proposalWithMetadata = with(proposalWithoutMetadata) {
+//            EngineDO.PushProposal(requestId, proposalTopic, dappPublicKey, accountId, relayProtocolOptions, dappMetadata)
+//        }
+//
+//        // Wallet sends push subscribe request to Push Server with subscriptionAuth
+//        subscribeToDapp(
+//            dappUri = proposalWithMetadata.dappMetadata?.url?.toUri() ?: String.Empty.toUri(),
+//            account = proposalWithMetadata.accountId.value,
+//            onSign = onSign,
+//            onSuccess = { requestId, didJwt ->
+//                CoroutineScope(SupervisorJob() + scope.coroutineContext).launch(Dispatchers.IO) {
+//                    enginePushSubscriptionNotifier.newlyRespondedRequestedSubscriptionId.asStateFlow()
+//                        .filterNotNull()
+//                        .filter { (id, _) -> id == requestId }
+//                        .map { (_, activeSubscription) -> activeSubscription }
+//                        .onEach { activeSubscription ->
+//                            // Wallet generates key pair Z
+//                            val selfPublicKey = crypto.generateAndStoreX25519KeyPair()
+//                            val symKey = crypto.getSymmetricKey(activeSubscription.pushTopic.value.lowercase())
+//                            val params = PushParams.ProposeResponseParams(didJwt.value, symKey.keyAsHex)
+//
+//                            // Wallet responds with type 1 envelope on response topic to Dapp with subscriptionAuth and subscription symmetric key
+//                            jsonRpcInteractor.respondWithParams(
+//                                proposalWithMetadata.requestId,
+//                                Topic(sha256(proposalWithMetadata.dappPublicKey.keyAsBytes)),
+//                                clientParams = params,
+//                                irnParams = IrnParams(tag = Tags.PUSH_PROPOSE_RESPONSE, ttl = Ttl(DAY_IN_SECONDS)),
+//                                envelopeType = EnvelopeType.ONE,
+//                                participants = Participants(
+//                                    senderPublicKey = selfPublicKey,
+//                                    receiverPublicKey = proposalWithMetadata.dappPublicKey
+//                                )
+//                            ) { error ->
+//                                return@respondWithParams onFailure(error)
+//                            }
+//
+//                            onSuccess()
+//                        }.launchIn(this)
+//                }
+//            },
+//            onFailure = {
+//                onFailure(it)
+//            }
+//        )
+//    }
 
     suspend fun reject(proposalRequestId: Long, reason: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         try {
