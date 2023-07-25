@@ -45,11 +45,6 @@ internal fun ConnectYourWalletRoute(
     navController: NavController,
     wallets: List<Wallet>
 ) {
-//    onWalletItemClick = {
-//        onWalletClick(it.id)
-//        uriHandler.goToNativeWallet(state.uri, it.nativeLink, it.universalLink, it.playStoreLink)
-//    },
-
     ConnectYourWalletContent(
         wallets = wallets,
         onWalletItemClick = { navController.navigate(Route.OnHold.path + "/${it.id}") },
