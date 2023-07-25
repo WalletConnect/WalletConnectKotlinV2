@@ -46,6 +46,7 @@ import com.walletconnect.push.engine.calls.RejectUseCaseInterface
 import com.walletconnect.push.engine.calls.SubscribeUseCaseInterface
 import com.walletconnect.push.engine.calls.UpdateUseCaseInterface
 import com.walletconnect.push.engine.domain.EnginePushSubscriptionNotifier
+import com.walletconnect.push.engine.requests.OnPushDeleteUseCase
 import com.walletconnect.push.engine.requests.OnPushMessageUseCase
 import com.walletconnect.push.engine.requests.OnPushProposeUseCase
 import com.walletconnect.push.engine.sync.use_case.events.OnSyncUpdateEventUseCase
@@ -87,7 +88,8 @@ internal class PushWalletEngine(
     private val getListOfActiveSubscriptionsUseCase: GetListOfActiveSubscriptionsUseCaseInterface,
     private val getListOfMessages: GetListOfMessagesUseCaseInterface,
     private val onPushProposeUseCase: OnPushProposeUseCase,
-    private val onPushMessageUseCase: OnPushMessageUseCase
+    private val onPushMessageUseCase: OnPushMessageUseCase,
+    private val onPushDeleteUseCase: OnPushDeleteUseCase
 ) : SubscribeUseCaseInterface by subscribeUserCase,
     ApproveUseCaseInterface by approveUseCase,
     RejectUseCaseInterface by rejectUserCase,
@@ -133,7 +135,7 @@ internal class PushWalletEngine(
                 if (jsonRpcResponsesJob == null) jsonRpcResponsesJob = collectJsonRpcResponses()
                 if (internalErrorsJob == null) internalErrorsJob = collectInternalErrors()
                 if (syncUpdateEventsJob == null) syncUpdateEventsJob = collectSyncUpdateEvents()
-                if (pushEventsJob == null) pushEventsJob = collectChatEvents()
+                if (pushEventsJob == null) pushEventsJob = collectPushEvents()
             }
             .launchIn(scope)
     }
@@ -461,7 +463,7 @@ internal class PushWalletEngine(
                 when (val requestParams = request.params) {
                     is PushParams.ProposeParams -> onPushProposeUseCase(request, requestParams)
                     is PushParams.MessageParams -> onPushMessageUseCase(request, requestParams)
-                    is PushParams.DeleteParams -> onPushDelete(request)
+                    is PushParams.DeleteParams -> onPushDeleteUseCase(request)
                 }
             }.launchIn(scope)
 
@@ -485,7 +487,7 @@ internal class PushWalletEngine(
         .onEach { event -> onSyncUpdateEventUseCase(event) }
         .launchIn(scope)
 
-    private fun collectChatEvents(): Job = merge(onPushProposeUseCase.events, onPushMessageUseCase.events)
+    private fun collectPushEvents(): Job = merge(onPushProposeUseCase.events, onPushMessageUseCase.events, onPushDeleteUseCase.events)
         .onEach { event -> _engineEvent.emit(event) }
         .launchIn(scope)
 
@@ -513,28 +515,28 @@ internal class PushWalletEngine(
 //        }
 //    }
 
-    private suspend fun onPushDelete(request: WCRequest) = supervisorScope {
-        logger.error("onPushDelete: $request")
-        val irnParams = IrnParams(Tags.PUSH_DELETE_RESPONSE, Ttl(DAY_IN_SECONDS))
-
-        val result = try {
-            val subscription = subscriptionRepository.getActiveSubscriptionByPushTopic(request.topic.value)
-
-            if (subscription == null) {
-                SDKError(IllegalStateException("Cannot find subscription for topic: ${request.topic}"))
-            } else {
-                jsonRpcInteractor.respondWithSuccess(request, irnParams)
-                jsonRpcInteractor.unsubscribe(subscription.pushTopic)
-                subscriptionRepository.deleteSubscriptionByPushTopic(subscription.pushTopic.value)
-
-                EngineDO.PushDelete(request.topic.value)
-            }
-        } catch (e: Exception) {
-            SDKError(e)
-        }
-
-        _engineEvent.emit(result)
-    }
+//    private suspend fun onPushDelete(request: WCRequest) = supervisorScope {
+//        logger.error("onPushDelete: $request")
+//        val irnParams = IrnParams(Tags.PUSH_DELETE_RESPONSE, Ttl(DAY_IN_SECONDS))
+//
+//        val result = try {
+//            val subscription = subscriptionRepository.getActiveSubscriptionByPushTopic(request.topic.value)
+//
+//            if (subscription == null) {
+//                SDKError(IllegalStateException("Cannot find subscription for topic: ${request.topic}"))
+//            } else {
+//                jsonRpcInteractor.respondWithSuccess(request, irnParams)
+//                jsonRpcInteractor.unsubscribe(subscription.pushTopic)
+//                subscriptionRepository.deleteSubscriptionByPushTopic(subscription.pushTopic.value)
+//
+//                EngineDO.PushDelete(request.topic.value)
+//            }
+//        } catch (e: Exception) {
+//            SDKError(e)
+//        }
+//
+//        _engineEvent.emit(result)
+//    }
 
     private fun onPushDeleteResponse() {
         // TODO: Review if we need this
