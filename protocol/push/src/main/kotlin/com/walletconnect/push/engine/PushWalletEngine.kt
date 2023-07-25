@@ -8,7 +8,6 @@ import com.walletconnect.android.history.HistoryInterface
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
-import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.jwt.did.EncodeDidJwtPayloadUseCase
@@ -42,7 +41,6 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.push.common.JsonRpcMethod
-import com.walletconnect.push.common.PeerError
 import com.walletconnect.push.common.calcExpiry
 import com.walletconnect.push.common.data.jwt.EncodePushAuthDidJwtPayloadUseCase
 import com.walletconnect.push.common.data.jwt.PushSubscriptionJwtClaim
@@ -56,6 +54,7 @@ import com.walletconnect.push.data.MessagesRepository
 import com.walletconnect.push.engine.calls.ApproveUseCaseInterface
 import com.walletconnect.push.engine.calls.RejectUseCaseInterface
 import com.walletconnect.push.engine.calls.SubscribeUseCaseInterface
+import com.walletconnect.push.engine.calls.UpdateUseCaseInterface
 import com.walletconnect.push.engine.domain.EnginePushSubscriptionNotifier
 import com.walletconnect.push.engine.sync.use_case.GetMessagesFromHistoryUseCase
 import com.walletconnect.push.engine.sync.use_case.SetupSyncInPushUseCase
@@ -63,7 +62,6 @@ import com.walletconnect.push.engine.sync.use_case.events.OnSyncUpdateEventUseCa
 import com.walletconnect.push.engine.sync.use_case.requests.DeleteSubscriptionToPushSubscriptionStoreUseCase
 import com.walletconnect.push.engine.sync.use_case.requests.SetSubscriptionWithSymmetricKeyToPushSubscriptionStoreUseCase
 import com.walletconnect.util.generateId
-import com.walletconnect.utils.Empty
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -104,9 +102,11 @@ internal class PushWalletEngine(
     private val subscribeUserCase: SubscribeUseCaseInterface,
     private val approveUseCase: ApproveUseCaseInterface,
     private val rejectUserCase: RejectUseCaseInterface,
+    private val updateUseCase: UpdateUseCaseInterface,
 ) : SubscribeUseCaseInterface by subscribeUserCase,
     ApproveUseCaseInterface by approveUseCase,
-    RejectUseCaseInterface by rejectUserCase {
+    RejectUseCaseInterface by rejectUserCase,
+    UpdateUseCaseInterface by updateUseCase {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
@@ -350,19 +350,19 @@ internal class PushWalletEngine(
 //        }
 //    }
 
-    suspend fun update(pushTopic: String, scopes: List<String>, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
-        val subscription = subscriptionRepository.getActiveSubscriptionByPushTopic(pushTopic)
-            ?: return@supervisorScope onFailure(Exception("No subscription found for topic $pushTopic"))
-        val metadata: AppMetaData? = metadataStorageRepository.getByTopicAndType(subscription.pushTopic, AppMetaDataType.PEER)
-        val didJwt = registerIdentityAndReturnDidJwt(subscription.account, metadata?.url ?: String.Empty, scopes, { null }, onFailure).getOrElse { error ->
-            return@supervisorScope onFailure(error)
-        }
-
-        val updateParams = PushParams.UpdateParams(didJwt.value)
-        val request = PushRpc.PushUpdate(params = updateParams)
-        val irnParams = IrnParams(Tags.PUSH_UPDATE, Ttl(DAY_IN_SECONDS))
-        jsonRpcInteractor.publishJsonRpcRequest(Topic(pushTopic), irnParams, request, onSuccess = onSuccess, onFailure = onFailure)
-    }
+//    suspend fun update(pushTopic: String, scopes: List<String>, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
+//        val subscription = subscriptionRepository.getActiveSubscriptionByPushTopic(pushTopic)
+//            ?: return@supervisorScope onFailure(Exception("No subscription found for topic $pushTopic"))
+//        val metadata: AppMetaData? = metadataStorageRepository.getByTopicAndType(subscription.pushTopic, AppMetaDataType.PEER)
+//        val didJwt = registerIdentityAndReturnDidJwt(subscription.account, metadata?.url ?: String.Empty, scopes, { null }, onFailure).getOrElse { error ->
+//            return@supervisorScope onFailure(error)
+//        }
+//
+//        val updateParams = PushParams.UpdateParams(didJwt.value)
+//        val request = PushRpc.PushUpdate(params = updateParams)
+//        val irnParams = IrnParams(Tags.PUSH_UPDATE, Ttl(DAY_IN_SECONDS))
+//        jsonRpcInteractor.publishJsonRpcRequest(Topic(pushTopic), irnParams, request, onSuccess = onSuccess, onFailure = onFailure)
+//    }
 
     private suspend fun registerIdentityAndReturnDidJwt(
         account: AccountId,

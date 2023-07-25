@@ -10,6 +10,8 @@ import com.walletconnect.push.engine.calls.RejectUseCase
 import com.walletconnect.push.engine.calls.RejectUseCaseInterface
 import com.walletconnect.push.engine.calls.SubscribeUseCase
 import com.walletconnect.push.engine.calls.SubscribeUseCaseInterface
+import com.walletconnect.push.engine.calls.UpdateUseCase
+import com.walletconnect.push.engine.calls.UpdateUseCaseInterface
 import com.walletconnect.push.engine.domain.EnginePushSubscriptionNotifier
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -53,6 +55,15 @@ internal fun walletEngineModule() = module {
         )
     }
 
+    single<UpdateUseCaseInterface> {
+        UpdateUseCase(
+            jsonRpcInteractor = get(),
+            subscriptionRepository = get(),
+            metadataStorageRepository = get(),
+            registerIdentityAndReturnDidJwtUseCase = get()
+        )
+    }
+
     single {
         PushWalletEngine(
             keyserverUrl = get(named(AndroidCommonDITags.KEYSERVER_URL)), get(), get(), get(), get(),
@@ -73,7 +84,8 @@ internal fun walletEngineModule() = module {
             deleteSubscriptionToPushSubscriptionStoreUseCase = get(),
             subscribeUserCase = get(),
             approveUseCase = get(),
-            rejectUserCase = get()
+            rejectUserCase = get(),
+            updateUseCase = get()
         )
     }
 }
