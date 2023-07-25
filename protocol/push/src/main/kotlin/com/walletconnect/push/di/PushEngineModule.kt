@@ -4,6 +4,8 @@ package com.walletconnect.push.di
 
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.push.engine.PushWalletEngine
+import com.walletconnect.push.engine.calls.SubscribeUseCase
+import com.walletconnect.push.engine.calls.SubscribeUseCaseInterface
 import com.walletconnect.push.engine.domain.EnginePushSubscriptionNotifier
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -15,6 +17,20 @@ internal fun walletEngineModule() = module {
         EnginePushSubscriptionNotifier()
     }
 
+    single<SubscribeUseCaseInterface> {
+        SubscribeUseCase(
+            serializer = get(),
+            jsonRpcInteractor = get(),
+            extractPushConfigUseCase = get(),
+            subscriptionRepository = get(),
+            crypto = get(),
+            explorerRepository = get(),
+            metadataStorageRepository = get(),
+            registerIdentityAndReturnDidJwt = get(),
+            logger = get(),
+        )
+    }
+
     single {
         PushWalletEngine(
             keyserverUrl = get(named(AndroidCommonDITags.KEYSERVER_URL)), get(), get(), get(), get(),
@@ -24,8 +40,6 @@ internal fun walletEngineModule() = module {
             enginePushSubscriptionNotifier = get(),
             identitiesInteractor = get(),
             serializer = get(),
-            explorerRepository = get(),
-            extractPushConfigUseCase = get(),
             codec = get(),
             logger = get(),
             syncClient = get(),
@@ -34,7 +48,8 @@ internal fun walletEngineModule() = module {
             setSubscriptionWithSymmetricKeyToPushSubscriptionStoreUseCase = get(),
             historyInterface = get(),
             getMessagesFromHistoryUseCase = get(),
-            deleteSubscriptionToPushSubscriptionStoreUseCase = get()
+            deleteSubscriptionToPushSubscriptionStoreUseCase = get(),
+            subscribeUserCase = get()
         )
     }
 }
