@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,12 +12,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Switch
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -40,7 +36,6 @@ import timber.log.Timber
 fun AccountRoute(navController: NavController) {
     val viewModel: SelectAccountViewModel = viewModel()
     val context = LocalContext.current
-    val shouldRememberState = remember { mutableStateOf(SharedPrefStorage.getShouldRemember(context)) }
 
     LaunchedEffect(Unit) {
         viewModel.walletEvents.collect { event ->
@@ -53,39 +48,34 @@ fun AccountRoute(navController: NavController) {
     }
 
     // If logged in before and is remember then go straight to login
-    if (shouldRememberState.value) {
-        val account = SharedPrefStorage.getLastLoggedInAccount(context)
-        if (account != null) {
-            Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxSize()) {
-                CircularProgressIndicator(
-                    modifier = Modifier
-                        .width(80.dp)
-                        .height(80.dp),
-                    strokeWidth = 8.dp
-                )
-                Spacer(modifier = Modifier.height(40.dp))
-                Text(fontSize = 24.sp, text = "Hello again!")
-                Text(fontSize = 40.sp, text = account.split(":").last().let { it.take(6) + "..." + it.takeLast(4) })
-            }
-
-            return LaunchedEffect(key1 = Unit, block = {
-                navController.navigateToW3I(account)
-            })
-        } else {
-            LaunchedEffect(key1 = Unit, block = {
-                viewModel.disconnectOldSessions()
-            })
+    val account = SharedPrefStorage.getLastLoggedInAccount(context)
+    if (account != null) {
+        Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxSize()) {
+            CircularProgressIndicator(
+                modifier = Modifier
+                    .width(80.dp)
+                    .height(80.dp),
+                strokeWidth = 8.dp
+            )
+            Spacer(modifier = Modifier.height(40.dp))
+            Text(fontSize = 24.sp, text = "Hello again!")
+            Text(fontSize = 40.sp, text = account.split(":").last().let { it.take(6) + "..." + it.takeLast(4) })
         }
+
+        return LaunchedEffect(key1 = Unit, block = {
+            navController.navigateToW3I(account)
+        })
+    } else {
+        LaunchedEffect(key1 = Unit, block = {
+            viewModel.disconnectOldSessions()
+        })
     }
 
-    AccountScreen(navController, viewModel, shouldRememberState.value) { newValue ->
-        SharedPrefStorage.saveShouldRemember(context, newValue)
-        shouldRememberState.value = newValue
-    }
+    AccountScreen(navController, viewModel)
 }
 
 @Composable
-fun AccountScreen(navController: NavController, viewModel: SelectAccountViewModel, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+fun AccountScreen(navController: NavController, viewModel: SelectAccountViewModel) {
     val context = LocalContext.current
     val random = EthAccount.Random(context)
 
@@ -95,13 +85,19 @@ fun AccountScreen(navController: NavController, viewModel: SelectAccountViewMode
                 .fillMaxSize()
                 .padding(horizontal = 10.dp)
         ) {
-            RandomAccountSection(random) { navController.navigateToW3I(random.caip10()) }
+            RandomAccountSection(random) {
+                SharedPrefStorage.saveLastLoggedInAccount(context, random.caip10())
+                navController.navigateToW3I(random.caip10())
+            }
             HorizontalLineDivider()
-            SignInWithWalletSection(onClick = { viewModel.connectToWallet { uri -> navController.openWalletConnectModal(uri) } }, checked = checked, onCheckedChange = onCheckedChange)
+            SignInWithWalletSection(onClick = { viewModel.connectToWallet { uri -> navController.openWalletConnectModal(uri) } })
             HorizontalLineDivider()
             BurnerAccountSection() { navController.navigateToW3I(EthAccount.Burner.caip10()) }
             HorizontalLineDivider()
-            FixedAccountSection { navController.navigateToW3I(EthAccount.Fixed.caip10()) }
+            FixedAccountSection {
+                SharedPrefStorage.saveLastLoggedInAccount(context, random.caip10())
+                navController.navigateToW3I(EthAccount.Fixed.caip10())
+            }
         }
     }
 }
@@ -131,7 +127,7 @@ fun RandomAccountSection(random: EthAccount.Random, onClick: () -> Unit) {
 }
 
 @Composable
-fun SignInWithWalletSection(onClick: () -> Unit, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+fun SignInWithWalletSection(onClick: () -> Unit) {
     Text(
         fontSize = 14.sp,
         modifier = Modifier
@@ -147,19 +143,6 @@ fun SignInWithWalletSection(onClick: () -> Unit, checked: Boolean, onCheckedChan
         onClick = onClick
     ) {
         Text(text = "Log In With Wallet")
-    }
-    Row(
-        modifier = Modifier
-            .fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
-    ) {
-        Text(text = "Remember me")
-        Spacer(modifier = Modifier.width(10.dp))
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange
-        )
     }
 }
 

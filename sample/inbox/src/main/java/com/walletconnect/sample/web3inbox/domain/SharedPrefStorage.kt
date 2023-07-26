@@ -3,15 +3,6 @@ package com.walletconnect.sample.web3inbox.domain
 import android.content.Context
 
 object SharedPrefStorage {
-    fun getShouldRemember(context: Context): Boolean {
-        val sharedPreferences = context.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE)
-        return sharedPreferences.getBoolean(SHOULD_REMEMBER, true)
-    }
-
-    fun saveShouldRemember(context: Context, state: Boolean) {
-        val sharedPreferences = context.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE)
-        return sharedPreferences.edit().putBoolean(SHOULD_REMEMBER, state).apply()
-    }
 
     fun getLastLoggedInAccount(context: Context): String? {
         val sharedPreferences = context.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE)
@@ -28,7 +19,6 @@ object SharedPrefStorage {
         sharedPreferences.edit().remove(LAST_LOGGED_IN_ACCOUNT).apply()
     }
 
-    private const val SHOULD_REMEMBER = "should_remember"
     private const val LAST_LOGGED_IN_ACCOUNT = "last_logged_in_account"
     private const val SHARED_PREF_NAME = "W3I_Sample_Shared_Pref"
 
