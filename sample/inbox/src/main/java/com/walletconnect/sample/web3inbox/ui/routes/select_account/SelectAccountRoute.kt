@@ -41,7 +41,6 @@ fun AccountRoute(navController: NavController) {
     val viewModel: SelectAccountViewModel = viewModel()
     val context = LocalContext.current
     val shouldRememberState = remember { mutableStateOf(SharedPrefStorage.getShouldRemember(context)) }
-    val random = EthAccount.Random(context)
 
     LaunchedEffect(Unit) {
         viewModel.walletEvents.collect { event ->
@@ -78,109 +77,136 @@ fun AccountRoute(navController: NavController) {
             })
         }
     }
+
+    AccountScreen(navController, viewModel, shouldRememberState.value) { newValue ->
+        SharedPrefStorage.saveShouldRemember(context, newValue)
+        shouldRememberState.value = newValue
+    }
+}
+
+@Composable
+fun AccountScreen(navController: NavController, viewModel: SelectAccountViewModel, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    val context = LocalContext.current
+    val random = EthAccount.Random(context)
+
     Box() {
         Column(
             verticalArrangement = Arrangement.Center, modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 10.dp)
         ) {
-            Text(
-                fontSize = 14.sp,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .alpha(0.8f),
-                textAlign = TextAlign.Center,
-                text = "This is the way W3I SDK works\nNote: Generates and saves random account for this app"
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-            Button(modifier = Modifier
-                .fillMaxWidth()
-                .height(60.dp),
-                onClick = {
-                    navController.navigateToW3I(random.caip10())
-                }) {
-                Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = "Random account")
-                    Text(fontSize = 8.sp, text = random.address)
-                }
-            }
+            RandomAccountSection(random) { navController.navigateToW3I(random.caip10()) }
             HorizontalLineDivider()
-            Text(
-                fontSize = 14.sp,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .alpha(0.8f), textAlign = TextAlign.Center,
-                text = "Wanna use your wallet?\nGood for sync testing\nNote: Selecting \"Log In With Wallet\" option will require signing messages on your wallet"
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-            Button(modifier = Modifier
-                .fillMaxWidth()
-                .height(60.dp),
-                onClick = {
-                    viewModel.connectToWallet { uri ->
-                        navController.openWalletConnectModal(uri)
-                    }
-                }) {
-                Text(text = "Log In With Wallet")
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text(text = "Remember me")
-                Spacer(modifier = Modifier.width(10.dp))
-                Switch(
-                    checked = shouldRememberState.value,
-                    onCheckedChange = {
-                        SharedPrefStorage.saveShouldRemember(context, it)
-                        shouldRememberState.value = it
-                    }
-                )
-            }
+            SignInWithWalletSection(onClick = { viewModel.connectToWallet { uri -> navController.openWalletConnectModal(uri) } }, checked = checked, onCheckedChange = onCheckedChange)
             HorizontalLineDivider()
-            Text(
-                fontSize = 14.sp,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .alpha(0.8f),
-                textAlign = TextAlign.Center,
-                text = "For Advanced testers.\nNote: This might have issues with persisting data. Please use Random one"
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-            Button(modifier = Modifier
-                .fillMaxWidth()
-                .height(60.dp),
-                onClick = {
-                    navController.navigateToW3I(EthAccount.Burner.caip10())
-                }) {
-                Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = "Burner account")
-                    Text(fontSize = 8.sp, text = EthAccount.Burner.address)
-                }
-            }
+            BurnerAccountSection() { navController.navigateToW3I(EthAccount.Burner.caip10()) }
             HorizontalLineDivider()
-            Text(
-                fontSize = 14.sp,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .alpha(0.8f),
-                textAlign = TextAlign.Center,
-                text = "For Advanced testers.\nNote: This might have issues if too many ppl use it. Please use Random one"
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-            Button(modifier = Modifier
-                .fillMaxWidth()
-                .height(60.dp),
-                onClick = {
-                    navController.navigateToW3I(EthAccount.Fixed.caip10())
-                }) {
-                Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = "Fixed account")
-                    Text(fontSize = 8.sp, text = EthAccount.Fixed.address)
-                }
-            }
+            FixedAccountSection { navController.navigateToW3I(EthAccount.Fixed.caip10()) }
+        }
+    }
+}
+
+@Composable
+fun RandomAccountSection(random: EthAccount.Random, onClick: () -> Unit) {
+    Text(
+        fontSize = 14.sp,
+        modifier = Modifier
+            .fillMaxWidth()
+            .alpha(0.8f),
+        textAlign = TextAlign.Center,
+        text = "This is the way W3I SDK works\nNote: Generates and saves random account for this app"
+    )
+    Spacer(modifier = Modifier.height(10.dp))
+    Button(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(60.dp),
+        onClick = onClick
+    ) {
+        Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(text = "Random account")
+            Text(fontSize = 8.sp, text = random.address)
+        }
+    }
+}
+
+@Composable
+fun SignInWithWalletSection(onClick: () -> Unit, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    Text(
+        fontSize = 14.sp,
+        modifier = Modifier
+            .fillMaxWidth()
+            .alpha(0.8f), textAlign = TextAlign.Center,
+        text = "Wanna use your wallet?\nGood for sync testing\nNote: Selecting \"Log In With Wallet\" option will require signing messages on your wallet"
+    )
+    Spacer(modifier = Modifier.height(10.dp))
+    Button(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(60.dp),
+        onClick = onClick
+    ) {
+        Text(text = "Log In With Wallet")
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        Text(text = "Remember me")
+        Spacer(modifier = Modifier.width(10.dp))
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange
+        )
+    }
+}
+
+@Composable
+fun BurnerAccountSection(onClick: () -> Unit) {
+    Text(
+        fontSize = 14.sp,
+        modifier = Modifier
+            .fillMaxWidth()
+            .alpha(0.8f),
+        textAlign = TextAlign.Center,
+        text = "For Advanced testers.\nNote: This might have issues with persisting data. Please use Random one"
+    )
+    Spacer(modifier = Modifier.height(10.dp))
+    Button(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(60.dp),
+        onClick = onClick
+    ) {
+        Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(text = "Burner account")
+            Text(fontSize = 8.sp, text = EthAccount.Burner.address)
+        }
+    }
+}
+
+@Composable
+fun FixedAccountSection(onClick: () -> Unit) {
+    Text(
+        fontSize = 14.sp,
+        modifier = Modifier
+            .fillMaxWidth()
+            .alpha(0.8f),
+        textAlign = TextAlign.Center,
+        text = "For Advanced testers.\nNote: This might have issues if too many ppl use it. Please use Random one"
+    )
+    Spacer(modifier = Modifier.height(10.dp))
+    Button(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(60.dp),
+        onClick = onClick
+    ) {
+        Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(text = "Fixed account")
+            Text(fontSize = 8.sp, text = EthAccount.Fixed.address)
         }
     }
 }
