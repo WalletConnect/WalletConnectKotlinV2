@@ -31,27 +31,14 @@ class W3IFirebaseMessagingService : Web3InboxFirebaseMessagingService() {
 
         val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
 
-        val notificationBuilder = when (message) {
-            is Inbox.Model.Message.Decrypted -> {
-                NotificationCompat.Builder(this, channelId)
-                    .setContentTitle(message.title)
-                    .setSmallIcon(R.drawable.ic_popup_reminder)
-                    .setContentText(message.body)
-                    .setAutoCancel(true)
-                    .setSound(defaultSoundUri)
-                    .setContentIntent(pendingIntent)
-            }
+        val notificationBuilder = NotificationCompat.Builder(this, channelId)
+            .setContentTitle(message.title)
+            .setSmallIcon(R.drawable.ic_popup_reminder)
+            .setContentText(message.body)
+            .setAutoCancel(true)
+            .setSound(defaultSoundUri)
+            .setContentIntent(pendingIntent)
 
-            is Inbox.Model.Message.Simple -> {
-                NotificationCompat.Builder(this, channelId)
-                    .setContentTitle(message.title)
-                    .setSmallIcon(R.drawable.ic_popup_reminder)
-                    .setContentText(message.body)
-                    .setAutoCancel(true)
-                    .setSound(defaultSoundUri)
-                    .setContentIntent(pendingIntent)
-            }
-        }
 
         // Since android Oreo notification channel is needed.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
