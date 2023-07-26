@@ -11,9 +11,6 @@ on:
         description: 'Flag to use and save cache gradle. Tests results are cached!'
         required: true
         default: false
-  push:
-    branches:
-      - develop
   pull_request:
     branches:
       - develop
