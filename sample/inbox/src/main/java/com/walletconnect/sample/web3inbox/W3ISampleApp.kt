@@ -26,7 +26,6 @@ class W3ISampleApp : Application() {
             redirect = "kotlin-sample-w3i-wc://request"
         )
 
-        Timber.d("Init")
 
         CoreClient.initialize(
             relayServerUrl = serverUri,
