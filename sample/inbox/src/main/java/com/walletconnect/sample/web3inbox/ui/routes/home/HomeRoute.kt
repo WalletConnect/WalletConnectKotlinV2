@@ -1,5 +1,6 @@
 package com.walletconnect.sample.web3inbox.ui.routes.home
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,7 +19,6 @@ import androidx.navigation.NavController
 import com.walletconnect.sample.web3inbox.R
 import com.walletconnect.sample.web3inbox.ui.routes.home.settings.SettingsRoute
 import com.walletconnect.sample.web3inbox.ui.routes.home.web3inbox.Web3InboxRoute
-import com.walletconnect.sample.web3inbox.ui.util.BackPressHandler
 import kotlinx.coroutines.launch
 
 
@@ -33,7 +33,7 @@ fun HomeRoute(navController: NavController) {
         // Do nothing
     }
 
-    BackPressHandler(onBackPressed = onBackPressed)
+    BackHandler(enabled = true, onBackPressed)
 
     Column(modifier = Modifier.fillMaxSize()) {
         HorizontalPager(modifier = Modifier.weight(1f), state = pagerState, beyondBoundsPageCount = 1) { page ->
