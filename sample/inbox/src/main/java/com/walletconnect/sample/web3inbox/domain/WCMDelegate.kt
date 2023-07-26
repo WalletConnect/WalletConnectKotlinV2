@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
-object W3MDelegate : WalletConnectModal.ModalDelegate {
+object WCMDelegate : WalletConnectModal.ModalDelegate {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val _wcEventModels: MutableSharedFlow<Modal.Model?> = MutableSharedFlow()
     val wcEventModels: SharedFlow<Modal.Model?> = _wcEventModels.asSharedFlow()

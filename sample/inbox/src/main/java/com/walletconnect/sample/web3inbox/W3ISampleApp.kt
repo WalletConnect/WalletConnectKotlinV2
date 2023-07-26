@@ -7,7 +7,7 @@ import com.walletconnect.android.CoreClient
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.wcmodal.client.WalletConnectModal
 import com.walletconnect.wcmodal.client.Modal
-import com.walletconnect.sample.web3inbox.domain.W3MDelegate
+import com.walletconnect.sample.web3inbox.domain.WCMDelegate
 import timber.log.Timber
 
 class W3ISampleApp : Application() {
@@ -37,7 +37,7 @@ class W3ISampleApp : Application() {
 
         WalletConnectModal.initialize(
             Modal.Params.Init(CoreClient),
-            onSuccess = { WalletConnectModal.setDelegate(W3MDelegate) },
+            onSuccess = { WalletConnectModal.setDelegate(WCMDelegate) },
             onError = { error -> Timber.e(error.throwable) }
         )
 

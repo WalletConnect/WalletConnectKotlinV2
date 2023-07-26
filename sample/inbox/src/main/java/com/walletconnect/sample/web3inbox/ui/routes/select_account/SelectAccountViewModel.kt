@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
-import com.walletconnect.sample.web3inbox.domain.W3MDelegate
+import com.walletconnect.sample.web3inbox.domain.WCMDelegate
 import com.walletconnect.sample.web3inbox.ui.routes.W3ISampleEvents
 import com.walletconnect.wcmodal.client.Modal
 import com.walletconnect.wcmodal.client.WalletConnectModal
@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit
 
 class SelectAccountViewModel() : ViewModel() {
 
-    val walletEvents = W3MDelegate.wcEventModels.map { walletEvent: Modal.Model? ->
+    val walletEvents = WCMDelegate.wcEventModels.map { walletEvent: Modal.Model? ->
         when (walletEvent) {
             is Modal.Model.ApprovedSession -> W3ISampleEvents.SessionApproved(walletEvent.accounts.first())
             is Modal.Model.RejectedSession -> W3ISampleEvents.SessionRejected

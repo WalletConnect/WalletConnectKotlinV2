@@ -2,14 +2,14 @@ package com.walletconnect.sample.web3inbox.ui.routes
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.walletconnect.sample.web3inbox.domain.W3MDelegate
+import com.walletconnect.sample.web3inbox.domain.WCMDelegate
 import com.walletconnect.wcmodal.client.Modal
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 
 class W3ISampleViewModel : ViewModel() {
-    val events = W3MDelegate
+    val events = WCMDelegate
         .wcEventModels
         .map { event ->
             when (event) {

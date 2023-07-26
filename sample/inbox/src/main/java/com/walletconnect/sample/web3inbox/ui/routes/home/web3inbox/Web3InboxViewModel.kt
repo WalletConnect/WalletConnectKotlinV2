@@ -7,7 +7,7 @@ import com.walletconnect.android.CoreClient
 import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.android.utils.cacao.sign
 import com.walletconnect.sample.web3inbox.domain.EthAccount
-import com.walletconnect.sample.web3inbox.domain.W3MDelegate
+import com.walletconnect.sample.web3inbox.domain.WCMDelegate
 import com.walletconnect.sample.web3inbox.ui.routes.W3ISampleEvents
 import com.walletconnect.sample.web3inbox.ui.routes.accountArg
 import com.walletconnect.util.hexToBytes
@@ -128,7 +128,7 @@ class Web3InboxViewModel(
     }
 
     init {
-        W3MDelegate.wcEventModels.onEach { walletEvent: Modal.Model? ->
+        WCMDelegate.wcEventModels.onEach { walletEvent: Modal.Model? ->
             when (walletEvent) {
                 is Modal.Model.SessionRequestResponse -> {
                     when (walletEvent.result) {
