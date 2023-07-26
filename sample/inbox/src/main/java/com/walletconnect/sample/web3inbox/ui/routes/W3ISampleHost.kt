@@ -15,7 +15,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
@@ -50,13 +49,9 @@ fun W3ISampleHost() {
             }
         }
     }
-    val backStackEntry = navController.currentBackStackEntryAsState()
 
     Scaffold(
         scaffoldState = scaffoldState,
-        bottomBar = {
-            backStackEntry.value
-        }
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
             if (isOfflineState) {
