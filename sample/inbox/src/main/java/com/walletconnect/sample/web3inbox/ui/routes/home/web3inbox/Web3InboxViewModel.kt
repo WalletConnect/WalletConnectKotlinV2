@@ -61,7 +61,7 @@ class Web3InboxViewModel(
     private fun generatePersonalSignParams(message: String, selectedAccountInfo: String) = "[\"${toHexString(message.toByteArray())}\", \"$selectedAccountInfo\"]"
 
     private fun onSign(message: String): Inbox.Model.Cacao.Signature {
-        Timber.d("onSign")
+        Timber.d("onSign(\"${message.take(200)}\")")
 
         if (message.contains(EthAccount.Fixed.address)) {
             return CacaoSigner.sign(message, EthAccount.Fixed.privateKey.hexToBytes(), SignatureType.EIP191)
@@ -72,11 +72,9 @@ class Web3InboxViewModel(
         }
 
         return runBlocking(viewModelScope.coroutineContext) {
-            Timber.d("runBlocking started")
             Timber.d("params: ${generatePersonalSignParams(message, selectedAccount.getAddressFromCaip10())}")
             sessionRequestMutex.lock()
-            val localMutex = Mutex()
-            Timber.d("sessionRequestMutex: $sessionRequestMutex locked")
+            val awaitRequestMutex = Mutex()
 
             val session: Modal.Model.Session = WalletConnectModal.getListOfActiveSessions()
                 .first { session -> session.namespaces[selectedAccount.getNamespaceFromCaip10()]?.accounts?.firstOrNull { account -> account == selectedAccount } != null }
@@ -86,26 +84,18 @@ class Web3InboxViewModel(
                 onError = { error -> viewModelScope.launch { _requestStatus.emit(OnSignRequestStatus.Failure(error.throwable)) }.also { Timber.e(error.throwable) } }
             )
 
-            localMutex.lock()
-            Timber.d("localMutex: $localMutex locked")
+            awaitRequestMutex.lock()
             val awaitRequestJob = requestResult.onEach { onSignResult ->
-                Timber.d("requestResult.onEach")
                 when (onSignResult) {
                     OnSignResult.Loading -> {}
-                    else -> localMutex.unlock().also {
-                        Timber.d("localMutex: $localMutex unlocked")
-                    }
+                    else -> awaitRequestMutex.unlock()
+
                 }
             }.launchIn(viewModelScope)
 
 
-            Timber.d("after async")
-            localMutex.withLock {
-                Timber.d("mutex.withLock")
-
-                sessionRequestMutex.unlock().also {
-                    Timber.d("sessionRequestMutex: $sessionRequestMutex unlocked")
-                }
+            awaitRequestMutex.withLock {
+                sessionRequestMutex.unlock()
                 awaitRequestJob.cancel()
                 val result = requestResult.value
                 resetRequest()
