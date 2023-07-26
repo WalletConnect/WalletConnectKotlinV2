@@ -5,9 +5,9 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.relay.ConnectionType
-import com.walletconnect.wcmodal.client.WalletConnectModal
-import com.walletconnect.wcmodal.client.Modal
 import com.walletconnect.sample.web3inbox.domain.WCMDelegate
+import com.walletconnect.wcmodal.client.Modal
+import com.walletconnect.wcmodal.client.WalletConnectModal
 import timber.log.Timber
 
 class W3ISampleApp : Application() {
@@ -26,7 +26,6 @@ class W3ISampleApp : Application() {
             redirect = "kotlin-sample-w3i-wc://request"
         )
 
-
         CoreClient.initialize(
             relayServerUrl = serverUri,
             connectionType = ConnectionType.AUTOMATIC,
@@ -41,9 +40,7 @@ class W3ISampleApp : Application() {
         )
 
         FirebaseMessaging.getInstance().deleteToken().addOnSuccessListener {
-            FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
-                Timber.d(token)
-            }
+            FirebaseMessaging.getInstance().token.addOnSuccessListener {}
         }
     }
 }
