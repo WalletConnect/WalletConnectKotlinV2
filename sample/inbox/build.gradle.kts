@@ -60,6 +60,7 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:31.1.1"))
     implementation("com.google.firebase:firebase-crashlytics-ktx")
     implementation("com.google.firebase:firebase-analytics-ktx")
+    implementation("com.google.firebase:firebase-messaging")
 
     implementation("androidx.core:core-ktx:1.9.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.5.1")
@@ -68,8 +69,6 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.6.1")
     implementation("androidx.palette:palette:1.0.0")
 
-    implementation(platform("com.google.firebase:firebase-bom:31.0.0"))
-    implementation("com.google.firebase:firebase-messaging")
 
     // Glide
     implementation("com.github.skydoves:landscapist-glide:2.1.0")
