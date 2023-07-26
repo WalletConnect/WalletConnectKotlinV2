@@ -17,7 +17,7 @@ fun TestOptions.registerManagedDevices() {
         devices {
             devicesNames[whichDeviceProfile].let { deviceName ->
                 val taskSuffix = deviceName.replace(" ", "_")
-                create<ManagedVirtualDevice>("Google30_${taskSuffix}") {
+                create<ManagedVirtualDevice>("Google32_${taskSuffix}") {
                     device = deviceName
                     apiLevel = 32
                     systemImageSource = "google"
