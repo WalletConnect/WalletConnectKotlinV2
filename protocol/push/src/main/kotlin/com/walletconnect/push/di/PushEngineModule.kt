@@ -38,6 +38,12 @@ import org.koin.dsl.module
 @JvmSynthetic
 internal fun walletEngineModule() = module {
 
+    includes(
+        callModule(),
+        requestModule(),
+        responseModule()
+    )
+
     single {
         EnginePushSubscriptionNotifier()
     }
@@ -48,6 +54,35 @@ internal fun walletEngineModule() = module {
             identitiesInteractor = get()
         )
     }
+
+    single {
+        PushWalletEngine(
+            jsonRpcInteractor = get(),
+            pairingHandler = get(),
+            logger = get(),
+            syncClient = get(),
+            onSyncUpdateEventUseCase = get(),
+            historyInterface = get(),
+            subscribeUserCase = get(),
+            approveUseCase = get(),
+            rejectUserCase = get(),
+            updateUseCase = get(),
+            deleteSubscriptionUseCase = get(),
+            deleteMessageUseCase = get(),
+            decryptMessageUseCase = get(),
+            enableSyncUseCase = get(),
+            getListOfActiveSubscriptionsUseCase = get(),
+            getListOfMessages = get(),
+            onPushProposeUseCase = get(),
+            onPushMessageUseCase = get(),
+            onPushDeleteUseCase = get(),
+            onPushSubscribeResponseUseCase = get(),
+            onPushUpdateResponseUseCase = get()
+        )
+    }
+}
+
+private fun callModule() = module {
 
     single<SubscribeUseCaseInterface> {
         SubscribeUseCase(
@@ -132,6 +167,9 @@ internal fun walletEngineModule() = module {
             messagesRepository = get()
         )
     }
+}
+
+private fun requestModule() = module {
 
     single {
         OnPushProposeUseCase(
@@ -156,6 +194,9 @@ internal fun walletEngineModule() = module {
             logger = get()
         )
     }
+}
+
+private fun responseModule() = module {
 
     single {
         OnPushSubscribeResponseUseCase(
@@ -172,32 +213,6 @@ internal fun walletEngineModule() = module {
     single {
         OnPushUpdateResponseUseCase(
             subscriptionRepository = get()
-        )
-    }
-
-    single {
-        PushWalletEngine(
-            jsonRpcInteractor = get(),
-            pairingHandler = get(),
-            logger = get(),
-            syncClient = get(),
-            onSyncUpdateEventUseCase = get(),
-            historyInterface = get(),
-            subscribeUserCase = get(),
-            approveUseCase = get(),
-            rejectUserCase = get(),
-            updateUseCase = get(),
-            deleteSubscriptionUseCase = get(),
-            deleteMessageUseCase = get(),
-            decryptMessageUseCase = get(),
-            enableSyncUseCase = get(),
-            getListOfActiveSubscriptionsUseCase = get(),
-            getListOfMessages = get(),
-            onPushProposeUseCase = get(),
-            onPushMessageUseCase = get(),
-            onPushDeleteUseCase = get(),
-            onPushSubscribeResponseUseCase = get(),
-            onPushUpdateResponseUseCase = get()
         )
     }
 }
