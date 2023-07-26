@@ -159,8 +159,16 @@ fun DependencyHandlerScope.kethereum() {
     "api"("com.github.komputing.kethereum:crypto_impl_spongycastle:$kethereumVersion")
 }
 
-fun DependencyHandlerScope.fcm() {
-    "implementation"("com.google.firebase:firebase-messaging:$fcmVersion")
+fun DependencyHandlerScope.firebaseMessaging() {
+    "implementation"(platform("com.google.firebase:firebase-bom:$firebaseBomVersion"))
+    "implementation"("com.google.firebase:firebase-messaging")
+}
+
+
+fun DependencyHandlerScope.firebaseChrashlytics() {
+    "implementation"(platform("com.google.firebase:firebase-bom:$firebaseBomVersion"))
+    "implementation"("com.google.firebase:firebase-crashlytics-ktx")
+    "implementation"("com.google.firebase:firebase-analytics-ktx")
 }
 
 fun DependencyHandlerScope.compose() {

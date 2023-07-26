@@ -67,7 +67,7 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-scalars:2.9.0")
     moshiKsp()
     androidXTest()
-    fcm()
+    firebaseMessaging()
     jUnit4()
     robolectric()
     mockk()
