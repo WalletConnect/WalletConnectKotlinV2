@@ -18,8 +18,8 @@ interface ExplorerService {
     suspend fun getAndroidWallets(
         @Query("projectId") projectId: String,
         @Query("chains") chains: String?,
-        @Query("sdk_type") sdkType: String,
-        @Query("sdk_version") sdkVersion: String,
+        @Query("sdkType") sdkType: String,
+        @Query("sdkVersion") sdkVersion: String,
         @Query("excludedIds") excludedIds: String?,
         @Query("recommendedIds") recommendedIds: String?
     ): Response<WalletListingDTO>
