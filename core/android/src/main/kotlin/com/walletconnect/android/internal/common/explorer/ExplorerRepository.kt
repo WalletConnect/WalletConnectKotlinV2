@@ -1,5 +1,6 @@
 package com.walletconnect.android.internal.common.explorer
 
+import android.content.Context
 import androidx.core.net.toUri
 import com.walletconnect.android.BuildConfig
 import com.walletconnect.android.internal.common.explorer.data.model.App
@@ -28,8 +29,10 @@ import com.walletconnect.android.internal.common.explorer.data.network.model.Wal
 import com.walletconnect.android.internal.common.explorer.data.network.model.SupportedStandardDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.WalletListingDTO
 import com.walletconnect.android.internal.common.model.ProjectId
+import com.walletconnect.android.utils.isWalletInstalled
 
 class ExplorerRepository(
+    private val context: Context,
     private val explorerService: ExplorerService,
     private val projectId: ProjectId,
     private val explorerApiUrl: String
@@ -84,7 +87,7 @@ class ExplorerRepository(
             nativeLink = mobile.native,
             universalLink = mobile.universal,
             playStoreLink = app.android
-        )
+        ).apply { isWalletInstalled = context.packageManager.isWalletInstalled(this) }
     }
 
     private fun String.buildWalletImageUrl(): String {
