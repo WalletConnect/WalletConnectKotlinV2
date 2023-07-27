@@ -13,31 +13,50 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.navigation.NavHostController
-import com.google.accompanist.navigation.animation.rememberAnimatedNavController
+import androidx.navigation.compose.rememberNavController
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.walletconnect.modal.R
+import com.walletconnect.modal.utils.theme.themeColor
+import com.walletconnect.wcmodal.ui.theme.WalletConnectModalTheme
+
+//import com.walletconnect.wcmodal.R
 
 class WalletConnectModalSheet : BottomSheetDialogFragment() {
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        requireContext().setTheme(R.style.WalletConnectModalTheme)
+        super.onCreate(savedInstanceState)
+    }
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+
+        val accentColor = requireContext().themeColor(R.attr.accentColor)
+        val onAccentColor = requireContext().themeColor(R.attr.onAccentColor)
+
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                ModalComposeView()
+                WalletConnectModalTheme(
+                    accentColor = accentColor,
+                    onAccentColor = onAccentColor,
+                ) {
+                    ModalComposeView()
+                }
             }
         }
     }
 
     @Composable
     private fun ModalComposeView() {
-        val navController = rememberAnimatedNavController()
+        val navController = rememberNavController()
         (dialog as? ComponentDialog)?.onBackPressedDispatcher?.addCallback(
             this@WalletConnectModalSheet,
             onBackPressedCallback(navController)
         )
+
         WalletConnectModalComponent(
             navController = navController,
             closeModal = { this@WalletConnectModalSheet.dismiss() }
