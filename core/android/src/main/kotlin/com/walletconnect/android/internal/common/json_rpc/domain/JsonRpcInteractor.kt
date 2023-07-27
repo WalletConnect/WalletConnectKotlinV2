@@ -313,7 +313,6 @@ internal class JsonRpcInteractor(
                         handleError("ManSub: ${e.stackTraceToString()}")
                         String.Empty
                     }
-
                     Pair(message, topic)
                 }.collect { (decryptedMessage, topic) ->
                     if (decryptedMessage.isNotEmpty()) {
