@@ -2,8 +2,10 @@ package com.walletconnect.wcmodal.ui.components
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -92,6 +94,10 @@ internal fun WalletListItem(
             style = TextStyle(color = ModalTheme.colors.onBackgroundColor, fontSize = 12.sp),
             textAlign = TextAlign.Center
         )
-        VerticalSpacer(height = 16.dp)
+        Box(modifier = Modifier.height(16.dp), contentAlignment = Alignment.TopCenter) {
+            if (wallet.isWalletInstalled) {
+                Text(text = "INSTALLED", style = TextStyle(color = ModalTheme.colors.secondaryTextColor, fontSize = 10.sp))
+            }
+        }
     }
 }
