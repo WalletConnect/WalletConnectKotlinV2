@@ -32,8 +32,8 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.walletconnect.android.internal.common.explorer.data.model.Wallet
-import com.walletconnect.modal.R
 import com.walletconnect.modal.utils.openPlayStore
+import com.walletconnect.wcmodal.R
 import com.walletconnect.wcmodal.ui.components.ModalTopBar
 import com.walletconnect.wcmodal.ui.components.RoundedMainButton
 import com.walletconnect.wcmodal.ui.theme.ModalTheme
