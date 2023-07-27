@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
@@ -20,10 +21,12 @@ import com.walletconnect.sample.wallet.ui.common.SemiTransparentDialog
 import com.walletconnect.sample.wallet.ui.common.peer.Peer
 import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import com.walletconnect.sample.common.ui.themedColor
+import kotlinx.coroutines.launch
 
 @Composable
 fun AuthRequestRoute(navController: NavHostController, authRequestViewModel: AuthRequestViewModel = viewModel()) {
     val authRequestUI = authRequestViewModel.authRequest ?: throw Exception("Missing auth request")
+    val composableScope = rememberCoroutineScope()
     SemiTransparentDialog {
         Spacer(modifier = Modifier.height(24.dp))
         Peer(peerUI = authRequestUI.peerUI, "would like to connect", authRequestUI.peerContextUI)
@@ -31,16 +34,33 @@ fun AuthRequestRoute(navController: NavHostController, authRequestViewModel: Aut
         Message(authRequestUI = authRequestUI)
         Spacer(modifier = Modifier.height(16.dp))
         Buttons(onDecline = {
-            authRequestViewModel.reject()
-            navController.popBackStack()
-            navController.showSnackbar("Auth Request declined")
+            composableScope.launch {
+                try {
+                    authRequestViewModel.reject()
+                    navController.popBackStack()
+                    navController.showSnackbar("Auth Request declined")
+                } catch (e: Throwable) {
+                    closeAndShowError(navController, e.message)
+                }
+            }
         }, onAllow = {
-            authRequestViewModel.approve()
-            navController.popBackStack()
-            navController.showSnackbar("Auth Request approved")
+            composableScope.launch {
+                try {
+                    authRequestViewModel.approve()
+                    navController.popBackStack()
+                    navController.showSnackbar("Auth Request approved")
+                } catch (e: Exception) {
+                    closeAndShowError(navController, e.message)
+                }
+            }
         })
         Spacer(modifier = Modifier.height(16.dp))
     }
+}
+
+private fun closeAndShowError(navController: NavHostController, message: String?) {
+    navController.popBackStack()
+    navController.showSnackbar(message ?: "Auth request error, please check your Internet connection")
 }
 
 @Composable

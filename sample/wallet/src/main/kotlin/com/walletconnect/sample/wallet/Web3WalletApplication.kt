@@ -14,14 +14,21 @@ import com.walletconnect.sample.common.BuildConfig
 import com.walletconnect.sample.common.tag
 import com.walletconnect.sample.wallet.domain.EthAccountDelegate
 import com.walletconnect.sample.wallet.domain.toEthAddress
+import com.walletconnect.sample.wallet.ui.state.ConnectionState
+import com.walletconnect.sample.wallet.ui.state.connectionStateFlow
 import com.walletconnect.util.hexToBytes
 import com.walletconnect.web3.inbox.cacao.CacaoSigner
 import com.walletconnect.web3.inbox.client.Inbox
 import com.walletconnect.web3.inbox.client.Web3Inbox
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 class Web3WalletApplication : Application() {
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onCreate() {
         super.onCreate()
@@ -48,6 +55,9 @@ class Web3WalletApplication : Application() {
         ) { error ->
             Firebase.crashlytics.recordException(error.throwable)
             Log.e(tag(this), error.throwable.stackTraceToString())
+            scope.launch {
+                connectionStateFlow.emit(ConnectionState.Error(error.throwable.message ?: ""))
+            }
         }
 
         Web3Wallet.initialize(Wallet.Params.Init(core = CoreClient)) { error ->
