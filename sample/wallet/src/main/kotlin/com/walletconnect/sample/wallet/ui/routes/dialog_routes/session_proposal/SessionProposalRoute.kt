@@ -62,21 +62,39 @@ fun SessionProposalRoute(navController: NavHostController, sessionProposalViewMo
         Permissions(sessionProposalUI = sessionProposalUI)
         Spacer(modifier = Modifier.height(16.dp))
         Buttons(onDecline = {
-            sessionProposalViewModel.reject() { redirect -> context.sendResponseDeepLink(redirect.toUri()) }
-            navController.popBackStack(route = Route.Connections.path, inclusive = false)
+            composableScope.launch {
+                try {
+                    sessionProposalViewModel.reject { redirect ->
+                        if (redirect.isNotEmpty()){
+                            context.sendResponseDeepLink(redirect.toUri())
+                        }
+                    }
+                    navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                } catch (e: Throwable) {
+                    closeAndShowError(navController, e.message)
+                }
+            }
         }, onAllow = {
             composableScope.launch {
                 try {
-                    sessionProposalViewModel.approve { redirect -> context.sendResponseDeepLink(redirect.toUri()) }
+                    sessionProposalViewModel.approve { redirect ->
+                        if (redirect.isNotEmpty()) {
+                            context.sendResponseDeepLink(redirect.toUri())
+                        }
+                    }
                     navController.popBackStack(route = Route.Connections.path, inclusive = false)
-                } catch (e: Exception) {
-                    navController.popBackStack(route = Route.Connections.path, inclusive = false)
-                    navController.showSnackbar(e.message ?: "Session approval error: Please check if all Namespaces are supported")
+                } catch (e: Throwable) {
+                    closeAndShowError(navController, e.message)
                 }
             }
         })
         Spacer(modifier = Modifier.height(16.dp))
     }
+}
+
+private fun closeAndShowError(navController: NavHostController, mesage: String?) {
+    navController.popBackStack(route = Route.Connections.path, inclusive = false)
+    navController.showSnackbar(mesage ?: "Session proposal error, please check your Internet connection")
 }
 
 @Composable

@@ -32,33 +32,34 @@ jobs:
         uses: ./.github/actions/ci_relay
 
 # Copy of ci_instrumented_test.yml
-  sdk_tests:
-    strategy:
-      fail-fast: false
-      matrix:
-        conf: [
-          { name: 'Sign_SDK', command: ":protocol:sign:allDevicesCheck" },
-          { name: 'Android_Core_SDK', command: ":core:android:allDevicesCheck" },
-        ]
+#   sdk_tests:
+#     strategy:
+#       fail-fast: false
+#       matrix:
+#         conf: [
+#           { name: 'Sign_SDK', command: ":protocol:sign:allDevicesCheck" },
+#           { name: 'Android_Core_SDK', command: ":core:android:allDevicesCheck" },
+#         ]
 
-    name: ${{ matrix.conf.name }}
-    runs-on: self-hosted
-    steps:
-      - uses: actions/checkout@v3
+#     name: ${{ matrix.conf.name }}
+#     runs-on: self-hosted
+#     steps:
+#       - uses: actions/checkout@v3
 
-      - name: Run instrumented tests
-        uses: ./.github/actions/ci_instrumented_tests
-        with:
-          shouldUseCache: ${{ github.event.inputs.testTimeoutSeconds || true }} # Setting to true faster pass unchanged code
-          name: ${{ matrix.conf.name }}
-          command: ${{ matrix.conf.command }}
-          report: ${{ matrix.conf.report }}
-          projectId: ${{ secrets.WC_CLOUD_PROJECT_ID }}
-          testTimeoutSeconds: ${{ github.event.inputs.testTimeoutSeconds || env.TEST_TIMEOUT_SECONDS }} # Prioritise dispatch input timeout over env one
+#       - name: Run instrumented tests
+#         uses: ./.github/actions/ci_instrumented_tests
+#         with:
+#           shouldUseCache: ${{ github.event.inputs.testTimeoutSeconds || true }} # Setting to true faster pass unchanged code
+#           name: ${{ matrix.conf.name }}
+#           command: ${{ matrix.conf.command }}
+#           report: ${{ matrix.conf.report }}
+#           projectId: ${{ secrets.WC_CLOUD_PROJECT_ID }}
+#           testTimeoutSeconds: ${{ github.event.inputs.testTimeoutSeconds || env.TEST_TIMEOUT_SECONDS }} # Prioritise dispatch input timeout over env one
 
   trigger_slack_webhook:
     runs-on: ubuntu-latest
-    needs: [sdk_tests, relay_tests]
+#     needs: [sdk_tests, relay_tests]
+    needs: [relay_tests]
     if: failure()
     steps:
       - name: Checkout
