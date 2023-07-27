@@ -44,7 +44,7 @@ fun W3ISampleHost() {
                 is W3ISampleEvents.RequestError -> scaffoldState.snackbarHostState.showSnackbar(event.exceptionMsg.take(200))
                 W3ISampleEvents.SessionExtend -> scaffoldState.snackbarHostState.showSnackbar("Session extended")
                 is W3ISampleEvents.ConnectionEvent -> isOfflineState = !event.isAvailable
-                is W3ISampleEvents.SessionApproved -> SharedPrefStorage.saveLastLoggedInAccount(context, event.account)
+                is W3ISampleEvents.SessionApproved -> SharedPrefStorage.setLastLoggedInAccount(context, event.account)
                 else -> Unit
             }
         }

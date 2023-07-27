@@ -81,13 +81,9 @@ sealed interface EthAccount {
             keypair = Keys.createEcKeyPair()
         }
 
-
-        override val address: String
-            get() = Keys.toChecksumAddress(Keys.getAddress(publicKey))
-        override val privateKey: String
-            get() = keypair.privateKey.toByteArray().bytesToHex()
-        override val publicKey: String
-            get() = keypair.publicKey.toByteArray().bytesToHex()
+        override val publicKey: String = keypair.publicKey.toByteArray().bytesToHex()
+        override val privateKey: String = keypair.privateKey.toByteArray().bytesToHex()
+        override val address: String = Keys.toChecksumAddress(Keys.getAddress(publicKey))
     }
 }
 

@@ -25,7 +25,7 @@ fun W3ISampleNavGraph(
     bottomSheetNavigator: BottomSheetNavigator,
     navController: NavHostController,
 ) {
-
+    val backStackEntry =
     ModalBottomSheetLayout(
         bottomSheetNavigator = bottomSheetNavigator,
         sheetBackgroundColor = Color.Transparent,
@@ -39,15 +39,15 @@ fun W3ISampleNavGraph(
             composable(Route.SelectAccount.path) {
                 AccountRoute(navController)
             }
-            composable(Route.Home.path + "/{$accountArg}", arguments = listOf(navArgument(accountArg) { type = NavType.StringType })) {
-                HomeRoute(navController)
+            composable(Route.Home.path + "/{$accountArg}", arguments = listOf(navArgument(accountArg) { type = NavType.StringType })) { navBackStackEntry ->
+                HomeRoute(navController, navBackStackEntry.arguments?.getString(accountArg)!!)
             }
             walletConnectModalGraph(navController)
         }
     }
 }
 
-const val accountArg = "accountArg"
+const val  accountArg = "accountArg"
 
 
 fun NavController.navigateToW3I(selectedAccount: String) {

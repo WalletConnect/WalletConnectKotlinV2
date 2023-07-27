@@ -55,7 +55,7 @@ fun SettingsRoute(navController: NavController) {
             .fillMaxWidth()
             .padding(horizontal = 10.dp),
             onClick = {
-                SharedPrefStorage.removeLastLoggedInAccount(context)
+                SharedPrefStorage.setShouldOpenWeb3InboxTab(context, false)
                 navController.navigateToSelectAccount()
             }) {
             Text(text = "Log out")

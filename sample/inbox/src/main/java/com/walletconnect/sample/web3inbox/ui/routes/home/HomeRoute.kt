@@ -24,7 +24,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun HomeRoute(navController: NavController) {
+fun HomeRoute(navController: NavController, account: String) {
     val pageCount = 2
     val pagerState = rememberPagerState() { pageCount }
     val coroutineScope = rememberCoroutineScope()
@@ -38,7 +38,7 @@ fun HomeRoute(navController: NavController) {
     Column(modifier = Modifier.fillMaxSize()) {
         HorizontalPager(modifier = Modifier.weight(1f), state = pagerState, beyondBoundsPageCount = 1) { page ->
             when (page) {
-                0 -> Web3InboxRoute(navController = navController)
+                0 -> Web3InboxRoute(navController = navController, account)
                 1 -> SettingsRoute(navController = navController)
             }
         }

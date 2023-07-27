@@ -47,28 +47,31 @@ fun AccountRoute(navController: NavController) {
         }
     }
 
-    // If logged in before and is remember then go straight to login
-    val account = SharedPrefStorage.getLastLoggedInAccount(context)
-    if (account != null) {
-        Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxSize()) {
-            CircularProgressIndicator(
-                modifier = Modifier
-                    .width(80.dp)
-                    .height(80.dp),
-                strokeWidth = 8.dp
-            )
-            Spacer(modifier = Modifier.height(40.dp))
-            Text(fontSize = 24.sp, text = "Hello again!")
-            Text(fontSize = 40.sp, text = account.split(":").last().let { it.take(6) + "..." + it.takeLast(4) })
-        }
+    // If logged out then open account view
+    if (SharedPrefStorage.getShouldOpenWeb3InboxTab(context)) {
+        // If logged in before then go straight to web3inbox
+        val account = SharedPrefStorage.getLastLoggedInAccount(context)
+        if (account != null) {
+            Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxSize()) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .width(80.dp)
+                        .height(80.dp),
+                    strokeWidth = 8.dp
+                )
+                Spacer(modifier = Modifier.height(40.dp))
+                Text(fontSize = 24.sp, text = "Hello again!")
+                Text(fontSize = 40.sp, text = account.split(":").last().let { it.take(6) + "..." + it.takeLast(4) })
+            }
 
-        return LaunchedEffect(key1 = Unit, block = {
-            navController.navigateToW3I(account)
-        })
-    } else {
-        LaunchedEffect(key1 = Unit, block = {
-            viewModel.disconnectOldSessions()
-        })
+            return LaunchedEffect(key1 = Unit, block = {
+                navController.navigateToW3I(account)
+            })
+        } else {
+            LaunchedEffect(key1 = Unit, block = {
+                viewModel.disconnectOldSessions()
+            })
+        }
     }
 
     AccountScreen(navController, viewModel)
@@ -86,16 +89,19 @@ fun AccountScreen(navController: NavController, viewModel: SelectAccountViewMode
                 .padding(horizontal = 10.dp)
         ) {
             RandomAccountSection(random) {
-                SharedPrefStorage.saveLastLoggedInAccount(context, random.caip10())
+                SharedPrefStorage.setLastLoggedInAccount(context, random.caip10())
                 navController.navigateToW3I(random.caip10())
             }
             HorizontalLineDivider()
             SignInWithWalletSection(onClick = { viewModel.connectToWallet { uri -> navController.openWalletConnectModal(uri) } })
             HorizontalLineDivider()
-            BurnerAccountSection() { navController.navigateToW3I(EthAccount.Burner.caip10()) }
+            BurnerAccountSection() {
+                SharedPrefStorage.setLastLoggedInAccount(context, EthAccount.Burner.caip10())
+                navController.navigateToW3I(EthAccount.Burner.caip10())
+            }
             HorizontalLineDivider()
             FixedAccountSection {
-                SharedPrefStorage.saveLastLoggedInAccount(context, random.caip10())
+                SharedPrefStorage.setLastLoggedInAccount(context, EthAccount.Fixed.caip10())
                 navController.navigateToW3I(EthAccount.Fixed.caip10())
             }
         }

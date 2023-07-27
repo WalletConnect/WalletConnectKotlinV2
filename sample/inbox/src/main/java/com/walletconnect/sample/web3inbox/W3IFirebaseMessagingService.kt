@@ -56,6 +56,25 @@ class W3IFirebaseMessagingService : Web3InboxFirebaseMessagingService() {
 
     override fun onDefaultBehavior(message: RemoteMessage) {
         Timber.d("W3IFirebaseMessagingService onDefaultBehavior: $message.toString()")
+
+        val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+
+        val notificationBuilder = NotificationCompat.Builder(this, channelId)
+            .setContentTitle(message.notification?.title ?: "New message")
+            .setSmallIcon(R.drawable.ic_popup_reminder)
+            .setAutoCancel(true)
+            .setSound(defaultSoundUri)
+            .setContentIntent(pendingIntent)
+
+        if (message.notification?.body != null) notificationBuilder.setContentText(message.notification?.body)
+
+        // Since android Oreo notification channel is needed.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(channelId, "Channel human readable title", NotificationManager.IMPORTANCE_DEFAULT)
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        notificationManager.notify(Random.nextUInt().toInt(), notificationBuilder.build())
     }
 
 

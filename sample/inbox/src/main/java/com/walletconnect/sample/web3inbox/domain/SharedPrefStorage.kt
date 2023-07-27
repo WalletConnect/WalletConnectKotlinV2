@@ -9,17 +9,23 @@ object SharedPrefStorage {
         return sharedPreferences.getString(LAST_LOGGED_IN_ACCOUNT, null)
     }
 
-    fun saveLastLoggedInAccount(context: Context, account: String) {
+    fun setLastLoggedInAccount(context: Context, account: String) {
         val sharedPreferences = context.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE)
         sharedPreferences.edit().putString(LAST_LOGGED_IN_ACCOUNT, account).apply()
     }
 
-    fun removeLastLoggedInAccount(context: Context) {
+    fun getShouldOpenWeb3InboxTab(context: Context) : Boolean {
         val sharedPreferences = context.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE)
-        sharedPreferences.edit().remove(LAST_LOGGED_IN_ACCOUNT).apply()
+        return sharedPreferences.getBoolean(SHOULD_OPEN_WEB3INBOX_TAB, false)
+    }
+
+    fun setShouldOpenWeb3InboxTab(context: Context, value: Boolean) {
+        val sharedPreferences = context.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE)
+        sharedPreferences.edit().putBoolean(SHOULD_OPEN_WEB3INBOX_TAB, value).apply()
     }
 
     private const val LAST_LOGGED_IN_ACCOUNT = "last_logged_in_account"
+    private const val SHOULD_OPEN_WEB3INBOX_TAB = "should_open_web3inbox_tab"
     private const val SHARED_PREF_NAME = "W3I_Sample_Shared_Pref"
 
     private const val ACCOUNT_TAG = "self_account_tag"
