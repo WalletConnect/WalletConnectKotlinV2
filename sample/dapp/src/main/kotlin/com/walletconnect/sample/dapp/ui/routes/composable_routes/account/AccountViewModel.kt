@@ -28,7 +28,7 @@ import kotlinx.coroutines.launch
 
 class AccountViewModel(
     savedStateHandle: SavedStateHandle
-): ViewModel() {
+) : ViewModel() {
 
     private val selectedAccountInfo = checkNotNull(savedStateHandle.get<String>(accountArg))
 
@@ -44,7 +44,10 @@ class AccountViewModel(
             .filterNotNull()
             .onEach { walletEvent ->
                 when (walletEvent) {
-                    is Modal.Model.UpdatedSession -> { fetchAccountDetails() }
+                    is Modal.Model.UpdatedSession -> {
+                        fetchAccountDetails()
+                    }
+
                     is Modal.Model.SessionRequestResponse -> {
                         val request = when (walletEvent.result) {
                             is Modal.Model.JsonRpcResponse.JsonRpcResult -> {
@@ -52,6 +55,7 @@ class AccountViewModel(
                                     (walletEvent.result as Modal.Model.JsonRpcResponse.JsonRpcResult)
                                 DappSampleEvents.RequestSuccess(successResult.result)
                             }
+
                             is Modal.Model.JsonRpcResponse.JsonRpcError -> {
                                 val errorResult =
                                     (walletEvent.result as Modal.Model.JsonRpcResponse.JsonRpcError)
@@ -61,9 +65,11 @@ class AccountViewModel(
 
                         _events.emit(request)
                     }
+
                     is Modal.Model.DeletedSession -> {
                         _events.emit(DappSampleEvents.Disconnect)
                     }
+
                     else -> Unit
                 }
             }
@@ -87,18 +93,20 @@ class AccountViewModel(
                 chainId = "$parentChain:$chainId"
             )
 
-            WalletConnectModal.request(requestParams) {
-                viewModelScope.launch {
-                    _events.emit(
-                        DappSampleEvents.RequestError(
-                            it.throwable.localizedMessage ?: "Error trying to send request"
+            WalletConnectModal.request(requestParams,
+                onSuccess = {
+                    WalletConnectModal.getActiveSessionByTopic(requestParams.sessionTopic)?.redirect?.toUri()
+                        ?.let { deepLinkUri -> sendSessionRequestDeepLink(deepLinkUri) }
+                },
+                onError = {
+                    viewModelScope.launch {
+                        _events.emit(
+                            DappSampleEvents.RequestError(
+                                it.throwable.localizedMessage ?: "Error trying to send request"
+                            )
                         )
-                    )
-                }
-            }
-
-            WalletConnectModal.getActiveSessionByTopic(requestParams.sessionTopic)?.redirect?.toUri()
-                ?.let { deepLinkUri -> sendSessionRequestDeepLink(deepLinkUri) }
+                    }
+                })
         }
     }
 

@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -36,6 +37,7 @@ import com.walletconnect.sample.common.CompletePreviews
 import com.walletconnect.sample.common.sendResponseDeepLink
 import com.walletconnect.sample.common.ui.theme.PreviewTheme
 import com.walletconnect.sample.common.ui.themedColor
+import kotlinx.coroutines.launch
 
 
 @CompletePreviews
@@ -50,6 +52,7 @@ fun SessionRequestRoutePreview() {
 @Composable
 fun SessionRequestRoute(navController: NavHostController, sessionRequestViewModel: SessionRequestViewModel = viewModel()) {
     val sessionRequestUI = sessionRequestViewModel.sessionRequest
+    val composableScope = rememberCoroutineScope()
     val context = LocalContext.current
     when (sessionRequestUI) {
         is SessionRequestUI.Content -> {
@@ -60,17 +63,30 @@ fun SessionRequestRoute(navController: NavHostController, sessionRequestViewMode
                 Request(sessionRequestUI = sessionRequestUI)
                 Spacer(modifier = Modifier.height(16.dp))
                 Buttons(onDecline = {
-                    sessionRequestViewModel.reject() { uri -> context.sendResponseDeepLink(uri) }
-                    navController.popBackStack()
-                    navController.showSnackbar("Session Request declined")
+                    composableScope.launch {
+                        try {
+                            sessionRequestViewModel.reject { uri -> context.sendResponseDeepLink(uri) }
+                            navController.popBackStack()
+                            navController.showSnackbar("Session Request declined")
+                        } catch (e: Throwable) {
+                            closeAndShowError(navController, e.message)
+                        }
+                    }
                 }, onAllow = {
-                    sessionRequestViewModel.approve() { uri -> context.sendResponseDeepLink(uri) }
-                    navController.popBackStack()
-                    navController.showSnackbar("Session Request approved")
+                    composableScope.launch {
+                        try {
+                            sessionRequestViewModel.approve { uri -> context.sendResponseDeepLink(uri) }
+                            navController.popBackStack()
+                            navController.showSnackbar("Session Request approved")
+                        } catch (e: Throwable) {
+                            closeAndShowError(navController, e.message)
+                        }
+                    }
                 })
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
+
         SessionRequestUI.Initial -> {
             SemiTransparentDialog {
                 Spacer(modifier = Modifier.height(24.dp))
@@ -91,6 +107,11 @@ fun SessionRequestRoute(navController: NavHostController, sessionRequestViewMode
         }
     }
 
+}
+
+private fun closeAndShowError(navController: NavHostController, message: String?) {
+    navController.popBackStack()
+    navController.showSnackbar(message ?: "Session request error, please check your Internet connection")
 }
 
 @Composable
