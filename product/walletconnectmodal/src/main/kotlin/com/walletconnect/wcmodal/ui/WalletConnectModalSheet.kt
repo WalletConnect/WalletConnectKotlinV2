@@ -15,11 +15,9 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import com.walletconnect.modal.R
 import com.walletconnect.modal.utils.theme.themeColor
+import com.walletconnect.wcmodal.R
 import com.walletconnect.wcmodal.ui.theme.WalletConnectModalTheme
-
-//import com.walletconnect.wcmodal.R
 
 class WalletConnectModalSheet : BottomSheetDialogFragment() {
 
