@@ -23,6 +23,7 @@ import kotlinx.coroutines.runBlocking
 
 class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInterface {
     private lateinit var signEngine: SignEngine
+    private var isInitialized: Boolean = false
 
     companion object {
         val instance = SignProtocol()
@@ -30,19 +31,22 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
 
     override fun initialize(init: Sign.Params.Init, onSuccess: () -> Unit, onError: (Sign.Model.Error) -> Unit) {
         // TODO: re-init scope
-        try {
-            koinApp.modules(
-                commonModule(),
-                signJsonRpcModule(),
-                storageModule(koinApp.koin.get<DatabaseConfig>().SIGN_SDK_DB_NAME),
-                engineModule()
-            )
+        if (!isInitialized) {
+            try {
+                koinApp.modules(
+                    commonModule(),
+                    signJsonRpcModule(),
+                    storageModule(koinApp.koin.get<DatabaseConfig>().SIGN_SDK_DB_NAME),
+                    engineModule()
+                )
 
-            signEngine = koinApp.koin.get()
-            signEngine.setup()
-            onSuccess()
-        } catch (e: Exception) {
-            onError(Sign.Model.Error(e))
+                signEngine = koinApp.koin.get()
+                signEngine.setup()
+                isInitialized = true
+                onSuccess()
+            } catch (e: Exception) {
+                onError(Sign.Model.Error(e))
+            }
         }
     }
 
