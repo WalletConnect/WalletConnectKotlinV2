@@ -1,6 +1,5 @@
 package com.walletconnect.wcmodal.ui.routes.connect_wallet
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,7 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
@@ -29,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.walletconnect.android.internal.common.explorer.data.model.Wallet
+import com.walletconnect.modal.ui.components.common.ClickableImage
 import com.walletconnect.wcmodal.R
 import com.walletconnect.wcmodal.ui.components.ModalTopBar
 import com.walletconnect.wcmodal.ui.components.WalletImage
@@ -62,10 +61,12 @@ private fun ConnectYourWalletContent(
 ) {
     Column {
         ModalTopBar(title = "Connect your wallet", endIcon = {
-            Image(imageVector = ImageVector.vectorResource(id = R.drawable.ic_scan),
-                colorFilter = ColorFilter.tint(ModalTheme.colors.main),
+            ClickableImage(
+                imageVector = ImageVector.vectorResource(id = R.drawable.ic_scan),
+                tint = ModalTheme.colors.main,
                 contentDescription = "Scan Icon",
-                modifier = Modifier.clickable { onScanIconClick() })
+                onClick = onScanIconClick
+            )
         })
         WalletsGrid(
             wallets = wallets,
@@ -124,7 +125,9 @@ private fun ViewAllItem(
     onViewAllClick: () -> Unit
 ) {
     Column(
-        modifier = Modifier.clickable { onViewAllClick() },
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .clickable { onViewAllClick() },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Column(
