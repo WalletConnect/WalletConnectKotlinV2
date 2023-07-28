@@ -15,6 +15,7 @@ internal class GetPendingSessionRequests(
     operator fun invoke(): List<PendingRequest<String>> =
         jsonRpcHistory.getListOfPendingRecords()
             .filter { record -> record.method == JsonRpcMethod.WC_SESSION_REQUEST }
-            .filter { record -> serializer.tryDeserialize<SignRpc.SessionRequest>(record.body) != null }
-            .map { record -> serializer.tryDeserialize<SignRpc.SessionRequest>(record.body)!!.toPendingRequest(record) }
+            .mapNotNull { record ->
+                serializer.tryDeserialize<SignRpc.SessionRequest>(record.body)?.toPendingRequest(record)
+            }
 }
