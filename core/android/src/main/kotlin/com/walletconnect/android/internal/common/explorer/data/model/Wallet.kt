@@ -12,7 +12,7 @@ data class Wallet(
 ) {
     val appPackage: String? = playStoreLink?.extractPackage()
     var isRecent: Boolean = false
-    var isWalletInstalled = false
+    var isWalletInstalled: Boolean = false
 }
 
 private fun String.extractPackage(): String? = Uri.parse(this).getQueryParameter("id")
