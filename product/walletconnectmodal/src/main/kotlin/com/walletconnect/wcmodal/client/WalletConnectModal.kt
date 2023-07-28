@@ -8,6 +8,7 @@ object WalletConnectModal {
 
     internal var excludedWalletsIds: List<String> = listOf()
     internal var recommendedWalletsIds: List<String> = listOf()
+    internal var sessionParams: Modal.Params.SessionParams? = null
 
     interface ModalDelegate {
         fun onSessionApproved(approvedSession: Modal.Model.ApprovedSession)
@@ -35,6 +36,7 @@ object WalletConnectModal {
             onSuccess = {
                 this.excludedWalletsIds = init.excludedWalletIds
                 this.recommendedWalletsIds = init.recommendedWalletsIds
+                this.sessionParams = init.sessionParams
                 runCatching {
                     setDelegate(WalletConnectModalDelegate)
                 }.onFailure { error -> onError(Modal.Model.Error(error)) }
@@ -86,6 +88,10 @@ object WalletConnectModal {
             }
         }
         SignClient.setDappDelegate(signDelegate)
+    }
+
+    fun setSessionParams(sessionParams: Modal.Params.SessionParams) {
+        this.sessionParams = sessionParams
     }
 
     fun connect(

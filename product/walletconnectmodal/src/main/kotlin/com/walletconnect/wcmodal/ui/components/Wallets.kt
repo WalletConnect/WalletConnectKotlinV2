@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.walletconnect.android.internal.common.explorer.data.model.Wallet
-import com.walletconnect.modal.ui.components.common.VerticalSpacer
+import com.walletconnect.wcmodal.R
 import com.walletconnect.wcmodal.ui.theme.ModalTheme
 
 @Composable
@@ -66,6 +66,7 @@ internal fun WalletImage(url: String, modifier: Modifier) {
         model = ImageRequest.Builder(LocalContext.current)
             .data(url)
             .crossfade(true)
+            .placeholder(R.drawable.defi)
             .build(),
         contentDescription = null,
         modifier = modifier
