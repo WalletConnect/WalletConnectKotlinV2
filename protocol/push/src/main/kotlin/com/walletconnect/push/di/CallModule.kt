@@ -92,7 +92,6 @@ internal fun callModule() = module {
     single<EnableSyncUseCaseInterface> {
         EnableSyncUseCase(
             setupSyncInPushUseCase = get(),
-            getMessagesFromHistoryUseCase = get()
         )
     }
 
