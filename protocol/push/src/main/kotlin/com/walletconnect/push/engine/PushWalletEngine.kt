@@ -14,16 +14,16 @@ import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.sync.client.SyncInterface
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.push.common.JsonRpcMethod
-import com.walletconnect.push.engine.calls.ApproveUseCaseInterface
+import com.walletconnect.push.engine.calls.ApproveSubscriptionRequestUseCaseInterface
 import com.walletconnect.push.engine.calls.DecryptMessageUseCaseInterface
 import com.walletconnect.push.engine.calls.DeleteMessageUseCaseInterface
 import com.walletconnect.push.engine.calls.DeleteSubscriptionUseCaseInterface
 import com.walletconnect.push.engine.calls.EnableSyncUseCaseInterface
 import com.walletconnect.push.engine.calls.GetListOfActiveSubscriptionsUseCaseInterface
 import com.walletconnect.push.engine.calls.GetListOfMessagesUseCaseInterface
-import com.walletconnect.push.engine.calls.RejectUseCaseInterface
-import com.walletconnect.push.engine.calls.SubscribeUseCaseInterface
-import com.walletconnect.push.engine.calls.UpdateUseCaseInterface
+import com.walletconnect.push.engine.calls.RejectSubscriptionRequestUseCaseInterface
+import com.walletconnect.push.engine.calls.SubscribeToDappUseCaseInterface
+import com.walletconnect.push.engine.calls.UpdateSubscriptionRequestUseCaseInterface
 import com.walletconnect.push.engine.requests.OnPushDeleteUseCase
 import com.walletconnect.push.engine.requests.OnPushMessageUseCase
 import com.walletconnect.push.engine.requests.OnPushProposeUseCase
@@ -48,10 +48,10 @@ internal class PushWalletEngine(
     private val syncClient: SyncInterface,
     private val onSyncUpdateEventUseCase: OnSyncUpdateEventUseCase,
     private val historyInterface: HistoryInterface,
-    private val subscribeUserCase: SubscribeUseCaseInterface,
-    private val approveUseCase: ApproveUseCaseInterface,
-    private val rejectUserCase: RejectUseCaseInterface,
-    private val updateUseCase: UpdateUseCaseInterface,
+    private val subscribeUserCase: SubscribeToDappUseCaseInterface,
+    private val approveUseCase: ApproveSubscriptionRequestUseCaseInterface,
+    private val rejectUserCase: RejectSubscriptionRequestUseCaseInterface,
+    private val updateUseCase: UpdateSubscriptionRequestUseCaseInterface,
     private val deleteSubscriptionUseCase: DeleteSubscriptionUseCaseInterface,
     private val deleteMessageUseCase: DeleteMessageUseCaseInterface,
     private val decryptMessageUseCase: DecryptMessageUseCaseInterface,
@@ -64,10 +64,10 @@ internal class PushWalletEngine(
     private val onPushSubscribeResponseUseCase: OnPushSubscribeResponseUseCase,
     private val onPushUpdateResponseUseCase: OnPushUpdateResponseUseCase,
     private val logger: Logger,
-) : SubscribeUseCaseInterface by subscribeUserCase,
-    ApproveUseCaseInterface by approveUseCase,
-    RejectUseCaseInterface by rejectUserCase,
-    UpdateUseCaseInterface by updateUseCase,
+) : SubscribeToDappUseCaseInterface by subscribeUserCase,
+    ApproveSubscriptionRequestUseCaseInterface by approveUseCase,
+    RejectSubscriptionRequestUseCaseInterface by rejectUserCase,
+    UpdateSubscriptionRequestUseCaseInterface by updateUseCase,
     DeleteSubscriptionUseCaseInterface by deleteSubscriptionUseCase,
     DeleteMessageUseCaseInterface by deleteMessageUseCase,
     DecryptMessageUseCaseInterface by decryptMessageUseCase,

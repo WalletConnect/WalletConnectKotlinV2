@@ -18,10 +18,10 @@ internal class DecryptMessageUseCase(
     override suspend fun decryptMessage(topic: String, message: String, onSuccess: (EngineDO.PushMessage) -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         try {
             val decryptedMessageString = codec.decrypt(Topic(topic), message)
-            // How to look in JsonRpcHistory for dupes without Rpc ID
-            val clientJsonRpc = serializer.tryDeserialize<ClientJsonRpc>(decryptedMessageString) ?: return@supervisorScope onFailure(IllegalArgumentException("Unable to deserialize message"))
+            // TODO: How to look in JsonRpcHistory for dupes without Rpc ID
+            val clientJsonRpc = serializer.tryDeserialize<ClientJsonRpc>(decryptedMessageString) ?: return@supervisorScope onFailure(IllegalArgumentException("The decrypted message does not match WalletConnect JSON-RPC format"))
             val pushMessage = serializer.deserialize(clientJsonRpc.method, decryptedMessageString)
-            val pushMessageEngineDO = PushParams.MessageParams::class.safeCast(pushMessage)?.toEngineDO() ?: return@supervisorScope onFailure(IllegalArgumentException("Unable to deserialize message"))
+            val pushMessageEngineDO = PushParams.MessageParams::class.safeCast(pushMessage)?.toEngineDO() ?: return@supervisorScope onFailure(IllegalArgumentException("The decrypted message does not match WalletConnect Push Message format"))
 
             onSuccess(pushMessageEngineDO)
         } catch (e: Exception) {

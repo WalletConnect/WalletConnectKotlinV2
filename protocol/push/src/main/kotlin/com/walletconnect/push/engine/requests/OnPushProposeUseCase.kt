@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.supervisorScope
 
+// Spec: https://docs.walletconnect.com/2.0/specs/clients/push/push-proposal#protocol
 internal class OnPushProposeUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
@@ -33,7 +34,6 @@ internal class OnPushProposeUseCase(
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
-    // Wallet receives push proposal with public key X on pairing topic
     suspend operator fun invoke(request: WCRequest, params: PushParams.ProposeParams) = supervisorScope {
         try {
             metadataStorageRepository.insertOrAbortMetadata(
@@ -43,6 +43,7 @@ internal class OnPushProposeUseCase(
             )
         } catch (e: Exception) {
             logger.error("Cannot insert metadata: ${e.message}")
+            return@supervisorScope _events.emit(SDKError(e))
         }
 
         try {

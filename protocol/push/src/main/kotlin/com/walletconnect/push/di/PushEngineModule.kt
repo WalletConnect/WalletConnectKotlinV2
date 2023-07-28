@@ -4,8 +4,8 @@ package com.walletconnect.push.di
 
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.push.engine.PushWalletEngine
-import com.walletconnect.push.engine.calls.ApproveUseCase
-import com.walletconnect.push.engine.calls.ApproveUseCaseInterface
+import com.walletconnect.push.engine.calls.ApproveSubscriptionRequestUseCase
+import com.walletconnect.push.engine.calls.ApproveSubscriptionRequestUseCaseInterface
 import com.walletconnect.push.engine.calls.DecryptMessageUseCase
 import com.walletconnect.push.engine.calls.DecryptMessageUseCaseInterface
 import com.walletconnect.push.engine.calls.DeleteMessageUseCase
@@ -18,12 +18,12 @@ import com.walletconnect.push.engine.calls.GetListOfActiveSubscriptionsUseCase
 import com.walletconnect.push.engine.calls.GetListOfActiveSubscriptionsUseCaseInterface
 import com.walletconnect.push.engine.calls.GetListOfMessagesUseCase
 import com.walletconnect.push.engine.calls.GetListOfMessagesUseCaseInterface
-import com.walletconnect.push.engine.calls.RejectUseCase
-import com.walletconnect.push.engine.calls.RejectUseCaseInterface
-import com.walletconnect.push.engine.calls.SubscribeUseCase
-import com.walletconnect.push.engine.calls.SubscribeUseCaseInterface
-import com.walletconnect.push.engine.calls.UpdateUseCase
-import com.walletconnect.push.engine.calls.UpdateUseCaseInterface
+import com.walletconnect.push.engine.calls.RejectSubscriptionRequestUseCase
+import com.walletconnect.push.engine.calls.RejectSubscriptionRequestUseCaseInterface
+import com.walletconnect.push.engine.calls.SubscribeToDappUseCase
+import com.walletconnect.push.engine.calls.SubscribeToDappUseCaseInterface
+import com.walletconnect.push.engine.calls.UpdateSubscriptionRequestUseCase
+import com.walletconnect.push.engine.calls.UpdateSubscriptionRequestUseCaseInterface
 import com.walletconnect.push.engine.domain.EnginePushSubscriptionNotifier
 import com.walletconnect.push.engine.domain.RegisterIdentityAndReturnDidJwtUseCase
 import com.walletconnect.push.engine.domain.RegisterIdentityAndReturnDidJwtUseCaseInterface
@@ -84,8 +84,8 @@ internal fun walletEngineModule() = module {
 
 private fun callModule() = module {
 
-    single<SubscribeUseCaseInterface> {
-        SubscribeUseCase(
+    single<SubscribeToDappUseCaseInterface> {
+        SubscribeToDappUseCase(
             serializer = get(),
             jsonRpcInteractor = get(),
             extractPushConfigUseCase = get(),
@@ -98,8 +98,8 @@ private fun callModule() = module {
         )
     }
 
-    single<ApproveUseCaseInterface> {
-        ApproveUseCase(
+    single<ApproveSubscriptionRequestUseCaseInterface> {
+        ApproveSubscriptionRequestUseCase(
             subscribeUseCase = get(),
             proposalStorageRepository = get(),
             metadataStorageRepository = get(),
@@ -109,15 +109,15 @@ private fun callModule() = module {
         )
     }
 
-    single<RejectUseCaseInterface> {
-        RejectUseCase(
+    single<RejectSubscriptionRequestUseCaseInterface> {
+        RejectSubscriptionRequestUseCase(
             proposalStorageRepository = get(),
             jsonRpcInteractor = get()
         )
     }
 
-    single<UpdateUseCaseInterface> {
-        UpdateUseCase(
+    single<UpdateSubscriptionRequestUseCaseInterface> {
+        UpdateSubscriptionRequestUseCase(
             jsonRpcInteractor = get(),
             subscriptionRepository = get(),
             metadataStorageRepository = get(),

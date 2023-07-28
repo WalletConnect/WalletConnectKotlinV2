@@ -40,7 +40,8 @@ import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import java.net.URL
 
-internal class SubscribeUseCase(
+// Specs: https://docs.walletconnect.com/2.0/specs/clients/push/push-subscribe
+internal class SubscribeToDappUseCase(
     private val serializer: JsonRpcSerializer,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val extractPushConfigUseCase: ExtractPushConfigUseCase,
@@ -50,7 +51,7 @@ internal class SubscribeUseCase(
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val registerIdentityAndReturnDidJwt: RegisterIdentityAndReturnDidJwtUseCaseInterface,
     private val logger: Logger,
-) : SubscribeUseCaseInterface {
+) : SubscribeToDappUseCaseInterface {
 
     override suspend fun subscribeToDapp(dappUri: Uri, account: String, onSign: (String) -> Cacao.Signature?, onSuccess: (Long, DidJwt) -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         val dappWellKnownProperties: Result<Pair<PublicKey, List<EngineDO.PushScope.Remote>>> = runCatching {
@@ -59,18 +60,12 @@ internal class SubscribeUseCase(
 
         dappWellKnownProperties.fold(
             onSuccess = { (dappPublicKey, dappScopes) ->
-                // Subscribe topic is derived from the sha256 hash of public key X
                 val subscribeTopic = Topic(sha256(dappPublicKey.keyAsBytes))
 
-                // Protection against multiple subscription for the same account and dapp
                 if (subscriptionRepository.isAlreadyRequested(account, subscribeTopic.value)) return@fold onFailure(IllegalStateException("Account: $account is already subscribed to dapp: $dappUri"))
 
-                // Wallet generates key pair Y
                 val selfPublicKey = crypto.generateAndStoreX25519KeyPair()
-                // Wallet derives symmetric key S with keys X and Y
-                // Response topic is derived from the sha256 hash of symmetric key S
                 val responseTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, dappPublicKey)
-
                 val dappMetaData: AppMetaData = getDappMetaData(dappUri).getOrElse {
                     return@fold onFailure(it)
                 }
@@ -102,12 +97,10 @@ internal class SubscribeUseCase(
                     return@fold onFailure(error)
                 }
 
-                // Wallet subscribes to response topic
                 jsonRpcInteractor.subscribe(responseTopic) { error ->
                     return@subscribe onFailure(error)
                 }
 
-                // Wallet sends push subscribe request (type 1 envelope) on subscribe topic with subscriptionAuth
                 jsonRpcInteractor.publishJsonRpcRequest(
                     topic = subscribeTopic,
                     params = irnParams,
@@ -145,21 +138,18 @@ internal class SubscribeUseCase(
     }
 
     private suspend fun getDappMetaData(dappUri: Uri) = withContext(Dispatchers.IO) {
-        // Fetch dapp metadata from explorer api
         val listOfDappHomepages = runCatching {
             explorerRepository.getAllDapps().listings.associateBy { listing -> listing.homepage }
         }.getOrElse { error ->
             return@withContext Result.failure(error)
         }
 
-        // Find dapp metadata for dapp uri
         val (dappHomepageUri: Uri, dappListing: Listing) = listOfDappHomepages.entries.filter { (_, dappListing) ->
             dappListing.description != null
         }.firstOrNull { (dappHomepageUri, _) ->
             dappHomepageUri.host != null && dappHomepageUri.host!!.contains(dappUri.host!!)
         } ?: return@withContext Result.failure<AppMetaData>(IllegalArgumentException("Unable to find dapp listing for $dappUri"))
 
-        // Return dapp metadata
         return@withContext Result.success(
             AppMetaData(
                 name = dappListing.name,
@@ -176,7 +166,7 @@ internal class SubscribeUseCase(
     }
 }
 
-internal interface SubscribeUseCaseInterface {
+internal interface SubscribeToDappUseCaseInterface {
 
     suspend fun subscribeToDapp(
         dappUri: Uri,

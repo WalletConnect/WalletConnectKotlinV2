@@ -33,14 +33,14 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
-internal class ApproveUseCase(
-    private val subscribeUseCase: SubscribeUseCaseInterface,
+internal class ApproveSubscriptionRequestUseCase(
+    private val subscribeUseCase: SubscribeToDappUseCaseInterface,
     private val proposalStorageRepository: ProposalStorageRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val crypto: KeyManagementRepository,
     private val enginePushSubscriptionNotifier: EnginePushSubscriptionNotifier,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
-): ApproveUseCaseInterface {
+): ApproveSubscriptionRequestUseCaseInterface {
 
     override suspend fun approve(proposalRequestId: Long, onSign: (String) -> Cacao.Signature?, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         val proposalWithoutMetadata = proposalStorageRepository.getProposalByRequestId(proposalRequestId) ?: return@supervisorScope onFailure(IllegalArgumentException("Invalid proposal request id $proposalRequestId"))
@@ -93,6 +93,6 @@ internal class ApproveUseCase(
 
 }
 
-internal interface ApproveUseCaseInterface {
+internal interface ApproveSubscriptionRequestUseCaseInterface {
     suspend fun approve(proposalRequestId: Long, onSign: (String) -> Cacao.Signature?, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit)
 }

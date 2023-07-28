@@ -1,6 +1,7 @@
 package com.walletconnect.push.engine.calls
 
 import com.walletconnect.android.CoreClient
+import com.walletconnect.android.internal.common.exception.Reason
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.params.PushParams
@@ -26,8 +27,7 @@ internal class DeleteSubscriptionUseCase(
 ): DeleteSubscriptionUseCaseInterface {
 
     override suspend fun deleteSubscription(pushTopic: String, onFailure: (Throwable) -> Unit) = supervisorScope {
-        val deleteParams = PushParams.DeleteParams(6000, "User Disconnected")
-        val request = PushRpc.PushDelete(id = generateId(), params = deleteParams)
+        val request = PushRpc.PushDelete(id = generateId(), params = PushParams.DeleteParams())
         val irnParams = IrnParams(Tags.PUSH_DELETE, Ttl(DAY_IN_SECONDS))
 
         val activeSubscription: EngineDO.Subscription.Active = subscriptionRepository.getActiveSubscriptionByPushTopic(pushTopic) ?: return@supervisorScope onFailure(IllegalStateException("Subscription does not exists for $pushTopic"))
@@ -40,7 +40,7 @@ internal class DeleteSubscriptionUseCase(
             Topic(pushTopic), irnParams, request,
             onSuccess = {
                 CoreClient.Echo.unregister({
-                    logger.log("Delete sent successfully")
+                    logger.log("Delete subscription and Echo unregister sent successfully")
                 }, {
                     onFailure(it)
                 })

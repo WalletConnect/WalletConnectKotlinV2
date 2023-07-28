@@ -11,10 +11,10 @@ import com.walletconnect.push.common.PeerError
 import com.walletconnect.push.common.data.storage.ProposalStorageRepository
 import kotlinx.coroutines.supervisorScope
 
-internal class RejectUseCase(
+internal class RejectSubscriptionRequestUseCase(
     private val proposalStorageRepository: ProposalStorageRepository,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
-): RejectUseCaseInterface {
+): RejectSubscriptionRequestUseCaseInterface {
 
     override suspend fun reject(proposalRequestId: Long, reason: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         try {
@@ -33,6 +33,6 @@ internal class RejectUseCase(
     }
 }
 
-internal interface RejectUseCaseInterface {
+internal interface RejectSubscriptionRequestUseCaseInterface {
     suspend fun reject(proposalRequestId: Long, reason: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit)
 }

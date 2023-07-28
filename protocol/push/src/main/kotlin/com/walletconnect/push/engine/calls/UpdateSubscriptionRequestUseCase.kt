@@ -16,12 +16,12 @@ import com.walletconnect.push.engine.domain.RegisterIdentityAndReturnDidJwtUseCa
 import com.walletconnect.utils.Empty
 import kotlinx.coroutines.supervisorScope
 
-internal class UpdateUseCase(
+internal class UpdateSubscriptionRequestUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val subscriptionRepository: SubscriptionRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val registerIdentityAndReturnDidJwtUseCase: RegisterIdentityAndReturnDidJwtUseCaseInterface
-): UpdateUseCaseInterface {
+): UpdateSubscriptionRequestUseCaseInterface {
 
     override suspend fun update(pushTopic: String, scopes: List<String>, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         val subscription = subscriptionRepository.getActiveSubscriptionByPushTopic(pushTopic)
@@ -38,6 +38,6 @@ internal class UpdateUseCase(
     }
 }
 
-internal interface UpdateUseCaseInterface {
+internal interface UpdateSubscriptionRequestUseCaseInterface {
     suspend fun update(pushTopic: String, scopes: List<String>, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit)
 }
