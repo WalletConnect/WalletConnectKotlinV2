@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="WalletConnectModalTheme">
+        <item name="accentColor">#FF3496FF</item>
+        <item name="onAccentColor">#FFFFFFFF</item>
+    </style>
+
+</resources>

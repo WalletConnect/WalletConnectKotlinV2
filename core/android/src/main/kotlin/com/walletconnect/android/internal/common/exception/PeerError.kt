@@ -25,7 +25,6 @@ sealed class Invalid : Error {
     object RequestExpired: Invalid() {
         override val message: String = "Request expired or expiry param validation failed (MIN_INTERVAL: 300, MAX_INTERVAL: 604800)"
         override val code: Int = 8000
-
     }
 }
 
