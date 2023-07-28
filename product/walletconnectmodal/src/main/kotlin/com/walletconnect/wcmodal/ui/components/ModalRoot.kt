@@ -40,8 +40,6 @@ internal fun ModalRoot(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     WalletConnectLogo(modifier = Modifier.weight(1f), color = ModalTheme.colors.onMainColor)
-                    QuestionMarkIconButton(navController)
-                    Spacer(modifier = Modifier.width(16.dp))
                     CloseIconButton { closeModal() }
                 }
                 Column(

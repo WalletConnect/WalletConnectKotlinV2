@@ -86,6 +86,7 @@ internal fun LazyGridItemScope.WalletListItem(
     Column(
         modifier = Modifier
             .animateItemPlacement()
+            .clip(RoundedCornerShape(20.dp))
             .clickable { onWalletItemClick(wallet) },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
