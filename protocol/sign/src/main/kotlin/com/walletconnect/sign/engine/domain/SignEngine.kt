@@ -315,8 +315,8 @@ internal class SignEngine(
         val sessionTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, PublicKey(proposerPublicKey))
         val approvalParams = proposal.toSessionApproveParams(selfPublicKey)
         val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
-        jsonRpcInteractor.subscribe(sessionTopic) { error -> return@subscribe onFailure(error) }
-        jsonRpcInteractor.respondWithParams(request, approvalParams, irnParams) { error -> return@respondWithParams onFailure(error) }
+        jsonRpcInteractor.subscribe(sessionTopic) { error -> throw error }
+        jsonRpcInteractor.respondWithParams(request, approvalParams, irnParams) { error -> throw error }
 
         sessionSettle(request.id, proposal, sessionTopic, request.topic)
     }
@@ -374,7 +374,7 @@ internal class SignEngine(
 
         val nowInSeconds = TimeUnit.SECONDS.convert(Date().time, TimeUnit.SECONDS)
         if (!CoreValidator.isExpiryWithinBounds(request.expiry ?: Expiry(300))) {
-            return onFailure(InvalidExpiryException())
+            throw InvalidExpiryException()
         }
 
         SignValidator.validateSessionRequest(request) { error ->
@@ -433,7 +433,7 @@ internal class SignEngine(
     ) {
         val topicWrapper = Topic(topic)
         if (!sessionStorageRepository.isSessionValid(topicWrapper)) {
-            return onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic"))
+            throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
         getPendingJsonRpcHistoryEntryByIdUseCase(jsonRpcResponse.id)?.params?.request?.expiry?.let { expiry ->

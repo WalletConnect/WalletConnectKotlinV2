@@ -20,9 +20,9 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.walletconnect.modal.R
 import com.walletconnect.modal.ui.components.qr.WalletConnectQRCode
 import com.walletconnect.modal.utils.isLandscape
+import com.walletconnect.wcmodal.R
 import com.walletconnect.wcmodal.ui.components.ModalTopBar
 import com.walletconnect.wcmodal.ui.preview.ModalPreview
 import com.walletconnect.wcmodal.ui.theme.ModalTheme
