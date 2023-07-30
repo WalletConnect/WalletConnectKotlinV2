@@ -16,6 +16,14 @@ data class HistoryMessage(
 ) {
     fun toRelay() = Relay.Model.Call.Subscription.Request(
         id = 0L, // id is only used for ack the relay, any value is meaningless
-        params = Relay.Model.Call.Subscription.Request.Params(messageId, Relay.Model.Call.Subscription.Request.Params.SubscriptionData(topic, message))
+        params = Relay.Model.Call.Subscription.Request.Params(
+            subscriptionId = messageId,
+            subscriptionData = Relay.Model.Call.Subscription.Request.Params.SubscriptionData(
+                topic = topic,
+                message = message,
+                publishedAt = 0L, // publishedAt is only used for ack the relay, any value is meaningless
+                tag = 0 // tag is only used for ack the relay, any value is meaningless
+            )
+        )
     )
 }
