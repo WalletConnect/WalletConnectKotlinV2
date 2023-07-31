@@ -31,7 +31,7 @@ object Web3Inbox {
             account = LateInitAccountId(AccountId(init.account.value))
             wcKoinApp.modules(
                 web3InboxJsonRpcModule(),
-                proxyModule(ChatClient, PushWalletClient, init.onSign, init.config),
+                proxyModule(ChatClient, PushWalletClient, init.onSign, init.config, account.value),
             )
             ChatClient.setChatDelegate(wcKoinApp.koin.get<ChatEventHandler>())
             PushWalletClient.setDelegate(wcKoinApp.koin.get<PushEventHandler>())

@@ -71,7 +71,7 @@ internal class PairingProtocol(private val koinApp: KoinApplication = wcKoinApp)
                 },
                 { throwable ->
                     logger.error(throwable)
-                    onError(Core.Model.Error(throwable))
+                    onError(Core.Model.Error(Throwable("Pairing timeout error: ${throwable.message}")))
                 })
         }
     }

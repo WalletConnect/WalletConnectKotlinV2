@@ -2,6 +2,7 @@
 
 package com.walletconnect.web3.inbox.di
 
+import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.chat.client.ChatInterface
 import com.walletconnect.push.client.PushWalletInterface
 import com.walletconnect.web3.inbox.chat.di.chatProxyModule
@@ -20,9 +21,10 @@ internal fun proxyModule(
     pushWalletClient: PushWalletInterface,
     onSign: (message: String) -> Inbox.Model.Cacao.Signature,
     config: Inbox.Model.Config,
+    account: AccountId
 ) = module {
     includes(
-        pushProxyModule(pushWalletClient, onSign),
+        pushProxyModule(pushWalletClient, onSign, account),
         chatProxyModule(chatClient, onSign),
         syncProxyModule()
     )

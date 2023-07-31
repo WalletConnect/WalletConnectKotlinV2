@@ -38,9 +38,7 @@ fun DappSampleHost() {
         viewModel.events.collect { event ->
             when (event) {
                 DappSampleEvents.Disconnect -> navController.navigate(Route.ChainSelection.path)
-                is DappSampleEvents.RequestError -> scaffoldState.snackbarHostState.showSnackbar(
-                    event.exceptionMsg
-                )
+                is DappSampleEvents.RequestError -> scaffoldState.snackbarHostState.showSnackbar(event.exceptionMsg)
                 DappSampleEvents.SessionExtend -> scaffoldState.snackbarHostState.showSnackbar("Session extended")
                 is DappSampleEvents.ConnectionEvent -> { isOfflineState = !event.isAvailable }
                 else -> Unit

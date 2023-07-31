@@ -2,6 +2,7 @@ package com.walletconnect.android.internal.common.model.params
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import com.walletconnect.android.internal.common.exception.Reason
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.type.ClientParams
 
@@ -55,7 +56,10 @@ sealed class PushParams : ClientParams {
         val code: Long,
         @Json(name = "message")
         val message: String,
-    ) : PushParams()
+    ) : PushParams() {
+
+        constructor(error: Reason.UserDisconnected = Reason.UserDisconnected) : this(error.code.toLong(), error.message)
+    }
 
     @JsonClass(generateAdapter = true)
     data class SubscribeParams(
