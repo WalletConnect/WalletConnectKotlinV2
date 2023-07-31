@@ -32,6 +32,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.rememberNavController
 import com.walletconnect.modal.ui.components.common.VerticalSpacer
 import com.walletconnect.wcmodal.client.Modal
 import com.walletconnect.wcmodal.domain.WalletConnectModalDelegate
@@ -41,6 +42,7 @@ import com.walletconnect.wcmodal.ui.navigation.ModalNavGraph
 import com.walletconnect.wcmodal.ui.theme.ModalTheme
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
+
 @Composable
 internal fun WalletConnectModal(
     navController: NavController
@@ -84,7 +86,8 @@ internal fun WalletConnectModalComponent(
                 is WalletConnectModalState.Connect -> ModalNavGraph(
                     navController = navController,
                     state = state,
-                    retry = viewModel::retry
+                    retry = viewModel::retry,
+                    updateRecentWalletId = viewModel::updateRecentWalletId
                 )
                 is WalletConnectModalState.Error -> ErrorModalState(closeModal)
             }

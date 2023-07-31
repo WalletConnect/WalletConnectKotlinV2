@@ -27,6 +27,7 @@ internal fun ModalNavGraph(
     navController: NavHostController,
     state: WalletConnectModalState.Connect,
     modifier: Modifier = Modifier,
+    updateRecentWalletId: (String) -> Unit,
     retry: (() -> Unit) -> Unit
 ) {
     NavHost(
@@ -58,7 +59,7 @@ internal fun ModalNavGraph(
             arguments = listOf(navArgument(Route.OnHold.walletIdKey) { type = NavType.StringType })
         ) { backStackEntry ->
             val wallet = state.wallets.find { it.id == backStackEntry.arguments?.getString(Route.OnHold.walletIdKey, String.Empty) }!!
-            RedirectOnHoldScreen(navController = navController, uri = state.uri, wallet = wallet, retry = retry)
+            RedirectOnHoldScreen(navController = navController, uri = state.uri, wallet = wallet, retry = retry).also { updateRecentWalletId(wallet.id) }
         }
     }
 }
