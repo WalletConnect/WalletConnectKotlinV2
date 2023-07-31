@@ -1,19 +1,17 @@
 plugins {
     id("com.android.application")
-    id("kotlin-parcelize")
     kotlin("android")
-    kotlin("kapt")
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
     id("com.google.firebase.appdistribution")
 }
 
 android {
-    namespace = "com.walletconnect.sample.dapp"
+    namespace = "com.walletconnect.sample.web3inbox"
     compileSdk = COMPILE_SDK
 
     defaultConfig {
-        applicationId = "com.walletconnect.sample.dapp"
+        applicationId = "com.walletconnect.sample.web3inbox"
         minSdk = MIN_SDK
         targetSdk = TARGET_SDK
         versionCode = SAMPLE_VERSION_CODE
@@ -29,24 +27,22 @@ android {
 
     buildTypes {
         release {
-            isDebuggable = true
             isMinifyEnabled = true
-            signingConfig = signingConfigs.getByName("debug")
+            isDebuggable = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.getByName("debug")
             firebaseAppDistribution {
                 artifactType = "APK"
                 groups = "javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
             }
         }
     }
-
     compileOptions {
         sourceCompatibility = jvmVersion
         targetCompatibility = jvmVersion
     }
     kotlinOptions {
         jvmTarget = jvmVersion.toString()
-        freeCompilerArgs = listOf("-Xcontext-receivers")
     }
     buildFeatures {
         compose = true
@@ -60,26 +56,39 @@ android {
 dependencies {
     implementation(project(":sample:common"))
 
-    implementation("androidx.core:core-ktx:1.9.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.5.1")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1")
-    implementation("androidx.activity:activity-compose:1.6.1")
-    implementation("androidx.palette:palette:1.0.0")
-
-    implementation ("io.insert-koin:koin-androidx-compose:3.4.3")
-    implementation ("io.coil-kt:coil-compose:2.3.0")
-
-    compose()
-
     firebaseMessaging()
     firebaseChrashlytics()
 
+    implementation("androidx.core:core-ktx:1.9.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.5.1")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1")
+
+    implementation("androidx.activity:activity-compose:1.6.1")
+    implementation("androidx.palette:palette:1.0.0")
+
+
+    // Glide
+    implementation("com.github.skydoves:landscapist-glide:2.1.0")
+
+    // Accompanist
+    accompanist()
+
+    // Compose
+    compose()
+
+    // WalletConnect
     debugImplementation(project(":core:android"))
+    debugImplementation(project(":product:web3wallet"))
+    debugImplementation(project(":product:web3inbox"))
     debugImplementation(project(":protocol:push"))
     debugImplementation(project(":product:walletconnectmodal"))
 
     releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
     releaseImplementation("com.walletconnect:android-core")
+    releaseImplementation("com.walletconnect:web3wallet")
+    releaseImplementation("com.walletconnect:web3inbox")
+    releaseImplementation("com.walletconnect:walletconnect-modal")
     releaseImplementation("com.walletconnect:push")
-    releaseImplementation(project(":product:walletconnectmodal"))
+
+
 }
