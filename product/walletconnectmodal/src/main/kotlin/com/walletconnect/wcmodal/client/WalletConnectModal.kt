@@ -1,8 +1,10 @@
 package com.walletconnect.wcmodal.client
 
+import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.wcmodal.domain.WalletConnectModalDelegate
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
+import com.walletconnect.wcmodal.di.walletConnectModalModule
 
 object WalletConnectModal {
 
@@ -36,6 +38,7 @@ object WalletConnectModal {
                 this.excludedWalletsIds = init.excludedWalletIds
                 this.recommendedWalletsIds = init.recommendedWalletsIds
                 runCatching {
+                    wcKoinApp.modules(walletConnectModalModule())
                     setDelegate(WalletConnectModalDelegate)
                 }.onFailure { error -> onError(Modal.Model.Error(error)) }
                 onSuccess()

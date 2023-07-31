@@ -107,7 +107,10 @@ private fun LazyGridScope.walletsGridItemsWithViewAll(
     onViewAllClick: () -> Unit
 ) {
     val walletsSize = maxGridElementsSize - 1
-    itemsIndexed(wallets.take(walletsSize)) { _, wallet ->
+    itemsIndexed(
+        wallets.take(walletsSize),
+        key = { _, wallet -> wallet.id }
+    ) { _, wallet ->
         WalletListItem(
             wallet = wallet,
             onWalletItemClick = onWalletItemClick
