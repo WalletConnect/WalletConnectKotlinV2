@@ -19,8 +19,9 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.walletconnect.modal.R
 import com.walletconnect.modal.ui.components.common.VerticalSpacer
+import com.walletconnect.modal.ui.components.common.roundedClickable
+import com.walletconnect.wcmodal.R
 import com.walletconnect.wcmodal.ui.navigation.Route
 import com.walletconnect.wcmodal.ui.preview.ComponentPreview
 import com.walletconnect.wcmodal.ui.theme.ModalTheme
@@ -37,7 +38,7 @@ private fun CircleButtonWithIcon(
             .size(28.dp)
             .shadow(elevation = 4.dp, shape = CircleShape)
             .background(backgroundColor)
-            .clickable { onClick() },
+            .roundedClickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         icon()

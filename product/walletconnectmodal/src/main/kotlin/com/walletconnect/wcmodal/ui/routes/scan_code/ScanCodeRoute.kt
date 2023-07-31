@@ -1,8 +1,6 @@
 package com.walletconnect.wcmodal.ui.routes.scan_code
 
 import android.widget.Toast
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -10,7 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -20,9 +17,10 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.walletconnect.modal.R
+import com.walletconnect.modal.ui.components.common.ClickableImage
 import com.walletconnect.modal.ui.components.qr.WalletConnectQRCode
 import com.walletconnect.modal.utils.isLandscape
+import com.walletconnect.wcmodal.R
 import com.walletconnect.wcmodal.ui.components.ModalTopBar
 import com.walletconnect.wcmodal.ui.preview.ModalPreview
 import com.walletconnect.wcmodal.ui.theme.ModalTheme
@@ -54,11 +52,11 @@ private fun ScanQRCodeContent(
             title = "Scan the code",
             onBackPressed = onBackArrowClick,
             endIcon = {
-                Image(
+                ClickableImage(
                     imageVector = ImageVector.vectorResource(id = R.drawable.ic_copy),
-                    colorFilter = ColorFilter.tint(ModalTheme.colors.main),
+                    tint = ModalTheme.colors.main,
                     contentDescription = "Scan Icon",
-                    modifier = Modifier.clickable {
+                    onClick = {
                         Toast.makeText(context, "Link copied", Toast.LENGTH_SHORT).show()
                         clipboardManager.setText(AnnotatedString(uri))
                     }

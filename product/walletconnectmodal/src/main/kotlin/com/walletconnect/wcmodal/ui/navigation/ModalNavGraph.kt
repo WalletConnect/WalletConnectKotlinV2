@@ -3,59 +3,62 @@
 package com.walletconnect.wcmodal.ui.navigation
 
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavBackStackEntry
-import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
-import com.google.accompanist.navigation.animation.AnimatedNavHost
-import com.google.accompanist.navigation.animation.composable
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import com.walletconnect.util.Empty
 import com.walletconnect.wcmodal.ui.WalletConnectModalState
 import com.walletconnect.wcmodal.ui.routes.all_wallets.AllWalletsRoute
 import com.walletconnect.wcmodal.ui.routes.connect_wallet.ConnectYourWalletRoute
 import com.walletconnect.wcmodal.ui.routes.get_wallet.GetAWalletRoute
 import com.walletconnect.wcmodal.ui.routes.help.HelpRoute
+import com.walletconnect.wcmodal.ui.routes.on_hold.RedirectOnHoldScreen
 import com.walletconnect.wcmodal.ui.routes.scan_code.ScanQRCodeRoute
 
 @Composable
 internal fun ModalNavGraph(
     navController: NavHostController,
     state: WalletConnectModalState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    updateRecentWalletId: (String) -> Unit
 ) {
-    AnimatedNavHost(
+    NavHost(
         navController = navController,
         startDestination = Route.ConnectYourWallet.path,
-        modifier = modifier
+        modifier = modifier,
+        enterTransition = { fadeIn(tween()) },
+        popExitTransition = { fadeOut(tween()) },
+        exitTransition = { fadeOut(tween()) },
+        popEnterTransition = { fadeIn(tween()) }
     ) {
-        animatedComposable(route = Route.ConnectYourWallet.path) {
-            ConnectYourWalletRoute(navController = navController, uri = state.uri, wallets = state.wallets)
+        composable(route = Route.ConnectYourWallet.path) {
+            ConnectYourWalletRoute(navController = navController, wallets = state.wallets)
         }
-        animatedComposable(route = Route.ScanQRCode.path) {
+        composable(route = Route.ScanQRCode.path) {
             ScanQRCodeRoute(navController = navController, uri = state.uri)
         }
-        animatedComposable(route = Route.Help.path) {
+        composable(route = Route.Help.path) {
             HelpRoute(navController = navController)
         }
-        animatedComposable(route = Route.AllWallets.path) {
-            AllWalletsRoute(navController = navController, uri = state.uri, wallets = state.wallets)
+        composable(route = Route.AllWallets.path) {
+            AllWalletsRoute(navController = navController, wallets = state.wallets)
         }
-        animatedComposable(route = Route.GetAWallet.path) {
+        composable(route = Route.GetAWallet.path) {
             GetAWalletRoute(navController = navController, wallets = state.wallets)
         }
+        composable(
+            route = Route.OnHold.path + "/" + Route.OnHold.walletIdArg,
+            arguments = listOf(navArgument(Route.OnHold.walletIdKey) { type = NavType.StringType })
+        ) { backStackEntry ->
+            val wallet = state.wallets.find { it.id == backStackEntry.arguments?.getString(Route.OnHold.walletIdKey, String.Empty) }!!
+            RedirectOnHoldScreen(navController = navController, uri = state.uri, wallet = wallet).also { updateRecentWalletId(wallet.id) }
+        }
     }
-}
-
-internal fun NavGraphBuilder.animatedComposable(
-    route: String,
-    content: @Composable (NavBackStackEntry) -> Unit
-) {
-    composable(
-        route = route,
-        enterTransition = { fadeIn() },
-        exitTransition = { fadeOut() },
-        content = { content(it) }
-    )
 }

@@ -12,7 +12,7 @@ project.apply {
 }
 
 android {
-    namespace = "com.walletconnect.modal"
+    namespace = "com.walletconnect.wcmodal"
     compileSdk = COMPILE_SDK
 
     defaultConfig {

@@ -18,17 +18,19 @@ internal data class ModalColors(
 
 @Composable
 internal fun provideModalColors(
-    lightColors: ModalColors = defaultLightWeb3ModalColors,
-    darkColors: ModalColors = defaultDarkWeb3ModalColors
+    composition: CustomizableComposition
 ): ModalColors = if (isSystemInDarkTheme()) {
-    darkColors
+    defaultDarkWeb3ModalColors(composition.accentColor, composition.onAccentColor)
 } else {
-    lightColors
+    defaultLightWeb3ModalColors(composition.accentColor, composition.onAccentColor)
 }
 
-private val defaultLightWeb3ModalColors = ModalColors(
-    main = Color(0xFF3496ff),
-    onMainColor = Color.White,
+private fun defaultLightWeb3ModalColors(
+    mainColor: Color,
+    onMainColor: Color
+) = ModalColors(
+    main = mainColor,
+    onMainColor = onMainColor,
     onBackgroundColor = Color.Black,
     background = Color.White,
     textColor = Color.Black,
@@ -38,9 +40,12 @@ private val defaultLightWeb3ModalColors = ModalColors(
     border = Color(0x32062B2B)
 )
 
-private val defaultDarkWeb3ModalColors = ModalColors(
-    main = Color(0xFF3496ff),
-    onMainColor = Color.White,
+private fun defaultDarkWeb3ModalColors(
+    mainColor: Color,
+    onMainColor: Color
+) = ModalColors(
+    main = mainColor,
+    onMainColor = onMainColor,
     background = Color.Black,
     onBackgroundColor = Color.White,
     textColor = Color.White,

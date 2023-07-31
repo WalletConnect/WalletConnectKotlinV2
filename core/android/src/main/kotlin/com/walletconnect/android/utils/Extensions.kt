@@ -44,7 +44,7 @@ internal val Throwable.toWalletConnectException: WalletConnectException
                 ProjectIdDoesNotExistException(this.message)
             this.message?.contains(HttpURLConnection.HTTP_FORBIDDEN.toString()) == true ->
                 InvalidProjectIdException(this.message)
-            else -> GenericException(this.message)
+            else -> GenericException("Error while connecting, please check your Internet connection or contact support: $this")
         }
 
 @get:JvmSynthetic

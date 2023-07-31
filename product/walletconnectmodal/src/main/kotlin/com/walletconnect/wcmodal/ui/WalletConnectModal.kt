@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
-import com.google.accompanist.navigation.animation.rememberAnimatedNavController
+import androidx.navigation.compose.rememberNavController
 import com.walletconnect.wcmodal.ui.components.ModalRoot
 import com.walletconnect.wcmodal.ui.navigation.ModalNavGraph
 import com.walletconnect.wcmodal.ui.theme.ModalTheme
@@ -45,7 +45,7 @@ internal fun WalletConnectModal(
 @ExperimentalAnimationApi
 @Composable
 internal fun WalletConnectModalComponent(
-    navController: NavHostController = rememberAnimatedNavController(),
+    navController: NavHostController = rememberNavController(),
     closeModal: () -> Unit
 ) {
     val context = LocalContext.current
@@ -76,7 +76,8 @@ internal fun WalletConnectModalComponent(
             } else {
                 ModalNavGraph(
                     navController = navController,
-                    state = state
+                    state = state,
+                    updateRecentWalletId = viewModel::updateRecentWalletId
                 )
             }
 

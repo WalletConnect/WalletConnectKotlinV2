@@ -6,6 +6,7 @@ import com.walletconnect.android.internal.common.explorer.data.model.Wallet
 import com.walletconnect.android.internal.common.explorer.domain.usecase.GetWalletsUseCaseInterface
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.wcmodal.client.WalletConnectModal
+import com.walletconnect.wcmodal.domain.RecentWalletsRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -28,6 +29,9 @@ class WalletConnectModalViewModelTest {
     val koin: Koin = mockk()
     val getWalletsUseCase: GetWalletsUseCaseInterface = mockk()
     val savedStateHandle: SavedStateHandle = mockk()
+    val modalStore: RecentWalletsRepository = mockk()
+
+    private val uri = "wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=irn&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
 
     @Before
     fun setup() {
@@ -35,11 +39,12 @@ class WalletConnectModalViewModelTest {
         every { wcKoinApp } returns koinApp
         every { koinApp.koin } returns koin
         every { koin.get<GetWalletsUseCaseInterface>() } returns getWalletsUseCase
+        every { koin.get<RecentWalletsRepository>() } returns modalStore
+        every { modalStore.getRecentWalletId() } returns null
     }
 
     @Test
     fun `should call getWallets with parsed chains argument`() = runTest {
-        val uri = "wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=irn&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
         val chains = "eip155:1, eip155:2"
         every { savedStateHandle.get<String>(MODAL_URI_ARG) } returns uri
         every { savedStateHandle.get<String>(MODAL_CHAINS_ARG) } returns chains
@@ -50,8 +55,6 @@ class WalletConnectModalViewModelTest {
 
     @Test
     fun `should emit WalletConnectModalState without wallets when getWallets return error`() = runTest {
-        val uri = "wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=irn&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
-
         every { savedStateHandle.get<String>(MODAL_URI_ARG) } returns uri
         every { savedStateHandle.get<String>(MODAL_CHAINS_ARG) } returns null
 
@@ -71,7 +74,6 @@ class WalletConnectModalViewModelTest {
             Wallet("id3", "Safe", "", null, null, null),
             Wallet("id4", "Rainbow", "", null, null, null),
         )
-        val uri = "wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=irn&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
         every { savedStateHandle.get<String>(MODAL_URI_ARG) } returns uri
         every { savedStateHandle.get<String>(MODAL_CHAINS_ARG) } returns null
         coEvery { getWalletsUseCase.invoke(sdkType = any(), null, listOf(), null) } returns wallets
@@ -96,7 +98,6 @@ class WalletConnectModalViewModelTest {
         )
         val recommendedWallet = Wallet("id5", "Zerion", "", null, null, null)
         val recommendedWallets = listOf(recommendedWallet)
-        val uri = "wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=irn&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
         every { savedStateHandle.get<String>(MODAL_URI_ARG) } returns uri
         every { savedStateHandle.get<String>(MODAL_CHAINS_ARG) } returns null
         coEvery { getWalletsUseCase.invoke(sdkType = any(), null, listOf(), null) } returns wallets
@@ -114,5 +115,60 @@ class WalletConnectModalViewModelTest {
         coVerify { getWalletsUseCase.invoke("wcm", null, listOf()) }
         coVerify { getWalletsUseCase.invoke("wcm", null, listOf(), listOf("id5")) }
         WalletConnectModal.recommendedWalletsIds = listOf()
+    }
+
+    @Test
+    fun `should emit WalletConnectModalState and put recent wallet as first element on list`() = runTest {
+        val wallets = listOf(
+            Wallet("id1", "MetaMask", "", null, null, null),
+            Wallet("id2", "TrustWallet", "", null, null, null),
+            Wallet("id3", "Safe", "", null, null, null),
+            Wallet("id4", "Rainbow", "", null, null, null),
+        )
+        every { savedStateHandle.get<String>(MODAL_URI_ARG) } returns uri
+        every { savedStateHandle.get<String>(MODAL_CHAINS_ARG) } returns null
+        every { modalStore.getRecentWalletId() } returns "id4"
+        coEvery { getWalletsUseCase.invoke(sdkType = any(), null, listOf(), null) } returns wallets
+
+        val viewModel = WalletConnectModalViewModel(savedStateHandle)
+
+        viewModel.modalState.test {
+            val state = awaitItem()
+            Assert.assertEquals(state?.wallets?.size, 4)
+            Assert.assertEquals(state?.wallets?.first()?.isRecent, true)
+            Assert.assertEquals(state?.wallets?.first()?.id, "id4")
+        }
+    }
+
+    @Test
+    fun `should emit WalletConnectModalState and move recent wallet to first position after updateRecentWalletId is called`() = runTest {
+        val wallets = listOf(
+            Wallet("id1", "MetaMask", "", null, null, null),
+            Wallet("id2", "TrustWallet", "", null, null, null),
+            Wallet("id3", "Safe", "", null, null, null),
+            Wallet("id4", "Rainbow", "", null, null, null),
+        )
+
+        every { savedStateHandle.get<String>(MODAL_URI_ARG) } returns uri
+        every { savedStateHandle.get<String>(MODAL_CHAINS_ARG) } returns null
+        every { modalStore.saveRecentWalletId(any()) } returns Unit
+
+        coEvery { getWalletsUseCase.invoke(sdkType = any(), null, listOf(), null) } returns wallets
+
+        val viewModel = WalletConnectModalViewModel(savedStateHandle)
+
+        viewModel.modalState.test {
+            val state = awaitItem()
+            Assert.assertEquals(state?.wallets?.size, 4)
+            Assert.assertEquals(state?.wallets?.first()?.id, "id1")
+        }
+
+        viewModel.updateRecentWalletId("id4")
+
+        viewModel.modalState.test {
+            val state = awaitItem()
+            Assert.assertEquals(state?.wallets?.size, 4)
+            Assert.assertEquals(state?.wallets?.first()?.id, "id4")
+        }
     }
 }
