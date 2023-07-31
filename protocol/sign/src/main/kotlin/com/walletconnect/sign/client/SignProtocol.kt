@@ -23,7 +23,6 @@ import kotlinx.coroutines.runBlocking
 
 class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInterface {
     private lateinit var signEngine: SignEngine
-    private var isInitialized: Boolean = false
 
     companion object {
         val instance = SignProtocol()
@@ -31,7 +30,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
 
     override fun initialize(init: Sign.Params.Init, onSuccess: () -> Unit, onError: (Sign.Model.Error) -> Unit) {
         // TODO: re-init scope
-        if (!isInitialized) {
+        if (!::signEngine.isInitialized) {
             try {
                 koinApp.modules(
                     commonModule(),
@@ -42,11 +41,12 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
 
                 signEngine = koinApp.koin.get()
                 signEngine.setup()
-                isInitialized = true
                 onSuccess()
             } catch (e: Exception) {
                 onError(Sign.Model.Error(e))
             }
+        } else {
+            onError(Sign.Model.Error(IllegalStateException("SignClient already initialized")))
         }
     }
 
