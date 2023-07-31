@@ -8,11 +8,8 @@ import com.walletconnect.android.internal.common.explorer.domain.usecase.GetWall
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.wcmodal.client.Modal
 import com.walletconnect.wcmodal.client.WalletConnectModal
-import com.walletconnect.wcmodal.domain.RecentWalletsRepository
-import com.walletconnect.wcmodal.domain.WalletConnectModalDelegate
 import com.walletconnect.wcmodal.domain.usecase.GetRecentWalletUseCase
 import com.walletconnect.wcmodal.domain.usecase.SaveRecentWalletUseCase
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -52,10 +49,10 @@ internal class WalletConnectModalViewModel : ViewModel() {
                 sessionParams.properties,
                 pairing
             )
-            val chains = sessionParams.requiredNamespaces.values.toList().map { it.chains?.joinToString() }.filterNotNull().joinToString()
+            val chains = sessionParams.requiredNamespaces.values.toList().mapNotNull { it.chains?.joinToString() }.joinToString()
             WalletConnectModal.connect(
                 connect = connectParams,
-                onSuccess = { createModalState(pairing.uri, chains) },
+                onSuccess = { viewModelScope.launch { createModalState(pairing.uri, chains) }},
                 onError = { handleError(it.throwable) }
             )
         } catch (e: Exception) {
@@ -88,11 +85,10 @@ internal class WalletConnectModalViewModel : ViewModel() {
     }
 
     private fun handleError(error: Throwable) {
-        Timber.e(error)
         _modalState.value = WalletConnectModalState.Error(error)
     }
 
-    private fun createModalState(uri: String, chains: String) {
+    private suspend fun createModalState(uri: String, chains: String) {
         viewModelScope.launch {
             try {
                 wallets = if (WalletConnectModal.recommendedWalletsIds.isEmpty()) {
@@ -110,10 +106,11 @@ internal class WalletConnectModalViewModel : ViewModel() {
         }
     }
 
-    fun updateRecentWalletId(id: String) = with(_modalState) {
-        saveRecentWalletUseCase(id)
-        value = value?.copy(wallets = wallets.mapRecentWallet(id))
-    }
+    fun updateRecentWalletId(id: String) =
+        (_modalState.value as? WalletConnectModalState.Connect)?.let {
+            saveRecentWalletUseCase(id)
+            _modalState.value = it.copy(wallets = wallets.mapRecentWallet(id))
+        }
 }
 
 private fun List<Wallet>.mapRecentWallet(id: String?) = map {
