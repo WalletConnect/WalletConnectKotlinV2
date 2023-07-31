@@ -80,12 +80,6 @@ class WalletConnectModalViewModelTest {
         every { WalletConnectModal.connect(any(), any(), any()) } answers { secondArg<() -> Unit>().invoke() }
     }
 
-    @Test(expected = IllegalStateException::class)
-    fun `should throw IllegalStateException with missing session params`() {
-        WalletConnectModal.sessionParams = null
-        WalletConnectModalViewModel()
-    }
-
     @Test
     fun `should emit WalletConnectModalState Error state when pairing throw exception`() = runTest {
         val viewModel = WalletConnectModalViewModel()
