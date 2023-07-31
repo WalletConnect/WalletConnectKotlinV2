@@ -41,8 +41,8 @@ internal class WalletConnectModalViewModel : ViewModel() {
     }
 
     private fun initModalState() {
-        val sessionParams = WalletConnectModal.sessionParams ?: throw IllegalStateException("Session params missing")
         try {
+            val sessionParams = WalletConnectModal.sessionParams ?: throw IllegalStateException("Session params missing")
             val connectParams = Modal.Params.Connect(
                 sessionParams.requiredNamespaces,
                 sessionParams.optionalNamespaces,

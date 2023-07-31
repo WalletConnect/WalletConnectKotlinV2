@@ -117,7 +117,7 @@ private fun ErrorModalState(closeModal: () -> Unit) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Something goes wrong", style = TextStyle(color = ModalTheme.colors.onBackgroundColor, fontSize = 18.sp))
+        Text(text = "Something went wrong", style = TextStyle(color = ModalTheme.colors.onBackgroundColor, fontSize = 18.sp))
         VerticalSpacer(height = 10.dp)
         RoundedMainButton(
             text = "Close",
@@ -132,7 +132,7 @@ private fun Modal.Model.handleEvent(context: Context, closeModal: () -> Unit) {
             closeModal()
         }
         is Modal.Model.Error -> {
-            Toast.makeText(context, "Something go wrong", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Something went wrong", Toast.LENGTH_SHORT).show()
         }
         else -> Unit
     }
