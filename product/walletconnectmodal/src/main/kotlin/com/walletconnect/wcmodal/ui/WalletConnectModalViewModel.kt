@@ -72,10 +72,7 @@ internal class WalletConnectModalViewModel : ViewModel() {
                 )
                 WalletConnectModal.connect(
                     connect = connectParams,
-                    onSuccess = {
-                        _modalState.value = (_modalState.value as WalletConnectModalState.Connect).copy(uri = pairing.uri)
-                        onSuccess()
-                    },
+                    onSuccess = onSuccess,
                     onError = { Timber.e(it.throwable) }
                 )
             } catch (e: Exception) {
