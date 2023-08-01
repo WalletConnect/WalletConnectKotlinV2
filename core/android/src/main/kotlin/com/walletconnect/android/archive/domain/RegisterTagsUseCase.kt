@@ -1,13 +1,13 @@
 package com.walletconnect.android.archive.domain
 
-import com.walletconnect.android.archive.network.HistoryServerService
+import com.walletconnect.android.archive.network.ArchiveServerService
 import com.walletconnect.android.archive.network.model.register.RegisterBody
 import com.walletconnect.android.internal.common.jwt.clientid.GenerateJwtStoreClientIdUseCase
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.foundation.util.Logger
 
 internal class RegisterTagsUseCase(
-    private val service: HistoryServerService,
+    private val service: ArchiveServerService,
     private val generateJwtStoreClientIdUseCase: GenerateJwtStoreClientIdUseCase,
     private val historyServerUrl: String,
     private val logger: Logger,

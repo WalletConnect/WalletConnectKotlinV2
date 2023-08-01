@@ -7,7 +7,7 @@ import com.walletconnect.android.archive.HistoryMessageNotifier
 import com.walletconnect.android.archive.ReduceSyncRequestsUseCase
 import com.walletconnect.android.archive.domain.GetMessagesUseCase
 import com.walletconnect.android.archive.domain.RegisterTagsUseCase
-import com.walletconnect.android.archive.network.HistoryServerService
+import com.walletconnect.android.archive.network.ArchiveServerService
 import com.walletconnect.android.relay.NetworkClientTimeout
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -29,7 +29,7 @@ internal fun historyModule(history: HistoryInterface, historyServerUrl: String? 
             .build()
     }
 
-    single { get<Retrofit>(named(AndroidCommonDITags.HISTORY_SERVER_RETROFIT)).create(HistoryServerService::class.java) }
+    single { get<Retrofit>(named(AndroidCommonDITags.HISTORY_SERVER_RETROFIT)).create(ArchiveServerService::class.java) }
 
     single { HistoryMessageNotifier() }
     single { ReduceSyncRequestsUseCase(get(), get(), get(), get(named(AndroidCommonDITags.LOGGER))) }

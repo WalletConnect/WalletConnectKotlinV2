@@ -12,7 +12,7 @@ import retrofit2.http.POST
 import retrofit2.http.QueryMap
 
 
-interface HistoryServerService {
+interface ArchiveServerService {
 
     @POST("/register")
     @Headers("Content-Type: application/json")
