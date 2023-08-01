@@ -57,7 +57,7 @@ class WalletConnectModalViewModelTest {
         every { koin.get<GetRecentWalletUseCase>() } returns getRecentWalletUseCase
         every { koin.get<SaveRecentWalletUseCase>() } returns saveRecentWalletUseCase
         every { getRecentWalletUseCase() } returns null
-        WalletConnectModal.sessionParams = sessionParams
+        WalletConnectModal.setSessionParams(sessionParams)
     }
 
     @After

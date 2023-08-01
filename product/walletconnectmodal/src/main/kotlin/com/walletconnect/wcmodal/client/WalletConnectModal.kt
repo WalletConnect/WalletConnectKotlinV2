@@ -10,7 +10,10 @@ object WalletConnectModal {
 
     internal var excludedWalletsIds: List<String> = listOf()
     internal var recommendedWalletsIds: List<String> = listOf()
-    internal var sessionParams: Modal.Params.SessionParams? = null
+
+    private var _sessionParams: Modal.Params.SessionParams? = null
+    val sessionParams: Modal.Params.SessionParams
+        get() = requireNotNull(_sessionParams) { "Be sure to set the SessionParams in either the Modal.Params.Init or WalletConnectModal.setSessionParams." }
 
     interface ModalDelegate {
         fun onSessionApproved(approvedSession: Modal.Model.ApprovedSession)
@@ -38,7 +41,7 @@ object WalletConnectModal {
             onSuccess = {
                 this.excludedWalletsIds = init.excludedWalletIds
                 this.recommendedWalletsIds = init.recommendedWalletsIds
-                this.sessionParams = init.sessionParams
+                _sessionParams = init.sessionParams
                 runCatching {
                     wcKoinApp.modules(walletConnectModalModule())
                     setDelegate(WalletConnectModalDelegate)
@@ -94,7 +97,7 @@ object WalletConnectModal {
     }
 
     fun setSessionParams(sessionParams: Modal.Params.SessionParams) {
-        this.sessionParams = sessionParams
+        _sessionParams = sessionParams
     }
 
     fun connect(
