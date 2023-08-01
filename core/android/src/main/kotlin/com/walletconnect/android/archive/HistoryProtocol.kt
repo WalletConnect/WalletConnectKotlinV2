@@ -5,7 +5,7 @@ import com.walletconnect.android.archive.domain.GetMessagesUseCase
 import com.walletconnect.android.archive.domain.RegisterTagsUseCase
 import com.walletconnect.android.archive.network.model.messages.MessagesParams
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
-import com.walletconnect.android.internal.common.model.HistoryMessage
+import com.walletconnect.android.internal.common.model.ArchiveMessage
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.foundation.util.Logger
@@ -36,10 +36,10 @@ class HistoryProtocol(
         )
     }
 
-    override suspend fun getAllMessages(params: MessagesParams, onSuccess: (List<HistoryMessage>) -> Unit, onError: (Core.Model.Error) -> Unit) {
-        val allMessageHistory: MutableList<HistoryMessage> = mutableListOf()
+    override suspend fun getAllMessages(params: MessagesParams, onSuccess: (List<ArchiveMessage>) -> Unit, onError: (Core.Model.Error) -> Unit) {
+        val allMessageHistory: MutableList<ArchiveMessage> = mutableListOf()
 
-        suspend fun recursiveOnSuccess(allMessageHistory: MutableList<HistoryMessage>, justFetchedMessageHistory: List<HistoryMessage>) {
+        suspend fun recursiveOnSuccess(allMessageHistory: MutableList<ArchiveMessage>, justFetchedMessageHistory: List<ArchiveMessage>) {
             allMessageHistory.addAll(justFetchedMessageHistory)
             if (justFetchedMessageHistory.size == params.messageCount) {
                 logger.log("Fetched from History ${justFetchedMessageHistory.size} messages fetching ${params.messageCount} more")

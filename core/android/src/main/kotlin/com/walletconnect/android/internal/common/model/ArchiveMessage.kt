@@ -5,7 +5,7 @@ import com.squareup.moshi.JsonClass
 import com.walletconnect.foundation.network.model.Relay
 
 @JsonClass(generateAdapter = true)
-data class HistoryMessage(
+data class ArchiveMessage(
     val topic: String,
     val message: String,
     val method: String,
