@@ -12,9 +12,9 @@ import com.walletconnect.foundation.util.Logger
 import org.koin.core.KoinApplication
 import org.koin.core.qualifier.named
 
-class HistoryProtocol(
+class ArchiveProtocol(
     private val koinApp: KoinApplication = wcKoinApp,
-) : HistoryInterface {
+) : ArchiveInterface {
     private val registerTagsUseCase: RegisterTagsUseCase by lazy { koinApp.koin.get() }
     private val getMessagesUseCase: GetMessagesUseCase by lazy { koinApp.koin.get() }
     private val logger: Logger by lazy { koinApp.koin.get(named(AndroidCommonDITags.LOGGER)) }

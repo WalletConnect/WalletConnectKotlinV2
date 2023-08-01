@@ -2,7 +2,7 @@
 
 package com.walletconnect.android.internal.common.di
 
-import com.walletconnect.android.archive.HistoryInterface
+import com.walletconnect.android.archive.ArchiveInterface
 import com.walletconnect.android.archive.HistoryMessageNotifier
 import com.walletconnect.android.archive.ReduceSyncRequestsUseCase
 import com.walletconnect.android.archive.domain.GetMessagesUseCase
@@ -15,7 +15,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 
 @JvmSynthetic
-internal fun historyModule(history: HistoryInterface, historyServerUrl: String? = null, timeout: NetworkClientTimeout? = null) = module {
+internal fun historyModule(history: ArchiveInterface, historyServerUrl: String? = null, timeout: NetworkClientTimeout? = null) = module {
     val historyServerUrl = historyServerUrl ?: DEFAULT_HISTORY_URL
     val networkClientTimeout = timeout ?: NetworkClientTimeout.getDefaultTimeout() // todo: maybe not use relay timeouts?
 

@@ -4,8 +4,8 @@ import android.app.Application
 import com.walletconnect.android.di.coreStorageModule
 import com.walletconnect.android.echo.EchoClient
 import com.walletconnect.android.echo.EchoInterface
-import com.walletconnect.android.archive.HistoryInterface
-import com.walletconnect.android.archive.HistoryProtocol
+import com.walletconnect.android.archive.ArchiveInterface
+import com.walletconnect.android.archive.ArchiveProtocol
 import com.walletconnect.android.internal.common.di.coreCommonModule
 import com.walletconnect.android.internal.common.di.coreCryptoModule
 import com.walletconnect.android.internal.common.di.coreJsonRpcModule
@@ -44,7 +44,7 @@ class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInter
     override val Echo: EchoInterface = EchoClient
     override val Verify: VerifyInterface = VerifyClient(koinApp)
     override val Sync: SyncInterface = SyncClient
-    override val History: HistoryInterface = HistoryProtocol(koinApp)
+    override val History: ArchiveInterface = ArchiveProtocol(koinApp)
 
     init {
         plantTimber()
