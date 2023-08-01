@@ -115,7 +115,7 @@ internal class PushWalletEngine(
     }
 
     private suspend fun registerTagsInHistory() {
-        // Sync are here since History Server expects only one register call
+        // Sync are here since Archive Server expects only one register call
         archiveInterface.registerTags(tags = listOf(Tags.PUSH_MESSAGE, Tags.SYNC_SET, Tags.SYNC_DELETE), {}, { error -> logger.error(error.throwable) })
     }
 
