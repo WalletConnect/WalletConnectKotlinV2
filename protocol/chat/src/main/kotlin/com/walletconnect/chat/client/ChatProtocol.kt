@@ -26,25 +26,21 @@ internal class ChatProtocol(private val koinApp: KoinApplication = wcKoinApp) : 
 
     @Throws(IllegalStateException::class)
     override fun initialize(init: Chat.Params.Init, onError: (Chat.Model.Error) -> Unit) {
-        if (!::chatEngine.isInitialized) {
-            try {
-                koinApp.run {
-                    modules(
-                        jsonRpcModule(),
-                        storageModule(koinApp.koin.get<DatabaseConfig>().CHAT_SDK_DB_NAME),
-                        syncInChatModule(),
-                        engineModule(),
-                        commonModule()
-                    )
-                }
-
-                chatEngine = koinApp.koin.get()
-                chatEngine.setup()
-            } catch (e: Exception) {
-                onError(Chat.Model.Error(e))
+        try {
+            koinApp.run {
+                modules(
+                    jsonRpcModule(),
+                    storageModule(koinApp.koin.get<DatabaseConfig>().CHAT_SDK_DB_NAME),
+                    syncInChatModule(),
+                    engineModule(),
+                    commonModule()
+                )
             }
-        } else {
-            onError(Chat.Model.Error(IllegalStateException("ChatClient already initialized")))
+
+            chatEngine = koinApp.koin.get()
+            chatEngine.setup()
+        } catch (e: Exception) {
+            onError(Chat.Model.Error(e))
         }
     }
 
