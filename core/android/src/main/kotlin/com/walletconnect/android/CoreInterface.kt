@@ -18,7 +18,7 @@ interface CoreInterface {
     val Echo: EchoInterface
     val Verify: VerifyInterface
     val Sync: SyncInterface
-    val History: ArchiveInterface
+    val Archive: ArchiveInterface
 
     interface Delegate : PairingInterface.Delegate
 

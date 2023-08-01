@@ -44,7 +44,7 @@ class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInter
     override val Echo: EchoInterface = EchoClient
     override val Verify: VerifyInterface = VerifyClient(koinApp)
     override val Sync: SyncInterface = SyncClient
-    override val History: ArchiveInterface = ArchiveProtocol(koinApp)
+    override val Archive: ArchiveInterface = ArchiveProtocol(koinApp)
 
     init {
         plantTimber()
@@ -85,7 +85,7 @@ class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInter
                 coreSyncModule(Sync),
                 keyServerModule(keyServerUrl),
                 explorerModule(),
-                archiveModule(History, timeout = networkClientTimeout)
+                archiveModule(Archive, timeout = networkClientTimeout)
             )
         }
 
@@ -96,7 +96,7 @@ class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInter
         Verify.initialize(metaData.verifyUrl)
         Pairing.initialize()
         PairingController.initialize()
-        History.initialize(relayServerUrl)
+        Archive.initialize(relayServerUrl)
         Sync.initialize() { error -> onError(Core.Model.Error(error.throwable)) }
     }
 }
