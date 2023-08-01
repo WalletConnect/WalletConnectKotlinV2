@@ -15,28 +15,28 @@ import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 
 @JvmSynthetic
-internal fun historyModule(history: ArchiveInterface, historyServerUrl: String? = null, timeout: NetworkClientTimeout? = null) = module {
-    val historyServerUrl = historyServerUrl ?: DEFAULT_HISTORY_URL
+internal fun archiveModule(archive: ArchiveInterface, archiveServerUrl: String? = null, timeout: NetworkClientTimeout? = null) = module {
+    val archiveServerUrl = archiveServerUrl ?: DEFAULT_ARCHIVE_URL
     val networkClientTimeout = timeout ?: NetworkClientTimeout.getDefaultTimeout() // todo: maybe not use relay timeouts?
 
-    single(named(AndroidCommonDITags.HISTORY_SERVER_URL)) { historyServerUrl }
+    single(named(AndroidCommonDITags.ARCHIVE_SERVER_URL)) { archiveServerUrl }
 
-    single(named(AndroidCommonDITags.HISTORY_SERVER_RETROFIT)) {
+    single(named(AndroidCommonDITags.ARCHIVE_SERVER_RETROFIT)) {
         Retrofit.Builder()
-            .baseUrl(historyServerUrl)
+            .baseUrl(archiveServerUrl)
             .client(get(named(AndroidCommonDITags.OK_HTTP)))
             .addConverterFactory(MoshiConverterFactory.create(get(named(AndroidCommonDITags.MOSHI))))
             .build()
     }
 
-    single { get<Retrofit>(named(AndroidCommonDITags.HISTORY_SERVER_RETROFIT)).create(ArchiveServerService::class.java) }
+    single { get<Retrofit>(named(AndroidCommonDITags.ARCHIVE_SERVER_RETROFIT)).create(ArchiveServerService::class.java) }
 
     single { ArchiveMessageNotifier() }
     single { ReduceSyncRequestsUseCase(get(), get(), get(), get(named(AndroidCommonDITags.LOGGER))) }
-    single { RegisterTagsUseCase(get(), get(), get(named(AndroidCommonDITags.HISTORY_SERVER_URL)), get(named(AndroidCommonDITags.LOGGER))) }
+    single { RegisterTagsUseCase(get(), get(), get(named(AndroidCommonDITags.ARCHIVE_SERVER_URL)), get(named(AndroidCommonDITags.LOGGER))) }
     single { GetMessagesUseCase(get(), get(named(AndroidCommonDITags.LOGGER))) }
 
-    single { history }
+    single { archive }
 }
 
-private const val DEFAULT_HISTORY_URL = "https://history.walletconnect.com"
+private const val DEFAULT_ARCHIVE_URL = "https://archive.walletconnect.com"

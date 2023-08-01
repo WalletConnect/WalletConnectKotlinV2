@@ -9,11 +9,11 @@ import com.walletconnect.foundation.util.Logger
 internal class RegisterTagsUseCase(
     private val service: ArchiveServerService,
     private val generateJwtStoreClientIdUseCase: GenerateJwtStoreClientIdUseCase,
-    private val historyServerUrl: String,
+    private val archiveServerUrl: String,
     private val logger: Logger,
 ) {
     suspend operator fun invoke(tags: List<Tags>, relayUrl: String): Result<Unit> = runCatching {
-        val authorization = BEARER_PREFIX + generateJwtStoreClientIdUseCase(historyServerUrl)
+        val authorization = BEARER_PREFIX + generateJwtStoreClientIdUseCase(archiveServerUrl)
         val tagsAsStrings = tags.map { tag -> tag.id.toString() }
 
         with(service.register(RegisterBody(tagsAsStrings, relayUrl), authorization)) {
