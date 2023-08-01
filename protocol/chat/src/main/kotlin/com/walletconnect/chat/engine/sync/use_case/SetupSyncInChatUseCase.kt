@@ -22,10 +22,8 @@ internal class SetupSyncInChatUseCase(
             val registerChatStoresInSync = { registerChatStoresInSync(accountId, onSuccess, onError) }
 
             if (!isRegistered) {
-                // If account is not registered then register in sync client and later register required chat stores
                 registerAccountInSync(accountId, onSign, onAccountRegisterSuccess = registerChatStoresInSync, onError)
             } else {
-                // If account is registered then only register required chat stores
                 registerChatStoresInSync()
             }
         })
