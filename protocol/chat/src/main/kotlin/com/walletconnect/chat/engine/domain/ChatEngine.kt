@@ -2,7 +2,7 @@
 
 package com.walletconnect.chat.engine.domain
 
-import com.walletconnect.android.history.HistoryInterface
+import com.walletconnect.android.archive.HistoryInterface
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags

@@ -1,8 +1,8 @@
-package com.walletconnect.android.history.domain
+package com.walletconnect.android.archive.domain
 
-import com.walletconnect.android.history.network.HistoryServerService
-import com.walletconnect.android.history.network.model.messages.MessagesParams
-import com.walletconnect.android.history.network.model.messages.MessagesResponse
+import com.walletconnect.android.archive.network.HistoryServerService
+import com.walletconnect.android.archive.network.model.messages.MessagesParams
+import com.walletconnect.android.archive.network.model.messages.MessagesResponse
 import com.walletconnect.foundation.util.Logger
 
 class GetMessagesUseCase(

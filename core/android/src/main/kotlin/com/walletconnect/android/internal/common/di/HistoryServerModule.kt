@@ -2,12 +2,12 @@
 
 package com.walletconnect.android.internal.common.di
 
-import com.walletconnect.android.history.HistoryInterface
-import com.walletconnect.android.history.HistoryMessageNotifier
-import com.walletconnect.android.history.ReduceSyncRequestsUseCase
-import com.walletconnect.android.history.domain.GetMessagesUseCase
-import com.walletconnect.android.history.domain.RegisterTagsUseCase
-import com.walletconnect.android.history.network.HistoryServerService
+import com.walletconnect.android.archive.HistoryInterface
+import com.walletconnect.android.archive.HistoryMessageNotifier
+import com.walletconnect.android.archive.ReduceSyncRequestsUseCase
+import com.walletconnect.android.archive.domain.GetMessagesUseCase
+import com.walletconnect.android.archive.domain.RegisterTagsUseCase
+import com.walletconnect.android.archive.network.HistoryServerService
 import com.walletconnect.android.relay.NetworkClientTimeout
 import org.koin.core.qualifier.named
 import org.koin.dsl.module

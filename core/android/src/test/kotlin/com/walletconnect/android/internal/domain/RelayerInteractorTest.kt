@@ -1,6 +1,6 @@
 package com.walletconnect.android.internal.domain
 
-import com.walletconnect.android.history.HistoryMessageNotifier
+import com.walletconnect.android.archive.HistoryMessageNotifier
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.exception.WalletConnectException

@@ -1,4 +1,4 @@
-package com.walletconnect.android.history.network.model.messages
+package com.walletconnect.android.archive.network.model.messages
 
 import com.squareup.moshi.JsonClass
 import com.walletconnect.android.internal.common.model.HistoryMessage

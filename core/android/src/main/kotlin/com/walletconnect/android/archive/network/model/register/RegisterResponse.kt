@@ -1,4 +1,4 @@
-package com.walletconnect.android.history.network.model.register
+package com.walletconnect.android.archive.network.model.register
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass

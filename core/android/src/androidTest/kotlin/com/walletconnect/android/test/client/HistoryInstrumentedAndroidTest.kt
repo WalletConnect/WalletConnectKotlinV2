@@ -1,8 +1,8 @@
 package com.walletconnect.android.test.client
 
 import com.walletconnect.android.BuildConfig
-import com.walletconnect.android.history.network.model.messages.Direction
-import com.walletconnect.android.history.network.model.messages.MessagesParams
+import com.walletconnect.android.archive.network.model.messages.Direction
+import com.walletconnect.android.archive.network.model.messages.MessagesParams
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS

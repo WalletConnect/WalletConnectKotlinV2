@@ -1,4 +1,4 @@
-package com.walletconnect.android.history
+package com.walletconnect.android.archive
 
 import com.walletconnect.foundation.network.model.Relay
 import kotlinx.coroutines.flow.MutableSharedFlow

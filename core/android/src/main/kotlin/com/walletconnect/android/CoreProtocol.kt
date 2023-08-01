@@ -4,8 +4,8 @@ import android.app.Application
 import com.walletconnect.android.di.coreStorageModule
 import com.walletconnect.android.echo.EchoClient
 import com.walletconnect.android.echo.EchoInterface
-import com.walletconnect.android.history.HistoryInterface
-import com.walletconnect.android.history.HistoryProtocol
+import com.walletconnect.android.archive.HistoryInterface
+import com.walletconnect.android.archive.HistoryProtocol
 import com.walletconnect.android.internal.common.di.coreCommonModule
 import com.walletconnect.android.internal.common.di.coreCryptoModule
 import com.walletconnect.android.internal.common.di.coreJsonRpcModule

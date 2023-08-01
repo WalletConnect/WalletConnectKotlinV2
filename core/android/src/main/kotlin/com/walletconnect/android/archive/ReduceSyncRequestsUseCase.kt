@@ -1,4 +1,4 @@
-package com.walletconnect.android.history
+package com.walletconnect.android.archive
 
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer

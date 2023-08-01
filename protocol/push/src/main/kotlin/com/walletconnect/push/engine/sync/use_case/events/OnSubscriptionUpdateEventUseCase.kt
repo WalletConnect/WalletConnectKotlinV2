@@ -1,8 +1,8 @@
 package com.walletconnect.push.engine.sync.use_case.events
 
 import com.squareup.moshi.Moshi
-import com.walletconnect.android.history.HistoryInterface
-import com.walletconnect.android.history.network.model.messages.MessagesParams
+import com.walletconnect.android.archive.HistoryInterface
+import com.walletconnect.android.archive.network.model.messages.MessagesParams
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.SymmetricKey

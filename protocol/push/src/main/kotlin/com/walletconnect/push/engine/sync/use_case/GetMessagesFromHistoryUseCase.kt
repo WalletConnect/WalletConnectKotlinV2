@@ -1,7 +1,7 @@
 package com.walletconnect.push.engine.sync.use_case
 
-import com.walletconnect.android.history.HistoryInterface
-import com.walletconnect.android.history.network.model.messages.MessagesParams
+import com.walletconnect.android.archive.HistoryInterface
+import com.walletconnect.android.archive.network.model.messages.MessagesParams
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.sync.client.Sync
 import com.walletconnect.android.sync.client.SyncInterface
