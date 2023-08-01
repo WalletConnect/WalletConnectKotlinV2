@@ -8,6 +8,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -43,6 +44,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.walletconnect.android.internal.common.explorer.data.model.Wallet
@@ -53,6 +56,8 @@ import com.walletconnect.modal.utils.goToNativeWallet
 import com.walletconnect.modal.utils.goToUniversalLink
 import com.walletconnect.modal.utils.openPlayStore
 import com.walletconnect.wcmodal.R
+import com.walletconnect.wcmodal.client.Modal
+import com.walletconnect.wcmodal.domain.WalletConnectModalDelegate
 import com.walletconnect.wcmodal.ui.components.ModalTopBar
 import com.walletconnect.wcmodal.ui.components.RoundedMainButton
 import com.walletconnect.wcmodal.ui.components.WalletImage
@@ -63,14 +68,33 @@ import com.walletconnect.wcmodal.ui.theme.ModalTheme
 internal fun RedirectOnHoldScreen(
     navController: NavController,
     uri: String,
-    wallet: Wallet
+    wallet: Wallet,
+    retry: (() -> Unit) -> Unit
 ) {
     val uriHandler = LocalUriHandler.current
+    val redirectState = remember { mutableStateOf<RedirectState>(RedirectState.Loading) }
+
+    LaunchedEffect(Unit) {
+        WalletConnectModalDelegate
+            .wcEventModels
+            .collect {
+                when (it) {
+                    is Modal.Model.RejectedSession -> redirectState.value = RedirectState.Reject
+                    else -> redirectState.value = RedirectState.Loading
+                }
+            }
+    }
 
     RedirectOnHoldScreen(
         wallet = wallet,
+        state = redirectState.value,
         onBackPressed = navController::popBackStack,
-        onRetry = { uriHandler.goToNativeWallet(uri, wallet.nativeLink) },
+        onRetry = {
+            retry {
+                redirectState.value = RedirectState.Loading
+                uriHandler.goToNativeWallet(uri, wallet.nativeLink)
+            }
+        },
         onOpenUniversalLink = { uriHandler.goToUniversalLink(uri, wallet.universalLink) },
         onOpenPlayStore = { uriHandler.openPlayStore(wallet.playStoreLink) }
     )
@@ -87,6 +111,7 @@ internal fun RedirectOnHoldScreen(
 @Composable
 private fun RedirectOnHoldScreen(
     wallet: Wallet,
+    state: RedirectState,
     onBackPressed: () -> Unit,
     onRetry: () -> Unit,
     onOpenUniversalLink: () -> Unit,
@@ -104,9 +129,7 @@ private fun RedirectOnHoldScreen(
                 onBackPressed = onBackPressed
             )
             VerticalSpacer(height = 20.dp)
-            WalletImageWithLoader(wallet.imageUrl)
-            VerticalSpacer(height = 20.dp)
-            Text(text = "Continue in ${wallet.name}...", color = ModalTheme.colors.textColor)
+            RedirectStateContent(state = state, wallet = wallet)
             VerticalSpacer(height = 20.dp)
         }
         BottomSection(wallet, onRetry, onOpenUniversalLink, onOpenPlayStore)
@@ -114,7 +137,31 @@ private fun RedirectOnHoldScreen(
 }
 
 @Composable
-fun WalletImageWithLoader(imageUrl: String) {
+private fun RedirectStateContent(state: RedirectState, wallet: Wallet) {
+    when (state) {
+        RedirectState.Loading -> {
+            WalletImageWithLoader(wallet.imageUrl)
+            VerticalSpacer(height = 20.dp)
+            Text(text = "Continue in ${wallet.name}...", color = ModalTheme.colors.textColor)
+        }
+
+        RedirectState.Reject -> {
+            WalletImage(
+                url = wallet.imageUrl,
+                modifier = Modifier
+                    .border(1.dp, ModalTheme.colors.errorColor, shape = RoundedCornerShape(22.dp))
+                    .size(90.dp)
+                    .padding(4.dp)
+                    .clip(RoundedCornerShape(20.dp))
+            )
+            VerticalSpacer(height = 20.dp)
+            Text(text = "Connection declined", color = ModalTheme.colors.errorColor)
+        }
+    }
+}
+
+@Composable
+private fun WalletImageWithLoader(imageUrl: String) {
     val mainColor = ModalTheme.colors.main
     val infiniteTransition = rememberInfiniteTransition()
 
@@ -227,10 +274,16 @@ private fun PlayStoreRow(wallet: Wallet, onOpenPlayStore: () -> Unit) {
 
 @Preview
 @Composable
-private fun OnHoldScreenPreview() {
+private fun OnHoldScreenPreview(
+    @PreviewParameter(RedirectStateProvider::class) state: RedirectState
+) {
     ModalPreview {
         val wallet = Wallet("Id", "Kotlin Wallet", "url", "", "", "")
-        RedirectOnHoldScreen(wallet = wallet, onBackPressed = { }, onRetry = { }, onOpenUniversalLink = { }, onOpenPlayStore = {})
+        RedirectOnHoldScreen(wallet = wallet, state = state, onBackPressed = { }, onRetry = { }, onOpenUniversalLink = { }, onOpenPlayStore = {})
     }
 }
 
+private class RedirectStateProvider: PreviewParameterProvider<RedirectState> {
+    override val values: Sequence<RedirectState>
+        get() = sequenceOf(RedirectState.Loading, RedirectState.Reject)
+}

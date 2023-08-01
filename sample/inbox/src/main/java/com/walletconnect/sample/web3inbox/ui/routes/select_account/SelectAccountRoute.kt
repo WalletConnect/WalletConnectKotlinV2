@@ -74,11 +74,11 @@ fun AccountRoute(navController: NavController) {
         }
     }
 
-    AccountScreen(navController, viewModel)
+    AccountScreen(navController)
 }
 
 @Composable
-fun AccountScreen(navController: NavController, viewModel: SelectAccountViewModel) {
+fun AccountScreen(navController: NavController) {
     val context = LocalContext.current
     val random = EthAccount.Random(context)
 
@@ -93,9 +93,9 @@ fun AccountScreen(navController: NavController, viewModel: SelectAccountViewMode
                 navController.navigateToW3I(random.caip10())
             }
             HorizontalLineDivider()
-            SignInWithWalletSection(onClick = { viewModel.connectToWallet { uri -> navController.openWalletConnectModal(uri) } })
+            SignInWithWalletSection(onClick = { navController.openWalletConnectModal() })
             HorizontalLineDivider()
-            BurnerAccountSection() {
+            BurnerAccountSection {
                 SharedPrefStorage.setLastLoggedInAccount(context, EthAccount.Burner.caip10())
                 navController.navigateToW3I(EthAccount.Burner.caip10())
             }

@@ -40,6 +40,7 @@ import com.walletconnect.sample.common.CompletePreviews
 import com.walletconnect.sample.common.ui.*
 import com.walletconnect.sample.common.ui.commons.BlueButton
 import com.walletconnect.sample.common.ui.theme.PreviewTheme
+import com.walletconnect.wcmodal.client.WalletConnectModal
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -58,9 +59,8 @@ fun ChainSelectionRoute(navController: NavController) {
                 navController.currentBackStackEntry?.savedStateHandle?.remove<PairingSelectionResult>(pairingSelectionResultKey)
                 when(it) {
                     PairingSelectionResult.NewPairing -> {
-                        viewModel.connectToWallet { uri ->
-                            navController.openWalletConnectModal(uri)
-                        }
+                        WalletConnectModal.setSessionParams(viewModel.getSessionParams())
+                        navController.openWalletConnectModal()
                     }
                     PairingSelectionResult.None -> Unit
                     is PairingSelectionResult.SelectedPairing -> viewModel.connectToWallet(it.position)
@@ -89,9 +89,8 @@ fun ChainSelectionRoute(navController: NavController) {
                         popUpTo(Route.ChainSelection.path)
                     }
                 } else {
-                    viewModel.connectToWallet { uri ->
-                        navController.openWalletConnectModal(uri = uri)
-                    }
+                    WalletConnectModal.setSessionParams(viewModel.getSessionParams())
+                    navController.openWalletConnectModal()
                 }
             } else {
                 Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()

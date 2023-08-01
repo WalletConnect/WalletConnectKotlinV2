@@ -13,7 +13,8 @@ internal data class ModalColors(
     val textColor: Color,
     val secondaryTextColor: Color,
     val dividerColor: Color,
-    val border: Color
+    val border: Color,
+    val errorColor: Color = Color(0xFFF05142)
 )
 
 @Composable
