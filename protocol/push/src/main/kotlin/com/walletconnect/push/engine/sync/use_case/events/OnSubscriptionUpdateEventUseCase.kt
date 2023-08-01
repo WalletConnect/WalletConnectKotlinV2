@@ -58,12 +58,7 @@ internal class OnSubscriptionUpdateEventUseCase(
                         onFailure = { error -> logger.error("Failed to insert Synced Subscription: $error") },
                         onSuccess = {
                             jsonRpcInteractor.subscribe(pushTopic) { error -> logger.error(error) }
-                            getPushMessagesFromHistory(pushTopic) { messagesCount ->
-                                if (messagesCount >= messagesBatchSize) logger.error("Fetched $messagesBatchSize for ${dappMetaData!!.url}")
-                                else logger.log("Fetched $messagesCount for ${dappMetaData!!.url}")
-
-                                Timber.d("Sync getPushMessagesFromHistory: $pushTopic")
-                            }
+                            getPushMessagesFromHistory(pushTopic) { messagesCount -> logger.log("Fetched $messagesCount messages from ${dappMetaData!!.url}") }
                         }
                     )
                 }
@@ -80,14 +75,10 @@ internal class OnSubscriptionUpdateEventUseCase(
     }
 
     private suspend fun getPushMessagesFromHistory(pushTopic: Topic, onSuccess: (Int) -> Unit) {
-        historyInterface.getMessages(
-            MessagesParams(pushTopic.value, null, messagesBatchSize, null),
+        historyInterface.getAllMessages(
+            MessagesParams(pushTopic.value, null, HistoryInterface.DEFAULT_BATCH_SIZE, null),
             onError = { error -> logger.error(error.throwable) },
             onSuccess = { onSuccess(it.size) }
         )
-    }
-
-    private companion object {
-        const val messagesBatchSize = 200L
     }
 }

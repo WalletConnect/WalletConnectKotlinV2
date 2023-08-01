@@ -10,5 +10,9 @@ interface HistoryInterface {
 
     suspend fun registerTags(tags: List<Tags>, onSuccess: () -> Unit, onError: (Core.Model.Error) -> Unit)
 
-    suspend fun getMessages(params: MessagesParams, onSuccess: (List<HistoryMessage>) -> Unit = {}, onError: (Core.Model.Error) -> Unit = {})
+    suspend fun getAllMessages(params: MessagesParams, onSuccess: (List<HistoryMessage>) -> Unit = {}, onError: (Core.Model.Error) -> Unit = {})
+
+    companion object {
+        const val DEFAULT_BATCH_SIZE = 200
+    }
 }
