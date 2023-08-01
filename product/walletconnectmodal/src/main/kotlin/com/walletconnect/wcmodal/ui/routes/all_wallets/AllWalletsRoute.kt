@@ -16,7 +16,6 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -29,22 +28,17 @@ import com.walletconnect.wcmodal.ui.components.WalletsLazyGridView
 import com.walletconnect.wcmodal.ui.components.walletsGridItems
 import com.walletconnect.wcmodal.ui.preview.ModalPreview
 import com.walletconnect.wcmodal.ui.theme.ModalTheme
-import com.walletconnect.modal.utils.goToNativeWallet
 import com.walletconnect.modal.utils.isLandscape
+import com.walletconnect.wcmodal.ui.navigation.Route
 
 @Composable
 internal fun AllWalletsRoute(
     navController: NavController,
-    uri: String,
     wallets: List<Wallet>
 ) {
-    val uriHandler = LocalUriHandler.current
-
     AllWalletsContent(
         wallets = wallets,
-        onWalletItemClick = {
-            uriHandler.goToNativeWallet(uri, it.nativeLink, it.universalLink, it.playStoreLink)
-        },
+        onWalletItemClick = { navController.navigate(Route.OnHold.path + "/${it.id}") },
         onBackClick = navController::popBackStack
     )
 }

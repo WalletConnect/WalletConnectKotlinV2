@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
@@ -26,7 +27,8 @@ fun WalletConnectLogo(modifier: Modifier = Modifier, color: Color) {
     ) {
         Image(
             imageVector = ImageVector.vectorResource(id = R.drawable.ic_wallet_connect_logo),
-            contentDescription = "WalletConnectLogo"
+            contentDescription = "WalletConnectLogo",
+            colorFilter = ColorFilter.tint(color)
         )
         HorizontalSpacer(width = 4.dp)
         Text(

@@ -66,7 +66,7 @@ internal class JsonRpcInteractor(
 
     override fun checkConnectionWorking() {
         if (!relay.isConnectionAvailable.value) {
-            throw NoRelayConnectionException("No connection available")
+            throw NoRelayConnectionException("Connection error: Please check your Internet connection")
         }
     }
 
@@ -313,7 +313,6 @@ internal class JsonRpcInteractor(
                         handleError("ManSub: ${e.stackTraceToString()}")
                         String.Empty
                     }
-
                     Pair(message, topic)
                 }.collect { (decryptedMessage, topic) ->
                     if (decryptedMessage.isNotEmpty()) {

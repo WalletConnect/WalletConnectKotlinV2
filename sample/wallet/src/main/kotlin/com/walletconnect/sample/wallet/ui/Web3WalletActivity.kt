@@ -30,6 +30,7 @@ import com.google.accompanist.navigation.material.ExperimentalMaterialNavigation
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
 import com.walletconnect.sample.common.ui.theme.WCSampleAppTheme
+import com.walletconnect.sample.wallet.ui.routes.host.WalletSampleHost
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
@@ -71,14 +72,10 @@ class Web3WalletActivity : ComponentActivity() {
             val bottomSheetNavigator = BottomSheetNavigator(sheetState)
             val navController = rememberNavController(bottomSheetNavigator)
             this.navController = navController
-
             val sharedPref = getPreferences(MODE_PRIVATE)
             val getStartedVisited = sharedPref.getBoolean("get_started_visited", false)
             WCSampleAppTheme() {
-                Web3WalletNavGraph(
-                    bottomSheetNavigator = bottomSheetNavigator, navController = navController,
-                    getStartedVisited = getStartedVisited, web3walletViewModel = web3walletViewModel, connectionsViewModel = connectionsViewModel
-                )
+                WalletSampleHost(bottomSheetNavigator, navController, web3walletViewModel, connectionsViewModel, getStartedVisited)
             }
         }
     }

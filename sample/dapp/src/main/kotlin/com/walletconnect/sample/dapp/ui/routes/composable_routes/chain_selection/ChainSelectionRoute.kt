@@ -1,5 +1,7 @@
 package com.walletconnect.sample.dapp.ui.routes.composable_routes.chain_selection
 
+import android.content.Context
+import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -23,8 +25,10 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.walletconnect.android.utils.isPackageInstalled
 import com.walletconnect.wcmodal.ui.openWalletConnectModal
 import com.walletconnect.wcmodal.ui.state.rememberModalState
 import com.walletconnect.sample.dapp.ui.DappSampleEvents
@@ -36,6 +40,7 @@ import com.walletconnect.sample.common.CompletePreviews
 import com.walletconnect.sample.common.ui.*
 import com.walletconnect.sample.common.ui.commons.BlueButton
 import com.walletconnect.sample.common.ui.theme.PreviewTheme
+import com.walletconnect.wcmodal.client.WalletConnectModal
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -54,9 +59,8 @@ fun ChainSelectionRoute(navController: NavController) {
                 navController.currentBackStackEntry?.savedStateHandle?.remove<PairingSelectionResult>(pairingSelectionResultKey)
                 when(it) {
                     PairingSelectionResult.NewPairing -> {
-                        viewModel.connectToWallet { uri ->
-                            navController.openWalletConnectModal(uri)
-                        }
+                        WalletConnectModal.setSessionParams(viewModel.getSessionParams())
+                        navController.openWalletConnectModal()
                     }
                     PairingSelectionResult.None -> Unit
                     is PairingSelectionResult.SelectedPairing -> viewModel.connectToWallet(it.position)
@@ -76,6 +80,7 @@ fun ChainSelectionRoute(navController: NavController) {
 
     ChainSelectionScreen(
         chains = chainsState,
+        isSampleWalletInstalled = context.isSampleWalletInstalled(),
         onChainClick = viewModel::updateChainSelectState,
         onConnectClick = {
             if (viewModel.isAnyChainSelected) {
@@ -84,9 +89,21 @@ fun ChainSelectionRoute(navController: NavController) {
                         popUpTo(Route.ChainSelection.path)
                     }
                 } else {
-                    viewModel.connectToWallet { uri ->
-                        navController.openWalletConnectModal(uri = uri)
+                    WalletConnectModal.setSessionParams(viewModel.getSessionParams())
+                    navController.openWalletConnectModal()
+                }
+            } else {
+                Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
+            }
+        },
+        onConnectSampleWalletClick = {
+            if (viewModel.isAnyChainSelected) {
+                viewModel.connectToWallet { uri ->
+                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                        data = uri.replace("wc:", "wc://").toUri()
+                        `package` = SAMPLE_WALLET_PACKAGE
                     }
+                    context.startActivity(intent)
                 }
             } else {
                 Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
@@ -98,8 +115,10 @@ fun ChainSelectionRoute(navController: NavController) {
 @Composable
 private fun ChainSelectionScreen(
     chains: List<ChainSelectionUi>,
+    isSampleWalletInstalled: Boolean,
     onChainClick: (Int, Boolean) -> Unit,
     onConnectClick: () -> Unit,
+    onConnectSampleWalletClick: () -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         WCTopAppBar(titleText = "Chain selection")
@@ -111,7 +130,7 @@ private fun ChainSelectionScreen(
             onChainClick,
         )
         BlueButton(
-            text = "Connect",
+            text = "Connect via WalletConnect Modal",
             onClick = onConnectClick,
             modifier = Modifier
                 .padding(vertical = 10.dp)
@@ -119,7 +138,23 @@ private fun ChainSelectionScreen(
                 .height(50.dp)
                 .padding(horizontal = 16.dp),
         )
+        if (isSampleWalletInstalled) {
+            WalletConnectSampleButton(onConnectSampleWalletClick)
+        }
     }
+}
+
+@Composable
+private fun WalletConnectSampleButton(onClick: () -> Unit) {
+    BlueButton(
+        text = "Connect via Wallet Sample",
+        onClick = onClick,
+        modifier = Modifier
+            .padding(vertical = 10.dp)
+            .fillMaxWidth()
+            .height(50.dp)
+            .padding(horizontal = 16.dp)
+    )
 }
 
 @Composable
@@ -182,8 +217,10 @@ private fun ChainSelectionScreenPreview(
     PreviewTheme {
         ChainSelectionScreen(
             chains = chains,
+            isSampleWalletInstalled = false,
             onChainClick = { _, _ -> },
-            onConnectClick = {}
+            onConnectClick = {},
+            onConnectSampleWalletClick = {}
         )
     }
 }
@@ -194,3 +231,6 @@ private class ChainSelectionStateProvider : PreviewParameterProvider<List<ChainS
             Chains.values().map { it.toChainUiState() }
         )
 }
+
+private const val SAMPLE_WALLET_PACKAGE = "com.walletconnect.sample.wallet"
+private fun Context.isSampleWalletInstalled() = packageManager.isPackageInstalled(SAMPLE_WALLET_PACKAGE)

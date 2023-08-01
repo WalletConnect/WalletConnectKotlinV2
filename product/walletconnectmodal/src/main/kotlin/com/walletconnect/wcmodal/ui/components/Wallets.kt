@@ -1,12 +1,18 @@
+@file:OptIn(ExperimentalFoundationApi::class)
+
 package com.walletconnect.wcmodal.ui.components
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridItemScope
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
@@ -24,7 +30,6 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.walletconnect.android.internal.common.explorer.data.model.Wallet
-import com.walletconnect.modal.ui.components.common.VerticalSpacer
 import com.walletconnect.wcmodal.ui.theme.ModalTheme
 
 @Composable
@@ -32,7 +37,7 @@ internal fun WalletsLazyGridView(
     modifier: Modifier = Modifier,
     content: LazyGridScope.(Int) -> Unit
 ) {
-    val walletItemWidth = 100.dp
+    val walletItemWidth = 90.dp
     BoxWithConstraints(
         modifier = modifier
     ) {
@@ -50,7 +55,10 @@ internal fun LazyGridScope.walletsGridItems(
     wallets: List<Wallet>,
     onWalletItemClick: (Wallet) -> Unit
 ) {
-    itemsIndexed(wallets) { _, wallet ->
+    itemsIndexed(
+        items = wallets,
+        key = { _, wallet -> wallet.id }
+    ) { _, wallet ->
         WalletListItem(
             wallet = wallet,
             onWalletItemClick = onWalletItemClick
@@ -71,12 +79,15 @@ internal fun WalletImage(url: String, modifier: Modifier) {
 }
 
 @Composable
-internal fun WalletListItem(
+internal fun LazyGridItemScope.WalletListItem(
     wallet: Wallet,
     onWalletItemClick: (Wallet) -> Unit
 ) {
     Column(
-        modifier = Modifier.clickable { onWalletItemClick(wallet) },
+        modifier = Modifier
+            .animateItemPlacement()
+            .clip(RoundedCornerShape(20.dp))
+            .clickable { onWalletItemClick(wallet) },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         WalletImage(
@@ -92,6 +103,18 @@ internal fun WalletListItem(
             style = TextStyle(color = ModalTheme.colors.onBackgroundColor, fontSize = 12.sp),
             textAlign = TextAlign.Center
         )
-        VerticalSpacer(height = 16.dp)
+        Box(
+            modifier = Modifier.height(16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            when {
+                wallet.isRecent -> {
+                    Text(text = "RECENT", style = TextStyle(fontSize = 10.sp, color = ModalTheme.colors.secondaryTextColor, textAlign = TextAlign.Center))
+                }
+                wallet.isWalletInstalled -> {
+                    Text(text = "INSTALLED", style = TextStyle(color = ModalTheme.colors.secondaryTextColor, fontSize = 10.sp))
+                }
+            }
+        }
     }
 }

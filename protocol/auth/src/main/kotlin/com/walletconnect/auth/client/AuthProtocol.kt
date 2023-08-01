@@ -30,18 +30,22 @@ internal class AuthProtocol(private val koinApp: KoinApplication = wcKoinApp) : 
 
     @Throws(IllegalStateException::class)
     override fun initialize(params: Auth.Params.Init, onSuccess: () -> Unit, onError: (Auth.Model.Error) -> Unit) {
-        try {
-            koinApp.modules(
-                jsonRpcModule(),
-                engineModule(),
-                commonModule()
-            )
+        if (!::authEngine.isInitialized) {
+            try {
+                koinApp.modules(
+                    jsonRpcModule(),
+                    engineModule(),
+                    commonModule()
+                )
 
-            authEngine = koinApp.koin.get()
-            authEngine.setup()
-            onSuccess()
-        } catch (e: Exception) {
-            onError(Auth.Model.Error(e))
+                authEngine = koinApp.koin.get()
+                authEngine.setup()
+                onSuccess()
+            } catch (e: Exception) {
+                onError(Auth.Model.Error(e))
+            }
+        } else {
+            onError(Auth.Model.Error(IllegalStateException("AuthClient already initialized")))
         }
     }
 

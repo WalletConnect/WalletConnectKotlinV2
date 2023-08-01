@@ -1,13 +1,19 @@
 package com.walletconnect.wcmodal.client
 
+import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.wcmodal.domain.WalletConnectModalDelegate
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
+import com.walletconnect.wcmodal.di.walletConnectModalModule
 
 object WalletConnectModal {
 
     internal var excludedWalletsIds: List<String> = listOf()
     internal var recommendedWalletsIds: List<String> = listOf()
+
+    private var _sessionParams: Modal.Params.SessionParams? = null
+    val sessionParams: Modal.Params.SessionParams
+        get() = requireNotNull(_sessionParams) { "Be sure to set the SessionParams in either the Modal.Params.Init or WalletConnectModal.setSessionParams." }
 
     interface ModalDelegate {
         fun onSessionApproved(approvedSession: Modal.Model.ApprovedSession)
@@ -35,7 +41,9 @@ object WalletConnectModal {
             onSuccess = {
                 this.excludedWalletsIds = init.excludedWalletIds
                 this.recommendedWalletsIds = init.recommendedWalletsIds
+                _sessionParams = init.sessionParams
                 runCatching {
+                    wcKoinApp.modules(walletConnectModalModule())
                     setDelegate(WalletConnectModalDelegate)
                 }.onFailure { error -> onError(Modal.Model.Error(error)) }
                 onSuccess()
@@ -86,6 +94,10 @@ object WalletConnectModal {
             }
         }
         SignClient.setDappDelegate(signDelegate)
+    }
+
+    fun setSessionParams(sessionParams: Modal.Params.SessionParams) {
+        _sessionParams = sessionParams
     }
 
     fun connect(

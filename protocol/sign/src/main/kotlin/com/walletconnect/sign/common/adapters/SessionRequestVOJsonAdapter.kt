@@ -48,11 +48,13 @@ internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRe
 
                                     "\"$key\":$jsonArray"
                                 }
+
                                 is Map<*, *> -> {
                                     val jsonObject = upsertObject(JSONObject(), paramsMapEntry.value as Map<*, *>)
 
                                     "\"$key\":$jsonObject"
                                 }
+
                                 else -> {
                                     upsertObject(JSONObject(), paramsMap).toString()
                                 }
@@ -62,6 +64,7 @@ internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRe
                         }
                     }
                 }
+
                 -1 -> {
                     // Unknown name, skip it.
                     reader.skipName()
@@ -91,6 +94,7 @@ internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRe
 
                     rootObject.put(key, castedNumber)
                 }
+
                 else -> rootObject.putOpt(key, value ?: JSONObject.NULL)
             }
         }
@@ -113,6 +117,7 @@ internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRe
                 } catch (e: Exception) {
                     rootArray.put(value)
                 }
+
                 is Number -> {
                     val castedNumber = if (value.toDouble() % 1 == 0.0) {
                         value.toLong()
@@ -122,6 +127,7 @@ internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRe
 
                     rootArray.put(castedNumber)
                 }
+
                 else -> rootArray.put(value ?: JSONObject.NULL)
             }
         }
@@ -140,7 +146,11 @@ internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRe
             stringAdapter.toJson(this, value_.method)
             name("params")
             valueSink().use {
-                val encodedParams: String = anyAdapter.toJson(value_.params).removeSurrounding("\"").replace("\\\"", "\"")
+                val encodedParams: String = anyAdapter.toJson(value_.params)
+                    .removeSurrounding("\"")
+                    .replace("\\\"", "\"")
+                    .replace("\\\\\"", "\\\"")
+
                 it.writeUtf8(encodedParams)
             }
             endObject()

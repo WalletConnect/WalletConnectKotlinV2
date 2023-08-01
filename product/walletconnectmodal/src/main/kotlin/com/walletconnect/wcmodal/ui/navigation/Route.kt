@@ -14,4 +14,8 @@ internal sealed class Route(val path: String) {
 
     object AllWallets : Route("all_wallets")
 
+    object OnHold : Route("on_hold") {
+        const val walletIdKey = "walletId"
+        const val walletIdArg = "{walletId}"
+    }
 }

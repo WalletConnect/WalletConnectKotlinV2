@@ -59,8 +59,7 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
-    implementation(platform("com.google.firebase:firebase-bom:31.0.0"))
-    implementation("com.google.firebase:firebase-messaging")
+    firebaseMessaging()
 
     moshiKsp()
 

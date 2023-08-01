@@ -2,7 +2,6 @@ package com.walletconnect.wcmodal.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,9 +21,10 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.walletconnect.modal.R
+import com.walletconnect.modal.ui.components.common.ClickableImage
 import com.walletconnect.modal.ui.components.common.HorizontalSpacer
 import com.walletconnect.modal.ui.components.common.VerticalSpacer
+import com.walletconnect.wcmodal.R
 import com.walletconnect.wcmodal.ui.preview.ComponentPreview
 import com.walletconnect.wcmodal.ui.theme.ModalTheme
 
@@ -49,13 +49,12 @@ internal fun ModalTopBar(
             modifier = Modifier.align(Alignment.Center)
         )
         onBackPressed?.let { onBackClick ->
-            Icon(
+            ClickableImage(
                 tint = ModalTheme.colors.main,
                 imageVector = ImageVector.vectorResource(id = R.drawable.chevron_left),
                 contentDescription = "BackArrow",
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .clickable { onBackClick() }
+                modifier = Modifier.align(Alignment.CenterStart),
+                onClick = onBackClick
             )
         }
         endIcon?.let {
@@ -78,13 +77,12 @@ internal fun ModalSearchTopBar(
             .fillMaxWidth()
             .padding(horizontal = 20.dp),
     ) {
-        Icon(
+        ClickableImage(
             tint = ModalTheme.colors.main,
             imageVector = ImageVector.vectorResource(id = R.drawable.chevron_left),
             contentDescription = "BackArrow",
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .clickable { onBackPressed() }
+            modifier = Modifier.align(Alignment.CenterStart),
+            onClick = onBackPressed
         )
         BasicTextField(
             value = searchValue,

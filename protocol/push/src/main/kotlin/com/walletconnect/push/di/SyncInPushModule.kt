@@ -43,6 +43,6 @@ internal fun syncInPushModule() = module {
         )
     }
 
-    single { SetupSyncInPushUseCase(get(), get()) }
     single { GetMessagesFromHistoryUseCase(get(),get(), get()) }
+    single { SetupSyncInPushUseCase(get(), get(), get()) }
 }

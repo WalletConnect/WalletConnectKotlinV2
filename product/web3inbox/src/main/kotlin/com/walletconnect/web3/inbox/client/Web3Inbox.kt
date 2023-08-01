@@ -24,18 +24,22 @@ object Web3Inbox {
 
     @Throws(IllegalStateException::class)
     fun initialize(init: Inbox.Params.Init, onError: (Inbox.Model.Error) -> Unit) {
-        ChatClient.initialize(Chat.Params.Init(init.core)) { error -> onError(Inbox.Model.Error(error.throwable)) }
-        PushWalletClient.initialize(Push.Params.Init(init.core)) { error -> onError(Inbox.Model.Error(error.throwable)) }
+        if (!isClientInitialized) {
+            ChatClient.initialize(Chat.Params.Init(init.core)) { error -> onError(Inbox.Model.Error(error.throwable)) }
+            PushWalletClient.initialize(Push.Params.Init(init.core)) { error -> onError(Inbox.Model.Error(error.throwable)) }
+        }
 
         runCatching {
             account = LateInitAccountId(AccountId(init.account.value))
             wcKoinApp.modules(
                 web3InboxJsonRpcModule(),
-                proxyModule(ChatClient, PushWalletClient, init.onSign, init.config),
+                proxyModule(ChatClient, PushWalletClient, init.onSign, init.config, account.value),
             )
-            ChatClient.setChatDelegate(wcKoinApp.koin.get<ChatEventHandler>())
-            PushWalletClient.setDelegate(wcKoinApp.koin.get<PushEventHandler>())
-            wcKoinApp.koin.get<SyncEventHandler>().setup()
+            if (!isClientInitialized) {
+                ChatClient.setChatDelegate(wcKoinApp.koin.get<ChatEventHandler>())
+                PushWalletClient.setDelegate(wcKoinApp.koin.get<PushEventHandler>())
+                wcKoinApp.koin.get<SyncEventHandler>().setup()
+            }
             isClientInitialized = true
         }.onFailure { e -> onError(Inbox.Model.Error(e)) }
     }

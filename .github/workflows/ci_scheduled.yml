@@ -3,6 +3,19 @@ name: Kotlin Scheduled Integration
 on:
   schedule:
     - cron: '0 0,12 * * *' # Runs every day at 0:00 and 12:00 UTC
+  workflow_dispatch:
+    inputs:
+      testTimeoutSeconds:
+        description: 'Seconds for test timeout'
+        required: true
+        default: 40  # should be same as env.TEST_TIMEOUT_SECONDS
+      shouldUseCache:
+        description: 'Flag to use and save cache gradle. Tests results are cached!'
+        required: true
+        default: false
+
+env:
+  TEST_TIMEOUT_SECONDS: 40 # Predefined timeout for integration tests
 
 jobs:
 # Copy of ci_relay.yml
@@ -18,54 +31,41 @@ jobs:
           TEST_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
         uses: ./.github/actions/ci_relay
 
-      - name: Send GitHub Action trigger data to Slack workflow
-        if: failure()
-        id: slack
-        uses: slackapi/slack-github-action@v1.24.0
-        with:
-          payload: |
-            {
-              "action_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_SCHEDULED_CI_WEBHOOK_URL }}
-
-
 # Copy of ci_instrumented_test.yml
-  sdk_tests:
-    strategy:
-      fail-fast: false
-      matrix:
-        conf: [
-          { name: Sign SDK, command: ":protocol:sign:connectedCheck", report: '/Users/runner/work/WalletConnectKotlinV2/WalletConnectKotlinV2/protocol/sign/build/reports/**' },
-          { name: Android Core SDK, command: ":core:android:connectedCheck", report: '/Users/runner/work/WalletConnectKotlinV2/WalletConnectKotlinV2/core/android/build/reports/**' },
-        ]
-        api-level: [ 32 ] # JUnit5 only supports API younger or equal to 26
-        target: [ google_apis ]
-        profile: [ Nexus 6 ]
-        arch: [ arm64-v8a ]
+#   sdk_tests:
+#     strategy:
+#       fail-fast: false
+#       matrix:
+#         conf: [
+#           { name: 'Sign_SDK', command: ":protocol:sign:allDevicesCheck" },
+#           { name: 'Android_Core_SDK', command: ":core:android:allDevicesCheck" },
+#         ]
 
-    name: ${{ matrix.conf.name }} API ${{ matrix.api-level }}-${{ matrix.target }}-${{ matrix.profile }}-${{ matrix.arch }}
-    runs-on: self-hosted
+#     name: ${{ matrix.conf.name }}
+#     runs-on: self-hosted
+#     steps:
+#       - uses: actions/checkout@v3
+
+#       - name: Run instrumented tests
+#         uses: ./.github/actions/ci_instrumented_tests
+#         with:
+#           shouldUseCache: ${{ github.event.inputs.testTimeoutSeconds || true }} # Setting to true faster pass unchanged code
+#           name: ${{ matrix.conf.name }}
+#           command: ${{ matrix.conf.command }}
+#           report: ${{ matrix.conf.report }}
+#           projectId: ${{ secrets.WC_CLOUD_PROJECT_ID }}
+#           testTimeoutSeconds: ${{ github.event.inputs.testTimeoutSeconds || env.TEST_TIMEOUT_SECONDS }} # Prioritise dispatch input timeout over env one
+
+  trigger_slack_webhook:
+    runs-on: ubuntu-latest
+#     needs: [sdk_tests, relay_tests]
+    needs: [relay_tests]
+    if: failure()
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Run instrumented tests
-        uses: ./.github/actions/ci_instrumented_tests
-        with:
-          shouldCache: true
-          name: ${{ matrix.conf.name }}
-          command: ${{ matrix.conf.command }}
-          report: ${{ matrix.conf.report }}
-          projectId: ${{ secrets.WC_CLOUD_PROJECT_ID }}
-          testTimeoutSeconds: ${{ github.event.inputs.testTimeoutSeconds || env.TEST_TIMEOUT_SECONDS }} # Prioritise dispatch input timeout over env one
-          api-level: ${{ matrix.api-level }}
-          target: ${{ matrix.target }}
-          profile: ${{ matrix.profile }}
-          arch: ${{ matrix.arch }}
+      - name: Checkout
+        uses: actions/checkout@v3
 
       - name: Send GitHub Action trigger data to Slack workflow
-        if: failure()
         id: slack
         uses: slackapi/slack-github-action@v1.24.0
         with:

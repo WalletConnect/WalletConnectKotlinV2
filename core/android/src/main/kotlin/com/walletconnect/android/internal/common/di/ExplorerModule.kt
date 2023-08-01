@@ -28,6 +28,7 @@ internal fun explorerModule() = module {
 
     single {
         ExplorerRepository(
+            context = get(),
             explorerService = get(),
             projectId = get(),
             explorerApiUrl = get(named(AndroidCommonDITags.EXPLORER_URL)),

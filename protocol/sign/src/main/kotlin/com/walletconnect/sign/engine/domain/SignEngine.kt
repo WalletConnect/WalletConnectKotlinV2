@@ -22,6 +22,7 @@ import com.walletconnect.android.internal.common.model.Pairing
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
+import com.walletconnect.android.internal.common.model.Validation
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
@@ -42,6 +43,7 @@ import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.android.pairing.model.mapper.toPairing
+import com.walletconnect.android.verify.data.model.VerifyContext
 import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
@@ -89,7 +91,8 @@ import com.walletconnect.sign.engine.model.mapper.toSessionRequest
 import com.walletconnect.sign.engine.model.mapper.toSessionSettleParams
 import com.walletconnect.sign.engine.model.mapper.toVO
 import com.walletconnect.sign.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdUseCase
-import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCase
+import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCaseByTopic
+import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequests
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
 import com.walletconnect.sign.storage.proposal.ProposalStorageRepository
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
@@ -111,13 +114,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withTimeout
 import java.util.Date
+import java.util.LinkedList
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 internal class SignEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
-    private val getPendingRequestsUseCase: GetPendingRequestsUseCase,
+    private val getPendingRequestsByTopicUseCase: GetPendingRequestsUseCaseByTopic,
+    private val getPendingSessionRequests: GetPendingSessionRequests,
     private val getPendingJsonRpcHistoryEntryByIdUseCase: GetPendingJsonRpcHistoryEntryByIdUseCase,
     private val crypto: KeyManagementRepository,
     private val sessionStorageRepository: SessionStorageRepository,
@@ -136,6 +141,7 @@ internal class SignEngine(
     private var internalErrorsJob: Job? = null
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val engineEvent: SharedFlow<EngineEvent> = _engineEvent.asSharedFlow()
+    private val sessionRequestsQueue: LinkedList<EngineDO.SessionRequestEvent> = LinkedList()
 
     init {
         pairingController.register(
@@ -149,6 +155,7 @@ internal class SignEngine(
             JsonRpcMethod.WC_SESSION_UPDATE
         )
         setupSequenceExpiration()
+        propagatePendingSessionRequestsQueue()
     }
 
     fun setup() {
@@ -308,8 +315,8 @@ internal class SignEngine(
         val sessionTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, PublicKey(proposerPublicKey))
         val approvalParams = proposal.toSessionApproveParams(selfPublicKey)
         val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
-        jsonRpcInteractor.subscribe(sessionTopic) { error -> return@subscribe onFailure(error) }
-        jsonRpcInteractor.respondWithParams(request, approvalParams, irnParams) { error -> return@respondWithParams onFailure(error) }
+        jsonRpcInteractor.subscribe(sessionTopic) { error -> throw error }
+        jsonRpcInteractor.respondWithParams(request, approvalParams, irnParams) { error -> throw error }
 
         sessionSettle(request.id, proposal, sessionTopic, request.topic)
     }
@@ -367,7 +374,7 @@ internal class SignEngine(
 
         val nowInSeconds = TimeUnit.SECONDS.convert(Date().time, TimeUnit.SECONDS)
         if (!CoreValidator.isExpiryWithinBounds(request.expiry ?: Expiry(300))) {
-            return onFailure(InvalidExpiryException())
+            throw InvalidExpiryException()
         }
 
         SignValidator.validateSessionRequest(request) { error ->
@@ -426,7 +433,7 @@ internal class SignEngine(
     ) {
         val topicWrapper = Topic(topic)
         if (!sessionStorageRepository.isSessionValid(topicWrapper)) {
-            return onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic"))
+            throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
         getPendingJsonRpcHistoryEntryByIdUseCase(jsonRpcResponse.id)?.params?.request?.expiry?.let { expiry ->
@@ -435,11 +442,17 @@ internal class SignEngine(
                     supervisorScope {
                         val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
                         val request = WCRequest(Topic(topic), jsonRpcResponse.id, JsonRpcMethod.WC_SESSION_REQUEST, object : ClientParams {})
-                        jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
+                        jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams, onSuccess = {
+                            scope.launch {
+                                supervisorScope {
+                                    removePendingSessionRequestAndEmit(jsonRpcResponse)
+                                }
+                            }
+                        })
                     }
                 }
 
-                return onFailure(InvalidExpiryException())
+                throw InvalidExpiryException()
             }
         }
 
@@ -451,20 +464,16 @@ internal class SignEngine(
             response = jsonRpcResponse,
             onSuccess = {
                 logger.log("Session payload sent successfully")
+
                 scope.launch {
                     supervisorScope {
-                        verifyContextStorageRepository.delete(jsonRpcResponse.id)
+                        removePendingSessionRequestAndEmit(jsonRpcResponse)
                     }
                 }
                 onSuccess()
             },
             onFailure = { error ->
                 logger.error("Sending session payload response error: $error")
-                scope.launch {
-                    supervisorScope {
-                        verifyContextStorageRepository.delete(jsonRpcResponse.id)
-                    }
-                }
                 onFailure(error)
             }
         )
@@ -620,11 +629,11 @@ internal class SignEngine(
         }
     }
 
-    internal fun getPendingRequests(topic: Topic): List<PendingRequest<String>> = getPendingRequestsUseCase(topic)
+    internal fun getPendingRequests(topic: Topic): List<PendingRequest<String>> = getPendingRequestsByTopicUseCase(topic)
 
     internal fun getSessionProposals(): List<EngineDO.SessionProposal> = proposalStorageRepository.getProposals().map(ProposalVO::toEngineDO)
 
-    internal fun getPendingSessionRequests(topic: Topic): List<EngineDO.SessionRequest> = getPendingRequestsUseCase(topic)
+    internal fun getPendingSessionRequests(topic: Topic): List<EngineDO.SessionRequest> = getPendingRequestsByTopicUseCase(topic)
         .map { pendingRequest ->
             val peerMetaData = metadataStorageRepository.getByTopicAndType(pendingRequest.topic, AppMetaDataType.PEER)
             pendingRequest.toSessionRequest(peerMetaData)
@@ -633,6 +642,30 @@ internal class SignEngine(
     internal suspend fun getVerifyContext(id: Long): EngineDO.VerifyContext? = verifyContextStorageRepository.get(id)?.toEngineDO()
 
     internal suspend fun getListOfVerifyContexts(): List<EngineDO.VerifyContext> = verifyContextStorageRepository.getAll().map { verifyContext -> verifyContext.toEngineDO() }
+
+    private fun propagatePendingSessionRequestsQueue() {
+        getPendingSessionRequests()
+            .map { pendingRequest -> pendingRequest.toSessionRequest(metadataStorageRepository.getByTopicAndType(pendingRequest.topic, AppMetaDataType.PEER)) }
+            .map { sessionRequest ->
+                scope.launch {
+                    supervisorScope {
+                        val verifyContext = verifyContextStorageRepository.get(sessionRequest.request.id) ?: VerifyContext(sessionRequest.request.id, String.Empty, Validation.UNKNOWN, String.Empty)
+                        val sessionRequestEvent = EngineDO.SessionRequestEvent(sessionRequest, verifyContext.toEngineDO())
+                        sessionRequestsQueue.addLast(sessionRequestEvent)
+                    }
+                }
+            }
+    }
+
+    private suspend fun removePendingSessionRequestAndEmit(jsonRpcResponse: JsonRpcResponse) {
+        verifyContextStorageRepository.delete(jsonRpcResponse.id)
+        sessionRequestsQueue.find { pendingRequestEvent -> pendingRequestEvent.request.request.id == jsonRpcResponse.id }?.let { event ->
+            sessionRequestsQueue.remove(event)
+        }
+        if (sessionRequestsQueue.isNotEmpty()) {
+            _engineEvent.emit(sessionRequestsQueue.first())
+        }
+    }
 
     private suspend fun collectResponse(id: Long, onResponse: (Result<JsonRpcResponse.JsonRpcResult>) -> Unit = {}) {
         jsonRpcInteractor.peerResponse
@@ -840,9 +873,17 @@ internal class SignEngine(
 
             val json = serializer.serialize(SignRpc.SessionRequest(id = request.id, params = params)) ?: throw Exception("Error serializing session request")
             val url = sessionPeerAppMetaData?.url ?: String.Empty
+
             resolveAttestationIdUseCase(request.id, json, url) { verifyContext ->
                 val sessionRequestEvent = EngineDO.SessionRequestEvent(params.toEngineDO(request, sessionPeerAppMetaData), verifyContext.toEngineDO())
-                scope.launch { _engineEvent.emit(sessionRequestEvent) }
+                val event = if (sessionRequestsQueue.isEmpty()) {
+                    sessionRequestEvent
+                } else {
+                    sessionRequestsQueue.first()
+                }
+
+                sessionRequestsQueue.addLast(sessionRequestEvent)
+                scope.launch { _engineEvent.emit(event) }
             }
         } catch (e: Exception) {
             jsonRpcInteractor.respondWithError(

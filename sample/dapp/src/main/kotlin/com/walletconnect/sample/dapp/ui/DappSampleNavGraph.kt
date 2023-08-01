@@ -2,6 +2,7 @@
 
 package com.walletconnect.sample.dapp.ui
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -36,7 +37,8 @@ fun DappSampleNavGraph(
         bottomSheetNavigator = bottomSheetNavigator,
         sheetBackgroundColor = Color.Transparent,
         sheetElevation = 0.dp,
-        scrimColor = Color.Unspecified
+        scrimColor = Color.Unspecified,
+        sheetShape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
     ) {
         NavHost(
             navController = navController,

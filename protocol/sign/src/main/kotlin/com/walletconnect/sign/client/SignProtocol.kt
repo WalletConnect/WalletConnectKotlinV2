@@ -30,19 +30,23 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
 
     override fun initialize(init: Sign.Params.Init, onSuccess: () -> Unit, onError: (Sign.Model.Error) -> Unit) {
         // TODO: re-init scope
-        try {
-            koinApp.modules(
-                commonModule(),
-                signJsonRpcModule(),
-                storageModule(koinApp.koin.get<DatabaseConfig>().SIGN_SDK_DB_NAME),
-                engineModule()
-            )
+        if (!::signEngine.isInitialized) {
+            try {
+                koinApp.modules(
+                    commonModule(),
+                    signJsonRpcModule(),
+                    storageModule(koinApp.koin.get<DatabaseConfig>().SIGN_SDK_DB_NAME),
+                    engineModule()
+                )
 
-            signEngine = koinApp.koin.get()
-            signEngine.setup()
-            onSuccess()
-        } catch (e: Exception) {
-            onError(Sign.Model.Error(e))
+                signEngine = koinApp.koin.get()
+                signEngine.setup()
+                onSuccess()
+            } catch (e: Exception) {
+                onError(Sign.Model.Error(e))
+            }
+        } else {
+            onError(Sign.Model.Error(IllegalStateException("SignClient already initialized")))
         }
     }
 
@@ -126,6 +130,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     @Throws(IllegalStateException::class)
     override fun approveSession(approve: Sign.Params.Approve, onSuccess: (Sign.Params.Approve) -> Unit, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
+
         try {
             signEngine.approve(
                 proposerPublicKey = approve.proposerPublicKey,

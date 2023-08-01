@@ -6,33 +6,23 @@ import java.net.URLEncoder
 
 private const val WC_URI_QUERY = "wc?uri="
 
-fun UriHandler.goToNativeWallet(uri: String, nativeLink: String?, universalLink: String?, playStoreLink: String?) {
+fun UriHandler.goToNativeWallet(uri: String, nativeLink: String?) {
     try {
-        when {
-            !nativeLink.isNullOrBlank() -> openUri(formatNativeDeeplink(nativeLink, uri))
-            !universalLink.isNullOrBlank() -> goToUniversalLink(uri, universalLink, playStoreLink)
-            !playStoreLink.isNullOrBlank() -> goToPlayStore(playStoreLink)
-            else -> Timber.e("Invalid wallet links")
-        }
-    } catch (e: Exception) {
-        Timber.e(e)
-        goToUniversalLink(uri,  universalLink, playStoreLink)
-    }
-}
-
-fun UriHandler.goToUniversalLink(uri: String, universalLink: String?, playStoreLink: String?) {
-    try {
-        when {
-            !universalLink.isNullOrBlank() -> openUri(formatUniversalLink(universalLink, uri))
-            !playStoreLink.isNullOrBlank() -> goToPlayStore(playStoreLink)
-            else -> Timber.e("Invalid wallet links")
-        }
+        nativeLink?.let { openUri(formatNativeDeeplink(it, uri)) } ?: Timber.e("Invalid native link")
     } catch (e: Exception) {
         Timber.e(e)
     }
 }
 
-private fun UriHandler.goToPlayStore(playStoreLink: String) {
+fun UriHandler.goToUniversalLink(uri: String, universalLink: String?) {
+    try {
+        universalLink?.let { openUri(formatUniversalLink(it, uri)) } ?: Timber.e("Invalid universal link")
+    } catch (e: Exception) {
+        Timber.e(e)
+    }
+}
+
+fun UriHandler.goToPlayStore(playStoreLink: String) {
     try {
         openUri(playStoreLink)
     } catch (e: Exception) {
