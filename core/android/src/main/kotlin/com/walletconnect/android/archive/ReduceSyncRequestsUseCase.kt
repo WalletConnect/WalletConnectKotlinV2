@@ -10,7 +10,7 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
 
 internal class ReduceSyncRequestsUseCase(
-    private val historyMessageNotifier: HistoryMessageNotifier,
+    private val archiveMessageNotifier: ArchiveMessageNotifier,
     private val chaChaPolyCodec: Codec,
     private val serializer: JsonRpcSerializer,
     private val logger: Logger,
@@ -36,7 +36,7 @@ internal class ReduceSyncRequestsUseCase(
         val orderedReducedHistoryMessages = archiveMessages.recreateOrder(reducedHistoryMessages)
 
         logger.log("Reduced fetched history message from: ${archiveMessages.size} to: ${orderedReducedHistoryMessages.size}")
-        orderedReducedHistoryMessages.onEach { request -> historyMessageNotifier.requestsSharedFlow.emit(request.toRelay()) }
+        orderedReducedHistoryMessages.onEach { request -> archiveMessageNotifier.requestsSharedFlow.emit(request.toRelay()) }
     }
 
     private fun List<ArchiveMessage>.decryptMessages(): List<Triple<ClientJsonRpc, ArchiveMessage, String>> = this.map { historyMessage ->

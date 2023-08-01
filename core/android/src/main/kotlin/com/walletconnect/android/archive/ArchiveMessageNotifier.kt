@@ -4,6 +4,6 @@ import com.walletconnect.foundation.network.model.Relay
 import kotlinx.coroutines.flow.MutableSharedFlow
 
 
-internal class HistoryMessageNotifier {
+internal class ArchiveMessageNotifier {
     val requestsSharedFlow = MutableSharedFlow<Relay.Model.Call.Subscription.Request>()
 }

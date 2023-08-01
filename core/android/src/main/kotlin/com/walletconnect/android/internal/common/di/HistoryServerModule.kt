@@ -3,7 +3,7 @@
 package com.walletconnect.android.internal.common.di
 
 import com.walletconnect.android.archive.ArchiveInterface
-import com.walletconnect.android.archive.HistoryMessageNotifier
+import com.walletconnect.android.archive.ArchiveMessageNotifier
 import com.walletconnect.android.archive.ReduceSyncRequestsUseCase
 import com.walletconnect.android.archive.domain.GetMessagesUseCase
 import com.walletconnect.android.archive.domain.RegisterTagsUseCase
@@ -31,7 +31,7 @@ internal fun historyModule(history: ArchiveInterface, historyServerUrl: String? 
 
     single { get<Retrofit>(named(AndroidCommonDITags.HISTORY_SERVER_RETROFIT)).create(ArchiveServerService::class.java) }
 
-    single { HistoryMessageNotifier() }
+    single { ArchiveMessageNotifier() }
     single { ReduceSyncRequestsUseCase(get(), get(), get(), get(named(AndroidCommonDITags.LOGGER))) }
     single { RegisterTagsUseCase(get(), get(), get(named(AndroidCommonDITags.HISTORY_SERVER_URL)), get(named(AndroidCommonDITags.LOGGER))) }
     single { GetMessagesUseCase(get(), get(named(AndroidCommonDITags.LOGGER))) }
