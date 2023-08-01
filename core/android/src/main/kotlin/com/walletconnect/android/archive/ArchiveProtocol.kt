@@ -30,35 +30,35 @@ class ArchiveProtocol(
         registerTagsUseCase(tags, relayServerUrl).fold(
             onFailure = { error -> onError(Core.Model.Error(error)) },
             onSuccess = {
-                logger.log("Registered in History: $tags")
+                logger.log("Registered in Archive: $tags")
                 onSuccess()
             }
         )
     }
 
     override suspend fun getAllMessages(params: MessagesParams, onSuccess: (List<ArchiveMessage>) -> Unit, onError: (Core.Model.Error) -> Unit) {
-        val allMessageHistory: MutableList<ArchiveMessage> = mutableListOf()
+        val allMessageArchive: MutableList<ArchiveMessage> = mutableListOf()
 
-        suspend fun recursiveOnSuccess(allMessageHistory: MutableList<ArchiveMessage>, justFetchedMessageHistory: List<ArchiveMessage>) {
-            allMessageHistory.addAll(justFetchedMessageHistory)
-            if (justFetchedMessageHistory.size == params.messageCount) {
-                logger.log("Fetched from History ${justFetchedMessageHistory.size} messages fetching ${params.messageCount} more")
+        suspend fun recursiveOnSuccess(allMessageArchive: MutableList<ArchiveMessage>, justFetchedMessageArchive: List<ArchiveMessage>) {
+            allMessageArchive.addAll(justFetchedMessageArchive)
+            if (justFetchedMessageArchive.size == params.messageCount) {
+                logger.log("Fetched from Archive ${justFetchedMessageArchive.size} messages fetching ${params.messageCount} more")
 
-                val recursiveParams = MessagesParams(params.topic, originId = justFetchedMessageHistory.last().messageId, messageCount = params.messageCount, params.direction)
+                val recursiveParams = MessagesParams(params.topic, originId = justFetchedMessageArchive.last().messageId, messageCount = params.messageCount, params.direction)
 
                 getMessagesUseCase(recursiveParams).fold(
                     onFailure = { error -> onError(Core.Model.Error(error)) },
                     onSuccess = { response ->
                         (response.messages ?: emptyList()).also { messages ->
-                            recursiveOnSuccess(allMessageHistory, messages)
+                            recursiveOnSuccess(allMessageArchive, messages)
                         }
                     }
                 )
             }
             else {
-                logger.log("Fetched from History ${allMessageHistory.size} messages")
-                reduceSyncRequestsUseCase(allMessageHistory)
-                onSuccess(allMessageHistory)
+                logger.log("Fetched from Archive ${allMessageArchive.size} messages")
+                reduceSyncRequestsUseCase(allMessageArchive)
+                onSuccess(allMessageArchive)
             }
         }
 
@@ -66,7 +66,7 @@ class ArchiveProtocol(
             onFailure = { error -> onError(Core.Model.Error(error)) },
             onSuccess = { response ->
                 (response.messages ?: emptyList()).also { messages ->
-                    recursiveOnSuccess(allMessageHistory, messages)
+                    recursiveOnSuccess(allMessageArchive, messages)
                 }
             }
         )
