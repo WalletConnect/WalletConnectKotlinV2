@@ -39,4 +39,4 @@ internal fun archiveModule(archive: ArchiveInterface, archiveServerUrl: String? 
     single { archive }
 }
 
-private const val DEFAULT_ARCHIVE_URL = "https://archive.walletconnect.com"
+private const val DEFAULT_ARCHIVE_URL = "https://history.walletconnect.com"
