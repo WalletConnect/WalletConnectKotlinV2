@@ -26,7 +26,7 @@ import org.junit.Test
 import timber.log.Timber
 import kotlin.time.Duration.Companion.seconds
 
-class HistoryInstrumentedAndroidTest {
+class ArchiveInstrumentedAndroidTest {
 
     @get:Rule
     val scenarioExtension = WCInstrumentedActivityScenario()
@@ -35,7 +35,7 @@ class HistoryInstrumentedAndroidTest {
     fun registerTagsByPrimaryClient() {
         Timber.d("registerTagsByPrimaryClient: start")
         scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) {
-            TestClient.Primary.History.registerTags(
+            TestClient.Primary.Archive.registerTags(
                 listOf(Tags.UNSUPPORTED_METHOD),
                 onSuccess = { scenarioExtension.closeAsSuccess() },
                 onError = ::globalOnError
@@ -47,7 +47,7 @@ class HistoryInstrumentedAndroidTest {
     fun registerTagsBySecondaryClient() {
         Timber.d("registerTagsBySecondaryClient: start")
         scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) {
-            TestClient.Secondary.History.registerTags(
+            TestClient.Secondary.Archive.registerTags(
                 listOf(Tags.UNSUPPORTED_METHOD),
                 onSuccess = { scenarioExtension.closeAsSuccess() },
                 onError = ::globalOnError
@@ -59,7 +59,7 @@ class HistoryInstrumentedAndroidTest {
     fun getMessagesBySecondaryClient() {
         Timber.d("getMessagesBySecondaryClient: start")
         scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { testScope ->
-            TestClient.Primary.History.registerTags(
+            TestClient.Primary.Archive.registerTags(
                 listOf(Tags.UNSUPPORTED_METHOD),
                 onError = ::globalOnError,
                 onSuccess = {
@@ -87,11 +87,11 @@ class HistoryInstrumentedAndroidTest {
                         onSuccess = {
                             Timber.d("TestClient.Primary.jsonRpcInteractor onSuccess")
 
-                            // Let History Server receive the webhook and store
+                            // Let Archive Server receive the webhook and store
                             runBlocking { delay(1.seconds) }
 
                             testScope.launch {
-                                TestClient.Secondary.History.getAllMessages(
+                                TestClient.Secondary.Archive.getAllMessages(
                                     MessagesParams(topic.value, null, 5, Direction.BACKWARD),
                                     onSuccess = { messages ->
                                         assertEquals(1, messages.size)
@@ -111,7 +111,7 @@ class HistoryInstrumentedAndroidTest {
     fun getMessagesBySecondaryClientTriggersEvents() {
         Timber.d("getMessagesBySecondaryClientTriggersEvents: start")
         scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { testScope ->
-            TestClient.Primary.History.registerTags(
+            TestClient.Primary.Archive.registerTags(
                 listOf(Tags.UNSUPPORTED_METHOD),
                 onError = ::globalOnError,
                 onSuccess = {
@@ -155,7 +155,7 @@ class HistoryInstrumentedAndroidTest {
                             runBlocking { delay(1000) }
 
                             testScope.launch {
-                                TestClient.Secondary.History.getAllMessages(
+                                TestClient.Secondary.Archive.getAllMessages(
                                     MessagesParams(topic.value, null, 5, Direction.BACKWARD),
                                     onSuccess = { messages -> assertEquals(1, messages.size) },
                                     onError = ::globalOnError
