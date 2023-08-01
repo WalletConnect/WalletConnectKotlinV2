@@ -18,7 +18,6 @@ internal class SetupSyncInChatUseCase(
 ) {
     operator fun invoke(accountId: AccountId, onSign: (String) -> Cacao.Signature?, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
         syncClient.isRegistered(Sync.Params.IsRegistered(accountId), onError = { onError(Throwable("Failed to check account is registered")) }, onSuccess = { isRegistered ->
-            // Lambda that register required chat stores within sync client
             val registerChatStoresInSync = { registerChatStoresInSync(accountId, onSuccess, onError) }
 
             if (!isRegistered) {
@@ -29,9 +28,6 @@ internal class SetupSyncInChatUseCase(
         })
     }
 
-    /**
-     * Registers account in Sync Client and calls [onAccountRegisterSuccess] on success
-     */
     private fun registerAccountInSync(accountId: AccountId, onSign: (String) -> Cacao.Signature?, onAccountRegisterSuccess: () -> Unit, onError: (Throwable) -> Unit) {
         val syncSignature = onSign(syncClient.getMessage(Sync.Params.GetMessage(accountId))) ?: return onError(Throwable("Signing Sync SDK message is required to use Chat SDK"))
 
@@ -41,11 +37,7 @@ internal class SetupSyncInChatUseCase(
     }
 
 
-    /**
-     * Creates required Chat stores in Sync Client and calls [onStoreRegisterSuccess] on success
-     */
     private fun registerChatStoresInSync(accountId: AccountId, onStoreRegisterSuccess: () -> Unit, onError: (Throwable) -> Unit) {
-        // Register blocking current thread all stores necessary to sync chat state
         val countDownLatch = CountDownLatch(ChatSyncStores.values().size)
 
         // Note: When I tried registering all stores simultaneously I had issues with getting right values, when doing it sequentially it works
