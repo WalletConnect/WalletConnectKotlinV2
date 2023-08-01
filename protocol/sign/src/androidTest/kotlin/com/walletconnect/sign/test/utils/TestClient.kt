@@ -124,10 +124,13 @@ internal object TestClient {
         private val initParams = Sign.Params.Init(coreProtocol)
         private var _isInitialized = MutableStateFlow(false)
         internal var isInitialized = _isInitialized.asStateFlow()
-        internal val signClient = SignProtocol(hybridKoinApp).apply {
-            initialize(initParams, onSuccess = { _isInitialized.tryEmit(true) }, onError = { Timber.e(it.throwable) })
-            Timber.d("Hybrid CP finish: ")
-        }
+
+        internal val signClient = SignProtocol(hybridKoinApp)
+            .apply {
+                initialize(initParams, onSuccess = { _isInitialized.tryEmit(true) }, onError = { Timber.e(it.throwable) })
+                initialize(initParams, onSuccess = { println("Second Init") }, onError = { Timber.e("Second Init Error: ${it.throwable}") })
+                Timber.d("Hybrid CP finish: ")
+            }
 
         internal val Relay get() = coreProtocol.Relay
         internal val Pairing = coreProtocol.Pairing

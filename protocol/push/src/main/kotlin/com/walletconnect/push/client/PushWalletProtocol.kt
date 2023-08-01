@@ -32,21 +32,25 @@ class PushWalletProtocol(private val koinApp: KoinApplication = wcKoinApp) : Pus
     }
 
     override fun initialize(init: Push.Params.Init, onError: (Push.Model.Error) -> Unit) {
-        try {
-            koinApp.modules(
-                pushJsonRpcModule(),
-                pushStorageModule(koinApp.koin.get<DatabaseConfig>().PUSH_WALLET_SDK_DB_NAME),
-                syncInPushModule(),
-                walletEngineModule(),
-                messageModule(),
-                commonModule(),
-                pushEngineUseCaseModules()
-            )
+        if (::pushWalletEngine.isInitialized) {
+            try {
+                koinApp.modules(
+                    pushJsonRpcModule(),
+                    pushStorageModule(koinApp.koin.get<DatabaseConfig>().PUSH_WALLET_SDK_DB_NAME),
+                    syncInPushModule(),
+                    walletEngineModule(),
+                    messageModule(),
+                    commonModule(),
+                    pushEngineUseCaseModules()
+                )
 
-            pushWalletEngine = koinApp.koin.get()
-            runBlocking(scope.coroutineContext) { pushWalletEngine.setup() }
-        } catch (e: Exception) {
-            onError(Push.Model.Error(e))
+                pushWalletEngine = koinApp.koin.get()
+                runBlocking(scope.coroutineContext) { pushWalletEngine.setup() }
+            } catch (e: Exception) {
+                onError(Push.Model.Error(e))
+            }
+        } else {
+            onError(Push.Model.Error(IllegalStateException("PushWalletClient already initialized")))
         }
     }
 

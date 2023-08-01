@@ -65,7 +65,6 @@ class Web3WalletApplication : Application() {
             Log.e(tag(this), error.throwable.stackTraceToString())
         }
 
-
         Web3Inbox.initialize(Inbox.Params.Init(core = CoreClient, account = Inbox.Type.AccountId(with(EthAccountDelegate) { account.toEthAddress() }),
             onSign = { message ->
                 Log.d(tag(this), message)

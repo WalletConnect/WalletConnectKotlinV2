@@ -8,7 +8,7 @@ import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpc
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
 import com.walletconnect.sign.json_rpc.model.toPendingRequest
 
-internal class GetPendingRequestsUseCase(
+internal class GetPendingRequestsUseCaseByTopic(
     private val jsonRpcHistory: JsonRpcHistory,
     private val serializer: JsonRpcSerializer
 ) {
