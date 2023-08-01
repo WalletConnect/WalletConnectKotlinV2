@@ -32,21 +32,21 @@ internal class ReduceSyncRequestsUseCase(
         val decryptedMessagesSetWithoutDuplicates: List<Triple<ClientJsonRpc, ArchiveMessage, String>> = decryptedMessages.distinctBy { (clientJsonRpc, _, _) -> clientJsonRpc.id }
         // Temporary
 
-        val reducedHistoryMessages = decryptedMessagesSetWithoutDuplicates.splitByType().reduceSyncSetsForAnySyncDelete()
-        val orderedReducedHistoryMessages = archiveMessages.recreateOrder(reducedHistoryMessages)
+        val reducedArchiveMessages = decryptedMessagesSetWithoutDuplicates.splitByType().reduceSyncSetsForAnySyncDelete()
+        val orderedReducedArchiveMessages = archiveMessages.recreateOrder(reducedArchiveMessages)
 
-        logger.log("Reduced fetched history message from: ${archiveMessages.size} to: ${orderedReducedHistoryMessages.size}")
-        orderedReducedHistoryMessages.onEach { request -> archiveMessageNotifier.requestsSharedFlow.emit(request.toRelay()) }
+        logger.log("Reduced fetched archive message from: ${archiveMessages.size} to: ${orderedReducedArchiveMessages.size}")
+        orderedReducedArchiveMessages.onEach { request -> archiveMessageNotifier.requestsSharedFlow.emit(request.toRelay()) }
     }
 
-    private fun List<ArchiveMessage>.decryptMessages(): List<Triple<ClientJsonRpc, ArchiveMessage, String>> = this.map { historyMessage ->
+    private fun List<ArchiveMessage>.decryptMessages(): List<Triple<ClientJsonRpc, ArchiveMessage, String>> = this.map { archiveMessage ->
         try {
-            val decryptedMessageString = chaChaPolyCodec.decrypt(Topic(historyMessage.topic), historyMessage.message)
+            val decryptedMessageString = chaChaPolyCodec.decrypt(Topic(archiveMessage.topic), archiveMessage.message)
             val clientJsonRpc = serializer.tryDeserialize<ClientJsonRpc>(decryptedMessageString) ?: run {
                 logger.error(IllegalArgumentException("Unable to deserialize message:$decryptedMessageString"))
                 return@map null
             }
-            return@map Triple(clientJsonRpc, historyMessage, decryptedMessageString)
+            return@map Triple(clientJsonRpc, archiveMessage, decryptedMessageString)
         } catch (e: Exception) {
             logger.error(e)
             return@map null
@@ -64,26 +64,26 @@ internal class ReduceSyncRequestsUseCase(
         val syncSetMessages: MutableList<Triple<ClientJsonRpc, SyncParams.SetParams, ArchiveMessage>> = mutableListOf()
         val remainingMessages: MutableList<ArchiveMessage> = mutableListOf()
 
-        this.forEach { (clientJsonRpc, historyMessage, decryptedMessageString) ->
+        this.forEach { (clientJsonRpc, archiveMessage, decryptedMessageString) ->
             when (val clientParams: ClientParams? = serializer.deserialize(clientJsonRpc.method, decryptedMessageString)) {
-                is SyncParams.DeleteParams -> syncDeleteMessages.add(Triple(clientJsonRpc, clientParams, historyMessage))
-                is SyncParams.SetParams -> syncSetMessages.add(Triple(clientJsonRpc, clientParams, historyMessage))
-                else -> remainingMessages.add(historyMessage)
+                is SyncParams.DeleteParams -> syncDeleteMessages.add(Triple(clientJsonRpc, clientParams, archiveMessage))
+                is SyncParams.SetParams -> syncSetMessages.add(Triple(clientJsonRpc, clientParams, archiveMessage))
+                else -> remainingMessages.add(archiveMessage)
             }
         }
         return SplitByTypeResult(syncDeleteMessages, syncSetMessages, remainingMessages)
     }
 
     private fun SplitByTypeResult.reduceSyncSetsForAnySyncDelete(): List<ArchiveMessage> {
-        syncDeleteMessages.removeAll { (_, deleteParams, deleteHistoryMessage) ->
-            syncSetMessages.removeAll { (_, setParams, setHistoryMessage) ->
-                deleteParams.key == setParams.key && deleteHistoryMessage.topic == setHistoryMessage.topic
+        syncDeleteMessages.removeAll { (_, deleteParams, deleteArchiveMessage) ->
+            syncSetMessages.removeAll { (_, setParams, setArchiveMessage) ->
+                deleteParams.key == setParams.key && deleteArchiveMessage.topic == setArchiveMessage.topic
             }
         }
-        val reducedDeleteArchiveMessages: List<ArchiveMessage> = syncDeleteMessages.map { (_, _, deleteHistoryMessage) -> deleteHistoryMessage }
-        val reducedSetArchiveMessages: List<ArchiveMessage> = syncSetMessages.map { (_, _, setHistoryMessage) -> setHistoryMessage }
+        val reducedDeleteArchiveMessages: List<ArchiveMessage> = syncDeleteMessages.map { (_, _, deleteArchiveMessage) -> deleteArchiveMessage }
+        val reducedSetArchiveMessages: List<ArchiveMessage> = syncSetMessages.map { (_, _, setArchiveMessage) -> setArchiveMessage }
         return reducedDeleteArchiveMessages + reducedSetArchiveMessages + remainingMessages
     }
 
-    private fun List<ArchiveMessage>.recreateOrder(reducedArchiveMessages: List<ArchiveMessage>): List<ArchiveMessage> = filter { historyMessage -> historyMessage in reducedArchiveMessages }
+    private fun List<ArchiveMessage>.recreateOrder(reducedArchiveMessages: List<ArchiveMessage>): List<ArchiveMessage> = filter { archiveMessage -> archiveMessage in reducedArchiveMessages }
 }
