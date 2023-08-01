@@ -2,7 +2,6 @@
 
 package com.walletconnect.chat.engine.domain
 
-import com.walletconnect.android.archive.HistoryInterface
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
@@ -93,7 +92,6 @@ internal class ChatEngine(
     private val getMessagesUseCase: GetMessagesUseCase,
     private val getSentInvitesUseCase: GetSentInvitesUseCase,
     private val getReceivedInvitesUseCase: GetReceivedInvitesUseCase,
-    private val historyInterface: HistoryInterface,
 ) : AcceptInviteUseCaseInterface by acceptInviteUseCase,
     RejectInviteUseCaseInterface by rejectInviteUseCase,
     RegisterIdentityUseCaseInterface by registerIdentityUseCase,
@@ -142,11 +140,6 @@ internal class ChatEngine(
                 if (syncUpdateEventsJob == null) syncUpdateEventsJob = collectSyncUpdateEvents()
                 if (chatEventsJob == null) chatEventsJob = collectChatEvents()
             }.launchIn(scope)
-    }
-
-    private suspend fun registerTagsInHistory() {
-        // Has to be one register call per clientId
-//        historyInterface.registerTags(tags = listOf(Tags.CHAT_MESSAGE), {}, {})
     }
 
     private fun collectJsonRpcRequests(): Job = jsonRpcInteractor.clientSyncJsonRpc
