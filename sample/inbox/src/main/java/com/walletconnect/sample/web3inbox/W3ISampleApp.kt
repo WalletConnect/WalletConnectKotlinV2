@@ -12,6 +12,7 @@ import com.walletconnect.sample.web3inbox.domain.Web3InboxInitializer
 import com.walletconnect.wcmodal.client.Modal
 import com.walletconnect.wcmodal.client.WalletConnectModal
 import timber.log.Timber
+import java.util.concurrent.TimeUnit
 
 class W3ISampleApp : Application() {
 
@@ -27,6 +28,16 @@ class W3ISampleApp : Application() {
             url = "kotlin.sample.w3i.walletconnect.com",
             icons = listOf("https://gblobscdn.gitbook.com/spaces%2F-LJJeCjcLrr53DcT1Ml7%2Favatar.png?alt=media"),
             redirect = "kotlin-sample-w3i-wc://request"
+        )
+        val sessionParams = Modal.Params.SessionParams(
+            requiredNamespaces = mapOf(
+                "eip155" to Modal.Model.Namespace.Proposal(
+                    chains = listOf("eip155:1"),
+                    methods = listOf("eth_sendTransaction", "personal_sign", "eth_sign", "eth_signTypedData"),
+                    events = emptyList()
+                )
+            ),
+            properties = mapOf("sessionExpiry" to ((System.currentTimeMillis() / 1000) + TimeUnit.SECONDS.convert(7, TimeUnit.DAYS)).toString())
         )
 
         CoreClient.initialize(
@@ -48,7 +59,7 @@ class W3ISampleApp : Application() {
         }
 
         WalletConnectModal.initialize(
-            Modal.Params.Init(CoreClient),
+            Modal.Params.Init(core = CoreClient, sessionParams = sessionParams),
             onSuccess = { WalletConnectModal.setDelegate(WCMDelegate) },
             onError = { error -> Timber.e(error.throwable) }
         )

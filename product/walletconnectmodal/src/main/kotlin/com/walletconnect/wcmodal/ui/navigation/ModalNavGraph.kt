@@ -25,9 +25,10 @@ import com.walletconnect.wcmodal.ui.routes.scan_code.ScanQRCodeRoute
 @Composable
 internal fun ModalNavGraph(
     navController: NavHostController,
-    state: WalletConnectModalState,
+    state: WalletConnectModalState.Connect,
     modifier: Modifier = Modifier,
-    updateRecentWalletId: (String) -> Unit
+    updateRecentWalletId: (String) -> Unit,
+    retry: (() -> Unit) -> Unit
 ) {
     NavHost(
         navController = navController,
@@ -58,7 +59,7 @@ internal fun ModalNavGraph(
             arguments = listOf(navArgument(Route.OnHold.walletIdKey) { type = NavType.StringType })
         ) { backStackEntry ->
             val wallet = state.wallets.find { it.id == backStackEntry.arguments?.getString(Route.OnHold.walletIdKey, String.Empty) }!!
-            RedirectOnHoldScreen(navController = navController, uri = state.uri, wallet = wallet).also { updateRecentWalletId(wallet.id) }
+            RedirectOnHoldScreen(navController = navController, uri = state.uri, wallet = wallet, retry = retry).also { updateRecentWalletId(wallet.id) }
         }
     }
 }

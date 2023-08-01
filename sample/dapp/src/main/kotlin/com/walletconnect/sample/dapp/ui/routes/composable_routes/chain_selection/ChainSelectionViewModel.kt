@@ -50,15 +50,8 @@ class ChainSelectionViewModel : ViewModel() {
             }
         }
     }
-    fun connectToWallet(pairingTopicPosition: Int = -1, onProposedSequence: (String) -> Unit = {}) {
-        val pairing: Core.Model.Pairing = if (pairingTopicPosition > -1) {
-            CoreClient.Pairing.getPairings()[pairingTopicPosition]
-        } else {
-            CoreClient.Pairing.create() { error ->
-                throw IllegalStateException("Creating Pairing failed: ${error.throwable.stackTraceToString()}")
-            }!!
-        }
 
+    private fun getNamespaces(): Map<String, Modal.Model.Namespace.Proposal> {
         val namespaces: Map<String, Modal.Model.Namespace.Proposal> =
             uiState.value
                 .filter { it.isSelected && it.chainId != Chains.POLYGON_MATIC.chainId && it.chainId != Chains.ETHEREUM_KOVAN.chainId }
@@ -71,7 +64,6 @@ class ChainSelectionViewModel : ViewModel() {
                     )
                 }.toMap()
 
-
         val tmp = uiState.value
             .filter { it.isSelected && it.chainId == Chains.ETHEREUM_KOVAN.chainId }
             .groupBy { it.chainId }
@@ -82,26 +74,45 @@ class ChainSelectionViewModel : ViewModel() {
                 )
             }.toMap()
 
-        val optionalNamespaces: Map<String, Modal.Model.Namespace.Proposal> =
-            uiState.value
-                .filter { it.isSelected && it.chainId == Chains.POLYGON_MATIC.chainId }
-                .groupBy { it.chainId }
-                .map { (key: String, selectedChains: List<ChainSelectionUi>) ->
-                    key to Modal.Model.Namespace.Proposal(
-                        methods = selectedChains.flatMap { it.methods }.distinct(),
-                        events = selectedChains.flatMap { it.events }.distinct()
-                    )
-                }.toMap()
+        return namespaces.toMutableMap().plus(tmp)
+    }
 
+    private fun getOptionalNamespaces() = uiState.value
+        .filter { it.isSelected && it.chainId == Chains.POLYGON_MATIC.chainId }
+        .groupBy { it.chainId }
+        .map { (key: String, selectedChains: List<ChainSelectionUi>) ->
+            key to Modal.Model.Namespace.Proposal(
+                methods = selectedChains.flatMap { it.methods }.distinct(),
+                events = selectedChains.flatMap { it.events }.distinct()
+            )
+        }.toMap()
+
+    private fun getProperties(): Map<String, String> {
         //note: this property is not used in the SDK, only for demonstration purposes
         val expiry = (System.currentTimeMillis() / 1000) + TimeUnit.SECONDS.convert(7, TimeUnit.DAYS)
-        val properties: Map<String, String> = mapOf("sessionExpiry" to "$expiry")
+        return mapOf("sessionExpiry" to "$expiry")
+    }
+
+    fun getSessionParams() = Modal.Params.SessionParams(
+        requiredNamespaces = getNamespaces(),
+        optionalNamespaces = getOptionalNamespaces(),
+        properties = getProperties()
+    )
+
+    fun connectToWallet(pairingTopicPosition: Int = -1, onProposedSequence: (String) -> Unit = {}) {
+        val pairing: Core.Model.Pairing = if (pairingTopicPosition > -1) {
+            CoreClient.Pairing.getPairings()[pairingTopicPosition]
+        } else {
+            CoreClient.Pairing.create() { error ->
+                throw IllegalStateException("Creating Pairing failed: ${error.throwable.stackTraceToString()}")
+            }!!
+        }
 
         val connectParams =
             Modal.Params.Connect(
-                namespaces = namespaces.toMutableMap().plus(tmp),
-                optionalNamespaces = optionalNamespaces,
-                properties = properties,
+                namespaces = getNamespaces(),
+                optionalNamespaces = getOptionalNamespaces(),
+                properties = getProperties(),
                 pairing = pairing
             )
 

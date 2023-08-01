@@ -15,7 +15,8 @@ object Modal {
         data class Init(
             val core: CoreClient,
             val excludedWalletIds: List<String> = listOf(),
-            val recommendedWalletsIds: List<String> = listOf()
+            val recommendedWalletsIds: List<String> = listOf(),
+            val sessionParams: SessionParams? = null
         ) : Params()
 
         data class Connect(
@@ -36,6 +37,12 @@ object Modal {
             val chainId: String,
             val expiry: Long? = null
         ) : Params()
+
+        data class SessionParams(
+            val requiredNamespaces: Map<String, Model.Namespace.Proposal>,
+            val optionalNamespaces: Map<String, Model.Namespace.Proposal>? = null,
+            val properties: Map<String, String>? = null
+        )
     }
 
     sealed class Model {
