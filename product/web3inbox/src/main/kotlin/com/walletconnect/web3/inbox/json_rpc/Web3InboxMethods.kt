@@ -92,16 +92,16 @@ internal object Web3InboxMethods {
         object Notify {
 
             @get:JvmSynthetic
-            const val MESSAGE: String = "push_message"
+            const val MESSAGE: String = "notify_message"
 
             @get:JvmSynthetic
-            const val SUBSCRIPTION: String = "push_subscription"
+            const val SUBSCRIPTION: String = "notify_subscription"
 
             @get:JvmSynthetic
-            const val UPDATE: String = "push_update"
+            const val UPDATE: String = "notify_update"
 
             @get:JvmSynthetic
-            const val DELETE: String = "push_delete"
+            const val DELETE: String = "notify_delete"
         }
     }
 }
