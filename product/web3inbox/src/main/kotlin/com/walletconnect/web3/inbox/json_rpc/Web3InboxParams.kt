@@ -162,7 +162,7 @@ internal sealed interface Web3InboxParams : ClientParams {
             }
         }
 
-        sealed interface Push : Response {
+        sealed interface Notify : Response {
             @JsonClass(generateAdapter = true)
             data class GetActiveSubscriptionsResult(
                 val topic: String,
