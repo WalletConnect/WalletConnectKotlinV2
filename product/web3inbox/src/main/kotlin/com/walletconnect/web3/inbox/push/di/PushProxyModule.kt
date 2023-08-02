@@ -1,18 +1,16 @@
 @file:JvmSynthetic
 
 package com.walletconnect.web3.inbox.push.di
-
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.notify.client.NotifyInterface
 import com.walletconnect.web3.inbox.client.Inbox
 import com.walletconnect.web3.inbox.common.proxy.NotifyProxyInteractor
+import com.walletconnect.web3.inbox.push.event.NotifyEventHandler
 import com.walletconnect.web3.inbox.push.event.OnDeleteNotifyEventUseCase
 import com.walletconnect.web3.inbox.push.event.OnMessageNotifyEventUseCase
 import com.walletconnect.web3.inbox.push.event.OnSubscriptionNotifyEventUseCase
 import com.walletconnect.web3.inbox.push.event.OnSyncUpdateNotifyEventUseCase
 import com.walletconnect.web3.inbox.push.event.OnUpdateNotifyEventUseCase
-import com.walletconnect.web3.inbox.push.event.NotifyEventHandler
-import com.walletconnect.web3.inbox.push.request.DeleteNotifyMessageRequestUseCase
 import com.walletconnect.web3.inbox.push.request.DeleteSubscriptionRequestUseCase
 import com.walletconnect.web3.inbox.push.request.EnableSyncRequestUseCase
 import com.walletconnect.web3.inbox.push.request.GetActiveSubscriptionsRequestUseCase
