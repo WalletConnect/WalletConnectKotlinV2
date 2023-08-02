@@ -8,11 +8,10 @@ import com.walletconnect.chat.client.Chat
 import com.walletconnect.chat.client.ChatClient
 import com.walletconnect.notify.client.Notify
 import com.walletconnect.notify.client.NotifyClient
-import com.walletconnect.push.client.PushWalletClient
 import com.walletconnect.web3.inbox.chat.event.ChatEventHandler
 import com.walletconnect.web3.inbox.di.proxyModule
 import com.walletconnect.web3.inbox.di.web3InboxJsonRpcModule
-import com.walletconnect.web3.inbox.push.event.PushEventHandler
+import com.walletconnect.web3.inbox.push.event.NotifyEventHandler
 import com.walletconnect.web3.inbox.sync.event.SyncEventHandler
 import com.walletconnect.web3.inbox.ui.Web3InboxState
 import com.walletconnect.web3.inbox.ui.Web3InboxView
@@ -38,7 +37,7 @@ object Web3Inbox {
             )
             if (!isClientInitialized) {
                 ChatClient.setChatDelegate(wcKoinApp.koin.get<ChatEventHandler>())
-                PushWalletClient.setDelegate(wcKoinApp.koin.get<PushEventHandler>())
+                NotifyClient.setDelegate(wcKoinApp.koin.get<NotifyEventHandler>())
                 wcKoinApp.koin.get<SyncEventHandler>().setup()
             }
             isClientInitialized = true
