@@ -17,7 +17,7 @@ import kotlin.Int
 import kotlin.Long
 import kotlin.String
 
-internal class Web3InboxRPCCallPushSubscriptionJsonAdapter(
+internal class Web3InboxRPCCallNotifySubscriptionJsonAdapter(
     moshi: Moshi,
 ) : JsonAdapter<Web3InboxRPC.Call.Notify.Subscription>() {
     private val options: JsonReader.Options = JsonReader.Options.of(

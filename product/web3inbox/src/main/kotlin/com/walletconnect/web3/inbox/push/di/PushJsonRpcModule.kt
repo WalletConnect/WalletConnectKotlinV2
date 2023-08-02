@@ -40,6 +40,6 @@ internal fun pushJsonRpcModule() = module {
     addDeserializerEntry(Web3InboxMethods.Call.Notify.DELETE, Web3InboxRPC.Call.Notify.Delete::class)
     addDeserializerEntry(Web3InboxMethods.Call.Notify.MESSAGE, Web3InboxRPC.Call.Notify.Message::class)
 
-    addJsonAdapter(Web3InboxRPC.Call.Notify.Subscription::class.java, ::Web3InboxRPCCallPushSubscriptionJsonAdapter)
+    addJsonAdapter(Web3InboxRPC.Call.Notify.Subscription::class.java, ::Web3InboxRPCCallNotifySubscriptionJsonAdapter)
     addJsonAdapter(Web3InboxRPC.Call.Notify.Update::class.java, ::Web3InboxRPCCallPushUpdateJsonAdapter)
 }
