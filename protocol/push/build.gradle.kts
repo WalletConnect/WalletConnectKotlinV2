@@ -47,6 +47,7 @@ android {
         isIncludeAndroidResources = true
         isReturnDefaultValues = true
     }
+
     buildFeatures {
         buildConfig = true
     }
