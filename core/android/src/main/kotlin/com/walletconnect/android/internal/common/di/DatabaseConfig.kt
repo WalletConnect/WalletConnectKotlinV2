@@ -4,6 +4,8 @@ import com.walletconnect.utils.Empty
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.scope.Scope
 
+// TODO: Convert this to an enum class so dbNames is built automatically
+@Suppress("PropertyName")
 class DatabaseConfig(private val storagePrefix: String = String.Empty) {
     val ANDROID_CORE_DB_NAME
         get() = storagePrefix + "WalletConnectAndroidCore.db"
@@ -14,13 +16,18 @@ class DatabaseConfig(private val storagePrefix: String = String.Empty) {
     val CHAT_SDK_DB_NAME
         get() = storagePrefix + "WalletConnectV2_chat.db"
 
-    val PUSH_DAPP_SDK_DB_NAME
+    // TODO: Remove this after migration to new notify sdk
+    private val PUSH_DAPP_SDK_DB_NAME
         get() = storagePrefix + "WalletConnectV2_dapp_push.db"
 
+    // TODO: Remove this after migration to new notify sdk
     val PUSH_WALLET_SDK_DB_NAME
         get() = storagePrefix + "WalletConnectV2_wallet_push.db"
 
-    val dbNames: List<String> = listOf(ANDROID_CORE_DB_NAME, SIGN_SDK_DB_NAME, CHAT_SDK_DB_NAME, PUSH_DAPP_SDK_DB_NAME, PUSH_WALLET_SDK_DB_NAME)
+    val NOTIFY_SDK_DB_NAME
+        get() = storagePrefix + "WalletConnectV2_notify.db"
+
+    val dbNames: List<String> = listOf(ANDROID_CORE_DB_NAME, SIGN_SDK_DB_NAME, CHAT_SDK_DB_NAME, PUSH_DAPP_SDK_DB_NAME, PUSH_WALLET_SDK_DB_NAME, NOTIFY_SDK_DB_NAME)
 }
 
 fun Scope.deleteDatabase(dbName: String) {
