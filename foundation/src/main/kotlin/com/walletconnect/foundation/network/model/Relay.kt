@@ -110,6 +110,8 @@ object Relay {
                         data class SubscriptionData(
                             val topic: String,
                             val message: String,
+                            val publishedAt: Long,
+                            val tag: Int
                         )
                     }
                 }

@@ -13,7 +13,7 @@ internal class GetMessageHistoryRequestUseCase(
 
     override fun invoke(rpc: Web3InboxRPC, params: Web3InboxParams.Request.Push.GetMessageHistoryParams) =
         runCatching { pushWalletClient.getMessageHistory(Push.Params.MessageHistory(params.topic)) }.fold(
-            onSuccess = { result -> respondWithResult(rpc, result) },
+            onSuccess = { result -> respondWithResult(rpc, result.toList().sortedByDescending { (_, messageRecord) -> messageRecord.publishedAt }.toMap()) },
             onFailure = { error -> respondWithError(rpc, Push.Model.Error(error)) }
         )
 }
