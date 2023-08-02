@@ -735,11 +735,7 @@ internal class SignEngine(
             proposalStorageRepository.insertProposal(payloadParams.toVO(request.topic, request.id))
             pairingController.updateMetadata(Core.Params.UpdateMetadata(request.topic.value, payloadParams.proposer.metadata.toClient(), AppMetaDataType.PEER))
             val url = payloadParams.proposer.metadata.url
-            val json = serializer.serialize(SignRpc.SessionPropose(id = request.id, params = payloadParams)) ?: throw Exception("Error serializing session proposal")
-
-            println("kobe: JSON: $json")
-
-            resolveAttestationIdUseCase(request.id, json, url) { verifyContext ->
+            resolveAttestationIdUseCase(request.id, request.message, url) { verifyContext ->
                 val sessionProposalEvent = EngineDO.SessionProposalEvent(proposal = payloadParams.toEngineDO(request.topic), context = verifyContext.toEngineDO())
                 scope.launch { _engineEvent.emit(sessionProposalEvent) }
             }
@@ -874,10 +870,8 @@ internal class SignEngine(
                 return
             }
 
-            val json = serializer.serialize(SignRpc.SessionRequest(id = request.id, params = params)) ?: throw Exception("Error serializing session request")
             val url = sessionPeerAppMetaData?.url ?: String.Empty
-
-            resolveAttestationIdUseCase(request.id, json, url) { verifyContext ->
+            resolveAttestationIdUseCase(request.id, request.message, url) { verifyContext ->
                 val sessionRequestEvent = EngineDO.SessionRequestEvent(params.toEngineDO(request, sessionPeerAppMetaData), verifyContext.toEngineDO())
                 val event = if (sessionRequestsQueue.isEmpty()) {
                     sessionRequestEvent
