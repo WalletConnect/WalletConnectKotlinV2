@@ -3,8 +3,6 @@ import com.android.build.gradle.BaseExtension
 plugins {
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
     id("release-scripts")
-    id("com.android.library") version "8.0.2" apply false
-    id("org.jetbrains.kotlin.android") version "1.8.20" apply false
 }
 
 buildscript {
