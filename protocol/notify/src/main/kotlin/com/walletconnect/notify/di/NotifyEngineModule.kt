@@ -12,7 +12,7 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 @JvmSynthetic
-internal fun walletEngineModule() = module {
+internal fun engineModule() = module {
 
     includes(
         callModule(),
