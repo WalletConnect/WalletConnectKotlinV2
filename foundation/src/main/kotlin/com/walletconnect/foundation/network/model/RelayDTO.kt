@@ -191,6 +191,10 @@ sealed class RelayDTO {
                     val topic: Topic,
                     @Json(name = "message")
                     val message: String, //ack, jsonrpc error, eth_sign
+                    @Json(name = "publishedAt")
+                    val publishedAt: Long,
+                    @Json(name = "tag")
+                    val tag: Int,
                 )
             }
         }
