@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.walletconnect.android.CoreClient
+import com.walletconnect.util.Empty
 
 @SuppressLint("MissingFirebaseInstanceTokenRefresh")
 abstract class NotifyMessageService : FirebaseMessagingService() {
@@ -26,8 +27,8 @@ abstract class NotifyMessageService : FirebaseMessagingService() {
 
         with(message) {
             try {
-                if (data.containsKey("topic") && data.containsKey("blob")) {
-                    val encryptedMessage = Notify.Params.DecryptMessage(topic = data.getValue("topic"), encryptedMessage = data.getValue("blob"))
+                if (data.containsKey(KEY_TOPIC) && data.containsKey(KEY_BLOB)) {
+                    val encryptedMessage = Notify.Params.DecryptMessage(topic = data.getValue(KEY_TOPIC), encryptedMessage = data.getValue(KEY_BLOB))
 
                     NotifyClient.decryptMessage(encryptedMessage,
                         onSuccess = { notifyMessage -> onMessage(notifyMessage, this) },
@@ -65,4 +66,9 @@ abstract class NotifyMessageService : FirebaseMessagingService() {
     abstract fun onError(throwable: Throwable, defaultMessage: RemoteMessage)
 
     private fun RemoteMessage.Notification?.isValid(): Boolean = this != null && title != null && body != null
+
+    private companion object {
+        const val KEY_TOPIC = "topic"
+        const val KEY_BLOB = "blob"
+    }
 }
