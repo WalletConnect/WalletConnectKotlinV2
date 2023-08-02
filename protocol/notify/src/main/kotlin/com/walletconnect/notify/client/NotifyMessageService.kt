@@ -41,7 +41,7 @@ abstract class NotifyMessageService : FirebaseMessagingService() {
                             body = body!!,
                             icon = icon,
                             url = imageUrl?.toString(),
-                            type = ""
+                            type = String.Empty
                         )
                     }
 
