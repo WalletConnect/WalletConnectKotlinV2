@@ -19,7 +19,7 @@ import kotlin.String
 
 internal class Web3InboxRPCCallPushUpdateJsonAdapter(
     moshi: Moshi,
-) : JsonAdapter<Web3InboxRPC.Call.Push.Update>() {
+) : JsonAdapter<Web3InboxRPC.Call.Notify.Update>() {
     private val options: JsonReader.Options = JsonReader.Options.of(
         "id", "jsonrpc", "method",
         "params"
@@ -39,13 +39,13 @@ internal class Web3InboxRPCCallPushUpdateJsonAdapter(
         moshi.adapter(Web3InboxParams.Call.Push.Update.ErrorParams::class.java, emptySet(), "params")
 
     @Volatile
-    private var constructorRef: Constructor<Web3InboxRPC.Call.Push.Update>? = null
+    private var constructorRef: Constructor<Web3InboxRPC.Call.Notify.Update>? = null
 
     public override fun toString(): String = buildString(57) {
         append("GeneratedJsonAdapter(").append("Web3InboxRPC.Call.Push.Update").append(')')
     }
 
-    public override fun fromJson(reader: JsonReader): Web3InboxRPC.Call.Push.Update {
+    public override fun fromJson(reader: JsonReader): Web3InboxRPC.Call.Notify.Update {
         var id: Long? = 0L
         var jsonrpc: String? = null
         var method: String? = null
@@ -93,7 +93,7 @@ internal class Web3InboxRPCCallPushUpdateJsonAdapter(
         reader.endObject()
         if (mask0 == 0xfffffff8.toInt()) {
             // All parameters with defaults are set, invoke the constructor directly
-            return Web3InboxRPC.Call.Push.Update(
+            return Web3InboxRPC.Call.Notify.Update(
                 id = id as Long,
                 jsonrpc = jsonrpc as String,
                 method = method as String,
@@ -102,8 +102,8 @@ internal class Web3InboxRPCCallPushUpdateJsonAdapter(
         } else {
             // Reflectively invoke the synthetic defaults constructor
             @Suppress("UNCHECKED_CAST")
-            val localConstructor: Constructor<Web3InboxRPC.Call.Push.Update> =
-                this.constructorRef ?: Web3InboxRPC.Call.Push.Update::class.java.getDeclaredConstructor(
+            val localConstructor: Constructor<Web3InboxRPC.Call.Notify.Update> =
+                this.constructorRef ?: Web3InboxRPC.Call.Notify.Update::class.java.getDeclaredConstructor(
                     Long::class.javaPrimitiveType,
                     String::class.java, String::class.java,
                     Web3InboxParams.Call.Push.Update::class.java, Int::class.javaPrimitiveType,
@@ -120,7 +120,7 @@ internal class Web3InboxRPCCallPushUpdateJsonAdapter(
         }
     }
 
-    public override fun toJson(writer: JsonWriter, value_: Web3InboxRPC.Call.Push.Update?):
+    public override fun toJson(writer: JsonWriter, value_: Web3InboxRPC.Call.Notify.Update?):
             Unit {
         if (value_ == null) {
             throw NullPointerException("value_ was null! Wrap in .nullSafe() to write nullable values.")

@@ -22,10 +22,10 @@ internal fun pushJsonRpcModule() = module {
     addSerializerEntry(Web3InboxRPC.Request.Push.DeletePushMessage::class)
     addSerializerEntry(Web3InboxRPC.Request.Push.EnableSync::class)
 
-    addSerializerEntry(Web3InboxRPC.Call.Push.Subscription::class)
-    addSerializerEntry(Web3InboxRPC.Call.Push.Update::class)
-    addSerializerEntry(Web3InboxRPC.Call.Push.Delete::class)
-    addSerializerEntry(Web3InboxRPC.Call.Push.Message::class)
+    addSerializerEntry(Web3InboxRPC.Call.Notify.Subscription::class)
+    addSerializerEntry(Web3InboxRPC.Call.Notify.Update::class)
+    addSerializerEntry(Web3InboxRPC.Call.Notify.Delete::class)
+    addSerializerEntry(Web3InboxRPC.Call.Notify.Message::class)
 
     addDeserializerEntry(Web3InboxMethods.Request.Push.SUBSCRIBE, Web3InboxRPC.Request.Push.Subscribe::class)
     addDeserializerEntry(Web3InboxMethods.Request.Push.UPDATE, Web3InboxRPC.Request.Push.Update::class)
@@ -35,11 +35,11 @@ internal fun pushJsonRpcModule() = module {
     addDeserializerEntry(Web3InboxMethods.Request.Push.DELETE_PUSH_MESSAGE, Web3InboxRPC.Request.Push.DeletePushMessage::class)
     addDeserializerEntry(Web3InboxMethods.Request.Push.ENABLE_SYNC, Web3InboxRPC.Request.Push.EnableSync::class)
 
-    addDeserializerEntry(Web3InboxMethods.Call.Push.SUBSCRIPTION, Web3InboxRPC.Call.Push.Subscription::class)
-    addDeserializerEntry(Web3InboxMethods.Call.Push.UPDATE, Web3InboxRPC.Call.Push.Update::class)
-    addDeserializerEntry(Web3InboxMethods.Call.Push.DELETE, Web3InboxRPC.Call.Push.Delete::class)
-    addDeserializerEntry(Web3InboxMethods.Call.Push.MESSAGE, Web3InboxRPC.Call.Push.Message::class)
+    addDeserializerEntry(Web3InboxMethods.Call.Notify.SUBSCRIPTION, Web3InboxRPC.Call.Notify.Subscription::class)
+    addDeserializerEntry(Web3InboxMethods.Call.Notify.UPDATE, Web3InboxRPC.Call.Notify.Update::class)
+    addDeserializerEntry(Web3InboxMethods.Call.Notify.DELETE, Web3InboxRPC.Call.Notify.Delete::class)
+    addDeserializerEntry(Web3InboxMethods.Call.Notify.MESSAGE, Web3InboxRPC.Call.Notify.Message::class)
 
-    addJsonAdapter(Web3InboxRPC.Call.Push.Subscription::class.java, ::Web3InboxRPCCallPushSubscriptionJsonAdapter)
-    addJsonAdapter(Web3InboxRPC.Call.Push.Update::class.java, ::Web3InboxRPCCallPushUpdateJsonAdapter)
+    addJsonAdapter(Web3InboxRPC.Call.Notify.Subscription::class.java, ::Web3InboxRPCCallPushSubscriptionJsonAdapter)
+    addJsonAdapter(Web3InboxRPC.Call.Notify.Update::class.java, ::Web3InboxRPCCallPushUpdateJsonAdapter)
 }

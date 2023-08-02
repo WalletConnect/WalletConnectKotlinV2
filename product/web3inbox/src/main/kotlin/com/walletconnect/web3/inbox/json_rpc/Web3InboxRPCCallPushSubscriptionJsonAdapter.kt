@@ -19,7 +19,7 @@ import kotlin.String
 
 internal class Web3InboxRPCCallPushSubscriptionJsonAdapter(
     moshi: Moshi,
-) : JsonAdapter<Web3InboxRPC.Call.Push.Subscription>() {
+) : JsonAdapter<Web3InboxRPC.Call.Notify.Subscription>() {
     private val options: JsonReader.Options = JsonReader.Options.of(
         "id", "jsonrpc", "method",
         "params"
@@ -39,13 +39,13 @@ internal class Web3InboxRPCCallPushSubscriptionJsonAdapter(
         moshi.adapter(Web3InboxParams.Call.Push.Subscription.ErrorParams::class.java, emptySet(), "params")
 
     @Volatile
-    private var constructorRef: Constructor<Web3InboxRPC.Call.Push.Subscription>? = null
+    private var constructorRef: Constructor<Web3InboxRPC.Call.Notify.Subscription>? = null
 
     public override fun toString(): String = buildString(57) {
         append("GeneratedJsonAdapter(").append("Web3InboxRPC.Call.Push.Subscription").append(')')
     }
 
-    public override fun fromJson(reader: JsonReader): Web3InboxRPC.Call.Push.Subscription {
+    public override fun fromJson(reader: JsonReader): Web3InboxRPC.Call.Notify.Subscription {
         var id: Long? = 0L
         var jsonrpc: String? = null
         var method: String? = null
@@ -93,7 +93,7 @@ internal class Web3InboxRPCCallPushSubscriptionJsonAdapter(
         reader.endObject()
         if (mask0 == 0xfffffff8.toInt()) {
             // All parameters with defaults are set, invoke the constructor directly
-            return Web3InboxRPC.Call.Push.Subscription(
+            return Web3InboxRPC.Call.Notify.Subscription(
                 id = id as Long,
                 jsonrpc = jsonrpc as String,
                 method = method as String,
@@ -102,8 +102,8 @@ internal class Web3InboxRPCCallPushSubscriptionJsonAdapter(
         } else {
             // Reflectively invoke the synthetic defaults constructor
             @Suppress("UNCHECKED_CAST")
-            val localConstructor: Constructor<Web3InboxRPC.Call.Push.Subscription> =
-                this.constructorRef ?: Web3InboxRPC.Call.Push.Subscription::class.java.getDeclaredConstructor(
+            val localConstructor: Constructor<Web3InboxRPC.Call.Notify.Subscription> =
+                this.constructorRef ?: Web3InboxRPC.Call.Notify.Subscription::class.java.getDeclaredConstructor(
                     Long::class.javaPrimitiveType,
                     String::class.java, String::class.java,
                     Web3InboxParams.Call.Push.Subscription::class.java, Int::class.javaPrimitiveType,
@@ -120,7 +120,7 @@ internal class Web3InboxRPCCallPushSubscriptionJsonAdapter(
         }
     }
 
-    public override fun toJson(writer: JsonWriter, value_: Web3InboxRPC.Call.Push.Subscription?):
+    public override fun toJson(writer: JsonWriter, value_: Web3InboxRPC.Call.Notify.Subscription?):
             Unit {
         if (value_ == null) {
             throw NullPointerException("value_ was null! Wrap in .nullSafe() to write nullable values.")

@@ -89,7 +89,7 @@ internal object Web3InboxMethods {
             const val LEAVE: String = "chat_leave"
         }
 
-        object Push {
+        object Notify {
 
             @get:JvmSynthetic
             const val MESSAGE: String = "push_message"

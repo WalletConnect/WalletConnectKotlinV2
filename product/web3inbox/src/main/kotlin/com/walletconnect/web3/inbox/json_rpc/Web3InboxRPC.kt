@@ -315,7 +315,7 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
                 @Json(name = "jsonrpc")
                 override val jsonrpc: String = "2.0",
                 @Json(name = "method")
-                override val method: String = Web3InboxMethods.Call.Push.MESSAGE,
+                override val method: String = Web3InboxMethods.Call.Notify.MESSAGE,
                 @Json(name = "params")
                 override val params: Web3InboxParams.Call.Push.MessageParams,
             ) : Notify
@@ -327,7 +327,7 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
                 @Json(name = "jsonrpc")
                 override val jsonrpc: String = "2.0",
                 @Json(name = "method")
-                override val method: String = Web3InboxMethods.Call.Push.SUBSCRIPTION,
+                override val method: String = Web3InboxMethods.Call.Notify.SUBSCRIPTION,
                 @Json(name = "params")
                 override val params: Web3InboxParams.Call.Push.Subscription,
             ) : Notify
@@ -339,7 +339,7 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
                 @Json(name = "jsonrpc")
                 override val jsonrpc: String = "2.0",
                 @Json(name = "method")
-                override val method: String = Web3InboxMethods.Call.Push.UPDATE,
+                override val method: String = Web3InboxMethods.Call.Notify.UPDATE,
                 @Json(name = "params")
                 override val params: Web3InboxParams.Call.Push.Update,
             ) : Notify
@@ -351,7 +351,7 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
                 @Json(name = "jsonrpc")
                 override val jsonrpc: String = "2.0",
                 @Json(name = "method")
-                override val method: String = Web3InboxMethods.Call.Push.DELETE,
+                override val method: String = Web3InboxMethods.Call.Notify.DELETE,
                 @Json(name = "params")
                 override val params: Web3InboxParams.Call.Push.DeleteParams,
             ) : Notify
