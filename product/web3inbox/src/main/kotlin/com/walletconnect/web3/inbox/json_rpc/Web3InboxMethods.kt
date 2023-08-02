@@ -37,15 +37,9 @@ internal object Web3InboxMethods {
         }
 
 
-        object Push {
+        object Notify {
             @get:JvmSynthetic
             const val GET_ACTIVE_SUBSCRIPTIONS: String = "getActiveSubscriptions"
-
-            @get:JvmSynthetic
-            const val APPROVE: String = "approve"
-
-            @get:JvmSynthetic
-            const val REJECT: String = "reject"
 
             @get:JvmSynthetic
             const val SUBSCRIBE: String = "subscribe"
@@ -60,7 +54,7 @@ internal object Web3InboxMethods {
             const val GET_MESSAGE_HISTORY: String = "getMessageHistory"
 
             @get:JvmSynthetic
-            const val DELETE_PUSH_MESSAGE: String = "deletePushMessage"
+            const val DELETE_NOTIFY_MESSAGE: String = "deleteNotifyMessage"
 
             @get:JvmSynthetic
             const val ENABLE_SYNC: String = "enableSync"
