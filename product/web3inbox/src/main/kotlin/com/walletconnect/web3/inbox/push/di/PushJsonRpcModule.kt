@@ -12,7 +12,7 @@ import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPCCallNotifyUpdateJsonAda
 import org.koin.dsl.module
 
 @JvmSynthetic
-internal fun pushJsonRpcModule() = module {
+internal fun notifyJsonRpcModule() = module {
 
     addSerializerEntry(Web3InboxRPC.Request.Notify.Subscribe::class)
     addSerializerEntry(Web3InboxRPC.Request.Notify.Update::class)
