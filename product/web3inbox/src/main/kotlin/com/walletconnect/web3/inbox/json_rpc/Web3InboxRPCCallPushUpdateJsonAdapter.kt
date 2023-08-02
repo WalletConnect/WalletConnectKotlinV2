@@ -32,11 +32,11 @@ internal class Web3InboxRPCCallPushUpdateJsonAdapter(
         "jsonrpc"
     )
 
-    private val resultAdapter: JsonAdapter<Web3InboxParams.Call.Push.Update.ResultParams> =
-        moshi.adapter(Web3InboxParams.Call.Push.Update.ResultParams::class.java, emptySet(), "params")
+    private val resultAdapter: JsonAdapter<Web3InboxParams.Call.Notify.Update.ResultParams> =
+        moshi.adapter(Web3InboxParams.Call.Notify.Update.ResultParams::class.java, emptySet(), "params")
 
-    private val errorAdapter: JsonAdapter<Web3InboxParams.Call.Push.Update.ErrorParams> =
-        moshi.adapter(Web3InboxParams.Call.Push.Update.ErrorParams::class.java, emptySet(), "params")
+    private val errorAdapter: JsonAdapter<Web3InboxParams.Call.Notify.Update.ErrorParams> =
+        moshi.adapter(Web3InboxParams.Call.Notify.Update.ErrorParams::class.java, emptySet(), "params")
 
     @Volatile
     private var constructorRef: Constructor<Web3InboxRPC.Call.Notify.Update>? = null
@@ -49,7 +49,7 @@ internal class Web3InboxRPCCallPushUpdateJsonAdapter(
         var id: Long? = 0L
         var jsonrpc: String? = null
         var method: String? = null
-        var params: Web3InboxParams.Call.Push.Update? = null
+        var params: Web3InboxParams.Call.Notify.Update? = null
         var mask0 = -1
         reader.beginObject()
         while (reader.hasNext()) {
@@ -106,7 +106,7 @@ internal class Web3InboxRPCCallPushUpdateJsonAdapter(
                 this.constructorRef ?: Web3InboxRPC.Call.Notify.Update::class.java.getDeclaredConstructor(
                     Long::class.javaPrimitiveType,
                     String::class.java, String::class.java,
-                    Web3InboxParams.Call.Push.Update::class.java, Int::class.javaPrimitiveType,
+                    Web3InboxParams.Call.Notify.Update::class.java, Int::class.javaPrimitiveType,
                     Util.DEFAULT_CONSTRUCTOR_MARKER
                 ).also { this.constructorRef = it }
             return localConstructor.newInstance(
@@ -133,11 +133,11 @@ internal class Web3InboxRPCCallPushUpdateJsonAdapter(
         writer.name("method")
         stringAdapter.toJson(writer, value_.method)
         when (value_.params) {
-            is Web3InboxParams.Call.Push.Update.ErrorParams -> {
+            is Web3InboxParams.Call.Notify.Update.ErrorParams -> {
                 writer.name("params")
                 errorAdapter.toJson(writer, value_.params)
             }
-            is Web3InboxParams.Call.Push.Update.ResultParams -> {
+            is Web3InboxParams.Call.Notify.Update.ResultParams -> {
                 writer.name("params")
                 resultAdapter.toJson(writer, value_.params)
             }

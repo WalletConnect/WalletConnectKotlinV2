@@ -32,11 +32,11 @@ internal class Web3InboxRPCCallPushSubscriptionJsonAdapter(
         "jsonrpc"
     )
 
-    private val resultAdapter: JsonAdapter<Web3InboxParams.Call.Push.Subscription.ResultParams> =
-        moshi.adapter(Web3InboxParams.Call.Push.Subscription.ResultParams::class.java, emptySet(), "params")
+    private val resultAdapter: JsonAdapter<Web3InboxParams.Call.Notify.Subscription.ResultParams> =
+        moshi.adapter(Web3InboxParams.Call.Notify.Subscription.ResultParams::class.java, emptySet(), "params")
 
-    private val errorAdapter: JsonAdapter<Web3InboxParams.Call.Push.Subscription.ErrorParams> =
-        moshi.adapter(Web3InboxParams.Call.Push.Subscription.ErrorParams::class.java, emptySet(), "params")
+    private val errorAdapter: JsonAdapter<Web3InboxParams.Call.Notify.Subscription.ErrorParams> =
+        moshi.adapter(Web3InboxParams.Call.Notify.Subscription.ErrorParams::class.java, emptySet(), "params")
 
     @Volatile
     private var constructorRef: Constructor<Web3InboxRPC.Call.Notify.Subscription>? = null
@@ -49,7 +49,7 @@ internal class Web3InboxRPCCallPushSubscriptionJsonAdapter(
         var id: Long? = 0L
         var jsonrpc: String? = null
         var method: String? = null
-        var params: Web3InboxParams.Call.Push.Subscription? = null
+        var params: Web3InboxParams.Call.Notify.Subscription? = null
         var mask0 = -1
         reader.beginObject()
         while (reader.hasNext()) {
@@ -106,7 +106,7 @@ internal class Web3InboxRPCCallPushSubscriptionJsonAdapter(
                 this.constructorRef ?: Web3InboxRPC.Call.Notify.Subscription::class.java.getDeclaredConstructor(
                     Long::class.javaPrimitiveType,
                     String::class.java, String::class.java,
-                    Web3InboxParams.Call.Push.Subscription::class.java, Int::class.javaPrimitiveType,
+                    Web3InboxParams.Call.Notify.Subscription::class.java, Int::class.javaPrimitiveType,
                     Util.DEFAULT_CONSTRUCTOR_MARKER
                 ).also { this.constructorRef = it }
             return localConstructor.newInstance(
@@ -133,11 +133,11 @@ internal class Web3InboxRPCCallPushSubscriptionJsonAdapter(
         writer.name("method")
         stringAdapter.toJson(writer, value_.method)
         when (value_.params) {
-            is Web3InboxParams.Call.Push.Subscription.ErrorParams -> {
+            is Web3InboxParams.Call.Notify.Subscription.ErrorParams -> {
                 writer.name("params")
                 errorAdapter.toJson(writer, value_.params)
             }
-            is Web3InboxParams.Call.Push.Subscription.ResultParams -> {
+            is Web3InboxParams.Call.Notify.Subscription.ResultParams -> {
                 writer.name("params")
                 resultAdapter.toJson(writer, value_.params)
             }
