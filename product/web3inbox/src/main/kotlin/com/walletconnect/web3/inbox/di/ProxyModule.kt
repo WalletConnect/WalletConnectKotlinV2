@@ -9,7 +9,7 @@ import com.walletconnect.web3.inbox.chat.di.chatProxyModule
 import com.walletconnect.web3.inbox.client.Inbox
 import com.walletconnect.web3.inbox.client.toCommon
 import com.walletconnect.web3.inbox.common.proxy.ProxyRequestHandler
-import com.walletconnect.web3.inbox.push.di.pushProxyModule
+import com.walletconnect.web3.inbox.push.di.notifyProxyModule
 import com.walletconnect.web3.inbox.sync.di.syncProxyModule
 import com.walletconnect.web3.inbox.webview.WebViewPresenter
 import com.walletconnect.web3.inbox.webview.WebViewWeakReference
@@ -24,7 +24,7 @@ internal fun proxyModule(
     account: AccountId
 ) = module {
     includes(
-        pushProxyModule(pushWalletClient, onSign, account),
+        notifyProxyModule(pushWalletClient, onSign, account),
         chatProxyModule(chatClient, onSign),
         syncProxyModule()
     )

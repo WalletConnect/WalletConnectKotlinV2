@@ -23,7 +23,7 @@ import com.walletconnect.web3.inbox.push.request.UpdateRequestUseCase
 import org.koin.dsl.module
 
 @JvmSynthetic
-internal fun pushProxyModule(
+internal fun notifyProxyModule(
     pushWalletClient: PushWalletInterface,
     onSign: (message: String) -> Inbox.Model.Cacao.Signature,
     account: AccountId
