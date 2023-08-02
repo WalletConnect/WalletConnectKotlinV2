@@ -7,12 +7,12 @@ import com.walletconnect.foundation.util.Logger
 import com.walletconnect.web3.inbox.chat.request.ChatProxyRequestHandler
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxSerializer
-import com.walletconnect.web3.inbox.push.request.PushProxyRequestHandler
+import com.walletconnect.web3.inbox.push.request.NotifyProxyRequestHandler
 
 
 internal class ProxyRequestHandler(
     private val logger: Logger,
-    private val pushProxyRequestHandler: PushProxyRequestHandler,
+    private val notifyProxyRequestHandler: NotifyProxyRequestHandler,
     private val chatProxyRequestHandler: ChatProxyRequestHandler,
 ) {
 
@@ -24,7 +24,7 @@ internal class ProxyRequestHandler(
         if (rpc !is Web3InboxRPC.Request) return logger.error("Not a request: $rpc")
         when (rpc) {
             is Web3InboxRPC.Request.Chat -> chatProxyRequestHandler.handleRequest(rpc)
-            is Web3InboxRPC.Request.Notify -> pushProxyRequestHandler.handleRequest(rpc)
+            is Web3InboxRPC.Request.Notify -> notifyProxyRequestHandler.handleRequest(rpc)
         }
     }
 

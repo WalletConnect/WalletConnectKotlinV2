@@ -17,7 +17,7 @@ import com.walletconnect.web3.inbox.push.request.DeleteSubscriptionRequestUseCas
 import com.walletconnect.web3.inbox.push.request.EnableSyncRequestUseCase
 import com.walletconnect.web3.inbox.push.request.GetActiveSubscriptionsRequestUseCase
 import com.walletconnect.web3.inbox.push.request.GetMessageHistoryRequestUseCase
-import com.walletconnect.web3.inbox.push.request.PushProxyRequestHandler
+import com.walletconnect.web3.inbox.push.request.NotifyProxyRequestHandler
 import com.walletconnect.web3.inbox.push.request.SubscribeRequestUseCase
 import com.walletconnect.web3.inbox.push.request.UpdateRequestUseCase
 import org.koin.dsl.module
@@ -29,7 +29,7 @@ internal fun notifyProxyModule(
     account: AccountId
 ) = module {
 
-    single { PushProxyInteractor(get(), get()) }
+    single { NotifyProxyInteractor(get(), get()) }
 
     single { GetActiveSubscriptionsRequestUseCase(pushWalletClient, account, get()) }
     single { SubscribeRequestUseCase(pushWalletClient, onSign, get()) }
@@ -47,5 +47,5 @@ internal fun notifyProxyModule(
 
     single { PushEventHandler(get(), get(), get(), get(), get()) }
 
-    single { PushProxyRequestHandler(get(), get(), get(), get(), get(), get(), get()) }
+    single { NotifyProxyRequestHandler(get(), get(), get(), get(), get(), get(), get()) }
 }
