@@ -4,7 +4,7 @@ package com.walletconnect.web3.inbox.di
 
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.chat.client.ChatInterface
-import com.walletconnect.push.client.PushWalletInterface
+import com.walletconnect.notify.client.NotifyInterface
 import com.walletconnect.web3.inbox.chat.di.chatProxyModule
 import com.walletconnect.web3.inbox.client.Inbox
 import com.walletconnect.web3.inbox.client.toCommon
@@ -18,13 +18,13 @@ import org.koin.dsl.module
 @JvmSynthetic
 internal fun proxyModule(
     chatClient: ChatInterface,
-    pushWalletClient: PushWalletInterface,
+    notifyClient: NotifyInterface,
     onSign: (message: String) -> Inbox.Model.Cacao.Signature,
     config: Inbox.Model.Config,
     account: AccountId
 ) = module {
     includes(
-        notifyProxyModule(pushWalletClient, onSign, account),
+        notifyProxyModule(notifyClient, onSign, account),
         chatProxyModule(chatClient, onSign),
         syncProxyModule()
     )
