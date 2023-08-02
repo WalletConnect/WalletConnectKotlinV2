@@ -42,7 +42,7 @@ internal class Web3InboxRPCCallNotifySubscriptionJsonAdapter(
     private var constructorRef: Constructor<Web3InboxRPC.Call.Notify.Subscription>? = null
 
     public override fun toString(): String = buildString(57) {
-        append("GeneratedJsonAdapter(").append("Web3InboxRPC.Call.Push.Subscription").append(')')
+        append("GeneratedJsonAdapter(").append("Web3InboxRPC.Call.Notify.Subscription").append(')')
     }
 
     public override fun fromJson(reader: JsonReader): Web3InboxRPC.Call.Notify.Subscription {

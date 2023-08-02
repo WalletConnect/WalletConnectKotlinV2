@@ -17,7 +17,7 @@ import kotlin.Int
 import kotlin.Long
 import kotlin.String
 
-internal class Web3InboxRPCCallPushUpdateJsonAdapter(
+internal class Web3InboxRPCCallNotifyUpdateJsonAdapter(
     moshi: Moshi,
 ) : JsonAdapter<Web3InboxRPC.Call.Notify.Update>() {
     private val options: JsonReader.Options = JsonReader.Options.of(
@@ -42,7 +42,7 @@ internal class Web3InboxRPCCallPushUpdateJsonAdapter(
     private var constructorRef: Constructor<Web3InboxRPC.Call.Notify.Update>? = null
 
     public override fun toString(): String = buildString(57) {
-        append("GeneratedJsonAdapter(").append("Web3InboxRPC.Call.Push.Update").append(')')
+        append("GeneratedJsonAdapter(").append("Web3InboxRPC.Call.Notify.Update").append(')')
     }
 
     public override fun fromJson(reader: JsonReader): Web3InboxRPC.Call.Notify.Update {

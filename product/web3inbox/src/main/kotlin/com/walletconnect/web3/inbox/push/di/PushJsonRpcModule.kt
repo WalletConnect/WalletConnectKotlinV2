@@ -7,8 +7,8 @@ import com.walletconnect.utils.addJsonAdapter
 import com.walletconnect.utils.addSerializerEntry
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxMethods
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC
-import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPCCallPushSubscriptionJsonAdapter
-import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPCCallPushUpdateJsonAdapter
+import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPCCallNotifySubscriptionJsonAdapter
+import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPCCallNotifyUpdateJsonAdapter
 import org.koin.dsl.module
 
 @JvmSynthetic
@@ -41,5 +41,5 @@ internal fun pushJsonRpcModule() = module {
     addDeserializerEntry(Web3InboxMethods.Call.Notify.MESSAGE, Web3InboxRPC.Call.Notify.Message::class)
 
     addJsonAdapter(Web3InboxRPC.Call.Notify.Subscription::class.java, ::Web3InboxRPCCallNotifySubscriptionJsonAdapter)
-    addJsonAdapter(Web3InboxRPC.Call.Notify.Update::class.java, ::Web3InboxRPCCallPushUpdateJsonAdapter)
+    addJsonAdapter(Web3InboxRPC.Call.Notify.Update::class.java, ::Web3InboxRPCCallNotifyUpdateJsonAdapter)
 }
