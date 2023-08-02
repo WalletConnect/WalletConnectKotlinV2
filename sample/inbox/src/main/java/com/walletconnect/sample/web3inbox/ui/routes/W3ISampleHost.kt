@@ -58,7 +58,6 @@ fun W3ISampleHost() {
                 ConnectionIndicator()
             }
             W3ISampleNavGraph(
-                sheetState = sheetState,
                 bottomSheetNavigator = bottomSheetNavigator,
                 navController = navController,
             )
@@ -72,7 +71,7 @@ private fun ConnectionIndicator() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF3496ff))
+            .background(MaterialTheme.colors.primary)
             .padding(horizontal = 16.dp, vertical = 8.dp),
     ) {
         Text(text = "No internet connection", color = Color.White)
