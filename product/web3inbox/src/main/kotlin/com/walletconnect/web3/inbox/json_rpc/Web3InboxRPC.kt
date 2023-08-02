@@ -158,7 +158,7 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
                 @Json(name = "method")
                 override val method: String = Web3InboxMethods.Request.Push.SUBSCRIBE,
                 @Json(name = "params")
-                override val params: Web3InboxParams.Request.Push.SubscribeParams,
+                override val params: Web3InboxParams.Request.Notify.SubscribeParams,
             ) : Push
 
             @JsonClass(generateAdapter = true)
@@ -170,7 +170,7 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
                 @Json(name = "method")
                 override val method: String = Web3InboxMethods.Request.Push.UPDATE,
                 @Json(name = "params")
-                override val params: Web3InboxParams.Request.Push.UpdateParams,
+                override val params: Web3InboxParams.Request.Notify.UpdateParams,
             ) : Push
 
             @JsonClass(generateAdapter = true)
@@ -182,7 +182,7 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
                 @Json(name = "method")
                 override val method: String = Web3InboxMethods.Request.Push.DELETE_SUBSCRIPTION,
                 @Json(name = "params")
-                override val params: Web3InboxParams.Request.Push.DeleteSubscriptionParams,
+                override val params: Web3InboxParams.Request.Notify.DeleteSubscriptionParams,
             ) : Push
 
             @JsonClass(generateAdapter = true)
@@ -194,7 +194,7 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
                 @Json(name = "method")
                 override val method: String = Web3InboxMethods.Request.Push.GET_MESSAGE_HISTORY,
                 @Json(name = "params")
-                override val params: Web3InboxParams.Request.Push.GetMessageHistoryParams,
+                override val params: Web3InboxParams.Request.Notify.GetMessageHistoryParams,
             ) : Push
 
             @JsonClass(generateAdapter = true)
@@ -206,7 +206,7 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
                 @Json(name = "method")
                 override val method: String = Web3InboxMethods.Request.Push.DELETE_PUSH_MESSAGE,
                 @Json(name = "params")
-                override val params: Web3InboxParams.Request.Push.DeletePushMessageParams,
+                override val params: Web3InboxParams.Request.Notify.DeleteNotifyMessageParams,
             ) : Push
 
             @JsonClass(generateAdapter = true)
@@ -218,7 +218,7 @@ internal sealed interface Web3InboxRPC : JsonRpcClientSync<Web3InboxParams> {
                 @Json(name = "method")
                 override val method: String = Web3InboxMethods.Request.Push.ENABLE_SYNC,
                 @Json(name = "params")
-                override val params: Web3InboxParams.Request.Push.EnableSyncParams,
+                override val params: Web3InboxParams.Request.Notify.EnableSyncParams,
             ) : Push
         }
     }

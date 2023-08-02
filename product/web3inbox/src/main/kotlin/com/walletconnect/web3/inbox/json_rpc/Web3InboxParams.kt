@@ -78,50 +78,40 @@ internal sealed interface Web3InboxParams : ClientParams {
             ) : Chat
         }
 
-        sealed interface Push : Request {
-            @JsonClass(generateAdapter = true)
-            data class ApproveParams(
-                val id: Long,
-            ) : Push
-
-            @JsonClass(generateAdapter = true)
-            data class RejectParams(
-                val id: Long,
-                val reason: String,
-            ) : Push
+        sealed interface Notify : Request {
 
             @JsonClass(generateAdapter = true)
             data class SubscribeParams(
                 val metadata: AppMetaDataParams,
                 val account: String,
-            ) : Push
+            ) : Notify
 
             @JsonClass(generateAdapter = true)
             data class UpdateParams(
                 val topic: String,
                 val scope: List<String>,
-            ) : Push
+            ) : Notify
 
             @JsonClass(generateAdapter = true)
             data class DeleteSubscriptionParams(
                 val topic: String,
-            ) : Push
+            ) : Notify
 
             @JsonClass(generateAdapter = true)
             data class GetMessageHistoryParams(
                 val topic: String,
-            ) : Push
+            ) : Notify
 
             @JsonClass(generateAdapter = true)
-            data class DeletePushMessageParams(
+            data class DeleteNotifyMessageParams(
                 val id: Long,
-            ) : Push
+            ) : Notify
 
             @JsonClass(generateAdapter = true)
             data class EnableSyncParams(
                 val account: String,
                 val private: Boolean?,
-            ) : Push
+            ) : Notify
         }
     }
 
