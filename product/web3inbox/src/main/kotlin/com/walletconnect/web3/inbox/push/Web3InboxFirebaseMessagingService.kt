@@ -4,8 +4,8 @@ import android.annotation.SuppressLint
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.walletconnect.android.CoreClient
-import com.walletconnect.push.client.Push
-import com.walletconnect.push.client.PushWalletClient
+import com.walletconnect.notify.client.Notify
+import com.walletconnect.notify.client.NotifyClient
 import com.walletconnect.web3.inbox.client.Inbox
 import org.bouncycastle.util.encoders.Base64
 import org.json.JSONObject
@@ -34,16 +34,16 @@ abstract class Web3InboxFirebaseMessagingService : FirebaseMessagingService() {
                 if (data.containsKey("topic") && data.containsKey("blob") && data.containsKey("flags")) {
                     when (MessageFlags.findMessageFlag(data.getValue("flags"))) {
                         MessageFlags.ENCRYPTED -> {
-                            val encryptedMessage = Push.Params.DecryptMessage(topic = data.getValue("topic"), encryptedMessage = data.getValue("blob"))
+                            val encryptedMessage = Notify.Params.DecryptMessage(topic = data.getValue("topic"), encryptedMessage = data.getValue("blob"))
 
-                            PushWalletClient.decryptMessage(encryptedMessage,
-                                onSuccess = { pushMessage ->
+                            NotifyClient.decryptMessage(encryptedMessage,
+                                onSuccess = { notifyMessage ->
                                     val inboxMessage = Inbox.Model.Message.Decrypted(
-                                        title = pushMessage.title,
-                                        body = pushMessage.body,
-                                        icon = pushMessage.icon,
-                                        url = pushMessage.url,
-                                        type = pushMessage.type
+                                        title = notifyMessage.title,
+                                        body = notifyMessage.body,
+                                        icon = notifyMessage.icon,
+                                        url = notifyMessage.url,
+                                        type = notifyMessage.type
                                     )
 
                                     onMessage(inboxMessage, this)
@@ -54,7 +54,7 @@ abstract class Web3InboxFirebaseMessagingService : FirebaseMessagingService() {
                             )
                         }
 
-                        MessageFlags.CHAT, MessageFlags.PUSH, MessageFlags.SIGN, MessageFlags.AUTH -> {
+                        MessageFlags.CHAT, MessageFlags.NOTIFY, MessageFlags.SIGN, MessageFlags.AUTH -> {
                             try {
                                 val decodedMessage = Base64.decode(data.getValue("blob")).decodeToString()
                                 val inboxSimpleMessage = JSONObject(decodedMessage)
@@ -107,8 +107,8 @@ abstract class Web3InboxFirebaseMessagingService : FirebaseMessagingService() {
         SIGN(1 shl 1),
         AUTH(1 shl 2),
         CHAT(1 shl 3),
-        PUSH(1 shl 4),
-        ENCRYPTED((PUSH.value) + (1 shl 0));
+        NOTIFY(1 shl 4),
+        ENCRYPTED((NOTIFY.value) + (1 shl 0));
 
         // function that takes a string, converts it to an int, and returns the enum value
         companion object {
