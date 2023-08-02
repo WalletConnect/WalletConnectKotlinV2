@@ -4,7 +4,6 @@ import com.walletconnect.utils.Empty
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.scope.Scope
 
-// TODO: Convert this to an enum class so dbNames is built automatically
 @Suppress("PropertyName")
 class DatabaseConfig(private val storagePrefix: String = String.Empty) {
     val ANDROID_CORE_DB_NAME
