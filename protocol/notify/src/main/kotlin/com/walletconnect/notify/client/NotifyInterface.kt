@@ -18,6 +18,8 @@ interface NotifyInterface {
 
     fun setDelegate(delegate: Delegate)
 
+    fun subscribe(params: Notify.Params.Subscribe, onSuccess: () -> Unit, onError: (Notify.Model.Error) -> Unit)
+
     fun update(params: Notify.Params.Update, onSuccess: () -> Unit, onError: (Notify.Model.Error) -> Unit)
 
     /**

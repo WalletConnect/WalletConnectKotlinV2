@@ -14,11 +14,6 @@ import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.sync.client.SyncInterface
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.notify.common.JsonRpcMethod
-import com.walletconnect.notify.engine.requests.OnNotifyDeleteUseCase
-import com.walletconnect.notify.engine.requests.OnNotifyMessageUseCase
-import com.walletconnect.notify.engine.responses.OnNotifySubscribeResponseUseCase
-import com.walletconnect.notify.engine.responses.OnNotifyUpdateResponseUseCase
-import com.walletconnect.notify.engine.sync.use_case.events.OnSyncUpdateEventUseCase
 import com.walletconnect.notify.engine.calls.DecryptMessageUseCaseInterface
 import com.walletconnect.notify.engine.calls.DeleteMessageUseCaseInterface
 import com.walletconnect.notify.engine.calls.DeleteSubscriptionUseCaseInterface
@@ -27,7 +22,13 @@ import com.walletconnect.notify.engine.calls.GetListOfActiveSubscriptionsUseCase
 import com.walletconnect.notify.engine.calls.GetListOfMessagesUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetNotificationTypesInterface
 import com.walletconnect.notify.engine.calls.GetNotificationTypesUseCase
+import com.walletconnect.notify.engine.calls.SubscribeToDappUseCaseInterface
 import com.walletconnect.notify.engine.calls.UpdateSubscriptionRequestUseCaseInterface
+import com.walletconnect.notify.engine.requests.OnNotifyDeleteUseCase
+import com.walletconnect.notify.engine.requests.OnNotifyMessageUseCase
+import com.walletconnect.notify.engine.responses.OnNotifySubscribeResponseUseCase
+import com.walletconnect.notify.engine.responses.OnNotifyUpdateResponseUseCase
+import com.walletconnect.notify.engine.sync.use_case.events.OnSyncUpdateEventUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -46,6 +47,7 @@ internal class NotifyEngine(
     private val syncClient: SyncInterface,
     private val onSyncUpdateEventUseCase: OnSyncUpdateEventUseCase,
     private val historyInterface: HistoryInterface,
+    private val subscribeToDappUseCase: SubscribeToDappUseCaseInterface,
     private val updateUseCase: UpdateSubscriptionRequestUseCaseInterface,
     private val deleteSubscriptionUseCase: DeleteSubscriptionUseCaseInterface,
     private val deleteMessageUseCase: DeleteMessageUseCaseInterface,
@@ -59,7 +61,8 @@ internal class NotifyEngine(
     private val onNotifySubscribeResponseUseCase: OnNotifySubscribeResponseUseCase,
     private val onNotifyUpdateResponseUseCase: OnNotifyUpdateResponseUseCase,
     private val logger: Logger,
-) : UpdateSubscriptionRequestUseCaseInterface by updateUseCase,
+) : SubscribeToDappUseCaseInterface by subscribeToDappUseCase,
+    UpdateSubscriptionRequestUseCaseInterface by updateUseCase,
     DeleteSubscriptionUseCaseInterface by deleteSubscriptionUseCase,
     DeleteMessageUseCaseInterface by deleteMessageUseCase,
     DecryptMessageUseCaseInterface by decryptMessageUseCase,

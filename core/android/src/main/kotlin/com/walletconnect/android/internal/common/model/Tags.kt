@@ -50,18 +50,21 @@ enum class Tags(val id: Int) {
 
     @Deprecated("Replaced with notify protocol")
     PUSH_REQUEST(4000),
+
     @Deprecated("Replaced with notify protocol")
     PUSH_REQUEST_RESPONSE(4001),
-    NOTIFY_REQUEST(4000),
-    NOTIFY_REQUEST_RESPONSE(4001),
+    NOTIFY_SUBSCRIBE(4000),
+    NOTIFY_SUBSCRIBE_RESPONSE(4001),
 
     @Deprecated("Replaced with notify protocol")
     PUSH_PROPOSE(4010),
+
     @Deprecated("Replaced with notify protocol")
     PUSH_PROPOSE_RESPONSE(4011),
 
     @Deprecated("Replaced with notify protocol")
     PUSH_MESSAGE(4002),
+
     @Deprecated("Replaced with notify protocol")
     PUSH_MESSAGE_RESPONSE(4003),
     NOTIFY_MESSAGE(4002),

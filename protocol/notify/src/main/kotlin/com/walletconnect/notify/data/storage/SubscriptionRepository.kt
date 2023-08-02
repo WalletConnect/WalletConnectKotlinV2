@@ -7,8 +7,8 @@ import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.notify.common.storage.data.dao.ActiveSubscriptionsQueries
 import com.walletconnect.notify.common.model.EngineDO
+import com.walletconnect.notify.common.storage.data.dao.ActiveSubscriptionsQueries
 import com.walletconnect.notify.common.storage.data.dao.RequestedSubscriptionQueries
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -17,6 +17,28 @@ internal class SubscriptionRepository(
     private val requestedSubscriptionQueries: RequestedSubscriptionQueries,
     private val activeSubscriptionsQueries: ActiveSubscriptionsQueries,
 ) {
+
+    suspend fun insertOrAbortRequestedSubscription(
+        requestId: Long,
+        subscribeTopic: String,
+        responseTopic: String,
+        account: String,
+        mapOfScope: Map<String, Pair<String, Boolean>>,
+        expiry: Long,
+    ) = withContext(Dispatchers.IO) {
+        requestedSubscriptionQueries.insertOrAbortRequestedSubscribtion(
+            request_id = requestId,
+            subscribe_topic = subscribeTopic,
+            response_topic = responseTopic,
+            account = account,
+            map_of_scope = mapOfScope,
+            expiry = expiry,
+        )
+    }
+
+    suspend fun isAlreadyRequested(account: String, subscribeTopic: String): Boolean = withContext(Dispatchers.IO) {
+        requestedSubscriptionQueries.isAlreadyRequested(account, subscribeTopic).executeAsOneOrNull() ?: false
+    }
 
     suspend fun insertOrAbortActiveSubscription(
         account: String,

@@ -43,6 +43,7 @@ internal fun walletEngineModule() = module {
             syncClient = get(),
             onSyncUpdateEventUseCase = get(),
             historyInterface = get(),
+            subscribeToDappUseCase = get(),
             updateUseCase = get(),
             deleteSubscriptionUseCase = get(),
             deleteMessageUseCase = get(),

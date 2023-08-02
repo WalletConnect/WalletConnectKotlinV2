@@ -5,15 +5,15 @@ import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.notify.common.model.EngineDO
+import com.walletconnect.notify.common.model.toClient
+import com.walletconnect.notify.common.model.toEvent
+import com.walletconnect.notify.common.model.toModel
+import com.walletconnect.notify.common.model.toWalletClient
 import com.walletconnect.notify.di.notifyJsonRpcModule
 import com.walletconnect.notify.di.notifyStorageModule
 import com.walletconnect.notify.di.syncInNotifyModule
 import com.walletconnect.notify.di.walletEngineModule
 import com.walletconnect.notify.engine.NotifyEngine
-import com.walletconnect.notify.common.model.toClient
-import com.walletconnect.notify.common.model.toEvent
-import com.walletconnect.notify.common.model.toModel
-import com.walletconnect.notify.common.model.toWalletClient
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -58,6 +58,23 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
                 is SDKError -> delegate.onError(event.toClient())
             }
         }.launchIn(scope)
+    }
+
+    override fun subscribe(params: Notify.Params.Subscribe, onSuccess: () -> Unit, onError: (Notify.Model.Error) -> Unit) {
+        checkEngineInitialization()
+
+        scope.launch {
+            supervisorScope {
+                try {
+                    notifyEngine.subscribeToDapp(params.dappUrl, params.account, params.onSign.toWalletClient(),
+                        onSuccess = { _, _ -> onSuccess() },
+                        onFailure = { onError(Notify.Model.Error(it)) }
+                    )
+                } catch (e: Exception) {
+                    onError(Notify.Model.Error(e))
+                }
+            }
+        }
     }
 
     override fun update(params: Notify.Params.Update, onSuccess: () -> Unit, onError: (Notify.Model.Error) -> Unit) {

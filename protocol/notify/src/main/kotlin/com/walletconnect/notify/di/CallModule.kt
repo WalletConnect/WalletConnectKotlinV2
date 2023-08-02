@@ -16,12 +16,28 @@ import com.walletconnect.notify.engine.calls.GetListOfMessagesUseCase
 import com.walletconnect.notify.engine.calls.GetListOfMessagesUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetNotificationTypesInterface
 import com.walletconnect.notify.engine.calls.GetNotificationTypesUseCase
+import com.walletconnect.notify.engine.calls.SubscribeToDappUseCase
+import com.walletconnect.notify.engine.calls.SubscribeToDappUseCaseInterface
 import com.walletconnect.notify.engine.calls.UpdateSubscriptionRequestUseCase
 import com.walletconnect.notify.engine.calls.UpdateSubscriptionRequestUseCaseInterface
 import org.koin.dsl.module
 
 @JvmSynthetic
 internal fun callModule() = module {
+
+    single<SubscribeToDappUseCaseInterface> {
+        SubscribeToDappUseCase(
+            serializer = get(),
+            jsonRpcInteractor = get(),
+            extractNotifyConfigUseCase = get(),
+            subscriptionRepository = get(),
+            crypto = get(),
+            explorerRepository = get(),
+            metadataStorageRepository = get(),
+            registerIdentityAndReturnDidJwt = get(),
+            logger = get(),
+        )
+    }
 
     single<UpdateSubscriptionRequestUseCaseInterface> {
         UpdateSubscriptionRequestUseCase(
