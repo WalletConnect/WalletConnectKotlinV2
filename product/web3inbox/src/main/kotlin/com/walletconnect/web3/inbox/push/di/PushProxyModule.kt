@@ -8,7 +8,6 @@ import com.walletconnect.web3.inbox.client.Inbox
 import com.walletconnect.web3.inbox.common.proxy.PushProxyInteractor
 import com.walletconnect.web3.inbox.push.event.OnDeletePushEventUseCase
 import com.walletconnect.web3.inbox.push.event.OnMessagePushEventUseCase
-import com.walletconnect.web3.inbox.push.event.OnProposePushEventUseCase
 import com.walletconnect.web3.inbox.push.event.OnSubscriptionPushEventUseCase
 import com.walletconnect.web3.inbox.push.event.OnSyncUpdatePushEventUseCase
 import com.walletconnect.web3.inbox.push.event.OnUpdatePushEventUseCase
@@ -40,14 +39,13 @@ internal fun pushProxyModule(
     single { DeleteNotifyMessageRequestUseCase(pushWalletClient, get()) }
     single { EnableSyncRequestUseCase(pushWalletClient, get(), onSign) }
 
-    single { OnProposePushEventUseCase(get()) }
     single { OnMessagePushEventUseCase(get()) }
     single { OnDeletePushEventUseCase(get()) }
     single { OnSyncUpdatePushEventUseCase(get()) }
     single { OnSubscriptionPushEventUseCase(get()) }
     single { OnUpdatePushEventUseCase(get()) }
 
-    single { PushEventHandler(get(), get(), get(), get(), get(), get()) }
+    single { PushEventHandler(get(), get(), get(), get(), get()) }
 
-    single { PushProxyRequestHandler(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    single { PushProxyRequestHandler(get(), get(), get(), get(), get(), get(), get()) }
 }
