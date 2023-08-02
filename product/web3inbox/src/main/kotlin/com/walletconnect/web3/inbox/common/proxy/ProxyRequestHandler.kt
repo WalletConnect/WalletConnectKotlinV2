@@ -24,7 +24,7 @@ internal class ProxyRequestHandler(
         if (rpc !is Web3InboxRPC.Request) return logger.error("Not a request: $rpc")
         when (rpc) {
             is Web3InboxRPC.Request.Chat -> chatProxyRequestHandler.handleRequest(rpc)
-            is Web3InboxRPC.Request.Push -> pushProxyRequestHandler.handleRequest(rpc)
+            is Web3InboxRPC.Request.Notify -> pushProxyRequestHandler.handleRequest(rpc)
         }
     }
 
