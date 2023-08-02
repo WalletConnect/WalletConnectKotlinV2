@@ -90,11 +90,6 @@ internal object Web3InboxMethods {
         }
 
         object Push {
-            @get:JvmSynthetic
-            const val REQUEST: String = "push_request"
-
-            @get:JvmSynthetic
-            const val PROPOSE: String = "push_propose"
 
             @get:JvmSynthetic
             const val MESSAGE: String = "push_message"
