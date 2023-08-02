@@ -19,7 +19,6 @@ import com.walletconnect.web3.inbox.push.request.EnableSyncRequestUseCase
 import com.walletconnect.web3.inbox.push.request.GetActiveSubscriptionsRequestUseCase
 import com.walletconnect.web3.inbox.push.request.GetMessageHistoryRequestUseCase
 import com.walletconnect.web3.inbox.push.request.PushProxyRequestHandler
-import com.walletconnect.web3.inbox.push.request.RejectRequestUseCase
 import com.walletconnect.web3.inbox.push.request.SubscribeRequestUseCase
 import com.walletconnect.web3.inbox.push.request.UpdateRequestUseCase
 import org.koin.dsl.module
@@ -34,7 +33,6 @@ internal fun pushProxyModule(
     single { PushProxyInteractor(get(), get()) }
 
     single { GetActiveSubscriptionsRequestUseCase(pushWalletClient, account, get()) }
-    single { RejectRequestUseCase(pushWalletClient, get()) }
     single { SubscribeRequestUseCase(pushWalletClient, onSign, get()) }
     single { UpdateRequestUseCase(pushWalletClient, get()) }
     single { DeleteSubscriptionRequestUseCase(pushWalletClient, get()) }

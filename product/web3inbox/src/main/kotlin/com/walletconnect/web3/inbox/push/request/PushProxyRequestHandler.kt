@@ -22,7 +22,6 @@ internal class PushProxyRequestHandler(
             is Web3InboxRPC.Request.Push.EnableSync -> enableSyncRequestUseCase(rpc, rpc.params)
             is Web3InboxRPC.Request.Push.DeleteSubscription -> deleteSubscriptionRequestUseCase(rpc, rpc.params)
             is Web3InboxRPC.Request.Push.GetMessageHistory -> getMessageHistoryRequestUseCase(rpc, rpc.params)
-            is Web3InboxRPC.Request.Push.Reject -> rejectRequestUseCase(rpc, rpc.params)
             is Web3InboxRPC.Request.Push.Subscribe -> subscribeRequestUseCase(rpc, rpc.params)
             is Web3InboxRPC.Request.Push.Update -> updateRequestUseCase(rpc, rpc.params)
         }
