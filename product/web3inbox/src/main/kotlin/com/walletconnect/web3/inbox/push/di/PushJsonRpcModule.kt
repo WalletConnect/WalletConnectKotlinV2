@@ -15,7 +15,6 @@ import org.koin.dsl.module
 internal fun pushJsonRpcModule() = module {
 
     addSerializerEntry(Web3InboxRPC.Request.Push.GetActiveSubscriptions::class)
-    addSerializerEntry(Web3InboxRPC.Request.Push.Approve::class)
     addSerializerEntry(Web3InboxRPC.Request.Push.Reject::class)
     addSerializerEntry(Web3InboxRPC.Request.Push.Subscribe::class)
     addSerializerEntry(Web3InboxRPC.Request.Push.Update::class)
@@ -31,7 +30,6 @@ internal fun pushJsonRpcModule() = module {
     addSerializerEntry(Web3InboxRPC.Call.Push.Delete::class)
 
     addDeserializerEntry(Web3InboxMethods.Request.Push.GET_ACTIVE_SUBSCRIPTIONS, Web3InboxRPC.Request.Push.GetActiveSubscriptions::class)
-    addDeserializerEntry(Web3InboxMethods.Request.Push.APPROVE, Web3InboxRPC.Request.Push.Approve::class)
     addDeserializerEntry(Web3InboxMethods.Request.Push.REJECT, Web3InboxRPC.Request.Push.Reject::class)
     addDeserializerEntry(Web3InboxMethods.Request.Push.SUBSCRIBE, Web3InboxRPC.Request.Push.Subscribe::class)
     addDeserializerEntry(Web3InboxMethods.Request.Push.UPDATE, Web3InboxRPC.Request.Push.Update::class)
