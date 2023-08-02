@@ -3,7 +3,7 @@
 package com.walletconnect.web3.inbox.push.di
 
 import com.walletconnect.android.internal.common.model.AccountId
-import com.walletconnect.push.client.PushWalletInterface
+import com.walletconnect.notify.client.NotifyInterface
 import com.walletconnect.web3.inbox.client.Inbox
 import com.walletconnect.web3.inbox.common.proxy.NotifyProxyInteractor
 import com.walletconnect.web3.inbox.push.event.OnDeleteNotifyEventUseCase
@@ -11,7 +11,7 @@ import com.walletconnect.web3.inbox.push.event.OnMessageNotifyEventUseCase
 import com.walletconnect.web3.inbox.push.event.OnSubscriptionNotifyEventUseCase
 import com.walletconnect.web3.inbox.push.event.OnSyncUpdateNotifyEventUseCase
 import com.walletconnect.web3.inbox.push.event.OnUpdateNotifyEventUseCase
-import com.walletconnect.web3.inbox.push.event.PushEventHandler
+import com.walletconnect.web3.inbox.push.event.NotifyEventHandler
 import com.walletconnect.web3.inbox.push.request.DeleteNotifyMessageRequestUseCase
 import com.walletconnect.web3.inbox.push.request.DeleteSubscriptionRequestUseCase
 import com.walletconnect.web3.inbox.push.request.EnableSyncRequestUseCase
@@ -24,28 +24,42 @@ import org.koin.dsl.module
 
 @JvmSynthetic
 internal fun notifyProxyModule(
-    pushWalletClient: PushWalletInterface,
+    notifyClient: NotifyInterface,
     onSign: (message: String) -> Inbox.Model.Cacao.Signature,
     account: AccountId
 ) = module {
 
     single { NotifyProxyInteractor(get(), get()) }
 
-    single { GetActiveSubscriptionsRequestUseCase(pushWalletClient, account, get()) }
-    single { SubscribeRequestUseCase(pushWalletClient, onSign, get()) }
-    single { UpdateRequestUseCase(pushWalletClient, get()) }
-    single { DeleteSubscriptionRequestUseCase(pushWalletClient, get()) }
-    single { GetMessageHistoryRequestUseCase(pushWalletClient, get()) }
-    single { DeleteNotifyMessageRequestUseCase(pushWalletClient, get()) }
-    single { EnableSyncRequestUseCase(pushWalletClient, get(), onSign) }
+    single { GetActiveSubscriptionsRequestUseCase(notifyClient, account, get()) }
+    single { SubscribeRequestUseCase(notifyClient = notifyClient, onSign = onSign, proxyInteractor = get()) }
+    single { UpdateRequestUseCase(notifyClient, get()) }
+    single { DeleteSubscriptionRequestUseCase(notifyClient, get()) }
+    single { GetMessageHistoryRequestUseCase(notifyClient, get()) }
+    single { DeleteNotifyMessageRequestUseCase(notifyClient, get()) }
+    single { EnableSyncRequestUseCase(notifyClient, get(), onSign) }
 
-    single { OnMessagePushEventUseCase(get()) }
-    single { OnDeletePushEventUseCase(get()) }
-    single { OnSyncUpdatePushEventUseCase(get()) }
-    single { OnSubscriptionPushEventUseCase(get()) }
-    single { OnUpdatePushEventUseCase(get()) }
+    single { OnMessageNotifyEventUseCase(proxyInteractor = get()) }
+    single { OnDeleteNotifyEventUseCase(proxyInteractor = get()) }
+    single { OnSyncUpdateNotifyEventUseCase(proxyInteractor = get()) }
+    single { OnSubscriptionNotifyEventUseCase(proxyInteractor = get()) }
+    single { OnUpdateNotifyEventUseCase(proxyInteractor = get()) }
 
-    single { PushEventHandler(get(), get(), get(), get(), get()) }
+    single { NotifyEventHandler(
+        logger = get(),
+        onSubscriptionNotifyEventUseCase = get(),
+        onUpdateNotifyEventUseCase = get(),
+        onDeleteNotifyEventUseCase = get(),
+        onMessageNotifyEventUseCase = get()
+    ) }
 
-    single { NotifyProxyRequestHandler(get(), get(), get(), get(), get(), get(), get()) }
+    single { NotifyProxyRequestHandler(
+        subscribeRequestUseCase = get(),
+        updateRequestUseCase = get(),
+        deleteSubscriptionRequestUseCase = get(),
+        getActiveSubscriptionsRequestUseCase = get(),
+        getMessageHistoryRequestUseCase = get(),
+        deletePushMessageRequestUseCase = get(),
+        enableSyncRequestUseCase = get()
+    ) }
 }
