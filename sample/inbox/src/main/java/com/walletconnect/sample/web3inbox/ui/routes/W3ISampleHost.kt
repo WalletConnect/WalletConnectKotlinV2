@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -74,13 +73,13 @@ private fun ConnectionIndicator() {
             .background(MaterialTheme.colors.primary)
             .padding(horizontal = 16.dp, vertical = 8.dp),
     ) {
-        Text(text = "No internet connection", color = Color.White)
+        Text(text = "No internet connection", color = MaterialTheme.colors.onPrimary)
         Spacer(modifier = Modifier.width(4.dp))
         Image(
             imageVector = ImageVector.vectorResource(id = R.drawable.ic_offline),
             contentDescription = null,
             modifier = Modifier.size(24.dp),
-            colorFilter = ColorFilter.tint(color = Color.White)
+            colorFilter = ColorFilter.tint(color = MaterialTheme.colors.onPrimary)
         )
     }
 }
