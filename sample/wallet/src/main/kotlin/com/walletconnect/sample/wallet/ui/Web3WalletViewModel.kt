@@ -5,12 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
-import com.walletconnect.push.client.Push
+import com.walletconnect.notify.client.Notify
 import com.walletconnect.sample.common.tag
 import com.walletconnect.sample.wallet.domain.ISSUER
-import com.walletconnect.sample.wallet.domain.PushWalletDelegate
+import com.walletconnect.sample.wallet.domain.NotifyDelegate
 import com.walletconnect.sample.wallet.domain.WCDelegate
-import com.walletconnect.sample.common.tag
 import com.walletconnect.sample.wallet.ui.state.ConnectionState
 import com.walletconnect.sample.wallet.ui.state.PairingState
 import com.walletconnect.sample.wallet.ui.state.connectionStateFlow
@@ -80,42 +79,22 @@ class Web3WalletViewModel : ViewModel() {
         }
     }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
-    val pushEvents = PushWalletDelegate.wcPushEventModels.map { pushEvent ->
-        when (pushEvent) {
-            is Push.Event.Request -> {
-                val requestId = pushEvent.id.toString()
-                val peerName = pushEvent.metadata.name
-                val peerDesc = pushEvent.metadata.description
-                val icon = pushEvent.metadata.icons.firstOrNull()
-                val redirect = pushEvent.metadata.redirect
-
-                PushRequest(requestId, peerName, peerDesc, icon, redirect)
+    val notifyEvents = NotifyDelegate.wcNotifyEventModels.map { notifyEvent ->
+        when (notifyEvent) {
+            is Notify.Event.Message -> {
+                NotifyMessage(notifyEvent.message.message.title, notifyEvent.message.message.body, notifyEvent.message.message.icon, notifyEvent.message.message.url)
             }
 
-            is Push.Event.Proposal -> {
-                val requestId = pushEvent.id.toString()
-                val peerName = pushEvent.metadata.name
-                val peerDesc = pushEvent.metadata.description
-                val icon = pushEvent.metadata.icons.firstOrNull()
-                val redirect = pushEvent.metadata.redirect
-
-                PushProposal(requestId, peerName, peerDesc, icon, redirect)
-            }
-
-            is Push.Event.Message -> {
-                PushMessage(pushEvent.message.message.title, pushEvent.message.message.body, pushEvent.message.message.icon, pushEvent.message.message.url)
-            }
-
-            is Push.Event.Delete -> {
+            is Notify.Event.Delete -> {
                 NoAction
             }
 
-            is Push.Event.Subscription.Result -> {
-                Log.e(tag(this), "PushEvent.Subscription.Result: ${pushEvent.subscription}")
+            is Notify.Event.Subscription.Result -> {
+                Log.e(tag(this), "NotifyEvent.Subscription.Result: ${notifyEvent.subscription}")
             }
 
-            is Push.Event.Subscription.Error -> {
-                Log.e(tag(this), "PushEvent.Subscription.Error: ${pushEvent.reason}")
+            is Notify.Event.Subscription.Error -> {
+                Log.e(tag(this), "NotifyEvent.Subscription.Error: ${notifyEvent.reason}")
             }
 
             else -> {
