@@ -45,7 +45,7 @@ internal class WebViewPresenter(
             WEB3INBOX_NOTIFY_PROVIDER_TYPE_KEY to WEB3INBOX_PROVIDER_TYPE_VALUE,
             WEB3INBOX_CHAT_ENABLED_KEY to config.isChatEnabled.toString(),
             WEB3INBOX_SETTINGS_ENABLED_KEY to config.areSettingsEnabled.toString(),
-            WEB3INBOX_PUSH_ENABLED_KEY to config.isNotifyEnabled.toString(),
+            WEB3INBOX_NOTIFY_ENABLED_KEY to config.isNotifyEnabled.toString(),
             WEB3INBOX_ACCOUNT_KEY to accountId.address()
         )
     )
@@ -59,7 +59,7 @@ internal class WebViewPresenter(
 
         const val WEB3INBOX_CHAT_ENABLED_KEY = "chatEnabled"
         const val WEB3INBOX_SETTINGS_ENABLED_KEY = "settingsEnabled"
-        const val WEB3INBOX_PUSH_ENABLED_KEY = "pushEnabled"
+        const val WEB3INBOX_NOTIFY_ENABLED_KEY = "notifyEnabled"
 
         const val WEB3INBOX_PROVIDER_TYPE_VALUE = "android"
         const val WEB3INBOX_AUTH_PROVIDER_TYPE_VALUE = "android"
