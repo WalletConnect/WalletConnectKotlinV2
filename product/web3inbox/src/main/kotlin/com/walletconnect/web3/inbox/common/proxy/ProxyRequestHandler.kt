@@ -7,7 +7,7 @@ import com.walletconnect.foundation.util.Logger
 import com.walletconnect.web3.inbox.chat.request.ChatProxyRequestHandler
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxSerializer
-import com.walletconnect.web3.inbox.push.request.NotifyProxyRequestHandler
+import com.walletconnect.web3.inbox.notify.request.NotifyProxyRequestHandler
 
 
 internal class ProxyRequestHandler(

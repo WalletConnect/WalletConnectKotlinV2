@@ -1,6 +1,6 @@
 @file:JvmSynthetic
 
-package com.walletconnect.web3.inbox.push.request
+package com.walletconnect.web3.inbox.notify.request
 
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC
 

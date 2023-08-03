@@ -11,7 +11,7 @@ import com.walletconnect.notify.client.NotifyClient
 import com.walletconnect.web3.inbox.chat.event.ChatEventHandler
 import com.walletconnect.web3.inbox.di.proxyModule
 import com.walletconnect.web3.inbox.di.web3InboxJsonRpcModule
-import com.walletconnect.web3.inbox.push.event.NotifyEventHandler
+import com.walletconnect.web3.inbox.notify.event.NotifyEventHandler
 import com.walletconnect.web3.inbox.sync.event.SyncEventHandler
 import com.walletconnect.web3.inbox.ui.Web3InboxState
 import com.walletconnect.web3.inbox.ui.Web3InboxView

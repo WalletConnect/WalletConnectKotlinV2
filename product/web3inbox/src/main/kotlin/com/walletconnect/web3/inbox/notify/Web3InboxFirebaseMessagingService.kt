@@ -1,4 +1,4 @@
-package com.walletconnect.web3.inbox.push
+package com.walletconnect.web3.inbox.notify
 
 import android.annotation.SuppressLint
 import com.google.firebase.messaging.FirebaseMessagingService

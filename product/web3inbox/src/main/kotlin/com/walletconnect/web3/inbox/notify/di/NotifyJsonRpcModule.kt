@@ -1,6 +1,6 @@
 @file:JvmSynthetic
 
-package com.walletconnect.web3.inbox.push.di
+package com.walletconnect.web3.inbox.notify.di
 
 import com.walletconnect.utils.addDeserializerEntry
 import com.walletconnect.utils.addJsonAdapter

@@ -1,4 +1,4 @@
-package com.walletconnect.web3.inbox.push.event
+package com.walletconnect.web3.inbox.notify.event
 
 import com.walletconnect.notify.client.Notify
 import com.walletconnect.web3.inbox.common.proxy.NotifyProxyInteractor

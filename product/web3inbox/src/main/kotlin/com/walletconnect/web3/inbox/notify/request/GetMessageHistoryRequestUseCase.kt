@@ -1,4 +1,4 @@
-package com.walletconnect.web3.inbox.push.request
+package com.walletconnect.web3.inbox.notify.request
 
 import com.walletconnect.notify.client.Notify
 import com.walletconnect.notify.client.NotifyInterface

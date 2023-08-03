@@ -1,4 +1,4 @@
-package com.walletconnect.web3.inbox.push.request
+package com.walletconnect.web3.inbox.notify.request
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.model.AccountId

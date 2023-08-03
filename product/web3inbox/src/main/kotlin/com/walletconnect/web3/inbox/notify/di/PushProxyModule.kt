@@ -1,24 +1,24 @@
 @file:JvmSynthetic
 
-package com.walletconnect.web3.inbox.push.di
+package com.walletconnect.web3.inbox.notify.di
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.notify.client.NotifyInterface
 import com.walletconnect.web3.inbox.client.Inbox
 import com.walletconnect.web3.inbox.common.proxy.NotifyProxyInteractor
-import com.walletconnect.web3.inbox.push.event.NotifyEventHandler
-import com.walletconnect.web3.inbox.push.event.OnDeleteNotifyEventUseCase
-import com.walletconnect.web3.inbox.push.event.OnMessageNotifyEventUseCase
-import com.walletconnect.web3.inbox.push.event.OnSubscriptionNotifyEventUseCase
-import com.walletconnect.web3.inbox.push.event.OnSyncUpdateNotifyEventUseCase
-import com.walletconnect.web3.inbox.push.event.OnUpdateNotifyEventUseCase
-import com.walletconnect.web3.inbox.push.request.DeleteNotifyMessageRequestUseCase
-import com.walletconnect.web3.inbox.push.request.DeleteSubscriptionRequestUseCase
-import com.walletconnect.web3.inbox.push.request.EnableSyncRequestUseCase
-import com.walletconnect.web3.inbox.push.request.GetActiveSubscriptionsRequestUseCase
-import com.walletconnect.web3.inbox.push.request.GetMessageHistoryRequestUseCase
-import com.walletconnect.web3.inbox.push.request.NotifyProxyRequestHandler
-import com.walletconnect.web3.inbox.push.request.SubscribeRequestUseCase
-import com.walletconnect.web3.inbox.push.request.UpdateRequestUseCase
+import com.walletconnect.web3.inbox.notify.event.NotifyEventHandler
+import com.walletconnect.web3.inbox.notify.event.OnDeleteNotifyEventUseCase
+import com.walletconnect.web3.inbox.notify.event.OnMessageNotifyEventUseCase
+import com.walletconnect.web3.inbox.notify.event.OnSubscriptionNotifyEventUseCase
+import com.walletconnect.web3.inbox.notify.event.OnSyncUpdateNotifyEventUseCase
+import com.walletconnect.web3.inbox.notify.event.OnUpdateNotifyEventUseCase
+import com.walletconnect.web3.inbox.notify.request.DeleteNotifyMessageRequestUseCase
+import com.walletconnect.web3.inbox.notify.request.DeleteSubscriptionRequestUseCase
+import com.walletconnect.web3.inbox.notify.request.EnableSyncRequestUseCase
+import com.walletconnect.web3.inbox.notify.request.GetActiveSubscriptionsRequestUseCase
+import com.walletconnect.web3.inbox.notify.request.GetMessageHistoryRequestUseCase
+import com.walletconnect.web3.inbox.notify.request.NotifyProxyRequestHandler
+import com.walletconnect.web3.inbox.notify.request.SubscribeRequestUseCase
+import com.walletconnect.web3.inbox.notify.request.UpdateRequestUseCase
 import org.koin.dsl.module
 
 @JvmSynthetic

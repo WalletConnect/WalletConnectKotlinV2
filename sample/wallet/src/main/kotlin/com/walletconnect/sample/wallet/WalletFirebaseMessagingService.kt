@@ -13,7 +13,7 @@ import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.RemoteMessage
 import com.walletconnect.sample.wallet.ui.Web3WalletActivity
 import com.walletconnect.web3.inbox.client.Inbox
-import com.walletconnect.web3.inbox.push.Web3InboxFirebaseMessagingService
+import com.walletconnect.web3.inbox.notify.Web3InboxFirebaseMessagingService
 import kotlin.random.Random
 import kotlin.random.nextUInt
 
