@@ -29,7 +29,7 @@ internal fun notifyProxyModule(
 
     single { NotifyProxyInteractor(get(), get()) }
 
-    single { GetActiveSubscriptionsRequestUseCase(notifyClient, account, get()) }
+    single { GetActiveSubscriptionsRequestUseCase(notifyClient = notifyClient, account = account, proxyInteractor = get()) }
     single { SubscribeRequestUseCase(notifyClient = notifyClient, onSign = onSign, proxyInteractor = get()) }
     single { UpdateRequestUseCase(notifyClient = notifyClient, proxyInteractor = get()) }
     single { DeleteSubscriptionRequestUseCase(notifyClient = notifyClient, proxyInteractor = get()) }
