@@ -11,4 +11,4 @@ internal fun Inbox.Model.Cacao.Signature.toChat(): Chat.Model.Cacao.Signature = 
 internal fun Inbox.Model.Cacao.Signature.toNotify(): Notify.Model.Cacao.Signature = Notify.Model.Cacao.Signature(t, s, m)
 
 @JvmSynthetic
-internal fun Inbox.Model.Config.toCommon() = Config(isChatEnabled, isPushEnabled, areSettingsEnabled)
+internal fun Inbox.Model.Config.toCommon() = Config(isChatEnabled, isNotifyEnabled, areSettingsEnabled)
