@@ -4,7 +4,6 @@ package com.walletconnect.web3.inbox.push.request
 
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC
 
-
 internal class NotifyProxyRequestHandler(
     private val subscribeRequestUseCase: SubscribeRequestUseCase,
     private val updateRequestUseCase: UpdateRequestUseCase,
