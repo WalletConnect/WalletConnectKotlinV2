@@ -11,6 +11,7 @@ import com.walletconnect.web3.inbox.push.event.OnMessageNotifyEventUseCase
 import com.walletconnect.web3.inbox.push.event.OnSubscriptionNotifyEventUseCase
 import com.walletconnect.web3.inbox.push.event.OnSyncUpdateNotifyEventUseCase
 import com.walletconnect.web3.inbox.push.event.OnUpdateNotifyEventUseCase
+import com.walletconnect.web3.inbox.push.request.DeleteNotifyMessageRequestUseCase
 import com.walletconnect.web3.inbox.push.request.DeleteSubscriptionRequestUseCase
 import com.walletconnect.web3.inbox.push.request.EnableSyncRequestUseCase
 import com.walletconnect.web3.inbox.push.request.GetActiveSubscriptionsRequestUseCase
@@ -34,7 +35,7 @@ internal fun notifyProxyModule(
     single { UpdateRequestUseCase(notifyClient = notifyClient, proxyInteractor = get()) }
     single { DeleteSubscriptionRequestUseCase(notifyClient = notifyClient, proxyInteractor = get()) }
     single { GetMessageHistoryRequestUseCase(notifyClient = notifyClient, proxyInteractor = get()) }
-    single { DeleteNotifyMessageRequestUseCase(notifyClient, get()) }
+    single { DeleteNotifyMessageRequestUseCase(notifyClient = notifyClient, proxyInteractor = get()) }
     single { EnableSyncRequestUseCase(notifyClient, get(), onSign) }
 
     single { OnMessageNotifyEventUseCase(proxyInteractor = get()) }
@@ -57,7 +58,7 @@ internal fun notifyProxyModule(
         deleteSubscriptionRequestUseCase = get(),
         getActiveSubscriptionsRequestUseCase = get(),
         getMessageHistoryRequestUseCase = get(),
-        deletePushMessageRequestUseCase = get(),
+        deleteNotifyMessageRequestUseCase = get(),
         enableSyncRequestUseCase = get()
     ) }
 }
