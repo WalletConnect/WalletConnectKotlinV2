@@ -11,7 +11,8 @@ import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.notify.common.model.EngineDO
+import com.walletconnect.notify.common.model.NotificationScope
+import com.walletconnect.notify.common.model.Subscription
 
 @JsonClass(generateAdapter = true)
 internal data class SyncedSubscription(
@@ -75,7 +76,7 @@ internal fun Redirect.toSync() = SyncedRedirect(
 )
 
 @JvmSynthetic
-internal fun Map<String, EngineDO.Scope.Cached>.toSync(): Map<String, SyncedScopeSetting> = mapValues {
+internal fun Map<String, NotificationScope.Cached>.toSync(): Map<String, SyncedScopeSetting> = mapValues {
     SyncedScopeSetting(
         description = it.value.description,
         enabled = it.value.isSelected
@@ -83,20 +84,20 @@ internal fun Map<String, EngineDO.Scope.Cached>.toSync(): Map<String, SyncedScop
 }
 
 @JvmSynthetic
-internal fun EngineDO.Subscription.Active.toSync(symmetricKey: SymmetricKey) = SyncedSubscription(
+internal fun Subscription.Active.toSync(symmetricKey: SymmetricKey) = SyncedSubscription(
     topic = notifyTopic.value,
     account = account.value,
     relay = relay.toSync(),
     metadata = dappMetaData!!.toSync(),
-    scope = mapOfScope.toSync(),
+    scope = mapOfNotificationScope.toSync(),
     expiry = expiry.seconds,
     symKey = symmetricKey.keyAsHex
 )
 
 @JvmSynthetic
-internal fun SyncedSubscription.toCommon(): EngineDO.Subscription.Active= EngineDO.Subscription.Active(
+internal fun SyncedSubscription.toCommon(): Subscription.Active = Subscription.Active(
     account = AccountId(account),
-    mapOfScope = scope.toCommon(),
+    mapOfNotificationScope = scope.toCommon(),
     expiry = Expiry(expiry),
     dappGeneratedPublicKey = PublicKey("There is no dapp generated public key from sync"),
     notifyTopic = Topic(topic),
@@ -105,8 +106,8 @@ internal fun SyncedSubscription.toCommon(): EngineDO.Subscription.Active= Engine
 )
 
 @JvmSynthetic
-internal fun Map<String, SyncedScopeSetting>.toCommon(): Map<String, EngineDO.Scope.Cached> = mapValues {
-    EngineDO.Scope.Cached(
+internal fun Map<String, SyncedScopeSetting>.toCommon(): Map<String, NotificationScope.Cached> = mapValues {
+    NotificationScope.Cached(
         name = it.key,
         description = it.value.description,
         isSelected = it.value.enabled

@@ -2,7 +2,8 @@
 
 package com.walletconnect.notify.data.storage
 
-import com.walletconnect.notify.common.model.EngineDO
+import com.walletconnect.notify.common.model.NotifyMessage
+import com.walletconnect.notify.common.model.NotifyRecord
 import com.walletconnect.notify.common.storage.data.dao.MessagesQueries
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -22,7 +23,7 @@ internal class MessagesRepository(private val messagesQueries: MessagesQueries) 
         messagesQueries.insertMessage(requestId, topic, publishedAt, title, body, icon, url, type)
     }
 
-    suspend fun getMessagesByTopic(topic: String): List<EngineDO.Record> = withContext(Dispatchers.IO) {
+    suspend fun getMessagesByTopic(topic: String): List<NotifyRecord> = withContext(Dispatchers.IO) {
         messagesQueries.getMessagesByTopic(topic, ::mapToMessageRecord).executeAsList()
     }
 
@@ -43,11 +44,11 @@ internal class MessagesRepository(private val messagesQueries: MessagesQueries) 
         icon: String?,
         url: String?,
         type: String,
-    ): EngineDO.Record = EngineDO.Record(
+    ): NotifyRecord = NotifyRecord(
         id = requestId,
         topic = topic,
         publishedAt = publishedAt,
-        message = EngineDO.Message(
+        notifyMessage = NotifyMessage(
             title = title,
             body = body,
             icon = icon,

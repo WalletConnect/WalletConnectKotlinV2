@@ -12,7 +12,7 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
 import com.walletconnect.foundation.common.model.Ttl
-import com.walletconnect.notify.common.model.EngineDO
+import com.walletconnect.notify.common.model.NotifyRecord
 import com.walletconnect.notify.common.model.toEngineDO
 import com.walletconnect.notify.data.storage.MessagesRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -36,13 +36,13 @@ internal class OnNotifyMessageUseCase(
             // TODO: refactor to use the RPC published at value
             val currentTime = request.id
             messagesRepository.insertMessage(request.id, request.topic.value, currentTime, params.title, params.body, params.icon, params.url, params.type)
-            val messageRecord = EngineDO.Record(
+            val notifyRecord = NotifyRecord(
                 id = request.id,
                 topic = request.topic.value,
                 publishedAt = currentTime,
-                message = params.toEngineDO()
+                notifyMessage = params.toEngineDO()
             )
-            scope.launch { _events.emit(messageRecord) }
+            scope.launch { _events.emit(notifyRecord) }
         } catch (e: Exception) {
             jsonRpcInteractor.respondWithError(
                 request,

@@ -8,14 +8,15 @@ import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtCl
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.params.NotifyParams
-import com.walletconnect.android.internal.common.model.type.EngineEvent;
+import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.notify.common.calcExpiry
+import com.walletconnect.notify.common.model.NotificationScope
+import com.walletconnect.notify.common.model.UpdateSubscription
+import com.walletconnect.notify.common.model.toDb
 import com.walletconnect.notify.data.jwt.NotifySubscriptionJwtClaim
 import com.walletconnect.notify.data.storage.SubscriptionRepository
-import com.walletconnect.notify.common.model.EngineDO
-import com.walletconnect.notify.common.model.toDb
-import kotlinx.coroutines.flow.MutableSharedFlow;
-import kotlinx.coroutines.flow.SharedFlow;
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.supervisorScope
 
@@ -36,25 +37,25 @@ internal class OnNotifyUpdateResponseUseCase(
                         return@supervisorScope
                     }
                     val listOfUpdateScopeNames = notifyUpdateJwtClaim.scope.split(" ")
-                    val updateScopeMap: Map<String, EngineDO.Scope.Cached> = subscription.mapOfScope.entries.associate { (scopeName, scopeDescIsSelected) ->
+                    val updateNotificationScopeMap: Map<String, NotificationScope.Cached> = subscription.mapOfNotificationScope.entries.associate { (scopeName, scopeDescIsSelected) ->
                         val (desc, _) = scopeDescIsSelected
                         val isNewScopeTrue = listOfUpdateScopeNames.contains(scopeName)
 
-                        scopeName to EngineDO.Scope.Cached(scopeName, desc, isNewScopeTrue)
+                        scopeName to NotificationScope.Cached(scopeName, desc, isNewScopeTrue)
                     }
                     val newExpiry = calcExpiry()
 
                     subscriptionRepository.updateSubscriptionScopeAndJwtByNotifyTopic(
                         subscription.notifyTopic.value,
-                        updateScopeMap.toDb(),
+                        updateNotificationScopeMap.toDb(),
                         newExpiry.seconds
                     )
 
-                    with(subscription) { EngineDO.Update.Result(account, mapOfScope, expiry, dappGeneratedPublicKey, notifyTopic, dappMetaData, relay) }
+                    with(subscription) { UpdateSubscription.Result(account, mapOfNotificationScope, expiry, dappGeneratedPublicKey, notifyTopic, dappMetaData, relay) }
                 }
 
                 is JsonRpcResponse.JsonRpcError -> {
-                    EngineDO.Update.Error(wcResponse.response.id, response.error.message)
+                    UpdateSubscription.Error(wcResponse.response.id, response.error.message)
                 }
             }
         } catch (exception: Exception) {

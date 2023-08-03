@@ -11,8 +11,8 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
+import com.walletconnect.notify.common.model.DeleteSubscription
 import com.walletconnect.notify.data.storage.SubscriptionRepository
-import com.walletconnect.notify.common.model.EngineDO
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -40,7 +40,7 @@ internal class OnNotifyDeleteUseCase(
                 jsonRpcInteractor.unsubscribe(subscription.notifyTopic)
                 subscriptionRepository.deleteSubscriptionByNotifyTopic(subscription.notifyTopic.value)
 
-                EngineDO.Delete(request.topic.value)
+                DeleteSubscription(request.topic.value)
             }
         } catch (e: Exception) {
             SDKError(e)

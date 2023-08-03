@@ -7,7 +7,8 @@ import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.notify.common.model.EngineDO
+import com.walletconnect.notify.common.model.NotificationScope
+import com.walletconnect.notify.common.model.Subscription
 import com.walletconnect.notify.common.storage.data.dao.ActiveSubscriptionsQueries
 import com.walletconnect.notify.common.storage.data.dao.RequestedSubscriptionQueries
 import kotlinx.coroutines.Dispatchers
@@ -57,15 +58,15 @@ internal class SubscriptionRepository(
         activeSubscriptionsQueries.updateSubscriptionScopeAndExpiryByNotifyTopic(updateScope, newExpiry, notifyTopic)
     }
 
-    suspend fun getActiveSubscriptionByNotifyTopic(notifyTopic: String): EngineDO.Subscription.Active? = withContext(Dispatchers.IO) {
+    suspend fun getActiveSubscriptionByNotifyTopic(notifyTopic: String): Subscription.Active? = withContext(Dispatchers.IO) {
         activeSubscriptionsQueries.getActiveSubscriptionByNotifyTopic(notifyTopic, ::toActiveSubscriptionWithoutMetadata).executeAsOneOrNull()
     }
 
-    suspend fun getAllActiveSubscriptions(): List<EngineDO.Subscription.Active> = withContext(Dispatchers.IO) {
+    suspend fun getAllActiveSubscriptions(): List<Subscription.Active> = withContext(Dispatchers.IO) {
         activeSubscriptionsQueries.getAllActiveSubscriptions(::toActiveSubscriptionWithoutMetadata).executeAsList()
     }
 
-    suspend fun getRequestedSubscriptionByRequestId(requestId: Long): EngineDO.Subscription.Requested? = withContext(Dispatchers.IO) {
+    suspend fun getRequestedSubscriptionByRequestId(requestId: Long): Subscription.Requested? = withContext(Dispatchers.IO) {
         requestedSubscriptionQueries.getRequestedSubscriptionByRequestId(requestId, ::toRequestedSubscription).executeAsOneOrNull()
     }
 
@@ -85,9 +86,9 @@ internal class SubscriptionRepository(
         dapp_generated_public_key: String,
         notify_topic: String,
         requested_subscription_id: Long?,
-    ): EngineDO.Subscription.Active = EngineDO.Subscription.Active(
+    ): Subscription.Active = Subscription.Active(
         account = AccountId(account),
-        mapOfScope = map_of_scope.map { entry -> entry.key to EngineDO.Scope.Cached(entry.key, entry.value.first, entry.value.second) }.toMap(),
+        mapOfNotificationScope = map_of_scope.map { entry -> entry.key to NotificationScope.Cached(entry.key, entry.value.first, entry.value.second) }.toMap(),
         expiry = Expiry(expiry),
         relay = RelayProtocolOptions(relay_protocol, relay_data),
         dappGeneratedPublicKey = PublicKey(dapp_generated_public_key),
@@ -95,7 +96,6 @@ internal class SubscriptionRepository(
         dappMetaData = null,
         requestedSubscriptionId = requested_subscription_id
     )
-
 
     @Suppress("LocalVariableName")
     private fun toRequestedSubscription(
@@ -105,11 +105,11 @@ internal class SubscriptionRepository(
         map_of_scope: Map<String, Pair<String, Boolean>>,
         response_topic: String,
         expiry: Long,
-    ): EngineDO.Subscription.Requested = EngineDO.Subscription.Requested(
+    ): Subscription.Requested = Subscription.Requested(
         requestId = request_id,
         responseTopic = Topic(response_topic),
         account = AccountId(account),
-        mapOfScope = map_of_scope.map { entry -> entry.key to EngineDO.Scope.Cached(entry.key, entry.value.first, entry.value.second) }.toMap(),
+        mapOfNotificationScope = map_of_scope.map { entry -> entry.key to NotificationScope.Cached(entry.key, entry.value.first, entry.value.second) }.toMap(),
         expiry = Expiry(expiry),
         subscribeTopic = Topic(subscribe_topic),
     )

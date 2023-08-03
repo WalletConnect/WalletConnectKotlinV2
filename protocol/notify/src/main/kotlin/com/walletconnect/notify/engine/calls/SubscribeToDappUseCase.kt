@@ -28,7 +28,7 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.notify.common.calcExpiry
-import com.walletconnect.notify.common.model.EngineDO
+import com.walletconnect.notify.common.model.NotificationScope
 import com.walletconnect.notify.common.model.NotifyRpc
 import com.walletconnect.notify.data.storage.SubscriptionRepository
 import com.walletconnect.notify.data.wellknown.did.DidJsonDTO
@@ -53,7 +53,7 @@ internal class SubscribeToDappUseCase(
 ) : SubscribeToDappUseCaseInterface {
 
     override suspend fun subscribeToDapp(dappUri: Uri, account: String, onSign: (String) -> Cacao.Signature?, onSuccess: (Long, DidJwt) -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
-        val dappWellKnownProperties: Result<Pair<PublicKey, List<EngineDO.Scope.Remote>>> = runCatching {
+        val dappWellKnownProperties: Result<Pair<PublicKey, List<NotificationScope.Remote>>> = runCatching {
             extractDidJson(dappUri).getOrThrow() to extractNotifyConfigUseCase(dappUri).getOrThrow()
         }
 

@@ -18,11 +18,12 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.notify.common.calcExpiry
+import com.walletconnect.notify.common.model.Error
+import com.walletconnect.notify.common.model.Subscription
+import com.walletconnect.notify.common.model.toDb
 import com.walletconnect.notify.data.storage.SubscriptionRepository
-import com.walletconnect.notify.common.model.EngineDO
 import com.walletconnect.notify.engine.domain.EngineNotifySubscriptionNotifier
 import com.walletconnect.notify.engine.sync.use_case.requests.SetSubscriptionWithSymmetricKeyToNotifySubscriptionStoreUseCase
-import com.walletconnect.notify.common.model.toDb
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -47,7 +48,7 @@ internal class OnNotifySubscribeResponseUseCase(
         try {
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcResult -> {
-                    val requestedSubscription: EngineDO.Subscription.Requested = subscriptionRepository.getRequestedSubscriptionByRequestId(response.id)
+                    val requestedSubscription: Subscription.Requested = subscriptionRepository.getRequestedSubscriptionByRequestId(response.id)
                         ?: return@supervisorScope _events.emit(SDKError(Resources.NotFoundException("Cannot find subscription for topic: ${wcResponse.topic.value}")))
 
                     // TODO: Add an entry in JsonRpcResultAdapter and create data class for response
@@ -64,7 +65,7 @@ internal class OnNotifySubscribeResponseUseCase(
                                 updatedExpiry.seconds,
                                 relayProtocolOptions.protocol,
                                 relayProtocolOptions.data,
-                                mapOfScope.toDb(),
+                                mapOfNotificationScope.toDb(),
                                 dappGeneratedPublicKey.keyAsHex,
                                 notifyTopic.value,
                                 requestedSubscription.requestId
@@ -76,7 +77,7 @@ internal class OnNotifySubscribeResponseUseCase(
                         val activeSubscription = with(requestedSubscription) {
                             val dappMetaData: AppMetaData? = metadataStorageRepository.getByTopicAndType(notifyTopic, AppMetaDataType.PEER)
 
-                            EngineDO.Subscription.Active(account, mapOfScope, expiry, dappGeneratedPublicKey, notifyTopic, dappMetaData, requestedSubscription.requestId)
+                            Subscription.Active(account, mapOfNotificationScope, expiry, dappGeneratedPublicKey, notifyTopic, dappMetaData, requestedSubscription.requestId)
                         }
 
                         jsonRpcInteractor.subscribe(notifyTopic) { error ->
@@ -105,7 +106,7 @@ internal class OnNotifySubscribeResponseUseCase(
                 }
 
                 is JsonRpcResponse.JsonRpcError -> {
-                    _events.emit(EngineDO.Subscription.Error(wcResponse.response.id, response.error.message))
+                    _events.emit(Error(wcResponse.response.id, response.error.message))
                 }
             }
         } catch (exception: Exception) {

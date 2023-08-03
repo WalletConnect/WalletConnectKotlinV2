@@ -4,7 +4,11 @@ import com.walletconnect.android.internal.common.di.DatabaseConfig
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.notify.common.model.EngineDO
+import com.walletconnect.notify.common.model.DeleteSubscription
+import com.walletconnect.notify.common.model.Error
+import com.walletconnect.notify.common.model.NotifyRecord
+import com.walletconnect.notify.common.model.Subscription
+import com.walletconnect.notify.common.model.UpdateSubscription
 import com.walletconnect.notify.common.model.toClient
 import com.walletconnect.notify.common.model.toEvent
 import com.walletconnect.notify.common.model.toModel
@@ -49,12 +53,12 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
 
         notifyEngine.engineEvent.onEach { event ->
             when (event) {
-                is EngineDO.Subscription.Active -> delegate.onNotifySubscription(event.toEvent())
-                is EngineDO.Subscription.Error -> delegate.onNotifySubscription(event.toWalletClient())
-                is EngineDO.Record -> delegate.onNotifyMessage(Notify.Event.Message(event.toWalletClient()))
-                is EngineDO.Update.Result -> delegate.onNotifyUpdate(event.toWalletClient())
-                is EngineDO.Update.Error -> delegate.onNotifyUpdate(event.toWalletClient())
-                is EngineDO.Delete -> delegate.onNotifyDelete(event.toWalletClient())
+                is Subscription.Active -> delegate.onNotifySubscription(event.toEvent())
+                is Error -> delegate.onNotifySubscription(event.toWalletClient())
+                is NotifyRecord -> delegate.onNotifyMessage(Notify.Event.Message(event.toWalletClient()))
+                is UpdateSubscription.Result -> delegate.onNotifyUpdate(event.toWalletClient())
+                is UpdateSubscription.Error -> delegate.onNotifyUpdate(event.toWalletClient())
+                is DeleteSubscription -> delegate.onNotifyDelete(event.toWalletClient())
                 is SDKError -> delegate.onError(event.toClient())
             }
         }.launchIn(scope)

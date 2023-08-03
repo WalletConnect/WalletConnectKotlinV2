@@ -49,7 +49,7 @@ internal class OnSubscriptionUpdateEventUseCase(
                             expiry.seconds,
                             relay.protocol,
                             relay.data,
-                            mapOfScope.toDb(),
+                            mapOfNotificationScope.toDb(),
                             dappGeneratedPublicKey.keyAsHex,
                             notifyTopic.value,
                             null,
