@@ -14,7 +14,7 @@ import com.walletconnect.notify.engine.calls.GetListOfActiveSubscriptionsUseCase
 import com.walletconnect.notify.engine.calls.GetListOfActiveSubscriptionsUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetListOfMessagesUseCase
 import com.walletconnect.notify.engine.calls.GetListOfMessagesUseCaseInterface
-import com.walletconnect.notify.engine.calls.GetNotificationTypesInterface
+import com.walletconnect.notify.engine.calls.GetNotificationTypesUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetNotificationTypesUseCase
 import com.walletconnect.notify.engine.calls.SubscribeToDappUseCase
 import com.walletconnect.notify.engine.calls.SubscribeToDappUseCaseInterface
@@ -78,7 +78,7 @@ internal fun callModule() = module {
         )
     }
 
-    single<GetNotificationTypesInterface> {
+    single<GetNotificationTypesUseCaseInterface> {
         GetNotificationTypesUseCase()
     }
 

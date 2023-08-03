@@ -2,11 +2,11 @@
 
 package com.walletconnect.notify.engine.calls
 
-internal class GetNotificationTypesUseCase: GetNotificationTypesInterface {
+internal class GetNotificationTypesUseCase: GetNotificationTypesUseCaseInterface {
     override suspend fun getNotificationTypes(domain: String, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
     }
 }
 
-internal interface GetNotificationTypesInterface {
+internal interface GetNotificationTypesUseCaseInterface {
     suspend fun getNotificationTypes(domain: String, onSuccess: () -> Unit, onError: (Throwable) -> Unit)
 }
