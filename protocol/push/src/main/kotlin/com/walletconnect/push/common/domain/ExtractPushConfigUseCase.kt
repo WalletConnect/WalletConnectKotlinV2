@@ -20,7 +20,7 @@ class ExtractPushConfigUseCase(private val serializer: JsonRpcSerializer,) {
         }
 
         val wellKnownPushConfigString = URL(pushConfigDappUri.toString()).openStream().bufferedReader().use { it.readText() }
-        val pushConfig = serializer.tryDeserialize<PushConfigDTO>(wellKnownPushConfigString) ?: return@withContext Result.failure(Exception("Failed to parse well-known/wc-push-config.json"))
+        val pushConfig = serializer.tryDeserialize<PushConfigDTO>(wellKnownPushConfigString) ?: return@withContext Result.failure(Exception("Failed to parse $WC_PUSH_CONFIG_JSON"))
         val pushScopeRemote = pushConfig.types.map { typeDTO ->
             EngineDO.PushScope.Remote(
                 name = typeDTO.name,

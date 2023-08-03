@@ -22,7 +22,7 @@ internal class ExtractNotifyConfigUseCase(private val serializer: JsonRpcSeriali
         }
 
         val wellKnownNotifyConfigString = URL(notifyConfigDappUri.toString()).openStream().bufferedReader().use { it.readText() }
-        val notifyConfig = serializer.tryDeserialize<NotifyConfigDTO>(wellKnownNotifyConfigString) ?: return@withContext Result.failure(Exception("Failed to parse well-known/wc-notify-config.json"))
+        val notifyConfig = serializer.tryDeserialize<NotifyConfigDTO>(wellKnownNotifyConfigString) ?: return@withContext Result.failure(Exception("Failed to parse $WC_NOTIFY_CONFIG_JSON"))
         val scopeRemote = notifyConfig.types.map { typeDTO ->
             EngineDO.Scope.Remote(
                 name = typeDTO.name,
