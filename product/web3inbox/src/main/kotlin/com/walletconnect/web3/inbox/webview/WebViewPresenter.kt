@@ -42,7 +42,7 @@ internal class WebViewPresenter(
         mapOf(
             WEB3INBOX_CHAT_PROVIDER_TYPE_KEY to WEB3INBOX_PROVIDER_TYPE_VALUE,
             WEB3INBOX_AUTH_PROVIDER_TYPE_KEY to WEB3INBOX_AUTH_PROVIDER_TYPE_VALUE,
-            WEB3INBOX_PUSH_PROVIDER_TYPE_KEY to WEB3INBOX_PROVIDER_TYPE_VALUE,
+            WEB3INBOX_NOTIFY_PROVIDER_TYPE_KEY to WEB3INBOX_PROVIDER_TYPE_VALUE,
             WEB3INBOX_CHAT_ENABLED_KEY to config.isChatEnabled.toString(),
             WEB3INBOX_SETTINGS_ENABLED_KEY to config.areSettingsEnabled.toString(),
             WEB3INBOX_PUSH_ENABLED_KEY to config.isNotifyEnabled.toString(),
@@ -54,7 +54,7 @@ internal class WebViewPresenter(
         const val WEB3INBOX_URL = "https://web3inbox-dev-hidden.vercel.app"
 
         const val WEB3INBOX_CHAT_PROVIDER_TYPE_KEY = "chatProvider"
-        const val WEB3INBOX_PUSH_PROVIDER_TYPE_KEY = "pushProvider"
+        const val WEB3INBOX_NOTIFY_PROVIDER_TYPE_KEY = "notifyProvider"
         const val WEB3INBOX_AUTH_PROVIDER_TYPE_KEY = "authProvider"
 
         const val WEB3INBOX_CHAT_ENABLED_KEY = "chatEnabled"
