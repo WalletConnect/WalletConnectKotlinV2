@@ -1,6 +1,6 @@
 @file:JvmSynthetic
 
-package com.walletconnect.push.engine.calls
+package com.walletconnect.notify.engine.calls
 
 import android.net.Uri
 import android.util.Base64
@@ -18,7 +18,7 @@ import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Participants
 import com.walletconnect.android.internal.common.model.Redirect
 import com.walletconnect.android.internal.common.model.Tags
-import com.walletconnect.android.internal.common.model.params.PushParams
+import com.walletconnect.android.internal.common.model.params.NotifyParams
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
@@ -27,24 +27,23 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
-import com.walletconnect.push.common.calcExpiry
-import com.walletconnect.push.common.data.storage.SubscriptionRepository
-import com.walletconnect.push.common.domain.ExtractPushConfigUseCase
-import com.walletconnect.push.common.model.EngineDO
-import com.walletconnect.push.common.model.PushRpc
-import com.walletconnect.push.data.wellknown.did.DidJsonDTO
-import com.walletconnect.push.engine.domain.RegisterIdentityAndReturnDidJwtUseCaseInterface
+import com.walletconnect.notify.common.calcExpiry
+import com.walletconnect.notify.common.model.NotificationScope
+import com.walletconnect.notify.common.model.NotifyRpc
+import com.walletconnect.notify.data.storage.SubscriptionRepository
+import com.walletconnect.notify.data.wellknown.did.DidJsonDTO
+import com.walletconnect.notify.engine.domain.ExtractNotifyConfigUseCase
+import com.walletconnect.notify.engine.domain.RegisterIdentityAndReturnDidJwtUseCaseInterface
 import com.walletconnect.util.bytesToHex
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import java.net.URL
 
-// Specs: https://docs.walletconnect.com/2.0/specs/clients/push/push-subscribe
 internal class SubscribeToDappUseCase(
     private val serializer: JsonRpcSerializer,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
-    private val extractPushConfigUseCase: ExtractPushConfigUseCase,
+    private val extractNotifyConfigUseCase: ExtractNotifyConfigUseCase,
     private val subscriptionRepository: SubscriptionRepository,
     private val crypto: KeyManagementRepository,
     private val explorerRepository: ExplorerRepository,
@@ -54,8 +53,8 @@ internal class SubscribeToDappUseCase(
 ) : SubscribeToDappUseCaseInterface {
 
     override suspend fun subscribeToDapp(dappUri: Uri, account: String, onSign: (String) -> Cacao.Signature?, onSuccess: (Long, DidJwt) -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
-        val dappWellKnownProperties: Result<Pair<PublicKey, List<EngineDO.PushScope.Remote>>> = runCatching {
-            extractDidJson(dappUri).getOrThrow() to extractPushConfigUseCase(dappUri).getOrThrow()
+        val dappWellKnownProperties: Result<Pair<PublicKey, List<NotificationScope.Remote>>> = runCatching {
+            extractDidJson(dappUri).getOrThrow() to extractNotifyConfigUseCase(dappUri).getOrThrow()
         }
 
         dappWellKnownProperties.fold(
@@ -73,11 +72,11 @@ internal class SubscribeToDappUseCase(
                 val didJwt = registerIdentityAndReturnDidJwt(AccountId(account), dappUri.toString(), dappScopes.map { it.name }, onSign, onFailure).getOrElse { error ->
                     return@fold onFailure(error)
                 }
-                val params = PushParams.SubscribeParams(didJwt.value)
-                val request = PushRpc.PushSubscribe(params = params)
-                val irnParams = IrnParams(Tags.PUSH_SUBSCRIBE, Ttl(DAY_IN_SECONDS))
+                val params = NotifyParams.SubscribeParams(didJwt.value)
+                val request = NotifyRpc.NotifySubscribe(params = params)
+                val irnParams = IrnParams(Tags.NOTIFY_SUBSCRIBE, Ttl(DAY_IN_SECONDS))
 
-                runCatching {
+                runCatching<Unit> {
                     subscriptionRepository.insertOrAbortRequestedSubscription(
                         requestId = request.id,
                         subscribeTopic = subscribeTopic.value,

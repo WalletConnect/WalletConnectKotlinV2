@@ -7,13 +7,13 @@ plugins {
 }
 
 project.apply {
-    extra[KEY_PUBLISH_ARTIFACT_ID] = "push"
-    extra[KEY_PUBLISH_VERSION] = PUSH_VERSION
-    extra[KEY_SDK_NAME] = "Push"
+    extra[KEY_PUBLISH_ARTIFACT_ID] = "notify"
+    extra[KEY_PUBLISH_VERSION] = NOTIFY_VERSION
+    extra[KEY_SDK_NAME] = "Notify"
 }
 
 android {
-    namespace = "com.walletconnect.push"
+    namespace = "com.walletconnect.notify"
     compileSdk = COMPILE_SDK
 
     defaultConfig {
@@ -32,12 +32,10 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "${rootDir.path}/gradle/proguard-rules/sdk-rules.pro")
         }
     }
-
     compileOptions {
         sourceCompatibility = jvmVersion
         targetCompatibility = jvmVersion
     }
-
     kotlinOptions {
         jvmTarget = jvmVersion.toString()
         freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.time.ExperimentalTime"
@@ -54,8 +52,8 @@ android {
 }
 
 sqldelight {
-    database("PushDatabase") {
-        packageName = "com.walletconnect.push"
+    database("NotifyDatabase") {
+        packageName = "com.walletconnect.notify"
         schemaOutputDirectory = file("src/main/sqldelight/databases")
         verifyMigrations = true
     }

@@ -11,10 +11,6 @@ val excludedDirs = listOf(
     "gradle",
     "docs",
     "licenses",
-    "signSDK",
-    "chatSDK",
-    "authSDK",
-    "coreSDK",
     "walletconnectv2"
 )
 // TODO: Add to rootModules when new module is added to the project root directory
