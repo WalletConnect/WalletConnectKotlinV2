@@ -8,7 +8,7 @@ import com.walletconnect.android.sync.client.Sync
 import com.walletconnect.android.sync.client.SyncInterface
 import com.walletconnect.android.sync.common.model.Store
 import com.walletconnect.foundation.util.Logger
-import com.walletconnect.push.engine.sync.PushSyncStores
+import com.walletconnect.push.engine.sync.NotifySyncStores
 import kotlinx.coroutines.launch
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -53,10 +53,10 @@ internal class SetupSyncInPushUseCase(
      */
     private fun registerPushStoresInSync(accountId: AccountId, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
         // Register blocking current thread all stores necessary to sync push state
-        val countDownLatch = CountDownLatch(PushSyncStores.values().size)
+        val countDownLatch = CountDownLatch(NotifySyncStores.values().size)
 
         // Note: When I tried registering all stores simultaneously I had issues with getting right values, when doing it sequentially it works
-        PushSyncStores.values().forEach { store ->
+        NotifySyncStores.values().forEach { store ->
             syncClient.create(
                 Sync.Params.Create(accountId, Store(store.value)),
                 onSuccess = { countDownLatch.countDown() },
