@@ -2,8 +2,8 @@
 
 package com.walletconnect.notify.engine.sync.use_case
 
-import com.walletconnect.android.history.HistoryInterface
-import com.walletconnect.android.history.network.model.messages.MessagesParams
+import com.walletconnect.android.archive.ArchiveInterface
+import com.walletconnect.android.archive.network.model.messages.MessagesParams
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.sync.client.Sync
 import com.walletconnect.android.sync.client.SyncInterface
@@ -15,7 +15,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 internal class GetMessagesFromHistoryUseCase(
-    private val historyInterface: HistoryInterface,
+    private val archiveInterface: ArchiveInterface,
     private val syncClient: SyncInterface,
     private val logger: Logger,
 ) {
@@ -30,8 +30,8 @@ internal class GetMessagesFromHistoryUseCase(
         // Note: When I tried registering all stores simultaneously I had issues with getting right values, when doing it sequentially it works
         NotifySyncStores.values().forEach { store ->
             syncClient.getStoreTopic(Sync.Params.GetStoreTopics(accountId, store.value))?.let { topic ->
-                historyInterface.getAllMessages(
-                    MessagesParams(topic.value, null, HistoryInterface.DEFAULT_BATCH_SIZE, null),
+                archiveInterface.getAllMessages(
+                    MessagesParams(topic.value, null, ArchiveInterface.DEFAULT_BATCH_SIZE, null),
                     onError = { error -> onError(error.throwable) },
                     onSuccess = {
                         logger.log("Fetched ${it.size} for ${store.value}")

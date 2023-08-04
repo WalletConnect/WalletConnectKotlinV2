@@ -3,8 +3,8 @@
 package com.walletconnect.notify.engine.sync.use_case.events
 
 import com.squareup.moshi.Moshi
-import com.walletconnect.android.history.HistoryInterface
-import com.walletconnect.android.history.network.model.messages.MessagesParams
+import com.walletconnect.android.archive.ArchiveInterface
+import com.walletconnect.android.archive.network.model.messages.MessagesParams
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.SymmetricKey
@@ -26,7 +26,7 @@ internal class OnSubscriptionUpdateEventUseCase(
     private val keyManagementRepository: KeyManagementRepository,
     private val messagesRepository: MessagesRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
-    private val historyInterface: HistoryInterface,
+    private val archiveInterface: ArchiveInterface,
     private val subscriptionRepository: SubscriptionRepository,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     @Suppress("LocalVariableName") _moshi: Moshi.Builder,
@@ -77,8 +77,8 @@ internal class OnSubscriptionUpdateEventUseCase(
     }
 
     private suspend fun getNotifyMessagesFromHistory(notifyTopic: Topic, onSuccess: (Int) -> Unit) {
-        historyInterface.getAllMessages(
-            MessagesParams(notifyTopic.value, null, HistoryInterface.DEFAULT_BATCH_SIZE, null),
+        archiveInterface.getAllMessages(
+            MessagesParams(notifyTopic.value, null, ArchiveInterface.DEFAULT_BATCH_SIZE, null),
             onError = { error -> logger.error(error.throwable) },
             onSuccess = { onSuccess(it.size) }
         )

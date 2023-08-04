@@ -2,7 +2,7 @@
 
 package com.walletconnect.notify.engine
 
-import com.walletconnect.android.history.HistoryInterface
+import com.walletconnect.android.archive.ArchiveInterface
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
@@ -46,7 +46,7 @@ internal class NotifyEngine(
     private val pairingHandler: PairingControllerInterface,
     private val syncClient: SyncInterface,
     private val onSyncUpdateEventUseCase: OnSyncUpdateEventUseCase,
-    private val historyInterface: HistoryInterface,
+    private val archiveInterface: ArchiveInterface,
     private val subscribeToDappUseCase: SubscribeToDappUseCaseInterface,
     private val updateUseCase: UpdateSubscriptionRequestUseCaseInterface,
     private val deleteSubscriptionUseCase: DeleteSubscriptionUseCaseInterface,
@@ -110,7 +110,7 @@ internal class NotifyEngine(
 
     private suspend fun registerTagsInHistory() {
         // Sync are here since History Server expects only one register call
-        historyInterface.registerTags(tags = listOf(Tags.NOTIFY_MESSAGE, Tags.SYNC_SET, Tags.SYNC_DELETE), {}, { error -> logger.error(error.throwable) })
+        archiveInterface.registerTags(tags = listOf(Tags.NOTIFY_MESSAGE, Tags.SYNC_SET, Tags.SYNC_DELETE), {}, { error -> logger.error(error.throwable) })
     }
 
     private suspend fun collectJsonRpcRequests(): Job =
