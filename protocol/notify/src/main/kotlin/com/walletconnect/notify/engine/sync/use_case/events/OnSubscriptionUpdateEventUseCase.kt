@@ -43,7 +43,7 @@ internal class OnSubscriptionUpdateEventUseCase(
                 keyManagementRepository.setKey(SymmetricKey(syncedSubscription.symKey), activeSubscription.notifyTopic.value)
 
                 with(activeSubscription) {
-                    runCatching {
+                    runCatching<Unit> {
                         subscriptionRepository.insertOrAbortActiveSubscription(
                             account.value,
                             expiry.seconds,
