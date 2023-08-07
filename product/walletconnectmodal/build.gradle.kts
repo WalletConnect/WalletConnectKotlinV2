@@ -3,6 +3,7 @@ plugins {
     kotlin("android")
     id("com.google.devtools.ksp") version kspVersion
     id("publish-module-android")
+    id("app.cash.paparazzi") version paparazziVersion
 }
 
 project.apply {
