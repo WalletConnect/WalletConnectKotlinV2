@@ -1,12 +1,10 @@
-@file:OptIn(ExperimentalMaterialNavigationApi::class, ExperimentalMaterialApi::class)
+@file:OptIn(ExperimentalMaterialNavigationApi::class)
 
 package com.walletconnect.sample.web3inbox.ui.routes
 
-import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.ModalBottomSheetState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.*
 import androidx.navigation.compose.NavHost
@@ -16,48 +14,47 @@ import com.google.accompanist.navigation.material.ExperimentalMaterialNavigation
 import com.google.accompanist.navigation.material.ModalBottomSheetLayout
 import com.walletconnect.sample.web3inbox.ui.routes.select_account.AccountRoute
 import com.walletconnect.sample.web3inbox.ui.routes.home.HomeRoute
+import com.walletconnect.wcmodal.ui.theme.WalletConnectModalTheme
 import com.walletconnect.wcmodal.ui.walletConnectModalGraph
 
-@OptIn(ExperimentalMaterialNavigationApi::class, ExperimentalAnimationApi::class)
+@OptIn(ExperimentalMaterialNavigationApi::class)
 @Composable
 fun W3ISampleNavGraph(
-    sheetState: ModalBottomSheetState,
     bottomSheetNavigator: BottomSheetNavigator,
     navController: NavHostController,
 ) {
-    val backStackEntry =
-    ModalBottomSheetLayout(
-        bottomSheetNavigator = bottomSheetNavigator,
-        sheetBackgroundColor = Color.Transparent,
-        sheetElevation = 0.dp,
-        scrimColor = Color.Unspecified
+    WalletConnectModalTheme(
+        accentColor = MaterialTheme.colors.primary,
+        onAccentColor = MaterialTheme.colors.onPrimary
     ) {
-        NavHost(
-            navController = navController,
-            startDestination = Route.SelectAccount.path
+        ModalBottomSheetLayout(
+            bottomSheetNavigator = bottomSheetNavigator,
+            sheetShape = RoundedCornerShape(topEnd = 12.dp, topStart = 12.dp)
         ) {
-            composable(Route.SelectAccount.path) {
-                AccountRoute(navController)
+            NavHost(
+                navController = navController,
+                startDestination = Route.SelectAccount.path
+            ) {
+                composable(Route.SelectAccount.path) {
+                    AccountRoute(navController)
+                }
+                composable(Route.Home.path + "/{$accountArg}", arguments = listOf(navArgument(accountArg) { type = NavType.StringType })) { navBackStackEntry ->
+                    HomeRoute(navController, navBackStackEntry.arguments?.getString(accountArg)!!)
+                }
+                walletConnectModalGraph(navController)
             }
-            composable(Route.Home.path + "/{$accountArg}", arguments = listOf(navArgument(accountArg) { type = NavType.StringType })) { navBackStackEntry ->
-                HomeRoute(navController, navBackStackEntry.arguments?.getString(accountArg)!!)
-            }
-            walletConnectModalGraph(navController)
         }
     }
 }
 
-const val  accountArg = "accountArg"
-
+const val accountArg = "accountArg"
 
 fun NavController.navigateToW3I(selectedAccount: String) {
     navigate(Route.Home.path + "/$selectedAccount")
 }
 
-
 fun NavController.navigateToSelectAccount() {
-    navigate(Route.SelectAccount.path)
+    navigate(Route.SelectAccount.path) {
+        popUpTo(Route.SelectAccount.path) { inclusive = true }
+    }
 }
-
-
-
