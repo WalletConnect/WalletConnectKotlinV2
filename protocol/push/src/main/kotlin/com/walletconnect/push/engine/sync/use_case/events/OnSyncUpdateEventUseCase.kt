@@ -1,7 +1,7 @@
 package com.walletconnect.push.engine.sync.use_case.events
 
 import com.walletconnect.android.sync.common.model.Events
-import com.walletconnect.push.engine.sync.PushSyncStores
+import com.walletconnect.push.engine.sync.NotifySyncStores
 
 
 internal class OnSyncUpdateEventUseCase(
@@ -9,7 +9,7 @@ internal class OnSyncUpdateEventUseCase(
 ) {
     suspend operator fun invoke(event: Events.OnSyncUpdate) {
         when (event.store.value) {
-            PushSyncStores.PUSH_SUBSCRIPTION.value -> onSubscriptionUpdateEventUseCase(event)
+            NotifySyncStores.NOTIFY_SUBSCRIPTION.value -> onSubscriptionUpdateEventUseCase(event)
         }
     }
 }

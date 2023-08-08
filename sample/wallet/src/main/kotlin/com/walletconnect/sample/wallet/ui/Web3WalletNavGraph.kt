@@ -28,7 +28,6 @@ import com.walletconnect.sample.wallet.ui.routes.composable_routes.notifications
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.web3inbox.Web3InboxRoute
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.auth_request.AuthRequestRoute
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.paste_uri.PasteUriRoute
-import com.walletconnect.sample.wallet.ui.routes.dialog_routes.push_request.PushRequestRoute
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.session_proposal.SessionProposalRoute
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.session_request.SessionRequestRoute
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.snackbar_message.SnackbarMessageRoute
@@ -87,48 +86,6 @@ fun Web3WalletNavGraph(
             }
             dialog(Route.SessionRequest.path, deepLinks = listOf(NavDeepLink("kotlin-web3wallet:/request")), dialogProperties = DialogProperties(usePlatformDefaultWidth = false)) {
                 SessionRequestRoute(navController)
-            }
-            dialog("${Route.PushRequest.path}?${Route.PushRequest.KEY_REQUEST_ID}={requestId}&${Route.PushRequest.KEY_PEER_NAME}={peerName}&${Route.PushRequest.KEY_PEER_DESC}={peerDesc}&${Route.PushRequest.KEY_ICON_URL}={iconUrl}&${Route.PushRequest.KEY_REDIRECT}={redirect}",
-                arguments = listOf(
-                    navArgument("requestId") { type = NavType.LongType },
-                    navArgument("peerName") { type = NavType.StringType },
-                    navArgument("peerDesc") { type = NavType.StringType },
-                    navArgument("iconUrl") { type = NavType.StringType },
-                    navArgument("redirect") {
-                        nullable = true
-                        type = NavType.StringType
-                    }
-                ),
-                dialogProperties = DialogProperties(usePlatformDefaultWidth = false)) { backStackEntry ->
-                PushRequestRoute(
-                    navController,
-                    backStackEntry.arguments?.getLong("requestId")!!,
-                    backStackEntry.arguments?.getString("peerName")!!,
-                    backStackEntry.arguments?.getString("peerDesc")!!,
-                    backStackEntry.arguments?.getString("iconUrl"),
-                    backStackEntry.arguments?.getString("redirect"),
-                )
-            }
-            dialog("${Route.PushProposal.path}?${Route.PushProposal.KEY_REQUEST_ID}={requestId}&${Route.PushProposal.KEY_PEER_NAME}={peerName}&${Route.PushProposal.KEY_PEER_DESC}={peerDesc}&${Route.PushProposal.KEY_ICON_URL}={iconUrl}&${Route.PushProposal.KEY_REDIRECT}={redirect}",
-                arguments = listOf(
-                    navArgument("requestId") { type = NavType.LongType },
-                    navArgument("peerName") { type = NavType.StringType },
-                    navArgument("peerDesc") { type = NavType.StringType },
-                    navArgument("iconUrl") { type = NavType.StringType },
-                    navArgument("redirect") {
-                        nullable = true
-                        type = NavType.StringType
-                    }
-                ),
-                dialogProperties = DialogProperties(usePlatformDefaultWidth = false)) { backStackEntry ->
-                PushRequestRoute(
-                    navController,
-                    backStackEntry.arguments?.getLong("requestId")!!,
-                    backStackEntry.arguments?.getString("peerName")!!,
-                    backStackEntry.arguments?.getString("peerDesc")!!,
-                    backStackEntry.arguments?.getString("iconUrl"),
-                    backStackEntry.arguments?.getString("redirect"),
-                )
             }
             dialog(Route.PasteUri.path, dialogProperties = DialogProperties(usePlatformDefaultWidth = false)) {
                 PasteUriRoute(onSubmit = {
