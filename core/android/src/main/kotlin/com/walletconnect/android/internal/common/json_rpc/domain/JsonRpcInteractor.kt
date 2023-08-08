@@ -313,11 +313,11 @@ internal class JsonRpcInteractor(
                         handleError("ManSub: ${e.stackTraceToString()}")
                         String.Empty
                     }
-                    Pair(message, topic)
-                }.collect { (decryptedMessage, topic) ->
+                    Triple(message, topic, relayRequest.params.subscriptionData.publishedAt)
+                }.collect { (decryptedMessage, topic, publishedAt) ->
                     if (decryptedMessage.isNotEmpty()) {
                         try {
-                            manageSubscriptions(decryptedMessage, topic)
+                            manageSubscriptions(decryptedMessage, topic, publishedAt)
                         } catch (e: Exception) {
                             handleError("ManSub: ${e.stackTraceToString()}")
                         }
@@ -327,9 +327,9 @@ internal class JsonRpcInteractor(
     }
 
 
-    private suspend fun manageSubscriptions(decryptedMessage: String, topic: Topic) {
+    private suspend fun manageSubscriptions(decryptedMessage: String, topic: Topic, publishedAt: Long) {
         serializer.tryDeserialize<ClientJsonRpc>(decryptedMessage)?.let { clientJsonRpc ->
-            handleRequest(clientJsonRpc, topic, decryptedMessage)
+            handleRequest(clientJsonRpc, topic, decryptedMessage, publishedAt)
         } ?: serializer.tryDeserialize<JsonRpcResponse.JsonRpcResult>(decryptedMessage)?.let { result ->
             handleJsonRpcResult(result, topic)
         } ?: serializer.tryDeserialize<JsonRpcResponse.JsonRpcError>(decryptedMessage)?.let { error ->
@@ -337,10 +337,10 @@ internal class JsonRpcInteractor(
         } ?: handleError("JsonRpcInteractor: Received unknown object type")
     }
 
-    private suspend fun handleRequest(clientJsonRpc: ClientJsonRpc, topic: Topic, decryptedMessage: String) {
+    private suspend fun handleRequest(clientJsonRpc: ClientJsonRpc, topic: Topic, decryptedMessage: String, publishedAt: Long) {
         if (jsonRpcHistory.setRequest(clientJsonRpc.id, topic, clientJsonRpc.method, decryptedMessage)) {
             serializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
-                _clientSyncJsonRpc.emit(WCRequest(topic, clientJsonRpc.id, clientJsonRpc.method, params))
+                _clientSyncJsonRpc.emit(WCRequest(topic, clientJsonRpc.id, clientJsonRpc.method, params, publishedAt))
             } ?: handleError("JsonRpcInteractor: Unknown request params")
         }
     }

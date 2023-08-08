@@ -17,16 +17,8 @@ sealed class NotifyParams : ClientParams {
 
     @JsonClass(generateAdapter = true)
     data class MessageParams(
-        @Json(name = "title")
-        val title: String,
-        @Json(name = "body")
-        val body: String,
-        @Json(name = "icon")
-        val icon: String?,
-        @Json(name = "url")
-        val url: String?,
-        @Json(name = "type")
-        val type: String,
+        @Json(name = "messageAuth")
+        val messageAuth: String
     ) : NotifyParams()
 
     @JsonClass(generateAdapter = true)

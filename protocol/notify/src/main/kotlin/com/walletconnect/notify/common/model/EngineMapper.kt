@@ -9,9 +9,9 @@ import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.notify.client.Notify
 
-@JvmSynthetic
-internal fun NotifyParams.MessageParams.toEngineDO(): NotifyMessage =
-    NotifyMessage(title, body, icon, url, type)
+//@JvmSynthetic
+//internal fun NotifyParams.MessageParams.toEngineDO(): NotifyMessage =
+//    NotifyMessage(title, body, icon, url, type)
 
 @JvmSynthetic
 internal fun NotifyMessage.toWalletClient(): Notify.Model.Message {

@@ -13,7 +13,7 @@ internal class EncodeUnregisterInviteKeyDidJwtPayloadUseCase(
 ) : EncodeDidJwtPayloadUseCase<ChatDidJwtClaims.UnregisterInviteKey> {
     override fun invoke(params: EncodeDidJwtPayloadUseCase.Params): ChatDidJwtClaims.UnregisterInviteKey = with(params) {
         ChatDidJwtClaims.UnregisterInviteKey(
-            issuer = issuer,
+            issuer = identityKeyDidKey,
             issuedAt = issuedAt,
             expiration = expiration,
             audience = keyserverUrl,

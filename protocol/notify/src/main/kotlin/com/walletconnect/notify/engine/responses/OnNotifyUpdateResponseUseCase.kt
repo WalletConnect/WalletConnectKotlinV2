@@ -13,7 +13,7 @@ import com.walletconnect.notify.common.calcExpiry
 import com.walletconnect.notify.common.model.NotificationScope
 import com.walletconnect.notify.common.model.UpdateSubscription
 import com.walletconnect.notify.common.model.toDb
-import com.walletconnect.notify.data.jwt.NotifySubscriptionJwtClaim
+import com.walletconnect.notify.data.jwt.subscription.SubscriptionRequestJwtClaim
 import com.walletconnect.notify.data.storage.SubscriptionRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -32,7 +32,7 @@ internal class OnNotifyUpdateResponseUseCase(
                 is JsonRpcResponse.JsonRpcResult -> {
                     val subscription = subscriptionRepository.getActiveSubscriptionByNotifyTopic(wcResponse.topic.value)
                         ?: throw Resources.NotFoundException("Cannot find subscription for topic: ${wcResponse.topic.value}")
-                    val notifyUpdateJwtClaim = extractVerifiedDidJwtClaims<NotifySubscriptionJwtClaim>(updateParams.subscriptionAuth).getOrElse { error ->
+                    val notifyUpdateJwtClaim = extractVerifiedDidJwtClaims<SubscriptionRequestJwtClaim>(updateParams.subscriptionAuth).getOrElse { error ->
                         _events.emit(SDKError(error))
                         return@supervisorScope
                     }

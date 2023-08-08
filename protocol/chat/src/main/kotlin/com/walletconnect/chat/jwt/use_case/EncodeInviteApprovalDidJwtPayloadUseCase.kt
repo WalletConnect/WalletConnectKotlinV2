@@ -15,7 +15,7 @@ internal class EncodeInviteApprovalDidJwtPayloadUseCase(
 ) : EncodeDidJwtPayloadUseCase<ChatDidJwtClaims.InviteApproval> {
     override fun invoke(params: EncodeDidJwtPayloadUseCase.Params): ChatDidJwtClaims.InviteApproval = with(params) {
         ChatDidJwtClaims.InviteApproval(
-            issuer = issuer,
+            issuer = identityKeyDidKey,
             issuedAt = issuedAt,
             expiration = expiration,
             keyserverUrl = keyserverUrl,

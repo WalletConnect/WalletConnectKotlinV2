@@ -12,7 +12,7 @@ internal class EncodeIdentityKeyDidJwtPayloadUseCase(
 
     override fun invoke(params: EncodeDidJwtPayloadUseCase.Params): IdentityKey = with(params) {
         IdentityKey(
-            issuer = issuer,
+            issuer = identityKeyDidKey,
             issuedAt = issuedAt,
             expiration = expiration,
             audience = keyserverUrl,

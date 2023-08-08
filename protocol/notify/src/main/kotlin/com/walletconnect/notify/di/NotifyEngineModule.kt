@@ -5,9 +5,7 @@ package com.walletconnect.notify.di
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.notify.engine.NotifyEngine
 import com.walletconnect.notify.engine.domain.EngineNotifySubscriptionNotifier
-import com.walletconnect.notify.engine.domain.ExtractNotifyConfigUseCase
-import com.walletconnect.notify.engine.domain.RegisterIdentityAndReturnDidJwtUseCase
-import com.walletconnect.notify.engine.domain.RegisterIdentityAndReturnDidJwtUseCaseInterface
+import com.walletconnect.notify.engine.domain.RegisterIdentityAndReturnDidJwtInteractor
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
@@ -25,11 +23,7 @@ internal fun engineModule() = module {
     }
 
     single {
-        ExtractNotifyConfigUseCase(serializer = get())
-    }
-
-    single<RegisterIdentityAndReturnDidJwtUseCaseInterface> {
-        RegisterIdentityAndReturnDidJwtUseCase(
+        RegisterIdentityAndReturnDidJwtInteractor(
             keyserverUrl = get(named(AndroidCommonDITags.KEYSERVER_URL)),
             identitiesInteractor = get()
         )
