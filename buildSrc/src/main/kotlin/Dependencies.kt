@@ -218,3 +218,7 @@ fun DependencyHandlerScope.beagle() {
     "implementation"("io.github.pandulapeter.beagle:log-crash:$beagleVersion")
     "implementation"("io.github.pandulapeter.beagle:log-okhttp:$beagleVersion")
 }
+
+fun DependencyHandlerScope.beagleOkHttp() {
+    "implementation"("io.github.pandulapeter.beagle:log-okhttp:$beagleVersion")
+}

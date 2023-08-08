@@ -2,6 +2,7 @@ package com.walletconnect.android.internal.common.di
 
 import android.net.Uri
 import android.os.Build
+import com.pandulapeter.beagle.logOkHttp.BeagleOkHttpLogger
 import com.squareup.moshi.Moshi
 import com.tinder.scarlet.Scarlet
 import com.tinder.scarlet.lifecycle.LifecycleRegistry
@@ -128,7 +129,7 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
             val loggingInterceptor = get<Interceptor>(named(AndroidCommonDITags.LOGGING_INTERCEPTOR))
             builder.addInterceptor(loggingInterceptor)
         }
-        getOrNull<Interceptor>(named(AndroidCommonDITags.BEAGLE_INTERCEPTOR))?.let { builder.addInterceptor(it) }
+        (BeagleOkHttpLogger.logger as Interceptor?)?.let { builder.addInterceptor(it) }
 
         builder.build()
     }

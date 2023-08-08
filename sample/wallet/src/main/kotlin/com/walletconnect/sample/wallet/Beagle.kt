@@ -17,19 +17,12 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import timber.log.Timber
 
-private val beagleInterceptorModule = module {
-    single(named(AndroidCommonDITags.BEAGLE_INTERCEPTOR)) { BeagleOkHttpLogger.logger as Interceptor? }
-}
-
 fun initBeagle(app: Web3WalletApplication) {
-    wcKoinApp.modules(beagleInterceptorModule)
-
     Timber.plant(
         object : Timber.Tree() {
             override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
                 Beagle.log("${tag?.let { "[$it] " } ?: ""}$message", "Timber", t?.stackTraceToString(), timestamp = System.currentTimeMillis())
             }
-
         }
     )
 
