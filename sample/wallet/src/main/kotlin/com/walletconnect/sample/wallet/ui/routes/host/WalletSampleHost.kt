@@ -66,7 +66,7 @@ fun WalletSampleHost(
     Scaffold(
         scaffoldState = scaffoldState,
         drawerGesturesEnabled = true,
-        drawerContent = { DrawerContent() }
+        drawerContent = { BeagleDrawer() }
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
             Web3WalletNavGraph(
@@ -93,7 +93,7 @@ fun WalletSampleHost(
 }
 
 @Composable
-private fun DrawerContent() {
+private fun BeagleDrawer() {
     AndroidView(factory = { DebugMenuView(it) }, modifier = Modifier.fillMaxSize())
 }
 
