@@ -7,5 +7,6 @@ data class WCRequest(
     val topic: Topic,
     val id: Long,
     val method: String,
-    val params: ClientParams
+    val params: ClientParams,
+    val publishedAt: Long = 0,
 )

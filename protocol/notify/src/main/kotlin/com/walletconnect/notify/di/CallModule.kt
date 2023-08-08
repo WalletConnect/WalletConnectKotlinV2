@@ -29,7 +29,6 @@ internal fun callModule() = module {
         SubscribeToDappUseCase(
             serializer = get(),
             jsonRpcInteractor = get(),
-            extractNotifyConfigUseCase = get(),
             subscriptionRepository = get(),
             crypto = get(),
             explorerRepository = get(),
@@ -44,7 +43,7 @@ internal fun callModule() = module {
             jsonRpcInteractor = get(),
             subscriptionRepository = get(),
             metadataStorageRepository = get(),
-            registerIdentityAndReturnDidJwtUseCase = get()
+            registerIdentityAndReturnDidJwtInteractor = get()
         )
     }
 

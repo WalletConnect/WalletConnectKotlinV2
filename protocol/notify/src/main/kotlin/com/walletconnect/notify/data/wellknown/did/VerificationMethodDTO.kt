@@ -3,7 +3,6 @@ package com.walletconnect.notify.data.wellknown.did
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import com.walletconnect.notify.data.wellknown.did.PublicKeyJwkDTO
 
 @JsonClass(generateAdapter = true)
 data class VerificationMethodDTO(
