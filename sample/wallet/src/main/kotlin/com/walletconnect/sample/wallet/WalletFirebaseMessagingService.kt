@@ -13,7 +13,7 @@ import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.RemoteMessage
 import com.walletconnect.sample.wallet.ui.Web3WalletActivity
 import com.walletconnect.web3.inbox.client.Inbox
-import com.walletconnect.web3.inbox.push.Web3InboxFirebaseMessagingService
+import com.walletconnect.web3.inbox.notify.Web3InboxFirebaseMessagingService
 import kotlin.random.Random
 import kotlin.random.nextUInt
 
@@ -22,7 +22,7 @@ class WalletFirebaseMessagingService : Web3InboxFirebaseMessagingService() {
     private val TAG = this::class.simpleName
     private val intent by lazy { Intent(this, Web3WalletActivity::class.java).apply { addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) } }
     private val pendingIntent by lazy { PendingIntent.getActivity(this, 0 /* Request code */, intent, PendingIntent.FLAG_IMMUTABLE) }
-    private val channelId = "Push"
+    private val channelId = "Notify"
     private val notificationManager by lazy { getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager }
 
     override fun newToken(token: String) {

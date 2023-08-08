@@ -107,4 +107,5 @@ dependencies {
     releaseImplementation("com.walletconnect:web3wallet")
     releaseImplementation("com.walletconnect:web3inbox")
     releaseImplementation("com.walletconnect:push")
+    releaseImplementation("com.walletconnect:notify")
 }

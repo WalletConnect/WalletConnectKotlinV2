@@ -6,7 +6,7 @@ import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.sync.client.Sync
 import com.walletconnect.android.sync.client.SyncInterface
 import com.walletconnect.foundation.util.Logger
-import com.walletconnect.push.engine.sync.PushSyncStores
+import com.walletconnect.push.engine.sync.NotifySyncStores
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
@@ -21,10 +21,11 @@ internal class GetMessagesFromHistoryUseCase(
     }
 
     private suspend fun getMessagesForPushStores(accountId: AccountId, onMessagesFetched: () -> Unit, onError: (Throwable) -> Unit) {
-        val countDownLatch = CountDownLatch(PushSyncStores.values().size)
+        // Register blocking current thread all stores necessary to sync push state
+        val countDownLatch = CountDownLatch(NotifySyncStores.values().size)
 
         // Note: When I tried registering all stores simultaneously I had issues with getting right values, when doing it sequentially it works
-        PushSyncStores.values().forEach { store ->
+        NotifySyncStores.values().forEach { store ->
             syncClient.getStoreTopic(Sync.Params.GetStoreTopics(accountId, store.value))?.let { topic ->
                 archiveInterface.getAllMessages(
                     MessagesParams(topic.value, null, ArchiveInterface.DEFAULT_BATCH_SIZE, null),

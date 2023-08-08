@@ -51,6 +51,6 @@ internal class ChatProxyInteractor(logger: Logger, webViewWeakReference: WebView
     override fun rpcToWeb3InboxCall(rpc: String): String = "window.web3inbox.chat.postMessage($rpc)"
 }
 
-internal class PushProxyInteractor(logger: Logger, webViewWeakReference: WebViewWeakReference) : ProxyInteractor(logger, webViewWeakReference) {
-    override fun rpcToWeb3InboxCall(rpc: String): String = "window.web3inbox.push.postMessage($rpc)"
+internal class NotifyProxyInteractor(logger: Logger, webViewWeakReference: WebViewWeakReference) : ProxyInteractor(logger, webViewWeakReference) {
+    override fun rpcToWeb3InboxCall(rpc: String): String = "window.web3inbox.notify.postMessage($rpc)"
 }
