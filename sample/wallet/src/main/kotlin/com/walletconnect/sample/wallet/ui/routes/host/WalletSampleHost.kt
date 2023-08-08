@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterialApi::class, ExperimentalMaterialNavigationApi::class)
+@file:OptIn(ExperimentalMaterialNavigationApi::class)
 
 package com.walletconnect.sample.wallet.ui.routes.host
 
@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -17,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Scaffold
 import androidx.compose.material.ScaffoldState
 import androidx.compose.material.Text
@@ -36,9 +36,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
 import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
+import com.pandulapeter.beagle.DebugMenuView
 import com.walletconnect.sample.common.ui.themedColor
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.wallet.ui.Web3WalletNavGraph
@@ -62,7 +64,9 @@ fun WalletSampleHost(
     val pairingState = web3walletViewModel.pairingStateSharedFlow.collectAsState(PairingState.Idle).value
 
     Scaffold(
-        scaffoldState = scaffoldState
+        scaffoldState = scaffoldState,
+        drawerGesturesEnabled = true,
+        drawerContent = { DrawerContent() }
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
             Web3WalletNavGraph(
@@ -86,6 +90,11 @@ fun WalletSampleHost(
             }
         }
     }
+}
+
+@Composable
+private fun DrawerContent() {
+    AndroidView(factory = { DebugMenuView(it) }, modifier = Modifier.fillMaxSize())
 }
 
 @Composable
@@ -124,6 +133,7 @@ private fun ErrorBanner(message: String) {
             .fillMaxWidth()
             .background(Color(0xFFDC143C))
             .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
             imageVector = ImageVector.vectorResource(id = R.drawable.orange_warning),
@@ -138,7 +148,7 @@ private fun ErrorBanner(message: String) {
 
 @Preview
 @Composable
-private fun PreviewPairingLoader(){
+private fun PreviewPairingLoader() {
     Box() {
         PairingLoader()
     }

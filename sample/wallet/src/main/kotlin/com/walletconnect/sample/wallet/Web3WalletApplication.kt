@@ -33,6 +33,7 @@ class Web3WalletApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
+        initBeagle(this)
         EthAccountDelegate.application = this
         Log.d(tag(this), "Account: ${EthAccountDelegate.account}")
 

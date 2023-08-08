@@ -128,6 +128,7 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
             val loggingInterceptor = get<Interceptor>(named(AndroidCommonDITags.LOGGING_INTERCEPTOR))
             builder.addInterceptor(loggingInterceptor)
         }
+        getOrNull<Interceptor>(named(AndroidCommonDITags.BEAGLE_INTERCEPTOR))?.let { builder.addInterceptor(it) }
 
         builder.build()
     }
