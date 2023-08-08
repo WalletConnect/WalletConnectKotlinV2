@@ -91,8 +91,8 @@ class HistoryInstrumentedAndroidTest {
                             runBlocking { delay(1.seconds) }
 
                             testScope.launch {
-                                TestClient.Secondary.History.getMessages(
-                                    MessagesParams(topic.value, null, 5L, Direction.BACKWARD),
+                                TestClient.Secondary.History.getAllMessages(
+                                    MessagesParams(topic.value, null, 5, Direction.BACKWARD),
                                     onSuccess = { messages ->
                                         assertEquals(1, messages.size)
                                         scenarioExtension.closeAsSuccess()
@@ -155,8 +155,8 @@ class HistoryInstrumentedAndroidTest {
                             runBlocking { delay(1000) }
 
                             testScope.launch {
-                                TestClient.Secondary.History.getMessages(
-                                    MessagesParams(topic.value, null, 5L, Direction.BACKWARD),
+                                TestClient.Secondary.History.getAllMessages(
+                                    MessagesParams(topic.value, null, 5, Direction.BACKWARD),
                                     onSuccess = { messages -> assertEquals(1, messages.size) },
                                     onError = ::globalOnError
                                 )

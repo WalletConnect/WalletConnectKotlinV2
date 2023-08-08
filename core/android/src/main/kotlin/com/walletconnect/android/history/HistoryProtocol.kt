@@ -36,17 +36,41 @@ class HistoryProtocol(
         )
     }
 
-    override suspend fun getMessages(params: MessagesParams, onSuccess: (List<HistoryMessage>) -> Unit, onError: (Core.Model.Error) -> Unit) {
+    override suspend fun getAllMessages(params: MessagesParams, onSuccess: (List<HistoryMessage>) -> Unit, onError: (Core.Model.Error) -> Unit) {
+        val allMessageHistory: MutableList<HistoryMessage> = mutableListOf()
+
+        suspend fun recursiveOnSuccess(allMessageHistory: MutableList<HistoryMessage>, justFetchedMessageHistory: List<HistoryMessage>) {
+            allMessageHistory.addAll(justFetchedMessageHistory)
+            if (justFetchedMessageHistory.size == params.messageCount) {
+                logger.log("Fetched from History ${justFetchedMessageHistory.size} messages fetching ${params.messageCount} more")
+
+                val recursiveParams = MessagesParams(params.topic, originId = justFetchedMessageHistory.last().messageId, messageCount = params.messageCount, params.direction)
+
+                getMessagesUseCase(recursiveParams).fold(
+                    onFailure = { error -> onError(Core.Model.Error(error)) },
+                    onSuccess = { response ->
+                        (response.messages ?: emptyList()).also { messages ->
+                            recursiveOnSuccess(allMessageHistory, messages)
+                        }
+                    }
+                )
+            }
+            else {
+                logger.log("Fetched from History ${allMessageHistory.size} messages")
+                reduceSyncRequestsUseCase(allMessageHistory)
+                onSuccess(allMessageHistory)
+            }
+        }
+
         getMessagesUseCase(params).fold(
             onFailure = { error -> onError(Core.Model.Error(error)) },
             onSuccess = { response ->
                 (response.messages ?: emptyList()).also { messages ->
-                    logger.log("Fetched from History ${messages.size} messages")
-                    reduceSyncRequestsUseCase(messages)
-                    onSuccess(messages)
+                    recursiveOnSuccess(allMessageHistory, messages)
                 }
             }
         )
     }
 }
+
 
