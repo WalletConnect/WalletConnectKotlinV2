@@ -20,9 +20,6 @@ internal class GetMessagesFromHistoryUseCase(
         getMessagesForPushStores(accountId, onSuccess, onError)
     }
 
-    /**
-     * Gets messages of required Push stores from History and calls [onMessagesFetched] on success
-     */
     private suspend fun getMessagesForPushStores(accountId: AccountId, onMessagesFetched: () -> Unit, onError: (Throwable) -> Unit) {
         // Register blocking current thread all stores necessary to sync push state
         val countDownLatch = CountDownLatch(NotifySyncStores.values().size)
@@ -30,13 +27,11 @@ internal class GetMessagesFromHistoryUseCase(
         // Note: When I tried registering all stores simultaneously I had issues with getting right values, when doing it sequentially it works
         NotifySyncStores.values().forEach { store ->
             syncClient.getStoreTopic(Sync.Params.GetStoreTopics(accountId, store.value))?.let { topic ->
-                val messagesBatchSize = 200L
-                historyInterface.getMessages(
-                    MessagesParams(topic.value, null, messagesBatchSize, null),
+                historyInterface.getAllMessages(
+                    MessagesParams(topic.value, null, HistoryInterface.DEFAULT_BATCH_SIZE, null),
                     onError = { error -> onError(error.throwable) },
                     onSuccess = {
-                        //todo: Support fetching more than [messagesBatchSize]
-                        if (it.size >= messagesBatchSize) logger.error("Fetched $messagesBatchSize for ${store.value}") else logger.log("Fetched ${it.size} for ${store.value}")
+                        logger.log("Fetched ${it.size} for ${store.value}")
                         countDownLatch.countDown()
                     }
                 )
