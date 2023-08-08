@@ -1,13 +1,13 @@
-package com.walletconnect.android.history.network.model.messages
+package com.walletconnect.android.archive.network.model.messages
 
 import com.squareup.moshi.JsonClass
-import com.walletconnect.android.internal.common.model.HistoryMessage
+import com.walletconnect.android.internal.common.model.ArchiveMessage
 
 @JsonClass(generateAdapter = true)
 data class MessagesResponse(
     val topic: String,
     val nextId: String?,
-    val messages: List<HistoryMessage>?,
+    val messages: List<ArchiveMessage>?,
     val direction: Direction?,
 )
 

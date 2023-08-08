@@ -1,8 +1,8 @@
-package com.walletconnect.android.history.network
+package com.walletconnect.android.archive.network
 
-import com.walletconnect.android.history.network.model.messages.MessagesResponse
-import com.walletconnect.android.history.network.model.register.RegisterBody
-import com.walletconnect.android.history.network.model.register.RegisterResponse
+import com.walletconnect.android.archive.network.model.messages.MessagesResponse
+import com.walletconnect.android.archive.network.model.register.RegisterBody
+import com.walletconnect.android.archive.network.model.register.RegisterResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -12,7 +12,7 @@ import retrofit2.http.POST
 import retrofit2.http.QueryMap
 
 
-interface HistoryServerService {
+interface ArchiveServerService {
 
     @POST("/register")
     @Headers("Content-Type: application/json")

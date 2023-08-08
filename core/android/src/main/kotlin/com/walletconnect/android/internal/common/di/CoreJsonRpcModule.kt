@@ -23,7 +23,7 @@ fun coreJsonRpcModule() = module {
             chaChaPolyCodec = get(),
             jsonRpcHistory = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
-            historyMessageNotifier = get()
+            archiveMessageNotifier = get()
         )
     }
 
