@@ -21,7 +21,7 @@ object Inbox {
 
         data class Config(
             val isChatEnabled: Boolean = false,
-            val isPushEnabled: Boolean = true,
+            val isNotifyEnabled: Boolean = true,
             val areSettingsEnabled: Boolean = false,
         ) : Model()
 

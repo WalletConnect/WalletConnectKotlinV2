@@ -1,8 +1,8 @@
 package com.walletconnect.push.engine.sync.use_case.events
 
 import com.squareup.moshi.Moshi
-import com.walletconnect.android.history.HistoryInterface
-import com.walletconnect.android.history.network.model.messages.MessagesParams
+import com.walletconnect.android.archive.ArchiveInterface
+import com.walletconnect.android.archive.network.model.messages.MessagesParams
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.SymmetricKey
@@ -24,7 +24,7 @@ internal class OnSubscriptionUpdateEventUseCase(
     private val keyManagementRepository: KeyManagementRepository,
     private val messagesRepository: MessagesRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
-    private val historyInterface: HistoryInterface,
+    private val archiveInterface: ArchiveInterface,
     private val subscriptionRepository: SubscriptionRepository,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     _moshi: Moshi.Builder,
@@ -58,12 +58,7 @@ internal class OnSubscriptionUpdateEventUseCase(
                         onFailure = { error -> logger.error("Failed to insert Synced Subscription: $error") },
                         onSuccess = {
                             jsonRpcInteractor.subscribe(pushTopic) { error -> logger.error(error) }
-                            getPushMessagesFromHistory(pushTopic) { messagesCount ->
-                                if (messagesCount >= messagesBatchSize) logger.error("Fetched $messagesBatchSize for ${dappMetaData!!.url}")
-                                else logger.log("Fetched $messagesCount for ${dappMetaData!!.url}")
-
-                                Timber.d("Sync getPushMessagesFromHistory: $pushTopic")
-                            }
+                            getPushMessagesFromHistory(pushTopic) { messagesCount -> logger.log("Fetched $messagesCount messages from ${dappMetaData!!.url}") }
                         }
                     )
                 }
@@ -80,14 +75,10 @@ internal class OnSubscriptionUpdateEventUseCase(
     }
 
     private suspend fun getPushMessagesFromHistory(pushTopic: Topic, onSuccess: (Int) -> Unit) {
-        historyInterface.getMessages(
-            MessagesParams(pushTopic.value, null, messagesBatchSize, null),
+        archiveInterface.getAllMessages(
+            MessagesParams(pushTopic.value, null, ArchiveInterface.DEFAULT_BATCH_SIZE, null),
             onError = { error -> logger.error(error.throwable) },
             onSuccess = { onSuccess(it.size) }
         )
-    }
-
-    private companion object {
-        const val messagesBatchSize = 200L
     }
 }

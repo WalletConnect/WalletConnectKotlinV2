@@ -1,6 +1,6 @@
 package com.walletconnect.android.internal.common.json_rpc.domain
 
-import com.walletconnect.android.history.HistoryMessageNotifier
+import com.walletconnect.android.archive.ArchiveMessageNotifier
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.exception.NoRelayConnectionException
@@ -43,7 +43,7 @@ internal class JsonRpcInteractor(
     private val chaChaPolyCodec: Codec,
     private val jsonRpcHistory: JsonRpcHistory,
     private val logger: Logger,
-    private val historyMessageNotifier: HistoryMessageNotifier,
+    private val archiveMessageNotifier: ArchiveMessageNotifier,
 ) : JsonRpcInteractorInterface {
     private val serializer: JsonRpcSerializer get() = wcKoinApp.koin.get()
 
@@ -304,7 +304,7 @@ internal class JsonRpcInteractor(
 
     private fun manageSubscriptions() {
         scope.launch {
-            merge(relay.subscriptionRequest, historyMessageNotifier.requestsSharedFlow)
+            merge(relay.subscriptionRequest, archiveMessageNotifier.requestsSharedFlow)
                 .map { relayRequest ->
                     val topic = Topic(relayRequest.subscriptionTopic)
                     val message = try {

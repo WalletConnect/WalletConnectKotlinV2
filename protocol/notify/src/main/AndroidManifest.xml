@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.walletconnect.notify">
+
+    <application android:fullBackupContent="@xml/backup_rules" android:dataExtractionRules="@xml/backup_config" />
+</manifest>
