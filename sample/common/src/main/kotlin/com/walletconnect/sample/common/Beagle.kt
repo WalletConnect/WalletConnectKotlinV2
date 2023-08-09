@@ -1,5 +1,6 @@
-package com.walletconnect.sample.wallet
+package com.walletconnect.sample.common
 
+import android.app.Application
 import com.pandulapeter.beagle.Beagle
 import com.pandulapeter.beagle.common.configuration.Behavior
 import com.pandulapeter.beagle.log.BeagleLogger
@@ -10,14 +11,9 @@ import com.pandulapeter.beagle.modules.LogListModule
 import com.pandulapeter.beagle.modules.NetworkLogListModule
 import com.pandulapeter.beagle.modules.ScreenCaptureToolboxModule
 import com.pandulapeter.beagle.modules.TextModule
-import com.walletconnect.android.internal.common.di.AndroidCommonDITags
-import com.walletconnect.android.internal.common.wcKoinApp
-import okhttp3.Interceptor
-import org.koin.core.qualifier.named
-import org.koin.dsl.module
 import timber.log.Timber
 
-fun initBeagle(app: Web3WalletApplication) {
+fun initBeagle(app: Application, header: HeaderModule) {
     Timber.plant(
         object : Timber.Tree() {
             override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
@@ -34,11 +30,7 @@ fun initBeagle(app: Web3WalletApplication) {
         )
     )
     Beagle.set(
-        HeaderModule(
-            title = app.getString(R.string.app_name),
-            subtitle = BuildConfig.APPLICATION_ID,
-            text = "${BuildConfig.BUILD_TYPE} v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
-        ),
+        header,
         ScreenCaptureToolboxModule(),
         DividerModule(),
         TextModule("Logs", TextModule.Type.SECTION_HEADER),

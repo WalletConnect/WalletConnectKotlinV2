@@ -213,10 +213,10 @@ fun DependencyHandlerScope.turbine() {
 }
 
 fun DependencyHandlerScope.beagle() {
-    "implementation"("io.github.pandulapeter.beagle:ui-view:$beagleVersion")
-    "implementation"("io.github.pandulapeter.beagle:log:$beagleVersion")
-    "implementation"("io.github.pandulapeter.beagle:log-crash:$beagleVersion")
-    "implementation"("io.github.pandulapeter.beagle:log-okhttp:$beagleVersion")
+    "api"("io.github.pandulapeter.beagle:ui-view:$beagleVersion")
+    "api"("io.github.pandulapeter.beagle:log:$beagleVersion")
+    "api"("io.github.pandulapeter.beagle:log-crash:$beagleVersion")
+    "api"("io.github.pandulapeter.beagle:log-okhttp:$beagleVersion")
 }
 
 fun DependencyHandlerScope.beagleOkHttp() {

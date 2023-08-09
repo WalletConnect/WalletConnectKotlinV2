@@ -5,12 +5,13 @@ import android.util.Log
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
+import com.pandulapeter.beagle.modules.HeaderModule
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.utils.cacao.sign
-import com.walletconnect.sample.common.BuildConfig
+import com.walletconnect.sample.common.initBeagle
 import com.walletconnect.sample.common.tag
 import com.walletconnect.sample.wallet.domain.EthAccountDelegate
 import com.walletconnect.sample.wallet.domain.toEthAddress
@@ -33,7 +34,14 @@ class Web3WalletApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        initBeagle(this)
+        initBeagle(
+            this,
+            HeaderModule(
+                title = getString(R.string.app_name),
+                subtitle = BuildConfig.APPLICATION_ID,
+                text = "${BuildConfig.BUILD_TYPE} v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
+            ),
+        )
         EthAccountDelegate.application = this
         Log.d(tag(this), "Account: ${EthAccountDelegate.account}")
 

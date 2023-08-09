@@ -60,7 +60,6 @@ dependencies {
     firebaseMessaging()
     firebaseChrashlytics()
     appCompat()
-    beagle()
 
     implementation("androidx.core:core-ktx:1.9.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.5.1")
