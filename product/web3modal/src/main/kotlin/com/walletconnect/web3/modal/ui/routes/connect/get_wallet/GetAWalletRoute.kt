@@ -57,7 +57,7 @@ private fun GetAWalletContent(
     val uriHandler = LocalUriHandler.current
 
     Column {
-        Web3ModalTopBar(title = "Get a wallet", onBackPressed = onBackPressed)
+//        Web3ModalTopBar(title = "Get a wallet", onBackPressed = onBackPressed)
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()

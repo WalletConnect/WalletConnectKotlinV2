@@ -44,21 +44,21 @@ private fun ScanQRCodeContent(
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
 
     Column {
-        Web3ModalTopBar(
-            title = "Scan the code",
-            onBackPressed = onBackArrowClick,
-            endIcon = {
-                Image(
-                    imageVector = ImageVector.vectorResource(id = R.drawable.ic_copy),
-                    colorFilter = ColorFilter.tint(Web3ModalTheme.colors.main100),
-                    contentDescription = "Scan Icon",
-                    modifier = Modifier.clickable {
-                        Toast.makeText(context, "Link copied", Toast.LENGTH_SHORT).show()
-                        clipboardManager.setText(AnnotatedString(uri))
-                    }
-                )
-            }
-        )
+//        Web3ModalTopBar(
+//            title = "Scan the code",
+//            onBackPressed = onBackArrowClick,
+//            endIcon = {
+//                Image(
+//                    imageVector = ImageVector.vectorResource(id = R.drawable.ic_copy),
+//                    colorFilter = ColorFilter.tint(Web3ModalTheme.colors.main100),
+//                    contentDescription = "Scan Icon",
+//                    modifier = Modifier.clickable {
+//                        Toast.makeText(context, "Link copied", Toast.LENGTH_SHORT).show()
+//                        clipboardManager.setText(AnnotatedString(uri))
+//                    }
+//                )
+//            }
+//        )
         Spacer(modifier = Modifier.height(8.dp))
         WalletConnectQRCode(
             qrData = uri,

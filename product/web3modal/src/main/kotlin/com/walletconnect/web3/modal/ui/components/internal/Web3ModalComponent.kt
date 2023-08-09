@@ -18,6 +18,7 @@ import androidx.navigation.NavHostController
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.walletconnect.web3.modal.ui.Web3ModalEvents
 import com.walletconnect.web3.modal.ui.Web3ModalViewModel
+import com.walletconnect.web3.modal.ui.components.internal.root.Web3ModalRoot
 import com.walletconnect.web3.modal.ui.navigation.Web3ModalNavGraph
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
@@ -54,7 +55,7 @@ internal fun Web3ModalComponent(
     }
 
     web3ModalState?.let { state ->
-        Web3ModalRoot {
+        Web3ModalRoot(navController = navController) {
             Web3ModalNavGraph(
                 navController = navController,
                 web3ModalState = state,

@@ -39,10 +39,10 @@ private fun HelpContent(
     onGetWalletClick: () -> Unit,
 ) {
     Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-        Web3ModalTopBar(
-            title = "What is wallet?",
-            onBackPressed = onBackPressed
-        )
+//        Web3ModalTopBar(
+//            title = "What is wallet?",
+//            onBackPressed = onBackPressed
+//        )
         Column(modifier = Modifier.padding(horizontal = 32.dp)) {
             HelpSection(
                 title = "A home for your digital assets",
