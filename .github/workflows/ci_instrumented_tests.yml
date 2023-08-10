@@ -11,10 +11,10 @@ on:
         description: 'Flag to use and save cache gradle. Tests results are cached!'
         required: true
         default: false
-  pull_request:
-    branches:
-      - develop
-      - master
+#  pull_request:
+#    branches:
+#      - develop
+#      - master
 
 env:
   TEST_TIMEOUT_SECONDS: 40 # Predefined timeout for integration tests
