@@ -34,7 +34,7 @@ fun initBeagle(app: Application, header: HeaderModule) {
         ScreenCaptureToolboxModule(),
         DividerModule(),
         TextModule("Logs", TextModule.Type.SECTION_HEADER),
-        NetworkLogListModule(), // Might require additional setup, see below
+        NetworkLogListModule(),
         LogListModule(),
     )
 }
