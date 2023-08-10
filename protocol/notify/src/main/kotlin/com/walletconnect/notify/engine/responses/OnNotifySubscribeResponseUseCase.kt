@@ -5,12 +5,14 @@ package com.walletconnect.notify.engine.responses
 import android.content.res.Resources
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
+import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtClaims
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.WCResponse
+import com.walletconnect.android.internal.common.model.params.NotifyParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
@@ -21,6 +23,7 @@ import com.walletconnect.notify.common.calcExpiry
 import com.walletconnect.notify.common.model.Error
 import com.walletconnect.notify.common.model.Subscription
 import com.walletconnect.notify.common.model.toDb
+import com.walletconnect.notify.data.jwt.subscription.SubscriptionResponseJwtClaim
 import com.walletconnect.notify.data.storage.SubscriptionRepository
 import com.walletconnect.notify.engine.domain.EngineNotifySubscriptionNotifier
 import com.walletconnect.notify.engine.domain.RegisterIdentityAndReturnDidJwtInteractor
@@ -46,7 +49,7 @@ internal class OnNotifySubscribeResponseUseCase(
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
-    suspend operator fun invoke(wcResponse: WCResponse) = supervisorScope {
+    suspend operator fun invoke(wcResponse: WCResponse, responseParams: NotifyParams.SubscribeParams) = supervisorScope {
         try {
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcResult -> {
@@ -54,10 +57,9 @@ internal class OnNotifySubscribeResponseUseCase(
                         ?: return@supervisorScope _events.emit(SDKError(Resources.NotFoundException("Cannot find subscription for topic: ${wcResponse.topic.value}")))
 
                     // TODO: Add an entry in JsonRpcResultAdapter and create data class for response
-                    /* TODO: Extract JWT once Notify starts sending it
-                    val subscriptionResponseJwt = extractVerifiedDidJwtClaims<SubscriptionResponseJwtClaim>("").getOrThrow()
-                    val dappPublicKey = subscriptionResponseJwt.subject
-                    */
+                    // TODO: Extract JWT once Notify starts sending it
+                    // val subscriptionResponseJwt = extractVerifiedDidJwtClaims<SubscriptionResponseJwtClaim>(responseParams.subscriptionAuth).getOrThrow()
+                    // val dappPublicKey = subscriptionResponseJwt.subject
 
                     val dappGeneratedPublicKey = PublicKey((((wcResponse.response as JsonRpcResponse.JsonRpcResult).result as Map<*, *>)["publicKey"] as String))
                     val selfPublicKey: PublicKey = crypto.getSelfPublicFromKeyAgreement(requestedSubscription.responseTopic)
