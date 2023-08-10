@@ -16,7 +16,7 @@ object NotifyDelegate : NotifyClient.Delegate {
     val wcNotifyEventModels: SharedFlow<Notify.Event?> = _wcNotifyEventModels
 
     init {
-        NotifyClient.setDelegate(this)
+//        NotifyClient.setDelegate(this)
     }
 
     override fun onNotifyMessage(notifyMessage: Notify.Event.Message) {
