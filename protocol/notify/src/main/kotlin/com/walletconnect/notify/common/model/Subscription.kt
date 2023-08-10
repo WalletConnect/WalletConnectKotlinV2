@@ -22,12 +22,14 @@ internal sealed class Subscription {
         val responseTopic: Topic,
         val subscribeTopic: Topic,
         val requestId: Long,
+        val authenticationPublicKey: PublicKey,
     ) : Subscription()
 
     data class Active(
         override val account: AccountId,
         override val mapOfNotificationScope: Map<String, NotificationScope.Cached>,
         override val expiry: Expiry,
+        val authenticationPublicKey: PublicKey,
         val dappGeneratedPublicKey: PublicKey,
         val notifyTopic: Topic,
         val dappMetaData: AppMetaData? = null,
