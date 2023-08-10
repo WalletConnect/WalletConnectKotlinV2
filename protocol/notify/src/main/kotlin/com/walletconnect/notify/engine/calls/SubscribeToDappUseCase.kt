@@ -3,7 +3,6 @@
 package com.walletconnect.notify.engine.calls
 
 import android.net.Uri
-import android.util.Base64
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.explorer.ExplorerRepository
@@ -32,10 +31,9 @@ import com.walletconnect.notify.common.model.NotificationScope
 import com.walletconnect.notify.common.model.NotifyRpc
 import com.walletconnect.notify.data.storage.SubscriptionRepository
 import com.walletconnect.notify.data.wellknown.config.NotifyConfigDTO
-import com.walletconnect.notify.data.wellknown.did.DidJsonDTO
-import com.walletconnect.notify.data.wellknown.did.VerificationMethodDTO
+import com.walletconnect.notify.engine.domain.ExtractPublicKeysFromDidJsonUseCase
+import com.walletconnect.notify.engine.domain.GenerateAppropriateUriUseCase
 import com.walletconnect.notify.engine.domain.RegisterIdentityAndReturnDidJwtInteractor
-import com.walletconnect.util.bytesToHex
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
@@ -51,6 +49,8 @@ internal class SubscribeToDappUseCase(
     private val explorerRepository: ExplorerRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val registerIdentityAndReturnDidJwt: RegisterIdentityAndReturnDidJwtInteractor,
+    private val extractPublicKeysFromDidJson: ExtractPublicKeysFromDidJsonUseCase,
+    private val generateAppropriateUri: GenerateAppropriateUriUseCase,
     private val logger: Logger,
 ) : SubscribeToDappUseCaseInterface {
 
@@ -72,7 +72,7 @@ internal class SubscribeToDappUseCase(
                     return@fold onFailure(it)
                 }
 
-                val didJwt = registerIdentityAndReturnDidJwt.subscriptionRequest(AccountId(account), dappUri.toString(), dappScopes.map { it.name }, onSign, onFailure).getOrElse { error ->
+                val didJwt = registerIdentityAndReturnDidJwt.subscriptionRequest(AccountId(account), authenticationPublicKey, dappUri.toString(), dappScopes.map { it.name }, onSign, onFailure).getOrElse { error ->
                     return@fold onFailure(error)
                 }
                 val params = NotifyParams.SubscribeParams(didJwt.value)
@@ -85,6 +85,7 @@ internal class SubscribeToDappUseCase(
                         subscribeTopic = subscribeTopic.value,
                         responseTopic = responseTopic.value,
                         account = account,
+                        authenticationPublicKey = authenticationPublicKey,
                         mapOfScope = dappScopes.associate { scope -> scope.name to Pair(scope.description, true) },
                         expiry = calcExpiry().seconds,
                     )
@@ -121,57 +122,57 @@ internal class SubscribeToDappUseCase(
         )
     }
 
-    private suspend fun extractPublicKeysFromDidJson(dappUri: Uri): Result<DidJsonPublicKeyPair> = withContext(Dispatchers.IO) {
-        val didJsonDappUri = generateAppropriateUri(dappUri, DID_JSON)
-
-        val didJsonResult = didJsonDappUri.runCatching {
-            // Get the did.json from the dapp
-            URL(this.toString()).openStream().bufferedReader().use { it.readText() }
-        }.mapCatching { wellKnownDidJsonString ->
-            // Parse the did.json
-            serializer.tryDeserialize<DidJsonDTO>(wellKnownDidJsonString)
-                ?: throw Exception("Failed to parse $DID_JSON. Check that the $DID_JSON matches the specs.")
-        }
-
-        val keyAgreementPublicKey = didJsonResult
-            .takeIf {
-                didJsonResult.getOrNull()?.keyAgreement?.isNotEmpty() == true
-            }?.mapCatching { didJsonDto ->
-                didJsonDto.keyAgreement.first() to didJsonDto
-            }?.mapCatching { (id, didJson) ->
-                extractPublicKey(id, didJson.verificationMethod)
-            } ?: Result.failure(Exception("Key Agreement is missing from $DID_JSON. Check that the $DID_JSON matches the specs."))
-
-        // TODO: Re-implement after testing
-        val authenticationPublicKey = /*Result.success(PublicKey(""))*/didJsonResult
-            .takeIf {
-                didJsonResult.getOrNull()?.authentication?.isNotEmpty() == true
-            }?.mapCatching { didJsonDto ->
-                didJsonDto.authentication.first() to didJsonDto
-            }?.mapCatching { (controllerKey, didJson) ->
-                extractPublicKey(controllerKey, didJson.verificationMethod)
-            } ?: Result.failure(Exception("Authentication is missing from $DID_JSON. Check that the $DID_JSON matches the specs."))
-
-        return@withContext runCatching {
-            keyAgreementPublicKey.getOrThrow() to authenticationPublicKey.getOrThrow()
-        }
-
-//        val wellKnownDidJsonString = URL(didJsonDappUri.toString()).openStream().bufferedReader().use { it.readText() }
-//        val didJson = serializer.tryDeserialize<com.walletconnect.notify.data.wellknown.did.DidJsonDTO>(wellKnownDidJsonString) ?: return@withContext Result.failure(Exception("Failed to parse $DID_JSON"))
-//        val verificationKey = didJson.keyAgreement.first()
-
-//        extractVerificationKey(verificationKey, didJsonResult.verificationMethod)
-//        val jwkPublicKey = didJsonResult.verificationMethod.first { it.id == verificationKey }.publicKeyJwk.x
-
-//        val replacedJwk = jwkPublicKey.replace("-", "+").replace("_", "/")
-//        val publicKey = Base64.decode(replacedJwk, Base64.DEFAULT).bytesToHex()
-//        Result.success(PublicKey(publicKey) to PublicKey(""))
-    }
+//    private suspend fun extractPublicKeysFromDidJson(dappUri: Uri): Result<DidJsonPublicKeyPair> = withContext(Dispatchers.IO) {
+//        val didJsonDappUri = generateAppropriateUri(dappUri, DID_JSON)
+//
+//        val didJsonResult = didJsonDappUri.runCatching {
+//            // Get the did.json from the dapp
+//            URL(this.toString()).openStream().bufferedReader().use { it.readText() }
+//        }.mapCatching { wellKnownDidJsonString ->
+//            // Parse the did.json
+//            serializer.tryDeserialize<DidJsonDTO>(wellKnownDidJsonString)
+//                ?: throw Exception("Failed to parse $DID_JSON. Check that the $DID_JSON matches the specs.")
+//        }
+//
+//        val keyAgreementPublicKey = didJsonResult
+//            .takeIf {
+//                didJsonResult.getOrNull()?.keyAgreement?.isNotEmpty() == true
+//            }?.mapCatching { didJsonDto ->
+//                didJsonDto.keyAgreement.first() to didJsonDto
+//            }?.mapCatching { (id, didJson) ->
+//                extractPublicKey(id, didJson.verificationMethod)
+//            } ?: Result.failure(Exception("Key Agreement is missing from $DID_JSON. Check that the $DID_JSON matches the specs."))
+//
+//        // TODO: Re-implement after testing
+//        val authenticationPublicKey = didJsonResult
+//            .takeIf {
+//                didJsonResult.getOrNull()?.authentication?.isNotEmpty() == true
+//            }?.mapCatching { didJsonDto ->
+//                didJsonDto.authentication.first() to didJsonDto
+//            }?.mapCatching { (id, didJson) ->
+//                extractPublicKey(id, didJson.verificationMethod)
+//            } ?: Result.failure(Exception("Authentication is missing from $DID_JSON. Check that the $DID_JSON matches the specs."))
+//
+//        return@withContext runCatching {
+//            keyAgreementPublicKey.getOrThrow() to authenticationPublicKey.getOrThrow()
+//        }
+//
+////        val wellKnownDidJsonString = URL(didJsonDappUri.toString()).openStream().bufferedReader().use { it.readText() }
+////        val didJson = serializer.tryDeserialize<com.walletconnect.notify.data.wellknown.did.DidJsonDTO>(wellKnownDidJsonString) ?: return@withContext Result.failure(Exception("Failed to parse $DID_JSON"))
+////        val verificationKey = didJson.keyAgreement.first()
+//
+////        extractVerificationKey(verificationKey, didJsonResult.verificationMethod)
+////        val jwkPublicKey = didJsonResult.verificationMethod.first { it.id == verificationKey }.publicKeyJwk.x
+//
+////        val replacedJwk = jwkPublicKey.replace("-", "+").replace("_", "/")
+////        val publicKey = Base64.decode(replacedJwk, Base64.DEFAULT).bytesToHex()
+////        Result.success(PublicKey(publicKey) to PublicKey(""))
+//    }
 
     private suspend fun extractNotificationScopeFromConfigJson(dappUri: Uri): Result<List<NotificationScope.Remote>> = withContext(Dispatchers.IO) {
         val notifyConfigDappUri = generateAppropriateUri(dappUri, WC_NOTIFY_CONFIG_JSON)
 
-        return@withContext /*Result.success(emptyList())*/notifyConfigDappUri.runCatching {
+        return@withContext notifyConfigDappUri.runCatching {
             // Get the did.json from the dapp
             URL(this.toString()).openStream().bufferedReader().use { it.readText() }
         }.mapCatching { wellKnownNotifyConfigString ->
@@ -199,21 +200,21 @@ internal class SubscribeToDappUseCase(
 //        Result.success(notificationScopeRemote)
     }
 
-    private fun extractPublicKey(id: String, verificationMethodList: List<VerificationMethodDTO>): PublicKey {
-        val verificationMethod = verificationMethodList.firstOrNull { verificationMethod -> verificationMethod.id == id } ?: throw Exception("Failed to find verification key")
-        val jwkPublicKey = verificationMethod.publicKeyJwk.x
-        val replacedJwk = jwkPublicKey.replace("-", "+").replace("_", "/")
-        val publicKey = Base64.decode(replacedJwk, Base64.DEFAULT).bytesToHex()
+//    private fun extractPublicKey(id: String, verificationMethodList: List<VerificationMethodDTO>): PublicKey {
+//        val verificationMethod = verificationMethodList.firstOrNull { verificationMethod -> verificationMethod.id == id } ?: throw Exception("Failed to find verification key")
+//        val jwkPublicKey = verificationMethod.publicKeyJwk.x
+//        val replacedJwk = jwkPublicKey.replace("-", "+").replace("_", "/")
+//        val publicKey = Base64.decode(replacedJwk, Base64.DEFAULT).bytesToHex()
+//
+//        return PublicKey(publicKey)
+//    }
 
-        return PublicKey(publicKey)
-    }
-
-    private fun generateAppropriateUri(dappUri: Uri, path: String): Uri =
-        if (dappUri.path?.contains(path) == false) {
-            dappUri.buildUpon().appendPath(path).build()
-        } else {
-            dappUri
-        }
+//    private fun generateAppropriateUri(dappUri: Uri, path: String): Uri =
+//        if (dappUri.path?.contains(path) == false) {
+//            dappUri.buildUpon().appendPath(path).build()
+//        } else {
+//            dappUri
+//        }
 
     private suspend fun getDappMetaData(dappUri: Uri) = withContext(Dispatchers.IO) {
         val listOfDappHomepages = runCatching {
@@ -225,7 +226,7 @@ internal class SubscribeToDappUseCase(
         val (dappHomepageUri: Uri, dappListing: Listing) = listOfDappHomepages.entries.filter { (_, dappListing) ->
             dappListing.description != null
         }.firstOrNull { (dappHomepageUri, _) ->
-            dappHomepageUri.host != null && dappHomepageUri.host!!.contains(dappUri.host!!)
+            dappHomepageUri.host != null && dappHomepageUri.host!!.contains(dappUri.host!!.replace("notify.gm", "gm"))
         } ?: return@withContext Result.failure<AppMetaData>(IllegalArgumentException("Unable to find dapp listing for $dappUri"))
 
         return@withContext Result.success(
@@ -240,7 +241,7 @@ internal class SubscribeToDappUseCase(
     }
 
     private companion object {
-        const val DID_JSON = ".well-known/did.json"
+//        const val DID_JSON = ".well-known/did.json"
         const val WC_NOTIFY_CONFIG_JSON = ".well-known/wc-notify-config.json"
     }
 }
