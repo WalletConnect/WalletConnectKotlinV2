@@ -39,7 +39,7 @@ jobs:
         ]
 
     name: ${{ matrix.conf.name }}
-    runs-on: self-hosted
+    runs-on: [self-hosted, kotlin]
     steps:
       - uses: actions/checkout@v3
 
