@@ -65,7 +65,7 @@ android {
             isReturnDefaultValues = true
         }
 
-        registerManagedDevices("AndroidCore")
+        registerManagedDevices()
     }
 }
 
@@ -94,6 +94,7 @@ dependencies {
     web3jCrypto()
     kethereum()
     retrofit()
+    beagleOkHttp()
 
     jUnit4()
     androidXTest()
