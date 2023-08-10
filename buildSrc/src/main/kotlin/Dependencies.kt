@@ -211,3 +211,14 @@ fun DependencyHandlerScope.qrCodeGenerator() {
 fun DependencyHandlerScope.turbine() {
     "testImplementation"("app.cash.turbine:turbine:$turbineVersion")
 }
+
+fun DependencyHandlerScope.beagle() {
+    "api"("io.github.pandulapeter.beagle:ui-view:$beagleVersion")
+    "api"("io.github.pandulapeter.beagle:log:$beagleVersion")
+    "api"("io.github.pandulapeter.beagle:log-crash:$beagleVersion")
+    "api"("io.github.pandulapeter.beagle:log-okhttp:$beagleVersion")
+}
+
+fun DependencyHandlerScope.beagleOkHttp() {
+    "implementation"("io.github.pandulapeter.beagle:log-okhttp:$beagleVersion")
+}
