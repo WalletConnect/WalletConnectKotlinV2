@@ -5,6 +5,8 @@ package com.walletconnect.notify.di
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.notify.engine.NotifyEngine
 import com.walletconnect.notify.engine.domain.EngineNotifySubscriptionNotifier
+import com.walletconnect.notify.engine.domain.ExtractPublicKeysFromDidJsonUseCase
+import com.walletconnect.notify.engine.domain.GenerateAppropriateUriUseCase
 import com.walletconnect.notify.engine.domain.RegisterIdentityAndReturnDidJwtInteractor
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -20,6 +22,17 @@ internal fun engineModule() = module {
 
     single {
         EngineNotifySubscriptionNotifier()
+    }
+
+    single {
+        ExtractPublicKeysFromDidJsonUseCase(
+            serializer = get(),
+            generateAppropriateUri = get()
+        )
+    }
+
+    single {
+        GenerateAppropriateUriUseCase()
     }
 
     single {
