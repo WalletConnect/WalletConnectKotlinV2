@@ -127,7 +127,7 @@ internal class NotifyEngine(
             .filter { response -> response.params is NotifyParams }
             .onEach { response ->
                 when (val responseParams = response.params) {
-                    is NotifyParams.SubscribeParams -> onNotifySubscribeResponseUseCase(response)
+                    is NotifyParams.SubscribeParams -> onNotifySubscribeResponseUseCase.invoke(response, responseParams)
                     is NotifyParams.UpdateParams -> onNotifyUpdateResponseUseCase(response, responseParams)
                 }
             }.launchIn(scope)
