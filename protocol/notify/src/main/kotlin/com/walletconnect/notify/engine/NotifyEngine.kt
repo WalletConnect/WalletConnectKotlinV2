@@ -79,10 +79,10 @@ internal class NotifyEngine(
 
     init {
         pairingHandler.register(
-            JsonRpcMethod.WC_NOTIFY_MESSAGE,
-            JsonRpcMethod.WC_NOTIFY_DELETE,
             JsonRpcMethod.WC_NOTIFY_SUBSCRIBE,
+            JsonRpcMethod.WC_NOTIFY_MESSAGE,
             JsonRpcMethod.WC_NOTIFY_UPDATE,
+            JsonRpcMethod.WC_NOTIFY_DELETE,
         )
     }
 
@@ -118,7 +118,7 @@ internal class NotifyEngine(
             .onEach { request ->
                 when (val requestParams = request.params) {
                     is NotifyParams.MessageParams -> onNotifyMessageUseCase(request, requestParams)
-                    is NotifyParams.DeleteParams -> onNotifyDeleteUseCase(request)
+                    is NotifyParams.DeleteParams -> onNotifyDeleteUseCase.invoke(request, requestParams)
                 }
             }.launchIn(scope)
 
