@@ -8,16 +8,16 @@ CREATE TABLE RequestedSubscriptions (
     request_id INTEGER UNIQUE NOT NULL,
     subscribe_topic TEXT NOT NULL,
     account TEXT NOT NULL,
+    authentication_public_key TEXT NOT NULL,
     map_of_scope TEXT AS Map<String, Pair<String, Boolean>> NOT NULL,
     response_topic TEXT UNIQUE NOT NULL,
     expiry INTEGER NOT NULL,
     UNIQUE(subscribe_topic, account)
 );
 
-
 insertOrAbortRequestedSubscribtion:
-INSERT OR ABORT INTO RequestedSubscriptions(request_id, subscribe_topic, account, map_of_scope, response_topic, expiry)
-VALUES ( ?, ?, ?, ?, ?, ?);
+INSERT OR ABORT INTO RequestedSubscriptions(request_id, subscribe_topic, account, authentication_public_key, map_of_scope, response_topic, expiry)
+VALUES (?, ?, ?, ?, ?, ?, ?);
 
 isAlreadyRequested:
 SELECT EXISTS (
@@ -28,7 +28,7 @@ SELECT EXISTS (
 );
 
 getRequestedSubscriptionByRequestId:
-SELECT request_id, subscribe_topic, account, map_of_scope, response_topic, expiry
+SELECT request_id, subscribe_topic, account, authentication_public_key, map_of_scope, response_topic, expiry
 FROM RequestedSubscriptions
 WHERE request_id = ?;
 
