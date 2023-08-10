@@ -10,8 +10,11 @@ import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
+import com.walletconnect.notify.data.jwt.delete.EncodeDeleteRequestJwtUseCase
+import com.walletconnect.notify.data.jwt.message.EncodeMessageReceiptJwtUseCase
 import com.walletconnect.notify.data.jwt.subscription.EncodeSubscriptionRequestJwtUseCase
 import com.walletconnect.notify.data.jwt.subscription.EncodeSubscriptionResponseJwtUseCase
+import com.walletconnect.notify.data.jwt.update.EncodeUpdateRequestJwtUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.supervisorScope
@@ -24,17 +27,17 @@ internal class RegisterIdentityAndReturnDidJwtInteractor(
 
     suspend fun subscriptionRequest(
         account: AccountId,
+        authenticationKey: PublicKey,
         metadataUrl: String,
         scopes: List<String>,
         onSign: (String) -> Cacao.Signature?,
         onFailure: (Throwable) -> Unit,
-    ): Result<DidJwt> = supervisorScope {
-        val (identityPublicKey, identityPrivateKey) =  registerIdentityAndReturnIdentityKeyPair(account, onSign, onFailure)
+    ): Result<DidJwt> = registerIdentityAndReturnIdentityKeyPair(account, onSign, onFailure) { (identityPublicKey, identityPrivateKey) ->
         val joinedScope = scopes.joinToString(" ")
 
-        return@supervisorScope encodeDidJwt(
+        return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
             identityPrivateKey,
-            EncodeSubscriptionRequestJwtUseCase(metadataUrl, account, joinedScope),
+            EncodeSubscriptionRequestJwtUseCase(metadataUrl, account, authenticationKey, joinedScope),
             EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
         )
     }
@@ -45,22 +48,74 @@ internal class RegisterIdentityAndReturnDidJwtInteractor(
         publicKey: PublicKey,
         onFailure: (Throwable) -> Unit,
         onSign: (String) -> Cacao.Signature? = { null },
-    ): Result<DidJwt> = supervisorScope {
-        val (identityPublicKey, identityPrivateKey) = registerIdentityAndReturnIdentityKeyPair(account, onSign, onFailure)
-
-        return@supervisorScope encodeDidJwt(
+    ): Result<DidJwt> = registerIdentityAndReturnIdentityKeyPair(account, onSign, onFailure) { (identityPublicKey, identityPrivateKey) ->
+        return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
             identityPrivateKey,
             EncodeSubscriptionResponseJwtUseCase(metadataUrl, publicKey),
             EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
         )
     }
 
-    private suspend fun registerIdentityAndReturnIdentityKeyPair(account: AccountId, onSign: (String) -> Cacao.Signature?, onFailure: (Throwable) -> Unit): Pair<PublicKey, PrivateKey> = withContext(Dispatchers.IO) {
-        identitiesInteractor.registerIdentity(account, keyserverUrl, onSign).getOrElse {
-            onFailure(it)
-            this.cancel()
+    suspend fun deleteRequest(
+        account: AccountId,
+        metadataUrl: String,
+        authenticationKey: PublicKey,
+        onFailure: (Throwable) -> Unit,
+        onSign: (String) -> Cacao.Signature? = { null },
+    ): Result<DidJwt> = registerIdentityAndReturnIdentityKeyPair(account, onSign, onFailure) { (identityPublicKey, identityPrivateKey) ->
+
+        return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
+            identityPrivateKey,
+            EncodeDeleteRequestJwtUseCase(account, metadataUrl, authenticationKey),
+            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
+        )
+    }
+
+    suspend fun messageReceipt(
+        account: AccountId,
+        metadataUrl: String,
+        authenticationKey: PublicKey,
+        messageHash: String,
+        onFailure: (Throwable) -> Unit,
+        onSign: (String) -> Cacao.Signature? = { null },
+    ): Result<DidJwt> = registerIdentityAndReturnIdentityKeyPair(account, onSign, onFailure) { (identityPublicKey, identityPrivateKey) ->
+
+        return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
+            identityPrivateKey,
+            EncodeMessageReceiptJwtUseCase(metadataUrl, authenticationKey, messageHash),
+            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
+        )
+    }
+
+    suspend fun updateRequest(
+        account: AccountId,
+        metadataUrl: String,
+        authenticationKey: PublicKey,
+        scope: String,
+        onFailure: (Throwable) -> Unit,
+        onSign: (String) -> Cacao.Signature? = { null },
+    ): Result<DidJwt> = registerIdentityAndReturnIdentityKeyPair(account, onSign, onFailure) { (identityPublicKey, identityPrivateKey) ->
+
+        return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
+            identityPrivateKey,
+            EncodeUpdateRequestJwtUseCase(account, metadataUrl, authenticationKey, scope),
+            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
+        )
+    }
+
+    private suspend fun registerIdentityAndReturnIdentityKeyPair(
+        account: AccountId,
+        onSign: (String) -> Cacao.Signature?,
+        onFailure: (Throwable) -> Unit,
+        returnedKeys: suspend (Pair<PublicKey, PrivateKey>) -> Result<DidJwt>,
+    ) = supervisorScope {
+        withContext(Dispatchers.IO) {
+            identitiesInteractor.registerIdentity(account, keyserverUrl, onSign).getOrElse {
+                onFailure(it)
+                this.cancel()
+            }
         }
 
-        identitiesInteractor.getIdentityKeyPair(account)
+        returnedKeys(identitiesInteractor.getIdentityKeyPair(account))
     }
 }
