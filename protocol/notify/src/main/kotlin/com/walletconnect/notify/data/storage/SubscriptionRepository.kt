@@ -24,6 +24,7 @@ internal class SubscriptionRepository(
         subscribeTopic: String,
         responseTopic: String,
         account: String,
+        authenticationPublicKey: PublicKey,
         mapOfScope: Map<String, Pair<String, Boolean>>,
         expiry: Long,
     ) = withContext(Dispatchers.IO) {
@@ -32,6 +33,7 @@ internal class SubscriptionRepository(
             subscribe_topic = subscribeTopic,
             response_topic = responseTopic,
             account = account,
+            authentication_public_key = authenticationPublicKey.keyAsHex,
             map_of_scope = mapOfScope,
             expiry = expiry,
         )
@@ -43,6 +45,7 @@ internal class SubscriptionRepository(
 
     suspend fun insertOrAbortActiveSubscription(
         account: String,
+        authenticationPublicKey: PublicKey,
         updatedExpiry: Long,
         relayProtocol: String,
         relayData: String?,
@@ -51,7 +54,7 @@ internal class SubscriptionRepository(
         notifyTopic: String,
         requestedSubscriptionRequestId: Long?,
     ) = withContext(Dispatchers.IO) {
-        activeSubscriptionsQueries.insertOrAbortActiveSubscribtion(account, updatedExpiry, relayProtocol, relayData, mapOfScope, dappGeneratedPublicKey, notifyTopic, requestedSubscriptionRequestId)
+        activeSubscriptionsQueries.insertOrAbortActiveSubscribtion(account, authenticationPublicKey.keyAsHex, updatedExpiry, relayProtocol, relayData, mapOfScope, dappGeneratedPublicKey, notifyTopic, requestedSubscriptionRequestId)
     }
 
     suspend fun updateSubscriptionScopeAndJwtByNotifyTopic(notifyTopic: String, updateScope: Map<String, Pair<String, Boolean>>, newExpiry: Long) = withContext(Dispatchers.IO) {
@@ -79,6 +82,7 @@ internal class SubscriptionRepository(
     @Suppress("LocalVariableName")
     private fun toActiveSubscriptionWithoutMetadata(
         account: String,
+        authentication_public_key: String,
         expiry: Long,
         relay_protocol: String,
         relay_data: String?,
@@ -88,6 +92,7 @@ internal class SubscriptionRepository(
         requested_subscription_id: Long?,
     ): Subscription.Active = Subscription.Active(
         account = AccountId(account),
+        authenticationPublicKey = PublicKey(authentication_public_key),
         mapOfNotificationScope = map_of_scope.map { entry -> entry.key to NotificationScope.Cached(entry.key, entry.value.first, entry.value.second) }.toMap(),
         expiry = Expiry(expiry),
         relay = RelayProtocolOptions(relay_protocol, relay_data),
@@ -102,6 +107,7 @@ internal class SubscriptionRepository(
         request_id: Long,
         subscribe_topic: String,
         account: String,
+        authentication_public_key: String,
         map_of_scope: Map<String, Pair<String, Boolean>>,
         response_topic: String,
         expiry: Long,
@@ -109,6 +115,7 @@ internal class SubscriptionRepository(
         requestId = request_id,
         responseTopic = Topic(response_topic),
         account = AccountId(account),
+        authenticationPublicKey = PublicKey(authentication_public_key),
         mapOfNotificationScope = map_of_scope.map { entry -> entry.key to NotificationScope.Cached(entry.key, entry.value.first, entry.value.second) }.toMap(),
         expiry = Expiry(expiry),
         subscribeTopic = Topic(subscribe_topic),
