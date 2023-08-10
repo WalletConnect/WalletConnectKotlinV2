@@ -42,20 +42,6 @@ internal class RegisterIdentityAndReturnDidJwtInteractor(
         )
     }
 
-    suspend fun subscriptionResponse(
-        account: AccountId,
-        metadataUrl: String,
-        publicKey: PublicKey,
-        onFailure: (Throwable) -> Unit,
-        onSign: (String) -> Cacao.Signature? = { null },
-    ): Result<DidJwt> = registerIdentityAndReturnIdentityKeyPair(account, onSign, onFailure) { (identityPublicKey, identityPrivateKey) ->
-        return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
-            identityPrivateKey,
-            EncodeSubscriptionResponseJwtUseCase(metadataUrl, publicKey),
-            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
-        )
-    }
-
     suspend fun deleteRequest(
         account: AccountId,
         metadataUrl: String,
