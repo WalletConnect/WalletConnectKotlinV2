@@ -49,22 +49,6 @@ internal class OnNotifyDeleteUseCase(
             SDKError(it)
         }
 
-//        val result = try {
-//            val subscription = subscriptionRepository.getActiveSubscriptionByNotifyTopic(request.topic.value)
-//
-//            if (subscription == null) {
-//                SDKError(IllegalStateException("Cannot find subscription for topic: ${request.topic}"))
-//            } else {
-//                jsonRpcInteractor.respondWithSuccess(request, irnParams)
-//                jsonRpcInteractor.unsubscribe(subscription.notifyTopic)
-//                subscriptionRepository.deleteSubscriptionByNotifyTopic(subscription.notifyTopic.value)
-//
-//                DeleteSubscription(request.topic.value)
-//            }
-//        } catch (e: Exception) {
-//            SDKError(e)
-//        }
-
         _events.emit(result)
     }
 }
