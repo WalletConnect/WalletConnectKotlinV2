@@ -12,10 +12,9 @@ import com.walletconnect.android.internal.common.storage.MetadataStorageReposito
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
-import com.walletconnect.notify.data.storage.SubscriptionRepository
 import com.walletconnect.notify.common.model.NotifyRpc
+import com.walletconnect.notify.data.storage.SubscriptionRepository
 import com.walletconnect.notify.engine.domain.RegisterIdentityAndReturnDidJwtInteractor
-import com.walletconnect.utils.Empty
 import kotlinx.coroutines.supervisorScope
 
 internal class UpdateSubscriptionRequestUseCase(
@@ -28,8 +27,9 @@ internal class UpdateSubscriptionRequestUseCase(
     override suspend fun update(notifyTopic: String, scopes: List<String>, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         val subscription = subscriptionRepository.getActiveSubscriptionByNotifyTopic(notifyTopic)
             ?: return@supervisorScope onFailure(Exception("No subscription found for topic $notifyTopic"))
-        val metadata: AppMetaData? = metadataStorageRepository.getByTopicAndType(subscription.notifyTopic, AppMetaDataType.PEER)
-        val didJwt = registerIdentityAndReturnDidJwtInteractor.subscriptionRequest(subscription.account, metadata?.url ?: String.Empty, scopes, { null }, onFailure).getOrElse { error ->
+        val metadata: AppMetaData = metadataStorageRepository.getByTopicAndType(subscription.notifyTopic, AppMetaDataType.PEER)
+            ?: return@supervisorScope onFailure(Exception("No metadata found for topic $notifyTopic"))
+        val didJwt = registerIdentityAndReturnDidJwtInteractor.updateRequest(subscription.account, metadata.url, subscription.authenticationPublicKey, scopes.joinToString(","), onFailure).getOrElse { error ->
             return@supervisorScope onFailure(error)
         }
 
