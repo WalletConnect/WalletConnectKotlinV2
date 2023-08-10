@@ -23,6 +23,7 @@ internal fun syncInNotifyModule() = module {
             historyInterface = get(),
             subscriptionRepository = get(),
             jsonRpcInteractor = get(),
+            extractPublicKeysFromDidJsonUseCase = get(),
             _moshi = get(named(AndroidCommonDITags.MOSHI))
         )
     }

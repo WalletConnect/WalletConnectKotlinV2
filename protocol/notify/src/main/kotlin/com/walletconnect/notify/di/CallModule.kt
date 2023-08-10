@@ -34,6 +34,8 @@ internal fun callModule() = module {
             explorerRepository = get(),
             metadataStorageRepository = get(),
             registerIdentityAndReturnDidJwt = get(),
+            extractPublicKeysFromDidJson = get(),
+            generateAppropriateUri = get(),
             logger = get(),
         )
     }
@@ -53,7 +55,7 @@ internal fun callModule() = module {
             subscriptionRepository = get(),
             messagesRepository = get(),
             deleteSubscriptionToNotifySubscriptionStore = get(),
-            logger = get()
+            registerIdentityAndReturnDidJwt = get()
         )
     }
 
