@@ -56,12 +56,13 @@ internal class OnNotifySubscribeResponseUseCase(
                     val requestedSubscription: Subscription.Requested = subscriptionRepository.getRequestedSubscriptionByRequestId(response.id)
                         ?: return@supervisorScope _events.emit(SDKError(Resources.NotFoundException("Cannot find subscription for topic: ${wcResponse.topic.value}")))
 
-                    // TODO: Add an entry in JsonRpcResultAdapter and create data class for response
                     // TODO: Extract JWT once Notify starts sending it
                     // val subscriptionResponseJwt = extractVerifiedDidJwtClaims<SubscriptionResponseJwtClaim>(responseParams.subscriptionAuth).getOrThrow()
-                    // val dappPublicKey = subscriptionResponseJwt.subject
+                    // val dappGeneratedPublicKey = subscriptionResponseJwt.subject
 
+                    // TODO: Remove once JWT logic is implemented
                     val dappGeneratedPublicKey = PublicKey((((wcResponse.response as JsonRpcResponse.JsonRpcResult).result as Map<*, *>)["publicKey"] as String))
+
                     val selfPublicKey: PublicKey = crypto.getSelfPublicFromKeyAgreement(requestedSubscription.responseTopic)
                     val notifyTopic: Topic = crypto.generateTopicFromKeyAgreement(selfPublicKey, dappGeneratedPublicKey)
                     val updatedExpiry: Expiry = calcExpiry()
