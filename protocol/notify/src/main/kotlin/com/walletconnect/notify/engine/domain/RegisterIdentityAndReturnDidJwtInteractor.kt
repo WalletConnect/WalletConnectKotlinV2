@@ -13,7 +13,6 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.notify.data.jwt.delete.EncodeDeleteRequestJwtUseCase
 import com.walletconnect.notify.data.jwt.message.EncodeMessageReceiptJwtUseCase
 import com.walletconnect.notify.data.jwt.subscription.EncodeSubscriptionRequestJwtUseCase
-import com.walletconnect.notify.data.jwt.subscription.EncodeSubscriptionResponseJwtUseCase
 import com.walletconnect.notify.data.jwt.update.EncodeUpdateRequestJwtUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
