@@ -2,7 +2,6 @@ package com.walletconnect.notify.data.jwt.message
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import com.walletconnect.foundation.util.jwt.JwtClaims
 import com.walletconnect.notify.data.jwt.NotifyJwtBase
 
 @JsonClass(generateAdapter = true)
@@ -13,10 +12,10 @@ data class MessageRequestJwtClaim(
     @Json(name = "iat") override val issuedAt: Long,
     @Json(name = "exp") override val expiration: Long,
     @Json(name = "ksu") override val keyserverUrl: String,
-    @Json(name = "app") val dappDomain: String,
+    @Json(name = "app") val dappUrl: String,
     @Json(name = "msg") val message: Message,
     @Json(name = "act") override val action: String = "notify_message",
-) : JwtClaims, NotifyJwtBase {
+) : NotifyJwtBase {
 
     @JsonClass(generateAdapter = true)
     data class Message(
