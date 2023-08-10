@@ -5,7 +5,7 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.util.jwt.encodeX25519DidKey
 
 class EncodeSubscriptionResponseJwtUseCase(
-    private val dappDomain: String,
+    private val dappUrl: String,
     private val publicKey: PublicKey
 ): EncodeDidJwtPayloadUseCase<SubscriptionResponseJwtClaim> {
 
@@ -17,7 +17,7 @@ class EncodeSubscriptionResponseJwtUseCase(
             keyserverUrl = keyserverUrl,
             audience = identityKeyDidKey,
             subject = encodeX25519DidKey(publicKey.keyAsBytes),
-            dappDomain = dappDomain
+            dappUrl = dappUrl
         )
     }
 }
