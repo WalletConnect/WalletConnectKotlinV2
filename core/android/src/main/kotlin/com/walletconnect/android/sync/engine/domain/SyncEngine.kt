@@ -99,14 +99,6 @@ internal class SyncEngine(
 
     }
 
-
-    private suspend fun registerTagsInHistory() {
-        // TODO: Has to be one register call per clientId
-        //  Currently moved to PushWalletEgnine
-//        historyInterface.registerTags(tags = listOf(Tags.SYNC_SET, Tags.SYNC_DELETE), {}, {})
-    }
-
-
     private fun collectJsonRpcRequests(): Job =
         jsonRpcInteractor.clientSyncJsonRpc
             .filter { request -> request.params is SyncParams }

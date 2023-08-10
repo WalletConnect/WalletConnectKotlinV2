@@ -10,9 +10,9 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.rememberModalBottomSheetState
@@ -27,21 +27,18 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
+import com.walletconnect.sample.common.ui.theme.WCSampleAppTheme
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
-import com.walletconnect.sample.common.ui.theme.WCSampleAppTheme
 import com.walletconnect.sample.wallet.ui.routes.host.WalletSampleHost
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.withContext
-import timber.log.Timber
-import java.net.URLEncoder
 import kotlin.random.Random
 import kotlin.random.nextUInt
 
-class Web3WalletActivity : ComponentActivity() {
+class Web3WalletActivity : AppCompatActivity() {
     private lateinit var navController: NavHostController
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -56,7 +53,7 @@ class Web3WalletActivity : ComponentActivity() {
         val web3walletViewModel: Web3WalletViewModel = Web3WalletViewModel()
         val connectionsViewModel: ConnectionsViewModel = ConnectionsViewModel()
         handleWeb3WalletEvents(web3walletViewModel, connectionsViewModel)
-        handlePushEvents(web3walletViewModel)
+        handleNotifyEvents(web3walletViewModel)
         handleCoreEvents(connectionsViewModel)
         askNotificationPermission()
         createNotificationChannel()
@@ -96,42 +93,13 @@ class Web3WalletActivity : ComponentActivity() {
             .launchIn(lifecycleScope)
     }
 
-    private fun handlePushEvents(web3walletViewModel: Web3WalletViewModel) {
-        web3walletViewModel.pushEvents
+    private fun handleNotifyEvents(web3walletViewModel: Web3WalletViewModel) {
+        web3walletViewModel.notifyEvents
             .flowWithLifecycle(lifecycle)
             .onEach { event ->
                 when (event) {
-                    is PushRequest -> {
-                        val peerName = URLEncoder.encode(event.peerName, Charsets.UTF_8.name())
-                        val peerDesc = URLEncoder.encode(event.peerDesc, Charsets.UTF_8.name())
-                        val iconUrl = event.icon?.run { URLEncoder.encode(this, Charsets.UTF_8.name()) }
-                        val redirectUrl = event.redirect?.run { URLEncoder.encode(this, Charsets.UTF_8.name()) }
-                        val route = StringBuilder(Route.PushRequest.path)
-                            .append("?")
-                            .append("${Route.PushRequest.KEY_REQUEST_ID}=${event.requestId}")
-                            .append("&")
-                            .append("${Route.PushRequest.KEY_PEER_NAME}=$peerName")
-                            .append("&")
-                            .append("${Route.PushRequest.KEY_PEER_DESC}=$peerDesc")
-                            .append("&")
-                            .append("${Route.PushRequest.KEY_ICON_URL}=$iconUrl")
-
-                        if (redirectUrl != null) {
-                            route.append("&")
-                                .append("${Route.PushRequest.KEY_REDIRECT}=$redirectUrl")
-                        }
-
-                        withContext(Dispatchers.Main) {
-                            navController.navigate(route.toString())
-                        }
-                    }
-
-                    is PushProposal -> {
-                        Timber.d("Received PushProposal but it's handled by Web3Inbox")
-                    }
-
-                    is PushMessage -> {
-                        val notificationBuilder = NotificationCompat.Builder(this, "Push")
+                    is NotifyMessage -> {
+                        val notificationBuilder = NotificationCompat.Builder(this, "Notify")
                             .setSmallIcon(com.walletconnect.sample.common.R.drawable.ic_walletconnect_circle_blue)
                             .setContentText(event.title)
                             .setContentText(event.body)
@@ -199,10 +167,10 @@ class Web3WalletActivity : ComponentActivity() {
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "PushSample"
-            val descriptionText = "Sample for Push SDK"
+            val name = "NotifySample"
+            val descriptionText = "Sample for Notify SDK"
             val importance = NotificationManager.IMPORTANCE_DEFAULT
-            val channel = NotificationChannel("Push", name, importance).apply {
+            val channel = NotificationChannel("Notify", name, importance).apply {
                 description = descriptionText
             }
             // Register the channel with the system

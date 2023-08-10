@@ -6,7 +6,7 @@ import com.walletconnect.android.sync.client.SyncInterface
 import com.walletconnect.android.sync.common.model.Store
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
-import com.walletconnect.push.engine.sync.PushSyncStores
+import com.walletconnect.push.engine.sync.NotifySyncStores
 
 internal class DeleteSubscriptionToPushSubscriptionStoreUseCase(
     private val logger: Logger,
@@ -15,7 +15,7 @@ internal class DeleteSubscriptionToPushSubscriptionStoreUseCase(
 
     suspend operator fun invoke(accountId: AccountId, pushTopic: Topic, onSuccess: (Boolean) -> Unit, onError: (Throwable) -> Unit) {
         syncClient.delete(
-            Sync.Params.Delete(accountId, Store(PushSyncStores.PUSH_SUBSCRIPTION.value), pushTopic.value),
+            Sync.Params.Delete(accountId, Store(NotifySyncStores.NOTIFY_SUBSCRIPTION.value), pushTopic.value),
             onSuccess = { didUpdate -> onSuccess(didUpdate) },
             onError = { error -> onError(error.throwable).also { logger.error(error.throwable) } }
         )

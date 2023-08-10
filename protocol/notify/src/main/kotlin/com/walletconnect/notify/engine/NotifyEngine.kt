@@ -2,7 +2,7 @@
 
 package com.walletconnect.notify.engine
 
-import com.walletconnect.android.history.HistoryInterface
+import com.walletconnect.android.archive.ArchiveInterface
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
@@ -20,8 +20,7 @@ import com.walletconnect.notify.engine.calls.DeleteSubscriptionUseCaseInterface
 import com.walletconnect.notify.engine.calls.EnableSyncUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetListOfActiveSubscriptionsUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetListOfMessagesUseCaseInterface
-import com.walletconnect.notify.engine.calls.GetNotificationTypesInterface
-import com.walletconnect.notify.engine.calls.GetNotificationTypesUseCase
+import com.walletconnect.notify.engine.calls.GetNotificationTypesUseCaseInterface
 import com.walletconnect.notify.engine.calls.SubscribeToDappUseCaseInterface
 import com.walletconnect.notify.engine.calls.UpdateSubscriptionRequestUseCaseInterface
 import com.walletconnect.notify.engine.requests.OnNotifyDeleteUseCase
@@ -46,14 +45,14 @@ internal class NotifyEngine(
     private val pairingHandler: PairingControllerInterface,
     private val syncClient: SyncInterface,
     private val onSyncUpdateEventUseCase: OnSyncUpdateEventUseCase,
-    private val historyInterface: HistoryInterface,
+    private val archiveInterface: ArchiveInterface,
     private val subscribeToDappUseCase: SubscribeToDappUseCaseInterface,
     private val updateUseCase: UpdateSubscriptionRequestUseCaseInterface,
     private val deleteSubscriptionUseCase: DeleteSubscriptionUseCaseInterface,
     private val deleteMessageUseCase: DeleteMessageUseCaseInterface,
     private val decryptMessageUseCase: DecryptMessageUseCaseInterface,
     private val enableSyncUseCase: EnableSyncUseCaseInterface,
-    private val getNotificationTypesUseCase: GetNotificationTypesUseCase,
+    private val getNotificationTypesUseCase: GetNotificationTypesUseCaseInterface,
     private val getListOfActiveSubscriptionsUseCase: GetListOfActiveSubscriptionsUseCaseInterface,
     private val getListOfMessages: GetListOfMessagesUseCaseInterface,
     private val onNotifyMessageUseCase: OnNotifyMessageUseCase,
@@ -67,7 +66,7 @@ internal class NotifyEngine(
     DeleteMessageUseCaseInterface by deleteMessageUseCase,
     DecryptMessageUseCaseInterface by decryptMessageUseCase,
     EnableSyncUseCaseInterface by enableSyncUseCase,
-    GetNotificationTypesInterface by getNotificationTypesUseCase,
+    GetNotificationTypesUseCaseInterface by getNotificationTypesUseCase,
     GetListOfActiveSubscriptionsUseCaseInterface by getListOfActiveSubscriptionsUseCase,
     GetListOfMessagesUseCaseInterface by getListOfMessages {
     private var jsonRpcRequestsJob: Job? = null
@@ -109,8 +108,8 @@ internal class NotifyEngine(
     }
 
     private suspend fun registerTagsInHistory() {
-        // Sync are here since History Server expects only one register call
-        historyInterface.registerTags(tags = listOf(Tags.NOTIFY_MESSAGE, Tags.SYNC_SET, Tags.SYNC_DELETE), {}, { error -> logger.error(error.throwable) })
+        // Sync are here since Archive Server expects only one register call
+        archiveInterface.registerTags(tags = listOf(Tags.NOTIFY_MESSAGE, Tags.SYNC_SET, Tags.SYNC_DELETE), {}, { error -> logger.error(error.throwable) })
     }
 
     private suspend fun collectJsonRpcRequests(): Job =

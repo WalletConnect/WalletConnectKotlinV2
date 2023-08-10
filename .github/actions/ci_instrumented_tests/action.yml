@@ -24,10 +24,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Gradle cache
-      if: ${{ inputs.shouldUseCache }}
-      uses: gradle/gradle-build-action@v2
-
     - name: Create log file
       shell: bash
       run: |
@@ -40,7 +36,7 @@ runs:
       env:
         WC_CLOUD_PROJECT_ID: ${{ inputs.projectId}}
         TEST_TIMEOUT_SECONDS: ${{ inputs.testTimeoutSeconds }}
-      run: ./gradlew ${{ inputs.command }}
+      run: ./gradlew ${{ inputs.command }} -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
 
     - uses: actions/upload-artifact@v3
       if: always()
@@ -49,3 +45,9 @@ runs:
         path: |
           **/reports/**
           emulator.log
+
+    - name: Clean unused managed devices
+      if: always()
+      shell: bash
+      run: ./gradlew cleanManagedDevices --unused-only 2>/dev/null
+      # It sometimes fails, but failure shouldn't be the cause of action being marked as failed, hence `2>/dev/null`
