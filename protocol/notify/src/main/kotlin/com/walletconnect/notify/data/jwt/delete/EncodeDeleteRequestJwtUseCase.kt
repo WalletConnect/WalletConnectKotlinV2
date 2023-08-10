@@ -1,13 +1,11 @@
 package com.walletconnect.notify.data.jwt.delete
 
+import com.walletconnect.android.internal.common.exception.Reason
 import com.walletconnect.android.internal.common.jwt.did.EncodeDidJwtPayloadUseCase
-import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.foundation.common.model.PublicKey
-import com.walletconnect.foundation.util.jwt.encodeDidPkh
 import com.walletconnect.foundation.util.jwt.encodeEd25519DidKey
 
 class EncodeDeleteRequestJwtUseCase(
-    private val accountId: AccountId,
     private val dappUrl: String,
     private val authenticationKey: PublicKey,
 ) : EncodeDidJwtPayloadUseCase<DeleteRequestJwtClaim> {
@@ -19,7 +17,7 @@ class EncodeDeleteRequestJwtUseCase(
             issuer = identityKeyDidKey,
             keyserverUrl = keyserverUrl,
             audience = encodeEd25519DidKey(authenticationKey.keyAsBytes),
-            subject = encodeDidPkh(accountId.value),
+            subject = Reason.UserDisconnected.message,
             dappUrl = dappUrl
         )
     }

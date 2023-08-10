@@ -51,7 +51,7 @@ internal class RegisterIdentityAndReturnDidJwtInteractor(
 
         return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
             identityPrivateKey,
-            EncodeDeleteRequestJwtUseCase(account, metadataUrl, authenticationKey),
+            EncodeDeleteRequestJwtUseCase(metadataUrl, authenticationKey),
             EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
         )
     }
