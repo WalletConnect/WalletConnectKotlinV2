@@ -47,8 +47,8 @@ internal fun ConnectYourWalletRoute(
         onWalletItemClick = {
             uriHandler.goToNativeWallet(uri, it.nativeLink)
         },
-        onViewAllClick = { navController.navigate(Route.AllWallets.path) },
-        onScanIconClick = { navController.navigate(Route.ScanQRCode.path) },
+        onViewAllClick = { navController.navigate(Route.ALL_WALLETS.path) },
+        onScanIconClick = { navController.navigate(Route.QR_CODE.path) }
     )
 }
 
@@ -88,6 +88,7 @@ private fun WalletsGrid(
         }
     }
 }
+
 private fun LazyGridScope.walletsGridItemsWithViewAll(
     wallets: List<Wallet>,
     onWalletItemClick: (Wallet) -> Unit,

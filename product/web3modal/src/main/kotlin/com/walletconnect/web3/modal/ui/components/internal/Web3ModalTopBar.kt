@@ -24,7 +24,7 @@ internal fun Web3ModalTopBar(
         modifier = Modifier
             .height(60.dp)
             .fillMaxWidth()
-            .padding(20.dp),
+            .padding(horizontal = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         startIcon()

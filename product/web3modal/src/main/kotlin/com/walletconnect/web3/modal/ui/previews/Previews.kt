@@ -19,7 +19,7 @@ import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 internal fun Web3ModalPreview(
     content: @Composable () -> Unit,
 ) {
-    Web3ModalRoot(rememberNavController()) {
+    Web3ModalRoot(rememberNavController(), {}) {
         content()
     }
 }
