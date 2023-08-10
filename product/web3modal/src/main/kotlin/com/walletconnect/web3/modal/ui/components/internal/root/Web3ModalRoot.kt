@@ -16,6 +16,8 @@ import com.walletconnect.web3.modal.ui.components.internal.commons.BackArrowIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.FullWidthDivider
 import com.walletconnect.web3.modal.ui.components.internal.commons.QuestionMarkIcon
 import com.walletconnect.web3.modal.ui.previews.ComponentPreview
+import com.walletconnect.web3.modal.ui.previews.MultipleComponentsPreview
+import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.theme.ProvideWeb3ModalThemeComposition
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
@@ -29,26 +31,34 @@ internal fun Web3ModalRoot(
     val rootState = rememberWeb3ModalRootState(coroutineScope = scope, navController = navController)
     val title by rootState.title.collectAsState()
 
-    Column(
-        verticalArrangement = Arrangement.Bottom
-    ) {
-        ProvideWeb3ModalThemeComposition() {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Web3ModalTheme.colors.background.color100)
-            ) {
-                title?.let { title ->
-                    Web3ModalTopBar(
-                        title = title,
-                        startIcon = { TopBarStartIcon(rootState) },
-                        onCloseIconClick = closeModal
-                    )
-                    FullWidthDivider()
-                }
-                content()
-            }
+    Column(verticalArrangement = Arrangement.Bottom) {
+        ProvideWeb3ModalThemeComposition {
+            Web3ModalRoot(rootState, title, closeModal, content)
         }
+    }
+}
+
+@Composable
+private fun Web3ModalRoot(
+    rootState: Web3ModalRootState,
+    title: String?,
+    closeModal: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Web3ModalTheme.colors.background.color100)
+    ) {
+        title?.let { title ->
+            Web3ModalTopBar(
+                title = title,
+                startIcon = { TopBarStartIcon(rootState) },
+                onCloseIconClick = closeModal
+            )
+            FullWidthDivider()
+        }
+        content()
     }
 }
 
@@ -64,11 +74,15 @@ private fun TopBarStartIcon(
 }
 
 @Composable
-@Preview
+@UiModePreview
 private fun PreviewWeb3ModalRoot() {
-    ComponentPreview {
-        Web3ModalRoot(rememberNavController(), {}) {
-            Box(modifier = Modifier.size(500.dp))
-        }
-    }
+    val content: @Composable () -> Unit = { Box(modifier = Modifier.size(200.dp)) }
+    val scope = rememberCoroutineScope()
+    val navController = rememberNavController()
+    val rootState = rememberWeb3ModalRootState(coroutineScope = scope, navController = navController)
+
+    MultipleComponentsPreview(
+        {Web3ModalRoot(rootState, "", {}, { content() })}
+    )
 }
+

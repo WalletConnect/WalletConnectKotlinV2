@@ -52,7 +52,7 @@ internal fun MultipleComponentsPreview(
 
 @LightTheme
 @DarkTheme
-internal annotation class ComponentPreview
+internal annotation class UiModePreview
 
 @Preview(uiMode = UI_MODE_NIGHT_NO)
 internal annotation class LightTheme

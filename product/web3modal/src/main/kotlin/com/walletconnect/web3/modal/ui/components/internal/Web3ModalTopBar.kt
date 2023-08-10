@@ -7,7 +7,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.walletconnect.web3.modal.ui.previews.ComponentPreview
+import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 import com.walletconnect.web3.modal.ui.components.internal.commons.BackArrowIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.CloseIcon
@@ -41,7 +41,7 @@ internal fun Web3ModalTopBar(
 }
 
 @Composable
-@ComponentPreview
+@UiModePreview
 private fun PreviewWeb3ModalTopBar() {
     MultipleComponentsPreview(
         { Web3ModalTopBar(title = "WalletConnect", startIcon = { BackArrowIcon {} }, {}) },

@@ -11,6 +11,8 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import com.walletconnect.modal.ui.components.common.roundedClickable
 import com.walletconnect.web3.modal.R
+import com.walletconnect.web3.modal.ui.previews.MultipleComponentsPreview
+import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 @Composable
@@ -22,32 +24,51 @@ internal fun BackArrowIcon(
         imageVector = ImageVector.vectorResource(id = R.drawable.ic_chevron_left),
         contentDescription = ContentDescription.BACK_ARROW.description,
         tint = tint,
-        modifier = Modifier.size(36.dp).roundedClickable(onClick = onClick).padding(10.dp),
+        modifier = Modifier
+            .size(36.dp)
+            .roundedClickable(onClick = onClick)
+            .padding(10.dp),
     )
 }
 
 @Composable
 internal fun QuestionMarkIcon(
     tint: Color = Web3ModalTheme.colors.foreground.color100,
-    onClick: () -> Unit = {}
+    onClick: () -> Unit
 ) {
     Icon(
         imageVector = ImageVector.vectorResource(id = R.drawable.ic_question_mark),
         contentDescription = ContentDescription.QUESTION_MARK.description,
         tint = tint,
-        modifier = Modifier.size(36.dp).roundedClickable(onClick = onClick).padding(10.dp),
+        modifier = Modifier
+            .size(36.dp)
+            .roundedClickable(onClick = onClick)
+            .padding(10.dp),
     )
 }
 
 @Composable
 internal fun CloseIcon(
     tint: Color = Web3ModalTheme.colors.foreground.color100,
-    onClick: () -> Unit = {}
+    onClick: () -> Unit
 ) {
     Icon(
         imageVector = ImageVector.vectorResource(id = R.drawable.ic_close),
         contentDescription = ContentDescription.CLOSE.description,
         tint = tint,
-        modifier = Modifier.size(36.dp).roundedClickable(onClick = onClick).padding(10.dp),
+        modifier = Modifier
+            .size(36.dp)
+            .roundedClickable(onClick = onClick)
+            .padding(10.dp),
+    )
+}
+
+@Composable
+@UiModePreview
+private fun IconsPreview() {
+    MultipleComponentsPreview(
+        { BackArrowIcon {} },
+        { QuestionMarkIcon {} },
+        { CloseIcon {} }
     )
 }
