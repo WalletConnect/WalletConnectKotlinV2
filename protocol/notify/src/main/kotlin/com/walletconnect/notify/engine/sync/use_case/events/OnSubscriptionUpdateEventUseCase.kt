@@ -2,6 +2,7 @@
 
 package com.walletconnect.notify.engine.sync.use_case.events
 
+import androidx.core.net.toUri
 import com.squareup.moshi.Moshi
 import com.walletconnect.android.history.HistoryInterface
 import com.walletconnect.android.history.network.model.messages.MessagesParams
@@ -17,6 +18,7 @@ import com.walletconnect.foundation.util.Logger
 import com.walletconnect.notify.common.model.toDb
 import com.walletconnect.notify.data.storage.MessagesRepository
 import com.walletconnect.notify.data.storage.SubscriptionRepository
+import com.walletconnect.notify.engine.domain.ExtractPublicKeysFromDidJsonUseCase
 import com.walletconnect.notify.engine.sync.model.SyncedSubscription
 import com.walletconnect.notify.engine.sync.model.toCommon
 import timber.log.Timber
@@ -29,46 +31,94 @@ internal class OnSubscriptionUpdateEventUseCase(
     private val historyInterface: HistoryInterface,
     private val subscriptionRepository: SubscriptionRepository,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val extractPublicKeysFromDidJsonUseCase: ExtractPublicKeysFromDidJsonUseCase,
     @Suppress("LocalVariableName") _moshi: Moshi.Builder,
 ) {
     private val moshi = _moshi.build()
 
     suspend operator fun invoke(event: Events.OnSyncUpdate) {
-
         when (val update = event.update) {
             is SyncUpdate.SyncSet -> {
-                val syncedSubscription: SyncedSubscription = moshi.adapter(SyncedSubscription::class.java).fromJson(update.value) ?: return logger.error(event.toString())
-                val activeSubscription = syncedSubscription.toCommon()
+                runCatching { moshi.adapter(SyncedSubscription::class.java).fromJson(update.value)!! }
+                    .onFailure { error -> logger.error("Failed to parse Synced Subscription: ${error.stackTraceToString()}") }
+                    .mapCatching { syncedSubscription: SyncedSubscription ->
+                        val dappUri = syncedSubscription.metadata.url.toUri().run {
+                            "$scheme://$authority".toUri()
+                        }
+                        val (_, authenticationPublicKey) = extractPublicKeysFromDidJsonUseCase(dappUri).getOrThrow()
 
-                keyManagementRepository.setKey(SymmetricKey(syncedSubscription.symKey), activeSubscription.notifyTopic.value)
-
-                with(activeSubscription) {
-                    runCatching<Unit> {
-                        subscriptionRepository.insertOrAbortActiveSubscription(
-                            account.value,
-                            expiry.seconds,
-                            relay.protocol,
-                            relay.data,
-                            mapOfNotificationScope.toDb(),
-                            dappGeneratedPublicKey.keyAsHex,
-                            notifyTopic.value,
-                            null,
-                        )
-                    }.mapCatching {
-                        metadataStorageRepository.insertOrAbortMetadata(topic = notifyTopic, appMetaData = dappMetaData!!, appMetaDataType = AppMetaDataType.PEER)
+                        syncedSubscription.toCommon(authenticationPublicKey).also { activeSubscription ->
+                            keyManagementRepository.setKey(SymmetricKey(syncedSubscription.symKey), activeSubscription.notifyTopic.value)
+                        }
+                    }.onSuccess { activeSubscription ->
+                        with(activeSubscription) {
+                            subscriptionRepository.insertOrAbortActiveSubscription(
+                                account.value,
+                                authenticationPublicKey,
+                                expiry.seconds,
+                                relay.protocol,
+                                relay.data,
+                                mapOfNotificationScope.toDb(),
+                                dappGeneratedPublicKey.keyAsHex,
+                                notifyTopic.value,
+                                null,
+                            )
+                        }
+                    }.onSuccess { activeSubscription ->
+                        with(activeSubscription) {
+                            metadataStorageRepository.insertOrAbortMetadata(topic = notifyTopic, appMetaData = dappMetaData!!, appMetaDataType = AppMetaDataType.PEER)
+                        }
                     }.fold(
-                        onFailure = { error -> logger.error("Failed to insert Synced Subscription: $error") },
-                        onSuccess = {
-                            jsonRpcInteractor.subscribe(notifyTopic) { error -> logger.error(error) }
-                            getNotifyMessagesFromHistory(notifyTopic) { messagesCount ->
-                                if (messagesCount >= messagesBatchSize) logger.error("Fetched $messagesBatchSize for ${dappMetaData!!.url}")
-                                else logger.log("Fetched $messagesCount for ${dappMetaData!!.url}")
+                        onSuccess = { activeSubscription ->
+                            with(activeSubscription) {
+                                jsonRpcInteractor.subscribe(notifyTopic) { error -> logger.error(error) }
+                                getNotifyMessagesFromHistory(notifyTopic) { messagesCount ->
+                                    if (messagesCount >= messagesBatchSize) logger.error("Fetched $messagesBatchSize for ${dappMetaData!!.url}")
+                                    else logger.log("Fetched $messagesCount for ${dappMetaData!!.url}")
 
-                                Timber.d("Sync getNotifyMessagesFromHistory: $notifyTopic")
+                                    Timber.d("Sync getNotifyMessagesFromHistory: $notifyTopic")
+                                }
                             }
+                        },
+                        onFailure = { error ->
+                            logger.error("Failed to insert Synced Subscription: $error")
                         }
                     )
-                }
+
+
+//                val syncedSubscription: SyncedSubscription = moshi.adapter(SyncedSubscription::class.java).fromJson(update.value) ?: return logger.error(event.toString())
+//                val activeSubscription = syncedSubscription.toCommon()
+//
+//                keyManagementRepository.setKey(SymmetricKey(syncedSubscription.symKey), activeSubscription.notifyTopic.value)
+//
+//                with(activeSubscription) {
+//                    runCatching<Unit> {
+//                        subscriptionRepository.insertOrAbortActiveSubscription(
+//                            account.value,
+//                            authenticationPublicKey,
+//                            expiry.seconds,
+//                            relay.protocol,
+//                            relay.data,
+//                            mapOfNotificationScope.toDb(),
+//                            dappGeneratedPublicKey.keyAsHex,
+//                            notifyTopic.value,
+//                            null,
+//                        )
+//                    }.mapCatching {
+//                        metadataStorageRepository.insertOrAbortMetadata(topic = notifyTopic, appMetaData = dappMetaData!!, appMetaDataType = AppMetaDataType.PEER)
+//                    }.fold(
+//                        onFailure = { error -> logger.error("Failed to insert Synced Subscription: $error") },
+//                        onSuccess = {
+//                            jsonRpcInteractor.subscribe(notifyTopic) { error -> logger.error(error) }
+//                            getNotifyMessagesFromHistory(notifyTopic) { messagesCount ->
+//                                if (messagesCount >= messagesBatchSize) logger.error("Fetched $messagesBatchSize for ${dappMetaData!!.url}")
+//                                else logger.log("Fetched $messagesCount for ${dappMetaData!!.url}")
+//
+//                                Timber.d("Sync getNotifyMessagesFromHistory: $notifyTopic")
+//                            }
+//                        }
+//                    )
+//                }
             }
 
             is SyncUpdate.SyncDelete -> {
