@@ -1,10 +1,10 @@
 package com.walletconnect.notify.data.jwt
 
-import com.squareup.moshi.Json
+import com.walletconnect.foundation.util.jwt.JwtClaims
 
-interface NotifyJwtBase {
-    @Json(name = "act") val action: String
-    @Json(name = "iat") val issuedAt: Long
-    @Json(name = "exp") val expiration: Long
-    @Json(name = "ksu") val keyserverUrl: String
+interface NotifyJwtBase: JwtClaims {
+    val action: String
+    val issuedAt: Long
+    val expiration: Long
+    val keyserverUrl: String
 }
