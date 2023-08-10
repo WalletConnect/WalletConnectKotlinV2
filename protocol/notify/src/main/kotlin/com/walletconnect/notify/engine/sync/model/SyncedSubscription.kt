@@ -95,8 +95,9 @@ internal fun Subscription.Active.toSync(symmetricKey: SymmetricKey) = SyncedSubs
 )
 
 @JvmSynthetic
-internal fun SyncedSubscription.toCommon(): Subscription.Active = Subscription.Active(
+internal fun SyncedSubscription.toCommon(authenticationPublicKey: PublicKey): Subscription.Active = Subscription.Active(
     account = AccountId(account),
+    authenticationPublicKey = authenticationPublicKey,
     mapOfNotificationScope = scope.toCommon(),
     expiry = Expiry(expiry),
     dappGeneratedPublicKey = PublicKey("There is no dapp generated public key from sync"),
