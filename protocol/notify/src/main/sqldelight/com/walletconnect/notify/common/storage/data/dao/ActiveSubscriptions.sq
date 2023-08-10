@@ -6,6 +6,7 @@ import kotlin.collections.Map;
 CREATE TABLE ActiveSubscriptions (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     account TEXT NOT NULL,
+    authentication_public_key TEXT NOT NULL,
     expiry INTEGER NOT NULL,
     relay_protocol TEXT NOT NULL,
     relay_data TEXT DEFAULT NULL,
@@ -16,20 +17,20 @@ CREATE TABLE ActiveSubscriptions (
 );
 
 insertOrAbortActiveSubscribtion:
-INSERT OR ABORT INTO ActiveSubscriptions(account, expiry, relay_protocol, relay_data, map_of_scope, dapp_generated_public_key, notify_topic, requested_subscription_id)
-VALUES ( ?, ?, ?, ?, ? , ?, ?, ?);
+INSERT OR ABORT INTO ActiveSubscriptions(account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, dapp_generated_public_key, notify_topic, requested_subscription_id)
+VALUES ( ?, ?, ?, ?, ? , ?, ?, ?, ?);
 
 getSubscriptionByDappGeneratedPublicKey:
-SELECT account, expiry, relay_protocol, relay_data, map_of_scope, dapp_generated_public_key, notify_topic, requested_subscription_id
+SELECT account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, dapp_generated_public_key, notify_topic, requested_subscription_id
 FROM ActiveSubscriptions
 WHERE dapp_generated_public_key = ?;
 
 getAllActiveSubscriptions:
-SELECT account, expiry, relay_protocol, relay_data, map_of_scope, dapp_generated_public_key, notify_topic, requested_subscription_id
+SELECT account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, dapp_generated_public_key, notify_topic, requested_subscription_id
 FROM ActiveSubscriptions;
 
 getActiveSubscriptionByNotifyTopic:
-SELECT account, expiry, relay_protocol, relay_data, map_of_scope, dapp_generated_public_key, notify_topic, requested_subscription_id
+SELECT account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, dapp_generated_public_key, notify_topic, requested_subscription_id
 FROM ActiveSubscriptions
 WHERE notify_topic = ?;
 
