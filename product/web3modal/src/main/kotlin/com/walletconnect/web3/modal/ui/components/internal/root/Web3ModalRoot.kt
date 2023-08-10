@@ -82,7 +82,8 @@ private fun PreviewWeb3ModalRoot() {
     val rootState = rememberWeb3ModalRootState(coroutineScope = scope, navController = navController)
 
     MultipleComponentsPreview(
-        {Web3ModalRoot(rootState, "", {}, { content() })}
+        { Web3ModalRoot(rootState, null, {}, { content() }) },
+        { Web3ModalRoot(rootState, "Top Bar Title", {}, { content() }) }
     )
 }
 
