@@ -12,7 +12,7 @@ import com.walletconnect.web3.modal.ui.components.internal.Web3ModalComponent
 import com.walletconnect.web3.modal.ui.navigation.Route
 
 fun NavGraphBuilder.web3Modal() {
-    dialog<Web3ModalSheet>(Route.Web3Modal.path)
+    dialog<Web3ModalSheet>(Route.WEB3MODAL.path)
 }
 
 fun NavController.openWeb3Modal(@IdRes id: Int) = navigate(id)

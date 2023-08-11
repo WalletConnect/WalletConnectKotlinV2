@@ -55,7 +55,7 @@ class ComposeActivity : ComponentActivity() {
                     },
                 ) { paddingValues ->
                     ModalBottomSheetLayout(
-                        sheetShape = RoundedCornerShape(16.dp),
+                        sheetShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
                         bottomSheetNavigator = bottomSheetNavigator,
                         modifier = Modifier.padding(paddingValues)
                     ) {

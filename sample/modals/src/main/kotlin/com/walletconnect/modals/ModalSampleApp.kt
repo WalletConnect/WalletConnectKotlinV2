@@ -47,10 +47,10 @@ class ModalSampleApp : Application() {
                 properties = mapOf("sessionExpiry" to "${(System.currentTimeMillis() / 1000) + TimeUnit.SECONDS.convert(7, TimeUnit.DAYS)}"))
         }
 
-        Web3Modal.initialize(
-            Modal.Params.Init(core = CoreClient, sessionParams = sessionParams)
-        ) { error ->
+        Web3Modal.initialize(Modal.Params.Init(core = CoreClient)) { error ->
             Timber.e(tag(this), error.throwable.stackTraceToString())
         }
+
+        Web3Modal.setSessionParams(sessionParams)
     }
 }

@@ -17,7 +17,6 @@ object Modal {
             val core: CoreInterface,
             val excludedWalletIds: List<String> = listOf(),
             val recommendedWalletsIds: List<String> = listOf(),
-            val sessionParams: SessionParams? = null
         ) : Params()
 
         data class Connect(

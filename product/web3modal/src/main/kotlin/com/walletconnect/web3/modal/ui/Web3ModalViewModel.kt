@@ -7,11 +7,8 @@ import com.walletconnect.android.internal.common.explorer.domain.usecase.GetWall
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -32,10 +29,6 @@ internal class Web3ModalViewModel : ViewModel() {
 
     val modalState: StateFlow<Web3ModalState>
         get() = _modalState.asStateFlow()
-
-    private val _web3ModalEvents: MutableSharedFlow<Web3ModalEvents> = MutableSharedFlow()
-    val modalEvents: SharedFlow<Web3ModalEvents>
-        get() = _web3ModalEvents.asSharedFlow()
 
     init {
         initModalState()
