@@ -1,11 +1,12 @@
-package com.walletconnect.notify.data.wellknown.did
+@file:JvmSynthetic
 
+package com.walletconnect.notify.data.wellknown.did
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-data class VerificationMethodDTO(
+internal data class VerificationMethodDTO(
     @Json(name = "id")
     val id: String,
     @Json(name = "type")
