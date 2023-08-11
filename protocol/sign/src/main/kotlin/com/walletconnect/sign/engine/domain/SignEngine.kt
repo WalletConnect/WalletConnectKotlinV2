@@ -1108,7 +1108,6 @@ internal class SignEngine(
             val sessionTopic = wcResponse.topic
             if (!sessionStorageRepository.isSessionValid(sessionTopic)) return
             val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(sessionTopic)
-
             if (!sessionStorageRepository.isUpdatedNamespaceResponseValid(session.topic.value, wcResponse.response.id.extractTimestamp())) {
                 return
             }
@@ -1117,13 +1116,9 @@ internal class SignEngine(
                 is JsonRpcResponse.JsonRpcResult -> {
                     logger.log("Session update namespaces response received")
                     val responseId = wcResponse.response.id
-
                     val namespaces = sessionStorageRepository.getTempNamespaces(responseId)
-
                     sessionStorageRepository.deleteNamespaceAndInsertNewNamespace(session.topic.value, namespaces, responseId)
-
                     sessionStorageRepository.markUnAckNamespaceAcknowledged(responseId)
-
                     scope.launch {
                         _engineEvent.emit(
                             EngineDO.SessionUpdateNamespacesResponse.Result(session.topic, session.sessionNamespaces.toMapOfEngineNamespacesSession())

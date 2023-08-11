@@ -37,5 +37,3 @@ WHERE session_id = (
     FROM SessionDao
     WHERE topic = ?
 );
-
--- 1- 20 older ; 2 -22 newer
