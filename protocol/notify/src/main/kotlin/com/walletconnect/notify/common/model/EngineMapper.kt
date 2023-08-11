@@ -4,14 +4,9 @@ package com.walletconnect.notify.common.model
 
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SDKError
-import com.walletconnect.android.internal.common.model.params.NotifyParams
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.notify.client.Notify
-
-//@JvmSynthetic
-//internal fun NotifyParams.MessageParams.toEngineDO(): NotifyMessage =
-//    NotifyMessage(title, body, icon, url, type)
 
 @JvmSynthetic
 internal fun NotifyMessage.toWalletClient(): Notify.Model.Message {
