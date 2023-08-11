@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.notify.data.jwt.update
 
 import com.walletconnect.android.internal.common.jwt.did.EncodeDidJwtPayloadUseCase
@@ -6,7 +8,7 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.util.jwt.encodeDidPkh
 import com.walletconnect.foundation.util.jwt.encodeEd25519DidKey
 
-class EncodeUpdateRequestJwtUseCase(
+internal class EncodeUpdateRequestJwtUseCase(
     private val accountId: AccountId,
     private val dappUrl: String,
     private val authenticationKey: PublicKey,
