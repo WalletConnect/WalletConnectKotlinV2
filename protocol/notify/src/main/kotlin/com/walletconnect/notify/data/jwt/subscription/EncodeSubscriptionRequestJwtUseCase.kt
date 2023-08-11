@@ -8,7 +8,7 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.util.jwt.encodeDidPkh
 import com.walletconnect.foundation.util.jwt.encodeEd25519DidKey
 
-class EncodeSubscriptionRequestJwtUseCase(
+internal class EncodeSubscriptionRequestJwtUseCase(
     private val dappUrl: String,
     private val accountId: AccountId,
     private val authenticationKey: PublicKey,

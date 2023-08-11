@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.notify.data.jwt.delete
 
 import com.walletconnect.android.internal.common.exception.Reason
@@ -5,7 +7,7 @@ import com.walletconnect.android.internal.common.jwt.did.EncodeDidJwtPayloadUseC
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.util.jwt.encodeEd25519DidKey
 
-class EncodeDeleteRequestJwtUseCase(
+internal class EncodeDeleteRequestJwtUseCase(
     private val dappUrl: String,
     private val authenticationKey: PublicKey,
 ) : EncodeDidJwtPayloadUseCase<DeleteRequestJwtClaim> {
