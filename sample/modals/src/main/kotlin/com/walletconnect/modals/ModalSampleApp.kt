@@ -5,11 +5,13 @@ import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.sample.common.BuildConfig
+import com.walletconnect.sample.common.Chains
 import com.walletconnect.sample.common.WALLET_CONNECT_PROD_RELAY_URL
 import com.walletconnect.sample.common.tag
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
 import timber.log.Timber
+import java.util.concurrent.TimeUnit
 
 class ModalSampleApp : Application() {
     override fun onCreate() {
@@ -33,8 +35,20 @@ class ModalSampleApp : Application() {
             Timber.e(it.throwable)
         }
 
+        val sessionParams = with(Chains.ETHEREUM_MAIN) {
+            Modal.Params.SessionParams(
+                requiredNamespaces = mapOf(
+                    chainId to Modal.Model.Namespace.Proposal(
+                        chains = listOf(chainId),
+                        methods = methods,
+                        events = events
+                    )),
+                optionalNamespaces = null,
+                properties = mapOf("sessionExpiry" to "${(System.currentTimeMillis() / 1000) + TimeUnit.SECONDS.convert(7, TimeUnit.DAYS)}"))
+        }
+
         Web3Modal.initialize(
-            Modal.Params.Init(core = CoreClient)
+            Modal.Params.Init(core = CoreClient, sessionParams = sessionParams)
         ) { error ->
             Timber.e(tag(this), error.throwable.stackTraceToString())
         }

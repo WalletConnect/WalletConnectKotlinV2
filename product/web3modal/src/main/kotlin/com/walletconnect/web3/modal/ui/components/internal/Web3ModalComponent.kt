@@ -41,11 +41,13 @@ internal fun Web3ModalComponent(
                         closeModal()
                         Toast.makeText(context, "Session was approved", Toast.LENGTH_SHORT).show()
                     }
+
                     Web3ModalEvents.SessionRejected -> Toast.makeText(
                         context,
                         "Session was rejected",
                         Toast.LENGTH_SHORT
                     ).show()
+
                     Web3ModalEvents.NoAction -> Unit
                     Web3ModalEvents.InvalidState -> closeModal()
                 }
@@ -53,12 +55,10 @@ internal fun Web3ModalComponent(
             .collect()
     }
 
-    web3ModalState?.let { state ->
-        Web3ModalRoot {
-            Web3ModalNavGraph(
-                navController = navController,
-                web3ModalState = state,
-            )
-        }
+    Web3ModalRoot {
+        Web3ModalNavGraph(
+            navController = navController,
+            web3ModalState = web3ModalState,
+        )
     }
 }

@@ -66,7 +66,7 @@ class ComposeActivity : ComponentActivity() {
                             composable(Route.Home.path) {
                                 HomeScreen(navController = navController)
                             }
-                            web3ModalGraph(navController, sheetState)
+                            web3ModalGraph(navController)
                         }
                     }
                 }

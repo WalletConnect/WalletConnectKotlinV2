@@ -27,11 +27,12 @@ internal fun Web3ModalNavGraph(
         modifier = modifier,
     ) {
         when (web3ModalState) {
-            is Web3ModalState.ConnectState -> connectWalletNavGraph(navController, web3ModalState)
+            is Web3ModalState.Connect -> connectWalletNavGraph(navController, web3ModalState)
             Web3ModalState.SessionState -> sessionModalGraph(
                 navController,
                 Web3ModalState.SessionState
             )
+            else -> {}
         }
     }
 }

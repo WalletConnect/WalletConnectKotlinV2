@@ -11,7 +11,7 @@ import com.walletconnect.web3.modal.ui.routes.connect.scan_code.ScanQRCodeRoute
 
 internal fun NavGraphBuilder.connectWalletNavGraph(
     navController: NavController,
-    web3ModalState: Web3ModalState.ConnectState
+    web3ModalState: Web3ModalState.Connect
 ) {
     animatedComposable(route = Route.ConnectYourWallet.path) {
         ConnectYourWalletRoute(
