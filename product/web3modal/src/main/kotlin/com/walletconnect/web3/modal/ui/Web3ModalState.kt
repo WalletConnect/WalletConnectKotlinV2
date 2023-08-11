@@ -13,6 +13,6 @@ internal sealed class Web3ModalState {
 }
 
 internal fun Web3ModalState.toStartingPath() = when (this) {
-    is Web3ModalState.ConnectState -> Route.ConnectYourWallet
-    Web3ModalState.SessionState -> Route.Session
+    is Web3ModalState.ConnectState -> Route.CONNECT_YOUR_WALLET
+    Web3ModalState.SessionState -> Route.SESSION
 }.path

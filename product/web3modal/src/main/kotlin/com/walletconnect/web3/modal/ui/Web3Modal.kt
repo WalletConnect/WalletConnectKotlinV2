@@ -4,6 +4,7 @@
 )
 
 package com.walletconnect.web3.modal.ui
+
 import android.os.Bundle
 import androidx.annotation.IdRes
 import androidx.compose.material.ExperimentalMaterialApi
@@ -24,7 +25,7 @@ import com.walletconnect.web3.modal.ui.components.internal.Web3ModalComponent
 import com.walletconnect.web3.modal.ui.navigation.Route
 
 fun NavGraphBuilder.web3Modal() {
-    dialog<Web3ModalSheet>("${Route.Web3Modal.path}/{$CONFIG_ARG}") {
+    dialog<Web3ModalSheet>("${Route.WEB3MODAL.path}/{$CONFIG_ARG}") {
         argument(CONFIG_ARG) {
             type = NavType.StringType
         }
@@ -41,7 +42,7 @@ fun NavController.navigateToWeb3modal(
     navigate(id, bundle)
 }
 fun NavController.navigateToWeb3Modal(config: Config) {
-    navigate(Route.Web3Modal.path + "/${config.asArg()}")
+    navigate(Route.WEB3MODAL.path + "/${config.asArg()}")
 }
 
 fun NavGraphBuilder.web3ModalGraph(
@@ -49,7 +50,7 @@ fun NavGraphBuilder.web3ModalGraph(
     sheetState: ModalBottomSheetState
 ) {
     bottomSheet(
-        route = Route.Web3Modal.path + "/{$CONFIG_ARG}",
+        route = Route.WEB3MODAL.path + "/{$CONFIG_ARG}",
     ) {
         Web3Modal(navController = navController, sheetState = sheetState)
     }
@@ -62,7 +63,7 @@ internal fun Web3Modal(
 ) {
     LaunchedEffect(sheetState.currentValue) {
         if (sheetState.currentValue == ModalBottomSheetValue.Hidden) {
-            if (navController.currentDestination?.route?.contains(Route.Web3Modal.path) == true) {
+            if (navController.currentDestination?.route?.contains(Route.WEB3MODAL.path) == true) {
                 navController.popBackStack()
             }
         }
