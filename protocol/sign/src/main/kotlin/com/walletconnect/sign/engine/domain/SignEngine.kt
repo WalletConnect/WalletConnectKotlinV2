@@ -451,7 +451,6 @@ internal class SignEngine(
                         })
                     }
                 }
-
                 throw InvalidExpiryException()
             }
         }
@@ -647,11 +646,14 @@ internal class SignEngine(
         getPendingSessionRequests()
             .map { pendingRequest -> pendingRequest.toSessionRequest(metadataStorageRepository.getByTopicAndType(pendingRequest.topic, AppMetaDataType.PEER)) }
             .map { sessionRequest ->
-                scope.launch {
-                    supervisorScope {
-                        val verifyContext = verifyContextStorageRepository.get(sessionRequest.request.id) ?: VerifyContext(sessionRequest.request.id, String.Empty, Validation.UNKNOWN, String.Empty)
-                        val sessionRequestEvent = EngineDO.SessionRequestEvent(sessionRequest, verifyContext.toEngineDO())
-                        sessionRequestsQueue.addLast(sessionRequestEvent)
+                if (CoreValidator.isExpiryWithinBounds(sessionRequest.expiry)) {
+                    scope.launch {
+                        supervisorScope {
+                            val verifyContext =
+                                verifyContextStorageRepository.get(sessionRequest.request.id) ?: VerifyContext(sessionRequest.request.id, String.Empty, Validation.UNKNOWN, String.Empty)
+                            val sessionRequestEvent = EngineDO.SessionRequestEvent(sessionRequest, verifyContext.toEngineDO())
+                            sessionRequestsQueue.addLast(sessionRequestEvent)
+                        }
                     }
                 }
             }
@@ -1106,6 +1108,7 @@ internal class SignEngine(
             val sessionTopic = wcResponse.topic
             if (!sessionStorageRepository.isSessionValid(sessionTopic)) return
             val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(sessionTopic)
+
             if (!sessionStorageRepository.isUpdatedNamespaceResponseValid(session.topic.value, wcResponse.response.id.extractTimestamp())) {
                 return
             }
@@ -1114,9 +1117,13 @@ internal class SignEngine(
                 is JsonRpcResponse.JsonRpcResult -> {
                     logger.log("Session update namespaces response received")
                     val responseId = wcResponse.response.id
+
                     val namespaces = sessionStorageRepository.getTempNamespaces(responseId)
+
                     sessionStorageRepository.deleteNamespaceAndInsertNewNamespace(session.topic.value, namespaces, responseId)
+
                     sessionStorageRepository.markUnAckNamespaceAcknowledged(responseId)
+
                     scope.launch {
                         _engineEvent.emit(
                             EngineDO.SessionUpdateNamespacesResponse.Result(session.topic, session.sessionNamespaces.toMapOfEngineNamespacesSession())
