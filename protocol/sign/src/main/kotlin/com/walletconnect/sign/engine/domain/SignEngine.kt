@@ -90,6 +90,8 @@ import com.walletconnect.sign.engine.model.mapper.toSessionProposeRequest
 import com.walletconnect.sign.engine.model.mapper.toSessionRequest
 import com.walletconnect.sign.engine.model.mapper.toSessionSettleParams
 import com.walletconnect.sign.engine.model.mapper.toVO
+import com.walletconnect.sign.engine.use_case.ProposeSessionUseCase
+import com.walletconnect.sign.engine.use_case.ProposeSessionUseCaseInterface
 import com.walletconnect.sign.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdUseCase
 import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCaseByTopic
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequests
@@ -135,7 +137,9 @@ internal class SignEngine(
     private val verifyContextStorageRepository: VerifyContextStorageRepository,
     private val selfAppMetaData: AppMetaData,
     private val logger: Logger,
-) {
+    private val proposeSessionUseCase: ProposeSessionUseCase
+) : ProposeSessionUseCaseInterface by proposeSessionUseCase {
+
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
@@ -181,57 +185,6 @@ internal class SignEngine(
                     internalErrorsJob = collectInternalErrors()
                 }
             }.launchIn(scope)
-    }
-
-    internal fun proposeSession(
-        requiredNamespaces: Map<String, EngineDO.Namespace.Proposal>?,
-        optionalNamespaces: Map<String, EngineDO.Namespace.Proposal>?,
-        properties: Map<String, String>?,
-        pairing: Pairing,
-        onSuccess: () -> Unit,
-        onFailure: (Throwable) -> Unit,
-    ) {
-        val relay = RelayProtocolOptions(pairing.relayProtocol, pairing.relayData)
-
-        requiredNamespaces?.let { namespaces ->
-            SignValidator.validateProposalNamespaces(namespaces.toNamespacesVORequired()) { error ->
-                throw InvalidNamespaceException(error.message)
-            }
-        }
-
-        optionalNamespaces?.let { namespaces ->
-            SignValidator.validateProposalNamespaces(namespaces.toNamespacesVOOptional()) { error ->
-                throw InvalidNamespaceException(error.message)
-            }
-        }
-
-        properties?.let {
-            SignValidator.validateProperties(properties) { error ->
-                throw InvalidPropertiesException(error.message)
-            }
-        }
-
-        val selfPublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
-        val sessionProposal: SignParams.SessionProposeParams =
-            toSessionProposeParams(
-                listOf(relay), requiredNamespaces ?: emptyMap(),
-                optionalNamespaces ?: emptyMap(), properties,
-                selfPublicKey, selfAppMetaData
-            )
-        val request = SignRpc.SessionPropose(params = sessionProposal)
-        proposalStorageRepository.insertProposal(sessionProposal.toVO(pairing.topic, request.id))
-        val irnParams = IrnParams(Tags.SESSION_PROPOSE, Ttl(FIVE_MINUTES_IN_SECONDS), true)
-        jsonRpcInteractor.subscribe(pairing.topic) { error -> return@subscribe onFailure(error) }
-
-        jsonRpcInteractor.publishJsonRpcRequest(pairing.topic, irnParams, request,
-            onSuccess = {
-                logger.log("Session proposal sent successfully")
-                onSuccess()
-            },
-            onFailure = { error ->
-                logger.error("Failed to send a session proposal: $error")
-                onFailure(error)
-            })
     }
 
     internal fun pair(uri: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
