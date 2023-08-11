@@ -90,6 +90,8 @@ import com.walletconnect.sign.engine.model.mapper.toSessionProposeRequest
 import com.walletconnect.sign.engine.model.mapper.toSessionRequest
 import com.walletconnect.sign.engine.model.mapper.toSessionSettleParams
 import com.walletconnect.sign.engine.model.mapper.toVO
+import com.walletconnect.sign.engine.use_case.PairUseCase
+import com.walletconnect.sign.engine.use_case.PairUseCaseInterface
 import com.walletconnect.sign.engine.use_case.ProposeSessionUseCase
 import com.walletconnect.sign.engine.use_case.ProposeSessionUseCaseInterface
 import com.walletconnect.sign.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdUseCase
@@ -137,8 +139,10 @@ internal class SignEngine(
     private val verifyContextStorageRepository: VerifyContextStorageRepository,
     private val selfAppMetaData: AppMetaData,
     private val logger: Logger,
-    private val proposeSessionUseCase: ProposeSessionUseCase
-) : ProposeSessionUseCaseInterface by proposeSessionUseCase {
+    private val proposeSessionUseCase: ProposeSessionUseCase,
+    private val pairUseCase: PairUseCase
+) : ProposeSessionUseCaseInterface by proposeSessionUseCase,
+    PairUseCaseInterface by pairUseCase {
 
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
@@ -185,14 +189,6 @@ internal class SignEngine(
                     internalErrorsJob = collectInternalErrors()
                 }
             }.launchIn(scope)
-    }
-
-    internal fun pair(uri: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
-        pairingInterface.pair(
-            pair = Core.Params.Pair(uri),
-            onSuccess = { onSuccess() },
-            onError = { error -> onFailure(error.throwable) }
-        )
     }
 
     internal fun reject(proposerPublicKey: String, reason: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit = {}) {
