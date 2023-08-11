@@ -90,10 +90,14 @@ import com.walletconnect.sign.engine.model.mapper.toSessionProposeRequest
 import com.walletconnect.sign.engine.model.mapper.toSessionRequest
 import com.walletconnect.sign.engine.model.mapper.toSessionSettleParams
 import com.walletconnect.sign.engine.model.mapper.toVO
+import com.walletconnect.sign.engine.use_case.ApproveSessionUseCase
+import com.walletconnect.sign.engine.use_case.ApproveSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.PairUseCase
 import com.walletconnect.sign.engine.use_case.PairUseCaseInterface
 import com.walletconnect.sign.engine.use_case.ProposeSessionUseCase
 import com.walletconnect.sign.engine.use_case.ProposeSessionUseCaseInterface
+import com.walletconnect.sign.engine.use_case.RejectSessionUseCase
+import com.walletconnect.sign.engine.use_case.RejectSessionUseCaseInterface
 import com.walletconnect.sign.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdUseCase
 import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCaseByTopic
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequests
@@ -140,9 +144,13 @@ internal class SignEngine(
     private val selfAppMetaData: AppMetaData,
     private val logger: Logger,
     private val proposeSessionUseCase: ProposeSessionUseCase,
-    private val pairUseCase: PairUseCase
+    private val pairUseCase: PairUseCase,
+    private val rejectSessionUseCase: RejectSessionUseCase,
+    private val approveSessionUseCase: ApproveSessionUseCase
 ) : ProposeSessionUseCaseInterface by proposeSessionUseCase,
-    PairUseCaseInterface by pairUseCase {
+    PairUseCaseInterface by pairUseCase,
+    RejectSessionUseCaseInterface by rejectSessionUseCase,
+    ApproveSessionUseCaseInterface by approveSessionUseCase {
 
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
@@ -189,85 +197,6 @@ internal class SignEngine(
                     internalErrorsJob = collectInternalErrors()
                 }
             }.launchIn(scope)
-    }
-
-    internal fun reject(proposerPublicKey: String, reason: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit = {}) {
-        val proposal = proposalStorageRepository.getProposalByKey(proposerPublicKey)
-        proposalStorageRepository.deleteProposal(proposerPublicKey)
-        scope.launch {
-            supervisorScope {
-                verifyContextStorageRepository.delete(proposal.requestId)
-            }
-        }
-
-        jsonRpcInteractor.respondWithError(
-            proposal.toSessionProposeRequest(),
-            PeerError.EIP1193.UserRejectedRequest(reason),
-            IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS)),
-            onSuccess = { onSuccess() },
-            onFailure = { error -> onFailure(error) })
-    }
-
-    internal fun approve(
-        proposerPublicKey: String,
-        sessionNamespaces: Map<String, EngineDO.Namespace.Session>,
-        onSuccess: () -> Unit = {},
-        onFailure: (Throwable) -> Unit = {},
-    ) {
-        fun sessionSettle(
-            requestId: Long,
-            proposal: ProposalVO,
-            sessionTopic: Topic,
-            pairingTopic: Topic,
-        ) {
-            val selfPublicKey = crypto.getSelfPublicFromKeyAgreement(sessionTopic)
-            val selfParticipant = SessionParticipantVO(selfPublicKey.keyAsHex, selfAppMetaData)
-            val sessionExpiry = ACTIVE_SESSION
-            val unacknowledgedSession =
-                SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant, sessionExpiry, sessionNamespaces, pairingTopic.value)
-
-            try {
-                sessionStorageRepository.insertSession(unacknowledgedSession, requestId)
-                metadataStorageRepository.insertOrAbortMetadata(sessionTopic, selfAppMetaData, AppMetaDataType.SELF)
-                metadataStorageRepository.insertOrAbortMetadata(sessionTopic, proposal.appMetaData, AppMetaDataType.PEER)
-                val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, sessionNamespaces)
-                val sessionSettle = SignRpc.SessionSettle(params = params)
-                val irnParams = IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS))
-
-                jsonRpcInteractor.publishJsonRpcRequest(
-                    topic = sessionTopic,
-                    params = irnParams, sessionSettle,
-                    onSuccess = { onSuccess() },
-                    onFailure = { error -> onFailure(error) }
-                )
-            } catch (e: SQLiteException) {
-                sessionStorageRepository.deleteSession(sessionTopic)
-                // todo: missing metadata deletion. Also check other try catches
-                onFailure(e)
-            }
-        }
-
-        val proposal = proposalStorageRepository.getProposalByKey(proposerPublicKey)
-        proposalStorageRepository.deleteProposal(proposerPublicKey)
-        scope.launch {
-            supervisorScope {
-                verifyContextStorageRepository.delete(proposal.requestId)
-            }
-        }
-        val request = proposal.toSessionProposeRequest()
-
-        SignValidator.validateSessionNamespace(sessionNamespaces.toMapOfNamespacesVOSession(), proposal.requiredNamespaces) { error ->
-            throw InvalidNamespaceException(error.message)
-        }
-
-        val selfPublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
-        val sessionTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, PublicKey(proposerPublicKey))
-        val approvalParams = proposal.toSessionApproveParams(selfPublicKey)
-        val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
-        jsonRpcInteractor.subscribe(sessionTopic) { error -> throw error }
-        jsonRpcInteractor.respondWithParams(request, approvalParams, irnParams) { error -> throw error }
-
-        sessionSettle(request.id, proposal, sessionTopic, request.topic)
     }
 
     internal fun sessionUpdate(
