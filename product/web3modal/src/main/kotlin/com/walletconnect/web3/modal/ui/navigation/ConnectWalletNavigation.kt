@@ -2,6 +2,7 @@ package com.walletconnect.web3.modal.ui.navigation
 
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.compose.composable
 import com.walletconnect.web3.modal.ui.Web3ModalState
 import com.walletconnect.web3.modal.ui.routes.connect.all_wallets.AllWalletsRoute
 import com.walletconnect.web3.modal.ui.routes.connect.connect_wallet.ConnectYourWalletRoute
@@ -13,29 +14,29 @@ internal fun NavGraphBuilder.connectWalletNavGraph(
     navController: NavController,
     web3ModalState: Web3ModalState.Connect
 ) {
-    animatedComposable(route = Route.ConnectYourWallet.path) {
+    composable(route = Route.CONNECT_YOUR_WALLET.path) {
         ConnectYourWalletRoute(
             navController = navController,
             uri = web3ModalState.uri,
             wallets = web3ModalState.wallets
         )
     }
-    animatedComposable(route = Route.ScanQRCode.path) {
+    composable(route = Route.QR_CODE.path) {
         ScanQRCodeRoute(
             navController = navController,
             uri = web3ModalState.uri
         )
     }
-    animatedComposable(route = Route.Help.path) {
+    composable(route = Route.HELP.path) {
         HelpRoute(navController = navController)
     }
-    animatedComposable(Route.GetAWallet.path) {
+    composable(Route.GET_A_WALLET.path) {
         GetAWalletRoute(
             navController = navController,
             wallets = web3ModalState.wallets
         )
     }
-    animatedComposable(Route.AllWallets.path) {
+    composable(Route.ALL_WALLETS.path) {
         AllWalletsRoute(
             navController = navController,
             wallets = web3ModalState.wallets,

@@ -17,10 +17,10 @@ fun NavGraphBuilder.web3Modal() {
 
 fun NavController.openWeb3Modal(@IdRes id: Int) = navigate(id)
 
-fun NavController.openWeb3Modal() = navigate(Route.Web3Modal.path)
+fun NavController.openWeb3Modal() = navigate(Route.WEB3MODAL.path)
 
 fun NavGraphBuilder.web3ModalGraph(navController: NavController) {
-    bottomSheet(route = Route.Web3Modal.path) {
+    bottomSheet(route = Route.WEB3MODAL.path) {
         Web3Modal(navController = navController)
     }
 }
