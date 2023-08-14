@@ -78,12 +78,16 @@ import com.walletconnect.sign.engine.use_case.EmitEventUseCase
 import com.walletconnect.sign.engine.use_case.EmitEventUseCaseInterface
 import com.walletconnect.sign.engine.use_case.ExtendSessionUsesCase
 import com.walletconnect.sign.engine.use_case.ExtendSessionUsesCaseInterface
+import com.walletconnect.sign.engine.use_case.GetListOfVerifyContextsUseCase
+import com.walletconnect.sign.engine.use_case.GetListOfVerifyContextsUseCaseInterface
 import com.walletconnect.sign.engine.use_case.GetPairingsUseCase
 import com.walletconnect.sign.engine.use_case.GetPairingsUseCaseInterface
 import com.walletconnect.sign.engine.use_case.GetSessionProposalsUseCase
 import com.walletconnect.sign.engine.use_case.GetSessionProposalsUseCaseInterface
 import com.walletconnect.sign.engine.use_case.GetSessionsUseCase
 import com.walletconnect.sign.engine.use_case.GetSessionsUseCaseInterface
+import com.walletconnect.sign.engine.use_case.GetVerifyContextByIdUseCase
+import com.walletconnect.sign.engine.use_case.GetVerifyContextByIdUseCaseInterface
 import com.walletconnect.sign.engine.use_case.PairUseCase
 import com.walletconnect.sign.engine.use_case.PairUseCaseInterface
 import com.walletconnect.sign.engine.use_case.PingUseCase
@@ -147,6 +151,8 @@ internal class SignEngine(
     private val getSessionsUseCase: GetSessionsUseCase,
     private val getPairingsUseCase: GetPairingsUseCase,
     private val getSessionProposalsUseCase: GetSessionProposalsUseCase,
+    private val getVerifyContextByIdUseCase: GetVerifyContextByIdUseCase,
+    private val getListOfVerifyContextsUseCase: GetListOfVerifyContextsUseCase,
     private val logger: Logger
 ) : ProposeSessionUseCaseInterface by proposeSessionUseCase,
     PairUseCaseInterface by pairUseCase,
@@ -162,8 +168,9 @@ internal class SignEngine(
     GetSessionsUseCaseInterface by getSessionsUseCase,
     GetPairingsUseCaseInterface by getPairingsUseCase,
     GetPendingRequestsUseCaseByTopicInterface by getPendingRequestsByTopicUseCase,
-    GetSessionProposalsUseCaseInterface by getSessionProposalsUseCase
-{
+    GetSessionProposalsUseCaseInterface by getSessionProposalsUseCase,
+    GetVerifyContextByIdUseCaseInterface by getVerifyContextByIdUseCase,
+    GetListOfVerifyContextsUseCaseInterface by getListOfVerifyContextsUseCase {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
@@ -215,10 +222,6 @@ internal class SignEngine(
             }.launchIn(scope)
     }
 
-    internal suspend fun getVerifyContext(id: Long): EngineDO.VerifyContext? = verifyContextStorageRepository.get(id)?.toEngineDO()
-
-    internal suspend fun getListOfVerifyContexts(): List<EngineDO.VerifyContext> = verifyContextStorageRepository.getAll().map { verifyContext -> verifyContext.toEngineDO() }
-
     private fun propagatePendingSessionRequestsQueue() {
         getPendingSessionRequests()
             .map { pendingRequest -> pendingRequest.toSessionRequest(metadataStorageRepository.getByTopicAndType(pendingRequest.topic, AppMetaDataType.PEER)) }
@@ -232,6 +235,16 @@ internal class SignEngine(
                 }
             }
     }
+
+    private fun collectInternalErrors(): Job =
+        merge(jsonRpcInteractor.internalErrors, pairingController.findWrongMethodsFlow, sessionRequestUseCase.errors)
+            .onEach { exception -> _engineEvent.emit(exception) }
+            .launchIn(scope)
+
+    private fun collectSignEvents(): Job =
+        merge(respondSessionRequestUseCase.events)
+            .onEach { event -> _engineEvent.emit(event) }
+            .launchIn(scope)
 
     private fun collectJsonRpcRequests(): Job =
         jsonRpcInteractor.clientSyncJsonRpc
@@ -249,15 +262,6 @@ internal class SignEngine(
                 }
             }.launchIn(scope)
 
-    private fun collectInternalErrors(): Job =
-        merge(jsonRpcInteractor.internalErrors, pairingController.findWrongMethodsFlow, sessionRequestUseCase.errors)
-            .onEach { exception -> _engineEvent.emit(exception) }
-            .launchIn(scope)
-
-    private fun collectSignEvents(): Job =
-        merge(respondSessionRequestUseCase.events)
-            .onEach { event -> _engineEvent.emit(event) }
-            .launchIn(scope)
 
     private fun collectJsonRpcResponses(): Job =
         jsonRpcInteractor.peerResponse

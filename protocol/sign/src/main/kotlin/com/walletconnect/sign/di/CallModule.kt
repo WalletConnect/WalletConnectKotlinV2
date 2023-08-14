@@ -5,9 +5,11 @@ import com.walletconnect.sign.engine.use_case.ApproveSessionUseCase
 import com.walletconnect.sign.engine.use_case.DisconnectSessionUseCase
 import com.walletconnect.sign.engine.use_case.EmitEventUseCase
 import com.walletconnect.sign.engine.use_case.ExtendSessionUsesCase
+import com.walletconnect.sign.engine.use_case.GetListOfVerifyContextsUseCase
 import com.walletconnect.sign.engine.use_case.GetPairingsUseCase
 import com.walletconnect.sign.engine.use_case.GetSessionProposalsUseCase
 import com.walletconnect.sign.engine.use_case.GetSessionsUseCase
+import com.walletconnect.sign.engine.use_case.GetVerifyContextByIdUseCase
 import com.walletconnect.sign.engine.use_case.PairUseCase
 import com.walletconnect.sign.engine.use_case.PingUseCase
 import com.walletconnect.sign.engine.use_case.ProposeSessionUseCase
@@ -54,4 +56,8 @@ internal fun callsModule() = module {
     single { GetPendingJsonRpcHistoryEntryByIdUseCase(get(), get()) }
 
     single { GetSessionProposalsUseCase(get()) }
+
+    single { GetVerifyContextByIdUseCase(get()) }
+
+    single { GetListOfVerifyContextsUseCase(get()) }
 }
