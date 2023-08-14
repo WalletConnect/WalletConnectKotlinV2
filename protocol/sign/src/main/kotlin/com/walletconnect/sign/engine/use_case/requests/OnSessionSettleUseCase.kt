@@ -12,6 +12,7 @@ import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepository
+import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.pairing.model.mapper.toClient
@@ -40,7 +41,7 @@ internal class OnSessionSettleUseCase(
     private val sessionStorageRepository: SessionStorageRepository,
     private val pairingController: PairingControllerInterface,
     private val selfAppMetaData: AppMetaData,
-    private val metadataStorageRepository: MetadataStorageRepository
+    private val metadataStorageRepository: MetadataStorageRepositoryInterface
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()

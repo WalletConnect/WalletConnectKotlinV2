@@ -19,6 +19,7 @@ import com.walletconnect.sign.engine.use_case.calls.SessionRequestUseCase
 import com.walletconnect.sign.engine.use_case.calls.SessionUpdateUseCase
 import com.walletconnect.sign.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdUseCase
 import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCaseByTopic
+import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequestByTopicUseCase
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
@@ -51,7 +52,9 @@ internal fun callsModule() = module {
 
     single { GetPairingsUseCase(get()) }
 
-    single { GetPendingRequestsUseCaseByTopic(get(), get(), get()) }
+    single { GetPendingRequestsUseCaseByTopic(get(), get()) }
+
+    single { GetPendingSessionRequestByTopicUseCase(get(), get(), get()) }
 
     single { GetPendingJsonRpcHistoryEntryByIdUseCase(get(), get()) }
 

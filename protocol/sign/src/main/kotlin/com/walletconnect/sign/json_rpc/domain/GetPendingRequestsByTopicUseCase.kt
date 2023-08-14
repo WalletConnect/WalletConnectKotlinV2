@@ -14,30 +14,16 @@ import com.walletconnect.sign.json_rpc.model.toPendingRequest
 
 internal class GetPendingRequestsUseCaseByTopic(
     private val jsonRpcHistory: JsonRpcHistory,
-    private val serializer: JsonRpcSerializer,
-    private val metadataStorageRepository: MetadataStorageRepositoryInterface,
+    private val serializer: JsonRpcSerializer
 ) : GetPendingRequestsUseCaseByTopicInterface {
 
     override fun getPendingRequests(topic: Topic): List<PendingRequest<String>> =
-        pendingRequestList(topic)
-
-    override fun getPendingSessionRequests(topic: Topic): List<EngineDO.SessionRequest> =
-        pendingRequestList(topic)
-            .map { pendingRequest ->
-                val peerMetaData = metadataStorageRepository.getByTopicAndType(pendingRequest.topic, AppMetaDataType.PEER)
-                pendingRequest.toSessionRequest(peerMetaData)
-            }
-
-    private fun pendingRequestList(topic: Topic): List<PendingRequest<String>> =
         jsonRpcHistory.getListOfPendingRecordsByTopic(topic)
             .filter { record -> record.method == JsonRpcMethod.WC_SESSION_REQUEST }
             .filter { record -> serializer.tryDeserialize<SignRpc.SessionRequest>(record.body) != null }
             .map { record -> serializer.tryDeserialize<SignRpc.SessionRequest>(record.body)!!.toPendingRequest(record) }
-
 }
 
 internal interface GetPendingRequestsUseCaseByTopicInterface {
     fun getPendingRequests(topic: Topic): List<PendingRequest<String>>
-
-    fun getPendingSessionRequests(topic: Topic): List<EngineDO.SessionRequest>
 }

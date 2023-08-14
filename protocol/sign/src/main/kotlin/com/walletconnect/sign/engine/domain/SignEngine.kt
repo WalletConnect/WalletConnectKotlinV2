@@ -5,18 +5,13 @@ package com.walletconnect.sign.engine.domain
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
-import com.walletconnect.android.internal.common.exception.Invalid
-import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.Expiry
-import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.SDKError
-import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.Validation
-import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
@@ -24,36 +19,19 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.VerifyContextStorageRepository
-import com.walletconnect.android.internal.utils.CoreValidator
-import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
-import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
 import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
-import com.walletconnect.android.internal.utils.THIRTY_SECONDS
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
-import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.android.verify.data.model.VerifyContext
 import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
-import com.walletconnect.sign.common.exceptions.PeerError
-import com.walletconnect.sign.common.model.type.Sequences
-import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
-import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpc
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
-import com.walletconnect.sign.common.model.vo.sequence.SessionVO
-import com.walletconnect.sign.common.validator.SignValidator
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toEngineDO
-import com.walletconnect.sign.engine.model.mapper.toEngineDOEvent
-import com.walletconnect.sign.engine.model.mapper.toEngineDOSessionExtend
 import com.walletconnect.sign.engine.model.mapper.toMapOfEngineNamespacesSession
-import com.walletconnect.sign.engine.model.mapper.toPeerError
-import com.walletconnect.sign.engine.model.mapper.toSessionApproved
 import com.walletconnect.sign.engine.model.mapper.toSessionRequest
-import com.walletconnect.sign.engine.model.mapper.toVO
 import com.walletconnect.sign.engine.sessionRequestsQueue
 import com.walletconnect.sign.engine.use_case.calls.ApproveSessionUseCase
 import com.walletconnect.sign.engine.use_case.calls.ApproveSessionUseCaseInterface
@@ -97,6 +75,8 @@ import com.walletconnect.sign.engine.use_case.requests.OnSessionSettleUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionUpdateUseCase
 import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCaseByTopic
 import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCaseByTopicInterface
+import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequestByTopicUseCase
+import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequestByTopicUseCaseInterface
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequests
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
 import com.walletconnect.sign.storage.proposal.ProposalStorageRepository
@@ -119,6 +99,7 @@ import kotlinx.coroutines.supervisorScope
 internal class SignEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val getPendingRequestsByTopicUseCase: GetPendingRequestsUseCaseByTopic,
+    private val getPendingSessionRequestByTopicUseCase: GetPendingSessionRequestByTopicUseCase,
     private val getPendingSessionRequests: GetPendingSessionRequests,
     private val crypto: KeyManagementRepository,
     private val sessionStorageRepository: SessionStorageRepository,
@@ -169,6 +150,7 @@ internal class SignEngine(
     GetSessionsUseCaseInterface by getSessionsUseCase,
     GetPairingsUseCaseInterface by getPairingsUseCase,
     GetPendingRequestsUseCaseByTopicInterface by getPendingRequestsByTopicUseCase,
+    GetPendingSessionRequestByTopicUseCaseInterface by getPendingSessionRequestByTopicUseCase,
     GetSessionProposalsUseCaseInterface by getSessionProposalsUseCase,
     GetVerifyContextByIdUseCaseInterface by getVerifyContextByIdUseCase,
     GetListOfVerifyContextsUseCaseInterface by getListOfVerifyContextsUseCase {
