@@ -72,6 +72,8 @@ import com.walletconnect.sign.engine.model.mapper.toVO
 import com.walletconnect.sign.engine.sessionRequestsQueue
 import com.walletconnect.sign.engine.use_case.ApproveSessionUseCase
 import com.walletconnect.sign.engine.use_case.ApproveSessionUseCaseInterface
+import com.walletconnect.sign.engine.use_case.DisconnectSessionUseCase
+import com.walletconnect.sign.engine.use_case.DisconnectSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.EmitEventUseCase
 import com.walletconnect.sign.engine.use_case.EmitEventUseCaseInterface
 import com.walletconnect.sign.engine.use_case.ExtendSessionUsesCase
@@ -134,6 +136,7 @@ internal class SignEngine(
     private val pingUseCase: PingUseCase,
     private val emitEventUseCase: EmitEventUseCase,
     private val extendSessionUsesCase: ExtendSessionUsesCase,
+    private val disconnectSessionUseCase: DisconnectSessionUseCase,
     private val logger: Logger
 ) : ProposeSessionUseCaseInterface by proposeSessionUseCase,
     PairUseCaseInterface by pairUseCase,
@@ -144,8 +147,8 @@ internal class SignEngine(
     RespondSessionRequestUseCaseInterface by respondSessionRequestUseCase,
     PingUseCaseInterface by pingUseCase,
     EmitEventUseCaseInterface by emitEventUseCase,
-    ExtendSessionUsesCaseInterface by extendSessionUsesCase
-{
+    ExtendSessionUsesCaseInterface by extendSessionUsesCase,
+    DisconnectSessionUseCaseInterface by disconnectSessionUseCase {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
@@ -197,28 +200,6 @@ internal class SignEngine(
             }.launchIn(scope)
     }
 
-    internal fun disconnect(topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
-        if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
-            throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
-        }
-
-        val deleteParams = SignParams.DeleteParams(Reason.UserDisconnected.code, Reason.UserDisconnected.message)
-        val sessionDelete = SignRpc.SessionDelete(params = deleteParams)
-        sessionStorageRepository.deleteSession(Topic(topic))
-        jsonRpcInteractor.unsubscribe(Topic(topic))
-        val irnParams = IrnParams(Tags.SESSION_DELETE, Ttl(DAY_IN_SECONDS))
-
-        jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionDelete,
-            onSuccess = {
-                logger.log("Disconnect sent successfully")
-                onSuccess()
-            },
-            onFailure = { error ->
-                logger.error("Sending session disconnect error: $error")
-                onFailure(error)
-            }
-        )
-    }
 
     internal fun getListOfSettledSessions(): List<EngineDO.Session> {
         return sessionStorageRepository.getListOfSessionVOsWithoutMetadata()

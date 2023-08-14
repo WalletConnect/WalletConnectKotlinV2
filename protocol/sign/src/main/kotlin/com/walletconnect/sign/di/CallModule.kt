@@ -2,6 +2,7 @@ package com.walletconnect.sign.di
 
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.sign.engine.use_case.ApproveSessionUseCase
+import com.walletconnect.sign.engine.use_case.DisconnectSessionUseCase
 import com.walletconnect.sign.engine.use_case.EmitEventUseCase
 import com.walletconnect.sign.engine.use_case.ExtendSessionUsesCase
 import com.walletconnect.sign.engine.use_case.PairUseCase
@@ -36,4 +37,6 @@ internal fun callsModule() = module {
     single { EmitEventUseCase(get(), get(), get(named(AndroidCommonDITags.LOGGER))) }
 
     single { ExtendSessionUsesCase(get(), get(), get(named(AndroidCommonDITags.LOGGER))) }
+
+    single { DisconnectSessionUseCase(get(), get(), get(named(AndroidCommonDITags.LOGGER))) }
 }
