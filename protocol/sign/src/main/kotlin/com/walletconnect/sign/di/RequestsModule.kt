@@ -15,11 +15,11 @@ import org.koin.dsl.module
 @JvmSynthetic
 fun requestsModule() = module {
 
-    single { OnSessionProposeUseCase(get(), get(), get(), get(), get()) }
+    single { OnSessionProposeUseCase(get(), get(), get(), get()) }
 
     single { OnSessionSettleUseCase(get(), get(), get(), get(), get(), get(), get()) }
 
-    single { OnSessionRequestUseCase(get(), get(), get(), get(), get()) }
+    single { OnSessionRequestUseCase(get(), get(), get(), get()) }
 
     single { OnSessionDeleteUseCase(get(), get(), get(), get(named(AndroidCommonDITags.LOGGER))) }
 

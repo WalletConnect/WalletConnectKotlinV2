@@ -36,7 +36,6 @@ import kotlinx.coroutines.launch
 internal class OnSessionRequestUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val sessionStorageRepository: SessionStorageRepository,
-    private val serializer: JsonRpcSerializer,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val resolveAttestationIdUseCase: ResolveAttestationIdUseCase,
 ) {
@@ -78,10 +77,8 @@ internal class OnSessionRequestUseCase(
                 return
             }
 
-            val json = serializer.serialize(SignRpc.SessionRequest(id = request.id, params = params)) ?: throw Exception("Error serializing session request")
             val url = sessionPeerAppMetaData?.url ?: String.Empty
-
-            resolveAttestationIdUseCase(request.id, json, url) { verifyContext ->
+            resolveAttestationIdUseCase(request.id, request.message, url) { verifyContext ->
                 val sessionRequestEvent = EngineDO.SessionRequestEvent(params.toEngineDO(request, sessionPeerAppMetaData), verifyContext.toEngineDO())
                 val event = if (sessionRequestsQueue.isEmpty()) {
                     sessionRequestEvent

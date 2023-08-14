@@ -24,7 +24,6 @@ import kotlinx.coroutines.launch
 
 internal class OnAuthRequestUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
-    private val serializer: JsonRpcSerializer,
     private val resolveAttestationIdUseCase: ResolveAttestationIdUseCase,
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
@@ -38,9 +37,8 @@ internal class OnAuthRequestUseCase(
                 return
             }
 
-            val json = serializer.serialize(AuthRpc.AuthRequest(id = wcRequest.id, params = authParams)) ?: throw Exception("Error serializing session proposal")
             val url = authParams.requester.metadata.url
-            resolveAttestationIdUseCase(wcRequest.id, json, url) { verifyContext ->
+            resolveAttestationIdUseCase(wcRequest.id, wcRequest.message, url) { verifyContext ->
                 scope.launch { _events.emit(Events.OnAuthRequest(wcRequest.id, wcRequest.topic.value, authParams.payloadParams, verifyContext)) }
             }
         } catch (e: Exception) {
