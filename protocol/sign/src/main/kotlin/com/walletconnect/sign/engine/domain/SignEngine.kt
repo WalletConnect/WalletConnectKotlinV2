@@ -73,6 +73,7 @@ import com.walletconnect.sign.engine.use_case.requests.OnSessionProposeUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionRequestUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionSettleUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionUpdateUseCase
+import com.walletconnect.sign.engine.use_case.responses.OnSessionProposalResponseUseCase
 import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCaseByTopic
 import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCaseByTopicInterface
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequestByTopicUseCase
@@ -135,6 +136,7 @@ internal class SignEngine(
     private val onSessionUpdateUseCase: OnSessionUpdateUseCase,
     private val onSessionExtendUseCase: OnSessionExtendUseCase,
     private val onPingUseCase: OnPingUseCase,
+    private val onSessionProposalResponseUseCase: OnSessionProposalResponseUseCase,
     private val logger: Logger
 ) : ProposeSessionUseCaseInterface by proposeSessionUseCase,
     PairUseCaseInterface by pairUseCase,
@@ -261,45 +263,12 @@ internal class SignEngine(
             .filter { request -> request.params is SignParams }
             .onEach { response ->
                 when (val params = response.params) {
-                    is SignParams.SessionProposeParams -> onSessionProposalResponse(response, params)
+                    is SignParams.SessionProposeParams -> onSessionProposalResponseUseCase(response, params)
                     is SignParams.SessionSettleParams -> onSessionSettleResponse(response)
                     is SignParams.UpdateNamespacesParams -> onSessionUpdateResponse(response)
                     is SignParams.SessionRequestParams -> onSessionRequestResponse(response, params)
                 }
             }.launchIn(scope)
-
-    // listened by DappDelegate
-    private fun onSessionProposalResponse(wcResponse: WCResponse, params: SignParams.SessionProposeParams) {
-        try {
-            val pairingTopic = wcResponse.topic
-            pairingController.updateExpiry(Core.Params.UpdateExpiry(pairingTopic.value, Expiry(MONTH_IN_SECONDS)))
-            pairingController.activate(Core.Params.Activate(pairingTopic.value))
-            if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) return
-
-            when (val response = wcResponse.response) {
-                is JsonRpcResponse.JsonRpcResult -> {
-                    logger.log("Session proposal approve received")
-                    val selfPublicKey = PublicKey(params.proposer.publicKey)
-                    val approveParams = response.result as CoreSignParams.ApprovalParams
-                    val responderPublicKey = PublicKey(approveParams.responderPublicKey)
-                    val sessionTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, responderPublicKey)
-                    jsonRpcInteractor.subscribe(sessionTopic) { error ->
-                        scope.launch {
-                            _engineEvent.emit(SDKError(error))
-                        }
-                    }
-                }
-
-                is JsonRpcResponse.JsonRpcError -> {
-                    logger.log("Session proposal reject received: ${response.error}")
-                    proposalStorageRepository.deleteProposal(params.proposer.publicKey)
-                    scope.launch { _engineEvent.emit(EngineDO.SessionRejected(pairingTopic.value, response.errorMessage)) }
-                }
-            }
-        } catch (e: Exception) {
-            scope.launch { _engineEvent.emit(SDKError(e)) }
-        }
-    }
 
     // listened by WalletDelegate
     private fun onSessionSettleResponse(wcResponse: WCResponse) {
