@@ -74,6 +74,7 @@ import com.walletconnect.sign.engine.use_case.requests.OnSessionRequestUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionSettleUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionUpdateUseCase
 import com.walletconnect.sign.engine.use_case.responses.OnSessionProposalResponseUseCase
+import com.walletconnect.sign.engine.use_case.responses.OnSessionSettleResponseUseCase
 import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCaseByTopic
 import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCaseByTopicInterface
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequestByTopicUseCase
@@ -137,6 +138,7 @@ internal class SignEngine(
     private val onSessionExtendUseCase: OnSessionExtendUseCase,
     private val onPingUseCase: OnPingUseCase,
     private val onSessionProposalResponseUseCase: OnSessionProposalResponseUseCase,
+    private val onSessionSettleResponseUseCase: OnSessionSettleResponseUseCase,
     private val logger: Logger
 ) : ProposeSessionUseCaseInterface by proposeSessionUseCase,
     PairUseCaseInterface by pairUseCase,
@@ -264,41 +266,12 @@ internal class SignEngine(
             .onEach { response ->
                 when (val params = response.params) {
                     is SignParams.SessionProposeParams -> onSessionProposalResponseUseCase(response, params)
-                    is SignParams.SessionSettleParams -> onSessionSettleResponse(response)
+                    is SignParams.SessionSettleParams -> onSessionSettleResponseUseCase(response)
                     is SignParams.UpdateNamespacesParams -> onSessionUpdateResponse(response)
                     is SignParams.SessionRequestParams -> onSessionRequestResponse(response, params)
                 }
             }.launchIn(scope)
 
-    // listened by WalletDelegate
-    private fun onSessionSettleResponse(wcResponse: WCResponse) {
-        try {
-            val sessionTopic = wcResponse.topic
-            if (!sessionStorageRepository.isSessionValid(sessionTopic)) return
-            val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(sessionTopic).run {
-                val peerAppMetaData = metadataStorageRepository.getByTopicAndType(this.topic, AppMetaDataType.PEER)
-                this.copy(selfAppMetaData = selfAppMetaData, peerAppMetaData = peerAppMetaData)
-            }
-
-            when (wcResponse.response) {
-                is JsonRpcResponse.JsonRpcResult -> {
-                    logger.log("Session settle success received")
-                    sessionStorageRepository.acknowledgeSession(sessionTopic)
-                    scope.launch { _engineEvent.emit(EngineDO.SettledSessionResponse.Result(session.toEngineDO())) }
-                }
-
-                is JsonRpcResponse.JsonRpcError -> {
-                    logger.error("Peer failed to settle session: ${(wcResponse.response as JsonRpcResponse.JsonRpcError).errorMessage}")
-                    jsonRpcInteractor.unsubscribe(sessionTopic, onSuccess = {
-                        sessionStorageRepository.deleteSession(sessionTopic)
-                        crypto.removeKeys(sessionTopic.value)
-                    })
-                }
-            }
-        } catch (e: Exception) {
-            scope.launch { _engineEvent.emit(SDKError(e)) }
-        }
-    }
 
     // listened by WalletDelegate
     private fun onSessionUpdateResponse(wcResponse: WCResponse) {
