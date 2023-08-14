@@ -39,7 +39,6 @@ internal class OnSessionProposeUseCase(
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
-
     operator fun invoke(request: WCRequest, payloadParams: SignParams.SessionProposeParams) {
         val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
         try {
