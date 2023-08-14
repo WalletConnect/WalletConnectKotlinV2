@@ -1,8 +1,6 @@
 package com.walletconnect.sample.wallet.ui
 
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -43,8 +41,8 @@ fun Web3WalletNavGraph(
     web3walletViewModel: Web3WalletViewModel,
     connectionsViewModel: ConnectionsViewModel,
     getStartedVisited: Boolean,
-    startDestination: String = if (getStartedVisited) Route.Connections.path else Route.GetStarted.path,
     modifier: Modifier = Modifier,
+    startDestination: String = if (getStartedVisited) Route.Connections.path else Route.GetStarted.path,
 ) {
     ModalBottomSheetLayout(
         modifier = modifier,
@@ -53,59 +51,54 @@ fun Web3WalletNavGraph(
         sheetBackgroundColor = Color.Transparent, sheetElevation = 0.dp,
         scrimColor = Color.Unspecified
     ) {
-        Scaffold(
-            content = { innerPadding ->
-                val sheetState = remember { bottomSheetNavigator.navigatorSheetState }
-                val web3InboxState = Web3Inbox.rememberWeb3InboxState()
+        val sheetState = remember { bottomSheetNavigator.navigatorSheetState }
+        val web3InboxState = Web3Inbox.rememberWeb3InboxState()
 
-                NavHost(
-                    modifier = Modifier.padding(innerPadding),
-                    navController = navController,
-                    startDestination = startDestination,
-                ) {
-                    composable(Route.GetStarted.path) {
-                        GetStartedRoute(navController)
-                    }
-                    composable(Route.Connections.path, deepLinks = listOf(NavDeepLink("wc://{topic}@2"))) {
-                        ConnectionsRoute(navController, connectionsViewModel, web3walletViewModel)
-                    }
-                    composable("${Route.ConnectionDetails.path}/{connectionId}", arguments = listOf(
-                        navArgument("connectionId") { type = NavType.Companion.IntType }
-                    )) {
-                        ConnectionDetailsRoute(navController, it.arguments?.getInt("connectionId"), connectionsViewModel)
-                    }
-                    composable(Route.Web3Inbox.path) {
-                        Web3InboxRoute(web3InboxState)
-                    }
-                    composable(Route.Notifications.path) {
-                        NotificationsScreenRoute(navController)
-                    }
-                    bottomSheet(Route.ScanUri.path) {
-                        ScanUriRoute(navController, sheetState, onScanSuccess = { web3walletViewModel.pair(it) })
-                    }
-                    dialog(Route.SessionProposal.path, dialogProperties = DialogProperties(usePlatformDefaultWidth = false)) {
-                        SessionProposalRoute(navController)
-                    }
-                    dialog(Route.AuthRequest.path, dialogProperties = DialogProperties(usePlatformDefaultWidth = false)) {
-                        AuthRequestRoute(navController)
-                    }
-                    dialog(Route.SessionRequest.path, deepLinks = listOf(NavDeepLink("kotlin-web3wallet:/request")), dialogProperties = DialogProperties(usePlatformDefaultWidth = false)) {
-                        SessionRequestRoute(navController)
-                    }
-                    dialog(Route.PasteUri.path, dialogProperties = DialogProperties(usePlatformDefaultWidth = false)) {
-                        PasteUriRoute(onSubmit = {
-                            web3walletViewModel.pair(it)
-                            navController.popBackStack()
-                        })
-                    }
-                    bottomSheet("${Route.SnackbarMessage.path}/{message}", arguments = listOf(
-                        navArgument("message") { type = NavType.Companion.StringType }
-                    )) {
-                        SnackbarMessageRoute(navController, it.arguments?.getString("message"))
-                    }
-                }
+        NavHost(
+            navController = navController,
+            startDestination = startDestination,
+        ) {
+            composable(Route.GetStarted.path) {
+                GetStartedRoute(navController)
             }
-        )
+            composable(Route.Connections.path, deepLinks = listOf(NavDeepLink("wc://{topic}@2"))) {
+                ConnectionsRoute(navController, connectionsViewModel, web3walletViewModel)
+            }
+            composable("${Route.ConnectionDetails.path}/{connectionId}", arguments = listOf(
+                navArgument("connectionId") { type = NavType.Companion.IntType }
+            )) {
+                ConnectionDetailsRoute(navController, it.arguments?.getInt("connectionId"), connectionsViewModel)
+            }
+            composable(Route.Web3Inbox.path) {
+                Web3InboxRoute(web3InboxState)
+            }
+            composable(Route.Notifications.path) {
+                NotificationsScreenRoute(navController)
+            }
+            bottomSheet(Route.ScanUri.path) {
+                ScanUriRoute(navController, sheetState, onScanSuccess = { web3walletViewModel.pair(it) })
+            }
+            dialog(Route.SessionProposal.path, dialogProperties = DialogProperties(usePlatformDefaultWidth = false)) {
+                SessionProposalRoute(navController)
+            }
+            dialog(Route.AuthRequest.path, dialogProperties = DialogProperties(usePlatformDefaultWidth = false)) {
+                AuthRequestRoute(navController)
+            }
+            dialog(Route.SessionRequest.path, deepLinks = listOf(NavDeepLink("kotlin-web3wallet:/request")), dialogProperties = DialogProperties(usePlatformDefaultWidth = false)) {
+                SessionRequestRoute(navController)
+            }
+            dialog(Route.PasteUri.path, dialogProperties = DialogProperties(usePlatformDefaultWidth = false)) {
+                PasteUriRoute(onSubmit = {
+                    web3walletViewModel.pair(it)
+                    navController.popBackStack()
+                })
+            }
+            bottomSheet("${Route.SnackbarMessage.path}/{message}", arguments = listOf(
+                navArgument("message") { type = NavType.Companion.StringType }
+            )) {
+                SnackbarMessageRoute(navController, it.arguments?.getString("message"))
+            }
+        }
     }
 }
 

@@ -1,6 +1,5 @@
 package com.walletconnect.web3.modal.ui.routes.connect.connect_wallet
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,10 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -31,8 +27,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.walletconnect.android.internal.common.explorer.data.model.Wallet
 import com.walletconnect.modal.utils.goToNativeWallet
-import com.walletconnect.web3.modal.ui.components.internal.Web3ModalTopBar
-import com.walletconnect.web3.modal.R
 import com.walletconnect.web3.modal.ui.components.internal.commons.WalletImage
 import com.walletconnect.web3.modal.ui.components.internal.commons.WalletListItem
 import com.walletconnect.web3.modal.ui.components.internal.commons.walletsGridItems
@@ -53,8 +47,8 @@ internal fun ConnectYourWalletRoute(
         onWalletItemClick = {
             uriHandler.goToNativeWallet(uri, it.nativeLink)
         },
-        onViewAllClick = { navController.navigate(Route.AllWallets.path) },
-        onScanIconClick = { navController.navigate(Route.ScanQRCode.path) }
+        onViewAllClick = { navController.navigate(Route.ALL_WALLETS.path) },
+        onScanIconClick = { navController.navigate(Route.QR_CODE.path) }
     )
 }
 
@@ -66,12 +60,6 @@ private fun ConnectYourWalletContent(
     onScanIconClick: () -> Unit,
 ) {
     Column {
-        Web3ModalTopBar(title = "Connect your wallet", endIcon = {
-            Image(imageVector = ImageVector.vectorResource(id = R.drawable.ic_scan),
-                colorFilter = ColorFilter.tint(Web3ModalTheme.colors.main100),
-                contentDescription = "Scan Icon",
-                modifier = Modifier.clickable { onScanIconClick() })
-        })
         WalletsGrid(
             wallets = wallets,
             onWalletItemClick = onWalletItemClick,
@@ -100,6 +88,7 @@ private fun WalletsGrid(
         }
     }
 }
+
 private fun LazyGridScope.walletsGridItemsWithViewAll(
     wallets: List<Wallet>,
     onWalletItemClick: (Wallet) -> Unit,

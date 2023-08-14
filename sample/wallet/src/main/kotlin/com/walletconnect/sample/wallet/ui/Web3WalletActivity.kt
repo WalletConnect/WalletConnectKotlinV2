@@ -10,9 +10,9 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.rememberModalBottomSheetState
@@ -38,7 +38,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlin.random.Random
 import kotlin.random.nextUInt
 
-class Web3WalletActivity : ComponentActivity() {
+class Web3WalletActivity : AppCompatActivity() {
     private lateinit var navController: NavHostController
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
