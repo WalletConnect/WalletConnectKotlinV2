@@ -645,7 +645,7 @@ internal class SignEngine(
     private fun propagatePendingSessionRequestsQueue() {
         getPendingSessionRequests()
             .map { pendingRequest -> pendingRequest.toSessionRequest(metadataStorageRepository.getByTopicAndType(pendingRequest.topic, AppMetaDataType.PEER)) }
-            .map { sessionRequest ->
+            .onEach { sessionRequest ->
                 if (CoreValidator.isExpiryWithinBounds(sessionRequest.expiry)) {
                     scope.launch {
                         supervisorScope {
