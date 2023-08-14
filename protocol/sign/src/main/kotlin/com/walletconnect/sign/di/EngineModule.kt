@@ -21,5 +21,29 @@ internal fun engineModule() = module {
 
     single { GetPendingJsonRpcHistoryEntryByIdUseCase(get(), get()) }
 
-    single { SignEngine(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(named(AndroidCommonDITags.LOGGER)), get(), get(), get(), get(), get()) }
+    single {
+        SignEngine(
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(named(AndroidCommonDITags.LOGGER)),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get()
+        )
+    }
 }

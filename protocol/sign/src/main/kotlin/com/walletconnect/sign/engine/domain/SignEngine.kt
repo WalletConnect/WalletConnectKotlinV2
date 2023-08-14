@@ -98,6 +98,8 @@ import com.walletconnect.sign.engine.use_case.ProposeSessionUseCase
 import com.walletconnect.sign.engine.use_case.ProposeSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.RejectSessionUseCase
 import com.walletconnect.sign.engine.use_case.RejectSessionUseCaseInterface
+import com.walletconnect.sign.engine.use_case.SessionRequestUseCase
+import com.walletconnect.sign.engine.use_case.SessionRequestUseCaseInterface
 import com.walletconnect.sign.engine.use_case.SessionUpdateUseCase
 import com.walletconnect.sign.engine.use_case.SessionUpdateUseCaseInterface
 import com.walletconnect.sign.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdUseCase
@@ -149,12 +151,15 @@ internal class SignEngine(
     private val pairUseCase: PairUseCase,
     private val rejectSessionUseCase: RejectSessionUseCase,
     private val approveSessionUseCase: ApproveSessionUseCase,
-    private val sessionUpdateUseCase: SessionUpdateUseCase
+    private val sessionUpdateUseCase: SessionUpdateUseCase,
+    private val sessionRequestUseCase: SessionRequestUseCase,
 ) : ProposeSessionUseCaseInterface by proposeSessionUseCase,
     PairUseCaseInterface by pairUseCase,
     RejectSessionUseCaseInterface by rejectSessionUseCase,
     ApproveSessionUseCaseInterface by approveSessionUseCase,
-    SessionUpdateUseCaseInterface by sessionUpdateUseCase {
+    SessionUpdateUseCaseInterface by sessionUpdateUseCase,
+    SessionRequestUseCaseInterface by sessionRequestUseCase
+{
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
@@ -200,65 +205,6 @@ internal class SignEngine(
                     internalErrorsJob = collectInternalErrors()
                 }
             }.launchIn(scope)
-    }
-
-
-    internal fun sessionRequest(request: EngineDO.Request, onSuccess: (Long) -> Unit, onFailure: (Throwable) -> Unit) {
-        if (!sessionStorageRepository.isSessionValid(Topic(request.topic))) {
-            throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE${request.topic}")
-        }
-
-        val nowInSeconds = TimeUnit.SECONDS.convert(Date().time, TimeUnit.SECONDS)
-        if (!CoreValidator.isExpiryWithinBounds(request.expiry ?: Expiry(300))) {
-            throw InvalidExpiryException()
-        }
-
-        SignValidator.validateSessionRequest(request) { error ->
-            throw InvalidRequestException(error.message)
-        }
-
-        val namespaces: Map<String, NamespaceVO.Session> =
-            sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic(request.topic)).sessionNamespaces
-        SignValidator.validateChainIdWithMethodAuthorisation(request.chainId, request.method, namespaces) { error ->
-            throw UnauthorizedMethodException(error.message)
-        }
-
-        val params = SignParams.SessionRequestParams(SessionRequestVO(request.method, request.params), request.chainId)
-        val sessionPayload = SignRpc.SessionRequest(params = params)
-        val irnParamsTtl = request.expiry?.run {
-            val defaultTtl = FIVE_MINUTES_IN_SECONDS
-            val extractedTtl = seconds - nowInSeconds
-            val newTtl = extractedTtl.takeIf { extractedTtl >= defaultTtl } ?: defaultTtl
-
-            Ttl(newTtl)
-        } ?: Ttl(FIVE_MINUTES_IN_SECONDS)
-        val irnParams = IrnParams(Tags.SESSION_REQUEST, irnParamsTtl, true)
-        val requestTtlInSeconds = request.expiry?.run {
-            seconds - nowInSeconds
-        } ?: FIVE_MINUTES_IN_SECONDS
-
-        jsonRpcInteractor.publishJsonRpcRequest(
-            Topic(request.topic),
-            irnParams,
-            sessionPayload,
-            onSuccess = {
-                logger.log("Session request sent successfully")
-                onSuccess(sessionPayload.id)
-                scope.launch {
-                    try {
-                        withTimeout(TimeUnit.SECONDS.toMillis(requestTtlInSeconds)) {
-                            collectResponse(sessionPayload.id) { cancel() }
-                        }
-                    } catch (e: TimeoutCancellationException) {
-                        _engineEvent.emit(SDKError(e))
-                    }
-                }
-            },
-            onFailure = { error ->
-                logger.error("Sending session request error: $error")
-                onFailure(error)
-            }
-        )
     }
 
     internal fun respondSessionRequest(
@@ -531,7 +477,7 @@ internal class SignEngine(
             }.launchIn(scope)
 
     private fun collectInternalErrors(): Job =
-        merge(jsonRpcInteractor.internalErrors, pairingController.findWrongMethodsFlow)
+        merge(jsonRpcInteractor.internalErrors, pairingController.findWrongMethodsFlow, sessionRequestUseCase.errors)
             .onEach { exception -> _engineEvent.emit(exception) }
             .launchIn(scope)
 
