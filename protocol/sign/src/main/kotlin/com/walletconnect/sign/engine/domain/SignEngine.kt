@@ -74,6 +74,8 @@ import com.walletconnect.sign.engine.use_case.ApproveSessionUseCase
 import com.walletconnect.sign.engine.use_case.ApproveSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.EmitEventUseCase
 import com.walletconnect.sign.engine.use_case.EmitEventUseCaseInterface
+import com.walletconnect.sign.engine.use_case.ExtendSessionUsesCase
+import com.walletconnect.sign.engine.use_case.ExtendSessionUsesCaseInterface
 import com.walletconnect.sign.engine.use_case.PairUseCase
 import com.walletconnect.sign.engine.use_case.PairUseCaseInterface
 import com.walletconnect.sign.engine.use_case.PingUseCase
@@ -131,6 +133,7 @@ internal class SignEngine(
     private val respondSessionRequestUseCase: RespondSessionRequestUseCase,
     private val pingUseCase: PingUseCase,
     private val emitEventUseCase: EmitEventUseCase,
+    private val extendSessionUsesCase: ExtendSessionUsesCase,
     private val logger: Logger
 ) : ProposeSessionUseCaseInterface by proposeSessionUseCase,
     PairUseCaseInterface by pairUseCase,
@@ -140,7 +143,8 @@ internal class SignEngine(
     SessionRequestUseCaseInterface by sessionRequestUseCase,
     RespondSessionRequestUseCaseInterface by respondSessionRequestUseCase,
     PingUseCaseInterface by pingUseCase,
-    EmitEventUseCaseInterface by emitEventUseCase
+    EmitEventUseCaseInterface by emitEventUseCase,
+    ExtendSessionUsesCaseInterface by extendSessionUsesCase
 {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
@@ -191,35 +195,6 @@ internal class SignEngine(
                     signEventsJob = collectSignEvents()
                 }
             }.launchIn(scope)
-    }
-
-    internal fun extend(topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
-        if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
-            throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
-        }
-
-        val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic(topic))
-        if (!session.isSelfController) {
-            throw UnauthorizedPeerException(UNAUTHORIZED_EXTEND_MESSAGE)
-        }
-        if (!session.isAcknowledged) {
-            throw NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
-        }
-
-        val newExpiration = session.expiry.seconds + WEEK_IN_SECONDS
-        sessionStorageRepository.extendSession(Topic(topic), newExpiration)
-        val sessionExtend = SignRpc.SessionExtend(params = SignParams.ExtendParams(newExpiration))
-        val irnParams = IrnParams(Tags.SESSION_EXTEND, Ttl(DAY_IN_SECONDS))
-
-        jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionExtend,
-            onSuccess = {
-                logger.log("Session extend sent successfully")
-                onSuccess()
-            },
-            onFailure = { error ->
-                logger.error("Sending session extend error: $error")
-                onFailure(error)
-            })
     }
 
     internal fun disconnect(topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {

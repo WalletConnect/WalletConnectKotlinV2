@@ -45,6 +45,7 @@ internal fun engineModule() = module {
             get(),
             get(),
             get(),
+            get(),
             get(named(AndroidCommonDITags.LOGGER)),
         )
     }
