@@ -12,11 +12,11 @@ import org.koin.dsl.module
 @JvmSynthetic
 internal fun engineModule() = module {
 
-    includes(callsModule())
+    includes(callsModule(), requestsModule(), responsesModule())
 
     single { GetPendingJsonRpcHistoryEntriesUseCase(get(), get()) }
     single { GetPendingJsonRpcHistoryEntryByIdUseCase(get(), get()) }
     single { GetResponseByIdUseCase(get(), get()) }
     single { CacaoVerifier(get()) }
-    single { AuthEngine(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get(named(AndroidCommonDITags.LOGGER))) }
+    single { AuthEngine(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 }

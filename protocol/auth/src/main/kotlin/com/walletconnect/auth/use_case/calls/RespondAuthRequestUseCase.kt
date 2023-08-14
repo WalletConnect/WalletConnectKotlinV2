@@ -1,4 +1,4 @@
-package com.walletconnect.auth.use_case
+package com.walletconnect.auth.use_case.calls
 
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository

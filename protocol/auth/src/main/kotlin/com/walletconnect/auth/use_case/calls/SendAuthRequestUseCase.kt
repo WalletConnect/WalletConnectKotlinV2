@@ -1,4 +1,4 @@
-package com.walletconnect.auth.use_case
+package com.walletconnect.auth.use_case.calls
 
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.InvalidExpiryException
@@ -41,7 +41,6 @@ internal class SendAuthRequestUseCase(
 ) : SendAuthRequestUseCaseInterface {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
-
 
     override fun request(
         payloadParams: PayloadParams,
