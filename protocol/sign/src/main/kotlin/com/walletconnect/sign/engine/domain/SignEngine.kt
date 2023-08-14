@@ -2,7 +2,6 @@
 
 package com.walletconnect.sign.engine.domain
 
-
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
@@ -75,6 +74,8 @@ import com.walletconnect.sign.engine.use_case.ApproveSessionUseCase
 import com.walletconnect.sign.engine.use_case.ApproveSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.PairUseCase
 import com.walletconnect.sign.engine.use_case.PairUseCaseInterface
+import com.walletconnect.sign.engine.use_case.PingUseCase
+import com.walletconnect.sign.engine.use_case.PingUseCaseInterface
 import com.walletconnect.sign.engine.use_case.ProposeSessionUseCase
 import com.walletconnect.sign.engine.use_case.ProposeSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.RejectSessionUseCase
@@ -95,8 +96,6 @@ import com.walletconnect.utils.extractTimestamp
 import com.walletconnect.utils.isSequenceValid
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -106,9 +105,6 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
-import kotlinx.coroutines.withTimeout
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 internal class SignEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -131,15 +127,16 @@ internal class SignEngine(
     private val sessionUpdateUseCase: SessionUpdateUseCase,
     private val sessionRequestUseCase: SessionRequestUseCase,
     private val respondSessionRequestUseCase: RespondSessionRequestUseCase,
-    private val logger: Logger,
+    private val pingUseCase: PingUseCase,
+    private val logger: Logger
 ) : ProposeSessionUseCaseInterface by proposeSessionUseCase,
     PairUseCaseInterface by pairUseCase,
     RejectSessionUseCaseInterface by rejectSessionUseCase,
     ApproveSessionUseCaseInterface by approveSessionUseCase,
     SessionUpdateUseCaseInterface by sessionUpdateUseCase,
     SessionRequestUseCaseInterface by sessionRequestUseCase,
-    RespondSessionRequestUseCaseInterface by respondSessionRequestUseCase
-{
+    RespondSessionRequestUseCaseInterface by respondSessionRequestUseCase,
+    PingUseCaseInterface by pingUseCase {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
@@ -191,53 +188,6 @@ internal class SignEngine(
             }.launchIn(scope)
     }
 
-
-
-    internal fun ping(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit, timeout: Duration = THIRTY_SECONDS_TIMEOUT) {
-        if (sessionStorageRepository.isSessionValid(Topic(topic))) {
-            val pingPayload = SignRpc.SessionPing(params = SignParams.PingParams())
-            val irnParams = IrnParams(Tags.SESSION_PING, Ttl(THIRTY_SECONDS))
-
-            jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, pingPayload,
-                onSuccess = {
-                    logger.log("Ping sent successfully")
-                    scope.launch {
-                        try {
-                            withTimeout(timeout) {
-                                collectResponse(pingPayload.id) { result ->
-                                    cancel()
-                                    result.fold(
-                                        onSuccess = {
-                                            logger.log("Ping peer response success")
-                                            onSuccess(topic)
-                                        },
-                                        onFailure = { error ->
-                                            logger.log("Ping peer response error: $error")
-                                            onFailure(error)
-                                        })
-                                }
-                            }
-                        } catch (e: TimeoutCancellationException) {
-                            onFailure(e)
-                        }
-                    }
-                },
-                onFailure = { error ->
-                    logger.log("Ping sent error: $error")
-                    onFailure(error)
-                })
-        } else {
-            pairingInterface.ping(Core.Params.Ping(topic), object : Core.Listeners.PairingPing {
-                override fun onSuccess(pingSuccess: Core.Model.Ping.Success) {
-                    onSuccess(pingSuccess.topic)
-                }
-
-                override fun onError(pingError: Core.Model.Ping.Error) {
-                    onFailure(pingError.error)
-                }
-            })
-        }
-    }
 
     internal fun emit(topic: String, event: EngineDO.Event, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
@@ -896,9 +846,5 @@ internal class SignEngine(
         } catch (e: Exception) {
             scope.launch { _engineEvent.emit(SDKError(e)) }
         }
-    }
-
-    private companion object {
-        val THIRTY_SECONDS_TIMEOUT: Duration = 30.seconds
     }
 }

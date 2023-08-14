@@ -38,7 +38,6 @@ internal class RespondSessionRequestUseCase(
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
-
     override fun respondSessionRequest(
         topic: String,
         jsonRpcResponse: JsonRpcResponse,
