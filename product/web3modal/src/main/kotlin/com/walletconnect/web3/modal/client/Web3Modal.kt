@@ -13,7 +13,7 @@ object Web3Modal {
 
     private var _sessionParams: Modal.Params.SessionParams? = null
     internal val sessionParams: Modal.Params.SessionParams
-        get() = requireNotNull(_sessionParams) { "Be sure to set the SessionParams in Web3Modal.setSessionParams." }
+        get() = requireNotNull(_sessionParams) { "Be sure to set the SessionParams using Web3Modal.setSessionParams." }
 
     interface ModalDelegate {
         fun onSessionApproved(approvedSession: Modal.Model.ApprovedSession)
