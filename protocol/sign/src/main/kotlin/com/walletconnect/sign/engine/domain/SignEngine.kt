@@ -2,35 +2,22 @@
 
 package com.walletconnect.sign.engine.domain
 
-import com.walletconnect.android.Core
-import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
-import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
-import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.ConnectionState
-import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Validation
-import com.walletconnect.android.internal.common.model.WCResponse
-import com.walletconnect.android.internal.common.model.params.CoreSignParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.VerifyContextStorageRepository
-import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
-import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.verify.data.model.VerifyContext
-import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
-import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toEngineDO
-import com.walletconnect.sign.engine.model.mapper.toMapOfEngineNamespacesSession
 import com.walletconnect.sign.engine.model.mapper.toSessionRequest
 import com.walletconnect.sign.engine.sessionRequestsQueue
 import com.walletconnect.sign.engine.use_case.calls.ApproveSessionUseCase
@@ -74,17 +61,17 @@ import com.walletconnect.sign.engine.use_case.requests.OnSessionRequestUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionSettleUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionUpdateUseCase
 import com.walletconnect.sign.engine.use_case.responses.OnSessionProposalResponseUseCase
+import com.walletconnect.sign.engine.use_case.responses.OnSessionRequestResponseUseCase
 import com.walletconnect.sign.engine.use_case.responses.OnSessionSettleResponseUseCase
+import com.walletconnect.sign.engine.use_case.responses.OnSessionUpdateResponseUseCase
 import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCaseByTopic
 import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCaseByTopicInterface
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequestByTopicUseCase
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequestByTopicUseCaseInterface
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequests
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
-import com.walletconnect.sign.storage.proposal.ProposalStorageRepository
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import com.walletconnect.utils.Empty
-import com.walletconnect.utils.extractTimestamp
 import com.walletconnect.utils.isSequenceValid
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -105,14 +92,9 @@ internal class SignEngine(
     private val getPendingSessionRequests: GetPendingSessionRequests,
     private val crypto: KeyManagementRepository,
     private val sessionStorageRepository: SessionStorageRepository,
-    private val proposalStorageRepository: ProposalStorageRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
-    private val pairingInterface: PairingInterface,
     private val pairingController: PairingControllerInterface,
-    private val serializer: JsonRpcSerializer,
-    private val resolveAttestationIdUseCase: ResolveAttestationIdUseCase,
     private val verifyContextStorageRepository: VerifyContextStorageRepository,
-    private val selfAppMetaData: AppMetaData,
     private val proposeSessionUseCase: ProposeSessionUseCase,
     private val pairUseCase: PairUseCase,
     private val rejectSessionUseCase: RejectSessionUseCase,
@@ -139,7 +121,8 @@ internal class SignEngine(
     private val onPingUseCase: OnPingUseCase,
     private val onSessionProposalResponseUseCase: OnSessionProposalResponseUseCase,
     private val onSessionSettleResponseUseCase: OnSessionSettleResponseUseCase,
-    private val logger: Logger
+    private val onSessionUpdateResponseUseCase: OnSessionUpdateResponseUseCase,
+    private val onSessionRequestResponseUseCase: OnSessionRequestResponseUseCase,
 ) : ProposeSessionUseCaseInterface by proposeSessionUseCase,
     PairUseCaseInterface by pairUseCase,
     RejectSessionUseCaseInterface by rejectSessionUseCase,
@@ -158,7 +141,6 @@ internal class SignEngine(
     GetSessionProposalsUseCaseInterface by getSessionProposalsUseCase,
     GetVerifyContextByIdUseCaseInterface by getVerifyContextByIdUseCase,
     GetListOfVerifyContextsUseCaseInterface by getListOfVerifyContextsUseCase {
-
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
@@ -211,38 +193,6 @@ internal class SignEngine(
             }.launchIn(scope)
     }
 
-    private fun propagatePendingSessionRequestsQueue() {
-        getPendingSessionRequests()
-            .map { pendingRequest -> pendingRequest.toSessionRequest(metadataStorageRepository.getByTopicAndType(pendingRequest.topic, AppMetaDataType.PEER)) }
-            .map { sessionRequest ->
-                scope.launch {
-                    supervisorScope {
-                        val verifyContext = verifyContextStorageRepository.get(sessionRequest.request.id) ?: VerifyContext(sessionRequest.request.id, String.Empty, Validation.UNKNOWN, String.Empty)
-                        val sessionRequestEvent = EngineDO.SessionRequestEvent(sessionRequest, verifyContext.toEngineDO())
-                        sessionRequestsQueue.addLast(sessionRequestEvent)
-                    }
-                }
-            }
-    }
-
-    private fun collectInternalErrors(): Job =
-        merge(jsonRpcInteractor.internalErrors, pairingController.findWrongMethodsFlow, sessionRequestUseCase.errors)
-            .onEach { exception -> _engineEvent.emit(exception) }
-            .launchIn(scope)
-
-    private fun collectSignEvents(): Job =
-        merge(
-            respondSessionRequestUseCase.events,
-            onSessionRequestUseCase.events,
-            onSessionDeleteUseCase.events,
-            onSessionProposeUse.events,
-            onSessionEventUseCase.events,
-            onSessionSettleUseCase.events,
-            onSessionUpdateUseCase.events
-        )
-            .onEach { event -> _engineEvent.emit(event) }
-            .launchIn(scope)
-
     private fun collectJsonRpcRequests(): Job =
         jsonRpcInteractor.clientSyncJsonRpc
             .filter { request -> request.params is SignParams }
@@ -259,7 +209,6 @@ internal class SignEngine(
                 }
             }.launchIn(scope)
 
-
     private fun collectJsonRpcResponses(): Job =
         jsonRpcInteractor.peerResponse
             .filter { request -> request.params is SignParams }
@@ -267,59 +216,32 @@ internal class SignEngine(
                 when (val params = response.params) {
                     is SignParams.SessionProposeParams -> onSessionProposalResponseUseCase(response, params)
                     is SignParams.SessionSettleParams -> onSessionSettleResponseUseCase(response)
-                    is SignParams.UpdateNamespacesParams -> onSessionUpdateResponse(response)
-                    is SignParams.SessionRequestParams -> onSessionRequestResponse(response, params)
+                    is SignParams.UpdateNamespacesParams -> onSessionUpdateResponseUseCase(response)
+                    is SignParams.SessionRequestParams -> onSessionRequestResponseUseCase(response, params)
                 }
             }.launchIn(scope)
 
+    private fun collectInternalErrors(): Job =
+        merge(jsonRpcInteractor.internalErrors, pairingController.findWrongMethodsFlow, sessionRequestUseCase.errors)
+            .onEach { exception -> _engineEvent.emit(exception) }
+            .launchIn(scope)
 
-    // listened by WalletDelegate
-    private fun onSessionUpdateResponse(wcResponse: WCResponse) {
-        try {
-            val sessionTopic = wcResponse.topic
-            if (!sessionStorageRepository.isSessionValid(sessionTopic)) return
-            val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(sessionTopic)
-            if (!sessionStorageRepository.isUpdatedNamespaceResponseValid(session.topic.value, wcResponse.response.id.extractTimestamp())) {
-                return
-            }
-
-            when (val response = wcResponse.response) {
-                is JsonRpcResponse.JsonRpcResult -> {
-                    logger.log("Session update namespaces response received")
-                    val responseId = wcResponse.response.id
-                    val namespaces = sessionStorageRepository.getTempNamespaces(responseId)
-                    sessionStorageRepository.deleteNamespaceAndInsertNewNamespace(session.topic.value, namespaces, responseId)
-                    sessionStorageRepository.markUnAckNamespaceAcknowledged(responseId)
-                    scope.launch {
-                        _engineEvent.emit(
-                            EngineDO.SessionUpdateNamespacesResponse.Result(session.topic, session.sessionNamespaces.toMapOfEngineNamespacesSession())
-                        )
-                    }
-                }
-
-                is JsonRpcResponse.JsonRpcError -> {
-                    logger.error("Peer failed to update session namespaces: ${response.error}")
-                    scope.launch { _engineEvent.emit(EngineDO.SessionUpdateNamespacesResponse.Error(response.errorMessage)) }
-                }
-            }
-        } catch (e: Exception) {
-            scope.launch { _engineEvent.emit(SDKError(e)) }
-        }
-    }
-
-    // listened by DappDelegate
-    private fun onSessionRequestResponse(response: WCResponse, params: SignParams.SessionRequestParams) {
-        try {
-            val result = when (response.response) {
-                is JsonRpcResponse.JsonRpcResult -> (response.response as JsonRpcResponse.JsonRpcResult).toEngineDO()
-                is JsonRpcResponse.JsonRpcError -> (response.response as JsonRpcResponse.JsonRpcError).toEngineDO()
-            }
-            val method = params.request.method
-            scope.launch { _engineEvent.emit(EngineDO.SessionPayloadResponse(response.topic.value, params.chainId, method, result)) }
-        } catch (e: Exception) {
-            scope.launch { _engineEvent.emit(SDKError(e)) }
-        }
-    }
+    private fun collectSignEvents(): Job =
+        merge(
+            respondSessionRequestUseCase.events,
+            onSessionRequestUseCase.events,
+            onSessionDeleteUseCase.events,
+            onSessionProposeUse.events,
+            onSessionEventUseCase.events,
+            onSessionSettleUseCase.events,
+            onSessionUpdateUseCase.events,
+            onSessionProposalResponseUseCase.events,
+            onSessionSettleResponseUseCase.events,
+            onSessionUpdateResponseUseCase.events,
+            onSessionRequestResponseUseCase.events
+        )
+            .onEach { event -> _engineEvent.emit(event) }
+            .launchIn(scope)
 
     private fun resubscribeToSession() {
         try {
@@ -360,5 +282,19 @@ internal class SignEngine(
         } catch (e: Exception) {
             scope.launch { _engineEvent.emit(SDKError(e)) }
         }
+    }
+
+    private fun propagatePendingSessionRequestsQueue() {
+        getPendingSessionRequests()
+            .map { pendingRequest -> pendingRequest.toSessionRequest(metadataStorageRepository.getByTopicAndType(pendingRequest.topic, AppMetaDataType.PEER)) }
+            .map { sessionRequest ->
+                scope.launch {
+                    supervisorScope {
+                        val verifyContext = verifyContextStorageRepository.get(sessionRequest.request.id) ?: VerifyContext(sessionRequest.request.id, String.Empty, Validation.UNKNOWN, String.Empty)
+                        val sessionRequestEvent = EngineDO.SessionRequestEvent(sessionRequest, verifyContext.toEngineDO())
+                        sessionRequestsQueue.addLast(sessionRequestEvent)
+                    }
+                }
+            }
     }
 }
