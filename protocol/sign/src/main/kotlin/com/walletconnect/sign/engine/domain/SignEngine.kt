@@ -89,6 +89,7 @@ import com.walletconnect.sign.engine.use_case.calls.SessionUpdateUseCase
 import com.walletconnect.sign.engine.use_case.calls.SessionUpdateUseCaseInterface
 import com.walletconnect.sign.engine.use_case.requests.OnSessionDeleteUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionEventUseCase
+import com.walletconnect.sign.engine.use_case.requests.OnSessionExtendUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionProposeUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionRequestUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionSettleUseCase
@@ -150,6 +151,7 @@ internal class SignEngine(
     private val onSessionDeleteUseCase: OnSessionDeleteUseCase,
     private val onSessionEventUseCase: OnSessionEventUseCase,
     private val onSessionUpdateUseCase: OnSessionUpdateUseCase,
+    private val onSessionExtendUseCase: OnSessionExtendUseCase,
     private val logger: Logger
 ) : ProposeSessionUseCaseInterface by proposeSessionUseCase,
     PairUseCaseInterface by pairUseCase,
@@ -264,7 +266,7 @@ internal class SignEngine(
                     is SignParams.DeleteParams -> onSessionDeleteUseCase(request, requestParams)
                     is SignParams.EventParams -> onSessionEventUseCase(request, requestParams)
                     is SignParams.UpdateNamespacesParams -> onSessionUpdateUseCase(request, requestParams)
-                    is SignParams.ExtendParams -> onSessionExtend(request, requestParams)
+                    is SignParams.ExtendParams -> onSessionExtendUseCase(request, requestParams)
                     is SignParams.PingParams -> onPing(request)
                 }
             }.launchIn(scope)
@@ -281,45 +283,6 @@ internal class SignEngine(
                     is SignParams.SessionRequestParams -> onSessionRequestResponse(response, params)
                 }
             }.launchIn(scope)
-
-    // listened by DappDelegate
-    private fun onSessionExtend(request: WCRequest, requestParams: SignParams.ExtendParams) {
-        val irnParams = IrnParams(Tags.SESSION_EXTEND_RESPONSE, Ttl(DAY_IN_SECONDS))
-        try {
-            if (!sessionStorageRepository.isSessionValid(request.topic)) {
-                jsonRpcInteractor.respondWithError(
-                    request,
-                    Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value),
-                    irnParams
-                )
-                return
-            }
-
-            val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(request.topic)
-            if (!session.isPeerController) {
-                jsonRpcInteractor.respondWithError(request, PeerError.Unauthorized.ExtendRequest(Sequences.SESSION.name), irnParams)
-                return
-            }
-
-            val newExpiry = requestParams.expiry
-            SignValidator.validateSessionExtend(newExpiry, session.expiry.seconds) { error ->
-                jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
-                return
-            }
-
-            sessionStorageRepository.extendSession(request.topic, newExpiry)
-            jsonRpcInteractor.respondWithSuccess(request, irnParams)
-            scope.launch { _engineEvent.emit(session.toEngineDOSessionExtend(Expiry(newExpiry))) }
-        } catch (e: Exception) {
-            jsonRpcInteractor.respondWithError(
-                request,
-                Uncategorized.GenericError("Cannot update a session: ${e.message}, topic: ${request.topic}"),
-                irnParams
-            )
-            scope.launch { _engineEvent.emit(SDKError(e)) }
-            return
-        }
-    }
 
     private fun onPing(request: WCRequest) {
         val irnParams = IrnParams(Tags.SESSION_PING_RESPONSE, Ttl(THIRTY_SECONDS))
