@@ -1,4 +1,4 @@
-package com.walletconnect.sign.engine.use_case
+package com.walletconnect.sign.engine.use_case.calls
 
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository

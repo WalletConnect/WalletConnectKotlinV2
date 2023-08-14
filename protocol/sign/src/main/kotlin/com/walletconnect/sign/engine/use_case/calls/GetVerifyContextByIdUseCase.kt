@@ -1,4 +1,4 @@
-package com.walletconnect.sign.engine.use_case
+package com.walletconnect.sign.engine.use_case.calls
 
 import com.walletconnect.android.internal.common.storage.VerifyContextStorageRepository
 import com.walletconnect.sign.engine.model.EngineDO

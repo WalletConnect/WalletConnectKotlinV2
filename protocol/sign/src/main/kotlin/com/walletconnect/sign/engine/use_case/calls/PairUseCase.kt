@@ -1,4 +1,4 @@
-package com.walletconnect.sign.engine.use_case
+package com.walletconnect.sign.engine.use_case.calls
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.pairing.client.PairingInterface

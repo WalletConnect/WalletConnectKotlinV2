@@ -5,9 +5,7 @@ package com.walletconnect.sign.engine.domain
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
-import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
 import com.walletconnect.android.internal.common.exception.Invalid
-import com.walletconnect.android.internal.common.exception.Reason
 import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.model.AppMetaData
@@ -31,33 +29,20 @@ import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
 import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
 import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
 import com.walletconnect.android.internal.utils.THIRTY_SECONDS
-import com.walletconnect.android.internal.utils.WEEK_IN_SECONDS
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.pairing.model.mapper.toClient
-import com.walletconnect.android.pairing.model.mapper.toPairing
 import com.walletconnect.android.verify.data.model.VerifyContext
 import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
-import com.walletconnect.sign.common.exceptions.InvalidEventException
-import com.walletconnect.sign.common.exceptions.NO_SEQUENCE_FOR_TOPIC_MESSAGE
-import com.walletconnect.sign.common.exceptions.NotSettledSessionException
 import com.walletconnect.sign.common.exceptions.PeerError
-import com.walletconnect.sign.common.exceptions.SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE
-import com.walletconnect.sign.common.exceptions.UNAUTHORIZED_EMIT_MESSAGE
-import com.walletconnect.sign.common.exceptions.UNAUTHORIZED_EXTEND_MESSAGE
-import com.walletconnect.sign.common.exceptions.UnauthorizedEventException
-import com.walletconnect.sign.common.exceptions.UnauthorizedPeerException
-import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.sign.common.model.type.Sequences
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpc
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
-import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionEventVO
-import com.walletconnect.sign.common.model.vo.proposal.ProposalVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
 import com.walletconnect.sign.common.validator.SignValidator
 import com.walletconnect.sign.engine.model.EngineDO
@@ -70,38 +55,39 @@ import com.walletconnect.sign.engine.model.mapper.toSessionApproved
 import com.walletconnect.sign.engine.model.mapper.toSessionRequest
 import com.walletconnect.sign.engine.model.mapper.toVO
 import com.walletconnect.sign.engine.sessionRequestsQueue
-import com.walletconnect.sign.engine.use_case.ApproveSessionUseCase
-import com.walletconnect.sign.engine.use_case.ApproveSessionUseCaseInterface
-import com.walletconnect.sign.engine.use_case.DisconnectSessionUseCase
-import com.walletconnect.sign.engine.use_case.DisconnectSessionUseCaseInterface
-import com.walletconnect.sign.engine.use_case.EmitEventUseCase
-import com.walletconnect.sign.engine.use_case.EmitEventUseCaseInterface
-import com.walletconnect.sign.engine.use_case.ExtendSessionUsesCase
-import com.walletconnect.sign.engine.use_case.ExtendSessionUsesCaseInterface
-import com.walletconnect.sign.engine.use_case.GetListOfVerifyContextsUseCase
-import com.walletconnect.sign.engine.use_case.GetListOfVerifyContextsUseCaseInterface
-import com.walletconnect.sign.engine.use_case.GetPairingsUseCase
-import com.walletconnect.sign.engine.use_case.GetPairingsUseCaseInterface
-import com.walletconnect.sign.engine.use_case.GetSessionProposalsUseCase
-import com.walletconnect.sign.engine.use_case.GetSessionProposalsUseCaseInterface
-import com.walletconnect.sign.engine.use_case.GetSessionsUseCase
-import com.walletconnect.sign.engine.use_case.GetSessionsUseCaseInterface
-import com.walletconnect.sign.engine.use_case.GetVerifyContextByIdUseCase
-import com.walletconnect.sign.engine.use_case.GetVerifyContextByIdUseCaseInterface
-import com.walletconnect.sign.engine.use_case.PairUseCase
-import com.walletconnect.sign.engine.use_case.PairUseCaseInterface
-import com.walletconnect.sign.engine.use_case.PingUseCase
-import com.walletconnect.sign.engine.use_case.PingUseCaseInterface
-import com.walletconnect.sign.engine.use_case.ProposeSessionUseCase
-import com.walletconnect.sign.engine.use_case.ProposeSessionUseCaseInterface
-import com.walletconnect.sign.engine.use_case.RejectSessionUseCase
-import com.walletconnect.sign.engine.use_case.RejectSessionUseCaseInterface
-import com.walletconnect.sign.engine.use_case.RespondSessionRequestUseCase
-import com.walletconnect.sign.engine.use_case.RespondSessionRequestUseCaseInterface
-import com.walletconnect.sign.engine.use_case.SessionRequestUseCase
-import com.walletconnect.sign.engine.use_case.SessionRequestUseCaseInterface
-import com.walletconnect.sign.engine.use_case.SessionUpdateUseCase
-import com.walletconnect.sign.engine.use_case.SessionUpdateUseCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.ApproveSessionUseCase
+import com.walletconnect.sign.engine.use_case.calls.ApproveSessionUseCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.DisconnectSessionUseCase
+import com.walletconnect.sign.engine.use_case.calls.DisconnectSessionUseCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.EmitEventUseCase
+import com.walletconnect.sign.engine.use_case.calls.EmitEventUseCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.ExtendSessionUsesCase
+import com.walletconnect.sign.engine.use_case.calls.ExtendSessionUsesCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.GetListOfVerifyContextsUseCase
+import com.walletconnect.sign.engine.use_case.calls.GetListOfVerifyContextsUseCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.GetPairingsUseCase
+import com.walletconnect.sign.engine.use_case.calls.GetPairingsUseCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.GetSessionProposalsUseCase
+import com.walletconnect.sign.engine.use_case.calls.GetSessionProposalsUseCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.GetSessionsUseCase
+import com.walletconnect.sign.engine.use_case.calls.GetSessionsUseCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.GetVerifyContextByIdUseCase
+import com.walletconnect.sign.engine.use_case.calls.GetVerifyContextByIdUseCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.PairUseCase
+import com.walletconnect.sign.engine.use_case.calls.PairUseCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.PingUseCase
+import com.walletconnect.sign.engine.use_case.calls.PingUseCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.ProposeSessionUseCase
+import com.walletconnect.sign.engine.use_case.calls.ProposeSessionUseCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.RejectSessionUseCase
+import com.walletconnect.sign.engine.use_case.calls.RejectSessionUseCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.RespondSessionRequestUseCase
+import com.walletconnect.sign.engine.use_case.calls.RespondSessionRequestUseCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.SessionRequestUseCase
+import com.walletconnect.sign.engine.use_case.calls.SessionRequestUseCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.SessionUpdateUseCase
+import com.walletconnect.sign.engine.use_case.calls.SessionUpdateUseCaseInterface
+import com.walletconnect.sign.engine.use_case.requests.OnSessionProposeUseCase
 import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCaseByTopic
 import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCaseByTopicInterface
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequests
@@ -153,6 +139,7 @@ internal class SignEngine(
     private val getSessionProposalsUseCase: GetSessionProposalsUseCase,
     private val getVerifyContextByIdUseCase: GetVerifyContextByIdUseCase,
     private val getListOfVerifyContextsUseCase: GetListOfVerifyContextsUseCase,
+    private val onSessionProposeUse: OnSessionProposeUseCase,
     private val logger: Logger
 ) : ProposeSessionUseCaseInterface by proposeSessionUseCase,
     PairUseCaseInterface by pairUseCase,
@@ -251,7 +238,7 @@ internal class SignEngine(
             .filter { request -> request.params is SignParams }
             .onEach { request ->
                 when (val requestParams = request.params) {
-                    is SignParams.SessionProposeParams -> onSessionPropose(request, requestParams)
+                    is SignParams.SessionProposeParams -> onSessionProposeUse(request, requestParams)
                     is SignParams.SessionSettleParams -> onSessionSettle(request, requestParams)
                     is SignParams.SessionRequestParams -> onSessionRequest(request, requestParams)
                     is SignParams.DeleteParams -> onSessionDelete(request, requestParams)
@@ -275,44 +262,6 @@ internal class SignEngine(
                 }
             }.launchIn(scope)
 
-    // listened by WalletDelegate
-    private fun onSessionPropose(request: WCRequest, payloadParams: SignParams.SessionProposeParams) {
-        val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
-        try {
-            SignValidator.validateProposalNamespaces(payloadParams.requiredNamespaces) { error ->
-                jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
-                return
-            }
-
-            SignValidator.validateProposalNamespaces(payloadParams.optionalNamespaces ?: emptyMap()) { error ->
-                jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
-                return
-            }
-
-            payloadParams.properties?.let {
-                SignValidator.validateProperties(payloadParams.properties) { error ->
-                    jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
-                    return
-                }
-            }
-
-            proposalStorageRepository.insertProposal(payloadParams.toVO(request.topic, request.id))
-            pairingController.updateMetadata(Core.Params.UpdateMetadata(request.topic.value, payloadParams.proposer.metadata.toClient(), AppMetaDataType.PEER))
-            val url = payloadParams.proposer.metadata.url
-            val json = serializer.serialize(SignRpc.SessionPropose(id = request.id, params = payloadParams)) ?: throw Exception("Error serializing session proposal")
-            resolveAttestationIdUseCase(request.id, json, url) { verifyContext ->
-                val sessionProposalEvent = EngineDO.SessionProposalEvent(proposal = payloadParams.toEngineDO(request.topic), context = verifyContext.toEngineDO())
-                scope.launch { _engineEvent.emit(sessionProposalEvent) }
-            }
-        } catch (e: Exception) {
-            jsonRpcInteractor.respondWithError(
-                request,
-                Uncategorized.GenericError("Cannot handle a session proposal: ${e.message}, topic: ${request.topic}"),
-                irnParams
-            )
-            scope.launch { _engineEvent.emit(SDKError(e)) }
-        }
-    }
 
     // listened by DappDelegate
     private fun onSessionSettle(request: WCRequest, settleParams: SignParams.SessionSettleParams) {

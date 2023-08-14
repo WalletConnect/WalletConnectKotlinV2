@@ -1,4 +1,4 @@
-package com.walletconnect.sign.engine.use_case
+package com.walletconnect.sign.engine.use_case.calls
 
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags

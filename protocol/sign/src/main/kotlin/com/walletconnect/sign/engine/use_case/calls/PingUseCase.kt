@@ -1,4 +1,4 @@
-package com.walletconnect.sign.engine.use_case
+package com.walletconnect.sign.engine.use_case.calls
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.JsonRpcResponse
@@ -13,7 +13,6 @@ import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpc
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
-import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.cancel
