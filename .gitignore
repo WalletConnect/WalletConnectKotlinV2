@@ -88,3 +88,6 @@ lint/tmp/
 
 # Android Profiling
 *.hprof
+
+# Snapshots
+*/*/src/test/snapshots/*

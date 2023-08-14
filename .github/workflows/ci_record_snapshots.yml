@@ -1,0 +1,40 @@
+name: Record Snapshots
+
+on:
+  workflow_dispatch:
+
+jobs:
+  record_snapshots:
+    strategy:
+      matrix:
+        conf: [
+          { name: wcm, command: ":product:walletconnectmodal:recordPaparazziDebug"}
+        ]
+    name: ${{ matrix.conf.name }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          architecture: x86_64
+          cache: 'gradle'
+
+      - name: Cache Gradle
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Records snapshots
+        run: ./gradlew ${{ matrix.conf.command }}
+
+      - name: Stop Gradle
+        run: ./gradlew --stop
