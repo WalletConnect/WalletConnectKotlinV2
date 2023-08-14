@@ -92,6 +92,7 @@ import com.walletconnect.sign.engine.use_case.requests.OnSessionEventUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionProposeUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionRequestUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionSettleUseCase
+import com.walletconnect.sign.engine.use_case.requests.OnSessionUpdateUseCase
 import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCaseByTopic
 import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCaseByTopicInterface
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequests
@@ -148,6 +149,7 @@ internal class SignEngine(
     private val onSessionRequestUseCase: OnSessionRequestUseCase,
     private val onSessionDeleteUseCase: OnSessionDeleteUseCase,
     private val onSessionEventUseCase: OnSessionEventUseCase,
+    private val onSessionUpdateUseCase: OnSessionUpdateUseCase,
     private val logger: Logger
 ) : ProposeSessionUseCaseInterface by proposeSessionUseCase,
     PairUseCaseInterface by pairUseCase,
@@ -239,7 +241,15 @@ internal class SignEngine(
             .launchIn(scope)
 
     private fun collectSignEvents(): Job =
-        merge(respondSessionRequestUseCase.events)
+        merge(
+            respondSessionRequestUseCase.events,
+            onSessionRequestUseCase.events,
+            onSessionDeleteUseCase.events,
+            onSessionProposeUse.events,
+            onSessionEventUseCase.events,
+            onSessionSettleUseCase.events,
+            onSessionUpdateUseCase.events
+        )
             .onEach { event -> _engineEvent.emit(event) }
             .launchIn(scope)
 
@@ -253,7 +263,7 @@ internal class SignEngine(
                     is SignParams.SessionRequestParams -> onSessionRequestUseCase(request, requestParams)
                     is SignParams.DeleteParams -> onSessionDeleteUseCase(request, requestParams)
                     is SignParams.EventParams -> onSessionEventUseCase(request, requestParams)
-                    is SignParams.UpdateNamespacesParams -> onSessionUpdate(request, requestParams)
+                    is SignParams.UpdateNamespacesParams -> onSessionUpdateUseCase(request, requestParams)
                     is SignParams.ExtendParams -> onSessionExtend(request, requestParams)
                     is SignParams.PingParams -> onPing(request)
                 }
@@ -271,53 +281,6 @@ internal class SignEngine(
                     is SignParams.SessionRequestParams -> onSessionRequestResponse(response, params)
                 }
             }.launchIn(scope)
-
-
-    // listened by DappDelegate
-    private fun onSessionUpdate(request: WCRequest, params: SignParams.UpdateNamespacesParams) {
-        val irnParams = IrnParams(Tags.SESSION_UPDATE_RESPONSE, Ttl(DAY_IN_SECONDS))
-        try {
-            if (!sessionStorageRepository.isSessionValid(request.topic)) {
-                jsonRpcInteractor.respondWithError(
-                    request,
-                    Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value),
-                    irnParams
-                )
-                return
-            }
-
-            val session: SessionVO = sessionStorageRepository.getSessionWithoutMetadataByTopic(request.topic)
-            if (!session.isPeerController) {
-                jsonRpcInteractor.respondWithError(request, PeerError.Unauthorized.UpdateRequest(Sequences.SESSION.name), irnParams)
-                return
-            }
-
-            SignValidator.validateSessionNamespace(params.namespaces, session.requiredNamespaces) { error ->
-                jsonRpcInteractor.respondWithError(request, PeerError.Invalid.UpdateRequest(error.message), irnParams)
-                return
-            }
-
-            if (!sessionStorageRepository.isUpdatedNamespaceValid(session.topic.value, request.id.extractTimestamp())) {
-                jsonRpcInteractor.respondWithError(request, PeerError.Invalid.UpdateRequest("Update Namespace Request ID too old"), irnParams)
-                return
-            }
-
-            sessionStorageRepository.deleteNamespaceAndInsertNewNamespace(session.topic.value, params.namespaces, request.id)
-            jsonRpcInteractor.respondWithSuccess(request, irnParams)
-
-            scope.launch {
-                _engineEvent.emit(EngineDO.SessionUpdateNamespaces(request.topic, params.namespaces.toMapOfEngineNamespacesSession()))
-            }
-        } catch (e: Exception) {
-            jsonRpcInteractor.respondWithError(
-                request,
-                PeerError.Invalid.UpdateRequest("Updating Namespace Failed. Review Namespace structure. Error: ${e.message}, topic: ${request.topic}"),
-                irnParams
-            )
-            scope.launch { _engineEvent.emit(SDKError(e)) }
-            return
-        }
-    }
 
     // listened by DappDelegate
     private fun onSessionExtend(request: WCRequest, requestParams: SignParams.ExtendParams) {

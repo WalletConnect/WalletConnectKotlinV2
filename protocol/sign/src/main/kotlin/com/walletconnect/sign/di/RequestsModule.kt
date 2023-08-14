@@ -6,6 +6,7 @@ import com.walletconnect.sign.engine.use_case.requests.OnSessionEventUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionProposeUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionRequestUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionSettleUseCase
+import com.walletconnect.sign.engine.use_case.requests.OnSessionUpdateUseCase
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
@@ -21,4 +22,6 @@ fun requestsModule() = module {
     single { OnSessionDeleteUseCase(get(), get(), get(), get(named(AndroidCommonDITags.LOGGER))) }
 
     single { OnSessionEventUseCase(get(), get()) }
+
+    single { OnSessionUpdateUseCase(get(), get()) }
 }
