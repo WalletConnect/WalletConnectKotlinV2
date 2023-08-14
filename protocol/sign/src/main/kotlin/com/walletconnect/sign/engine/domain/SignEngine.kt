@@ -72,6 +72,8 @@ import com.walletconnect.sign.engine.model.mapper.toVO
 import com.walletconnect.sign.engine.sessionRequestsQueue
 import com.walletconnect.sign.engine.use_case.ApproveSessionUseCase
 import com.walletconnect.sign.engine.use_case.ApproveSessionUseCaseInterface
+import com.walletconnect.sign.engine.use_case.EmitEventUseCase
+import com.walletconnect.sign.engine.use_case.EmitEventUseCaseInterface
 import com.walletconnect.sign.engine.use_case.PairUseCase
 import com.walletconnect.sign.engine.use_case.PairUseCaseInterface
 import com.walletconnect.sign.engine.use_case.PingUseCase
@@ -128,6 +130,7 @@ internal class SignEngine(
     private val sessionRequestUseCase: SessionRequestUseCase,
     private val respondSessionRequestUseCase: RespondSessionRequestUseCase,
     private val pingUseCase: PingUseCase,
+    private val emitEventUseCase: EmitEventUseCase,
     private val logger: Logger
 ) : ProposeSessionUseCaseInterface by proposeSessionUseCase,
     PairUseCaseInterface by pairUseCase,
@@ -136,7 +139,9 @@ internal class SignEngine(
     SessionUpdateUseCaseInterface by sessionUpdateUseCase,
     SessionRequestUseCaseInterface by sessionRequestUseCase,
     RespondSessionRequestUseCaseInterface by respondSessionRequestUseCase,
-    PingUseCaseInterface by pingUseCase {
+    PingUseCaseInterface by pingUseCase,
+    EmitEventUseCaseInterface by emitEventUseCase
+{
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
@@ -186,42 +191,6 @@ internal class SignEngine(
                     signEventsJob = collectSignEvents()
                 }
             }.launchIn(scope)
-    }
-
-
-    internal fun emit(topic: String, event: EngineDO.Event, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
-        if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
-            throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
-        }
-
-        val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic(topic))
-        if (!session.isSelfController) {
-            throw UnauthorizedPeerException(UNAUTHORIZED_EMIT_MESSAGE)
-        }
-
-        SignValidator.validateEvent(event) { error ->
-            throw InvalidEventException(error.message)
-        }
-
-        val namespaces = session.sessionNamespaces
-        SignValidator.validateChainIdWithEventAuthorisation(event.chainId, event.name, namespaces) { error ->
-            throw UnauthorizedEventException(error.message)
-        }
-
-        val eventParams = SignParams.EventParams(SessionEventVO(event.name, event.data), event.chainId)
-        val sessionEvent = SignRpc.SessionEvent(params = eventParams)
-        val irnParams = IrnParams(Tags.SESSION_EVENT, Ttl(FIVE_MINUTES_IN_SECONDS), true)
-
-        jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionEvent,
-            onSuccess = {
-                logger.log("Event sent successfully")
-                onSuccess()
-            },
-            onFailure = { error ->
-                logger.error("Sending event error: $error")
-                onFailure(error)
-            }
-        )
     }
 
     internal fun extend(topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
