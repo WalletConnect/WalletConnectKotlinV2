@@ -1,6 +1,7 @@
 package com.walletconnect.sign.di
 
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
+import com.walletconnect.sign.engine.use_case.requests.OnPingUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionDeleteUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionEventUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionExtendUseCase
@@ -27,4 +28,6 @@ fun requestsModule() = module {
     single { OnSessionUpdateUseCase(get(), get()) }
 
     single { OnSessionExtendUseCase(get(), get()) }
+
+    single { OnPingUseCase(get()) }
 }

@@ -87,6 +87,7 @@ import com.walletconnect.sign.engine.use_case.calls.SessionRequestUseCase
 import com.walletconnect.sign.engine.use_case.calls.SessionRequestUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.SessionUpdateUseCase
 import com.walletconnect.sign.engine.use_case.calls.SessionUpdateUseCaseInterface
+import com.walletconnect.sign.engine.use_case.requests.OnPingUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionDeleteUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionEventUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionExtendUseCase
@@ -152,6 +153,7 @@ internal class SignEngine(
     private val onSessionEventUseCase: OnSessionEventUseCase,
     private val onSessionUpdateUseCase: OnSessionUpdateUseCase,
     private val onSessionExtendUseCase: OnSessionExtendUseCase,
+    private val onPingUseCase: OnPingUseCase,
     private val logger: Logger
 ) : ProposeSessionUseCaseInterface by proposeSessionUseCase,
     PairUseCaseInterface by pairUseCase,
@@ -267,7 +269,7 @@ internal class SignEngine(
                     is SignParams.EventParams -> onSessionEventUseCase(request, requestParams)
                     is SignParams.UpdateNamespacesParams -> onSessionUpdateUseCase(request, requestParams)
                     is SignParams.ExtendParams -> onSessionExtendUseCase(request, requestParams)
-                    is SignParams.PingParams -> onPing(request)
+                    is SignParams.PingParams -> onPingUseCase(request)
                 }
             }.launchIn(scope)
 
@@ -283,11 +285,6 @@ internal class SignEngine(
                     is SignParams.SessionRequestParams -> onSessionRequestResponse(response, params)
                 }
             }.launchIn(scope)
-
-    private fun onPing(request: WCRequest) {
-        val irnParams = IrnParams(Tags.SESSION_PING_RESPONSE, Ttl(THIRTY_SECONDS))
-        jsonRpcInteractor.respondWithSuccess(request, irnParams)
-    }
 
     // listened by DappDelegate
     private fun onSessionProposalResponse(wcResponse: WCResponse, params: SignParams.SessionProposeParams) {

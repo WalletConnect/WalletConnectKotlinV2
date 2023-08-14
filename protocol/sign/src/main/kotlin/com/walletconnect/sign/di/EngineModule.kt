@@ -17,9 +17,9 @@ internal fun engineModule() = module {
 
     single { GetPendingSessionRequests(get(), get()) }
 
-
     single {
         SignEngine(
+            get(),
             get(),
             get(),
             get(),
