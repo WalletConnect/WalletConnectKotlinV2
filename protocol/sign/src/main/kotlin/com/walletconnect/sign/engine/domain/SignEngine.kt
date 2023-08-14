@@ -98,6 +98,8 @@ import com.walletconnect.sign.engine.use_case.ProposeSessionUseCase
 import com.walletconnect.sign.engine.use_case.ProposeSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.RejectSessionUseCase
 import com.walletconnect.sign.engine.use_case.RejectSessionUseCaseInterface
+import com.walletconnect.sign.engine.use_case.SessionUpdateUseCase
+import com.walletconnect.sign.engine.use_case.SessionUpdateUseCaseInterface
 import com.walletconnect.sign.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdUseCase
 import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCaseByTopic
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequests
@@ -146,12 +148,13 @@ internal class SignEngine(
     private val proposeSessionUseCase: ProposeSessionUseCase,
     private val pairUseCase: PairUseCase,
     private val rejectSessionUseCase: RejectSessionUseCase,
-    private val approveSessionUseCase: ApproveSessionUseCase
+    private val approveSessionUseCase: ApproveSessionUseCase,
+    private val sessionUpdateUseCase: SessionUpdateUseCase
 ) : ProposeSessionUseCaseInterface by proposeSessionUseCase,
     PairUseCaseInterface by pairUseCase,
     RejectSessionUseCaseInterface by rejectSessionUseCase,
-    ApproveSessionUseCaseInterface by approveSessionUseCase {
-
+    ApproveSessionUseCaseInterface by approveSessionUseCase,
+    SessionUpdateUseCaseInterface by sessionUpdateUseCase {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
@@ -199,51 +202,6 @@ internal class SignEngine(
             }.launchIn(scope)
     }
 
-    internal fun sessionUpdate(
-        topic: String,
-        namespaces: Map<String, EngineDO.Namespace.Session>,
-        onSuccess: () -> Unit,
-        onFailure: (Throwable) -> Unit,
-    ) {
-        if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
-            throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
-        }
-
-        val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic(topic))
-
-        if (!session.isSelfController) {
-            throw UnauthorizedPeerException(UNAUTHORIZED_UPDATE_MESSAGE)
-        }
-
-        if (!session.isAcknowledged) {
-            throw NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
-        }
-
-        SignValidator.validateSessionNamespace(namespaces.toMapOfNamespacesVOSession(), session.requiredNamespaces) { error ->
-            throw InvalidNamespaceException(error.message)
-        }
-
-        val params = SignParams.UpdateNamespacesParams(namespaces.toMapOfNamespacesVOSession())
-        val sessionUpdate = SignRpc.SessionUpdate(params = params)
-        val irnParams = IrnParams(Tags.SESSION_UPDATE, Ttl(DAY_IN_SECONDS))
-
-        try {
-            sessionStorageRepository.insertTempNamespaces(topic, namespaces.toMapOfNamespacesVOSession(), sessionUpdate.id)
-            jsonRpcInteractor.publishJsonRpcRequest(
-                Topic(topic), irnParams, sessionUpdate,
-                onSuccess = {
-                    logger.log("Update sent successfully")
-                    onSuccess()
-                },
-                onFailure = { error ->
-                    logger.error("Sending session update error: $error")
-                    sessionStorageRepository.deleteTempNamespacesByRequestId(sessionUpdate.id)
-                    onFailure(error)
-                })
-        } catch (e: Exception) {
-            onFailure(GenericException("Error updating namespaces: $e"))
-        }
-    }
 
     internal fun sessionRequest(request: EngineDO.Request, onSuccess: (Long) -> Unit, onFailure: (Throwable) -> Unit) {
         if (!sessionStorageRepository.isSessionValid(Topic(request.topic))) {
