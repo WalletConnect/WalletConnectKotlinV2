@@ -5,6 +5,7 @@ import com.walletconnect.sign.engine.use_case.ApproveSessionUseCase
 import com.walletconnect.sign.engine.use_case.PairUseCase
 import com.walletconnect.sign.engine.use_case.ProposeSessionUseCase
 import com.walletconnect.sign.engine.use_case.RejectSessionUseCase
+import com.walletconnect.sign.engine.use_case.RespondSessionRequestUseCase
 import com.walletconnect.sign.engine.use_case.SessionRequestUseCase
 import com.walletconnect.sign.engine.use_case.SessionUpdateUseCase
 import org.koin.core.qualifier.named
@@ -24,4 +25,6 @@ internal fun callsModule() = module {
     single { SessionUpdateUseCase(get(), get(), get(named(AndroidCommonDITags.LOGGER))) }
 
     single { SessionRequestUseCase(get(), get(), get(named(AndroidCommonDITags.LOGGER))) }
+
+    single { RespondSessionRequestUseCase(get(), get(), get(), get(named(AndroidCommonDITags.LOGGER)), get()) }
 }
