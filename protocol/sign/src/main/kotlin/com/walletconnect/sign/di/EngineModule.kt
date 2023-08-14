@@ -15,14 +15,14 @@ internal fun engineModule() = module {
 
     includes(callsModule(), requestsModule(), responsesModule())
 
-    single { GetPendingRequestsUseCaseByTopic(get(), get()) }
-
     single { GetPendingSessionRequests(get(), get()) }
 
-    single { GetPendingJsonRpcHistoryEntryByIdUseCase(get(), get()) }
 
     single {
         SignEngine(
+            get(),
+            get(),
+            get(),
             get(),
             get(),
             get(),

@@ -78,6 +78,12 @@ import com.walletconnect.sign.engine.use_case.EmitEventUseCase
 import com.walletconnect.sign.engine.use_case.EmitEventUseCaseInterface
 import com.walletconnect.sign.engine.use_case.ExtendSessionUsesCase
 import com.walletconnect.sign.engine.use_case.ExtendSessionUsesCaseInterface
+import com.walletconnect.sign.engine.use_case.GetPairingsUseCase
+import com.walletconnect.sign.engine.use_case.GetPairingsUseCaseInterface
+import com.walletconnect.sign.engine.use_case.GetSessionProposalsUseCase
+import com.walletconnect.sign.engine.use_case.GetSessionProposalsUseCaseInterface
+import com.walletconnect.sign.engine.use_case.GetSessionsUseCase
+import com.walletconnect.sign.engine.use_case.GetSessionsUseCaseInterface
 import com.walletconnect.sign.engine.use_case.PairUseCase
 import com.walletconnect.sign.engine.use_case.PairUseCaseInterface
 import com.walletconnect.sign.engine.use_case.PingUseCase
@@ -93,6 +99,7 @@ import com.walletconnect.sign.engine.use_case.SessionRequestUseCaseInterface
 import com.walletconnect.sign.engine.use_case.SessionUpdateUseCase
 import com.walletconnect.sign.engine.use_case.SessionUpdateUseCaseInterface
 import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCaseByTopic
+import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCaseByTopicInterface
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequests
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
 import com.walletconnect.sign.storage.proposal.ProposalStorageRepository
@@ -137,6 +144,9 @@ internal class SignEngine(
     private val emitEventUseCase: EmitEventUseCase,
     private val extendSessionUsesCase: ExtendSessionUsesCase,
     private val disconnectSessionUseCase: DisconnectSessionUseCase,
+    private val getSessionsUseCase: GetSessionsUseCase,
+    private val getPairingsUseCase: GetPairingsUseCase,
+    private val getSessionProposalsUseCase: GetSessionProposalsUseCase,
     private val logger: Logger
 ) : ProposeSessionUseCaseInterface by proposeSessionUseCase,
     PairUseCaseInterface by pairUseCase,
@@ -148,7 +158,12 @@ internal class SignEngine(
     PingUseCaseInterface by pingUseCase,
     EmitEventUseCaseInterface by emitEventUseCase,
     ExtendSessionUsesCaseInterface by extendSessionUsesCase,
-    DisconnectSessionUseCaseInterface by disconnectSessionUseCase {
+    DisconnectSessionUseCaseInterface by disconnectSessionUseCase,
+    GetSessionsUseCaseInterface by getSessionsUseCase,
+    GetPairingsUseCaseInterface by getPairingsUseCase,
+    GetPendingRequestsUseCaseByTopicInterface by getPendingRequestsByTopicUseCase,
+    GetSessionProposalsUseCaseInterface by getSessionProposalsUseCase
+{
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
@@ -200,34 +215,6 @@ internal class SignEngine(
             }.launchIn(scope)
     }
 
-
-    internal fun getListOfSettledSessions(): List<EngineDO.Session> {
-        return sessionStorageRepository.getListOfSessionVOsWithoutMetadata()
-            .filter { session -> session.isAcknowledged && session.expiry.isSequenceValid() }
-            .map { session ->
-                val peerMetaData = metadataStorageRepository.getByTopicAndType(session.topic, AppMetaDataType.PEER)
-                session.copy(selfAppMetaData = selfAppMetaData, peerAppMetaData = peerMetaData)
-            }
-            .map { session -> session.toEngineDO() }
-    }
-
-    internal fun getListOfSettledPairings(): List<EngineDO.PairingSettle> {
-        return pairingInterface.getPairings().map { pairing ->
-            val mappedPairing = pairing.toPairing()
-            EngineDO.PairingSettle(mappedPairing.topic, mappedPairing.peerAppMetaData)
-        }
-    }
-
-    internal fun getPendingRequests(topic: Topic): List<PendingRequest<String>> = getPendingRequestsByTopicUseCase(topic)
-
-    internal fun getSessionProposals(): List<EngineDO.SessionProposal> = proposalStorageRepository.getProposals().map(ProposalVO::toEngineDO)
-
-    internal fun getPendingSessionRequests(topic: Topic): List<EngineDO.SessionRequest> = getPendingRequestsByTopicUseCase(topic)
-        .map { pendingRequest ->
-            val peerMetaData = metadataStorageRepository.getByTopicAndType(pendingRequest.topic, AppMetaDataType.PEER)
-            pendingRequest.toSessionRequest(peerMetaData)
-        }
-
     internal suspend fun getVerifyContext(id: Long): EngineDO.VerifyContext? = verifyContextStorageRepository.get(id)?.toEngineDO()
 
     internal suspend fun getListOfVerifyContexts(): List<EngineDO.VerifyContext> = verifyContextStorageRepository.getAll().map { verifyContext -> verifyContext.toEngineDO() }
@@ -242,17 +229,6 @@ internal class SignEngine(
                         val sessionRequestEvent = EngineDO.SessionRequestEvent(sessionRequest, verifyContext.toEngineDO())
                         sessionRequestsQueue.addLast(sessionRequestEvent)
                     }
-                }
-            }
-    }
-
-    private suspend fun collectResponse(id: Long, onResponse: (Result<JsonRpcResponse.JsonRpcResult>) -> Unit = {}) {
-        jsonRpcInteractor.peerResponse
-            .filter { response -> response.response.id == id }
-            .collect { response ->
-                when (val result = response.response) {
-                    is JsonRpcResponse.JsonRpcResult -> onResponse(Result.success(result))
-                    is JsonRpcResponse.JsonRpcError -> onResponse(Result.failure(Throwable(result.errorMessage)))
                 }
             }
     }
