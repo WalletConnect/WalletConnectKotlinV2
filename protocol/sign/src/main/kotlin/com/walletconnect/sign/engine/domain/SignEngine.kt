@@ -87,6 +87,8 @@ import com.walletconnect.sign.engine.use_case.calls.SessionRequestUseCase
 import com.walletconnect.sign.engine.use_case.calls.SessionRequestUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.SessionUpdateUseCase
 import com.walletconnect.sign.engine.use_case.calls.SessionUpdateUseCaseInterface
+import com.walletconnect.sign.engine.use_case.requests.OnSessionDeleteUseCase
+import com.walletconnect.sign.engine.use_case.requests.OnSessionEventUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionProposeUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionRequestUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionSettleUseCase
@@ -144,6 +146,8 @@ internal class SignEngine(
     private val onSessionProposeUse: OnSessionProposeUseCase,
     private val onSessionSettleUseCase: OnSessionSettleUseCase,
     private val onSessionRequestUseCase: OnSessionRequestUseCase,
+    private val onSessionDeleteUseCase: OnSessionDeleteUseCase,
+    private val onSessionEventUseCase: OnSessionEventUseCase,
     private val logger: Logger
 ) : ProposeSessionUseCaseInterface by proposeSessionUseCase,
     PairUseCaseInterface by pairUseCase,
@@ -247,8 +251,8 @@ internal class SignEngine(
                     is SignParams.SessionProposeParams -> onSessionProposeUse(request, requestParams)
                     is SignParams.SessionSettleParams -> onSessionSettleUseCase(request, requestParams)
                     is SignParams.SessionRequestParams -> onSessionRequestUseCase(request, requestParams)
-                    is SignParams.DeleteParams -> onSessionDelete(request, requestParams)
-                    is SignParams.EventParams -> onSessionEvent(request, requestParams)
+                    is SignParams.DeleteParams -> onSessionDeleteUseCase(request, requestParams)
+                    is SignParams.EventParams -> onSessionEventUseCase(request, requestParams)
                     is SignParams.UpdateNamespacesParams -> onSessionUpdate(request, requestParams)
                     is SignParams.ExtendParams -> onSessionExtend(request, requestParams)
                     is SignParams.PingParams -> onPing(request)
@@ -268,86 +272,6 @@ internal class SignEngine(
                 }
             }.launchIn(scope)
 
-    // listened by both Delegates
-    private fun onSessionDelete(request: WCRequest, params: SignParams.DeleteParams) {
-        val irnParams = IrnParams(Tags.SESSION_DELETE_RESPONSE, Ttl(DAY_IN_SECONDS))
-        try {
-            if (!sessionStorageRepository.isSessionValid(request.topic)) {
-                jsonRpcInteractor.respondWithError(
-                    request,
-                    Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value),
-                    irnParams
-                )
-                return
-            }
-
-            jsonRpcInteractor.unsubscribe(request.topic,
-                onSuccess = { crypto.removeKeys(request.topic.value) },
-                onFailure = { error -> logger.error(error) })
-            sessionStorageRepository.deleteSession(request.topic)
-
-            scope.launch { _engineEvent.emit(params.toEngineDO(request.topic)) }
-        } catch (e: Exception) {
-            jsonRpcInteractor.respondWithError(
-                request,
-                Uncategorized.GenericError("Cannot delete a session: ${e.message}, topic: ${request.topic}"),
-                irnParams
-            )
-            scope.launch { _engineEvent.emit(SDKError(e)) }
-            return
-        }
-    }
-
-    // listened by DappDelegate
-    private fun onSessionEvent(request: WCRequest, params: SignParams.EventParams) {
-        val irnParams = IrnParams(Tags.SESSION_EVENT_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
-        try {
-            SignValidator.validateEvent(params.toEngineDOEvent()) { error ->
-                jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
-                return
-            }
-
-            if (!sessionStorageRepository.isSessionValid(request.topic)) {
-                jsonRpcInteractor.respondWithError(
-                    request,
-                    Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value),
-                    irnParams
-                )
-                return
-            }
-
-            val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(request.topic)
-            if (!session.isPeerController) {
-                jsonRpcInteractor.respondWithError(request, PeerError.Unauthorized.Event(Sequences.SESSION.name), irnParams)
-                return
-            }
-            if (!session.isAcknowledged) {
-                jsonRpcInteractor.respondWithError(
-                    request,
-                    Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value),
-                    irnParams
-                )
-                return
-            }
-
-            val event = params.event
-            SignValidator.validateChainIdWithEventAuthorisation(params.chainId, event.name, session.sessionNamespaces) { error ->
-                jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
-                return
-            }
-
-            jsonRpcInteractor.respondWithSuccess(request, irnParams)
-            scope.launch { _engineEvent.emit(params.toEngineDO(request.topic)) }
-        } catch (e: Exception) {
-            jsonRpcInteractor.respondWithError(
-                request,
-                Uncategorized.GenericError("Cannot emit an event: ${e.message}, topic: ${request.topic}"),
-                irnParams
-            )
-            scope.launch { _engineEvent.emit(SDKError(e)) }
-            return
-        }
-    }
 
     // listened by DappDelegate
     private fun onSessionUpdate(request: WCRequest, params: SignParams.UpdateNamespacesParams) {
