@@ -7,7 +7,7 @@ import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtClaims
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.WCResponse
-import com.walletconnect.android.internal.common.model.params.NotifyParams
+import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.notify.common.calcExpiry
 import com.walletconnect.notify.common.model.NotificationScope
@@ -26,7 +26,7 @@ internal class OnNotifyUpdateResponseUseCase(
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
-    suspend operator fun invoke(wcResponse: WCResponse, updateParams: NotifyParams.UpdateParams) = supervisorScope {
+    suspend operator fun invoke(wcResponse: WCResponse, updateParams: CoreNotifyParams.UpdateParams) = supervisorScope {
         val resultEvent = try {
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcResult -> {

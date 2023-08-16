@@ -6,7 +6,7 @@ import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
-import com.walletconnect.android.internal.common.model.params.NotifyParams
+import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
@@ -33,7 +33,7 @@ internal class UpdateSubscriptionRequestUseCase(
             return@supervisorScope onFailure(error)
         }
 
-        val updateParams = NotifyParams.UpdateParams(didJwt.value)
+        val updateParams = CoreNotifyParams.UpdateParams(didJwt.value)
         val request = NotifyRpc.NotifyUpdate(params = updateParams)
         val irnParams = IrnParams(Tags.NOTIFY_UPDATE, Ttl(DAY_IN_SECONDS))
         jsonRpcInteractor.publishJsonRpcRequest(Topic(notifyTopic), irnParams, request, onSuccess = onSuccess, onFailure = onFailure)

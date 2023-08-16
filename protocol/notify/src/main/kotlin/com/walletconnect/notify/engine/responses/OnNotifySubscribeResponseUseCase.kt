@@ -12,7 +12,7 @@ import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.WCResponse
-import com.walletconnect.android.internal.common.model.params.NotifyParams
+import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
@@ -49,7 +49,7 @@ internal class OnNotifySubscribeResponseUseCase(
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
-    suspend operator fun invoke(wcResponse: WCResponse, responseParams: NotifyParams.SubscribeParams) = supervisorScope {
+    suspend operator fun invoke(wcResponse: WCResponse, responseParams: CoreNotifyParams.SubscribeParams) = supervisorScope {
         try {
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcResult -> {

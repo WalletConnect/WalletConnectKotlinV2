@@ -9,7 +9,7 @@ import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtCl
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.WCRequest
-import com.walletconnect.android.internal.common.model.params.NotifyParams
+import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
@@ -35,7 +35,7 @@ internal class OnNotifyMessageUseCase(
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
-    suspend operator fun invoke(request: WCRequest, params: NotifyParams.MessageParams) = supervisorScope {
+    suspend operator fun invoke(request: WCRequest, params: CoreNotifyParams.MessageParams) = supervisorScope {
         extractVerifiedDidJwtClaims<MessageRequestJwtClaim>(params.messageAuth).onSuccess { messageJwt ->
             messagesRepository.insertMessage(
                 requestId = request.id,
@@ -75,7 +75,7 @@ internal class OnNotifyMessageUseCase(
                 }
             ).getOrThrow()
 
-            val messageReceiptParams = NotifyParams.MessageReceiptParams(receiptAuth = messageReceiptJwt.value)
+            val messageReceiptParams = CoreNotifyParams.MessageReceiptParams(receiptAuth = messageReceiptJwt.value)
             val irnParams = IrnParams(Tags.NOTIFY_MESSAGE_RESPONSE, Ttl(MONTH_IN_SECONDS))
 
             jsonRpcInteractor.respondWithParams(

@@ -17,7 +17,7 @@ import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Participants
 import com.walletconnect.android.internal.common.model.Redirect
 import com.walletconnect.android.internal.common.model.Tags
-import com.walletconnect.android.internal.common.model.params.NotifyParams
+import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
@@ -75,7 +75,7 @@ internal class SubscribeToDappUseCase(
                 val didJwt = registerIdentityAndReturnDidJwt.subscriptionRequest(AccountId(account), authenticationPublicKey, dappUri.toString(), dappScopes.map { it.name }, onSign, onFailure).getOrElse { error ->
                     return@fold onFailure(error)
                 }
-                val params = NotifyParams.SubscribeParams(didJwt.value)
+                val params = CoreNotifyParams.SubscribeParams(didJwt.value)
                 val request = NotifyRpc.NotifySubscribe(params = params)
                 val irnParams = IrnParams(Tags.NOTIFY_SUBSCRIBE, Ttl(DAY_IN_SECONDS))
 

@@ -6,7 +6,7 @@ import com.walletconnect.android.archive.ArchiveInterface
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
-import com.walletconnect.android.internal.common.model.params.NotifyParams
+import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
@@ -114,21 +114,21 @@ internal class NotifyEngine(
 
     private suspend fun collectJsonRpcRequests(): Job =
         jsonRpcInteractor.clientSyncJsonRpc
-            .filter { request -> request.params is NotifyParams }
+            .filter { request -> request.params is CoreNotifyParams }
             .onEach { request ->
                 when (val requestParams = request.params) {
-                    is NotifyParams.MessageParams -> onNotifyMessageUseCase(request, requestParams)
-                    is NotifyParams.DeleteParams -> onNotifyDeleteUseCase.invoke(request, requestParams)
+                    is CoreNotifyParams.MessageParams -> onNotifyMessageUseCase(request, requestParams)
+                    is CoreNotifyParams.DeleteParams -> onNotifyDeleteUseCase.invoke(request, requestParams)
                 }
             }.launchIn(scope)
 
     private fun collectJsonRpcResponses(): Job =
         jsonRpcInteractor.peerResponse
-            .filter { response -> response.params is NotifyParams }
+            .filter { response -> response.params is CoreNotifyParams }
             .onEach { response ->
                 when (val responseParams = response.params) {
-                    is NotifyParams.SubscribeParams -> onNotifySubscribeResponseUseCase.invoke(response, responseParams)
-                    is NotifyParams.UpdateParams -> onNotifyUpdateResponseUseCase(response, responseParams)
+                    is CoreNotifyParams.SubscribeParams -> onNotifySubscribeResponseUseCase.invoke(response, responseParams)
+                    is CoreNotifyParams.UpdateParams -> onNotifyUpdateResponseUseCase(response, responseParams)
                 }
             }.launchIn(scope)
 

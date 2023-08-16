@@ -7,7 +7,7 @@ import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.WCRequest
-import com.walletconnect.android.internal.common.model.params.NotifyParams
+import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
@@ -29,7 +29,7 @@ internal class OnNotifyDeleteUseCase(
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
-    suspend operator fun invoke(request: WCRequest, requestParams: NotifyParams.DeleteParams) = supervisorScope {
+    suspend operator fun invoke(request: WCRequest, requestParams: CoreNotifyParams.DeleteParams) = supervisorScope {
         logger.error("onNotifyDelete: $request")
         val irnParams = IrnParams(Tags.NOTIFY_DELETE_RESPONSE, Ttl(DAY_IN_SECONDS))
 
