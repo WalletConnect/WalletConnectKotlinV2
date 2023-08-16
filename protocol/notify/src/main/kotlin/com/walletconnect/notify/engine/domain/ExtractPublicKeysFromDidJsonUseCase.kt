@@ -53,17 +53,6 @@ internal class ExtractPublicKeysFromDidJsonUseCase(
         return@withContext runCatching {
             keyAgreementPublicKey.getOrThrow() to authenticationPublicKey.getOrThrow()
         }
-
-//        val wellKnownDidJsonString = URL(didJsonDappUri.toString()).openStream().bufferedReader().use { it.readText() }
-//        val didJson = serializer.tryDeserialize<com.walletconnect.notify.data.wellknown.did.DidJsonDTO>(wellKnownDidJsonString) ?: return@withContext Result.failure(Exception("Failed to parse $DID_JSON"))
-//        val verificationKey = didJson.keyAgreement.first()
-
-//        extractVerificationKey(verificationKey, didJsonResult.verificationMethod)
-//        val jwkPublicKey = didJsonResult.verificationMethod.first { it.id == verificationKey }.publicKeyJwk.x
-
-//        val replacedJwk = jwkPublicKey.replace("-", "+").replace("_", "/")
-//        val publicKey = Base64.decode(replacedJwk, Base64.DEFAULT).bytesToHex()
-//        Result.success(PublicKey(publicKey) to PublicKey(""))
     }
 
     private fun extractPublicKey(id: String, verificationMethodList: List<VerificationMethodDTO>): PublicKey {
