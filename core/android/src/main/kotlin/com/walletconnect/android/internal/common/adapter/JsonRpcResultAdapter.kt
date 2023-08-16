@@ -7,6 +7,7 @@ import com.squareup.moshi.internal.Util
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.model.params.CoreAuthParams
 import com.walletconnect.android.internal.common.model.params.CoreChatParams
+import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
 import com.walletconnect.android.internal.common.model.params.PushParams
 import org.json.JSONArray
@@ -30,6 +31,8 @@ internal class JsonRpcResultAdapter(val moshi: Moshi) : JsonAdapter<JsonRpcRespo
         moshi.adapter(CoreChatParams.AcceptanceParams::class.java, emptySet(), "result")
     private val pushProposeResponseParamsAdapter: JsonAdapter<PushParams.ProposeResponseParams> =
         moshi.adapter(PushParams.ProposeResponseParams::class.java, emptySet(), "result")
+    private val notifySubscribeResponseParamsAdapter: JsonAdapter<CoreNotifyParams.SubscribeResponseParams> =
+        moshi.adapter(CoreNotifyParams.SubscribeResponseParams::class.java, emptySet(), "result")
 
     @Volatile
     private var constructorRef: Constructor<JsonRpcResponse.JsonRpcResult>? = null
@@ -61,6 +64,10 @@ internal class JsonRpcResultAdapter(val moshi: Moshi) : JsonAdapter<JsonRpcRespo
 
                         runCatching { cacaoAdapter.fromJson(reader.peekJson()) }.isSuccess -> {
                             cacaoAdapter.fromJson(reader)
+                        }
+
+                        runCatching { notifySubscribeResponseParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> {
+                            notifySubscribeResponseParamsAdapter.fromJson(reader)
                         }
 
                         runCatching { acceptanceParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> {
@@ -135,6 +142,13 @@ internal class JsonRpcResultAdapter(val moshi: Moshi) : JsonAdapter<JsonRpcRespo
                     cacaoAdapter.toJson(value_.result)
                 writer.valueSink().use {
                     it.writeUtf8(responseParamsString)
+                }
+            }
+
+            (value_.result as? CoreNotifyParams.SubscribeResponseParams) != null -> {
+                val notifySubscribeResponseParamsString = notifySubscribeResponseParamsAdapter.toJson(value_.result)
+                writer.valueSink().use {
+                    it.writeUtf8(notifySubscribeResponseParamsString)
                 }
             }
 
