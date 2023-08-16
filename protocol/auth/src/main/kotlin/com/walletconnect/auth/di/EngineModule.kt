@@ -14,9 +14,22 @@ internal fun engineModule() = module {
 
     includes(callsModule(), requestsModule(), responsesModule())
 
-    single { GetPendingJsonRpcHistoryEntriesUseCase(get(), get()) }
-    single { GetPendingJsonRpcHistoryEntryByIdUseCase(get(), get()) }
-    single { GetResponseByIdUseCase(get(), get()) }
-    single { CacaoVerifier(get()) }
-    single { AuthEngine(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    single { GetPendingJsonRpcHistoryEntriesUseCase(jsonRpcHistory = get(), serializer = get()) }
+    single { GetPendingJsonRpcHistoryEntryByIdUseCase(jsonRpcHistory = get(), serializer = get()) }
+    single { GetResponseByIdUseCase(serializer = get(), jsonRpcHistory = get()) }
+    single { CacaoVerifier(projectId = get()) }
+    single {
+        AuthEngine(
+            jsonRpcInteractor = get(),
+            getListOfVerifyContextsUseCase = get(),
+            getVerifyContextUseCase = get(),
+            formatMessageUseCase = get(),
+            onAuthRequestUseCase = get(),
+            onAuthRequestResponseUseCase = get(),
+            respondAuthRequestUseCase = get(),
+            sendAuthRequestUseCase = get(),
+            pairingHandler = get(),
+            getPendingJsonRpcHistoryEntriesUseCase = get()
+        )
+    }
 }

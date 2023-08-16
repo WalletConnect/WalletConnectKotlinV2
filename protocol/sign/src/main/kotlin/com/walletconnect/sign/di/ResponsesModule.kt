@@ -11,11 +11,28 @@ import org.koin.dsl.module
 @JvmSynthetic
 fun responsesModule() = module {
 
-    single { OnSessionProposalResponseUseCase(get(), get(), get(), get(), get(), get(named(AndroidCommonDITags.LOGGER))) }
+    single {
+        OnSessionProposalResponseUseCase(
+            jsonRpcInteractor = get(),
+            crypto = get(),
+            pairingController = get(),
+            proposalStorageRepository = get(),
+            pairingInterface = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER))
+        )
+    }
 
-    single { OnSessionSettleResponseUseCase(get(), get(), get(), get(), get(named(AndroidCommonDITags.LOGGER))) }
+    single {
+        OnSessionSettleResponseUseCase(
+            crypto = get(),
+            jsonRpcInteractor = get(),
+            sessionStorageRepository = get(),
+            metadataStorageRepository = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER))
+        )
+    }
 
-    single { OnSessionUpdateResponseUseCase(get(), get(named(AndroidCommonDITags.LOGGER))) }
+    single { OnSessionUpdateResponseUseCase(sessionStorageRepository = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
 
     single { OnSessionRequestResponseUseCase() }
 }

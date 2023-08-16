@@ -26,41 +26,59 @@ import org.koin.dsl.module
 @JvmSynthetic
 internal fun callsModule() = module {
 
-    single { ProposeSessionUseCase(get(), get(), get(), get(), get(named(AndroidCommonDITags.LOGGER))) }
+    single { ProposeSessionUseCase(jsonRpcInteractor = get(), crypto = get(), selfAppMetaData = get(), proposalStorageRepository = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
 
-    single { PairUseCase(get()) }
+    single { PairUseCase(pairingInterface = get()) }
 
-    single { ApproveSessionUseCase(get(), get(), get(), get(), get(), get(), get()) }
+    single {
+        ApproveSessionUseCase(
+            proposalStorageRepository = get(),
+            selfAppMetaData = get(),
+            crypto = get(),
+            jsonRpcInteractor = get(),
+            metadataStorageRepository = get(),
+            sessionStorageRepository = get(),
+            verifyContextStorageRepository = get()
+        )
+    }
 
-    single { RejectSessionUseCase(get(), get(), get()) }
+    single { RejectSessionUseCase(verifyContextStorageRepository = get(), proposalStorageRepository = get(), jsonRpcInteractor = get()) }
 
-    single { SessionUpdateUseCase(get(), get(), get(named(AndroidCommonDITags.LOGGER))) }
+    single { SessionUpdateUseCase(jsonRpcInteractor = get(), sessionStorageRepository = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
 
-    single { SessionRequestUseCase(get(), get(), get(named(AndroidCommonDITags.LOGGER))) }
+    single { SessionRequestUseCase(jsonRpcInteractor = get(), sessionStorageRepository = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
 
-    single { RespondSessionRequestUseCase(get(), get(), get(), get(named(AndroidCommonDITags.LOGGER)), get()) }
+    single {
+        RespondSessionRequestUseCase(
+            jsonRpcInteractor = get(),
+            verifyContextStorageRepository = get(),
+            sessionStorageRepository = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER)),
+            getPendingJsonRpcHistoryEntryByIdUseCase = get()
+        )
+    }
 
-    single { PingUseCase(get(), get(), get(), get(named(AndroidCommonDITags.LOGGER))) }
+    single { PingUseCase(sessionStorageRepository = get(), jsonRpcInteractor = get(), pairingInterface = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
 
-    single { EmitEventUseCase(get(), get(), get(named(AndroidCommonDITags.LOGGER))) }
+    single { EmitEventUseCase(jsonRpcInteractor = get(), sessionStorageRepository = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
 
-    single { ExtendSessionUsesCase(get(), get(), get(named(AndroidCommonDITags.LOGGER))) }
+    single { ExtendSessionUsesCase(jsonRpcInteractor = get(), sessionStorageRepository = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
 
-    single { DisconnectSessionUseCase(get(), get(), get(named(AndroidCommonDITags.LOGGER))) }
+    single { DisconnectSessionUseCase(jsonRpcInteractor = get(), sessionStorageRepository = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
 
-    single { GetSessionsUseCase(get(), get(), get()) }
+    single { GetSessionsUseCase(sessionStorageRepository = get(), metadataStorageRepository = get(), selfAppMetaData = get()) }
 
-    single { GetPairingsUseCase(get()) }
+    single { GetPairingsUseCase(pairingInterface = get()) }
 
-    single { GetPendingRequestsUseCaseByTopic(get(), get()) }
+    single { GetPendingRequestsUseCaseByTopic(serializer = get(), jsonRpcHistory = get()) }
 
-    single { GetPendingSessionRequestByTopicUseCase(get(), get(), get()) }
+    single { GetPendingSessionRequestByTopicUseCase(jsonRpcHistory = get(), serializer = get(), metadataStorageRepository = get()) }
 
-    single { GetPendingJsonRpcHistoryEntryByIdUseCase(get(), get()) }
+    single { GetPendingJsonRpcHistoryEntryByIdUseCase(jsonRpcHistory = get(), serializer = get()) }
 
-    single { GetSessionProposalsUseCase(get()) }
+    single { GetSessionProposalsUseCase(proposalStorageRepository = get()) }
 
-    single { GetVerifyContextByIdUseCase(get()) }
+    single { GetVerifyContextByIdUseCase(verifyContextStorageRepository = get()) }
 
-    single { GetListOfVerifyContextsUseCase(get()) }
+    single { GetListOfVerifyContextsUseCase(verifyContextStorageRepository = get()) }
 }

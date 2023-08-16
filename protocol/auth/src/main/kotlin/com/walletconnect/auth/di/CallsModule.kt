@@ -11,13 +11,22 @@ import org.koin.dsl.module
 
 fun callsModule() = module {
 
-    single { SendAuthRequestUseCase(get(), get(), get(), get(named(AndroidCommonDITags.LOGGER))) }
+    single { SendAuthRequestUseCase(crypto = get(), jsonRpcInteractor = get(), selfAppMetaData = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
 
-    single { RespondAuthRequestUseCase(get(), get(), get(), get(), get(), get(named(AndroidCommonDITags.LOGGER))) }
+    single {
+        RespondAuthRequestUseCase(
+            crypto = get(),
+            jsonRpcInteractor = get(),
+            verifyContextStorageRepository = get(),
+            getPendingJsonRpcHistoryEntryByIdUseCase = get(),
+            cacaoVerifier = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER))
+        )
+    }
 
     single { FormatMessageUseCase() }
 
-    single { GetVerifyContextUseCase(get()) }
+    single { GetVerifyContextUseCase(verifyContextStorageRepository = get()) }
 
-    single { GetListOfVerifyContextsUseCase(get()) }
+    single { GetListOfVerifyContextsUseCase(verifyContextStorageRepository = get()) }
 }

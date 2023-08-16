@@ -4,5 +4,5 @@ import com.walletconnect.auth.use_case.responses.OnAuthRequestResponseUseCase
 import org.koin.dsl.module
 
 fun responsesModule() = module {
-    single { OnAuthRequestResponseUseCase(get(), get(), get()) }
+    single { OnAuthRequestResponseUseCase(cacaoVerifier = get(), pairingHandler = get(), pairingInterface = get()) }
 }

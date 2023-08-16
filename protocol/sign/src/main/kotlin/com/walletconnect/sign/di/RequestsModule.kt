@@ -15,19 +15,29 @@ import org.koin.dsl.module
 @JvmSynthetic
 fun requestsModule() = module {
 
-    single { OnSessionProposeUseCase(get(), get(), get(), get()) }
+    single { OnSessionProposeUseCase(pairingController = get(), jsonRpcInteractor = get(), proposalStorageRepository = get(), resolveAttestationIdUseCase = get()) }
 
-    single { OnSessionSettleUseCase(get(), get(), get(), get(), get(), get(), get()) }
+    single {
+        OnSessionSettleUseCase(
+            proposalStorageRepository = get(),
+            jsonRpcInteractor = get(),
+            pairingController = get(),
+            metadataStorageRepository = get(),
+            sessionStorageRepository = get(),
+            crypto = get(),
+            selfAppMetaData = get()
+        )
+    }
 
-    single { OnSessionRequestUseCase(get(), get(), get(), get()) }
+    single { OnSessionRequestUseCase(metadataStorageRepository = get(), sessionStorageRepository = get(), jsonRpcInteractor = get(), resolveAttestationIdUseCase = get()) }
 
-    single { OnSessionDeleteUseCase(get(), get(), get(), get(named(AndroidCommonDITags.LOGGER))) }
+    single { OnSessionDeleteUseCase(jsonRpcInteractor = get(), crypto = get(), sessionStorageRepository = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
 
-    single { OnSessionEventUseCase(get(), get()) }
+    single { OnSessionEventUseCase(jsonRpcInteractor = get(), sessionStorageRepository = get()) }
 
-    single { OnSessionUpdateUseCase(get(), get()) }
+    single { OnSessionUpdateUseCase(jsonRpcInteractor = get(), sessionStorageRepository = get()) }
 
-    single { OnSessionExtendUseCase(get(), get()) }
+    single { OnSessionExtendUseCase(jsonRpcInteractor = get(), sessionStorageRepository = get()) }
 
-    single { OnPingUseCase(get()) }
+    single { OnPingUseCase(jsonRpcInteractor = get()) }
 }
