@@ -52,6 +52,7 @@ internal fun callModule() = module {
     single<DeleteSubscriptionUseCaseInterface> {
         DeleteSubscriptionUseCase(
             jsonRpcInteractor = get(),
+            metadataStorageRepository = get(),
             subscriptionRepository = get(),
             messagesRepository = get(),
             deleteSubscriptionToNotifySubscriptionStore = get(),
