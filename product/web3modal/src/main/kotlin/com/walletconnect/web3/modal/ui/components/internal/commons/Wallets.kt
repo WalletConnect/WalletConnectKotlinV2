@@ -37,14 +37,15 @@ internal fun LazyGridScope.walletsGridItems(
     }
 }
 @Composable
-internal fun WalletImage(url: String, modifier: Modifier) {
+internal fun WalletImage(url: String, isEnabled: Boolean = true, modifier: Modifier) {
     AsyncImage(
         model = ImageRequest.Builder(LocalContext.current)
             .data(url)
             .crossfade(true)
             .build(),
         contentDescription = null,
-        modifier = modifier
+        modifier = modifier,
+        colorFilter = if (isEnabled) null else grayColorFilter
     )
 }
 

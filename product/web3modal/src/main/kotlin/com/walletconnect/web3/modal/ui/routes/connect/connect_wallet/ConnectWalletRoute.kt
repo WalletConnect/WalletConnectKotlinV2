@@ -149,7 +149,8 @@ private fun AllWalletsIcons(wallets: List<Wallet>) {
             Row {
                 it.forEach { item ->
                     WalletImage(
-                        url = item.imageUrl, Modifier
+                        url = item.imageUrl,
+                        modifier = Modifier
                             .size(20.dp)
                             .padding(2.dp)
                             .clip(RoundedCornerShape(10.dp))
