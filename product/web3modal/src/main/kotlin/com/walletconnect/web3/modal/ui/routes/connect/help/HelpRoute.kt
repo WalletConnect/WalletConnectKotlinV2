@@ -16,7 +16,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.walletconnect.web3.modal.ui.components.internal.Web3ModalTopBar
 import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.R
 import com.walletconnect.web3.modal.ui.components.internal.commons.RoundedMainButton
@@ -28,43 +27,33 @@ internal fun HelpRoute(
     navController: NavController
 ) {
     HelpContent(
-        onBackPressed = navController::popBackStack,
-        onGetWalletClick = { navController.navigate(Route.GetAWallet.path) }
+        onGetWalletClick = { navController.navigate(Route.GET_A_WALLET.path) }
     )
 }
 
 @Composable
-private fun HelpContent(
-    onBackPressed: () -> Unit,
-    onGetWalletClick: () -> Unit,
-) {
-    Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-        Web3ModalTopBar(
-            title = "What is wallet?",
-            onBackPressed = onBackPressed
+private fun HelpContent(onGetWalletClick: () -> Unit) {
+    Column(modifier = Modifier.padding(horizontal = 52.dp)) {
+        HelpSection(
+            title = "A home for your digital assets",
+            body = "A wallet lets you store, send and receive digital assets like cryptocurrencies and NFTs.",
+            assets = listOf(R.drawable.defi, R.drawable.nft, R.drawable.eth)
         )
-        Column(modifier = Modifier.padding(horizontal = 32.dp)) {
-            HelpSection(
-                title = "A home for your digital assets",
-                body = "A wallet lets you store, send and receive digital assets like cryptocurrencies and NFTs.",
-                assets = listOf(R.drawable.defi, R.drawable.nft, R.drawable.eth)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            HelpSection(
-                title = "One login for all of web3",
-                body = "Log in to any app by connecting your wallet. Say goodbye to countless passwords!",
-                assets = listOf(R.drawable.login, R.drawable.profile, R.drawable.lock)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            HelpSection(
-                title = "Your gateway to a new web",
-                body = "With your wallet, you can explore and interact with DeFi, NFTs, DAOs, and much more.",
-                assets = listOf(R.drawable.browser, R.drawable.noun, R.drawable.dao)
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            HelpButtonRow(onGetWalletClick)
-            Spacer(modifier = Modifier.height(20.dp))
-        }
+        Spacer(modifier = Modifier.height(4.dp))
+        HelpSection(
+            title = "One login for all of web3",
+            body = "Log in to any app by connecting your wallet. Say goodbye to countless passwords!",
+            assets = listOf(R.drawable.login, R.drawable.profile, R.drawable.lock)
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        HelpSection(
+            title = "Your gateway to a new web",
+            body = "With your wallet, you can explore and interact with DeFi, NFTs, DAOs, and much more.",
+            assets = listOf(R.drawable.browser, R.drawable.noun, R.drawable.dao)
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        HelpButtonRow(onGetWalletClick)
+        Spacer(modifier = Modifier.height(20.dp))
     }
 }
 
@@ -156,6 +145,6 @@ private fun HelpSection(
 @Preview
 private fun HelpContentPreview() {
     Web3ModalPreview {
-        HelpContent({}, {})
+        HelpContent {}
     }
 }

@@ -34,7 +34,6 @@ import coil.request.ImageRequest
 import com.walletconnect.android.internal.common.explorer.data.model.Wallet
 import com.walletconnect.modal.utils.openPlayStore
 import com.walletconnect.web3.modal.R
-import com.walletconnect.web3.modal.ui.components.internal.Web3ModalTopBar
 import com.walletconnect.web3.modal.ui.components.internal.commons.RoundedMainButton
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
@@ -56,52 +55,49 @@ private fun GetAWalletContent(
 ) {
     val uriHandler = LocalUriHandler.current
 
-    Column {
-        Web3ModalTopBar(title = "Get a wallet", onBackPressed = onBackPressed)
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-        ) {
-            itemsIndexed(wallets.take(6)) { _, wallet ->
-                WalletListItem(wallet = wallet)
-            }
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 12.dp, horizontal = 12.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "Not what you're looking for?", style = TextStyle(
-                            color = Web3ModalTheme.colors.foreground.color100,
-                            textAlign = TextAlign.Center,
-                            fontSize = 18.sp
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+    ) {
+        itemsIndexed(wallets.take(6)) { _, wallet ->
+            WalletListItem(wallet = wallet)
+        }
+        item {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp, horizontal = 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Not what you're looking for?", style = TextStyle(
+                        color = Web3ModalTheme.colors.foreground.color100,
+                        textAlign = TextAlign.Center,
+                        fontSize = 18.sp
+                    )
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "With hundreds of wallets out there, there’s something for everyone",
+                    style = TextStyle(
+                        color = Web3ModalTheme.colors.foreground.color200,
+                        textAlign = TextAlign.Center,
+                        fontSize = 14.sp
+                    )
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                RoundedMainButton(
+                    text = "Explore Wallets",
+                    onClick = { uriHandler.openUri("https://explorer.walletconnect.com/?type=wallet") },
+                    endIcon = {
+                        Image(
+                            imageVector = ImageVector.vectorResource(id = R.drawable.ic_external_link),
+                            colorFilter = ColorFilter.tint(Web3ModalTheme.colors.foreground.color300),
+                            contentDescription = null,
                         )
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "With hundreds of wallets out there, there’s something for everyone",
-                        style = TextStyle(
-                            color = Web3ModalTheme.colors.foreground.color200,
-                            textAlign = TextAlign.Center,
-                            fontSize = 14.sp
-                        )
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    RoundedMainButton(
-                        text = "Explore Wallets",
-                        onClick = { uriHandler.openUri("https://explorer.walletconnect.com/?type=wallet") },
-                        endIcon = {
-                            Image(
-                                imageVector = ImageVector.vectorResource(id = R.drawable.ic_external_link),
-                                colorFilter = ColorFilter.tint(Web3ModalTheme.colors.foreground.color300),
-                                contentDescription = null,
-                            )
-                        }
-                    )
-                }
+                    }
+                )
             }
         }
     }

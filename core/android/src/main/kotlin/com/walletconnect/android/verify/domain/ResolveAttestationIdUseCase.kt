@@ -1,5 +1,6 @@
 package com.walletconnect.android.verify.domain
 
+import androidx.core.net.toUri
 import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.model.Validation
 import com.walletconnect.android.internal.common.scope
@@ -17,7 +18,9 @@ class ResolveAttestationIdUseCase(private val verifyInterface: VerifyInterface, 
 
         verifyInterface.resolve(attestationId,
             onSuccess = { origin ->
-                insertContext(VerifyContext(id, origin, if (metadataUrl == origin) Validation.VALID else Validation.INVALID, verifyUrl)) { verifyContext -> onResolve(verifyContext) }
+                insertContext(VerifyContext(id, origin, if (metadataUrl.toUri().host == origin.toUri().host) Validation.VALID else Validation.INVALID, verifyUrl)) { verifyContext ->
+                    onResolve(verifyContext)
+                }
             },
             onError = {
                 insertContext(VerifyContext(id, String.Empty, Validation.UNKNOWN, verifyUrl)) { verifyContext -> onResolve(verifyContext) }
