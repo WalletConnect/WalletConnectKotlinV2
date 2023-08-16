@@ -7,6 +7,14 @@ import com.walletconnect.web3.modal.di.web3ModalModule
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
 
 object Web3Modal {
+
+    internal var excludedWalletsIds: List<String> = listOf()
+    internal var recommendedWalletsIds: List<String> = listOf()
+
+    private var _sessionParams: Modal.Params.SessionParams? = null
+    internal val sessionParams: Modal.Params.SessionParams
+        get() = requireNotNull(_sessionParams) { "Be sure to set the SessionParams using Web3Modal.setSessionParams." }
+
     interface ModalDelegate {
         fun onSessionApproved(approvedSession: Modal.Model.ApprovedSession)
         fun onSessionRejected(rejectedSession: Modal.Model.RejectedSession)
@@ -23,8 +31,6 @@ object Web3Modal {
         fun onError(error: Modal.Model.Error)
     }
 
-    // Todo set theme here maybe?
-    // add exclude/recommended wallets
     fun initialize(
         init: Modal.Params.Init,
         onSuccess: () -> Unit = {},
@@ -33,10 +39,10 @@ object Web3Modal {
         SignClient.initialize(
             init = Sign.Params.Init(init.core),
             onSuccess = {
+                this.excludedWalletsIds = init.excludedWalletIds
+                this.recommendedWalletsIds = init.recommendedWalletsIds
                 runCatching {
-                    wcKoinApp.modules(
-                        web3ModalModule()
-                    )
+                    wcKoinApp.modules(web3ModalModule())
                     setDelegate(Web3ModalDelegate)
                 }.onFailure { error -> onError(Modal.Model.Error(error)) }
                 onSuccess()
@@ -46,6 +52,10 @@ object Web3Modal {
                 return@initialize
             }
         )
+    }
+
+    fun setSessionParams(sessionParams: Modal.Params.SessionParams) {
+        _sessionParams = sessionParams
     }
 
     @Throws(IllegalStateException::class)
