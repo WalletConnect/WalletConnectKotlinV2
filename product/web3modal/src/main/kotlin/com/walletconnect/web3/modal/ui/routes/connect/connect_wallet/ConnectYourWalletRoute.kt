@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -28,8 +30,9 @@ import androidx.navigation.NavController
 import com.walletconnect.android.internal.common.explorer.data.model.Wallet
 import com.walletconnect.modal.utils.goToNativeWallet
 import com.walletconnect.web3.modal.ui.components.internal.commons.WalletImage
-import com.walletconnect.web3.modal.ui.components.internal.commons.WalletListItem
+import com.walletconnect.web3.modal.ui.components.internal.commons.WalletGridItem
 import com.walletconnect.web3.modal.ui.components.internal.commons.walletsGridItems
+import com.walletconnect.web3.modal.ui.components.internal.walletconnect.WalletConnectLogo
 import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
@@ -75,6 +78,13 @@ private fun WalletsGrid(
     onWalletItemClick: (Wallet) -> Unit,
     onViewAllClick: () -> Unit
 ) {
+    LazyColumn(modifier = Modifier.fillMaxWidth()) {
+        if (wallets.isNotEmpty()) {
+
+        } else {
+            item {  }
+        }
+    }
     if (wallets.isNotEmpty()) {
         LazyVerticalGrid(
             modifier = Modifier.fillMaxWidth(),
@@ -95,7 +105,7 @@ private fun LazyGridScope.walletsGridItemsWithViewAll(
     onViewAllClick: () -> Unit
 ) {
     itemsIndexed(wallets.take(7)) { _, wallet ->
-        WalletListItem(
+        WalletGridItem(
             wallet = wallet,
             onWalletItemClick = onWalletItemClick
         )

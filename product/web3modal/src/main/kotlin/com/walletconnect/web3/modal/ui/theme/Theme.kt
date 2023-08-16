@@ -8,9 +8,11 @@ import androidx.compose.runtime.compositionLocalOf
 internal fun ProvideWeb3ModalThemeComposition(
     content: @Composable () -> Unit,
 ) {
+    val colors = provideWeb3ModalColors()
+    val typography = provideDefaultTypography(colors)
     CompositionLocalProvider(
-        LocalColorsComposition provides provideWeb3ModalColors(),
-        LocalTypographyComposition provides defaultTypography,
+        LocalColorsComposition provides colors,
+        LocalTypographyComposition provides typography,
         content = content
     )
 }
