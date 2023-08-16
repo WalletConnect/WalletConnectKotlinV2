@@ -127,7 +127,7 @@ private fun AllWalletListSelect(
     onViewAllClick: () -> Unit
 ) {
     ListSelectRow(
-        startIcon = { AllWalletsIcons(wallets) },
+        startIcon = { AllWalletsIcons(wallets.take(4))},
         text = "All Wallets",
         onClick = onViewAllClick,
         contentPadding = PaddingValues(vertical = 4.dp)
@@ -140,20 +140,20 @@ private fun AllWalletsIcons(wallets: List<Wallet>) {
         modifier = Modifier
             .size(40.dp)
             .background(Web3ModalTheme.colors.background.color200, shape = RoundedCornerShape(10.dp))
-            .padding(1.dp)
+            .padding(2.dp)
             .border(1.dp, Web3ModalTheme.colors.overlay10, shape = RoundedCornerShape(10.dp)),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         wallets.chunked(2).forEach {
-            Row {
+            Row(modifier = Modifier.width(40.dp)) {
                 it.forEach { item ->
                     WalletImage(
                         url = item.imageUrl,
                         modifier = Modifier
-                            .size(20.dp)
-                            .padding(2.dp)
-                            .clip(RoundedCornerShape(10.dp))
+                            .size(16.dp)
+                            .padding(1.dp)
+                            .clip(RoundedCornerShape(4.dp))
                     )
                 }
             }
