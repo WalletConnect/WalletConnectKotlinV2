@@ -3,6 +3,7 @@
 package com.walletconnect.sign.di
 
 import com.walletconnect.sign.engine.domain.SignEngine
+import com.walletconnect.sign.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdUseCase
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequests
 import org.koin.dsl.module
 
@@ -12,6 +13,8 @@ internal fun engineModule() = module {
     includes(callsModule(), requestsModule(), responsesModule())
 
     single { GetPendingSessionRequests(jsonRpcHistory = get(), serializer = get()) }
+
+    single { GetPendingJsonRpcHistoryEntryByIdUseCase(jsonRpcHistory = get(), serializer = get()) }
 
     single {
         SignEngine(

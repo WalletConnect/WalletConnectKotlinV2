@@ -9,7 +9,7 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 @JvmSynthetic
-fun responsesModule() = module {
+internal fun responsesModule() = module {
 
     single {
         OnSessionProposalResponseUseCase(

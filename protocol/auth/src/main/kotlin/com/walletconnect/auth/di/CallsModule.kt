@@ -2,18 +2,24 @@ package com.walletconnect.auth.di
 
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.auth.use_case.calls.FormatMessageUseCase
+import com.walletconnect.auth.use_case.calls.FormatMessageUseCaseInterface
 import com.walletconnect.auth.use_case.calls.GetListOfVerifyContextsUseCase
+import com.walletconnect.auth.use_case.calls.GetListOfVerifyContextsUseCaseInterface
 import com.walletconnect.auth.use_case.calls.GetVerifyContextUseCase
+import com.walletconnect.auth.use_case.calls.GetVerifyContextUseCaseInterface
 import com.walletconnect.auth.use_case.calls.RespondAuthRequestUseCase
+import com.walletconnect.auth.use_case.calls.RespondAuthRequestUseCaseInterface
 import com.walletconnect.auth.use_case.calls.SendAuthRequestUseCase
+import com.walletconnect.auth.use_case.calls.SendAuthRequestUseCaseInterface
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
-fun callsModule() = module {
+@JvmSynthetic
+internal fun callsModule() = module {
 
-    single { SendAuthRequestUseCase(crypto = get(), jsonRpcInteractor = get(), selfAppMetaData = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
+    single<SendAuthRequestUseCaseInterface> { SendAuthRequestUseCase(crypto = get(), jsonRpcInteractor = get(), selfAppMetaData = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
 
-    single {
+    single<RespondAuthRequestUseCaseInterface> {
         RespondAuthRequestUseCase(
             crypto = get(),
             jsonRpcInteractor = get(),
@@ -24,9 +30,9 @@ fun callsModule() = module {
         )
     }
 
-    single { FormatMessageUseCase() }
+    single<FormatMessageUseCaseInterface> { FormatMessageUseCase() }
 
-    single { GetVerifyContextUseCase(verifyContextStorageRepository = get()) }
+    single<GetVerifyContextUseCaseInterface> { GetVerifyContextUseCase(verifyContextStorageRepository = get()) }
 
-    single { GetListOfVerifyContextsUseCase(verifyContextStorageRepository = get()) }
+    single<GetListOfVerifyContextsUseCaseInterface> { GetListOfVerifyContextsUseCase(verifyContextStorageRepository = get()) }
 }

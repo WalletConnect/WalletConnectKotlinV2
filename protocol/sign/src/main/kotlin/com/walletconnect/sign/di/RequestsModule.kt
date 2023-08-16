@@ -13,7 +13,7 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 @JvmSynthetic
-fun requestsModule() = module {
+internal fun requestsModule() = module {
 
     single { OnSessionProposeUseCase(pairingController = get(), jsonRpcInteractor = get(), proposalStorageRepository = get(), resolveAttestationIdUseCase = get()) }
 
