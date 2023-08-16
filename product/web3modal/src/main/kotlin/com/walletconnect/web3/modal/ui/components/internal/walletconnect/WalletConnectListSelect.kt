@@ -2,6 +2,7 @@ package com.walletconnect.web3.modal.ui.components.internal.walletconnect
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,7 +17,7 @@ import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 fun LazyListScope.walletConnectQRCode(isEnabled: Boolean = true, onClick: () -> Unit) {
-    item { WalletConnectQRCode(isEnabled, onClick) }
+    item { WalletConnectQRCode(isEnabled = isEnabled, onClick = onClick) }
 }
 
 @Composable
@@ -25,7 +26,8 @@ private fun WalletConnectQRCode(isEnabled: Boolean = true, onClick: () -> Unit) 
         startIcon = { WalletConnectLogo(isEnabled) },
         text = "WalletConnect",
         label = { QrCodeLabel(isEnabled) },
-        onClick = onClick
+        onClick = onClick,
+        contentPadding = PaddingValues(vertical = 4.dp)
     )
 }
 
@@ -56,6 +58,6 @@ private fun WalletConnectListSelectPreview() {
         { QrCodeLabel() },
         { QrCodeLabel(false) },
         { WalletConnectQRCode() {} },
-        { WalletConnectQRCode(false) {} },
+        { WalletConnectQRCode(isEnabled = false) {} },
     )
 }

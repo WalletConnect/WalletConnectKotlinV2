@@ -4,5 +4,6 @@ enum class ContentDescription(val description: String) {
     BACK_ARROW("BackArrow"),
     QUESTION_MARK("QuestionMark"),
     CLOSE("Close"),
-    WC_LOGO("Logo")
+    WC_LOGO("Logo"),
+    COPY("Copy"),
 }

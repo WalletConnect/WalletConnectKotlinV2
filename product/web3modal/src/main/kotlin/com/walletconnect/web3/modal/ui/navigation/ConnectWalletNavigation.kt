@@ -5,7 +5,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.walletconnect.web3.modal.ui.Web3ModalState
 import com.walletconnect.web3.modal.ui.routes.connect.all_wallets.AllWalletsRoute
-import com.walletconnect.web3.modal.ui.routes.connect.connect_wallet.ConnectYourWalletRoute
+import com.walletconnect.web3.modal.ui.routes.connect.connect_wallet.ConnectWalletRoute
 import com.walletconnect.web3.modal.ui.routes.connect.get_wallet.GetAWalletRoute
 import com.walletconnect.web3.modal.ui.routes.connect.help.HelpRoute
 import com.walletconnect.web3.modal.ui.routes.connect.scan_code.ScanQRCodeRoute
@@ -15,17 +15,14 @@ internal fun NavGraphBuilder.connectWalletNavGraph(
     web3ModalState: Web3ModalState.Connect
 ) {
     composable(route = Route.CONNECT_YOUR_WALLET.path) {
-        ConnectYourWalletRoute(
+        ConnectWalletRoute(
             navController = navController,
             uri = web3ModalState.uri,
             wallets = web3ModalState.wallets
         )
     }
     composable(route = Route.QR_CODE.path) {
-        ScanQRCodeRoute(
-            navController = navController,
-            uri = web3ModalState.uri
-        )
+        ScanQRCodeRoute(uri = web3ModalState.uri)
     }
     composable(route = Route.HELP.path) {
         HelpRoute(navController = navController)

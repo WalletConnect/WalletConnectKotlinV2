@@ -39,7 +39,7 @@ internal fun Web3ModalRoot(
 }
 
 @Composable
-private fun Web3ModalRoot(
+internal fun Web3ModalRoot(
     rootState: Web3ModalRootState,
     title: String?,
     closeModal: () -> Unit,
