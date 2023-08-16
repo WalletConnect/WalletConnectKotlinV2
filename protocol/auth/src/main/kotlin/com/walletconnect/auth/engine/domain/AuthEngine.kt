@@ -288,10 +288,8 @@ internal class AuthEngine(
                 jsonRpcInteractor.respondWithError(wcRequest, Invalid.RequestExpired, irnParams)
                 return
             }
-
-            val json = serializer.serialize(AuthRpc.AuthRequest(id = wcRequest.id, params = authParams)) ?: throw Exception("Error serializing session proposal")
             val url = authParams.requester.metadata.url
-            resolveAttestationIdUseCase(wcRequest.id, json, url) { verifyContext ->
+            resolveAttestationIdUseCase(wcRequest.id, wcRequest.message, url) { verifyContext ->
                 scope.launch {
                     _engineEvent.emit(Events.OnAuthRequest(wcRequest.id, wcRequest.topic.value, authParams.payloadParams, verifyContext))
                 }
@@ -319,6 +317,7 @@ internal class AuthEngine(
                         _engineEvent.emit(Events.OnAuthResponse(response.id, AuthResponse.Error(response.error.code, response.error.message)))
                     }
                 }
+
                 is JsonRpcResponse.JsonRpcResult -> {
                     val (header, payload, signature) = (response.result as CoreAuthParams.ResponseParams)
                     val cacao = Cacao(header, payload, signature)
