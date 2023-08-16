@@ -36,7 +36,7 @@ internal class RespondSessionRequestUseCase(
     private val verifyContextStorageRepository: VerifyContextStorageRepository,
 ) : RespondSessionRequestUseCaseInterface {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
-    val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
+    override val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
     override fun respondSessionRequest(
         topic: String,
@@ -107,6 +107,7 @@ internal class RespondSessionRequestUseCase(
 }
 
 internal interface RespondSessionRequestUseCaseInterface {
+    val events: SharedFlow<EngineEvent>
     fun respondSessionRequest(
         topic: String,
         jsonRpcResponse: JsonRpcResponse,

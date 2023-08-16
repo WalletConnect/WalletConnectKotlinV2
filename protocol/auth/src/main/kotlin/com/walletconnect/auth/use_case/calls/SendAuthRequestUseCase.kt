@@ -40,7 +40,7 @@ internal class SendAuthRequestUseCase(
     private val logger: Logger
 ) : SendAuthRequestUseCaseInterface {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
-    val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
+    override val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
     override fun request(
         payloadParams: PayloadParams,
@@ -107,5 +107,6 @@ internal class SendAuthRequestUseCase(
 }
 
 internal interface SendAuthRequestUseCaseInterface {
+    val events: SharedFlow<EngineEvent>
     fun request(payloadParams: PayloadParams, expiry: Expiry? = null, topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit)
 }

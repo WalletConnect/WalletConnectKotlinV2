@@ -20,37 +20,21 @@ import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toEngineDO
 import com.walletconnect.sign.engine.model.mapper.toSessionRequest
 import com.walletconnect.sign.engine.sessionRequestsQueue
-import com.walletconnect.sign.engine.use_case.calls.ApproveSessionUseCase
 import com.walletconnect.sign.engine.use_case.calls.ApproveSessionUseCaseInterface
-import com.walletconnect.sign.engine.use_case.calls.DisconnectSessionUseCase
 import com.walletconnect.sign.engine.use_case.calls.DisconnectSessionUseCaseInterface
-import com.walletconnect.sign.engine.use_case.calls.EmitEventUseCase
 import com.walletconnect.sign.engine.use_case.calls.EmitEventUseCaseInterface
-import com.walletconnect.sign.engine.use_case.calls.ExtendSessionUsesCase
 import com.walletconnect.sign.engine.use_case.calls.ExtendSessionUsesCaseInterface
-import com.walletconnect.sign.engine.use_case.calls.GetListOfVerifyContextsUseCase
 import com.walletconnect.sign.engine.use_case.calls.GetListOfVerifyContextsUseCaseInterface
-import com.walletconnect.sign.engine.use_case.calls.GetPairingsUseCase
 import com.walletconnect.sign.engine.use_case.calls.GetPairingsUseCaseInterface
-import com.walletconnect.sign.engine.use_case.calls.GetSessionProposalsUseCase
 import com.walletconnect.sign.engine.use_case.calls.GetSessionProposalsUseCaseInterface
-import com.walletconnect.sign.engine.use_case.calls.GetSessionsUseCase
 import com.walletconnect.sign.engine.use_case.calls.GetSessionsUseCaseInterface
-import com.walletconnect.sign.engine.use_case.calls.GetVerifyContextByIdUseCase
 import com.walletconnect.sign.engine.use_case.calls.GetVerifyContextByIdUseCaseInterface
-import com.walletconnect.sign.engine.use_case.calls.PairUseCase
 import com.walletconnect.sign.engine.use_case.calls.PairUseCaseInterface
-import com.walletconnect.sign.engine.use_case.calls.PingUseCase
 import com.walletconnect.sign.engine.use_case.calls.PingUseCaseInterface
-import com.walletconnect.sign.engine.use_case.calls.ProposeSessionUseCase
 import com.walletconnect.sign.engine.use_case.calls.ProposeSessionUseCaseInterface
-import com.walletconnect.sign.engine.use_case.calls.RejectSessionUseCase
 import com.walletconnect.sign.engine.use_case.calls.RejectSessionUseCaseInterface
-import com.walletconnect.sign.engine.use_case.calls.RespondSessionRequestUseCase
 import com.walletconnect.sign.engine.use_case.calls.RespondSessionRequestUseCaseInterface
-import com.walletconnect.sign.engine.use_case.calls.SessionRequestUseCase
 import com.walletconnect.sign.engine.use_case.calls.SessionRequestUseCaseInterface
-import com.walletconnect.sign.engine.use_case.calls.SessionUpdateUseCase
 import com.walletconnect.sign.engine.use_case.calls.SessionUpdateUseCaseInterface
 import com.walletconnect.sign.engine.use_case.requests.OnPingUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionDeleteUseCase
@@ -64,9 +48,7 @@ import com.walletconnect.sign.engine.use_case.responses.OnSessionProposalRespons
 import com.walletconnect.sign.engine.use_case.responses.OnSessionRequestResponseUseCase
 import com.walletconnect.sign.engine.use_case.responses.OnSessionSettleResponseUseCase
 import com.walletconnect.sign.engine.use_case.responses.OnSessionUpdateResponseUseCase
-import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCaseByTopic
 import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCaseByTopicInterface
-import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequestByTopicUseCase
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequestByTopicUseCaseInterface
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequests
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
@@ -87,30 +69,30 @@ import kotlinx.coroutines.supervisorScope
 
 internal class SignEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
-    private val getPendingRequestsByTopicUseCase: GetPendingRequestsUseCaseByTopic,
-    private val getPendingSessionRequestByTopicUseCase: GetPendingSessionRequestByTopicUseCase,
+    private val getPendingRequestsByTopicUseCase: GetPendingRequestsUseCaseByTopicInterface,
+    private val getPendingSessionRequestByTopicUseCase: GetPendingSessionRequestByTopicUseCaseInterface,
     private val getPendingSessionRequests: GetPendingSessionRequests,
     private val crypto: KeyManagementRepository,
     private val sessionStorageRepository: SessionStorageRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val pairingController: PairingControllerInterface,
     private val verifyContextStorageRepository: VerifyContextStorageRepository,
-    private val proposeSessionUseCase: ProposeSessionUseCase,
-    private val pairUseCase: PairUseCase,
-    private val rejectSessionUseCase: RejectSessionUseCase,
-    private val approveSessionUseCase: ApproveSessionUseCase,
-    private val sessionUpdateUseCase: SessionUpdateUseCase,
-    private val sessionRequestUseCase: SessionRequestUseCase,
-    private val respondSessionRequestUseCase: RespondSessionRequestUseCase,
-    private val pingUseCase: PingUseCase,
-    private val emitEventUseCase: EmitEventUseCase,
-    private val extendSessionUsesCase: ExtendSessionUsesCase,
-    private val disconnectSessionUseCase: DisconnectSessionUseCase,
-    private val getSessionsUseCase: GetSessionsUseCase,
-    private val getPairingsUseCase: GetPairingsUseCase,
-    private val getSessionProposalsUseCase: GetSessionProposalsUseCase,
-    private val getVerifyContextByIdUseCase: GetVerifyContextByIdUseCase,
-    private val getListOfVerifyContextsUseCase: GetListOfVerifyContextsUseCase,
+    private val proposeSessionUseCase: ProposeSessionUseCaseInterface,
+    private val pairUseCase: PairUseCaseInterface,
+    private val rejectSessionUseCase: RejectSessionUseCaseInterface,
+    private val approveSessionUseCase: ApproveSessionUseCaseInterface,
+    private val sessionUpdateUseCase: SessionUpdateUseCaseInterface,
+    private val sessionRequestUseCase: SessionRequestUseCaseInterface,
+    private val respondSessionRequestUseCase: RespondSessionRequestUseCaseInterface,
+    private val pingUseCase: PingUseCaseInterface,
+    private val emitEventUseCase: EmitEventUseCaseInterface,
+    private val extendSessionUsesCase: ExtendSessionUsesCaseInterface,
+    private val disconnectSessionUseCase: DisconnectSessionUseCaseInterface,
+    private val getSessionsUseCase: GetSessionsUseCaseInterface,
+    private val getPairingsUseCase: GetPairingsUseCaseInterface,
+    private val getSessionProposalsUseCase: GetSessionProposalsUseCaseInterface,
+    private val getVerifyContextByIdUseCase: GetVerifyContextByIdUseCaseInterface,
+    private val getListOfVerifyContextsUseCase: GetListOfVerifyContextsUseCaseInterface,
     private val onSessionProposeUse: OnSessionProposeUseCase,
     private val onSessionSettleUseCase: OnSessionSettleUseCase,
     private val onSessionRequestUseCase: OnSessionRequestUseCase,

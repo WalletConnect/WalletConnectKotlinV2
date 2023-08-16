@@ -41,7 +41,7 @@ internal class SessionRequestUseCase(
     private val logger: Logger,
 ) : SessionRequestUseCaseInterface {
     private val _errors: MutableSharedFlow<SDKError> = MutableSharedFlow()
-    val errors: SharedFlow<SDKError> = _errors.asSharedFlow()
+    override val errors: SharedFlow<SDKError> = _errors.asSharedFlow()
 
     override fun sessionRequest(request: EngineDO.Request, onSuccess: (Long) -> Unit, onFailure: (Throwable) -> Unit) {
         if (!sessionStorageRepository.isSessionValid(Topic(request.topic))) {
@@ -114,5 +114,6 @@ internal class SessionRequestUseCase(
 }
 
 internal interface SessionRequestUseCaseInterface {
+    val errors: SharedFlow<SDKError>
     fun sessionRequest(request: EngineDO.Request, onSuccess: (Long) -> Unit, onFailure: (Throwable) -> Unit)
 }
