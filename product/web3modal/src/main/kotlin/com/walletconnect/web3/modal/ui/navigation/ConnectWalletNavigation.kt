@@ -12,7 +12,7 @@ import com.walletconnect.web3.modal.ui.routes.connect.scan_code.ScanQRCodeRoute
 
 internal fun NavGraphBuilder.connectWalletNavGraph(
     navController: NavController,
-    web3ModalState: Web3ModalState.ConnectState
+    web3ModalState: Web3ModalState.Connect
 ) {
     composable(route = Route.CONNECT_YOUR_WALLET.path) {
         ConnectYourWalletRoute(

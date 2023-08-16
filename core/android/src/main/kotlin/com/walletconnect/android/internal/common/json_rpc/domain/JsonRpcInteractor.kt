@@ -313,6 +313,7 @@ internal class JsonRpcInteractor(
                         handleError("ManSub: ${e.stackTraceToString()}")
                         String.Empty
                     }
+
                     Pair(message, topic)
                 }.collect { (decryptedMessage, topic) ->
                     if (decryptedMessage.isNotEmpty()) {
@@ -325,7 +326,6 @@ internal class JsonRpcInteractor(
                 }
         }
     }
-
 
     private suspend fun manageSubscriptions(decryptedMessage: String, topic: Topic) {
         serializer.tryDeserialize<ClientJsonRpc>(decryptedMessage)?.let { clientJsonRpc ->
@@ -340,7 +340,7 @@ internal class JsonRpcInteractor(
     private suspend fun handleRequest(clientJsonRpc: ClientJsonRpc, topic: Topic, decryptedMessage: String) {
         if (jsonRpcHistory.setRequest(clientJsonRpc.id, topic, clientJsonRpc.method, decryptedMessage)) {
             serializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
-                _clientSyncJsonRpc.emit(WCRequest(topic, clientJsonRpc.id, clientJsonRpc.method, params))
+                _clientSyncJsonRpc.emit(WCRequest(topic, clientJsonRpc.id, clientJsonRpc.method, params, decryptedMessage))
             } ?: handleError("JsonRpcInteractor: Unknown request params")
         }
     }

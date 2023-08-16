@@ -55,7 +55,7 @@ class ComposeActivity : ComponentActivity() {
                     },
                 ) { paddingValues ->
                     ModalBottomSheetLayout(
-                        sheetShape = RoundedCornerShape(16.dp),
+                        sheetShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
                         bottomSheetNavigator = bottomSheetNavigator,
                         modifier = Modifier.padding(paddingValues)
                     ) {
@@ -66,7 +66,7 @@ class ComposeActivity : ComponentActivity() {
                             composable(Route.Home.path) {
                                 HomeScreen(navController = navController)
                             }
-                            web3ModalGraph(navController, sheetState)
+                            web3ModalGraph(navController)
                         }
                     }
                 }
