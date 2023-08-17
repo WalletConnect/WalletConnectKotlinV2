@@ -451,7 +451,6 @@ internal class SignEngine(
                         })
                     }
                 }
-
                 throw InvalidExpiryException()
             }
         }
@@ -646,12 +645,15 @@ internal class SignEngine(
     private fun propagatePendingSessionRequestsQueue() {
         getPendingSessionRequests()
             .map { pendingRequest -> pendingRequest.toSessionRequest(metadataStorageRepository.getByTopicAndType(pendingRequest.topic, AppMetaDataType.PEER)) }
-            .map { sessionRequest ->
-                scope.launch {
-                    supervisorScope {
-                        val verifyContext = verifyContextStorageRepository.get(sessionRequest.request.id) ?: VerifyContext(sessionRequest.request.id, String.Empty, Validation.UNKNOWN, String.Empty)
-                        val sessionRequestEvent = EngineDO.SessionRequestEvent(sessionRequest, verifyContext.toEngineDO())
-                        sessionRequestsQueue.addLast(sessionRequestEvent)
+            .onEach { sessionRequest ->
+                if (CoreValidator.isExpiryWithinBounds(sessionRequest.expiry)) {
+                    scope.launch {
+                        supervisorScope {
+                            val verifyContext =
+                                verifyContextStorageRepository.get(sessionRequest.request.id) ?: VerifyContext(sessionRequest.request.id, String.Empty, Validation.UNKNOWN, String.Empty)
+                            val sessionRequestEvent = EngineDO.SessionRequestEvent(sessionRequest, verifyContext.toEngineDO())
+                            sessionRequestsQueue.addLast(sessionRequestEvent)
+                        }
                     }
                 }
             }
