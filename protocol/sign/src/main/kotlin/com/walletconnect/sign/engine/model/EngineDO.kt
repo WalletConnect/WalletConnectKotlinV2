@@ -76,6 +76,7 @@ internal sealed class EngineDO {
         val chainId: String?,
         val peerAppMetaData: AppMetaData?,
         val request: JSONRPCRequest,
+        val expiry: Expiry?
     ) : EngineDO(), EngineEvent {
 
         data class JSONRPCRequest(
