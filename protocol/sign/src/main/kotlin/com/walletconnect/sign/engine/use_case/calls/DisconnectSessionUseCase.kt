@@ -13,13 +13,14 @@ import com.walletconnect.sign.common.exceptions.NO_SEQUENCE_FOR_TOPIC_MESSAGE
 import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpc
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
+import kotlinx.coroutines.supervisorScope
 
 internal class DisconnectSessionUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val sessionStorageRepository: SessionStorageRepository,
     private val logger: Logger
 ) : DisconnectSessionUseCaseInterface {
-    override fun disconnect(topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
+    override suspend fun disconnect(topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
@@ -30,8 +31,7 @@ internal class DisconnectSessionUseCase(
         jsonRpcInteractor.unsubscribe(Topic(topic))
         val irnParams = IrnParams(Tags.SESSION_DELETE, Ttl(DAY_IN_SECONDS))
 
-        jsonRpcInteractor.publishJsonRpcRequest(
-            Topic(topic), irnParams, sessionDelete,
+        jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionDelete,
             onSuccess = {
                 logger.log("Disconnect sent successfully")
                 onSuccess()
@@ -45,5 +45,5 @@ internal class DisconnectSessionUseCase(
 }
 
 internal interface DisconnectSessionUseCaseInterface {
-    fun disconnect(topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit)
+    suspend fun disconnect(topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit)
 }

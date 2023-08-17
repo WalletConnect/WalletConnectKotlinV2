@@ -23,53 +23,47 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 
 internal class OnSessionUpdateUseCase(private val jsonRpcInteractor: JsonRpcInteractorInterface, private val sessionStorageRepository: SessionStorageRepository) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
-    operator fun invoke(request: WCRequest, params: SignParams.UpdateNamespacesParams) {
+    suspend operator fun invoke(request: WCRequest, params: SignParams.UpdateNamespacesParams) = supervisorScope {
         val irnParams = IrnParams(Tags.SESSION_UPDATE_RESPONSE, Ttl(DAY_IN_SECONDS))
         try {
             if (!sessionStorageRepository.isSessionValid(request.topic)) {
-                jsonRpcInteractor.respondWithError(
-                    request,
-                    Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value),
-                    irnParams
-                )
-                return
+                jsonRpcInteractor.respondWithError(request, Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
+                return@supervisorScope
             }
 
             val session: SessionVO = sessionStorageRepository.getSessionWithoutMetadataByTopic(request.topic)
             if (!session.isPeerController) {
                 jsonRpcInteractor.respondWithError(request, PeerError.Unauthorized.UpdateRequest(Sequences.SESSION.name), irnParams)
-                return
+                return@supervisorScope
             }
 
             SignValidator.validateSessionNamespace(params.namespaces, session.requiredNamespaces) { error ->
                 jsonRpcInteractor.respondWithError(request, PeerError.Invalid.UpdateRequest(error.message), irnParams)
-                return
+                return@supervisorScope
             }
 
             if (!sessionStorageRepository.isUpdatedNamespaceValid(session.topic.value, request.id.extractTimestamp())) {
                 jsonRpcInteractor.respondWithError(request, PeerError.Invalid.UpdateRequest("Update Namespace Request ID too old"), irnParams)
-                return
+                return@supervisorScope
             }
 
             sessionStorageRepository.deleteNamespaceAndInsertNewNamespace(session.topic.value, params.namespaces, request.id)
             jsonRpcInteractor.respondWithSuccess(request, irnParams)
-
-            scope.launch {
-                _events.emit(EngineDO.SessionUpdateNamespaces(request.topic, params.namespaces.toMapOfEngineNamespacesSession()))
-            }
+            _events.emit(EngineDO.SessionUpdateNamespaces(request.topic, params.namespaces.toMapOfEngineNamespacesSession()))
         } catch (e: Exception) {
             jsonRpcInteractor.respondWithError(
                 request,
                 PeerError.Invalid.UpdateRequest("Updating Namespace Failed. Review Namespace structure. Error: ${e.message}, topic: ${request.topic}"),
                 irnParams
             )
-            scope.launch { _events.emit(SDKError(e)) }
-            return
+            _events.emit(SDKError(e))
+            return@supervisorScope
         }
     }
 }

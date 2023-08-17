@@ -10,6 +10,7 @@ import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toSessionRequest
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
 import com.walletconnect.sign.json_rpc.model.toPendingRequest
+import kotlinx.coroutines.supervisorScope
 
 internal class GetPendingSessionRequestByTopicUseCase(
     private val jsonRpcHistory: JsonRpcHistory,
@@ -17,17 +18,16 @@ internal class GetPendingSessionRequestByTopicUseCase(
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
 ) : GetPendingSessionRequestByTopicUseCaseInterface {
 
-    override fun getPendingSessionRequests(topic: Topic): List<EngineDO.SessionRequest> =
+    override suspend fun getPendingSessionRequests(topic: Topic): List<EngineDO.SessionRequest> = supervisorScope {
         jsonRpcHistory.getListOfPendingRecordsByTopic(topic)
             .filter { record -> record.method == JsonRpcMethod.WC_SESSION_REQUEST }
-            .filter { record -> serializer.tryDeserialize<SignRpc.SessionRequest>(record.body) != null }
-            .map { record -> serializer.tryDeserialize<SignRpc.SessionRequest>(record.body)!!.toPendingRequest(record) }
-            .map { pendingRequest ->
-                val peerMetaData = metadataStorageRepository.getByTopicAndType(pendingRequest.topic, AppMetaDataType.PEER)
-                pendingRequest.toSessionRequest(peerMetaData)
+            .mapNotNull { record ->
+                serializer.tryDeserialize<SignRpc.SessionRequest>(record.body)?.toPendingRequest(record)
+                    ?.toSessionRequest(metadataStorageRepository.getByTopicAndType(Topic(record.topic), AppMetaDataType.PEER))
             }
+    }
 }
 
 internal interface GetPendingSessionRequestByTopicUseCaseInterface {
-    fun getPendingSessionRequests(topic: Topic): List<EngineDO.SessionRequest>
+    suspend fun getPendingSessionRequests(topic: Topic): List<EngineDO.SessionRequest>
 }

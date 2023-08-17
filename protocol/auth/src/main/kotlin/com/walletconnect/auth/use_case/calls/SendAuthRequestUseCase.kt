@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withTimeout
 import java.util.Date
 import java.util.concurrent.TimeUnit
@@ -42,16 +43,16 @@ internal class SendAuthRequestUseCase(
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     override val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
-    override fun request(
+    override suspend fun request(
         payloadParams: PayloadParams,
         expiry: Expiry?,
         topic: String,
         onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit,
-    ) {
+    ) = supervisorScope {
         val nowInSeconds = TimeUnit.SECONDS.convert(Date().time, TimeUnit.SECONDS)
         if (!CoreValidator.isExpiryWithinBounds(expiry ?: Expiry(300))) {
-            return onFailure(InvalidExpiryException())
+            return@supervisorScope onFailure(InvalidExpiryException())
         }
 
         val responsePublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
@@ -68,9 +69,7 @@ internal class SendAuthRequestUseCase(
         } ?: Ttl(DAY_IN_SECONDS)
         val irnParams = IrnParams(Tags.AUTH_REQUEST, irnParamsTtl, true)
         val pairingTopic = Topic(topic)
-        val requestTtlInSeconds = expiry?.run {
-            seconds - nowInSeconds
-        } ?: DAY_IN_SECONDS
+        val requestTtlInSeconds = expiry?.run { seconds - nowInSeconds } ?: DAY_IN_SECONDS
         crypto.setKey(responsePublicKey, responseTopic.getParticipantTag())
 
         jsonRpcInteractor.publishJsonRpcRequest(pairingTopic, irnParams, authRequest,
@@ -108,5 +107,5 @@ internal class SendAuthRequestUseCase(
 
 internal interface SendAuthRequestUseCaseInterface {
     val events: SharedFlow<EngineEvent>
-    fun request(payloadParams: PayloadParams, expiry: Expiry? = null, topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit)
+    suspend fun request(payloadParams: PayloadParams, expiry: Expiry? = null, topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit)
 }

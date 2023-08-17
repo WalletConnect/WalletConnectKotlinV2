@@ -46,14 +46,14 @@ internal class OnSessionSettleUseCase(
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
-    operator fun invoke(request: WCRequest, settleParams: SignParams.SessionSettleParams) {
+    suspend operator fun invoke(request: WCRequest, settleParams: SignParams.SessionSettleParams) = supervisorScope {
         val sessionTopic = request.topic
         val irnParams = IrnParams(Tags.SESSION_SETTLE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
         val selfPublicKey: PublicKey = try {
             crypto.getSelfPublicFromKeyAgreement(sessionTopic)
         } catch (e: Exception) {
             jsonRpcInteractor.respondWithError(request, PeerError.Failure.SessionSettlementFailed(e.message ?: String.Empty), irnParams)
-            return
+            return@supervisorScope
         }
 
         val peerMetadata = settleParams.controller.metadata
@@ -61,42 +61,38 @@ internal class OnSessionSettleUseCase(
             proposalStorageRepository.getProposalByKey(selfPublicKey.keyAsHex).also { proposalStorageRepository.deleteProposal(selfPublicKey.keyAsHex) }
         } catch (e: Exception) {
             jsonRpcInteractor.respondWithError(request, PeerError.Failure.SessionSettlementFailed(e.message ?: String.Empty), irnParams)
-            return
+            return@supervisorScope
         }
 
         val (requiredNamespaces, optionalNamespaces, properties) = proposal.run { Triple(requiredNamespaces, optionalNamespaces, properties) }
         SignValidator.validateSessionNamespace(settleParams.namespaces, requiredNamespaces) { error ->
             jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
-            return
+            return@supervisorScope
         }
 
-        scope.launch(Dispatchers.IO) {
-            supervisorScope {
-                try {
-                    val session = SessionVO.createAcknowledgedSession(
-                        sessionTopic,
-                        settleParams,
-                        selfPublicKey,
-                        selfAppMetaData,
-                        requiredNamespaces,
-                        optionalNamespaces,
-                        properties,
-                        proposal.pairingTopic.value
-                    )
+        try {
+            val session = SessionVO.createAcknowledgedSession(
+                sessionTopic,
+                settleParams,
+                selfPublicKey,
+                selfAppMetaData,
+                requiredNamespaces,
+                optionalNamespaces,
+                properties,
+                proposal.pairingTopic.value
+            )
 
-                    sessionStorageRepository.insertSession(session, request.id)
-                    pairingController.updateMetadata(Core.Params.UpdateMetadata(proposal.pairingTopic.value, peerMetadata.toClient(), AppMetaDataType.PEER))
-                    metadataStorageRepository.insertOrAbortMetadata(sessionTopic, peerMetadata, AppMetaDataType.PEER)
-                    jsonRpcInteractor.respondWithSuccess(request, irnParams)
-                    _events.emit(session.toSessionApproved())
-                } catch (e: Exception) {
-                    proposalStorageRepository.insertProposal(proposal)
-                    sessionStorageRepository.deleteSession(sessionTopic)
-                    jsonRpcInteractor.respondWithError(request, PeerError.Failure.SessionSettlementFailed(e.message ?: String.Empty), irnParams)
-                    scope.launch { _events.emit(SDKError(e)) }
-                    return@supervisorScope
-                }
-            }
+            sessionStorageRepository.insertSession(session, request.id)
+            pairingController.updateMetadata(Core.Params.UpdateMetadata(proposal.pairingTopic.value, peerMetadata.toClient(), AppMetaDataType.PEER))
+            metadataStorageRepository.insertOrAbortMetadata(sessionTopic, peerMetadata, AppMetaDataType.PEER)
+            jsonRpcInteractor.respondWithSuccess(request, irnParams)
+            _events.emit(session.toSessionApproved())
+        } catch (e: Exception) {
+            proposalStorageRepository.insertProposal(proposal)
+            sessionStorageRepository.deleteSession(sessionTopic)
+            jsonRpcInteractor.respondWithError(request, PeerError.Failure.SessionSettlementFailed(e.message ?: String.Empty), irnParams)
+            _events.emit(SDKError(e))
+            return@supervisorScope
         }
     }
 }

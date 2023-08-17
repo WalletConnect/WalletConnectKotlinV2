@@ -7,6 +7,7 @@ import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toEngineDO
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import com.walletconnect.utils.isSequenceValid
+import kotlinx.coroutines.supervisorScope
 
 internal class GetSessionsUseCase(
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
@@ -14,17 +15,14 @@ internal class GetSessionsUseCase(
     private val selfAppMetaData: AppMetaData
 ) : GetSessionsUseCaseInterface {
 
-    override fun getListOfSettledSessions(): List<EngineDO.Session> {
-        return sessionStorageRepository.getListOfSessionVOsWithoutMetadata()
+    override suspend fun getListOfSettledSessions(): List<EngineDO.Session> = supervisorScope {
+        return@supervisorScope sessionStorageRepository.getListOfSessionVOsWithoutMetadata()
             .filter { session -> session.isAcknowledged && session.expiry.isSequenceValid() }
-            .map { session ->
-                val peerMetaData = metadataStorageRepository.getByTopicAndType(session.topic, AppMetaDataType.PEER)
-                session.copy(selfAppMetaData = selfAppMetaData, peerAppMetaData = peerMetaData)
-            }
+            .map { session -> session.copy(selfAppMetaData = selfAppMetaData, peerAppMetaData = metadataStorageRepository.getByTopicAndType(session.topic, AppMetaDataType.PEER)) }
             .map { session -> session.toEngineDO() }
     }
 }
 
 internal interface GetSessionsUseCaseInterface {
-    fun getListOfSettledSessions(): List<EngineDO.Session>
+    suspend fun getListOfSettledSessions(): List<EngineDO.Session>
 }

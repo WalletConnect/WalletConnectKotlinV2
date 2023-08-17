@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 
 internal class OnSessionProposalResponseUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -34,12 +35,12 @@ internal class OnSessionProposalResponseUseCase(
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
-    operator fun invoke(wcResponse: WCResponse, params: SignParams.SessionProposeParams) {
+    suspend operator fun invoke(wcResponse: WCResponse, params: SignParams.SessionProposeParams) = supervisorScope {
         try {
             val pairingTopic = wcResponse.topic
             pairingController.updateExpiry(Core.Params.UpdateExpiry(pairingTopic.value, Expiry(MONTH_IN_SECONDS)))
             pairingController.activate(Core.Params.Activate(pairingTopic.value))
-            if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) return
+            if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) return@supervisorScope
 
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcResult -> {
@@ -48,19 +49,17 @@ internal class OnSessionProposalResponseUseCase(
                     val approveParams = response.result as CoreSignParams.ApprovalParams
                     val responderPublicKey = PublicKey(approveParams.responderPublicKey)
                     val sessionTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, responderPublicKey)
-                    jsonRpcInteractor.subscribe(sessionTopic) { error ->
-                        scope.launch { _events.emit(SDKError(error)) }
-                    }
+                    jsonRpcInteractor.subscribe(sessionTopic) { error -> scope.launch { _events.emit(SDKError(error)) } }
                 }
 
                 is JsonRpcResponse.JsonRpcError -> {
                     logger.log("Session proposal reject received: ${response.error}")
                     proposalStorageRepository.deleteProposal(params.proposer.publicKey)
-                    scope.launch { _events.emit(EngineDO.SessionRejected(pairingTopic.value, response.errorMessage)) }
+                    _events.emit(EngineDO.SessionRejected(pairingTopic.value, response.errorMessage))
                 }
             }
         } catch (e: Exception) {
-            scope.launch { _events.emit(SDKError(e)) }
+            _events.emit(SDKError(e))
         }
     }
 }

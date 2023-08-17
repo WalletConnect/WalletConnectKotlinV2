@@ -19,24 +19,20 @@ internal class RejectSessionUseCase(
     private val proposalStorageRepository: ProposalStorageRepository,
 ) : RejectSessionUseCaseInterface {
 
-    override fun reject(proposerPublicKey: String, reason: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
+    override suspend fun reject(proposerPublicKey: String, reason: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         val proposal = proposalStorageRepository.getProposalByKey(proposerPublicKey)
         proposalStorageRepository.deleteProposal(proposerPublicKey)
-        scope.launch {
-            supervisorScope {
-                verifyContextStorageRepository.delete(proposal.requestId)
-            }
+        verifyContextStorageRepository.delete(proposal.requestId)
 
-            jsonRpcInteractor.respondWithError(
-                proposal.toSessionProposeRequest(),
-                PeerError.EIP1193.UserRejectedRequest(reason),
-                IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS)),
-                onSuccess = { onSuccess() },
-                onFailure = { error -> onFailure(error) })
-        }
+        jsonRpcInteractor.respondWithError(
+            proposal.toSessionProposeRequest(),
+            PeerError.EIP1193.UserRejectedRequest(reason),
+            IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS)),
+            onSuccess = { onSuccess() },
+            onFailure = { error -> onFailure(error) })
     }
 }
 
 internal interface RejectSessionUseCaseInterface {
-    fun reject(proposerPublicKey: String, reason: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit = {})
+    suspend fun reject(proposerPublicKey: String, reason: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit = {})
 }

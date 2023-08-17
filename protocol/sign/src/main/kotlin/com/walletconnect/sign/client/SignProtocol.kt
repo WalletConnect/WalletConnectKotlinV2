@@ -98,12 +98,14 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     ) {
         checkEngineInitialization()
         try {
-            signEngine.proposeSession(
-                connect.namespaces?.toMapOfEngineNamespacesRequired(),
-                connect.optionalNamespaces?.toMapOfEngineNamespacesOptional(),
-                connect.properties,
-                connect.pairing.toPairing(), onSuccess
-            ) { error -> onError(Sign.Model.Error(error)) }
+            runBlocking {
+                signEngine.proposeSession(
+                    connect.namespaces?.toMapOfEngineNamespacesRequired(),
+                    connect.optionalNamespaces?.toMapOfEngineNamespacesOptional(),
+                    connect.properties,
+                    connect.pairing.toPairing(), onSuccess
+                ) { error -> onError(Sign.Model.Error(error)) }
+            }
         } catch (error: Exception) {
             onError(Sign.Model.Error(error))
         }
@@ -117,11 +119,13 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     ) {
         checkEngineInitialization()
         try {
-            signEngine.pair(
-                uri = pair.uri,
-                onSuccess = { onSuccess(pair) },
-                onFailure = { throwable -> onError(Sign.Model.Error(throwable)) }
-            )
+            runBlocking {
+                signEngine.pair(
+                    uri = pair.uri,
+                    onSuccess = { onSuccess(pair) },
+                    onFailure = { throwable -> onError(Sign.Model.Error(throwable)) }
+                )
+            }
         } catch (error: Exception) {
             onError(Sign.Model.Error(error))
         }
@@ -132,12 +136,14 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
         checkEngineInitialization()
 
         try {
-            signEngine.approve(
-                proposerPublicKey = approve.proposerPublicKey,
-                sessionNamespaces = approve.namespaces.toMapOfEngineNamespacesSession(),
-                onSuccess = { onSuccess(approve) },
-                onFailure = { error -> onError(Sign.Model.Error(error)) }
-            )
+            runBlocking {
+                signEngine.approve(
+                    proposerPublicKey = approve.proposerPublicKey,
+                    sessionNamespaces = approve.namespaces.toMapOfEngineNamespacesSession(),
+                    onSuccess = { onSuccess(approve) },
+                    onFailure = { error -> onError(Sign.Model.Error(error)) }
+                )
+            }
         } catch (error: Exception) {
             onError(Sign.Model.Error(error))
         }
@@ -147,8 +153,10 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     override fun rejectSession(reject: Sign.Params.Reject, onSuccess: (Sign.Params.Reject) -> Unit, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            signEngine.reject(reject.proposerPublicKey, reject.reason, onSuccess = { onSuccess(reject) }) { error ->
-                onError(Sign.Model.Error(error))
+            runBlocking {
+                signEngine.reject(reject.proposerPublicKey, reject.reason, onSuccess = { onSuccess(reject) }) { error ->
+                    onError(Sign.Model.Error(error))
+                }
             }
         } catch (error: Exception) {
             onError(Sign.Model.Error(error))
@@ -168,11 +176,13 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     ) {
         checkEngineInitialization()
         try {
-            signEngine.sessionRequest(
-                request = request.toEngineDORequest(),
-                onSuccess = { onSuccess(request) },
-                onFailure = { error -> onError(Sign.Model.Error(error)) }
-            )
+            runBlocking {
+                signEngine.sessionRequest(
+                    request = request.toEngineDORequest(),
+                    onSuccess = { onSuccess(request) },
+                    onFailure = { error -> onError(Sign.Model.Error(error)) }
+                )
+            }
         } catch (error: Exception) {
             onError(Sign.Model.Error(error))
         }
@@ -182,11 +192,13 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     override fun request(request: Sign.Params.Request, onSuccess: (Sign.Model.SentRequest) -> Unit, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            signEngine.sessionRequest(
-                request = request.toEngineDORequest(),
-                onSuccess = { requestId -> onSuccess(request.toSentRequest(requestId)) },
-                onFailure = { error -> onError(Sign.Model.Error(error)) }
-            )
+            runBlocking {
+                signEngine.sessionRequest(
+                    request = request.toEngineDORequest(),
+                    onSuccess = { requestId -> onSuccess(request.toSentRequest(requestId)) },
+                    onFailure = { error -> onError(Sign.Model.Error(error)) }
+                )
+            }
         } catch (error: Exception) {
             onError(Sign.Model.Error(error))
         }
@@ -196,12 +208,14 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     override fun respond(response: Sign.Params.Response, onSuccess: (Sign.Params.Response) -> Unit, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            signEngine.respondSessionRequest(
-                topic = response.sessionTopic,
-                jsonRpcResponse = response.jsonRpcResponse.toJsonRpcResponse(),
-                onSuccess = { onSuccess(response) },
-                onFailure = { error -> onError(Sign.Model.Error(error)) }
-            )
+            runBlocking {
+                signEngine.respondSessionRequest(
+                    topic = response.sessionTopic,
+                    jsonRpcResponse = response.jsonRpcResponse.toJsonRpcResponse(),
+                    onSuccess = { onSuccess(response) },
+                    onFailure = { error -> onError(Sign.Model.Error(error)) }
+                )
+            }
         } catch (error: Exception) {
             onError(Sign.Model.Error(error))
         }
@@ -211,12 +225,14 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     override fun update(update: Sign.Params.Update, onSuccess: (Sign.Params.Update) -> Unit, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            signEngine.sessionUpdate(
-                topic = update.sessionTopic,
-                namespaces = update.namespaces.toMapOfEngineNamespacesSession(),
-                onSuccess = { onSuccess(update) },
-                onFailure = { error -> onError(Sign.Model.Error(error)) }
-            )
+            runBlocking {
+                signEngine.sessionUpdate(
+                    topic = update.sessionTopic,
+                    namespaces = update.namespaces.toMapOfEngineNamespacesSession(),
+                    onSuccess = { onSuccess(update) },
+                    onFailure = { error -> onError(Sign.Model.Error(error)) }
+                )
+            }
         } catch (error: Exception) {
             onError(Sign.Model.Error(error))
         }
@@ -226,11 +242,13 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     override fun extend(extend: Sign.Params.Extend, onSuccess: (Sign.Params.Extend) -> Unit, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            signEngine.extend(
-                topic = extend.topic,
-                onSuccess = { onSuccess(extend) },
-                onFailure = { error -> onError(Sign.Model.Error(error)) }
-            )
+            runBlocking {
+                signEngine.extend(
+                    topic = extend.topic,
+                    onSuccess = { onSuccess(extend) },
+                    onFailure = { error -> onError(Sign.Model.Error(error)) }
+                )
+            }
         } catch (error: Exception) {
             onError(Sign.Model.Error(error))
         }
@@ -240,12 +258,14 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     override fun emit(emit: Sign.Params.Emit, onSuccess: (Sign.Params.Emit) -> Unit, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            signEngine.emit(
-                topic = emit.topic,
-                event = emit.event.toEngineEvent(emit.chainId),
-                onSuccess = { onSuccess(emit) },
-                onFailure = { error -> onError(Sign.Model.Error(error)) }
-            )
+            runBlocking {
+                signEngine.emit(
+                    topic = emit.topic,
+                    event = emit.event.toEngineEvent(emit.chainId),
+                    onSuccess = { onSuccess(emit) },
+                    onFailure = { error -> onError(Sign.Model.Error(error)) }
+                )
+            }
         } catch (error: Exception) {
             onError(Sign.Model.Error(error))
         }
@@ -255,12 +275,14 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     override fun ping(ping: Sign.Params.Ping, sessionPing: Sign.Listeners.SessionPing?) {
         checkEngineInitialization()
         try {
-            signEngine.ping(
-                ping.topic,
-                { topic -> sessionPing?.onSuccess(Sign.Model.Ping.Success(topic)) },
-                { error -> sessionPing?.onError(Sign.Model.Ping.Error(error)) },
-                ping.timeout
-            )
+            runBlocking {
+                signEngine.ping(
+                    ping.topic,
+                    { topic -> sessionPing?.onSuccess(Sign.Model.Ping.Success(topic)) },
+                    { error -> sessionPing?.onError(Sign.Model.Ping.Error(error)) },
+                    ping.timeout
+                )
+            }
         } catch (error: Exception) {
             sessionPing?.onError(Sign.Model.Ping.Error(error))
         }
@@ -270,11 +292,13 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     override fun disconnect(disconnect: Sign.Params.Disconnect, onSuccess: (Sign.Params.Disconnect) -> Unit, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            signEngine.disconnect(
-                topic = disconnect.sessionTopic,
-                onSuccess = { onSuccess(disconnect) },
-                onFailure = { error -> onError(Sign.Model.Error(error)) }
-            )
+            runBlocking {
+                signEngine.disconnect(
+                    topic = disconnect.sessionTopic,
+                    onSuccess = { onSuccess(disconnect) },
+                    onFailure = { error -> onError(Sign.Model.Error(error)) }
+                )
+            }
         } catch (error: Exception) {
             onError(Sign.Model.Error(error))
         }
@@ -283,27 +307,35 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     @Throws(IllegalStateException::class)
     override fun getListOfActiveSessions(): List<Sign.Model.Session> {
         checkEngineInitialization()
-        return signEngine.getListOfSettledSessions().map(EngineDO.Session::toClientActiveSession)
+        return runBlocking {
+            signEngine.getListOfSettledSessions().map(EngineDO.Session::toClientActiveSession)
+        }
     }
 
     @Throws(IllegalStateException::class)
     override fun getActiveSessionByTopic(topic: String): Sign.Model.Session? {
         checkEngineInitialization()
-        return signEngine.getListOfSettledSessions().map(EngineDO.Session::toClientActiveSession)
-            .find { session -> session.topic == topic }
+        return runBlocking {
+            signEngine.getListOfSettledSessions().map(EngineDO.Session::toClientActiveSession)
+                .find { session -> session.topic == topic }
+        }
     }
 
     @Throws(IllegalStateException::class)
     override fun getListOfSettledSessions(): List<Sign.Model.Session> {
         checkEngineInitialization()
-        return signEngine.getListOfSettledSessions().map(EngineDO.Session::toClientActiveSession)
+        return runBlocking {
+            signEngine.getListOfSettledSessions().map(EngineDO.Session::toClientActiveSession)
+        }
     }
 
     @Throws(IllegalStateException::class)
     override fun getSettledSessionByTopic(topic: String): Sign.Model.Session? {
         checkEngineInitialization()
-        return signEngine.getListOfSettledSessions().map(EngineDO.Session::toClientActiveSession)
-            .find { session -> session.topic == topic }
+        return runBlocking {
+            signEngine.getListOfSettledSessions().map(EngineDO.Session::toClientActiveSession)
+                .find { session -> session.topic == topic }
+        }
     }
 
     @Deprecated(
@@ -313,7 +345,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     @Throws(IllegalStateException::class)
     override fun getListOfSettledPairings(): List<Sign.Model.Pairing> {
         checkEngineInitialization()
-        return signEngine.getListOfSettledPairings().map(EngineDO.PairingSettle::toClientSettledPairing)
+        return runBlocking { signEngine.getListOfSettledPairings().map(EngineDO.PairingSettle::toClientSettledPairing) }
     }
 
     @Deprecated(
@@ -323,19 +355,21 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     @Throws(IllegalStateException::class)
     override fun getPendingRequests(topic: String): List<Sign.Model.PendingRequest> {
         checkEngineInitialization()
-        return signEngine.getPendingRequests(Topic(topic)).mapToPendingRequests()
+        return runBlocking { signEngine.getPendingRequests(Topic(topic)).mapToPendingRequests() }
     }
 
     @Throws(IllegalStateException::class)
     override fun getPendingSessionRequests(topic: String): List<Sign.Model.SessionRequest> {
         checkEngineInitialization()
-        return signEngine.getPendingSessionRequests(Topic(topic)).mapToPendingSessionRequests()
+        return runBlocking {
+            signEngine.getPendingSessionRequests(Topic(topic)).mapToPendingSessionRequests()
+        }
     }
 
     @Throws(IllegalStateException::class)
     override fun getSessionProposals(): List<Sign.Model.SessionProposal> {
         checkEngineInitialization()
-        return signEngine.getSessionProposals().map(EngineDO.SessionProposal::toClientSessionProposal)
+        return runBlocking { signEngine.getSessionProposals().map(EngineDO.SessionProposal::toClientSessionProposal) }
     }
 
     @Throws(IllegalStateException::class)

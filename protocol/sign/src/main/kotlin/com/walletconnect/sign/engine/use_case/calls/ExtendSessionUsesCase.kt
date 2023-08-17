@@ -17,6 +17,7 @@ import com.walletconnect.sign.common.exceptions.UnauthorizedPeerException
 import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpc
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
+import kotlinx.coroutines.supervisorScope
 
 internal class ExtendSessionUsesCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -24,7 +25,7 @@ internal class ExtendSessionUsesCase(
     private val logger: Logger,
 ) : ExtendSessionUsesCaseInterface {
 
-    override fun extend(topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
+    override suspend fun extend(topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
@@ -56,5 +57,5 @@ internal class ExtendSessionUsesCase(
 }
 
 internal interface ExtendSessionUsesCaseInterface {
-    fun extend(topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit)
+    suspend fun extend(topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit)
 }

@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 
 internal class OnSessionRequestUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -42,18 +43,18 @@ internal class OnSessionRequestUseCase(
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
-    operator fun invoke(request: WCRequest, params: SignParams.SessionRequestParams) {
+    suspend operator fun invoke(request: WCRequest, params: SignParams.SessionRequestParams) = supervisorScope {
         val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
         try {
             if (!CoreValidator.isExpiryWithinBounds(params.request.expiry)) {
                 jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
-                return
+                return@supervisorScope
             }
 
             SignValidator.validateSessionRequest(params.toEngineDO(request.topic)) { error ->
                 jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
-                return
+                return@supervisorScope
             }
 
             if (!sessionStorageRepository.isSessionValid(request.topic)) {
@@ -62,7 +63,7 @@ internal class OnSessionRequestUseCase(
                     Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value),
                     irnParams
                 )
-                return
+                return@supervisorScope
             }
             val (sessionNamespaces: Map<String, NamespaceVO.Session>, sessionPeerAppMetaData: AppMetaData?) =
                 sessionStorageRepository.getSessionWithoutMetadataByTopic(request.topic)
@@ -74,7 +75,7 @@ internal class OnSessionRequestUseCase(
             val method = params.request.method
             SignValidator.validateChainIdWithMethodAuthorisation(params.chainId, method, sessionNamespaces) { error ->
                 jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
-                return
+                return@supervisorScope
             }
 
             val url = sessionPeerAppMetaData?.url ?: String.Empty
@@ -95,8 +96,8 @@ internal class OnSessionRequestUseCase(
                 Uncategorized.GenericError("Cannot handle a session request: ${e.message}, topic: ${request.topic}"),
                 irnParams
             )
-            scope.launch { _events.emit(SDKError(e)) }
-            return
+            _events.emit(SDKError(e))
+            return@supervisorScope
         }
     }
 }

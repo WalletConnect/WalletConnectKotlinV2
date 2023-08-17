@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withTimeout
 import java.util.Date
 import java.util.concurrent.TimeUnit
@@ -43,7 +44,7 @@ internal class SessionRequestUseCase(
     private val _errors: MutableSharedFlow<SDKError> = MutableSharedFlow()
     override val errors: SharedFlow<SDKError> = _errors.asSharedFlow()
 
-    override fun sessionRequest(request: EngineDO.Request, onSuccess: (Long) -> Unit, onFailure: (Throwable) -> Unit) {
+    override suspend fun sessionRequest(request: EngineDO.Request, onSuccess: (Long) -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         if (!sessionStorageRepository.isSessionValid(Topic(request.topic))) {
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE${request.topic}")
         }
@@ -73,14 +74,9 @@ internal class SessionRequestUseCase(
             Ttl(newTtl)
         } ?: Ttl(FIVE_MINUTES_IN_SECONDS)
         val irnParams = IrnParams(Tags.SESSION_REQUEST, irnParamsTtl, true)
-        val requestTtlInSeconds = request.expiry?.run {
-            seconds - nowInSeconds
-        } ?: FIVE_MINUTES_IN_SECONDS
+        val requestTtlInSeconds = request.expiry?.run { seconds - nowInSeconds } ?: FIVE_MINUTES_IN_SECONDS
 
-        jsonRpcInteractor.publishJsonRpcRequest(
-            Topic(request.topic),
-            irnParams,
-            sessionPayload,
+        jsonRpcInteractor.publishJsonRpcRequest(Topic(request.topic), irnParams, sessionPayload,
             onSuccess = {
                 logger.log("Session request sent successfully")
                 onSuccess(sessionPayload.id)
@@ -115,5 +111,5 @@ internal class SessionRequestUseCase(
 
 internal interface SessionRequestUseCaseInterface {
     val errors: SharedFlow<SDKError>
-    fun sessionRequest(request: EngineDO.Request, onSuccess: (Long) -> Unit, onFailure: (Throwable) -> Unit)
+    suspend fun sessionRequest(request: EngineDO.Request, onSuccess: (Long) -> Unit, onFailure: (Throwable) -> Unit)
 }

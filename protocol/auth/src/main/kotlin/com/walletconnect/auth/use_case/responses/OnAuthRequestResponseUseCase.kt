@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 
 internal class OnAuthRequestResponseUseCase(
     private val pairingInterface: PairingInterface,
@@ -34,43 +35,33 @@ internal class OnAuthRequestResponseUseCase(
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
-    operator fun invoke(wcResponse: WCResponse, requestParams: AuthParams.RequestParams) {
+    suspend operator fun invoke(wcResponse: WCResponse, requestParams: AuthParams.RequestParams) = supervisorScope {
         try {
             val pairingTopic = wcResponse.topic
             updatePairing(pairingTopic, requestParams)
-            if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) return
+            if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) return@supervisorScope
             pairingTopicToResponseTopicMap.remove(pairingTopic)
 
             when (val response = wcResponse.response) {
-                is JsonRpcResponse.JsonRpcError -> {
-                    scope.launch { _events.emit(Events.OnAuthResponse(response.id, AuthResponse.Error(response.error.code, response.error.message))) }
-                }
-
+                is JsonRpcResponse.JsonRpcError -> _events.emit(Events.OnAuthResponse(response.id, AuthResponse.Error(response.error.code, response.error.message)))
                 is JsonRpcResponse.JsonRpcResult -> {
                     val (header, payload, signature) = (response.result as CoreAuthParams.ResponseParams)
                     val cacao = Cacao(header, payload, signature)
                     if (cacaoVerifier.verify(cacao)) {
-                        scope.launch {
-                            _events.emit(Events.OnAuthResponse(response.id, AuthResponse.Result(cacao)))
-                        }
+                        _events.emit(Events.OnAuthResponse(response.id, AuthResponse.Result(cacao)))
                     } else {
-                        scope.launch {
-                            _events.emit(Events.OnAuthResponse(response.id, AuthResponse.Error(PeerError.SignatureVerificationFailed.code, PeerError.SignatureVerificationFailed.message)))
-                        }
+                        _events.emit(Events.OnAuthResponse(response.id, AuthResponse.Error(PeerError.SignatureVerificationFailed.code, PeerError.SignatureVerificationFailed.message)))
                     }
                 }
             }
         } catch (e: Exception) {
-            scope.launch { _events.emit(SDKError(e)) }
+            _events.emit(SDKError(e))
         }
     }
 
-    private fun updatePairing(
-        topic: Topic,
-        requestParams: AuthParams.RequestParams
-    ) {
-        pairingHandler.updateExpiry(Core.Params.UpdateExpiry(topic.value, Expiry(MONTH_IN_SECONDS)))
-        pairingHandler.updateMetadata(Core.Params.UpdateMetadata(topic.value, requestParams.requester.metadata.toClient(), AppMetaDataType.PEER))
-        pairingHandler.activate(Core.Params.Activate(topic.value))
+    private fun updatePairing(topic: Topic, requestParams: AuthParams.RequestParams) = with(pairingHandler) {
+        updateExpiry(Core.Params.UpdateExpiry(topic.value, Expiry(MONTH_IN_SECONDS)))
+        updateMetadata(Core.Params.UpdateMetadata(topic.value, requestParams.requester.metadata.toClient(), AppMetaDataType.PEER))
+        activate(Core.Params.Activate(topic.value))
     }
 }

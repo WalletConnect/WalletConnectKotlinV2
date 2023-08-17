@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 
 internal class OnSessionDeleteUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -30,32 +31,20 @@ internal class OnSessionDeleteUseCase(
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
-    operator fun invoke(request: WCRequest, params: SignParams.DeleteParams) {
+    suspend operator fun invoke(request: WCRequest, params: SignParams.DeleteParams) = supervisorScope {
         val irnParams = IrnParams(Tags.SESSION_DELETE_RESPONSE, Ttl(DAY_IN_SECONDS))
         try {
             if (!sessionStorageRepository.isSessionValid(request.topic)) {
-                jsonRpcInteractor.respondWithError(
-                    request,
-                    Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value),
-                    irnParams
-                )
-                return
+                jsonRpcInteractor.respondWithError(request, Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
+                return@supervisorScope
             }
-
-            jsonRpcInteractor.unsubscribe(request.topic,
-                onSuccess = { crypto.removeKeys(request.topic.value) },
-                onFailure = { error -> logger.error(error) })
+            jsonRpcInteractor.unsubscribe(request.topic, onSuccess = { crypto.removeKeys(request.topic.value) }, onFailure = { error -> logger.error(error) })
             sessionStorageRepository.deleteSession(request.topic)
-
-            scope.launch { _events.emit(params.toEngineDO(request.topic)) }
+            _events.emit(params.toEngineDO(request.topic))
         } catch (e: Exception) {
-            jsonRpcInteractor.respondWithError(
-                request,
-                Uncategorized.GenericError("Cannot delete a session: ${e.message}, topic: ${request.topic}"),
-                irnParams
-            )
-            scope.launch { _events.emit(SDKError(e)) }
-            return
+            jsonRpcInteractor.respondWithError(request, Uncategorized.GenericError("Cannot delete a session: ${e.message}, topic: ${request.topic}"), irnParams)
+            _events.emit(SDKError(e))
+            return@supervisorScope
         }
     }
 }

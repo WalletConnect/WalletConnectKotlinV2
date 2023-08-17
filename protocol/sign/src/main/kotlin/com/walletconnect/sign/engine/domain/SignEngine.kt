@@ -65,6 +65,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
 
 internal class SignEngine(
@@ -266,17 +267,13 @@ internal class SignEngine(
         }
     }
 
-    private fun propagatePendingSessionRequestsQueue() {
+    private fun propagatePendingSessionRequestsQueue() = runBlocking {
         getPendingSessionRequests()
             .map { pendingRequest -> pendingRequest.toSessionRequest(metadataStorageRepository.getByTopicAndType(pendingRequest.topic, AppMetaDataType.PEER)) }
             .map { sessionRequest ->
-                scope.launch {
-                    supervisorScope {
-                        val verifyContext = verifyContextStorageRepository.get(sessionRequest.request.id) ?: VerifyContext(sessionRequest.request.id, String.Empty, Validation.UNKNOWN, String.Empty)
-                        val sessionRequestEvent = EngineDO.SessionRequestEvent(sessionRequest, verifyContext.toEngineDO())
-                        sessionRequestsQueue.addLast(sessionRequestEvent)
-                    }
-                }
+                val verifyContext = verifyContextStorageRepository.get(sessionRequest.request.id) ?: VerifyContext(sessionRequest.request.id, String.Empty, Validation.UNKNOWN, String.Empty)
+                val sessionRequestEvent = EngineDO.SessionRequestEvent(sessionRequest, verifyContext.toEngineDO())
+                sessionRequestsQueue.addLast(sessionRequestEvent)
             }
     }
 }

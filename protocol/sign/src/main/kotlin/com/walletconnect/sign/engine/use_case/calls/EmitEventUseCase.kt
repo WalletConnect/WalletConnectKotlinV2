@@ -19,6 +19,7 @@ import com.walletconnect.sign.common.model.vo.clientsync.session.payload.Session
 import com.walletconnect.sign.common.validator.SignValidator
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
+import kotlinx.coroutines.supervisorScope
 
 internal class EmitEventUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -26,15 +27,14 @@ internal class EmitEventUseCase(
     private val logger: Logger
 ) : EmitEventUseCaseInterface {
 
-    override fun emit(topic: String, event: EngineDO.Event, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
+    override suspend fun emit(topic: String, event: EngineDO.Event, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         validate(topic, event)
 
         val eventParams = SignParams.EventParams(SessionEventVO(event.name, event.data), event.chainId)
         val sessionEvent = SignRpc.SessionEvent(params = eventParams)
         val irnParams = IrnParams(Tags.SESSION_EVENT, Ttl(FIVE_MINUTES_IN_SECONDS), true)
 
-        jsonRpcInteractor.publishJsonRpcRequest(
-            Topic(topic), irnParams, sessionEvent,
+        jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionEvent,
             onSuccess = {
                 logger.log("Event sent successfully")
                 onSuccess()
@@ -68,5 +68,5 @@ internal class EmitEventUseCase(
 }
 
 internal interface EmitEventUseCaseInterface {
-    fun emit(topic: String, event: EngineDO.Event, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit)
+    suspend fun emit(topic: String, event: EngineDO.Event, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit)
 }

@@ -14,15 +14,14 @@ internal class GetPendingJsonRpcHistoryEntriesUseCase(
     private val serializer: JsonRpcSerializer
 ) : GetPendingJsonRpcHistoryEntriesUseCaseInterface {
 
-    override fun getPendingRequests(): List<PendingRequest> {
+    override suspend fun getPendingRequests(): List<PendingRequest> {
         return jsonRpcHistory.getListOfPendingRecords()
             .filter { record -> record.method == JsonRpcMethod.WC_AUTH_REQUEST }
-            .filter { record -> serializer.tryDeserialize<AuthRpc.AuthRequest>(record.body) != null }
-            .map { record -> record.toEntry(serializer.tryDeserialize<AuthRpc.AuthRequest>(record.body)!!.params) }
+            .mapNotNull { record -> serializer.tryDeserialize<AuthRpc.AuthRequest>(record.body)?.params?.toEntry(record) }
             .map { jsonRpcHistoryEntry -> jsonRpcHistoryEntry.toPendingRequest() }
     }
 }
 
 internal interface GetPendingJsonRpcHistoryEntriesUseCaseInterface {
-    fun getPendingRequests(): List<PendingRequest>
+    suspend fun getPendingRequests(): List<PendingRequest>
 }

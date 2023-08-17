@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 
 internal class OnSessionExtendUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -30,41 +31,33 @@ internal class OnSessionExtendUseCase(
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
-    operator fun invoke(request: WCRequest, requestParams: SignParams.ExtendParams) {
+    suspend operator fun invoke(request: WCRequest, requestParams: SignParams.ExtendParams) = supervisorScope {
         val irnParams = IrnParams(Tags.SESSION_EXTEND_RESPONSE, Ttl(DAY_IN_SECONDS))
         try {
             if (!sessionStorageRepository.isSessionValid(request.topic)) {
-                jsonRpcInteractor.respondWithError(
-                    request,
-                    Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value),
-                    irnParams
-                )
-                return
+                jsonRpcInteractor.respondWithError(request, Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
+                return@supervisorScope
             }
 
             val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(request.topic)
             if (!session.isPeerController) {
                 jsonRpcInteractor.respondWithError(request, PeerError.Unauthorized.ExtendRequest(Sequences.SESSION.name), irnParams)
-                return
+                return@supervisorScope
             }
 
             val newExpiry = requestParams.expiry
             SignValidator.validateSessionExtend(newExpiry, session.expiry.seconds) { error ->
                 jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
-                return
+                return@supervisorScope
             }
 
             sessionStorageRepository.extendSession(request.topic, newExpiry)
             jsonRpcInteractor.respondWithSuccess(request, irnParams)
-            scope.launch { _events.emit(session.toEngineDOSessionExtend(Expiry(newExpiry))) }
+            _events.emit(session.toEngineDOSessionExtend(Expiry(newExpiry)))
         } catch (e: Exception) {
-            jsonRpcInteractor.respondWithError(
-                request,
-                Uncategorized.GenericError("Cannot update a session: ${e.message}, topic: ${request.topic}"),
-                irnParams
-            )
-            scope.launch { _events.emit(SDKError(e)) }
-            return
+            jsonRpcInteractor.respondWithError(request, Uncategorized.GenericError("Cannot update a session: ${e.message}, topic: ${request.topic}"), irnParams)
+            _events.emit(SDKError(e))
+            return@supervisorScope
         }
     }
 }

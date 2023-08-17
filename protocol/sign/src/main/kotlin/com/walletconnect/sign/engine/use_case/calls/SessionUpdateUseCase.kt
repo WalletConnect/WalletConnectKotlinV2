@@ -21,6 +21,7 @@ import com.walletconnect.sign.common.validator.SignValidator
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toMapOfNamespacesVOSession
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
+import kotlinx.coroutines.supervisorScope
 
 internal class SessionUpdateUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -28,12 +29,12 @@ internal class SessionUpdateUseCase(
     private val logger: Logger,
 ) : SessionUpdateUseCaseInterface {
 
-    override fun sessionUpdate(
+    override suspend fun sessionUpdate(
         topic: String,
         namespaces: Map<String, EngineDO.Namespace.Session>,
         onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit,
-    ) {
+    ) = supervisorScope {
         validate(topic, namespaces)
 
         val params = SignParams.UpdateNamespacesParams(namespaces.toMapOfNamespacesVOSession())
@@ -80,7 +81,7 @@ internal class SessionUpdateUseCase(
 }
 
 internal interface SessionUpdateUseCaseInterface {
-    fun sessionUpdate(
+    suspend fun sessionUpdate(
         topic: String,
         namespaces: Map<String, EngineDO.Namespace.Session>,
         onSuccess: () -> Unit,

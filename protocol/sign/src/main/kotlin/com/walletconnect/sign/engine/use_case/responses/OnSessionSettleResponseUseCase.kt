@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 
 internal class OnSessionSettleResponseUseCase(
     private val sessionStorageRepository: SessionStorageRepository,
@@ -28,10 +29,10 @@ internal class OnSessionSettleResponseUseCase(
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
-    operator fun invoke(wcResponse: WCResponse) {
+    suspend operator fun invoke(wcResponse: WCResponse) = supervisorScope {
         try {
             val sessionTopic = wcResponse.topic
-            if (!sessionStorageRepository.isSessionValid(sessionTopic)) return
+            if (!sessionStorageRepository.isSessionValid(sessionTopic)) return@supervisorScope
             val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(sessionTopic).run {
                 val peerAppMetaData = metadataStorageRepository.getByTopicAndType(this.topic, AppMetaDataType.PEER)
                 this.copy(selfAppMetaData = selfAppMetaData, peerAppMetaData = peerAppMetaData)
@@ -41,7 +42,7 @@ internal class OnSessionSettleResponseUseCase(
                 is JsonRpcResponse.JsonRpcResult -> {
                     logger.log("Session settle success received")
                     sessionStorageRepository.acknowledgeSession(sessionTopic)
-                    scope.launch { _events.emit(EngineDO.SettledSessionResponse.Result(session.toEngineDO())) }
+                    _events.emit(EngineDO.SettledSessionResponse.Result(session.toEngineDO()))
                 }
 
                 is JsonRpcResponse.JsonRpcError -> {
@@ -53,7 +54,7 @@ internal class OnSessionSettleResponseUseCase(
                 }
             }
         } catch (e: Exception) {
-            scope.launch { _events.emit(SDKError(e)) }
+            _events.emit(SDKError(e))
         }
     }
 }

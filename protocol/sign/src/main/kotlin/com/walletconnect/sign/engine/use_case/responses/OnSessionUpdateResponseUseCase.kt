@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 
 internal class OnSessionUpdateResponseUseCase(
     private val sessionStorageRepository: SessionStorageRepository,
@@ -22,13 +23,13 @@ internal class OnSessionUpdateResponseUseCase(
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
-    operator fun invoke(wcResponse: WCResponse) {
+    suspend operator fun invoke(wcResponse: WCResponse) = supervisorScope {
         try {
             val sessionTopic = wcResponse.topic
-            if (!sessionStorageRepository.isSessionValid(sessionTopic)) return
+            if (!sessionStorageRepository.isSessionValid(sessionTopic)) return@supervisorScope
             val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(sessionTopic)
             if (!sessionStorageRepository.isUpdatedNamespaceResponseValid(session.topic.value, wcResponse.response.id.extractTimestamp())) {
-                return
+                return@supervisorScope
             }
 
             when (val response = wcResponse.response) {
@@ -38,18 +39,16 @@ internal class OnSessionUpdateResponseUseCase(
                     val namespaces = sessionStorageRepository.getTempNamespaces(responseId)
                     sessionStorageRepository.deleteNamespaceAndInsertNewNamespace(session.topic.value, namespaces, responseId)
                     sessionStorageRepository.markUnAckNamespaceAcknowledged(responseId)
-                    scope.launch {
-                        _events.emit(EngineDO.SessionUpdateNamespacesResponse.Result(session.topic, session.sessionNamespaces.toMapOfEngineNamespacesSession()))
-                    }
+                    _events.emit(EngineDO.SessionUpdateNamespacesResponse.Result(session.topic, session.sessionNamespaces.toMapOfEngineNamespacesSession()))
                 }
 
                 is JsonRpcResponse.JsonRpcError -> {
                     logger.error("Peer failed to update session namespaces: ${response.error}")
-                    scope.launch { _events.emit(EngineDO.SessionUpdateNamespacesResponse.Error(response.errorMessage)) }
+                    _events.emit(EngineDO.SessionUpdateNamespacesResponse.Error(response.errorMessage))
                 }
             }
         } catch (e: Exception) {
-            scope.launch { _events.emit(SDKError(e)) }
+            _events.emit(SDKError(e))
         }
     }
 }

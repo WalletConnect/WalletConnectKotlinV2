@@ -22,6 +22,7 @@ import com.walletconnect.sign.engine.model.mapper.toNamespacesVORequired
 import com.walletconnect.sign.engine.model.mapper.toSessionProposeParams
 import com.walletconnect.sign.engine.model.mapper.toVO
 import com.walletconnect.sign.storage.proposal.ProposalStorageRepository
+import kotlinx.coroutines.supervisorScope
 
 internal class ProposeSessionUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -31,24 +32,20 @@ internal class ProposeSessionUseCase(
     private val logger: Logger
 ) : ProposeSessionUseCaseInterface {
 
-    override fun proposeSession(
+    override suspend fun proposeSession(
         requiredNamespaces: Map<String, EngineDO.Namespace.Proposal>?,
         optionalNamespaces: Map<String, EngineDO.Namespace.Proposal>?,
         properties: Map<String, String>?,
         pairing: Pairing,
         onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit,
-    ) {
+    ) = supervisorScope {
         val relay = RelayProtocolOptions(pairing.relayProtocol, pairing.relayData)
         validate(requiredNamespaces, optionalNamespaces, properties)
 
         val selfPublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
         val sessionProposal: SignParams.SessionProposeParams =
-            toSessionProposeParams(
-                listOf(relay), requiredNamespaces ?: emptyMap(),
-                optionalNamespaces ?: emptyMap(), properties,
-                selfPublicKey, selfAppMetaData
-            )
+            toSessionProposeParams(listOf(relay), requiredNamespaces ?: emptyMap(), optionalNamespaces ?: emptyMap(), properties, selfPublicKey, selfAppMetaData)
         val request = SignRpc.SessionPropose(params = sessionProposal)
         proposalStorageRepository.insertProposal(sessionProposal.toVO(pairing.topic, request.id))
         val irnParams = IrnParams(Tags.SESSION_PROPOSE, Ttl(FIVE_MINUTES_IN_SECONDS), true)
@@ -91,7 +88,7 @@ internal class ProposeSessionUseCase(
 }
 
 internal interface ProposeSessionUseCaseInterface {
-    fun proposeSession(
+    suspend fun proposeSession(
         requiredNamespaces: Map<String, EngineDO.Namespace.Proposal>?,
         optionalNamespaces: Map<String, EngineDO.Namespace.Proposal>?,
         properties: Map<String, String>?,

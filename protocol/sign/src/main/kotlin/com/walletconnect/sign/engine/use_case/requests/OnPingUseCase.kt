@@ -6,10 +6,11 @@ import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.utils.THIRTY_SECONDS
 import com.walletconnect.foundation.common.model.Ttl
+import kotlinx.coroutines.supervisorScope
 
 internal class OnPingUseCase(private val jsonRpcInteractor: JsonRpcInteractorInterface) {
 
-    operator fun invoke(request: WCRequest) {
+    suspend operator fun invoke(request: WCRequest) = supervisorScope {
         val irnParams = IrnParams(Tags.SESSION_PING_RESPONSE, Ttl(THIRTY_SECONDS))
         jsonRpcInteractor.respondWithSuccess(request, irnParams)
     }

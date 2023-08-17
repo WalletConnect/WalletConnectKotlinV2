@@ -11,19 +11,20 @@ import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toSessionRequest
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
 import com.walletconnect.sign.json_rpc.model.toPendingRequest
+import kotlinx.coroutines.supervisorScope
 
 internal class GetPendingRequestsUseCaseByTopic(
     private val jsonRpcHistory: JsonRpcHistory,
     private val serializer: JsonRpcSerializer
 ) : GetPendingRequestsUseCaseByTopicInterface {
 
-    override fun getPendingRequests(topic: Topic): List<PendingRequest<String>> =
+    override suspend fun getPendingRequests(topic: Topic): List<PendingRequest<String>> = supervisorScope {
         jsonRpcHistory.getListOfPendingRecordsByTopic(topic)
             .filter { record -> record.method == JsonRpcMethod.WC_SESSION_REQUEST }
-            .filter { record -> serializer.tryDeserialize<SignRpc.SessionRequest>(record.body) != null }
-            .map { record -> serializer.tryDeserialize<SignRpc.SessionRequest>(record.body)!!.toPendingRequest(record) }
+            .mapNotNull { record -> serializer.tryDeserialize<SignRpc.SessionRequest>(record.body)?.toPendingRequest(record) }
+    }
 }
 
 internal interface GetPendingRequestsUseCaseByTopicInterface {
-    fun getPendingRequests(topic: Topic): List<PendingRequest<String>>
+    suspend fun getPendingRequests(topic: Topic): List<PendingRequest<String>>
 }

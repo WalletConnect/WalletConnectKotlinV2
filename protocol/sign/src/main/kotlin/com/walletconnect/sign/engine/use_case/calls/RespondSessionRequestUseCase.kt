@@ -38,12 +38,12 @@ internal class RespondSessionRequestUseCase(
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     override val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
-    override fun respondSessionRequest(
+    override suspend fun respondSessionRequest(
         topic: String,
         jsonRpcResponse: JsonRpcResponse,
         onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit,
-    ) {
+    ) = supervisorScope {
         val topicWrapper = Topic(topic)
         if (!sessionStorageRepository.isSessionValid(topicWrapper)) {
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
@@ -52,13 +52,9 @@ internal class RespondSessionRequestUseCase(
         handleExpiration(jsonRpcResponse, topic)
 
         val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
-        jsonRpcInteractor.publishJsonRpcResponse(
-            topic = Topic(topic),
-            params = irnParams,
-            response = jsonRpcResponse,
+        jsonRpcInteractor.publishJsonRpcResponse(topic = Topic(topic), params = irnParams, response = jsonRpcResponse,
             onSuccess = {
                 logger.log("Session payload sent successfully")
-
                 scope.launch {
                     supervisorScope {
                         removePendingSessionRequestAndEmit(jsonRpcResponse)
@@ -73,23 +69,18 @@ internal class RespondSessionRequestUseCase(
         )
     }
 
-    private fun handleExpiration(jsonRpcResponse: JsonRpcResponse, topic: String) {
+    private suspend fun handleExpiration(jsonRpcResponse: JsonRpcResponse, topic: String) {
         getPendingJsonRpcHistoryEntryByIdUseCase(jsonRpcResponse.id)?.params?.request?.expiry?.let { expiry ->
             if (!CoreValidator.isExpiryWithinBounds(expiry)) {
-                scope.launch {
-                    supervisorScope {
-                        val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
-                        val request = WCRequest(Topic(topic), jsonRpcResponse.id, JsonRpcMethod.WC_SESSION_REQUEST, object : ClientParams {})
-                        jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams, onSuccess = {
-                            scope.launch {
-                                supervisorScope {
-                                    removePendingSessionRequestAndEmit(jsonRpcResponse)
-                                }
-                            }
-                        })
+                val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
+                val request = WCRequest(Topic(topic), jsonRpcResponse.id, JsonRpcMethod.WC_SESSION_REQUEST, object : ClientParams {})
+                jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams, onSuccess = {
+                    scope.launch {
+                        supervisorScope {
+                            removePendingSessionRequestAndEmit(jsonRpcResponse)
+                        }
                     }
-                }
-
+                })
                 throw InvalidExpiryException()
             }
         }
@@ -108,7 +99,7 @@ internal class RespondSessionRequestUseCase(
 
 internal interface RespondSessionRequestUseCaseInterface {
     val events: SharedFlow<EngineEvent>
-    fun respondSessionRequest(
+    suspend fun respondSessionRequest(
         topic: String,
         jsonRpcResponse: JsonRpcResponse,
         onSuccess: () -> Unit,

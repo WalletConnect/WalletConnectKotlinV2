@@ -18,6 +18,7 @@ import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withTimeout
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -31,35 +32,15 @@ internal class PingUseCase(
     private val logger: Logger
 ) : PingUseCaseInterface {
 
-    override fun ping(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit, timeout: Duration) {
+    override suspend fun ping(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit, timeout: Duration) = supervisorScope {
         if (sessionStorageRepository.isSessionValid(Topic(topic))) {
             val pingPayload = SignRpc.SessionPing(params = SignParams.PingParams())
             val irnParams = IrnParams(Tags.SESSION_PING, Ttl(THIRTY_SECONDS))
 
-            jsonRpcInteractor.publishJsonRpcRequest(
-                Topic(topic), irnParams, pingPayload,
+            jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, pingPayload,
                 onSuccess = {
                     logger.log("Ping sent successfully")
-                    scope.launch {
-                        try {
-                            withTimeout(timeout) {
-                                collectResponse(pingPayload.id) { result ->
-                                    cancel()
-                                    result.fold(
-                                        onSuccess = {
-                                            logger.log("Ping peer response success")
-                                            onSuccess(topic)
-                                        },
-                                        onFailure = { error ->
-                                            logger.log("Ping peer response error: $error")
-                                            onFailure(error)
-                                        })
-                                }
-                            }
-                        } catch (e: TimeoutCancellationException) {
-                            onFailure(e)
-                        }
-                    }
+                    onPingSuccess(timeout, pingPayload, onSuccess, topic, onFailure)
                 },
                 onFailure = { error ->
                     logger.log("Ping sent error: $error")
@@ -78,6 +59,35 @@ internal class PingUseCase(
         }
     }
 
+    private fun onPingSuccess(
+        timeout: Duration,
+        pingPayload: SignRpc.SessionPing,
+        onSuccess: (String) -> Unit,
+        topic: String,
+        onFailure: (Throwable) -> Unit
+    ) {
+        scope.launch {
+            try {
+                withTimeout(timeout) {
+                    collectResponse(pingPayload.id) { result ->
+                        cancel()
+                        result.fold(
+                            onSuccess = {
+                                logger.log("Ping peer response success")
+                                onSuccess(topic)
+                            },
+                            onFailure = { error ->
+                                logger.log("Ping peer response error: $error")
+                                onFailure(error)
+                            })
+                    }
+                }
+            } catch (e: TimeoutCancellationException) {
+                onFailure(e)
+            }
+        }
+    }
+
     private suspend fun collectResponse(id: Long, onResponse: (Result<JsonRpcResponse.JsonRpcResult>) -> Unit = {}) {
         jsonRpcInteractor.peerResponse
             .filter { response -> response.response.id == id }
@@ -91,5 +101,5 @@ internal class PingUseCase(
 }
 
 internal interface PingUseCaseInterface {
-    fun ping(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit, timeout: Duration = THIRTY_SECONDS_TIMEOUT)
+    suspend fun ping(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit, timeout: Duration = THIRTY_SECONDS_TIMEOUT)
 }

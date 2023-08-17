@@ -41,23 +41,17 @@ internal class ApproveSessionUseCase(
     private val selfAppMetaData: AppMetaData
 ) : ApproveSessionUseCaseInterface {
 
-    override fun approve(
+    override suspend fun approve(
         proposerPublicKey: String,
         sessionNamespaces: Map<String, EngineDO.Namespace.Session>,
         onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit
-    ) {
-        fun sessionSettle(
-            requestId: Long,
-            proposal: ProposalVO,
-            sessionTopic: Topic,
-            pairingTopic: Topic,
-        ) {
+    ) = supervisorScope {
+        fun sessionSettle(requestId: Long, proposal: ProposalVO, sessionTopic: Topic, pairingTopic: Topic, ) {
             val selfPublicKey = crypto.getSelfPublicFromKeyAgreement(sessionTopic)
             val selfParticipant = SessionParticipantVO(selfPublicKey.keyAsHex, selfAppMetaData)
             val sessionExpiry = ACTIVE_SESSION
-            val unacknowledgedSession =
-                SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant, sessionExpiry, sessionNamespaces, pairingTopic.value)
+            val unacknowledgedSession = SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant, sessionExpiry, sessionNamespaces, pairingTopic.value)
 
             try {
                 sessionStorageRepository.insertSession(unacknowledgedSession, requestId)
@@ -82,11 +76,7 @@ internal class ApproveSessionUseCase(
 
         val proposal = proposalStorageRepository.getProposalByKey(proposerPublicKey)
         proposalStorageRepository.deleteProposal(proposerPublicKey)
-        scope.launch {
-            supervisorScope {
-                verifyContextStorageRepository.delete(proposal.requestId)
-            }
-        }
+        verifyContextStorageRepository.delete(proposal.requestId)
         val request = proposal.toSessionProposeRequest()
 
         SignValidator.validateSessionNamespace(sessionNamespaces.toMapOfNamespacesVOSession(), proposal.requiredNamespaces) { error ->
@@ -105,7 +95,7 @@ internal class ApproveSessionUseCase(
 }
 
 internal interface ApproveSessionUseCaseInterface {
-    fun approve(
+    suspend fun approve(
         proposerPublicKey: String,
         sessionNamespaces: Map<String, EngineDO.Namespace.Session>,
         onSuccess: () -> Unit = {},

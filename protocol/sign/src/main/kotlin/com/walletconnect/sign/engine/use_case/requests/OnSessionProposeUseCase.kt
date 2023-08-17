@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 
 internal class OnSessionProposeUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -38,23 +39,23 @@ internal class OnSessionProposeUseCase(
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
-    operator fun invoke(request: WCRequest, payloadParams: SignParams.SessionProposeParams) {
+    suspend operator fun invoke(request: WCRequest, payloadParams: SignParams.SessionProposeParams) = supervisorScope {
         val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
         try {
             SignValidator.validateProposalNamespaces(payloadParams.requiredNamespaces) { error ->
                 jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
-                return
+                return@supervisorScope
             }
 
             SignValidator.validateProposalNamespaces(payloadParams.optionalNamespaces ?: emptyMap()) { error ->
                 jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
-                return
+                return@supervisorScope
             }
 
             payloadParams.properties?.let {
                 SignValidator.validateProperties(payloadParams.properties) { error ->
                     jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
-                    return
+                    return@supervisorScope
                 }
             }
 
@@ -71,7 +72,7 @@ internal class OnSessionProposeUseCase(
                 Uncategorized.GenericError("Cannot handle a session proposal: ${e.message}, topic: ${request.topic}"),
                 irnParams
             )
-            scope.launch { _events.emit(SDKError(e)) }
+            _events.emit(SDKError(e))
         }
     }
 }
