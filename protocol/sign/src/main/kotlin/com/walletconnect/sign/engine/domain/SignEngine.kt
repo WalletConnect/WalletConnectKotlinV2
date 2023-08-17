@@ -12,6 +12,7 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.VerifyContextStorageRepository
+import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.verify.data.model.VerifyContext
 import com.walletconnect.foundation.common.model.Topic
@@ -270,10 +271,17 @@ internal class SignEngine(
     private fun propagatePendingSessionRequestsQueue() = runBlocking {
         getPendingSessionRequests()
             .map { pendingRequest -> pendingRequest.toSessionRequest(metadataStorageRepository.getByTopicAndType(pendingRequest.topic, AppMetaDataType.PEER)) }
-            .map { sessionRequest ->
-                val verifyContext = verifyContextStorageRepository.get(sessionRequest.request.id) ?: VerifyContext(sessionRequest.request.id, String.Empty, Validation.UNKNOWN, String.Empty)
-                val sessionRequestEvent = EngineDO.SessionRequestEvent(sessionRequest, verifyContext.toEngineDO())
-                sessionRequestsQueue.addLast(sessionRequestEvent)
+            .onEach { sessionRequest ->
+                if (CoreValidator.isExpiryWithinBounds(sessionRequest.expiry)) {
+                    scope.launch {
+                        supervisorScope {
+                            val verifyContext =
+                                verifyContextStorageRepository.get(sessionRequest.request.id) ?: VerifyContext(sessionRequest.request.id, String.Empty, Validation.UNKNOWN, String.Empty)
+                            val sessionRequestEvent = EngineDO.SessionRequestEvent(sessionRequest, verifyContext.toEngineDO())
+                            sessionRequestsQueue.addLast(sessionRequestEvent)
+                        }
+                    }
+                }
             }
     }
 }
