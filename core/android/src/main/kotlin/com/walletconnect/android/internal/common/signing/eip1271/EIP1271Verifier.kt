@@ -11,6 +11,7 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import org.json.JSONObject
 import org.web3j.crypto.Sign
 import org.web3j.utils.Numeric
 import timber.log.Timber
@@ -64,9 +65,14 @@ internal object EIP1271Verifier {
         val id = generateId()
         val request: Request = Request.Builder().url(projectId.prefixWithRpcUrl()).post(createBody(address, data, id)).build()
         val response: Response = OkHttpClient().newCall(request).execute()
+        val responseString = response.body?.string() ?: throw Exception("Response body is null")
+        val validResponseResult = getResponseResult(getValidResponse(id))
+        val responseResult = getResponseResult(responseString)
 
-        val responseString = response.body?.string()
-        println(responseString)
-        return responseString == getValidResponse(id)
+        return responseResult == validResponseResult
+    }
+
+    private fun getResponseResult(payload: String): String {
+        return JSONObject(payload.trimIndent()).get("result") as String
     }
 }
