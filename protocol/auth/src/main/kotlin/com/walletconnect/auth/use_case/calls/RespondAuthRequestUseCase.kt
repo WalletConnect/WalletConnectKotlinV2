@@ -44,13 +44,13 @@ internal class RespondAuthRequestUseCase(
     private val logger: Logger,
 ) : RespondAuthRequestUseCaseInterface {
 
-    override fun respond(respond: Respond, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
+    override suspend fun respond(respond: Respond, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         val jsonRpcHistoryEntry = getPendingJsonRpcHistoryEntryByIdUseCase(respond.id)
 
         if (jsonRpcHistoryEntry == null) {
             logger.error(MissingAuthRequestException.message)
             onFailure(MissingAuthRequestException)
-            return
+            return@supervisorScope
         }
 
         val authParams: AuthParams.RequestParams = jsonRpcHistoryEntry.params
@@ -73,20 +73,14 @@ internal class RespondAuthRequestUseCase(
 
         authParams.expiry?.let { expiry ->
             if (!CoreValidator.isExpiryWithinBounds(expiry)) {
-                scope.launch {
-                    supervisorScope {
-                        val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
-                        val wcRequest = WCRequest(responseTopic, respond.id, JsonRpcMethod.WC_AUTH_REQUEST, authParams)
-                        jsonRpcInteractor.respondWithError(wcRequest, Invalid.RequestExpired, irnParams)
-                    }
-                }
-
-                return onFailure(InvalidExpiryException())
+                val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
+                val wcRequest = WCRequest(responseTopic, respond.id, JsonRpcMethod.WC_AUTH_REQUEST, authParams)
+                jsonRpcInteractor.respondWithError(wcRequest, Invalid.RequestExpired, irnParams)
+                return@supervisorScope onFailure(InvalidExpiryException())
             }
         }
 
         crypto.setKey(symmetricKey, responseTopic.value)
-
         val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
         jsonRpcInteractor.publishJsonRpcResponse(
             responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
@@ -113,5 +107,5 @@ internal class RespondAuthRequestUseCase(
 }
 
 internal interface RespondAuthRequestUseCaseInterface {
-    fun respond(respond: Respond, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit)
+    suspend fun respond(respond: Respond, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit)
 }
