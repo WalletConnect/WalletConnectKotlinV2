@@ -2,8 +2,10 @@ package com.walletconnect.web3.modal.ui.components.internal.commons
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.walletconnect.android.internal.common.explorer.data.model.Wallet
+import com.walletconnect.web3.modal.ui.components.internal.walletconnect.WalletConnectLogo
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 internal fun LazyGridScope.walletsGridItems(
@@ -27,26 +30,27 @@ internal fun LazyGridScope.walletsGridItems(
     onWalletItemClick: (Wallet) -> Unit
 ) {
     itemsIndexed(wallets) { _, wallet ->
-        WalletListItem(
+        WalletGridItem(
             wallet = wallet,
             onWalletItemClick = onWalletItemClick
         )
     }
 }
 @Composable
-internal fun WalletImage(url: String, modifier: Modifier) {
+internal fun WalletImage(url: String, isEnabled: Boolean = true, modifier: Modifier) {
     AsyncImage(
         model = ImageRequest.Builder(LocalContext.current)
             .data(url)
             .crossfade(true)
             .build(),
         contentDescription = null,
-        modifier = modifier
+        modifier = modifier,
+        colorFilter = if (isEnabled) null else grayColorFilter
     )
 }
 
 @Composable
-internal fun WalletListItem(
+internal fun WalletGridItem(
     wallet: Wallet,
     onWalletItemClick: (Wallet) -> Unit
 ) {

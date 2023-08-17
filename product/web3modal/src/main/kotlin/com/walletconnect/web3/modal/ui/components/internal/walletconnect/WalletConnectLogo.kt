@@ -1,49 +1,59 @@
 package com.walletconnect.web3.modal.ui.components.internal.walletconnect
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Row
-import androidx.compose.material.Text
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.walletconnect.web3.modal.R
-import com.walletconnect.web3.modal.ui.components.internal.commons.HorizontalSpacer
-import com.walletconnect.web3.modal.ui.previews.ComponentPreview
+import com.walletconnect.web3.modal.ui.components.internal.commons.ContentDescription
+import com.walletconnect.web3.modal.ui.previews.MultipleComponentsPreview
+import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 @Composable
-fun WalletConnectLogo(modifier: Modifier = Modifier) {
-    Row(
-        modifier,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Image(
-            imageVector = ImageVector.vectorResource(id = R.drawable.ic_wallet_connect_logo),
-            contentDescription = "WalletConnectLogo"
-        )
-        HorizontalSpacer(width = 4.dp)
-        Text(
-            text = "WalletConnect",
-            style = TextStyle(
-                color = Web3ModalTheme.colors.foreground.color100,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-        )
+internal fun WalletConnectLogo(
+    isEnabled: Boolean = true
+) {
+    val background: Color
+    val border: Color
+    val colorFilter: ColorFilter?
+    if (isEnabled) {
+        background = Web3ModalTheme.colors.main100
+        border = Web3ModalTheme.colors.overlay10
+        colorFilter = null
+    } else {
+        background = Web3ModalTheme.colors.background.color300
+        border = Web3ModalTheme.colors.overlay05
+        colorFilter = ColorFilter.tint(Web3ModalTheme.colors.overlay30)
     }
+
+    Image(
+        modifier = Modifier
+            .size(40.dp)
+            .background(background, shape = RoundedCornerShape(8.dp))
+            .border(width = 1.dp, color = border, shape = RoundedCornerShape(8.dp))
+            .padding(4.dp),
+        imageVector = ImageVector.vectorResource(id = R.drawable.ic_wallet_connect_logo),
+        contentDescription = ContentDescription.WC_LOGO.description,
+
+        colorFilter = colorFilter
+    )
 }
 
-@Preview
+@UiModePreview
 @Composable
 private fun PreviewWalletConnectLogo() {
-    ComponentPreview {
-        WalletConnectLogo()
-    }
+    MultipleComponentsPreview(
+        { WalletConnectLogo() },
+        { WalletConnectLogo(false) }
+    )
 }
