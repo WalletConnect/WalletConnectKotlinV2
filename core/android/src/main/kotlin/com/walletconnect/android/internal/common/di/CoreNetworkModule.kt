@@ -26,17 +26,16 @@ import com.walletconnect.utils.toBinaryString
 import okhttp3.Authenticator
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.android.ext.koin.androidApplication
 import org.koin.core.qualifier.named
+import org.koin.core.scope.Scope
 import org.koin.dsl.module
-import java.io.IOException
-import java.net.SocketException
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-private const val FAIL_OVER_RELAY_URL: String = "wss://relay.walletconnect.org"
-private const val DEFAULT_RELAY_URL: String = "relay.walletconnect.com"
 
 @Suppress("LocalVariableName")
 @JvmSynthetic
@@ -44,7 +43,6 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
     val DEFAULT_BACKOFF_SECONDS = 5L
     val networkClientTimeout = timeout ?: NetworkClientTimeout.getDefaultTimeout()
     var SERVER_URL: String = serverUrl
-    var wasFailOvered = false
 
     factory(named(AndroidCommonDITags.RELAY_URL)) {
         val jwt = get<GenerateJwtStoreClientIdUseCase>().invoke(SERVER_URL)
@@ -86,16 +84,38 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
         Interceptor { chain ->
             val request = chain.request()
             try {
-                if (wasFailOvered && request.url.host == DEFAULT_RELAY_URL) {
-                    chain.proceed(request.newBuilder().url(get<String>(named(AndroidCommonDITags.RELAY_URL))).build())
-                } else {
-                    chain.proceed(request)
+                val host = request.url.host
+                when {
+                    shouldFallbackRelay(host) -> chain.proceed(request.newBuilder().url(get<String>(named(AndroidCommonDITags.RELAY_URL))).build())
+                    shouldFallbackEcho(host) -> chain.proceed(request.newBuilder().url(get<String>(named(AndroidCommonDITags.ECHO_URL))).build())
+                    shouldFallbackVerify(host) -> chain.proceed(request.newBuilder().url(get<String>(named(AndroidCommonDITags.VERIFY_URL))).build())
+                    else -> chain.proceed(request)
                 }
             } catch (e: Exception) {
-                if (request.url.host == DEFAULT_RELAY_URL && isFailOverException(e)) {
-                    SERVER_URL = "$FAIL_OVER_RELAY_URL?projectId=${Uri.parse(SERVER_URL).getQueryParameter("projectId")}"
-                    wasFailOvered = true
-                    chain.proceed(request.newBuilder().url(get<String>(named(AndroidCommonDITags.RELAY_URL))).build())
+                if (isFailOverException(e)) {
+                    when (request.url.host) {
+                        DEFAULT_RELAY_URL.host -> {
+                            SERVER_URL = "$FAIL_OVER_RELAY_URL?projectId=${Uri.parse(SERVER_URL).getQueryParameter("projectId")}"
+                            wasRelayFailOvered = true
+                            chain.proceed(request.newBuilder().url(get<String>(named(AndroidCommonDITags.RELAY_URL))).build())
+                        }
+
+                        DEFAULT_ECHO_URL.host -> {
+                            val (path, query) = getPathAndQuery(request.url.toString())
+                            ECHO_URL = "$FAIL_OVER_ECHO_URL$path?$query}"
+                            wasEchoFailOvered = true
+                            chain.proceed(request.newBuilder().url(get<String>(named(AndroidCommonDITags.ECHO_URL))).build())
+                        }
+
+                        DEFAULT_VERIFY_URL.host -> {
+                            VERIFY_URL = "$FAIL_OVER_VERIFY_URL/attestation/${Uri.parse(request.url.toString()).lastPathSegment}"
+                            wasVerifyFailOvered = true
+                            chain.proceed(request.newBuilder().url(get<String>(named(AndroidCommonDITags.VERIFY_URL))).build())
+                        }
+
+                        else -> chain.proceed(request.newBuilder().url(request.url).build())
+                    }
+
                 } else {
                     chain.proceed(request)
                 }
@@ -174,5 +194,3 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
         ConnectivityState(androidApplication())
     }
 }
-
-private fun isFailOverException(e: Exception) = (e is SocketException || e is IOException)
