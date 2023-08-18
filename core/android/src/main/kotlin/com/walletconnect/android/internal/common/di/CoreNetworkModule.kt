@@ -26,23 +26,22 @@ import com.walletconnect.utils.toBinaryString
 import okhttp3.Authenticator
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.android.ext.koin.androidApplication
 import org.koin.core.qualifier.named
-import org.koin.core.scope.Scope
 import org.koin.dsl.module
 import java.util.*
 import java.util.concurrent.TimeUnit
 
+
+var SERVER_URL: String = ""
 
 @Suppress("LocalVariableName")
 @JvmSynthetic
 fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, sdkVersion: String, timeout: NetworkClientTimeout? = null) = module {
     val DEFAULT_BACKOFF_SECONDS = 5L
     val networkClientTimeout = timeout ?: NetworkClientTimeout.getDefaultTimeout()
-    var SERVER_URL: String = serverUrl
+    SERVER_URL = serverUrl
 
     factory(named(AndroidCommonDITags.RELAY_URL)) {
         val jwt = get<GenerateJwtStoreClientIdUseCase>().invoke(SERVER_URL)
@@ -94,28 +93,11 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
             } catch (e: Exception) {
                 if (isFailOverException(e)) {
                     when (request.url.host) {
-                        DEFAULT_RELAY_URL.host -> {
-                            SERVER_URL = "$FAIL_OVER_RELAY_URL?projectId=${Uri.parse(SERVER_URL).getQueryParameter("projectId")}"
-                            wasRelayFailOvered = true
-                            chain.proceed(request.newBuilder().url(get<String>(named(AndroidCommonDITags.RELAY_URL))).build())
-                        }
-
-                        DEFAULT_ECHO_URL.host -> {
-                            val (path, query) = getPathAndQuery(request.url.toString())
-                            ECHO_URL = "$FAIL_OVER_ECHO_URL$path?$query}"
-                            wasEchoFailOvered = true
-                            chain.proceed(request.newBuilder().url(get<String>(named(AndroidCommonDITags.ECHO_URL))).build())
-                        }
-
-                        DEFAULT_VERIFY_URL.host -> {
-                            VERIFY_URL = "$FAIL_OVER_VERIFY_URL/attestation/${Uri.parse(request.url.toString()).lastPathSegment}"
-                            wasVerifyFailOvered = true
-                            chain.proceed(request.newBuilder().url(get<String>(named(AndroidCommonDITags.VERIFY_URL))).build())
-                        }
-
+                        DEFAULT_RELAY_URL.host -> fallbackRelay(chain, request)
+                        DEFAULT_ECHO_URL.host -> fallbackEcho(request, chain)
+                        DEFAULT_VERIFY_URL.host -> fallbackVerify(request, chain)
                         else -> chain.proceed(request.newBuilder().url(request.url).build())
                     }
-
                 } else {
                     chain.proceed(request)
                 }
