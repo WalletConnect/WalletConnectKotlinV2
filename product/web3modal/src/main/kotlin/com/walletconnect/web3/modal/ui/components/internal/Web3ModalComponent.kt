@@ -85,7 +85,7 @@ private fun ErrorModalState(closeModal: () -> Unit) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Something went wrong", style = Web3ModalTheme.typo.paragraph500.copy(color = Web3ModalTheme.colors.foreground.color100))
+        Text(text = "Something went wrong", style = Web3ModalTheme.typo.paragraph500)
         VerticalSpacer(height = 10.dp)
         RoundedMainButton(
             text = "Close",

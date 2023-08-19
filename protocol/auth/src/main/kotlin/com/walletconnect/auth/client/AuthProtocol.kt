@@ -18,6 +18,7 @@ import com.walletconnect.auth.di.jsonRpcModule
 import com.walletconnect.auth.engine.domain.AuthEngine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.koin.core.KoinApplication
 
@@ -78,11 +79,13 @@ internal class AuthProtocol(private val koinApp: KoinApplication = wcKoinApp) : 
         checkEngineInitialization()
 
         try {
-            val expiry = params.expiry?.run { Expiry(this) }
-            authEngine.request(params.toCommon(), expiry, params.topic,
-                onSuccess = onSuccess,
-                onFailure = { error -> onError(Auth.Model.Error(error)) }
-            )
+            scope.launch {
+                val expiry = params.expiry?.run { Expiry(this) }
+                authEngine.request(params.toCommon(), expiry, params.topic,
+                    onSuccess = onSuccess,
+                    onFailure = { error -> onError(Auth.Model.Error(error)) }
+                )
+            }
         } catch (error: Exception) {
             onError(Auth.Model.Error(error))
         }
@@ -92,7 +95,7 @@ internal class AuthProtocol(private val koinApp: KoinApplication = wcKoinApp) : 
     override fun respond(params: Auth.Params.Respond, onSuccess: (Auth.Params.Respond) -> Unit, onError: (Auth.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            authEngine.respond(params.toCommon(), { onSuccess(params) }, { error -> onError(Auth.Model.Error(error)) })
+            scope.launch { authEngine.respond(params.toCommon(), { onSuccess(params) }, { error -> onError(Auth.Model.Error(error)) }) }
         } catch (error: Exception) {
             onError(Auth.Model.Error(error))
         }
@@ -103,7 +106,7 @@ internal class AuthProtocol(private val koinApp: KoinApplication = wcKoinApp) : 
         checkEngineInitialization()
 
         return try {
-            authEngine.formatMessage(params.payloadParams.toCommon(), params.issuer)
+            runBlocking { authEngine.formatMessage(params.payloadParams.toCommon(), params.issuer) }
         } catch (error: Exception) {
             null
         }
@@ -113,7 +116,7 @@ internal class AuthProtocol(private val koinApp: KoinApplication = wcKoinApp) : 
     override fun getPendingRequest(): List<Auth.Model.PendingRequest> {
         checkEngineInitialization()
 
-        return authEngine.getPendingRequests().toClient()
+        return runBlocking { authEngine.getPendingRequests().toClient() }
     }
 
     @Throws(IllegalStateException::class)
