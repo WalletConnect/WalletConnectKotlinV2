@@ -27,21 +27,26 @@ internal var wasVerifyFailOvered = false
 internal fun shouldFallbackRelay(host: String): Boolean = wasRelayFailOvered && host == DEFAULT_RELAY_URL.host
 internal fun shouldFallbackEcho(host: String): Boolean = wasEchoFailOvered && host == DEFAULT_ECHO_URL.host
 internal fun shouldFallbackVerify(host: String): Boolean = wasVerifyFailOvered && host == DEFAULT_VERIFY_URL.host
-internal fun getPathAndQuery(url: String) = with(Uri.parse(url)) { return@with Pair(this.path, this.query) }
+internal fun getFallbackEchoUrl(url: String): String = with(Uri.parse(url)) {
+    val (path, query) = Pair(this.path, this.query)
+    return@with "$FAIL_OVER_ECHO_URL$path?$query}"
+}
+
+internal fun getFallbackVerifyUrl(url: String): String = "$FAIL_OVER_VERIFY_URL/attestation/${Uri.parse(url).lastPathSegment}"
+
 internal fun isFailOverException(e: Exception) = (e is SocketException || e is IOException)
 internal val String.host: String? get() = Uri.parse(this).host
 
-internal fun Scope.fallbackEcho(request: Request, chain: Interceptor.Chain): Response {
-    val (path, query) = getPathAndQuery(request.url.toString())
-    ECHO_URL = "$FAIL_OVER_ECHO_URL$path?$query}"
+internal fun fallbackEcho(request: Request, chain: Interceptor.Chain): Response {
+    ECHO_URL = FAIL_OVER_ECHO_URL
     wasEchoFailOvered = true
-    return chain.proceed(request.newBuilder().url(get<String>(named(AndroidCommonDITags.ECHO_URL))).build())
+    return chain.proceed(request.newBuilder().url(getFallbackEchoUrl(request.url.toString())).build())
 }
 
-internal fun Scope.fallbackVerify(request: Request, chain: Interceptor.Chain): Response {
-    VERIFY_URL = "$FAIL_OVER_VERIFY_URL/attestation/${Uri.parse(request.url.toString()).lastPathSegment}"
+internal fun fallbackVerify(request: Request, chain: Interceptor.Chain): Response {
+    VERIFY_URL = FAIL_OVER_VERIFY_URL
     wasVerifyFailOvered = true
-    return chain.proceed(request.newBuilder().url(get<String>(named(AndroidCommonDITags.VERIFY_URL))).build())
+    return chain.proceed(request.newBuilder().url(getFallbackVerifyUrl(request.url.toString())).build())
 }
 
 internal fun Scope.fallbackRelay(chain: Interceptor.Chain, request: Request): Response {

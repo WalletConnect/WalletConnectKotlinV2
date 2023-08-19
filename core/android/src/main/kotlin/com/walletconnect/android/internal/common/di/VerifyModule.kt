@@ -9,9 +9,7 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 
 @JvmSynthetic
 internal fun verifyModule(verifyServerUrl: String?) = module {
-    VERIFY_URL = verifyServerUrl ?: DEFAULT_VERIFY_URL
-
-    factory(named(AndroidCommonDITags.VERIFY_URL)) { VERIFY_URL }
+    factory(named(AndroidCommonDITags.VERIFY_URL)) { verifyServerUrl ?: VERIFY_URL }
 
     single(named(AndroidCommonDITags.VERIFY_RETROFIT)) {
         Retrofit.Builder()
