@@ -18,6 +18,7 @@ import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.engine.model.EngineDO
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import org.koin.core.KoinApplication
 import kotlinx.coroutines.runBlocking
 
@@ -98,7 +99,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     ) {
         checkEngineInitialization()
         try {
-            runBlocking {
+            scope.launch {
                 signEngine.proposeSession(
                     connect.namespaces?.toMapOfEngineNamespacesRequired(),
                     connect.optionalNamespaces?.toMapOfEngineNamespacesOptional(),
@@ -119,7 +120,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     ) {
         checkEngineInitialization()
         try {
-            runBlocking {
+            scope.launch {
                 signEngine.pair(
                     uri = pair.uri,
                     onSuccess = { onSuccess(pair) },
@@ -136,7 +137,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
         checkEngineInitialization()
 
         try {
-            runBlocking {
+            scope.launch {
                 signEngine.approve(
                     proposerPublicKey = approve.proposerPublicKey,
                     sessionNamespaces = approve.namespaces.toMapOfEngineNamespacesSession(),
@@ -153,7 +154,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     override fun rejectSession(reject: Sign.Params.Reject, onSuccess: (Sign.Params.Reject) -> Unit, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            runBlocking {
+            scope.launch {
                 signEngine.reject(reject.proposerPublicKey, reject.reason, onSuccess = { onSuccess(reject) }) { error ->
                     onError(Sign.Model.Error(error))
                 }
@@ -176,7 +177,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     ) {
         checkEngineInitialization()
         try {
-            runBlocking {
+            scope.launch {
                 signEngine.sessionRequest(
                     request = request.toEngineDORequest(),
                     onSuccess = { onSuccess(request) },
@@ -192,7 +193,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     override fun request(request: Sign.Params.Request, onSuccess: (Sign.Model.SentRequest) -> Unit, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            runBlocking {
+            scope.launch {
                 signEngine.sessionRequest(
                     request = request.toEngineDORequest(),
                     onSuccess = { requestId -> onSuccess(request.toSentRequest(requestId)) },
@@ -208,7 +209,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     override fun respond(response: Sign.Params.Response, onSuccess: (Sign.Params.Response) -> Unit, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            runBlocking {
+            scope.launch {
                 signEngine.respondSessionRequest(
                     topic = response.sessionTopic,
                     jsonRpcResponse = response.jsonRpcResponse.toJsonRpcResponse(),
@@ -225,7 +226,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     override fun update(update: Sign.Params.Update, onSuccess: (Sign.Params.Update) -> Unit, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            runBlocking {
+            scope.launch {
                 signEngine.sessionUpdate(
                     topic = update.sessionTopic,
                     namespaces = update.namespaces.toMapOfEngineNamespacesSession(),
@@ -242,7 +243,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     override fun extend(extend: Sign.Params.Extend, onSuccess: (Sign.Params.Extend) -> Unit, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            runBlocking {
+            scope.launch {
                 signEngine.extend(
                     topic = extend.topic,
                     onSuccess = { onSuccess(extend) },
@@ -258,7 +259,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     override fun emit(emit: Sign.Params.Emit, onSuccess: (Sign.Params.Emit) -> Unit, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            runBlocking {
+            scope.launch {
                 signEngine.emit(
                     topic = emit.topic,
                     event = emit.event.toEngineEvent(emit.chainId),
@@ -275,7 +276,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     override fun ping(ping: Sign.Params.Ping, sessionPing: Sign.Listeners.SessionPing?) {
         checkEngineInitialization()
         try {
-            runBlocking {
+            scope.launch {
                 signEngine.ping(
                     ping.topic,
                     { topic -> sessionPing?.onSuccess(Sign.Model.Ping.Success(topic)) },
@@ -292,7 +293,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     override fun disconnect(disconnect: Sign.Params.Disconnect, onSuccess: (Sign.Params.Disconnect) -> Unit, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
         try {
-            runBlocking {
+            scope.launch {
                 signEngine.disconnect(
                     topic = disconnect.sessionTopic,
                     onSuccess = { onSuccess(disconnect) },

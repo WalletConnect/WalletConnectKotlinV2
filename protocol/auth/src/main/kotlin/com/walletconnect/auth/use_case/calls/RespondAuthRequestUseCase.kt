@@ -5,6 +5,7 @@ import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementReposit
 import com.walletconnect.android.internal.common.exception.Invalid
 import com.walletconnect.android.internal.common.exception.InvalidExpiryException
 import com.walletconnect.android.internal.common.model.EnvelopeType
+import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Participants
 import com.walletconnect.android.internal.common.model.SymmetricKey
@@ -54,30 +55,14 @@ internal class RespondAuthRequestUseCase(
         }
 
         val authParams: AuthParams.RequestParams = jsonRpcHistoryEntry.params
-        val response: JsonRpcResponse = when (respond) {
-            is Respond.Error -> JsonRpcResponse.JsonRpcError(respond.id, error = JsonRpcResponse.Error(respond.code, respond.message))
-            is Respond.Result -> {
-                val issuer = Issuer(respond.iss)
-                val payload: Cacao.Payload = authParams.payloadParams.toCacaoPayload(issuer)
-                val cacao = Cacao(CacaoType.EIP4361.toHeader(), payload, respond.signature.toCommon())
-                val responseParams = CoreAuthParams.ResponseParams(cacao.header, cacao.payload, cacao.signature)
-                if (!cacaoVerifier.verify(cacao)) throw InvalidCacaoException
-                JsonRpcResponse.JsonRpcResult(respond.id, result = responseParams)
-            }
-        }
-
+        val response: JsonRpcResponse = handleResponse(respond, authParams)
         val receiverPublicKey = PublicKey(authParams.requester.publicKey)
         val senderPublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
         val symmetricKey: SymmetricKey = crypto.generateSymmetricKeyFromKeyAgreement(senderPublicKey, receiverPublicKey)
         val responseTopic: Topic = crypto.getTopicFromKey(receiverPublicKey)
 
         authParams.expiry?.let { expiry ->
-            if (!CoreValidator.isExpiryWithinBounds(expiry)) {
-                val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
-                val wcRequest = WCRequest(responseTopic, respond.id, JsonRpcMethod.WC_AUTH_REQUEST, authParams)
-                jsonRpcInteractor.respondWithError(wcRequest, Invalid.RequestExpired, irnParams)
-                return@supervisorScope onFailure(InvalidExpiryException())
-            }
+            if (checkExpiry(expiry, responseTopic, respond, authParams)) return@supervisorScope onFailure(InvalidExpiryException())
         }
 
         crypto.setKey(symmetricKey, responseTopic.value)
@@ -103,6 +88,28 @@ internal class RespondAuthRequestUseCase(
                 onFailure(error)
             }
         )
+    }
+
+    private fun checkExpiry(expiry: Expiry, responseTopic: Topic, respond: Respond, authParams: AuthParams.RequestParams): Boolean {
+        if (!CoreValidator.isExpiryWithinBounds(expiry)) {
+            val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
+            val wcRequest = WCRequest(responseTopic, respond.id, JsonRpcMethod.WC_AUTH_REQUEST, authParams)
+            jsonRpcInteractor.respondWithError(wcRequest, Invalid.RequestExpired, irnParams)
+            return true
+        }
+        return false
+    }
+
+    private fun handleResponse(respond: Respond, authParams: AuthParams.RequestParams) = when (respond) {
+        is Respond.Error -> JsonRpcResponse.JsonRpcError(respond.id, error = JsonRpcResponse.Error(respond.code, respond.message))
+        is Respond.Result -> {
+            val issuer = Issuer(respond.iss)
+            val payload: Cacao.Payload = authParams.payloadParams.toCacaoPayload(issuer)
+            val cacao = Cacao(CacaoType.EIP4361.toHeader(), payload, respond.signature.toCommon())
+            val responseParams = CoreAuthParams.ResponseParams(cacao.header, cacao.payload, cacao.signature)
+            if (!cacaoVerifier.verify(cacao)) throw InvalidCacaoException
+            JsonRpcResponse.JsonRpcResult(respond.id, result = responseParams)
+        }
     }
 }
 

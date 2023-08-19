@@ -268,7 +268,7 @@ internal class SignEngine(
         }
     }
 
-    private fun propagatePendingSessionRequestsQueue() = runBlocking {
+    private fun propagatePendingSessionRequestsQueue() = scope.launch {
         getPendingSessionRequests()
             .map { pendingRequest -> pendingRequest.toSessionRequest(metadataStorageRepository.getByTopicAndType(pendingRequest.topic, AppMetaDataType.PEER)) }
             .onEach { sessionRequest ->

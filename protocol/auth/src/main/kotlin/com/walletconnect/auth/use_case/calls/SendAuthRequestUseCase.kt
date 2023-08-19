@@ -43,13 +43,7 @@ internal class SendAuthRequestUseCase(
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     override val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
-    override suspend fun request(
-        payloadParams: PayloadParams,
-        expiry: Expiry?,
-        topic: String,
-        onSuccess: () -> Unit,
-        onFailure: (Throwable) -> Unit,
-    ) = supervisorScope {
+    override suspend fun request(payloadParams: PayloadParams, expiry: Expiry?, topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         val nowInSeconds = TimeUnit.SECONDS.convert(Date().time, TimeUnit.SECONDS)
         if (!CoreValidator.isExpiryWithinBounds(expiry ?: Expiry(300))) {
             return@supervisorScope onFailure(InvalidExpiryException())
@@ -57,16 +51,9 @@ internal class SendAuthRequestUseCase(
 
         val responsePublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
         val responseTopic: Topic = crypto.getTopicFromKey(responsePublicKey)
-
         val authParams: AuthParams.RequestParams = AuthParams.RequestParams(Requester(responsePublicKey.keyAsHex, selfAppMetaData), payloadParams, expiry)
         val authRequest: AuthRpc.AuthRequest = AuthRpc.AuthRequest(params = authParams)
-        val irnParamsTtl = expiry?.run {
-            val defaultTtl = DAY_IN_SECONDS
-            val extractedTtl = seconds - nowInSeconds
-            val newTtl = extractedTtl.takeIf { extractedTtl >= defaultTtl } ?: defaultTtl
-
-            Ttl(newTtl)
-        } ?: Ttl(DAY_IN_SECONDS)
+        val irnParamsTtl = getIrnParamsTtl(expiry, nowInSeconds)
         val irnParams = IrnParams(Tags.AUTH_REQUEST, irnParamsTtl, true)
         val pairingTopic = Topic(topic)
         val requestTtlInSeconds = expiry?.run { seconds - nowInSeconds } ?: DAY_IN_SECONDS
@@ -75,33 +62,41 @@ internal class SendAuthRequestUseCase(
         jsonRpcInteractor.publishJsonRpcRequest(pairingTopic, irnParams, authRequest,
             onSuccess = {
                 try {
-                    jsonRpcInteractor.subscribe(responseTopic) { error ->
-                        return@subscribe onFailure(error)
-                    }
+                    jsonRpcInteractor.subscribe(responseTopic) { error -> return@subscribe onFailure(error) }
                 } catch (e: Exception) {
                     return@publishJsonRpcRequest onFailure(e)
                 }
 
                 pairingTopicToResponseTopicMap[pairingTopic] = responseTopic
                 onSuccess()
-
-                scope.launch {
-                    try {
-                        withTimeout(TimeUnit.SECONDS.toMillis(requestTtlInSeconds)) {
-                            jsonRpcInteractor.peerResponse
-                                .filter { response -> response.response.id == authRequest.id }
-                                .collect { cancel() }
-                        }
-                    } catch (e: TimeoutCancellationException) {
-                        _events.emit(SDKError(e))
-                    }
-                }
+                collectPeerResponse(requestTtlInSeconds, authRequest)
             },
             onFailure = { error ->
                 logger.error("Failed to send a auth request: $error")
                 onFailure(error)
             }
         )
+    }
+
+    private fun getIrnParamsTtl(expiry: Expiry?, nowInSeconds: Long) = expiry?.run {
+        val defaultTtl = DAY_IN_SECONDS
+        val extractedTtl = seconds - nowInSeconds
+        val newTtl = extractedTtl.takeIf { extractedTtl >= defaultTtl } ?: defaultTtl
+        Ttl(newTtl)
+    } ?: Ttl(DAY_IN_SECONDS)
+
+    private fun collectPeerResponse(requestTtlInSeconds: Long, authRequest: AuthRpc.AuthRequest) {
+        scope.launch {
+            try {
+                withTimeout(TimeUnit.SECONDS.toMillis(requestTtlInSeconds)) {
+                    jsonRpcInteractor.peerResponse
+                        .filter { response -> response.response.id == authRequest.id }
+                        .collect { cancel() }
+                }
+            } catch (e: TimeoutCancellationException) {
+                _events.emit(SDKError(e))
+            }
+        }
     }
 }
 
