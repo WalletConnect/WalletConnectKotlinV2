@@ -6,16 +6,16 @@ import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpc
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
 import com.walletconnect.sign.json_rpc.model.toPendingRequest
+import kotlinx.coroutines.supervisorScope
 
 internal class GetPendingSessionRequests(
     private val jsonRpcHistory: JsonRpcHistory,
     private val serializer: JsonRpcSerializer
 ) {
 
-    operator fun invoke(): List<PendingRequest<String>> =
+    suspend operator fun invoke(): List<PendingRequest<String>> = supervisorScope {
         jsonRpcHistory.getListOfPendingRecords()
             .filter { record -> record.method == JsonRpcMethod.WC_SESSION_REQUEST }
-            .mapNotNull { record ->
-                serializer.tryDeserialize<SignRpc.SessionRequest>(record.body)?.toPendingRequest(record)
-            }
+            .mapNotNull { record -> serializer.tryDeserialize<SignRpc.SessionRequest>(record.body)?.toPendingRequest(record) }
+    }
 }
