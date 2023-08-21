@@ -38,7 +38,7 @@ internal fun Web3ModalComponent(
                 (fadeIn() + slideInVertically(animationSpec = tween(400),
                     initialOffsetY = { fullHeight -> fullHeight })).togetherWith(fadeOut(animationSpec = tween(200)))
             },
-            label = "Root Animated content  content"
+            label = "Root Animated content"
         ) { state ->
             when (state) {
                 is Web3ModalState.Connect, Web3ModalState.SessionState -> Web3ModalNavGraph(
