@@ -16,6 +16,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
+@Deprecated("V2")
 @Composable
 internal fun MainButton(
     text: String,
@@ -39,6 +40,7 @@ internal fun MainButton(
     }
 }
 
+@Deprecated("V2")
 @Composable
 internal fun RoundedOutLineButton(
     text: String,
@@ -68,6 +70,7 @@ internal fun RoundedOutLineButton(
     }
 }
 
+@Deprecated("V2")
 @Composable
 internal fun RoundedMainButton(
     text: String,
@@ -96,6 +99,7 @@ internal fun RoundedMainButton(
     }
 }
 
+@Deprecated("V2")
 @Composable
 private fun RoundedButton(
     onClick: () -> Unit,

@@ -6,4 +6,12 @@ enum class ContentDescription(val description: String) {
     CLOSE("Close"),
     WC_LOGO("Logo"),
     COPY("Copy"),
+    CLEAR("Clear"),
+    SEARCH("Search"),
+    RETRY("Retry"),
+    WALLET("Wallet"),
+    FORWARD_ARROW("ForwardArrow"),
+    STORE_IMAGE("StoreEntryImage"),
+    DECLINED("Declined"),
+    EXTERNAL_LINK("ExternalLink")
 }

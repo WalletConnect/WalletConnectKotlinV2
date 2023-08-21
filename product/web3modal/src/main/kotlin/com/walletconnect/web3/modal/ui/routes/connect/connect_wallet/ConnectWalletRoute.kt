@@ -21,6 +21,7 @@ import androidx.navigation.NavController
 import com.walletconnect.android.internal.common.explorer.data.model.Wallet
 import com.walletconnect.modal.utils.goToNativeWallet
 import com.walletconnect.web3.modal.ui.components.internal.commons.ListSelectRow
+import com.walletconnect.web3.modal.ui.components.internal.commons.MultipleWalletIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.WalletImage
 import com.walletconnect.web3.modal.ui.components.internal.walletconnect.walletConnectQRCode
 import com.walletconnect.web3.modal.ui.navigation.Route
@@ -32,16 +33,11 @@ import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 @Composable
 internal fun ConnectWalletRoute(
     navController: NavController,
-    uri: String,
     wallets: List<Wallet>
 ) {
-    val uriHandler = LocalUriHandler.current
-
     ConnectWalletContent(
         wallets = wallets,
-        onWalletItemClick = {
-            uriHandler.goToNativeWallet(uri, it.nativeLink)
-        },
+        onWalletItemClick = { navController.navigate(Route.REDIRECT.path + "/${it.id}&${it.name}") },
         onViewAllClick = { navController.navigate(Route.ALL_WALLETS.path) },
         onScanIconClick = { navController.navigate(Route.QR_CODE.path) }
     )
@@ -127,39 +123,11 @@ private fun AllWalletListSelect(
     onViewAllClick: () -> Unit
 ) {
     ListSelectRow(
-        startIcon = { AllWalletsIcons(wallets.take(4))},
+        startIcon = { MultipleWalletIcon(wallets = wallets.take(4))},
         text = "All Wallets",
         onClick = onViewAllClick,
         contentPadding = PaddingValues(vertical = 4.dp)
     )
-}
-
-@Composable
-private fun AllWalletsIcons(wallets: List<Wallet>) {
-    Column(
-        modifier = Modifier
-            .size(40.dp)
-            .background(Web3ModalTheme.colors.background.color200, shape = RoundedCornerShape(10.dp))
-            .padding(2.dp)
-            .border(1.dp, Web3ModalTheme.colors.overlay10, shape = RoundedCornerShape(10.dp)),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        wallets.chunked(2).forEach {
-            Row(modifier = Modifier.width(40.dp)) {
-                it.forEach { item ->
-                    WalletImage(
-                        url = item.imageUrl,
-                        modifier = Modifier
-                            .size(16.dp)
-                            .padding(1.dp)
-                            .clip(RoundedCornerShape(4.dp))
-                    )
-                }
-            }
-        }
-
-    }
 }
 
 @UiModePreview
