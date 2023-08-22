@@ -28,7 +28,7 @@ internal class ExtractPublicKeysFromDidJsonUseCase(
         }.mapCatching { wellKnownDidJsonString ->
             // Parse the did.json
             serializer.tryDeserialize<DidJsonDTO>(wellKnownDidJsonString)
-                ?: throw Exception("Failed to parse $DID_JSON. Check that the $DID_JSON matches the specs.")
+                ?: throw Exception("Failed to parse $dappUri. Check that the $DID_JSON matches the specs.")
         }
 
         val keyAgreementPublicKey = didJsonResult
@@ -38,7 +38,7 @@ internal class ExtractPublicKeysFromDidJsonUseCase(
                 didJsonDto.keyAgreement.first() to didJsonDto
             }?.mapCatching { (id, didJson) ->
                 extractPublicKey(id, didJson.verificationMethod)
-            } ?: Result.failure(Exception("Key Agreement is missing from $DID_JSON. Check that the $DID_JSON matches the specs."))
+            } ?: Result.failure(Exception("Key Agreement is missing from $dappUri. Check that the $DID_JSON matches the specs."))
 
         // TODO: Re-implement after testing
         val authenticationPublicKey = didJsonResult
@@ -48,7 +48,7 @@ internal class ExtractPublicKeysFromDidJsonUseCase(
                 didJsonDto.authentication.first() to didJsonDto
             }?.mapCatching { (id, didJson) ->
                 extractPublicKey(id, didJson.verificationMethod)
-            } ?: Result.failure(Exception("Authentication is missing from $DID_JSON. Check that the $DID_JSON matches the specs."))
+            } ?: Result.failure(Exception("Authentication is missing from $dappUri. Check that the $DID_JSON matches the specs."))
 
         return@withContext runCatching {
             keyAgreementPublicKey.getOrThrow() to authenticationPublicKey.getOrThrow()
