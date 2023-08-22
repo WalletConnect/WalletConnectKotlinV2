@@ -10,6 +10,7 @@ import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
@@ -24,6 +25,7 @@ import kotlinx.coroutines.supervisorScope
 internal class OnNotifyDeleteUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val subscriptionRepository: SubscriptionRepository,
+    private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val logger: Logger,
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
@@ -42,6 +44,7 @@ internal class OnNotifyDeleteUseCase(
                 jsonRpcInteractor.respondWithSuccess(request, irnParams)
                 jsonRpcInteractor.unsubscribe(subscription.notifyTopic)
                 subscriptionRepository.deleteSubscriptionByNotifyTopic(subscription.notifyTopic.value)
+                metadataStorageRepository.deleteMetaData(subscription.notifyTopic)
 
                 DeleteSubscription(request.topic.value)
             }
