@@ -15,12 +15,6 @@ sealed class CoreNotifyParams : ClientParams {
     ) : CoreNotifyParams()
 
     @JsonClass(generateAdapter = true)
-    data class SubscribeResponseParams(
-        @Json(name = "responseAuth")
-        val responseAuth: String,
-    ) : CoreNotifyParams()
-
-    @JsonClass(generateAdapter = true)
     data class MessageParams(
         @Json(name = "messageAuth")
         val messageAuth: String
@@ -34,13 +28,20 @@ sealed class CoreNotifyParams : ClientParams {
 
     @JsonClass(generateAdapter = true)
     data class UpdateParams(
-        @Json(name = "subscriptionAuth")
-        val subscriptionAuth: String,
+        @Json(name = "updateAuth")
+        val updateAuth: String,
     ) : CoreNotifyParams()
 
     @JsonClass(generateAdapter = true)
     data class DeleteParams(
         @Json(name = "deleteAuth")
         val deleteAuth: String,
+    ) : CoreNotifyParams()
+
+    // Generic Response Params for all Notify RPCs
+    @JsonClass(generateAdapter = true)
+    data class NotifyResponseParams(
+        @Json(name = "responseAuth")
+        val responseAuth: String,
     ) : CoreNotifyParams()
 }
