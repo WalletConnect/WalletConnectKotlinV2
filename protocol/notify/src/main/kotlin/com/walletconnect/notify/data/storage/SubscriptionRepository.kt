@@ -54,7 +54,56 @@ internal class SubscriptionRepository(
         notifyTopic: String,
         requestedSubscriptionRequestId: Long?,
     ) = withContext(Dispatchers.IO) {
-        activeSubscriptionsQueries.insertOrAbortActiveSubscribtion(account, authenticationPublicKey.keyAsHex, updatedExpiry, relayProtocol, relayData, mapOfScope, dappGeneratedPublicKey, notifyTopic, requestedSubscriptionRequestId)
+        activeSubscriptionsQueries.insertOrAbortActiveSubscribtion(
+            account,
+            authenticationPublicKey.keyAsHex,
+            updatedExpiry,
+            relayProtocol,
+            relayData,
+            mapOfScope,
+            dappGeneratedPublicKey,
+            notifyTopic,
+            requestedSubscriptionRequestId
+        )
+    }
+
+    suspend fun upsertOrAbortActiveSubscription(
+        account: String,
+        authenticationPublicKey: PublicKey,
+        updatedExpiry: Long,
+        relayProtocol: String,
+        relayData: String?,
+        mapOfScope: Map<String, Pair<String, Boolean>>,
+        dappGeneratedPublicKey: String,
+        notifyTopic: String,
+        requestedSubscriptionRequestId: Long?,
+    ) = withContext(Dispatchers.IO) {
+        if (activeSubscriptionsQueries.doesNotifyTopicExist(notifyTopic).executeAsOneOrNull() == true) {
+            activeSubscriptionsQueries.updateOrAbortActiveSubscribtion(
+                account,
+                authenticationPublicKey.keyAsHex,
+                updatedExpiry,
+                relayProtocol,
+                relayData,
+                mapOfScope,
+                dappGeneratedPublicKey,
+                notifyTopic,
+                requestedSubscriptionRequestId,
+                notifyTopic
+            )
+        } else {
+            activeSubscriptionsQueries.insertOrAbortActiveSubscribtion(
+                account,
+                authenticationPublicKey.keyAsHex,
+                updatedExpiry,
+                relayProtocol,
+                relayData,
+                mapOfScope,
+                dappGeneratedPublicKey,
+                notifyTopic,
+                requestedSubscriptionRequestId
+            )
+        }
     }
 
     suspend fun updateSubscriptionScopeAndJwtByNotifyTopic(notifyTopic: String, updateScope: Map<String, Pair<String, Boolean>>, newExpiry: Long) = withContext(Dispatchers.IO) {
