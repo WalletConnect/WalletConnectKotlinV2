@@ -46,5 +46,5 @@ interface NotifyInterface {
 
     fun decryptMessage(params: Notify.Params.DecryptMessage, onSuccess: (Notify.Model.Message) -> Unit, onError: (Notify.Model.Error) -> Unit)
 
-    fun enableSync(params: Notify.Params.EnableSync, onSuccess: () -> Unit, onError: (Notify.Model.Error) -> Unit)
+    fun register(params: Notify.Params.Registration, onSuccess: (String) -> Unit, onError: (Notify.Model.Error) -> Unit)
 }

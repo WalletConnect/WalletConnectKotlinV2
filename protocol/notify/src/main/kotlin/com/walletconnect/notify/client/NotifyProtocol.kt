@@ -171,13 +171,18 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
         }
     }
 
-    override fun enableSync(params: Notify.Params.EnableSync, onSuccess: () -> Unit, onError: (Notify.Model.Error) -> Unit) {
+    override fun register(params: Notify.Params.Registration, onSuccess: (String) -> Unit, onError: (Notify.Model.Error) -> Unit) {
         checkEngineInitialization()
 
         scope.launch {
-            supervisorScope {
-                notifyEngine.enableSync(params.account, params.onSign.toWalletClient(), onSuccess, onFailure = { error -> onError(Notify.Model.Error(error)) })
-            }
+            notifyEngine.register(
+                params.account,
+                params.onSign.toWalletClient(),
+                onSuccess = onSuccess,
+                onFailure = { error ->
+                    onError(Notify.Model.Error(error))
+                }
+            )
         }
     }
 

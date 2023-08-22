@@ -80,6 +80,6 @@ object Notify {
 
         data class DecryptMessage(val topic: String, val encryptedMessage: String) : Params()
 
-        data class EnableSync(val account: String, val onSign: (String) -> Model.Cacao.Signature?) : Params()
+        data class Registration(val account: String, val onSign: (String) -> Model.Cacao.Signature?) : Params()
     }
 }

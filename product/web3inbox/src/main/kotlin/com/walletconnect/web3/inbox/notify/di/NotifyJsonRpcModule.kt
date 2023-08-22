@@ -20,7 +20,7 @@ internal fun notifyJsonRpcModule() = module {
     addSerializerEntry(Web3InboxRPC.Request.Notify.GetActiveSubscriptions::class)
     addSerializerEntry(Web3InboxRPC.Request.Notify.GetMessageHistory::class)
     addSerializerEntry(Web3InboxRPC.Request.Notify.DeleteNotifyMessage::class)
-    addSerializerEntry(Web3InboxRPC.Request.Notify.EnableSync::class)
+    addSerializerEntry(Web3InboxRPC.Request.Notify.Register::class)
 
     addSerializerEntry(Web3InboxRPC.Call.Notify.Subscription::class)
     addSerializerEntry(Web3InboxRPC.Call.Notify.Update::class)
@@ -33,7 +33,7 @@ internal fun notifyJsonRpcModule() = module {
     addDeserializerEntry(Web3InboxMethods.Request.Notify.GET_ACTIVE_SUBSCRIPTIONS, Web3InboxRPC.Request.Notify.GetActiveSubscriptions::class)
     addDeserializerEntry(Web3InboxMethods.Request.Notify.GET_MESSAGE_HISTORY, Web3InboxRPC.Request.Notify.GetMessageHistory::class)
     addDeserializerEntry(Web3InboxMethods.Request.Notify.DELETE_NOTIFY_MESSAGE, Web3InboxRPC.Request.Notify.DeleteNotifyMessage::class)
-    addDeserializerEntry(Web3InboxMethods.Request.Notify.ENABLE_SYNC, Web3InboxRPC.Request.Notify.EnableSync::class)
+    addDeserializerEntry(Web3InboxMethods.Request.Notify.REGISTER, Web3InboxRPC.Request.Notify.Register::class)
 
     addDeserializerEntry(Web3InboxMethods.Call.Notify.SUBSCRIPTION, Web3InboxRPC.Call.Notify.Subscription::class)
     addDeserializerEntry(Web3InboxMethods.Call.Notify.UPDATE, Web3InboxRPC.Call.Notify.Update::class)

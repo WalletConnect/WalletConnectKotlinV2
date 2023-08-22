@@ -57,7 +57,7 @@ internal object Web3InboxMethods {
             const val DELETE_NOTIFY_MESSAGE: String = "deleteNotifyMessage"
 
             @get:JvmSynthetic
-            const val ENABLE_SYNC: String = "enableSync"
+            const val REGISTER: String = "register"
         }
     }
 

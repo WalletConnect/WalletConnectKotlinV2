@@ -17,10 +17,10 @@ import com.walletconnect.notify.common.JsonRpcMethod
 import com.walletconnect.notify.engine.calls.DecryptMessageUseCaseInterface
 import com.walletconnect.notify.engine.calls.DeleteMessageUseCaseInterface
 import com.walletconnect.notify.engine.calls.DeleteSubscriptionUseCaseInterface
-import com.walletconnect.notify.engine.calls.EnableSyncUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetListOfActiveSubscriptionsUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetListOfMessagesUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetNotificationTypesUseCaseInterface
+import com.walletconnect.notify.engine.calls.RegisterUseCaseInterface
 import com.walletconnect.notify.engine.calls.SubscribeToDappUseCaseInterface
 import com.walletconnect.notify.engine.calls.UpdateSubscriptionRequestUseCaseInterface
 import com.walletconnect.notify.engine.requests.OnNotifyDeleteUseCase
@@ -51,7 +51,7 @@ internal class NotifyEngine(
     private val deleteSubscriptionUseCase: DeleteSubscriptionUseCaseInterface,
     private val deleteMessageUseCase: DeleteMessageUseCaseInterface,
     private val decryptMessageUseCase: DecryptMessageUseCaseInterface,
-    private val enableSyncUseCase: EnableSyncUseCaseInterface,
+    private val enableSyncUseCase: RegisterUseCaseInterface,
     private val getNotificationTypesUseCase: GetNotificationTypesUseCaseInterface,
     private val getListOfActiveSubscriptionsUseCase: GetListOfActiveSubscriptionsUseCaseInterface,
     private val getListOfMessages: GetListOfMessagesUseCaseInterface,
@@ -65,7 +65,7 @@ internal class NotifyEngine(
     DeleteSubscriptionUseCaseInterface by deleteSubscriptionUseCase,
     DeleteMessageUseCaseInterface by deleteMessageUseCase,
     DecryptMessageUseCaseInterface by decryptMessageUseCase,
-    EnableSyncUseCaseInterface by enableSyncUseCase,
+    RegisterUseCaseInterface by enableSyncUseCase,
     GetNotificationTypesUseCaseInterface by getNotificationTypesUseCase,
     GetListOfActiveSubscriptionsUseCaseInterface by getListOfActiveSubscriptionsUseCase,
     GetListOfMessagesUseCaseInterface by getListOfMessages {
