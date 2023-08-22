@@ -93,10 +93,10 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
             } catch (e: Exception) {
                 if (isFailOverException(e)) {
                     when (request.url.host) {
-                        DEFAULT_RELAY_URL.host -> fallbackRelay(chain, request)
+                        DEFAULT_RELAY_URL.host -> fallbackRelay(request, chain)
                         DEFAULT_ECHO_URL.host -> fallbackEcho(request, chain)
                         DEFAULT_VERIFY_URL.host -> fallbackVerify(request, chain)
-                        else -> chain.proceed(request.newBuilder().url(request.url).build())
+                        else -> chain.proceed(request)
                     }
                 } else {
                     chain.proceed(request)

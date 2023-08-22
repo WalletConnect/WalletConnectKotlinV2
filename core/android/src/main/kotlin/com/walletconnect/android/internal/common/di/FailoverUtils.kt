@@ -49,7 +49,7 @@ internal fun fallbackVerify(request: Request, chain: Interceptor.Chain): Respons
     return chain.proceed(request.newBuilder().url(getFallbackVerifyUrl(request.url.toString())).build())
 }
 
-internal fun Scope.fallbackRelay(chain: Interceptor.Chain, request: Request): Response {
+internal fun Scope.fallbackRelay(request: Request, chain: Interceptor.Chain): Response {
     SERVER_URL = "$FAIL_OVER_RELAY_URL?projectId=${Uri.parse(SERVER_URL).getQueryParameter("projectId")}"
     wasRelayFailOvered = true
     return chain.proceed(request.newBuilder().url(get<String>(named(AndroidCommonDITags.RELAY_URL))).build())
