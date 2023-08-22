@@ -15,5 +15,5 @@ internal data class UpdateResponseJwtClaim(
     @Json(name = "exp") override val expiration: Long,
     @Json(name = "ksu") override val keyserverUrl: String,
     @Json(name = "app") val dappUrl: String,
-    @Json(name = "act") override val action: String = "notify_delete_response",
+    @Json(name = "act") override val action: String = "notify_update_response",
 ): NotifyJwtBase
