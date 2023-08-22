@@ -112,7 +112,6 @@ internal fun SearchInput(
             }
         },
     )
-//    }
 }
 
 @Composable
