@@ -20,6 +20,20 @@ insertOrAbortActiveSubscribtion:
 INSERT OR ABORT INTO ActiveSubscriptions(account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, dapp_generated_public_key, notify_topic, requested_subscription_id)
 VALUES ( ?, ?, ?, ?, ? , ?, ?, ?, ?);
 
+updateOrAbortActiveSubscribtion:
+UPDATE OR ABORT ActiveSubscriptions
+SET
+    account = ?,
+    authentication_public_key = ?,
+    expiry = ?,
+    relay_protocol = ?,
+    relay_data = ?,
+    map_of_scope = ?,
+    dapp_generated_public_key = ?,
+    notify_topic = ?,
+    requested_subscription_id = ?
+WHERE notify_topic = ?;
+
 getSubscriptionByDappGeneratedPublicKey:
 SELECT account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, dapp_generated_public_key, notify_topic, requested_subscription_id
 FROM ActiveSubscriptions
@@ -47,3 +61,6 @@ WHERE notify_topic = ?;
 deleteByNotifyTopic:
 DELETE FROM ActiveSubscriptions
 WHERE notify_topic = ?;
+
+doesNotifyTopicExist:
+SELECT EXISTS(SELECT 1 FROM ActiveSubscriptions WHERE notify_topic = ?);
