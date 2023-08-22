@@ -48,14 +48,14 @@ internal class OnNotifySubscribeResponseUseCase(
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
-    suspend operator fun invoke(wcResponse: WCResponse, responseParams: CoreNotifyParams.SubscribeParams) = supervisorScope {
+    suspend operator fun invoke(wcResponse: WCResponse) = supervisorScope {
         try {
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcResult -> {
                     val requestedSubscription: Subscription.Requested = subscriptionRepository.getRequestedSubscriptionByRequestId(response.id)
                         ?: return@supervisorScope _events.emit(SDKError(Resources.NotFoundException("Cannot find subscription for topic: ${wcResponse.topic.value}")))
-                    val subscriptionResponseJwt = extractVerifiedDidJwtClaims<SubscriptionResponseJwtClaim>(responseParams.subscriptionAuth).getOrThrow()
-                    val dappGeneratedPublicKey = decodeEd25519DidKey(subscriptionResponseJwt.audience)
+                    val subscriptionResponseJwt = extractVerifiedDidJwtClaims<SubscriptionResponseJwtClaim>((response.result as CoreNotifyParams.NotifyResponseParams).responseAuth).getOrThrow()
+                    val dappGeneratedPublicKey = decodeEd25519DidKey(subscriptionResponseJwt.subject)
                     val selfPublicKey: PublicKey = crypto.getSelfPublicFromKeyAgreement(requestedSubscription.responseTopic)
                     val notifyTopic: Topic = crypto.generateTopicFromKeyAgreement(selfPublicKey, dappGeneratedPublicKey)
                     val updatedExpiry: Expiry = calcExpiry()
