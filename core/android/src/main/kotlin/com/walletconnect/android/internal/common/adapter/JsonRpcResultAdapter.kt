@@ -31,8 +31,10 @@ internal class JsonRpcResultAdapter(val moshi: Moshi) : JsonAdapter<JsonRpcRespo
         moshi.adapter(CoreChatParams.AcceptanceParams::class.java, emptySet(), "result")
     private val pushProposeResponseParamsAdapter: JsonAdapter<PushParams.ProposeResponseParams> =
         moshi.adapter(PushParams.ProposeResponseParams::class.java, emptySet(), "result")
-    private val notifySubscribeResponseParamsAdapter: JsonAdapter<CoreNotifyParams.SubscribeResponseParams> =
-        moshi.adapter(CoreNotifyParams.SubscribeResponseParams::class.java, emptySet(), "result")
+    private val notifySubscribeUpdateParamsAdapter: JsonAdapter<CoreNotifyParams.UpdateParams> =
+        moshi.adapter(CoreNotifyParams.UpdateParams::class.java, emptySet(), "result")
+    private val notifyNotifyResponseParamsAdapter: JsonAdapter<CoreNotifyParams.NotifyResponseParams> =
+        moshi.adapter(CoreNotifyParams.NotifyResponseParams::class.java, emptySet(), "result")
 
     @Volatile
     private var constructorRef: Constructor<JsonRpcResponse.JsonRpcResult>? = null
@@ -66,8 +68,12 @@ internal class JsonRpcResultAdapter(val moshi: Moshi) : JsonAdapter<JsonRpcRespo
                             cacaoAdapter.fromJson(reader)
                         }
 
-                        runCatching { notifySubscribeResponseParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> {
-                            notifySubscribeResponseParamsAdapter.fromJson(reader)
+                        runCatching { notifySubscribeUpdateParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> {
+                            notifySubscribeUpdateParamsAdapter.fromJson(reader)
+                        }
+
+                        runCatching { notifyNotifyResponseParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> {
+                            notifyNotifyResponseParamsAdapter.fromJson(reader)
                         }
 
                         runCatching { acceptanceParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> {
@@ -145,10 +151,17 @@ internal class JsonRpcResultAdapter(val moshi: Moshi) : JsonAdapter<JsonRpcRespo
                 }
             }
 
-            (value_.result as? CoreNotifyParams.SubscribeResponseParams) != null -> {
-                val notifySubscribeResponseParamsString = notifySubscribeResponseParamsAdapter.toJson(value_.result)
+            (value_.result as? CoreNotifyParams.NotifyResponseParams) != null -> {
+                val notifySubscribeResponseParamsString = notifyNotifyResponseParamsAdapter.toJson(value_.result)
                 writer.valueSink().use {
                     it.writeUtf8(notifySubscribeResponseParamsString)
+                }
+            }
+
+            (value_.result as? CoreNotifyParams.UpdateParams) != null -> {
+                val notifySubscribeUpdateParamsString = notifySubscribeUpdateParamsAdapter.toJson(value_.result)
+                writer.valueSink().use {
+                    it.writeUtf8(notifySubscribeUpdateParamsString)
                 }
             }
 
