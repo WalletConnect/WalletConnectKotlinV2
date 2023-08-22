@@ -32,11 +32,11 @@ internal class RegisterIdentityAndReturnDidJwtInteractor(
         onSign: (String) -> Cacao.Signature?,
         onFailure: (Throwable) -> Unit,
     ): Result<DidJwt> = registerIdentityAndReturnIdentityKeyPair(account, onSign, onFailure) { (identityPublicKey, identityPrivateKey) ->
-        val joinedScope = scopes.joinToString(" ")
+        val concatenatedScopes = scopes.joinToString(SCOPES_DELIMITER)
 
         return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
             identityPrivateKey,
-            EncodeSubscriptionRequestJwtUseCase(metadataUrl, account, authenticationKey, joinedScope),
+            EncodeSubscriptionRequestJwtUseCase(metadataUrl, account, authenticationKey, concatenatedScopes),
             EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
         )
     }
@@ -76,14 +76,15 @@ internal class RegisterIdentityAndReturnDidJwtInteractor(
         account: AccountId,
         metadataUrl: String,
         authenticationKey: PublicKey,
-        scope: String,
+        scopes: List<String>,
         onFailure: (Throwable) -> Unit,
         onSign: (String) -> Cacao.Signature? = { null },
     ): Result<DidJwt> = registerIdentityAndReturnIdentityKeyPair(account, onSign, onFailure) { (identityPublicKey, identityPrivateKey) ->
+        val concatenatedScopes = scopes.joinToString(SCOPES_DELIMITER)
 
         return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
             identityPrivateKey,
-            EncodeUpdateRequestJwtUseCase(account, metadataUrl, authenticationKey, scope),
+            EncodeUpdateRequestJwtUseCase(account, metadataUrl, authenticationKey, concatenatedScopes),
             EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
         )
     }
@@ -102,5 +103,9 @@ internal class RegisterIdentityAndReturnDidJwtInteractor(
         }
 
         returnedKeys(identitiesInteractor.getIdentityKeyPair(account))
+    }
+
+    companion object {
+        const val SCOPES_DELIMITER = " "
     }
 }
