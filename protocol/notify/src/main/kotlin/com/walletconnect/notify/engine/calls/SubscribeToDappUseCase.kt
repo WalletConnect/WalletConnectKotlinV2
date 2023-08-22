@@ -149,10 +149,10 @@ internal class SubscribeToDappUseCase(
             return@withContext Result.failure(error)
         }
 
-        val (dappHomepageUri: Uri, dappListing: Listing) = listOfDappHomepages.entries.filter { (_, dappListing) ->
+        val (_: Uri, dappListing: Listing) = listOfDappHomepages.entries.filter { (_, dappListing) ->
             dappListing.description != null
         }.firstOrNull { (dappHomepageUri, _) ->
-            dappHomepageUri.host != null && dappHomepageUri.host!!.contains(dappUri.host!!.replace("notify.gm", "gm"))
+            dappHomepageUri.host != null && dappHomepageUri.host!!.contains(dappUri.host!!.replace("notify.gm", "gm")) // TODO: Replace after notify.gm is shutdown
         } ?: return@withContext Result.failure<AppMetaData>(IllegalArgumentException("Unable to find dapp listing for $dappUri"))
 
         return@withContext Result.success(
@@ -160,7 +160,7 @@ internal class SubscribeToDappUseCase(
                 name = dappListing.name,
                 description = dappListing.description!!,
                 icons = listOf(dappListing.imageUrl.sm, dappListing.imageUrl.md, dappListing.imageUrl.lg),
-                url = dappHomepageUri.toString(),
+                url = dappUri.toString(),
                 redirect = Redirect(dappListing.app.android)
             )
         )
