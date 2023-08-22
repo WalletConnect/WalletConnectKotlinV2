@@ -52,7 +52,7 @@ internal class OnSubscriptionUpdateEventUseCase(
                         }
                     }.onSuccess { activeSubscription ->
                         with(activeSubscription) {
-                            subscriptionRepository.insertOrAbortActiveSubscription(
+                            subscriptionRepository.upsertOrAbortActiveSubscription(
                                 account.value,
                                 authenticationPublicKey,
                                 expiry.seconds,
@@ -61,12 +61,12 @@ internal class OnSubscriptionUpdateEventUseCase(
                                 mapOfNotificationScope.toDb(),
                                 dappGeneratedPublicKey.keyAsHex,
                                 notifyTopic.value,
-                                null,
+                                null, // This is not synced with an active subscription
                             )
                         }
                     }.onSuccess { activeSubscription ->
                         with(activeSubscription) {
-                            metadataStorageRepository.insertOrAbortMetadata(topic = notifyTopic, appMetaData = dappMetaData!!, appMetaDataType = AppMetaDataType.PEER)
+                            metadataStorageRepository.upsertPeerMetadata(topic = notifyTopic, appMetaData = dappMetaData!!, appMetaDataType = AppMetaDataType.PEER)
                         }
                     }.fold(
                         onSuccess = { activeSubscription ->
