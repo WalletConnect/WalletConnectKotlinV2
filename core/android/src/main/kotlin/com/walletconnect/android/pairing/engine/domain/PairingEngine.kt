@@ -116,7 +116,7 @@ internal class PairingEngine(
 
         return inactivePairing.runCatching {
             pairingRepository.insertPairing(this)
-            metadataRepository.upsertPairingPeerMetadata(this.topic, selfMetaData, AppMetaDataType.SELF)
+            metadataRepository.upsertPeerMetadata(this.topic, selfMetaData, AppMetaDataType.SELF)
             jsonRpcInteractor.subscribe(this.topic) { error -> return@subscribe onFailure(error) }
 
             this.toClient()
@@ -218,7 +218,7 @@ internal class PairingEngine(
     }
 
     fun updateMetadata(topic: String, metadata: AppMetaData, metaDataType: AppMetaDataType) {
-        metadataRepository.upsertPairingPeerMetadata(Topic(topic), metadata, metaDataType)
+        metadataRepository.upsertPeerMetadata(Topic(topic), metadata, metaDataType)
     }
 
     private fun collectJsonRpcRequestsFlow(): Job =
