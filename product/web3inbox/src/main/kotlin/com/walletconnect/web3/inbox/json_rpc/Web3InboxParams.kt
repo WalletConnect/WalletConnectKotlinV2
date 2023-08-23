@@ -169,6 +169,7 @@ internal sealed interface Web3InboxParams : ClientParams {
                 val account: String,
                 val relay: RelayParams,
                 val metadata: AppMetaDataParams,
+                val scope: Map<String, ScopeSettingParams>,
             ) : Response
         }
     }

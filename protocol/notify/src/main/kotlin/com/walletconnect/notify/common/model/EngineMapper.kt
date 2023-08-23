@@ -110,5 +110,6 @@ internal fun SDKError.toClient(): Notify.Model.Error {
 }
 
 @JvmSynthetic
-internal fun Map<String, NotificationScope.Cached>.toDb(): Map<String, Pair<String, Boolean>> =
-    mapValues { (_, value) -> Pair(value.description, true) }
+internal fun Map<String, NotificationScope.Cached>.toDb(): Map<String, Pair<String, Boolean>> {
+    return mapValues { (_, value) -> Pair(value.description, value.isSelected) }
+}
