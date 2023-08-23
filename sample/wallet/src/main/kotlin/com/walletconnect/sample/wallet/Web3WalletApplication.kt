@@ -64,7 +64,7 @@ class Web3WalletApplication : Application() {
                         override fun equals(other: Any?): Boolean = super.equals(other)
 
                         override fun hashCode(): Int = super.hashCode()
-                    },
+                    }/*,
                     object : BeagleListItemContract {
                         override val title: Text = EthAccountDelegate.publicKey.toText()
 
@@ -78,7 +78,7 @@ class Web3WalletApplication : Application() {
                         override fun equals(other: Any?): Boolean = super.equals(other)
 
                         override fun hashCode(): Int = super.hashCode()
-                    }
+                    }*/
                 ),
                 false,
             ) { item ->
