@@ -39,6 +39,21 @@ internal class Web3ModalViewModel : ViewModel() {
         createConnectModalState()
     }
 
+    internal fun retryConnection(onSuccess: () -> Unit) {
+        try {
+            val sessionParams = Web3Modal.sessionParams
+            val connectParams = Modal.Params.Connect(
+                sessionParams.requiredNamespaces,
+                sessionParams.optionalNamespaces,
+                sessionParams.properties,
+                pairing
+            )
+            Web3Modal.connect(connectParams, onSuccess) { Timber.e(it.throwable) }
+        } catch (e: Exception) {
+            handleError(e)
+        }
+    }
+
     internal fun createConnectModalState() {
         val sessionParams = Web3Modal.sessionParams
         try {
