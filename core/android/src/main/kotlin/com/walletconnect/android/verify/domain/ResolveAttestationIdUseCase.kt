@@ -8,6 +8,7 @@ import com.walletconnect.android.internal.common.storage.VerifyContextStorageRep
 import com.walletconnect.android.verify.client.VerifyInterface
 import com.walletconnect.android.verify.data.model.VerifyContext
 import com.walletconnect.utils.Empty
+import com.walletconnect.utils.compareDomains
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
@@ -18,7 +19,7 @@ class ResolveAttestationIdUseCase(private val verifyInterface: VerifyInterface, 
 
         verifyInterface.resolve(attestationId,
             onSuccess = { origin ->
-                insertContext(VerifyContext(id, origin, if (metadataUrl.toUri().host == origin.toUri().host) Validation.VALID else Validation.INVALID, verifyUrl)) { verifyContext ->
+                insertContext(VerifyContext(id, origin, if (compareDomains(metadataUrl, origin)) Validation.VALID else Validation.INVALID, verifyUrl)) { verifyContext ->
                     onResolve(verifyContext)
                 }
             },
