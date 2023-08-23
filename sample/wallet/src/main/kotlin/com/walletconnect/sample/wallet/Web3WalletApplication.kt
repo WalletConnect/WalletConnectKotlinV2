@@ -1,11 +1,19 @@
 package com.walletconnect.sample.wallet
 
 import android.app.Application
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.util.Log
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
+import com.pandulapeter.beagle.Beagle
+import com.pandulapeter.beagle.common.configuration.Text
+import com.pandulapeter.beagle.common.configuration.toText
+import com.pandulapeter.beagle.common.contracts.BeagleListItemContract
+import com.pandulapeter.beagle.modules.DividerModule
 import com.pandulapeter.beagle.modules.HeaderModule
+import com.pandulapeter.beagle.modules.ItemListModule
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.cacao.signature.SignatureType
@@ -44,6 +52,39 @@ class Web3WalletApplication : Application() {
         )
         EthAccountDelegate.application = this
         Log.d(tag(this), "Account: ${EthAccountDelegate.account}")
+
+        Beagle.add(
+            DividerModule(),
+            ItemListModule(
+                Text.CharSequence("Account Info"),
+                listOf(
+                    object : BeagleListItemContract {
+                        override val title: Text = with(EthAccountDelegate) { account.toEthAddress() }.toText()
+
+                        override fun equals(other: Any?): Boolean = super.equals(other)
+
+                        override fun hashCode(): Int = super.hashCode()
+                    },
+                    object : BeagleListItemContract {
+                        override val title: Text = EthAccountDelegate.publicKey.toText()
+
+                        override fun equals(other: Any?): Boolean = super.equals(other)
+
+                        override fun hashCode(): Int = super.hashCode()
+                    },
+                    object : BeagleListItemContract {
+                        override val title: Text = EthAccountDelegate.privateKey.toText()
+
+                        override fun equals(other: Any?): Boolean = super.equals(other)
+
+                        override fun hashCode(): Int = super.hashCode()
+                    }
+                ),
+                false,
+            ) { item ->
+                (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText(item.id, item.id))
+            }
+        )
 
         val projectId = BuildConfig.PROJECT_ID
         val relayUrl = "relay.walletconnect.com"
