@@ -40,6 +40,7 @@ class URLComparisonTest {
         assert(result)
     }
 
+    //Should we add a validation for metadata URI on the SDK side? To allow URIs only with http:// and https://
     @Test
     fun compareUrlsTest5() {
         val result = compareURIs(metadataUrl = "www.known-url.com", originUrl = "https://www.known-url.com/")
