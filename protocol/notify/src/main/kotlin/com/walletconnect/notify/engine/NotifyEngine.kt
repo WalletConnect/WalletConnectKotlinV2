@@ -52,7 +52,7 @@ internal class NotifyEngine(
     private val deleteMessageUseCase: DeleteMessageUseCaseInterface,
     private val decryptMessageUseCase: DecryptMessageUseCaseInterface,
     private val enableSyncUseCase: RegisterUseCaseInterface,
-    private val getNotificationTypesUseCase: GetNotificationTypesUseCaseInterface,
+    private val getNotificationTypesUseCase: GetNotificationTypesUseCaseInterface, // TODO: Will add back later
     private val getListOfActiveSubscriptionsUseCase: GetListOfActiveSubscriptionsUseCaseInterface,
     private val getListOfMessages: GetListOfMessagesUseCaseInterface,
     private val onNotifyMessageUseCase: OnNotifyMessageUseCase,
@@ -66,7 +66,7 @@ internal class NotifyEngine(
     DeleteMessageUseCaseInterface by deleteMessageUseCase,
     DecryptMessageUseCaseInterface by decryptMessageUseCase,
     RegisterUseCaseInterface by enableSyncUseCase,
-    GetNotificationTypesUseCaseInterface by getNotificationTypesUseCase,
+//    GetNotificationTypesUseCaseInterface by getNotificationTypesUseCase, TODO: Will add back later
     GetListOfActiveSubscriptionsUseCaseInterface by getListOfActiveSubscriptionsUseCase,
     GetListOfMessagesUseCaseInterface by getListOfMessages {
     private var jsonRpcRequestsJob: Job? = null

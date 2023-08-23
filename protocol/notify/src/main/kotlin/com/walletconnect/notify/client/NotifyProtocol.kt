@@ -95,21 +95,22 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
         }
     }
 
-    override fun getNotificationTypes(params: Notify.Params.NotificationTypes, onSuccess: (Notify.Model.AvailableTypes) -> Unit, onError: (Notify.Model.Error) -> Unit) {
-        checkEngineInitialization()
-
-        scope.launch {
-            supervisorScope {
-                try {
-                    notifyEngine.getNotificationTypes(params.domain, onSuccess = {
-                        // TODO onSuccess(Notify.Model.AvailableTypes(it))
-                    }, onError = { onError(Notify.Model.Error(it)) })
-                } catch (e: Exception) {
-                    onError(Notify.Model.Error(e))
-                }
-            }
-        }
-    }
+    // TODO: Will add back later
+//    override fun getNotificationTypes(params: Notify.Params.NotificationTypes, onSuccess: (Notify.Model.AvailableTypes) -> Unit, onError: (Notify.Model.Error) -> Unit) {
+//        checkEngineInitialization()
+//
+//        scope.launch {
+//            supervisorScope {
+//                try {
+//                    notifyEngine.getNotificationTypes(params.domain, onSuccess = {
+//                        // TODO onSuccess(Notify.Model.AvailableTypes(it))
+//                    }, onError = { onError(Notify.Model.Error(it)) })
+//                } catch (e: Exception) {
+//                    onError(Notify.Model.Error(e))
+//                }
+//            }
+//        }
+//    }
 
     override fun getActiveSubscriptions(): Map<String, Notify.Model.Subscription> {
         checkEngineInitialization()
