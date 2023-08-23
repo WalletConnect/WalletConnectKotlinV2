@@ -6,13 +6,10 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import com.walletconnect.web3.modal.ui.navigation.Route
-import com.walletconnect.web3.modal.ui.navigation.titleKey
+import com.walletconnect.web3.modal.ui.navigation.getTitleArg
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 
 @Composable
 internal fun rememberWeb3ModalRootState(
@@ -28,16 +25,15 @@ internal class Web3ModalRootState(
     private val coroutineScope: CoroutineScope,
     private val navController: NavController
 ) {
-    private val currentDestinationFlow: Flow<NavBackStackEntry>
+    val currentDestinationFlow: Flow<NavBackStackEntry>
         get() = navController.currentBackStackEntryFlow
 
     val canPopUp: Boolean
         get() = !topLevelDestinations.any { it.path == navController.currentDestination?.route }
 
-    val title: StateFlow<String?>
+    val title: Flow<String?>
         get() = currentDestinationFlow
-            .map { it.arguments?.getString(titleKey) ?: it.destination.toTitle() }
-            .stateIn(coroutineScope, SharingStarted.Eagerly, null)
+            .map { it.getTitleArg() ?: it.destination.toTitle() }
 
     fun navigateToHelp() {
         navController.navigate(Route.HELP.path)
