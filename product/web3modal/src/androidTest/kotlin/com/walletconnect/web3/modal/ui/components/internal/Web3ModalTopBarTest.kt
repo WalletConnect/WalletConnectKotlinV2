@@ -31,7 +31,7 @@ class Web3ModalTopBarTest {
     }
 
     @Test
-    fun web3ModalTopBar_onCloseIs() {
+    fun web3ModalTopBar_onCloseCallbackIsTriggered() {
         var isClicked = false
 
         composeTestRule.setContent {
