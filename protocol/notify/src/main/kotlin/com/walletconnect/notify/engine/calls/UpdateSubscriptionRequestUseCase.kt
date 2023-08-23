@@ -29,7 +29,7 @@ internal class UpdateSubscriptionRequestUseCase(
             ?: return@supervisorScope onFailure(Exception("No subscription found for topic $notifyTopic"))
         val metadata: AppMetaData = metadataStorageRepository.getByTopicAndType(subscription.notifyTopic, AppMetaDataType.PEER)
             ?: return@supervisorScope onFailure(Exception("No metadata found for topic $notifyTopic"))
-        val didJwt = registerIdentityAndReturnDidJwtInteractor.updateRequest(subscription.account, metadata.url, subscription.authenticationPublicKey, scopes.joinToString(","), onFailure).getOrElse { error ->
+        val didJwt = registerIdentityAndReturnDidJwtInteractor.updateRequest(subscription.account, metadata.url, subscription.authenticationPublicKey, scopes, onFailure).getOrElse { error ->
             return@supervisorScope onFailure(error)
         }
 
