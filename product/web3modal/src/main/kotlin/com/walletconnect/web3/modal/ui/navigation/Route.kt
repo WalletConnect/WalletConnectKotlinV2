@@ -12,6 +12,7 @@ enum class Route(val path: String, val title: String? = null) {
     HELP("modal_help", "What is Wallet?"),
     GET_A_WALLET("get_a_wallet", "Get a Wallet"),
     ALL_WALLETS("all_wallets", "All wallets"),
+    REDIRECT("redirect"),
 
     //Session routes
     SESSION("session")

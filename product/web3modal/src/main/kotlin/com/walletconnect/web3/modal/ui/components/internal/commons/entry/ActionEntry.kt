@@ -1,4 +1,4 @@
-package com.walletconnect.web3.modal.ui.components.internal.commons
+package com.walletconnect.web3.modal.ui.components.internal.commons.entry
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -23,6 +23,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import com.walletconnect.web3.modal.R
+import com.walletconnect.web3.modal.ui.components.internal.commons.ContentDescription
+import com.walletconnect.web3.modal.ui.components.internal.commons.HorizontalSpacer
 import com.walletconnect.web3.modal.ui.previews.MultipleComponentsPreview
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
