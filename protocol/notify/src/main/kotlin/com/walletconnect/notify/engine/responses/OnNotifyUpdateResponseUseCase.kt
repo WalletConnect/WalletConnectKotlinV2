@@ -13,8 +13,10 @@ import com.walletconnect.notify.common.calcExpiry
 import com.walletconnect.notify.common.model.NotificationScope
 import com.walletconnect.notify.common.model.UpdateSubscription
 import com.walletconnect.notify.common.model.toDb
-import com.walletconnect.notify.data.jwt.subscription.SubscriptionRequestJwtClaim
+import com.walletconnect.notify.data.jwt.update.UpdateRequestJwtClaim
+import com.walletconnect.notify.data.jwt.update.UpdateResponseJwtClaim
 import com.walletconnect.notify.data.storage.SubscriptionRepository
+import com.walletconnect.notify.engine.domain.RegisterIdentityAndReturnDidJwtInteractor
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -32,11 +34,16 @@ internal class OnNotifyUpdateResponseUseCase(
                 is JsonRpcResponse.JsonRpcResult -> {
                     val subscription = subscriptionRepository.getActiveSubscriptionByNotifyTopic(wcResponse.topic.value)
                         ?: throw Resources.NotFoundException("Cannot find subscription for topic: ${wcResponse.topic.value}")
-                    val notifyUpdateJwtClaim = extractVerifiedDidJwtClaims<SubscriptionRequestJwtClaim>(updateParams.subscriptionAuth).getOrElse { error ->
+                    val notifyUpdateResponseJwtClaim = extractVerifiedDidJwtClaims<UpdateResponseJwtClaim>((response.result as CoreNotifyParams.NotifyResponseParams).responseAuth).getOrElse { error ->
+                        _events.emit(SDKError(error))
+                        return@supervisorScope
+                    } // TODO: compare hash to request to verify update response
+                    val notifyUpdateRequestJwtClaim = extractVerifiedDidJwtClaims<UpdateRequestJwtClaim>(updateParams.updateAuth).getOrElse { error ->
                         _events.emit(SDKError(error))
                         return@supervisorScope
                     }
-                    val listOfUpdateScopeNames = notifyUpdateJwtClaim.scope.split(" ")
+
+                    val listOfUpdateScopeNames = notifyUpdateRequestJwtClaim.scope.split(RegisterIdentityAndReturnDidJwtInteractor.SCOPES_DELIMITER)
                     val updateNotificationScopeMap: Map<String, NotificationScope.Cached> = subscription.mapOfNotificationScope.entries.associate { (scopeName, scopeDescIsSelected) ->
                         val (desc, _) = scopeDescIsSelected
                         val isNewScopeTrue = listOfUpdateScopeNames.contains(scopeName)
