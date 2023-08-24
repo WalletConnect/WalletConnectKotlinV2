@@ -11,7 +11,7 @@ import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
-import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
+import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.notify.common.model.DeleteSubscription
@@ -33,7 +33,7 @@ internal class OnNotifyDeleteUseCase(
 
     suspend operator fun invoke(request: WCRequest, requestParams: CoreNotifyParams.DeleteParams) = supervisorScope {
         logger.error("onNotifyDelete: $request")
-        val irnParams = IrnParams(Tags.NOTIFY_DELETE_RESPONSE, Ttl(DAY_IN_SECONDS))
+        val irnParams = IrnParams(Tags.NOTIFY_DELETE_RESPONSE, Ttl(MONTH_IN_SECONDS))
 
         val result = extractVerifiedDidJwtClaims<DeleteRequestJwtClaim>(requestParams.deleteAuth).mapCatching { _ ->
             val subscription = subscriptionRepository.getActiveSubscriptionByNotifyTopic(request.topic.value)

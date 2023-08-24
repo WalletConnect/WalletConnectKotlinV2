@@ -18,6 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
+import java.util.concurrent.TimeUnit
 
 internal class RegisterIdentityAndReturnDidJwtInteractor(
     private val keyserverUrl: String,
@@ -37,7 +38,7 @@ internal class RegisterIdentityAndReturnDidJwtInteractor(
         return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
             identityPrivateKey,
             EncodeSubscriptionRequestJwtUseCase(metadataUrl, account, authenticationKey, concatenatedScopes),
-            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
+            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = 30, expiryTimeUnit = TimeUnit.SECONDS)
         )
     }
 
@@ -85,7 +86,7 @@ internal class RegisterIdentityAndReturnDidJwtInteractor(
         return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
             identityPrivateKey,
             EncodeUpdateRequestJwtUseCase(account, metadataUrl, authenticationKey, concatenatedScopes),
-            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
+            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = 30, expiryTimeUnit = TimeUnit.SECONDS)
         )
     }
 
