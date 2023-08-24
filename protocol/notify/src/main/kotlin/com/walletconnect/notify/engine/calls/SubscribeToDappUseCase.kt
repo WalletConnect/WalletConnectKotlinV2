@@ -61,7 +61,7 @@ internal class SubscribeToDappUseCase(
 
         dappWellKnownProperties.fold(
             onSuccess = { (dappPublicKeys, dappScopes) ->
-                val (dappPublicKey, authenticationPublicKey) = dappPublicKeys   // TODO: Use authenticationPublicKey
+                val (dappPublicKey, authenticationPublicKey) = dappPublicKeys
                 val subscribeTopic = Topic(sha256(dappPublicKey.keyAsBytes))
 
                 if (subscriptionRepository.isAlreadyRequested(account, subscribeTopic.value)) return@fold onFailure(IllegalStateException("Account: $account is already subscribed to dapp: $dappUri"))
