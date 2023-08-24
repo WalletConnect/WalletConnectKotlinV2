@@ -53,15 +53,15 @@ internal class OnSubscriptionUpdateEventUseCase(
                     }.onSuccess { activeSubscription ->
                         with(activeSubscription) {
                             subscriptionRepository.upsertOrAbortActiveSubscription(
-                                account.value,
-                                authenticationPublicKey,
-                                expiry.seconds,
-                                relay.protocol,
-                                relay.data,
-                                mapOfNotificationScope.toDb(),
-                                dappGeneratedPublicKey.keyAsHex,
-                                notifyTopic.value,
-                                null, // This is not synced with an active subscription
+                                account = account.value,
+                                authenticationPublicKey = authenticationPublicKey,
+                                updatedExpiry = expiry.seconds,
+                                relayProtocol = relay.protocol,
+                                relayData = relay.data,
+                                mapOfScope = mapOfNotificationScope.toDb(),
+                                dappGeneratedPublicKey = dappGeneratedPublicKey.keyAsHex,
+                                notifyTopic = notifyTopic.value,
+                                requestedSubscriptionRequestId = null, // This is not synced with an active subscription
                             )
                         }
                     }.onSuccess { activeSubscription ->
