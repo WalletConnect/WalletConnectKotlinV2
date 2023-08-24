@@ -118,7 +118,7 @@ internal class NotifyEngine(
             .onEach { request ->
                 when (val requestParams = request.params) {
                     is CoreNotifyParams.MessageParams -> onNotifyMessageUseCase(request, requestParams)
-                    is CoreNotifyParams.DeleteParams -> onNotifyDeleteUseCase.invoke(request, requestParams)
+                    is CoreNotifyParams.DeleteParams -> onNotifyDeleteUseCase(request, requestParams)
                 }
             }.launchIn(scope)
 
