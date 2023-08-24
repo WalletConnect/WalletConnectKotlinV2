@@ -21,7 +21,7 @@ interface EncodeDidJwtPayloadUseCase<R : JwtClaims> {
         val expiration: Long
             get() = iatAndExp.second
 
-        val identityKeyDidKey: String
+        val issuer: String
             get() = encodeEd25519DidKey(identityPublicKey.keyAsBytes)
     }
 }

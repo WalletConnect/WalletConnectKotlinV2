@@ -19,7 +19,7 @@ internal class EncodeSubscriptionRequestJwtUseCase(
         SubscriptionRequestJwtClaim(
             issuedAt = issuedAt,
             expiration = expiration,
-            issuer = identityKeyDidKey,
+            issuer = issuer,
             keyserverUrl = keyserverUrl,
             audience = encodeEd25519DidKey(authenticationKey.keyAsBytes),
             subject = encodeDidPkh(accountId.value),

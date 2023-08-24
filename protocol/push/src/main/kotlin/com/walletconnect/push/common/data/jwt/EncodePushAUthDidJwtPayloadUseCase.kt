@@ -16,7 +16,7 @@ class EncodePushAuthDidJwtPayloadUseCase(
         PushSubscriptionJwtClaim(
             issuedAt = issuedAt,
             expiration = expiration,
-            issuer = identityKeyDidKey,
+            issuer = issuer,
             keyserverUrl = keyserverUrl,
             audience = audience,
             subject = encodeDidPkh(accountId.value),

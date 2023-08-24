@@ -16,7 +16,7 @@ internal class EncodeMessageReceiptJwtUseCase(
         MessageReceiptJwtClaim(
             issuedAt = issuedAt,
             expiration = expiration,
-            issuer = identityKeyDidKey,
+            issuer = issuer,
             keyserverUrl = keyserverUrl,
             audience = encodeEd25519DidKey(authenticationKey.keyAsBytes),
             subject = messageHash,

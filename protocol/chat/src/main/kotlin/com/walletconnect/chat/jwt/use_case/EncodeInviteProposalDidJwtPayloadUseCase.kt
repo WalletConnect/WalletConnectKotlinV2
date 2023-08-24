@@ -16,7 +16,7 @@ internal class EncodeInviteProposalDidJwtPayloadUseCase(
 ) : EncodeDidJwtPayloadUseCase<ChatDidJwtClaims.InviteProposal> {
     override fun invoke(params: EncodeDidJwtPayloadUseCase.Params): ChatDidJwtClaims.InviteProposal = with(params) {
         ChatDidJwtClaims.InviteProposal(
-            issuer = identityKeyDidKey,
+            issuer = issuer,
             issuedAt = issuedAt,
             expiration = expiration,
             keyserverUrl = keyserverUrl,

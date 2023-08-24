@@ -16,7 +16,7 @@ internal class EncodeDeleteRequestJwtUseCase(
         DeleteRequestJwtClaim(
             issuedAt = issuedAt,
             expiration = expiration,
-            issuer = identityKeyDidKey,
+            issuer = issuer,
             keyserverUrl = keyserverUrl,
             audience = encodeEd25519DidKey(authenticationKey.keyAsBytes),
             subject = Reason.UserDisconnected.message,

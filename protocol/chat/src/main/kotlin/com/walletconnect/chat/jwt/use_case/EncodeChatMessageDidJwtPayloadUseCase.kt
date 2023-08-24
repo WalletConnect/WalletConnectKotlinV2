@@ -20,7 +20,7 @@ internal class EncodeChatMessageDidJwtPayloadUseCase(
         val (messageIssuedAt, messageExpiration) = jwtIatAndExp(timestampInMs = timestampInMs, timeunit = TimeUnit.MILLISECONDS, expirySourceDuration = 30, expiryTimeUnit = TimeUnit.DAYS)
 
         return ChatDidJwtClaims.ChatMessage(
-            issuer = identityKeyDidKey,
+            issuer = issuer,
             issuedAt = messageIssuedAt,
             expiration = messageExpiration,
             keyserverUrl = keyserverUrl,

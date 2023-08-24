@@ -14,7 +14,7 @@ internal class EncodeChatReceiptDidJwtPayloadUseCase(
 ) : EncodeDidJwtPayloadUseCase<ChatDidJwtClaims.ChatReceipt> {
     override fun invoke(params: EncodeDidJwtPayloadUseCase.Params): ChatDidJwtClaims.ChatReceipt = with(params) {
         ChatDidJwtClaims.ChatReceipt(
-            issuer = identityKeyDidKey,
+            issuer = issuer,
             issuedAt = issuedAt,
             expiration = expiration,
             keyserverUrl = keyserverUrl,
