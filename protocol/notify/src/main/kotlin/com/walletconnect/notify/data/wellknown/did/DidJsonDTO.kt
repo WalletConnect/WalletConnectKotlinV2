@@ -15,7 +15,6 @@ internal data class DidJsonDTO(
     val verificationMethod: List<VerificationMethodDTO>,
     @Json(name = "keyAgreement")
     val keyAgreement: List<String>,
-    // TODO: Re-implement after testing
     @Json(name = "authentication")
     val authentication: List<String>
 )
