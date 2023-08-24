@@ -2,7 +2,6 @@ package com.walletconnect.sign.engine.use_case.requests
 
 import com.walletconnect.android.internal.common.exception.Invalid
 import com.walletconnect.android.internal.common.exception.Uncategorized
-import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.IrnParams
@@ -19,13 +18,12 @@ import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.sign.common.model.type.Sequences
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
-import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpc
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.common.validator.SignValidator
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toEngineDO
 import com.walletconnect.sign.engine.model.mapper.toPeerError
-import com.walletconnect.sign.engine.sessionRequestsQueue
+import com.walletconnect.sign.engine.sessionRequestEvetnsQueue
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import com.walletconnect.utils.Empty
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -81,13 +79,13 @@ internal class OnSessionRequestUseCase(
             val url = sessionPeerAppMetaData?.url ?: String.Empty
             resolveAttestationIdUseCase(request.id, request.message, url) { verifyContext ->
                 val sessionRequestEvent = EngineDO.SessionRequestEvent(params.toEngineDO(request, sessionPeerAppMetaData), verifyContext.toEngineDO())
-                val event = if (sessionRequestsQueue.isEmpty()) {
+                val event = if (sessionRequestEvetnsQueue.isEmpty()) {
                     sessionRequestEvent
                 } else {
-                    sessionRequestsQueue.first()
+                    sessionRequestEvetnsQueue.find { event -> CoreValidator.isExpiryWithinBounds(event.request.expiry) } ?: sessionRequestEvent
                 }
 
-                sessionRequestsQueue.addLast(sessionRequestEvent)
+                sessionRequestEvetnsQueue.addLast(sessionRequestEvent)
                 scope.launch { _events.emit(event) }
             }
         } catch (e: Exception) {
