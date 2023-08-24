@@ -71,7 +71,8 @@ internal fun callModule() = module {
     single<DecryptMessageUseCaseInterface> {
         DecryptMessageUseCase(
             codec = get(),
-            serializer = get()
+            serializer = get(),
+            jsonRpcHistory = get()
         )
     }
 
