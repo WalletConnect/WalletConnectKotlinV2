@@ -40,7 +40,6 @@ internal class ExtractPublicKeysFromDidJsonUseCase(
                 extractPublicKey(id, didJson.verificationMethod)
             } ?: Result.failure(Exception("Key Agreement is missing from $dappUri. Check that the $DID_JSON matches the specs."))
 
-        // TODO: Re-implement after testing
         val authenticationPublicKey = didJsonResult
             .takeIf {
                 didJsonResult.getOrNull()?.authentication?.isNotEmpty() == true
