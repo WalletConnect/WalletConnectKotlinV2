@@ -66,7 +66,11 @@ internal class OnSubscriptionUpdateEventUseCase(
                         }
                     }.onSuccess { activeSubscription ->
                         with(activeSubscription) {
-                            metadataStorageRepository.upsertPeerMetadata(topic = notifyTopic, appMetaData = dappMetaData!!, appMetaDataType = AppMetaDataType.PEER)
+                            metadataStorageRepository.upsertPeerMetadata(
+                                topic = notifyTopic,
+                                appMetaData = dappMetaData!!,
+                                appMetaDataType = AppMetaDataType.PEER
+                            )
                         }
                     }.fold(
                         onSuccess = { activeSubscription ->
