@@ -98,7 +98,8 @@ internal fun SignParams.SessionRequestParams.toEngineDO(
             id = request.id,
             method = this.request.method,
             params = this.request.params
-        )
+        ),
+        this.request.expiry
     )
 
 @JvmSynthetic
@@ -255,7 +256,7 @@ internal fun SignParams.EventParams.toEngineDOEvent(): EngineDO.Event =
 
 @JvmSynthetic
 internal fun PendingRequest<String>.toSessionRequest(peerAppMetaData: AppMetaData?): EngineDO.SessionRequest =
-    EngineDO.SessionRequest(topic.value, chainId, peerAppMetaData, EngineDO.SessionRequest.JSONRPCRequest(id, method, params))
+    EngineDO.SessionRequest(topic.value, chainId, peerAppMetaData, EngineDO.SessionRequest.JSONRPCRequest(id, method, params), expiry)
 
 
 @JvmSynthetic

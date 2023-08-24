@@ -16,6 +16,7 @@ internal fun SignRpc.SessionRequest.toPendingRequest(entry: JsonRpcHistoryRecord
         params.request.method,
         params.chainId,
         params.request.params,
+        params.request.expiry
     )
 
 @JvmSynthetic

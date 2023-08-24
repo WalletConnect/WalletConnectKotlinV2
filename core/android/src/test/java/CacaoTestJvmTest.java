@@ -9,7 +9,6 @@ import com.walletconnect.util.UtilFunctionsKt;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.web3j.utils.Assertions;
 import org.web3j.utils.Numeric;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;

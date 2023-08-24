@@ -14,3 +14,13 @@ internal fun JsonRpcHistoryRecord.toEntry(params: AuthParams.RequestParams): Jso
         params,
         response
     )
+
+@JvmSynthetic
+internal fun AuthParams.RequestParams.toEntry(record: JsonRpcHistoryRecord): JsonRpcHistoryEntry =
+    JsonRpcHistoryEntry(
+        record.id,
+        Topic(record.topic),
+        record.method,
+        this,
+        record.response
+    )
