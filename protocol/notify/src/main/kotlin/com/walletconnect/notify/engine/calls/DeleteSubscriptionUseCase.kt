@@ -47,14 +47,6 @@ internal class DeleteSubscriptionUseCase(
             Topic(notifyTopic),
             irnParams,
             request,
-            onSuccess = {
-                // TODO: Think about if we want to unregister the Echo at all when deleting a subscription, most likely not
-                /*CoreClient.Echo.unregister({
-                    logger.log("Delete subscription and Echo unregister sent successfully")
-                }, {
-                    onFailure(it)
-                })*/
-            },
             onFailure = {
                 onFailure(it)
             }
