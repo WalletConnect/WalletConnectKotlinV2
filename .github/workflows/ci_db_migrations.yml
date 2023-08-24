@@ -28,7 +28,7 @@ jobs:
           { name: Sign SDK, command: ":protocol:sign:verifyDebugSignDatabaseMigration" },
           { name: Auth SDK, command: ":protocol:auth:verifyDebugAuthDatabaseMigration" },
           { name: Chat SDK, command: ":protocol:chat:verifyDebugChatDatabaseMigration" },
-          { name: Push SDK, command: ":protocol:push:verifyDebugPushDatabaseMigration" },
+          { name: Push SDK, command: ":protocol:notify:verifyDebugPushDatabaseMigration" },
         ]
     name: ${{ matrix.conf.name }}
     runs-on: ubuntu-latest
