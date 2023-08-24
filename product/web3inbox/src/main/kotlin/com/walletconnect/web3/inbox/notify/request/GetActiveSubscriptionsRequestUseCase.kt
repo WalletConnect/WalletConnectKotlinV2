@@ -28,7 +28,6 @@ internal class GetActiveSubscriptionsRequestUseCase(
     private fun Core.Model.AppMetaData.toResult() =
         Web3InboxParams.AppMetaDataParams(name, description, url, icons, redirect, verifyUrl)
 
-    //todo: Cleanup
     private fun Map<Notify.Model.Subscription.ScopeName, Notify.Model.Subscription.ScopeSetting>.scopeToResult() = map {
         it.key.value to Web3InboxParams.ScopeSettingParams(it.value.description, it.value.enabled)
     }.toMap()
