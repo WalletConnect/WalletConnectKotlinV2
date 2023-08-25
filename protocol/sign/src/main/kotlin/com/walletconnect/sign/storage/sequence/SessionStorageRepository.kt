@@ -8,6 +8,7 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
+import com.walletconnect.sign.engine.sessionRequestsQueue
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceDaoQueries
 import com.walletconnect.sign.storage.data.dao.optionalnamespaces.OptionalNamespaceDaoQueries
 import com.walletconnect.sign.storage.data.dao.proposalnamespace.ProposalNamespaceDaoQueries
@@ -163,6 +164,7 @@ internal class SessionStorageRepository(
 
     @JvmSynthetic
     fun deleteSession(topic: Topic) {
+        sessionRequestsQueue.removeAll { event -> event.request.topic == topic.value }
         namespaceDaoQueries.deleteNamespacesByTopic(topic.value)
         requiredNamespaceDaoQueries.deleteProposalNamespacesByTopic(topic.value)
         optionalNamespaceDaoQueries.deleteOptionalNamespacesByTopic(topic.value)
