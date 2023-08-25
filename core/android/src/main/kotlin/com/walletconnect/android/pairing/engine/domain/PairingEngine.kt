@@ -130,44 +130,15 @@ internal class PairingEngine(
         }.getOrNull()
     }
 
-    private fun isPairingValid(topic: String): Boolean =
-        pairingRepository.getPairingOrNullByTopic(Topic(topic)).let { pairing ->
-            if (pairing == null) {
-                return@let false
-            } else {
-                return@let pairing.isNotExpired()
-            }
-        }
-
-    fun markAsReceived(topic: String, onFailure: (Throwable) -> Unit) {
-        pairingRepository.getPairingOrNullByTopic(Topic(topic))?.let { pairing ->
-            if (pairing.isNotExpired()) {
-                pairingRepository.markAsReceived(pairing.topic)
-            } else {
-                onFailure(IllegalStateException("Pairing for topic $topic is expired"))
-            }
-        } ?: onFailure(IllegalStateException("Pairing for topic $topic does not exist"))
-    }
-
     fun pair(uri: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
-        val walletConnectUri: WalletConnectUri =
-            Validator.validateWCUri(uri) ?: return onFailure(MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE))
-
-        println("kobe; Pairing: $walletConnectUri")
-
+        val walletConnectUri: WalletConnectUri = Validator.validateWCUri(uri) ?: return onFailure(MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE))
         val activePairing = Pairing(walletConnectUri, registeredMethods)
         val symmetricKey = walletConnectUri.symKey
 
         try {
             if (isPairingValid(activePairing.topic.value)) {
-                //if request received - emit the last one?
-                println("kobe; has topic")
-
                 val pairing = pairingRepository.getPairingOrNullByTopic(activePairing.topic)
-                println("kobe; is received: ${pairing?.isReceived}")
                 if (pairing?.isReceived == true) {
-                    println("kobe; received pairing")
-
                     scope.launch {
                         supervisorScope {
                             _activePairingTopicFlow.emit(activePairing.topic)
@@ -178,18 +149,10 @@ internal class PairingEngine(
             } else {
                 crypto.setKey(symmetricKey, walletConnectUri.topic.value)
                 pairingRepository.insertPairing(activePairing)
-                println("kobe; new pairing")
             }
 
-            println("kobe; Subsribing to pairing topic")
-
-            jsonRpcInteractor.subscribe(topic = activePairing.topic, onSuccess = { onSuccess() }, onFailure = { error ->
-                println("kobe: Error Subscribing: $error")
-                return@subscribe onFailure(error)
-            }
-            )
+            jsonRpcInteractor.subscribe(topic = activePairing.topic, onSuccess = { onSuccess() }, onFailure = { error -> return@subscribe onFailure(error) })
         } catch (e: Exception) {
-            println("kobe: Catch Error: $e")
             crypto.removeKeys(walletConnectUri.topic.value)
             jsonRpcInteractor.unsubscribe(activePairing.topic)
             onFailure(e)
@@ -240,13 +203,11 @@ internal class PairingEngine(
     }
 
     fun activate(topic: String, onFailure: (Throwable) -> Unit) {
-        pairingRepository.getPairingOrNullByTopic(Topic(topic))?.let { pairing ->
-            if (pairing.isNotExpired()) {
-                pairingRepository.activatePairing(pairing.topic)
-            } else {
-                onFailure(IllegalStateException("Pairing for topic $topic is expired"))
-            }
-        } ?: onFailure(IllegalStateException("Pairing for topic $topic does not exist"))
+        getPairing(topic, onFailure) { pairing -> pairingRepository.activatePairing(pairing.topic) }
+    }
+
+    fun markAsReceived(topic: String, onFailure: (Throwable) -> Unit) {
+        getPairing(topic, onFailure) { pairing -> pairingRepository.markAsReceived(pairing.topic) }
     }
 
     fun updateExpiry(topic: String, expiry: Expiry, onFailure: (Throwable) -> Unit) {
@@ -339,6 +300,16 @@ internal class PairingEngine(
 
     private fun generateTopic(): Topic = Topic(randomBytes(32).bytesToHex())
 
+    private fun getPairing(topic: String, onFailure: (Throwable) -> Unit, onPairing: (pairing: Pairing) -> Unit) {
+        pairingRepository.getPairingOrNullByTopic(Topic(topic))?.let { pairing ->
+            if (pairing.isNotExpired()) {
+                onPairing(pairing)
+            } else {
+                onFailure(IllegalStateException("Pairing for topic $topic is expired"))
+            }
+        } ?: onFailure(IllegalStateException("Pairing for topic $topic does not exist"))
+    }
+
     private fun Pairing.isNotExpired(): Boolean = (expiry.seconds > CURRENT_TIME_IN_SECONDS).also { isValid ->
         if (!isValid) {
             scope.launch {
@@ -355,4 +326,13 @@ internal class PairingEngine(
             }
         }
     }
+
+    private fun isPairingValid(topic: String): Boolean =
+        pairingRepository.getPairingOrNullByTopic(Topic(topic)).let { pairing ->
+            if (pairing == null) {
+                return@let false
+            } else {
+                return@let pairing.isNotExpired()
+            }
+        }
 }

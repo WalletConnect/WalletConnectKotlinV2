@@ -59,7 +59,6 @@ internal class OnSessionProposeUseCase(
                 }
             }
 
-            println("kobe; mark as received: ${request.topic}")
             pairingController.markAsReceived(Core.Params.MarkAsReceived(request.topic.value))
             proposalStorageRepository.insertProposal(payloadParams.toVO(request.topic, request.id))
             pairingController.updateMetadata(Core.Params.UpdateMetadata(request.topic.value, payloadParams.proposer.metadata.toClient(), AppMetaDataType.PEER))

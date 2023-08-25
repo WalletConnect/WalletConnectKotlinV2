@@ -66,17 +66,7 @@ internal class AuthEngine(
 
     init {
         pairingHandler.register(JsonRpcMethod.WC_AUTH_REQUEST)
-
-        pairingHandler.activePairingFlow
-            .onEach { pairingTopic ->
-                try {
-                    val request = getPendingJsonRpcHistoryEntryByTopicUseCase(pairingTopic)
-                    val context = verifyContextStorageRepository.get(request.id) ?: VerifyContext(request.id, String.Empty, Validation.UNKNOWN, String.Empty)
-                    scope.launch { _engineEvent.emit(Events.OnAuthRequest(request.id,request.pairingTopic, request.payloadParams, context)) }
-                } catch (e: Exception) {
-                    println("No auth request for pairing topic")
-                }
-            }.launchIn(scope)
+        emitReceivedAuthRequest()
     }
 
     fun setup() {
@@ -123,6 +113,19 @@ internal class AuthEngine(
         } catch (e: Exception) {
             scope.launch { _engineEvent.emit(SDKError(e)) }
         }
+    }
+
+    private fun emitReceivedAuthRequest() {
+        pairingHandler.activePairingFlow
+            .onEach { pairingTopic ->
+                try {
+                    val request = getPendingJsonRpcHistoryEntryByTopicUseCase(pairingTopic)
+                    val context = verifyContextStorageRepository.get(request.id) ?: VerifyContext(request.id, String.Empty, Validation.UNKNOWN, String.Empty)
+                    scope.launch { _engineEvent.emit(Events.OnAuthRequest(request.id, request.pairingTopic, request.payloadParams, context)) }
+                } catch (e: Exception) {
+                    println("No auth request for pairing topic: $e")
+                }
+            }.launchIn(scope)
     }
 
     private fun collectAuthEvents(): Job =

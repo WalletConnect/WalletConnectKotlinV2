@@ -48,7 +48,7 @@ internal class ApproveSessionUseCase(
         onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit
     ) = supervisorScope {
-        fun sessionSettle(requestId: Long, proposal: ProposalVO, sessionTopic: Topic, pairingTopic: Topic, ) {
+        fun sessionSettle(requestId: Long, proposal: ProposalVO, sessionTopic: Topic, pairingTopic: Topic) {
             val selfPublicKey = crypto.getSelfPublicFromKeyAgreement(sessionTopic)
             val selfParticipant = SessionParticipantVO(selfPublicKey.keyAsHex, selfAppMetaData)
             val sessionExpiry = ACTIVE_SESSION
@@ -65,7 +65,15 @@ internal class ApproveSessionUseCase(
                 jsonRpcInteractor.publishJsonRpcRequest(
                     topic = sessionTopic,
                     params = irnParams, sessionSettle,
-                    onSuccess = { onSuccess() },
+                    onSuccess = {
+                        onSuccess()
+                        scope.launch {
+                            supervisorScope {
+                                proposalStorageRepository.deleteProposal(proposerPublicKey)
+                                verifyContextStorageRepository.delete(proposal.requestId)
+                            }
+                        }
+                    },
                     onFailure = { error -> onFailure(error) }
                 )
             } catch (e: SQLiteException) {
@@ -76,8 +84,6 @@ internal class ApproveSessionUseCase(
         }
 
         val proposal = proposalStorageRepository.getProposalByKey(proposerPublicKey)
-        proposalStorageRepository.deleteProposal(proposerPublicKey)
-        verifyContextStorageRepository.delete(proposal.requestId)
         val request = proposal.toSessionProposeRequest()
 
         SignValidator.validateSessionNamespace(sessionNamespaces.toMapOfNamespacesVOSession(), proposal.requiredNamespaces) { error ->

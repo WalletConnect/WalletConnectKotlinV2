@@ -147,19 +147,7 @@ internal class SignEngine(
         )
         setupSequenceExpiration()
         propagatePendingSessionRequestsQueue()
-
-        pairingController.activePairingFlow
-            .onEach { pairingTopic ->
-                try {
-                    val proposal = proposalStorageRepository.getProposalByTopic(pairingTopic.value)
-                    val context = verifyContextStorageRepository.get(proposal.requestId) ?: VerifyContext(proposal.requestId, String.Empty, Validation.UNKNOWN, String.Empty)
-                    val sessionProposalEvent = EngineDO.SessionProposalEvent(proposal = proposal.toEngineDO(), context = context.toEngineDO())
-                    println("kobe: Emitting stored session proposal")
-                    scope.launch { _engineEvent.emit(sessionProposalEvent) }
-                } catch (e: Exception) {
-                    println("No proposal for pairing topic")
-                }
-            }.launchIn(scope)
+        emitReceivedSessionProposals()
     }
 
     fun setup() {
@@ -297,5 +285,19 @@ internal class SignEngine(
                     }
                 }
             }
+    }
+
+    private fun emitReceivedSessionProposals() {
+        pairingController.activePairingFlow
+            .onEach { pairingTopic ->
+                try {
+                    val proposal = proposalStorageRepository.getProposalByTopic(pairingTopic.value)
+                    val context = verifyContextStorageRepository.get(proposal.requestId) ?: VerifyContext(proposal.requestId, String.Empty, Validation.UNKNOWN, String.Empty)
+                    val sessionProposalEvent = EngineDO.SessionProposalEvent(proposal = proposal.toEngineDO(), context = context.toEngineDO())
+                    scope.launch { _engineEvent.emit(sessionProposalEvent) }
+                } catch (e: Exception) {
+                    println("No proposal for pairing topic: $e")
+                }
+            }.launchIn(scope)
     }
 }

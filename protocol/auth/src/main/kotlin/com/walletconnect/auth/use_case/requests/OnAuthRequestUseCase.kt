@@ -42,7 +42,6 @@ internal class OnAuthRequestUseCase(
             }
 
             val url = authParams.requester.metadata.url
-            println("kobe; mark as received: ${wcRequest.topic}")
             pairingController.markAsReceived(Core.Params.MarkAsReceived(wcRequest.topic.value))
             resolveAttestationIdUseCase(wcRequest.id, wcRequest.message, url) { verifyContext ->
                 scope.launch { _events.emit(Events.OnAuthRequest(wcRequest.id, wcRequest.topic.value, authParams.payloadParams, verifyContext)) }

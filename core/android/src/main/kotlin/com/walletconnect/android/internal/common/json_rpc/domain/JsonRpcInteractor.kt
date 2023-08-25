@@ -238,12 +238,9 @@ internal class JsonRpcInteractor(
             return onFailure(e)
         }
 
-        println("kobe: Interactor Subcribe")
-
         relay.subscribe(topic.value) { result ->
             result.fold(
                 onSuccess = { acknowledgement ->
-                    println("kobe: Interactor Subcribe Success")
                     subscriptions[topic.value] = acknowledgement.result
                     onSuccess(topic)
                 },
