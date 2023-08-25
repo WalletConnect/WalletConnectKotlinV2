@@ -6,7 +6,6 @@ import com.walletconnect.android.internal.common.jwt.did.EncodeDidJwtPayloadUseC
 import com.walletconnect.android.internal.common.jwt.did.encodeDidJwt
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.DidJwt
-import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
@@ -30,9 +29,8 @@ internal class RegisterIdentityAndReturnDidJwtInteractor(
         authenticationKey: PublicKey,
         metadataUrl: String,
         scopes: List<String>,
-        onSign: (String) -> Cacao.Signature?,
         onFailure: (Throwable) -> Unit,
-    ): Result<DidJwt> = registerIdentityAndReturnIdentityKeyPair(account, onSign, onFailure) { (identityPublicKey, identityPrivateKey) ->
+    ): Result<DidJwt> = registerIdentityAndReturnIdentityKeyPair(account, onFailure) { (identityPublicKey, identityPrivateKey) ->
         val concatenatedScopes = scopes.joinToString(SCOPES_DELIMITER)
 
         return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
@@ -47,8 +45,7 @@ internal class RegisterIdentityAndReturnDidJwtInteractor(
         metadataUrl: String,
         authenticationKey: PublicKey,
         onFailure: (Throwable) -> Unit,
-        onSign: (String) -> Cacao.Signature? = { null },
-    ): Result<DidJwt> = registerIdentityAndReturnIdentityKeyPair(account, onSign, onFailure) { (identityPublicKey, identityPrivateKey) ->
+    ): Result<DidJwt> = registerIdentityAndReturnIdentityKeyPair(account, onFailure) { (identityPublicKey, identityPrivateKey) ->
 
         return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
             identityPrivateKey,
@@ -63,8 +60,7 @@ internal class RegisterIdentityAndReturnDidJwtInteractor(
         authenticationKey: PublicKey,
         messageHash: String,
         onFailure: (Throwable) -> Unit,
-        onSign: (String) -> Cacao.Signature? = { null },
-    ): Result<DidJwt> = registerIdentityAndReturnIdentityKeyPair(account, onSign, onFailure) { (identityPublicKey, identityPrivateKey) ->
+    ): Result<DidJwt> = registerIdentityAndReturnIdentityKeyPair(account, onFailure) { (identityPublicKey, identityPrivateKey) ->
 
         return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
             identityPrivateKey,
@@ -79,8 +75,7 @@ internal class RegisterIdentityAndReturnDidJwtInteractor(
         authenticationKey: PublicKey,
         scopes: List<String>,
         onFailure: (Throwable) -> Unit,
-        onSign: (String) -> Cacao.Signature? = { null },
-    ): Result<DidJwt> = registerIdentityAndReturnIdentityKeyPair(account, onSign, onFailure) { (identityPublicKey, identityPrivateKey) ->
+    ): Result<DidJwt> = registerIdentityAndReturnIdentityKeyPair(account, onFailure) { (identityPublicKey, identityPrivateKey) ->
         val concatenatedScopes = scopes.joinToString(SCOPES_DELIMITER)
 
         return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
@@ -90,14 +85,14 @@ internal class RegisterIdentityAndReturnDidJwtInteractor(
         )
     }
 
+    @Suppress("MoveLambdaOutsideParentheses")
     private suspend fun registerIdentityAndReturnIdentityKeyPair(
         account: AccountId,
-        onSign: (String) -> Cacao.Signature?,
         onFailure: (Throwable) -> Unit,
         returnedKeys: suspend (Pair<PublicKey, PrivateKey>) -> Result<DidJwt>,
     ) = supervisorScope {
         withContext(Dispatchers.IO) {
-            identitiesInteractor.registerIdentity(account, keyserverUrl, onSign).getOrElse {
+            identitiesInteractor.registerIdentity(account, keyserverUrl, { null }).getOrElse {
                 onFailure(it)
                 this.cancel()
             }

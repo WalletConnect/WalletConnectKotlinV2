@@ -19,7 +19,6 @@ import com.walletconnect.android.internal.common.model.Redirect
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
-import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.THIRTY_SECONDS
 import com.walletconnect.foundation.common.model.PublicKey
@@ -72,9 +71,10 @@ internal class SubscribeToDappUseCase(
                     return@fold onFailure(it)
                 }
 
-                val didJwt = registerIdentityAndReturnDidJwt.subscriptionRequest(AccountId(account), authenticationPublicKey, dappUri.toString(), dappScopes.map { it.name }, onSign, onFailure).getOrElse { error ->
-                    return@fold onFailure(error)
-                }
+                val didJwt =
+                    registerIdentityAndReturnDidJwt.subscriptionRequest(AccountId(account), authenticationPublicKey, dappUri.toString(), dappScopes.map { it.name }, onFailure).getOrElse { error ->
+                        return@fold onFailure(error)
+                    }
                 val params = CoreNotifyParams.SubscribeParams(didJwt.value)
                 val request = NotifyRpc.NotifySubscribe(params = params)
                 val irnParams = IrnParams(Tags.NOTIFY_SUBSCRIBE, Ttl(THIRTY_SECONDS))
@@ -176,7 +176,6 @@ internal interface SubscribeToDappUseCaseInterface {
     suspend fun subscribeToDapp(
         dappUri: Uri,
         account: String,
-        onSign: (String) -> Cacao.Signature?,
         onSuccess: (Long, DidJwt) -> Unit,
         onFailure: (Throwable) -> Unit,
     )
