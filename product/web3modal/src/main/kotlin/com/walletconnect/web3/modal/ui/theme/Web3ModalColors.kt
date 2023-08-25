@@ -94,7 +94,7 @@ private val defaultLightWeb3ModalColors = Web3ModalColors(
     main20 = Color(0xFF2978CC),
     foreground = ColorPalette(
         Color(0xFF141414),
-        Color(0xFF2D23131),
+        Color(0xFF2D3131),
         Color(0xFF474D4D),
         Color(0xFF636D6D),
         Color(0xFF798686),

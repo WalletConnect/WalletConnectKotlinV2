@@ -6,6 +6,7 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import com.walletconnect.web3.modal.ui.navigation.Route
+import com.walletconnect.web3.modal.ui.navigation.titleKey
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -35,7 +36,7 @@ internal class Web3ModalRootState(
 
     val title: StateFlow<String?>
         get() = currentDestinationFlow
-            .map { it.destination.toTitle() }
+            .map { it.arguments?.getString(titleKey) ?: it.destination.toTitle() }
             .stateIn(coroutineScope, SharingStarted.Eagerly, null)
 
     fun navigateToHelp() {
