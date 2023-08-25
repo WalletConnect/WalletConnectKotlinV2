@@ -66,7 +66,7 @@ object Notify {
 
         class Init(val core: CoreInterface) : Params()
 
-        data class Subscribe(val dappUrl: Uri, val account: String, val onSign: (String) -> Model.Cacao.Signature?) : Params()
+        data class Subscribe(val dappUrl: Uri, val account: String) : Params()
 
         data class Update(val topic: String, val scope: List<String>) : Params()
 
