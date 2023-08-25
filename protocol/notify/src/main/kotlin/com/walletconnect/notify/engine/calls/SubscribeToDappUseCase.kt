@@ -31,8 +31,8 @@ import com.walletconnect.notify.common.model.NotifyRpc
 import com.walletconnect.notify.data.storage.SubscriptionRepository
 import com.walletconnect.notify.data.wellknown.config.NotifyConfigDTO
 import com.walletconnect.notify.engine.domain.ExtractPublicKeysFromDidJsonUseCase
+import com.walletconnect.notify.engine.domain.FetchDidJwtInteractor
 import com.walletconnect.notify.engine.domain.GenerateAppropriateUriUseCase
-import com.walletconnect.notify.engine.domain.RegisterIdentityAndReturnDidJwtInteractor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
@@ -47,7 +47,7 @@ internal class SubscribeToDappUseCase(
     private val crypto: KeyManagementRepository,
     private val explorerRepository: ExplorerRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
-    private val registerIdentityAndReturnDidJwt: RegisterIdentityAndReturnDidJwtInteractor,
+    private val fetchDidJwtInteractor: FetchDidJwtInteractor,
     private val extractPublicKeysFromDidJson: ExtractPublicKeysFromDidJsonUseCase,
     private val generateAppropriateUri: GenerateAppropriateUriUseCase,
     private val logger: Logger,
@@ -72,7 +72,7 @@ internal class SubscribeToDappUseCase(
                 }
 
                 val didJwt =
-                    registerIdentityAndReturnDidJwt.subscriptionRequest(AccountId(account), authenticationPublicKey, dappUri.toString(), dappScopes.map { it.name }, onFailure).getOrElse { error ->
+                    fetchDidJwtInteractor.subscriptionRequest(AccountId(account), authenticationPublicKey, dappUri.toString(), dappScopes.map { it.name }).getOrElse { error ->
                         return@fold onFailure(error)
                     }
                 val params = CoreNotifyParams.SubscribeParams(didJwt.value)

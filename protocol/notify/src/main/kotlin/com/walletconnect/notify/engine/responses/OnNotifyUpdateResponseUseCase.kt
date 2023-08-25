@@ -16,7 +16,7 @@ import com.walletconnect.notify.common.model.toDb
 import com.walletconnect.notify.data.jwt.update.UpdateRequestJwtClaim
 import com.walletconnect.notify.data.jwt.update.UpdateResponseJwtClaim
 import com.walletconnect.notify.data.storage.SubscriptionRepository
-import com.walletconnect.notify.engine.domain.RegisterIdentityAndReturnDidJwtInteractor
+import com.walletconnect.notify.engine.domain.FetchDidJwtInteractor
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -43,7 +43,7 @@ internal class OnNotifyUpdateResponseUseCase(
                         return@supervisorScope
                     }
 
-                    val listOfUpdateScopeNames = notifyUpdateRequestJwtClaim.scope.split(RegisterIdentityAndReturnDidJwtInteractor.SCOPES_DELIMITER)
+                    val listOfUpdateScopeNames = notifyUpdateRequestJwtClaim.scope.split(FetchDidJwtInteractor.SCOPES_DELIMITER)
                     val updateNotificationScopeMap: Map<String, NotificationScope.Cached> = subscription.mapOfNotificationScope.entries.associate { (scopeName, scopeDescIsSelected) ->
                         val (desc, _) = scopeDescIsSelected
                         val isNewScopeTrue = listOfUpdateScopeNames.contains(scopeName)

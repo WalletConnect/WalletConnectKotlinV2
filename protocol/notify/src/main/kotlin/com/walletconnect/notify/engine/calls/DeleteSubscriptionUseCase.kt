@@ -15,7 +15,7 @@ import com.walletconnect.notify.common.model.NotifyRpc
 import com.walletconnect.notify.common.model.Subscription
 import com.walletconnect.notify.data.storage.MessagesRepository
 import com.walletconnect.notify.data.storage.SubscriptionRepository
-import com.walletconnect.notify.engine.domain.RegisterIdentityAndReturnDidJwtInteractor
+import com.walletconnect.notify.engine.domain.FetchDidJwtInteractor
 import com.walletconnect.notify.engine.sync.use_case.requests.DeleteSubscriptionToNotifySubscriptionStoreUseCase
 import kotlinx.coroutines.supervisorScope
 
@@ -25,7 +25,7 @@ internal class DeleteSubscriptionUseCase(
     private val subscriptionRepository: SubscriptionRepository,
     private val messagesRepository: MessagesRepository,
     private val deleteSubscriptionToNotifySubscriptionStore: DeleteSubscriptionToNotifySubscriptionStoreUseCase,
-    private val registerIdentityAndReturnDidJwt: RegisterIdentityAndReturnDidJwtInteractor,
+    private val fetchDidJwtInteractor: FetchDidJwtInteractor,
 ) : DeleteSubscriptionUseCaseInterface {
 
     override suspend fun deleteSubscription(notifyTopic: String, onFailure: (Throwable) -> Unit) = supervisorScope {
@@ -33,7 +33,7 @@ internal class DeleteSubscriptionUseCase(
             subscriptionRepository.getActiveSubscriptionByNotifyTopic(notifyTopic) ?: return@supervisorScope onFailure(IllegalStateException("Subscription does not exists for $notifyTopic"))
         val dappMetaData = metadataStorageRepository.getByTopicAndType(activeSubscription.notifyTopic, AppMetaDataType.PEER)
             ?: return@supervisorScope onFailure(IllegalStateException("Dapp metadata does not exists for $notifyTopic"))
-        val deleteJwt = registerIdentityAndReturnDidJwt.deleteRequest(activeSubscription.account, dappMetaData.url, activeSubscription.authenticationPublicKey, onFailure).getOrElse {
+        val deleteJwt = fetchDidJwtInteractor.deleteRequest(activeSubscription.account, dappMetaData.url, activeSubscription.authenticationPublicKey).getOrElse {
             return@supervisorScope onFailure(it)
         }
         val request = NotifyRpc.NotifyDelete(params = CoreNotifyParams.DeleteParams(deleteJwt.value))

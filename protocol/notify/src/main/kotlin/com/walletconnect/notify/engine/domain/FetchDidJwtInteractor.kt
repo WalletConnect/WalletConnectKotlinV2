@@ -14,12 +14,11 @@ import com.walletconnect.notify.data.jwt.message.EncodeMessageReceiptJwtUseCase
 import com.walletconnect.notify.data.jwt.subscription.EncodeSubscriptionRequestJwtUseCase
 import com.walletconnect.notify.data.jwt.update.EncodeUpdateRequestJwtUseCase
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 
-internal class RegisterIdentityAndReturnDidJwtInteractor(
+internal class FetchDidJwtInteractor(
     private val keyserverUrl: String,
     private val identitiesInteractor: IdentitiesInteractor,
 ) {
@@ -29,8 +28,7 @@ internal class RegisterIdentityAndReturnDidJwtInteractor(
         authenticationKey: PublicKey,
         metadataUrl: String,
         scopes: List<String>,
-        onFailure: (Throwable) -> Unit,
-    ): Result<DidJwt> = registerIdentityAndReturnIdentityKeyPair(account, onFailure) { (identityPublicKey, identityPrivateKey) ->
+    ): Result<DidJwt> = registerIdentityAndReturnIdentityKeyPair(account) { (identityPublicKey, identityPrivateKey) ->
         val concatenatedScopes = scopes.joinToString(SCOPES_DELIMITER)
 
         return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
@@ -44,8 +42,7 @@ internal class RegisterIdentityAndReturnDidJwtInteractor(
         account: AccountId,
         metadataUrl: String,
         authenticationKey: PublicKey,
-        onFailure: (Throwable) -> Unit,
-    ): Result<DidJwt> = registerIdentityAndReturnIdentityKeyPair(account, onFailure) { (identityPublicKey, identityPrivateKey) ->
+    ): Result<DidJwt> = registerIdentityAndReturnIdentityKeyPair(account) { (identityPublicKey, identityPrivateKey) ->
 
         return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
             identityPrivateKey,
@@ -59,8 +56,7 @@ internal class RegisterIdentityAndReturnDidJwtInteractor(
         metadataUrl: String,
         authenticationKey: PublicKey,
         messageHash: String,
-        onFailure: (Throwable) -> Unit,
-    ): Result<DidJwt> = registerIdentityAndReturnIdentityKeyPair(account, onFailure) { (identityPublicKey, identityPrivateKey) ->
+    ): Result<DidJwt> = registerIdentityAndReturnIdentityKeyPair(account) { (identityPublicKey, identityPrivateKey) ->
 
         return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
             identityPrivateKey,
@@ -74,8 +70,7 @@ internal class RegisterIdentityAndReturnDidJwtInteractor(
         metadataUrl: String,
         authenticationKey: PublicKey,
         scopes: List<String>,
-        onFailure: (Throwable) -> Unit,
-    ): Result<DidJwt> = registerIdentityAndReturnIdentityKeyPair(account, onFailure) { (identityPublicKey, identityPrivateKey) ->
+    ): Result<DidJwt> = registerIdentityAndReturnIdentityKeyPair(account) { (identityPublicKey, identityPrivateKey) ->
         val concatenatedScopes = scopes.joinToString(SCOPES_DELIMITER)
 
         return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
@@ -85,20 +80,13 @@ internal class RegisterIdentityAndReturnDidJwtInteractor(
         )
     }
 
-    @Suppress("MoveLambdaOutsideParentheses")
     private suspend fun registerIdentityAndReturnIdentityKeyPair(
         account: AccountId,
-        onFailure: (Throwable) -> Unit,
         returnedKeys: suspend (Pair<PublicKey, PrivateKey>) -> Result<DidJwt>,
     ) = supervisorScope {
         withContext(Dispatchers.IO) {
-            identitiesInteractor.registerIdentity(account, keyserverUrl, { null }).getOrElse {
-                onFailure(it)
-                this.cancel()
-            }
+            returnedKeys(identitiesInteractor.getIdentityKeyPair(account))
         }
-
-        returnedKeys(identitiesInteractor.getIdentityKeyPair(account))
     }
 
     companion object {
