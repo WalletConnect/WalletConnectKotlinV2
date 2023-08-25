@@ -1,5 +1,6 @@
 package com.walletconnect.auth.use_case.requests
 
+import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.exception.Invalid
 import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
@@ -12,6 +13,7 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
+import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
 import com.walletconnect.auth.common.json_rpc.AuthParams
 import com.walletconnect.auth.common.json_rpc.AuthRpc
@@ -26,6 +28,7 @@ import kotlinx.coroutines.supervisorScope
 internal class OnAuthRequestUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val resolveAttestationIdUseCase: ResolveAttestationIdUseCase,
+    private val pairingController: PairingControllerInterface,
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
@@ -39,6 +42,8 @@ internal class OnAuthRequestUseCase(
             }
 
             val url = authParams.requester.metadata.url
+            println("kobe; mark as received: ${wcRequest.topic}")
+            pairingController.markAsReceived(Core.Params.MarkAsReceived(wcRequest.topic.value))
             resolveAttestationIdUseCase(wcRequest.id, wcRequest.message, url) { verifyContext ->
                 scope.launch { _events.emit(Events.OnAuthRequest(wcRequest.id, wcRequest.topic.value, authParams.payloadParams, verifyContext)) }
             }

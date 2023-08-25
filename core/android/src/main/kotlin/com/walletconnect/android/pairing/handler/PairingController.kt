@@ -15,6 +15,7 @@ internal class PairingController(private val koinApp: KoinApplication = wcKoinAp
     private lateinit var pairingEngine: PairingEngine
     override val topicExpiredFlow: SharedFlow<Topic> by lazy { pairingEngine.topicExpiredFlow }
     override val findWrongMethodsFlow: Flow<SDKError> by lazy { merge(pairingEngine.internalErrorFlow, pairingEngine.jsonRpcErrorFlow) }
+    override val activePairingFlow: SharedFlow<Topic> by lazy { pairingEngine.activePairingTopicFlow }
 
     override fun initialize() {
         pairingEngine = koinApp.koin.get()
@@ -25,6 +26,17 @@ internal class PairingController(private val koinApp: KoinApplication = wcKoinAp
         checkEngineInitialization()
 
         pairingEngine.register(*method)
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun markAsReceived(markAsReceived: Core.Params.MarkAsReceived, onError: (Core.Model.Error) -> Unit) {
+        checkEngineInitialization()
+
+        try {
+            pairingEngine.markAsReceived(markAsReceived.topic) { error -> onError(Core.Model.Error(error)) }
+        } catch (e: Exception) {
+            onError(Core.Model.Error(e))
+        }
     }
 
     @Throws(IllegalStateException::class)

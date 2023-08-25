@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.SharedFlow
 interface PairingControllerInterface {
     val topicExpiredFlow: SharedFlow<Topic>
     val findWrongMethodsFlow: Flow<SDKError>
+    val activePairingFlow: SharedFlow<Topic>
 
     fun initialize()
 
@@ -19,4 +20,6 @@ interface PairingControllerInterface {
     fun updateMetadata(updateMetadata: Core.Params.UpdateMetadata, onError: (Core.Model.Error) -> Unit = {})
 
     fun register(vararg method: String)
+
+    fun markAsReceived(markAsReceived: Core.Params.MarkAsReceived, onError: (Core.Model.Error) -> Unit = {})
 }

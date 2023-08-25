@@ -21,6 +21,7 @@ internal fun engineModule() = module {
             verifyContextStorageRepository = get(),
             jsonRpcInteractor = get(),
             crypto = get(),
+            proposalStorageRepository = get(),
             sessionStorageRepository = get(),
             metadataStorageRepository = get(),
             approveSessionUseCase = get(),

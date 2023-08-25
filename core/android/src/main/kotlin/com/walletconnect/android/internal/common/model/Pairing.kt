@@ -13,7 +13,8 @@ data class Pairing(
     val relayData: String?,
     val uri: String,
     val isActive: Boolean,
-    val registeredMethods: String
+    val registeredMethods: String,
+    val isReceived: Boolean = false
 ) : Sequence {
 
     constructor(topic: Topic, relay: RelayProtocolOptions, symmetricKey: SymmetricKey, registeredMethods: String) : this(

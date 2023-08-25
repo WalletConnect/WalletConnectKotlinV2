@@ -53,6 +53,7 @@ import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCaseByTopicIn
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequestByTopicUseCaseInterface
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequests
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
+import com.walletconnect.sign.storage.proposal.ProposalStorageRepository
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import com.walletconnect.utils.Empty
 import com.walletconnect.utils.isSequenceValid
@@ -66,7 +67,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
 
 internal class SignEngine(
@@ -75,6 +75,7 @@ internal class SignEngine(
     private val getPendingSessionRequestByTopicUseCase: GetPendingSessionRequestByTopicUseCaseInterface,
     private val getPendingSessionRequests: GetPendingSessionRequests,
     private val crypto: KeyManagementRepository,
+    private val proposalStorageRepository: ProposalStorageRepository,
     private val sessionStorageRepository: SessionStorageRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val pairingController: PairingControllerInterface,
@@ -146,6 +147,19 @@ internal class SignEngine(
         )
         setupSequenceExpiration()
         propagatePendingSessionRequestsQueue()
+
+        pairingController.activePairingFlow
+            .onEach { pairingTopic ->
+                try {
+                    val proposal = proposalStorageRepository.getProposalByTopic(pairingTopic.value)
+                    val context = verifyContextStorageRepository.get(proposal.requestId) ?: VerifyContext(proposal.requestId, String.Empty, Validation.UNKNOWN, String.Empty)
+                    val sessionProposalEvent = EngineDO.SessionProposalEvent(proposal = proposal.toEngineDO(), context = context.toEngineDO())
+                    println("kobe: Emitting stored session proposal")
+                    scope.launch { _engineEvent.emit(sessionProposalEvent) }
+                } catch (e: Exception) {
+                    println("No proposal for pairing topic")
+                }
+            }.launchIn(scope)
     }
 
     fun setup() {

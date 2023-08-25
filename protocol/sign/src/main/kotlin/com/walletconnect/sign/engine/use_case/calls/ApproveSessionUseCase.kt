@@ -12,6 +12,7 @@ import com.walletconnect.android.internal.common.storage.MetadataStorageReposito
 import com.walletconnect.android.internal.common.storage.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.ACTIVE_SESSION
 import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
+import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
