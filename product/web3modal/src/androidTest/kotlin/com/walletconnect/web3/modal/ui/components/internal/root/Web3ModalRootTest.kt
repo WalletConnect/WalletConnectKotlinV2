@@ -54,7 +54,7 @@ class Web3ModalRootTest {
     }
 
     @Test
-    fun web3ModalRoot_shouldWithoutTitle() {
+    fun web3ModalRoot_shouldShowWithoutTitle() {
         composeTestRule.setContent {
             val controller = rememberTestNavController()
             ProvideWeb3ModalThemeComposition {
