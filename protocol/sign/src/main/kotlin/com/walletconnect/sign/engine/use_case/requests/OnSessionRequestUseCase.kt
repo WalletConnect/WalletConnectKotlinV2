@@ -23,7 +23,7 @@ import com.walletconnect.sign.common.validator.SignValidator
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toEngineDO
 import com.walletconnect.sign.engine.model.mapper.toPeerError
-import com.walletconnect.sign.engine.sessionRequestEvetnsQueue
+import com.walletconnect.sign.engine.sessionRequestEventsQueue
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import com.walletconnect.utils.Empty
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -79,13 +79,13 @@ internal class OnSessionRequestUseCase(
             val url = sessionPeerAppMetaData?.url ?: String.Empty
             resolveAttestationIdUseCase(request.id, request.message, url) { verifyContext ->
                 val sessionRequestEvent = EngineDO.SessionRequestEvent(params.toEngineDO(request, sessionPeerAppMetaData), verifyContext.toEngineDO())
-                val event = if (sessionRequestEvetnsQueue.isEmpty()) {
+                val event = if (sessionRequestEventsQueue.isEmpty()) {
                     sessionRequestEvent
                 } else {
-                    sessionRequestEvetnsQueue.find { event -> CoreValidator.isExpiryWithinBounds(event.request.expiry) } ?: sessionRequestEvent
+                    sessionRequestEventsQueue.find { event -> CoreValidator.isExpiryWithinBounds(event.request.expiry) } ?: sessionRequestEvent
                 }
 
-                sessionRequestEvetnsQueue.addLast(sessionRequestEvent)
+                sessionRequestEventsQueue.addLast(sessionRequestEvent)
                 scope.launch { _events.emit(event) }
             }
         } catch (e: Exception) {

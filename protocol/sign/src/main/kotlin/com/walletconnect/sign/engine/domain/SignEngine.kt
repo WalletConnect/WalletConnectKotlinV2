@@ -20,7 +20,7 @@ import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignPara
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toEngineDO
 import com.walletconnect.sign.engine.model.mapper.toSessionRequest
-import com.walletconnect.sign.engine.sessionRequestEvetnsQueue
+import com.walletconnect.sign.engine.sessionRequestEventsQueue
 import com.walletconnect.sign.engine.use_case.calls.ApproveSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.DisconnectSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.EmitEventUseCaseInterface
@@ -277,7 +277,7 @@ internal class SignEngine(
                             val verifyContext =
                                 verifyContextStorageRepository.get(sessionRequest.request.id) ?: VerifyContext(sessionRequest.request.id, String.Empty, Validation.UNKNOWN, String.Empty)
                             val sessionRequestEvent = EngineDO.SessionRequestEvent(sessionRequest, verifyContext.toEngineDO())
-                            sessionRequestEvetnsQueue.addLast(sessionRequestEvent)
+                            sessionRequestEventsQueue.addLast(sessionRequestEvent)
                         }
                     }
                 }

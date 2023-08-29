@@ -18,7 +18,7 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.exceptions.NO_SEQUENCE_FOR_TOPIC_MESSAGE
-import com.walletconnect.sign.engine.sessionRequestEvetnsQueue
+import com.walletconnect.sign.engine.sessionRequestEventsQueue
 import com.walletconnect.sign.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdUseCase
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
@@ -88,11 +88,11 @@ internal class RespondSessionRequestUseCase(
 
     private suspend fun removePendingSessionRequestAndEmit(jsonRpcResponse: JsonRpcResponse) {
         verifyContextStorageRepository.delete(jsonRpcResponse.id)
-        sessionRequestEvetnsQueue.find { pendingRequestEvent -> pendingRequestEvent.request.request.id == jsonRpcResponse.id }?.let { event ->
-            sessionRequestEvetnsQueue.remove(event)
+        sessionRequestEventsQueue.find { pendingRequestEvent -> pendingRequestEvent.request.request.id == jsonRpcResponse.id }?.let { event ->
+            sessionRequestEventsQueue.remove(event)
         }
-        if (sessionRequestEvetnsQueue.isNotEmpty()) {
-            sessionRequestEvetnsQueue.find { event -> CoreValidator.isExpiryWithinBounds(event.request.expiry) }?.let { event ->
+        if (sessionRequestEventsQueue.isNotEmpty()) {
+            sessionRequestEventsQueue.find { event -> CoreValidator.isExpiryWithinBounds(event.request.expiry) }?.let { event ->
                 _events.emit(event)
             }
         }
