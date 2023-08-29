@@ -43,18 +43,14 @@ import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.skydoves.landscapist.glide.GlideImage
-import com.walletconnect.android.cacao.signature.SignatureType
-import com.walletconnect.android.utils.cacao.sign
 import com.walletconnect.notify.client.Notify
 import com.walletconnect.notify.client.NotifyClient
-import com.walletconnect.notify.client.cacao.CacaoSigner
 import com.walletconnect.sample.common.CompletePreviews
 import com.walletconnect.sample.common.tag
 import com.walletconnect.sample.common.ui.WCTopAppBar
 import com.walletconnect.sample.common.ui.theme.PreviewTheme
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.wallet.domain.EthAccountDelegate
-import com.walletconnect.sample.wallet.domain.hexToBytes
 import com.walletconnect.sample.wallet.domain.model.NotifyNotification
 import com.walletconnect.sample.wallet.domain.toEthAddress
 
@@ -104,9 +100,7 @@ private fun NotificationScreen(
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),
                     onClick = {
-                        val subscribeParams = Notify.Params.Subscribe("https://gm.walletconnect.com".toUri(), with(EthAccountDelegate) { account.toEthAddress() }) { message ->
-                            CacaoSigner.sign(message, EthAccountDelegate.privateKey.hexToBytes(), SignatureType.EIP191)
-                        }
+                        val subscribeParams = Notify.Params.Subscribe("https://gm.walletconnect.com".toUri(), with(EthAccountDelegate) { account.toEthAddress() })
                         NotifyClient.subscribe(
                             params = subscribeParams,
                             onSuccess = {
