@@ -73,16 +73,7 @@ internal fun combineListOfBitSetsWithOrOperator(bitSets: List<BitSet>): BitSet {
 
 @JvmSynthetic
 internal fun compareDomains(metadataUrl: String, originUrl: String): Boolean {
-    val metadataDomain = if (URI(metadataUrl).host.startsWith("www.")) {
-        URI(metadataUrl).host.substring(4)
-    } else {
-        URI(metadataUrl).host
-    }
-
-    val originDomain = if (URI(originUrl).host.startsWith("www.")) {
-        URI(originUrl).host.substring(4)
-    } else {
-        URI(originUrl).host
-    }
+    val metadataDomain = URI(metadataUrl).host.removePrefix("www.")
+    val originDomain = URI(originUrl).host.removePrefix("www.")
     return metadataDomain == originDomain
 }
