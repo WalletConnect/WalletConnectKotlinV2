@@ -19,7 +19,7 @@ import com.walletconnect.notify.common.model.NotifyRecord
 import com.walletconnect.notify.data.jwt.message.MessageRequestJwtClaim
 import com.walletconnect.notify.data.storage.MessagesRepository
 import com.walletconnect.notify.data.storage.SubscriptionRepository
-import com.walletconnect.notify.engine.domain.RegisterIdentityAndReturnDidJwtInteractor
+import com.walletconnect.notify.engine.domain.FetchDidJwtInteractor
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -29,7 +29,7 @@ internal class OnNotifyMessageUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val messagesRepository: MessagesRepository,
     private val subscriptionRepository: SubscriptionRepository,
-    private val registerIdentityAndReturnDidJwt: RegisterIdentityAndReturnDidJwtInteractor,
+    private val fetchDidJwtInteractor: FetchDidJwtInteractor,
     private val _moshi: Moshi.Builder,
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
@@ -64,15 +64,13 @@ internal class OnNotifyMessageUseCase(
         }.mapCatching { jwtMessage ->
             val stringifiedMessage = _moshi.build().adapter(MessageRequestJwtClaim.Message::class.java).toJson(jwtMessage.message)
             val messageHash = sha256(stringifiedMessage.encodeToByteArray())
-            val activeSubscription = subscriptionRepository.getActiveSubscriptionByNotifyTopic(request.topic.value) ?: throw IllegalStateException("No active subscription for topic: ${request.topic.value}")
-            val messageReceiptJwt = registerIdentityAndReturnDidJwt.messageReceipt(
+            val activeSubscription =
+                subscriptionRepository.getActiveSubscriptionByNotifyTopic(request.topic.value) ?: throw IllegalStateException("No active subscription for topic: ${request.topic.value}")
+            val messageReceiptJwt = fetchDidJwtInteractor.messageReceipt(
                 account = activeSubscription.account,
                 metadataUrl = activeSubscription.dappMetaData!!.url,
                 authenticationKey = activeSubscription.authenticationPublicKey,
-                messageHash = messageHash,
-                onFailure = { e ->
-                    throw e
-                }
+                messageHash = messageHash
             ).getOrThrow()
 
             val messageReceiptParams = CoreNotifyParams.MessageReceiptParams(receiptAuth = messageReceiptJwt.value)

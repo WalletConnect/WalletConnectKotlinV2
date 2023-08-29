@@ -16,7 +16,7 @@ internal fun requestModule() = module {
             jsonRpcInteractor = get(),
             messagesRepository = get(),
             subscriptionRepository = get(),
-            registerIdentityAndReturnDidJwt = get(),
+            fetchDidJwtInteractor = get(),
             _moshi = get(named(AndroidCommonDITags.MOSHI)),
         )
     }

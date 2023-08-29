@@ -70,7 +70,7 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
         scope.launch {
             supervisorScope {
                 try {
-                    notifyEngine.subscribeToDapp(params.dappUrl, params.account, params.onSign.toWalletClient(),
+                    notifyEngine.subscribeToDapp(params.dappUrl, params.account,
                         onSuccess = { _, _ -> onSuccess() },
                         onFailure = { onError(Notify.Model.Error(it)) }
                     )

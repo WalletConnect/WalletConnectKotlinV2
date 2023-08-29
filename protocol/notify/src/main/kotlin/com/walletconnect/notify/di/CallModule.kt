@@ -35,7 +35,7 @@ internal fun callModule() = module {
             crypto = get(),
             explorerRepository = get(),
             metadataStorageRepository = get(),
-            registerIdentityAndReturnDidJwt = get(),
+            fetchDidJwtInteractor = get(),
             extractPublicKeysFromDidJson = get(),
             generateAppropriateUri = get(),
             logger = get(),
@@ -47,7 +47,7 @@ internal fun callModule() = module {
             jsonRpcInteractor = get(),
             subscriptionRepository = get(),
             metadataStorageRepository = get(),
-            registerIdentityAndReturnDidJwtInteractor = get()
+            fetchDidJwtInteractor = get()
         )
     }
 
@@ -58,7 +58,7 @@ internal fun callModule() = module {
             subscriptionRepository = get(),
             messagesRepository = get(),
             deleteSubscriptionToNotifySubscriptionStore = get(),
-            registerIdentityAndReturnDidJwt = get()
+            fetchDidJwtInteractor = get()
         )
     }
 

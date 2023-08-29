@@ -6,8 +6,8 @@ import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.notify.engine.NotifyEngine
 import com.walletconnect.notify.engine.domain.EngineNotifySubscriptionNotifier
 import com.walletconnect.notify.engine.domain.ExtractPublicKeysFromDidJsonUseCase
+import com.walletconnect.notify.engine.domain.FetchDidJwtInteractor
 import com.walletconnect.notify.engine.domain.GenerateAppropriateUriUseCase
-import com.walletconnect.notify.engine.domain.RegisterIdentityAndReturnDidJwtInteractor
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
@@ -36,7 +36,7 @@ internal fun engineModule() = module {
     }
 
     single {
-        RegisterIdentityAndReturnDidJwtInteractor(
+        FetchDidJwtInteractor(
             keyserverUrl = get(named(AndroidCommonDITags.KEYSERVER_URL)),
             identitiesInteractor = get()
         )
