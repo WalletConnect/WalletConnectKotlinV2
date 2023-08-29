@@ -11,6 +11,7 @@ import org.koin.core.definition.KoinDefinition
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.ext.getFullName
+import java.net.URI
 import java.util.BitSet
 import kotlin.reflect.KClass
 
@@ -68,4 +69,11 @@ internal fun combineListOfBitSetsWithOrOperator(bitSets: List<BitSet>): BitSet {
         acc.or(bitSet)
         acc
     }
+}
+
+@JvmSynthetic
+internal fun compareDomains(metadataUrl: String, originUrl: String): Boolean {
+    val metadataDomain = URI(metadataUrl).host.removePrefix("www.")
+    val originDomain = URI(originUrl).host.removePrefix("www.")
+    return metadataDomain == originDomain
 }
