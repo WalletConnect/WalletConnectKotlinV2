@@ -9,5 +9,6 @@ data class WCRequest(
     val id: Long,
     val method: String,
     val params: ClientParams,
-    val message: String = String.Empty
+    val message: String = String.Empty,
+    val publishedAt: Long = 0,
 )

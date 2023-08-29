@@ -11,7 +11,7 @@ internal class NotifyProxyRequestHandler(
     private val getActiveSubscriptionsRequestUseCase: GetActiveSubscriptionsRequestUseCase,
     private val getMessageHistoryRequestUseCase: GetMessageHistoryRequestUseCase,
     private val deleteNotifyMessageRequestUseCase: DeleteNotifyMessageRequestUseCase,
-    private val enableSyncRequestUseCase: EnableSyncRequestUseCase,
+    private val registerRequestUseCase: RegisterRequestUseCase,
 ) {
 
     fun handleRequest(rpc: Web3InboxRPC.Request.Notify) {
@@ -22,7 +22,7 @@ internal class NotifyProxyRequestHandler(
             is Web3InboxRPC.Request.Notify.GetActiveSubscriptions -> getActiveSubscriptionsRequestUseCase(rpc, rpc.params)
             is Web3InboxRPC.Request.Notify.GetMessageHistory -> getMessageHistoryRequestUseCase(rpc, rpc.params)
             is Web3InboxRPC.Request.Notify.DeleteNotifyMessage -> deleteNotifyMessageRequestUseCase(rpc, rpc.params)
-            is Web3InboxRPC.Request.Notify.EnableSync -> enableSyncRequestUseCase(rpc, rpc.params)
+            is Web3InboxRPC.Request.Notify.Register -> registerRequestUseCase(rpc, rpc.params)
         }
     }
 }

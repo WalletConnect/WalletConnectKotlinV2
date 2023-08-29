@@ -22,11 +22,12 @@ interface NotifyInterface {
 
     fun update(params: Notify.Params.Update, onSuccess: () -> Unit, onError: (Notify.Model.Error) -> Unit)
 
+    // TODO: Will add back later
     /**
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
-    fun getNotificationTypes(params: Notify.Params.NotificationTypes, onSuccess: (Notify.Model.AvailableTypes) -> Unit, onError: (Notify.Model.Error) -> Unit)
+//    fun getNotificationTypes(params: Notify.Params.NotificationTypes, onSuccess: (Notify.Model.AvailableTypes) -> Unit, onError: (Notify.Model.Error) -> Unit)
 
     /**
      * Caution: This function is blocking and runs on the current thread.
@@ -46,5 +47,5 @@ interface NotifyInterface {
 
     fun decryptMessage(params: Notify.Params.DecryptMessage, onSuccess: (Notify.Model.Message) -> Unit, onError: (Notify.Model.Error) -> Unit)
 
-    fun enableSync(params: Notify.Params.EnableSync, onSuccess: () -> Unit, onError: (Notify.Model.Error) -> Unit)
+    fun register(params: Notify.Params.Registration, onSuccess: (String) -> Unit, onError: (Notify.Model.Error) -> Unit)
 }
