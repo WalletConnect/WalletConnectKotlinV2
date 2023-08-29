@@ -5,7 +5,6 @@ package com.walletconnect.android.internal.common.jwt.did
 
 import com.walletconnect.android.internal.common.model.DidJwt
 import com.walletconnect.foundation.common.model.PrivateKey
-import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.util.jwt.*
 
 fun <R : JwtClaims> encodeDidJwt(
@@ -23,7 +22,7 @@ inline fun <reified C : JwtClaims> extractVerifiedDidJwtClaims(didJwt: String): 
     val (header, claims, signature) = decodeJwt<C>(didJwt).getOrThrow()
 
     with(header) { this@with.verifyHeader() }
-    with(claims) { verifyJwt(decodeEd25519DidKey(this@with.issuer), extractData(didJwt).toByteArray(), signature) }
+    with(claims) { verifyJwt(didJwt, signature) }
 
     claims
 }
@@ -34,8 +33,8 @@ fun JwtHeader.verifyHeader() {
 }
 
 context(JwtClaims)
-fun verifyJwt(identityPublicKey: PublicKey, data: ByteArray, signature: String) {
-    val isValid = verifySignature(identityPublicKey, data, signature).getOrThrow()
+fun JwtClaims.verifyJwt(didJwt: String, signature: String) {
+    val isValid = verifySignature(decodeEd25519DidKey(issuer), extractData(didJwt).toByteArray(), signature).getOrThrow()
 
     if (!isValid) throw Throwable("Invalid signature")
 }
