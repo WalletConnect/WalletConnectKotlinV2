@@ -44,6 +44,7 @@ internal fun CircleNetworkImage(
 ) {
     Box(
         modifier = Modifier
+            .size(36.dp)
             .border(width = 2.dp, color = Web3ModalTheme.colors.overlay05, shape = CircleShape)
             .padding(2.dp)
     ) {
