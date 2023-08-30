@@ -54,7 +54,7 @@ internal fun AllWalletsRoute(
 ) {
     AllWalletsContent(
         wallets = wallets,
-        onWalletItemClick = { navController.navigateToRedirect(it) },
+        onWalletItemClick = { wallet -> navController.navigateToRedirect(wallet) },
     )
 }
 
