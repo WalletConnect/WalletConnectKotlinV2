@@ -108,7 +108,7 @@ internal sealed interface Web3InboxParams : ClientParams {
             ) : Notify
 
             @JsonClass(generateAdapter = true)
-            data class EnableSyncParams(
+            data class RegisterParams(
                 val account: String,
                 val private: Boolean?,
             ) : Notify
@@ -169,6 +169,7 @@ internal sealed interface Web3InboxParams : ClientParams {
                 val account: String,
                 val relay: RelayParams,
                 val metadata: AppMetaDataParams,
+                val scope: Map<String, ScopeSettingParams>,
             ) : Response
         }
     }

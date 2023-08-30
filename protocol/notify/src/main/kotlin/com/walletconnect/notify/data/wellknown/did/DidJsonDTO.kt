@@ -1,11 +1,12 @@
-package com.walletconnect.notify.data.wellknown.did
+@file:JvmSynthetic
 
+package com.walletconnect.notify.data.wellknown.did
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-data class DidJsonDTO(
+internal data class DidJsonDTO(
     @Json(name = "@context")
     val context: List<String>,
     @Json(name = "id")
@@ -13,5 +14,7 @@ data class DidJsonDTO(
     @Json(name = "verificationMethod")
     val verificationMethod: List<VerificationMethodDTO>,
     @Json(name = "keyAgreement")
-    val keyAgreement: List<String>
+    val keyAgreement: List<String>,
+    @Json(name = "authentication")
+    val authentication: List<String>
 )

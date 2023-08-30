@@ -4,25 +4,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.notify.client.Notify
 import com.walletconnect.notify.client.NotifyClient
-import com.walletconnect.sample.wallet.domain.NotifyDelegate
 import com.walletconnect.sample.wallet.domain.model.NotifyNotification
 import com.walletconnect.sample.wallet.domain.model.toNotifyNotification
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 
 class NotificationsViewModel : ViewModel() {
     private val notifications = MutableStateFlow<List<NotifyNotification>>(listOf())
-
-    val notifyEvents = NotifyDelegate.wcNotifyEventModels.map { notifyEvent ->
-        when (notifyEvent) {
-            is Notify.Event.Message -> notifications.addNewNotification(notifyEvent)
-            is Notify.Event.Delete -> getMessageHistory()
-            else -> Unit
-        }
-    }.shareIn(viewModelScope, started = SharingStarted.Eagerly)
 
     val notificationsState = notifications.map {
         if (it.isEmpty()) {

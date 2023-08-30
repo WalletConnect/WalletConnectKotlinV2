@@ -6,7 +6,7 @@ import com.walletconnect.android.archive.ArchiveInterface
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
-import com.walletconnect.android.internal.common.model.params.NotifyParams
+import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
@@ -17,10 +17,10 @@ import com.walletconnect.notify.common.JsonRpcMethod
 import com.walletconnect.notify.engine.calls.DecryptMessageUseCaseInterface
 import com.walletconnect.notify.engine.calls.DeleteMessageUseCaseInterface
 import com.walletconnect.notify.engine.calls.DeleteSubscriptionUseCaseInterface
-import com.walletconnect.notify.engine.calls.EnableSyncUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetListOfActiveSubscriptionsUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetListOfMessagesUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetNotificationTypesUseCaseInterface
+import com.walletconnect.notify.engine.calls.RegisterUseCaseInterface
 import com.walletconnect.notify.engine.calls.SubscribeToDappUseCaseInterface
 import com.walletconnect.notify.engine.calls.UpdateSubscriptionRequestUseCaseInterface
 import com.walletconnect.notify.engine.requests.OnNotifyDeleteUseCase
@@ -51,8 +51,8 @@ internal class NotifyEngine(
     private val deleteSubscriptionUseCase: DeleteSubscriptionUseCaseInterface,
     private val deleteMessageUseCase: DeleteMessageUseCaseInterface,
     private val decryptMessageUseCase: DecryptMessageUseCaseInterface,
-    private val enableSyncUseCase: EnableSyncUseCaseInterface,
-    private val getNotificationTypesUseCase: GetNotificationTypesUseCaseInterface,
+    private val enableSyncUseCase: RegisterUseCaseInterface,
+    private val getNotificationTypesUseCase: GetNotificationTypesUseCaseInterface, // TODO: Will add back later
     private val getListOfActiveSubscriptionsUseCase: GetListOfActiveSubscriptionsUseCaseInterface,
     private val getListOfMessages: GetListOfMessagesUseCaseInterface,
     private val onNotifyMessageUseCase: OnNotifyMessageUseCase,
@@ -65,8 +65,8 @@ internal class NotifyEngine(
     DeleteSubscriptionUseCaseInterface by deleteSubscriptionUseCase,
     DeleteMessageUseCaseInterface by deleteMessageUseCase,
     DecryptMessageUseCaseInterface by decryptMessageUseCase,
-    EnableSyncUseCaseInterface by enableSyncUseCase,
-    GetNotificationTypesUseCaseInterface by getNotificationTypesUseCase,
+    RegisterUseCaseInterface by enableSyncUseCase,
+//    GetNotificationTypesUseCaseInterface by getNotificationTypesUseCase, TODO: Will add back later
     GetListOfActiveSubscriptionsUseCaseInterface by getListOfActiveSubscriptionsUseCase,
     GetListOfMessagesUseCaseInterface by getListOfMessages {
     private var jsonRpcRequestsJob: Job? = null
@@ -79,10 +79,10 @@ internal class NotifyEngine(
 
     init {
         pairingHandler.register(
-            JsonRpcMethod.WC_NOTIFY_MESSAGE,
-            JsonRpcMethod.WC_NOTIFY_DELETE,
             JsonRpcMethod.WC_NOTIFY_SUBSCRIBE,
+            JsonRpcMethod.WC_NOTIFY_MESSAGE,
             JsonRpcMethod.WC_NOTIFY_UPDATE,
+            JsonRpcMethod.WC_NOTIFY_DELETE,
         )
     }
 
@@ -114,21 +114,21 @@ internal class NotifyEngine(
 
     private suspend fun collectJsonRpcRequests(): Job =
         jsonRpcInteractor.clientSyncJsonRpc
-            .filter { request -> request.params is NotifyParams }
+            .filter { request -> request.params is CoreNotifyParams }
             .onEach { request ->
                 when (val requestParams = request.params) {
-                    is NotifyParams.MessageParams -> onNotifyMessageUseCase(request, requestParams)
-                    is NotifyParams.DeleteParams -> onNotifyDeleteUseCase(request)
+                    is CoreNotifyParams.MessageParams -> onNotifyMessageUseCase(request, requestParams)
+                    is CoreNotifyParams.DeleteParams -> onNotifyDeleteUseCase(request, requestParams)
                 }
             }.launchIn(scope)
 
     private fun collectJsonRpcResponses(): Job =
         jsonRpcInteractor.peerResponse
-            .filter { response -> response.params is NotifyParams }
+            .filter { response -> response.params is CoreNotifyParams }
             .onEach { response ->
                 when (val responseParams = response.params) {
-                    is NotifyParams.SubscribeParams -> onNotifySubscribeResponseUseCase(response)
-                    is NotifyParams.UpdateParams -> onNotifyUpdateResponseUseCase(response, responseParams)
+                    is CoreNotifyParams.SubscribeParams -> onNotifySubscribeResponseUseCase(response)
+                    is CoreNotifyParams.UpdateParams -> onNotifyUpdateResponseUseCase(response, responseParams)
                 }
             }.launchIn(scope)
 

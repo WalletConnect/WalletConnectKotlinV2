@@ -5,7 +5,6 @@ package com.walletconnect.android.internal.common.jwt.did
 
 import com.walletconnect.android.internal.common.model.DidJwt
 import com.walletconnect.foundation.common.model.PrivateKey
-import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.util.jwt.*
 
 fun <R : JwtClaims> encodeDidJwt(
@@ -22,18 +21,20 @@ fun <R : JwtClaims> encodeDidJwt(
 inline fun <reified C : JwtClaims> extractVerifiedDidJwtClaims(didJwt: String): Result<C> = runCatching {
     val (header, claims, signature) = decodeJwt<C>(didJwt).getOrThrow()
 
-    verifyHeader(header)
-    verifyJwt(decodeEd25519DidKey(claims.issuer), extractData(didJwt).toByteArray(), signature)
+    with(header) { this@with.verifyHeader() }
+    with(claims) { verifyJwt(didJwt, signature) }
 
     claims
 }
 
-fun verifyHeader(header: JwtHeader) {
-    if (header.algorithm != JwtHeader.EdDSA.algorithm) throw Throwable("Unsupported header alg: ${header.algorithm}")
+context(JwtHeader)
+fun JwtHeader.verifyHeader() {
+    if (algorithm != JwtHeader.EdDSA.algorithm) throw Throwable("Unsupported header alg: $algorithm")
 }
 
-fun verifyJwt(identityPublicKey: PublicKey, data: ByteArray, signature: String) {
-    val isValid = verifySignature(identityPublicKey, data, signature).getOrThrow()
+context(JwtClaims)
+fun JwtClaims.verifyJwt(didJwt: String, signature: String) {
+    val isValid = verifySignature(decodeEd25519DidKey(issuer), extractData(didJwt).toByteArray(), signature).getOrThrow()
 
     if (!isValid) throw Throwable("Invalid signature")
 }

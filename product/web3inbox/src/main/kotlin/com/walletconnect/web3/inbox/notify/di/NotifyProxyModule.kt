@@ -13,10 +13,10 @@ import com.walletconnect.web3.inbox.notify.event.OnSyncUpdateNotifyEventUseCase
 import com.walletconnect.web3.inbox.notify.event.OnUpdateNotifyEventUseCase
 import com.walletconnect.web3.inbox.notify.request.DeleteNotifyMessageRequestUseCase
 import com.walletconnect.web3.inbox.notify.request.DeleteSubscriptionRequestUseCase
-import com.walletconnect.web3.inbox.notify.request.EnableSyncRequestUseCase
 import com.walletconnect.web3.inbox.notify.request.GetActiveSubscriptionsRequestUseCase
 import com.walletconnect.web3.inbox.notify.request.GetMessageHistoryRequestUseCase
 import com.walletconnect.web3.inbox.notify.request.NotifyProxyRequestHandler
+import com.walletconnect.web3.inbox.notify.request.RegisterRequestUseCase
 import com.walletconnect.web3.inbox.notify.request.SubscribeRequestUseCase
 import com.walletconnect.web3.inbox.notify.request.UpdateRequestUseCase
 import org.koin.dsl.module
@@ -36,7 +36,7 @@ internal fun notifyProxyModule(
     single { DeleteSubscriptionRequestUseCase(notifyClient = notifyClient, proxyInteractor = get()) }
     single { GetMessageHistoryRequestUseCase(notifyClient = notifyClient, proxyInteractor = get()) }
     single { DeleteNotifyMessageRequestUseCase(notifyClient = notifyClient, proxyInteractor = get()) }
-    single { EnableSyncRequestUseCase(notifyClient = notifyClient, proxyInteractor = get(), onSign = onSign) }
+    single { RegisterRequestUseCase(notifyClient = notifyClient, proxyInteractor = get(), onSign = onSign) }
 
     single { OnMessageNotifyEventUseCase(proxyInteractor = get()) }
     single { OnDeleteNotifyEventUseCase(proxyInteractor = get()) }
@@ -59,6 +59,6 @@ internal fun notifyProxyModule(
         getActiveSubscriptionsRequestUseCase = get(),
         getMessageHistoryRequestUseCase = get(),
         deleteNotifyMessageRequestUseCase = get(),
-        enableSyncRequestUseCase = get()
+        registerRequestUseCase = get()
     ) }
 }
