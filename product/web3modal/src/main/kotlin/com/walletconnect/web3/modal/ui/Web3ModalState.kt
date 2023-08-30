@@ -11,11 +11,11 @@ internal sealed class Web3ModalState {
 
     object Loading: Web3ModalState()
     data class Error(val error: Throwable): Web3ModalState()
-    object SessionState : Web3ModalState()
+    object AccountState : Web3ModalState()
 }
 
 internal fun Web3ModalState.toStartingPath() = when (this) {
     is Web3ModalState.Connect -> Route.CONNECT_YOUR_WALLET
-    Web3ModalState.SessionState -> Route.SESSION
+    Web3ModalState.AccountState -> Route.ACCOUNT
     else -> Route.WEB3MODAL
 }.path

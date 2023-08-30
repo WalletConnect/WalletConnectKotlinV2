@@ -44,6 +44,7 @@ internal fun SearchInput(
     searchValue: String,
     onSearchValueChange: (String) -> Unit,
     onClearClick: () -> Unit,
+    modifier: Modifier = Modifier,
     isEnabled: Boolean = true
 ) {
     val focusRequester = remember { FocusRequester() }
@@ -76,7 +77,7 @@ internal fun SearchInput(
         singleLine = true,
         keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus(true) }),
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(40.dp)
             .background(color = backgroundColor, shape = RoundedCornerShape(12.dp))
