@@ -16,7 +16,15 @@ import com.walletconnect.android.utils.toWalletConnectException
 import com.walletconnect.foundation.network.BaseRelayClient
 import com.walletconnect.foundation.network.data.ConnectionController
 import com.walletconnect.foundation.network.model.Relay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import org.koin.core.KoinApplication
 import org.koin.core.qualifier.named
 
@@ -45,7 +53,8 @@ class RelayClient(private val koinApp: KoinApplication = wcKoinApp) : BaseRelayC
             }
             .filterIsInstance<Relay.Model.Event.OnConnectionFailed>()
             .map { error -> error.throwable.toWalletConnectException }
-            .onEach { walletConnectException -> onError(walletConnectException) }.launchIn(scope)
+            .onEach { walletConnectException -> onError(walletConnectException) }
+            .launchIn(scope)
     }
 
     override val isConnectionAvailable: StateFlow<Boolean> by lazy {

@@ -3,7 +3,6 @@
 package com.walletconnect.notify.engine.calls
 
 import android.net.Uri
-import android.util.Base64
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.explorer.ExplorerRepository
@@ -18,11 +17,10 @@ import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Participants
 import com.walletconnect.android.internal.common.model.Redirect
 import com.walletconnect.android.internal.common.model.Tags
-import com.walletconnect.android.internal.common.model.params.NotifyParams
+import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
-import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
-import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
+import com.walletconnect.android.internal.utils.THIRTY_SECONDS
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -31,34 +29,38 @@ import com.walletconnect.notify.common.calcExpiry
 import com.walletconnect.notify.common.model.NotificationScope
 import com.walletconnect.notify.common.model.NotifyRpc
 import com.walletconnect.notify.data.storage.SubscriptionRepository
-import com.walletconnect.notify.data.wellknown.did.DidJsonDTO
-import com.walletconnect.notify.engine.domain.ExtractNotifyConfigUseCase
-import com.walletconnect.notify.engine.domain.RegisterIdentityAndReturnDidJwtUseCaseInterface
-import com.walletconnect.util.bytesToHex
+import com.walletconnect.notify.data.wellknown.config.NotifyConfigDTO
+import com.walletconnect.notify.engine.domain.ExtractPublicKeysFromDidJsonUseCase
+import com.walletconnect.notify.engine.domain.FetchDidJwtInteractor
+import com.walletconnect.notify.engine.domain.GenerateAppropriateUriUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import java.net.URL
 
+typealias DidJsonPublicKeyPair = Pair<PublicKey, PublicKey>
+
 internal class SubscribeToDappUseCase(
     private val serializer: JsonRpcSerializer,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
-    private val extractNotifyConfigUseCase: ExtractNotifyConfigUseCase,
     private val subscriptionRepository: SubscriptionRepository,
     private val crypto: KeyManagementRepository,
     private val explorerRepository: ExplorerRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
-    private val registerIdentityAndReturnDidJwt: RegisterIdentityAndReturnDidJwtUseCaseInterface,
+    private val fetchDidJwtInteractor: FetchDidJwtInteractor,
+    private val extractPublicKeysFromDidJson: ExtractPublicKeysFromDidJsonUseCase,
+    private val generateAppropriateUri: GenerateAppropriateUriUseCase,
     private val logger: Logger,
 ) : SubscribeToDappUseCaseInterface {
 
-    override suspend fun subscribeToDapp(dappUri: Uri, account: String, onSign: (String) -> Cacao.Signature?, onSuccess: (Long, DidJwt) -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
-        val dappWellKnownProperties: Result<Pair<PublicKey, List<NotificationScope.Remote>>> = runCatching {
-            extractDidJson(dappUri).getOrThrow() to extractNotifyConfigUseCase(dappUri).getOrThrow()
+    override suspend fun subscribeToDapp(dappUri: Uri, account: String, onSuccess: (Long, DidJwt) -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
+        val dappWellKnownProperties: Result<Pair<DidJsonPublicKeyPair, List<NotificationScope.Remote>>> = runCatching {
+            extractPublicKeysFromDidJson(dappUri).getOrThrow() to extractNotificationScopeFromConfigJson(dappUri).getOrThrow()
         }
 
         dappWellKnownProperties.fold(
-            onSuccess = { (dappPublicKey, dappScopes) ->
+            onSuccess = { (dappPublicKeys, dappScopes) ->
+                val (dappPublicKey, authenticationPublicKey) = dappPublicKeys
                 val subscribeTopic = Topic(sha256(dappPublicKey.keyAsBytes))
 
                 if (subscriptionRepository.isAlreadyRequested(account, subscribeTopic.value)) return@fold onFailure(IllegalStateException("Account: $account is already subscribed to dapp: $dappUri"))
@@ -69,12 +71,13 @@ internal class SubscribeToDappUseCase(
                     return@fold onFailure(it)
                 }
 
-                val didJwt = registerIdentityAndReturnDidJwt(AccountId(account), dappUri.toString(), dappScopes.map { it.name }, onSign, onFailure).getOrElse { error ->
-                    return@fold onFailure(error)
-                }
-                val params = NotifyParams.SubscribeParams(didJwt.value)
+                val didJwt =
+                    fetchDidJwtInteractor.subscriptionRequest(AccountId(account), authenticationPublicKey, dappUri.toString(), dappScopes.map { it.name }).getOrElse { error ->
+                        return@fold onFailure(error)
+                    }
+                val params = CoreNotifyParams.SubscribeParams(didJwt.value)
                 val request = NotifyRpc.NotifySubscribe(params = params)
-                val irnParams = IrnParams(Tags.NOTIFY_SUBSCRIBE, Ttl(DAY_IN_SECONDS))
+                val irnParams = IrnParams(Tags.NOTIFY_SUBSCRIBE, Ttl(THIRTY_SECONDS))
 
                 runCatching<Unit> {
                     subscriptionRepository.insertOrAbortRequestedSubscription(
@@ -82,6 +85,7 @@ internal class SubscribeToDappUseCase(
                         subscribeTopic = subscribeTopic.value,
                         responseTopic = responseTopic.value,
                         account = account,
+                        authenticationPublicKey = authenticationPublicKey,
                         mapOfScope = dappScopes.associate { scope -> scope.name to Pair(scope.description, true) },
                         expiry = calcExpiry().seconds,
                     )
@@ -118,22 +122,24 @@ internal class SubscribeToDappUseCase(
         )
     }
 
-    private suspend fun extractDidJson(dappUri: Uri): Result<PublicKey> = withContext(Dispatchers.IO) {
-        val didJsonDappUri = dappUri.run {
-            if (this.path?.contains(DID_JSON) == false) {
-                this.buildUpon().appendPath(DID_JSON).build()
-            } else {
-                this
+    private suspend fun extractNotificationScopeFromConfigJson(dappUri: Uri): Result<List<NotificationScope.Remote>> = withContext(Dispatchers.IO) {
+        val notifyConfigDappUri = generateAppropriateUri(dappUri, WC_NOTIFY_CONFIG_JSON)
+
+        return@withContext notifyConfigDappUri.runCatching {
+            // Get the did.json from the dapp
+            URL(this.toString()).openStream().bufferedReader().use { it.readText() }
+        }.mapCatching { wellKnownNotifyConfigString ->
+            // Parse the did.json
+            serializer.tryDeserialize<NotifyConfigDTO>(wellKnownNotifyConfigString)
+                ?: throw Exception("Failed to parse $WC_NOTIFY_CONFIG_JSON. Check that the $$WC_NOTIFY_CONFIG_JSON file matches the specs")
+        }.mapCatching { notifyConfig ->
+            notifyConfig.types.map { typeDTO ->
+                NotificationScope.Remote(
+                    name = typeDTO.name,
+                    description = typeDTO.description
+                )
             }
         }
-
-        val wellKnownDidJsonString = URL(didJsonDappUri.toString()).openStream().bufferedReader().use { it.readText() }
-        val didJson = serializer.tryDeserialize<DidJsonDTO>(wellKnownDidJsonString) ?: return@withContext Result.failure(Exception("Failed to parse $DID_JSON"))
-        val verificationKey = didJson.keyAgreement.first()
-        val jwkPublicKey = didJson.verificationMethod.first { it.id == verificationKey }.publicKeyJwk.x
-        val replacedJwk = jwkPublicKey.replace("-", "+").replace("_", "/")
-        val publicKey = Base64.decode(replacedJwk, Base64.DEFAULT).bytesToHex()
-        Result.success(PublicKey(publicKey))
     }
 
     private suspend fun getDappMetaData(dappUri: Uri) = withContext(Dispatchers.IO) {
@@ -143,10 +149,10 @@ internal class SubscribeToDappUseCase(
             return@withContext Result.failure(error)
         }
 
-        val (dappHomepageUri: Uri, dappListing: Listing) = listOfDappHomepages.entries.filter { (_, dappListing) ->
+        val (_: Uri, dappListing: Listing) = listOfDappHomepages.entries.filter { (_, dappListing) ->
             dappListing.description != null
         }.firstOrNull { (dappHomepageUri, _) ->
-            dappHomepageUri.host != null && dappHomepageUri.host!!.contains(dappUri.host!!)
+            dappHomepageUri.host != null && dappHomepageUri.host!!.contains(dappUri.host!!.replace("notify.gm", "gm")) // TODO: Replace after notify.gm is shutdown
         } ?: return@withContext Result.failure<AppMetaData>(IllegalArgumentException("Unable to find dapp listing for $dappUri"))
 
         return@withContext Result.success(
@@ -154,14 +160,14 @@ internal class SubscribeToDappUseCase(
                 name = dappListing.name,
                 description = dappListing.description!!,
                 icons = listOf(dappListing.imageUrl.sm, dappListing.imageUrl.md, dappListing.imageUrl.lg),
-                url = dappHomepageUri.toString(),
+                url = dappUri.toString(),
                 redirect = Redirect(dappListing.app.android)
             )
         )
     }
 
     private companion object {
-        const val DID_JSON = ".well-known/did.json"
+        const val WC_NOTIFY_CONFIG_JSON = ".well-known/wc-notify-config.json"
     }
 }
 
@@ -170,7 +176,6 @@ internal interface SubscribeToDappUseCaseInterface {
     suspend fun subscribeToDapp(
         dappUri: Uri,
         account: String,
-        onSign: (String) -> Cacao.Signature?,
         onSuccess: (Long, DidJwt) -> Unit,
         onFailure: (Throwable) -> Unit,
     )

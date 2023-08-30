@@ -5,10 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
-import com.walletconnect.notify.client.Notify
-import com.walletconnect.sample.common.tag
 import com.walletconnect.sample.wallet.domain.ISSUER
-import com.walletconnect.sample.wallet.domain.NotifyDelegate
 import com.walletconnect.sample.wallet.domain.WCDelegate
 import com.walletconnect.sample.wallet.ui.state.ConnectionState
 import com.walletconnect.sample.wallet.ui.state.PairingState
@@ -76,30 +73,6 @@ class Web3WalletViewModel : ViewModel() {
             }
 
             else -> NoAction
-        }
-    }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
-
-    val notifyEvents = NotifyDelegate.wcNotifyEventModels.map { notifyEvent ->
-        when (notifyEvent) {
-            is Notify.Event.Message -> {
-                NotifyMessage(notifyEvent.message.message.title, notifyEvent.message.message.body, notifyEvent.message.message.icon, notifyEvent.message.message.url)
-            }
-
-            is Notify.Event.Delete -> {
-                NoAction
-            }
-
-            is Notify.Event.Subscription.Result -> {
-                Log.e(tag(this), "NotifyEvent.Subscription.Result: ${notifyEvent.subscription}")
-            }
-
-            is Notify.Event.Subscription.Error -> {
-                Log.e(tag(this), "NotifyEvent.Subscription.Error: ${notifyEvent.reason}")
-            }
-
-            else -> {
-                NoAction
-            }
         }
     }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 

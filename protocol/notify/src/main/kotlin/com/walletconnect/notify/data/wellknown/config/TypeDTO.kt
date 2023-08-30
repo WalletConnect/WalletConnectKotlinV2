@@ -1,11 +1,12 @@
-package com.walletconnect.notify.data.wellknown.config
+@file:JvmSynthetic
 
+package com.walletconnect.notify.data.wellknown.config
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-data class TypeDTO(
+internal data class TypeDTO(
     @Json(name = "name")
     val name: String,
     @Json(name = "description")
