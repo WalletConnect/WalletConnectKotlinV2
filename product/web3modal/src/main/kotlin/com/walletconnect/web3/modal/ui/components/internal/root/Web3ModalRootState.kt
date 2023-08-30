@@ -31,9 +31,8 @@ internal class Web3ModalRootState(
     val canPopUp: Boolean
         get() = !topLevelDestinations.any { it.path == navController.currentDestination?.route }
 
-    val title: Flow<String?>
-        get() = currentDestinationFlow
-            .map { it.getTitleArg() ?: it.destination.toTitle() }
+    val title: Flow<String?> = currentDestinationFlow
+        .map { it.getTitleArg() ?: it.destination.toTitle() }
 
     fun navigateToHelp() {
         navController.navigate(Route.HELP.path)
