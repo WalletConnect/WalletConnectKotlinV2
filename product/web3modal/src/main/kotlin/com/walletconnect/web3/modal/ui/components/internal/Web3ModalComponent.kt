@@ -41,11 +41,12 @@ internal fun Web3ModalComponent(
             label = "Root Animated content"
         ) { state ->
             when (state) {
-                is Web3ModalState.Connect, Web3ModalState.SessionState -> Web3ModalNavGraph(
+                is Web3ModalState.Connect, Web3ModalState.AccountState -> Web3ModalNavGraph(
                     navController = navController,
                     web3ModalState = state,
                     updateRecentWalletId = web3ModalViewModel::updateRecentWalletId,
-                    retryConnection = web3ModalViewModel::retryConnection
+                    retryConnection = web3ModalViewModel::retryConnection,
+                    closeModal = closeModal
                 )
                 Web3ModalState.Loading -> LoadingModalState()
                 is Web3ModalState.Error -> ErrorModalState(retry = web3ModalViewModel::initModalState)

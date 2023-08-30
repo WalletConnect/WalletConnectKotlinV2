@@ -15,5 +15,7 @@ enum class Route(val path: String, val title: String? = null) {
     REDIRECT("redirect"),
 
     //Session routes
-    SESSION("session")
+    ACCOUNT("account"),
+    CHANGE_NETWORK("change_network", "Change Network"),
+    RECENT_TRANSACTION("recent_transaction")
 }
