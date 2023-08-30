@@ -96,14 +96,14 @@ private fun AccountScreen(
                 },
                 onClick = onChangeNetworkClick
             ) {
-                Text(text = "Ethereum", style = Web3ModalTheme.typo.paragraph600.copy(color = it))
+                Text(text = "Ethereum", style = Web3ModalTheme.typo.paragraph600.copy(color = it.textColor))
             }
             VerticalSpacer(height = 8.dp)
             AccountEntry(
                 startIcon = { DisconnectIcon() },
                 onClick = onDisconnectClick
             ) {
-                Text(text = "Disconnect", style = Web3ModalTheme.typo.paragraph600.copy(color = it))
+                Text(text = "Disconnect", style = Web3ModalTheme.typo.paragraph600.copy(color = it.textColor))
             }
         }
     }

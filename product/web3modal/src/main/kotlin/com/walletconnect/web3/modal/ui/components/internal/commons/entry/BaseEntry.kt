@@ -12,7 +12,8 @@ import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 internal data class EntryColors(
     val background: Color,
-    val textColor: Color
+    val textColor: Color,
+    val secondaryColor: Color
 )
 
 @Composable
@@ -23,14 +24,17 @@ internal fun BaseEntry(
 ) {
     val background: Color
     val textColor: Color
+    val secondaryColor: Color
     if (isEnabled) {
         background = Web3ModalTheme.colors.overlay05
         textColor = Web3ModalTheme.colors.foreground.color100
+        secondaryColor = Web3ModalTheme.colors.foreground.color200
     } else {
         background = Web3ModalTheme.colors.overlay15
-        textColor = Web3ModalTheme.colors.foreground.color300
+        textColor = Web3ModalTheme.colors.overlay15
+        secondaryColor = Web3ModalTheme.colors.overlay15
     }
-    val entryColors = EntryColors(background, textColor)
+    val entryColors = EntryColors(background, textColor, secondaryColor)
 
     TransparentSurface(
         shape = RoundedCornerShape(16.dp),
