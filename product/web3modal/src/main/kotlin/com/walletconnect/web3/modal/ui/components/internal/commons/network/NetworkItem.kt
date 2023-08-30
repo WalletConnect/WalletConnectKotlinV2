@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.walletconnect.web3.modal.ui.components.internal.commons.TransparentSurface
 import com.walletconnect.web3.modal.ui.components.internal.commons.VerticalSpacer
 import com.walletconnect.web3.modal.ui.components.internal.commons.WalletImage
 import com.walletconnect.web3.modal.ui.components.internal.commons.grayColorFilter
@@ -57,10 +58,8 @@ private fun NetworkChainsItem(
             colorFilter = grayColorFilter
         }
     }
-
-    Surface(
+    TransparentSurface(
         modifier = Modifier.padding(8.dp),
-        color = Color.Transparent,
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(
@@ -73,12 +72,7 @@ private fun NetworkChainsItem(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             VerticalSpacer(height = 8.dp)
-            WalletImage(
-                url = imageUrl,
-                modifier = Modifier
-                    .size(56.dp)
-                    .clip(RoundedCornerShape(16.dp))
-            )
+            HexagonNetworkImage(url = "", isEnabled = isEnabled,)
             VerticalSpacer(height = 8.dp)
             Text(
                 text = networkName,
