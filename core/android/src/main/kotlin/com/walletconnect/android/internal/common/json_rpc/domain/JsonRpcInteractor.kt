@@ -16,7 +16,7 @@ import com.walletconnect.android.internal.common.model.Participants
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.WCResponse
-import com.walletconnect.android.internal.common.model.params.CoreChatParams
+import com.walletconnect.android.internal.common.model.params.ChatNotifyResponseAuthParams
 import com.walletconnect.android.internal.common.model.sync.ClientJsonRpc
 import com.walletconnect.android.internal.common.model.type.ClientParams
 import com.walletconnect.android.internal.common.model.type.Error
@@ -362,7 +362,7 @@ internal class JsonRpcInteractor(
     private suspend fun handleJsonRpcResponsesWithoutStoredRequest(jsonRpcResult: JsonRpcResponse.JsonRpcResult, topic: Topic) {
         // todo: HANDLE DUPLICATES! maybe store results to check for duplicates????? https://github.com/WalletConnect/WalletConnectKotlinV2/issues/871
         //  Currently it's engine/usecase responsibility to handle duplicate responses
-        if (jsonRpcResult.result is CoreChatParams.AcceptanceParams) _peerResponse.emit(WCResponse(topic, String.Empty, jsonRpcResult, jsonRpcResult.result))
+        if (jsonRpcResult.result is ChatNotifyResponseAuthParams.ResponseAuth) _peerResponse.emit(WCResponse(topic, String.Empty, jsonRpcResult, jsonRpcResult.result))
     }
 
     private suspend fun handleJsonRpcError(jsonRpcError: JsonRpcResponse.JsonRpcError) {

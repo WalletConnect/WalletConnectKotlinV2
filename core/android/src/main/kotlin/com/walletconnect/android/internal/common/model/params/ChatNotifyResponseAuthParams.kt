@@ -4,11 +4,11 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.walletconnect.android.internal.common.model.type.ClientParams
 
-sealed interface CoreChatParams : ClientParams {
+interface ChatNotifyResponseAuthParams {
 
     @JsonClass(generateAdapter = true)
-    data class ReceiptParams(
-        @Json(name = "receiptAuth")
-        val receiptAuth: String,
-    ) : CoreChatParams
+    data class ResponseAuth(
+        @Json(name = "responseAuth")
+        val responseAuth: String,
+    ) : ClientParams
 }
