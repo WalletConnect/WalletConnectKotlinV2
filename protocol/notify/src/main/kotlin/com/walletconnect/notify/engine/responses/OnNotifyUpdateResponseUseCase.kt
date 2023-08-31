@@ -7,6 +7,7 @@ import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtClaims
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.WCResponse
+import com.walletconnect.android.internal.common.model.params.ChatNotifyResponseAuthParams
 import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.notify.common.calcExpiry
@@ -34,10 +35,11 @@ internal class OnNotifyUpdateResponseUseCase(
                 is JsonRpcResponse.JsonRpcResult -> {
                     val subscription = subscriptionRepository.getActiveSubscriptionByNotifyTopic(wcResponse.topic.value)
                         ?: throw Resources.NotFoundException("Cannot find subscription for topic: ${wcResponse.topic.value}")
-                    val notifyUpdateResponseJwtClaim = extractVerifiedDidJwtClaims<UpdateResponseJwtClaim>((response.result as CoreNotifyParams.NotifyResponseParams).responseAuth).getOrElse { error ->
-                        _events.emit(SDKError(error))
-                        return@supervisorScope
-                    } // TODO: compare hash to request to verify update response
+                    val notifyUpdateResponseJwtClaim =
+                        extractVerifiedDidJwtClaims<UpdateResponseJwtClaim>((response.result as ChatNotifyResponseAuthParams.ResponseAuth).responseAuth).getOrElse { error ->
+                            _events.emit(SDKError(error))
+                            return@supervisorScope
+                        } // TODO: compare hash to request to verify update response
                     val notifyUpdateRequestJwtClaim = extractVerifiedDidJwtClaims<UpdateRequestJwtClaim>(updateParams.updateAuth).getOrElse { error ->
                         _events.emit(SDKError(error))
                         return@supervisorScope

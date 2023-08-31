@@ -5,8 +5,8 @@ import com.tinder.scarlet.utils.getRawType
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.adapter.JsonRpcResultAdapter
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
+import com.walletconnect.android.internal.common.model.params.ChatNotifyResponseAuthParams
 import com.walletconnect.android.internal.common.model.params.CoreAuthParams
-import com.walletconnect.android.internal.common.model.params.CoreChatParams
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import org.junit.Test
@@ -124,7 +124,7 @@ internal class JsonRpcResponseJsonRpcResultJsonAdapterTest {
             }
         }.build()
         val adapter = moshi.adapter(JsonRpcResponse.JsonRpcResult::class.java)
-        val chatParams = CoreChatParams.AcceptanceParams(responseAuth = "did.jwt.auth")
+        val chatParams = ChatNotifyResponseAuthParams.ResponseAuth(responseAuth = "did.jwt.auth")
         val jsonResult = JsonRpcResponse.JsonRpcResult(
             id = 1L,
             jsonrpc = "2.0",
@@ -145,7 +145,7 @@ internal class JsonRpcResponseJsonRpcResultJsonAdapterTest {
                 null
             }
         }.build()
-        val chatParams = CoreChatParams.AcceptanceParams(responseAuth = "did.jwt.auth")
+        val chatParams = ChatNotifyResponseAuthParams.ResponseAuth(responseAuth = "did.jwt.auth")
         val authParamsJsonResult = JsonRpcResponse.JsonRpcResult(id = 11L, result = chatParams)
         val resultString = moshi.adapter(JsonRpcResponse.JsonRpcResult::class.java).toJson(authParamsJsonResult)
         val result = moshi.adapter(JsonRpcResponse.JsonRpcResult::class.java).fromJson(resultString)
