@@ -7,13 +7,10 @@ import android.util.Log
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
-import com.pandulapeter.beagle.Beagle
-import com.pandulapeter.beagle.common.configuration.Text
-import com.pandulapeter.beagle.common.configuration.toText
-import com.pandulapeter.beagle.common.contracts.BeagleListItemContract
 import com.pandulapeter.beagle.modules.DividerModule
 import com.pandulapeter.beagle.modules.HeaderModule
-import com.pandulapeter.beagle.modules.ItemListModule
+import com.pandulapeter.beagle.modules.PaddingModule
+import com.pandulapeter.beagle.modules.TextModule
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.cacao.signature.SignatureType
@@ -42,49 +39,8 @@ class Web3WalletApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        initBeagle(
-            this,
-            HeaderModule(
-                title = getString(R.string.app_name),
-                subtitle = BuildConfig.APPLICATION_ID,
-                text = "${BuildConfig.BUILD_TYPE} v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
-            ),
-        )
         EthAccountDelegate.application = this
         Log.d(tag(this), "Account: ${EthAccountDelegate.account}")
-
-        Beagle.add(
-            DividerModule(),
-            ItemListModule(
-                Text.CharSequence("Account Info"),
-                listOf(
-                    object : BeagleListItemContract {
-                        override val title: Text = with(EthAccountDelegate) { account.toEthAddress() }.toText()
-
-                        override fun equals(other: Any?): Boolean = super.equals(other)
-
-                        override fun hashCode(): Int = super.hashCode()
-                    }/*,
-                    object : BeagleListItemContract {
-                        override val title: Text = EthAccountDelegate.publicKey.toText()
-
-                        override fun equals(other: Any?): Boolean = super.equals(other)
-
-                        override fun hashCode(): Int = super.hashCode()
-                    },
-                    object : BeagleListItemContract {
-                        override val title: Text = EthAccountDelegate.privateKey.toText()
-
-                        override fun equals(other: Any?): Boolean = super.equals(other)
-
-                        override fun hashCode(): Int = super.hashCode()
-                    }*/
-                ),
-                false,
-            ) { item ->
-                (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText(item.id, item.id))
-            }
-        )
 
         val projectId = BuildConfig.PROJECT_ID
         val relayUrl = "relay.walletconnect.com"
@@ -124,6 +80,23 @@ class Web3WalletApplication : Application() {
             Firebase.crashlytics.recordException(error.throwable)
             Log.e(tag(this), error.throwable.stackTraceToString())
         }
+
+        initBeagle(
+            this,
+            HeaderModule(
+                title = getString(R.string.app_name),
+                subtitle = BuildConfig.APPLICATION_ID,
+                text = "${BuildConfig.BUILD_TYPE} v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
+            ),
+            DividerModule(),
+            TextModule(text = with(EthAccountDelegate) { account.toEthAddress() }) {
+                (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("Account", with(EthAccountDelegate) { account.toEthAddress() }))
+            },
+            PaddingModule(size = PaddingModule.Size.LARGE),
+            TextModule(text = CoreClient.Echo.clientId) {
+                (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("ClientId", CoreClient.Echo.clientId))
+            },
+        )
 
         // For testing purposes only
         FirebaseMessaging.getInstance().deleteToken().addOnSuccessListener {
