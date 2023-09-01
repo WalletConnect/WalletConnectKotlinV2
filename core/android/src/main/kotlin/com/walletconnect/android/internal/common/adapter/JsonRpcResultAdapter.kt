@@ -67,6 +67,10 @@ internal class JsonRpcResultAdapter(val moshi: Moshi) : JsonAdapter<JsonRpcRespo
                             notifySubscribeUpdateParamsAdapter.fromJson(reader)
                         }
 
+                        runCatching { chatNotifyResponseAuthParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> {
+                            chatNotifyResponseAuthParamsAdapter.fromJson(reader)
+                        }
+
                         else -> anyAdapter.fromJson(reader)
                     }
                 }
