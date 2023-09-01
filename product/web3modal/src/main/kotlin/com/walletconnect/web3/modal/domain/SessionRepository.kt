@@ -18,4 +18,6 @@ internal class SessionRepository(
     fun saveChainSelection(chain: String) = sharedPreferences.edit().putString(SELECTED_CHAIN, chain).apply()
 
     fun getSelectedChain() = sharedPreferences.getString(SELECTED_CHAIN, null)
+
+    fun deleteChainSelection() = sharedPreferences.edit().putString(SELECTED_CHAIN, null).apply()
 }
