@@ -1,34 +1,31 @@
 package com.walletconnect.web3.modal.ui.routes.account
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ClipboardManager
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.walletconnect.modal.ui.components.common.roundedClickable
-import com.walletconnect.web3.modal.ui.components.internal.commons.network.CircleNetworkImage
+import com.walletconnect.web3.modal.domain.model.AccountData
+import com.walletconnect.web3.modal.domain.model.Chain
 import com.walletconnect.web3.modal.ui.components.internal.commons.CloseIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.CompassIcon
-import com.walletconnect.web3.modal.ui.components.internal.commons.CopyIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.DisconnectIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.ExternalIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.VerticalSpacer
+import com.walletconnect.web3.modal.ui.components.internal.commons.account.AccountAddress
+import com.walletconnect.web3.modal.ui.components.internal.commons.account.AccountImage
 import com.walletconnect.web3.modal.ui.components.internal.commons.button.ButtonSize
 import com.walletconnect.web3.modal.ui.components.internal.commons.button.ButtonStyle
 import com.walletconnect.web3.modal.ui.components.internal.commons.button.ChipButton
 import com.walletconnect.web3.modal.ui.components.internal.commons.entry.AccountEntry
+import com.walletconnect.web3.modal.ui.components.internal.commons.network.CircleNetworkImage
 import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
@@ -37,21 +34,24 @@ import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 @Composable
 internal fun AccountRoute(
     navController: NavController,
+    accountData: AccountData,
+    disconnect: (String) -> Unit,
     closeModal: () -> Unit
 ) {
+    val uriHandler = LocalUriHandler.current
+
     AccountScreen(
+        accountData = accountData,
         onCloseClick = { closeModal() },
-        onBlockExplorerClick = {},
+        onBlockExplorerClick = { uriHandler.openBlockExplorer(accountData.address) },
         onChangeNetworkClick = { navController.navigate(Route.CHANGE_NETWORK.path) },
-        onDisconnectClick = {
-            closeModal()
-            // call disconnect
-        }
+        onDisconnectClick = { disconnect(accountData.topic) }
     )
 }
 
 @Composable
 private fun AccountScreen(
+    accountData: AccountData,
     onCloseClick: () -> Unit,
     onBlockExplorerClick: () -> Unit,
     onChangeNetworkClick: () -> Unit,
@@ -72,11 +72,11 @@ private fun AccountScreen(
                 ),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            AccountImage()
+            AccountImage(accountData.address)
             VerticalSpacer(height = 20.dp)
-            AccountAddress()
+            AccountAddress(accountData.address)
             Text(
-                text = "0.527 ETH",
+                text = accountData.balance,
                 style = Web3ModalTheme.typo.paragraph500.copy(Web3ModalTheme.colors.foreground.color200)
             )
             VerticalSpacer(height = 12.dp)
@@ -90,13 +90,11 @@ private fun AccountScreen(
             )
             VerticalSpacer(height = 20.dp)
             AccountEntry(
-                startIcon = {
-                    // Missing Account data model
-                    CircleNetworkImage("")
-                },
-                onClick = onChangeNetworkClick
+                startIcon = { CircleNetworkImage(accountData.selectedChain.imageUrl) },
+                onClick = onChangeNetworkClick,
+                isEnabled = accountData.chains.size > 1
             ) {
-                Text(text = "Ethereum", style = Web3ModalTheme.typo.paragraph600.copy(color = it.textColor))
+                Text(text = accountData.selectedChain.name, style = Web3ModalTheme.typo.paragraph600.copy(color = it.textColor))
             }
             VerticalSpacer(height = 8.dp)
             AccountEntry(
@@ -109,37 +107,21 @@ private fun AccountScreen(
     }
 }
 
-@Composable
-private fun AccountImage() {
-    Box(
-        modifier = Modifier
-            .size(64.dp)
-            .background(Web3ModalTheme.colors.overlay10, shape = CircleShape)
-    )
-}
-
-@Composable
-private fun AccountAddress() {
-    Row(
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        val clipboardManager: ClipboardManager = LocalClipboardManager.current
-        // Missing account data
-        val address = "0xa9...5608"
-        Text(text = address, style = Web3ModalTheme.typo.title700)
-        CopyIcon(
-            modifier = Modifier
-                .size(32.dp)
-                .padding(8.dp)
-                .roundedClickable { clipboardManager.setText(AnnotatedString(address)) }
-        )
-    }
+private fun UriHandler.openBlockExplorer(address: String) {
+    openUri("https://etherscan.io/address/$address")
 }
 
 @UiModePreview
 @Composable
 private fun PreviewAccountScreen() {
     Web3ModalPreview {
-        AccountScreen({}, {}, {}, {})
+        val accountData = AccountData(
+            topic = "",
+            address = "0xd2B8b483056b134f9D8cd41F55bB065F9",
+            balance = "543 ETH",
+            selectedChain = Chain("eip155:1"),
+            chains = listOf(Chain("eip155:1"))
+        )
+        AccountScreen(accountData, {}, {}, {}, {})
     }
 }

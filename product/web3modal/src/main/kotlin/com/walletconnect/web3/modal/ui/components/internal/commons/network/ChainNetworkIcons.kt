@@ -6,21 +6,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -28,11 +23,11 @@ import androidx.core.content.ContextCompat
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.walletconnect.web3.modal.R
-import com.walletconnect.web3.modal.ui.components.internal.commons.grayColorFilter
-import com.walletconnect.web3.modal.ui.previews.ComponentPreview
 import com.walletconnect.web3.modal.ui.previews.MultipleComponentsPreview
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
+import com.walletconnect.web3.modal.utils.grayColorFilter
+import com.walletconnect.web3.modal.utils.imageHeaders
 import java.lang.Float.min
 import kotlin.math.sqrt
 
@@ -53,6 +48,7 @@ internal fun CircleNetworkImage(
                 .data(url)
                 .placeholder(placeholder)
                 .crossfade(true)
+                .imageHeaders()
                 .build(),
             contentDescription = null,
             modifier = Modifier
@@ -67,6 +63,7 @@ internal fun CircleNetworkImage(
 internal fun HexagonNetworkImage(
     url: String,
     isEnabled: Boolean,
+    borderColor: Color? = null,
     placeholder: Drawable? = null
 ) {
     AsyncImage(
@@ -74,13 +71,16 @@ internal fun HexagonNetworkImage(
             .data(url)
             .placeholder(placeholder)
             .crossfade(true)
+            .imageHeaders()
             .build(),
         contentDescription = null,
         modifier = Modifier
+            .size(56.dp)
             .graphicsLayer {
                 shape = HexagonShape
                 clip = true
-            },
+            }
+            .border(1.dp, borderColor ?: Color.Transparent, shape = HexagonShape),
         colorFilter = if (isEnabled) null else grayColorFilter
     )
 }
@@ -124,8 +124,8 @@ internal fun Path.customHexagon(radius: Float, size: Size) {
 @UiModePreview
 private fun HexagonNetworkImagePreview() {
     MultipleComponentsPreview(
-        { HexagonNetworkImage(url = "", isEnabled = true, placeholder = ContextCompat.getDrawable(LocalContext.current, R.drawable.defi)) },
-        { HexagonNetworkImage(url = "", isEnabled = false, placeholder = ContextCompat.getDrawable(LocalContext.current, R.drawable.defi)) },
+        { HexagonNetworkImage(url = "", borderColor = Color.Transparent, isEnabled = true, placeholder = ContextCompat.getDrawable(LocalContext.current, R.drawable.defi)) },
+        { HexagonNetworkImage(url = "", borderColor = Color.Transparent, isEnabled = false, placeholder = ContextCompat.getDrawable(LocalContext.current, R.drawable.defi)) },
     )
 }
 
