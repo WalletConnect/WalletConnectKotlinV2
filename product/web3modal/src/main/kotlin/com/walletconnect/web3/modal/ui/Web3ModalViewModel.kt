@@ -10,7 +10,7 @@ import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.domain.model.AccountData
 import com.walletconnect.web3.modal.domain.model.Chain
-import com.walletconnect.web3.modal.domain.usecase.DeleteSessionTopicUseCase
+import com.walletconnect.web3.modal.domain.usecase.DeleteSessionDataUseCase
 import com.walletconnect.web3.modal.domain.usecase.GetSelectedChainUseCase
 import com.walletconnect.web3.modal.domain.usecase.GetSessionTopicUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveChainSelectionUseCase
@@ -28,7 +28,7 @@ internal class Web3ModalViewModel : ViewModel() {
     private val getWalletsUseCase: GetWalletsUseCaseInterface = wcKoinApp.koin.get()
     private val saveSessionTopicUseCase: SaveSessionTopicUseCase = wcKoinApp.koin.get()
     private val getSessionTopicUseCase: GetSessionTopicUseCase = wcKoinApp.koin.get()
-    private val deleteSessionTopicUseCase: DeleteSessionTopicUseCase = wcKoinApp.koin.get()
+    private val deleteSessionDataUseCase: DeleteSessionDataUseCase = wcKoinApp.koin.get()
     private val saveChainSelectionUseCase: SaveChainSelectionUseCase = wcKoinApp.koin.get()
     private val getSelectedChainUseCase: GetSelectedChainUseCase = wcKoinApp.koin.get()
 
@@ -139,7 +139,7 @@ internal class Web3ModalViewModel : ViewModel() {
         Web3Modal.disconnect(
             disconnect = Modal.Params.Disconnect(topic),
             onSuccess = {
-                deleteSessionTopicUseCase()
+                deleteSessionDataUseCase()
                 onSuccess()
             },
             onError = {
