@@ -13,5 +13,6 @@ enum class ContentDescription(val description: String) {
     FORWARD_ARROW("ForwardArrow"),
     STORE_IMAGE("StoreEntryImage"),
     DECLINED("Declined"),
-    EXTERNAL_LINK("ExternalLink")
+    EXTERNAL_LINK("ExternalLink"),
+    SCAN_QR("ScanQR")
 }

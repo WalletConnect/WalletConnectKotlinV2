@@ -44,6 +44,7 @@ internal fun Web3ModalComponent(
                 is Web3ModalState.Connect, Web3ModalState.SessionState -> Web3ModalNavGraph(
                     navController = navController,
                     web3ModalState = state,
+                    updateRecentWalletId = web3ModalViewModel::updateRecentWalletId,
                     retryConnection = web3ModalViewModel::retryConnection
                 )
                 Web3ModalState.Loading -> LoadingModalState()

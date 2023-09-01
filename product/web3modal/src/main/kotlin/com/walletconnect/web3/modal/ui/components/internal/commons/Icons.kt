@@ -1,17 +1,15 @@
 package com.walletconnect.web3.modal.ui.components.internal.commons
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
@@ -119,6 +117,30 @@ internal fun ExternalIcon(
 }
 
 @Composable
+internal fun ScanQRIcon(
+    tint: Color = Web3ModalTheme.colors.main100,
+    onClick: () -> Unit
+) {
+    Icon(
+        imageVector = ImageVector.vectorResource(id = R.drawable.ic_scan_qr),
+        contentDescription = ContentDescription.SCAN_QR.description,
+        modifier = Modifier
+            .roundedClickable { onClick() }
+            .size(40.dp)
+            .background(
+                color = Web3ModalTheme.colors.main10,
+                shape = RoundedCornerShape(12.dp))
+            .border(
+                width = 1.dp,
+                color = Web3ModalTheme.colors.main10,
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(10.dp),
+        tint = tint
+    )
+}
+
+@Composable
 @UiModePreview
 private fun IconsPreview() {
     MultipleComponentsPreview(
@@ -128,6 +150,7 @@ private fun IconsPreview() {
         { RetryIcon() },
         { DeclinedIcon() },
         { WalletIcon() },
-        { ExternalIcon() }
+        { ExternalIcon() },
+        { ScanQRIcon {} }
     )
 }

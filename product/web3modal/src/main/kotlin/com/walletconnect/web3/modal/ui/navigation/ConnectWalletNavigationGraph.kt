@@ -17,6 +17,7 @@ import com.walletconnect.web3.modal.ui.routes.connect.scan_code.ScanQRCodeRoute
 internal fun NavGraphBuilder.connectWalletNavGraph(
     navController: NavController,
     web3ModalState: Web3ModalState.Connect,
+    updateRecentWalletId: (String) -> Unit,
     retry: (() -> Unit) -> Unit
 ) {
     composable(route = Route.CONNECT_YOUR_WALLET.path) {
@@ -45,7 +46,7 @@ internal fun NavGraphBuilder.connectWalletNavGraph(
         arguments = listOf(navArgument(walletIdKey) { type = NavType.StringType })
     ) { backStackEntry ->
         val wallet = web3ModalState.wallets.find { it.id == backStackEntry.arguments?.getString(walletIdKey, String.Empty) }!!
-        RedirectWalletRoute(wallet = wallet, uri = web3ModalState.uri, retry = retry)
+        RedirectWalletRoute(wallet = wallet, uri = web3ModalState.uri, retry = retry).also { updateRecentWalletId(wallet.id) }
     }
 }
 

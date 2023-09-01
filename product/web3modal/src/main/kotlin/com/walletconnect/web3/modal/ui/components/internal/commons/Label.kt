@@ -12,8 +12,8 @@ import androidx.compose.ui.unit.dp
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 @Composable
-internal fun QrCodeLabel(isEnabled: Boolean = true) {
-    ListLabel(text = "QR CODE", isEnabled = isEnabled)
+internal fun AllLabel(isEnabled: Boolean = true) {
+    ListLabel(text = "ALL", isEnabled = isEnabled)
 }
 
 @Composable
@@ -22,15 +22,37 @@ internal fun GetWalletLabel(isEnabled: Boolean = true) {
 }
 
 @Composable
+internal fun RecentLabel(isEnabled: Boolean = true) {
+    ListLabel(
+        text = "RECENT",
+        isEnabled = isEnabled,
+        backgroundColor = Web3ModalTheme.colors.overlay10,
+        labelTextColor = Web3ModalTheme.colors.foreground.color150
+    )
+}
+
+@Composable
+internal fun InstalledLabel(isEnabled: Boolean = true) {
+    ListLabel(
+        text = "INSTALLED",
+        isEnabled = isEnabled,
+        backgroundColor = Web3ModalTheme.colors.success15,
+        labelTextColor = Web3ModalTheme.colors.success
+    )
+}
+
+@Composable
 private fun ListLabel(
     text: String,
-    isEnabled: Boolean
+    isEnabled: Boolean,
+    backgroundColor: Color = Web3ModalTheme.colors.main15,
+    labelTextColor: Color = Web3ModalTheme.colors.main100
 ) {
     val textColor: Color
     val background: Color
     if (isEnabled) {
-        background = Web3ModalTheme.colors.main15
-        textColor = Web3ModalTheme.colors.main100
+        background = backgroundColor
+        textColor = labelTextColor
     } else {
         background = Web3ModalTheme.colors.overlay10
         textColor = Web3ModalTheme.colors.foreground.color300
