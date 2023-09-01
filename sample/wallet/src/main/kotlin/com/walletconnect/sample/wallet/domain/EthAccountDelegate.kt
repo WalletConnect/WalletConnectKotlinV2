@@ -58,7 +58,7 @@ fun generateKeys(): Triple<String, String, String> {
     val newPublicKey = keypair.publicKey.toByteArray().bytesToHex()
     val newPrivateKey = keypair.privateKey.toByteArray().bytesToHex()
 
-    return Triple(newPublicKey, newPrivateKey, Keys.toChecksumAddress(Keys.getAddress(newPublicKey)))
+    return Triple(newPublicKey, newPrivateKey, Keys.toChecksumAddress(Keys.getAddress(keypair)))
 }
 
 context(EthAccountDelegate)
