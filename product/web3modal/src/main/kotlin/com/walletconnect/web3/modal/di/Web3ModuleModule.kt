@@ -1,7 +1,20 @@
 package com.walletconnect.web3.modal.di
 
+import com.walletconnect.web3.modal.domain.SessionRepository
+import com.walletconnect.web3.modal.domain.usecase.DeleteSessionTopicUseCase
+import com.walletconnect.web3.modal.domain.usecase.GetSelectedChainUseCase
+import com.walletconnect.web3.modal.domain.usecase.GetSessionTopicUseCase
+import com.walletconnect.web3.modal.domain.usecase.SaveChainSelectionUseCase
+import com.walletconnect.web3.modal.domain.usecase.SaveSessionTopicUseCase
 import org.koin.dsl.module
 
 internal fun web3ModalModule() = module {
-        // TODO Add Local storage for modal here.
+        single { SessionRepository(get()) }
+
+        single { GetSessionTopicUseCase(get()) }
+        single { SaveSessionTopicUseCase(get()) }
+        single { DeleteSessionTopicUseCase(get()) }
+
+        single { SaveChainSelectionUseCase(get()) }
+        single { GetSelectedChainUseCase(get()) }
 }
