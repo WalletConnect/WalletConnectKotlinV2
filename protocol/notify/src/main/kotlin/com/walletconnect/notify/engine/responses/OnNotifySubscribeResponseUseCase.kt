@@ -27,7 +27,6 @@ import com.walletconnect.notify.common.model.toDb
 import com.walletconnect.notify.data.jwt.subscription.SubscriptionResponseJwtClaim
 import com.walletconnect.notify.data.storage.SubscriptionRepository
 import com.walletconnect.notify.engine.domain.EngineNotifySubscriptionNotifier
-import com.walletconnect.notify.engine.sync.use_case.requests.SetSubscriptionWithSymmetricKeyToNotifySubscriptionStoreUseCase
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -42,7 +41,6 @@ internal class OnNotifySubscribeResponseUseCase(
     private val subscriptionRepository: SubscriptionRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val engineNotifySubscriptionNotifier: EngineNotifySubscriptionNotifier,
-    private val setSubscriptionWithSymmetricKeyToNotifySubscriptionStoreUseCase: SetSubscriptionWithSymmetricKeyToNotifySubscriptionStoreUseCase,
     private val logger: Logger,
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()

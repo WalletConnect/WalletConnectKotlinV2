@@ -16,7 +16,6 @@ import com.walletconnect.notify.common.model.toWalletClient
 import com.walletconnect.notify.di.engineModule
 import com.walletconnect.notify.di.notifyJsonRpcModule
 import com.walletconnect.notify.di.notifyStorageModule
-import com.walletconnect.notify.di.syncInNotifyModule
 import com.walletconnect.notify.engine.NotifyEngine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -37,7 +36,6 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
             koinApp.modules(
                 notifyJsonRpcModule(),
                 notifyStorageModule(koinApp.koin.get<DatabaseConfig>().NOTIFY_SDK_DB_NAME),
-                syncInNotifyModule(),
                 engineModule(),
             )
 

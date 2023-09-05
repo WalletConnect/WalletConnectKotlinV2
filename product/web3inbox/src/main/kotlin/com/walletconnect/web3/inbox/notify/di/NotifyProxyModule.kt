@@ -9,7 +9,6 @@ import com.walletconnect.web3.inbox.notify.event.NotifyEventHandler
 import com.walletconnect.web3.inbox.notify.event.OnDeleteNotifyEventUseCase
 import com.walletconnect.web3.inbox.notify.event.OnMessageNotifyEventUseCase
 import com.walletconnect.web3.inbox.notify.event.OnSubscriptionNotifyEventUseCase
-import com.walletconnect.web3.inbox.notify.event.OnSyncUpdateNotifyEventUseCase
 import com.walletconnect.web3.inbox.notify.event.OnUpdateNotifyEventUseCase
 import com.walletconnect.web3.inbox.notify.request.DeleteNotifyMessageRequestUseCase
 import com.walletconnect.web3.inbox.notify.request.DeleteSubscriptionRequestUseCase
@@ -40,7 +39,6 @@ internal fun notifyProxyModule(
 
     single { OnMessageNotifyEventUseCase(proxyInteractor = get()) }
     single { OnDeleteNotifyEventUseCase(proxyInteractor = get()) }
-    single { OnSyncUpdateNotifyEventUseCase(proxyInteractor = get()) }
     single { OnSubscriptionNotifyEventUseCase(proxyInteractor = get()) }
     single { OnUpdateNotifyEventUseCase(proxyInteractor = get()) }
 

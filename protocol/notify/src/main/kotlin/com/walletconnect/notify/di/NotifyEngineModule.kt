@@ -48,7 +48,6 @@ internal fun engineModule() = module {
             pairingHandler = get(),
             logger = get(),
             syncClient = get(),
-            onSyncUpdateEventUseCase = get(),
             archiveInterface = get(),
             subscribeToDappUseCase = get(),
             updateUseCase = get(),

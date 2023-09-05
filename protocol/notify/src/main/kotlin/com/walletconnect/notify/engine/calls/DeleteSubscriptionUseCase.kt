@@ -16,7 +16,6 @@ import com.walletconnect.notify.common.model.Subscription
 import com.walletconnect.notify.data.storage.MessagesRepository
 import com.walletconnect.notify.data.storage.SubscriptionRepository
 import com.walletconnect.notify.engine.domain.FetchDidJwtInteractor
-import com.walletconnect.notify.engine.sync.use_case.requests.DeleteSubscriptionToNotifySubscriptionStoreUseCase
 import kotlinx.coroutines.supervisorScope
 
 internal class DeleteSubscriptionUseCase(
@@ -24,7 +23,6 @@ internal class DeleteSubscriptionUseCase(
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val subscriptionRepository: SubscriptionRepository,
     private val messagesRepository: MessagesRepository,
-    private val deleteSubscriptionToNotifySubscriptionStore: DeleteSubscriptionToNotifySubscriptionStoreUseCase,
     private val fetchDidJwtInteractor: FetchDidJwtInteractor,
 ) : DeleteSubscriptionUseCaseInterface {
 
