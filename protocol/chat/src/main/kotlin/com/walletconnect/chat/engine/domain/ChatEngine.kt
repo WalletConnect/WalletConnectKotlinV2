@@ -2,11 +2,10 @@
 
 package com.walletconnect.chat.engine.domain
 
-import com.walletconnect.android.history.HistoryInterface
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
-import com.walletconnect.android.internal.common.model.params.CoreChatParams
+import com.walletconnect.android.internal.common.model.params.ChatNotifyResponseAuthParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
@@ -93,7 +92,6 @@ internal class ChatEngine(
     private val getMessagesUseCase: GetMessagesUseCase,
     private val getSentInvitesUseCase: GetSentInvitesUseCase,
     private val getReceivedInvitesUseCase: GetReceivedInvitesUseCase,
-    private val historyInterface: HistoryInterface,
 ) : AcceptInviteUseCaseInterface by acceptInviteUseCase,
     RejectInviteUseCaseInterface by rejectInviteUseCase,
     RegisterIdentityUseCaseInterface by registerIdentityUseCase,
@@ -144,11 +142,6 @@ internal class ChatEngine(
             }.launchIn(scope)
     }
 
-    private suspend fun registerTagsInHistory() {
-        // Has to be one register call per clientId
-//        historyInterface.registerTags(tags = listOf(Tags.CHAT_MESSAGE), {}, {})
-    }
-
     private fun collectJsonRpcRequests(): Job = jsonRpcInteractor.clientSyncJsonRpc
         .filter { request -> request.params is ChatParams }
         .onEach { request ->
@@ -163,7 +156,7 @@ internal class ChatEngine(
     private fun collectPeerResponses(): Job = jsonRpcInteractor.peerResponse
         .onEach { response ->
             when (response.params) {
-                is ChatParams.InviteParams, is CoreChatParams.AcceptanceParams -> onInviteResponseUseCase(response)
+                is ChatParams.InviteParams, is ChatNotifyResponseAuthParams.ResponseAuth -> onInviteResponseUseCase(response)
                 is ChatParams.MessageParams -> onMessageResponseUseCase(response)
                 is ChatParams.LeaveParams -> onLeaveResponseUseCase(response)
             }

@@ -18,5 +18,5 @@ interface MetadataStorageRepositoryInterface {
 
     fun getByTopicAndType(topic: Topic, type: AppMetaDataType): AppMetaData?
 
-    fun upsertPairingPeerMetadata(topic: Topic, appMetaData: AppMetaData, appMetaDataType: AppMetaDataType)
+    fun upsertPeerMetadata(topic: Topic, appMetaData: AppMetaData, appMetaDataType: AppMetaDataType)
 }

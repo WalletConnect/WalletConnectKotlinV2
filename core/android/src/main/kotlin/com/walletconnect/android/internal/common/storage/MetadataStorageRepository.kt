@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.android.internal.common.storage
 
 import android.database.sqlite.SQLiteException
@@ -7,7 +9,7 @@ import com.walletconnect.android.internal.common.model.Redirect
 import com.walletconnect.android.sdk.storage.data.dao.MetaDataQueries
 import com.walletconnect.foundation.common.model.Topic
 
-class MetadataStorageRepository(private val metaDataQueries: MetaDataQueries): MetadataStorageRepositoryInterface {
+internal class MetadataStorageRepository(private val metaDataQueries: MetaDataQueries) : MetadataStorageRepositoryInterface {
 
     @Throws(SQLiteException::class)
     override fun insertOrAbortMetadata(topic: Topic, appMetaData: AppMetaData, appMetaDataType: AppMetaDataType) = with(appMetaData) {
@@ -26,7 +28,7 @@ class MetadataStorageRepository(private val metaDataQueries: MetaDataQueries): M
 
 
     @Throws(SQLiteException::class)
-    override fun upsertPairingPeerMetadata(topic: Topic, appMetaData: AppMetaData, appMetaDataType: AppMetaDataType) {
+    override fun upsertPeerMetadata(topic: Topic, appMetaData: AppMetaData, appMetaDataType: AppMetaDataType) {
         if (!existsByTopicAndType(topic, appMetaDataType)) {
             insertOrAbortMetadata(topic, appMetaData, appMetaDataType)
         } else {

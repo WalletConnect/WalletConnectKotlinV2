@@ -2,19 +2,18 @@ package com.walletconnect.web3.modal.ui.navigation
 
 //Todo Think about split it into own graphs routes
 
-internal sealed class Route(val path: String) {
+enum class Route(val path: String, val title: String? = null) {
     //Common
-    object Web3Modal : Route("web3_modal")
-    object Loading : Route("loading")
+    WEB3MODAL("web3_modal"),
 
     //Connect routes
-    object ConnectYourWallet : Route("connect_your_wallet")
-    object ScanQRCode : Route("scan_the_code")
-    object Help : Route("modal_help")
-    object GetAWallet : Route("get_a_wallet")
-
-    object AllWallets : Route("all_wallets")
+    CONNECT_YOUR_WALLET("connect_your_wallet", "Connect Your Wallet"),
+    QR_CODE("qr_code", "Mobile Wallets"),
+    HELP("modal_help", "What is Wallet?"),
+    GET_A_WALLET("get_a_wallet", "Get a Wallet"),
+    ALL_WALLETS("all_wallets", "All wallets"),
+    REDIRECT("redirect"),
 
     //Session routes
-    object Session : Route("session")
+    SESSION("session")
 }

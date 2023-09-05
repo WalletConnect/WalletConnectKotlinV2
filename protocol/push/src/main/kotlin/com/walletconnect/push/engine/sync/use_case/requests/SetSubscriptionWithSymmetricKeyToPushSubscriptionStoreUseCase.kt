@@ -7,7 +7,7 @@ import com.walletconnect.android.sync.client.SyncInterface
 import com.walletconnect.android.sync.common.model.Store
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.push.common.model.EngineDO
-import com.walletconnect.push.engine.sync.PushSyncStores
+import com.walletconnect.push.engine.sync.NotifySyncStores
 import com.walletconnect.push.engine.sync.model.SyncedSubscription
 import com.walletconnect.push.engine.sync.model.toSync
 
@@ -23,7 +23,7 @@ internal class SetSubscriptionWithSymmetricKeyToPushSubscriptionStoreUseCase(
         val payload = moshi.adapter(SyncedSubscription::class.java).toJson(syncedSubscription)
 
         syncClient.set(
-            Sync.Params.Set(subscription.account, Store(PushSyncStores.PUSH_SUBSCRIPTION.value), subscription.pushTopic.value, payload),
+            Sync.Params.Set(subscription.account, Store(NotifySyncStores.NOTIFY_SUBSCRIPTION.value), subscription.pushTopic.value, payload),
             onSuccess = { didUpdate -> onSuccess(didUpdate) },
             onError = { error -> onError(error.throwable).also { logger.error(error.throwable) } }
         )

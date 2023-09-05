@@ -5,10 +5,10 @@ package com.walletconnect.android.internal.common.adapter
 import com.squareup.moshi.*
 import com.squareup.moshi.internal.Util
 import com.walletconnect.android.internal.common.JsonRpcResponse
+import com.walletconnect.android.internal.common.model.params.ChatNotifyResponseAuthParams
 import com.walletconnect.android.internal.common.model.params.CoreAuthParams
-import com.walletconnect.android.internal.common.model.params.CoreChatParams
+import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
-import com.walletconnect.android.internal.common.model.params.PushParams
 import org.json.JSONArray
 import org.json.JSONObject
 import java.lang.reflect.Constructor
@@ -26,10 +26,10 @@ internal class JsonRpcResultAdapter(val moshi: Moshi) : JsonAdapter<JsonRpcRespo
         moshi.adapter(CoreSignParams.ApprovalParams::class.java, emptySet(), "result")
     private val cacaoAdapter: JsonAdapter<CoreAuthParams.ResponseParams> =
         moshi.adapter(CoreAuthParams.ResponseParams::class.java, emptySet(), "result")
-    private val acceptanceParamsAdapter: JsonAdapter<CoreChatParams.AcceptanceParams> =
-        moshi.adapter(CoreChatParams.AcceptanceParams::class.java, emptySet(), "result")
-    private val pushProposeResponseParamsAdapter: JsonAdapter<PushParams.ProposeResponseParams> =
-        moshi.adapter(PushParams.ProposeResponseParams::class.java, emptySet(), "result")
+    private val notifySubscribeUpdateParamsAdapter: JsonAdapter<CoreNotifyParams.UpdateParams> =
+        moshi.adapter(CoreNotifyParams.UpdateParams::class.java, emptySet(), "result")
+    private val chatNotifyResponseAuthParamsAdapter: JsonAdapter<ChatNotifyResponseAuthParams.ResponseAuth> =
+        moshi.adapter(ChatNotifyResponseAuthParams.ResponseAuth::class.java, emptySet(), "result")
 
     @Volatile
     private var constructorRef: Constructor<JsonRpcResponse.JsonRpcResult>? = null
@@ -63,12 +63,12 @@ internal class JsonRpcResultAdapter(val moshi: Moshi) : JsonAdapter<JsonRpcRespo
                             cacaoAdapter.fromJson(reader)
                         }
 
-                        runCatching { acceptanceParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> {
-                            acceptanceParamsAdapter.fromJson(reader)
+                        runCatching { notifySubscribeUpdateParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> {
+                            notifySubscribeUpdateParamsAdapter.fromJson(reader)
                         }
 
-                        runCatching { pushProposeResponseParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> {
-                            pushProposeResponseParamsAdapter.fromJson(reader)
+                        runCatching { chatNotifyResponseAuthParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> {
+                            chatNotifyResponseAuthParamsAdapter.fromJson(reader)
                         }
 
                         else -> anyAdapter.fromJson(reader)
@@ -114,6 +114,7 @@ internal class JsonRpcResultAdapter(val moshi: Moshi) : JsonAdapter<JsonRpcRespo
         if (value_ == null) {
             throw NullPointerException("value_ was null! Wrap in .nullSafe() to write nullable values.")
         }
+
         writer.beginObject()
         writer.name("id")
         longAdapter.toJson(writer, value_.id)
@@ -138,18 +139,17 @@ internal class JsonRpcResultAdapter(val moshi: Moshi) : JsonAdapter<JsonRpcRespo
                 }
             }
 
-            (value_.result as? CoreChatParams.AcceptanceParams) != null -> {
-                val approvalParamsString =
-                    acceptanceParamsAdapter.toJson(value_.result)
+            (value_.result as? ChatNotifyResponseAuthParams.ResponseAuth) != null -> {
+                val notifySubscribeResponseParamsString = chatNotifyResponseAuthParamsAdapter.toJson(value_.result)
                 writer.valueSink().use {
-                    it.writeUtf8(approvalParamsString)
+                    it.writeUtf8(notifySubscribeResponseParamsString)
                 }
             }
 
-            (value_.result as? PushParams.ProposeResponseParams) != null -> {
-                val pushProposeParamsString = pushProposeResponseParamsAdapter.toJson(value_.result)
+            (value_.result as? CoreNotifyParams.UpdateParams) != null -> {
+                val notifySubscribeUpdateParamsString = notifySubscribeUpdateParamsAdapter.toJson(value_.result)
                 writer.valueSink().use {
-                    it.writeUtf8(pushProposeParamsString)
+                    it.writeUtf8(notifySubscribeUpdateParamsString)
                 }
             }
 
@@ -166,6 +166,7 @@ internal class JsonRpcResultAdapter(val moshi: Moshi) : JsonAdapter<JsonRpcRespo
             }
             else -> anyAdapter.toJson(writer, value_.result)
         }
+
         writer.endObject()
     }
 }

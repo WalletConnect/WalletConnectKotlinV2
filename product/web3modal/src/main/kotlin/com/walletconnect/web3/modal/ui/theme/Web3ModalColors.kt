@@ -10,6 +10,7 @@ internal data class Web3ModalColors(
     val main20: Color,
     val foreground: ColorPalette,
     val background: ColorPalette,
+    val overlay: Color,
     val success: Color,
     val error: Color,
     val teal: Color,
@@ -20,7 +21,6 @@ internal data class Web3ModalColors(
 ) {
     val inverse100 = Color.White
     val inverse000 = Color.Black
-    val overlay = Color.White
 
     val main15: Color = main100.copy(.15f)
     val main10: Color = main100.copy(.1f)
@@ -78,6 +78,7 @@ private val defaultDarkWeb3ModalColors = Web3ModalColors(
         Color(0xFF363B3B),
         Color(0xFF3B4040)
     ),
+    overlay = Color(0xFFFFFFFF),
     success = Color(0xFF26D962),
     error = Color(0xFFF25A67),
     teal = Color(0xFF36E2E2),
@@ -93,7 +94,7 @@ private val defaultLightWeb3ModalColors = Web3ModalColors(
     main20 = Color(0xFF2978CC),
     foreground = ColorPalette(
         Color(0xFF141414),
-        Color(0xFF2D23131),
+        Color(0xFF2D3131),
         Color(0xFF474D4D),
         Color(0xFF636D6D),
         Color(0xFF798686),
@@ -113,6 +114,7 @@ private val defaultLightWeb3ModalColors = Web3ModalColors(
         Color(0xFFDCE7E7),
         Color(0xFFD8E3E3)
     ),
+    overlay = Color(0xFF000000),
     success = Color(0xFF26B562),
     error = Color(0xFFF05142),
     teal = Color(0xFF2BB6B6),

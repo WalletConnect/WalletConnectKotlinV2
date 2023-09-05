@@ -9,13 +9,16 @@ import com.walletconnect.android.CoreProtocol
 import com.walletconnect.android.di.overrideModule
 import com.walletconnect.android.di.testJsonRpcModule
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
+import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.wcKoinApp
+import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.relay.RelayClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.koin.core.KoinApplication
+import org.koin.core.qualifier.named
 import timber.log.Timber
 
 internal object TestClient {
@@ -47,9 +50,11 @@ internal object TestClient {
 
 
         internal val Relay get() = coreProtocol.Relay
-        internal val History = coreProtocol.History
+        internal val Archive = coreProtocol.Archive
         internal val jsonRpcInteractor: JsonRpcInteractorInterface by lazy { wcKoinApp.koin.get() }
         internal val keyManagementRepository: KeyManagementRepository by lazy { wcKoinApp.koin.get() }
+        internal val identitiesInteractor: IdentitiesInteractor by lazy { wcKoinApp.koin.get() }
+        internal val keyserverUrl: String by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.KEYSERVER_URL)) }
     }
 
 
@@ -89,7 +94,7 @@ internal object TestClient {
         }
 
         internal val Relay get() = coreProtocol.Relay
-        internal val History = coreProtocol.History
+        internal val Archive = coreProtocol.Archive
         internal val jsonRpcInteractor: JsonRpcInteractorInterface by lazy { secondaryKoinApp.koin.get() }
         internal val keyManagementRepository: KeyManagementRepository by lazy { secondaryKoinApp.koin.get() }
 

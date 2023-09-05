@@ -2,7 +2,7 @@ package com.walletconnect.sample.wallet.ui
 
 sealed interface Web3WalletEvent
 
-object NoAction : Web3WalletEvent, PushWalletEvent
+object NoAction : Web3WalletEvent, NotifyEvent
 
 interface CoreEvent: Web3WalletEvent {
     object Disconnect : CoreEvent

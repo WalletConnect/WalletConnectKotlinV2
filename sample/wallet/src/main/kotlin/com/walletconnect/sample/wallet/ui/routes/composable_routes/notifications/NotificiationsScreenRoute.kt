@@ -43,19 +43,15 @@ import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.skydoves.landscapist.glide.GlideImage
-import com.walletconnect.android.cacao.signature.SignatureType
-import com.walletconnect.android.utils.cacao.sign
-import com.walletconnect.push.client.Push
-import com.walletconnect.push.client.PushWalletClient
-import com.walletconnect.push.common.cacao.CacaoSigner
+import com.walletconnect.notify.client.Notify
+import com.walletconnect.notify.client.NotifyClient
 import com.walletconnect.sample.common.CompletePreviews
 import com.walletconnect.sample.common.tag
 import com.walletconnect.sample.common.ui.WCTopAppBar
 import com.walletconnect.sample.common.ui.theme.PreviewTheme
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.wallet.domain.EthAccountDelegate
-import com.walletconnect.sample.wallet.domain.hexToBytes
-import com.walletconnect.sample.wallet.domain.model.PushNotification
+import com.walletconnect.sample.wallet.domain.model.NotifyNotification
 import com.walletconnect.sample.wallet.domain.toEthAddress
 
 @Composable
@@ -89,11 +85,9 @@ private fun Modifier.gradientBackground() = this.drawWithContent(onDraw = {
 @Composable
 private fun NotificationScreen(
     state: NotificationsState,
-    onNotificationItemDelete: (PushNotification) -> Unit,
+    onNotificationItemDelete: (NotifyNotification) -> Unit,
     onBackClick: () -> Unit,
 ) {
-    val localContext = LocalContext.current
-
     Column {
         WCTopAppBar(titleText = "Notifications", onBackIconClick = onBackClick)
         LazyColumn(modifier = Modifier.padding(vertical = 12.dp, horizontal = 24.dp)) {
@@ -106,10 +100,8 @@ private fun NotificationScreen(
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),
                     onClick = {
-                        val subscribeParams = Push.Params.Subscribe("https://gm.walletconnect.com".toUri(), with(EthAccountDelegate) { account.toEthAddress() }) { message ->
-                            CacaoSigner.sign(message, EthAccountDelegate.privateKey.hexToBytes(), SignatureType.EIP191)
-                        }
-                        PushWalletClient.subscribe(
+                        val subscribeParams = Notify.Params.Subscribe("https://gm.walletconnect.com".toUri(), with(EthAccountDelegate) { account.toEthAddress() })
+                        NotifyClient.subscribe(
                             params = subscribeParams,
                             onSuccess = {
                                 Log.e(tag(this), "Subscribe Success")
@@ -138,7 +130,7 @@ private fun NotificationScreen(
 
 private fun LazyListScope.notificationsContent(
     state: NotificationsState,
-    onNotificationItemDelete: (PushNotification) -> Unit,
+    onNotificationItemDelete: (NotifyNotification) -> Unit,
 ) {
     when (state) {
         NotificationsState.Empty -> item { EmptyState() }
@@ -164,8 +156,8 @@ private fun EmptyState() {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun LazyItemScope.NotificationItem(
-    item: PushNotification,
-    onNotificationItemDelete: (PushNotification) -> Unit,
+    item: NotifyNotification,
+    onNotificationItemDelete: (NotifyNotification) -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -206,7 +198,7 @@ private fun LazyItemScope.NotificationItem(
 }
 
 @Composable
-private fun NotificationDetails(item: PushNotification, modifier: Modifier) {
+private fun NotificationDetails(item: NotifyNotification, modifier: Modifier) {
     val context = LocalContext.current
     Column(modifier) {
         Text(text = item.title, style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold))
@@ -225,8 +217,8 @@ private fun NotificationDetails(item: PushNotification, modifier: Modifier) {
 
 @Composable
 private fun TrashButton(
-    item: PushNotification,
-    onNotificationItemDelete: (PushNotification) -> Unit,
+    item: NotifyNotification,
+    onNotificationItemDelete: (NotifyNotification) -> Unit,
 ) {
     Box(
         modifier = Modifier
@@ -265,10 +257,10 @@ private class NotificationsScreenStateProvider : PreviewParameterProvider<Notifi
             NotificationsState.Empty,
             NotificationsState.Success(
                 listOf(
-                    PushNotification("1", "topic1", "10-10-2023", "Title 1", "Body 1", null, null),
-                    PushNotification("2", "topic2", "03-02-2023", "Title 2", "Body 2", null, null),
-                    PushNotification("3", "topic3", "31-01-2023", "Title 3", "Body 3", null, null),
-                    PushNotification("4", "topic4", "02-07-2022", "Title 4", "Body 4", null, null),
+                    NotifyNotification("1", "topic1", "10-10-2023", "Title 1", "Body 1", null, null),
+                    NotifyNotification("2", "topic2", "03-02-2023", "Title 2", "Body 2", null, null),
+                    NotifyNotification("3", "topic3", "31-01-2023", "Title 3", "Body 3", null, null),
+                    NotifyNotification("4", "topic4", "02-07-2022", "Title 4", "Body 4", null, null),
                 )
             )
         )

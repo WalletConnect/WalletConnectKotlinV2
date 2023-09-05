@@ -1,0 +1,66 @@
+import kotlin.Boolean;
+import kotlin.Pair;
+import kotlin.String;
+import kotlin.collections.Map;
+
+CREATE TABLE ActiveSubscriptions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    account TEXT NOT NULL,
+    authentication_public_key TEXT NOT NULL,
+    expiry INTEGER NOT NULL,
+    relay_protocol TEXT NOT NULL,
+    relay_data TEXT DEFAULT NULL,
+    map_of_scope TEXT AS Map<String, Pair<String, Boolean>> NOT NULL,
+    dapp_generated_public_key TEXT NOT NULL,
+    notify_topic TEXT UNIQUE NOT NULL,
+    requested_subscription_id INTEGER UNIQUE DEFAULT NULL
+);
+
+insertOrAbortActiveSubscribtion:
+INSERT OR ABORT INTO ActiveSubscriptions(account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, dapp_generated_public_key, notify_topic, requested_subscription_id)
+VALUES ( ?, ?, ?, ?, ? , ?, ?, ?, ?);
+
+updateOrAbortActiveSubscribtion:
+UPDATE OR ABORT ActiveSubscriptions
+SET
+    account = ?,
+    authentication_public_key = ?,
+    expiry = ?,
+    relay_protocol = ?,
+    relay_data = ?,
+    map_of_scope = ?,
+    dapp_generated_public_key = ?,
+    notify_topic = ?,
+    requested_subscription_id = ?
+WHERE notify_topic = ?;
+
+getSubscriptionByDappGeneratedPublicKey:
+SELECT account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, dapp_generated_public_key, notify_topic, requested_subscription_id
+FROM ActiveSubscriptions
+WHERE dapp_generated_public_key = ?;
+
+getAllActiveSubscriptions:
+SELECT account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, dapp_generated_public_key, notify_topic, requested_subscription_id
+FROM ActiveSubscriptions;
+
+getActiveSubscriptionByNotifyTopic:
+SELECT account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, dapp_generated_public_key, notify_topic, requested_subscription_id
+FROM ActiveSubscriptions
+WHERE notify_topic = ?;
+
+getActiveSubscriptionForeignRequestedSubscriptionIdByNotifyTopic:
+SELECT requested_subscription_id
+FROM ActiveSubscriptions
+WHERE notify_topic = ?;
+
+updateSubscriptionScopeAndExpiryByNotifyTopic:
+UPDATE OR ABORT ActiveSubscriptions
+SET map_of_scope = ?, expiry = ?
+WHERE notify_topic = ?;
+
+deleteByNotifyTopic:
+DELETE FROM ActiveSubscriptions
+WHERE notify_topic = ?;
+
+doesNotifyTopicExist:
+SELECT EXISTS(SELECT 1 FROM ActiveSubscriptions WHERE notify_topic = ?);

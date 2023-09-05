@@ -178,7 +178,9 @@ fun DependencyHandlerScope.compose() {
     "implementation"("androidx.compose.material:material")
     "debugImplementation"("androidx.compose.ui:ui-tooling")
     "debugImplementation"("androidx.compose.ui:ui-test-manifest")
+    "androidTestImplementation"("androidx.compose.ui:ui-test-junit4")
     "implementation"("androidx.navigation:navigation-compose:$composeNavigationVersion")
+    "androidTestImplementation"("androidx.navigation:navigation-testing:$composeNavigationVersion")
     "implementation"("androidx.lifecycle:lifecycle-viewmodel-compose:$composeViewModelVersion")
 
     //override compose material to fix crash at modalsheet
@@ -210,4 +212,15 @@ fun DependencyHandlerScope.qrCodeGenerator() {
 
 fun DependencyHandlerScope.turbine() {
     "testImplementation"("app.cash.turbine:turbine:$turbineVersion")
+}
+
+fun DependencyHandlerScope.beagle() {
+    "api"("io.github.pandulapeter.beagle:ui-view:$beagleVersion")
+    "api"("io.github.pandulapeter.beagle:log:$beagleVersion")
+    "api"("io.github.pandulapeter.beagle:log-crash:$beagleVersion")
+    "api"("io.github.pandulapeter.beagle:log-okhttp:$beagleVersion")
+}
+
+fun DependencyHandlerScope.beagleOkHttp() {
+    "implementation"("io.github.pandulapeter.beagle:log-okhttp:$beagleVersion")
 }

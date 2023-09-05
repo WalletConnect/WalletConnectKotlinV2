@@ -1,6 +1,6 @@
 package com.walletconnect.android.internal.domain
 
-import com.walletconnect.android.history.HistoryMessageNotifier
+import com.walletconnect.android.archive.ArchiveMessageNotifier
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.exception.WalletConnectException
@@ -54,7 +54,7 @@ internal class RelayerInteractorTest {
         every { encrypt(any(), any(), any()) } returns ""
     }
 
-    private val historyMessageNotifier: HistoryMessageNotifier = mockk {
+    private val archiveMessageNotifier: ArchiveMessageNotifier = mockk {
         every { requestsSharedFlow } returns MutableSharedFlow()
     }
 
@@ -77,7 +77,7 @@ internal class RelayerInteractorTest {
     }
 
     private val sut =
-        spyk(JsonRpcInteractor(relay, codec, jsonRpcHistory, logger, historyMessageNotifier), recordPrivateCalls = true) {
+        spyk(JsonRpcInteractor(relay, codec, jsonRpcHistory, logger, archiveMessageNotifier), recordPrivateCalls = true) {
             every { checkConnectionWorking() } answers { }
         }
 

@@ -1,16 +1,22 @@
 package com.walletconnect.sample.wallet
 
 import android.app.Application
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.util.Log
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
+import com.pandulapeter.beagle.modules.DividerModule
+import com.pandulapeter.beagle.modules.HeaderModule
+import com.pandulapeter.beagle.modules.PaddingModule
+import com.pandulapeter.beagle.modules.TextModule
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.utils.cacao.sign
-import com.walletconnect.sample.common.BuildConfig
+import com.walletconnect.sample.common.initBeagle
 import com.walletconnect.sample.common.tag
 import com.walletconnect.sample.wallet.domain.EthAccountDelegate
 import com.walletconnect.sample.wallet.domain.toEthAddress
@@ -74,6 +80,23 @@ class Web3WalletApplication : Application() {
             Firebase.crashlytics.recordException(error.throwable)
             Log.e(tag(this), error.throwable.stackTraceToString())
         }
+
+        initBeagle(
+            this,
+            HeaderModule(
+                title = getString(R.string.app_name),
+                subtitle = BuildConfig.APPLICATION_ID,
+                text = "${BuildConfig.BUILD_TYPE} v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
+            ),
+            DividerModule(),
+            TextModule(text = with(EthAccountDelegate) { account.toEthAddress() }) {
+                (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("Account", with(EthAccountDelegate) { account.toEthAddress() }))
+            },
+            PaddingModule(size = PaddingModule.Size.LARGE),
+            TextModule(text = CoreClient.Echo.clientId) {
+                (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("ClientId", CoreClient.Echo.clientId))
+            },
+        )
 
         // For testing purposes only
         FirebaseMessaging.getInstance().deleteToken().addOnSuccessListener {

@@ -47,6 +47,7 @@ android {
 
     kotlinOptions {
         jvmTarget = jvmVersion.toString()
+        freeCompilerArgs = listOf("-Xcontext-receivers")
     }
 
     sourceSets {
@@ -65,7 +66,7 @@ android {
             isReturnDefaultValues = true
         }
 
-        registerManagedDevices("AndroidCore")
+        registerManagedDevices()
     }
 }
 
@@ -94,6 +95,7 @@ dependencies {
     web3jCrypto()
     kethereum()
     retrofit()
+    beagleOkHttp()
 
     jUnit4()
     androidXTest()
