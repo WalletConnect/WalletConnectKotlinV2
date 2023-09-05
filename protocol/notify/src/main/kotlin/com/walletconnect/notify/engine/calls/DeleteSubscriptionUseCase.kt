@@ -52,7 +52,7 @@ internal class DeleteSubscriptionUseCase(
             }
         )
 
-        deleteSubscriptionToNotifySubscriptionStore(activeSubscription.account, activeSubscription.notifyTopic, onSuccess = {}, onError = {})
+//        deleteSubscriptionToNotifySubscriptionStore(activeSubscription.account, activeSubscription.notifyTopic, onSuccess = {}, onError = {})
     }
 
 }
