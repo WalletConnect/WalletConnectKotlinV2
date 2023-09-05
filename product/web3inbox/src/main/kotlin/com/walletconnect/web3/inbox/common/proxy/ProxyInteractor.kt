@@ -12,6 +12,7 @@ import com.walletconnect.web3.inbox.webview.WebViewWeakReference
 internal abstract class ProxyInteractor(
     private val logger: Logger,
     private val webViewWeakReference: WebViewWeakReference,
+    private val prefix: String
 ) {
 
     abstract fun rpcToWeb3InboxCall(rpc: String): String
@@ -20,13 +21,13 @@ internal abstract class ProxyInteractor(
     fun <T : JsonRpcResponse> respond(rpc: T) {
         Handler(Looper.getMainLooper()).post {
             val rpcAsString = runCatching { Web3InboxSerializer.serializeRpc(rpc) }.getOrNull() ?: return@post logger.error("Unable to serialize: $rpc")
-            logger.log("Responding: $rpcAsString")
+            logger.log("Responding for $prefix: $rpcAsString")
             val script = rpcToWeb3InboxCall(rpcAsString)
 
             try {
                 webViewWeakReference.webView.evaluateJavascript(script, null)
             } catch (webViewIsNullException: WebViewIsNullException) {
-                logger.error("Unable to respond: $rpcAsString")
+                logger.error("Unable to respond for $prefix: $rpcAsString")
             }
         }
     }
@@ -35,22 +36,22 @@ internal abstract class ProxyInteractor(
     fun <T : Web3InboxRPC.Call> call(rpc: T) {
         Handler(Looper.getMainLooper()).post {
             val rpcAsString = runCatching { Web3InboxSerializer.serializeRpc(rpc) }.getOrNull() ?: return@post logger.error("Unable to serialize: $rpc")
-            logger.log("Calling: $rpcAsString")
+            logger.log("Calling for $prefix: $rpcAsString")
             val script = rpcToWeb3InboxCall(rpcAsString)
 
             try {
                 webViewWeakReference.webView.evaluateJavascript(script, null)
             } catch (webViewIsNullException: WebViewIsNullException) {
-                logger.error("Unable to call: $rpcAsString")
+                logger.error("Unable to call for $prefix: $rpcAsString")
             }
         }
     }
 }
 
-internal class ChatProxyInteractor(logger: Logger, webViewWeakReference: WebViewWeakReference) : ProxyInteractor(logger, webViewWeakReference) {
+internal class ChatProxyInteractor(logger: Logger, webViewWeakReference: WebViewWeakReference) : ProxyInteractor(logger, webViewWeakReference, "chat") {
     override fun rpcToWeb3InboxCall(rpc: String): String = "window.web3inbox.chat.postMessage($rpc)"
 }
 
-internal class NotifyProxyInteractor(logger: Logger, webViewWeakReference: WebViewWeakReference) : ProxyInteractor(logger, webViewWeakReference) {
+internal class NotifyProxyInteractor(logger: Logger, webViewWeakReference: WebViewWeakReference) : ProxyInteractor(logger, webViewWeakReference, "notify") {
     override fun rpcToWeb3InboxCall(rpc: String): String = "window.web3inbox.notify.postMessage($rpc)"
 }
