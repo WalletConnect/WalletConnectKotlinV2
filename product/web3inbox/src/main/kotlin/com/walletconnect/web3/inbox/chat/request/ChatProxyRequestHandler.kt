@@ -2,6 +2,7 @@
 
 package com.walletconnect.web3.inbox.chat.request
 
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC
 
 
@@ -16,9 +17,11 @@ internal class ChatProxyRequestHandler(
     private val resolveRequestUseCase: ResolveRequestUseCase,
     private val messageRequestUseCase: MessageRequestUseCase,
     private val inviteRequestUseCase: InviteRequestUseCase,
-) {
+    private val logger: Logger,
+    ) {
 
     fun handleRequest(rpc: Web3InboxRPC.Request.Chat) {
+        logger.log("Incoming Chat request from W3I: $rpc")
         when (rpc) {
             is Web3InboxRPC.Request.Chat.Register -> registerRequestUseCase(rpc, rpc.params)
             is Web3InboxRPC.Request.Chat.GetReceivedInvites -> getReceivedInvitesRequestUseCase(rpc, rpc.params)
