@@ -3,7 +3,10 @@ package com.walletconnect.sample.web3inbox.domain
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.android.utils.cacao.sign
+import com.walletconnect.notify.client.NotifyClient
+import com.walletconnect.sample.web3inbox.domain.Web3InboxInitializer.wasNotifyDelegateInitalized
 import com.walletconnect.sample.web3inbox.ui.routes.W3ISampleEvents
+import com.walletconnect.sample.web3inbox.ui.routes.home.subscriptions.NotifyDelegate
 import com.walletconnect.util.hexToBytes
 import com.walletconnect.wcmodal.client.Modal
 import com.walletconnect.wcmodal.client.WalletConnectModal
@@ -43,7 +46,7 @@ object Web3InboxInitializer {
         web3InboxInitializer = Web3InboxInitializerInstance(selectedAccount, random)
     }
 
-
+    var wasNotifyDelegateInitalized = false
 }
 
 class Web3InboxInitializerInstance(
@@ -157,5 +160,10 @@ class Web3InboxInitializerInstance(
                 onSign = ::onSign
             ), onError = { error -> Timber.e(error.throwable) }
         )
+
+        if (!wasNotifyDelegateInitalized) {
+            wasNotifyDelegateInitalized = true
+            NotifyClient.setDelegate(NotifyDelegate)
+        }
     }
 }
