@@ -12,8 +12,9 @@ import androidx.navigation.compose.composable
 import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.google.accompanist.navigation.material.ModalBottomSheetLayout
-import com.walletconnect.sample.web3inbox.ui.routes.select_account.AccountRoute
 import com.walletconnect.sample.web3inbox.ui.routes.home.HomeRoute
+import com.walletconnect.sample.web3inbox.ui.routes.home.subscriptions.notifications.NotificationsRoute
+import com.walletconnect.sample.web3inbox.ui.routes.select_account.AccountRoute
 import com.walletconnect.wcmodal.ui.theme.WalletConnectModalTheme
 import com.walletconnect.wcmodal.ui.walletConnectModalGraph
 
@@ -41,6 +42,13 @@ fun W3ISampleNavGraph(
                 composable(Route.Home.path + "/{$accountArg}", arguments = listOf(navArgument(accountArg) { type = NavType.StringType })) { navBackStackEntry ->
                     HomeRoute(navController, navBackStackEntry.arguments?.getString(accountArg)!!)
                 }
+                composable(Route.Notification.path + "/{$topicArg}",
+                    arguments = listOf(
+                        navArgument(topicArg) { type = NavType.StringType }
+                    )
+                ) {
+                    NotificationsRoute(navController = navController)
+                }
                 walletConnectModalGraph(navController)
             }
         }
@@ -48,6 +56,7 @@ fun W3ISampleNavGraph(
 }
 
 const val accountArg = "accountArg"
+const val topicArg = "topicArg"
 
 fun NavController.navigateToW3I(selectedAccount: String) {
     navigate(Route.Home.path + "/$selectedAccount")
