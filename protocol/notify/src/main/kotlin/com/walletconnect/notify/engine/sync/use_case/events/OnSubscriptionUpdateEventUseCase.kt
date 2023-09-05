@@ -75,7 +75,7 @@ internal class OnSubscriptionUpdateEventUseCase(
                     }.fold(
                         onSuccess = { activeSubscription ->
                             jsonRpcInteractor.subscribe(activeSubscription.notifyTopic) { error -> logger.error(error) }
-                            getNotifyMessagesFromHistory(activeSubscription.notifyTopic) { messagesCount -> logger.log("Fetched $messagesCount messages from ${activeSubscription.dappMetaData!!.url}") }
+//                            getNotifyMessagesFromHistory(activeSubscription.notifyTopic) { messagesCount -> logger.log("Fetched $messagesCount messages from ${activeSubscription.dappMetaData!!.url}") }
                         },
                         onFailure = { error ->
                             logger.error("Failed to insert Synced Subscription: $error")
