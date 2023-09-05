@@ -6,12 +6,15 @@ import com.squareup.moshi.Moshi
 import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtClaims
+import com.walletconnect.android.internal.common.model.AppMetaData
+import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.notify.common.model.NotifyMessage
@@ -30,6 +33,7 @@ internal class OnNotifyMessageUseCase(
     private val messagesRepository: MessagesRepository,
     private val subscriptionRepository: SubscriptionRepository,
     private val fetchDidJwtInteractor: FetchDidJwtInteractor,
+    private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val _moshi: Moshi.Builder,
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
@@ -66,9 +70,14 @@ internal class OnNotifyMessageUseCase(
             val messageHash = sha256(stringifiedMessage.encodeToByteArray())
             val activeSubscription =
                 subscriptionRepository.getActiveSubscriptionByNotifyTopic(request.topic.value) ?: throw IllegalStateException("No active subscription for topic: ${request.topic.value}")
+
+            val metadata: AppMetaData = metadataStorageRepository.getByTopicAndType(activeSubscription.notifyTopic, AppMetaDataType.PEER)
+                ?: throw Exception("No metadata found for topic ${activeSubscription.notifyTopic}")
+
+
             val messageReceiptJwt = fetchDidJwtInteractor.messageReceipt(
                 account = activeSubscription.account,
-                metadataUrl = activeSubscription.dappMetaData!!.url,
+                metadataUrl = metadata.url,
                 authenticationKey = activeSubscription.authenticationPublicKey,
                 messageHash = messageHash
             ).getOrThrow()
