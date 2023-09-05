@@ -98,8 +98,8 @@ internal class OnNotifySubscribeResponseUseCase(
                             }
                         }
 
-                        val symKey = crypto.getSymmetricKey(notifyTopic.value.lowercase())
-                        setSubscriptionWithSymmetricKeyToNotifySubscriptionStoreUseCase(activeSubscription, symKey, { logger.log("Synced Subscriptions") }, { error -> logger.error(error) })
+//                        val symKey = crypto.getSymmetricKey(notifyTopic.value.lowercase())
+//                        setSubscriptionWithSymmetricKeyToNotifySubscriptionStoreUseCase(activeSubscription, symKey, { logger.log("Synced Subscriptions") }, { error -> logger.error(error) })
 
                         _events.emit(activeSubscription)
                         engineNotifySubscriptionNotifier.newlyRespondedRequestedSubscriptionId.updateAndGet { requestedSubscription.requestId to activeSubscription }
