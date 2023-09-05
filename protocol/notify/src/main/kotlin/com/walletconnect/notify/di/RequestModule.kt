@@ -17,6 +17,7 @@ internal fun requestModule() = module {
             messagesRepository = get(),
             subscriptionRepository = get(),
             fetchDidJwtInteractor = get(),
+            metadataStorageRepository = get(),
             _moshi = get(named(AndroidCommonDITags.MOSHI)),
         )
     }
