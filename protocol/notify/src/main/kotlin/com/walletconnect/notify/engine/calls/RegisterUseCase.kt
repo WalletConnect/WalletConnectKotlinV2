@@ -22,18 +22,18 @@ internal class RegisterUseCase(
         identitiesInteractor.registerIdentity(AccountId(account), keyserverUrl, onSign).fold(
             onFailure = { error -> onFailure(error) },
             onSuccess = { identityPublicKey ->
-                setupSyncInNotifyUseCase(
-                    accountId = AccountId(account),
-                    onSign = onSign,
-                    onSuccess = {
-                        scope.launch {
-                            getMessagesFromHistoryUseCase(AccountId(account), {
-                                onSuccess(identityPublicKey.keyAsHex)
-                            }, onFailure)
-                        }
-                    },
-                    onError = onFailure
-                )
+//                setupSyncInNotifyUseCase(
+//                    accountId = AccountId(account),
+//                    onSign = onSign,
+//                    onSuccess = {
+//                        scope.launch {
+//                            getMessagesFromHistoryUseCase(AccountId(account), {
+//                                onSuccess(identityPublicKey.keyAsHex)
+//                            }, onFailure)
+//                        }
+//                    },
+//                    onError = onFailure
+//                )
             }
         )
     }
