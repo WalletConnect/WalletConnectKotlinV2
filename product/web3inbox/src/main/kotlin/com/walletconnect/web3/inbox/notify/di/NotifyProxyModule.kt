@@ -59,6 +59,7 @@ internal fun notifyProxyModule(
         getActiveSubscriptionsRequestUseCase = get(),
         getMessageHistoryRequestUseCase = get(),
         deleteNotifyMessageRequestUseCase = get(),
-        registerRequestUseCase = get()
+        registerRequestUseCase = get(),
+        logger = get()
     ) }
 }

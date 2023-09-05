@@ -2,6 +2,7 @@
 
 package com.walletconnect.web3.inbox.notify.request
 
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.web3.inbox.json_rpc.Web3InboxRPC
 
 internal class NotifyProxyRequestHandler(
@@ -12,9 +13,11 @@ internal class NotifyProxyRequestHandler(
     private val getMessageHistoryRequestUseCase: GetMessageHistoryRequestUseCase,
     private val deleteNotifyMessageRequestUseCase: DeleteNotifyMessageRequestUseCase,
     private val registerRequestUseCase: RegisterRequestUseCase,
-) {
+    private val logger: Logger,
+    ) {
 
     fun handleRequest(rpc: Web3InboxRPC.Request.Notify) {
+        logger.log("Incoming Notify request from W3I: $rpc")
         when (rpc) {
             is Web3InboxRPC.Request.Notify.Subscribe -> subscribeRequestUseCase(rpc, rpc.params)
             is Web3InboxRPC.Request.Notify.Update -> updateRequestUseCase(rpc, rpc.params)
