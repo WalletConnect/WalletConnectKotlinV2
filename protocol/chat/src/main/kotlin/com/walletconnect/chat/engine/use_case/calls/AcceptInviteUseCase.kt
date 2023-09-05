@@ -6,7 +6,7 @@ import com.walletconnect.android.internal.common.jwt.did.EncodeDidJwtPayloadUseC
 import com.walletconnect.android.internal.common.jwt.did.encodeDidJwt
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
-import com.walletconnect.android.internal.common.model.params.CoreChatParams
+import com.walletconnect.android.internal.common.model.params.ChatNotifyResponseAuthParams
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
@@ -70,9 +70,9 @@ internal class AcceptInviteUseCase(
                     identityPrivateKey,
                     EncodeInviteApprovalDidJwtPayloadUseCase(publicKey, inviterAccountId),
                     EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
-                ).getOrElse() { error -> return@launch onError(error) }
+                ).getOrElse { error -> return@launch onError(error) }
 
-                val acceptanceParams = CoreChatParams.AcceptanceParams(responseAuth = didJwt.value)
+                val acceptanceParams = ChatNotifyResponseAuthParams.ResponseAuth(responseAuth = didJwt.value)
                 val responseParams = JsonRpcResponse.JsonRpcResult(jsonRpcHistoryEntry.id, result = acceptanceParams)
                 val irnParams = IrnParams(Tags.CHAT_INVITE_RESPONSE, Ttl(MONTH_IN_SECONDS))
                 jsonRpcInteractor.publishJsonRpcResponse(acceptTopic, irnParams, responseParams, {}, { error -> return@publishJsonRpcResponse onError(error) })
