@@ -109,7 +109,7 @@ internal class NotifyEngine(
 
     private suspend fun registerTagsInHistory() {
         // Sync are here since Archive Server expects only one register call
-        archiveInterface.registerTags(tags = listOf(Tags.NOTIFY_MESSAGE, Tags.SYNC_SET, Tags.SYNC_DELETE), {}, { error -> logger.error(error.throwable) })
+//        archiveInterface.registerTags(tags = listOf(Tags.NOTIFY_MESSAGE, Tags.SYNC_SET, Tags.SYNC_DELETE), {}, { error -> logger.error(error.throwable) })
     }
 
     private suspend fun collectJsonRpcRequests(): Job =
@@ -138,7 +138,9 @@ internal class NotifyEngine(
             .launchIn(scope)
 
     private fun collectSyncUpdateEvents(): Job = syncClient.onSyncUpdateEvents
-        .onEach { event -> onSyncUpdateEventUseCase(event) }
+        .onEach { event ->
+//            onSyncUpdateEventUseCase(event)
+        }
         .launchIn(scope)
 
     private fun collectNotifyEvents(): Job = merge(onNotifySubscribeResponseUseCase.events, onNotifyMessageUseCase.events, onNotifyUpdateResponseUseCase.events, onNotifyDeleteUseCase.events)
