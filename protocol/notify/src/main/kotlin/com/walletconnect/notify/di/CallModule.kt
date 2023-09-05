@@ -57,7 +57,6 @@ internal fun callModule() = module {
             metadataStorageRepository = get(),
             subscriptionRepository = get(),
             messagesRepository = get(),
-            deleteSubscriptionToNotifySubscriptionStore = get(),
             fetchDidJwtInteractor = get()
         )
     }
@@ -80,8 +79,6 @@ internal fun callModule() = module {
         RegisterUseCase(
             keyserverUrl = get(named(AndroidCommonDITags.KEYSERVER_URL)),
             identitiesInteractor = get(),
-            setupSyncInNotifyUseCase = get(),
-            getMessagesFromHistoryUseCase = get()
         )
     }
 

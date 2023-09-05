@@ -27,7 +27,6 @@ import com.walletconnect.notify.engine.requests.OnNotifyDeleteUseCase
 import com.walletconnect.notify.engine.requests.OnNotifyMessageUseCase
 import com.walletconnect.notify.engine.responses.OnNotifySubscribeResponseUseCase
 import com.walletconnect.notify.engine.responses.OnNotifyUpdateResponseUseCase
-import com.walletconnect.notify.engine.sync.use_case.events.OnSyncUpdateEventUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -44,7 +43,6 @@ internal class NotifyEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val pairingHandler: PairingControllerInterface,
     private val syncClient: SyncInterface,
-    private val onSyncUpdateEventUseCase: OnSyncUpdateEventUseCase,
     private val archiveInterface: ArchiveInterface,
     private val subscribeToDappUseCase: SubscribeToDappUseCaseInterface,
     private val updateUseCase: UpdateSubscriptionRequestUseCaseInterface,

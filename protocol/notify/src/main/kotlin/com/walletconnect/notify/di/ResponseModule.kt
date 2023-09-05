@@ -16,7 +16,6 @@ internal fun responseModule() = module {
             subscriptionRepository = get(),
             metadataStorageRepository = get(),
             engineNotifySubscriptionNotifier = get(),
-            setSubscriptionWithSymmetricKeyToNotifySubscriptionStoreUseCase = get(),
             logger = get(),
         )
     }
