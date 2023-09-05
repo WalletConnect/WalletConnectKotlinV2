@@ -5,6 +5,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
@@ -12,6 +13,7 @@ import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 import com.walletconnect.web3.modal.ui.components.internal.commons.BackArrowIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.CloseIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.QuestionMarkIcon
+import com.walletconnect.web3.modal.ui.components.internal.commons.TestTags
 import com.walletconnect.web3.modal.ui.previews.MultipleComponentsPreview
 
 @Composable
@@ -34,7 +36,7 @@ internal fun Web3ModalTopBar(
                 color = Web3ModalTheme.colors.foreground.color100,
                 textAlign = TextAlign.Center
             ),
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f).testTag(TestTags.TITLE)
         )
         CloseIcon(onClick = onCloseIconClick)
     }

@@ -5,7 +5,7 @@ package com.walletconnect.chat.engine.domain
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
-import com.walletconnect.android.internal.common.model.params.CoreChatParams
+import com.walletconnect.android.internal.common.model.params.ChatNotifyResponseAuthParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
@@ -156,7 +156,7 @@ internal class ChatEngine(
     private fun collectPeerResponses(): Job = jsonRpcInteractor.peerResponse
         .onEach { response ->
             when (response.params) {
-                is ChatParams.InviteParams, is CoreChatParams.AcceptanceParams -> onInviteResponseUseCase(response)
+                is ChatParams.InviteParams, is ChatNotifyResponseAuthParams.ResponseAuth -> onInviteResponseUseCase(response)
                 is ChatParams.MessageParams -> onMessageResponseUseCase(response)
                 is ChatParams.LeaveParams -> onLeaveResponseUseCase(response)
             }
