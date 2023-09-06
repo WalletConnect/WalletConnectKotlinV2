@@ -5,19 +5,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.notify.client.Notify
 import com.walletconnect.notify.client.NotifyClient
-import com.walletconnect.sample.web3inbox.ui.routes.accountArg
 import com.walletconnect.sample.web3inbox.ui.routes.home.subscriptions.NotifyDelegate
 import com.walletconnect.sample.web3inbox.ui.routes.topicArg
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 class NotificationsViewModel(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     val topic = checkNotNull(savedStateHandle.get<String>(topicArg))
 
-    private fun getNotifications() = NotifyClient.getMessageHistory(Notify.Params.MessageHistory(topic)).values.toList()
+    private fun getNotifications() = NotifyClient.getMessageHistory(Notify.Params.MessageHistory(topic)).values.toList().sortedByDescending { it.publishedAt }
 
     val state: MutableStateFlow<NotificationUI> = MutableStateFlow(NotificationUI(getNotifications()))
 
