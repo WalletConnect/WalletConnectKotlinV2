@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import com.walletconnect.web3.modal.ui.Web3ModalState
+import com.walletconnect.web3.modal.ui.navigation.connection.connectWalletNavGraph
 import com.walletconnect.web3.modal.ui.toStartingPath
 
 @Composable

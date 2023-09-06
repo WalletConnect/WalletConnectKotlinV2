@@ -27,7 +27,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -35,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.walletconnect.android.internal.common.explorer.data.model.Wallet
-import com.walletconnect.modal.utils.goToNativeWallet
 import com.walletconnect.modal.utils.isLandscape
 import com.walletconnect.web3.modal.R
 import com.walletconnect.web3.modal.ui.components.internal.commons.ContentDescription
@@ -45,7 +43,7 @@ import com.walletconnect.web3.modal.ui.components.internal.commons.VerticalSpace
 import com.walletconnect.web3.modal.ui.components.internal.commons.WalletsLazyGridView
 import com.walletconnect.web3.modal.ui.components.internal.commons.inputs.SearchInput
 import com.walletconnect.web3.modal.ui.components.internal.commons.walletsGridItems
-import com.walletconnect.web3.modal.ui.navigation.Route
+import com.walletconnect.web3.modal.ui.navigation.connection.navigateToRedirect
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 import com.walletconnect.web3.modal.ui.previews.testWallets

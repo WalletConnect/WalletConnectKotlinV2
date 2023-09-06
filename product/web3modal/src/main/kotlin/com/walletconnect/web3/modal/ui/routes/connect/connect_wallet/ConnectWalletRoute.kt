@@ -19,6 +19,7 @@ import com.walletconnect.web3.modal.ui.components.internal.commons.RecentLabel
 import com.walletconnect.web3.modal.ui.components.internal.commons.WalletImage
 import com.walletconnect.web3.modal.ui.components.internal.walletconnect.walletConnectAllWallets
 import com.walletconnect.web3.modal.ui.navigation.Route
+import com.walletconnect.web3.modal.ui.navigation.connection.navigateToRedirect
 import com.walletconnect.web3.modal.ui.previews.ConnectYourWalletPreviewProvider
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
@@ -30,7 +31,7 @@ internal fun ConnectWalletRoute(
 ) {
     ConnectWalletContent(
         wallets = wallets,
-        onWalletItemClick = { navController.navigate(Route.REDIRECT.path + "/${it.id}&${it.name}") },
+        onWalletItemClick = { navController.navigateToRedirect(it) },
         onViewAllClick = { navController.navigate(Route.ALL_WALLETS.path) },
     )
 }
