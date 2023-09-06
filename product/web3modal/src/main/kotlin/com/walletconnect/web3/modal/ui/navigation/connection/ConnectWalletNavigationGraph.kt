@@ -38,5 +38,5 @@ internal fun NavGraphBuilder.connectWalletNavGraph(
             wallets = web3ModalState.wallets,
         )
     }
-    redirectRoute(web3ModalState.wallets, web3ModalState.uri, retry)
+    redirectRoute(web3ModalState.wallets, web3ModalState.uri, updateRecentWalletId, retry)
 }

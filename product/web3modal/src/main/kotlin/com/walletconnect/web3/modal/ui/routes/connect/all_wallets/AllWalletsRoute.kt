@@ -43,7 +43,7 @@ import com.walletconnect.web3.modal.ui.components.internal.commons.VerticalSpace
 import com.walletconnect.web3.modal.ui.components.internal.commons.WalletsLazyGridView
 import com.walletconnect.web3.modal.ui.components.internal.commons.inputs.SearchInput
 import com.walletconnect.web3.modal.ui.components.internal.commons.walletsGridItems
-import com.walletconnect.web3.modal.ui.navigation.connection.navigateToRedirect
+import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 import com.walletconnect.web3.modal.ui.previews.testWallets
