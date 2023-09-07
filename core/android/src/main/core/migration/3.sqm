@@ -1,4 +1,0 @@
-
--- migration from 3.db to 4.db
-
-ALTER TABLE Pairing ADD COLUMN is_received INTEGER AS Boolean NOT NULL;
