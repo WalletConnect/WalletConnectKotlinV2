@@ -36,6 +36,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import com.walletconnect.sample.common.BuildConfig as CommonBuildConfig
 
 class Web3WalletApplication : Application() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -102,7 +103,7 @@ class Web3WalletApplication : Application() {
             },
         )
 
-        mixPanel = MixpanelAPI.getInstance(this, "cd255a5aa17bf3793b5272a99f25594c", true).apply {
+        mixPanel = MixpanelAPI.getInstance(this, CommonBuildConfig.MIX_PANEL, true).apply {
             identify(CoreClient.Echo.clientId)
             people.set("\$name", with(EthAccountDelegate) { account.toEthAddress() })
         }
