@@ -22,6 +22,7 @@ android {
             useSupportLibrary = true
         }
         buildConfigField("String", "PROJECT_ID", "\"${System.getenv("WC_CLOUD_PROJECT_ID") ?: ""}\"")
+        buildConfigField("String", "MIX_PANEL", "\"${System.getenv("MIX_PANEL") ?: ""}\"")
         buildConfigField("String", "BOM_VERSION", "\"${BOM_VERSION ?: ""}\"")
     }
 
@@ -91,6 +92,9 @@ dependencies {
 
     // Zxing
     implementation("com.google.zxing:core:3.5.0")
+
+    // MixPanel
+    implementation("com.mixpanel.android:mixpanel-android:7.3.1")
 
     // Unit Tests
     jUnit4()

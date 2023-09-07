@@ -7,6 +7,7 @@ import android.util.Log
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
+import com.mixpanel.android.mpmetrics.MixpanelAPI
 import com.pandulapeter.beagle.modules.DividerModule
 import com.pandulapeter.beagle.modules.HeaderModule
 import com.pandulapeter.beagle.modules.PaddingModule
@@ -14,11 +15,13 @@ import com.pandulapeter.beagle.modules.TextModule
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.cacao.signature.SignatureType
+import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.utils.cacao.sign
 import com.walletconnect.sample.common.initBeagle
 import com.walletconnect.sample.common.tag
 import com.walletconnect.sample.wallet.domain.EthAccountDelegate
+import com.walletconnect.sample.wallet.domain.mixPanel
 import com.walletconnect.sample.wallet.domain.toEthAddress
 import com.walletconnect.sample.wallet.ui.state.ConnectionState
 import com.walletconnect.sample.wallet.ui.state.connectionStateFlow
@@ -32,6 +35,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 class Web3WalletApplication : Application() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -97,6 +101,17 @@ class Web3WalletApplication : Application() {
                 (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("ClientId", CoreClient.Echo.clientId))
             },
         )
+
+        mixPanel = MixpanelAPI.getInstance(this, "cd255a5aa17bf3793b5272a99f25594c", true).apply {
+            identify(CoreClient.Echo.clientId)
+            people.set("\$name", with(EthAccountDelegate) { account.toEthAddress() })
+        }
+
+        wcKoinApp.koin.get<Timber.Forest>().plant(object : Timber.Tree() {
+            override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
+                mixPanel.track(message)
+            }
+        })
 
         // For testing purposes only
         FirebaseMessaging.getInstance().deleteToken().addOnSuccessListener {
