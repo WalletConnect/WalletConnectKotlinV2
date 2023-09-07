@@ -41,22 +41,26 @@ fun coreCommonModule() = module {
             .add(get<PolymorphicJsonAdapterFactory<JsonRpcResponse>>())
     }
 
+    single {
+        Timber
+    }
+
     single<Logger>(named(AndroidCommonDITags.LOGGER)) {
         object : Logger {
             override fun log(logMsg: String?) {
-                Timber.d(logMsg)
+                get<Timber.Forest>().d(logMsg)
             }
 
             override fun log(throwable: Throwable?) {
-                Timber.d(throwable)
+                get<Timber.Forest>().d(throwable)
             }
 
             override fun error(errorMsg: String?) {
-                Timber.e(errorMsg)
+                get<Timber.Forest>().e(errorMsg)
             }
 
             override fun error(throwable: Throwable?) {
-                Timber.e(throwable)
+                get<Timber.Forest>().e(throwable)
             }
         }
     }
