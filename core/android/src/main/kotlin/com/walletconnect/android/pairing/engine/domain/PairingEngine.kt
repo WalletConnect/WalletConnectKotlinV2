@@ -327,11 +327,5 @@ internal class PairingEngine(
     }
 
     private fun isPairingValid(topic: String): Boolean =
-        pairingRepository.getPairingOrNullByTopic(Topic(topic)).let { pairing ->
-            if (pairing == null) {
-                return@let false
-            } else {
-                return@let pairing.isNotExpired()
-            }
-        }
+        pairingRepository.getPairingOrNullByTopic(Topic(topic))?.let { pairing -> return@let pairing.isNotExpired() } ?: false
 }
