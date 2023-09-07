@@ -19,6 +19,4 @@ interface PairingStorageRepositoryInterface {
     fun updateExpiry(topic: Topic, expiry: Expiry)
 
     fun getPairingOrNullByTopic(topic: Topic): Pairing?
-
-    fun markAsReceived(topic: Topic)
 }

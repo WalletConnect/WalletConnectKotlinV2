@@ -41,7 +41,7 @@ import com.walletconnect.sign.engine.use_case.requests.OnPingUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionDeleteUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionEventUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionExtendUseCase
-import com.walletconnect.sign.engine.use_case.requests.OnSessionProposeUseCase
+import com.walletconnect.sign.engine.use_case.requests.OnSessionProposalUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionRequestUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionSettleUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionUpdateUseCase
@@ -96,7 +96,7 @@ internal class SignEngine(
     private val getSessionProposalsUseCase: GetSessionProposalsUseCaseInterface,
     private val getVerifyContextByIdUseCase: GetVerifyContextByIdUseCaseInterface,
     private val getListOfVerifyContextsUseCase: GetListOfVerifyContextsUseCaseInterface,
-    private val onSessionProposeUse: OnSessionProposeUseCase,
+    private val onSessionProposeUse: OnSessionProposalUseCase,
     private val onSessionSettleUseCase: OnSessionSettleUseCase,
     private val onSessionRequestUseCase: OnSessionRequestUseCase,
     private val onSessionDeleteUseCase: OnSessionDeleteUseCase,

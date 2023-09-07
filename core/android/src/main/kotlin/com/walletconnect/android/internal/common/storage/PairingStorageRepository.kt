@@ -14,7 +14,7 @@ class PairingStorageRepository(private val pairingQueries: PairingQueries) : Pai
     @Throws(SQLiteException::class)
     override fun insertPairing(pairing: Pairing) {
         with(pairing) {
-            pairingQueries.insertOrAbortPairing(topic.value, expiry.seconds, relayProtocol, relayData, uri, registeredMethods, isActive, isReceived)
+            pairingQueries.insertOrAbortPairing(topic.value, expiry.seconds, relayProtocol, relayData, uri, registeredMethods, isActive)
         }
     }
 
@@ -37,11 +37,6 @@ class PairingStorageRepository(private val pairingQueries: PairingQueries) : Pai
     @Throws(SQLiteException::class)
     override fun getPairingOrNullByTopic(topic: Topic): Pairing? = pairingQueries.getPairingByTopic(topic.value, mapper = this::toPairing).executeAsOneOrNull()
 
-    @Throws(SQLiteException::class)
-    override fun markAsReceived(topic: Topic) {
-        pairingQueries.markAsReceived(true, topic.value)
-    }
-
     private fun toPairing(
         topic: String,
         expirySeconds: Long,
@@ -50,7 +45,6 @@ class PairingStorageRepository(private val pairingQueries: PairingQueries) : Pai
         uri: String,
         methods: String,
         is_active: Boolean,
-        is_received: Boolean,
         peerName: String?,
         peerDesc: String?,
         peerUrl: String?,
@@ -71,8 +65,7 @@ class PairingStorageRepository(private val pairingQueries: PairingQueries) : Pai
             relayData = relay_data,
             uri = uri,
             isActive = is_active,
-            registeredMethods = methods,
-            isReceived = is_received
+            registeredMethods = methods
         )
     }
 }

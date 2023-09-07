@@ -26,6 +26,7 @@ internal fun callsModule() = module {
             verifyContextStorageRepository = get(),
             getPendingJsonRpcHistoryEntryByIdUseCase = get(),
             cacaoVerifier = get(),
+            pairingController = get(),
             logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }

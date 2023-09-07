@@ -45,8 +45,6 @@ object Core {
 
         data class Activate(val topic: String) : Params()
 
-        data class MarkAsReceived(val topic: String) : Params()
-
         data class UpdateExpiry(val topic: String, val expiry: Expiry) : Params()
 
         data class UpdateMetadata(val topic: String, val metadata: Model.AppMetaData, val metaDataType: AppMetaDataType) : Params()

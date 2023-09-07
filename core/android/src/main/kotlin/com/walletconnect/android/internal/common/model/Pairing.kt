@@ -13,8 +13,7 @@ data class Pairing(
     val relayData: String?,
     val uri: String,
     val isActive: Boolean,
-    val registeredMethods: String,
-    val isReceived: Boolean = false
+    val registeredMethods: String
 ) : Sequence {
 
     constructor(topic: Topic, relay: RelayProtocolOptions, symmetricKey: SymmetricKey, registeredMethods: String) : this(
@@ -29,11 +28,11 @@ data class Pairing(
 
     constructor(uri: WalletConnectUri, registeredMethods: String) : this(
         topic = uri.topic,
-        expiry = Expiry(ACTIVE_PAIRING),
+        expiry = Expiry(INACTIVE_PAIRING),
         relayProtocol = uri.relay.protocol,
         relayData = uri.relay.data,
         uri = uri.toAbsoluteString(),
-        isActive = true,
+        isActive = false,
         registeredMethods = registeredMethods
     )
 }

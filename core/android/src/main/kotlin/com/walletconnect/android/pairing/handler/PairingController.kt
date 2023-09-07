@@ -29,17 +29,6 @@ internal class PairingController(private val koinApp: KoinApplication = wcKoinAp
     }
 
     @Throws(IllegalStateException::class)
-    override fun markAsReceived(markAsReceived: Core.Params.MarkAsReceived, onError: (Core.Model.Error) -> Unit) {
-        checkEngineInitialization()
-
-        try {
-            pairingEngine.markAsReceived(markAsReceived.topic) { error -> onError(Core.Model.Error(error)) }
-        } catch (e: Exception) {
-            onError(Core.Model.Error(e))
-        }
-    }
-
-    @Throws(IllegalStateException::class)
     override fun activate(activate: Core.Params.Activate, onError: (Core.Model.Error) -> Unit) {
         checkEngineInitialization()
 

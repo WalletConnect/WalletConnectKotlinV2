@@ -20,6 +20,4 @@ interface PairingControllerInterface {
     fun updateMetadata(updateMetadata: Core.Params.UpdateMetadata, onError: (Core.Model.Error) -> Unit = {})
 
     fun register(vararg method: String)
-
-    fun markAsReceived(markAsReceived: Core.Params.MarkAsReceived, onError: (Core.Model.Error) -> Unit = {})
 }

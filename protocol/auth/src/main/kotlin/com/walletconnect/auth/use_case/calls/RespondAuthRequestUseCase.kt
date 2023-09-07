@@ -1,5 +1,6 @@
 package com.walletconnect.auth.use_case.calls
 
+import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.Invalid
@@ -21,6 +22,7 @@ import com.walletconnect.android.internal.common.signing.cacao.Issuer
 import com.walletconnect.android.internal.common.storage.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
+import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.exceptions.InvalidCacaoException
 import com.walletconnect.auth.common.exceptions.MissingAuthRequestException
@@ -43,6 +45,7 @@ internal class RespondAuthRequestUseCase(
     private val cacaoVerifier: CacaoVerifier,
     private val verifyContextStorageRepository: VerifyContextStorageRepository,
     private val logger: Logger,
+    private val pairingController: PairingControllerInterface
 ) : RespondAuthRequestUseCaseInterface {
 
     override suspend fun respond(respond: Respond, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
@@ -73,6 +76,7 @@ internal class RespondAuthRequestUseCase(
                 logger.log("Success Responded on topic: $responseTopic")
                 scope.launch {
                     supervisorScope {
+                        pairingController.activate(Core.Params.Activate(jsonRpcHistoryEntry.topic.value)) //todo: check if pairing topic
                         verifyContextStorageRepository.delete(respond.id)
                     }
                 }
