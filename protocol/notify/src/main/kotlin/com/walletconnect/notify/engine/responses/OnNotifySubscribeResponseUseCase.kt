@@ -5,22 +5,26 @@ package com.walletconnect.notify.engine.responses
 import android.content.res.Resources
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
+import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtClaims
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.WCResponse
+import com.walletconnect.android.internal.common.model.params.ChatNotifyResponseAuthParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
+import com.walletconnect.foundation.util.jwt.decodeEd25519DidKey
 import com.walletconnect.notify.common.calcExpiry
 import com.walletconnect.notify.common.model.Error
 import com.walletconnect.notify.common.model.Subscription
 import com.walletconnect.notify.common.model.toDb
+import com.walletconnect.notify.data.jwt.subscription.SubscriptionResponseJwtClaim
 import com.walletconnect.notify.data.storage.SubscriptionRepository
 import com.walletconnect.notify.engine.domain.EngineNotifySubscriptionNotifier
 import com.walletconnect.notify.engine.sync.use_case.requests.SetSubscriptionWithSymmetricKeyToNotifySubscriptionStoreUseCase
@@ -50,9 +54,8 @@ internal class OnNotifySubscribeResponseUseCase(
                 is JsonRpcResponse.JsonRpcResult -> {
                     val requestedSubscription: Subscription.Requested = subscriptionRepository.getRequestedSubscriptionByRequestId(response.id)
                         ?: return@supervisorScope _events.emit(SDKError(Resources.NotFoundException("Cannot find subscription for topic: ${wcResponse.topic.value}")))
-
-                    // TODO: Add an entry in JsonRpcResultAdapter and create data class for response
-                    val dappGeneratedPublicKey = PublicKey((((wcResponse.response as JsonRpcResponse.JsonRpcResult).result as Map<*, *>)["publicKey"] as String))
+                    val subscriptionResponseJwt = extractVerifiedDidJwtClaims<SubscriptionResponseJwtClaim>((response.result as ChatNotifyResponseAuthParams.ResponseAuth).responseAuth).getOrThrow()
+                    val dappGeneratedPublicKey = decodeEd25519DidKey(subscriptionResponseJwt.subject)
                     val selfPublicKey: PublicKey = crypto.getSelfPublicFromKeyAgreement(requestedSubscription.responseTopic)
                     val notifyTopic: Topic = crypto.generateTopicFromKeyAgreement(selfPublicKey, dappGeneratedPublicKey)
                     val updatedExpiry: Expiry = calcExpiry()
@@ -61,23 +64,24 @@ internal class OnNotifySubscribeResponseUseCase(
                     runCatching<Unit> {
                         with(requestedSubscription) {
                             subscriptionRepository.insertOrAbortActiveSubscription(
-                                account.value,
-                                updatedExpiry.seconds,
-                                relayProtocolOptions.protocol,
-                                relayProtocolOptions.data,
-                                mapOfNotificationScope.toDb(),
-                                dappGeneratedPublicKey.keyAsHex,
-                                notifyTopic.value,
-                                requestedSubscription.requestId
+                                account = account.value,
+                                authenticationPublicKey = requestedSubscription.authenticationPublicKey,
+                                updatedExpiry = updatedExpiry.seconds,
+                                relayProtocol = relayProtocolOptions.protocol,
+                                relayData = relayProtocolOptions.data,
+                                mapOfScope = mapOfNotificationScope.toDb(),
+                                dappGeneratedPublicKey = dappGeneratedPublicKey.keyAsHex,
+                                notifyTopic = notifyTopic.value,
+                                requestedSubscriptionRequestId = requestedSubscription.requestId
                             )
                         }
                     }.mapCatching {
                         metadataStorageRepository.updateOrAbortMetaDataTopic(requestedSubscription.responseTopic, notifyTopic)
                     }.fold(onSuccess = {
                         val activeSubscription = with(requestedSubscription) {
-                            val dappMetaData: AppMetaData? = metadataStorageRepository.getByTopicAndType(notifyTopic, AppMetaDataType.PEER)
+                            val dappMetaData: AppMetaData = metadataStorageRepository.getByTopicAndType(notifyTopic, AppMetaDataType.PEER)!!
 
-                            Subscription.Active(account, mapOfNotificationScope, expiry, dappGeneratedPublicKey, notifyTopic, dappMetaData, requestedSubscription.requestId)
+                            Subscription.Active(account, mapOfNotificationScope, expiry, dappGeneratedPublicKey, authenticationPublicKey, notifyTopic, dappMetaData, requestedSubscription.requestId)
                         }
 
                         jsonRpcInteractor.subscribe(notifyTopic) { error ->

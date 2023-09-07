@@ -6,7 +6,7 @@ import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtCl
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.WCResponse
-import com.walletconnect.android.internal.common.model.params.CoreChatParams
+import com.walletconnect.android.internal.common.model.params.ChatNotifyResponseAuthParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
@@ -60,7 +60,7 @@ internal class OnInviteResponseUseCase(
     }
 
     private suspend fun onAccepted(response: JsonRpcResponse.JsonRpcResult, wcResponse: WCResponse) {
-        val acceptParams = response.result as CoreChatParams.AcceptanceParams
+        val acceptParams = response.result as ChatNotifyResponseAuthParams.ResponseAuth
 
         // TODO
         //  Discuss what state is invite in if not verified

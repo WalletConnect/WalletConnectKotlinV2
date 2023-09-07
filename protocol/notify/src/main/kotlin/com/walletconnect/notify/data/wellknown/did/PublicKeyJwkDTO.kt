@@ -1,11 +1,12 @@
-package com.walletconnect.notify.data.wellknown.did
+@file:JvmSynthetic
 
+package com.walletconnect.notify.data.wellknown.did
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-data class PublicKeyJwkDTO(
+internal data class PublicKeyJwkDTO(
     @Json(name = "kty")
     val kty: String,
     @Json(name = "crv")

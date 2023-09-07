@@ -28,7 +28,7 @@ jobs:
           { name: Sign SDK, command: ":protocol:sign:testDebugUnitTest" },
           { name: Auth SDK, command: ":protocol:auth:testDebugUnitTest" },
           { name: Chat SDK, command: ":protocol:chat:testDebugUnitTest" },
-          { name: Push SDK, command: ":protocol:push:testDebugUnitTest" },
+          { name: Push SDK, command: ":protocol:notify:testDebugUnitTest" },
         ]
     name: ${{ matrix.conf.name }}
     runs-on: ubuntu-latest

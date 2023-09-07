@@ -1,6 +1,7 @@
 package com.walletconnect.android.echo
 
 interface EchoInterface {
+    val clientId: String
 
     fun register(firebaseAccessToken: String, onSuccess: () -> Unit, onError: (Throwable) -> Unit)
 

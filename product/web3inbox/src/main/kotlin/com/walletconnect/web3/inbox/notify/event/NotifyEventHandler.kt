@@ -4,7 +4,6 @@ import com.walletconnect.foundation.util.Logger
 import com.walletconnect.notify.client.Notify
 import com.walletconnect.notify.client.NotifyClient
 
-
 internal class NotifyEventHandler(
     private val logger: Logger,
     private val onSubscriptionNotifyEventUseCase: OnSubscriptionNotifyEventUseCase,

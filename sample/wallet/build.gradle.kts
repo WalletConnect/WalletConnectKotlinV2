@@ -100,13 +100,11 @@ dependencies {
     debugImplementation(project(":core:android"))
     debugImplementation(project(":product:web3wallet"))
     debugImplementation(project(":product:web3inbox"))
-    debugImplementation(project(":protocol:push"))
     debugImplementation(project(":protocol:notify"))
 
     releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
     releaseImplementation("com.walletconnect:android-core")
     releaseImplementation("com.walletconnect:web3wallet")
     releaseImplementation("com.walletconnect:web3inbox")
-    releaseImplementation("com.walletconnect:push")
     releaseImplementation("com.walletconnect:notify")
 }

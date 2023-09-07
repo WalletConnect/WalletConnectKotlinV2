@@ -2,7 +2,6 @@
 
 package com.walletconnect.sample.wallet.ui
 
-import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
@@ -16,9 +15,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.rememberModalBottomSheetState
-import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
@@ -31,12 +27,8 @@ import com.walletconnect.sample.common.ui.theme.WCSampleAppTheme
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
 import com.walletconnect.sample.wallet.ui.routes.host.WalletSampleHost
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlin.random.Random
-import kotlin.random.nextUInt
 
 class Web3WalletActivity : AppCompatActivity() {
     private lateinit var navController: NavHostController
@@ -53,7 +45,6 @@ class Web3WalletActivity : AppCompatActivity() {
         val web3walletViewModel: Web3WalletViewModel = Web3WalletViewModel()
         val connectionsViewModel: ConnectionsViewModel = ConnectionsViewModel()
         handleWeb3WalletEvents(web3walletViewModel, connectionsViewModel)
-        handleNotifyEvents(web3walletViewModel)
         handleCoreEvents(connectionsViewModel)
         askNotificationPermission()
         createNotificationChannel()
@@ -90,38 +81,6 @@ class Web3WalletActivity : AppCompatActivity() {
                     else -> Unit
                 }
             }
-            .launchIn(lifecycleScope)
-    }
-
-    private fun handleNotifyEvents(web3walletViewModel: Web3WalletViewModel) {
-        web3walletViewModel.notifyEvents
-            .flowWithLifecycle(lifecycle)
-            .onEach { event ->
-                when (event) {
-                    is NotifyMessage -> {
-                        val notificationBuilder = NotificationCompat.Builder(this, "Notify")
-                            .setSmallIcon(com.walletconnect.sample.common.R.drawable.ic_walletconnect_circle_blue)
-                            .setContentText(event.title)
-                            .setContentText(event.body)
-                            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-
-                        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                            // TODO: Consider calling
-                            //    ActivityCompat#requestPermissions
-                            // here to request the missing permissions, and then overriding
-                            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                            //                                          int[] grantResults)
-                            // to handle the case where the user grants the permission. See the documentation
-                            // for ActivityCompat#requestPermissions for more details.
-                            return@onEach
-                        }
-                        NotificationManagerCompat.from(this).notify(Random.nextUInt().toInt(), notificationBuilder.build())
-                    }
-
-                    else -> Unit
-                }
-            }
-            .flowOn(Dispatchers.IO)
             .launchIn(lifecycleScope)
     }
 

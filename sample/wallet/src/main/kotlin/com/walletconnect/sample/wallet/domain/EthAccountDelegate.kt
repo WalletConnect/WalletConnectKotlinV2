@@ -28,11 +28,22 @@ object EthAccountDelegate {
         get() = if (isInitialized) sharedPreferences.getString(ACCOUNT_TAG, null)!! else storeAccount().third
 
     val privateKey: String
-        get() = if (isInitialized) sharedPreferences.getString(PRIVATE_KEY_TAG, null)!! else storeAccount().second
+        get() = (if (isInitialized) sharedPreferences.getString(PRIVATE_KEY_TAG, null)!! else storeAccount().second).run {
+            if (this.length > 64) {
+                this.removePrefix("00")
+            } else {
+                this
+            }
+        }
 
     val publicKey: String
-        get() = if (isInitialized) sharedPreferences.getString(PUBLIC_KEY_TAG, null)!! else storeAccount().first
-
+        get() = (if (isInitialized) sharedPreferences.getString(PUBLIC_KEY_TAG, null)!! else storeAccount().first).run {
+            if (this.length > 128) {
+                this.removePrefix("00")
+            } else {
+                this
+            }
+        }
 }
 
 context(EthAccountDelegate)
@@ -44,10 +55,10 @@ fun generateKeys(): Triple<String, String, String> {
     }
     Security.addProvider(BouncyCastleProvider())
     val keypair = Keys.createEcKeyPair()
-    val publicKey = keypair.publicKey.toByteArray().bytesToHex()
-    val privateKey = keypair.privateKey.toByteArray().bytesToHex()
+    val newPublicKey = keypair.publicKey.toByteArray().bytesToHex()
+    val newPrivateKey = keypair.privateKey.toByteArray().bytesToHex()
 
-    return Triple(publicKey, privateKey, Keys.toChecksumAddress(Keys.getAddress(keypair)))
+    return Triple(newPublicKey, newPrivateKey, Keys.toChecksumAddress(Keys.getAddress(keypair)))
 }
 
 context(EthAccountDelegate)

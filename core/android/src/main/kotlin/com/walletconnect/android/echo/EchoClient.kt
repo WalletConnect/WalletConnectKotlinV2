@@ -15,7 +15,7 @@ import org.koin.core.qualifier.named
 
 internal object EchoClient : EchoInterface {
     private val echoService by lazy { wcKoinApp.koin.get<EchoService>() }
-    private val clientId by lazy { wcKoinApp.koin.get<String>(named(AndroidCommonDITags.CLIENT_ID)) }
+    override val clientId by lazy { wcKoinApp.koin.get<String>(named(AndroidCommonDITags.CLIENT_ID)) }
     private val projectId by lazy { wcKoinApp.koin.get<ProjectId>() }
     private const val SUCCESS_STATUS = "SUCCESS"
 
