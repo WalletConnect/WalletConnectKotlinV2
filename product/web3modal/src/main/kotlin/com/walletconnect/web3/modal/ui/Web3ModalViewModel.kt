@@ -28,7 +28,7 @@ private const val W3M_SDK = "w3m"
 
 internal class Web3ModalViewModel : ViewModel() {
 
-    private val getWalletsUseCase: GetWalletsUseCaseInterface = wcKoinApp.koin.get()\
+    private val getWalletsUseCase: GetWalletsUseCaseInterface = wcKoinApp.koin.get()
 
     private val getRecentWalletUseCase: GetRecentWalletUseCase = wcKoinApp.koin.get()
     private val saveRecentWalletUseCase: SaveRecentWalletUseCase = wcKoinApp.koin.get()
