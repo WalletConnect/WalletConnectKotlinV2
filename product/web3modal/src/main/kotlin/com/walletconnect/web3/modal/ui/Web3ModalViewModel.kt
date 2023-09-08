@@ -99,7 +99,7 @@ internal class Web3ModalViewModel : ViewModel() {
         _modalState.value = Web3ModalState.AccountState(accountData)
     }
 
-    private fun List<Chain>.getSelectedChain() = first()
+    private fun List<Chain>.getSelectedChain() = find { it.id == getSelectedChainUseCase() }?: first()
     private fun List<String>.getAddress(selectedChain: Chain) = find { it.startsWith(selectedChain.id) }?.split(":")?.last() ?: String.Empty
 
     internal fun createConnectModalState() {
