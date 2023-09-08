@@ -8,6 +8,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.web3j.crypto.Keys
 import java.security.Security
 
+// TODO Move to Common
 object EthAccountDelegate {
     lateinit var application: Application
     private val sharedPreferences: SharedPreferences by lazy { application.getSharedPreferences("Wallet_Sample_Shared_Prefs", Context.MODE_PRIVATE) }

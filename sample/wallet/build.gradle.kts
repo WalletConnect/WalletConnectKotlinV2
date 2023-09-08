@@ -92,6 +92,9 @@ dependencies {
     // Zxing
     implementation("com.google.zxing:core:3.5.0")
 
+    // MixPanel
+    implementation("com.mixpanel.android:mixpanel-android:7.3.1")
+
     // Unit Tests
     jUnit4()
     mockk()
