@@ -84,19 +84,23 @@ internal class Web3ModalViewModel : ViewModel() {
     }
 
     internal fun createAccountModalState(activeSession: Modal.Model.Session) {
-        val selectedChain = activeSession.namespaces.getSelectedChain()
+        val accounts = activeSession.namespaces.values.toList().flatMap { it.accounts }
+        val chains = activeSession.namespaces.values.toList().flatMap { it.chains ?: listOf() }.map { Chain(it) }
+        val selectedChain = chains.getSelectedChain()
+        val address = accounts.getAddress(selectedChain)
+
         val accountData = AccountData(
             topic = activeSession.topic,
-            address = activeSession.namespaces.getAddress(selectedChain),
+            address = address,
             balance = "",
-            selectedChain = Chain(selectedChain),
-            chains = activeSession.namespaces.keys.map { Chain(it) }
+            selectedChain = selectedChain,
+            chains = chains
         )
         _modalState.value = Web3ModalState.AccountState(accountData)
     }
 
-    private fun Map<String, Modal.Model.Namespace.Session>.getSelectedChain() = keys.find { it == getSelectedChainUseCase() } ?: keys.first()
-    private fun Map<String, Modal.Model.Namespace.Session>.getAddress(selectedChain: String) = get(selectedChain)?.accounts?.first()?.split(":")?.last() ?: String.Empty
+    private fun List<Chain>.getSelectedChain() = first()
+    private fun List<String>.getAddress(selectedChain: Chain) = find { it.startsWith(selectedChain.id) }?.split(":")?.last() ?: String.Empty
 
     internal fun createConnectModalState() {
         val sessionParams = Web3Modal.sessionParams
@@ -163,7 +167,13 @@ internal class Web3ModalViewModel : ViewModel() {
     internal fun changeChain(chain: Chain) {
         (_modalState.value as? Web3ModalState.AccountState)?.accountData?.let { accountData ->
             saveChainSelectionUseCase(chain.id)
-            _modalState.value = Web3ModalState.AccountState(accountData.copy(selectedChain = chain))
+            val address = Web3Modal.getActiveSessionByTopic(accountData.topic)?.namespaces?.values?.toList()?.flatMap { it.accounts }?.getAddress(chain) ?: String.Empty
+            _modalState.value = Web3ModalState.AccountState(
+                accountData.copy(
+                    selectedChain = chain,
+                    address = address
+                )
+            )
         }
     }
 

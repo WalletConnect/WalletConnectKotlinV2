@@ -38,7 +38,7 @@ class ModalSampleApp : Application() {
         val sessionParams = with(Chains.ETHEREUM_MAIN) {
             Modal.Params.SessionParams(
                 requiredNamespaces = mapOf(
-                    chainId to Modal.Model.Namespace.Proposal(
+                    chainNamespace to Modal.Model.Namespace.Proposal(
                         chains = listOf(chainId),
                         methods = methods,
                         events = events

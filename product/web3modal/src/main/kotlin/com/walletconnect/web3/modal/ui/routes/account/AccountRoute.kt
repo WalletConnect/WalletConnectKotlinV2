@@ -25,6 +25,7 @@ import com.walletconnect.web3.modal.ui.components.internal.commons.button.Button
 import com.walletconnect.web3.modal.ui.components.internal.commons.button.ButtonStyle
 import com.walletconnect.web3.modal.ui.components.internal.commons.button.ChipButton
 import com.walletconnect.web3.modal.ui.components.internal.commons.entry.AccountEntry
+import com.walletconnect.web3.modal.ui.components.internal.commons.entry.AccountEntryState
 import com.walletconnect.web3.modal.ui.components.internal.commons.network.CircleNetworkImage
 import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
@@ -92,7 +93,7 @@ private fun AccountScreen(
             AccountEntry(
                 startIcon = { CircleNetworkImage(accountData.selectedChain.imageUrl) },
                 onClick = onChangeNetworkClick,
-                isEnabled = accountData.chains.size > 1
+                state = if(accountData.chains.size == 1) AccountEntryState.INFO else AccountEntryState.NEXT
             ) {
                 Text(text = accountData.selectedChain.name, style = Web3ModalTheme.typo.paragraph600.copy(color = it.textColor))
             }
