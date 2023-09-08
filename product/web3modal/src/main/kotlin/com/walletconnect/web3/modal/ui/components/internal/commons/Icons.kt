@@ -119,6 +119,75 @@ internal fun ExternalIcon(
 }
 
 @Composable
+internal fun CopyIcon(
+    modifier: Modifier = Modifier,
+    tint: Color = Web3ModalTheme.colors.foreground.color250
+) {
+    Icon(
+        imageVector = ImageVector.vectorResource(id = R.drawable.ic_copy),
+        contentDescription = ContentDescription.COPY.description,
+        modifier = modifier,
+        tint = tint
+    )
+}
+
+@Composable
+internal fun CompassIcon(
+    tint: Color = Web3ModalTheme.colors.foreground.color150
+) {
+    Icon(
+        imageVector = ImageVector.vectorResource(id = R.drawable.ic_compass),
+        contentDescription = ContentDescription.COMPASS.description,
+        modifier = Modifier.size(14.dp),
+        tint = tint
+    )
+}
+
+@Composable
+internal fun ChevronRightIcon(
+    tint: Color = Web3ModalTheme.colors.foreground.color200
+) {
+    Icon(
+        imageVector = ImageVector.vectorResource(id = R.drawable.ic_chevron_right),
+        contentDescription = ContentDescription.CHEVRON_RIGHT.description,
+        modifier = Modifier.size(14.dp),
+        tint = tint
+    )
+}
+
+@Composable
+internal fun RecentTransactionIcon(
+    tint: Color = Web3ModalTheme.colors.main100
+) {
+    Icon(
+        imageVector = ImageVector.vectorResource(id = R.drawable.ic_swap),
+        contentDescription = ContentDescription.SWAP.description,
+        modifier = Modifier
+            .size(32.dp)
+            .background(Web3ModalTheme.colors.overlay10, shape = CircleShape)
+            .border(2.dp, Web3ModalTheme.colors.overlay02, shape = CircleShape)
+            .padding(8.dp),
+        tint = tint
+    )
+}
+
+@Composable
+internal fun DisconnectIcon(
+    tint: Color = Web3ModalTheme.colors.foreground.color200
+) {
+    Icon(
+        imageVector = ImageVector.vectorResource(id = R.drawable.ic_disconnect),
+        contentDescription = ContentDescription.DISCONNECT.description,
+        modifier = Modifier
+            .size(32.dp)
+            .background(Web3ModalTheme.colors.overlay10, shape = CircleShape)
+            .border(2.dp, Web3ModalTheme.colors.overlay02, shape = CircleShape)
+            .padding(8.dp),
+        tint = tint
+    )
+}
+
+@Composable
 internal fun ScanQRIcon(
     tint: Color = Web3ModalTheme.colors.main100,
     onClick: () -> Unit
