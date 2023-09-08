@@ -3,10 +3,13 @@ package com.walletconnect.web3.modal.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.CoreClient
+import com.walletconnect.android.internal.common.explorer.data.model.Wallet
 import com.walletconnect.android.internal.common.explorer.domain.usecase.GetWalletsUseCaseInterface
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
+import com.walletconnect.web3.modal.domain.usecase.GetRecentWalletUseCase
+import com.walletconnect.web3.modal.domain.usecase.SaveRecentWalletUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,6 +21,8 @@ private const val W3M_SDK = "w3m"
 internal class Web3ModalViewModel : ViewModel() {
 
     private val getWalletsUseCase: GetWalletsUseCaseInterface = wcKoinApp.koin.get()
+    private val getRecentWalletUseCase: GetRecentWalletUseCase = wcKoinApp.koin.get()
+    private val saveRecentWalletUseCase: SaveRecentWalletUseCase = wcKoinApp.koin.get()
 
     private val pairing by lazy {
         CoreClient.Pairing.create { error ->
@@ -84,16 +89,25 @@ internal class Web3ModalViewModel : ViewModel() {
                         getWalletsUseCase(sdkType = W3M_SDK, chains = chains, excludedIds = Web3Modal.excludedWalletsIds)
                     ).toList()
                 }
-                _modalState.value = Web3ModalState.Connect(uri, wallets)
+                _modalState.value = Web3ModalState.Connect(uri, wallets.mapRecentWallet(getRecentWalletUseCase()))
             } catch (e: Exception) {
                 Timber.e(e)
-                _modalState.value = Web3ModalState.Connect(uri)
+                handleError(e)
             }
         }
     }
+
+    fun updateRecentWalletId(id: String) =
+        (_modalState.value as? Web3ModalState.Connect)?.let {
+            saveRecentWalletUseCase(id)
+            _modalState.value = it.copy(wallets =  it.wallets.mapRecentWallet(id))
+        }
 
     private fun handleError(error: Throwable) {
         _modalState.value = Web3ModalState.Error(error)
     }
 }
 
+private fun List<Wallet>.mapRecentWallet(id: String?) = map {
+    it.apply { it.isRecent = it.id == id }
+}.sortedWith(compareByDescending<Wallet> { it.isRecent }.thenByDescending { it.isWalletInstalled })
