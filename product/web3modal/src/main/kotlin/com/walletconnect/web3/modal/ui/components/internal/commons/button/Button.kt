@@ -14,9 +14,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import com.walletconnect.web3.modal.ui.components.internal.commons.HorizontalSpacer
 import com.walletconnect.web3.modal.ui.components.internal.commons.RetryIcon
+import com.walletconnect.web3.modal.ui.previews.ComponentPreview
 import com.walletconnect.web3.modal.ui.previews.MultipleComponentsPreview
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 
@@ -70,7 +73,7 @@ internal fun TextButton(
 }
 
 @Composable
-private fun StyledButton(
+internal fun StyledButton(
     style: ButtonStyle,
     size: ButtonSize,
     isEnabled: Boolean = true,
@@ -123,15 +126,30 @@ private fun PreviewButtons() {
 
 @Composable
 @UiModePreview
-private fun PreviewTextButton() {
-    MultipleComponentsPreview(
-        { TextButton(text = "Button", style = ButtonStyle.MAIN, size = ButtonSize.S) {} },
-        { TextButton(text = "Button", style = ButtonStyle.MAIN, size = ButtonSize.S, isEnabled = false) {} },
-        { TextButton(text = "Button", style = ButtonStyle.MAIN, size = ButtonSize.M) {} },
-        { TextButton(text = "Button", style = ButtonStyle.MAIN, size = ButtonSize.M, isEnabled = false) {} },
-        { TextButton(text = "Button", style = ButtonStyle.ACCENT, size = ButtonSize.S) {} },
-        { TextButton(text = "Button", style = ButtonStyle.ACCENT, size = ButtonSize.S, isEnabled = false) {} },
-        { TextButton(text = "Button", style = ButtonStyle.ACCENT, size = ButtonSize.M) {} },
-        { TextButton(text = "Button", style = ButtonStyle.ACCENT, size = ButtonSize.M, isEnabled = false) {} },
+private fun PreviewTextButton(
+    @PreviewParameter(ButtonPreviewProvider::class) data: ButtonPreview
+) {
+    ComponentPreview {
+        TextButton(
+            text = "Button",
+            style = data.style,
+            size = data.size,
+            isEnabled = data.isEnabled,
+            onClick = {}
+        )
+    }
+}
+
+internal class ButtonPreviewProvider : PreviewParameterProvider<ButtonPreview> {
+    override val values = sequenceOf(
+        ButtonPreview(ButtonStyle.MAIN, ButtonSize.M, true),
+        ButtonPreview(ButtonStyle.MAIN, ButtonSize.M, false),
+        ButtonPreview(ButtonStyle.MAIN, ButtonSize.S, true),
+        ButtonPreview(ButtonStyle.MAIN, ButtonSize.S, false),
+        ButtonPreview(ButtonStyle.ACCENT, ButtonSize.M, true),
+        ButtonPreview(ButtonStyle.ACCENT, ButtonSize.M, false),
+        ButtonPreview(ButtonStyle.ACCENT, ButtonSize.S, true),
+        ButtonPreview(ButtonStyle.ACCENT, ButtonSize.S, false),
     )
 }
+

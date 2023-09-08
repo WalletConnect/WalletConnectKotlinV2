@@ -1,17 +1,14 @@
 package com.walletconnect.web3.modal.ui.components.internal.commons
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
@@ -55,6 +52,7 @@ internal fun QuestionMarkIcon(
 
 @Composable
 internal fun CloseIcon(
+    modifier: Modifier = Modifier,
     tint: Color = Web3ModalTheme.colors.foreground.color100,
     onClick: () -> Unit
 ) {
@@ -62,7 +60,7 @@ internal fun CloseIcon(
         imageVector = ImageVector.vectorResource(id = R.drawable.ic_close),
         contentDescription = ContentDescription.CLOSE.description,
         tint = tint,
-        modifier = Modifier
+        modifier = modifier
             .size(36.dp)
             .roundedClickable(onClick = onClick)
             .padding(10.dp),
@@ -119,6 +117,75 @@ internal fun ExternalIcon(
 }
 
 @Composable
+internal fun CopyIcon(
+    modifier: Modifier = Modifier,
+    tint: Color = Web3ModalTheme.colors.foreground.color250
+) {
+    Icon(
+        imageVector = ImageVector.vectorResource(id = R.drawable.ic_copy),
+        contentDescription = ContentDescription.COPY.description,
+        modifier = modifier,
+        tint = tint
+    )
+}
+
+@Composable
+internal fun CompassIcon(
+    tint: Color = Web3ModalTheme.colors.foreground.color150
+) {
+    Icon(
+        imageVector = ImageVector.vectorResource(id = R.drawable.ic_compass),
+        contentDescription = ContentDescription.COMPASS.description,
+        modifier = Modifier.size(14.dp),
+        tint = tint
+    )
+}
+
+@Composable
+internal fun ChevronRightIcon(
+    tint: Color = Web3ModalTheme.colors.foreground.color200
+) {
+    Icon(
+        imageVector = ImageVector.vectorResource(id = R.drawable.ic_chevron_right),
+        contentDescription = ContentDescription.CHEVRON_RIGHT.description,
+        modifier = Modifier.size(14.dp),
+        tint = tint
+    )
+}
+
+@Composable
+internal fun RecentTransactionIcon(
+    tint: Color = Web3ModalTheme.colors.main100
+) {
+    Icon(
+        imageVector = ImageVector.vectorResource(id = R.drawable.ic_swap),
+        contentDescription = ContentDescription.SWAP.description,
+        modifier = Modifier
+            .size(32.dp)
+            .background(Web3ModalTheme.colors.overlay10, shape = CircleShape)
+            .border(2.dp, Web3ModalTheme.colors.overlay02, shape = CircleShape)
+            .padding(8.dp),
+        tint = tint
+    )
+}
+
+@Composable
+internal fun DisconnectIcon(
+    tint: Color = Web3ModalTheme.colors.foreground.color200
+) {
+    Icon(
+        imageVector = ImageVector.vectorResource(id = R.drawable.ic_disconnect),
+        contentDescription = ContentDescription.DISCONNECT.description,
+        modifier = Modifier
+            .size(32.dp)
+            .background(Web3ModalTheme.colors.overlay10, shape = CircleShape)
+            .border(2.dp, Web3ModalTheme.colors.overlay02, shape = CircleShape)
+            .padding(8.dp),
+        tint = tint
+    )
+}
+
+@Composable
 @UiModePreview
 private fun IconsPreview() {
     MultipleComponentsPreview(
@@ -128,6 +195,9 @@ private fun IconsPreview() {
         { RetryIcon() },
         { DeclinedIcon() },
         { WalletIcon() },
-        { ExternalIcon() }
+        { ExternalIcon() },
+        { CopyIcon() },
+        { RecentTransactionIcon() },
+        { DisconnectIcon() }
     )
 }
