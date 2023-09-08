@@ -7,6 +7,7 @@ import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.Keys
 import java.security.Security
 
+// TODO Move to Common
 sealed interface EthAccount {
 
     val address: String
