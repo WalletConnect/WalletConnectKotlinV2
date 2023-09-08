@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -44,6 +45,7 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
 
 
     override fun onError(error: Wallet.Model.Error) {
+        mixPanel.track("error", JSONObject().put("error", error.throwable.stackTraceToString()))
         scope.launch {
             _walletEvents.emit(error)
         }
