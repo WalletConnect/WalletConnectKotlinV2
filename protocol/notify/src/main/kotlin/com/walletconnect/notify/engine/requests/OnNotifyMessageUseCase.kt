@@ -68,12 +68,13 @@ internal class OnNotifyMessageUseCase(
         }.mapCatching { jwtMessage ->
             val stringifiedMessage = _moshi.build().adapter(MessageRequestJwtClaim.Message::class.java).toJson(jwtMessage.message)
             val messageHash = sha256(stringifiedMessage.encodeToByteArray())
+
             val activeSubscription =
-                subscriptionRepository.getActiveSubscriptionByNotifyTopic(request.topic.value) ?: throw IllegalStateException("No active subscription for topic: ${request.topic.value}")
+                subscriptionRepository.getActiveSubscriptionByNotifyTopic(request.topic.value)
+                    ?: throw IllegalStateException("No active subscription for topic: ${request.topic.value}")
 
             val metadata: AppMetaData = metadataStorageRepository.getByTopicAndType(activeSubscription.notifyTopic, AppMetaDataType.PEER)
                 ?: throw Exception("No metadata found for topic ${activeSubscription.notifyTopic}")
-
 
             val messageReceiptJwt = fetchDidJwtInteractor.messageReceipt(
                 account = activeSubscription.account,
