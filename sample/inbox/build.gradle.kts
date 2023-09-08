@@ -15,7 +15,7 @@ android {
         minSdk = MIN_SDK
         targetSdk = TARGET_SDK
         versionCode = SAMPLE_VERSION_CODE
-        versionName = SAMPLE_VERSION_NAME
+        versionName = SAMPLE_VERSION_NAME + ".DOG"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
