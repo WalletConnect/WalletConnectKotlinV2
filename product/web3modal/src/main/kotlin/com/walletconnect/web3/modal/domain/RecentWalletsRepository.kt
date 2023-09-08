@@ -4,7 +4,7 @@ import android.content.SharedPreferences
 
 private const val RECENT_WALLET_ID = "w3m_recent_wallet_id"
 
-class RecentWalletsRepository(
+internal class RecentWalletsRepository(
     private val sharedPreferences: SharedPreferences
 ) {
 
