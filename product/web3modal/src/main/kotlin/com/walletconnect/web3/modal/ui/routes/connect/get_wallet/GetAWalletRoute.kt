@@ -53,7 +53,6 @@ private fun GetAWalletContent(
                 },
                 text = wallet.name,
                 contentPadding = PaddingValues(vertical = 4.dp),
-                label = { GetWalletLabel() },
                 onClick = { uriHandler.openPlayStore(wallet.playStoreLink) }
             )
         }

@@ -9,11 +9,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.walletconnect.web3.modal.ui.previews.MultipleComponentsPreview
+import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 @Composable
 internal fun AllLabel(isEnabled: Boolean = true) {
     ListLabel(text = "ALL", isEnabled = isEnabled)
+}
+
+@Composable
+internal fun TextLabel(text: String, isEnabled: Boolean = true) {
+    ListLabel(
+        text = text,
+        isEnabled = isEnabled,
+        backgroundColor = Web3ModalTheme.colors.overlay10,
+        labelTextColor = Web3ModalTheme.colors.foreground.color150
+    )
 }
 
 @Composable
@@ -65,3 +77,49 @@ private fun ListLabel(
         Text(text = text, style = Web3ModalTheme.typo.micro700.copy(textColor))
     }
 }
+
+@Composable
+@UiModePreview
+private fun AllLabelPreview() {
+    MultipleComponentsPreview(
+        { AllLabel() },
+        { AllLabel(false) },
+    )
+}
+
+@Composable
+@UiModePreview
+private fun TextLabelPreview() {
+    MultipleComponentsPreview(
+        { TextLabel("240+") },
+        { TextLabel("240+", false) },
+    )
+}
+
+@Composable
+@UiModePreview
+private fun GetWalletLabelPreview() {
+    MultipleComponentsPreview(
+        { GetWalletLabel() },
+        { GetWalletLabel(false) },
+    )
+}
+
+@Composable
+@UiModePreview
+private fun RecentLabelPreview() {
+    MultipleComponentsPreview(
+        { RecentLabel() },
+        { RecentLabel(false) },
+    )
+}
+
+@Composable
+@UiModePreview
+private fun InstalledLabelPreview() {
+    MultipleComponentsPreview(
+        { InstalledLabel() },
+        { InstalledLabel(false) },
+    )
+}
+

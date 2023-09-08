@@ -30,7 +30,7 @@ internal fun Web3ModalNavGraph(
         popEnterTransition = { fadeIn(tween()) }
     ) {
         when (web3ModalState) {
-            is Web3ModalState.Connect -> connectWalletNavGraph(navController, web3ModalState, retryConnection)
+            is Web3ModalState.Connect -> connectWalletNavGraph(navController, web3ModalState, updateRecentWalletId, retryConnection)
             Web3ModalState.AccountState -> accountModalGraph(navController, Web3ModalState.AccountState, closeModal)
             else -> {}
         }

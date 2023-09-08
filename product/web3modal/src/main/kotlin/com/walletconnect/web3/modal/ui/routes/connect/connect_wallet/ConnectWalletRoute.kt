@@ -2,7 +2,6 @@ package com.walletconnect.web3.modal.ui.routes.connect.connect_wallet
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -14,10 +13,9 @@ import androidx.navigation.NavController
 import com.walletconnect.android.internal.common.explorer.data.model.Wallet
 import com.walletconnect.web3.modal.ui.components.internal.commons.InstalledLabel
 import com.walletconnect.web3.modal.ui.components.internal.commons.ListSelectRow
-import com.walletconnect.web3.modal.ui.components.internal.commons.MultipleWalletIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.RecentLabel
 import com.walletconnect.web3.modal.ui.components.internal.commons.WalletImage
-import com.walletconnect.web3.modal.ui.components.internal.walletconnect.walletConnectAllWallets
+import com.walletconnect.web3.modal.ui.components.internal.walletconnect.allWallets
 import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.ui.navigation.connection.navigateToRedirect
 import com.walletconnect.web3.modal.ui.previews.ConnectYourWalletPreviewProvider
@@ -61,10 +59,10 @@ private fun WalletsList(
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
     ) {
-        walletConnectAllWallets(onClick = onViewAllClick)
-        itemsIndexed(items = wallets.take(3)) { _, item ->
+        itemsIndexed(items = wallets.take(4)) { _, item ->
             WalletListSelect(item, onWalletItemClick)
         }
+        allWallets(text = "${wallets.size}+",onClick = onViewAllClick)
     }
 }
 

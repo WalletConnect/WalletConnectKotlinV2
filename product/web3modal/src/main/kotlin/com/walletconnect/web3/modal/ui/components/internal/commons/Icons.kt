@@ -1,5 +1,6 @@
 package com.walletconnect.web3.modal.ui.components.internal.commons
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.padding
@@ -127,6 +128,28 @@ internal fun ScanQRIcon(
         contentDescription = ContentDescription.SCAN_QR.description,
         modifier = Modifier
             .roundedClickable { onClick() }
+            .size(40.dp)
+            .background(
+                color = Web3ModalTheme.colors.main10,
+                shape = RoundedCornerShape(12.dp))
+            .border(
+                width = 1.dp,
+                color = Web3ModalTheme.colors.main10,
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(10.dp),
+        tint = tint
+    )
+}
+
+@Composable
+internal fun AllWalletsIcon(
+    tint: Color = Web3ModalTheme.colors.main100,
+) {
+    Icon(
+        imageVector = ImageVector.vectorResource(id = R.drawable.ic_all_wallets),
+        contentDescription = ContentDescription.SCAN_QR.description,
+        modifier = Modifier
             .size(40.dp)
             .background(
                 color = Web3ModalTheme.colors.main10,
