@@ -16,7 +16,9 @@ internal fun Web3ModalNavGraph(
     navController: NavHostController,
     web3ModalState: Web3ModalState,
     modifier: Modifier = Modifier,
+    updateRecentWalletId: (String) -> Unit,
     retryConnection: (() -> Unit) -> Unit,
+    closeModal: () -> Unit,
 ) {
     NavHost(
         navController = navController,
@@ -28,11 +30,8 @@ internal fun Web3ModalNavGraph(
         popEnterTransition = { fadeIn(tween()) }
     ) {
         when (web3ModalState) {
-            is Web3ModalState.Connect -> connectWalletNavGraph(navController, web3ModalState, retryConnection)
-            Web3ModalState.SessionState -> sessionModalGraph(
-                navController,
-                Web3ModalState.SessionState
-            )
+            is Web3ModalState.Connect -> connectWalletNavGraph(navController, web3ModalState, updateRecentWalletId, retryConnection)
+            Web3ModalState.AccountState -> accountModalGraph(navController, Web3ModalState.AccountState, closeModal)
             else -> {}
         }
     }
