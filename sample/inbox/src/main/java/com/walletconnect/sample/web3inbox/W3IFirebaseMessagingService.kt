@@ -1,6 +1,5 @@
 package com.walletconnect.sample.web3inbox
 
-import android.R
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -25,7 +24,6 @@ class W3IFirebaseMessagingService : Web3InboxFirebaseMessagingService() {
     private val channelId = "Inbox"
     private val notificationManager by lazy { getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager }
 
-
     override fun onMessage(message: Inbox.Model.Message, originalMessage: RemoteMessage) {
         Timber.d("W3IFirebaseMessagingService onW3IMessage:\t$message")
 
@@ -33,12 +31,11 @@ class W3IFirebaseMessagingService : Web3InboxFirebaseMessagingService() {
 
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
             .setContentTitle(message.title)
-            .setSmallIcon(R.drawable.ic_popup_reminder)
+            .setSmallIcon(android.R.drawable.ic_popup_reminder)
             .setContentText(message.body)
             .setAutoCancel(true)
             .setSound(defaultSoundUri)
             .setContentIntent(pendingIntent)
-
 
         val channelName = (message as? Inbox.Model.Message.Decrypted)?.type ?: "Notifications"
 
@@ -63,7 +60,7 @@ class W3IFirebaseMessagingService : Web3InboxFirebaseMessagingService() {
 
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
             .setContentTitle(message.notification?.title ?: "New message")
-            .setSmallIcon(R.drawable.ic_popup_reminder)
+            .setSmallIcon(android.R.drawable.ic_popup_reminder)
             .setAutoCancel(true)
             .setSound(defaultSoundUri)
             .setContentIntent(pendingIntent)
