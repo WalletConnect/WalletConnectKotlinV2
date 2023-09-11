@@ -78,37 +78,6 @@ fun AccountRoute(navController: NavController) {
 }
 
 @Composable
-fun AccountScreen(navController: NavController) {
-    val context = LocalContext.current
-    val random = EthAccount.Random(context)
-
-    Box() {
-        Column(
-            verticalArrangement = Arrangement.Center, modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 10.dp)
-        ) {
-            RandomAccountSection(random) {
-                SharedPrefStorage.setLastLoggedInAccount(context, random.caip10())
-                navController.navigateToW3I(random.caip10())
-            }
-            HorizontalLineDivider()
-            SignInWithWalletSection(onClick = { navController.openWalletConnectModal() })
-            HorizontalLineDivider()
-            BurnerAccountSection {
-                SharedPrefStorage.setLastLoggedInAccount(context, EthAccount.Burner.caip10())
-                navController.navigateToW3I(EthAccount.Burner.caip10())
-            }
-            HorizontalLineDivider()
-            FixedAccountSection {
-                SharedPrefStorage.setLastLoggedInAccount(context, EthAccount.Fixed.caip10())
-                navController.navigateToW3I(EthAccount.Fixed.caip10())
-            }
-        }
-    }
-}
-
-@Composable
 fun RandomAccountSection(random: EthAccount.Random, onClick: () -> Unit) {
     Text(
         fontSize = 14.sp,

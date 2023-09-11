@@ -37,6 +37,22 @@ android {
             }
         }
     }
+
+    flavorDimensions += "version"
+    productFlavors {
+        create("internal") {
+            dimension = "version"
+            applicationIdSuffix = ".internal"
+            versionNameSuffix = "-internal"
+            matchingFallbacks += listOf("debug", "release")
+        }
+
+        create("external") {
+            dimension = "version"
+            matchingFallbacks += listOf("debug", "release")
+        }
+    }
+
     compileOptions {
         sourceCompatibility = jvmVersion
         targetCompatibility = jvmVersion
