@@ -19,6 +19,33 @@ internal class SubscriptionRepository(
     private val activeSubscriptionsQueries: ActiveSubscriptionsQueries,
 ) {
 
+    suspend fun setActiveSubscriptions(
+        account: String,
+        subscriptions: List<Subscription.Active>,
+    ) {
+        activeSubscriptionsQueries.transaction {
+            activeSubscriptionsQueries.deleteByAccount(account)
+            //todo decide if removing requested is the right thing to do
+            requestedSubscriptionQueries.deleteByAccount(account)
+            subscriptions.forEach { subscription ->
+                with(subscription) {
+
+                    activeSubscriptionsQueries.insertOrAbortActiveSubscribtion(
+                        account,
+                        authenticationPublicKey.keyAsHex,
+                        expiry.seconds,
+                        relay.protocol,
+                        relay.data,
+                        mapOfNotificationScope.mapValues { scope -> Pair(scope.value.description, scope.value.isSelected) },
+                        dappGeneratedPublicKey.keyAsHex,
+                        notifyTopic.value,
+                        requestedSubscriptionId
+                    )
+                }
+            }
+        }
+    }
+
     suspend fun insertOrAbortRequestedSubscription(
         requestId: Long,
         subscribeTopic: String,

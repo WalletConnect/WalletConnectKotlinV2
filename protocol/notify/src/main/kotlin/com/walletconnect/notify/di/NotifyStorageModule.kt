@@ -9,6 +9,7 @@ import com.walletconnect.notify.NotifyDatabase
 import com.walletconnect.notify.common.storage.data.dao.ActiveSubscriptions
 import com.walletconnect.notify.common.storage.data.dao.RequestedSubscriptions
 import com.walletconnect.notify.data.storage.MessagesRepository
+import com.walletconnect.notify.data.storage.RegisteredAccountsRepository
 import com.walletconnect.notify.data.storage.SubscriptionRepository
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
@@ -64,7 +65,9 @@ internal fun notifyStorageModule(dbName: String) = module {
     single { get<NotifyDatabase>().messagesQueries }
     single { get<NotifyDatabase>().activeSubscriptionsQueries }
     single { get<NotifyDatabase>().requestedSubscriptionQueries }
+    single { get<NotifyDatabase>().registeredAccountsQueries }
 
     single { SubscriptionRepository(requestedSubscriptionQueries = get(), activeSubscriptionsQueries = get()) }
     single { MessagesRepository(messagesQueries = get()) }
+    single { RegisteredAccountsRepository(registeredAccounts = get()) }
 }

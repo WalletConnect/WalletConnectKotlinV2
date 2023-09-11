@@ -35,3 +35,7 @@ WHERE request_id = ?;
 deleteByRequestId:
 DELETE FROM RequestedSubscriptions
 WHERE request_id = ?;
+
+deleteByAccount:
+DELETE FROM RequestedSubscriptions
+WHERE account = ?;

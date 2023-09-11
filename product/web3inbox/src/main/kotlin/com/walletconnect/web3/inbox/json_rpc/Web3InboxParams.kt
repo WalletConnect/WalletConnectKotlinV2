@@ -110,7 +110,8 @@ internal sealed interface Web3InboxParams : ClientParams {
             @JsonClass(generateAdapter = true)
             data class RegisterParams(
                 val account: String,
-                val private: Boolean?,
+                val isLimited: Boolean,
+                val domain: String,
             ) : Notify
         }
     }

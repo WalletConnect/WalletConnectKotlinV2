@@ -6,7 +6,6 @@ import android.net.Uri
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.explorer.ExplorerRepository
-import com.walletconnect.android.internal.common.explorer.data.model.Listing
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.AppMetaData
@@ -15,7 +14,6 @@ import com.walletconnect.android.internal.common.model.DidJwt
 import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Participants
-import com.walletconnect.android.internal.common.model.Redirect
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
@@ -54,8 +52,10 @@ internal class SubscribeToDappUseCase(
 ) : SubscribeToDappUseCaseInterface {
 
     override suspend fun subscribeToDapp(dappUri: Uri, account: String, onSuccess: (Long, DidJwt) -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
-        val dappWellKnownProperties: Result<Pair<DidJsonPublicKeyPair, List<NotificationScope.Remote>>> = runCatching {
-            extractPublicKeysFromDidJson(dappUri).getOrThrow() to extractNotificationScopeFromConfigJson(dappUri).getOrThrow()
+
+        //note: extract second pair to something more readable
+        val dappWellKnownProperties: Result<Pair<DidJsonPublicKeyPair, Pair<AppMetaData, List<NotificationScope.Remote>>>> = runCatching {
+            extractPublicKeysFromDidJson(dappUri).getOrThrow() to extractConfig(dappUri).getOrThrow()
         }
 
         dappWellKnownProperties.fold(
@@ -67,12 +67,10 @@ internal class SubscribeToDappUseCase(
 
                 val selfPublicKey = crypto.generateAndStoreX25519KeyPair()
                 val responseTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, dappPublicKey)
-                val dappMetaData: AppMetaData = getDappMetaData(dappUri).getOrElse {
-                    return@fold onFailure(it)
-                }
+                val dappMetaData: AppMetaData = dappScopes.first
 
                 val didJwt =
-                    fetchDidJwtInteractor.subscriptionRequest(AccountId(account), authenticationPublicKey, dappUri.toString(), dappScopes.map { it.name }).getOrElse { error ->
+                    fetchDidJwtInteractor.subscriptionRequest(AccountId(account), authenticationPublicKey, dappUri.toString(), dappScopes.second.map { it.name }).getOrElse { error ->
                         return@fold onFailure(error)
                     }
                 val params = CoreNotifyParams.SubscribeParams(didJwt.value)
@@ -86,7 +84,7 @@ internal class SubscribeToDappUseCase(
                         responseTopic = responseTopic.value,
                         account = account,
                         authenticationPublicKey = authenticationPublicKey,
-                        mapOfScope = dappScopes.associate { scope -> scope.name to Pair(scope.description, true) },
+                        mapOfScope = dappScopes.second.associate { scope -> scope.name to Pair(scope.description, true) },
                         expiry = calcExpiry().seconds,
                     )
                 }.mapCatching {
@@ -122,7 +120,7 @@ internal class SubscribeToDappUseCase(
         )
     }
 
-    private suspend fun extractNotificationScopeFromConfigJson(dappUri: Uri): Result<List<NotificationScope.Remote>> = withContext(Dispatchers.IO) {
+    private suspend fun extractConfig(dappUri: Uri): Result<Pair<AppMetaData, List<NotificationScope.Remote>>> = withContext(Dispatchers.IO) {
         val notifyConfigDappUri = generateAppropriateUri(dappUri, WC_NOTIFY_CONFIG_JSON)
 
         return@withContext notifyConfigDappUri.runCatching {
@@ -131,39 +129,18 @@ internal class SubscribeToDappUseCase(
         }.mapCatching { wellKnownNotifyConfigString ->
             // Parse the did.json
             serializer.tryDeserialize<NotifyConfigDTO>(wellKnownNotifyConfigString)
-                ?: throw Exception("Failed to parse $WC_NOTIFY_CONFIG_JSON. Check that the $$WC_NOTIFY_CONFIG_JSON file matches the specs")
+                ?: throw Exception("Failed to parse ${WC_NOTIFY_CONFIG_JSON}. Check that the $${WC_NOTIFY_CONFIG_JSON} file matches the specs")
         }.mapCatching { notifyConfig ->
-            notifyConfig.types.map { typeDTO ->
-                NotificationScope.Remote(
-                    name = typeDTO.name,
-                    description = typeDTO.description
-                )
-            }
-        }
-    }
-
-    private suspend fun getDappMetaData(dappUri: Uri) = withContext(Dispatchers.IO) {
-        val listOfDappHomepages = runCatching {
-            explorerRepository.getAllDapps().listings.associateBy { listing -> listing.homepage }
-        }.getOrElse { error ->
-            return@withContext Result.failure(error)
-        }
-
-        val (_: Uri, dappListing: Listing) = listOfDappHomepages.entries.filter { (_, dappListing) ->
-            dappListing.description != null
-        }.firstOrNull { (dappHomepageUri, _) ->
-            dappHomepageUri.host != null && dappHomepageUri.host!!.contains(dappUri.host!!.replace("notify.gm", "gm")) // TODO: Replace after notify.gm is shutdown
-        } ?: return@withContext Result.failure<AppMetaData>(IllegalArgumentException("Unable to find dapp listing for $dappUri"))
-
-        return@withContext Result.success(
-            AppMetaData(
-                name = dappListing.name,
-                description = dappListing.description!!,
-                icons = listOf(dappListing.imageUrl.sm, dappListing.imageUrl.md, dappListing.imageUrl.lg),
-                url = dappUri.toString(),
-                redirect = Redirect(dappListing.app.android)
+            Pair(
+                notifyConfig.metaData,
+                notifyConfig.types.map { typeDTO ->
+                    NotificationScope.Remote(
+                        name = typeDTO.name,
+                        description = typeDTO.description
+                    )
+                }
             )
-        )
+        }
     }
 
     private companion object {

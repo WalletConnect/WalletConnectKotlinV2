@@ -5,7 +5,6 @@ package com.walletconnect.notify.engine
 import com.walletconnect.android.archive.ArchiveInterface
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
-import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
@@ -23,10 +22,13 @@ import com.walletconnect.notify.engine.calls.GetNotificationTypesUseCaseInterfac
 import com.walletconnect.notify.engine.calls.RegisterUseCaseInterface
 import com.walletconnect.notify.engine.calls.SubscribeToDappUseCaseInterface
 import com.walletconnect.notify.engine.calls.UpdateSubscriptionRequestUseCaseInterface
+import com.walletconnect.notify.engine.domain.WatchSubscriptionsForEveryRegisteredAccountUseCase
 import com.walletconnect.notify.engine.requests.OnNotifyDeleteUseCase
 import com.walletconnect.notify.engine.requests.OnNotifyMessageUseCase
+import com.walletconnect.notify.engine.requests.OnSubscriptionsChangedUseCase
 import com.walletconnect.notify.engine.responses.OnNotifySubscribeResponseUseCase
 import com.walletconnect.notify.engine.responses.OnNotifyUpdateResponseUseCase
+import com.walletconnect.notify.engine.responses.OnWatchSubscriptionsResponseUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -55,8 +57,11 @@ internal class NotifyEngine(
     private val getListOfMessages: GetListOfMessagesUseCaseInterface,
     private val onNotifyMessageUseCase: OnNotifyMessageUseCase,
     private val onNotifyDeleteUseCase: OnNotifyDeleteUseCase,
+    private val onSubscriptionsChangedUseCase: OnSubscriptionsChangedUseCase,
     private val onNotifySubscribeResponseUseCase: OnNotifySubscribeResponseUseCase,
     private val onNotifyUpdateResponseUseCase: OnNotifyUpdateResponseUseCase,
+    private val onWatchSubscriptionsResponseUseCase: OnWatchSubscriptionsResponseUseCase,
+    private val watchSubscriptionsForEveryRegisteredAccountUseCase: WatchSubscriptionsForEveryRegisteredAccountUseCase,
     private val logger: Logger,
 ) : SubscribeToDappUseCaseInterface by subscribeToDappUseCase,
     UpdateSubscriptionRequestUseCaseInterface by updateUseCase,
@@ -81,6 +86,8 @@ internal class NotifyEngine(
             JsonRpcMethod.WC_NOTIFY_MESSAGE,
             JsonRpcMethod.WC_NOTIFY_UPDATE,
             JsonRpcMethod.WC_NOTIFY_DELETE,
+            JsonRpcMethod.WC_NOTIFY_WATCH_SUBSCRIPTIONS,
+            JsonRpcMethod.WC_NOTIFY_SUBSCRIPTIONS_CHANGED,
         )
     }
 
@@ -93,6 +100,7 @@ internal class NotifyEngine(
                 supervisorScope {
                     launch(Dispatchers.IO) {
                         resubscribeToSubscriptions()
+                        watchSubscriptionsForEveryRegisteredAccount()
                     }
                 }
 
@@ -117,6 +125,7 @@ internal class NotifyEngine(
                 when (val requestParams = request.params) {
                     is CoreNotifyParams.MessageParams -> onNotifyMessageUseCase(request, requestParams)
                     is CoreNotifyParams.DeleteParams -> onNotifyDeleteUseCase(request, requestParams)
+                    is CoreNotifyParams.SubscriptionsChangedParams -> onSubscriptionsChangedUseCase(request, requestParams)
                 }
             }.launchIn(scope)
 
@@ -124,9 +133,11 @@ internal class NotifyEngine(
         jsonRpcInteractor.peerResponse
             .filter { response -> response.params is CoreNotifyParams }
             .onEach { response ->
+                logger.log("collectJsonRpcResponses - $response")
                 when (val responseParams = response.params) {
                     is CoreNotifyParams.SubscribeParams -> onNotifySubscribeResponseUseCase(response)
                     is CoreNotifyParams.UpdateParams -> onNotifyUpdateResponseUseCase(response, responseParams)
+                    is CoreNotifyParams.WatchSubscriptionsParams -> onWatchSubscriptionsResponseUseCase(response, responseParams)
                 }
             }.launchIn(scope)
 
@@ -141,9 +152,15 @@ internal class NotifyEngine(
         }
         .launchIn(scope)
 
-    private fun collectNotifyEvents(): Job = merge(onNotifySubscribeResponseUseCase.events, onNotifyMessageUseCase.events, onNotifyUpdateResponseUseCase.events, onNotifyDeleteUseCase.events)
+    private fun collectNotifyEvents(): Job = merge(onNotifySubscribeResponseUseCase.events, onNotifyMessageUseCase.events, onNotifyUpdateResponseUseCase.events, onNotifyDeleteUseCase.events,
+        onWatchSubscriptionsResponseUseCase.events, onSubscriptionsChangedUseCase.events)
         .onEach { event -> _engineEvent.emit(event) }
         .launchIn(scope)
+
+
+    private suspend fun watchSubscriptionsForEveryRegisteredAccount() {
+        watchSubscriptionsForEveryRegisteredAccountUseCase()
+    }
 
     private suspend fun resubscribeToSubscriptions() {
         val subscriptionTopics = getListOfActiveSubscriptions().keys.toList()

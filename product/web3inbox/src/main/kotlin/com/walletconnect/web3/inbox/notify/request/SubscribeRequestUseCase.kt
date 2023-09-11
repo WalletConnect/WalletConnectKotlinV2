@@ -15,8 +15,9 @@ internal class SubscribeRequestUseCase(
 ) : NotifyRequestUseCase<Web3InboxParams.Request.Notify.SubscribeParams>(proxyInteractor) {
 
     override fun invoke(rpc: Web3InboxRPC, params: Web3InboxParams.Request.Notify.SubscribeParams) {
+        val url = if (params.metadata.url == "https://notify.gm.walletconnect.com") "https://dev.gm.walletconnect.com" else params.metadata.url
         notifyClient.subscribe(
-            Notify.Params.Subscribe(Uri.parse(params.metadata.url), params.account),
+            Notify.Params.Subscribe(Uri.parse(url), params.account),
             onSuccess = { respondWithVoid(rpc) },
             onError = { error -> respondWithError(rpc, error) }
         )

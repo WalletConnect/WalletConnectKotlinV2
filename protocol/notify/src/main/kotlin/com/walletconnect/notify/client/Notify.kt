@@ -36,7 +36,7 @@ object Notify {
             data class Signature(override val t: String, override val s: String, override val m: String? = null) : Model(), SignatureInterface
         }
 
-        data class AvailableTypes(val types: List<String>): Model()
+        data class AvailableTypes(val types: List<String>) : Model()
 
         data class Error(val throwable: Throwable) : Model()
     }
@@ -60,6 +60,8 @@ object Notify {
 
             data class Error(val id: Long, val reason: String) : Update()
         }
+
+        data class SubscriptionsChanged(val subscriptions: List<Model.Subscription>) : Event()
     }
 
     sealed class Params {
@@ -80,6 +82,7 @@ object Notify {
 
         data class DecryptMessage(val topic: String, val encryptedMessage: String) : Params()
 
-        data class Registration(val account: String, val onSign: (String) -> Model.Cacao.Signature?) : Params()
+        //todo: I kept isLimited as Inbox is an example of native dapp. Bring this to the team and discuss over 11.09.23 - 16.09.23
+        data class Registration(val account: String, val isLimited: Boolean, val domain: String, val onSign: (String) -> Model.Cacao.Signature?) : Params()
     }
 }

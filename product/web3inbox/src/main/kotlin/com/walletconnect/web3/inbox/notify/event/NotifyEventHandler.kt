@@ -39,4 +39,8 @@ internal class NotifyEventHandler(
     override fun onError(error: Notify.Model.Error) {
         logger.log("NotifyEventHandler.onError: $error")
     }
+
+    override fun onSubscriptionsChanged(subscriptionsChanged: Notify.Event.SubscriptionsChanged) {
+        logger.log("onSubscriptionsChanged: $subscriptionsChanged")
+    }
 }

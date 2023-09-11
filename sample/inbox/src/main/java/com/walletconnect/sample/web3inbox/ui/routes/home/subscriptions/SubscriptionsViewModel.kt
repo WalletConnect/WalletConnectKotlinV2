@@ -26,11 +26,19 @@ class SubscriptionsViewModel(
 
     init {
         viewModelScope.launch {
-            NotifyDelegate.events.collect {
+            NotifyDelegate.events.collect { event ->
                 val subs = subscriptions.value.sub.toMutableList().apply {
-                    when(it) {
+                    when(event) {
                         is Notify.Event.Subscription.Result -> {
-                            add(it.subscription)
+                            add(event.subscription)
+                        }
+                        is Notify.Event.Delete -> {
+                            removeIf { it.topic ==  event.topic}
+                        }
+                        is Notify.Event.SubscriptionsChanged -> {
+                            Timber.d("$event")
+                            clear()
+                            addAll(event.subscriptions)
                         }
                         else -> {}
                     }
@@ -54,6 +62,8 @@ object NotifyDelegate : NotifyInterface.Delegate {
 
 
     override fun onNotifySubscription(notifySubscribe: Notify.Event.Subscription) {
+        Timber.d("onNotifySubscription: $notifySubscribe")
+
         scope.launch {
             events.emit(notifySubscribe)
         }
@@ -66,6 +76,8 @@ object NotifyDelegate : NotifyInterface.Delegate {
     }
 
     override fun onNotifyDelete(notifyDelete: Notify.Event.Delete) {
+        Timber.d("onNotifyDelete: $notifyDelete")
+
         scope.launch {
             events.emit(notifyDelete)
         }
@@ -79,6 +91,14 @@ object NotifyDelegate : NotifyInterface.Delegate {
 
     override fun onError(error: Notify.Model.Error) {
         Timber.e(error.throwable)
+    }
+
+    override fun onSubscriptionsChanged(subscriptionsChanged: Notify.Event.SubscriptionsChanged) {
+        Timber.d("onSubscriptionsChanged: $subscriptionsChanged")
+
+        scope.launch {
+            events.emit(subscriptionsChanged)
+        }
     }
 
 }

@@ -2,45 +2,28 @@
 
 package com.walletconnect.notify.engine.domain
 
-import androidx.core.net.toUri
-import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
-import com.walletconnect.android.internal.common.crypto.sha256
-import com.walletconnect.android.internal.common.model.AccountId
-import com.walletconnect.android.internal.common.model.IrnParams
-import com.walletconnect.android.internal.common.model.Tags
-import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
-import com.walletconnect.android.internal.utils.THIRTY_SECONDS
-import com.walletconnect.android.internal.utils.getParticipantTag
-import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
-import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
-import com.walletconnect.notify.common.model.NotifyRpc
+import com.walletconnect.notify.data.storage.RegisteredAccountsRepository
 import kotlinx.coroutines.supervisorScope
 
-internal class WatchSubscriptionsForEveryRegistereAccountUseCase(
+internal class WatchSubscriptionsForEveryRegisteredAccountUseCase(
     private val watchSubscriptionsUseCase: WatchSubscriptionsUseCase,
-    private val identitiesInteractor: IdentitiesInteractor,
-    private val logger: Logger
+    private val registeredAccountsRepository: RegisteredAccountsRepository,
+    private val logger: Logger,
 ) {
 
-    suspend operator fun invoke(accountId: AccountId, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
-        logger.log("WatchSubscriptionsUseCase - peerPublicKey: $peerPublicKey")
+    suspend operator fun invoke() = supervisorScope {
+        val registeredAccounts = runCatching { registeredAccountsRepository.getAllAccounts() }
+            .getOrElse { error -> return@supervisorScope logger.log("WatchSubscriptionsForEveryRegisteredAccountUseCase - getAllAccounts: $error") }
+        logger.log("WatchSubscriptionsForEveryRegisteredAccountUseCase - accounts(${registeredAccounts.size}): $registeredAccounts")
 
-
-    }
-
-
-    private fun getOrGenerateAndStorePublicKey(requestTopic: Topic) = runCatching {
-        keyManagementRepository.getPublicKey(requestTopic.getParticipantTag())
-    }.getOrElse {
-        keyManagementRepository.generateAndStoreX25519KeyPair().also { pubKey ->
-            keyManagementRepository.setKey(pubKey, requestTopic.getParticipantTag())
+        registeredAccounts.forEach { registeredAccount ->
+            watchSubscriptionsUseCase(registeredAccount.accountId, {
+                logger.log("WatchSubscriptionsForEveryRegisteredAccountUseCase - onSuccess: $registeredAccount")
+            }, { error ->
+                logger.log("WatchSubscriptionsForEveryRegisteredAccountUseCase - onFailure: $registeredAccount, $error")
+            })
         }
-    }
 
-    private companion object {
-        const val NOTIFY_SERVER_URL = "https://dev.notify.walletconnect.com/"
     }
 }

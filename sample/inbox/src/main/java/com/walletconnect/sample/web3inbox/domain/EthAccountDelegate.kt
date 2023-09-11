@@ -18,11 +18,11 @@ sealed interface EthAccount {
 
     object Fixed : EthAccount {
         override val address: String
-            get() = "0xE408Ec5ACF27fE24C4adcAC1d1Fa0E02F23d9033"
+            get() = "0xB75e2Ae7fEC9cc2796F9C41377ed26095c5bFF36"
         override val privateKey: String
-            get() = "ff0138a3fece4629dd63e211341edba8f5cd9d38ad8b5fee60739b8e63ed1aa0"
+            get() = "56707c63ddb6401bfa3418f323ca07d3efd6cd539626346d8af8c6516fe50971"
         override val publicKey: String
-            get() = "204b9580416b72b18a6e19f8399e465acf43b11cc928ba531115a9b5c2a7d3731362b3cabb73e494b2ed4bad4827838816f90f1c0807327e95586637ae33499e"
+            get() = "92e998f9af5cf488f48a8a35a6d9f09111bc74c52d76d65bccea05eb2a3c5a4468d5e32469d4be501701b04c3a274a3ddc855a6432f2a44b602530d1998a07a9"
     }
 
     class Random(context: Context) : EthAccount {
