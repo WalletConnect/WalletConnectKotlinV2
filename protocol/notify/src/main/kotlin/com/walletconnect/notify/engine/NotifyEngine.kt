@@ -5,6 +5,7 @@ package com.walletconnect.notify.engine
 import com.walletconnect.android.archive.ArchiveInterface
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
+import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
@@ -115,7 +116,7 @@ internal class NotifyEngine(
 
     private suspend fun registerTagsInHistory() {
         // Sync are here since Archive Server expects only one register call
-//        archiveInterface.registerTags(tags = listOf(Tags.NOTIFY_MESSAGE, Tags.SYNC_SET, Tags.SYNC_DELETE), {}, { error -> logger.error(error.throwable) })
+        archiveInterface.registerTags(tags = listOf(Tags.NOTIFY_MESSAGE), {}, { error -> logger.error(error.throwable) })
     }
 
     private suspend fun collectJsonRpcRequests(): Job =

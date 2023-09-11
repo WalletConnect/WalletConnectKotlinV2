@@ -32,7 +32,8 @@ internal fun engineModule() = module {
     single {
         ExtractPublicKeysFromDidJsonUseCase(
             serializer = get(),
-            generateAppropriateUri = get()
+            generateAppropriateUri = get(),
+            logger = get()
         )
     }
 
