@@ -41,19 +41,19 @@ internal class ExtractPublicKeysFromDidJsonUseCase(
             .takeIf {
                 didJsonResult.getOrNull()?.keyAgreement?.isNotEmpty() == true
             }?.mapCatching { didJsonDto ->
-                (didJsonDto.keyAgreement.firstOrNull { it.contains(NOTIFY_SUBSCRIBE_KEY) } ?: throw generateException("Key Agreement", uri)) to didJsonDto
+                (didJsonDto.keyAgreement.firstOrNull { it.contains(NOTIFY_SUBSCRIBE_KEY) } ?: throw generateException(KEY_KEY_AGREEMENT, uri)) to didJsonDto
             }?.mapCatching { (id, didJson) ->
                 extractPublicKey(id, didJson.verificationMethod)
-            } ?: Result.failure(generateException("Key Agreement", uri))
+            } ?: Result.failure(generateException(KEY_KEY_AGREEMENT, uri))
 
         val authenticationPublicKey = didJsonResult
             .takeIf {
                 didJsonResult.getOrNull()?.authentication?.isNotEmpty() == true
             }?.mapCatching { didJsonDto ->
-                (didJsonDto.authentication.firstOrNull { it.contains(NOTIFY_AUTHENTICATION_KEY) } ?: throw generateException("Authentication", uri)) to didJsonDto
+                (didJsonDto.authentication.firstOrNull { it.contains(NOTIFY_AUTHENTICATION_KEY) } ?: throw generateException(AUTHENTICATION, uri)) to didJsonDto
             }?.mapCatching { (id, didJson) ->
                 extractPublicKey(id, didJson.verificationMethod)
-            } ?: Result.failure(generateException("Authentication", uri))
+            } ?: Result.failure(generateException(AUTHENTICATION, uri))
 
         return@withContext runCatching {
             keyAgreementPublicKey.getOrThrow() to authenticationPublicKey.getOrThrow()
@@ -76,5 +76,7 @@ internal class ExtractPublicKeysFromDidJsonUseCase(
         const val DID_JSON = ".well-known/did.json"
         const val NOTIFY_SUBSCRIBE_KEY = "wc-notify-subscribe-key"
         const val NOTIFY_AUTHENTICATION_KEY = "wc-notify-authentication-key"
+        const val KEY_KEY_AGREEMENT = "Key Agreement"
+        const val AUTHENTICATION = "Authentication"
     }
 }
