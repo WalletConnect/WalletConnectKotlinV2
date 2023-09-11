@@ -134,7 +134,7 @@ class Web3InboxInitializerInstance(
     }
 
     init {
-        WCMDelegate.wcEventModels.onEach { walletEvent: Modal.Model? ->
+        WCMDelegate.wcmEventModels.onEach { walletEvent: Modal.Model? ->
             when (walletEvent) {
                 is Modal.Model.SessionRequestResponse -> {
                     when (walletEvent.result) {

@@ -14,7 +14,7 @@ import timber.log.Timber
 object WCMDelegate : WalletConnectModal.ModalDelegate {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val _wcEventModels: MutableSharedFlow<Modal.Model?> = MutableSharedFlow()
-    val wcEventModels: SharedFlow<Modal.Model?> = _wcEventModels.asSharedFlow()
+    val wcmEventModels: SharedFlow<Modal.Model?> = _wcEventModels.asSharedFlow()
 
     var selectedSessionTopic: String? = null
         private set

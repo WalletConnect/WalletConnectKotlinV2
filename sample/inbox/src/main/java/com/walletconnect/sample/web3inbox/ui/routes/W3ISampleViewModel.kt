@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.shareIn
 
 class W3ISampleViewModel : ViewModel() {
     val wcmEvents = WCMDelegate
-        .wcEventModels
+        .wcmEventModels
         .map { event ->
             when (event) {
                 is Modal.Model.DeletedSession -> W3ISampleEvents.Disconnect
