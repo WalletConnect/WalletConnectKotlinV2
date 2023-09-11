@@ -29,7 +29,7 @@ internal fun ConnectWalletRoute(
 ) {
     ConnectWalletContent(
         wallets = wallets,
-        onWalletItemClick = { navController.navigateToRedirect(it) },
+        onWalletItemClick = { wallet -> navController.navigateToRedirect(wallet) },
         onViewAllClick = { navController.navigate(Route.ALL_WALLETS.path) },
     )
 }
