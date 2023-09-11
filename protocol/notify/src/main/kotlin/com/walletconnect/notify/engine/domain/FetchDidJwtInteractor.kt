@@ -10,7 +10,7 @@ import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.notify.data.jwt.delete.EncodeDeleteRequestJwtUseCase
-import com.walletconnect.notify.data.jwt.message.EncodeMessageReceiptJwtUseCase
+import com.walletconnect.notify.data.jwt.message.EncodeMessageResponseJwtUseCase
 import com.walletconnect.notify.data.jwt.subscription.EncodeSubscriptionRequestJwtUseCase
 import com.walletconnect.notify.data.jwt.subscriptionsChanged.EncodeSubscriptionsChangedResponseJwtUseCase
 import com.walletconnect.notify.data.jwt.update.EncodeUpdateRequestJwtUseCase
@@ -28,41 +28,40 @@ internal class FetchDidJwtInteractor(
     suspend fun subscriptionRequest(
         account: AccountId,
         authenticationKey: PublicKey,
-        metadataUrl: String,
+        app: String,
         scopes: List<String>,
     ): Result<DidJwt> = registerIdentityAndReturnIdentityKeyPair(account) { (identityPublicKey, identityPrivateKey) ->
         val concatenatedScopes = scopes.joinToString(SCOPES_DELIMITER)
 
         return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
             identityPrivateKey,
-            EncodeSubscriptionRequestJwtUseCase(metadataUrl, account, authenticationKey, concatenatedScopes),
-            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = 30, expiryTimeUnit = TimeUnit.SECONDS)
+            EncodeSubscriptionRequestJwtUseCase(app, account, authenticationKey, concatenatedScopes),
+            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = 5, expiryTimeUnit = TimeUnit.MINUTES)
         )
     }
 
     suspend fun deleteRequest(
         account: AccountId,
-        metadataUrl: String,
+        app: String,
         authenticationKey: PublicKey,
     ): Result<DidJwt> = registerIdentityAndReturnIdentityKeyPair(account) { (identityPublicKey, identityPrivateKey) ->
 
         return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
             identityPrivateKey,
-            EncodeDeleteRequestJwtUseCase(metadataUrl, authenticationKey),
+            EncodeDeleteRequestJwtUseCase(app, account, authenticationKey),
             EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
         )
     }
 
-    suspend fun messageReceipt(
+    suspend fun messageResponse(
         account: AccountId,
-        metadataUrl: String,
+        app: String,
         authenticationKey: PublicKey,
-        messageHash: String,
     ): Result<DidJwt> = registerIdentityAndReturnIdentityKeyPair(account) { (identityPublicKey, identityPrivateKey) ->
 
         return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
             identityPrivateKey,
-            EncodeMessageReceiptJwtUseCase(metadataUrl, authenticationKey, messageHash),
+            EncodeMessageResponseJwtUseCase(app, account, authenticationKey),
             EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl)
         )
     }
@@ -78,7 +77,7 @@ internal class FetchDidJwtInteractor(
         return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
             identityPrivateKey,
             EncodeUpdateRequestJwtUseCase(account, metadataUrl, authenticationKey, concatenatedScopes),
-            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = 30, expiryTimeUnit = TimeUnit.SECONDS)
+            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = 5, expiryTimeUnit = TimeUnit.MINUTES)
         )
     }
 
@@ -90,7 +89,7 @@ internal class FetchDidJwtInteractor(
         return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
             identityPrivateKey,
             EncodeWatchSubscriptionsRequestJwtUseCase(account, authenticationKey),
-            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = 30, expiryTimeUnit = TimeUnit.SECONDS)
+            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = 5, expiryTimeUnit = TimeUnit.MINUTES)
         )
     }
 
@@ -102,7 +101,7 @@ internal class FetchDidJwtInteractor(
         return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
             identityPrivateKey,
             EncodeSubscriptionsChangedResponseJwtUseCase(account, authenticationKey),
-            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = 30, expiryTimeUnit = TimeUnit.SECONDS)
+            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = 5, expiryTimeUnit = TimeUnit.MINUTES)
         )
     }
 

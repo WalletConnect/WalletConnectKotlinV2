@@ -65,9 +65,7 @@ internal class OnNotifyMessageUseCase(
                 )
             )
             _events.emit(notifyRecord)
-        }.mapCatching { jwtMessage ->
-            val stringifiedMessage = _moshi.build().adapter(MessageRequestJwtClaim.Message::class.java).toJson(jwtMessage.message)
-            val messageHash = sha256(stringifiedMessage.encodeToByteArray())
+        }.mapCatching { _ ->
 
             val activeSubscription =
                 subscriptionRepository.getActiveSubscriptionByNotifyTopic(request.topic.value)
@@ -76,20 +74,19 @@ internal class OnNotifyMessageUseCase(
             val metadata: AppMetaData = metadataStorageRepository.getByTopicAndType(activeSubscription.notifyTopic, AppMetaDataType.PEER)
                 ?: throw Exception("No metadata found for topic ${activeSubscription.notifyTopic}")
 
-            val messageReceiptJwt = fetchDidJwtInteractor.messageReceipt(
+            val messageResponseJwt = fetchDidJwtInteractor.messageResponse(
                 account = activeSubscription.account,
-                metadataUrl = metadata.url,
+                app = metadata.url,
                 authenticationKey = activeSubscription.authenticationPublicKey,
-                messageHash = messageHash
             ).getOrThrow()
 
-            val messageReceiptParams = CoreNotifyParams.MessageReceiptParams(receiptAuth = messageReceiptJwt.value)
+            val messageResponseParams = CoreNotifyParams.MessageResponseParams(responseAuth = messageResponseJwt.value)
             val irnParams = IrnParams(Tags.NOTIFY_MESSAGE_RESPONSE, Ttl(MONTH_IN_SECONDS))
 
             jsonRpcInteractor.respondWithParams(
                 request.id,
                 request.topic,
-                messageReceiptParams,
+                messageResponseParams,
                 irnParams
             ) {
                 throw it

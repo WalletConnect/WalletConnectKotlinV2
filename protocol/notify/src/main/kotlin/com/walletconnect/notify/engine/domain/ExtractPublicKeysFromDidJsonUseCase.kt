@@ -34,24 +34,26 @@ internal class ExtractPublicKeysFromDidJsonUseCase(
             .takeIf {
                 didJsonResult.getOrNull()?.keyAgreement?.isNotEmpty() == true
             }?.mapCatching { didJsonDto ->
-                didJsonDto.keyAgreement.first() to didJsonDto
+                (didJsonDto.keyAgreement.firstOrNull { it.contains(NOTIFY_SUBSCRIBE_KEY) } ?: throw generateException("Key Agreement", uri)) to didJsonDto
             }?.mapCatching { (id, didJson) ->
                 extractPublicKey(id, didJson.verificationMethod)
-            } ?: Result.failure(Exception("Key Agreement is missing from $uri. Check that the $DID_JSON matches the specs."))
+            } ?: Result.failure(generateException("Key Agreement", uri))
 
         val authenticationPublicKey = didJsonResult
             .takeIf {
                 didJsonResult.getOrNull()?.authentication?.isNotEmpty() == true
             }?.mapCatching { didJsonDto ->
-                didJsonDto.authentication.first() to didJsonDto
+                (didJsonDto.authentication.firstOrNull { it.contains(NOTIFY_AUTHENTICATION_KEY) } ?: throw generateException("Authentication", uri)) to didJsonDto
             }?.mapCatching { (id, didJson) ->
                 extractPublicKey(id, didJson.verificationMethod)
-            } ?: Result.failure(Exception("Authentication is missing from $uri. Check that the $DID_JSON matches the specs."))
+            } ?: Result.failure(generateException("Authentication", uri))
 
         return@withContext runCatching {
             keyAgreementPublicKey.getOrThrow() to authenticationPublicKey.getOrThrow()
         }
     }
+
+    private fun generateException(keyName: String, uri: Uri) = Exception("$keyName is missing from $uri. Check that the $DID_JSON matches the specs.")
 
     private fun extractPublicKey(id: String, verificationMethodList: List<VerificationMethodDTO>): PublicKey {
         val verificationMethod = verificationMethodList.firstOrNull { verificationMethod -> verificationMethod.id == id } ?: throw Exception("Failed to find verification key")
@@ -62,7 +64,10 @@ internal class ExtractPublicKeysFromDidJsonUseCase(
         return PublicKey(publicKey)
     }
 
+
     private companion object {
         const val DID_JSON = ".well-known/did.json"
+        const val NOTIFY_SUBSCRIBE_KEY = "wc-notify-subscribe-key"
+        const val NOTIFY_AUTHENTICATION_KEY = "wc-notify-authentication-key"
     }
 }

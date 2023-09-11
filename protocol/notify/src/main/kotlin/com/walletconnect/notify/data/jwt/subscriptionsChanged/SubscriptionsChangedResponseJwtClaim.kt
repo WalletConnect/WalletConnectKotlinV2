@@ -4,7 +4,6 @@ package com.walletconnect.notify.data.jwt.subscriptionsChanged
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import com.walletconnect.notify.common.model.ServerSubscription
 import com.walletconnect.notify.data.jwt.NotifyJwtBase
 
 @JsonClass(generateAdapter = true)

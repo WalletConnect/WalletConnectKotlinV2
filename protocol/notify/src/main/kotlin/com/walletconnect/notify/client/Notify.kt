@@ -68,11 +68,11 @@ object Notify {
 
         class Init(val core: CoreInterface) : Params()
 
-        data class Subscribe(val dappUrl: Uri, val account: String) : Params()
+        data class Subscribe(val appDomain: Uri, val account: String) : Params()
 
         data class Update(val topic: String, val scope: List<String>) : Params()
 
-        data class NotificationTypes(val domain: String) : Params()
+        data class NotificationTypes(val appDomain: String) : Params()
 
         data class MessageHistory(val topic: String) : Params()
 
@@ -82,7 +82,6 @@ object Notify {
 
         data class DecryptMessage(val topic: String, val encryptedMessage: String) : Params()
 
-        //todo: I kept isLimited as Inbox is an example of native dapp. Bring this to the team and discuss over 11.09.23 - 16.09.23
         data class Registration(val account: String, val isLimited: Boolean, val domain: String, val onSign: (String) -> Model.Cacao.Signature?) : Params()
     }
 }

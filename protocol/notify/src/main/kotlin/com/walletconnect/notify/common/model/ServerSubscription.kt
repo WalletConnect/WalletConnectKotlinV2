@@ -5,7 +5,7 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class ServerSubscription(
-    val dappUrl: String,
+    val appDomain: String,
     val symKey: String,
     val account: String,
     val scope: List<String>,
