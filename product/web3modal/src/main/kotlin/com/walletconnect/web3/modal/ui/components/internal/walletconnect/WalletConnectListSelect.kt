@@ -5,20 +5,21 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import com.walletconnect.web3.modal.ui.components.internal.commons.ListSelectRow
-import com.walletconnect.web3.modal.ui.components.internal.commons.QrCodeLabel
+import com.walletconnect.web3.modal.ui.components.internal.commons.AllWalletsIcon
+import com.walletconnect.web3.modal.ui.components.internal.commons.TextLabel
 import com.walletconnect.web3.modal.ui.previews.MultipleComponentsPreview
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 
-fun LazyListScope.walletConnectQRCode(isEnabled: Boolean = true, onClick: () -> Unit) {
-    item { WalletConnectQRCode(isEnabled = isEnabled, onClick = onClick) }
+fun LazyListScope.allWallets(text: String, isEnabled: Boolean = true, onClick: () -> Unit) {
+    item { WalletConnectAll(text = text, isEnabled = isEnabled, onClick = onClick) }
 }
 
 @Composable
-private fun WalletConnectQRCode(isEnabled: Boolean = true, onClick: () -> Unit) {
+private fun WalletConnectAll(text: String, isEnabled: Boolean = true, onClick: () -> Unit) {
     ListSelectRow(
-        startIcon = { WalletConnectLogo(isEnabled) },
-        text = "WalletConnect",
-        label = { QrCodeLabel(isEnabled) },
+        startIcon = { AllWalletsIcon() },
+        text = "All wallets",
+        label = { TextLabel(text = text, isEnabled = isEnabled) },
         onClick = onClick,
         contentPadding = PaddingValues(vertical = 4.dp)
     )
@@ -28,7 +29,7 @@ private fun WalletConnectQRCode(isEnabled: Boolean = true, onClick: () -> Unit) 
 @Composable
 private fun WalletConnectListSelectPreview() {
     MultipleComponentsPreview(
-        { WalletConnectQRCode() {} },
-        { WalletConnectQRCode(isEnabled = false) {} },
+        { WalletConnectAll(text = "240+") {} },
+        { WalletConnectAll(text = "240+", isEnabled = false) {} },
     )
 }

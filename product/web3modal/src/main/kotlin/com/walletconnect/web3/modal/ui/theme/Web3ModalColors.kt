@@ -22,6 +22,8 @@ internal data class Web3ModalColors(
     val inverse100 = Color.White
     val inverse000 = Color.Black
 
+    val success15 = success.copy(.15f)
+
     val main15: Color = main100.copy(.15f)
     val main10: Color = main100.copy(.1f)
     val main005: Color = main100.copy(.05f)

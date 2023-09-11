@@ -78,7 +78,6 @@ internal fun SearchInput(
         keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus(true) }),
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
         modifier = modifier
-            .fillMaxWidth()
             .height(40.dp)
             .background(color = backgroundColor, shape = RoundedCornerShape(12.dp))
             .border(width = 1.dp, color = borderColor, shape = RoundedCornerShape(12.dp))

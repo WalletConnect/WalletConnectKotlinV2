@@ -7,6 +7,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
+import com.walletconnect.web3.modal.domain.model.AccountData
+import com.walletconnect.web3.modal.domain.model.Chain
 import com.walletconnect.web3.modal.ui.Web3ModalState
 import com.walletconnect.web3.modal.ui.navigation.connection.connectWalletNavGraph
 import com.walletconnect.web3.modal.ui.toStartingPath
@@ -16,8 +18,11 @@ internal fun Web3ModalNavGraph(
     navController: NavHostController,
     web3ModalState: Web3ModalState,
     modifier: Modifier = Modifier,
+    updateRecentWalletId: (String) -> Unit,
     retryConnection: (() -> Unit) -> Unit,
+    disconnect: (String) -> Unit,
     closeModal: () -> Unit,
+    changeChain: (AccountData, Chain) -> Unit
 ) {
     NavHost(
         navController = navController,
@@ -29,8 +34,8 @@ internal fun Web3ModalNavGraph(
         popEnterTransition = { fadeIn(tween()) }
     ) {
         when (web3ModalState) {
-            is Web3ModalState.Connect -> connectWalletNavGraph(navController, web3ModalState, retryConnection)
-            Web3ModalState.AccountState -> accountModalGraph(navController, Web3ModalState.AccountState, closeModal)
+            is Web3ModalState.Connect -> connectWalletNavGraph(navController, web3ModalState, updateRecentWalletId, retryConnection)
+            is Web3ModalState.AccountState -> accountModalGraph(navController, web3ModalState, disconnect, closeModal, changeChain)
             else -> {}
         }
     }
