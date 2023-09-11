@@ -85,7 +85,10 @@ internal class Web3ModalViewModel : ViewModel() {
 
     internal fun createAccountModalState(activeSession: Modal.Model.Session) {
         val accounts = activeSession.namespaces.values.toList().flatMap { it.accounts }
-        val chains = activeSession.namespaces.values.toList().flatMap { it.chains ?: listOf() }.map { Chain(it) }
+        val chains = activeSession.namespaces.values
+            .toList()
+            .flatMap { it.chains ?: listOf() }
+            .map { Chain(it) }
         val selectedChain = chains.getSelectedChain()
         val address = accounts.getAddress(selectedChain)
 
@@ -99,7 +102,7 @@ internal class Web3ModalViewModel : ViewModel() {
         _modalState.value = Web3ModalState.AccountState(accountData)
     }
 
-    private fun List<Chain>.getSelectedChain() = find { it.id == getSelectedChainUseCase() }?: first()
+    private fun List<Chain>.getSelectedChain() = find { it.id == getSelectedChainUseCase() } ?: first()
     private fun List<String>.getAddress(selectedChain: Chain) = find { it.startsWith(selectedChain.id) }?.split(":")?.last() ?: String.Empty
 
     internal fun createConnectModalState() {
@@ -143,7 +146,7 @@ internal class Web3ModalViewModel : ViewModel() {
     fun updateRecentWalletId(id: String) =
         (_modalState.value as? Web3ModalState.Connect)?.let {
             saveRecentWalletUseCase(id)
-            _modalState.value = it.copy(wallets =  it.wallets.mapRecentWallet(id))
+            _modalState.value = it.copy(wallets = it.wallets.mapRecentWallet(id))
         }
 
     internal fun saveSessionTopic(topic: String) = saveSessionTopicUseCase(topic)

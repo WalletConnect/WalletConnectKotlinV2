@@ -3,7 +3,7 @@ package com.walletconnect.web3.modal.domain.model
 import com.walletconnect.web3.modal.utils.networkImagesIds
 import com.walletconnect.web3.modal.utils.networkNames
 
-data class Chain(
+internal data class Chain(
     val id: String,
 ) {
     val namespace: String

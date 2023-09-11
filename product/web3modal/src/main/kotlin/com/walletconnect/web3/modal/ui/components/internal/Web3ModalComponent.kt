@@ -25,9 +25,9 @@ import com.walletconnect.web3.modal.ui.components.internal.root.Web3ModalRoot
 import com.walletconnect.web3.modal.ui.navigation.Web3ModalNavGraph
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 // That may be public in the future to allow users use our composable view
 @Composable
@@ -42,14 +42,10 @@ internal fun Web3ModalComponent(
     LaunchedEffect(Unit) {
         Web3ModalDelegate
             .wcEventModels
+            .filterIsInstance<Modal.Model.ApprovedSession>()
             .onEach { event ->
-                when (event) {
-                    is Modal.Model.ApprovedSession -> {
-                        web3ModalViewModel.saveSessionTopic(event.topic)
-                        closeModal()
-                    }
-                    else -> Unit
-                }
+                web3ModalViewModel.saveSessionTopic(event.topic)
+                closeModal()
             }
             .collect()
     }
@@ -76,14 +72,15 @@ internal fun Web3ModalComponent(
                     retryConnection = web3ModalViewModel::retryConnection,
                     disconnect = {
                         web3ModalViewModel.disconnect(it) {
-                            coroutineScope.launch {
-                                withContext(Dispatchers.Main) { closeModal() }
+                            coroutineScope.launch(Dispatchers.Main) {
+                                closeModal()
                             }
                         }
                     },
                     closeModal = closeModal,
                     changeChain = web3ModalViewModel::changeChain
                 )
+
                 Web3ModalState.Loading -> LoadingModalState()
                 is Web3ModalState.Error -> ErrorModalState(retry = web3ModalViewModel::initModalState)
             }

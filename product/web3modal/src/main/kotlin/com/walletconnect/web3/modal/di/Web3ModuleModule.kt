@@ -13,17 +13,17 @@ import com.walletconnect.web3.modal.domain.usecase.SaveSessionTopicUseCase
 import org.koin.dsl.module
 
 internal fun web3ModalModule() = module {
-    single { RecentWalletsRepository(get()) }
+    single { RecentWalletsRepository(sharedPreferences = get()) }
 
-    single { GetRecentWalletUseCase(get()) }
-    single { SaveRecentWalletUseCase(get()) }
+    single { GetRecentWalletUseCase(repository = get()) }
+    single { SaveRecentWalletUseCase(repository = get()) }
 
-    single { SessionRepository(get()) }
+    single { SessionRepository(sharedPreferences = get()) }
 
-    single { GetSessionTopicUseCase(get()) }
-    single { SaveSessionTopicUseCase(get()) }
-    single { DeleteSessionDataUseCase(get()) }
-    single { DeleteSessionTopicUseCase(get()) }
-    single { SaveChainSelectionUseCase(get()) }
-    single { GetSelectedChainUseCase(get()) }
+    single { GetSessionTopicUseCase(repository = get()) }
+    single { SaveSessionTopicUseCase(repository = get()) }
+    single { DeleteSessionDataUseCase(repository = get()) }
+    single { DeleteSessionTopicUseCase(repository = get()) }
+    single { SaveChainSelectionUseCase(repository = get()) }
+    single { GetSelectedChainUseCase(repository = get()) }
 }

@@ -1,6 +1,6 @@
 package com.walletconnect.web3.modal.domain.model
 
-data class AccountData(
+internal data class AccountData(
     val address: String,
     val topic: String,
     val balance: String,
