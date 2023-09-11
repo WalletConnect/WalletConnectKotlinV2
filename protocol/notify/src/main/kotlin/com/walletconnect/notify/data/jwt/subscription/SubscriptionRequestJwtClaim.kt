@@ -15,7 +15,7 @@ internal data class SubscriptionRequestJwtClaim(
     @Json(name = "exp") override val expiration: Long,
     @Json(name = "ksu") val keyserverUrl: String,
     @Json(name = "scp") val scope: String,
-    @Json(name = "app") val dappUrl: String,
+    @Json(name = "app") val app: String,
     @Json(name = "act") override val action: String = "notify_subscription",
 ) : NotifyJwtBase
 

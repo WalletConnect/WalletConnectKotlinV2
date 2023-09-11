@@ -8,12 +8,14 @@ import com.walletconnect.android.internal.common.model.AppMetaData
 
 @JsonClass(generateAdapter = true)
 internal data class NotifyConfigDTO(
-    @Json(name = "version")
-    val version: Int,
-    @Json(name = "lastModified")
-    val lastModified: Long,
+    @Json(name = "schemaVersion")
+    val schemaVersion: Int,
     @Json(name = "types")
     val types: List<TypeDTO>,
-    @Json(name = "metadata")
-    val metaData: AppMetaData
+    @Json(name = "name")
+    val name: String,
+    @Json(name = "description")
+    val description: String,
+    @Json(name = "icons")
+    val icons: List<String>
 )

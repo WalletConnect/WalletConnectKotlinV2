@@ -164,6 +164,7 @@ internal class NotifyEngine(
 
     private suspend fun resubscribeToSubscriptions() {
         val subscriptionTopics = getListOfActiveSubscriptions().keys.toList()
+        logger.log("Resubscribing to active subscriptions: $subscriptionTopics")
         jsonRpcInteractor.batchSubscribe(subscriptionTopics) { error -> scope.launch { _engineEvent.emit(SDKError(error)) } }
     }
 }

@@ -5,6 +5,7 @@ package com.walletconnect.notify.di
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.notify.engine.NotifyEngine
 import com.walletconnect.notify.engine.domain.EngineNotifySubscriptionNotifier
+import com.walletconnect.notify.engine.domain.ExtractMetadataFromConfigUseCase
 import com.walletconnect.notify.engine.domain.ExtractPublicKeysFromDidJsonUseCase
 import com.walletconnect.notify.engine.domain.FetchDidJwtInteractor
 import com.walletconnect.notify.engine.domain.GenerateAppropriateUriUseCase
@@ -32,6 +33,14 @@ internal fun engineModule() = module {
         ExtractPublicKeysFromDidJsonUseCase(
             serializer = get(),
             generateAppropriateUri = get()
+        )
+    }
+
+    single {
+        ExtractMetadataFromConfigUseCase(
+            serializer = get(),
+            generateAppropriateUri = get(),
+            logger = get()
         )
     }
 
@@ -66,10 +75,9 @@ internal fun engineModule() = module {
         SetActiveSubscriptionsUseCase(
             subscriptionRepository = get(),
             extractPublicKeysFromDidJsonUseCase = get(),
-            generateAppropriateUri = get(),
+            extractMetadataFromConfigUseCase = get(),
             metadataRepository = get(),
             jsonRpcInteractor = get(),
-            serializer = get(),
             logger = get(),
             keyStore = get()
         )
@@ -78,7 +86,7 @@ internal fun engineModule() = module {
     single {
         RegisterIdentityUseCase(
             identitiesInteractor = get(),
-            identityServerUrl = get(named(AndroidCommonDITags.KEYSERVER_URL)) // TODO: Decide if this should be keys or notify or identity server
+            identityServerUrl = get(named(AndroidCommonDITags.KEYSERVER_URL))
         )
     }
 
