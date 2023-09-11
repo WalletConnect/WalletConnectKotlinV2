@@ -3,7 +3,7 @@ package com.walletconnect.android.pairing.engine.domain
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.MALFORMED_PAIRING_URI_MESSAGE
 import com.walletconnect.android.internal.NO_SEQUENCE_FOR_TOPIC_MESSAGE
-import com.walletconnect.android.internal.PAIRING_NOW_ALLOWED_MESSAGE
+import com.walletconnect.android.internal.PAIRING_NOT_ALLOWED_MESSAGE
 import com.walletconnect.android.internal.Validator
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
@@ -141,7 +141,7 @@ internal class PairingEngine(
             if (isPairingValid(inactivePairing.topic.value)) {
                 val pairing = pairingRepository.getPairingOrNullByTopic(inactivePairing.topic)
                 if (pairing?.isActive == true) {
-                    return onFailure(PairWithExistingPairingIsNotAllowed(PAIRING_NOW_ALLOWED_MESSAGE))
+                    return onFailure(PairWithExistingPairingIsNotAllowed(PAIRING_NOT_ALLOWED_MESSAGE))
                 } else {
                     scope.launch {
                         supervisorScope {

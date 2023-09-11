@@ -76,7 +76,7 @@ internal class RespondAuthRequestUseCase(
                 logger.log("Success Responded on topic: $responseTopic")
                 scope.launch {
                     supervisorScope {
-                        pairingController.activate(Core.Params.Activate(jsonRpcHistoryEntry.topic.value)) //todo: check if pairing topic
+                        pairingController.activate(Core.Params.Activate(jsonRpcHistoryEntry.topic.value))
                         verifyContextStorageRepository.delete(respond.id)
                     }
                 }
