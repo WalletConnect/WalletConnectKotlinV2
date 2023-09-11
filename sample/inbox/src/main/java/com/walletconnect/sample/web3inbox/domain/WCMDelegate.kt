@@ -67,7 +67,7 @@ object WCMDelegate : WalletConnectModal.ModalDelegate {
         }
     }
 
-    fun deselectAccountDetails() {
+    private fun deselectAccountDetails() {
         selectedSessionTopic = null
     }
 
