@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 
 class W3ISampleViewModel : ViewModel() {
-    val events = WCMDelegate
+    val wcmEvents = WCMDelegate
         .wcEventModels
         .map { event ->
             when (event) {

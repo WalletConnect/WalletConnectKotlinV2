@@ -36,7 +36,7 @@ fun W3ISampleHost() {
     val context = LocalContext.current
 
     LaunchedEffect(context) {
-        viewModel.events.collect { event ->
+        viewModel.wcmEvents.collect { event ->
             Timber.d(event.toString())
             when (event) {
                 W3ISampleEvents.Disconnect -> navController.navigate(Route.SelectAccount.path)
