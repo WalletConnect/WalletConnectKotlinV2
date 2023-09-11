@@ -41,26 +41,29 @@ internal class ExtractPublicKeysFromDidJsonUseCase(
             .takeIf {
                 didJsonResult.getOrNull()?.keyAgreement?.isNotEmpty() == true
             }?.mapCatching { didJsonDto ->
-                (didJsonDto.keyAgreement.firstOrNull { it.contains(NOTIFY_SUBSCRIBE_KEY) } ?: throw generateException(KEY_KEY_AGREEMENT, uri)) to didJsonDto
+                (didJsonDto.keyAgreement.firstOrNull { it.contains(NOTIFY_SUBSCRIBE_KEY) } ?: throw generateException(KEY_AGREEMENT, NOTIFY_SUBSCRIBE_KEY, uri)) to didJsonDto
             }?.mapCatching { (id, didJson) ->
                 extractPublicKey(id, didJson.verificationMethod)
-            } ?: Result.failure(generateException(KEY_KEY_AGREEMENT, uri))
+            } ?: Result.failure(generateException(KEY_AGREEMENT, null, uri))
 
         val authenticationPublicKey = didJsonResult
             .takeIf {
                 didJsonResult.getOrNull()?.authentication?.isNotEmpty() == true
             }?.mapCatching { didJsonDto ->
-                (didJsonDto.authentication.firstOrNull { it.contains(NOTIFY_AUTHENTICATION_KEY) } ?: throw generateException(AUTHENTICATION, uri)) to didJsonDto
+                (didJsonDto.authentication.firstOrNull { it.contains(NOTIFY_AUTHENTICATION_KEY) } ?: throw generateException(AUTHENTICATION, NOTIFY_AUTHENTICATION_KEY, uri)) to didJsonDto
             }?.mapCatching { (id, didJson) ->
                 extractPublicKey(id, didJson.verificationMethod)
-            } ?: Result.failure(generateException(AUTHENTICATION, uri))
+            } ?: Result.failure(generateException(AUTHENTICATION, null, uri))
 
         return@withContext runCatching {
             keyAgreementPublicKey.getOrThrow() to authenticationPublicKey.getOrThrow()
         }
     }
 
-    private fun generateException(keyName: String, uri: Uri) = Exception("$keyName is missing from $uri. Check that the $DID_JSON matches the specs.")
+    private fun generateException(arrayName: String, keyName: String?, uri: Uri) =
+        keyName?.let {
+            Exception("$keyName is missing from $arrayName for $uri. Check that the $DID_JSON matches the specs.")
+        } ?: Exception("$arrayName is missing from $uri. Check that the $DID_JSON matches the specs.")
 
     private fun extractPublicKey(id: String, verificationMethodList: List<VerificationMethodDTO>): PublicKey {
         val verificationMethod = verificationMethodList.firstOrNull { verificationMethod -> verificationMethod.id == id } ?: throw Exception("Failed to find verification key")
@@ -76,7 +79,7 @@ internal class ExtractPublicKeysFromDidJsonUseCase(
         const val DID_JSON = ".well-known/did.json"
         const val NOTIFY_SUBSCRIBE_KEY = "wc-notify-subscribe-key"
         const val NOTIFY_AUTHENTICATION_KEY = "wc-notify-authentication-key"
-        const val KEY_KEY_AGREEMENT = "Key Agreement"
+        const val KEY_AGREEMENT = "Key Agreement"
         const val AUTHENTICATION = "Authentication"
     }
 }
