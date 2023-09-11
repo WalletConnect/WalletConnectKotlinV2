@@ -1,8 +1,11 @@
 import com.android.build.gradle.BaseExtension
+import org.jetbrains.gradle.ext.settings
+import org.jetbrains.gradle.ext.taskTriggers
 
 plugins {
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
     id("release-scripts")
+    id("org.jetbrains.gradle.plugin.idea-ext") version "1.1.7"
 }
 
 buildscript {
@@ -63,6 +66,27 @@ subprojects {
 
 task<Delete>("clean") {
     delete(rootProject.buildDir)
+}
+
+// This task is used to copy the google-services.json file to all sample modules except modals
+tasks.register("copyGoogleServicesToAllSample") {
+    val googleServicesJsonFileName = "google-services.json"
+    val googleServicesFile = rootProject.file("sample/common/$googleServicesJsonFileName")
+    val listOfDirectoriesToIgnore = listOf("common", "modals")
+
+    rootProject.file("sample").listFiles()?.forEach { sampleDir ->
+        if (sampleDir.name !in listOfDirectoriesToIgnore && sampleDir.isDirectory) {
+            val destination = sampleDir.resolve(googleServicesJsonFileName)
+
+            if (!destination.exists()) {
+                googleServicesFile.copyTo(destination)
+            }
+        }
+    }
+}
+
+idea.project.settings.taskTriggers {
+    beforeSync(tasks.getByName("copyGoogleServicesToAllSample"))
 }
 
 nexusPublishing {
