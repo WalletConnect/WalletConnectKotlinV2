@@ -13,7 +13,7 @@ import com.walletconnect.web3.modal.ui.theme.ProvideWeb3ModalThemeComposition
 //TODO finish with adding chain switching
 @Composable
 internal fun NetworkButton(
-    web3ButtonState: Web3ButtonState,
+    web3ButtonState: Web3ModalState,
 ) {
     val selectedChain = web3ButtonState.getSelectedChain()
     val image: @Composable () -> Unit = selectedChain?.let { chain: Chain ->

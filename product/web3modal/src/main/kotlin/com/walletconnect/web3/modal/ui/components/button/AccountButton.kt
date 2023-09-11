@@ -5,11 +5,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
@@ -25,12 +23,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.walletconnect.web3.modal.ui.components.internal.commons.HorizontalSpacer
-import com.walletconnect.web3.modal.ui.components.internal.commons.LoadingSpinner
 import com.walletconnect.web3.modal.ui.components.internal.commons.account.generateAvatarColors
 import com.walletconnect.web3.modal.ui.components.internal.commons.button.ButtonSize
 import com.walletconnect.web3.modal.ui.components.internal.commons.button.ButtonStyle
 import com.walletconnect.web3.modal.ui.components.internal.commons.button.ImageButton
-import com.walletconnect.web3.modal.ui.components.internal.commons.button.StyledButton
 import com.walletconnect.web3.modal.ui.components.internal.commons.button.TextButton
 import com.walletconnect.web3.modal.ui.components.internal.commons.network.CircleNetworkImage
 import com.walletconnect.web3.modal.ui.previews.ComponentPreview
@@ -60,7 +56,7 @@ internal sealed class AccountButtonState {
 
 @Composable
 fun AccountButton(
-    web3ButtonState: Web3ButtonState, accountButtonType: AccountButtonType
+    web3ButtonState: Web3ModalState, accountButtonType: AccountButtonType
 ) {
     var state by remember { mutableStateOf<AccountButtonState>(AccountButtonState.Loading) }
 
@@ -174,31 +170,11 @@ private fun AccountButtonNormal(
     }
 }
 
-@Composable
-private fun LoadingButton() {
-    ProvideWeb3ModalThemeComposition {
-        StyledButton(style = ButtonStyle.ACCOUNT, size = ButtonSize.M, onClick = {}) {
-            Box(
-                modifier = Modifier.width(100.dp), contentAlignment = Alignment.Center
-            ) {
-                LoadingSpinner(size = 24.dp)
-            }
-        }
-    }
-}
 
 @Composable
 private fun UnavailableSession() {
     ProvideWeb3ModalThemeComposition {
         TextButton(text = "Session Unavailable", style = ButtonStyle.ACCOUNT, size = ButtonSize.M, isEnabled = false, onClick = {})
-    }
-}
-
-@UiModePreview
-@Composable
-private fun LoadingButtonPreview() {
-    ComponentPreview {
-        LoadingButton()
     }
 }
 

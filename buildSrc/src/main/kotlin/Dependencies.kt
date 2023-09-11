@@ -224,3 +224,7 @@ fun DependencyHandlerScope.beagle() {
 fun DependencyHandlerScope.beagleOkHttp() {
     "implementation"("io.github.pandulapeter.beagle:log-okhttp:$beagleVersion")
 }
+
+fun DependencyHandlerScope.dataStore() {
+    "implementation"("androidx.datastore:datastore-preferences:1.0.0")
+}

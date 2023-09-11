@@ -1,6 +1,8 @@
 package com.walletconnect.web3.modal.ui.components.button
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.unit.dp
@@ -12,6 +14,8 @@ import com.walletconnect.web3.modal.ui.components.internal.commons.button.TextBu
 import com.walletconnect.web3.modal.ui.previews.MultipleComponentsPreview
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.theme.ProvideWeb3ModalThemeComposition
+import kotlinx.coroutines.flow.collect
+import timber.log.Timber
 
 enum class ConnectButtonSize {
     NORMAL, SMALL
@@ -19,13 +23,16 @@ enum class ConnectButtonSize {
 
 @Composable
 fun ConnectButton(
-    web3ButtonState: Web3ButtonState,
+    web3ButtonState: Web3ModalState,
     buttonSize: ConnectButtonSize,
 ) {
     val isLoading: Boolean by web3ButtonState.isOpen.collectAsState(initial = false)
+    val isConnected by web3ButtonState.isConnected.collectAsState(initial = false)
+
     ConnectButton(
         size = buttonSize,
-        isLoading = isLoading
+        isLoading = isLoading,
+        isEnabled = !isConnected
     ) {
         web3ButtonState.openWeb3Modal()
     }
@@ -43,25 +50,27 @@ internal fun ConnectButton(
             ConnectButtonSize.NORMAL -> ButtonSize.M
             ConnectButtonSize.SMALL -> ButtonSize.S
         }
-        if (isLoading) {
-            ImageButton(
-                text = "Connecting...",
-                image = { LoadingSpinner(size = 10.dp, strokeWidth = 2.dp) },
-                style = ButtonStyle.LOADING,
-                size = buttonSize
-            ) {}
-        } else {
-            val text = when (size) {
-                ConnectButtonSize.NORMAL -> "Connect Wallet"
-                ConnectButtonSize.SMALL -> "Connect"
+        AnimatedContent(targetState = isLoading, label = "ConnectButton") { state ->
+            if (state) {
+                ImageButton(
+                    text = "Connecting...",
+                    image = { LoadingSpinner(size = 10.dp, strokeWidth = 2.dp) },
+                    style = ButtonStyle.LOADING,
+                    size = buttonSize
+                ) {}
+            } else {
+                val text = when (size) {
+                    ConnectButtonSize.NORMAL -> "Connect Wallet"
+                    ConnectButtonSize.SMALL -> "Connect"
+                }
+                TextButton(
+                    text = text,
+                    style = ButtonStyle.MAIN,
+                    size = buttonSize,
+                    isEnabled = isEnabled,
+                    onClick = onClick
+                )
             }
-            TextButton(
-                text = text,
-                style = ButtonStyle.MAIN,
-                size = buttonSize,
-                isEnabled = isEnabled,
-                onClick = onClick
-            )
         }
     }
 }
