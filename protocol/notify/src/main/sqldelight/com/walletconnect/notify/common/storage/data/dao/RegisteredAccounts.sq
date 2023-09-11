@@ -14,6 +14,10 @@ SELECT accountId, publicIdentityKey, isLimited
 FROM RegisteredAccounts
 WHERE accountId = ?;
 
+getAllAccounts:
+SELECT accountId, publicIdentityKey, isLimited
+FROM RegisteredAccounts;
+
 deleteAccountByAccountId:
 DELETE FROM RegisteredAccounts
 WHERE accountId = ?;

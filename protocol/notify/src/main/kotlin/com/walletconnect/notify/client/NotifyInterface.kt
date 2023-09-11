@@ -1,5 +1,7 @@
 package com.walletconnect.notify.client
 
+import com.walletconnect.notify.common.model.SubscriptionChanged
+
 interface NotifyInterface {
     interface Delegate {
 
@@ -12,6 +14,8 @@ interface NotifyInterface {
         fun onNotifyUpdate(notifyUpdate: Notify.Event.Update)
 
         fun onError(error: Notify.Model.Error)
+
+        fun onSubscriptionsChanged(subscriptionsChanged: Notify.Event.SubscriptionsChanged)
     }
 
     fun initialize(init: Notify.Params.Init, onError: (Notify.Model.Error) -> Unit)

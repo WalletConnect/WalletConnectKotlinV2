@@ -22,20 +22,20 @@ internal class RegisterIdentityUseCase(
     override fun register(accountId: AccountId, onSign: (String) -> Cacao.Signature?, onSuccess: (String) -> Unit, onError: (Throwable) -> Unit, private: Boolean) {
         scope.launch {
             supervisorScope {
-                identitiesInteractor.registerIdentity(accountId, keyserverUrl, onSign).fold(
-                    onFailure = { error -> onError(error) },
-                    onSuccess = { identityPublicKey ->
-                        accountsRepository.upsertAccount(Account(accountId, identityPublicKey, null, null))
-                        val didKey = encodeEd25519DidKey(identityPublicKey.keyAsBytes)
-                        setupSyncInChatUseCase(accountId, onSign, onError = onError, onSuccess = {
-                            if (!private) {
-                                goPublicUseCase.goPublic(accountId, onSuccess = { onSuccess(didKey) }, onError = { error -> onError(error) })
-                            } else {
-                                onSuccess(didKey)
-                            }
-                        })
-                    }
-                )
+//                identitiesInteractor.registerIdentity(accountId, keyserverUrl, onSign).fold(
+//                    onFailure = { error -> onError(error) },
+//                    onSuccess = { identityPublicKey ->
+//                        accountsRepository.upsertAccount(Account(accountId, identityPublicKey, null, null))
+//                        val didKey = encodeEd25519DidKey(identityPublicKey.keyAsBytes)
+//                        setupSyncInChatUseCase(accountId, onSign, onError = onError, onSuccess = {
+//                            if (!private) {
+//                                goPublicUseCase.goPublic(accountId, onSuccess = { onSuccess(didKey) }, onError = { error -> onError(error) })
+//                            } else {
+//                                onSuccess(didKey)
+//                            }
+//                        })
+//                    }
+//                )
             }
         }
     }

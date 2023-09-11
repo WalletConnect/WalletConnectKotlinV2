@@ -19,16 +19,15 @@ internal class ExtractPublicKeysFromDidJsonUseCase(
     private val generateAppropriateUri: GenerateAppropriateUriUseCase,
 ) {
 
-    suspend operator fun invoke(dappUri: Uri): Result<DidJsonPublicKeyPair> = withContext(Dispatchers.IO) {
-        val didJsonDappUri = generateAppropriateUri(dappUri, DID_JSON)
+    suspend operator fun invoke(uri: Uri): Result<DidJsonPublicKeyPair> = withContext(Dispatchers.IO) {
+        val didJsonDappUri = generateAppropriateUri(uri, DID_JSON)
 
         val didJsonResult = didJsonDappUri.runCatching {
             // Get the did.json from the dapp
             URL(this.toString()).openStream().bufferedReader().use { it.readText() }
         }.mapCatching { wellKnownDidJsonString ->
-            // Parse the did.json
             serializer.tryDeserialize<DidJsonDTO>(wellKnownDidJsonString)
-                ?: throw Exception("Failed to parse $dappUri. Check that the $DID_JSON matches the specs.")
+                ?: throw Exception("Failed to parse $uri. Check that the $DID_JSON matches the specs.")
         }
 
         val keyAgreementPublicKey = didJsonResult
@@ -38,7 +37,7 @@ internal class ExtractPublicKeysFromDidJsonUseCase(
                 didJsonDto.keyAgreement.first() to didJsonDto
             }?.mapCatching { (id, didJson) ->
                 extractPublicKey(id, didJson.verificationMethod)
-            } ?: Result.failure(Exception("Key Agreement is missing from $dappUri. Check that the $DID_JSON matches the specs."))
+            } ?: Result.failure(Exception("Key Agreement is missing from $uri. Check that the $DID_JSON matches the specs."))
 
         val authenticationPublicKey = didJsonResult
             .takeIf {
@@ -47,7 +46,7 @@ internal class ExtractPublicKeysFromDidJsonUseCase(
                 didJsonDto.authentication.first() to didJsonDto
             }?.mapCatching { (id, didJson) ->
                 extractPublicKey(id, didJson.verificationMethod)
-            } ?: Result.failure(Exception("Authentication is missing from $dappUri. Check that the $DID_JSON matches the specs."))
+            } ?: Result.failure(Exception("Authentication is missing from $uri. Check that the $DID_JSON matches the specs."))
 
         return@withContext runCatching {
             keyAgreementPublicKey.getOrThrow() to authenticationPublicKey.getOrThrow()

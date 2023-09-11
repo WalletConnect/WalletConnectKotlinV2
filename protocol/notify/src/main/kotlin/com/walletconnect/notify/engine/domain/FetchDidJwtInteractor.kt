@@ -12,7 +12,9 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.notify.data.jwt.delete.EncodeDeleteRequestJwtUseCase
 import com.walletconnect.notify.data.jwt.message.EncodeMessageReceiptJwtUseCase
 import com.walletconnect.notify.data.jwt.subscription.EncodeSubscriptionRequestJwtUseCase
+import com.walletconnect.notify.data.jwt.subscriptionsChanged.EncodeSubscriptionsChangedResponseJwtUseCase
 import com.walletconnect.notify.data.jwt.update.EncodeUpdateRequestJwtUseCase
+import com.walletconnect.notify.data.jwt.watchSubscriptions.EncodeWatchSubscriptionsRequestJwtUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
@@ -76,6 +78,30 @@ internal class FetchDidJwtInteractor(
         return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
             identityPrivateKey,
             EncodeUpdateRequestJwtUseCase(account, metadataUrl, authenticationKey, concatenatedScopes),
+            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = 30, expiryTimeUnit = TimeUnit.SECONDS)
+        )
+    }
+
+    suspend fun watchSubscriptionsRequest(
+        account: AccountId,
+        authenticationKey: PublicKey,
+    ): Result<DidJwt> = registerIdentityAndReturnIdentityKeyPair(account) { (identityPublicKey, identityPrivateKey) ->
+
+        return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
+            identityPrivateKey,
+            EncodeWatchSubscriptionsRequestJwtUseCase(account, authenticationKey),
+            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = 30, expiryTimeUnit = TimeUnit.SECONDS)
+        )
+    }
+
+    suspend fun subscriptionsChangedResponse(
+        account: AccountId,
+        authenticationKey: PublicKey,
+    ): Result<DidJwt> = registerIdentityAndReturnIdentityKeyPair(account) { (identityPublicKey, identityPrivateKey) ->
+
+        return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
+            identityPrivateKey,
+            EncodeSubscriptionsChangedResponseJwtUseCase(account, authenticationKey),
             EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = 30, expiryTimeUnit = TimeUnit.SECONDS)
         )
     }

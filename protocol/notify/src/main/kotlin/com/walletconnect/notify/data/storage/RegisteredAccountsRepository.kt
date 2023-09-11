@@ -2,58 +2,38 @@
 
 package com.walletconnect.notify.data.storage
 
-import com.walletconnect.notify.common.model.NotifyMessage
-import com.walletconnect.notify.common.model.NotifyRecord
-import com.walletconnect.notify.common.storage.data.dao.MessagesQueries
+import com.walletconnect.android.internal.common.model.AccountId
+import com.walletconnect.foundation.common.model.PublicKey
+import com.walletconnect.notify.common.model.RegisteredAccount
+import com.walletconnect.notify.common.storage.data.dao.RegisteredAccountsQueries
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-internal class MessagesRepository(private val messagesQueries: MessagesQueries) {
+internal class RegisteredAccountsRepository(private val registeredAccounts: RegisteredAccountsQueries) {
 
-    suspend fun insertMessage(
-        requestId: Long,
-        topic: String,
-        publishedAt: Long,
-        title: String,
-        body: String,
-        icon: String?,
-        url: String?,
-        type: String,
+    suspend fun insertOrAbortAccount(
+        accountId: AccountId,
+        publicIdentityKey: PublicKey,
+        isLimited: Boolean,
     ) = withContext(Dispatchers.IO) {
-        messagesQueries.insertMessage(requestId, topic, publishedAt, title, body, icon, url, type)
+        registeredAccounts.insertOrAbortAccount(accountId.value, publicIdentityKey.keyAsHex, isLimited)
     }
 
-    suspend fun getMessagesByTopic(topic: String): List<NotifyRecord> = withContext(Dispatchers.IO) {
-        messagesQueries.getMessagesByTopic(topic, ::mapToMessageRecord).executeAsList()
+    suspend fun getAccountByAccountId(accountId: String): RegisteredAccount = withContext(Dispatchers.IO) {
+        registeredAccounts.getAccountByAccountId(accountId, ::toRegisterAccount).executeAsOne()
     }
 
-    suspend fun deleteMessage(requestId: Long) = withContext(Dispatchers.IO) {
-        messagesQueries.deleteMessageByRequestId(requestId)
+    suspend fun getAllAccounts(): List<RegisteredAccount> = withContext(Dispatchers.IO) {
+        registeredAccounts.getAllAccounts(::toRegisterAccount).executeAsList()
     }
 
-    suspend fun deleteMessagesByTopic(topic: String) = withContext(Dispatchers.IO) {
-        messagesQueries.deleteMessagesByTopic(topic)
+    suspend fun deleteAccountByAccountId(accountId: String) = withContext(Dispatchers.IO) {
+        registeredAccounts.deleteAccountByAccountId(accountId)
     }
 
-    private fun mapToMessageRecord(
-        requestId: Long,
-        topic: String,
-        publishedAt: Long,
-        title: String,
-        body: String,
-        icon: String?,
-        url: String?,
-        type: String,
-    ): NotifyRecord = NotifyRecord(
-        id = requestId,
-        topic = topic,
-        publishedAt = publishedAt,
-        notifyMessage = NotifyMessage(
-            title = title,
-            body = body,
-            icon = icon,
-            url = url,
-            type = type
-        )
-    )
+    private fun toRegisterAccount(
+        accountId: String,
+        publicIdentityKey: String,
+        isLimited: Boolean,
+    ): RegisteredAccount = RegisteredAccount(AccountId(accountId), PublicKey(publicIdentityKey), isLimited)
 }

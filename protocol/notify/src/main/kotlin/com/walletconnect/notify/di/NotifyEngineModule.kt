@@ -8,6 +8,10 @@ import com.walletconnect.notify.engine.domain.EngineNotifySubscriptionNotifier
 import com.walletconnect.notify.engine.domain.ExtractPublicKeysFromDidJsonUseCase
 import com.walletconnect.notify.engine.domain.FetchDidJwtInteractor
 import com.walletconnect.notify.engine.domain.GenerateAppropriateUriUseCase
+import com.walletconnect.notify.engine.domain.RegisterIdentityUseCase
+import com.walletconnect.notify.engine.domain.SetActiveSubscriptionsUseCase
+import com.walletconnect.notify.engine.domain.WatchSubscriptionsForEveryRegisteredAccountUseCase
+import com.walletconnect.notify.engine.domain.WatchSubscriptionsUseCase
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
@@ -43,6 +47,42 @@ internal fun engineModule() = module {
     }
 
     single {
+        WatchSubscriptionsUseCase(
+            jsonRpcInteractor = get(),
+            fetchDidJwtInteractor = get(),
+            keyManagementRepository = get(),
+            extractPublicKeysFromDidJsonUseCase = get(),
+            logger = get()
+        )
+    }
+
+    single {
+        WatchSubscriptionsForEveryRegisteredAccountUseCase(
+            watchSubscriptionsUseCase = get(), registeredAccountsRepository = get(), logger = get()
+        )
+    }
+
+    single {
+        SetActiveSubscriptionsUseCase(
+            subscriptionRepository = get(),
+            extractPublicKeysFromDidJsonUseCase = get(),
+            generateAppropriateUri = get(),
+            metadataRepository = get(),
+            jsonRpcInteractor = get(),
+            serializer = get(),
+            logger = get(),
+            keyStore = get()
+        )
+    }
+
+    single {
+        RegisterIdentityUseCase(
+            identitiesInteractor = get(),
+            identityServerUrl = get(named(AndroidCommonDITags.KEYSERVER_URL)) // TODO: Decide if this should be keys or notify or identity server
+        )
+    }
+
+    single {
         NotifyEngine(
             jsonRpcInteractor = get(),
             pairingHandler = get(),
@@ -61,7 +101,10 @@ internal fun engineModule() = module {
             onNotifyMessageUseCase = get(),
             onNotifyDeleteUseCase = get(),
             onNotifySubscribeResponseUseCase = get(),
-            onNotifyUpdateResponseUseCase = get()
+            onNotifyUpdateResponseUseCase = get(),
+            onWatchSubscriptionsResponseUseCase = get(),
+            watchSubscriptionsForEveryRegisteredAccountUseCase = get(),
+            onSubscriptionsChangedUseCase = get()
         )
     }
 }

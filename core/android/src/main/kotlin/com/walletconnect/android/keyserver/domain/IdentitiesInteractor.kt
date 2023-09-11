@@ -4,7 +4,6 @@ import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementReposit
 import com.walletconnect.android.internal.common.exception.AccountHasNoIdentityStored
 import com.walletconnect.android.internal.common.exception.InvalidAccountIdException
 import com.walletconnect.android.internal.common.exception.InvalidIdentityCacao
-import com.walletconnect.android.internal.common.exception.UnableToExtractDomainException
 import com.walletconnect.android.internal.common.exception.UserRejectedSigning
 import com.walletconnect.android.internal.common.jwt.did.EncodeDidJwtPayloadUseCase
 import com.walletconnect.android.internal.common.jwt.did.EncodeIdentityKeyDidJwtPayloadUseCase
@@ -45,13 +44,13 @@ class IdentitiesInteractor(
 ) {
     fun getIdentityKeyPair(accountId: AccountId): Pair<PublicKey, PrivateKey> = keyManagementRepository.getKeyPair(getIdentityPublicKey(accountId))
 
-    suspend fun registerIdentity(accountId: AccountId, keyserverUrl: String, onSign: (String) -> Cacao.Signature?): Result<PublicKey> = try {
+    suspend fun registerIdentity(accountId: AccountId, statement: String, domain: String, resources: List<String>, onSign: (String) -> Cacao.Signature?): Result<PublicKey> = try {
         if (!accountId.isValid()) throw InvalidAccountIdException(accountId)
         val storedPublicKey = getIdentityPublicKey(accountId)
         Result.success(storedPublicKey)
     } catch (e: MissingKeyException) {
         val identityPublicKey = generateAndStoreIdentityKeyPair()
-        registerIdentityKeyInKeyserver(accountId, keyserverUrl, identityPublicKey, onSign)
+        registerIdentityKeyInKeyserver(accountId, identityPublicKey, statement, domain, resources, onSign)
             .map { identityPublicKey }
             .onSuccess { storeIdentityPublicKey(identityPublicKey, accountId) }
     }
@@ -91,14 +90,14 @@ class IdentitiesInteractor(
 
     private fun generateAndStoreIdentityKeyPair(): PublicKey = keyManagementRepository.generateAndStoreEd25519KeyPair()
 
-    private suspend fun registerIdentityKeyInKeyserver(accountId: AccountId, keyserverUrl: String, identityKey: PublicKey, onSign: (String) -> Cacao.Signature?): Result<Unit> =
-        registerIdentityUseCase(generateCacao(accountId, keyserverUrl, identityKey, onSign).getOrThrow())
+    private suspend fun registerIdentityKeyInKeyserver(accountId: AccountId, identityKey: PublicKey, statement: String, domain: String, resources: List<String>, onSign: (String) -> Cacao.Signature?): Result<Unit> =
+        registerIdentityUseCase(generateCacao(accountId, identityKey, statement, domain, resources, onSign).getOrThrow())
 
     private suspend fun unregisterIdentityKeyInKeyserver(accountId: AccountId, keyserverUrl: String, identityKeyPair: Pair<PublicKey, PrivateKey>): Result<Unit> =
         unregisterIdentityUseCase(generateUnregisterIdAuth(accountId, keyserverUrl, identityKeyPair).getOrThrow().value)
 
-    private fun generateCacao(accountId: AccountId, keyserverUrl: String, identityKey: PublicKey, onSign: (String) -> Cacao.Signature?): Result<Cacao> {
-        val payload = generatePayload(accountId, keyserverUrl, identityKey).getOrThrow()
+    private fun generateCacao(accountId: AccountId, identityKey: PublicKey, statement: String, domain: String, resources: List<String>, onSign: (String) -> Cacao.Signature?): Result<Cacao> {
+        val payload = generatePayload(accountId, identityKey, statement, domain, resources).getOrThrow()
         val message = payload.toCAIP122Message()
         val signature = onSign(message) ?: throw UserRejectedSigning()
         return Result.success(Cacao(CacaoType.EIP4361.toHeader(), payload, signature))
@@ -109,27 +108,22 @@ class IdentitiesInteractor(
         return encodeDidJwt(identityPrivateKey, EncodeIdentityKeyDidJwtPayloadUseCase(accountId), EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl))
     }
 
-    private fun String.toDomain(): Result<String> = runCatching {
-        val uri = URI(this)
-        val domain: String = uri.host
-        if (domain.startsWith("www.")) domain.substring(4) else domain
-    }
 
-    private fun generatePayload(accountId: AccountId, keyserverUrl: String, identityKey: PublicKey): Result<Cacao.Payload> = Result.success(
+    private fun generatePayload(accountId: AccountId, identityKey: PublicKey, statement: String, domain: String, resources: List<String>): Result<Cacao.Payload> = Result.success(
         Cacao.Payload(
             iss = encodeDidPkh(accountId.value),
-            domain = keyserverUrl.toDomain().getOrThrow(),
-            aud = keyserverUrl,
+            domain = domain,
+            aud = encodeEd25519DidKey(identityKey.keyAsBytes),
             version = Cacao.Payload.CURRENT_VERSION,
             nonce = randomBytes(NONCE_SIZE).bytesToHex(),
             iat = SimpleDateFormat(Cacao.Payload.ISO_8601_PATTERN, Locale.getDefault()).format(Calendar.getInstance().time),
             nbf = null,
             exp = null,
-            statement = null,
+            statement = statement,
             requestId = null,
-            resources = listOf(encodeEd25519DidKey(identityKey.keyAsBytes))
+            resources = resources
         )
-    ).recover { throw UnableToExtractDomainException(keyserverUrl) } // mapping to internal error
+    )
 
     companion object {
         const val NONCE_SIZE = 32

@@ -21,7 +21,7 @@ class W3ISampleApp : Application() {
 
         Timber.plant(Timber.DebugTree())
 
-        val serverUri = "wss://relay.walletconnect.com?projectId=${BuildConfig.PROJECT_ID}"
+        val serverUri = "wss://staging.relay.walletconnect.com?projectId=${BuildConfig.PROJECT_ID}"
         val appMetaData = Core.Model.AppMetaData(
             name = "Kotlin W3I Sample",
             description = "Kotlin W3I Sample Implementation",

@@ -318,6 +318,7 @@ internal class JsonRpcInteractor(
                 }.collect { (decryptedMessage, topic, publishedAt) ->
                     if (decryptedMessage.isNotEmpty()) {
                         try {
+                            logger.log("manageSubscriptions: ${decryptedMessage}")
                             manageSubscriptions(decryptedMessage, topic, publishedAt)
                         } catch (e: Exception) {
                             handleError("ManSub: ${e.stackTraceToString()}")

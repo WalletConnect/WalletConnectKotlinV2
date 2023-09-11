@@ -77,8 +77,9 @@ internal fun callModule() = module {
 
     single<RegisterUseCaseInterface> {
         RegisterUseCase(
-            keyserverUrl = get(named(AndroidCommonDITags.KEYSERVER_URL)),
-            identitiesInteractor = get(),
+            registerIdentityUseCase = get(),
+            registeredAccountsRepository = get(),
+            watchSubscriptionsUseCase = get()
         )
     }
 

@@ -8,6 +8,7 @@ import com.walletconnect.notify.common.model.DeleteSubscription
 import com.walletconnect.notify.common.model.Error
 import com.walletconnect.notify.common.model.NotifyRecord
 import com.walletconnect.notify.common.model.Subscription
+import com.walletconnect.notify.common.model.SubscriptionChanged
 import com.walletconnect.notify.common.model.UpdateSubscription
 import com.walletconnect.notify.common.model.toClient
 import com.walletconnect.notify.common.model.toEvent
@@ -58,6 +59,7 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
                 is UpdateSubscription.Error -> delegate.onNotifyUpdate(event.toWalletClient())
                 is DeleteSubscription -> delegate.onNotifyDelete(event.toWalletClient())
                 is SDKError -> delegate.onError(event.toClient())
+                is SubscriptionChanged -> delegate.onSubscriptionsChanged(event.toWalletClient())
             }
         }.launchIn(scope)
     }
@@ -176,6 +178,8 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
         scope.launch {
             notifyEngine.register(
                 params.account,
+                params.isLimited,
+                params.domain,
                 params.onSign.toWalletClient(),
                 onSuccess = onSuccess,
                 onFailure = { error ->

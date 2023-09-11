@@ -1,9 +1,12 @@
 package com.walletconnect.sample.web3inbox.domain
 
 import com.walletconnect.android.CoreClient
+import com.walletconnect.android.cacao.SignatureInterface
 import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.android.utils.cacao.sign
+import com.walletconnect.notify.client.Notify
 import com.walletconnect.notify.client.NotifyClient
+import com.walletconnect.sample.web3inbox.BuildConfig
 import com.walletconnect.sample.web3inbox.domain.Web3InboxInitializer.wasNotifyDelegateInitalized
 import com.walletconnect.sample.web3inbox.ui.routes.W3ISampleEvents
 import com.walletconnect.sample.web3inbox.ui.routes.home.subscriptions.NotifyDelegate
@@ -73,7 +76,7 @@ class Web3InboxInitializerInstance(
 
     private fun generatePersonalSignParams(message: String, selectedAccountInfo: String) = "[\"${toHexString(message.toByteArray())}\", \"$selectedAccountInfo\"]"
 
-    private fun onSign(message: String): Inbox.Model.Cacao.Signature {
+    private fun onSign(message: String): SignatureInterface {
         Timber.d("onSign(\"${message.take(200)}\")")
 
         if (message.contains(EthAccount.Fixed.address)) {
@@ -157,13 +160,30 @@ class Web3InboxInitializerInstance(
             Inbox.Params.Init(
                 core = CoreClient,
                 account = Inbox.Type.AccountId(selectedAccount),
-                onSign = ::onSign
-            ), onError = { error -> Timber.e(error.throwable) }
+                onSign = { message -> onSign(message).let { signature -> Inbox.Model.Cacao.Signature(signature.t, signature.s, signature.m) } }
+            ),
+            onError = { error -> Timber.e(error.throwable) }
         )
 
         if (!wasNotifyDelegateInitalized) {
             wasNotifyDelegateInitalized = true
             NotifyClient.setDelegate(NotifyDelegate)
+
+            val isLimited = true
+
+            NotifyClient.register(
+                Notify.Params.Registration(
+                    selectedAccount,
+                    isLimited = isLimited,
+                    domain = BuildConfig.APPLICATION_ID,
+                    onSign = { message -> onSign(message).let { signature -> Notify.Model.Cacao.Signature(signature.t, signature.s, signature.m) } }
+                ),
+                onSuccess = { identity ->
+                    Timber.d("Registered isLimited: $isLimited identity: $identity")
+                }, onError = {
+                    Timber.e("Unable to register isLimited: $isLimited identity reason: " + it.throwable)
+                }
+            )
         }
     }
 }
