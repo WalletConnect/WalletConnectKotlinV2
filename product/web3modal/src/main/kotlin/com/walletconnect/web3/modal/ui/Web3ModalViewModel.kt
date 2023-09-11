@@ -6,6 +6,8 @@ import com.walletconnect.android.CoreClient
 import com.walletconnect.android.internal.common.explorer.data.model.Wallet
 import com.walletconnect.android.internal.common.explorer.domain.usecase.GetWalletsUseCaseInterface
 import com.walletconnect.android.internal.common.wcKoinApp
+import com.walletconnect.android.internal.utils.CoreValidator
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.util.Empty
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
@@ -22,11 +24,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 private const val W3M_SDK = "w3m"
 
 internal class Web3ModalViewModel : ViewModel() {
+
+    private val logger: Logger = wcKoinApp.koin.get()
 
     private val getWalletsUseCase: GetWalletsUseCaseInterface = wcKoinApp.koin.get()
 
@@ -77,7 +80,7 @@ internal class Web3ModalViewModel : ViewModel() {
                 sessionParams.properties,
                 pairing
             )
-            Web3Modal.connect(connectParams, onSuccess) { Timber.e(it.throwable) }
+            Web3Modal.connect(connectParams, onSuccess) { logger.error(it.throwable) }
         } catch (e: Exception) {
             handleError(e)
         }
@@ -88,7 +91,10 @@ internal class Web3ModalViewModel : ViewModel() {
         val chains = activeSession.namespaces.values
             .toList()
             .flatMap { it.chains ?: listOf() }
+            .filter { CoreValidator.isChainIdCAIP2Compliant(it) }
             .map { Chain(it) }
+            .ifEmpty { accounts.getDefaultChain() }
+
         val selectedChain = chains.getSelectedChain()
         val address = accounts.getAddress(selectedChain)
 
@@ -104,6 +110,15 @@ internal class Web3ModalViewModel : ViewModel() {
 
     private fun List<Chain>.getSelectedChain() = find { it.id == getSelectedChainUseCase() } ?: first()
     private fun List<String>.getAddress(selectedChain: Chain) = find { it.startsWith(selectedChain.id) }?.split(":")?.last() ?: String.Empty
+
+    private fun List<String>.accountsToChainId() = map {
+        val (chainNamespace, chainReference, _) = it.split(":")
+        "$chainNamespace:$chainReference"
+    }
+
+    private fun List<String>.getDefaultChain() = accountsToChainId()
+        .filter { CoreValidator.isChainIdCAIP2Compliant(it) }
+        .map { Chain(it) }
 
     internal fun createConnectModalState() {
         val sessionParams = Web3Modal.sessionParams
@@ -137,7 +152,7 @@ internal class Web3ModalViewModel : ViewModel() {
                 }
                 _modalState.value = Web3ModalState.Connect(uri, wallets.mapRecentWallet(getRecentWalletUseCase()))
             } catch (e: Exception) {
-                Timber.e(e)
+                logger.error(e)
                 handleError(e)
             }
         }
@@ -162,22 +177,20 @@ internal class Web3ModalViewModel : ViewModel() {
                 onSuccess()
             },
             onError = {
-                Timber.e(it.throwable)
+                logger.error(it.throwable)
             }
         )
     }
 
-    internal fun changeChain(chain: Chain) {
-        (_modalState.value as? Web3ModalState.AccountState)?.accountData?.let { accountData ->
-            saveChainSelectionUseCase(chain.id)
-            val address = Web3Modal.getActiveSessionByTopic(accountData.topic)?.namespaces?.values?.toList()?.flatMap { it.accounts }?.getAddress(chain) ?: String.Empty
-            _modalState.value = Web3ModalState.AccountState(
-                accountData.copy(
-                    selectedChain = chain,
-                    address = address
-                )
+    internal fun changeChain(accountData: AccountData, chain: Chain) {
+        saveChainSelectionUseCase(chain.id)
+        val address = Web3Modal.getActiveSessionByTopic(accountData.topic)?.namespaces?.values?.toList()?.flatMap { it.accounts }?.getAddress(chain) ?: accountData.address
+        _modalState.value = Web3ModalState.AccountState(
+            accountData.copy(
+                selectedChain = chain,
+                address = address
             )
-        }
+        )
     }
 
     private fun handleError(error: Throwable) {

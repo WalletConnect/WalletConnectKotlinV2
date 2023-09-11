@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
+import com.walletconnect.web3.modal.domain.model.AccountData
 import com.walletconnect.web3.modal.domain.model.Chain
 import com.walletconnect.web3.modal.ui.Web3ModalState
 import com.walletconnect.web3.modal.ui.navigation.connection.connectWalletNavGraph
@@ -21,7 +22,7 @@ internal fun Web3ModalNavGraph(
     retryConnection: (() -> Unit) -> Unit,
     disconnect: (String) -> Unit,
     closeModal: () -> Unit,
-    changeChain: (Chain) -> Unit
+    changeChain: (AccountData, Chain) -> Unit
 ) {
     NavHost(
         navController = navController,

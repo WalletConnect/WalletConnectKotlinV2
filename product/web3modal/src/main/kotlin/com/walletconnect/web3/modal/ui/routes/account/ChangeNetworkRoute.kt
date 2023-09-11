@@ -29,7 +29,7 @@ import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 @Composable
 internal fun ChangeNetworkRoute(
     accountData: AccountData,
-    changeChain: (Chain) -> Unit
+    changeChain: (AccountData, Chain) -> Unit
 ) {
     ChangeNetworkScreen(
         accountData = accountData,
@@ -40,7 +40,7 @@ internal fun ChangeNetworkRoute(
 @Composable
 private fun ChangeNetworkScreen(
     accountData: AccountData,
-    onChainItemClick: (Chain) -> Unit
+    onChainItemClick: (AccountData, Chain) -> Unit
 ) {
     var searchInputValue by rememberSaveable() { mutableStateOf("") }
 
@@ -59,7 +59,8 @@ private fun ChangeNetworkScreen(
         ChainNetworkGrid(
             chains = accountData.chains.filter { it.name.contains(searchInputValue, ignoreCase = true) },
             selectedChain = accountData.selectedChain,
-            onItemClick = onChainItemClick)
+            onItemClick = { onChainItemClick(accountData, it) }
+        )
         FullWidthDivider()
         VerticalSpacer(height = 12.dp)
         Text(
@@ -107,6 +108,6 @@ private fun ChangeNetworkPreview() {
             chains = listOf(Chain("eip155:1"))
 
         )
-        ChangeNetworkScreen(accountData, {})
+        ChangeNetworkScreen(accountData, { _, _ -> })
     }
 }

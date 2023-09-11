@@ -3,6 +3,7 @@ package com.walletconnect.web3.modal.ui.navigation
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import com.walletconnect.web3.modal.domain.model.AccountData
 import com.walletconnect.web3.modal.domain.model.Chain
 import com.walletconnect.web3.modal.ui.Web3ModalState
 import com.walletconnect.web3.modal.ui.routes.account.AccountRoute
@@ -13,7 +14,7 @@ internal fun NavGraphBuilder.accountModalGraph(
     web3ModalState: Web3ModalState.AccountState,
     disconnect: (String) -> Unit,
     closeModal: () -> Unit,
-    changeChain: (Chain) -> Unit
+    changeChain: (AccountData, Chain) -> Unit
 ) {
     composable(route = Route.ACCOUNT.path) {
         AccountRoute(
