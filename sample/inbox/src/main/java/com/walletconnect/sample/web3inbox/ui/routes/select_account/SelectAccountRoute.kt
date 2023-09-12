@@ -78,7 +78,7 @@ fun SignInWithWalletSection(onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .alpha(0.8f), textAlign = TextAlign.Center,
-        text = "Wanna use your wallet?\nGood for sync testing\nNote: Selecting \"Log In With Wallet\" option will require signing messages on your wallet"
+        text = "Good for sync testing\nNote: Selecting \"Log In With Wallet\" option will require signing messages on your wallet"
     )
     Spacer(modifier = Modifier.height(10.dp))
     Button(
