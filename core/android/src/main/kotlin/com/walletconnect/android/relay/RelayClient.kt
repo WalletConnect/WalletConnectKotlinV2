@@ -10,7 +10,6 @@ import com.walletconnect.android.internal.common.di.coreAndroidNetworkModule
 import com.walletconnect.android.internal.common.exception.WRONG_CONNECTION_TYPE
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.android.utils.isValidRelayServerUrl
 import com.walletconnect.android.utils.toCommonConnectionType
 import com.walletconnect.android.utils.toWalletConnectException
 import com.walletconnect.foundation.network.BaseRelayClient
@@ -35,10 +34,16 @@ class RelayClient(private val koinApp: KoinApplication = wcKoinApp) : BaseRelayC
     private val isWSSConnectionOpened: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     @JvmSynthetic
-    fun initialize(relayServerUrl: String, connectionType: ConnectionType, networkClientTimeout: NetworkClientTimeout? = null, onError: (Throwable) -> Unit) {
-        require(relayServerUrl.isValidRelayServerUrl()) { "Check the schema and projectId parameter of the Server Url" }
+    fun initialize(relayServerUrl: String?, networkClientTimeout: NetworkClientTimeout? = null, connectionType: ConnectionType = ConnectionType.AUTOMATIC, onError: (Throwable) -> Unit) {
         logger = koinApp.koin.get(named(AndroidCommonDITags.LOGGER))
-        koinApp.modules(coreAndroidNetworkModule(relayServerUrl, connectionType.toCommonConnectionType(), BuildConfig.SDK_VERSION, networkClientTimeout))
+        koinApp.modules(
+            coreAndroidNetworkModule(
+                serverUrl = relayServerUrl,
+                connectionType = connectionType.toCommonConnectionType(),
+                sdkVersion = BuildConfig.SDK_VERSION,
+                timeout = networkClientTimeout
+            )
+        )
         relayService = koinApp.koin.get(named(AndroidCommonDITags.RELAY_SERVICE))
 
         collectConnectionErrors(onError)

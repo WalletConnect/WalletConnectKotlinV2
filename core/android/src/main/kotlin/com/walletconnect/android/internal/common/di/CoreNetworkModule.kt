@@ -1,3 +1,5 @@
+@file:JvmSynthetic
+
 package com.walletconnect.android.internal.common.di
 
 import android.net.Uri
@@ -15,15 +17,13 @@ import com.walletconnect.android.BuildConfig
 import com.walletconnect.android.internal.common.connection.ConnectivityState
 import com.walletconnect.android.internal.common.connection.ManualConnectionLifecycle
 import com.walletconnect.android.internal.common.jwt.clientid.GenerateJwtStoreClientIdUseCase
+import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.relay.NetworkClientTimeout
+import com.walletconnect.android.utils.isValidRelayServerUrl
 import com.walletconnect.foundation.network.data.ConnectionController
 import com.walletconnect.foundation.network.data.adapter.FlowStreamAdapter
 import com.walletconnect.foundation.network.data.service.RelayService
-import com.walletconnect.utils.Empty
-import com.walletconnect.utils.combineListOfBitSetsWithOrOperator
-import com.walletconnect.utils.removeLeadingZeros
-import com.walletconnect.utils.toBinaryString
 import okhttp3.Authenticator
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -34,36 +34,40 @@ import org.koin.dsl.module
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-
-var SERVER_URL: String = ""
+internal var SERVER_URL: String = "wss://relay.walletconnect.com"
 
 @Suppress("LocalVariableName")
 @JvmSynthetic
-fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, sdkVersion: String, timeout: NetworkClientTimeout? = null) = module {
+fun coreAndroidNetworkModule(serverUrl: String?, connectionType: ConnectionType, sdkVersion: String, timeout: NetworkClientTimeout? = null) = module {
     val DEFAULT_BACKOFF_SECONDS = 5L
     val networkClientTimeout = timeout ?: NetworkClientTimeout.getDefaultTimeout()
-    SERVER_URL = serverUrl
+
+    if (serverUrl != null) {
+        require(serverUrl.isValidRelayServerUrl()) { "Check the schema and projectId parameter of the Server Url" }
+        SERVER_URL = serverUrl
+    }
 
     factory(named(AndroidCommonDITags.RELAY_URL)) {
         val jwt = get<GenerateJwtStoreClientIdUseCase>().invoke(SERVER_URL)
         Uri.parse(SERVER_URL)
             .buildUpon()
+            .clearQuery()
             .appendQueryParameter("auth", jwt)
             .appendQueryParameter("ua", get(named(AndroidCommonDITags.USER_AGENT)))
+            .appendQueryParameter("projectId", get<ProjectId>().value)
             .build()
             .toString()
     }
 
     factory(named(AndroidCommonDITags.USER_AGENT)) {
-        val listOfSdkBitsets = getAll<BitSet>().takeUnless { it.isEmpty() } ?: listOf(BitSet())
-        val sdkBitwiseFlags = if (listOfSdkBitsets.isNotEmpty()) {
-            combineListOfBitSetsWithOrOperator(listOfSdkBitsets).toBinaryString().removeLeadingZeros()
-        } else String.Empty
-        """wc-2/kotlin-${sdkVersion}x$sdkBitwiseFlags/android-${Build.VERSION.RELEASE}"""
+        """wc-2/kotlin-${sdkVersion}/android-${Build.VERSION.RELEASE}"""
     }
 
     single {
-        GenerateJwtStoreClientIdUseCase(get(), get())
+        GenerateJwtStoreClientIdUseCase(
+            clientIdJwtRepository = get(),
+            sharedPreferences = get()
+        )
     }
 
     single(named(AndroidCommonDITags.USER_AGENT_INTERCEPTOR)) {
