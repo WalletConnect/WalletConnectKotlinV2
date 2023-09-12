@@ -31,7 +31,7 @@ internal fun Events.OnAuthRequest.toClientAuthRequest(): Auth.Event.AuthRequest 
 
 @JvmSynthetic
 internal fun Events.OnAuthRequest.toClientAuthContext(): Auth.Event.VerifyContext =
-    Auth.Event.VerifyContext(id, verifyContext.origin, verifyContext.validation.toClientValidation(), verifyContext.verifyUrl)
+    Auth.Event.VerifyContext(id, verifyContext.origin, verifyContext.validation.toClientValidation(), verifyContext.verifyUrl, verifyContext.isScam)
 
 @JvmSynthetic
 internal fun Validation.toClientValidation(): Auth.Model.Validation =
@@ -123,4 +123,4 @@ internal fun Cacao.Payload.toClient(): Auth.Model.Cacao.Payload =
 internal fun Cacao.Signature.toClient(): Auth.Model.Cacao.Signature = Auth.Model.Cacao.Signature(t, s, m)
 
 @JvmSynthetic
-internal fun VerifyContext.toClient(): Auth.Model.VerifyContext = Auth.Model.VerifyContext(id, origin, validation.toClientValidation(), verifyUrl)
+internal fun VerifyContext.toClient(): Auth.Model.VerifyContext = Auth.Model.VerifyContext(id, origin, validation.toClientValidation(), verifyUrl, isScam)

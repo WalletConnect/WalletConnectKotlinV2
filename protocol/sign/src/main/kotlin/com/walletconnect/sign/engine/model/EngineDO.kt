@@ -51,7 +51,8 @@ internal sealed class EngineDO {
         val id: Long,
         val origin: String,
         val validation: Validation,
-        val verifyUrl: String
+        val verifyUrl: String,
+        val isScam: Boolean?
     ) : EngineDO()
 
     sealed class Namespace : EngineDO() {
