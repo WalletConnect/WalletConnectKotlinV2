@@ -6,6 +6,7 @@ import com.walletconnect.android.CoreClient
 import com.walletconnect.android.internal.common.explorer.data.model.Wallet
 import com.walletconnect.android.internal.common.explorer.domain.usecase.GetWalletsUseCaseInterface
 import com.walletconnect.android.internal.common.wcKoinApp
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.wcmodal.client.Modal
 import com.walletconnect.wcmodal.client.WalletConnectModal
 import com.walletconnect.wcmodal.domain.usecase.GetRecentWalletUseCase
@@ -13,12 +14,12 @@ import com.walletconnect.wcmodal.domain.usecase.SaveRecentWalletUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 private const val WCM_SDK = "wcm"
 
 internal class WalletConnectModalViewModel : ViewModel() {
 
+    private val logger: Logger = wcKoinApp.koin.get()
     private val getWalletsUseCase: GetWalletsUseCaseInterface = wcKoinApp.koin.get()
     private val getRecentWalletUseCase: GetRecentWalletUseCase = wcKoinApp.koin.get()
     private val saveRecentWalletUseCase: SaveRecentWalletUseCase = wcKoinApp.koin.get()
@@ -73,15 +74,16 @@ internal class WalletConnectModalViewModel : ViewModel() {
                 WalletConnectModal.connect(
                     connect = connectParams,
                     onSuccess = onSuccess,
-                    onError = { Timber.e(it.throwable) }
+                    onError = { logger.error(it.throwable) }
                 )
             } catch (e: Exception) {
                 handleError(e)
             }
-        } ?: Timber.e("Invalid modal state")
+        } ?: logger.error("Invalid modal state")
     }
 
     private fun handleError(error: Throwable) {
+        logger.error(error)
         _modalState.value = WalletConnectModalState.Error(error)
     }
 
@@ -96,7 +98,7 @@ internal class WalletConnectModalViewModel : ViewModel() {
             }
             _modalState.value = WalletConnectModalState.Connect(uri, wallets.mapRecentWallet(getRecentWalletUseCase()))
         } catch (e: Exception) {
-            Timber.e(e)
+            logger.error(e)
             _modalState.value = WalletConnectModalState.Connect(uri)
         }
     }
