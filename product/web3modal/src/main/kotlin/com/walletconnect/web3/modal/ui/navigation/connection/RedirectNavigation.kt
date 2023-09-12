@@ -21,6 +21,7 @@ internal fun NavController.navigateToRedirect(wallet: Wallet) {
 internal fun NavGraphBuilder.redirectRoute(
     wallets: List<Wallet>,
     uri: String,
+    updateRecentWalletId: (String) -> Unit,
     retry: (() -> Unit) -> Unit
 ) {
     composable(
@@ -28,6 +29,6 @@ internal fun NavGraphBuilder.redirectRoute(
         arguments = listOf(navArgument(WALLET_ID_KEY) { type = NavType.StringType })
     ) { backStackEntry ->
         val wallet = wallets.find { it.id == backStackEntry.arguments?.getString(WALLET_ID_KEY, String.Empty) }!!
-        RedirectWalletRoute(wallet = wallet, uri = uri, retry = retry)
+        RedirectWalletRoute(wallet = wallet, uri = uri, retry = retry).also { updateRecentWalletId(wallet.id) }
     }
 }

@@ -25,10 +25,14 @@ import com.walletconnect.web3.modal.ui.previews.MultipleComponentsPreview
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
+internal enum class AccountEntryState {
+    LOADING, NEXT, INFO
+}
+
 @Composable
 internal fun AccountEntry(
     isEnabled: Boolean = true,
-    isLoading: Boolean = false,
+    state: AccountEntryState = AccountEntryState.NEXT,
     onClick: () -> Unit,
     startIcon: @Composable (Boolean) -> Unit,
     content: @Composable (EntryColors) -> Unit,
@@ -36,7 +40,7 @@ internal fun AccountEntry(
     BaseEntry(isEnabled = isEnabled) { entryColors ->
         Row(
             modifier = Modifier
-                .clickable(enabled = isEnabled) { onClick() }
+                .clickable(enabled = state == AccountEntryState.NEXT && isEnabled) { onClick() }
                 .height(56.dp)
                 .background(color = entryColors.background)
                 .padding(horizontal = 12.dp),
@@ -48,10 +52,10 @@ internal fun AccountEntry(
                 content(entryColors)
             }
             HorizontalSpacer(width = 12.dp)
-            if (isLoading) {
-                LoadingSpinner(entryColors.secondaryColor)
-            } else {
-                ChevronRightIcon(entryColors.secondaryColor)
+            when(state) {
+                AccountEntryState.LOADING -> LoadingSpinner(entryColors.secondaryColor)
+                AccountEntryState.NEXT -> ChevronRightIcon(entryColors.secondaryColor)
+                AccountEntryState.INFO -> {}
             }
         }
     }
@@ -71,7 +75,15 @@ private fun AccountEntryPreview() {
             AccountEntry(
                 onClick = {},
                 startIcon = { CircleNetworkImage(url = "", isEnabled = it, placeholder = ContextCompat.getDrawable(LocalContext.current, R.drawable.defi)) },
-                isLoading = true,
+                state = AccountEntryState.LOADING,
+                content = content
+            )
+        },
+        {
+            AccountEntry(
+                onClick = {},
+                startIcon = { CircleNetworkImage(url = "", isEnabled = it, placeholder = ContextCompat.getDrawable(LocalContext.current, R.drawable.defi)) },
+                state = AccountEntryState.INFO,
                 content = content
             )
         },

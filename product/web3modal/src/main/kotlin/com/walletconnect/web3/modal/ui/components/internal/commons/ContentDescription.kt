@@ -14,6 +14,7 @@ enum class ContentDescription(val description: String) {
     STORE_IMAGE("StoreEntryImage"),
     DECLINED("Declined"),
     EXTERNAL_LINK("ExternalLink"),
+    SCAN_QR("ScanQR"),
     COMPASS("Compass"),
     CHEVRON_RIGHT("ChevronRight"),
     DISCONNECT("Disconnect"),
