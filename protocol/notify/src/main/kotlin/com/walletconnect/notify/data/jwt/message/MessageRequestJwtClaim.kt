@@ -10,7 +10,6 @@ import com.walletconnect.notify.data.jwt.NotifyJwtBase
 internal data class MessageRequestJwtClaim(
     @Json(name = "iss") override val issuer: String,
     @Json(name = "sub") val subject: String,
-    @Json(name = "aud") val audience: String,
     @Json(name = "iat") override val issuedAt: Long,
     @Json(name = "exp") override val expiration: Long,
     @Json(name = "app") val app: String,

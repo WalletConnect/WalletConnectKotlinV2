@@ -18,7 +18,7 @@ import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.utils.cacao.sign
-import com.walletconnect.sample.common.WALLET_CONNECT_RELAY_URL
+import com.walletconnect.sample.common.RELAY_URL
 import com.walletconnect.sample.common.initBeagle
 import com.walletconnect.sample.common.tag
 import com.walletconnect.sample.wallet.domain.EthAccountDelegate
@@ -49,7 +49,7 @@ class Web3WalletApplication : Application() {
         Log.d(tag(this), "Account: ${EthAccountDelegate.account}")
 
         val projectId = BuildConfig.PROJECT_ID
-        val serverUrl = "wss://$WALLET_CONNECT_RELAY_URL?projectId=${projectId}"
+        val serverUrl = "wss://$RELAY_URL?projectId=${projectId}"
         val appMetaData = Core.Model.AppMetaData(
             name = "Kotlin Wallet",
             description = "Kotlin Wallet Implementation",

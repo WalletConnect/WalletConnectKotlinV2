@@ -5,7 +5,7 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.relay.ConnectionType
-import com.walletconnect.sample.common.WALLET_CONNECT_RELAY_URL
+import com.walletconnect.sample.common.RELAY_URL
 import com.walletconnect.sample.web3inbox.domain.EthAccount
 import com.walletconnect.sample.web3inbox.domain.SharedPrefStorage
 import com.walletconnect.sample.web3inbox.domain.WCMDelegate
@@ -22,7 +22,7 @@ class W3ISampleApp : Application() {
 
         Timber.plant(Timber.DebugTree())
 
-        val serverUri = "wss://$WALLET_CONNECT_RELAY_URL?projectId=${BuildConfig.PROJECT_ID}"
+        val serverUri = "wss://$RELAY_URL?projectId=${BuildConfig.PROJECT_ID}"
         val appMetaData = Core.Model.AppMetaData(
             name = "Kotlin W3I Sample",
             description = "Kotlin W3I Sample Implementation",
