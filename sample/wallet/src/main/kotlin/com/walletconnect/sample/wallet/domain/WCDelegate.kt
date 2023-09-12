@@ -43,7 +43,6 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
         }
     }
 
-
     override fun onError(error: Wallet.Model.Error) {
         mixPanel.track("error", JSONObject().put("error", error.throwable.stackTraceToString()))
         scope.launch {
