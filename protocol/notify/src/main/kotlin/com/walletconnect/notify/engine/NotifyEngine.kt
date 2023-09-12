@@ -116,7 +116,7 @@ internal class NotifyEngine(
 
     private suspend fun registerTagsInHistory() {
         // Sync are here since Archive Server expects only one register call
-        archiveInterface.registerTags(tags = listOf(Tags.NOTIFY_MESSAGE), {}, { error -> logger.error(error.throwable) })
+//        archiveInterface.registerTags(tags = listOf(Tags.NOTIFY_MESSAGE), {}, { error -> logger.error(error.throwable) })
     }
 
     private suspend fun collectJsonRpcRequests(): Job =
@@ -135,10 +135,10 @@ internal class NotifyEngine(
             .filter { response -> response.params is CoreNotifyParams }
             .onEach { response ->
                 logger.log("collectJsonRpcResponses - $response")
-                when (val responseParams = response.params) {
-                    is CoreNotifyParams.SubscribeParams -> onNotifySubscribeResponseUseCase(response)
-                    is CoreNotifyParams.UpdateParams -> onNotifyUpdateResponseUseCase(response, responseParams)
-                    is CoreNotifyParams.WatchSubscriptionsParams -> onWatchSubscriptionsResponseUseCase(response, responseParams)
+                when (val params = response.params) {
+                    is CoreNotifyParams.SubscribeParams -> onNotifySubscribeResponseUseCase(response, params)
+                    is CoreNotifyParams.UpdateParams -> onNotifyUpdateResponseUseCase(response, params)
+                    is CoreNotifyParams.WatchSubscriptionsParams -> onWatchSubscriptionsResponseUseCase(response, params)
                 }
             }.launchIn(scope)
 

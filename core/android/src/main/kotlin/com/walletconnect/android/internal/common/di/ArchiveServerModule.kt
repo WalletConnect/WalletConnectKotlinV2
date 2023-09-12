@@ -3,8 +3,7 @@
 package com.walletconnect.android.internal.common.di
 
 import com.walletconnect.android.archive.ArchiveInterface
-import com.walletconnect.android.archive.ArchiveMessageNotifier
-import com.walletconnect.android.archive.ReduceSyncRequestsUseCase
+import com.walletconnect.android.archive.DecryptRequestsUseCase
 import com.walletconnect.android.archive.domain.GetMessagesUseCase
 import com.walletconnect.android.archive.domain.RegisterTagsUseCase
 import com.walletconnect.android.archive.network.ArchiveServerService
@@ -31,8 +30,7 @@ internal fun archiveModule(archive: ArchiveInterface, archiveServerUrl: String? 
 
     single { get<Retrofit>(named(AndroidCommonDITags.ARCHIVE_SERVER_RETROFIT)).create(ArchiveServerService::class.java) }
 
-    single { ArchiveMessageNotifier() }
-    single { ReduceSyncRequestsUseCase(get(), get(), get(), get(named(AndroidCommonDITags.LOGGER))) }
+    single { DecryptRequestsUseCase(get(), get(), get(), get(named(AndroidCommonDITags.LOGGER))) }
     single { RegisterTagsUseCase(get(), get(), get(named(AndroidCommonDITags.ARCHIVE_SERVER_URL)), get(named(AndroidCommonDITags.LOGGER))) }
     single { GetMessagesUseCase(get(), get(named(AndroidCommonDITags.LOGGER))) }
 

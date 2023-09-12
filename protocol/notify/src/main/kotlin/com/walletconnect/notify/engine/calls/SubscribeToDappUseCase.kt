@@ -106,6 +106,8 @@ internal class SubscribeToDappUseCase(
                 onFailure(error)
             }
         )
+
+        logger.log("subscribeToDapp - publishJsonRpcRequest($dappUri) - topic: $subscribeTopic")
     }
 }
 

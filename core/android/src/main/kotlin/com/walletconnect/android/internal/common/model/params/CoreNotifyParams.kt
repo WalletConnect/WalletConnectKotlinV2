@@ -21,12 +21,6 @@ sealed interface CoreNotifyParams : ClientParams {
     ) : CoreNotifyParams
 
     @JsonClass(generateAdapter = true)
-    data class MessageResponseParams(
-        @Json(name = "responseAuth")
-        val responseAuth: String,
-    ) : CoreNotifyParams
-
-    @JsonClass(generateAdapter = true)
     data class UpdateParams(
         @Json(name = "updateAuth")
         val updateAuth: String,

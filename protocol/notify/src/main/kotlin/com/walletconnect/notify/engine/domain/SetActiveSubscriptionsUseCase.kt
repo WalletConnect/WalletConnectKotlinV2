@@ -1,11 +1,8 @@
 package com.walletconnect.notify.engine.domain
 
-import android.net.Uri
 import androidx.core.net.toUri
 import com.walletconnect.android.internal.common.crypto.sha256
-import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.model.AccountId
-import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.SDKError
@@ -20,21 +17,18 @@ import com.walletconnect.notify.common.model.NotificationScope
 import com.walletconnect.notify.common.model.ServerSubscription
 import com.walletconnect.notify.common.model.Subscription
 import com.walletconnect.notify.data.storage.SubscriptionRepository
-import com.walletconnect.notify.data.wellknown.config.NotifyConfigDTO
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
-import kotlinx.coroutines.withContext
-import java.net.URL
 
 internal class SetActiveSubscriptionsUseCase(
     private val subscriptionRepository: SubscriptionRepository,
     private val extractPublicKeysFromDidJsonUseCase: ExtractPublicKeysFromDidJsonUseCase,
     private val extractMetadataFromConfigUseCase: ExtractMetadataFromConfigUseCase,
+    private val fetchAllMessagesFromArchiveUseCase: FetchAllMessagesFromArchiveUseCase,
     private val metadataRepository: MetadataStorageRepositoryInterface,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val keyStore: KeyStore,
@@ -48,7 +42,7 @@ internal class SetActiveSubscriptionsUseCase(
 
         val activeSubscriptions = serverSubscriptions.map { subscription ->
             with(subscription) {
-                val dappUri = appDomain.toUri()
+                val dappUri =  appDomainWithHttps.toUri()
                 logger.log("SetActiveSubscriptionsUseCase - dappUri: $dappUri")
 
                 val (metadata, scopes) = extractMetadataFromConfigUseCase(dappUri).getOrThrow()
@@ -84,6 +78,13 @@ internal class SetActiveSubscriptionsUseCase(
 
         subscriptionRepository.setActiveSubscriptions(account, activeSubscriptions)
         logger.log("SetActiveSubscriptionsUseCase - activeSubscriptions: $activeSubscriptions")
+
+        activeSubscriptions.forEach { subscription ->
+//            fetchAllMessagesFromArchiveUseCase(
+//                subscription,
+//                onSuccess = { records -> logger.log("SetActiveSubscriptionsUseCase - fetchAllMessagesFromArchiveUseCase(${records.size}): $records") },
+//                onError = { error -> logger.error("SetActiveSubscriptionsUseCase - fetchAllMessagesFromArchiveUseCase: $error") })
+        }
 
         return@supervisorScope activeSubscriptions
     }

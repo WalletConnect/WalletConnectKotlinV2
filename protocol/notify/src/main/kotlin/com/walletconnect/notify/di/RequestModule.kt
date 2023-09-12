@@ -20,6 +20,7 @@ internal fun requestModule() = module {
             fetchDidJwtInteractor = get(),
             metadataStorageRepository = get(),
             _moshi = get(named(AndroidCommonDITags.MOSHI)),
+            logger = get()
         )
     }
 

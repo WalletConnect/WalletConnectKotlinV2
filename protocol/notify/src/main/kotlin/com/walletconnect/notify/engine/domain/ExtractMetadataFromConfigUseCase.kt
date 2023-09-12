@@ -27,6 +27,8 @@ internal class ExtractMetadataFromConfigUseCase(
     suspend operator fun invoke(dappUri: Uri): Result<Pair<AppMetaData, List<NotificationScope.Remote>>> = withContext(Dispatchers.IO) {
         val notifyConfigDappUri = generateAppropriateUri(dappUri, WC_NOTIFY_CONFIG_JSON)
 
+        logger.log("ExtractMetadataFromConfigUseCase - $notifyConfigDappUri")
+
         return@withContext notifyConfigDappUri.runCatching {
             // Get the did.json from the dapp
             URL(this.toString()).openStream().bufferedReader().use { it.readText() }
