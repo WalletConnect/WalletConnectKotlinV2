@@ -90,13 +90,54 @@ class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInter
         }
 
         if (relay == null) {
-            Relay.initialize(relayServerUrl, connectionType, networkClientTimeout) { error -> onError(Core.Model.Error(error)) }
+            Relay.initialize(relayServerUrl, networkClientTimeout, connectionType) { error -> onError(Core.Model.Error(error)) }
         }
 
         Verify.initialize(metaData.verifyUrl)
         Pairing.initialize()
         PairingController.initialize()
-        Archive.initialize(relayServerUrl)
-        Sync.initialize() { error -> onError(Core.Model.Error(error.throwable)) }
+        Sync.initialize { error -> onError(Core.Model.Error(error.throwable)) }
+    }
+
+    override fun initialize(
+        projectId: String,
+        metaData: Core.Model.AppMetaData,
+        application: Application,
+        relayServerUrl: String?,
+        networkClientTimeout: NetworkClientTimeout?,
+        onError: (Core.Model.Error) -> Unit,
+    ) {
+        with(koinApp) {
+            androidContext(application)
+            modules(
+                coreCommonModule(),
+                coreCryptoModule(),
+                module { single { ProjectId(projectId) } },
+                coreStorageModule(),
+                echoModule(),
+                module { single<RelayConnectionInterface> { Relay } },
+                coreJsonRpcModule(),
+                corePairingModule(Pairing, PairingController),
+                coreSyncModule(Sync),
+                keyServerModule(),
+                explorerModule(),
+                archiveModule(Archive, timeout = networkClientTimeout),
+                module {
+                    single {
+                        with(metaData) {
+                            AppMetaData(name = name, description = description, url = url, icons = icons, redirect = Redirect(redirect))
+                        }
+                    }
+                    single { Echo }
+                    single { Verify }
+                }
+            )
+        }
+
+        Relay.initialize(relayServerUrl, networkClientTimeout) { error -> onError(Core.Model.Error(error)) }
+        Verify.initialize(metaData.verifyUrl)
+        Pairing.initialize()
+        PairingController.initialize()
+        Sync.initialize { error -> onError(Core.Model.Error(error.throwable)) }
     }
 }

@@ -24,6 +24,8 @@ interface CoreInterface {
 
     fun setDelegate(delegate: Delegate)
 
+    @Deprecated("Migrate to use the simplified initialize method which only requires the projectId, metadata, and application context. " +
+            "ConnectionType, relay, and keyServerUrl will be removed in a future update.")
     fun initialize(
         metaData: Core.Model.AppMetaData,
         relayServerUrl: String,
@@ -31,6 +33,15 @@ interface CoreInterface {
         application: Application,
         relay: RelayConnectionInterface? = null,
         keyServerUrl: String? = null,
+        networkClientTimeout: NetworkClientTimeout? = null,
+        onError: (Core.Model.Error) -> Unit,
+    )
+
+    fun initialize(
+        projectId: String,
+        metaData: Core.Model.AppMetaData,
+        application: Application,
+        relayServerUrl: String? = null,
         networkClientTimeout: NetworkClientTimeout? = null,
         onError: (Core.Model.Error) -> Unit,
     )
