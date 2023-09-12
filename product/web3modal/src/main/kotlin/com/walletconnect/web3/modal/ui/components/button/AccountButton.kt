@@ -2,6 +2,7 @@ package com.walletconnect.web3.modal.ui.components.button
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -24,6 +25,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.walletconnect.web3.modal.ui.components.internal.commons.HorizontalSpacer
+import com.walletconnect.web3.modal.ui.components.internal.commons.TransparentSurface
 import com.walletconnect.web3.modal.ui.components.internal.commons.account.generateAvatarColors
 import com.walletconnect.web3.modal.ui.components.internal.commons.button.ButtonSize
 import com.walletconnect.web3.modal.ui.components.internal.commons.button.ButtonStyle
@@ -49,7 +51,7 @@ internal sealed class AccountButtonState {
     data class Mixed(
         val address: String,
         val chainImageUrl: String,
-        val balance: String
+        val chainName: String
     ) : AccountButtonState()
 
     object Invalid : AccountButtonState()
@@ -80,7 +82,7 @@ private fun AccountButtonState(
         is AccountButtonState.Mixed -> AccountButtonMixed(
             address = state.address,
             chainImageUrl = state.chainImageUrl,
-            balance = state.balance,
+            chainName = state.chainName,
             onClick = onClick
         )
     }
@@ -90,7 +92,7 @@ private fun AccountButtonState(
 private fun AccountButtonMixed(
     address: String,
     chainImageUrl: String,
-    balance: String,
+    chainName: String,
     onClick: () -> Unit,
     isEnabled: Boolean = true
 ) {
@@ -109,37 +111,40 @@ private fun AccountButtonMixed(
             textColor = Web3ModalTheme.colors.overlay15
         }
 
-        Box(
-            modifier = Modifier
-                .height(40.dp)
-                .background(backgroundColor, shape = RoundedCornerShape(100))
-                .border(width = 1.dp, color = borderColor, shape = RoundedCornerShape(100))
-        ) {
-            Row(
+        TransparentSurface(shape = RoundedCornerShape(100)) {
+            Box(
                 modifier = Modifier
-                    .padding(start = 8.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
+                    .clickable(isEnabled) { onClick() }
+                    .height(40.dp)
+                    .background(backgroundColor)
+                    .border(width = 1.dp, color = borderColor)
             ) {
-                CircleNetworkImage(url = chainImageUrl, size = 24.dp, isEnabled = isEnabled)
-                HorizontalSpacer(width = 6.dp)
-                Text(text = balance, style = Web3ModalTheme.typo.paragraph600.copy(color = textColor))
-                HorizontalSpacer(width = 8.dp)
-                ImageButton(
-                    text = address.toVisibleAddress(), image = {
-                        Box(
-                            modifier = Modifier
-                                .size(20.dp)
-                                .border(width = 1.dp, color = Web3ModalTheme.colors.overlay05, shape = CircleShape)
-                                .padding(1.dp)
-                                .background(brush = Brush.linearGradient(generateAvatarColors(address)), shape = CircleShape)
-                        )
-                    },
-                    isEnabled = isEnabled,
-                    style = ButtonStyle.ACCOUNT,
-                    size = ButtonSize.ACCOUNT_S,
-                    onClick = onClick
-                )
+                Row(
+                    modifier = Modifier
+                        .padding(start = 8.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    CircleNetworkImage(url = chainImageUrl, size = 24.dp, isEnabled = isEnabled)
+                    HorizontalSpacer(width = 6.dp)
+                    Text(text = chainName, style = Web3ModalTheme.typo.paragraph600.copy(color = textColor))
+                    HorizontalSpacer(width = 8.dp)
+                    ImageButton(
+                        text = address.toVisibleAddress(), image = {
+                            Box(
+                                modifier = Modifier
+                                    .size(20.dp)
+                                    .border(width = 1.dp, color = Web3ModalTheme.colors.overlay05, shape = CircleShape)
+                                    .padding(1.dp)
+                                    .background(brush = Brush.linearGradient(generateAvatarColors(address)), shape = CircleShape)
+                            )
+                        },
+                        isEnabled = isEnabled,
+                        style = ButtonStyle.ACCOUNT,
+                        size = ButtonSize.ACCOUNT_S,
+                        onClick = onClick
+                    )
+                }
             }
         }
     }
@@ -183,13 +188,17 @@ private fun UnavailableSessionPreview() {
 @UiModePreview
 @Composable
 private fun AccountButtonNormalPreview() {
-    MultipleComponentsPreview({ AccountButtonNormal(address = "0x59eAF7DD5a2f5e433083D8BbC8de3439542579cb", onClick = {}) },
-        { AccountButtonNormal(address = "0x59eAF7DD5a2f5e433083D8BbC8de3439542579cb", onClick = {}, isEnabled = false) })
+    MultipleComponentsPreview(
+        { AccountButtonNormal(address = "0x59eAF7DD5a2f5e433083D8BbC8de3439542579cb", onClick = {}) },
+        { AccountButtonNormal(address = "0x59eAF7DD5a2f5e433083D8BbC8de3439542579cb", onClick = {}, isEnabled = false) }
+    )
 }
 
 @UiModePreview
 @Composable
 private fun AccountButtonMixedPreview() {
-    MultipleComponentsPreview({ AccountButtonMixed(balance = "0.527 ETH", chainImageUrl = "", address = "0x59eAF7DD5a2f5e433083D8BbC8de3439542579cb", onClick = {}) },
-        { AccountButtonMixed(balance = "0.527 ETH", chainImageUrl = "", address = "0x59eAF7DD5a2f5e433083D8BbC8de3439542579cb", onClick = {}, isEnabled = false) })
+    MultipleComponentsPreview(
+        { AccountButtonMixed(chainName = "ETH", chainImageUrl = "", address = "0x59eAF7DD5a2f5e433083D8BbC8de3439542579cb", onClick = {}) },
+        { AccountButtonMixed(chainName = "ETH", chainImageUrl = "", address = "0x59eAF7DD5a2f5e433083D8BbC8de3439542579cb", onClick = {}, isEnabled = false) }
+    )
 }

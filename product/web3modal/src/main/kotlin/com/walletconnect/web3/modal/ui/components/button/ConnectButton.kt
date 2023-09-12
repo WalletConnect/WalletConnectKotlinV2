@@ -50,7 +50,10 @@ internal fun ConnectButton(
             ConnectButtonSize.NORMAL -> ButtonSize.M
             ConnectButtonSize.SMALL -> ButtonSize.S
         }
-        AnimatedContent(targetState = isLoading, label = "ConnectButton") { state ->
+        AnimatedContent(
+            targetState = isLoading && isEnabled,
+            label = "ConnectButton"
+        ) { state ->
             if (state) {
                 ImageButton(
                     text = "Connecting...",

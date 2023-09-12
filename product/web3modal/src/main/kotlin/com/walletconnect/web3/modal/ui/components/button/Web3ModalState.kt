@@ -93,7 +93,7 @@ class Web3ModalState(
             AccountButtonType.MIXED -> AccountButtonState.Mixed(
                 address = address,
                 chainImageUrl = selectedChain.imageUrl,
-                balance = ""
+                chainName = selectedChain.name
             )
         }
     } catch (e: Exception) {
