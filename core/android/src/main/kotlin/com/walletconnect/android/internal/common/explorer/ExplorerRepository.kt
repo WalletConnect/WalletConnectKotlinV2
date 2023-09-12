@@ -87,7 +87,7 @@ class ExplorerRepository(
             nativeLink = mobile.native,
             universalLink = mobile.universal,
             playStoreLink = app.android
-        ).apply { isWalletInstalled = context.packageManager.isWalletInstalled(this) }
+        ).apply { isWalletInstalled = context.packageManager.isWalletInstalled(appPackage, nativeLink) }
     }
 
     private fun String.buildWalletImageUrl(): String {

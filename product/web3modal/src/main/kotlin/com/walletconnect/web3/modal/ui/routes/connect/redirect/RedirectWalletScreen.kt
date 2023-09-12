@@ -28,11 +28,11 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.walletconnect.android.internal.common.explorer.data.model.Wallet
 import com.walletconnect.modal.utils.goToNativeWallet
 import com.walletconnect.modal.utils.openPlayStore
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
+import com.walletconnect.web3.modal.domain.model.Wallet
 import com.walletconnect.web3.modal.ui.components.internal.commons.DeclinedIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.entry.CopyActionEntry
 import com.walletconnect.web3.modal.ui.components.internal.commons.FullWidthDivider

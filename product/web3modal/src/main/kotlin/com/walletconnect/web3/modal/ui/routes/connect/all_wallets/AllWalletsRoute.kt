@@ -32,9 +32,10 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.walletconnect.android.internal.common.explorer.data.model.Wallet
+import androidx.navigation.NavController
 import com.walletconnect.modal.utils.isLandscape
 import com.walletconnect.web3.modal.R
+import com.walletconnect.web3.modal.domain.model.Wallet
 import com.walletconnect.web3.modal.ui.components.internal.commons.ContentDescription
 import com.walletconnect.web3.modal.ui.components.internal.commons.HorizontalSpacer
 import com.walletconnect.web3.modal.ui.components.internal.commons.ScanQRIcon

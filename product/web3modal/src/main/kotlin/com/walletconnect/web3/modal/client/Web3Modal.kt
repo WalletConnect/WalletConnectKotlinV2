@@ -3,6 +3,7 @@ package com.walletconnect.web3.modal.client
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
+import com.walletconnect.web3.modal.di.web3ModalApiModule
 import com.walletconnect.web3.modal.di.web3ModalModule
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
 
@@ -43,7 +44,10 @@ object Web3Modal {
                 this.excludedWalletsIds = init.excludedWalletIds
                 this.recommendedWalletsIds = init.recommendedWalletsIds
                 runCatching {
-                    wcKoinApp.modules(web3ModalModule())
+                    wcKoinApp.modules(
+                        web3ModalModule(),
+                        web3ModalApiModule()
+                    )
                     setDelegate(Web3ModalDelegate)
                 }.onFailure { error -> onError(Modal.Model.Error(error)) }
                 onSuccess()
