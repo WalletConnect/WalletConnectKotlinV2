@@ -2,7 +2,6 @@ package com.walletconnect.sign.engine.use_case.requests
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.exception.Uncategorized
-import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.SDKError
@@ -16,7 +15,6 @@ import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
 import com.walletconnect.foundation.common.model.Ttl
-import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpc
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.common.validator.SignValidator
 import com.walletconnect.sign.engine.model.EngineDO
@@ -30,7 +28,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
-internal class OnSessionProposeUseCase(
+internal class OnSessionProposalUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val proposalStorageRepository: ProposalStorageRepository,
     private val resolveAttestationIdUseCase: ResolveAttestationIdUseCase,
