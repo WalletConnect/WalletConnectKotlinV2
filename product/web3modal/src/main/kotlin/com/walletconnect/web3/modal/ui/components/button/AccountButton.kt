@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,18 +57,14 @@ internal sealed class AccountButtonState {
 
 @Composable
 fun AccountButton(
-    web3ButtonState: Web3ModalState, accountButtonType: AccountButtonType
+    state: Web3ModalState,
+    accountButtonType: AccountButtonType = AccountButtonType.NORMAL
 ) {
-    var state by remember { mutableStateOf<AccountButtonState>(AccountButtonState.Loading) }
-
-    LaunchedEffect(Unit) {
-        val data = web3ButtonState.getAccountButtonState(accountButtonType)
-        state = data ?: AccountButtonState.Invalid
-    }
+    val accountState by state.accountButtonState(accountButtonType).collectAsState()
 
     AccountButtonState(
-        state = state,
-        onClick = web3ButtonState::openWeb3Modal
+        state = accountState,
+        onClick = state::openWeb3Modal
     )
 }
 
@@ -79,10 +76,7 @@ private fun AccountButtonState(
     when (state) {
         AccountButtonState.Invalid -> UnavailableSession()
         AccountButtonState.Loading -> LoadingButton()
-        is AccountButtonState.Normal -> AccountButtonNormal(
-            address = state.address, onClick = onClick
-        )
-
+        is AccountButtonState.Normal -> AccountButtonNormal(address = state.address, onClick = onClick)
         is AccountButtonState.Mixed -> AccountButtonMixed(
             address = state.address,
             chainImageUrl = state.chainImageUrl,

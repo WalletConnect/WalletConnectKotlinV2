@@ -57,19 +57,17 @@ internal class Web3ModalViewModel : ViewModel() {
     }
 
     internal fun initModalState() {
-        getActiveSession()?.let { activeSession ->
-            createAccountModalState(activeSession)
-        } ?: createConnectModalState()
-    }
-
-    private fun getActiveSession(): Modal.Model.Session? {
-        val sessionTopic = getSessionTopicUseCase()
-        return if (sessionTopic != null) {
-            Web3Modal.getActiveSessionByTopic(sessionTopic)
-        } else {
-            null
+        viewModelScope.launch {
+            getActiveSession()?.let { activeSession ->
+                createAccountModalState(activeSession)
+            } ?: createConnectModalState()
         }
     }
+
+    private suspend fun getActiveSession(): Modal.Model.Session? =
+        getSessionTopicUseCase()?.let {
+            Web3Modal.getActiveSessionByTopic(it)
+        }
 
     internal fun retryConnection(onSuccess: () -> Unit) {
         try {
@@ -86,7 +84,7 @@ internal class Web3ModalViewModel : ViewModel() {
         }
     }
 
-    internal fun createAccountModalState(activeSession: Modal.Model.Session) {
+    internal suspend fun createAccountModalState(activeSession: Modal.Model.Session) {
         val accounts = activeSession.namespaces.values.toList().flatMap { it.accounts }
         val chains = activeSession.namespaces.values
             .toList()
@@ -108,7 +106,7 @@ internal class Web3ModalViewModel : ViewModel() {
         _modalState.value = Web3ModalState.AccountState(accountData)
     }
 
-    private fun List<Chain>.getSelectedChain() = find { it.id == getSelectedChainUseCase() } ?: first()
+    private suspend fun List<Chain>.getSelectedChain() = find { it.id == getSelectedChainUseCase() } ?: first()
     private fun List<String>.getAddress(selectedChain: Chain) = find { it.startsWith(selectedChain.id) }?.split(":")?.last() ?: String.Empty
 
     private fun List<String>.accountsToChainId() = map {
@@ -141,20 +139,18 @@ internal class Web3ModalViewModel : ViewModel() {
     }
 
     private suspend fun fetchWallets(uri: String, chains: String) {
-        viewModelScope.launch {
-            try {
-                val wallets = if (Web3Modal.recommendedWalletsIds.isEmpty()) {
+        try {
+            val wallets = if (Web3Modal.recommendedWalletsIds.isEmpty()) {
+                getWalletsUseCase(sdkType = W3M_SDK, chains = chains, excludedIds = Web3Modal.excludedWalletsIds)
+            } else {
+                getWalletsUseCase(sdkType = W3M_SDK, chains = chains, excludedIds = Web3Modal.excludedWalletsIds, recommendedIds = Web3Modal.recommendedWalletsIds).union(
                     getWalletsUseCase(sdkType = W3M_SDK, chains = chains, excludedIds = Web3Modal.excludedWalletsIds)
-                } else {
-                    getWalletsUseCase(sdkType = W3M_SDK, chains = chains, excludedIds = Web3Modal.excludedWalletsIds, recommendedIds = Web3Modal.recommendedWalletsIds).union(
-                        getWalletsUseCase(sdkType = W3M_SDK, chains = chains, excludedIds = Web3Modal.excludedWalletsIds)
-                    ).toList()
-                }
-                _modalState.value = Web3ModalState.Connect(uri, wallets.mapRecentWallet(getRecentWalletUseCase()))
-            } catch (e: Exception) {
-                logger.error(e)
-                handleError(e)
+                ).toList()
             }
+            _modalState.value = Web3ModalState.Connect(uri, wallets.mapRecentWallet(getRecentWalletUseCase()))
+        } catch (e: Exception) {
+            logger.error(e)
+            handleError(e)
         }
     }
 
@@ -164,7 +160,9 @@ internal class Web3ModalViewModel : ViewModel() {
             _modalState.value = it.copy(wallets = it.wallets.mapRecentWallet(id))
         }
 
-    internal fun saveSessionTopic(topic: String) = saveSessionTopicUseCase(topic)
+    internal fun saveSessionTopic(topic: String) = viewModelScope.launch {
+        saveSessionTopicUseCase(topic)
+    }
 
     internal fun disconnect(
         topic: String,
@@ -173,7 +171,9 @@ internal class Web3ModalViewModel : ViewModel() {
         Web3Modal.disconnect(
             disconnect = Modal.Params.Disconnect(topic),
             onSuccess = {
-                deleteSessionDataUseCase()
+                viewModelScope.launch {
+                    deleteSessionDataUseCase()
+                }
                 onSuccess()
             },
             onError = {
@@ -183,14 +183,16 @@ internal class Web3ModalViewModel : ViewModel() {
     }
 
     internal fun changeChain(accountData: AccountData, chain: Chain) {
-        saveChainSelectionUseCase(chain.id)
-        val address = Web3Modal.getActiveSessionByTopic(accountData.topic)?.namespaces?.values?.toList()?.flatMap { it.accounts }?.getAddress(chain) ?: accountData.address
-        _modalState.value = Web3ModalState.AccountState(
-            accountData.copy(
-                selectedChain = chain,
-                address = address
+        viewModelScope.launch {
+            saveChainSelectionUseCase(chain.id)
+            val address = Web3Modal.getActiveSessionByTopic(accountData.topic)?.namespaces?.values?.toList()?.flatMap { it.accounts }?.getAddress(chain) ?: accountData.address
+            _modalState.value = Web3ModalState.AccountState(
+                accountData.copy(
+                    selectedChain = chain,
+                    address = address
+                )
             )
-        )
+        }
     }
 
     private fun handleError(error: Throwable) {

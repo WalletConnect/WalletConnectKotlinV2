@@ -21,7 +21,7 @@ internal fun LoadingButton() {
             Box(
                 modifier = Modifier.width(100.dp), contentAlignment = Alignment.Center
             ) {
-                LoadingSpinner(size = 16.dp)
+                LoadingSpinner(size = 16.dp, strokeWidth = 1.dp)
             }
         }
     }

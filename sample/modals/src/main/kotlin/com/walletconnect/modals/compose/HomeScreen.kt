@@ -19,20 +19,22 @@ import com.walletconnect.web3.modal.ui.components.button.rememberWeb3ModalState
 
 @Composable
 fun HomeScreen(navController: NavController) {
-    val web3ButtonState = rememberWeb3ModalState(navController = navController)
+    val web3ModalState = rememberWeb3ModalState(navController = navController)
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        ConnectButton(web3ButtonState = web3ButtonState, buttonSize = ConnectButtonSize.NORMAL)
+        ConnectButton(state = web3ModalState, buttonSize = ConnectButtonSize.NORMAL)
         Spacer(modifier = Modifier.height(20.dp))
-        ConnectButton(web3ButtonState = web3ButtonState, buttonSize = ConnectButtonSize.SMALL)
+        ConnectButton(state = web3ModalState, buttonSize = ConnectButtonSize.SMALL)
         Spacer(modifier = Modifier.height(20.dp))
 //        NetworkButton(web3ButtonState = web3ButtonState)
 //        Spacer(modifier = Modifier.height(20.dp))
-        AccountButton(web3ButtonState, AccountButtonType.NORMAL)
+        AccountButton(web3ModalState, AccountButtonType.NORMAL)
         Spacer(modifier = Modifier.height(20.dp))
-        Web3Button(state = web3ButtonState)
+        AccountButton(web3ModalState, AccountButtonType.MIXED)
+        Spacer(modifier = Modifier.height(20.dp))
+        Web3Button(state = web3ModalState)
     }
 }

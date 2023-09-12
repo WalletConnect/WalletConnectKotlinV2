@@ -2,7 +2,6 @@ package com.walletconnect.web3.modal.ui.components.button
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 
@@ -19,15 +18,9 @@ fun Web3Button(
         label = "Web3ButtonState"
     ) { isConnected ->
         if (isConnected) {
-            AccountButton(web3ButtonState = state, accountButtonType = accountButtonType)
+            AccountButton(state = state, accountButtonType = accountButtonType)
         } else {
-            ConnectButton(web3ButtonState = state, buttonSize = connectButtonSize)
+            ConnectButton(state = state, buttonSize = connectButtonSize)
         }
     }
-}
-
-private sealed class Web3ButtonState {
-    object Loading : Web3ButtonState()
-    object Connect : Web3ButtonState()
-    object Account : Web3ButtonState()
 }

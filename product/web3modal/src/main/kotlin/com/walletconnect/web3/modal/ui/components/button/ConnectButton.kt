@@ -23,18 +23,18 @@ enum class ConnectButtonSize {
 
 @Composable
 fun ConnectButton(
-    web3ButtonState: Web3ModalState,
-    buttonSize: ConnectButtonSize,
+    state: Web3ModalState,
+    buttonSize: ConnectButtonSize = ConnectButtonSize.NORMAL
 ) {
-    val isLoading: Boolean by web3ButtonState.isOpen.collectAsState(initial = false)
-    val isConnected by web3ButtonState.isConnected.collectAsState(initial = false)
+    val isLoading: Boolean by state.isOpen.collectAsState(initial = false)
+    val isConnected by state.isConnected.collectAsState(initial = false)
 
     ConnectButton(
         size = buttonSize,
         isLoading = isLoading,
         isEnabled = !isConnected
     ) {
-        web3ButtonState.openWeb3Modal()
+        state.openWeb3Modal()
     }
 }
 
