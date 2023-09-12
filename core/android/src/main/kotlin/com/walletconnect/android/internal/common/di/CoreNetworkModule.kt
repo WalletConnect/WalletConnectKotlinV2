@@ -2,6 +2,7 @@ package com.walletconnect.android.internal.common.di
 
 import android.net.Uri
 import android.os.Build
+import androidx.core.net.toUri
 import com.pandulapeter.beagle.logOkHttp.BeagleOkHttpLogger
 import com.squareup.moshi.Moshi
 import com.tinder.scarlet.Scarlet
@@ -93,9 +94,9 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
             } catch (e: Exception) {
                 if (isFailOverException(e)) {
                     when (request.url.host) {
-                        DEFAULT_RELAY_URL.host -> fallbackRelay(request, chain)
-                        DEFAULT_ECHO_URL.host -> fallbackEcho(request, chain)
-                        DEFAULT_VERIFY_URL.host -> fallbackVerify(request, chain)
+                        DEFAULT_RELAY_URL.toUri().host -> fallbackRelay(request, chain)
+                        DEFAULT_ECHO_URL.toUri().host -> fallbackEcho(request, chain)
+                        DEFAULT_VERIFY_URL.toUri().host -> fallbackVerify(request, chain)
                         else -> chain.proceed(request)
                     }
                 } else {

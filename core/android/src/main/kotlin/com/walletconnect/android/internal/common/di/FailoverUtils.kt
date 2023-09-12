@@ -1,6 +1,7 @@
 package com.walletconnect.android.internal.common.di
 
 import android.net.Uri
+import androidx.core.net.toUri
 import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response
@@ -24,9 +25,9 @@ internal var wasRelayFailOvered = false
 internal var wasEchoFailOvered = false
 internal var wasVerifyFailOvered = false
 
-internal fun shouldFallbackRelay(host: String): Boolean = wasRelayFailOvered && host == DEFAULT_RELAY_URL.host
-internal fun shouldFallbackEcho(host: String): Boolean = wasEchoFailOvered && host == DEFAULT_ECHO_URL.host
-internal fun shouldFallbackVerify(host: String): Boolean = wasVerifyFailOvered && host == DEFAULT_VERIFY_URL.host
+internal fun shouldFallbackRelay(host: String): Boolean = wasRelayFailOvered && host == DEFAULT_RELAY_URL.toUri().host
+internal fun shouldFallbackEcho(host: String): Boolean = wasEchoFailOvered && host == DEFAULT_ECHO_URL.toUri().host
+internal fun shouldFallbackVerify(host: String): Boolean = wasVerifyFailOvered && host == DEFAULT_VERIFY_URL.toUri().host
 internal fun getFallbackEchoUrl(url: String): String = with(Uri.parse(url)) {
     val (path, query) = Pair(this.path, this.query)
     return@with "$FAIL_OVER_ECHO_URL$path?$query}"
@@ -35,7 +36,6 @@ internal fun getFallbackEchoUrl(url: String): String = with(Uri.parse(url)) {
 internal fun getFallbackVerifyUrl(url: String): String = "$FAIL_OVER_VERIFY_URL/attestation/${Uri.parse(url).lastPathSegment}"
 
 internal fun isFailOverException(e: Exception) = (e is SocketException || e is IOException)
-internal val String.host: String? get() = Uri.parse(this).host
 
 internal fun fallbackEcho(request: Request, chain: Interceptor.Chain): Response {
     ECHO_URL = FAIL_OVER_ECHO_URL
