@@ -141,20 +141,18 @@ internal class Web3ModalViewModel : ViewModel() {
     }
 
     private suspend fun fetchWallets(uri: String, chains: String) {
-        viewModelScope.launch {
-            try {
-                val wallets = if (Web3Modal.recommendedWalletsIds.isEmpty()) {
+        try {
+            val wallets = if (Web3Modal.recommendedWalletsIds.isEmpty()) {
+                getWalletsUseCase(sdkType = W3M_SDK, chains = chains, excludedIds = Web3Modal.excludedWalletsIds)
+            } else {
+                getWalletsUseCase(sdkType = W3M_SDK, chains = chains, excludedIds = Web3Modal.excludedWalletsIds, recommendedIds = Web3Modal.recommendedWalletsIds).union(
                     getWalletsUseCase(sdkType = W3M_SDK, chains = chains, excludedIds = Web3Modal.excludedWalletsIds)
-                } else {
-                    getWalletsUseCase(sdkType = W3M_SDK, chains = chains, excludedIds = Web3Modal.excludedWalletsIds, recommendedIds = Web3Modal.recommendedWalletsIds).union(
-                        getWalletsUseCase(sdkType = W3M_SDK, chains = chains, excludedIds = Web3Modal.excludedWalletsIds)
-                    ).toList()
-                }
-                _modalState.value = Web3ModalState.Connect(uri, wallets.mapRecentWallet(getRecentWalletUseCase()))
-            } catch (e: Exception) {
-                logger.error(e)
-                handleError(e)
+                ).toList()
             }
+            _modalState.value = Web3ModalState.Connect(uri, wallets.mapRecentWallet(getRecentWalletUseCase()))
+        } catch (e: Exception) {
+            logger.error(e)
+            handleError(e)
         }
     }
 

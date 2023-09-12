@@ -52,7 +52,7 @@ internal class WalletConnectModalViewModel : ViewModel() {
             val chains = sessionParams.requiredNamespaces.values.toList().mapNotNull { it.chains?.joinToString() }.joinToString()
             WalletConnectModal.connect(
                 connect = connectParams,
-                onSuccess = { viewModelScope.launch { createModalState(pairing.uri, chains) }},
+                onSuccess = { viewModelScope.launch { createModalState(pairing.uri, chains) } },
                 onError = { handleError(it.throwable) }
             )
         } catch (e: Exception) {
@@ -86,20 +86,18 @@ internal class WalletConnectModalViewModel : ViewModel() {
     }
 
     private suspend fun createModalState(uri: String, chains: String) {
-        viewModelScope.launch {
-            try {
-                wallets = if (WalletConnectModal.recommendedWalletsIds.isEmpty()) {
+        try {
+            wallets = if (WalletConnectModal.recommendedWalletsIds.isEmpty()) {
+                getWalletsUseCase(sdkType = WCM_SDK, chains = chains, excludedIds = WalletConnectModal.excludedWalletsIds)
+            } else {
+                getWalletsUseCase(sdkType = WCM_SDK, chains = chains, excludedIds = WalletConnectModal.excludedWalletsIds, recommendedIds = WalletConnectModal.recommendedWalletsIds).union(
                     getWalletsUseCase(sdkType = WCM_SDK, chains = chains, excludedIds = WalletConnectModal.excludedWalletsIds)
-                } else {
-                    getWalletsUseCase(sdkType = WCM_SDK, chains = chains, excludedIds = WalletConnectModal.excludedWalletsIds, recommendedIds = WalletConnectModal.recommendedWalletsIds).union(
-                        getWalletsUseCase(sdkType = WCM_SDK, chains = chains, excludedIds = WalletConnectModal.excludedWalletsIds)
-                    ).toList()
-                }
-                _modalState.value = WalletConnectModalState.Connect(uri, wallets.mapRecentWallet(getRecentWalletUseCase()))
-            } catch (e: Exception) {
-                Timber.e(e)
-                _modalState.value = WalletConnectModalState.Connect(uri)
+                ).toList()
             }
+            _modalState.value = WalletConnectModalState.Connect(uri, wallets.mapRecentWallet(getRecentWalletUseCase()))
+        } catch (e: Exception) {
+            Timber.e(e)
+            _modalState.value = WalletConnectModalState.Connect(uri)
         }
     }
 
