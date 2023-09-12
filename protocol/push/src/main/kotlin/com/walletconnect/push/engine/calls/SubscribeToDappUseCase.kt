@@ -6,7 +6,7 @@ import android.net.Uri
 import android.util.Base64
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.crypto.sha256
-import com.walletconnect.android.internal.common.explorer.ExplorerRepository
+import com.walletconnect.android.internal.common.explorer.ExplorerRepositoryInterface
 import com.walletconnect.android.internal.common.explorer.data.model.Listing
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.model.AccountId
@@ -47,7 +47,7 @@ internal class SubscribeToDappUseCase(
     private val extractPushConfigUseCase: ExtractPushConfigUseCase,
     private val subscriptionRepository: SubscriptionRepository,
     private val crypto: KeyManagementRepository,
-    private val explorerRepository: ExplorerRepository,
+    private val explorerRepository: ExplorerRepositoryInterface,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val registerIdentityAndReturnDidJwt: RegisterIdentityAndReturnDidJwtUseCaseInterface,
     private val logger: Logger,

@@ -1,6 +1,6 @@
 package com.walletconnect.android.internal.common.explorer.domain.usecase
 
-import com.walletconnect.android.internal.common.explorer.ExplorerRepository
+import com.walletconnect.android.internal.common.explorer.ExplorerRepositoryInterface
 import com.walletconnect.android.internal.common.explorer.data.model.Wallet
 
 interface GetWalletsUseCaseInterface {
@@ -14,7 +14,7 @@ interface GetWalletsUseCaseInterface {
 
 
 class GetWalletsUseCase(
-    private val explorerRepository: ExplorerRepository
+    private val explorerRepository: ExplorerRepositoryInterface
 ) : GetWalletsUseCaseInterface {
     override suspend fun invoke(
         sdkType: String,

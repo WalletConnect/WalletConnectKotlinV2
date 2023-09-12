@@ -3,9 +3,10 @@
 package com.walletconnect.android.internal.common.di
 
 import com.walletconnect.android.internal.common.explorer.ExplorerRepository
+import com.walletconnect.android.internal.common.explorer.ExplorerRepositoryInterface
 import com.walletconnect.android.internal.common.explorer.data.network.ExplorerService
-import com.walletconnect.android.internal.common.explorer.domain.usecase.GetWalletsUseCaseInterface
 import com.walletconnect.android.internal.common.explorer.domain.usecase.GetWalletsUseCase
+import com.walletconnect.android.internal.common.explorer.domain.usecase.GetWalletsUseCaseInterface
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import retrofit2.Retrofit
@@ -26,7 +27,7 @@ internal fun explorerModule() = module {
 
     single { get<Retrofit>(named(AndroidCommonDITags.EXPLORER_RETROFIT)).create(ExplorerService::class.java) }
 
-    single {
+    single<ExplorerRepositoryInterface> {
         ExplorerRepository(
             context = get(),
             explorerService = get(),

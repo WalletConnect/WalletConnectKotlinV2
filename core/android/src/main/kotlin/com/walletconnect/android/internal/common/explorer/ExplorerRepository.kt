@@ -25,20 +25,32 @@ import com.walletconnect.android.internal.common.explorer.data.network.model.Inj
 import com.walletconnect.android.internal.common.explorer.data.network.model.ListingDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.MetadataDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.MobileDTO
-import com.walletconnect.android.internal.common.explorer.data.network.model.WalletDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.SupportedStandardDTO
+import com.walletconnect.android.internal.common.explorer.data.network.model.WalletDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.WalletListingDTO
 import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.android.utils.isWalletInstalled
 
-class ExplorerRepository(
+interface ExplorerRepositoryInterface {
+
+    suspend fun getAllDapps(): DappListings
+
+    suspend fun getMobileWallets(
+        sdkType: String,
+        chains: String?,
+        excludedIds: String? = null,
+        recommendedIds: String? = null
+    ): WalletListing
+}
+
+internal class ExplorerRepository(
     private val context: Context,
     private val explorerService: ExplorerService,
     private val projectId: ProjectId,
     private val explorerApiUrl: String
-) {
+): ExplorerRepositoryInterface {
 
-    suspend fun getAllDapps(): DappListings {
+    override suspend fun getAllDapps(): DappListings {
         return with(explorerService.getAllDapps(projectId.value)) {
             if (isSuccessful && body() != null) {
                 body()!!.toDappListing()
@@ -48,11 +60,11 @@ class ExplorerRepository(
         }
     }
 
-    suspend fun getMobileWallets(
+    override suspend fun getMobileWallets(
         sdkType: String,
         chains: String?,
-        excludedIds: String? = null,
-        recommendedIds: String? = null
+        excludedIds: String?,
+        recommendedIds: String?
     ): WalletListing {
         return with(
             explorerService.getAndroidWallets(
