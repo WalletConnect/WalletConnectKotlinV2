@@ -19,12 +19,7 @@ class ArchiveProtocol(
     private val getMessagesUseCase: GetMessagesUseCase by lazy { koinApp.koin.get() }
     private val logger: Logger by lazy { koinApp.koin.get(named(AndroidCommonDITags.LOGGER)) }
     private val reduceSyncRequestsUseCase: ReduceSyncRequestsUseCase by lazy { koinApp.koin.get() }
-
-    private lateinit var relayServerUrl: String
-
-    override fun initialize(relayServerUrl: String) {
-        this.relayServerUrl = relayServerUrl
-    }
+    private val relayServerUrl: String by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.RELAY_URL)) }
 
     override suspend fun registerTags(tags: List<Tags>, onSuccess: () -> Unit, onError: (Core.Model.Error) -> Unit) {
         registerTagsUseCase(tags, relayServerUrl).fold(

@@ -6,7 +6,6 @@ import com.walletconnect.android.internal.common.model.ArchiveMessage
 import com.walletconnect.android.internal.common.model.Tags
 
 interface ArchiveInterface {
-    fun initialize(relayServerUrl: String)
 
     suspend fun registerTags(tags: List<Tags>, onSuccess: () -> Unit, onError: (Core.Model.Error) -> Unit)
 
