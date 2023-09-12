@@ -29,9 +29,9 @@ internal class SessionRepository(
             preferences[SELECTED_CHAIN]
         }
 
-    suspend fun getSelectedChain() = runBlocking { selectedChain.first() }
+    suspend fun getSelectedChain(): String? = runBlocking { selectedChain.first() }
 
-    suspend fun getSessionTopic() = runBlocking { sessionTopic.first() }
+    suspend fun getSessionTopic(): String? = runBlocking { sessionTopic.first() }
 
     suspend fun saveSessionTopic(topic: String) {
         context.sessionStore.edit { store ->

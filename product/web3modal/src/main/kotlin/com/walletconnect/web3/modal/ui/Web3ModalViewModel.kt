@@ -20,6 +20,9 @@ import com.walletconnect.web3.modal.domain.usecase.GetSelectedChainUseCase
 import com.walletconnect.web3.modal.domain.usecase.GetSessionTopicUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveChainSelectionUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveSessionTopicUseCase
+import com.walletconnect.web3.modal.utils.getAddress
+import com.walletconnect.web3.modal.utils.getChains
+import com.walletconnect.web3.modal.utils.getSelectedChain
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -85,16 +88,9 @@ internal class Web3ModalViewModel : ViewModel() {
     }
 
     internal suspend fun createAccountModalState(activeSession: Modal.Model.Session) {
-        val accounts = activeSession.namespaces.values.toList().flatMap { it.accounts }
-        val chains = activeSession.namespaces.values
-            .toList()
-            .flatMap { it.chains ?: listOf() }
-            .filter { CoreValidator.isChainIdCAIP2Compliant(it) }
-            .map { Chain(it) }
-            .ifEmpty { accounts.getDefaultChain() }
-
-        val selectedChain = chains.getSelectedChain()
-        val address = accounts.getAddress(selectedChain)
+        val chains = activeSession.getChains()
+        val selectedChain = chains.getSelectedChain(getSelectedChainUseCase())
+        val address = activeSession.getAddress(selectedChain)
 
         val accountData = AccountData(
             topic = activeSession.topic,
@@ -105,18 +101,6 @@ internal class Web3ModalViewModel : ViewModel() {
         )
         _modalState.value = Web3ModalState.AccountState(accountData)
     }
-
-    private suspend fun List<Chain>.getSelectedChain() = find { it.id == getSelectedChainUseCase() } ?: first()
-    private fun List<String>.getAddress(selectedChain: Chain) = find { it.startsWith(selectedChain.id) }?.split(":")?.last() ?: String.Empty
-
-    private fun List<String>.accountsToChainId() = map {
-        val (chainNamespace, chainReference, _) = it.split(":")
-        "$chainNamespace:$chainReference"
-    }
-
-    private fun List<String>.getDefaultChain() = accountsToChainId()
-        .filter { CoreValidator.isChainIdCAIP2Compliant(it) }
-        .map { Chain(it) }
 
     internal fun createConnectModalState() {
         val sessionParams = Web3Modal.sessionParams
@@ -185,7 +169,7 @@ internal class Web3ModalViewModel : ViewModel() {
     internal fun changeChain(accountData: AccountData, chain: Chain) {
         viewModelScope.launch {
             saveChainSelectionUseCase(chain.id)
-            val address = Web3Modal.getActiveSessionByTopic(accountData.topic)?.namespaces?.values?.toList()?.flatMap { it.accounts }?.getAddress(chain) ?: accountData.address
+            val address = Web3Modal.getActiveSessionByTopic(accountData.topic)?.getAddress(chain) ?: accountData.address
             _modalState.value = Web3ModalState.AccountState(
                 accountData.copy(
                     selectedChain = chain,

@@ -9,6 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavController
 import com.walletconnect.android.internal.common.wcKoinApp
+import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.util.Empty
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
@@ -20,6 +21,7 @@ import com.walletconnect.web3.modal.domain.usecase.ObserveSessionTopicUseCase
 import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.ui.openWeb3Modal
 import com.walletconnect.web3.modal.utils.getAddress
+import com.walletconnect.web3.modal.utils.getChains
 import com.walletconnect.web3.modal.utils.getSelectedChain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -71,7 +73,7 @@ class Web3ModalState(
             .map { Web3Modal.getActiveSessionByTopic(it) != null }
             .stateIn(coroutineScope, started = SharingStarted.Lazily, initialValue = false)
 
-    internal fun accountButtonState(accountButtonType: AccountButtonType) = observeSessionTopicUseCase()
+    internal fun accountButtonState(accountButtonType: AccountButtonType): StateFlow<AccountButtonState> = observeSessionTopicUseCase()
         .mapOrAccountState(accountButtonType, AccountButtonState.Invalid)
         .stateIn(coroutineScope, started = SharingStarted.Lazily, initialValue = AccountButtonState.Loading)
 
@@ -83,11 +85,9 @@ class Web3ModalState(
     }
 
     private suspend fun Modal.Model.Session.mapToAccountButtonState(accountButtonType: AccountButtonType) = try {
-        //move it to extensions functions
-        val accounts = namespaces.values.toList().flatMap { it.accounts }
-        val chains = namespaces.values.toList().flatMap { it.chains ?: listOf() }.map { Chain(it) }
-        val selectedChain = chains.getSelectedChain("")
-        val address = accounts.getAddress(selectedChain)
+        val chains = getChains()
+        val selectedChain = chains.getSelectedChain(getSelectedChainUseCase())
+        val address = getAddress(selectedChain)
         when (accountButtonType) {
             AccountButtonType.NORMAL -> AccountButtonState.Normal(address = address)
             AccountButtonType.MIXED -> AccountButtonState.Mixed(
@@ -100,9 +100,9 @@ class Web3ModalState(
         AccountButtonState.Invalid
     }
 
-    internal suspend fun getActiveSession() = getSessionTopicUseCase()?.let { Web3Modal.getActiveSessionByTopic(it) }
+    private suspend fun getActiveSession() = getSessionTopicUseCase()?.let { Web3Modal.getActiveSessionByTopic(it) }
 
-    internal fun getSelectedChain() = runBlocking { getSelectedChainUseCase()?.let { Chain("") } }
+    internal fun getSelectedChain() = runBlocking { getSelectedChainUseCase()?.let { Chain(it) } }
 
     internal fun openWeb3Modal() {
         navController.openWeb3Modal()
