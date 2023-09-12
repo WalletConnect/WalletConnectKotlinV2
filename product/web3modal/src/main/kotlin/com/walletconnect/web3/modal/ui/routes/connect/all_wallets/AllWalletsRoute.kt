@@ -44,6 +44,7 @@ import com.walletconnect.web3.modal.ui.components.internal.commons.WalletsLazyGr
 import com.walletconnect.web3.modal.ui.components.internal.commons.inputs.SearchInput
 import com.walletconnect.web3.modal.ui.components.internal.commons.walletsGridItems
 import com.walletconnect.web3.modal.ui.navigation.Route
+import com.walletconnect.web3.modal.ui.navigation.connection.navigateToRedirect
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 import com.walletconnect.web3.modal.ui.previews.testWallets
@@ -57,7 +58,7 @@ internal fun AllWalletsRoute(
 ) {
     AllWalletsContent(
         wallets = wallets,
-        onWalletItemClick = { navController.navigate(Route.REDIRECT.path + "/${it.id}&${it.name}") },
+        onWalletItemClick = { wallet -> navController.navigateToRedirect(wallet) },
         onScanQRClick = { navController.navigate(Route.QR_CODE.path) }
     )
 }

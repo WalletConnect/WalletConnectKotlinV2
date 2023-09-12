@@ -4,6 +4,7 @@ plugins {
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
     id("com.google.firebase.appdistribution")
+    id("io.sentry.android.gradle") version "3.12.0"
 }
 
 android {
@@ -67,8 +68,6 @@ dependencies {
 
     implementation("androidx.activity:activity-compose:1.6.1")
     implementation("androidx.palette:palette:1.0.0")
-
-
 
     // Glide
     implementation("com.github.skydoves:landscapist-glide:2.1.0")
