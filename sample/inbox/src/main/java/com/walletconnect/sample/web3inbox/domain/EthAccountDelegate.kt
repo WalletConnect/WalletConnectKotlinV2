@@ -37,11 +37,11 @@ sealed interface EthAccount {
 
         // Swift
         override val address: String
-            get() = "0xF625748d5929D09c85741807a05a9527f8B31625"
+            get() = "0xeFB4AA0986E7b7abB77174F11c40c29aBA7b1815"
         override val privateKey: String
-            get() = "b5bc0acbebbd3fb0200c3a1d4d089d3b3fe51047d9d16148e27b078368eb33ba"
+            get() = "937fd9573f5a726b7cf4d611441704967c31cacbd18231e23134b9fbfa70ac3f"
         override val publicKey: String
-            get() = "64117a637f5548c4de0fbf7b312dcf3fcd150abc22ef77490a771082fddef18562f9c0afd6468d2fd47f3b9d4f70d5eb0fd5566d77bde03f0b1e6eaffae88713"
+            get() = "c331d07714e3a0244523cab6e4ac88d48a8bc4d9dafc30ff856caff528717a12337de7cbde764fb12ca1221ca0f407632bffb065bdb71bdc3950d20641fea93a"
     }
 
     class Random(context: Context) : EthAccount {
@@ -53,7 +53,7 @@ sealed interface EthAccount {
             }
             Security.addProvider(BouncyCastleProvider())
             val keypair = Keys.createEcKeyPair()
-//            val keypair = ECKeyPair.create(PrivateKey("b5bc0acbebbd3fb0200c3a1d4d089d3b3fe51047d9d16148e27b078368eb33ba").keyAsBytes)
+//            val keypair = ECKeyPair.create(PrivateKey("937fd9573f5a726b7cf4d611441704967c31cacbd18231e23134b9fbfa70ac3f").keyAsBytes)
             val publicKey = keypair.publicKey.toByteArray().bytesToHex()
             val privateKey = keypair.privateKey.toByteArray().bytesToHex()
 
