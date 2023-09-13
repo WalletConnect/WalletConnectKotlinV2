@@ -7,7 +7,6 @@ import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementReposit
 import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.model.AccountId
-import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.DidJwt
 import com.walletconnect.android.internal.common.model.EnvelopeType
@@ -22,7 +21,6 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
-import com.walletconnect.notify.common.calcExpiry
 import com.walletconnect.notify.common.model.NotifyRpc
 import com.walletconnect.notify.data.storage.SubscriptionRepository
 import com.walletconnect.notify.engine.domain.ExtractMetadataFromConfigUseCase
@@ -50,7 +48,6 @@ internal class SubscribeToDappUseCase(
 
         val subscribeTopic = Topic(sha256(dappPublicKey.keyAsBytes))
 
-        if (subscriptionRepository.isAlreadyRequested(account, subscribeTopic.value)) return@supervisorScope onFailure(IllegalStateException("Account: $account is already subscribed to dapp: $dappUri"))
 
         val selfPublicKey = crypto.generateAndStoreX25519KeyPair()
         val responseTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, dappPublicKey)
@@ -64,16 +61,6 @@ internal class SubscribeToDappUseCase(
         val irnParams = IrnParams(Tags.NOTIFY_SUBSCRIBE, Ttl(THIRTY_SECONDS))
 
         runCatching<Unit> {
-            subscriptionRepository.insertOrAbortRequestedSubscription(
-                requestId = request.id,
-                subscribeTopic = subscribeTopic.value,
-                responseTopic = responseTopic.value,
-                account = account,
-                authenticationPublicKey = authenticationPublicKey,
-                mapOfScope = dappScopes.associate { scope -> scope.name to Pair(scope.description, true) },
-                expiry = calcExpiry().seconds,
-            )
-        }.mapCatching {
             metadataStorageRepository.insertOrAbortMetadata(
                 topic = responseTopic,
                 appMetaData = dappMetaData,

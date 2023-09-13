@@ -7,7 +7,6 @@ import com.walletconnect.android.di.sdkBaseStorageModule
 import com.walletconnect.android.internal.common.di.deleteDatabase
 import com.walletconnect.notify.NotifyDatabase
 import com.walletconnect.notify.common.storage.data.dao.ActiveSubscriptions
-import com.walletconnect.notify.common.storage.data.dao.RequestedSubscriptions
 import com.walletconnect.notify.data.storage.MessagesRepository
 import com.walletconnect.notify.data.storage.RegisteredAccountsRepository
 import com.walletconnect.notify.data.storage.SubscriptionRepository
@@ -22,9 +21,6 @@ internal fun notifyStorageModule(dbName: String) = module {
         ActiveSubscriptionsAdapter = ActiveSubscriptions.Adapter(
             map_of_scopeAdapter = get<ColumnAdapter<Map<String, Pair<String, Boolean>>, String>>()
         ),
-        RequestedSubscriptionsAdapter = RequestedSubscriptions.Adapter(
-            map_of_scopeAdapter = get<ColumnAdapter<Map<String, Pair<String, Boolean>>, String>>()
-        )
     )
 
     includes(sdkBaseStorageModule(NotifyDatabase.Schema, dbName))
@@ -64,10 +60,9 @@ internal fun notifyStorageModule(dbName: String) = module {
 
     single { get<NotifyDatabase>().messagesQueries }
     single { get<NotifyDatabase>().activeSubscriptionsQueries }
-    single { get<NotifyDatabase>().requestedSubscriptionQueries }
     single { get<NotifyDatabase>().registeredAccountsQueries }
 
-    single { SubscriptionRepository(requestedSubscriptionQueries = get(), activeSubscriptionsQueries = get()) }
+    single { SubscriptionRepository(activeSubscriptionsQueries = get()) }
     single { MessagesRepository(messagesQueries = get()) }
     single { RegisteredAccountsRepository(registeredAccounts = get()) }
 }
