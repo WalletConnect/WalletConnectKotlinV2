@@ -30,20 +30,15 @@ internal class WatchSubscriptionsUseCase(
 
     suspend operator fun invoke(accountId: AccountId, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         val (peerPublicKey, authenticationPublicKey) = extractPublicKeysFromDidJsonUseCase(NOTIFY_SERVER_URL.toUri()).getOrThrow()
-        logger.log("WatchSubscriptionsUseCase - peerPublicKey: $peerPublicKey")
-        logger.log("WatchSubscriptionsUseCase - authenticationPublicKey: $authenticationPublicKey")
 
         val requestTopic = keyManagementRepository.getTopicFromKey(peerPublicKey)
-        logger.log("WatchSubscriptionsUseCase - requestTopic: $requestTopic")
 
         val selfPublicKey = getOrGenerateAndStorePublicKey(requestTopic)
         val responseTopic = keyManagementRepository.generateTopicFromKeyAgreement(selfPublicKey, peerPublicKey)
 
-        logger.log("WatchSubscriptionsUseCase - subscribing to responseTopic: $responseTopic")
         jsonRpcInteractor.subscribe(responseTopic) { error -> onFailure(error) }
 
         val didJwt = fetchDidJwtInteractor.watchSubscriptionsRequest(accountId, authenticationPublicKey).getOrElse { error -> return@supervisorScope onFailure(error) }
-        logger.log("WatchSubscriptionsUseCase - didJWT: $didJwt")
         val watchSubscriptionsParams = CoreNotifyParams.WatchSubscriptionsParams(didJwt.value)
         val request = NotifyRpc.NotifyWatchSubscriptions(params = watchSubscriptionsParams)
         val irnParams = IrnParams(Tags.NOTIFY_WATCH_SUBSCRIPTIONS, Ttl(THIRTY_SECONDS))

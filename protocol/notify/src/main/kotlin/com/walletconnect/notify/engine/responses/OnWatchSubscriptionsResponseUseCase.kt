@@ -27,8 +27,6 @@ internal class OnWatchSubscriptionsResponseUseCase(
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
     suspend operator fun invoke(wcResponse: WCResponse, watchSubscriptionsParams: CoreNotifyParams.WatchSubscriptionsParams) = supervisorScope {
-        logger.log("OnWatchSubscriptionsResponseUseCase - response: $wcResponse")
-        logger.log("OnWatchSubscriptionsResponseUseCase - watchSubscriptionsParams: $watchSubscriptionsParams")
 
         val resultEvent = try {
             when (val response = wcResponse.response) {
@@ -36,14 +34,15 @@ internal class OnWatchSubscriptionsResponseUseCase(
                     val responseAuth = (response.result as ChatNotifyResponseAuthParams.ResponseAuth).responseAuth
 
                     val jwtClaims = extractVerifiedDidJwtClaims<WatchSubscriptionsResponseJwtClaim>(responseAuth).getOrThrow()
-                    logger.log("OnWatchSubscriptionsResponseUseCase - jwtClaims: $jwtClaims")
 
                     val subscriptions = setActiveSubscriptionsUseCase(decodeDidPkh(jwtClaims.subject), jwtClaims.subscriptions)
+                    logger.log("OnWatchSubscriptionsResponseUseCase - subscriptions: ${subscriptions.size}")
+                    logger.log("OnWatchSubscriptionsResponseUseCase - types: ${subscriptions.getOrNull(0)?.mapOfNotificationScope?.filter { it.value.isSelected }?.map { it.key }}")
+
                     SubscriptionChanged(subscriptions)
                 }
 
                 is JsonRpcResponse.JsonRpcError -> {
-                    logger.log("OnWatchSubscriptionsResponseUseCase - error: ${response.errorMessage}")
                     SDKError(Exception(response.errorMessage))
                 }
             }

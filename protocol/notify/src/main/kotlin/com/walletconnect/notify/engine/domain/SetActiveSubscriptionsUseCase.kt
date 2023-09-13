@@ -38,24 +38,23 @@ internal class SetActiveSubscriptionsUseCase(
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
     suspend operator fun invoke(account: String, serverSubscriptions: List<ServerSubscription>): List<Subscription.Active> = supervisorScope {
-        logger.log("SetActiveSubscriptionsUseCase - account: $account, serverSubscriptions(${serverSubscriptions.size}): $serverSubscriptions")
+//        logger.log("SetActiveSubscriptionsUseCase - account: $account, serverSubscriptions(${serverSubscriptions.size}): $serverSubscriptions")
 
         val activeSubscriptions = serverSubscriptions.map { subscription ->
             with(subscription) {
-                val dappUri =  appDomainWithHttps.toUri()
-                logger.log("SetActiveSubscriptionsUseCase - dappUri: $dappUri")
+                val dappUri = appDomainWithHttps.toUri()
 
                 val (metadata, scopes) = extractMetadataFromConfigUseCase(dappUri).getOrThrow()
-                logger.log("SetActiveSubscriptionsUseCase - metadata: $metadata")
-                logger.log("SetActiveSubscriptionsUseCase - scopes: $scopes")
-
+                val selectedScopes = scopes.associate { remote ->
+                    remote.name to NotificationScope.Cached(
+                        remote.name, remote.description,
+                        subscription.scope.firstOrNull { serverScope -> serverScope == remote.name } != null
+                    )
+                }
                 val (dappPublicKey, authenticationPublicKey) = extractPublicKeysFromDidJsonUseCase(dappUri).getOrThrow()
-                logger.log("SetActiveSubscriptionsUseCase - dappPublicKey: $dappPublicKey")
-                logger.log("SetActiveSubscriptionsUseCase - authenticationPublicKey: $authenticationPublicKey")
 
                 val symmetricKey = SymmetricKey(symKey)
                 val topic = Topic(sha256(symmetricKey.keyAsBytes))
-                logger.log("SetActiveSubscriptionsUseCase - topic: $topic")
 
                 metadataRepository.upsertPeerMetadata(topic, metadata, AppMetaDataType.PEER)
 
@@ -65,7 +64,7 @@ internal class SetActiveSubscriptionsUseCase(
 
                 Subscription.Active(
                     AccountId(account),
-                    scopes.associate { it.name to NotificationScope.Cached(it.name, it.description, true) },
+                    selectedScopes,
                     Expiry(expiry),
                     authenticationPublicKey,
                     dappPublicKey,
@@ -77,7 +76,6 @@ internal class SetActiveSubscriptionsUseCase(
         }
 
         subscriptionRepository.setActiveSubscriptions(account, activeSubscriptions)
-        logger.log("SetActiveSubscriptionsUseCase - activeSubscriptions: $activeSubscriptions")
 
         activeSubscriptions.forEach { subscription ->
 //            fetchAllMessagesFromArchiveUseCase(

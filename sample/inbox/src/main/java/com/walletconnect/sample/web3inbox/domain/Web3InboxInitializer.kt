@@ -169,7 +169,7 @@ class Web3InboxInitializerInstance(
             wasNotifyDelegateInitalized = true
             NotifyClient.setDelegate(NotifyDelegate)
 
-            val isLimited = true
+            val isLimited = false
 
             NotifyClient.register(
                 Notify.Params.Registration(

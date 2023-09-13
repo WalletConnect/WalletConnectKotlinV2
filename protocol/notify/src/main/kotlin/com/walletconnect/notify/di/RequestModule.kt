@@ -26,9 +26,6 @@ internal fun requestModule() = module {
 
     single {
         OnNotifyDeleteUseCase(
-            jsonRpcInteractor = get(),
-            subscriptionRepository = get(),
-            metadataStorageRepository = get(),
             logger = get()
         )
     }

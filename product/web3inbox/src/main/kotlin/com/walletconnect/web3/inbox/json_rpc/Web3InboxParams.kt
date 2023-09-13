@@ -82,7 +82,7 @@ internal sealed interface Web3InboxParams : ClientParams {
 
             @JsonClass(generateAdapter = true)
             data class SubscribeParams(
-                val metadata: AppMetaDataParams,
+                val appDomain: String,
                 val account: String,
             ) : Notify
 
@@ -272,6 +272,11 @@ internal sealed interface Web3InboxParams : ClientParams {
             @JsonClass(generateAdapter = true)
             data class DeleteParams(
                 val topic: String,
+            ) : Notify
+
+            @JsonClass(generateAdapter = true)
+            data class SubscriptionsChangedParams(
+                val dummy: String, //todo: Web3Inbox doesn't parse it
             ) : Notify
         }
     }

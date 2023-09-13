@@ -38,29 +38,23 @@ internal class OnSubscriptionsChangedUseCase(
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
     suspend operator fun invoke(request: WCRequest, params: CoreNotifyParams.SubscriptionsChangedParams) = supervisorScope {
-        logger.log("OnSubscriptionsChangedUseCase - request: $request")
-        logger.log("OnSubscriptionsChangedUseCase - params: $params")
-
         val jwtClaims = extractVerifiedDidJwtClaims<SubscriptionsChangedRequestJwtClaim>(params.subscriptionsChangedAuth).getOrElse { error -> return@supervisorScope logger.error(error) }
-        logger.log("OnSubscriptionsChangedUseCase - jwtClaims: $jwtClaims")
 
         val account = decodeDidPkh(jwtClaims.subject)
         val subscriptions = setActiveSubscriptionsUseCase(account, jwtClaims.subscriptions)
+        logger.log("OnSubscriptionsChangedUseCase - subscriptions: ${subscriptions.size}")
+        logger.log("OnSubscriptionsChangedUseCase - types: ${subscriptions.getOrNull(0)?.mapOfNotificationScope?.filter { it.value.isSelected }?.map { it.key }}")
+
 
         //todo optimise fetching notify server auth key
         val (_, authenticationPublicKey) = extractPublicKeysFromDidJsonUseCase(NOTIFY_SERVER_URL.toUri()).getOrThrow()
-        logger.log("OnSubscriptionsChangedUseCase - authenticationPublicKey: $authenticationPublicKey")
 
         val didJwt = fetchDidJwtInteractor.subscriptionsChangedResponse(AccountId(account), authenticationPublicKey).getOrElse { error -> return@supervisorScope logger.error(error) }
 
-        logger.log("OnSubscriptionsChangedUseCase - didJwt: $didJwt")
         val responseParams = ChatNotifyResponseAuthParams.ResponseAuth(didJwt.value)
         val irnParams = IrnParams(Tags.NOTIFY_SUBSCRIPTIONS_CHANGED_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
-        logger.log("OnSubscriptionsChangedUseCase - responseParams: $responseParams")
-        logger.log("OnSubscriptionsChangedUseCase - irnParams: $irnParams")
 
         jsonRpcInteractor.respondWithParams(request.id, request.topic, responseParams, irnParams) { error -> logger.error(error) }
-        logger.log("OnSubscriptionsChangedUseCase - respondWithParams: ${request.topic}")
 
         launch { _events.emit(SubscriptionChanged(subscriptions)) }
     }

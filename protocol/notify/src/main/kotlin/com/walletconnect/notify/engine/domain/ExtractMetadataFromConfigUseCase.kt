@@ -27,13 +27,11 @@ internal class ExtractMetadataFromConfigUseCase(
     suspend operator fun invoke(dappUri: Uri): Result<Pair<AppMetaData, List<NotificationScope.Remote>>> = withContext(Dispatchers.IO) {
         val notifyConfigDappUri = generateAppropriateUri(dappUri, WC_NOTIFY_CONFIG_JSON)
 
-        logger.log("ExtractMetadataFromConfigUseCase - $notifyConfigDappUri")
 
         return@withContext notifyConfigDappUri.runCatching {
             // Get the did.json from the dapp
             URL(this.toString()).openStream().bufferedReader().use { it.readText() }
         }.mapCatching { wellKnownNotifyConfigString ->
-            logger.log("ExtractMetadataFromConfigUseCase - $wellKnownNotifyConfigString")
             // Parse the did.json
             serializer.tryDeserialize<NotifyConfigDTO>(wellKnownNotifyConfigString)
                 ?: throw Exception("Failed to parse $WC_NOTIFY_CONFIG_JSON. Check that the $$WC_NOTIFY_CONFIG_JSON file matches the specs")

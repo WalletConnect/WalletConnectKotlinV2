@@ -149,9 +149,9 @@ internal class SubscriptionRepository(
         requestedSubscriptionQueries.getRequestedSubscriptionByRequestId(requestId, ::toRequestedSubscription).executeAsOneOrNull()
     }
 
-    suspend fun deleteSubscriptionByNotifyTopic(notifyTopic: String) = withContext(Dispatchers.IO) {
+    suspend fun deleteSubscriptionByNotifyTopic(notifyTopic: String, account: String) = withContext(Dispatchers.IO) {
         val requestedSubscriptionRequestId = activeSubscriptionsQueries.getActiveSubscriptionForeignRequestedSubscriptionIdByNotifyTopic(notifyTopic).executeAsOneOrNull()?.requested_subscription_id
-        if (requestedSubscriptionRequestId != null) requestedSubscriptionQueries.deleteByRequestId(requestedSubscriptionRequestId)
+        if (requestedSubscriptionRequestId != null) requestedSubscriptionQueries.deleteByAccount(account)
         activeSubscriptionsQueries.deleteByNotifyTopic(notifyTopic)
     }
 

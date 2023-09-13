@@ -11,10 +11,11 @@ data class ServerSubscription(
     val scope: List<String>,
     val expiry: Long,
 ) {
-    val appDomainWithHttps = if (appDomain.contains(HTTPS_PREFIX)) appDomain else HTTPS_PREFIX + appDomain
+    val appDomainWithHttps = appDomain.ensureHttpsPrefix()
+}
 
-    private companion object {
-        const val HTTPS_PREFIX = "https://"
-    }
-
+//TODO: REFACTOR ME
+fun String.ensureHttpsPrefix(): String {
+    val HTTPS_PREFIX = "https://"
+    return if (this.contains(HTTPS_PREFIX)) this else HTTPS_PREFIX + this
 }

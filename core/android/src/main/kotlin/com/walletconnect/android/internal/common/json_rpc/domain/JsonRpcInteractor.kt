@@ -302,6 +302,8 @@ internal class JsonRpcInteractor(
     private fun manageSubscriptions() {
         scope.launch {
             relay.subscriptionRequest.map { relayRequest ->
+                //TODO silences 4050
+                if(relayRequest.params.subscriptionData.tag == 4050) return@map Triple(String.Empty, Topic(""), 0L)
                 val topic = Topic(relayRequest.subscriptionTopic)
                 val message = try {
                     chaChaPolyCodec.decrypt(topic, relayRequest.message)

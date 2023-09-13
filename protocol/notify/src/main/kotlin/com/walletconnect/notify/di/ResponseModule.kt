@@ -12,18 +12,14 @@ internal fun responseModule() = module {
 
     single {
         OnNotifySubscribeResponseUseCase(
-            jsonRpcInteractor = get(),
-            crypto = get(),
-            subscriptionRepository = get(),
-            metadataStorageRepository = get(),
-            engineNotifySubscriptionNotifier = get(),
             logger = get(),
         )
     }
 
     single {
         OnNotifyUpdateResponseUseCase(
-            subscriptionRepository = get()
+            subscriptionRepository = get(),
+            logger = get()
         )
     }
 

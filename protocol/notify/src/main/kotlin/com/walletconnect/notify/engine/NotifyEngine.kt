@@ -134,7 +134,6 @@ internal class NotifyEngine(
         jsonRpcInteractor.peerResponse
             .filter { response -> response.params is CoreNotifyParams }
             .onEach { response ->
-                logger.log("collectJsonRpcResponses - $response")
                 when (val params = response.params) {
                     is CoreNotifyParams.SubscribeParams -> onNotifySubscribeResponseUseCase(response, params)
                     is CoreNotifyParams.UpdateParams -> onNotifyUpdateResponseUseCase(response, params)

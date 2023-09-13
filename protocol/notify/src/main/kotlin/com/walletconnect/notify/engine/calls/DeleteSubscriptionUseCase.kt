@@ -11,6 +11,7 @@ import com.walletconnect.android.internal.common.storage.MetadataStorageReposito
 import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.notify.common.model.NotifyRpc
 import com.walletconnect.notify.common.model.Subscription
 import com.walletconnect.notify.data.storage.MessagesRepository
@@ -24,11 +25,14 @@ internal class DeleteSubscriptionUseCase(
     private val subscriptionRepository: SubscriptionRepository,
     private val messagesRepository: MessagesRepository,
     private val fetchDidJwtInteractor: FetchDidJwtInteractor,
+    private val logger: Logger,
 ) : DeleteSubscriptionUseCaseInterface {
 
     override suspend fun deleteSubscription(notifyTopic: String, onFailure: (Throwable) -> Unit) = supervisorScope {
+        logger.log("deleteSubscription: $notifyTopic")
         val activeSubscription: Subscription.Active =
             subscriptionRepository.getActiveSubscriptionByNotifyTopic(notifyTopic) ?: return@supervisorScope onFailure(IllegalStateException("Subscription does not exists for $notifyTopic"))
+        val account = activeSubscription.account.value
         val dappMetaData = metadataStorageRepository.getByTopicAndType(activeSubscription.notifyTopic, AppMetaDataType.PEER)
             ?: return@supervisorScope onFailure(IllegalStateException("Dapp metadata does not exists for $notifyTopic"))
         val deleteJwt = fetchDidJwtInteractor.deleteRequest(activeSubscription.account, dappMetaData.url, activeSubscription.authenticationPublicKey).getOrElse {
@@ -37,7 +41,7 @@ internal class DeleteSubscriptionUseCase(
         val request = NotifyRpc.NotifyDelete(params = CoreNotifyParams.DeleteParams(deleteJwt.value))
         val irnParams = IrnParams(Tags.NOTIFY_DELETE, Ttl(MONTH_IN_SECONDS))
 
-        subscriptionRepository.deleteSubscriptionByNotifyTopic(notifyTopic)
+        subscriptionRepository.deleteSubscriptionByNotifyTopic(notifyTopic, account)
         messagesRepository.deleteMessagesByTopic(notifyTopic)
 
         jsonRpcInteractor.unsubscribe(Topic(notifyTopic))
@@ -50,7 +54,6 @@ internal class DeleteSubscriptionUseCase(
             }
         )
 
-//        deleteSubscriptionToNotifySubscriptionStore(activeSubscription.account, activeSubscription.notifyTopic, onSuccess = {}, onError = {})
     }
 
 }

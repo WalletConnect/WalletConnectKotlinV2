@@ -4,7 +4,6 @@ package com.walletconnect.notify.di
 
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.notify.engine.NotifyEngine
-import com.walletconnect.notify.engine.domain.EngineNotifySubscriptionNotifier
 import com.walletconnect.notify.engine.domain.ExtractMetadataFromConfigUseCase
 import com.walletconnect.notify.engine.domain.ExtractPublicKeysFromDidJsonUseCase
 import com.walletconnect.notify.engine.domain.FetchAllMessagesFromArchiveUseCase
@@ -25,10 +24,6 @@ internal fun engineModule() = module {
         requestModule(),
         responseModule()
     )
-
-    single {
-        EngineNotifySubscriptionNotifier()
-    }
 
     single {
         ExtractPublicKeysFromDidJsonUseCase(

@@ -5,8 +5,8 @@ CREATE TABLE RegisteredAccounts (
     isLimited INTEGER AS Boolean NOT NULL
 );
 
-insertOrAbortAccount:
-INSERT OR ABORT INTO RegisteredAccounts(accountId, publicIdentityKey, isLimited)
+insertOrIgnoreAccount:
+INSERT OR IGNORE INTO RegisteredAccounts(accountId, publicIdentityKey, isLimited)
 VALUES (?, ?, ?);
 
 getAccountByAccountId:

@@ -7,6 +7,7 @@ import com.walletconnect.notify.client.NotifyClient
 internal class NotifyEventHandler(
     private val logger: Logger,
     private val onSubscriptionNotifyEventUseCase: OnSubscriptionNotifyEventUseCase,
+    private val onSubscriptionsChangedNotifyEventUseCase: OnSubscriptionsChangedNotifyEventUseCase,
     private val onUpdateNotifyEventUseCase: OnUpdateNotifyEventUseCase,
     private val onDeleteNotifyEventUseCase: OnDeleteNotifyEventUseCase,
     private val onMessageNotifyEventUseCase: OnMessageNotifyEventUseCase,
@@ -42,5 +43,6 @@ internal class NotifyEventHandler(
 
     override fun onSubscriptionsChanged(subscriptionsChanged: Notify.Event.SubscriptionsChanged) {
         logger.log("onSubscriptionsChanged: $subscriptionsChanged")
+        onSubscriptionsChangedNotifyEventUseCase(subscriptionsChanged)
     }
 }

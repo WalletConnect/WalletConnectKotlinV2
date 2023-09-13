@@ -23,19 +23,15 @@ internal class ExtractPublicKeysFromDidJsonUseCase(
 
     suspend operator fun invoke(uri: Uri): Result<DidJsonPublicKeyPair> = withContext(Dispatchers.IO) {
         val didJsonDappUri = generateAppropriateUri(uri, DID_JSON)
-        logger.log("ExtractPublicKeysFromDidJsonUseCase - didJsonDappUri $didJsonDappUri")
 
         val didJsonResult = didJsonDappUri.runCatching {
             // Get the did.json from the dapp
             URL(this.toString()).openStream().bufferedReader().use { it.readText() }
         }.mapCatching { wellKnownDidJsonString ->
-            logger.log("ExtractPublicKeysFromDidJsonUseCase - wellKnownDidJsonString $wellKnownDidJsonString")
-
             serializer.tryDeserialize<DidJsonDTO>(wellKnownDidJsonString)
                 ?: throw Exception("Failed to parse $uri. Check that the $DID_JSON matches the specs.")
         }
 
-        logger.log("ExtractPublicKeysFromDidJsonUseCase - didJsonResult $didJsonResult")
 
         val keyAgreementPublicKey = didJsonResult
             .takeIf {

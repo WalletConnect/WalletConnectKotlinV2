@@ -11,12 +11,12 @@ import kotlinx.coroutines.withContext
 
 internal class RegisteredAccountsRepository(private val registeredAccounts: RegisteredAccountsQueries) {
 
-    suspend fun insertOrAbortAccount(
+    suspend fun insertOrIgnoreAccount(
         accountId: AccountId,
         publicIdentityKey: PublicKey,
         isLimited: Boolean,
     ) = withContext(Dispatchers.IO) {
-        registeredAccounts.insertOrAbortAccount(accountId.value, publicIdentityKey.keyAsHex, isLimited)
+        registeredAccounts.insertOrIgnoreAccount(accountId.value, publicIdentityKey.keyAsHex, isLimited)
     }
 
     suspend fun getAccountByAccountId(accountId: String): RegisteredAccount = withContext(Dispatchers.IO) {

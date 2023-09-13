@@ -28,7 +28,7 @@ internal class RegisterUseCase(
             accountId, isLimited, domain, onSign,
             onFailure = { error -> onFailure(error) },
             onSuccess = { identityPublicKey ->
-                runCatching { registeredAccountsRepository.insertOrAbortAccount(accountId, identityPublicKey, isLimited) }.fold(
+                runCatching { registeredAccountsRepository.insertOrIgnoreAccount(accountId, identityPublicKey, isLimited) }.fold(
                     onFailure = { error -> onFailure(error) },
                     onSuccess = { watchSubscriptionsUseCase(accountId, onSuccess = { onSuccess(identityPublicKey.keyAsHex) }, onFailure = { error -> onFailure(error) }) }
                 )
