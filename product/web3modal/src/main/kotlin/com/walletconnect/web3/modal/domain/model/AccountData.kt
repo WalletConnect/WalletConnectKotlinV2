@@ -5,5 +5,6 @@ internal data class AccountData(
     val topic: String,
     val balance: String,
     val selectedChain: Chain,
-    val chains: List<Chain>
+    val chains: List<Chain>,
+    val identity: Identity
 )

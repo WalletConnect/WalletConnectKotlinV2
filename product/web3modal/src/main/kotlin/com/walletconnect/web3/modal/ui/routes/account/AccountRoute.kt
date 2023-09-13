@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.walletconnect.web3.modal.domain.model.AccountData
 import com.walletconnect.web3.modal.domain.model.Chain
+import com.walletconnect.web3.modal.domain.model.Identity
 import com.walletconnect.web3.modal.ui.components.internal.commons.CloseIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.CompassIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.DisconnectIcon
@@ -121,7 +122,8 @@ private fun PreviewAccountScreen() {
             address = "0xd2B8b483056b134f9D8cd41F55bB065F9",
             balance = "543 ETH",
             selectedChain = Chain("eip155:1"),
-            chains = listOf(Chain("eip155:1"))
+            chains = listOf(Chain("eip155:1")),
+            identity = Identity()
         )
         AccountScreen(accountData, {}, {}, {}, {})
     }
