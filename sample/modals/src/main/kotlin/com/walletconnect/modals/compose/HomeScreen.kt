@@ -29,8 +29,6 @@ fun HomeScreen(navController: NavController) {
         Spacer(modifier = Modifier.height(20.dp))
         ConnectButton(state = web3ModalState, buttonSize = ConnectButtonSize.SMALL)
         Spacer(modifier = Modifier.height(20.dp))
-//        NetworkButton(web3ButtonState = web3ButtonState)
-//        Spacer(modifier = Modifier.height(20.dp))
         AccountButton(web3ModalState, AccountButtonType.NORMAL)
         Spacer(modifier = Modifier.height(20.dp))
         AccountButton(web3ModalState, AccountButtonType.MIXED)
