@@ -55,7 +55,7 @@ fun SessionProposalRoute(navController: NavHostController, sessionProposalViewMo
     val context = LocalContext.current
     SemiTransparentDialog {
         Spacer(modifier = Modifier.height(24.dp))
-        Peer(peerUI = sessionProposalUI.peerUI, "would like to connect", sessionProposalUI.peerContext)
+        Peer(peerUI = sessionProposalUI.peerUI, "wants to connect", sessionProposalUI.peerContext)
         Spacer(modifier = Modifier.height(16.dp))
         Divider()
         Spacer(modifier = Modifier.height(16.dp))

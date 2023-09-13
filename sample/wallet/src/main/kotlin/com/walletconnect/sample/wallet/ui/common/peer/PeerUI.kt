@@ -18,7 +18,8 @@ data class PeerUI(
 data class PeerContextUI(
     val origin: String,
     val validation: Validation,
-    val verifyUrl: String
+    val verifyUrl: String,
+    val isScam: Boolean?
 )
 
 enum class Validation {
@@ -30,7 +31,7 @@ val Red = Color(0xFFC70039)
 val Green = Color(0xFF60E353)
 
 fun Wallet.Model.VerifyContext.toPeerUI(): PeerContextUI =
-    PeerContextUI(origin, validation.toUI(), verifyUrl)
+    PeerContextUI(origin, validation.toUI(), verifyUrl, isScam)
 
 fun Wallet.Model.Validation.toUI(): Validation =
     when (this) {
