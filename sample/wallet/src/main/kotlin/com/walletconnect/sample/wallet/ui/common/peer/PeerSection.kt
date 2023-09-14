@@ -72,31 +72,36 @@ fun Peer(peerUI: PeerUI, actionText: String?, peerContextUI: PeerContextUI? = nu
             )
             Spacer(modifier = Modifier.height(8.dp))
             if (peerContextUI != null) {
-                Row(
-                    modifier = Modifier
-                        .padding(vertical = 10.dp, horizontal = 15.dp)
-                        .clip(CircleShape)
-                        .background(color = themedColor(darkColor = Color(0xFFE4E4E7).copy(.33f), lightColor = Color(0xFF8a8498).copy(.66f)))
-                        .padding(vertical = 5.dp, horizontal = 8.dp),
-                    horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Image(
-                        modifier = Modifier.size(20.dp),
-                        //todo change the sam icon
-                        painter = painterResource(id = peerContextUI.isScam?.let { if (it) R.drawable.red_dangerous else getValidationIcon(peerContextUI.validation) } ?: getValidationIcon(
-                            peerContextUI.validation
-                        )),
-                        contentDescription = null)
-                    Spacer(modifier = Modifier.width(5.dp))
-                    Text(
-                        text = peerContextUI.isScam?.let { if (it) "Security risk" else getValidationTitle(peerContextUI.validation) } ?: getValidationTitle(peerContextUI.validation),
-                        style = TextStyle(fontWeight = FontWeight.Normal, fontSize = 12.sp, color = themedColor(darkColor = Color(0xFF413F3F), lightColor = Color(0xFFE4E2E7).copy(0.9f))),
-                    )
-                }
-                Spacer(modifier = Modifier.width(5.dp))
+                VerifyBatch(peerContextUI)
             }
         }
     }
+}
+
+@Composable
+private fun VerifyBatch(peerContextUI: PeerContextUI) {
+    Row(
+        modifier = Modifier
+            .padding(vertical = 10.dp, horizontal = 15.dp)
+            .clip(CircleShape)
+            .background(color = themedColor(darkColor = Color(0xFFE4E4E7).copy(.33f), lightColor = Color(0xFF8a8498).copy(.66f)))
+            .padding(vertical = 5.dp, horizontal = 8.dp),
+        horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            modifier = Modifier.size(20.dp),
+            //todo change the sam icon
+            painter = painterResource(id = peerContextUI.isScam?.let { if (it) R.drawable.red_dangerous else getValidationIcon(peerContextUI.validation) } ?: getValidationIcon(
+                peerContextUI.validation
+            )),
+            contentDescription = null)
+        Spacer(modifier = Modifier.width(5.dp))
+        Text(
+            text = peerContextUI.isScam?.let { if (it) "Security risk" else getValidationTitle(peerContextUI.validation) } ?: getValidationTitle(peerContextUI.validation),
+            style = TextStyle(fontWeight = FontWeight.Normal, fontSize = 12.sp, color = themedColor(darkColor = Color(0xFF413F3F), lightColor = Color(0xFFE4E2E7).copy(0.9f))),
+        )
+    }
+    Spacer(modifier = Modifier.width(5.dp))
 }
 
 private fun getValidationIcon(validation: Validation): Int {

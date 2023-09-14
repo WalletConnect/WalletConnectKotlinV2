@@ -1,18 +1,33 @@
 package com.walletconnect.sample.wallet.ui.routes.dialog_routes.session_proposal
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -37,6 +52,7 @@ import com.walletconnect.sample.common.CompletePreviews
 import com.walletconnect.sample.common.sendResponseDeepLink
 import com.walletconnect.sample.common.ui.theme.PreviewTheme
 import com.walletconnect.sample.common.ui.themedColor
+import com.walletconnect.sample.wallet.R
 import com.walletconnect.web3.wallet.client.Wallet
 import kotlinx.coroutines.launch
 
@@ -56,16 +72,13 @@ fun SessionProposalRoute(navController: NavHostController, sessionProposalViewMo
     SemiTransparentDialog {
         Spacer(modifier = Modifier.height(24.dp))
         Peer(peerUI = sessionProposalUI.peerUI, "wants to connect", sessionProposalUI.peerContext)
-        Spacer(modifier = Modifier.height(16.dp))
-        Divider()
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         Permissions(sessionProposalUI = sessionProposalUI)
-        Spacer(modifier = Modifier.height(16.dp))
         Buttons(onDecline = {
             composableScope.launch {
                 try {
                     sessionProposalViewModel.reject(sessionProposalUI.pubKey) { redirect ->
-                        if (redirect.isNotEmpty()){
+                        if (redirect.isNotEmpty()) {
                             context.sendResponseDeepLink(redirect.toUri())
                         }
                     }
@@ -128,11 +141,21 @@ fun Permissions(sessionProposalUI: SessionProposalUI) {
         }.toMap()
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = "Requested permissions".uppercase(), style = TextStyle(
-                fontWeight = FontWeight.Medium, fontSize = 12.sp, color = themedColor(Color(0xFFD7D7DB).copy(.5f), Color(0xF3C3C43).copy(.4f))
+        Spacer(modifier = Modifier.height(4.dp))
+        Column(
+            modifier = Modifier
+                .padding(8.dp)
+                .border(border = BorderStroke(1.dp, Color.Black), shape = RoundedCornerShape(8.dp)),
+        ) {
+            Text(
+                modifier = Modifier.padding(top = 16.dp, start = 16.dp),
+                text = "Requested permissions",
+                style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 12.sp, color = themedColor(Color(0xFFD7D7DB).copy(.5f), Color(0xF3C3C43).copy(.4f)))
             )
-        )
+            PermissionRow("View your balance and activity")
+            PermissionRow("Send approval requests")
+            PermissionRow("Move funds without permissions", icon = R.drawable.ic_close, color = Color(0xFFC0C0C0))
+        }
 
         HorizontalPager(
             modifier = Modifier.height(400.dp),
@@ -149,6 +172,15 @@ fun Permissions(sessionProposalUI: SessionProposalUI) {
                 activeColor = themedColor(darkColor = Color(0xFFE4E4E7).copy(alpha = .2f), lightColor = Color(0xFF505059).copy(.2f)),
             )
         }
+    }
+}
+
+@Composable
+private fun PermissionRow(title: String, icon: Int = R.drawable.ic_check, color: Color = Color(0xFF000000)) {
+    Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+        Image(modifier = Modifier.size(16.dp), imageVector = ImageVector.vectorResource(id = icon), contentDescription = "check")
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(title, style = TextStyle(fontSize = 12.sp, color = color))
     }
 }
 
