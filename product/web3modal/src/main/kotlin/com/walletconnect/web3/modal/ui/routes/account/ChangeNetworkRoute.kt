@@ -27,6 +27,7 @@ import com.walletconnect.web3.modal.ui.components.internal.commons.inputs.Search
 import com.walletconnect.web3.modal.ui.components.internal.commons.network.ChainNetworkItem
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
+import com.walletconnect.web3.modal.ui.previews.accountDataPreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 import com.walletconnect.web3.modal.utils.getChainNetworkImageUrl
 

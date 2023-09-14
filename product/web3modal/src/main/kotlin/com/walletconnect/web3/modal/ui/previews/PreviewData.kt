@@ -2,6 +2,9 @@ package com.walletconnect.web3.modal.ui.previews
 
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import com.walletconnect.android.internal.common.explorer.data.model.Wallet
+import com.walletconnect.web3.modal.domain.model.AccountData
+import com.walletconnect.web3.modal.domain.model.Chain
+import com.walletconnect.web3.modal.domain.model.Identity
 
 private val metaMask: Wallet
     get() = Wallet(id = "1", name = "MetaMask", imageUrl = "", nativeLink = "metamask://", universalLink = "", playStoreLink = "")
@@ -36,6 +39,16 @@ private val safePal: Wallet
 
 internal val testWallets: List<Wallet>
     get() = listOf(metaMask, trustWallet, safe, rainbow, zerion, argent, spot, imToken, alphaWallet, omni, bitkeep, tokenPocket, ledgerLive, frontier, safePal)
+
+internal val accountDataPreview: AccountData
+    get() = AccountData(
+    topic = "",
+    address = "0xd2B8b483056b134f9D8cd41F55bB065F9",
+    balance = "543 ETH",
+    selectedChain = Chain("eip155:1"),
+    chains = listOf(Chain("eip155:1")),
+    identity = Identity()
+)
 
 internal class ConnectYourWalletPreviewProvider : PreviewParameterProvider<List<Wallet>> {
     override val values = sequenceOf(

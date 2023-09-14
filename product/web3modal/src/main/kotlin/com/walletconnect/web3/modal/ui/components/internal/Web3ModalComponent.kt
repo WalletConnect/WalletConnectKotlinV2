@@ -29,7 +29,6 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 // That may be public in the future to allow users use our composable view
 @Composable
@@ -44,22 +43,8 @@ internal fun Web3ModalComponent(
     LaunchedEffect(Unit) {
         Web3ModalDelegate
             .wcEventModels
-            .onEach { event ->
-                Timber.d("XDDDD1 $event")
-                println("XDDDDD1 $event")
-            }
-            .collect()
-    }
-
-
-    LaunchedEffect(Unit) {
-        Web3ModalDelegate
-            .wcEventModels
             .filterIsInstance<Modal.Model.ApprovedSession>()
             .onEach { event ->
-
-                Timber.d("XDDDD $event")
-                println("XDDDDD $event")
                 web3ModalViewModel.saveSessionTopic(event.topic)
                 closeModal()
             }

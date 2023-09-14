@@ -13,10 +13,10 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import com.walletconnect.modal.ui.components.common.roundedClickable
 import com.walletconnect.web3.modal.domain.model.AccountData
-import com.walletconnect.web3.modal.domain.model.Chain
 import com.walletconnect.web3.modal.domain.model.Identity
 import com.walletconnect.web3.modal.ui.previews.ComponentPreview
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
+import com.walletconnect.web3.modal.ui.previews.accountDataPreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 @Composable
@@ -39,33 +39,15 @@ internal fun AccountName(accountData: AccountData) {
 @UiModePreview
 @Composable
 private fun AccountAddressPreview() {
-    val accountData = AccountData(
-        topic = "",
-        address = "0xd2B8b483056b134f9D8cd41F55bB065F9",
-        balance = "543 ETH",
-        selectedChain = Chain("eip155:1"),
-        chains = listOf(Chain("eip155:1")),
-        identity = Identity()
-    )
-
     ComponentPreview {
-        AccountName(accountData)
+        AccountName(accountDataPreview)
     }
 }
 
 @UiModePreview
 @Composable
 private fun AccountNamePreview() {
-    val accountData = AccountData(
-        topic = "",
-        address = "0xd2B8b483056b134f9D8cd41F55bB065F9",
-        balance = "543 ETH",
-        selectedChain = Chain("eip155:1"),
-        chains = listOf(Chain("eip155:1")),
-        identity = Identity(name = "test.eth")
-    )
-
     ComponentPreview {
-        AccountName(accountData)
+        AccountName(accountDataPreview.copy(identity = Identity(name = "testIdentity.eth")))
     }
 }
