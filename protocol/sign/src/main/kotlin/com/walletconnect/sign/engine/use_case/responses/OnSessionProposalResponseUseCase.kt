@@ -39,11 +39,13 @@ internal class OnSessionProposalResponseUseCase(
     suspend operator fun invoke(wcResponse: WCResponse, params: SignParams.SessionProposeParams) = supervisorScope {
         try {
             val pairingTopic = wcResponse.topic
-            if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) return@supervisorScope
-
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcResult -> {
                     updatePairing(pairingTopic)
+                    if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) {
+                        _events.emit(SDKError(Throwable("Invalid Pairing")))
+                        return@supervisorScope
+                    }
                     logger.log("Session proposal approve received")
                     val selfPublicKey = PublicKey(params.proposer.publicKey)
                     val approveParams = response.result as CoreSignParams.ApprovalParams
