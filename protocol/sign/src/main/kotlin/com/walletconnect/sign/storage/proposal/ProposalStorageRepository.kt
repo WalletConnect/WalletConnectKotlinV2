@@ -49,6 +49,12 @@ class ProposalStorageRepository(
 
     @JvmSynthetic
     @Throws(SQLiteException::class)
+    internal fun getProposalByTopic(topic: String): ProposalVO {
+        return proposalDaoQueries.getProposalByPairingTopic(topic, mapper = this::mapProposalDaoToProposalVO).executeAsOne()
+    }
+
+    @JvmSynthetic
+    @Throws(SQLiteException::class)
     internal fun getProposals(): List<ProposalVO> {
         return proposalDaoQueries.getListOfProposalDaos(this::mapProposalDaoToProposalVO).executeAsList()
     }

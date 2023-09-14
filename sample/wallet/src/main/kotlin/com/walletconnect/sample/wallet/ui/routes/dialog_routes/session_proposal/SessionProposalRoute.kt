@@ -64,7 +64,7 @@ fun SessionProposalRoute(navController: NavHostController, sessionProposalViewMo
         Buttons(onDecline = {
             composableScope.launch {
                 try {
-                    sessionProposalViewModel.reject { redirect ->
+                    sessionProposalViewModel.reject(sessionProposalUI.pubKey) { redirect ->
                         if (redirect.isNotEmpty()){
                             context.sendResponseDeepLink(redirect.toUri())
                         }
@@ -77,7 +77,7 @@ fun SessionProposalRoute(navController: NavHostController, sessionProposalViewMo
         }, onAllow = {
             composableScope.launch {
                 try {
-                    sessionProposalViewModel.approve { redirect ->
+                    sessionProposalViewModel.approve(sessionProposalUI.pubKey) { redirect ->
                         if (redirect.isNotEmpty()) {
                             context.sendResponseDeepLink(redirect.toUri())
                         }
