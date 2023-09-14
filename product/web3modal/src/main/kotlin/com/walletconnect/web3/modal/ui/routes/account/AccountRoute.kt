@@ -20,7 +20,7 @@ import com.walletconnect.web3.modal.ui.components.internal.commons.CompassIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.DisconnectIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.ExternalIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.VerticalSpacer
-import com.walletconnect.web3.modal.ui.components.internal.commons.account.AccountAddress
+import com.walletconnect.web3.modal.ui.components.internal.commons.account.AccountName
 import com.walletconnect.web3.modal.ui.components.internal.commons.account.AccountImage
 import com.walletconnect.web3.modal.ui.components.internal.commons.button.ButtonSize
 import com.walletconnect.web3.modal.ui.components.internal.commons.button.ButtonStyle
@@ -74,9 +74,9 @@ private fun AccountScreen(
                 ),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            AccountImage(accountData.address)
+            AccountImage(address = accountData.address, avatarUrl = accountData.identity.avatar)
             VerticalSpacer(height = 20.dp)
-            AccountAddress(accountData.address)
+            AccountName(accountData)
             Text(
                 text = accountData.balance,
                 style = Web3ModalTheme.typo.paragraph500.copy(Web3ModalTheme.colors.foreground.color200)
