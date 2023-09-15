@@ -23,15 +23,15 @@ import com.walletconnect.sample.wallet.ui.routes.bottomsheet_routes.scan_uri.Sca
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connection_details.ConnectionDetailsRoute
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsRoute
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
+import com.walletconnect.sample.wallet.ui.routes.composable_routes.explorer_dapps.ExploreDappsScreenRoute
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.get_started.GetStartedRoute
+import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.InboxScreenRoute
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.notifications.NotificationsScreenRoute
-import com.walletconnect.sample.wallet.ui.routes.composable_routes.web3inbox.Web3InboxRoute
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.auth_request.AuthRequestRoute
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.paste_uri.PasteUriRoute
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.session_proposal.SessionProposalRoute
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.session_request.SessionRequestRoute
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.snackbar_message.SnackbarMessageRoute
-import com.walletconnect.web3.inbox.client.Web3Inbox
 
 @ExperimentalMaterialNavigationApi
 @Composable
@@ -52,7 +52,6 @@ fun Web3WalletNavGraph(
         scrimColor = Color.Unspecified
     ) {
         val sheetState = remember { bottomSheetNavigator.navigatorSheetState }
-        val web3InboxState = Web3Inbox.rememberWeb3InboxState()
 
         NavHost(
             navController = navController,
@@ -69,11 +68,27 @@ fun Web3WalletNavGraph(
             )) {
                 ConnectionDetailsRoute(navController, it.arguments?.getInt("connectionId"), connectionsViewModel)
             }
-            composable(Route.Web3Inbox.path) {
-                Web3InboxRoute(web3InboxState)
+            composable("${Route.Notifications.path}/{topic}/{name}/{url}", arguments = listOf(
+                navArgument("topic") {
+                    type = NavType.Companion.StringType
+                    nullable = false
+                },
+                navArgument("name") {
+                    type = NavType.Companion.StringType
+                    nullable = false
+                },
+                navArgument("url") {
+                    type = NavType.Companion.StringType
+                    nullable = false
+                }
+            )) {
+                NotificationsScreenRoute(navController, it.arguments?.getString("topic")!!, it.arguments?.getString("name")!!, it.arguments?.getString("url")!!)
             }
-            composable(Route.Notifications.path) {
-                NotificationsScreenRoute(navController)
+            composable(Route.ExploreDapps.path) {
+                ExploreDappsScreenRoute(navController)
+            }
+            composable(Route.Inbox.path) {
+                InboxScreenRoute(navController)
             }
             bottomSheet(Route.ScanUri.path) {
                 ScanUriRoute(navController, sheetState, onScanSuccess = { web3walletViewModel.pair(it) })
