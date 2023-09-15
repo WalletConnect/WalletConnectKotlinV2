@@ -88,7 +88,6 @@ class Web3WalletApplication : Application() {
         NotifyClient.register(
             params = Notify.Params.Registration(
                 with(EthAccountDelegate) { account.toEthAddress() },
-                isLimited = false,
                 domain = BuildConfig.APPLICATION_ID,
                 onSign = { message -> CacaoSigner.sign(message, EthAccountDelegate.privateKey.hexToBytes(), SignatureType.EIP191) }
             ),

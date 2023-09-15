@@ -98,6 +98,6 @@ object Notify {
 
         data class DecryptMessage(val topic: String, val encryptedMessage: String) : Params()
 
-        data class Registration(val account: String, val isLimited: Boolean, val domain: String, val onSign: (String) -> Model.Cacao.Signature?) : Params()
+        data class Registration(val account: String, val domain: String, val onSign: (String) -> Model.Cacao.Signature?, val isLimited: Boolean = false) : Params()
     }
 }
