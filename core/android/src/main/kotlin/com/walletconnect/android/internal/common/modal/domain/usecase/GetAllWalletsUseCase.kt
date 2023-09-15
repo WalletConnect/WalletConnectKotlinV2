@@ -7,9 +7,11 @@ class GetAllWalletsUseCase(
     private val web3ModalApiRepository: Web3ModalApiRepository
 ) {
     suspend operator fun invoke(
+        sdkType: String,
         excludeIds: List<String> = listOf(),
-        recommendedWalletsIds: List<String> = listOf()
+        recommendedWalletsIds: List<String> = listOf(),
     ): List<Wallet> = web3ModalApiRepository.fetchAllWallets(
+        sdkType = sdkType,
         excludeIds = excludeIds,
         recommendedWalletsIds = recommendedWalletsIds
     )

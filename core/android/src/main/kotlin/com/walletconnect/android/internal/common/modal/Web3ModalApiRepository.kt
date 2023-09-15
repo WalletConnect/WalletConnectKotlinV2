@@ -12,6 +12,7 @@ class Web3ModalApiRepository(
     private val web3ModalService: Web3ModalService
 ) {
     suspend fun fetchAllWallets(
+        sdkType: String,
         excludeIds: List<String> = listOf(),
         recommendedWalletsIds: List<String> = listOf()
     ): List<Wallet> {
@@ -20,7 +21,7 @@ class Web3ModalApiRepository(
         var page = 1
         var count: Int
         do {
-            val response = web3ModalService.getWallets(page = page, exclude = exclude)
+            val response = web3ModalService.getWallets(sdkType = sdkType, page = page, exclude = exclude)
             if (response.isSuccessful && response.body() != null) {
                 response.body()!!.let {
                     count = it.count
@@ -28,7 +29,7 @@ class Web3ModalApiRepository(
                     wallets.addAll(it.data.toWallets(recommendedWalletsIds))
                 }
             } else {
-                throw Throwable(response.errorBody()?.string())
+                throw Exception(response.errorBody()?.string())
             }
         } while (wallets.size != count)
         return wallets

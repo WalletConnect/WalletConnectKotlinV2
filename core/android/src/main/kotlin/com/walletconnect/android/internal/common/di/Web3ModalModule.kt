@@ -21,7 +21,6 @@ internal fun web3ModalModule() = module {
             val updatedRequest = chain.request().newBuilder()
                 .addHeader("x-project-id", BuildConfig.PROJECT_ID)
                 .addHeader("x-sdk-version", "kotlin-${BuildConfig.SDK_VERSION}")
-                .addHeader("x-sdk-type", "w3m")
                 .build()
             chain.proceed(updatedRequest)
         }
