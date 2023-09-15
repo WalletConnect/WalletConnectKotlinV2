@@ -78,26 +78,29 @@ internal class AuthProtocol(private val koinApp: KoinApplication = wcKoinApp) : 
     override fun request(params: Auth.Params.Request, onSuccess: () -> Unit, onError: (Auth.Model.Error) -> Unit) {
         checkEngineInitialization()
 
-        try {
-            scope.launch {
+        scope.launch {
+            try {
                 val expiry = params.expiry?.run { Expiry(this) }
                 authEngine.request(params.toCommon(), expiry, params.topic,
                     onSuccess = onSuccess,
                     onFailure = { error -> onError(Auth.Model.Error(error)) }
                 )
+            } catch (error: Exception) {
+                onError(Auth.Model.Error(error))
             }
-        } catch (error: Exception) {
-            onError(Auth.Model.Error(error))
         }
     }
 
     @Throws(IllegalStateException::class)
     override fun respond(params: Auth.Params.Respond, onSuccess: (Auth.Params.Respond) -> Unit, onError: (Auth.Model.Error) -> Unit) {
         checkEngineInitialization()
-        try {
-            scope.launch { authEngine.respond(params.toCommon(), { onSuccess(params) }, { error -> onError(Auth.Model.Error(error)) }) }
-        } catch (error: Exception) {
-            onError(Auth.Model.Error(error))
+
+        scope.launch {
+            try {
+                authEngine.respond(params.toCommon(), { onSuccess(params) }, { error -> onError(Auth.Model.Error(error)) })
+            } catch (error: Exception) {
+                onError(Auth.Model.Error(error))
+            }
         }
     }
 

@@ -49,7 +49,7 @@ class PairingStorageRepository(private val pairingQueries: PairingQueries) : Pai
         peerDesc: String?,
         peerUrl: String?,
         peerIcons: List<String>?,
-        native: String?,
+        native: String?
     ): Pairing {
         val peerAppMetaData: AppMetaData? = if (peerName != null && peerDesc != null && peerUrl != null && peerIcons != null) {
             AppMetaData(name = peerName, description = peerDesc, url = peerUrl, icons = peerIcons, redirect = Redirect(native = native))
@@ -64,8 +64,8 @@ class PairingStorageRepository(private val pairingQueries: PairingQueries) : Pai
             relayProtocol = relay_protocol,
             relayData = relay_data,
             uri = uri,
-            registeredMethods = methods,
-            isActive = is_active
+            isActive = is_active,
+            registeredMethods = methods
         )
     }
 }
