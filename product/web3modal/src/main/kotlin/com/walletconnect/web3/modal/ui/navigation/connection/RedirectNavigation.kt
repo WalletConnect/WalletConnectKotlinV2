@@ -9,6 +9,7 @@ import com.walletconnect.android.internal.common.explorer.data.model.Wallet
 import com.walletconnect.util.Empty
 import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.ui.navigation.addTitleArg
+import com.walletconnect.web3.modal.ui.routes.connect.ConnectState
 import com.walletconnect.web3.modal.ui.routes.connect.redirect.RedirectWalletRoute
 
 private const val WALLET_ID_KEY = "walletId"
@@ -19,16 +20,14 @@ internal fun NavController.navigateToRedirect(wallet: Wallet) {
 }
 
 internal fun NavGraphBuilder.redirectRoute(
-    wallets: List<Wallet>,
-    uri: String,
-    updateRecentWalletId: (String) -> Unit,
-    retry: (() -> Unit) -> Unit
+    connectState: ConnectState
 ) {
     composable(
         route = Route.REDIRECT.path + "/" + WALLET_ID_ARG + addTitleArg(),
         arguments = listOf(navArgument(WALLET_ID_KEY) { type = NavType.StringType })
     ) { backStackEntry ->
-        val wallet = wallets.find { it.id == backStackEntry.arguments?.getString(WALLET_ID_KEY, String.Empty) }!!
-        RedirectWalletRoute(wallet = wallet, uri = uri, retry = retry).also { updateRecentWalletId(wallet.id) }
+        val walletId = backStackEntry.arguments?.getString(WALLET_ID_KEY, String.Empty)
+        val wallet = connectState.wallets.find { it.id == walletId }!!
+        RedirectWalletRoute(connectState = connectState, wallet = wallet)
     }
 }
