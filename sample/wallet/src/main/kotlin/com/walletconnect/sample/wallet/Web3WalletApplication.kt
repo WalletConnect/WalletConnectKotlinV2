@@ -19,6 +19,9 @@ import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.utils.cacao.sign
+import com.walletconnect.notify.client.Notify
+import com.walletconnect.notify.client.NotifyClient
+import com.walletconnect.notify.client.cacao.CacaoSigner
 import com.walletconnect.sample.common.RELAY_URL
 import com.walletconnect.sample.common.initBeagle
 import com.walletconnect.sample.common.tag
@@ -28,9 +31,6 @@ import com.walletconnect.sample.wallet.domain.toEthAddress
 import com.walletconnect.sample.wallet.ui.state.ConnectionState
 import com.walletconnect.sample.wallet.ui.state.connectionStateFlow
 import com.walletconnect.util.hexToBytes
-import com.walletconnect.web3.inbox.cacao.CacaoSigner
-import com.walletconnect.web3.inbox.client.Inbox
-import com.walletconnect.web3.inbox.client.Web3Inbox
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import kotlinx.coroutines.CoroutineScope
@@ -77,15 +77,28 @@ class Web3WalletApplication : Application() {
             Log.e(tag(this), error.throwable.stackTraceToString())
         }
 
-        Web3Inbox.initialize(Inbox.Params.Init(core = CoreClient, account = Inbox.Type.AccountId(with(EthAccountDelegate) { account.toEthAddress() }),
-            onSign = { message ->
-                Log.d(tag(this), message)
-                CacaoSigner.sign(message, EthAccountDelegate.privateKey.hexToBytes(), SignatureType.EIP191)
-            }
-        )) { error ->
+        NotifyClient.initialize(
+            init = Notify.Params.Init(CoreClient)
+        ) { error ->
             Firebase.crashlytics.recordException(error.throwable)
             Log.e(tag(this), error.throwable.stackTraceToString())
         }
+
+        // Register with Notify
+        NotifyClient.register(
+            params = Notify.Params.Registration(
+                with(EthAccountDelegate) { account.toEthAddress() },
+                isLimited = false,
+                domain = BuildConfig.APPLICATION_ID,
+                onSign = { message -> CacaoSigner.sign(message, EthAccountDelegate.privateKey.hexToBytes(), SignatureType.EIP191) }
+            ),
+            onSuccess = {
+                Log.e(tag(this), "Register Success")
+            },
+            onError = {
+                Log.e(tag(this), it.throwable.stackTraceToString())
+            }
+        )
 
         initBeagle(
             this,
@@ -110,6 +123,22 @@ class Web3WalletApplication : Application() {
                 },
                 onValueChanged = { text ->
                     EthAccountDelegate.privateKey = text
+
+
+                    NotifyClient.register(
+                        params = Notify.Params.Registration(
+                            with(EthAccountDelegate) { account.toEthAddress() },
+                            isLimited = false,
+                            domain = BuildConfig.APPLICATION_ID,
+                            onSign = { message -> CacaoSigner.sign(message, EthAccountDelegate.privateKey.hexToBytes(), SignatureType.EIP191) }
+                        ),
+                        onSuccess = {
+                            Log.e(tag(this), "Register Success")
+                        },
+                        onError = {
+                            Log.e(tag(this), it.throwable.stackTraceToString())
+                        }
+                    )
                 }
             )
         )
