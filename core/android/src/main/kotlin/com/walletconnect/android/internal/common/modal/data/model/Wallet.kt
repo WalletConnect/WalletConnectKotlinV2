@@ -1,4 +1,4 @@
-package com.walletconnect.web3.modal.domain.model
+package com.walletconnect.android.internal.common.modal.data.model
 
 import android.net.Uri
 

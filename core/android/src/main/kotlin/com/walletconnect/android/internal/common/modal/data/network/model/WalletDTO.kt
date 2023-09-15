@@ -1,10 +1,10 @@
-package com.walletconnect.web3.modal.data.network.model
+package com.walletconnect.android.internal.common.modal.data.network.model
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-internal data class WalletDTO(
+data class WalletDTO(
     @Json(name = "id")
     val id: String,
     @Json(name = "name")

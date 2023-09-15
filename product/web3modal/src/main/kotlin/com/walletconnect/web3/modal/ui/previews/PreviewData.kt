@@ -1,7 +1,7 @@
 package com.walletconnect.web3.modal.ui.previews
 
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
-import com.walletconnect.web3.modal.domain.model.Wallet
+import com.walletconnect.android.internal.common.modal.data.model.Wallet
 
 private val metaMask: Wallet
     get() = Wallet(id = "1", name = "MetaMask", homePage = "", order = "", imageUrl = "", mobileLink = "metamask://", playStore = "")

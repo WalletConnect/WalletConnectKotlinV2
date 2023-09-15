@@ -1,9 +1,9 @@
-package com.walletconnect.web3.modal.domain.usecase
+package com.walletconnect.android.internal.common.modal.domain.usecase
 
-import com.walletconnect.web3.modal.domain.Web3ModalApiRepository
-import com.walletconnect.web3.modal.domain.model.Wallet
+import com.walletconnect.android.internal.common.modal.Web3ModalApiRepository
+import com.walletconnect.android.internal.common.modal.data.model.Wallet
 
-internal class GetAllWalletsUseCase(
+class GetAllWalletsUseCase(
     private val web3ModalApiRepository: Web3ModalApiRepository
 ) {
     suspend operator fun invoke(

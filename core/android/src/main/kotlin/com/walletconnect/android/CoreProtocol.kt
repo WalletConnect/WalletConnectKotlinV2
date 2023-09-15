@@ -15,6 +15,7 @@ import com.walletconnect.android.internal.common.di.echoModule
 import com.walletconnect.android.internal.common.di.explorerModule
 import com.walletconnect.android.internal.common.di.archiveModule
 import com.walletconnect.android.internal.common.di.keyServerModule
+import com.walletconnect.android.internal.common.di.web3ModalModule
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.android.internal.common.model.Redirect
@@ -85,7 +86,8 @@ class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInter
                 coreSyncModule(Sync),
                 keyServerModule(keyServerUrl),
                 explorerModule(),
-                archiveModule(Archive, timeout = networkClientTimeout)
+                archiveModule(Archive, timeout = networkClientTimeout),
+                web3ModalModule()
             )
         }
 

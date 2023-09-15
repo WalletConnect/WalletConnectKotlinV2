@@ -12,8 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
+import com.walletconnect.android.internal.common.modal.data.model.Wallet
 import com.walletconnect.modal.utils.openPlayStore
-import com.walletconnect.web3.modal.domain.model.Wallet
 import com.walletconnect.web3.modal.ui.components.internal.commons.ExternalIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.ListSelectRow
 import com.walletconnect.web3.modal.ui.components.internal.commons.MultipleWalletIcon

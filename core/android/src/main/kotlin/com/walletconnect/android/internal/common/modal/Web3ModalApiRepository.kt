@@ -1,10 +1,13 @@
-package com.walletconnect.web3.modal.domain
+package com.walletconnect.android.internal.common.modal
 
-import com.walletconnect.web3.modal.data.network.Web3ModalService
-import com.walletconnect.web3.modal.data.network.model.WalletDTO
-import com.walletconnect.web3.modal.domain.model.Wallet
+import android.content.Context
+import com.walletconnect.android.internal.common.modal.data.model.Wallet
+import com.walletconnect.android.internal.common.modal.data.network.Web3ModalService
+import com.walletconnect.android.internal.common.modal.data.network.model.WalletDTO
+import com.walletconnect.android.utils.isWalletInstalled
 
-internal class Web3ModalApiRepository(
+class Web3ModalApiRepository(
+    private val context: Context,
     private val web3ModalApiUrl: String,
     private val web3ModalService: Web3ModalService
 ) {
@@ -28,7 +31,6 @@ internal class Web3ModalApiRepository(
                 throw Throwable(response.errorBody()?.string())
             }
         } while (wallets.size != count)
-
         return wallets
     }
 
@@ -44,6 +46,8 @@ internal class Web3ModalApiRepository(
             mobileLink = walletDTO.mobileLink,
             playStore = walletDTO.playStore,
             isRecommended = recommendedWallets.any { walletDTO.id == it }
-        )
+        ).apply {
+            isWalletInstalled = context.packageManager.isWalletInstalled(appPackage, mobileLink)
+        }
     }
 }
