@@ -11,6 +11,7 @@ import com.mixpanel.android.mpmetrics.MixpanelAPI
 import com.pandulapeter.beagle.modules.DividerModule
 import com.pandulapeter.beagle.modules.HeaderModule
 import com.pandulapeter.beagle.modules.PaddingModule
+import com.pandulapeter.beagle.modules.TextInputModule
 import com.pandulapeter.beagle.modules.TextModule
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
@@ -101,6 +102,16 @@ class Web3WalletApplication : Application() {
             TextModule(text = CoreClient.Echo.clientId) {
                 (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("ClientId", CoreClient.Echo.clientId))
             },
+            DividerModule(),
+            TextInputModule(
+                text = "Import Private Key",
+                validator = { text ->
+                    !text.startsWith("0x") && text.length == 64
+                },
+                onValueChanged = { text ->
+                    EthAccountDelegate.privateKey = text
+                }
+            )
         )
 
         mixPanel = MixpanelAPI.getInstance(this, CommonBuildConfig.MIX_PANEL, true).apply {
