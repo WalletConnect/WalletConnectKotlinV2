@@ -1,7 +1,5 @@
 package com.walletconnect.notify.client
 
-import com.walletconnect.notify.common.model.SubscriptionChanged
-
 interface NotifyInterface {
     interface Delegate {
 
@@ -49,7 +47,7 @@ interface NotifyInterface {
 
     fun deleteNotifyMessage(params: Notify.Params.DeleteMessage, onSuccess: () -> Unit, onError: (Notify.Model.Error) -> Unit)
 
-    fun decryptMessage(params: Notify.Params.DecryptMessage, onSuccess: (Notify.Model.Message) -> Unit, onError: (Notify.Model.Error) -> Unit)
+    fun decryptMessage(params: Notify.Params.DecryptMessage, onSuccess: (Notify.Model.Message.Decrypted) -> Unit, onError: (Notify.Model.Error) -> Unit)
 
     fun register(params: Notify.Params.Registration, onSuccess: (String) -> Unit, onError: (Notify.Model.Error) -> Unit)
 }
