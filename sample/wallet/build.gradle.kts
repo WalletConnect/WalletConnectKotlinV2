@@ -77,6 +77,7 @@ dependencies {
 
     // Compose
     compose()
+    coil()
 
     implementation("com.google.android.gms:play-services-mlkit-barcode-scanning:18.1.0")
     implementation("androidx.lifecycle:lifecycle-process:2.5.1")
@@ -101,12 +102,10 @@ dependencies {
     // WalletConnect
     debugImplementation(project(":core:android"))
     debugImplementation(project(":product:web3wallet"))
-    debugImplementation(project(":product:web3inbox"))
     debugImplementation(project(":protocol:notify"))
 
     releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
     releaseImplementation("com.walletconnect:android-core")
     releaseImplementation("com.walletconnect:web3wallet")
-    releaseImplementation("com.walletconnect:web3inbox")
     releaseImplementation("com.walletconnect:notify")
 }
