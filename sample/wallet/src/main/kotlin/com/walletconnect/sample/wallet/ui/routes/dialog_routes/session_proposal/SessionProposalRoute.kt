@@ -53,6 +53,7 @@ import com.walletconnect.sample.common.sendResponseDeepLink
 import com.walletconnect.sample.common.ui.theme.PreviewTheme
 import com.walletconnect.sample.common.ui.themedColor
 import com.walletconnect.sample.wallet.R
+import com.walletconnect.sample.wallet.ui.common.peer.getValidationColor
 import com.walletconnect.web3.wallet.client.Wallet
 import kotlinx.coroutines.launch
 
@@ -69,12 +70,13 @@ fun SessionProposalRoute(navController: NavHostController, sessionProposalViewMo
     val sessionProposalUI = sessionProposalViewModel.sessionProposal ?: throw Exception("Missing session proposal")
     val composableScope = rememberCoroutineScope()
     val context = LocalContext.current
+    val allowButtonColor = getValidationColor(sessionProposalUI.peerContext.validation)
     SemiTransparentDialog {
         Spacer(modifier = Modifier.height(24.dp))
         Peer(peerUI = sessionProposalUI.peerUI, "wants to connect", sessionProposalUI.peerContext)
         Spacer(modifier = Modifier.height(8.dp))
         Permissions(sessionProposalUI = sessionProposalUI)
-        Buttons(onDecline = {
+        Buttons(allowButtonColor, onDecline = {
             composableScope.launch {
                 try {
                     sessionProposalViewModel.reject(sessionProposalUI.pubKey) { redirect ->

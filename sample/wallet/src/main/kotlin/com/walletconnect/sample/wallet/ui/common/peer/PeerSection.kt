@@ -105,26 +105,3 @@ private fun VerifyBatch(peerContextUI: PeerContextUI) {
     }
     Spacer(modifier = Modifier.width(5.dp))
 }
-
-private fun getValidationColor(validation: Validation): Color {
-    return when (validation) {
-        Validation.VALID -> verified_color
-        Validation.UNKNOWN -> unverified_color
-        Validation.INVALID -> mismatch_color
-    }
-}
-private fun getValidationIcon(validation: Validation): Int {
-    return when (validation) {
-        Validation.VALID -> R.drawable.ic_verified
-        Validation.UNKNOWN -> R.drawable.ic_cannot_verify
-        Validation.INVALID -> R.drawable.invalid_domain
-    }
-}
-
-private fun getValidationTitle(validation: Validation): String {
-    return when (validation) {
-        Validation.VALID -> "Verified domain"
-        Validation.UNKNOWN -> "Cannot verify"
-        Validation.INVALID -> "Invalid domain"
-    }
-}
