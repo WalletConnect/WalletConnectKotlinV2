@@ -53,7 +53,7 @@ internal fun AccountEntry(
             }
             HorizontalSpacer(width = 12.dp)
             when(state) {
-                AccountEntryState.LOADING -> LoadingSpinner(entryColors.secondaryColor)
+                AccountEntryState.LOADING -> LoadingSpinner(tint = entryColors.secondaryColor)
                 AccountEntryState.NEXT -> ChevronRightIcon(entryColors.secondaryColor)
                 AccountEntryState.INFO -> {}
             }

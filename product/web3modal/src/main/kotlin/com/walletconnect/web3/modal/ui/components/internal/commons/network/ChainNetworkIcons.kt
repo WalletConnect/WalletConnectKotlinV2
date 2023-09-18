@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -35,11 +36,12 @@ import kotlin.math.sqrt
 internal fun CircleNetworkImage(
     url: String,
     isEnabled: Boolean = true,
+    size: Dp = 36.dp,
     placeholder: Drawable? = null
 ) {
     Box(
         modifier = Modifier
-            .size(36.dp)
+            .size(size)
             .border(width = 2.dp, color = Web3ModalTheme.colors.overlay05, shape = CircleShape)
             .padding(2.dp)
     ) {
@@ -51,9 +53,7 @@ internal fun CircleNetworkImage(
                 .imageHeaders()
                 .build(),
             contentDescription = null,
-            modifier = Modifier
-                .size(32.dp)
-                .clip(CircleShape),
+            modifier = Modifier.clip(CircleShape),
             colorFilter = if (isEnabled) null else grayColorFilter
         )
     }
