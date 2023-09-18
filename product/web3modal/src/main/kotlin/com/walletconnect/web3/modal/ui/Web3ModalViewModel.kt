@@ -2,10 +2,9 @@ package com.walletconnect.web3.modal.ui
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.foundation.util.Logger
-import com.walletconnect.util.Empty
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.domain.model.AccountData
@@ -21,6 +20,7 @@ import com.walletconnect.web3.modal.utils.getSelectedChain
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 internal class Web3ModalViewModel(
     savedStateHandle: SavedStateHandle
@@ -74,44 +74,9 @@ internal class Web3ModalViewModel(
         _modalState.value = Web3ModalState.AccountState(accountData)
     }
 
-    private fun List<Chain>.getSelectedChain() = find { it.id == getSelectedChainUseCase() } ?: first()
-    private fun List<String>.getAddress(selectedChain: Chain) = find { it.startsWith(selectedChain.id) }?.split(":")?.last() ?: String.Empty
-
-    private fun List<String>.accountsToChainId() = map {
-        val (chainNamespace, chainReference, _) = it.split(":")
-        "$chainNamespace:$chainReference"
-    }
-
-    private fun List<String>.getDefaultChain() = accountsToChainId()
-        .filter { CoreValidator.isChainIdCAIP2Compliant(it) }
-        .map { Chain(it) }
-
     private fun createConnectModalState() {
         _modalState.value = Web3ModalState.Connect(shouldOpenChooseNetwork)
     }
-
-    private suspend fun fetchWallets(uri: String, chains: String) {
-        try {
-            val wallets = if (Web3Modal.recommendedWalletsIds.isEmpty()) {
-                getWalletsUseCase(sdkType = W3M_SDK, chains = chains, excludedIds = Web3Modal.excludedWalletsIds)
-            } else {
-                getWalletsUseCase(sdkType = W3M_SDK, chains = chains, excludedIds = Web3Modal.excludedWalletsIds, recommendedIds = Web3Modal.recommendedWalletsIds).union(
-                    getWalletsUseCase(sdkType = W3M_SDK, chains = chains, excludedIds = Web3Modal.excludedWalletsIds)
-                ).toList()
-            }
-            _modalState.value = Web3ModalState.Connect(uri, wallets.mapRecentWallet(getRecentWalletUseCase()))
-        } catch (e: Exception) {
-            logger.error(e)
-            handleError(e)
-        }
-    }
-
-    fun updateRecentWalletId(id: String) =
-        (_modalState.value as? Web3ModalState.Connect)?.let {
-            saveRecentWalletUseCase(id)
-            _modalState.value = it.copy(wallets = it.wallets.mapRecentWallet(id))
-        }
-
     internal fun saveSessionTopic(topic: String) = viewModelScope.launch {
         saveSessionTopicUseCase(topic)
     }
