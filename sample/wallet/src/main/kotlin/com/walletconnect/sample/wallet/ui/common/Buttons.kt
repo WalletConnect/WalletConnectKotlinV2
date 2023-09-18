@@ -30,6 +30,5 @@ fun Buttons(modifier: Modifier = Modifier, onDecline: () -> Unit = {}, onAllow: 
                 .clickable { onAllow() }
         )
         Spacer(modifier = Modifier.width(20.dp))
-
     }
 }

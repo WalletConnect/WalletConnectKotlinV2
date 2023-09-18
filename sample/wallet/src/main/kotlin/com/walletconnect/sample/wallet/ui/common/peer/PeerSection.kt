@@ -29,6 +29,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
+import com.walletconnect.sample.common.ui.theme.mismatch_color
+import com.walletconnect.sample.common.ui.theme.unverified_color
+import com.walletconnect.sample.common.ui.theme.verified_color
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.common.ui.themedColor
 
@@ -84,38 +87,44 @@ private fun VerifyBatch(peerContextUI: PeerContextUI) {
         modifier = Modifier
             .padding(vertical = 10.dp, horizontal = 15.dp)
             .clip(CircleShape)
-            .background(color = themedColor(darkColor = Color(0xFFE4E4E7).copy(.33f), lightColor = Color(0xFF8a8498).copy(.66f)))
+            .background(color = getValidationColor(peerContextUI.validation).copy(alpha = 0.25f)) //0x403396FF
             .padding(vertical = 5.dp, horizontal = 8.dp),
         horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
             modifier = Modifier.size(20.dp),
-            //todo change the sam icon
-            painter = painterResource(id = peerContextUI.isScam?.let { if (it) R.drawable.red_dangerous else getValidationIcon(peerContextUI.validation) } ?: getValidationIcon(
+            painter = painterResource(id = peerContextUI.isScam?.let { if (it) R.drawable.security_risk else getValidationIcon(peerContextUI.validation) } ?: getValidationIcon(
                 peerContextUI.validation
             )),
             contentDescription = null)
         Spacer(modifier = Modifier.width(5.dp))
         Text(
             text = peerContextUI.isScam?.let { if (it) "Security risk" else getValidationTitle(peerContextUI.validation) } ?: getValidationTitle(peerContextUI.validation),
-            style = TextStyle(fontWeight = FontWeight.Normal, fontSize = 12.sp, color = themedColor(darkColor = Color(0xFF413F3F), lightColor = Color(0xFFE4E2E7).copy(0.9f))),
+            style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 12.sp, color = getValidationColor(peerContextUI.validation)),
         )
     }
     Spacer(modifier = Modifier.width(5.dp))
 }
 
+private fun getValidationColor(validation: Validation): Color {
+    return when (validation) {
+        Validation.VALID -> verified_color
+        Validation.UNKNOWN -> unverified_color
+        Validation.INVALID -> mismatch_color
+    }
+}
 private fun getValidationIcon(validation: Validation): Int {
     return when (validation) {
-        Validation.VALID -> R.drawable.green_check
-        Validation.INVALID -> R.drawable.red_dangerous
-        Validation.UNKNOWN -> R.drawable.orange_warning
+        Validation.VALID -> R.drawable.ic_verified
+        Validation.UNKNOWN -> R.drawable.ic_cannot_verify
+        Validation.INVALID -> R.drawable.invalid_domain
     }
 }
 
 private fun getValidationTitle(validation: Validation): String {
     return when (validation) {
         Validation.VALID -> "Verified domain"
-        Validation.INVALID -> "Invalid domain"
         Validation.UNKNOWN -> "Cannot verify"
+        Validation.INVALID -> "Invalid domain"
     }
 }

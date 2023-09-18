@@ -141,24 +141,8 @@ fun Permissions(sessionProposalUI: SessionProposalUI) {
         }.toMap()
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Spacer(modifier = Modifier.height(4.dp))
-        Column(
-            modifier = Modifier
-                .padding(8.dp)
-                .border(border = BorderStroke(1.dp, Color.Black), shape = RoundedCornerShape(8.dp)),
-        ) {
-            Text(
-                modifier = Modifier.padding(top = 16.dp, start = 16.dp),
-                text = "Requested permissions",
-                style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 12.sp, color = themedColor(Color(0xFFD7D7DB).copy(.5f), Color(0xF3C3C43).copy(.4f)))
-            )
-            PermissionRow("View your balance and activity")
-            PermissionRow("Send approval requests")
-            PermissionRow("Move funds without permissions", icon = R.drawable.ic_close, color = Color(0xFFC0C0C0))
-        }
-
+        RequestedPermissions()
         HorizontalPager(
-            modifier = Modifier.height(400.dp),
             count = chains.size,
             state = pagerState,
         ) { current ->
@@ -168,19 +152,39 @@ fun Permissions(sessionProposalUI: SessionProposalUI) {
         if (chains.size > 1) {
             HorizontalPagerIndicator(
                 pagerState = pagerState,
-                inactiveColor = themedColor(darkColor = Color(0xFFE4E4E7).copy(alpha = .12f), lightColor = Color(0xFF505059).copy(.1f)),
-                activeColor = themedColor(darkColor = Color(0xFFE4E4E7).copy(alpha = .2f), lightColor = Color(0xFF505059).copy(.2f)),
+                inactiveColor = themedColor(darkColor = Color(0xFFE4E4E7), lightColor = Color(0xFF505059)),
+                activeColor = themedColor(darkColor = Color(0xFFE4E4E7), lightColor = Color(0xFF505059)),
             )
         }
     }
 }
 
 @Composable
+private fun RequestedPermissions() {
+    Column(
+        modifier = Modifier
+            .padding(20.dp)
+            .border(border = BorderStroke(1.dp, Color(0xFFD6D6D6)), shape = RoundedCornerShape(12.dp))
+            .fillMaxWidth(),
+    ) {
+        Text(
+            modifier = Modifier.padding(top = 16.dp, start = 16.dp),
+            text = "Requested permissions",
+            style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 14.sp, color = themedColor(Color(0xFF000000), Color(0xFF3C3C43)))
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        PermissionRow("View your balance and activity")
+        PermissionRow("Send approval requests")
+        PermissionRow("Move funds without permissions", icon = R.drawable.ic_close, color = Color(0xFFD6D6D6))
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+@Composable
 private fun PermissionRow(title: String, icon: Int = R.drawable.ic_check, color: Color = Color(0xFF000000)) {
-    Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-        Image(modifier = Modifier.size(16.dp), imageVector = ImageVector.vectorResource(id = icon), contentDescription = "check")
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(title, style = TextStyle(fontSize = 12.sp, color = color))
+    Row(modifier = Modifier.padding(start = 12.dp, top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+        Image(modifier = Modifier.size(18.dp).padding(end = 4.dp), imageVector = ImageVector.vectorResource(id = icon), contentDescription = "check")
+        Text(title, style = TextStyle(fontSize = 14.sp, color = color))
     }
 }
 
