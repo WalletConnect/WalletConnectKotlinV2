@@ -57,6 +57,7 @@ android {
 
 dependencies {
     implementation(project(":sample:common"))
+    implementation("androidx.compose.material3:material3:1.0.0-alpha08")
 
     firebaseMessaging()
     firebaseChrashlytics()

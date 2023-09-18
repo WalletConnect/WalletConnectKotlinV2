@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedButton
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -42,18 +43,17 @@ import coil.size.Scale
 import com.walletconnect.sample.common.ui.WCTopAppBar2
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.wallet.ui.routes.Route
+import timber.log.Timber
 import java.net.URLEncoder
 
 
 @Composable
 fun InboxScreenRoute(navController: NavHostController) {
     val viewModel: InboxViewModel = viewModel()
-    val state by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsState(InboxState.Empty)
+    Timber.d("InboxScreenRoute state - $state")
 
-    InboxScreen(
-        navController,
-        state = state
-    ) { navController.popBackStack() }
+    InboxScreen(navController, state = state) { navController.popBackStack() }
 }
 
 @Composable
@@ -62,8 +62,12 @@ private fun InboxScreen(
     state: InboxState,
     onBackClick: () -> Unit,
 ) {
-    Column {
-        WCTopAppBar2(titleText = "Notifications", onBackIconClick = onBackClick)
+    Column(modifier = Modifier.fillMaxHeight()) {
+        WCTopAppBar2(titleText = "Notifications", onBackIconClick = onBackClick, firstIcon = null, secondIcon = R.drawable.ic_plus,
+            onSecondIconClick = {
+                navController.navigate(Route.ExploreDapps.path)
+            }
+        )
 
         when (state) {
             is InboxState.Empty -> {
@@ -75,7 +79,9 @@ private fun InboxScreen(
                         .padding(10.dp),
                     verticalArrangement = Arrangement.spacedBy(20.dp, alignment = Alignment.Top)
                 ) {
-                    items(state.listOfActiveSubscriptions) { subscription ->
+                    items(
+                        state.listOfActiveSubscriptions
+                    ) { subscription ->
                         InboxItem(navController, subscription.icon, subscription.name, subscription.messageCount, subscription.topic)
                     }
                 }
@@ -91,7 +97,7 @@ fun InboxItem(navController: NavHostController, url: String, name: String, messa
             .fillMaxWidth()
             .height(50.dp),
         contentPadding = PaddingValues(10.dp),
-        colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),
+        colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.surface),
         border = BorderStroke(0.dp, color = Color.Transparent),
         onClick = {
             navController.navigate("${Route.Notifications.path}/$topic/$name/${URLEncoder.encode(url, "UTF-8")}")
@@ -123,7 +129,7 @@ fun InboxItem(navController: NavHostController, url: String, name: String, messa
                     .data(url)
                     .scale(Scale.FILL)
                     .crossfade(true)
-                    .placeholder(R.drawable.green_check)
+                    .placeholder(R.drawable.sad_face)
                     .build(),
                 contentDescription = null,
             )
@@ -146,7 +152,7 @@ fun InboxItem(navController: NavHostController, url: String, name: String, messa
                     fontSize = 18.sp,
                     lineHeight = 22.sp,
                     fontWeight = FontWeight(700),
-                    color = Color(0xFF141414),
+                    color = MaterialTheme.colors.onSurface,
                     textAlign = TextAlign.Center,
                 )
             )

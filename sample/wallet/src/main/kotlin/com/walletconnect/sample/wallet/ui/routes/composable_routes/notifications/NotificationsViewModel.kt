@@ -66,6 +66,15 @@ class NotificationsViewModel : ViewModel() {
         )
     }
 
+    fun unsubscribe(onError: (Throwable) -> Unit) {
+        NotifyClient.deleteSubscription(
+            Notify.Params.DeleteSubscription(
+                currentSubscriptionTopic.value
+            ), onError = { onError(it.throwable) }
+        )
+    }
+
+
     private fun MutableStateFlow<List<NotificationUI>>.deleteNotification(notificationUI: NotificationUI) {
         value = value - notificationUI
     }
@@ -75,7 +84,7 @@ class NotificationsViewModel : ViewModel() {
             id = id,
             topic = topic,
             date = getHumanReadableTime(publishedAt),
-            title = "${message.title} $id",
+            title = message.title,
             body = message.body,
             url = (message as? Notify.Model.Message.Decrypted)?.url,
             icon = (message as? Notify.Model.Message.Decrypted)?.icon

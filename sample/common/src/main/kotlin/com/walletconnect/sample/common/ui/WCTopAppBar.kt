@@ -97,9 +97,10 @@ fun WCTopAppBar(
 @Composable
 fun WCTopAppBar2(
     titleText: String,
-    versionText: String = BuildConfig.BOM_VERSION,
-    @DrawableRes clickableIcon: Int? = null,
-    onIconClick: (() -> Unit)? = null,
+    @DrawableRes firstIcon: Int? = null,
+    @DrawableRes secondIcon: Int? = null,
+    onFirstIconClick: (() -> Unit)? = null,
+    onSecondIconClick: (() -> Unit)? = null,
     onBackIconClick: (() -> Unit)? = null,
 ) {
     ConstraintLayout(
@@ -111,16 +112,16 @@ fun WCTopAppBar2(
         val startGuideline = createGuidelineFromStart(10.dp)
 
         val (
-            backIcon,
-            title,
-            icon,
-            version,
+            backIconRef,
+            titleRef,
+            firstIconRef,
+            secondIconRef,
         ) = createRefs()
 
         onBackIconClick?.let {
             Icon(
                 modifier = Modifier
-                    .constrainAs(backIcon) {
+                    .constrainAs(backIconRef) {
                         top.linkTo(parent.top)
                         bottom.linkTo(parent.bottom)
                         start.linkTo(startGuideline)
@@ -136,10 +137,10 @@ fun WCTopAppBar2(
 
         Text(
             modifier = Modifier
-                .constrainAs(title) {
+                .constrainAs(titleRef) {
                     top.linkTo(parent.top)
                     bottom.linkTo(parent.bottom)
-                    start.linkTo(backIcon.end, 8.dp)
+                    start.linkTo(backIconRef.end, 8.dp)
                     width = Dimension.wrapContent
                     height = Dimension.wrapContent
                     verticalChainWeight = .5f
@@ -152,40 +153,38 @@ fun WCTopAppBar2(
             )
         )
 
-        clickableIcon?.let {
+        firstIcon?.let {
             Image(
                 modifier = Modifier
-                    .constrainAs(icon) {
+                    .constrainAs(firstIconRef) {
                         top.linkTo(parent.top)
                         bottom.linkTo(parent.bottom)
-                        end.linkTo(version.start, 8.dp)
+                        end.linkTo(secondIconRef.start, 8.dp)
                         width = Dimension.wrapContent
                         height = Dimension.wrapContent
                         verticalChainWeight = .5f
                     }
-                    .clickable { onIconClick?.invoke() },
-//                tint = Color(0xFF3496ff),
-                painter = painterResource(id = clickableIcon),
+                    .clickable { onFirstIconClick?.invoke() },
+                painter = painterResource(id = firstIcon),
                 contentDescription = "Icon",
             )
         }
 
-        Text(
-            modifier = Modifier
-                .constrainAs(version) {
-                    top.linkTo(parent.top)
-                    bottom.linkTo(parent.bottom)
-                    end.linkTo(parent.end, 4.dp)
-                    width = Dimension.value(32.dp)
-                    height = Dimension.wrapContent
-                    verticalChainWeight = .5f
-                },
-            text = versionText,
-            style = TextStyle(
-                fontWeight = FontWeight.Light,
-                fontSize = 11.sp,
-                color = themedColor(darkColor = 0xFFE5E7E7, lightColor = 0xFF141414)
+        secondIcon?.let {
+            Image(
+                modifier = Modifier
+                    .constrainAs(secondIconRef) {
+                        top.linkTo(parent.top)
+                        bottom.linkTo(parent.bottom)
+                        end.linkTo(parent.end, 8.dp)
+                        width = Dimension.wrapContent
+                        height = Dimension.wrapContent
+                        verticalChainWeight = .5f
+                    }
+                    .clickable { onSecondIconClick?.invoke() },
+                painter = painterResource(id = secondIcon),
+                contentDescription = "Icon",
             )
-        )
+        }
     }
 }

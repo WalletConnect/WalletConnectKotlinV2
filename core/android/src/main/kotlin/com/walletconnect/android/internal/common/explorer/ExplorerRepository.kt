@@ -60,7 +60,7 @@ class ExplorerRepository(
     ): ProjectListing {
         return with(explorerService.getProjects(projectId.value, entries, page, isVerified)) {
             if (isSuccessful && body() != null) {
-                body()!!.toUnverifiedSubmissions()
+                body()!!.toProjectListing()
             } else {
                 throw Throwable(errorBody()?.string())
             }
@@ -114,20 +114,21 @@ class ExplorerRepository(
         return "$explorerApiUrl/w3m/v1/getWalletImage/$this?projectId=${projectId.value}"
     }
 
-    private fun ProjectListingDTO.toUnverifiedSubmissions(): ProjectListing {
+    private fun ProjectListingDTO.toProjectListing(): ProjectListing {
         return ProjectListing(
-            projects = projects.values.map { it.toUnverifiedSubmission() },
+            projects = projects.values.map { it.toProject() },
             count = count,
         )
     }
 
-    private fun ProjectDTO.toUnverifiedSubmission(): Project = Project(
+    private fun ProjectDTO.toProject(): Project = Project(
         id = id,
         name = name,
         description = description,
         homepage = homepage,
         imageId = imageId,
         imageUrl = imageUrl.toImageUrl(),
+        dappUrl = dappUrl ?: homepage //todo change me! once explorer passes dappUrl
     )
 
     private fun DappListingsDTO.toDappListing(): DappListings {

@@ -114,32 +114,32 @@ class Web3WalletApplication : Application() {
             TextModule(text = CoreClient.Echo.clientId) {
                 (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("ClientId", CoreClient.Echo.clientId))
             },
-            DividerModule(),
-            TextInputModule(
-                text = "Import Private Key",
-                validator = { text ->
-                    !text.startsWith("0x") && text.length == 64
-                },
-                onValueChanged = { text ->
-                    EthAccountDelegate.privateKey = text
-
-
-                    NotifyClient.register(
-                        params = Notify.Params.Registration(
-                            with(EthAccountDelegate) { account.toEthAddress() },
-                            isLimited = false,
-                            domain = BuildConfig.APPLICATION_ID,
-                            onSign = { message -> CacaoSigner.sign(message, EthAccountDelegate.privateKey.hexToBytes(), SignatureType.EIP191) }
-                        ),
-                        onSuccess = {
-                            Log.e(tag(this), "Register Success")
-                        },
-                        onError = {
-                            Log.e(tag(this), it.throwable.stackTraceToString())
-                        }
-                    )
-                }
-            )
+//            DividerModule(),
+//            TextInputModule(
+//                text = "Import Private Key",
+//                validator = { text ->
+//                    !text.startsWith("0x") && text.length == 64
+//                },
+//                onValueChanged = { text ->
+//                    EthAccountDelegate.privateKey = text
+//
+//
+//                    NotifyClient.register(
+//                        params = Notify.Params.Registration(
+//                            with(EthAccountDelegate) { account.toEthAddress() },
+//                            isLimited = false,
+//                            domain = BuildConfig.APPLICATION_ID,
+//                            onSign = { message -> CacaoSigner.sign(message, EthAccountDelegate.privateKey.hexToBytes(), SignatureType.EIP191) }
+//                        ),
+//                        onSuccess = {
+//                            Log.e(tag(this), "Register Success")
+//                        },
+//                        onError = {
+//                            Log.e(tag(this), it.throwable.stackTraceToString())
+//                        }
+//                    )
+//                }
+//            )
         )
 
         mixPanel = MixpanelAPI.getInstance(this, CommonBuildConfig.MIX_PANEL, true).apply {

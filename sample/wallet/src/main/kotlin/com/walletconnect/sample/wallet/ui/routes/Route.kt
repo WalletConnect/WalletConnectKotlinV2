@@ -15,7 +15,8 @@ sealed class Route(val path: String) {
     object SnackbarMessage : Route("snackbar_message")
     object ExploreDapps : Route("explore_dapps")
     object Inbox : Route("inbox")
-    object Notifications : Route("notifications_screen")
+    object Notifications : Route("notifications")
+    object UpdateSubscription : Route("update_subscription")
 }
 
 fun NavController.showSnackbar(message: String) {

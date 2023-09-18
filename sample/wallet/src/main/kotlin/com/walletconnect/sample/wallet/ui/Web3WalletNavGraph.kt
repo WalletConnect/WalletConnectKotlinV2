@@ -1,5 +1,11 @@
 package com.walletconnect.sample.wallet.ui
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -20,6 +26,7 @@ import com.google.accompanist.navigation.material.ModalBottomSheetLayout
 import com.google.accompanist.navigation.material.bottomSheet
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.bottomsheet_routes.scan_uri.ScanUriRoute
+import com.walletconnect.sample.wallet.ui.routes.bottomsheet_routes.update_subscription.UpdateSubscriptionRoute
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connection_details.ConnectionDetailsRoute
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsRoute
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
@@ -56,6 +63,31 @@ fun Web3WalletNavGraph(
         NavHost(
             navController = navController,
             startDestination = startDestination,
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Companion.Left,
+                    animationSpec = tween(700)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Companion.Left,
+                    animationSpec = tween(700)
+                )
+            },
+            popEnterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Companion.Right,
+                    animationSpec = tween(700)
+                )
+            },
+            popExitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Companion.Right,
+                    animationSpec = tween(700)
+                )
+            }
+
         ) {
             composable(Route.GetStarted.path) {
                 GetStartedRoute(navController)
@@ -92,6 +124,13 @@ fun Web3WalletNavGraph(
             }
             bottomSheet(Route.ScanUri.path) {
                 ScanUriRoute(navController, sheetState, onScanSuccess = { web3walletViewModel.pair(it) })
+            }
+            bottomSheet("${Route.UpdateSubscription.path}/{topic}", arguments = listOf(
+                navArgument("topic") {
+                    type = NavType.Companion.StringType
+                    nullable = false
+                })) {
+                UpdateSubscriptionRoute(navController, sheetState, it.arguments?.getString("topic")!!)
             }
             dialog(Route.SessionProposal.path, dialogProperties = DialogProperties(usePlatformDefaultWidth = false)) {
                 SessionProposalRoute(navController)

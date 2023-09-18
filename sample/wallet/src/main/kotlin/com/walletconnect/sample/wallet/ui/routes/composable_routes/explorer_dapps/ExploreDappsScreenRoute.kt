@@ -1,13 +1,16 @@
 package com.walletconnect.sample.wallet.ui.routes.composable_routes.explorer_dapps
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -15,7 +18,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedButton
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -37,81 +43,138 @@ import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.core.net.toUri
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.walletconnect.notify.client.Notify
 import com.walletconnect.notify.client.NotifyClient
-import com.walletconnect.sample.common.tag
 import com.walletconnect.sample.common.ui.WCTopAppBar2
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.wallet.domain.EthAccountDelegate
 import com.walletconnect.sample.wallet.domain.toEthAddress
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @Composable
 fun ExploreDappsScreenRoute(navController: NavHostController) {
     val viewModel: ExploreDappsViewModel = viewModel()
     val state by viewModel.state.collectAsState()
+    val searchText by viewModel.searchText.collectAsState()
+    val apps by viewModel.projects.collectAsState()
 
     SubscribedDappsScreen(
         state = state,
         navController = navController,
-        onBackClick = { navController.popBackStack() }
+        onBackClick = {
+            viewModel.viewModelScope.launch(Dispatchers.Main) {
+                navController.popBackStack()
+            }
+        },
+        apps,
+        searchText,
+        onFilterChange = { filter -> viewModel.onSearchTextChange(filter) },
     )
 }
 
+
 @Composable
 private fun SubscribedDappsScreen(
-    state: ExplorerDappsState,
+    state: ExplorerState,
     navController: NavHostController,
     onBackClick: () -> Unit,
+    apps: List<ExplorerApp>,
+    filter: String,
+    onFilterChange: (String) -> Unit,
 ) {
-    Column {
-        WCTopAppBar2(
-            titleText = "Dapps",
-            clickableIcon = R.drawable.ic_search,
-            onIconClick = {
-                val subscribeParams = Notify.Params.Subscribe("https://dev.gm.walletconnect.com".toUri(), with(EthAccountDelegate) { account.toEthAddress() })
-                NotifyClient.subscribe(
-                    params = subscribeParams,
-                    onSuccess = {
-                        Log.e(tag(this), "Subscribe Success")
-                    },
-                    onError = {
-                        Log.e(tag(this), it.throwable.stackTraceToString())
-                    }
-                )
-            },
-            onBackIconClick = onBackClick
-        )
 
-        LazyColumn(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp, alignment = Alignment.Top)
-        ) {
-            items(state.explorerDapps) { dapp ->
-                DappCard(explorerDapp = dapp, navController = navController)
+    Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+        WCTopAppBar2(titleText = "Explore Apps", onBackIconClick = onBackClick)
+        when (state) {
+            ExplorerState.Searching -> {
+                EmptyOrLoadingOrFailureState(text = "Querying apps...", showProgressBar = true)
+            }
+
+            is ExplorerState.Failure -> {
+                EmptyOrLoadingOrFailureState(text = "Failure querying apps from Explorer")
+            }
+
+            is ExplorerState.Success -> {
+                SuccessState(filter, apps, onBackClick, onFilterChange)
             }
         }
     }
 }
 
 @Composable
-private fun DappCard(explorerDapp: ExplorerDapp, navController: NavHostController) {
+private fun SuccessState(filter: String, apps: List<ExplorerApp>, onBackClick: () -> Unit, onFilterChange: (String) -> Unit) {
+
+    Column(modifier = Modifier.padding(20.dp, 20.dp, 20.dp, 0.dp)) {
+        OutlinedTextField(
+            value = filter,
+            onValueChange = onFilterChange,
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text(text = "Search") }
+        )
+        Spacer(modifier = Modifier.height(20.dp))
+        if (apps.isNotEmpty()) {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(10.dp, alignment = Alignment.Top),
+                contentPadding = PaddingValues(bottom = 20.dp)
+            ) {
+                items(apps) { app ->
+                    DappCard(explorerApp = app, onBackClick)
+                }
+            }
+        } else {
+            EmptyOrLoadingOrFailureState(text = "No apps found")
+        }
+    }
+}
+
+
+@Composable
+private fun EmptyOrLoadingOrFailureState(text: String, showProgressBar: Boolean = false) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(40.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(text = text)
+            if (showProgressBar) {
+                Spacer(modifier = Modifier.height(20.dp))
+                CircularProgressIndicator(modifier = Modifier.size(80.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun DappCard(explorerApp: ExplorerApp, onBackClick: () -> Unit) {
     OutlinedButton(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
             .defaultMinSize(minHeight = 198.dp),
         elevation = ButtonDefaults.elevation(4.dp),
-        colors = ButtonDefaults.outlinedButtonColors(backgroundColor = Color.White),
+        colors = ButtonDefaults.outlinedButtonColors(backgroundColor = MaterialTheme.colors.surface),
         contentPadding = PaddingValues(all = 0.dp),
         shape = RoundedCornerShape(30.dp),
-        onClick = { /* subscribe and return back */ }) {
+        onClick = {
+            val subscribeParams = Notify.Params.Subscribe(explorerApp.homepage.toUri(), with(EthAccountDelegate) { account.toEthAddress() })
+            NotifyClient.subscribe(
+                params = subscribeParams,
+                onSuccess = { onBackClick() },
+                onError = { Timber.e(it.throwable) }
+            )
+
+        }) {
         ConstraintLayout(
             modifier = Modifier
-                .background(color = Color.Transparent)
                 .fillMaxWidth()
         ) {
             val topGuideline = createGuidelineFromTop(24.dp)
@@ -139,8 +202,8 @@ private fun DappCard(explorerDapp: ExplorerDapp, navController: NavHostControlle
                         height = Dimension.value(60.dp)
                     },
                 model = ImageRequest.Builder(LocalContext.current)
-                    .placeholder(R.drawable.green_check)
-                    .data(explorerDapp.url)
+                    .placeholder(R.drawable.sad_face)
+                    .data(explorerApp.imageUrl.sm)
                     .crossfade(true)
                     .build(),
                 contentDescription = "",
@@ -155,12 +218,12 @@ private fun DappCard(explorerDapp: ExplorerDapp, navController: NavHostControlle
                         width = Dimension.wrapContent
                         height = Dimension.wrapContent
                     },
-                text = explorerDapp.name,
+                text = explorerApp.name,
                 style = TextStyle(
                     fontSize = 20.sp,
                     lineHeight = 24.sp,
                     fontWeight = FontWeight(700),
-                    color = Color(0xFF141414),
+                    color = MaterialTheme.colors.onSurface,
                 )
             )
 
@@ -175,14 +238,14 @@ private fun DappCard(explorerDapp: ExplorerDapp, navController: NavHostControlle
                         width = Dimension.fillToConstraints
                         height = Dimension.wrapContent
                     },
-                text = explorerDapp.desc,
+                text = explorerApp.description,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 style = TextStyle(
                     fontSize = 13.sp,
                     lineHeight = 16.sp,
                     fontWeight = FontWeight(500),
-                    color = Color(0xFF3B4040),
+                    color = MaterialTheme.colors.onSurface,
                 )
             )
 
@@ -193,12 +256,12 @@ private fun DappCard(explorerDapp: ExplorerDapp, navController: NavHostControlle
                         start.linkTo(startGuideline)
                         bottom.linkTo(bottomGuideline)
                     },
-                text = explorerDapp.url,
+                text = explorerApp.dappUrl,
                 style = TextStyle(
                     fontSize = 12.sp,
                     lineHeight = 14.sp,
                     fontWeight = FontWeight(500),
-                    color = Color(0xFF798686),
+                    color = MaterialTheme.colors.onSurface,
                     letterSpacing = 0.12.sp,
                 )
             )
@@ -219,54 +282,53 @@ private fun DappCard(explorerDapp: ExplorerDapp, navController: NavHostControlle
 
 @Composable
 @Preview
-private fun DappCardPreview(@PreviewParameter(ExplorerDappPreviewProvider::class) dapp: ExplorerDapp) {
-    DappCard(explorerDapp = dapp, navController = NavHostController(LocalContext.current))
+private fun DappCardPreview(@PreviewParameter(ExplorerDappPreviewProvider::class) dapp: ExplorerApp) {
+    DappCard(explorerApp = dapp, {})
 }
 
-private class ExplorerDappPreviewProvider : PreviewParameterProvider<ExplorerDapp> {
-    override val values = sequenceOf(
-        ExplorerDapp(
-            topic = "",
-            icon = "https://cryptologos.cc/logos/uniswap-uni-logo.png?v=026",
-            name = "Test Dapp",
-            desc = "Test Dapp Description",
-            url = "https://test.dapp"
-        ),
-        ExplorerDapp(
-            topic = "",
-            icon = "https://cryptologos.cc/logos/uniswap-uni-logo.png?v=026",
-            name = "Test Dapp",
-            desc = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-            url = "https://test.dapp"
-        )
-    )
+private class ExplorerDappPreviewProvider : PreviewParameterProvider<ExplorerApp> {
+    override val values = sequenceOf(exampleApps[0], exampleApps[1])
 }
 
 @Composable
 @Preview
-fun SubscribedDappsScreenPreview(@PreviewParameter(SubscribedDappsScreenPreviewProvider::class) state: ExplorerDappsState) {
-    SubscribedDappsScreen(state, NavHostController(LocalContext.current)) {}
+fun SubscribedDappsScreenPreview(@PreviewParameter(SubscribedDappsScreenPreviewProvider::class) state: ExplorerState) {
+    SubscribedDappsScreen(state, NavHostController(LocalContext.current), {}, exampleApps, "", {})
 }
 
-private class SubscribedDappsScreenPreviewProvider : PreviewParameterProvider<ExplorerDappsState> {
-    override val values: Sequence<ExplorerDappsState> = sequenceOf(
-        ExplorerDappsState(
-            listOf(
-                ExplorerDapp(
-                    topic = "",
-                    icon = "https://cryptologos.cc/logos/uniswap-uni-logo.png?v=026",
-                    name = "Test Dapp",
-                    desc = "Test Dapp Description",
-                    url = "https://test.dapp"
-                ),
-                ExplorerDapp(
-                    topic = "",
-                    icon = "https://cryptologos.cc/logos/uniswap-uni-logo.png?v=026",
-                    name = "Test Dapp",
-                    desc = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-                    url = "https://test.dapp"
-                )
-            )
-        )
+private class SubscribedDappsScreenPreviewProvider : PreviewParameterProvider<ExplorerState> {
+    override val values: Sequence<ExplorerState> = sequenceOf(
+        ExplorerState.Success,
+        ExplorerState.Searching,
+        ExplorerState.Failure(Throwable("Timeout")),
     )
 }
+
+private val exampleApps = listOf(
+    ExplorerApp(
+        imageUrl = ImageUrl(
+            "https://cryptologos.cc/logos/uniswap-uni-logo.png?v=026",
+            "https://cryptologos.cc/logos/uniswap-uni-logo.png?v=026",
+            "https://cryptologos.cc/logos/uniswap-uni-logo.png?v=026"
+        ),
+        name = "Test Dapp",
+        description = "Test Dapp Description",
+        homepage = "https://test.dapp",
+        id = "",
+        imageId = "",
+        dappUrl = "test.dapp"
+    ),
+    ExplorerApp(
+        imageUrl = ImageUrl(
+            "https://cryptologos.cc/logos/uniswap-uni-logo.png?v=026",
+            "https://cryptologos.cc/logos/uniswap-uni-logo.png?v=026",
+            "https://cryptologos.cc/logos/uniswap-uni-logo.png?v=026"
+        ),
+        name = "Test Dapp",
+        description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+        homepage = "https://test.dapp",
+        id = "",
+        imageId = "",
+        dappUrl = "test.dapp"
+    )
+)

@@ -6,24 +6,37 @@ import com.walletconnect.notify.client.Notify
 import com.walletconnect.notify.client.NotifyClient
 import com.walletconnect.sample.wallet.domain.NotifyDelegate
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import timber.log.Timber
 
 class InboxViewModel : ViewModel() {
     val state = NotifyDelegate.notifyEvents
-        .filterIsInstance<Notify.Event.SubscriptionsChanged>()
-        .map {
-            generateState()
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), generateState())
+        .onEach { Timber.d("InboxViewModel event - $it") }
+        .filter { event ->
+            when (event) {
+                is Notify.Event.Message, is Notify.Event.SubscriptionsChanged -> true
+                else -> false
+            }
+        }
+        .map { event ->
+            when (event) {
+                is Notify.Event.Message -> generateState(NotifyClient.getActiveSubscriptions().values.toList())
+                is Notify.Event.SubscriptionsChanged -> generateState(event.subscriptions)
+                else -> throw Throwable("It is simply not possible to hit this exception. I blame bit flip.")
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), generateState(NotifyClient.getActiveSubscriptions().values.toList()))
 
-    private fun generateState(): InboxState {
-        val listOfActiveSubscriptions = NotifyClient.getActiveSubscriptions().map { (topic, subscription) ->
+    private fun generateState(subscriptions: List<Notify.Model.Subscription>): InboxState {
+        val listOfActiveSubscriptions = subscriptions.map { subscription ->
             InboxState.Subscriptions.ActiveSubscriptions(
-                topic = topic,
+                topic = subscription.topic,
                 icon = subscription.metadata.icons.first(),
                 name = subscription.metadata.name,
-                messageCount = NotifyClient.getMessageHistory(params = Notify.Params.MessageHistory(topic)).size
+                messageCount = NotifyClient.getMessageHistory(params = Notify.Params.MessageHistory(subscription.topic)).size
             )
         }
 
