@@ -15,7 +15,6 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
 internal fun web3ModalModule() = module {
-    single {  }
 
     single { RecentWalletsRepository(sharedPreferences = get()) }
 
