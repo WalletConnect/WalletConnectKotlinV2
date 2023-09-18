@@ -14,10 +14,12 @@ import androidx.compose.ui.unit.dp
 import com.walletconnect.modal.ui.components.common.roundedClickable
 import com.walletconnect.web3.modal.domain.model.AccountData
 import com.walletconnect.web3.modal.domain.model.Identity
+import com.walletconnect.web3.modal.ui.components.internal.commons.CopyIcon
 import com.walletconnect.web3.modal.ui.previews.ComponentPreview
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.accountDataPreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
+import com.walletconnect.web3.modal.utils.toVisibleAddress
 
 @Composable
 internal fun AccountName(accountData: AccountData) {
@@ -25,7 +27,7 @@ internal fun AccountName(accountData: AccountData) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         val clipboardManager: ClipboardManager = LocalClipboardManager.current
-        val name = accountData.identity.name ?: "${accountData.address.take(4)}...${accountData.address.takeLast(4)}"
+        val name = accountData.identity.name ?: accountData.address.toVisibleAddress()
         Text(text = name, style = Web3ModalTheme.typo.title700)
         CopyIcon(
             modifier = Modifier

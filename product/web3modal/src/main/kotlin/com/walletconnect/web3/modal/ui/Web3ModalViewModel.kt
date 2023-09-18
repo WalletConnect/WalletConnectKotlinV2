@@ -65,13 +65,15 @@ internal class Web3ModalViewModel(
         val chains = activeSession.getChains()
         val selectedChain = chains.getSelectedChain(getSelectedChainUseCase())
         val address = activeSession.getAddress(selectedChain)
+        val identity = getIdentityUseCase(address, selectedChain.id)
 
         val accountData = AccountData(
             topic = activeSession.topic,
             address = address,
             balance = "",
             selectedChain = selectedChain,
-            chains = chains
+            chains = chains,
+            identity = identity
         )
         _modalState.value = Web3ModalState.AccountState(accountData)
     }
