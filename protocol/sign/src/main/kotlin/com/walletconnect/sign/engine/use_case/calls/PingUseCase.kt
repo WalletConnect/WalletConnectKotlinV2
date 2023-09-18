@@ -34,7 +34,7 @@ internal class PingUseCase(
 
     override suspend fun ping(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit, timeout: Duration) = supervisorScope {
         if (sessionStorageRepository.isSessionValid(Topic(topic))) {
-            val pingPayload = SignRpc.SessionPing(params = SignParams.PingParams())
+            val pingPayload = SignRpc.SessionPing(params = SignParams.PingParams(), topic = topic)
             val irnParams = IrnParams(Tags.SESSION_PING, Ttl(THIRTY_SECONDS))
 
             jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, pingPayload,

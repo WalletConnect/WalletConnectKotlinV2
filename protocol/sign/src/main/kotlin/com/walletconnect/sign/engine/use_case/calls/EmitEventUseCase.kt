@@ -31,7 +31,7 @@ internal class EmitEventUseCase(
         validate(topic, event)
 
         val eventParams = SignParams.EventParams(SessionEventVO(event.name, event.data), event.chainId)
-        val sessionEvent = SignRpc.SessionEvent(params = eventParams)
+        val sessionEvent = SignRpc.SessionEvent(params = eventParams, topic = topic)
         val irnParams = IrnParams(Tags.SESSION_EVENT, Ttl(FIVE_MINUTES_IN_SECONDS), true)
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionEvent,

@@ -17,6 +17,8 @@ internal sealed class PairingRpc : JsonRpcClientSync<PairingParams> {
         override val method: String = PairingJsonRpcMethod.WC_PAIRING_DELETE,
         @Json(name = "params")
         override val params: PairingParams.DeleteParams,
+        @Json(name = "topic")
+        override var topic: String?
     ) : PairingRpc()
 
     @JsonClass(generateAdapter = true)
@@ -29,5 +31,7 @@ internal sealed class PairingRpc : JsonRpcClientSync<PairingParams> {
         override val method: String = PairingJsonRpcMethod.WC_PAIRING_PING,
         @Json(name = "params")
         override val params: PairingParams.PingParams,
+        @Json(name = "topic")
+        override var topic: String?,
     ) : PairingRpc()
 }

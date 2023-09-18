@@ -65,7 +65,7 @@ internal class SessionRequestUseCase(
         }
 
         val params = SignParams.SessionRequestParams(SessionRequestVO(request.method, request.params), request.chainId)
-        val sessionPayload = SignRpc.SessionRequest(params = params)
+        val sessionPayload = SignRpc.SessionRequest(params = params, topic = request.topic)
         val irnParamsTtl = request.expiry?.run {
             val defaultTtl = FIVE_MINUTES_IN_SECONDS
             val extractedTtl = seconds - nowInSeconds

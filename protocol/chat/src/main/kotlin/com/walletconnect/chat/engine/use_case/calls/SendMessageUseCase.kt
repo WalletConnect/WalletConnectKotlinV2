@@ -57,7 +57,7 @@ internal class SendMessageUseCase(
                 .getOrElse() { error -> return@launch onError(error) }
 
             val messageParams = ChatParams.MessageParams(messageAuth = didJwt.value)
-            val payload = ChatRpc.ChatMessage(id = messageId, params = messageParams)
+            val payload = ChatRpc.ChatMessage(id = messageId, params = messageParams, topic = topic)
             val irnParams = IrnParams(Tags.CHAT_MESSAGE, Ttl(MONTH_IN_SECONDS), true)
 
             messageRepository.insertMessage(Message(messageId, Topic(topic), message.message, authorAccountId, messageTimestampInMs, message.media))

@@ -40,7 +40,7 @@ internal class ExtendSessionUsesCase(
 
         val newExpiration = session.expiry.seconds + WEEK_IN_SECONDS
         sessionStorageRepository.extendSession(Topic(topic), newExpiration)
-        val sessionExtend = SignRpc.SessionExtend(params = SignParams.ExtendParams(newExpiration))
+        val sessionExtend = SignRpc.SessionExtend(params = SignParams.ExtendParams(newExpiration), topic = topic)
         val irnParams = IrnParams(Tags.SESSION_EXTEND, Ttl(DAY_IN_SECONDS))
 
         jsonRpcInteractor.publishJsonRpcRequest(

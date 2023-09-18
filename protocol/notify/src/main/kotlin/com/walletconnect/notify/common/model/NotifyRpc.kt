@@ -21,6 +21,8 @@ internal sealed class NotifyRpc : JsonRpcClientSync<CoreNotifyParams> {
         override val method: String = JsonRpcMethod.WC_NOTIFY_SUBSCRIBE,
         @Json(name = "params")
         override val params: CoreNotifyParams.SubscribeParams,
+        @Json(name = "topic")
+        override var topic: String?,
     ): NotifyRpc()
 
     @JsonClass(generateAdapter = true)
@@ -33,6 +35,8 @@ internal sealed class NotifyRpc : JsonRpcClientSync<CoreNotifyParams> {
         override val method: String = JsonRpcMethod.WC_NOTIFY_DELETE,
         @Json(name = "params")
         override val params: CoreNotifyParams.DeleteParams,
+        @Json(name = "topic")
+        override var topic: String?,
     ) : NotifyRpc()
 
     @JsonClass(generateAdapter = true)
@@ -45,6 +49,8 @@ internal sealed class NotifyRpc : JsonRpcClientSync<CoreNotifyParams> {
         override val method: String = JsonRpcMethod.WC_NOTIFY_UPDATE,
         @Json(name = "params")
         override val params: CoreNotifyParams.UpdateParams,
+        @Json(name = "topic")
+        override var topic: String?,
     ): NotifyRpc()
 
     @JsonClass(generateAdapter = true)
@@ -57,5 +63,7 @@ internal sealed class NotifyRpc : JsonRpcClientSync<CoreNotifyParams> {
         override val method: String = JsonRpcMethod.WC_NOTIFY_MESSAGE,
         @Json(name = "params")
         override val params: CoreNotifyParams.MessageParams,
+        @Json(name = "topic")
+        override var topic: String?,
     ) : NotifyRpc()
 }

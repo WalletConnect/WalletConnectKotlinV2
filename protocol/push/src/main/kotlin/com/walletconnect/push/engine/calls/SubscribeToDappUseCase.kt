@@ -74,7 +74,7 @@ internal class SubscribeToDappUseCase(
                     return@fold onFailure(error)
                 }
                 val params = PushParams.SubscribeParams(didJwt.value)
-                val request = PushRpc.PushSubscribe(params = params)
+                val request = PushRpc.PushSubscribe(params = params, topic = subscribeTopic.value)
                 val irnParams = IrnParams(Tags.PUSH_SUBSCRIBE, Ttl(DAY_IN_SECONDS))
 
                 runCatching {

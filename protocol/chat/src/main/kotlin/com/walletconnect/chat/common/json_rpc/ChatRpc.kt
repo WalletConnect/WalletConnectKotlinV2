@@ -18,6 +18,8 @@ internal sealed class ChatRpc : JsonRpcClientSync<ChatParams> {
         override val method: String = JsonRpcMethod.WC_CHAT_INVITE,
         @Json(name = "params")
         override val params: ChatParams.InviteParams,
+        @Json(name = "topic")
+        override var topic: String?,
     ) : ChatRpc()
 
     @JsonClass(generateAdapter = true)
@@ -30,6 +32,8 @@ internal sealed class ChatRpc : JsonRpcClientSync<ChatParams> {
         override val method: String = JsonRpcMethod.WC_CHAT_MESSAGE,
         @Json(name = "params")
         override val params: ChatParams.MessageParams,
+        @Json(name = "topic")
+        override var topic: String?,
     ) : ChatRpc()
 
     @JsonClass(generateAdapter = true)
@@ -42,6 +46,8 @@ internal sealed class ChatRpc : JsonRpcClientSync<ChatParams> {
         override val method: String = JsonRpcMethod.WC_CHAT_PING,
         @Json(name = "params")
         override val params: ChatParams.PingParams,
+        @Json(name = "topic")
+        override var topic: String?,
     ) : ChatRpc()
 
     @JsonClass(generateAdapter = true)
@@ -54,5 +60,7 @@ internal sealed class ChatRpc : JsonRpcClientSync<ChatParams> {
         override val method: String = JsonRpcMethod.WC_CHAT_LEAVE,
         @Json(name = "params")
         override val params: ChatParams.LeaveParams,
+        @Json(name = "topic")
+        override var topic: String?,
     ) : ChatRpc()
 }

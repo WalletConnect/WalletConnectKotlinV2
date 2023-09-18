@@ -6,5 +6,6 @@ import com.squareup.moshi.JsonClass
 data class ClientJsonRpc(
     val id: Long,
     val jsonrpc: String,
-    val method: String
+    val method: String,
+    val topic: String?
 )

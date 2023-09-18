@@ -34,7 +34,7 @@ internal class UpdateSubscriptionRequestUseCase(
         }
 
         val updateParams = CoreNotifyParams.UpdateParams(didJwt.value)
-        val request = NotifyRpc.NotifyUpdate(params = updateParams)
+        val request = NotifyRpc.NotifyUpdate(params = updateParams, topic = notifyTopic)
         val irnParams = IrnParams(Tags.NOTIFY_UPDATE, Ttl(THIRTY_SECONDS))
         jsonRpcInteractor.publishJsonRpcRequest(Topic(notifyTopic), irnParams, request, onSuccess = onSuccess, onFailure = onFailure)
     }

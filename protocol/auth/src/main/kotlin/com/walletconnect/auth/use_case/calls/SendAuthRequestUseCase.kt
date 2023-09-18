@@ -52,7 +52,7 @@ internal class SendAuthRequestUseCase(
         val responsePublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
         val responseTopic: Topic = crypto.getTopicFromKey(responsePublicKey)
         val authParams: AuthParams.RequestParams = AuthParams.RequestParams(Requester(responsePublicKey.keyAsHex, selfAppMetaData), payloadParams, expiry)
-        val authRequest: AuthRpc.AuthRequest = AuthRpc.AuthRequest(params = authParams)
+        val authRequest: AuthRpc.AuthRequest = AuthRpc.AuthRequest(params = authParams, topic = topic)
         val irnParamsTtl = getIrnParamsTtl(expiry, nowInSeconds)
         val irnParams = IrnParams(Tags.AUTH_REQUEST, irnParamsTtl, true)
         val pairingTopic = Topic(topic)

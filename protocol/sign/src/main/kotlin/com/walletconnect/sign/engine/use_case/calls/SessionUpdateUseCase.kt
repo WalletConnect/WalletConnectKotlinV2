@@ -38,7 +38,7 @@ internal class SessionUpdateUseCase(
         validate(topic, namespaces)
 
         val params = SignParams.UpdateNamespacesParams(namespaces.toMapOfNamespacesVOSession())
-        val sessionUpdate = SignRpc.SessionUpdate(params = params)
+        val sessionUpdate = SignRpc.SessionUpdate(params = params, topic = topic)
         val irnParams = IrnParams(Tags.SESSION_UPDATE, Ttl(DAY_IN_SECONDS))
 
         try {

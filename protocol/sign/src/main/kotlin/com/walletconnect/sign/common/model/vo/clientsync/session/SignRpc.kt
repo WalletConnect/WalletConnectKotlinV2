@@ -21,6 +21,8 @@ internal sealed class SignRpc : JsonRpcClientSync<SignParams> {
         override val method: String = JsonRpcMethod.WC_SESSION_PROPOSE,
         @Json(name = "params")
         override val params: SignParams.SessionProposeParams,
+        @Json(name = "topic")
+        override var topic: String?,
     ) : SignRpc()
 
     @JsonClass(generateAdapter = true)
@@ -32,7 +34,9 @@ internal sealed class SignRpc : JsonRpcClientSync<SignParams> {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_SESSION_SETTLE,
         @Json(name = "params")
-        override val params: SignParams.SessionSettleParams
+        override val params: SignParams.SessionSettleParams,
+        @Json(name = "topic")
+        override var topic: String?
     ) : SignRpc()
 
     @JsonClass(generateAdapter = true)
@@ -44,7 +48,9 @@ internal sealed class SignRpc : JsonRpcClientSync<SignParams> {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_SESSION_REQUEST,
         @Json(name = "params")
-        override val params: SignParams.SessionRequestParams
+        override val params: SignParams.SessionRequestParams,
+        @Json(name = "topic")
+        override var topic: String?
     ) : SignRpc()
 
     @JsonClass(generateAdapter = true)
@@ -56,7 +62,9 @@ internal sealed class SignRpc : JsonRpcClientSync<SignParams> {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_SESSION_DELETE,
         @Json(name = "params")
-        override val params: SignParams.DeleteParams
+        override val params: SignParams.DeleteParams,
+        @Json(name = "topic")
+        override var topic: String?
     ) : SignRpc()
 
     @JsonClass(generateAdapter = true)
@@ -69,6 +77,8 @@ internal sealed class SignRpc : JsonRpcClientSync<SignParams> {
         override val method: String = JsonRpcMethod.WC_SESSION_PING,
         @Json(name = "params")
         override val params: SignParams.PingParams,
+        @Json(name = "topic")
+        override var topic: String?
     ) : SignRpc()
 
     @JsonClass(generateAdapter = true)
@@ -81,6 +91,8 @@ internal sealed class SignRpc : JsonRpcClientSync<SignParams> {
         override val method: String = JsonRpcMethod.WC_SESSION_EVENT,
         @Json(name = "params")
         override val params: SignParams.EventParams,
+        @Json(name = "topic")
+        override var topic: String?
     ) : SignRpc()
 
     @JsonClass(generateAdapter = true)
@@ -93,6 +105,8 @@ internal sealed class SignRpc : JsonRpcClientSync<SignParams> {
         override val method: String = JsonRpcMethod.WC_SESSION_UPDATE,
         @Json(name = "params")
         override val params: SignParams.UpdateNamespacesParams,
+        @Json(name = "topic")
+        override var topic: String?
     ) : SignRpc()
 
     @JsonClass(generateAdapter = true)
@@ -105,5 +119,7 @@ internal sealed class SignRpc : JsonRpcClientSync<SignParams> {
         override val method: String = JsonRpcMethod.WC_SESSION_EXTEND,
         @Json(name = "params")
         override val params: SignParams.ExtendParams,
+        @Json(name = "topic")
+        override var topic: String?
     ) : SignRpc()
 }

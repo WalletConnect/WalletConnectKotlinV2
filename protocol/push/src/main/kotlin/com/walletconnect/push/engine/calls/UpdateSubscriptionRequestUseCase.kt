@@ -32,7 +32,7 @@ internal class UpdateSubscriptionRequestUseCase(
         }
 
         val updateParams = PushParams.UpdateParams(didJwt.value)
-        val request = PushRpc.PushUpdate(params = updateParams)
+        val request = PushRpc.PushUpdate(params = updateParams, topic = pushTopic)
         val irnParams = IrnParams(Tags.PUSH_UPDATE, Ttl(DAY_IN_SECONDS))
         jsonRpcInteractor.publishJsonRpcRequest(Topic(pushTopic), irnParams, request, onSuccess = onSuccess, onFailure = onFailure)
     }

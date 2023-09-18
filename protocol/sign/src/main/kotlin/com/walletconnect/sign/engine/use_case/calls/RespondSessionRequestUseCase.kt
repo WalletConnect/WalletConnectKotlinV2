@@ -46,6 +46,7 @@ internal class RespondSessionRequestUseCase(
     ) = supervisorScope {
         val topicWrapper = Topic(topic)
         if (!sessionStorageRepository.isSessionValid(topicWrapper)) {
+            removePendingSessionRequestAndEmit(jsonRpcResponse)
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 

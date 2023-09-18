@@ -21,7 +21,7 @@ internal class LeaveThreadUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
 ) : LeaveThreadUseCaseInterface {
     override fun leave(topic: String, onError: (Throwable) -> Unit) {
-        val payload = ChatRpc.ChatLeave(params = ChatParams.LeaveParams())
+        val payload = ChatRpc.ChatLeave(params = ChatParams.LeaveParams(), topic = topic)
         val irnParams = IrnParams(Tags.CHAT_LEAVE, Ttl(MONTH_IN_SECONDS), true)
 
         jsonRpcInteractor.publishJsonRpcRequest(

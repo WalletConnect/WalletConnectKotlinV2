@@ -21,6 +21,8 @@ internal sealed class PushRpc : JsonRpcClientSync<PushParams> {
         override val method: String = JsonRpcMethod.WC_PUSH_PROPOSE,
         @Json(name = "params")
         override val params: PushParams.ProposeParams,
+        @Json(name = "topic")
+        override var topic: String?,
     ) : PushRpc()
 
     @JsonClass(generateAdapter = true)
@@ -33,6 +35,8 @@ internal sealed class PushRpc : JsonRpcClientSync<PushParams> {
         override val method: String = JsonRpcMethod.WC_PUSH_MESSAGE,
         @Json(name = "params")
         override val params: PushParams.MessageParams,
+        @Json(name = "topic")
+        override var topic: String?,
     ) : PushRpc()
 
     @JsonClass(generateAdapter = true)
@@ -45,6 +49,8 @@ internal sealed class PushRpc : JsonRpcClientSync<PushParams> {
         override val method: String = JsonRpcMethod.WC_PUSH_DELETE,
         @Json(name = "params")
         override val params: PushParams.DeleteParams,
+        @Json(name = "topic")
+        override var topic: String?,
     ) : PushRpc()
 
     @JsonClass(generateAdapter = true)
@@ -57,6 +63,8 @@ internal sealed class PushRpc : JsonRpcClientSync<PushParams> {
         override val method: String = JsonRpcMethod.WC_PUSH_SUBSCRIBE,
         @Json(name = "params")
         override val params: PushParams.SubscribeParams,
+        @Json(name = "topic")
+        override var topic: String?,
     ): PushRpc()
 
     @JsonClass(generateAdapter = true)
@@ -69,5 +77,7 @@ internal sealed class PushRpc : JsonRpcClientSync<PushParams> {
         override val method: String = JsonRpcMethod.WC_PUSH_UPDATE,
         @Json(name = "params")
         override val params: PushParams.UpdateParams,
+        @Json(name = "topic")
+        override var topic: String?,
     ): PushRpc()
 }

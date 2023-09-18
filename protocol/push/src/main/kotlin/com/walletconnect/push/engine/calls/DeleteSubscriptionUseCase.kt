@@ -27,7 +27,7 @@ internal class DeleteSubscriptionUseCase(
 ): DeleteSubscriptionUseCaseInterface {
 
     override suspend fun deleteSubscription(pushTopic: String, onFailure: (Throwable) -> Unit) = supervisorScope {
-        val request = PushRpc.PushDelete(id = generateId(), params = PushParams.DeleteParams())
+        val request = PushRpc.PushDelete(id = generateId(), params = PushParams.DeleteParams(), topic = pushTopic)
         val irnParams = IrnParams(Tags.PUSH_DELETE, Ttl(DAY_IN_SECONDS))
 
         val activeSubscription: EngineDO.Subscription.Active = subscriptionRepository.getActiveSubscriptionByPushTopic(pushTopic) ?: return@supervisorScope onFailure(IllegalStateException("Subscription does not exists for $pushTopic"))

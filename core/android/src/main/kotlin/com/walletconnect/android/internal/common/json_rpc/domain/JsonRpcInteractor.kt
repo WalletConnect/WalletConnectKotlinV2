@@ -85,7 +85,12 @@ internal class JsonRpcInteractor(
             return onFailure(e)
         }
 
+//        payload.topic = topic.value
+
         val requestJson = serializer.serialize(payload) ?: return onFailure(IllegalStateException("JsonRpcInteractor: Unknown result params"))
+
+        println("kobe: Request: $requestJson")
+
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
             val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, envelopeType, participants)
 
@@ -314,6 +319,8 @@ internal class JsonRpcInteractor(
                         String.Empty
                     }
 
+                    println("kobe: Message: $message")
+
                     Triple(message, topic, relayRequest.params.subscriptionData.publishedAt)
                 }.collect { (decryptedMessage, topic, publishedAt) ->
                     if (decryptedMessage.isNotEmpty()) {
@@ -329,7 +336,18 @@ internal class JsonRpcInteractor(
 
     private suspend fun manageSubscriptions(decryptedMessage: String, topic: Topic, publishedAt: Long) {
         serializer.tryDeserialize<ClientJsonRpc>(decryptedMessage)?.let { clientJsonRpc ->
-            handleRequest(clientJsonRpc, topic, decryptedMessage, publishedAt)
+
+            clientJsonRpc.topic?.let {
+                if (clientJsonRpc.topic == topic.value) {
+                    println("kobe: OK")
+                    handleRequest(clientJsonRpc, topic, decryptedMessage, publishedAt)
+                } else {
+                    println("kobe: ERROR")
+                    handleError("JsonRpcInteractor: Unknown request params")
+                    //todo: send error back to dapp?
+                }
+            } ?: handleRequest(clientJsonRpc, topic, decryptedMessage, publishedAt)
+
         } ?: serializer.tryDeserialize<JsonRpcResponse.JsonRpcResult>(decryptedMessage)?.let { result ->
             handleJsonRpcResult(result, topic)
         } ?: serializer.tryDeserialize<JsonRpcResponse.JsonRpcError>(decryptedMessage)?.let { error ->
@@ -339,8 +357,11 @@ internal class JsonRpcInteractor(
 
     private suspend fun handleRequest(clientJsonRpc: ClientJsonRpc, topic: Topic, decryptedMessage: String, publishedAt: Long) {
         if (jsonRpcHistory.setRequest(clientJsonRpc.id, topic, clientJsonRpc.method, decryptedMessage)) {
+
             serializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
+
                 _clientSyncJsonRpc.emit(WCRequest(topic, clientJsonRpc.id, clientJsonRpc.method, params, decryptedMessage, publishedAt))
+
             } ?: handleError("JsonRpcInteractor: Unknown request params")
         }
     }

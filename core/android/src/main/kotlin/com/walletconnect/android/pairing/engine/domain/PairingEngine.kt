@@ -172,7 +172,7 @@ internal class PairingEngine(
         jsonRpcInteractor.unsubscribe(Topic(topic))
 
         val deleteParams = PairingParams.DeleteParams(6000, "User disconnected")
-        val pairingDelete = PairingRpc.PairingDelete(params = deleteParams)
+        val pairingDelete = PairingRpc.PairingDelete(params = deleteParams, topic = topic)
         val irnParams = IrnParams(Tags.PAIRING_DELETE, Ttl(DAY_IN_SECONDS))
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, pairingDelete,
@@ -186,7 +186,7 @@ internal class PairingEngine(
 
     fun ping(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
         if (isPairingValid(topic)) {
-            val pingPayload = PairingRpc.PairingPing(params = PairingParams.PingParams())
+            val pingPayload = PairingRpc.PairingPing(params = PairingParams.PingParams(), topic = topic)
             val irnParams = IrnParams(Tags.PAIRING_PING, Ttl(THIRTY_SECONDS))
 
             jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, pingPayload,

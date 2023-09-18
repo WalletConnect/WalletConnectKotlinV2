@@ -19,6 +19,8 @@ internal sealed class AuthRpc : JsonRpcClientSync<AuthParams> {
         @Json(name = "method")
         override val method: String = JsonRpcMethod.WC_AUTH_REQUEST,
         @Json(name = "params")
-        override val params: AuthParams.RequestParams
+        override val params: AuthParams.RequestParams,
+        @Json(name = "topic")
+        override var topic: String?
     ) : AuthRpc()
 }

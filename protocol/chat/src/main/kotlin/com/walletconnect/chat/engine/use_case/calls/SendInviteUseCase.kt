@@ -94,7 +94,7 @@ internal class SendInviteUseCase(
 
             val inviteParams = ChatParams.InviteParams(inviteAuth = didJwt.value)
             val inviteId = generateId()
-            val payload = ChatRpc.ChatInvite(id = inviteId, params = inviteParams)
+            val payload = ChatRpc.ChatInvite(id = inviteId, params = inviteParams, topic = inviteTopic.value)
             val acceptTopic = keyManagementRepository.getTopicFromKey(symmetricKey)
 
             keyManagementRepository.setKey(symmetricKey, acceptTopic.value)

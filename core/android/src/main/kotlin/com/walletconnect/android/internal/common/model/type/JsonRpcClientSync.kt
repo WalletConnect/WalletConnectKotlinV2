@@ -5,4 +5,5 @@ interface JsonRpcClientSync<T : ClientParams> : SerializableJsonRpc {
     val method: String
     val jsonrpc: String
     val params: T
+    var topic: String?
 }

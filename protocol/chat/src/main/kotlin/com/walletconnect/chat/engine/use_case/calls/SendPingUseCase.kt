@@ -24,7 +24,7 @@ internal class SendPingUseCase(
 ) : SendPingUseCaseInterface {
 
     override fun ping(topic: String, onSuccess: (String) -> Unit, onError: (Throwable) -> Unit) {
-        val pingPayload = ChatRpc.ChatPing(params = ChatParams.PingParams())
+        val pingPayload = ChatRpc.ChatPing(params = ChatParams.PingParams(), topic = topic)
         val irnParams = IrnParams(Tags.CHAT_PING, Ttl(THIRTY_SECONDS))
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, pingPayload,

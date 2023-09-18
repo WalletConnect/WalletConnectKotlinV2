@@ -46,7 +46,7 @@ internal class ProposeSessionUseCase(
         val selfPublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
         val sessionProposal: SignParams.SessionProposeParams =
             toSessionProposeParams(listOf(relay), requiredNamespaces ?: emptyMap(), optionalNamespaces ?: emptyMap(), properties, selfPublicKey, selfAppMetaData)
-        val request = SignRpc.SessionPropose(params = sessionProposal)
+        val request = SignRpc.SessionPropose(params = sessionProposal, topic = pairing.topic.value)
         proposalStorageRepository.insertProposal(sessionProposal.toVO(pairing.topic, request.id))
         val irnParams = IrnParams(Tags.SESSION_PROPOSE, Ttl(FIVE_MINUTES_IN_SECONDS), true)
         jsonRpcInteractor.subscribe(pairing.topic) { error -> return@subscribe onFailure(error) }

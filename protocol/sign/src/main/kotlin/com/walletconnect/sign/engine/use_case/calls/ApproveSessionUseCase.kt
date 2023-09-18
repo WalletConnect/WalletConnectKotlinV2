@@ -61,7 +61,7 @@ internal class ApproveSessionUseCase(
                 metadataStorageRepository.insertOrAbortMetadata(sessionTopic, selfAppMetaData, AppMetaDataType.SELF)
                 metadataStorageRepository.insertOrAbortMetadata(sessionTopic, proposal.appMetaData, AppMetaDataType.PEER)
                 val params = proposal.toSessionSettleParams(selfParticipant, sessionExpiry, sessionNamespaces)
-                val sessionSettle = SignRpc.SessionSettle(params = params)
+                val sessionSettle = SignRpc.SessionSettle(params = params, topic = sessionTopic.value)
                 val irnParams = IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
                 jsonRpcInteractor.publishJsonRpcRequest(

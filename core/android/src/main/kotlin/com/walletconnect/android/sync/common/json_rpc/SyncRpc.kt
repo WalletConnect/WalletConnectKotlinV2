@@ -21,6 +21,8 @@ internal sealed class SyncRpc : JsonRpcClientSync<SyncParams> {
         override val method: String = JsonRpcMethod.WC_SYNC_SET,
         @Json(name = "params")
         override val params: SyncParams.SetParams,
+        @Json(name = "topic")
+        override var topic: String?,
     ) : SyncRpc()
 
     @JsonClass(generateAdapter = true)
@@ -33,6 +35,8 @@ internal sealed class SyncRpc : JsonRpcClientSync<SyncParams> {
         override val method: String = JsonRpcMethod.WC_SYNC_DELETE,
         @Json(name = "params")
         override val params: SyncParams.DeleteParams,
+        @Json(name = "topic")
+        override var topic: String?,
     ) : SyncRpc()
 
 }
