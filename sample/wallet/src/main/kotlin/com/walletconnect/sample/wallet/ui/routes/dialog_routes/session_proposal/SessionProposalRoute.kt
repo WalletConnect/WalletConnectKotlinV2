@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -53,7 +54,10 @@ import com.walletconnect.sample.common.sendResponseDeepLink
 import com.walletconnect.sample.common.ui.theme.PreviewTheme
 import com.walletconnect.sample.common.ui.themedColor
 import com.walletconnect.sample.wallet.R
+import com.walletconnect.sample.wallet.ui.common.peer.PeerContextUI
+import com.walletconnect.sample.wallet.ui.common.peer.Validation
 import com.walletconnect.sample.wallet.ui.common.peer.getValidationColor
+import com.walletconnect.sample.wallet.ui.common.peer.getValidationIcon
 import com.walletconnect.web3.wallet.client.Wallet
 import kotlinx.coroutines.launch
 
@@ -74,8 +78,9 @@ fun SessionProposalRoute(navController: NavHostController, sessionProposalViewMo
     SemiTransparentDialog {
         Spacer(modifier = Modifier.height(24.dp))
         Peer(peerUI = sessionProposalUI.peerUI, "wants to connect", sessionProposalUI.peerContext)
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(24.dp))
         Permissions(sessionProposalUI = sessionProposalUI)
+        Spacer(modifier = Modifier.height(24.dp))
         Buttons(allowButtonColor, onDecline = {
             composableScope.launch {
                 try {
@@ -144,19 +149,71 @@ fun Permissions(sessionProposalUI: SessionProposalUI) {
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         RequestedPermissions()
-        HorizontalPager(
-            count = chains.size,
-            state = pagerState,
-        ) { current ->
-            chains[current].also { chain -> ChainPermissions(chain, chainsToProposals) }
+        if (sessionProposalUI.peerContext.validation != Validation.VALID) {
+            Spacer(modifier = Modifier.height(16.dp))
+            ValidationDescription(sessionProposalUI.peerContext)
         }
 
-        if (chains.size > 1) {
-            HorizontalPagerIndicator(
-                pagerState = pagerState,
-                inactiveColor = themedColor(darkColor = Color(0xFFE4E4E7), lightColor = Color(0xFF505059)),
-                activeColor = themedColor(darkColor = Color(0xFFE4E4E7), lightColor = Color(0xFF505059)),
-            )
+//        HorizontalPager(
+//            count = chains.size,
+//            state = pagerState,
+//        ) { current ->
+//            chains[current].also { chain -> ChainPermissions(chain, chainsToProposals) }
+//        }
+//
+//        if (chains.size > 1) {
+//            HorizontalPagerIndicator(
+//                pagerState = pagerState,
+//                inactiveColor = themedColor(darkColor = Color(0xFFE4E4E7), lightColor = Color(0xFF505059)),
+//                activeColor = themedColor(darkColor = Color(0xFFE4E4E7), lightColor = Color(0xFF505059)),
+//            )
+//        }
+    }
+}
+
+@Composable
+private fun ValidationDescription(peerContextUI: PeerContextUI) {
+    Row(
+        modifier = Modifier
+            .padding(end = 20.dp, start = 20.dp)
+            .clip(RoundedCornerShape(24.dp))
+            .background(color = getValidationColor(peerContextUI.validation).copy(alpha = 0.25f))
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        Column(modifier = Modifier.padding(start = 12.dp)) {
+            Image(
+                modifier = Modifier.size(24.dp),
+                painter = painterResource(id = peerContextUI.isScam?.let { if (it) R.drawable.security_risk else getValidationIcon(peerContextUI.validation) } ?: getValidationIcon(
+                    peerContextUI.validation
+                )),
+                contentDescription = null)
+        }
+
+        Column(modifier = Modifier.padding(12.dp), horizontalAlignment = Alignment.Start) {
+            Text(getDescriptionTitle(peerContextUI), style = TextStyle(color = getValidationColor(peerContextUI.validation), fontWeight = FontWeight.Bold, fontSize = 14.sp))
+            Text(getDescriptionContent(peerContextUI), style = TextStyle(fontSize = 14.sp))
+        }
+    }
+}
+
+fun getDescriptionTitle(peerContextUI: PeerContextUI): String {
+    return if (peerContextUI.isScam == true) "Known security risk" else {
+        when (peerContextUI.validation) {
+            Validation.UNKNOWN -> "Unknown domain"
+            Validation.INVALID -> "Domain mismatch"
+            else -> ""
+        }
+    }
+}
+
+fun getDescriptionContent(peerContextUI: PeerContextUI): String {
+    return if (peerContextUI.isScam == true) "This website is flagged as unsafe by multiple security providers. Leave immediately to protect your assets." else {
+        when (peerContextUI.validation) {
+            Validation.UNKNOWN -> "This domain cannot be verified. Check the request carefully before approving."
+            Validation.INVALID -> "This website has a domain that does not match the sender of this request. Approving may lead to loss of funds."
+            else -> ""
         }
     }
 }
@@ -165,8 +222,8 @@ fun Permissions(sessionProposalUI: SessionProposalUI) {
 private fun RequestedPermissions() {
     Column(
         modifier = Modifier
-            .padding(20.dp)
-            .border(border = BorderStroke(1.dp, Color(0xFFD6D6D6)), shape = RoundedCornerShape(12.dp))
+            .padding(end = 20.dp, start = 20.dp)
+            .border(border = BorderStroke(1.dp, Color(0xFFD6D6D6)), shape = RoundedCornerShape(24.dp))
             .fillMaxWidth(),
     ) {
         Text(

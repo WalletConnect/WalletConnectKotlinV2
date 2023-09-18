@@ -44,7 +44,7 @@ fun CancelButtonTopLevel(
         modifier = modifier
             .padding(
                 PaddingValues(
-                    start = 16.0.dp,
+                    start = 8.0.dp,
                     top = 0.0.dp,
                     end = 8.0.dp,
                     bottom = 1.0.dp

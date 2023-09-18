@@ -51,7 +51,7 @@ fun ConfirmButtonTopLevel(
             .padding(
                 start = 8.0.dp,
                 top = 0.0.dp,
-                end = 16.0.dp,
+                end = 8.0.dp,
                 bottom = 1.0.dp
             )
             .clip(RoundedCornerShape(20.dp))
