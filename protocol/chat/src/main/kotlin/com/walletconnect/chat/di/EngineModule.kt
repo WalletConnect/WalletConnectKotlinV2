@@ -44,7 +44,6 @@ internal fun engineModule() = module {
             identitiesInteractor = get(),
             jsonRpcInteractor = get(),
             threadsRepository = get(),
-            setThreadWithSymmetricKeyToChatThreadsStoreUseCase = get(),
         )
     }
 
@@ -55,7 +54,6 @@ internal fun engineModule() = module {
             invitesRepository = get(),
             keyManagementRepository = get(),
             jsonRpcInteractor = get(),
-            setReceivedInviteRejectedStatusToChatSentInvitesStoreUseCase = get(),
         )
     }
 
@@ -65,7 +63,6 @@ internal fun engineModule() = module {
             identitiesInteractor = get(),
             accountsRepository = get(),
             goPublicUseCase = get(),
-            setupSyncInChatUseCase = get()
         )
     }
 
@@ -87,7 +84,6 @@ internal fun engineModule() = module {
             keyManagementRepository = get(),
             jsonRpcInteractor = get(),
             registerInviteUseCase = get(),
-            setInviteKeyToChatInviteKeyStoreUseCase = get()
         )
     }
 
@@ -99,7 +95,6 @@ internal fun engineModule() = module {
             keyManagementRepository = get(),
             jsonRpcInteractor = get(),
             unregisterInviteUseCase = get(),
-            deleteInviteKeyFromChatInviteKeyStoreUseCase = get()
         )
     }
 
@@ -112,7 +107,6 @@ internal fun engineModule() = module {
             identitiesInteractor = get(),
             jsonRpcInteractor = get(),
             contactRepository = get(),
-            setSentInviteToChatSentInvitesStoreUseCase = get(),
             threadsRepository = get()
         )
     }
@@ -144,8 +138,6 @@ internal fun engineModule() = module {
     single {
         OnInviteResponseUseCase(
             logger = get(), invitesRepository = get(), keyManagementRepository = get(), identitiesInteractor = get(), threadsRepository = get(), jsonRpcInteractor = get(),
-            setThreadWithSymmetricKeyToChatThreadsStoreUseCase = get(),
-            setSentInviteToChatSentInvitesStoreUseCase = get()
         )
     }
 

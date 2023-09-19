@@ -4,10 +4,7 @@ import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
-import com.walletconnect.chat.common.model.Account
-import com.walletconnect.chat.engine.sync.use_case.SetupSyncInChatUseCase
 import com.walletconnect.chat.storage.AccountsStorageRepository
-import com.walletconnect.foundation.util.jwt.encodeEd25519DidKey
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
@@ -16,7 +13,6 @@ internal class RegisterIdentityUseCase(
     private val identitiesInteractor: IdentitiesInteractor,
     private val accountsRepository: AccountsStorageRepository,
     private val goPublicUseCase: GoPublicUseCase,
-    private val setupSyncInChatUseCase: SetupSyncInChatUseCase,
 ) : RegisterIdentityUseCaseInterface {
 
     override fun register(accountId: AccountId, onSign: (String) -> Cacao.Signature?, onSuccess: (String) -> Unit, onError: (Throwable) -> Unit, private: Boolean) {
