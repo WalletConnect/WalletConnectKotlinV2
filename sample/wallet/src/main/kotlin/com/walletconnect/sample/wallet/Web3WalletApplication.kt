@@ -7,11 +7,9 @@ import android.util.Log
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
-import com.mixpanel.android.mpmetrics.MixpanelAPI
 import com.pandulapeter.beagle.modules.DividerModule
 import com.pandulapeter.beagle.modules.HeaderModule
 import com.pandulapeter.beagle.modules.PaddingModule
-import com.pandulapeter.beagle.modules.TextInputModule
 import com.pandulapeter.beagle.modules.TextModule
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
@@ -38,7 +36,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import com.walletconnect.sample.common.BuildConfig as CommonBuildConfig
 
 class Web3WalletApplication : Application() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -142,10 +139,10 @@ class Web3WalletApplication : Application() {
 //            )
         )
 
-        mixPanel = MixpanelAPI.getInstance(this, CommonBuildConfig.MIX_PANEL, true).apply {
-            identify(CoreClient.Echo.clientId)
-            people.set("\$name", with(EthAccountDelegate) { account.toEthAddress() })
-        }
+//        mixPanel = MixpanelAPI.getInstance(this, CommonBuildConfig.MIX_PANEL, true).apply {
+//            identify(CoreClient.Echo.clientId)
+//            people.set("\$name", with(EthAccountDelegate) { account.toEthAddress() })
+//        }
 
         wcKoinApp.koin.get<Timber.Forest>().plant(object : Timber.Tree() {
             override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
