@@ -1,0 +1,9 @@
+import com.walletconnect.android.internal.common.model.Validation;
+
+-- migration from 3.db to 4.db
+
+-- Remove Sync API
+
+DROP TABLE IF EXISTS StoreValues;
+DROP TABLE IF EXISTS Accounts;
+DROP TABLE IF EXISTS Stores;
