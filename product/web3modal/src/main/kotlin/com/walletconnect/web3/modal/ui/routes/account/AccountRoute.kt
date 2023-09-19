@@ -73,7 +73,7 @@ private fun AccountScreen(
                 ),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            AccountImage(address = accountData.address, avatarUrl = accountData.identity.avatar)
+            AccountImage(address = accountData.address, avatarUrl = accountData.identity?.avatar)
             VerticalSpacer(height = 20.dp)
             AccountName(accountData)
             Text(

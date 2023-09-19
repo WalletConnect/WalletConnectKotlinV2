@@ -27,7 +27,7 @@ internal fun AccountName(accountData: AccountData) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         val clipboardManager: ClipboardManager = LocalClipboardManager.current
-        val name = accountData.identity.name ?: accountData.address.toVisibleAddress()
+        val name = accountData.identity?.name ?: accountData.address.toVisibleAddress()
         Text(text = name, style = Web3ModalTheme.typo.title700)
         CopyIcon(
             modifier = Modifier
