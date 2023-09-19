@@ -65,6 +65,6 @@ internal class WatchSubscriptionsUseCase(
     }
 
     private companion object {
-        const val NOTIFY_SERVER_URL = "https://dev.notify.walletconnect.com/"
+        const val NOTIFY_SERVER_URL = "https://notify.walletconnect.com/"
     }
 }
