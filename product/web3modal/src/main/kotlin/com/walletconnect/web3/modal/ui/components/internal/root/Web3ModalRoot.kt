@@ -18,6 +18,7 @@ import com.walletconnect.web3.modal.ui.components.internal.Web3ModalTopBar
 import com.walletconnect.web3.modal.ui.components.internal.commons.BackArrowIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.FullWidthDivider
 import com.walletconnect.web3.modal.ui.components.internal.commons.QuestionMarkIcon
+import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.ui.previews.MultipleComponentsPreview
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.theme.ProvideWeb3ModalThemeComposition
@@ -71,7 +72,9 @@ private fun TopBarStartIcon(
     if (rootState.canPopUp) {
         BackArrowIcon(onClick = rootState::popUp)
     } else {
-        QuestionMarkIcon(onClick = rootState::navigateToHelp)
+        when(rootState.currentDestinationRoute) {
+            Route.CONNECT_YOUR_WALLET.path -> QuestionMarkIcon(onClick = rootState::navigateToHelp)
+        }
     }
 }
 

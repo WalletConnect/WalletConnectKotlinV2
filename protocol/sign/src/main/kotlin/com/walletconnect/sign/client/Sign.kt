@@ -51,7 +51,8 @@ object Sign {
             val id: Long,
             val origin: String,
             val validation: Validation,
-            val verifyUrl: String
+            val verifyUrl: String,
+            val isScam: Boolean?
         ) : Model()
 
         enum class Validation {

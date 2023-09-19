@@ -4,7 +4,6 @@ package com.walletconnect.notify.engine.domain
 
 import androidx.core.net.toUri
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
-import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.internal.common.model.IrnParams
