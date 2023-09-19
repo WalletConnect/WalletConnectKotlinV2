@@ -80,7 +80,6 @@ class Web3WalletApplication : Application() {
             Log.e(tag(this), error.throwable.stackTraceToString())
         }
 
-        // Register with Notify
         NotifyClient.register(
             params = Notify.Params.Registration(
                 with(EthAccountDelegate) { account.toEthAddress() },
