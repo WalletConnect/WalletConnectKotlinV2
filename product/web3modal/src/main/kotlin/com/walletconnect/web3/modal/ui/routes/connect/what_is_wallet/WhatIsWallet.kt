@@ -1,37 +1,32 @@
-package com.walletconnect.web3.modal.ui.routes.connect.help
+package com.walletconnect.web3.modal.ui.routes.connect.what_is_wallet
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.R
+import com.walletconnect.web3.modal.ui.components.internal.commons.HelpSection
 import com.walletconnect.web3.modal.ui.components.internal.commons.WalletIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.button.ButtonSize
 import com.walletconnect.web3.modal.ui.components.internal.commons.button.ButtonStyle
 import com.walletconnect.web3.modal.ui.components.internal.commons.button.ImageButton
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
-import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 @Composable
-internal fun HelpRoute(
+internal fun WhatIsWallet(
     navController: NavController
 ) {
-    HelpContent(
+    WhatIsWallet(
         onGetWalletClick = { navController.navigate(Route.GET_A_WALLET.path) }
     )
 }
 
 @Composable
-private fun HelpContent(onGetWalletClick: () -> Unit) {
+private fun WhatIsWallet(onGetWalletClick: () -> Unit) {
     Column(
         modifier = Modifier.padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -67,47 +62,9 @@ private fun HelpContent(onGetWalletClick: () -> Unit) {
 }
 
 @Composable
-private fun HelpSection(
-    title: String,
-    body: String,
-    assets: List<Int>
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Row {
-            assets.forEach { vectorRes ->
-                Image(
-                    imageVector = ImageVector.vectorResource(id = vectorRes),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .padding(horizontal = 5.dp)
-                        .size(60.dp)
-                )
-            }
-        }
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = title,
-            style = Web3ModalTheme.typo.paragraph500,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = body,
-            style = Web3ModalTheme.typo.small500.copy(Web3ModalTheme.colors.foreground.color200),
-            textAlign = TextAlign.Center,
-        )
-    }
-}
-
-@Composable
 @UiModePreview
 private fun HelpContentPreview() {
     Web3ModalPreview("What is a Wallet?") {
-        HelpContent {}
+        WhatIsWallet {}
     }
 }

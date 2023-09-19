@@ -64,25 +64,26 @@ class Web3ModalState(
     private val getSessionTopicUseCase: GetSessionTopicUseCase = wcKoinApp.koin.get()
     private val getSelectedChainUseCase: GetSelectedChainUseCase = wcKoinApp.koin.get()
 
-    val isOpen
-        get() = navController.currentBackStackEntryFlow.mapLatest { it.destination.route?.startsWith(Route.WEB3MODAL.path) ?: false }
 
-    val isConnected
-        get() = observeSessionTopicUseCase()
-            .filterNotNull()
-            .map { Web3Modal.getActiveSessionByTopic(it) != null }
-            .stateIn(coroutineScope, started = SharingStarted.Lazily, initialValue = false)
+    val isOpen = navController.currentBackStackEntryFlow.mapLatest { it.destination.route?.startsWith(Route.WEB3MODAL.path) ?: false }
 
-    internal fun accountButtonState(accountButtonType: AccountButtonType): StateFlow<AccountButtonState> = observeSessionTopicUseCase()
-        .mapOrAccountState(accountButtonType, AccountButtonState.Invalid)
+    private val sessionTopicFlow = observeSessionTopicUseCase()
+
+    val isConnected = sessionTopicFlow
+        .map { it != null && Web3Modal.getActiveSessionByTopic(it) != null }
+        .stateIn(coroutineScope, started = SharingStarted.Lazily, initialValue = false)
+
+    internal val accountNormalButtonState = sessionTopicFlow
+        .mapOrAccountState(AccountButtonType.NORMAL)
         .stateIn(coroutineScope, started = SharingStarted.Lazily, initialValue = AccountButtonState.Loading)
 
-    private fun Flow<String?>.mapOrAccountState(
-        accountButtonType: AccountButtonType,
-        accountButtonState: AccountButtonState
-    ): Flow<AccountButtonState> = map { topic ->
-        topic?.let { getActiveSession()?.mapToAccountButtonState(accountButtonType) } ?: accountButtonState
-    }
+    internal val accountMixedButtonState = sessionTopicFlow
+        .mapOrAccountState(AccountButtonType.MIXED)
+        .stateIn(coroutineScope, started = SharingStarted.Lazily, initialValue = AccountButtonState.Loading)
+
+    private fun Flow<String?>.mapOrAccountState(accountButtonType: AccountButtonType) =
+        map { topic -> topic?.let { getActiveSession()?.mapToAccountButtonState(accountButtonType) } ?: AccountButtonState.Invalid }
+
 
     private suspend fun Modal.Model.Session.mapToAccountButtonState(accountButtonType: AccountButtonType) = try {
         val chains = getChains()

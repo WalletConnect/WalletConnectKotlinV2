@@ -23,6 +23,7 @@ import com.walletconnect.web3.modal.ui.Web3ModalState
 import com.walletconnect.web3.modal.ui.Web3ModalViewModel
 import com.walletconnect.web3.modal.ui.components.internal.root.Web3ModalRoot
 import com.walletconnect.web3.modal.ui.navigation.Web3ModalNavGraph
+import com.walletconnect.web3.modal.ui.routes.connect.ConnectionNavGraph
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filterIsInstance
@@ -59,17 +60,21 @@ internal fun Web3ModalComponent(
             contentAlignment = Alignment.BottomCenter,
             transitionSpec = {
                 (fadeIn() + slideInVertically(animationSpec = tween(400),
-                    initialOffsetY = { fullHeight -> fullHeight })).togetherWith(fadeOut(animationSpec = tween(200)))
+                    initialOffsetY = { fullHeight -> fullHeight })).togetherWith(fadeOut(animationSpec = tween(400)))
             },
             label = "Root Animated content"
         ) { state ->
             when (state) {
-                is Web3ModalState.Connect, is Web3ModalState.AccountState -> Web3ModalNavGraph(
+                is Web3ModalState.Connect -> ConnectionNavGraph(
+                    navController = navController,
+                    shouldOpenChooseNetwork = state.shouldOpenChooseNetwork
+                )
+
+                //todo split states into own graphs
+                is Web3ModalState.AccountState, -> Web3ModalNavGraph(
                     navController = navController,
                     web3ModalState = state,
                     modifier = Modifier.imePadding(),
-                    updateRecentWalletId = web3ModalViewModel::updateRecentWalletId,
-                    retryConnection = web3ModalViewModel::retryConnection,
                     disconnect = {
                         web3ModalViewModel.disconnect(it) {
                             coroutineScope.launch(Dispatchers.Main) {
@@ -80,7 +85,6 @@ internal fun Web3ModalComponent(
                     closeModal = closeModal,
                     changeChain = web3ModalViewModel::changeChain
                 )
-
                 Web3ModalState.Loading -> LoadingModalState()
                 is Web3ModalState.Error -> ErrorModalState(retry = web3ModalViewModel::initModalState)
             }

@@ -62,8 +62,10 @@ fun AccountButton(
     state: Web3ModalState,
     accountButtonType: AccountButtonType = AccountButtonType.NORMAL
 ) {
-    val accountState by state.accountButtonState(accountButtonType).collectAsState()
-
+    val accountState by when (accountButtonType) {
+        AccountButtonType.NORMAL -> state.accountNormalButtonState.collectAsState()
+        AccountButtonType.MIXED -> state.accountMixedButtonState.collectAsState()
+    }
     AccountButtonState(
         state = accountState,
         onClick = state::openWeb3Modal

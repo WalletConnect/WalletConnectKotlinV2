@@ -1,4 +1,4 @@
-package com.walletconnect.web3.modal.ui.routes.account
+package com.walletconnect.web3.modal.ui.routes.connect.choose_network
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -11,61 +11,50 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
-import com.walletconnect.web3.modal.domain.model.AccountData
-import com.walletconnect.web3.modal.domain.model.Chain
 import com.walletconnect.web3.modal.ui.components.internal.commons.FullWidthDivider
 import com.walletconnect.web3.modal.ui.components.internal.commons.VerticalSpacer
-import com.walletconnect.web3.modal.ui.components.internal.commons.inputs.SearchInput
 import com.walletconnect.web3.modal.ui.components.internal.commons.network.ChainNetworkItem
-import com.walletconnect.web3.modal.ui.previews.UiModePreview
-import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
+import com.walletconnect.web3.modal.ui.routes.connect.ConnectState
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 import com.walletconnect.web3.modal.utils.getChainNetworkImageUrl
 
 @Composable
-internal fun ChangeNetworkRoute(
-    accountData: AccountData,
-    changeChain: (AccountData, Chain) -> Unit
+internal fun ChooseNetworkRoute(
+    connectState: ConnectState
 ) {
-    ChangeNetworkScreen(
-        chains = Web3Modal.chains,
-        accountData = accountData,
-        onChainItemClick = changeChain
+    val chains = Web3Modal.chains
+    var selectedChain by remember { mutableStateOf(Web3Modal.selectedChain ?: chains.first()) }
+
+    ChainNetworkSelector(
+        chains = chains,
+        selectedChain = selectedChain,
+        onChainItemClick = { chain -> connectState.navigateToConnectWallet(chain).also { selectedChain = chain } }
     )
 }
 
 @Composable
-private fun ChangeNetworkScreen(
+private fun ChainNetworkSelector(
     chains: List<Modal.Model.Chain>,
-    accountData: AccountData,
-    onChainItemClick: (AccountData, Chain) -> Unit
+    selectedChain: Modal.Model.Chain,
+    onChainItemClick: (Modal.Model.Chain) -> Unit,
 ) {
-    var searchInputValue by rememberSaveable() { mutableStateOf("") }
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 12.dp)
     ) {
-        SearchInput(
-            searchValue = searchInputValue,
-            onSearchValueChange = { searchInputValue = it },
-            onClearClick = {},
-            modifier = Modifier.padding(horizontal = 12.dp)
-        )
         VerticalSpacer(height = 12.dp)
         ChainNetworkGrid(
             chains = chains,
-            connectedChains = accountData.chains.filter { it.name.contains(searchInputValue, ignoreCase = true) },
-            selectedChain = accountData.selectedChain,
-            onItemClick = { onChainItemClick(accountData, it) }
+            selectedChain = selectedChain,
+            onItemClick = { onChainItemClick(it) }
         )
         FullWidthDivider()
         VerticalSpacer(height = 12.dp)
@@ -81,40 +70,23 @@ private fun ChangeNetworkScreen(
 @Composable
 private fun ChainNetworkGrid(
     chains: List<Modal.Model.Chain>,
-    connectedChains: List<Chain>,
-    selectedChain: Chain,
-    onItemClick: (Chain) -> Unit
+    selectedChain: Modal.Model.Chain,
+    onItemClick: (Modal.Model.Chain) -> Unit
 ) {
     LazyVerticalGrid(
         contentPadding = PaddingValues(horizontal = 10.dp),
-        columns = GridCells.Adaptive(76.dp),
+        columns = GridCells.Adaptive(80.dp),
         content = {
             itemsIndexed(chains) { _, item ->
                 ChainNetworkItem(
+                    image = item.chainImage ?: getChainNetworkImageUrl(item.chainReference),
                     isSelected = item.id == selectedChain.id,
-                    isEnabled = connectedChains.any { it.id == item.id },
+                    isEnabled = true,
                     networkName = item.chainName,
-                    image = item.chainImage ?: getChainNetworkImageUrl(item.chainReference)
                 ) {
-                    onItemClick(connectedChains.find { it.id == item.id }!!)
+                    onItemClick(item)
                 }
             }
         }
     )
-}
-
-@Composable
-@UiModePreview
-private fun ChangeNetworkPreview() {
-    Web3ModalPreview("Change Network") {
-        val accountData = AccountData(
-            topic = "",
-            address = "0xd2B8b483056b134f9D8cd41F55bB065F9",
-            balance = "543 ETH",
-            selectedChain = Chain("eip155:1"),
-            chains = listOf(Chain("eip155:1"))
-
-        )
-        ChangeNetworkScreen(listOf(),  accountData, { _, _ -> })
-    }
 }
