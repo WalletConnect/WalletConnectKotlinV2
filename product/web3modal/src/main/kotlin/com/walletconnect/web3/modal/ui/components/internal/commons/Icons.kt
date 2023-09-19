@@ -1,6 +1,5 @@
 package com.walletconnect.web3.modal.ui.components.internal.commons
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.padding
@@ -236,6 +235,29 @@ internal fun AllWalletsIcon(
 }
 
 @Composable
+internal fun SelectNetworkIcon(
+    tint: Color = Web3ModalTheme.colors.foreground.color100
+) {
+    Icon(
+        imageVector = ImageVector.vectorResource(id = R.drawable.ic_select_network),
+        contentDescription = ContentDescription.SELECT_NETWORK.description,
+        modifier = Modifier
+            .size(24.dp)
+            .background(
+                color = Web3ModalTheme.colors.overlay25,
+                shape = CircleShape
+            )
+            .padding(5.dp)
+            .border(
+                width = 1.dp,
+                color = Web3ModalTheme.colors.overlay10,
+                shape = CircleShape
+            ),
+        tint = tint
+    )
+}
+
+@Composable
 @UiModePreview
 private fun IconsPreview() {
     MultipleComponentsPreview(
@@ -250,6 +272,7 @@ private fun IconsPreview() {
         { CopyIcon() },
         { RecentTransactionIcon() },
         { DisconnectIcon() },
-        { AllWalletsIcon() }
+        { AllWalletsIcon() },
+        { SelectNetworkIcon() }
     )
 }

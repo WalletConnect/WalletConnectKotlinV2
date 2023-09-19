@@ -21,19 +21,21 @@ import com.walletconnect.sample.wallet.ui.common.SemiTransparentDialog
 import com.walletconnect.sample.wallet.ui.common.peer.Peer
 import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import com.walletconnect.sample.common.ui.themedColor
+import com.walletconnect.sample.wallet.ui.common.peer.getValidationColor
 import kotlinx.coroutines.launch
 
 @Composable
 fun AuthRequestRoute(navController: NavHostController, authRequestViewModel: AuthRequestViewModel = viewModel()) {
     val authRequestUI = authRequestViewModel.authRequest ?: throw Exception("Missing auth request")
     val composableScope = rememberCoroutineScope()
+    val allowButtonColor = getValidationColor(authRequestUI.peerContextUI.validation)
     SemiTransparentDialog {
         Spacer(modifier = Modifier.height(24.dp))
         Peer(peerUI = authRequestUI.peerUI, "would like to connect", authRequestUI.peerContextUI)
         Spacer(modifier = Modifier.height(16.dp))
         Message(authRequestUI = authRequestUI)
         Spacer(modifier = Modifier.height(16.dp))
-        Buttons(onDecline = {
+        Buttons(allowButtonColor, onDecline = {
             composableScope.launch {
                 try {
                     authRequestViewModel.reject()

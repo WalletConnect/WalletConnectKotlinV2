@@ -1,32 +1,59 @@
 package com.walletconnect.web3.modal.domain
 
-import android.content.SharedPreferences
-import androidx.core.content.edit
+import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.runBlocking
 
-private const val SESSION_TOPIC = "session_topic_key"
-private const val SELECTED_CHAIN = "selected_chain_key"
+private val SESSION_TOPIC = stringPreferencesKey("session_topic_key")
+private val SELECTED_CHAIN = stringPreferencesKey("selected_chain_key")
+
+private val Context.sessionStore: DataStore<androidx.datastore.preferences.core.Preferences> by preferencesDataStore(name = "session_store")
 
 internal class SessionRepository(
-    private val sharedPreferences: SharedPreferences
+    private val context: Context
 ) {
 
-    fun saveSessionTopic(topic: String) = sharedPreferences.edit {
-        putString(SESSION_TOPIC, topic)
+    val sessionTopic: Flow<String?> = context.sessionStore.data
+        .map { preferences ->
+            preferences[SESSION_TOPIC]
+        }
+
+    val selectedChain: Flow<String?> = context.sessionStore.data
+        .map { preferences ->
+            preferences[SELECTED_CHAIN]
+        }
+
+    suspend fun getSelectedChain(): String? = runBlocking { selectedChain.first() }
+
+    suspend fun getSessionTopic(): String? = runBlocking { sessionTopic.first() }
+
+    suspend fun saveSessionTopic(topic: String) {
+        context.sessionStore.edit { store ->
+            store[SESSION_TOPIC] = topic
+        }
     }
 
-    fun getSessionTopic() = sharedPreferences.getString(SESSION_TOPIC, null)
-
-    fun deleteSessionTopic() = sharedPreferences.edit {
-        putString(SESSION_TOPIC, null)
+    suspend fun deleteSessionTopic() {
+        context.sessionStore.edit { store ->
+            store.remove(SESSION_TOPIC)
+        }
     }
 
-    fun saveChainSelection(chain: String) = sharedPreferences.edit {
-        putString(SELECTED_CHAIN, chain)
+    suspend fun saveChainSelection(chain: String) {
+        context.sessionStore.edit { store ->
+            store[SELECTED_CHAIN] = chain
+        }
     }
 
-    fun getSelectedChain() = sharedPreferences.getString(SELECTED_CHAIN, null)
-
-    fun deleteChainSelection() = sharedPreferences.edit {
-        putString(SELECTED_CHAIN, null)
+    suspend fun deleteChainSelection() {
+        context.sessionStore.edit { store ->
+            store.remove(SESSION_TOPIC)
+        }
     }
 }
