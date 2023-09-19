@@ -16,6 +16,7 @@ import com.walletconnect.web3.modal.ui.components.internal.commons.CopyIcon
 import com.walletconnect.web3.modal.ui.previews.ComponentPreview
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
+import com.walletconnect.web3.modal.utils.toVisibleAddress
 
 @Composable
 internal fun AccountAddress(address: String) {
@@ -23,8 +24,7 @@ internal fun AccountAddress(address: String) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         val clipboardManager: ClipboardManager = LocalClipboardManager.current
-        val visibleAddress = "${address.take(4)}...${address.takeLast(4)}"
-        Text(text = visibleAddress, style = Web3ModalTheme.typo.title700)
+        Text(text = address.toVisibleAddress(), style = Web3ModalTheme.typo.title700)
         CopyIcon(
             modifier = Modifier
                 .size(32.dp)

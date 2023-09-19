@@ -5,5 +5,5 @@ import com.walletconnect.web3.modal.domain.SessionRepository
 internal class GetSelectedChainUseCase(
     private val repository: SessionRepository
 ) {
-    operator fun invoke() = repository.getSelectedChain()
+    suspend operator fun invoke() = repository.getSelectedChain()
 }

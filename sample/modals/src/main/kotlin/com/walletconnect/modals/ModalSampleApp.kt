@@ -35,22 +35,10 @@ class ModalSampleApp : Application() {
             Timber.e(it.throwable)
         }
 
-        val sessionParams = with(Chains.ETHEREUM_MAIN) {
-            Modal.Params.SessionParams(
-                requiredNamespaces = mapOf(
-                    chainNamespace to Modal.Model.Namespace.Proposal(
-                        chains = listOf(chainId),
-                        methods = methods,
-                        events = events
-                    )),
-                optionalNamespaces = null,
-                properties = mapOf("sessionExpiry" to "${(System.currentTimeMillis() / 1000) + TimeUnit.SECONDS.convert(7, TimeUnit.DAYS)}"))
-        }
-
         Web3Modal.initialize(Modal.Params.Init(core = CoreClient)) { error ->
             Timber.e(tag(this), error.throwable.stackTraceToString())
         }
 
-        Web3Modal.setSessionParams(sessionParams)
+        Web3Modal.setChains(modalChains())
     }
 }

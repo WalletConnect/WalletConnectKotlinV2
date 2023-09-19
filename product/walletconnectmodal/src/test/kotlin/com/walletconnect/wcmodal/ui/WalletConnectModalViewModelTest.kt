@@ -7,6 +7,7 @@ import com.walletconnect.android.internal.common.explorer.data.model.Wallet
 import com.walletconnect.android.internal.common.explorer.domain.usecase.GetWalletsUseCaseInterface
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.pairing.client.PairingInterface
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.wcmodal.client.Modal
 import com.walletconnect.wcmodal.client.WalletConnectModal
 import com.walletconnect.wcmodal.domain.usecase.GetRecentWalletUseCase
@@ -37,6 +38,7 @@ class WalletConnectModalViewModelTest {
     val getWalletsUseCase: GetWalletsUseCaseInterface = mockk()
     val getRecentWalletUseCase: GetRecentWalletUseCase = mockk()
     val saveRecentWalletUseCase: SaveRecentWalletUseCase = mockk()
+    val logger: Logger = mockk()
 
     private val uri = "wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=irn&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
     private val wallets = listOf(Wallet("id1", "MetaMask", "", null, null, null), Wallet("id2", "TrustWallet", "", null, null, null), Wallet("id3", "Safe", "", null, null, null), Wallet("id4", "Rainbow", "", null, null, null),)
@@ -56,6 +58,7 @@ class WalletConnectModalViewModelTest {
         every { koin.get<GetWalletsUseCaseInterface>() } returns getWalletsUseCase
         every { koin.get<GetRecentWalletUseCase>() } returns getRecentWalletUseCase
         every { koin.get<SaveRecentWalletUseCase>() } returns saveRecentWalletUseCase
+        every { koin.get<Logger>() } returns logger
         every { getRecentWalletUseCase() } returns null
         WalletConnectModal.setSessionParams(sessionParams)
     }
@@ -82,6 +85,8 @@ class WalletConnectModalViewModelTest {
 
     @Test
     fun `should emit WalletConnectModalState Error state when pairing throw exception`() = runTest {
+        every { logger.error(any<String>()) } answers {}
+        every { logger.error(any<Throwable>()) } answers {}
         val viewModel = WalletConnectModalViewModel()
         viewModel.modalState.test {
             val state = awaitItem()

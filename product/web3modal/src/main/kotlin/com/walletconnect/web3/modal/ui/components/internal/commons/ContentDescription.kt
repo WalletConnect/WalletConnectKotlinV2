@@ -18,5 +18,6 @@ enum class ContentDescription(val description: String) {
     COMPASS("Compass"),
     CHEVRON_RIGHT("ChevronRight"),
     DISCONNECT("Disconnect"),
-    SWAP("Swap")
+    SWAP("Swap"),
+    SELECT_NETWORK("Select Network")
 }
