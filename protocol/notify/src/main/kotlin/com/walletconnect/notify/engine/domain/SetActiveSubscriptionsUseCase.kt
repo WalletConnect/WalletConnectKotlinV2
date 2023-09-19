@@ -28,7 +28,6 @@ internal class SetActiveSubscriptionsUseCase(
     private val subscriptionRepository: SubscriptionRepository,
     private val extractPublicKeysFromDidJsonUseCase: ExtractPublicKeysFromDidJsonUseCase,
     private val extractMetadataFromConfigUseCase: ExtractMetadataFromConfigUseCase,
-    private val fetchAllMessagesFromArchiveUseCase: FetchAllMessagesFromArchiveUseCase,
     private val metadataRepository: MetadataStorageRepositoryInterface,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val keyStore: KeyStore,

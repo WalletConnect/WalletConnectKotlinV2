@@ -77,7 +77,6 @@ internal fun engineModule() = module {
             jsonRpcInteractor = get(),
             logger = get(),
             keyStore = get(),
-            fetchAllMessagesFromArchiveUseCase = get()
         )
     }
 
