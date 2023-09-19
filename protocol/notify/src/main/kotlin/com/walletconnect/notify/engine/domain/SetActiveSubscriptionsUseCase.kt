@@ -28,7 +28,6 @@ internal class SetActiveSubscriptionsUseCase(
     private val subscriptionRepository: SubscriptionRepository,
     private val extractPublicKeysFromDidJsonUseCase: ExtractPublicKeysFromDidJsonUseCase,
     private val extractMetadataFromConfigUseCase: ExtractMetadataFromConfigUseCase,
-    private val fetchAllMessagesFromArchiveUseCase: FetchAllMessagesFromArchiveUseCase,
     private val metadataRepository: MetadataStorageRepositoryInterface,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val keyStore: KeyStore,
@@ -76,13 +75,6 @@ internal class SetActiveSubscriptionsUseCase(
         }
 
         subscriptionRepository.setActiveSubscriptions(account, activeSubscriptions)
-
-        activeSubscriptions.forEach { subscription ->
-//            fetchAllMessagesFromArchiveUseCase(
-//                subscription,
-//                onSuccess = { records -> logger.log("SetActiveSubscriptionsUseCase - fetchAllMessagesFromArchiveUseCase(${records.size}): $records") },
-//                onError = { error -> logger.error("SetActiveSubscriptionsUseCase - fetchAllMessagesFromArchiveUseCase: $error") })
-        }
 
         return@supervisorScope activeSubscriptions
     }

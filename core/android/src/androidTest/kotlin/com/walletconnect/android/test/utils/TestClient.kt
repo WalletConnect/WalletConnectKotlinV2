@@ -50,7 +50,6 @@ internal object TestClient {
 
 
         internal val Relay get() = coreProtocol.Relay
-        internal val Archive = coreProtocol.Archive
         internal val jsonRpcInteractor: JsonRpcInteractorInterface by lazy { wcKoinApp.koin.get() }
         internal val keyManagementRepository: KeyManagementRepository by lazy { wcKoinApp.koin.get() }
         internal val identitiesInteractor: IdentitiesInteractor by lazy { wcKoinApp.koin.get() }
@@ -94,7 +93,6 @@ internal object TestClient {
         }
 
         internal val Relay get() = coreProtocol.Relay
-        internal val Archive = coreProtocol.Archive
         internal val jsonRpcInteractor: JsonRpcInteractorInterface by lazy { secondaryKoinApp.koin.get() }
         internal val keyManagementRepository: KeyManagementRepository by lazy { secondaryKoinApp.koin.get() }
 

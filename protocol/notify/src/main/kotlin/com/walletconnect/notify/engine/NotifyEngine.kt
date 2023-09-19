@@ -2,10 +2,8 @@
 
 package com.walletconnect.notify.engine
 
-import com.walletconnect.android.archive.ArchiveInterface
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
-import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
@@ -46,7 +44,6 @@ internal class NotifyEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val pairingHandler: PairingControllerInterface,
     private val syncClient: SyncInterface,
-    private val archiveInterface: ArchiveInterface,
     private val subscribeToDappUseCase: SubscribeToDappUseCaseInterface,
     private val updateUseCase: UpdateSubscriptionRequestUseCaseInterface,
     private val deleteSubscriptionUseCase: DeleteSubscriptionUseCaseInterface,
@@ -93,7 +90,6 @@ internal class NotifyEngine(
     }
 
     suspend fun setup() {
-        registerTagsInHistory()
         jsonRpcInteractor.isConnectionAvailable
             .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
             .filter { isAvailable: Boolean -> isAvailable }
@@ -112,11 +108,6 @@ internal class NotifyEngine(
                 if (notifyEventsJob == null) notifyEventsJob = collectNotifyEvents()
             }
             .launchIn(scope)
-    }
-
-    private suspend fun registerTagsInHistory() {
-        // Sync are here since Archive Server expects only one register call
-//        archiveInterface.registerTags(tags = listOf(Tags.NOTIFY_MESSAGE), {}, { error -> logger.error(error.throwable) })
     }
 
     private suspend fun collectJsonRpcRequests(): Job =
@@ -152,8 +143,10 @@ internal class NotifyEngine(
         }
         .launchIn(scope)
 
-    private fun collectNotifyEvents(): Job = merge(onNotifySubscribeResponseUseCase.events, onNotifyMessageUseCase.events, onNotifyUpdateResponseUseCase.events, onNotifyDeleteUseCase.events,
-        onWatchSubscriptionsResponseUseCase.events, onSubscriptionsChangedUseCase.events)
+    private fun collectNotifyEvents(): Job = merge(
+        onNotifySubscribeResponseUseCase.events, onNotifyMessageUseCase.events, onNotifyUpdateResponseUseCase.events, onNotifyDeleteUseCase.events,
+        onWatchSubscriptionsResponseUseCase.events, onSubscriptionsChangedUseCase.events
+    )
         .onEach { event -> _engineEvent.emit(event) }
         .launchIn(scope)
 

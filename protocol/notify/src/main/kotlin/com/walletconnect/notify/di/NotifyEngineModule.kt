@@ -6,7 +6,6 @@ import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.notify.engine.NotifyEngine
 import com.walletconnect.notify.engine.domain.ExtractMetadataFromConfigUseCase
 import com.walletconnect.notify.engine.domain.ExtractPublicKeysFromDidJsonUseCase
-import com.walletconnect.notify.engine.domain.FetchAllMessagesFromArchiveUseCase
 import com.walletconnect.notify.engine.domain.FetchDidJwtInteractor
 import com.walletconnect.notify.engine.domain.GenerateAppropriateUriUseCase
 import com.walletconnect.notify.engine.domain.RegisterIdentityUseCase
@@ -45,13 +44,6 @@ internal fun engineModule() = module {
         GenerateAppropriateUriUseCase()
     }
 
-    single {
-        FetchAllMessagesFromArchiveUseCase(
-            archiveInterface = get(),
-            logger = get(),
-            messagesRepository = get()
-        )
-    }
 
     single {
         FetchDidJwtInteractor(
@@ -85,7 +77,6 @@ internal fun engineModule() = module {
             jsonRpcInteractor = get(),
             logger = get(),
             keyStore = get(),
-            fetchAllMessagesFromArchiveUseCase = get()
         )
     }
 
@@ -102,7 +93,6 @@ internal fun engineModule() = module {
             pairingHandler = get(),
             logger = get(),
             syncClient = get(),
-            archiveInterface = get(),
             subscribeToDappUseCase = get(),
             updateUseCase = get(),
             deleteSubscriptionUseCase = get(),

@@ -37,7 +37,6 @@ internal fun walletEngineModule() = module {
             logger = get(),
             syncClient = get(),
             onSyncUpdateEventUseCase = get(),
-            archiveInterface = get(),
             subscribeUserCase = get(),
             approveUseCase = get(),
             rejectUserCase = get(),

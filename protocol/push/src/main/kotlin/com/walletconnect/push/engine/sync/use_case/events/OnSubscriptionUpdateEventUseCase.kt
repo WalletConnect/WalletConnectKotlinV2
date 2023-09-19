@@ -1,8 +1,6 @@
 package com.walletconnect.push.engine.sync.use_case.events
 
 import com.squareup.moshi.Moshi
-import com.walletconnect.android.archive.ArchiveInterface
-import com.walletconnect.android.archive.network.model.messages.MessagesParams
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.SymmetricKey
@@ -24,7 +22,6 @@ internal class OnSubscriptionUpdateEventUseCase(
     private val keyManagementRepository: KeyManagementRepository,
     private val messagesRepository: MessagesRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
-    private val archiveInterface: ArchiveInterface,
     private val subscriptionRepository: SubscriptionRepository,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     _moshi: Moshi.Builder,
@@ -75,10 +72,5 @@ internal class OnSubscriptionUpdateEventUseCase(
     }
 
     private suspend fun getPushMessagesFromHistory(pushTopic: Topic, onSuccess: (Int) -> Unit) {
-        archiveInterface.getAllMessages(
-            MessagesParams(pushTopic.value, null, ArchiveInterface.DEFAULT_BATCH_SIZE, null),
-            onError = { error -> logger.error(error.throwable) },
-            onSuccess = { onSuccess(it.size) }
-        )
     }
 }
