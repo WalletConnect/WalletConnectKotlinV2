@@ -11,6 +11,7 @@ import com.walletconnect.foundation.util.Logger
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.domain.usecase.GetRecentWalletUseCase
+import com.walletconnect.web3.modal.domain.usecase.SaveChainSelectionUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveRecentWalletUseCase
 import com.walletconnect.web3.modal.ui.model.UiState
 import com.walletconnect.web3.modal.ui.navigation.Route
@@ -21,7 +22,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
-import java.util.concurrent.TimeUnit
 
 private const val W3M_SDK = "w3m"
 
@@ -43,6 +43,7 @@ internal class ConnectState(
     private val getWalletsUseCase: GetWalletsUseCaseInterface = wcKoinApp.koin.get()
     private val getRecentWalletUseCase: GetRecentWalletUseCase = wcKoinApp.koin.get()
     private val saveRecentWalletUseCase: SaveRecentWalletUseCase = wcKoinApp.koin.get()
+    private val saveChainSelectionUseCase: SaveChainSelectionUseCase = wcKoinApp.koin.get()
 
     private val pairing by lazy {
         CoreClient.Pairing.create { error ->
@@ -69,6 +70,7 @@ internal class ConnectState(
 
     fun navigateToConnectWallet(chain: Modal.Model.Chain) {
         Web3Modal.selectChain(chain)
+        coroutineScope.launch { saveChainSelectionUseCase(chain.id) }
         sessionParams = getSessionParamsSelectedChain()
         navController.navigate(Route.CONNECT_YOUR_WALLET.path)
     }

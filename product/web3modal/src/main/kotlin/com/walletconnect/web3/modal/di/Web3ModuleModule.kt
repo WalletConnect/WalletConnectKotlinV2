@@ -8,6 +8,7 @@ import com.walletconnect.web3.modal.domain.usecase.DeleteSessionDataUseCase
 import com.walletconnect.web3.modal.domain.usecase.DeleteSessionTopicUseCase
 import com.walletconnect.web3.modal.domain.usecase.GetSelectedChainUseCase
 import com.walletconnect.web3.modal.domain.usecase.GetSessionTopicUseCase
+import com.walletconnect.web3.modal.domain.usecase.ObserveSelectedChainUseCase
 import com.walletconnect.web3.modal.domain.usecase.ObserveSessionTopicUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveChainSelectionUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveSessionTopicUseCase
@@ -30,6 +31,7 @@ internal fun web3ModalModule() = module {
     single { SaveChainSelectionUseCase(repository = get()) }
     single { GetSelectedChainUseCase(repository = get()) }
     single { ObserveSessionTopicUseCase(repository = get()) }
+    single { ObserveSelectedChainUseCase(repository = get()) }
 
     includes(blockchainApiModule())
 }

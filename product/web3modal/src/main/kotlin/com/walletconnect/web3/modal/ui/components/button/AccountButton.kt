@@ -13,17 +13,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.walletconnect.web3.modal.R
+import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.ui.components.internal.commons.HorizontalSpacer
 import com.walletconnect.web3.modal.ui.components.internal.commons.TransparentSurface
 import com.walletconnect.web3.modal.ui.components.internal.commons.account.generateAvatarColors
@@ -37,6 +35,7 @@ import com.walletconnect.web3.modal.ui.previews.MultipleComponentsPreview
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.theme.ProvideWeb3ModalThemeComposition
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
+import com.walletconnect.web3.modal.utils.getImageData
 import com.walletconnect.web3.modal.utils.toVisibleAddress
 
 enum class AccountButtonType {
@@ -50,7 +49,7 @@ internal sealed class AccountButtonState {
 
     data class Mixed(
         val address: String,
-        val chainImageUrl: String,
+        val chainImage: Modal.Model.ChainImage,
         val chainName: String
     ) : AccountButtonState()
 
@@ -83,7 +82,7 @@ private fun AccountButtonState(
         is AccountButtonState.Normal -> AccountButtonNormal(address = state.address, onClick = onClick)
         is AccountButtonState.Mixed -> AccountButtonMixed(
             address = state.address,
-            chainImageUrl = state.chainImageUrl,
+            chainImage = state.chainImage,
             chainName = state.chainName,
             onClick = onClick
         )
@@ -93,7 +92,7 @@ private fun AccountButtonState(
 @Composable
 private fun AccountButtonMixed(
     address: String,
-    chainImageUrl: String,
+    chainImage: Modal.Model.ChainImage,
     chainName: String,
     onClick: () -> Unit,
     isEnabled: Boolean = true
@@ -127,7 +126,7 @@ private fun AccountButtonMixed(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    CircleNetworkImage(url = chainImageUrl, size = 24.dp, isEnabled = isEnabled)
+                    CircleNetworkImage(data = chainImage.getImageData(), size = 24.dp, isEnabled = isEnabled)
                     HorizontalSpacer(width = 6.dp)
                     Text(text = chainName, style = Web3ModalTheme.typo.paragraph600.copy(color = textColor))
                     HorizontalSpacer(width = 8.dp)
@@ -200,7 +199,7 @@ private fun AccountButtonNormalPreview() {
 @Composable
 private fun AccountButtonMixedPreview() {
     MultipleComponentsPreview(
-        { AccountButtonMixed(chainName = "ETH", chainImageUrl = "", address = "0x59eAF7DD5a2f5e433083D8BbC8de3439542579cb", onClick = {}) },
-        { AccountButtonMixed(chainName = "ETH", chainImageUrl = "", address = "0x59eAF7DD5a2f5e433083D8BbC8de3439542579cb", onClick = {}, isEnabled = false) }
+        { AccountButtonMixed(chainName = "ETH", chainImage = Modal.Model.ChainImage.Asset(R.drawable.ic_select_network), address = "0x59eAF7DD5a2f5e433083D8BbC8de3439542579cb", onClick = {}) },
+        { AccountButtonMixed(chainName = "ETH", chainImage = Modal.Model.ChainImage.Asset(R.drawable.ic_select_network), address = "0x59eAF7DD5a2f5e433083D8BbC8de3439542579cb", onClick = {}, isEnabled = false) }
     )
 }

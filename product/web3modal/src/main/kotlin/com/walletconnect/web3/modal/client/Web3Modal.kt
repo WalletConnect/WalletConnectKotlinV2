@@ -65,6 +65,8 @@ object Web3Modal {
 
     fun getSelectedChain() = selectedChain
 
+    internal fun getSelectedChainOrFirst() = selectedChain ?: chains.first()
+
     fun setSessionProperties(properties: Map<String, String>) {
         sessionProperties = properties
     }

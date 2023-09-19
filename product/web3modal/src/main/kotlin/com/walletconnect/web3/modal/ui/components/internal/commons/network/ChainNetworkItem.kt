@@ -67,7 +67,7 @@ internal fun ChainNetworkItem(
                 .width(76.dp)
                 .height(96.dp)
                 .background(backgroundColor)
-                .clickable { onItemClick() }
+                .clickable(isEnabled) { onItemClick() }
                 .padding(horizontal = 2.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center

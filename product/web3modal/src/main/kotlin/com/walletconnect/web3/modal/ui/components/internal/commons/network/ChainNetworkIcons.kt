@@ -34,7 +34,7 @@ import kotlin.math.sqrt
 
 @Composable
 internal fun CircleNetworkImage(
-    url: String,
+    data: Any,
     isEnabled: Boolean = true,
     size: Dp = 36.dp,
     placeholder: Drawable? = null
@@ -47,7 +47,7 @@ internal fun CircleNetworkImage(
     ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(url)
+                .data(data)
                 .placeholder(placeholder)
                 .crossfade(true)
                 .imageHeaders()
@@ -133,7 +133,7 @@ private fun HexagonNetworkImagePreview() {
 @UiModePreview
 private fun CircleNetworkImagePreview() {
     MultipleComponentsPreview(
-        { CircleNetworkImage(url = "", isEnabled = true, placeholder = ContextCompat.getDrawable(LocalContext.current, R.drawable.defi)) },
-        { CircleNetworkImage(url = "", isEnabled = false, placeholder = ContextCompat.getDrawable(LocalContext.current, R.drawable.defi)) },
+        { CircleNetworkImage(data = "", isEnabled = true, placeholder = ContextCompat.getDrawable(LocalContext.current, R.drawable.defi)) },
+        { CircleNetworkImage(data = "", isEnabled = false, placeholder = ContextCompat.getDrawable(LocalContext.current, R.drawable.defi)) },
     )
 }
