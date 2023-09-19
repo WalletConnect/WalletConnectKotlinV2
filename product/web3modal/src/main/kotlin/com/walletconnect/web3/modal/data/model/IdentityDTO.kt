@@ -2,7 +2,7 @@ package com.walletconnect.web3.modal.data.model
 
 import com.squareup.moshi.Json
 
-data class IdentityDTO(
+internal data class IdentityDTO(
     @Json(name = "name")
     val name: String?,
     @Json(name = "avatar")

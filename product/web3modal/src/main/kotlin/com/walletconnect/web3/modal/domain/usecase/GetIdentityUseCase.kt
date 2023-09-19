@@ -9,6 +9,6 @@ internal class GetIdentityUseCase(
     suspend operator fun invoke(address: String, chainId: String) = try {
         blockchainRepository.getIdentity(address = address, chainId = chainId)
     } catch (e: Throwable) {
-        Identity()
+        null
     }
 }

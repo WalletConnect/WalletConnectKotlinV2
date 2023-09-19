@@ -6,5 +6,5 @@ internal data class AccountData(
     val balance: String,
     val selectedChain: Chain,
     val chains: List<Chain>,
-    val identity: Identity
+    val identity: Identity? = null
 )
