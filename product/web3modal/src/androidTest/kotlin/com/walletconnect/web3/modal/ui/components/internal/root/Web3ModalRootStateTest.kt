@@ -131,6 +131,6 @@ class Web3ModalRootStateTest {
             }
         }
 
-        assertEquals(Route.HELP.path, currentDestinationPath)
+        assertEquals(Route.WHAT_IS_WALLET.path, currentDestinationPath)
     }
 }

@@ -61,14 +61,14 @@ internal fun CircleNetworkImage(
 
 @Composable
 internal fun HexagonNetworkImage(
-    url: String,
+    data: Any?,
     isEnabled: Boolean,
     borderColor: Color? = null,
     placeholder: Drawable? = null
 ) {
     AsyncImage(
         model = ImageRequest.Builder(LocalContext.current)
-            .data(url)
+            .data(data)
             .placeholder(placeholder)
             .crossfade(true)
             .imageHeaders()
@@ -124,8 +124,8 @@ internal fun Path.customHexagon(radius: Float, size: Size) {
 @UiModePreview
 private fun HexagonNetworkImagePreview() {
     MultipleComponentsPreview(
-        { HexagonNetworkImage(url = "", borderColor = Color.Transparent, isEnabled = true, placeholder = ContextCompat.getDrawable(LocalContext.current, R.drawable.defi)) },
-        { HexagonNetworkImage(url = "", borderColor = Color.Transparent, isEnabled = false, placeholder = ContextCompat.getDrawable(LocalContext.current, R.drawable.defi)) },
+        { HexagonNetworkImage(data = "", borderColor = Color.Transparent, isEnabled = true, placeholder = ContextCompat.getDrawable(LocalContext.current, R.drawable.defi)) },
+        { HexagonNetworkImage(data = "", borderColor = Color.Transparent, isEnabled = false, placeholder = ContextCompat.getDrawable(LocalContext.current, R.drawable.defi)) },
     )
 }
 

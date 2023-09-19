@@ -16,22 +16,27 @@ import com.walletconnect.web3.modal.ui.components.internal.commons.ListSelectRow
 import com.walletconnect.web3.modal.ui.components.internal.commons.RecentLabel
 import com.walletconnect.web3.modal.ui.components.internal.commons.WalletImage
 import com.walletconnect.web3.modal.ui.components.internal.walletconnect.allWallets
+import com.walletconnect.web3.modal.ui.model.UiStateBuilder
 import com.walletconnect.web3.modal.ui.navigation.Route
-import com.walletconnect.web3.modal.ui.navigation.connection.navigateToRedirect
 import com.walletconnect.web3.modal.ui.previews.ConnectYourWalletPreviewProvider
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
+import com.walletconnect.web3.modal.ui.routes.connect.ConnectState
 
 @Composable
 internal fun ConnectWalletRoute(
     navController: NavController,
-    wallets: List<Wallet>
+    connectState: ConnectState,
 ) {
-    ConnectWalletContent(
-        wallets = wallets,
-        onWalletItemClick = { wallet -> navController.navigateToRedirect(wallet) },
-        onViewAllClick = { navController.navigate(Route.ALL_WALLETS.path) },
-    )
+    UiStateBuilder(
+        connectState.getWallets(),
+    ) {
+        ConnectWalletContent(
+            wallets = it,
+            onWalletItemClick = { wallet -> connectState.navigateToRedirectRoute(wallet) },
+            onViewAllClick = { navController.navigate(Route.ALL_WALLETS.path) },
+        )
+    }
 }
 
 @Composable

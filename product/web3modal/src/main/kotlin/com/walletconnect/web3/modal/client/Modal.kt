@@ -1,5 +1,6 @@
 package com.walletconnect.web3.modal.client
 
+import androidx.annotation.DrawableRes
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreInterface
 
@@ -136,6 +137,24 @@ object Modal {
         sealed class Ping : Model() {
             data class Success(val topic: String) : Ping()
             data class Error(val error: Throwable) : Ping()
+        }
+
+        // TODO Add rpc url, blockexplorer url to model
+        data class Chain(
+            val chainName: String,
+            val chainNamespace: String,
+            val chainReference: String,
+            val methods: List<String>,
+            val events: List<String>,
+            val chainImage: ChainImage? = null
+        ) {
+            val id: String = "$chainNamespace:$chainReference"
+        }
+
+        sealed class ChainImage {
+            data class Asset(@DrawableRes val id: Int) : ChainImage()
+
+            data class Network(val url: String) : ChainImage()
         }
     }
 }
