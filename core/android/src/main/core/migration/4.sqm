@@ -1,5 +1,3 @@
-import com.walletconnect.android.internal.common.model.Validation;
-
 -- migration from 3.db to 4.db
 
 -- Remove Sync API
