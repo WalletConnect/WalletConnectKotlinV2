@@ -120,7 +120,7 @@ internal class AuthEngine(
             .onEach { pairingTopic ->
                 try {
                     val request = getPendingJsonRpcHistoryEntryByTopicUseCase(pairingTopic)
-                    val context = verifyContextStorageRepository.get(request.id) ?: VerifyContext(request.id, String.Empty, Validation.UNKNOWN, String.Empty)
+                    val context = verifyContextStorageRepository.get(request.id) ?: VerifyContext(request.id, String.Empty, Validation.UNKNOWN, String.Empty, null)
                     scope.launch { _engineEvent.emit(Events.OnAuthRequest(request.id, request.pairingTopic, request.payloadParams, context)) }
                 } catch (e: Exception) {
                     println("No auth request for pairing topic: $e")
