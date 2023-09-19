@@ -76,15 +76,15 @@ internal fun RedirectWalletRoute(
         onRetry = {
             connectState.connect {
                 redirectState = RedirectState.Loading
-                uriHandler.goToNativeWallet(it, wallet.nativeLink)
+                uriHandler.goToNativeWallet(it, wallet.mobileLink)
             }
         },
-        onOpenPlayStore = { uriHandler.openPlayStore(wallet.playStoreLink) })
+        onOpenPlayStore = { uriHandler.openPlayStore(wallet.playStore) })
 
     LaunchedEffect(Unit) {
         connectState.connect { uri ->
-            wallet.nativeLink?.let {
-                uriHandler.goToNativeWallet(uri, wallet.nativeLink)
+            wallet.mobileLink?.let {
+                uriHandler.goToNativeWallet(uri, wallet.mobileLink)
             }
         }
     }

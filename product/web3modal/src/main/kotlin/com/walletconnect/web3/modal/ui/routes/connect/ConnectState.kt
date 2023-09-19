@@ -4,8 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.navigation.NavController
 import com.walletconnect.android.CoreClient
-import com.walletconnect.android.internal.common.explorer.data.model.Wallet
-import com.walletconnect.android.internal.common.explorer.domain.usecase.GetWalletsUseCaseInterface
+import com.walletconnect.android.internal.common.modal.data.model.Wallet
+import com.walletconnect.android.internal.common.modal.domain.usecase.GetAllWalletsUseCase
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.web3.modal.client.Modal
@@ -21,7 +21,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
-import java.util.concurrent.TimeUnit
 
 private const val W3M_SDK = "w3m"
 
@@ -40,7 +39,7 @@ internal class ConnectState(
     private val navController: NavController
 ) {
     private val logger: Logger = wcKoinApp.koin.get()
-    private val getWalletsUseCase: GetWalletsUseCaseInterface = wcKoinApp.koin.get()
+    private val getWalletsUseCase: GetAllWalletsUseCase = wcKoinApp.koin.get()
     private val getRecentWalletUseCase: GetRecentWalletUseCase = wcKoinApp.koin.get()
     private val saveRecentWalletUseCase: SaveRecentWalletUseCase = wcKoinApp.koin.get()
 
@@ -103,13 +102,7 @@ internal class ConnectState(
         }
         .flowOn(Dispatchers.IO)
 
-    private suspend fun fetchWallets() = if (Web3Modal.recommendedWalletsIds.isEmpty()) {
-        getWalletsUseCase(sdkType = W3M_SDK, chains = null, excludedIds = Web3Modal.excludedWalletsIds)
-    } else {
-        getWalletsUseCase(sdkType = W3M_SDK, chains = null, excludedIds = Web3Modal.excludedWalletsIds, recommendedIds = Web3Modal.recommendedWalletsIds).union(
-            getWalletsUseCase(sdkType = W3M_SDK, chains = null, excludedIds = Web3Modal.excludedWalletsIds)
-        ).toList()
-    }.mapRecentWallet(getRecentWalletUseCase())
+    private suspend fun fetchWallets() = getWalletsUseCase(sdkType = W3M_SDK, Web3Modal.excludedWalletsIds, Web3Modal.recommendedWalletsIds).mapRecentWallet(getRecentWalletUseCase())
 
     private fun getSessionParamsSelectedChain() = with(Web3Modal.chains) {
         val selectedChain = Web3Modal.selectedChain ?: first()
