@@ -76,13 +76,6 @@ internal class SetActiveSubscriptionsUseCase(
 
         subscriptionRepository.setActiveSubscriptions(account, activeSubscriptions)
 
-        activeSubscriptions.forEach { subscription ->
-//            fetchAllMessagesFromArchiveUseCase(
-//                subscription,
-//                onSuccess = { records -> logger.log("SetActiveSubscriptionsUseCase - fetchAllMessagesFromArchiveUseCase(${records.size}): $records") },
-//                onError = { error -> logger.error("SetActiveSubscriptionsUseCase - fetchAllMessagesFromArchiveUseCase: $error") })
-        }
-
         return@supervisorScope activeSubscriptions
     }
 }
