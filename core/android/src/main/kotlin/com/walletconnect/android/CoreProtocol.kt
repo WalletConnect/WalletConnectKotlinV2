@@ -1,12 +1,9 @@
 package com.walletconnect.android
 
 import android.app.Application
-import com.walletconnect.android.archive.ArchiveInterface
-import com.walletconnect.android.archive.ArchiveProtocol
 import com.walletconnect.android.di.coreStorageModule
 import com.walletconnect.android.echo.EchoClient
 import com.walletconnect.android.echo.EchoInterface
-import com.walletconnect.android.internal.common.di.archiveModule
 import com.walletconnect.android.internal.common.di.coreCommonModule
 import com.walletconnect.android.internal.common.di.coreCryptoModule
 import com.walletconnect.android.internal.common.di.coreJsonRpcModule
@@ -46,7 +43,6 @@ class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInter
     override val Echo: EchoInterface = EchoClient
     override val Verify: VerifyInterface = VerifyClient(koinApp)
     override val Sync: SyncInterface = SyncClient
-    override val Archive: ArchiveInterface = ArchiveProtocol(koinApp)
     override val Explorer: ExplorerInterface = ExplorerProtocol(koinApp)
 
     init {
@@ -88,7 +84,6 @@ class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInter
                 coreSyncModule(Sync),
                 keyServerModule(keyServerUrl),
                 explorerModule(),
-                archiveModule(Archive, timeout = networkClientTimeout)
             )
         }
 
@@ -99,7 +94,6 @@ class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInter
         Verify.initialize(metaData.verifyUrl)
         Pairing.initialize()
         PairingController.initialize()
-        Archive.initialize(relayServerUrl)
         Sync.initialize() { error -> onError(Core.Model.Error(error.throwable)) }
     }
 }
