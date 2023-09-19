@@ -15,7 +15,7 @@ android {
         minSdk = MIN_SDK
         targetSdk = TARGET_SDK
         versionCode = SAMPLE_VERSION_CODE
-        versionName = SAMPLE_VERSION_NAME
+        versionName = SAMPLE_VERSION_NAME + ".DOG"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -80,15 +80,13 @@ dependencies {
     debugImplementation(project(":core:android"))
     debugImplementation(project(":product:web3wallet"))
     debugImplementation(project(":product:web3inbox"))
-    debugImplementation(project(":protocol:push"))
+    debugImplementation(project(":protocol:notify"))
     debugImplementation(project(":product:walletconnectmodal"))
 
     releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
     releaseImplementation("com.walletconnect:android-core")
     releaseImplementation("com.walletconnect:web3wallet")
     releaseImplementation("com.walletconnect:web3inbox")
+    releaseImplementation("com.walletconnect:notify")
     releaseImplementation("com.walletconnect:walletconnect-modal")
-    releaseImplementation("com.walletconnect:push")
-
-
 }

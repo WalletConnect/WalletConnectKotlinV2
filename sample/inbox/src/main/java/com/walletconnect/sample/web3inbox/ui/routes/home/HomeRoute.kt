@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.walletconnect.sample.web3inbox.R
 import com.walletconnect.sample.web3inbox.ui.routes.home.settings.SettingsRoute
+import com.walletconnect.sample.web3inbox.ui.routes.home.subscriptions.SubscriptionsRoute
 import com.walletconnect.sample.web3inbox.ui.routes.home.web3inbox.Web3InboxRoute
 import kotlinx.coroutines.launch
 
@@ -25,7 +26,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeRoute(navController: NavController, account: String) {
-    val pageCount = 2
+    val pageCount = 3
     val pagerState = rememberPagerState() { pageCount }
     val coroutineScope = rememberCoroutineScope()
 
@@ -39,7 +40,8 @@ fun HomeRoute(navController: NavController, account: String) {
         HorizontalPager(modifier = Modifier.weight(1f), state = pagerState, beyondBoundsPageCount = 1) { page ->
             when (page) {
                 0 -> Web3InboxRoute(navController = navController, account)
-                1 -> SettingsRoute(navController = navController)
+                1 -> SubscriptionsRoute(navController = navController, account)
+                2 -> SettingsRoute(navController = navController)
             }
         }
         BottomAppBar() {
@@ -50,6 +52,11 @@ fun HomeRoute(navController: NavController, account: String) {
             })
             BottomNavigationItem(selected = pagerState.currentPage == 1, onClick = {
                 coroutineScope.launch { pagerState.animateScrollToPage(1) }
+            }, icon = {
+                Icon(modifier = Modifier.width(28.dp), painter = painterResource(id = R.drawable.ic_bell), contentDescription = "W3I")
+            })
+            BottomNavigationItem(selected = pagerState.currentPage == 2, onClick = {
+                coroutineScope.launch { pagerState.animateScrollToPage(2) }
             }, icon = {
                 Icon(modifier = Modifier.width(32.dp), painter = painterResource(id = R.drawable.ic_settings), contentDescription = "Settings")
             })

@@ -8,6 +8,7 @@ import com.walletconnect.notify.common.model.DeleteSubscription
 import com.walletconnect.notify.common.model.Error
 import com.walletconnect.notify.common.model.NotifyRecord
 import com.walletconnect.notify.common.model.Subscription
+import com.walletconnect.notify.common.model.SubscriptionChanged
 import com.walletconnect.notify.common.model.UpdateSubscription
 import com.walletconnect.notify.common.model.toClient
 import com.walletconnect.notify.common.model.toEvent
@@ -16,7 +17,6 @@ import com.walletconnect.notify.common.model.toWalletClient
 import com.walletconnect.notify.di.engineModule
 import com.walletconnect.notify.di.notifyJsonRpcModule
 import com.walletconnect.notify.di.notifyStorageModule
-import com.walletconnect.notify.di.syncInNotifyModule
 import com.walletconnect.notify.engine.NotifyEngine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -37,7 +37,6 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
             koinApp.modules(
                 notifyJsonRpcModule(),
                 notifyStorageModule(koinApp.koin.get<DatabaseConfig>().NOTIFY_SDK_DB_NAME),
-                syncInNotifyModule(),
                 engineModule(),
             )
 
@@ -60,6 +59,7 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
                 is UpdateSubscription.Error -> delegate.onNotifyUpdate(event.toWalletClient())
                 is DeleteSubscription -> delegate.onNotifyDelete(event.toWalletClient())
                 is SDKError -> delegate.onError(event.toClient())
+                is SubscriptionChanged -> delegate.onSubscriptionsChanged(event.toWalletClient())
             }
         }.launchIn(scope)
     }
@@ -70,7 +70,7 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
         scope.launch {
             supervisorScope {
                 try {
-                    notifyEngine.subscribeToDapp(params.dappUrl, params.account,
+                    notifyEngine.subscribeToDapp(params.appDomain, params.account,
                         onSuccess = { _, _ -> onSuccess() },
                         onFailure = { onError(Notify.Model.Error(it)) }
                     )
@@ -178,6 +178,8 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
         scope.launch {
             notifyEngine.register(
                 params.account,
+                params.isLimited,
+                params.domain,
                 params.onSign.toWalletClient(),
                 onSuccess = onSuccess,
                 onFailure = { error ->

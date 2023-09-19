@@ -62,5 +62,9 @@ deleteByNotifyTopic:
 DELETE FROM ActiveSubscriptions
 WHERE notify_topic = ?;
 
+deleteByAccount:
+DELETE FROM ActiveSubscriptions
+WHERE account = ?;
+
 doesNotifyTopicExist:
 SELECT EXISTS(SELECT 1 FROM ActiveSubscriptions WHERE notify_topic = ?);

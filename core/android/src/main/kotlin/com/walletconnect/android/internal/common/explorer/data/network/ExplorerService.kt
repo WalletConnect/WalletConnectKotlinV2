@@ -3,16 +3,24 @@
 package com.walletconnect.android.internal.common.explorer.data.network
 
 import com.walletconnect.android.internal.common.explorer.data.network.model.DappListingsDTO
+import com.walletconnect.android.internal.common.explorer.data.network.model.ProjectListingDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.WalletListingDTO
 import retrofit2.Response
 import retrofit2.http.GET
-import retrofit2.http.HeaderMap
 import retrofit2.http.Query
 
 interface ExplorerService {
 
     @GET("v3/dapps")
     suspend fun getAllDapps(@Query("projectId") projectId: String): Response<DappListingsDTO>
+
+    @GET("w3i/v1/projects")
+    suspend fun getProjects(
+        @Query("projectId") projectId: String,
+        @Query("entries") entries: Int,
+        @Query("page") page: Int,
+        @Query("is_verified") isVerified: Boolean,
+    ): Response<ProjectListingDTO>
 
     @GET("w3m/v1/getAndroidListings")
     suspend fun getAndroidWallets(
@@ -21,6 +29,6 @@ interface ExplorerService {
         @Query("sdkType") sdkType: String,
         @Query("sdkVersion") sdkVersion: String,
         @Query("excludedIds") excludedIds: String?,
-        @Query("recommendedIds") recommendedIds: String?
+        @Query("recommendedIds") recommendedIds: String?,
     ): Response<WalletListingDTO>
 }

@@ -60,6 +60,11 @@ internal class OnInviteResponseUseCase(
     }
 
     private suspend fun onAccepted(response: JsonRpcResponse.JsonRpcResult, wcResponse: WCResponse) {
+
+        //TODO this method is called because ChatNotifyResponseAuthParams.ResponseAuth is to generic
+        //TODO remove return and handle this being called when it shouldn't
+        return
+
         val acceptParams = response.result as ChatNotifyResponseAuthParams.ResponseAuth
 
         // TODO

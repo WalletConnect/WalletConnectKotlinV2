@@ -22,7 +22,7 @@ import kotlin.random.nextUInt
 class W3IFirebaseMessagingService : Web3InboxFirebaseMessagingService() {
     private val intent by lazy { Intent(this, W3ISampleActivity::class.java).apply { addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) } }
     private val pendingIntent by lazy { PendingIntent.getActivity(this, 0 /* Request code */, intent, PendingIntent.FLAG_IMMUTABLE) }
-    private val channelId = "com.walletconnect.sample.web3inbox"
+    private val channelId = "Inbox"
     private val notificationManager by lazy { getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager }
 
 
@@ -40,9 +40,11 @@ class W3IFirebaseMessagingService : Web3InboxFirebaseMessagingService() {
             .setContentIntent(pendingIntent)
 
 
+        val channelName = (message as? Inbox.Model.Message.Decrypted)?.type ?: "Notifications"
+
         // Since android Oreo notification channel is needed.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId, "Channel human readable title", NotificationManager.IMPORTANCE_DEFAULT)
+            val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT)
             notificationManager.createNotificationChannel(channel)
         }
 

@@ -23,9 +23,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.supervisorScope
 
 internal class OnNotifyDeleteUseCase(
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
-    private val subscriptionRepository: SubscriptionRepository,
-    private val metadataStorageRepository: MetadataStorageRepositoryInterface,
+
     private val logger: Logger,
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
@@ -33,25 +31,5 @@ internal class OnNotifyDeleteUseCase(
 
     suspend operator fun invoke(request: WCRequest, requestParams: CoreNotifyParams.DeleteParams) = supervisorScope {
         logger.error("onNotifyDelete: $request")
-        val irnParams = IrnParams(Tags.NOTIFY_DELETE_RESPONSE, Ttl(MONTH_IN_SECONDS))
-
-        val result = extractVerifiedDidJwtClaims<DeleteRequestJwtClaim>(requestParams.deleteAuth).mapCatching { _ ->
-            val subscription = subscriptionRepository.getActiveSubscriptionByNotifyTopic(request.topic.value)
-
-            if (subscription == null) {
-                SDKError(IllegalStateException("Cannot find subscription for topic: ${request.topic}"))
-            } else {
-                jsonRpcInteractor.respondWithSuccess(request, irnParams)
-                jsonRpcInteractor.unsubscribe(subscription.notifyTopic)
-                subscriptionRepository.deleteSubscriptionByNotifyTopic(subscription.notifyTopic.value)
-                metadataStorageRepository.deleteMetaData(subscription.notifyTopic)
-
-                DeleteSubscription(request.topic.value)
-            }
-        }.getOrElse {
-            SDKError(it)
-        }
-
-        _events.emit(result)
     }
 }
