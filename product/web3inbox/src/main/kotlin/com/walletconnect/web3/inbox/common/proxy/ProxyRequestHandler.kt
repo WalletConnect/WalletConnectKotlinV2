@@ -18,7 +18,6 @@ internal class ProxyRequestHandler(
 
     @JavascriptInterface
     fun postMessage(rpcAsString: String) {
-        logger.log("Incoming request from W3I: $rpcAsString")
         val safeRpc = rpcAsString.ensureParamsAreIncluded()
         val rpc = Web3InboxSerializer.deserializeRpc(safeRpc) ?: return logger.error("Unable to deserialize: $safeRpc")
         if (rpc !is Web3InboxRPC.Request) return logger.error("Not a request: $rpc")

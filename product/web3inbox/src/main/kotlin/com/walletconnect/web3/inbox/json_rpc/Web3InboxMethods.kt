@@ -96,6 +96,9 @@ internal object Web3InboxMethods {
 
             @get:JvmSynthetic
             const val DELETE: String = "notify_delete"
+
+            @get:JvmSynthetic
+            const val SUBSCRIPTIONS_CHANGED: String = "notify_subscriptions_changed"
         }
     }
 }

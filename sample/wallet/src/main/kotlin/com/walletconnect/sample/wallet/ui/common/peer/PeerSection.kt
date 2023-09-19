@@ -8,13 +8,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -26,6 +29,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
+import com.walletconnect.sample.common.ui.theme.mismatch_color
+import com.walletconnect.sample.common.ui.theme.unverified_color
+import com.walletconnect.sample.common.ui.theme.verified_color
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.common.ui.themedColor
 
@@ -36,6 +42,7 @@ fun Peer(peerUI: PeerUI, actionText: String?, peerContextUI: PeerContextUI? = nu
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
             val iconModifier = Modifier
                 .size(60.dp)
+                .clip(CircleShape)
                 .background(color = themedColor(darkColor = Color(0xFFE4E4E7).copy(0.12f), lightColor = Color(0xFF3C3C43).copy(0.12f)), shape = CircleShape)
 
             if (peerUI.peerIcon.isNotBlank() && peerUI.peerIcon != "null") {
@@ -47,9 +54,6 @@ fun Peer(peerUI: PeerUI, actionText: String?, peerContextUI: PeerContextUI? = nu
             } else {
                 Image(modifier = iconModifier.alpha(.7f), imageVector = ImageVector.vectorResource(id = R.drawable.sad_face), contentDescription = "Sad face")
             }
-
-            Image(painter = painterResource(id = R.drawable.emojications), contentDescription = null)
-            Image(modifier = Modifier.size(60.dp), painter = painterResource(id = R.drawable.wc_icon), contentDescription = null)
         }
         if (actionText != null) {
             Spacer(modifier = Modifier.height(10.dp))
@@ -71,17 +75,33 @@ fun Peer(peerUI: PeerUI, actionText: String?, peerContextUI: PeerContextUI? = nu
             )
             Spacer(modifier = Modifier.height(8.dp))
             if (peerContextUI != null) {
-                Image(modifier = Modifier.size(30.dp), painter = painterResource(id = getValidationIcon(peerContextUI.validation)), contentDescription = null)
-                Spacer(modifier = Modifier.height(8.dp))
+                VerifyBatch(peerContextUI)
             }
         }
     }
 }
 
-private fun getValidationIcon(validation: Validation): Int {
-    return when (validation) {
-        Validation.VALID -> R.drawable.green_check
-        Validation.INVALID -> R.drawable.red_dangerous
-        Validation.UNKNOWN -> R.drawable.orange_warning
+@Composable
+private fun VerifyBatch(peerContextUI: PeerContextUI) {
+    Row(
+        modifier = Modifier
+            .padding(vertical = 10.dp, horizontal = 15.dp)
+            .clip(CircleShape)
+            .background(color = getValidationColor(peerContextUI.validation).copy(alpha = 0.25f))
+            .padding(vertical = 5.dp, horizontal = 8.dp),
+        horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            modifier = Modifier.size(20.dp),
+            painter = painterResource(id = peerContextUI.isScam?.let { if (it) R.drawable.security_risk else getValidationIcon(peerContextUI.validation) } ?: getValidationIcon(
+                peerContextUI.validation
+            )),
+            contentDescription = null)
+        Spacer(modifier = Modifier.width(5.dp))
+        Text(
+            text = peerContextUI.isScam?.let { if (it) "Security risk" else getValidationTitle(peerContextUI.validation) } ?: getValidationTitle(peerContextUI.validation),
+            style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 12.sp, color = getValidationColor(peerContextUI.validation)),
+        )
     }
+    Spacer(modifier = Modifier.width(5.dp))
 }

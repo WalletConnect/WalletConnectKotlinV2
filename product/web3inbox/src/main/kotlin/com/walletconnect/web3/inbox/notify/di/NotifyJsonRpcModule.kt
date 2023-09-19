@@ -25,6 +25,7 @@ internal fun notifyJsonRpcModule() = module {
     addSerializerEntry(Web3InboxRPC.Call.Notify.Subscription::class)
     addSerializerEntry(Web3InboxRPC.Call.Notify.Update::class)
     addSerializerEntry(Web3InboxRPC.Call.Notify.Delete::class)
+    addSerializerEntry(Web3InboxRPC.Call.Notify.SubscriptionsChanged::class)
     addSerializerEntry(Web3InboxRPC.Call.Notify.Message::class)
 
     addDeserializerEntry(Web3InboxMethods.Request.Notify.SUBSCRIBE, Web3InboxRPC.Request.Notify.Subscribe::class)
@@ -38,6 +39,7 @@ internal fun notifyJsonRpcModule() = module {
     addDeserializerEntry(Web3InboxMethods.Call.Notify.SUBSCRIPTION, Web3InboxRPC.Call.Notify.Subscription::class)
     addDeserializerEntry(Web3InboxMethods.Call.Notify.UPDATE, Web3InboxRPC.Call.Notify.Update::class)
     addDeserializerEntry(Web3InboxMethods.Call.Notify.DELETE, Web3InboxRPC.Call.Notify.Delete::class)
+    addDeserializerEntry(Web3InboxMethods.Call.Notify.SUBSCRIPTIONS_CHANGED, Web3InboxRPC.Call.Notify.SubscriptionsChanged::class)
     addDeserializerEntry(Web3InboxMethods.Call.Notify.MESSAGE, Web3InboxRPC.Call.Notify.Message::class)
 
     addJsonAdapter(Web3InboxRPC.Call.Notify.Subscription::class.java, ::Web3InboxRPCCallNotifySubscriptionJsonAdapter)

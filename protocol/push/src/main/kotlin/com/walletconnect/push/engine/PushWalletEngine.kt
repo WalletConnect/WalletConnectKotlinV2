@@ -2,10 +2,8 @@
 
 package com.walletconnect.push.engine
 
-import com.walletconnect.android.archive.ArchiveInterface
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
-import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.params.PushParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
@@ -47,7 +45,6 @@ internal class PushWalletEngine(
     private val pairingHandler: PairingControllerInterface,
     private val syncClient: SyncInterface,
     private val onSyncUpdateEventUseCase: OnSyncUpdateEventUseCase,
-    private val archiveInterface: ArchiveInterface,
     private val subscribeUserCase: SubscribeToDappUseCaseInterface,
     private val approveUseCase: ApproveSubscriptionRequestUseCaseInterface,
     private val rejectUserCase: RejectSubscriptionRequestUseCaseInterface,
@@ -94,7 +91,6 @@ internal class PushWalletEngine(
     }
 
     suspend fun setup() {
-        registerTagsInHistory()
         jsonRpcInteractor.isConnectionAvailable
             .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
             .filter { isAvailable: Boolean -> isAvailable }
@@ -112,11 +108,6 @@ internal class PushWalletEngine(
                 if (pushEventsJob == null) pushEventsJob = collectPushEvents()
             }
             .launchIn(scope)
-    }
-
-    private suspend fun registerTagsInHistory() {
-        // Sync are here since Archive Server expects only one register call
-        archiveInterface.registerTags(tags = listOf(Tags.PUSH_MESSAGE, Tags.SYNC_SET, Tags.SYNC_DELETE), {}, { error -> logger.error(error.throwable) })
     }
 
     private suspend fun collectJsonRpcRequests(): Job =
@@ -149,9 +140,10 @@ internal class PushWalletEngine(
         .onEach { event -> onSyncUpdateEventUseCase(event) }
         .launchIn(scope)
 
-    private fun collectPushEvents(): Job = merge(onPushProposeUseCase.events, onPushMessageUseCase.events, onPushDeleteUseCase.events, onPushSubscribeResponseUseCase.events, onPushUpdateResponseUseCase.events)
-        .onEach { event -> _engineEvent.emit(event) }
-        .launchIn(scope)
+    private fun collectPushEvents(): Job =
+        merge(onPushProposeUseCase.events, onPushMessageUseCase.events, onPushDeleteUseCase.events, onPushSubscribeResponseUseCase.events, onPushUpdateResponseUseCase.events)
+            .onEach { event -> _engineEvent.emit(event) }
+            .launchIn(scope)
 
     private suspend fun resubscribeToSubscriptions() {
         val subscriptionTopics = getListOfActiveSubscriptions().keys.toList()

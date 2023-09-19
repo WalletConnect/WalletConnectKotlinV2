@@ -52,5 +52,5 @@ internal fun chatProxyModule(
 
     single { ChatEventHandler(get(), get(), get(), get(), get(), get()) }
 
-    single { ChatProxyRequestHandler(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    single { ChatProxyRequestHandler(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 }

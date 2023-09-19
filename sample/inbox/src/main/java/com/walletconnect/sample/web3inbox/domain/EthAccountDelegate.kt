@@ -1,6 +1,7 @@
 package com.walletconnect.sample.web3inbox.domain
 
 import android.content.Context
+import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.util.bytesToHex
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.web3j.crypto.ECKeyPair
@@ -17,12 +18,30 @@ sealed interface EthAccount {
     fun caip10(): String = address.toEthAddress()
 
     object Fixed : EthAccount {
+        // Old
+//        override val address: String
+//            get() = "0xB75e2Ae7fEC9cc2796F9C41377ed26095c5bFF36"
+//        override val privateKey: String
+//            get() = "56707c63ddb6401bfa3418f323ca07d3efd6cd539626346d8af8c6516fe50971"
+//        override val publicKey: String
+//            get() = "92e998f9af5cf488f48a8a35a6d9f09111bc74c52d76d65bccea05eb2a3c5a4468d5e32469d4be501701b04c3a274a3ddc855a6432f2a44b602530d1998a07a9"
+
+
+        // New
+//        override val address: String
+//            get() = "0xdb5BB51Ed98fbd599273c352C68e948253bD8356"
+//        override val privateKey: String
+//            get() = "e2969b522ccadf6cf1870fe81bc4edb499aa21dafc4ceda3afc053209fa88371"
+//        override val publicKey: String
+//            get() = "aca1622a4d2ced3e74b36776b76ed735304fdcb5aee26ba8a7aab7c46bec3c8b28"
+
+        // Swift
         override val address: String
-            get() = "0xE408Ec5ACF27fE24C4adcAC1d1Fa0E02F23d9033"
+            get() = "0xeFB4AA0986E7b7abB77174F11c40c29aBA7b1815"
         override val privateKey: String
-            get() = "ff0138a3fece4629dd63e211341edba8f5cd9d38ad8b5fee60739b8e63ed1aa0"
+            get() = "937fd9573f5a726b7cf4d611441704967c31cacbd18231e23134b9fbfa70ac3f"
         override val publicKey: String
-            get() = "204b9580416b72b18a6e19f8399e465acf43b11cc928ba531115a9b5c2a7d3731362b3cabb73e494b2ed4bad4827838816f90f1c0807327e95586637ae33499e"
+            get() = "c331d07714e3a0244523cab6e4ac88d48a8bc4d9dafc30ff856caff528717a12337de7cbde764fb12ca1221ca0f407632bffb065bdb71bdc3950d20641fea93a"
     }
 
     class Random(context: Context) : EthAccount {
@@ -34,8 +53,11 @@ sealed interface EthAccount {
             }
             Security.addProvider(BouncyCastleProvider())
             val keypair = Keys.createEcKeyPair()
+//            val keypair = ECKeyPair.create(PrivateKey("937fd9573f5a726b7cf4d611441704967c31cacbd18231e23134b9fbfa70ac3f").keyAsBytes)
             val publicKey = keypair.publicKey.toByteArray().bytesToHex()
             val privateKey = keypair.privateKey.toByteArray().bytesToHex()
+
+
 
             return Triple(publicKey, privateKey, Keys.toChecksumAddress(Keys.getAddress(keypair)))
         }

@@ -41,13 +41,13 @@ import androidx.constraintlayout.compose.ConstraintLayoutScope
 import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
 import com.skydoves.landscapist.glide.GlideImage
+import com.walletconnect.sample.common.ui.WCTopAppBar
+import com.walletconnect.sample.common.ui.findActivity
+import com.walletconnect.sample.common.ui.themedColor
 import com.walletconnect.sample.wallet.BuildConfig
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.wallet.ui.Web3WalletViewModel
 import com.walletconnect.sample.wallet.ui.routes.Route
-import com.walletconnect.sample.common.ui.WCTopAppBar
-import com.walletconnect.sample.common.ui.findActivity
-import com.walletconnect.sample.common.ui.themedColor
 
 @Composable
 fun ConnectionsRoute(navController: NavController, connectionsViewModel: ConnectionsViewModel, web3WalletViewModel: Web3WalletViewModel) {
@@ -89,19 +89,11 @@ fun ConstraintLayoutScope.Buttons(navController: NavController, buttonsRef: Cons
     }) {
         Row {
             Spacer(modifier = Modifier.width(20.dp))
-            ConnectionsButton(modifier = Modifier
-                .clip(CircleShape)
-                .clickable {
-                    navController.navigate(Route.Web3Inbox.path)
-                }) {
-                Icon(imageVector = ImageVector.vectorResource(id = R.drawable.paper_plane_logo), contentDescription = "Paper Plane Icon", tint = iconTint)
-            }
-            Spacer(modifier = Modifier.width(20.dp))
             ConnectionsButton(
                 modifier = Modifier
                     .clip(CircleShape)
                     .clickable {
-                        navController.navigate(Route.Notifications.path)
+                        navController.navigate(Route.Inbox.path)
                     }
             ) {
                 Icon(imageVector = ImageVector.vectorResource(id = R.drawable.ic_notification), contentDescription = "Notifications Icon", tint = iconTint)
@@ -214,7 +206,7 @@ fun Connection(
         Spacer(modifier = Modifier.weight(1f))
         Icon(
             tint = themedColor(darkColor = Color(0xFFe1e5e5), lightColor = Color(0xFF111111)),
-            imageVector = ImageVector.vectorResource(id = R.drawable.forward_chevron),
+            imageVector = ImageVector.vectorResource(id = R.drawable.ic_chevron_right),
             contentDescription = "Forward"
         )
         Spacer(modifier = Modifier.width(20.dp))

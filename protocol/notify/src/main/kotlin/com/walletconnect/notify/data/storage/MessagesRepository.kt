@@ -10,6 +10,20 @@ import kotlinx.coroutines.withContext
 
 internal class MessagesRepository(private val messagesQueries: MessagesQueries) {
 
+    suspend fun setMessagesForSubscription(
+        topic: String,
+        messages: List<NotifyRecord>,
+    ) {
+        messagesQueries.transaction {
+            messagesQueries.deleteMessagesByTopic(topic)
+            messages.forEach { message ->
+                with(message.notifyMessage) {
+                    messagesQueries.insertMessage(message.id, topic, message.id, title, body, icon, url, type)
+                }
+            }
+        }
+    }
+
     suspend fun insertMessage(
         requestId: Long,
         topic: String,

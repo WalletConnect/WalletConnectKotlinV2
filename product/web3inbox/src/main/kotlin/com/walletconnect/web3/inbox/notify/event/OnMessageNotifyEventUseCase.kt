@@ -15,8 +15,11 @@ internal class OnMessageNotifyEventUseCase(
     private fun Notify.Event.Message.toParams() =
         Web3InboxParams.Call.Notify.MessageParams(message.toParams())
 
-    private fun Notify.Model.MessageRecord.toParams() =
-        Web3InboxParams.Call.Notify.MessageParams.MessageRecord(id, topic, publishedAt, message.toParams())
+    private fun Notify.Model.MessageRecord.toParams() = Web3InboxParams.Call.Notify.MessageParams.MessageRecord(id, topic, publishedAt, message.toParams())
 
-    private fun Notify.Model.Message.toParams() = Web3InboxParams.Call.Notify.MessageParams.Message(title, body, icon, url)
+    private fun Notify.Model.Message.toParams() =
+        when (this) {
+            is Notify.Model.Message.Simple -> Web3InboxParams.Call.Notify.MessageParams.Message(title, body, null, null)
+            is Notify.Model.Message.Decrypted -> Web3InboxParams.Call.Notify.MessageParams.Message(title, body, icon, url)
+        }
 }

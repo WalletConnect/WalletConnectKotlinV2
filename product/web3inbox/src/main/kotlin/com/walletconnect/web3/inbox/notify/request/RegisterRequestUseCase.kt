@@ -15,10 +15,10 @@ internal class RegisterRequestUseCase(
 ) : NotifyRequestUseCase<Web3InboxParams.Request.Notify.RegisterParams>(proxyInteractor) {
 
     override fun invoke(rpc: Web3InboxRPC, params: Web3InboxParams.Request.Notify.RegisterParams) {
-        notifyClient.register(
-            Notify.Params.Registration(params.account) { message -> onSign(message).toNotify() },
-            onSuccess = { respondWithVoid(rpc) },
-            onError = { error -> respondWithError(rpc, error) }
-        )
+//        notifyClient.register(
+//            Notify.Params.Registration(params.account, params.isLimited, params.domain) { message -> onSign(message).toNotify() },
+//            onSuccess = { respondWithVoid(rpc) },
+//            onError = { error -> respondWithError(rpc, error) }
+//        )
     }
 }

@@ -6,10 +6,11 @@ import com.walletconnect.android.internal.common.jwt.did.EncodeDidJwtPayloadUseC
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.util.jwt.encodeDidPkh
+import com.walletconnect.foundation.util.jwt.encodeDidWeb
 import com.walletconnect.foundation.util.jwt.encodeEd25519DidKey
 
 internal class EncodeSubscriptionRequestJwtUseCase(
-    private val dappUrl: String,
+    private val app: String,
     private val accountId: AccountId,
     private val authenticationKey: PublicKey,
     private val scope: String
@@ -24,7 +25,7 @@ internal class EncodeSubscriptionRequestJwtUseCase(
             audience = encodeEd25519DidKey(authenticationKey.keyAsBytes),
             subject = encodeDidPkh(accountId.value),
             scope = scope,
-            dappUrl = dappUrl
+            app = encodeDidWeb(app)
         )
     }
 }
