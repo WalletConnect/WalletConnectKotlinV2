@@ -9,7 +9,6 @@ import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
-import com.walletconnect.android.sync.client.SyncInterface
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.push.common.JsonRpcMethod
 import com.walletconnect.push.engine.calls.ApproveSubscriptionRequestUseCaseInterface
@@ -27,7 +26,6 @@ import com.walletconnect.push.engine.requests.OnPushMessageUseCase
 import com.walletconnect.push.engine.requests.OnPushProposeUseCase
 import com.walletconnect.push.engine.responses.OnPushSubscribeResponseUseCase
 import com.walletconnect.push.engine.responses.OnPushUpdateResponseUseCase
-import com.walletconnect.push.engine.sync.use_case.events.OnSyncUpdateEventUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -43,8 +41,6 @@ import kotlinx.coroutines.supervisorScope
 internal class PushWalletEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val pairingHandler: PairingControllerInterface,
-    private val syncClient: SyncInterface,
-    private val onSyncUpdateEventUseCase: OnSyncUpdateEventUseCase,
     private val subscribeUserCase: SubscribeToDappUseCaseInterface,
     private val approveUseCase: ApproveSubscriptionRequestUseCaseInterface,
     private val rejectUserCase: RejectSubscriptionRequestUseCaseInterface,
@@ -74,7 +70,6 @@ internal class PushWalletEngine(
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
-    private var syncUpdateEventsJob: Job? = null
     private var pushEventsJob: Job? = null
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val engineEvent: SharedFlow<EngineEvent> = _engineEvent.asSharedFlow()
@@ -104,7 +99,6 @@ internal class PushWalletEngine(
                 if (jsonRpcRequestsJob == null) jsonRpcRequestsJob = collectJsonRpcRequests()
                 if (jsonRpcResponsesJob == null) jsonRpcResponsesJob = collectJsonRpcResponses()
                 if (internalErrorsJob == null) internalErrorsJob = collectInternalErrors()
-                if (syncUpdateEventsJob == null) syncUpdateEventsJob = collectSyncUpdateEvents()
                 if (pushEventsJob == null) pushEventsJob = collectPushEvents()
             }
             .launchIn(scope)
@@ -135,10 +129,6 @@ internal class PushWalletEngine(
         merge(jsonRpcInteractor.internalErrors, pairingHandler.findWrongMethodsFlow)
             .onEach { exception -> _engineEvent.emit(exception) }
             .launchIn(scope)
-
-    private fun collectSyncUpdateEvents(): Job = syncClient.onSyncUpdateEvents
-        .onEach { event -> onSyncUpdateEventUseCase(event) }
-        .launchIn(scope)
 
     private fun collectPushEvents(): Job =
         merge(onPushProposeUseCase.events, onPushMessageUseCase.events, onPushDeleteUseCase.events, onPushSubscribeResponseUseCase.events, onPushUpdateResponseUseCase.events)
