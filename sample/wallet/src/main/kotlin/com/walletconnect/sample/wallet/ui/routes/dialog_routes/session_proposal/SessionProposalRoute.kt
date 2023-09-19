@@ -40,6 +40,7 @@ import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
+import com.walletconnect.sample.common.Chains
 import com.walletconnect.sample.wallet.ui.common.Buttons
 import com.walletconnect.sample.wallet.ui.common.Content
 import com.walletconnect.sample.wallet.ui.common.SemiTransparentDialog
@@ -52,10 +53,14 @@ import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import com.walletconnect.sample.common.CompletePreviews
 import com.walletconnect.sample.common.sendResponseDeepLink
 import com.walletconnect.sample.common.ui.theme.PreviewTheme
+import com.walletconnect.sample.common.ui.theme.unverified_color
+import com.walletconnect.sample.common.ui.theme.verified_color
 import com.walletconnect.sample.common.ui.themedColor
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.wallet.ui.common.peer.PeerContextUI
 import com.walletconnect.sample.wallet.ui.common.peer.Validation
+import com.walletconnect.sample.wallet.ui.common.peer.getDescriptionContent
+import com.walletconnect.sample.wallet.ui.common.peer.getDescriptionTitle
 import com.walletconnect.sample.wallet.ui.common.peer.getValidationColor
 import com.walletconnect.sample.wallet.ui.common.peer.getValidationIcon
 import com.walletconnect.web3.wallet.client.Wallet
@@ -78,9 +83,11 @@ fun SessionProposalRoute(navController: NavHostController, sessionProposalViewMo
     SemiTransparentDialog {
         Spacer(modifier = Modifier.height(24.dp))
         Peer(peerUI = sessionProposalUI.peerUI, "wants to connect", sessionProposalUI.peerContext)
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(18.dp))
         Permissions(sessionProposalUI = sessionProposalUI)
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(18.dp))
+        AccountAndNetwork(sessionProposalUI)
+        Spacer(modifier = Modifier.height(18.dp))
         Buttons(allowButtonColor, onDecline = {
             composableScope.launch {
                 try {
@@ -118,13 +125,42 @@ private fun closeAndShowError(navController: NavHostController, mesage: String?)
 }
 
 @Composable
-fun Divider() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(1.dp)
-            .background(themedColor(darkColor = Color(0xFFE4E4E7).copy(0.12f), lightColor = Color(0xFF3C3C43).copy(0.12f)))
-    )
+fun AccountAndNetwork(sessionProposalUI: SessionProposalUI) {
+    val chains = sessionProposalUI.namespaces.flatMap { (namespaceKey, proposal) ->
+        if (proposal.chains != null) {
+            proposal.chains!!
+        } else {
+            listOf(namespaceKey)
+        }
+    }
+    val network = Chains.values().find { chain -> chain.chainId == chains.first() }
+    val account = walletMetaData.namespaces.values.first().accounts.find { account -> account.contains(chains.first()) }?.split(":")?.last()
+
+    Row(modifier = Modifier.padding(start = 20.dp, end = 20.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Column(horizontalAlignment = Alignment.Start) {
+            Text("Wallet", style = TextStyle(color = Color(0xFFC9C9C9), fontSize = 12.sp, fontWeight = FontWeight.SemiBold))
+            Row(verticalAlignment = Alignment.Bottom) {
+                Image(
+                    modifier = Modifier.size(24.dp).padding(end = 4.dp),
+                    painter = painterResource(id = R.drawable.wc_icon_round),
+                    contentDescription = null
+                )
+                Text(account?.toVisibleAddress() ?: "", style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.SemiBold))
+            }
+        }
+
+        Column(horizontalAlignment = Alignment.End) {
+            Text("Network", style = TextStyle(color = Color(0xFFC9C9C9), fontSize = 12.sp, fontWeight = FontWeight.SemiBold))
+            Row(verticalAlignment = Alignment.Bottom) {
+                Image(
+                    modifier = Modifier.size(24.dp).padding(end = 4.dp),
+                    painter = painterResource(id = network?.icon ?: R.drawable.wc_icon_round),
+                    contentDescription = null
+                )
+                Text(network?.chainName ?: "", style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.SemiBold))
+            }
+        }
+    }
 }
 
 @Composable
@@ -198,32 +234,12 @@ private fun ValidationDescription(peerContextUI: PeerContextUI) {
     }
 }
 
-fun getDescriptionTitle(peerContextUI: PeerContextUI): String {
-    return if (peerContextUI.isScam == true) "Known security risk" else {
-        when (peerContextUI.validation) {
-            Validation.UNKNOWN -> "Unknown domain"
-            Validation.INVALID -> "Domain mismatch"
-            else -> ""
-        }
-    }
-}
-
-fun getDescriptionContent(peerContextUI: PeerContextUI): String {
-    return if (peerContextUI.isScam == true) "This website is flagged as unsafe by multiple security providers. Leave immediately to protect your assets." else {
-        when (peerContextUI.validation) {
-            Validation.UNKNOWN -> "This domain cannot be verified. Check the request carefully before approving."
-            Validation.INVALID -> "This website has a domain that does not match the sender of this request. Approving may lead to loss of funds."
-            else -> ""
-        }
-    }
-}
-
 @Composable
 private fun RequestedPermissions() {
     Column(
         modifier = Modifier
             .padding(end = 20.dp, start = 20.dp)
-            .border(border = BorderStroke(1.dp, Color(0xFFD6D6D6)), shape = RoundedCornerShape(24.dp))
+            .border(border = BorderStroke(1.dp, Color(0xFFC9C9C9)), shape = RoundedCornerShape(24.dp))
             .fillMaxWidth(),
     ) {
         Text(
@@ -234,7 +250,7 @@ private fun RequestedPermissions() {
         Spacer(modifier = Modifier.height(4.dp))
         PermissionRow("View your balance and activity")
         PermissionRow("Send approval requests")
-        PermissionRow("Move funds without permissions", icon = R.drawable.ic_close, color = Color(0xFFD6D6D6))
+        PermissionRow("Move funds without permissions", icon = R.drawable.ic_close, color = Color(0xFFC9C9C9))
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
@@ -255,3 +271,5 @@ fun ChainPermissions(chain: String, chainsToProposals: Map<String, Wallet.Model.
         sections.forEach { (title, values) -> BlueLabelTexts(title, values, title != "Events") }
     }
 }
+
+internal fun String.toVisibleAddress() = "${take(4)}...${takeLast(4)}"

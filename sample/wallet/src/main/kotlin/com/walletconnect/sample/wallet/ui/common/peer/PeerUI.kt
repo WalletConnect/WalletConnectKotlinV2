@@ -63,3 +63,23 @@ fun getValidationTitle(validation: Validation): String {
         Validation.INVALID -> "Invalid domain"
     }
 }
+
+fun getDescriptionTitle(peerContextUI: PeerContextUI): String {
+    return if (peerContextUI.isScam == true) "Known security risk" else {
+        when (peerContextUI.validation) {
+            Validation.UNKNOWN -> "Unknown domain"
+            Validation.INVALID -> "Domain mismatch"
+            else -> ""
+        }
+    }
+}
+
+fun getDescriptionContent(peerContextUI: PeerContextUI): String {
+    return if (peerContextUI.isScam == true) "This website is flagged as unsafe by multiple security providers. Leave immediately to protect your assets." else {
+        when (peerContextUI.validation) {
+            Validation.UNKNOWN -> "This domain cannot be verified. Check the request carefully before approving."
+            Validation.INVALID -> "This website has a domain that does not match the sender of this request. Approving may lead to loss of funds."
+            else -> ""
+        }
+    }
+}

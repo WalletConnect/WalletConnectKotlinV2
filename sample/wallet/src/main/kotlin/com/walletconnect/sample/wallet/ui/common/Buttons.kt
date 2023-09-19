@@ -16,7 +16,7 @@ import com.walletconnect.sample.wallet.ui.common.generated.CancelButton
 @Composable
 fun Buttons(allowButtonColor: Color, modifier: Modifier = Modifier, onDecline: () -> Unit = {}, onAllow: () -> Unit = {}) {
     Row(modifier = modifier) {
-        Spacer(modifier = Modifier.width(20.dp))
+        Spacer(modifier = Modifier.width(18.dp))
         CancelButton(
             modifier = Modifier
                 .weight(1f)
