@@ -165,45 +165,12 @@ fun AccountAndNetwork(sessionProposalUI: SessionProposalUI) {
 
 @Composable
 fun Permissions(sessionProposalUI: SessionProposalUI) {
-    val pagerState = rememberPagerState()
-    val chains = sessionProposalUI.namespaces.flatMap { (namespaceKey, proposal) ->
-        if (proposal.chains != null) {
-            proposal.chains!!
-        } else {
-            listOf(namespaceKey)
-        }
-    }
-
-    val chainsToProposals: Map<String, Wallet.Model.Namespace.Proposal> =
-        sessionProposalUI.namespaces.flatMap { (namespaceKey, proposal) ->
-            if (proposal.chains != null) {
-                proposal.chains!!.map { chain -> chain to proposal }
-            } else {
-                listOf(namespaceKey).map { chain -> chain to proposal }
-            }
-        }.toMap()
-
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         RequestedPermissions()
         if (sessionProposalUI.peerContext.validation != Validation.VALID) {
             Spacer(modifier = Modifier.height(16.dp))
             ValidationDescription(sessionProposalUI.peerContext)
         }
-
-//        HorizontalPager(
-//            count = chains.size,
-//            state = pagerState,
-//        ) { current ->
-//            chains[current].also { chain -> ChainPermissions(chain, chainsToProposals) }
-//        }
-//
-//        if (chains.size > 1) {
-//            HorizontalPagerIndicator(
-//                pagerState = pagerState,
-//                inactiveColor = themedColor(darkColor = Color(0xFFE4E4E7), lightColor = Color(0xFF505059)),
-//                activeColor = themedColor(darkColor = Color(0xFFE4E4E7), lightColor = Color(0xFF505059)),
-//            )
-//        }
     }
 }
 
@@ -260,15 +227,6 @@ private fun PermissionRow(title: String, icon: Int = R.drawable.ic_check, color:
     Row(modifier = Modifier.padding(start = 12.dp, top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
         Image(modifier = Modifier.size(18.dp).padding(end = 4.dp), imageVector = ImageVector.vectorResource(id = icon), contentDescription = "check")
         Text(title, style = TextStyle(fontSize = 14.sp, color = color))
-    }
-}
-
-@Composable
-fun ChainPermissions(chain: String, chainsToProposals: Map<String, Wallet.Model.Namespace.Proposal>) {
-    val proposal = chainsToProposals[chain]!!
-    Content(title = chain.uppercase()) {
-        val sections = mapOf("Methods" to getAllMethodsByChainId(proposal, chain), "Events" to getAllEventsByChainId(proposal, chain))
-        sections.forEach { (title, values) -> BlueLabelTexts(title, values, title != "Events") }
     }
 }
 
