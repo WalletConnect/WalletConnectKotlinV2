@@ -21,12 +21,6 @@ sealed interface CoreNotifyParams : ClientParams {
     ) : CoreNotifyParams
 
     @JsonClass(generateAdapter = true)
-    data class MessageReceiptParams(
-        @Json(name = "receiptAuth")
-        val receiptAuth: String,
-    ) : CoreNotifyParams
-
-    @JsonClass(generateAdapter = true)
     data class UpdateParams(
         @Json(name = "updateAuth")
         val updateAuth: String,
@@ -36,5 +30,17 @@ sealed interface CoreNotifyParams : ClientParams {
     data class DeleteParams(
         @Json(name = "deleteAuth")
         val deleteAuth: String,
+    ) : CoreNotifyParams
+
+    @JsonClass(generateAdapter = true)
+    data class WatchSubscriptionsParams(
+        @Json(name = "watchSubscriptionsAuth")
+        val watchSubscriptionsAuth: String,
+    ) : CoreNotifyParams
+
+    @JsonClass(generateAdapter = true)
+    data class SubscriptionsChangedParams(
+        @Json(name = "subscriptionsChangedAuth")
+        val subscriptionsChangedAuth: String,
     ) : CoreNotifyParams
 }

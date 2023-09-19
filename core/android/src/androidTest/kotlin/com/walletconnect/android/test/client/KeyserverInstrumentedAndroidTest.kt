@@ -27,6 +27,13 @@ class KeyserverInstrumentedAndroidTest {
     @get:Rule
     val scenarioExtension = WCInstrumentedActivityScenario()
 
+    private val statement = "dummyStatement"
+    private val domain = "domain.dummy"
+
+    @Test
+    fun testNotifySubscriptionChanged(){
+
+    }
 
     @Test
     fun registerIdentityForEthereumByPrimaryClient() {
@@ -35,7 +42,7 @@ class KeyserverInstrumentedAndroidTest {
             Timber.d(EthereumAccount.caip10)
             TestClient.Primary.identitiesInteractor.registerIdentity(
                 AccountId(EthereumAccount.caip10),
-                TestClient.Primary.keyserverUrl,
+                statement, domain, emptyList()
             ) { message ->
                 CacaoSigner.sign(message, PrivateKey(EthereumAccount.privKey).keyAsBytes, SignatureType.EIP191)
             }.fold(
@@ -65,7 +72,7 @@ class KeyserverInstrumentedAndroidTest {
             Timber.d(SolanaAccount.caip10)
             TestClient.Primary.identitiesInteractor.registerIdentity(
                 AccountId(SolanaAccount.caip10),
-                TestClient.Primary.keyserverUrl,
+                statement, domain, emptyList()
             ) { message ->
                 CacaoSigner.sign(message, PrivateKey(SolanaAccount.privKey).keyAsBytes, SignatureType.EIP191)
             }.fold(
@@ -96,7 +103,7 @@ class KeyserverInstrumentedAndroidTest {
         scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) {
             TestClient.Primary.identitiesInteractor.registerIdentity(
                 AccountId(BNBAccount.caip10),
-                TestClient.Primary.keyserverUrl,
+                statement, domain, emptyList()
             ) { message ->
                 CacaoSigner.sign(message, PrivateKey(BNBAccount.privKey).keyAsBytes, SignatureType.EIP191)
             }.fold(

@@ -7,6 +7,8 @@ import com.walletconnect.android.archive.network.model.messages.MessagesParams
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.model.ArchiveMessage
 import com.walletconnect.android.internal.common.model.Tags
+import com.walletconnect.android.internal.common.model.sync.ClientJsonRpc
+import com.walletconnect.android.internal.common.model.type.ClientParams
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.foundation.util.Logger
 import org.koin.core.KoinApplication
@@ -18,7 +20,7 @@ class ArchiveProtocol(
     private val registerTagsUseCase: RegisterTagsUseCase by lazy { koinApp.koin.get() }
     private val getMessagesUseCase: GetMessagesUseCase by lazy { koinApp.koin.get() }
     private val logger: Logger by lazy { koinApp.koin.get(named(AndroidCommonDITags.LOGGER)) }
-    private val reduceSyncRequestsUseCase: ReduceSyncRequestsUseCase by lazy { koinApp.koin.get() }
+    private val decryptRequestsUseCase: DecryptRequestsUseCase by lazy { koinApp.koin.get() }
 
     private lateinit var relayServerUrl: String
 
@@ -36,7 +38,7 @@ class ArchiveProtocol(
         )
     }
 
-    override suspend fun getAllMessages(params: MessagesParams, onSuccess: (List<ArchiveMessage>) -> Unit, onError: (Core.Model.Error) -> Unit) {
+    override suspend fun getAllMessages(params: MessagesParams, onSuccess: suspend (Map<ClientJsonRpc, ClientParams>) -> Unit, onError: (Core.Model.Error) -> Unit) {
         val allMessageArchive: MutableList<ArchiveMessage> = mutableListOf()
 
         suspend fun recursiveOnSuccess(allMessageArchive: MutableList<ArchiveMessage>, justFetchedMessageArchive: List<ArchiveMessage>) {
@@ -54,11 +56,9 @@ class ArchiveProtocol(
                         }
                     }
                 )
-            }
-            else {
+            } else {
                 logger.log("Fetched from Archive ${allMessageArchive.size} messages")
-                reduceSyncRequestsUseCase(allMessageArchive)
-                onSuccess(allMessageArchive)
+                onSuccess(decryptRequestsUseCase(allMessageArchive))
             }
         }
 

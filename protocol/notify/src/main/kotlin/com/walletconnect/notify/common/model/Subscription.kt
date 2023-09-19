@@ -15,16 +15,6 @@ internal sealed class Subscription {
     abstract val mapOfNotificationScope: Map<String, NotificationScope.Cached>
     abstract val expiry: Expiry
 
-    data class Requested(
-        override val account: AccountId,
-        override val mapOfNotificationScope: Map<String, NotificationScope.Cached>,
-        override val expiry: Expiry,
-        val responseTopic: Topic,
-        val subscribeTopic: Topic,
-        val requestId: Long,
-        val authenticationPublicKey: PublicKey,
-    ) : Subscription()
-
     data class Active(
         override val account: AccountId,
         override val mapOfNotificationScope: Map<String, NotificationScope.Cached>,

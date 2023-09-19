@@ -43,18 +43,26 @@ internal fun DeleteSubscription.toWalletClient(): Notify.Event.Delete {
 }
 
 @JvmSynthetic
-internal fun Subscription.Active.toEvent(): Notify.Event.Subscription.Result {
-    return Notify.Event.Subscription.Result(
-        Notify.Model.Subscription(
-            topic = notifyTopic.value,
-            account = account.value,
-            relay = relay.toClient(),
-            metadata = dappMetaData.toClient(),
-            scope = mapOfNotificationScope.toClient(),
-            expiry = expiry.seconds,
-        )
+internal fun SubscriptionChanged.toWalletClient(): Notify.Event.SubscriptionsChanged =
+    Notify.Event.SubscriptionsChanged(subscriptions.map { it.toWalletClient() })
+
+
+@JvmSynthetic
+internal fun Subscription.Active.toWalletClient(): Notify.Model.Subscription =
+    Notify.Model.Subscription(
+        topic = notifyTopic.value,
+        account = account.value,
+        relay = relay.toClient(),
+        metadata = dappMetaData.toClient(),
+        scope = mapOfNotificationScope.toClient(),
+        expiry = expiry.seconds,
     )
-}
+
+
+@JvmSynthetic
+internal fun Subscription.Active.toEvent(): Notify.Event.Subscription.Result =
+    Notify.Event.Subscription.Result(toWalletClient())
+
 
 @JvmSynthetic
 internal fun Subscription.Active.toModel(): Notify.Model.Subscription {

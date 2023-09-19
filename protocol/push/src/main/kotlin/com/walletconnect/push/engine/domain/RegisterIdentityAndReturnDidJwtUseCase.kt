@@ -24,12 +24,12 @@ internal class RegisterIdentityAndReturnDidJwtUseCase(
         onSign: (String) -> Cacao.Signature?,
         onFailure: (Throwable) -> Unit,
     ): Result<DidJwt> = supervisorScope {
-        withContext(Dispatchers.IO) {
-            identitiesInteractor.registerIdentity(account, keyserverUrl, onSign).getOrElse {
-                onFailure(it)
-                this.cancel()
-            }
-        }
+//        withContext(Dispatchers.IO) {
+//            identitiesInteractor.registerIdentity(account, keyserverUrl, onSign).getOrElse {
+//                onFailure(it)
+//                this.cancel()
+//            }
+//        }
 
         val joinedScope = scopes.joinToString(" ")
         val (identityPublicKey, identityPrivateKey) = identitiesInteractor.getIdentityKeyPair(account)

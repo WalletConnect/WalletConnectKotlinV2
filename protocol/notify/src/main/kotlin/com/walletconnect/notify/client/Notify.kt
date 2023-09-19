@@ -36,7 +36,7 @@ object Notify {
             data class Signature(override val t: String, override val s: String, override val m: String? = null) : Model(), SignatureInterface
         }
 
-        data class AvailableTypes(val types: List<String>): Model()
+        data class AvailableTypes(val types: List<String>) : Model()
 
         data class Error(val throwable: Throwable) : Model()
     }
@@ -60,17 +60,19 @@ object Notify {
 
             data class Error(val id: Long, val reason: String) : Update()
         }
+
+        data class SubscriptionsChanged(val subscriptions: List<Model.Subscription>) : Event()
     }
 
     sealed class Params {
 
         class Init(val core: CoreInterface) : Params()
 
-        data class Subscribe(val dappUrl: Uri, val account: String) : Params()
+        data class Subscribe(val appDomain: Uri, val account: String) : Params()
 
         data class Update(val topic: String, val scope: List<String>) : Params()
 
-        data class NotificationTypes(val domain: String) : Params()
+        data class NotificationTypes(val appDomain: String) : Params()
 
         data class MessageHistory(val topic: String) : Params()
 
@@ -80,6 +82,6 @@ object Notify {
 
         data class DecryptMessage(val topic: String, val encryptedMessage: String) : Params()
 
-        data class Registration(val account: String, val onSign: (String) -> Model.Cacao.Signature?) : Params()
+        data class Registration(val account: String, val isLimited: Boolean, val domain: String, val onSign: (String) -> Model.Cacao.Signature?) : Params()
     }
 }

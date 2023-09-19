@@ -9,7 +9,7 @@ import com.walletconnect.web3.inbox.notify.event.NotifyEventHandler
 import com.walletconnect.web3.inbox.notify.event.OnDeleteNotifyEventUseCase
 import com.walletconnect.web3.inbox.notify.event.OnMessageNotifyEventUseCase
 import com.walletconnect.web3.inbox.notify.event.OnSubscriptionNotifyEventUseCase
-import com.walletconnect.web3.inbox.notify.event.OnSyncUpdateNotifyEventUseCase
+import com.walletconnect.web3.inbox.notify.event.OnSubscriptionsChangedNotifyEventUseCase
 import com.walletconnect.web3.inbox.notify.event.OnUpdateNotifyEventUseCase
 import com.walletconnect.web3.inbox.notify.request.DeleteNotifyMessageRequestUseCase
 import com.walletconnect.web3.inbox.notify.request.DeleteSubscriptionRequestUseCase
@@ -31,7 +31,7 @@ internal fun notifyProxyModule(
     single { NotifyProxyInteractor(get(), get()) }
 
     single { GetActiveSubscriptionsRequestUseCase(notifyClient = notifyClient, account = account, proxyInteractor = get()) }
-    single { SubscribeRequestUseCase(notifyClient = notifyClient, onSign = onSign, proxyInteractor = get()) }
+    single { SubscribeRequestUseCase(notifyClient = notifyClient, proxyInteractor = get()) }
     single { UpdateRequestUseCase(notifyClient = notifyClient, proxyInteractor = get()) }
     single { DeleteSubscriptionRequestUseCase(notifyClient = notifyClient, proxyInteractor = get()) }
     single { GetMessageHistoryRequestUseCase(notifyClient = notifyClient, proxyInteractor = get()) }
@@ -40,8 +40,8 @@ internal fun notifyProxyModule(
 
     single { OnMessageNotifyEventUseCase(proxyInteractor = get()) }
     single { OnDeleteNotifyEventUseCase(proxyInteractor = get()) }
-    single { OnSyncUpdateNotifyEventUseCase(proxyInteractor = get()) }
     single { OnSubscriptionNotifyEventUseCase(proxyInteractor = get()) }
+    single { OnSubscriptionsChangedNotifyEventUseCase(proxyInteractor = get()) }
     single { OnUpdateNotifyEventUseCase(proxyInteractor = get()) }
 
     single { NotifyEventHandler(
@@ -49,7 +49,8 @@ internal fun notifyProxyModule(
         onSubscriptionNotifyEventUseCase = get(),
         onUpdateNotifyEventUseCase = get(),
         onDeleteNotifyEventUseCase = get(),
-        onMessageNotifyEventUseCase = get()
+        onMessageNotifyEventUseCase = get(),
+        onSubscriptionsChangedNotifyEventUseCase = get()
     ) }
 
     single { NotifyProxyRequestHandler(
@@ -59,6 +60,7 @@ internal fun notifyProxyModule(
         getActiveSubscriptionsRequestUseCase = get(),
         getMessageHistoryRequestUseCase = get(),
         deleteNotifyMessageRequestUseCase = get(),
-        registerRequestUseCase = get()
+        registerRequestUseCase = get(),
+        logger = get()
     ) }
 }
