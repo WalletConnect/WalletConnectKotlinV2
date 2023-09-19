@@ -20,7 +20,6 @@ internal fun syncInPushModule() = module {
             keyManagementRepository = get(),
             messagesRepository = get(),
             metadataStorageRepository = get(),
-            archiveInterface = get(),
             subscriptionRepository = get(),
             jsonRpcInteractor = get(),
             _moshi = get(named(AndroidCommonDITags.MOSHI))
@@ -43,6 +42,6 @@ internal fun syncInPushModule() = module {
         )
     }
 
-    single { GetMessagesFromHistoryUseCase(get(),get(), get()) }
+    single { GetMessagesFromHistoryUseCase(get(),get()) }
     single { SetupSyncInPushUseCase(get(), get(), get()) }
 }
