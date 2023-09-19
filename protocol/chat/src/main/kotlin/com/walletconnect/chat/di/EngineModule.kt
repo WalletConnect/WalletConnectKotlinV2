@@ -155,8 +155,6 @@ internal fun engineModule() = module {
         ChatEngine(
             jsonRpcInteractor = get(),
             pairingHandler = get(),
-            syncClient = get(),
-            onSyncUpdateEventUseCase = get(),
             acceptInviteUseCase = get(),
             rejectInviteUseCase = get(),
             goPublicUseCase = get(),

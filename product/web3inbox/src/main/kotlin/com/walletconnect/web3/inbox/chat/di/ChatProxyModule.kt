@@ -9,7 +9,6 @@ import com.walletconnect.web3.inbox.chat.event.OnInviteChatEventUseCase
 import com.walletconnect.web3.inbox.chat.event.OnInviteRejectedChatEventUseCase
 import com.walletconnect.web3.inbox.chat.event.OnLeftChatEventUseCase
 import com.walletconnect.web3.inbox.chat.event.OnMessageChatEventUseCase
-import com.walletconnect.web3.inbox.chat.event.OnSyncUpdateChatEventUseCase
 import com.walletconnect.web3.inbox.chat.request.AcceptInviteRequestUseCase
 import com.walletconnect.web3.inbox.chat.request.ChatProxyRequestHandler
 import com.walletconnect.web3.inbox.chat.request.GetMessagesRequestUseCase
@@ -48,7 +47,6 @@ internal fun chatProxyModule(
     single { OnInviteAcceptedChatEventUseCase(get()) }
     single { OnInviteRejectedChatEventUseCase(get()) }
     single { OnLeftChatEventUseCase(get()) }
-    single { OnSyncUpdateChatEventUseCase(get()) }
 
     single { ChatEventHandler(get(), get(), get(), get(), get(), get()) }
 
