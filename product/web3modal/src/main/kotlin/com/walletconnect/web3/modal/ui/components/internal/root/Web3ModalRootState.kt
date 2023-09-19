@@ -29,13 +29,16 @@ internal class Web3ModalRootState(
         get() = navController.currentBackStackEntryFlow
 
     val canPopUp: Boolean
-        get() = !topLevelDestinations.any { it.path == navController.currentDestination?.route }
+        get() = !topLevelDestinations.any { it.path == navController.currentDestination?.route } || navController.currentBackStack.value.size > 2
 
     val title: Flow<String?> = currentDestinationFlow
         .map { it.getTitleArg() ?: it.destination.toTitle() }
 
+    val currentDestinationRoute: String?
+        get() = navController.currentDestination?.route
+
     fun navigateToHelp() {
-        navController.navigate(Route.HELP.path)
+        navController.navigate(Route.WHAT_IS_WALLET.path)
     }
 
     fun popUp() {
@@ -43,6 +46,6 @@ internal class Web3ModalRootState(
     }
 }
 
-private fun NavDestination.toTitle(): String? = Route.values().find { it.path == route }?.title
+private fun NavDestination.toTitle(): String? = Route.values().find { route.orEmpty().startsWith(it.path) }?.title
 
-private val topLevelDestinations = listOf(Route.CONNECT_YOUR_WALLET, Route.ACCOUNT)
+private val topLevelDestinations = listOf(Route.CONNECT_YOUR_WALLET, Route.ACCOUNT, Route.CHOOSE_NETWORK)

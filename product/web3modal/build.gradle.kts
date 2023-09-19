@@ -56,6 +56,7 @@ dependencies {
     accompanist()
     coil()
     compose()
+    dataStore()
     lifecycle()
     navigationComponent()
     qrCodeGenerator()

@@ -14,7 +14,7 @@ import com.walletconnect.sample.common.ui.themedColor
 
 @Composable
 fun SemiTransparentDialog(content: @Composable () -> Unit) {
-    val backgroundColor = themedColor(Color(0xFF242425).copy(alpha = .95f), Color(0xFFF2F2F7).copy(alpha = .95f))
+    val backgroundColor = themedColor(Color(0xFF242425), Color(0xFFFFFFFF))
     Column(
         modifier = Modifier
             .fillMaxWidth()

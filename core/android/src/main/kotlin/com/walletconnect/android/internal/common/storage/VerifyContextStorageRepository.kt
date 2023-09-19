@@ -9,7 +9,7 @@ class VerifyContextStorageRepository(private val verifyContextQueries: VerifyCon
 
     @Throws(SQLiteException::class)
     suspend fun insertOrAbort(verifyContext: VerifyContext) = with(verifyContext) {
-        verifyContextQueries.insertOrAbortVerifyContext(id, origin, validation, verifyUrl)
+        verifyContextQueries.insertOrAbortVerifyContext(id, origin, validation, verifyUrl, isScam)
     }
 
     @Throws(SQLiteException::class)
@@ -27,6 +27,6 @@ class VerifyContextStorageRepository(private val verifyContextQueries: VerifyCon
         verifyContextQueries.deleteVerifyContext(id)
     }
 
-    private fun toVerifyContext(id: Long, origin: String, validation: Validation, verifyUrl: String): VerifyContext =
-        VerifyContext(id, origin, validation, verifyUrl)
+    private fun toVerifyContext(id: Long, origin: String, validation: Validation, verifyUrl: String, isScam: Boolean?): VerifyContext =
+        VerifyContext(id, origin, validation, verifyUrl, isScam)
 }

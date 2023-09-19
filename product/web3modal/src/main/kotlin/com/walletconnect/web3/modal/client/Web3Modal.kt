@@ -11,9 +11,10 @@ object Web3Modal {
     internal var excludedWalletsIds: List<String> = listOf()
     internal var recommendedWalletsIds: List<String> = listOf()
 
-    private var _sessionParams: Modal.Params.SessionParams? = null
-    internal val sessionParams: Modal.Params.SessionParams
-        get() = requireNotNull(_sessionParams) { "Be sure to set the SessionParams using Web3Modal.setSessionParams." }
+    internal var selectedChain: Modal.Model.Chain? = null
+    internal var chains: List<Modal.Model.Chain> = listOf()
+
+    internal var sessionProperties: Map<String, String>? = null
 
     interface ModalDelegate {
         fun onSessionApproved(approvedSession: Modal.Model.ApprovedSession)
@@ -54,8 +55,18 @@ object Web3Modal {
         )
     }
 
-    fun setSessionParams(sessionParams: Modal.Params.SessionParams) {
-        _sessionParams = sessionParams
+    fun setChains(chains: List<Modal.Model.Chain>) {
+        this.chains = chains
+    }
+
+    fun selectChain(chain: Modal.Model.Chain) {
+        this.selectedChain = chain
+    }
+
+    fun getSelectedChain() = selectedChain
+
+    fun setSessionProperties(properties: Map<String, String>) {
+        sessionProperties = properties
     }
 
     @Throws(IllegalStateException::class)
