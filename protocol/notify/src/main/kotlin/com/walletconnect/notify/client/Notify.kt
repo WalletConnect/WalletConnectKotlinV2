@@ -10,7 +10,23 @@ object Notify {
 
     sealed class Model {
 
-        data class Message(val title: String, val body: String, val icon: String?, val url: String?, val type: String) : Model()
+        sealed class Message : Model() {
+            abstract val title: String
+            abstract val body: String
+
+            data class Simple(
+                override val title: String,
+                override val body: String,
+            ) : Message()
+
+            data class Decrypted(
+                override val title: String,
+                override val body: String,
+                val icon: String?,
+                val url: String?,
+                val type: String?,
+            ) : Message()
+        }
 
         data class MessageRecord(val id: String, val topic: String, val publishedAt: Long, val message: Message) : Model()
 
@@ -82,6 +98,6 @@ object Notify {
 
         data class DecryptMessage(val topic: String, val encryptedMessage: String) : Params()
 
-        data class Registration(val account: String, val isLimited: Boolean, val domain: String, val onSign: (String) -> Model.Cacao.Signature?) : Params()
+        data class Registration(val account: String, val domain: String, val onSign: (String) -> Model.Cacao.Signature?, val isLimited: Boolean = false) : Params()
     }
 }

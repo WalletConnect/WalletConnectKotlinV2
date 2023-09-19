@@ -27,9 +27,7 @@ internal fun callModule() = module {
 
     single<SubscribeToDappUseCaseInterface> {
         SubscribeToDappUseCase(
-            serializer = get(),
             jsonRpcInteractor = get(),
-            subscriptionRepository = get(),
             crypto = get(),
             extractMetadataFromConfigUseCase = get(),
             metadataStorageRepository = get(),

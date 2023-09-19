@@ -5,7 +5,6 @@ package com.walletconnect.notify.engine.calls
 import android.net.Uri
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.crypto.sha256
-import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.DidJwt
@@ -22,7 +21,6 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.notify.common.model.NotifyRpc
-import com.walletconnect.notify.data.storage.SubscriptionRepository
 import com.walletconnect.notify.engine.domain.ExtractMetadataFromConfigUseCase
 import com.walletconnect.notify.engine.domain.ExtractPublicKeysFromDidJsonUseCase
 import com.walletconnect.notify.engine.domain.FetchDidJwtInteractor
@@ -31,9 +29,7 @@ import kotlinx.coroutines.supervisorScope
 typealias DidJsonPublicKeyPair = Pair<PublicKey, PublicKey>
 
 internal class SubscribeToDappUseCase(
-    private val serializer: JsonRpcSerializer,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
-    private val subscriptionRepository: SubscriptionRepository,
     private val crypto: KeyManagementRepository,
     private val extractMetadataFromConfigUseCase: ExtractMetadataFromConfigUseCase,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,

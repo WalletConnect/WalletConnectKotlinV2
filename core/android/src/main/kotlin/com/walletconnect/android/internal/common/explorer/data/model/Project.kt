@@ -7,4 +7,5 @@ data class Project(
     val imageId: String,
     val description: String,
     val imageUrl: ImageUrl,
+    val dappUrl: String
 )
