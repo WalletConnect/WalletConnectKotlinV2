@@ -66,9 +66,5 @@ enum class Tags(val id: Int) {
     NOTIFY_SUBSCRIPTIONS_CHANGED(4012),
     NOTIFY_SUBSCRIPTIONS_CHANGED_RESPONSE(4013),
 
-    SYNC_SET(5000),
-
-    SYNC_DELETE(5002),
-
     //todo: Discuss: Should Tags be in specific SDKs?
 }
