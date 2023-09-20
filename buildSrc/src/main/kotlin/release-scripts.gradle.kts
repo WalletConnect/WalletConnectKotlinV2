@@ -38,7 +38,6 @@ fun compileListOfSDKs(): List<Triple<String, String?, String>> = mutableListOf(
     Triple("protocol", "chat", "android"),
     Triple("protocol", "notify", "android"),
     Triple("product", "web3wallet", "android"),
-    Triple("product", "web3inbox", "android"),
     Triple("product", "walletconnectmodal", "android"),
 ).apply {
     // The BOM has to be last artifact
