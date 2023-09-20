@@ -1,4 +1,4 @@
-package com.walletconnect.web3.modal.ui.routes.account
+package com.walletconnect.web3.modal.ui.routes.account.change_network
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -19,35 +20,41 @@ import androidx.compose.ui.unit.dp
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.domain.model.AccountData
-import com.walletconnect.web3.modal.domain.model.Chain
-import com.walletconnect.web3.modal.domain.model.Identity
 import com.walletconnect.web3.modal.ui.components.internal.commons.FullWidthDivider
 import com.walletconnect.web3.modal.ui.components.internal.commons.VerticalSpacer
 import com.walletconnect.web3.modal.ui.components.internal.commons.inputs.SearchInput
 import com.walletconnect.web3.modal.ui.components.internal.commons.network.ChainNetworkItem
+import com.walletconnect.web3.modal.ui.model.UiStateBuilder
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
-import com.walletconnect.web3.modal.ui.previews.accountDataPreview
+import com.walletconnect.web3.modal.ui.previews.ethereumChain
+import com.walletconnect.web3.modal.ui.previews.testChains
+import com.walletconnect.web3.modal.ui.routes.account.AccountState
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 import com.walletconnect.web3.modal.utils.getChainNetworkImageUrl
 
 @Composable
 internal fun ChangeNetworkRoute(
-    accountData: AccountData,
-    changeChain: (AccountData, Chain) -> Unit
+    accountState: AccountState
 ) {
-    ChangeNetworkScreen(
-        chains = Web3Modal.chains,
-        accountData = accountData,
-        onChainItemClick = changeChain
-    )
+    val selectedChain by accountState.selectedChain.collectAsState(initial = Web3Modal.getSelectedChainOrFirst())
+
+    UiStateBuilder(uiStateFlow = accountState.accountState) {
+        ChangeNetworkScreen(
+            chains = Web3Modal.chains,
+            accountData = accountState.accountData,
+            selectedChain = selectedChain,
+            onChainItemClick = { accountState.changeActiveChain(it) }
+        )
+    }
 }
 
 @Composable
 private fun ChangeNetworkScreen(
     chains: List<Modal.Model.Chain>,
     accountData: AccountData,
-    onChainItemClick: (AccountData, Chain) -> Unit
+    selectedChain: Modal.Model.Chain,
+    onChainItemClick: (Modal.Model.Chain) -> Unit
 ) {
     var searchInputValue by rememberSaveable() { mutableStateOf("") }
 
@@ -64,10 +71,10 @@ private fun ChangeNetworkScreen(
         )
         VerticalSpacer(height = 12.dp)
         ChainNetworkGrid(
-            chains = chains,
-            connectedChains = accountData.chains.filter { it.name.contains(searchInputValue, ignoreCase = true) },
-            selectedChain = accountData.selectedChain,
-            onItemClick = { onChainItemClick(accountData, it) }
+            chains = chains.filter { it.chainName.contains(searchInputValue, ignoreCase = true) },
+            connectedChains = accountData.chains,
+            selectedChain = selectedChain,
+            onItemClick = { onChainItemClick(it) }
         )
         FullWidthDivider()
         VerticalSpacer(height = 12.dp)
@@ -83,9 +90,9 @@ private fun ChangeNetworkScreen(
 @Composable
 private fun ChainNetworkGrid(
     chains: List<Modal.Model.Chain>,
-    connectedChains: List<Chain>,
-    selectedChain: Chain,
-    onItemClick: (Chain) -> Unit
+    connectedChains: List<Modal.Model.Chain>,
+    selectedChain: Modal.Model.Chain,
+    onItemClick: (Modal.Model.Chain) -> Unit
 ) {
     LazyVerticalGrid(
         contentPadding = PaddingValues(horizontal = 10.dp),
@@ -113,11 +120,8 @@ private fun ChangeNetworkPreview() {
             topic = "",
             address = "0xd2B8b483056b134f9D8cd41F55bB065F9",
             balance = "543 ETH",
-            selectedChain = Chain("eip155:1"),
-            chains = listOf(Chain("eip155:1")),
-            identity = Identity()
-
+            chains = testChains
         )
-        ChangeNetworkScreen(listOf(),  accountData, { _, _ -> })
+        ChangeNetworkScreen(listOf(), accountData, ethereumChain, {})
     }
 }
