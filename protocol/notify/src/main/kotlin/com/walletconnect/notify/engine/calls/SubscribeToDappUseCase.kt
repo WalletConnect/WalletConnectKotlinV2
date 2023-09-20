@@ -67,9 +67,7 @@ internal class SubscribeToDappUseCase(
             return@supervisorScope onFailure(error)
         }
 
-        jsonRpcInteractor.subscribe(responseTopic) { error ->
-            return@subscribe onFailure(error)
-        }
+        jsonRpcInteractor.subscribe(responseTopic) { error -> onFailure(error) }
 
         jsonRpcInteractor.publishJsonRpcRequest(
             topic = subscribeTopic,
@@ -77,15 +75,9 @@ internal class SubscribeToDappUseCase(
             payload = request,
             envelopeType = EnvelopeType.ONE,
             participants = Participants(selfPublicKey, dappPublicKey),
-            onSuccess = {
-                onSuccess(request.id, didJwt)
-            },
-            onFailure = { error ->
-                onFailure(error)
-            }
+            onSuccess = { onSuccess(request.id, didJwt) },
+            onFailure = { error -> onFailure(error) }
         )
-
-        logger.log("subscribeToDapp - publishJsonRpcRequest($dappUri) - topic: $subscribeTopic")
     }
 }
 
