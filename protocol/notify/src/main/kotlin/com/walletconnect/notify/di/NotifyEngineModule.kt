@@ -91,7 +91,6 @@ internal fun engineModule() = module {
         NotifyEngine(
             jsonRpcInteractor = get(),
             pairingHandler = get(),
-            logger = get(),
             subscribeToDappUseCase = get(),
             updateUseCase = get(),
             deleteSubscriptionUseCase = get(),
