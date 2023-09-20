@@ -28,6 +28,11 @@ internal object TestClient {
     private val app = ApplicationProvider.getApplicationContext<Application>()
     fun KoinApplication.Companion.createNewWCKoinApp(): KoinApplication = init().apply { createEagerInstances() }
 
+    internal const val account = "0x29163BFD38865971EfA5896e63bd6b7C8370E557"
+    internal const val caip10account = "eip155:1:$account"
+    internal const val publicKey = "5112cfe94b391100464b51af6f6714b4d7c21d25c92360b20b07278e722e033d426d26779f413330ceaf7cec2d5b4db91fe11bbb222955272f48478346549fe4"
+    internal val privateKey = PrivateKey("7191ca005ee3696cf1f9d1f35d3baabaee55188db12fca85f662af7cc181f896")
+
     object Primary {
 
         private val metadata = Core.Model.AppMetaData(
@@ -62,11 +67,6 @@ internal object TestClient {
         internal val Relay get() = coreProtocol.Relay
         internal val Pairing = coreProtocol.Pairing
         internal val identitiesInteractor: IdentitiesInteractor by lazy { wcKoinApp.koin.get() }
-
-        internal const val account = "0x29163BFD38865971EfA5896e63bd6b7C8370E557"
-        internal const val caip10account = "eip155:1:$account"
-        internal const val publicKey = "5112cfe94b391100464b51af6f6714b4d7c21d25c92360b20b07278e722e033d426d26779f413330ceaf7cec2d5b4db91fe11bbb222955272f48478346549fe4"
-        internal val privateKey = PrivateKey("7191ca005ee3696cf1f9d1f35d3baabaee55188db12fca85f662af7cc181f896")
     }
 
     object Secondary {
@@ -118,10 +118,5 @@ internal object TestClient {
         internal val Relay get() = coreProtocol.Relay
         internal val Pairing = coreProtocol.Pairing
         internal val identitiesInteractor: IdentitiesInteractor by lazy { secondaryKoinApp.koin.get() }
-
-        internal const val account = "0x688c37617E4e6eF45D279392B0009CF92B86Ee6a"
-        internal const val caip10account = "eip155:1:$account"
-        internal const val publicKey = "cfd15f322e65f07850d9ad7e606d6cbcc14342e6429950f55cfc58748dc821bdea44891cd23d4e44e39e9c60b45200beb0b3e492c3e91b74c4f30bd94fce86ae"
-        internal val privateKey = PrivateKey("e2c5919fa45662e692c2929cb79ae3d5dd23c26a60bab36d43f4aa78fb3f5fe7")
     }
 }
