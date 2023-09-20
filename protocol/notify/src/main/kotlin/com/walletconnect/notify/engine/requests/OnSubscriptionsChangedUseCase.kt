@@ -2,7 +2,6 @@
 
 package com.walletconnect.notify.engine.requests
 
-import androidx.core.net.toUri
 import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtClaims
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.IrnParams
@@ -16,6 +15,7 @@ import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.foundation.util.jwt.decodeDidPkh
+import com.walletconnect.notify.common.NotifyServerUrl
 import com.walletconnect.notify.common.model.SubscriptionChanged
 import com.walletconnect.notify.data.jwt.subscriptionsChanged.SubscriptionsChangedRequestJwtClaim
 import com.walletconnect.notify.engine.domain.ExtractPublicKeysFromDidJsonUseCase
@@ -33,6 +33,7 @@ internal class OnSubscriptionsChangedUseCase(
     private val extractPublicKeysFromDidJsonUseCase: ExtractPublicKeysFromDidJsonUseCase,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val logger: Logger,
+    private val notifyServerUrl: NotifyServerUrl,
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
@@ -44,7 +45,7 @@ internal class OnSubscriptionsChangedUseCase(
         val subscriptions = setActiveSubscriptionsUseCase(account, jwtClaims.subscriptions)
 
         //todo optimise fetching notify server auth key
-        val (_, authenticationPublicKey) = extractPublicKeysFromDidJsonUseCase(NOTIFY_SERVER_URL.toUri()).getOrThrow()
+        val (_, authenticationPublicKey) = extractPublicKeysFromDidJsonUseCase(notifyServerUrl.toUri()).getOrThrow()
 
         val didJwt = fetchDidJwtInteractor.subscriptionsChangedResponse(AccountId(account), authenticationPublicKey).getOrElse { error -> return@supervisorScope logger.error(error) }
 
@@ -56,7 +57,4 @@ internal class OnSubscriptionsChangedUseCase(
         launch { _events.emit(SubscriptionChanged(subscriptions)) }
     }
 
-    private companion object {
-        const val NOTIFY_SERVER_URL = "https://notify.walletconnect.com/"
-    }
 }

@@ -32,7 +32,8 @@ internal fun requestModule() = module {
             fetchDidJwtInteractor = get(),
             extractPublicKeysFromDidJsonUseCase = get(),
             jsonRpcInteractor = get(),
-            logger = get()
+            logger = get(),
+            notifyServerUrl = get()
         )
     }
 }
