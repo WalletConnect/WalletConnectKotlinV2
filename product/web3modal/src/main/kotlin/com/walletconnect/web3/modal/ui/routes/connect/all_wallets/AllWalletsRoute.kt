@@ -56,7 +56,7 @@ internal fun AllWalletsRoute(
 ) {
     AllWalletsContent(
         wallets = connectState.wallets,
-        onWalletItemClick = { wallet ->  },
+        onWalletItemClick = { wallet -> connectState.navigateToRedirectRoute(wallet) },
         onScanQRClick = { connectState.navigateToScanQRCode() }
     )
 }
