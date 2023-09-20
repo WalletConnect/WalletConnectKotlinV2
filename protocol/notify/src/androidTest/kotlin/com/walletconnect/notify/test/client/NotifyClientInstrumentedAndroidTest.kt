@@ -76,7 +76,10 @@ class NotifyClientInstrumentedAndroidTest {
         SecondaryNotifyClient.setDelegate(secondaryNotifyDelegate)
     }
 
-    @Test
+//    Note: This test is commented out. It's useful whenever we want to manually delete current subscription. However the areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage can handle
+//    testing with existing subscription
+
+//    @Test
     fun deleteSubscription() {
         setDelegates(object : PrimaryNotifyDelegate() {
             override fun onSubscriptionsChanged(subscriptionsChanged: Notify.Event.SubscriptionsChanged) {
