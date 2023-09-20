@@ -2,7 +2,6 @@
 
 package com.walletconnect.notify.engine.requests
 
-import androidx.core.net.toUri
 import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtClaims
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.IrnParams
@@ -16,6 +15,7 @@ import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.foundation.util.jwt.decodeDidPkh
+import com.walletconnect.notify.common.NotifyServerUrl
 import com.walletconnect.notify.common.model.SubscriptionChanged
 import com.walletconnect.notify.data.jwt.subscriptionsChanged.SubscriptionsChangedRequestJwtClaim
 import com.walletconnect.notify.engine.domain.ExtractPublicKeysFromDidJsonUseCase
@@ -33,6 +33,7 @@ internal class OnSubscriptionsChangedUseCase(
     private val extractPublicKeysFromDidJsonUseCase: ExtractPublicKeysFromDidJsonUseCase,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val logger: Logger,
+    private val notifyServerUrl: NotifyServerUrl,
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
@@ -40,11 +41,19 @@ internal class OnSubscriptionsChangedUseCase(
     suspend operator fun invoke(request: WCRequest, params: CoreNotifyParams.SubscriptionsChangedParams) = supervisorScope {
         val jwtClaims = extractVerifiedDidJwtClaims<SubscriptionsChangedRequestJwtClaim>(params.subscriptionsChangedAuth).getOrElse { error -> return@supervisorScope logger.error(error) }
 
+        /* TODO: Add caching of Notify Server keyAgreement and authentication keys
+        *     */
+        val (_, authenticationPublicKey) = extractPublicKeysFromDidJsonUseCase(notifyServerUrl.toUri()).getOrThrow()
+
+        /* TODO: Add validation after ETHNY
+        *   jwtClaims.iat - compare with current time. Has to be lower
+        *   jwtClaims.exp - compare with current time. Has to be higher
+        *   jwtClaims.act == "notify_subscriptions_changed"
+        *   jwtClaims.iss - did:key of Notify Server authentication key. Add logic when cached value does not match jwtClaims.iss then fetch value again and if value still does not match then throw
+        *   jwtClaims.aud - did:key of client identity key. Client must have this identity key */
+
         val account = decodeDidPkh(jwtClaims.subject)
         val subscriptions = setActiveSubscriptionsUseCase(account, jwtClaims.subscriptions)
-
-        //todo optimise fetching notify server auth key
-        val (_, authenticationPublicKey) = extractPublicKeysFromDidJsonUseCase(NOTIFY_SERVER_URL.toUri()).getOrThrow()
 
         val didJwt = fetchDidJwtInteractor.subscriptionsChangedResponse(AccountId(account), authenticationPublicKey).getOrElse { error -> return@supervisorScope logger.error(error) }
 
@@ -56,7 +65,4 @@ internal class OnSubscriptionsChangedUseCase(
         launch { _events.emit(SubscriptionChanged(subscriptions)) }
     }
 
-    private companion object {
-        const val NOTIFY_SERVER_URL = "https://notify.walletconnect.com/"
-    }
 }

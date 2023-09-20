@@ -39,6 +39,14 @@ internal class OnNotifyMessageUseCase(
 
     suspend operator fun invoke(request: WCRequest, params: CoreNotifyParams.MessageParams) = supervisorScope {
         extractVerifiedDidJwtClaims<MessageRequestJwtClaim>(params.messageAuth).onSuccess { messageJwt ->
+
+            /* TODO: Add validation after ETHNY
+            *   jwtClaims.iat - compare with current time. Has to be lower
+            *   jwtClaims.exp - compare with current time. Has to be higher
+            *   jwtClaims.act == "notify_message"
+            *   jwtClaims.iss - did:key of dapp authentication key. Add logic when cached value does not match jwtClaims.iss then fetch value again and if value still does not match then throw
+            *   jwtClaims.app - did:web of app domain that this request is associated with. Must match domain of active subscription by topic */
+
             messagesRepository.insertMessage(
                 requestId = request.id,
                 topic = request.topic.value,

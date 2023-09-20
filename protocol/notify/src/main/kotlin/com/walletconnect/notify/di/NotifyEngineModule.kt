@@ -3,6 +3,7 @@
 package com.walletconnect.notify.di
 
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
+import com.walletconnect.notify.common.NotifyServerUrl
 import com.walletconnect.notify.engine.NotifyEngine
 import com.walletconnect.notify.engine.domain.ExtractMetadataFromConfigUseCase
 import com.walletconnect.notify.engine.domain.ExtractPublicKeysFromDidJsonUseCase
@@ -17,6 +18,8 @@ import org.koin.dsl.module
 
 @JvmSynthetic
 internal fun engineModule() = module {
+
+    single { NotifyServerUrl() }
 
     includes(
         callModule(),
@@ -57,7 +60,8 @@ internal fun engineModule() = module {
             jsonRpcInteractor = get(),
             fetchDidJwtInteractor = get(),
             keyManagementRepository = get(),
-            extractPublicKeysFromDidJsonUseCase = get()
+            extractPublicKeysFromDidJsonUseCase = get(),
+            notifyServerUrl = get()
         )
     }
 
