@@ -3,8 +3,6 @@ package com.walletconnect.web3.modal.ui.previews
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import com.walletconnect.android.internal.common.explorer.data.model.Wallet
 import com.walletconnect.web3.modal.domain.model.AccountData
-import com.walletconnect.web3.modal.domain.model.Chain
-import com.walletconnect.web3.modal.domain.model.Identity
 import com.walletconnect.web3.modal.client.Modal
 
 private val metaMask: Wallet

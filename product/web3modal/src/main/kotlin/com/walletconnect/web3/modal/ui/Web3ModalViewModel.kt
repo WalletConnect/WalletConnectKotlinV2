@@ -7,10 +7,6 @@ import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
-import com.walletconnect.web3.modal.domain.model.AccountData
-import com.walletconnect.web3.modal.domain.model.Chain
-import com.walletconnect.web3.modal.domain.usecase.DeleteSessionDataUseCase
-import com.walletconnect.web3.modal.domain.usecase.GetSelectedChainUseCase
 import com.walletconnect.web3.modal.domain.usecase.GetSessionTopicUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveSessionTopicUseCase
 import kotlinx.coroutines.flow.MutableStateFlow

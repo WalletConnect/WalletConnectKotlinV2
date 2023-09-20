@@ -4,8 +4,6 @@ import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.util.Empty
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
-import com.walletconnect.web3.modal.domain.model.Chain
-
 internal fun String.toVisibleAddress() = "${take(4)}...${takeLast(4)}"
 
 internal fun List<Modal.Model.Chain>.getSelectedChain(chainId: String?) = find { it.id == chainId } ?: first()

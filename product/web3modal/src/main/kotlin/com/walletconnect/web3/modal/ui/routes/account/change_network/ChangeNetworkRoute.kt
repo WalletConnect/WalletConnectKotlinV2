@@ -20,7 +20,6 @@ import androidx.compose.ui.unit.dp
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.domain.model.AccountData
-import com.walletconnect.web3.modal.domain.model.Chain
 import com.walletconnect.web3.modal.ui.components.internal.commons.FullWidthDivider
 import com.walletconnect.web3.modal.ui.components.internal.commons.VerticalSpacer
 import com.walletconnect.web3.modal.ui.components.internal.commons.inputs.SearchInput
@@ -28,7 +27,6 @@ import com.walletconnect.web3.modal.ui.components.internal.commons.network.Chain
 import com.walletconnect.web3.modal.ui.model.UiStateBuilder
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
-import com.walletconnect.web3.modal.ui.previews.accountDataPreview
 import com.walletconnect.web3.modal.ui.previews.ethereumChain
 import com.walletconnect.web3.modal.ui.previews.testChains
 import com.walletconnect.web3.modal.ui.routes.account.AccountState

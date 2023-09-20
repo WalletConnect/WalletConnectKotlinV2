@@ -4,8 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.unit.dp
-import com.walletconnect.web3.modal.client.Web3Modal
-import com.walletconnect.web3.modal.domain.model.Chain
 import com.walletconnect.web3.modal.ui.components.internal.commons.SelectNetworkIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.button.ButtonSize
 import com.walletconnect.web3.modal.ui.components.internal.commons.button.ButtonStyle
