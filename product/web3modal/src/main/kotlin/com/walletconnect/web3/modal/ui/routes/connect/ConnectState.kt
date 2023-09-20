@@ -6,6 +6,7 @@ import androidx.navigation.NavController
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.internal.common.modal.data.model.Wallet
 import com.walletconnect.android.internal.common.modal.domain.usecase.GetAllWalletsUseCase
+import com.walletconnect.android.internal.common.modal.domain.usecase.GetAllWalletsUseCaseInterface
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.web3.modal.client.Modal
@@ -45,7 +46,7 @@ internal class ConnectState(
     private val navController: NavController
 ) {
     private val logger: Logger = wcKoinApp.koin.get()
-    private val getWalletsUseCase: GetAllWalletsUseCase = wcKoinApp.koin.get()
+    private val getWalletsUseCase: GetAllWalletsUseCaseInterface = wcKoinApp.koin.get()
     private val getRecentWalletUseCase: GetRecentWalletUseCase = wcKoinApp.koin.get()
     private val saveRecentWalletUseCase: SaveRecentWalletUseCase = wcKoinApp.koin.get()
     private val saveChainSelectionUseCase: SaveChainSelectionUseCase = wcKoinApp.koin.get()

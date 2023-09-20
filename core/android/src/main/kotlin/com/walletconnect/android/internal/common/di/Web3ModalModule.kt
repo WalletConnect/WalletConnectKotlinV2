@@ -4,6 +4,7 @@ import com.walletconnect.android.BuildConfig
 import com.walletconnect.android.internal.common.modal.Web3ModalApiRepository
 import com.walletconnect.android.internal.common.modal.data.network.Web3ModalService
 import com.walletconnect.android.internal.common.modal.domain.usecase.GetAllWalletsUseCase
+import com.walletconnect.android.internal.common.modal.domain.usecase.GetAllWalletsUseCaseInterface
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidContext
@@ -51,5 +52,5 @@ internal fun web3ModalModule() = module {
         )
     }
 
-    single { GetAllWalletsUseCase(web3ModalApiRepository = get()) }
+    single<GetAllWalletsUseCaseInterface> { GetAllWalletsUseCase(web3ModalApiRepository = get()) }
 }
