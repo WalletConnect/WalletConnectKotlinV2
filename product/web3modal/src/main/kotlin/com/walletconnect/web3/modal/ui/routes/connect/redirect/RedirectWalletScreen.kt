@@ -44,13 +44,13 @@ import com.walletconnect.web3.modal.ui.components.internal.commons.entry.StoreEn
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 import com.walletconnect.web3.modal.ui.previews.testWallets
+import com.walletconnect.web3.modal.ui.routes.connect.ConnectState
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 @Composable
 internal fun RedirectWalletRoute(
-    wallet: Wallet,
-    uri: String,
-    retry: (() -> Unit) -> Unit,
+    connectState: ConnectState,
+    wallet: Wallet
 ) {
     val uriHandler = LocalUriHandler.current
     val context: Context = LocalContext.current
@@ -66,19 +66,26 @@ internal fun RedirectWalletRoute(
         }
     }
 
-    RedirectWalletScreen(wallet = wallet, state = redirectState, onCopyLinkClick = {
-        Toast.makeText(context, "Link copied", Toast.LENGTH_SHORT).show()
-        clipboardManager.setText(AnnotatedString(uri))
-    }, onRetry = {
-        retry {
-            redirectState = RedirectState.Loading
-            uriHandler.goToNativeWallet(uri, wallet.nativeLink)
-        }
-    }, onOpenPlayStore = { uriHandler.openPlayStore(wallet.playStoreLink) })
+    RedirectWalletScreen(
+        wallet = wallet,
+        state = redirectState,
+        onCopyLinkClick = {
+            Toast.makeText(context, "Link copied", Toast.LENGTH_SHORT).show()
+            clipboardManager.setText(AnnotatedString(connectState.uri))
+        },
+        onRetry = {
+            connectState.connect {
+                redirectState = RedirectState.Loading
+                uriHandler.goToNativeWallet(it, wallet.nativeLink)
+            }
+        },
+        onOpenPlayStore = { uriHandler.openPlayStore(wallet.playStoreLink) })
 
     LaunchedEffect(Unit) {
-        wallet.nativeLink?.let {
-            uriHandler.goToNativeWallet(uri, wallet.nativeLink)
+        connectState.connect { uri ->
+            wallet.nativeLink?.let {
+                uriHandler.goToNativeWallet(uri, wallet.nativeLink)
+            }
         }
     }
 }

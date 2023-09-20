@@ -22,7 +22,6 @@ import com.walletconnect.android.internal.common.explorer.data.model.ImageUrl as
 
 class ExploreDappsViewModel : ViewModel() {
         private suspend fun getExplorerProjects() = CoreClient.Explorer.getProjects(0, 100, false)
-//    private suspend fun getExplorerProjects(): Result<List<Project>> =  Result.failure(Throwable("tests"))
 
 
     private val _searchText = MutableStateFlow("")

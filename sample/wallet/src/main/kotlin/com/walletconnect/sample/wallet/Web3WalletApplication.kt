@@ -24,7 +24,6 @@ import com.walletconnect.sample.common.RELAY_URL
 import com.walletconnect.sample.common.initBeagle
 import com.walletconnect.sample.common.tag
 import com.walletconnect.sample.wallet.domain.EthAccountDelegate
-import com.walletconnect.sample.wallet.domain.mixPanel
 import com.walletconnect.sample.wallet.domain.toEthAddress
 import com.walletconnect.sample.wallet.ui.state.ConnectionState
 import com.walletconnect.sample.wallet.ui.state.connectionStateFlow
@@ -81,7 +80,6 @@ class Web3WalletApplication : Application() {
             Log.e(tag(this), error.throwable.stackTraceToString())
         }
 
-        // Register with Notify
         NotifyClient.register(
             params = Notify.Params.Registration(
                 with(EthAccountDelegate) { account.toEthAddress() },
@@ -146,7 +144,7 @@ class Web3WalletApplication : Application() {
 
         wcKoinApp.koin.get<Timber.Forest>().plant(object : Timber.Tree() {
             override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
-                mixPanel.track(message)
+//                mixPanel.track(message)
             }
         })
 

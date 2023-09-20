@@ -10,24 +10,49 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.walletconnect.web3.modal.ui.previews.ComponentPreview
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 import kotlin.math.roundToInt
 
 @Composable
-internal fun AccountImage(address: String) {
+internal fun AccountImage(address: String, avatarUrl: String?) {
+    if (avatarUrl != null) {
+        AccountAvatar(avatarUrl)
+    } else {
+        Box(
+            modifier = Modifier
+                .size(80.dp)
+                .border(width = 8.dp, color = Web3ModalTheme.colors.overlay05, shape = CircleShape)
+                .padding(8.dp)
+                .background(brush = Brush.linearGradient(generateAvatarColors(address)), shape = CircleShape)
+        )
+    }
+}
+
+@Composable
+private fun AccountAvatar(url: String) {
     Box(
         modifier = Modifier
             .size(80.dp)
             .border(width = 8.dp, color = Web3ModalTheme.colors.overlay05, shape = CircleShape)
             .padding(8.dp)
-            .background(brush = Brush.linearGradient(generateAvatarColors(address)), shape = CircleShape)
-    )
+    ) {
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(url)
+                .crossfade(true)
+                .build(),
+            contentDescription = null,
+        )
+    }
 }
 
-fun generateAvatarColors(address: String): List<Color> {
+internal fun generateAvatarColors(address: String): List<Color> {
     val hash = address.lowercase().replace("^0x".toRegex(), "")
     val baseColor = hash.substring(0, 6)
     val rgbColor = hexToRgb(baseColor)
@@ -39,7 +64,7 @@ fun generateAvatarColors(address: String): List<Color> {
     return colors
 }
 
-fun hexToRgb(hex: String): Triple<Int, Int, Int> {
+internal fun hexToRgb(hex: String): Triple<Int, Int, Int> {
     val bigint = hex.toLong(16)
     val r = (bigint shr 16 and 255).toInt()
     val g = (bigint shr 8 and 255).toInt()
@@ -47,7 +72,7 @@ fun hexToRgb(hex: String): Triple<Int, Int, Int> {
     return Triple(r, g, b)
 }
 
-fun tintColor(rgb: Triple<Int, Int, Int>, tint: Double): Triple<Int, Int, Int> {
+internal fun tintColor(rgb: Triple<Int, Int, Int>, tint: Double): Triple<Int, Int, Int> {
     val (r, g, b) = rgb
     val tintedR = (r + (255 - r) * tint).roundToInt()
     val tintedG = (g + (255 - g) * tint).roundToInt()
@@ -59,6 +84,6 @@ fun tintColor(rgb: Triple<Int, Int, Int>, tint: Double): Triple<Int, Int, Int> {
 @Composable
 private fun AddressImagePreview() {
     ComponentPreview {
-        AccountImage("0x59eAF7DD5a2f5e433083D8BbC8de3439542579cb")
+        AccountImage("0x59eAF7DD5a2f5e433083D8BbC8de3439542579cb", null)
     }
 }

@@ -88,14 +88,6 @@ fun ConstraintLayoutScope.Buttons(navController: NavController, buttonsRef: Cons
         end.linkTo(parent.end)
     }) {
         Row {
-//            Spacer(modifier = Modifier.width(20.dp))
-//            ConnectionsButton(modifier = Modifier
-//                .clip(CircleShape)
-//                .clickable {
-//                    navController.navigate(Route.Web3Inbox.path)
-//                }) {
-//                Icon(imageVector = ImageVector.vectorResource(id = R.drawable.paper_plane_logo), contentDescription = "Paper Plane Icon", tint = iconTint)
-//            }
             Spacer(modifier = Modifier.width(20.dp))
             ConnectionsButton(
                 modifier = Modifier

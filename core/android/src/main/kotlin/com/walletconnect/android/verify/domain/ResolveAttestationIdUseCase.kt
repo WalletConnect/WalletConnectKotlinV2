@@ -18,13 +18,14 @@ class ResolveAttestationIdUseCase(private val verifyInterface: VerifyInterface, 
         val attestationId = sha256(jsonPayload.toByteArray())
 
         verifyInterface.resolve(attestationId,
-            onSuccess = { origin ->
-                insertContext(VerifyContext(id, origin, if (compareDomains(metadataUrl, origin)) Validation.VALID else Validation.INVALID, verifyUrl)) { verifyContext ->
+            onSuccess = { attestationResult ->
+                val (origin, isScam) = Pair(attestationResult.origin, attestationResult.isScam)
+                insertContext(VerifyContext(id, origin, if (compareDomains(metadataUrl, origin)) Validation.VALID else Validation.INVALID, verifyUrl, isScam)) { verifyContext ->
                     onResolve(verifyContext)
                 }
             },
             onError = {
-                insertContext(VerifyContext(id, String.Empty, Validation.UNKNOWN, verifyUrl)) { verifyContext -> onResolve(verifyContext) }
+                insertContext(VerifyContext(id, String.Empty, Validation.UNKNOWN, verifyUrl, null)) { verifyContext -> onResolve(verifyContext) }
             })
     }
 
