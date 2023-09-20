@@ -6,7 +6,7 @@ import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Query
 
-interface Web3ModalService {
+internal interface Web3ModalService {
     @GET("getWallets")
     suspend fun getWallets(
         @Header("x-sdk-type") sdkType: String,

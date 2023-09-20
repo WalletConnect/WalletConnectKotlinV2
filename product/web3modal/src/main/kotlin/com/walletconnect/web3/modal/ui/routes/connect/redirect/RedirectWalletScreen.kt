@@ -101,7 +101,7 @@ private fun RedirectWalletScreen(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp), horizontalAlignment = Alignment.CenterHorizontally
+            .padding(horizontal = 20.dp, vertical = 16.dp), horizontalAlignment = Alignment.CenterHorizontally
     ) {
         VerticalSpacer(height = 28.dp)
         RedirectWalletState(wallet, state)
@@ -112,12 +112,11 @@ private fun RedirectWalletScreen(
             modifier = Modifier.fillMaxWidth(),
             onClick = onCopyLinkClick
         )
-        VerticalSpacer(height = 16.dp)
         if (wallet.playStore != null) {
+            VerticalSpacer(height = 16.dp)
             FullWidthDivider()
             VerticalSpacer(height = 16.dp)
             StoreEntry(text = "Get ${wallet.name}", onClick = onOpenPlayStore)
-            VerticalSpacer(height = 16.dp)
         }
     }
 }

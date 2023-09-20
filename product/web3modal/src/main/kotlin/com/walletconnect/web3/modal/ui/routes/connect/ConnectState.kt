@@ -5,7 +5,6 @@ import androidx.compose.runtime.remember
 import androidx.navigation.NavController
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.internal.common.modal.data.model.Wallet
-import com.walletconnect.android.internal.common.modal.domain.usecase.GetAllWalletsUseCase
 import com.walletconnect.android.internal.common.modal.domain.usecase.GetAllWalletsUseCaseInterface
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.foundation.util.Logger
