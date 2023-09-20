@@ -41,11 +41,19 @@ internal class OnSubscriptionsChangedUseCase(
     suspend operator fun invoke(request: WCRequest, params: CoreNotifyParams.SubscriptionsChangedParams) = supervisorScope {
         val jwtClaims = extractVerifiedDidJwtClaims<SubscriptionsChangedRequestJwtClaim>(params.subscriptionsChangedAuth).getOrElse { error -> return@supervisorScope logger.error(error) }
 
+        /* TODO: Add caching of Notify Server keyAgreement and authentication keys
+        *     */
+        val (_, authenticationPublicKey) = extractPublicKeysFromDidJsonUseCase(notifyServerUrl.toUri()).getOrThrow()
+
+        /* TODO: Add validation after ETHNY
+        *   jwtClaims.iat - compare with current time. Has to be lower
+        *   jwtClaims.exp - compare with current time. Has to be higher
+        *   jwtClaims.act == "notify_subscriptions_changed"
+        *   jwtClaims.iss - did:key of Notify Server authentication key. Add logic when cached value does not match jwtClaims.iss then fetch value again and if value still does not match then throw
+        *   jwtClaims.aud - did:key of client identity key. Client must have this identity key */
+
         val account = decodeDidPkh(jwtClaims.subject)
         val subscriptions = setActiveSubscriptionsUseCase(account, jwtClaims.subscriptions)
-
-        //todo optimise fetching notify server auth key
-        val (_, authenticationPublicKey) = extractPublicKeysFromDidJsonUseCase(notifyServerUrl.toUri()).getOrThrow()
 
         val didJwt = fetchDidJwtInteractor.subscriptionsChangedResponse(AccountId(account), authenticationPublicKey).getOrElse { error -> return@supervisorScope logger.error(error) }
 

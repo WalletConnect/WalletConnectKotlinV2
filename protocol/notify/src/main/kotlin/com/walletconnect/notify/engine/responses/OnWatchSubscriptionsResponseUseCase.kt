@@ -31,6 +31,14 @@ internal class OnWatchSubscriptionsResponseUseCase(
                 is JsonRpcResponse.JsonRpcResult -> {
                     val responseAuth = (response.result as ChatNotifyResponseAuthParams.ResponseAuth).responseAuth
                     val jwtClaims = extractVerifiedDidJwtClaims<WatchSubscriptionsResponseJwtClaim>(responseAuth).getOrThrow()
+
+                    /* TODO: Add validation after ETHNY
+                    *   jwtClaims.iat - compare with current time. Has to be lower
+                    *   jwtClaims.exp - compare with current time. Has to be higher
+                    *   jwtClaims.act == "notify_watch_subscriptions_response"
+                    *   jwtClaims.iss - did:key of Notify Server authentication key. Add logic when cached value does not match jwtClaims.iss then fetch value again and if value still does not match then throw
+                    *   jwtClaims.aud - did:key of client identity key. Client must have this identity key */
+
                     val subscriptions = setActiveSubscriptionsUseCase(decodeDidPkh(jwtClaims.subject), jwtClaims.subscriptions)
 
                     SubscriptionChanged(subscriptions)
