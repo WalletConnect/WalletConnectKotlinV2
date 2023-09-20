@@ -9,7 +9,6 @@ import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
-import com.walletconnect.foundation.util.Logger
 import com.walletconnect.notify.common.JsonRpcMethod
 import com.walletconnect.notify.engine.calls.DecryptMessageUseCaseInterface
 import com.walletconnect.notify.engine.calls.DeleteMessageUseCaseInterface
@@ -58,7 +57,6 @@ internal class NotifyEngine(
     private val onNotifyUpdateResponseUseCase: OnNotifyUpdateResponseUseCase,
     private val onWatchSubscriptionsResponseUseCase: OnWatchSubscriptionsResponseUseCase,
     private val watchSubscriptionsForEveryRegisteredAccountUseCase: WatchSubscriptionsForEveryRegisteredAccountUseCase,
-    private val logger: Logger,
 ) : SubscribeToDappUseCaseInterface by subscribeToDappUseCase,
     UpdateSubscriptionRequestUseCaseInterface by updateUseCase,
     DeleteSubscriptionUseCaseInterface by deleteSubscriptionUseCase,
@@ -147,7 +145,6 @@ internal class NotifyEngine(
 
     private suspend fun resubscribeToSubscriptions() {
         val subscriptionTopics = getListOfActiveSubscriptions().keys.toList()
-        logger.log("Resubscribing to active subscriptions: $subscriptionTopics")
         jsonRpcInteractor.batchSubscribe(subscriptionTopics) { error -> scope.launch { _engineEvent.emit(SDKError(error)) } }
     }
 }

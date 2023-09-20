@@ -57,8 +57,7 @@ internal fun engineModule() = module {
             jsonRpcInteractor = get(),
             fetchDidJwtInteractor = get(),
             keyManagementRepository = get(),
-            extractPublicKeysFromDidJsonUseCase = get(),
-            logger = get()
+            extractPublicKeysFromDidJsonUseCase = get()
         )
     }
 
@@ -75,7 +74,6 @@ internal fun engineModule() = module {
             extractMetadataFromConfigUseCase = get(),
             metadataRepository = get(),
             jsonRpcInteractor = get(),
-            logger = get(),
             keyStore = get(),
         )
     }
@@ -91,7 +89,6 @@ internal fun engineModule() = module {
         NotifyEngine(
             jsonRpcInteractor = get(),
             pairingHandler = get(),
-            logger = get(),
             subscribeToDappUseCase = get(),
             updateUseCase = get(),
             deleteSubscriptionUseCase = get(),

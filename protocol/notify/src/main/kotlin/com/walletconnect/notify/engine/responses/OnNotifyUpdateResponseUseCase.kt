@@ -10,7 +10,6 @@ import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.params.ChatNotifyResponseAuthParams
 import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
-import com.walletconnect.foundation.util.Logger
 import com.walletconnect.notify.common.calcExpiry
 import com.walletconnect.notify.common.model.NotificationScope
 import com.walletconnect.notify.common.model.UpdateSubscription
@@ -26,7 +25,6 @@ import kotlinx.coroutines.supervisorScope
 
 internal class OnNotifyUpdateResponseUseCase(
     private val subscriptionRepository: SubscriptionRepository,
-    private val logger: Logger
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
@@ -61,7 +59,6 @@ internal class OnNotifyUpdateResponseUseCase(
                         updateNotificationScopeMap.toDb(),
                         newExpiry.seconds
                     )
-                    logger.log("OnNotifyUpdateResponseUseCase - types: ${updateNotificationScopeMap.filter { it.value.isSelected }.map { it.key }}")
 
                     with(subscription) { UpdateSubscription.Result(account, mapOfNotificationScope, expiry, dappGeneratedPublicKey, notifyTopic, dappMetaData, relay) }
                 }

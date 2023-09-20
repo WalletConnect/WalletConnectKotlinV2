@@ -12,7 +12,6 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.storage.KeyStore
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.foundation.util.Logger
 import com.walletconnect.notify.common.model.NotificationScope
 import com.walletconnect.notify.common.model.ServerSubscription
 import com.walletconnect.notify.common.model.Subscription
@@ -31,14 +30,11 @@ internal class SetActiveSubscriptionsUseCase(
     private val metadataRepository: MetadataStorageRepositoryInterface,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val keyStore: KeyStore,
-    private val logger: Logger,
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
     suspend operator fun invoke(account: String, serverSubscriptions: List<ServerSubscription>): List<Subscription.Active> = supervisorScope {
-//        logger.log("SetActiveSubscriptionsUseCase - account: $account, serverSubscriptions(${serverSubscriptions.size}): $serverSubscriptions")
-
         val activeSubscriptions = serverSubscriptions.map { subscription ->
             with(subscription) {
                 val dappUri = appDomainWithHttps.toUri()
@@ -61,16 +57,7 @@ internal class SetActiveSubscriptionsUseCase(
 
                 jsonRpcInteractor.subscribe(topic) { error -> launch { _events.emit(SDKError(error)); cancel() } }
 
-                Subscription.Active(
-                    AccountId(account),
-                    selectedScopes,
-                    Expiry(expiry),
-                    authenticationPublicKey,
-                    dappPublicKey,
-                    topic,
-                    metadata,
-                    null,
-                )
+                Subscription.Active(AccountId(account), selectedScopes, Expiry(expiry), authenticationPublicKey, dappPublicKey, topic, metadata, null)
             }
         }
 

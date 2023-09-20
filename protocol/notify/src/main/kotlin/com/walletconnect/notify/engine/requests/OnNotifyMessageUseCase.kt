@@ -2,7 +2,6 @@
 
 package com.walletconnect.notify.engine.requests
 
-import com.squareup.moshi.Moshi
 import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtClaims
 import com.walletconnect.android.internal.common.model.AppMetaData
@@ -17,7 +16,6 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
 import com.walletconnect.foundation.common.model.Ttl
-import com.walletconnect.foundation.util.Logger
 import com.walletconnect.notify.common.model.NotifyMessage
 import com.walletconnect.notify.common.model.NotifyRecord
 import com.walletconnect.notify.data.jwt.message.MessageRequestJwtClaim
@@ -35,14 +33,11 @@ internal class OnNotifyMessageUseCase(
     private val subscriptionRepository: SubscriptionRepository,
     private val fetchDidJwtInteractor: FetchDidJwtInteractor,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
-    private val logger: Logger,
-    private val _moshi: Moshi.Builder,
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
     suspend operator fun invoke(request: WCRequest, params: CoreNotifyParams.MessageParams) = supervisorScope {
-        logger.log("OnNotifyMessageUseCase - request $request")
         extractVerifiedDidJwtClaims<MessageRequestJwtClaim>(params.messageAuth).onSuccess { messageJwt ->
             messagesRepository.insertMessage(
                 requestId = request.id,
@@ -70,9 +65,8 @@ internal class OnNotifyMessageUseCase(
             _events.emit(notifyRecord)
         }.mapCatching { _ ->
 
-            val activeSubscription =
-                subscriptionRepository.getActiveSubscriptionByNotifyTopic(request.topic.value)
-                    ?: throw IllegalStateException("No active subscription for topic: ${request.topic.value}")
+            val activeSubscription = subscriptionRepository.getActiveSubscriptionByNotifyTopic(request.topic.value)
+                ?: throw IllegalStateException("No active subscription for topic: ${request.topic.value}")
 
             val metadata: AppMetaData = metadataStorageRepository.getByTopicAndType(activeSubscription.notifyTopic, AppMetaDataType.PEER)
                 ?: throw Exception("No metadata found for topic ${activeSubscription.notifyTopic}")
@@ -86,14 +80,7 @@ internal class OnNotifyMessageUseCase(
             val messageResponseParams = ChatNotifyResponseAuthParams.ResponseAuth(responseAuth = messageResponseJwt.value)
             val irnParams = IrnParams(Tags.NOTIFY_MESSAGE_RESPONSE, Ttl(MONTH_IN_SECONDS))
 
-            jsonRpcInteractor.respondWithParams(
-                request.id,
-                request.topic,
-                messageResponseParams,
-                irnParams
-            ) {
-                throw it
-            }
+            jsonRpcInteractor.respondWithParams(request.id, request.topic, messageResponseParams, irnParams) { throw it }
         }.getOrElse { e ->
             jsonRpcInteractor.respondWithError(
                 request,

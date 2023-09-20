@@ -42,9 +42,6 @@ internal class OnSubscriptionsChangedUseCase(
 
         val account = decodeDidPkh(jwtClaims.subject)
         val subscriptions = setActiveSubscriptionsUseCase(account, jwtClaims.subscriptions)
-        logger.log("OnSubscriptionsChangedUseCase - subscriptions: ${subscriptions.size}")
-        logger.log("OnSubscriptionsChangedUseCase - types: ${subscriptions.getOrNull(0)?.mapOfNotificationScope?.filter { it.value.isSelected }?.map { it.key }}")
-
 
         //todo optimise fetching notify server auth key
         val (_, authenticationPublicKey) = extractPublicKeysFromDidJsonUseCase(NOTIFY_SERVER_URL.toUri()).getOrThrow()

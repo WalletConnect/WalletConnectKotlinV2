@@ -11,15 +11,12 @@ import org.koin.dsl.module
 internal fun responseModule() = module {
 
     single {
-        OnNotifySubscribeResponseUseCase(
-            logger = get(),
-        )
+        OnNotifySubscribeResponseUseCase()
     }
 
     single {
         OnNotifyUpdateResponseUseCase(
             subscriptionRepository = get(),
-            logger = get()
         )
     }
 
@@ -27,7 +24,6 @@ internal fun responseModule() = module {
     single {
         OnWatchSubscriptionsResponseUseCase(
             setActiveSubscriptionsUseCase = get(),
-            logger = get(),
         )
     }
 }

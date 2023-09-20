@@ -15,7 +15,6 @@ import com.walletconnect.android.internal.utils.THIRTY_SECONDS
 import com.walletconnect.android.internal.utils.getParticipantTag
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
-import com.walletconnect.foundation.util.Logger
 import com.walletconnect.notify.common.model.NotifyRpc
 import kotlinx.coroutines.supervisorScope
 
@@ -24,7 +23,6 @@ internal class WatchSubscriptionsUseCase(
     private val fetchDidJwtInteractor: FetchDidJwtInteractor,
     private val keyManagementRepository: KeyManagementRepository,
     private val extractPublicKeysFromDidJsonUseCase: ExtractPublicKeysFromDidJsonUseCase,
-    private val logger: Logger,
 ) {
 
     suspend operator fun invoke(accountId: AccountId, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
@@ -42,7 +40,6 @@ internal class WatchSubscriptionsUseCase(
         val request = NotifyRpc.NotifyWatchSubscriptions(params = watchSubscriptionsParams)
         val irnParams = IrnParams(Tags.NOTIFY_WATCH_SUBSCRIPTIONS, Ttl(THIRTY_SECONDS))
 
-        logger.log("WatchSubscriptionsUseCase - publish $request, $irnParams, $request")
         jsonRpcInteractor.publishJsonRpcRequest(
             topic = requestTopic,
             params = irnParams,
