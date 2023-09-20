@@ -74,7 +74,6 @@ internal fun engineModule() = module {
             extractMetadataFromConfigUseCase = get(),
             metadataRepository = get(),
             jsonRpcInteractor = get(),
-            logger = get(),
             keyStore = get(),
         )
     }
