@@ -6,7 +6,7 @@ import com.walletconnect.android.internal.common.modal.data.network.Web3ModalSer
 import com.walletconnect.android.internal.common.modal.data.network.model.WalletDTO
 import com.walletconnect.android.utils.isWalletInstalled
 
-class Web3ModalApiRepository(
+internal class Web3ModalApiRepository(
     private val context: Context,
     private val web3ModalApiUrl: String,
     private val web3ModalService: Web3ModalService
