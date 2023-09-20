@@ -28,7 +28,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.walletconnect.android.internal.common.explorer.data.model.Wallet
+import com.walletconnect.android.internal.common.modal.data.model.Wallet
 import com.walletconnect.modal.utils.goToNativeWallet
 import com.walletconnect.modal.utils.openPlayStore
 import com.walletconnect.web3.modal.client.Modal
@@ -76,15 +76,15 @@ internal fun RedirectWalletRoute(
         onRetry = {
             connectState.connect {
                 redirectState = RedirectState.Loading
-                uriHandler.goToNativeWallet(it, wallet.nativeLink)
+                uriHandler.goToNativeWallet(it, wallet.mobileLink)
             }
         },
-        onOpenPlayStore = { uriHandler.openPlayStore(wallet.playStoreLink) })
+        onOpenPlayStore = { uriHandler.openPlayStore(wallet.playStore) })
 
     LaunchedEffect(Unit) {
         connectState.connect { uri ->
-            wallet.nativeLink?.let {
-                uriHandler.goToNativeWallet(uri, wallet.nativeLink)
+            wallet.mobileLink?.let {
+                uriHandler.goToNativeWallet(uri, wallet.mobileLink)
             }
         }
     }
@@ -101,7 +101,7 @@ private fun RedirectWalletScreen(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp), horizontalAlignment = Alignment.CenterHorizontally
+            .padding(horizontal = 20.dp, vertical = 16.dp), horizontalAlignment = Alignment.CenterHorizontally
     ) {
         VerticalSpacer(height = 28.dp)
         RedirectWalletState(wallet, state)
@@ -112,11 +112,12 @@ private fun RedirectWalletScreen(
             modifier = Modifier.fillMaxWidth(),
             onClick = onCopyLinkClick
         )
-        VerticalSpacer(height = 16.dp)
-        FullWidthDivider()
-        VerticalSpacer(height = 16.dp)
-        StoreEntry(text = "Get ${wallet.name}", onClick = onOpenPlayStore)
-        VerticalSpacer(height = 16.dp)
+        if (wallet.playStore != null) {
+            VerticalSpacer(height = 16.dp)
+            FullWidthDivider()
+            VerticalSpacer(height = 16.dp)
+            StoreEntry(text = "Get ${wallet.name}", onClick = onOpenPlayStore)
+        }
     }
 }
 
