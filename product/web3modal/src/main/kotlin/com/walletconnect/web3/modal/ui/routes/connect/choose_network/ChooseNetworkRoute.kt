@@ -9,10 +9,8 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -30,19 +28,19 @@ internal fun ChooseNetworkRoute(
     connectState: ConnectState
 ) {
     val chains = Web3Modal.chains
-    var selectedChain by remember { mutableStateOf(Web3Modal.selectedChain ?: chains.first()) }
+    val selectedChain by connectState.selectedChain.collectAsState(initial = null)
 
     ChainNetworkSelector(
         chains = chains,
         selectedChain = selectedChain,
-        onChainItemClick = { chain -> connectState.navigateToConnectWallet(chain).also { selectedChain = chain } }
+        onChainItemClick = { chain -> connectState.navigateToConnectWallet(chain) }
     )
 }
 
 @Composable
 private fun ChainNetworkSelector(
     chains: List<Modal.Model.Chain>,
-    selectedChain: Modal.Model.Chain,
+    selectedChain: Modal.Model.Chain?,
     onChainItemClick: (Modal.Model.Chain) -> Unit,
 ) {
     Column(
@@ -70,7 +68,7 @@ private fun ChainNetworkSelector(
 @Composable
 private fun ChainNetworkGrid(
     chains: List<Modal.Model.Chain>,
-    selectedChain: Modal.Model.Chain,
+    selectedChain: Modal.Model.Chain?,
     onItemClick: (Modal.Model.Chain) -> Unit
 ) {
     LazyVerticalGrid(
@@ -80,7 +78,7 @@ private fun ChainNetworkGrid(
             itemsIndexed(chains) { _, item ->
                 ChainNetworkItem(
                     image = item.chainImage ?: getChainNetworkImageUrl(item.chainReference),
-                    isSelected = item.id == selectedChain.id,
+                    isSelected = item.id == selectedChain?.id,
                     isEnabled = true,
                     networkName = item.chainName,
                 ) {

@@ -11,16 +11,22 @@ import com.walletconnect.foundation.util.Logger
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.domain.usecase.GetRecentWalletUseCase
+import com.walletconnect.web3.modal.domain.usecase.GetSelectedChainUseCase
+import com.walletconnect.web3.modal.domain.usecase.ObserveSelectedChainUseCase
+import com.walletconnect.web3.modal.domain.usecase.SaveChainSelectionUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveRecentWalletUseCase
 import com.walletconnect.web3.modal.ui.model.UiState
 import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.ui.navigation.connection.navigateToRedirect
+import com.walletconnect.web3.modal.utils.getSelectedChain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 private const val W3M_SDK = "w3m"
 
@@ -42,6 +48,9 @@ internal class ConnectState(
     private val getWalletsUseCase: GetWalletsUseCaseInterface = wcKoinApp.koin.get()
     private val getRecentWalletUseCase: GetRecentWalletUseCase = wcKoinApp.koin.get()
     private val saveRecentWalletUseCase: SaveRecentWalletUseCase = wcKoinApp.koin.get()
+    private val saveChainSelectionUseCase: SaveChainSelectionUseCase = wcKoinApp.koin.get()
+    private val getSelectedChainUseCase: GetSelectedChainUseCase = wcKoinApp.koin.get()
+    private val observeSelectedChainUseCase: ObserveSelectedChainUseCase = wcKoinApp.koin.get()
 
     private val pairing by lazy {
         CoreClient.Pairing.create { error ->
@@ -56,6 +65,10 @@ internal class ConnectState(
     val uri: String
         get() = pairing.uri
 
+    val selectedChain = observeSelectedChainUseCase().map { savedChainId ->
+        Web3Modal.chains.find { it.id == savedChainId } ?: Web3Modal.getSelectedChainOrFirst()
+    }
+
 
     fun navigateToScanQRCode() = connect {
         coroutineScope.launch(Dispatchers.Main) { navController.navigate(Route.QR_CODE.path) }
@@ -67,7 +80,8 @@ internal class ConnectState(
     }
 
     fun navigateToConnectWallet(chain: Modal.Model.Chain) {
-        Web3Modal.selectChain(chain)
+        coroutineScope.launch { saveChainSelectionUseCase(chain.id) }
+        Web3Modal.selectedChain = chain
         sessionParams = getSessionParamsSelectedChain()
         navController.navigate(Route.CONNECT_YOUR_WALLET.path)
     }
@@ -111,7 +125,7 @@ internal class ConnectState(
     }.mapRecentWallet(getRecentWalletUseCase())
 
     private fun getSessionParamsSelectedChain() = with(Web3Modal.chains) {
-        val selectedChain = Web3Modal.selectedChain ?: first()
+        val selectedChain = runBlocking { Web3Modal.chains.getSelectedChain(getSelectedChainUseCase()) }
         Modal.Params.SessionParams(
             requiredNamespaces = mapOf(
                 selectedChain.chainNamespace to Modal.Model.Namespace.Proposal(
@@ -122,7 +136,6 @@ internal class ConnectState(
             ),
             optionalNamespaces = filter { it.id != selectedChain.id }.toOptionalNamespaces()
         )
-
     }
 
     private fun List<Modal.Model.Chain>.toOptionalNamespaces() = groupBy { it.chainNamespace }
