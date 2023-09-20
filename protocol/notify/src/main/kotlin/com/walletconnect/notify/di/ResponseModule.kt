@@ -17,7 +17,6 @@ internal fun responseModule() = module {
     single {
         OnNotifyUpdateResponseUseCase(
             subscriptionRepository = get(),
-            logger = get()
         )
     }
 
