@@ -4,6 +4,7 @@ package com.walletconnect.android.internal.common.di
 
 import com.walletconnect.android.internal.common.explorer.ExplorerRepository
 import com.walletconnect.android.internal.common.explorer.data.network.ExplorerService
+import com.walletconnect.android.internal.common.explorer.domain.usecase.GetProjectsWithPaginationUseCase
 import com.walletconnect.android.internal.common.explorer.domain.usecase.GetWalletsUseCaseInterface
 import com.walletconnect.android.internal.common.explorer.domain.usecase.GetWalletsUseCase
 import org.koin.core.qualifier.named
@@ -36,4 +37,5 @@ internal fun explorerModule() = module {
     }
 
     single<GetWalletsUseCaseInterface> { GetWalletsUseCase(get()) }
+    single<GetProjectsWithPaginationUseCase> { GetProjectsWithPaginationUseCase(get()) }
 }

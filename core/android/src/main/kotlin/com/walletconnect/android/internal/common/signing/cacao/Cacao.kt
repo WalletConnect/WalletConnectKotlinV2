@@ -76,7 +76,7 @@ fun Cacao.Payload.toCAIP122Message(chainName: String = "Ethereum"): String {
     if (requestId != null) message += "\nRequest ID: $requestId"
     if (!resources.isNullOrEmpty()) {
         message += "\nResources:"
-        resources!!.forEach { resource -> message += "\n- $resource" }
+        resources.forEach { resource -> message += "\n- $resource" }
     }
     return message
 }

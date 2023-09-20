@@ -36,7 +36,9 @@ import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import com.walletconnect.sample.common.CompletePreviews
 import com.walletconnect.sample.common.sendResponseDeepLink
 import com.walletconnect.sample.common.ui.theme.PreviewTheme
+import com.walletconnect.sample.common.ui.theme.verified_color
 import com.walletconnect.sample.common.ui.themedColor
+import com.walletconnect.sample.wallet.ui.common.peer.getValidationColor
 import kotlinx.coroutines.launch
 
 
@@ -56,13 +58,14 @@ fun SessionRequestRoute(navController: NavHostController, sessionRequestViewMode
     val context = LocalContext.current
     when (sessionRequestUI) {
         is SessionRequestUI.Content -> {
+            val allowButtonColor = getValidationColor(sessionRequestUI.peerContextUI.validation)
             SemiTransparentDialog {
                 Spacer(modifier = Modifier.height(24.dp))
                 Peer(peerUI = sessionRequestUI.peerUI, "sends a request", sessionRequestUI.peerContextUI)
                 Spacer(modifier = Modifier.height(16.dp))
                 Request(sessionRequestUI = sessionRequestUI)
                 Spacer(modifier = Modifier.height(16.dp))
-                Buttons(onDecline = {
+                Buttons(allowButtonColor, onDecline = {
                     composableScope.launch {
                         try {
                             sessionRequestViewModel.reject { uri -> context.sendResponseDeepLink(uri) }
@@ -95,6 +98,7 @@ fun SessionRequestRoute(navController: NavHostController, sessionRequestViewMode
                 }
                 Spacer(modifier = Modifier.height(200.dp))
                 Buttons(
+                    verified_color,
                     modifier = Modifier
                         .padding(vertical = 8.dp)
                         .blur(4.dp)

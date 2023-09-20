@@ -5,7 +5,6 @@ import com.squareup.moshi.JsonClass
 import com.walletconnect.android.internal.common.model.type.ClientParams
 
 interface ChatNotifyResponseAuthParams {
-
     @JsonClass(generateAdapter = true)
     data class ResponseAuth(
         @Json(name = "responseAuth")

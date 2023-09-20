@@ -9,8 +9,8 @@ import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.notify.client.Notify
 
 @JvmSynthetic
-internal fun NotifyMessage.toWalletClient(): Notify.Model.Message {
-    return Notify.Model.Message(title, body, icon, url, type)
+internal fun NotifyMessage.toWalletClient(): Notify.Model.Message.Decrypted {
+    return Notify.Model.Message.Decrypted(title, body, icon, url, type)
 }
 
 @JvmSynthetic
@@ -19,7 +19,7 @@ internal fun NotifyRecord.toWalletClient(): Notify.Model.MessageRecord {
         id = this.id.toString(),
         topic = this.topic,
         publishedAt = this.publishedAt,
-        message = Notify.Model.Message(
+        message = Notify.Model.Message.Decrypted(
             title = this.notifyMessage.title,
             body = this.notifyMessage.body,
             icon = this.notifyMessage.icon,
@@ -43,18 +43,26 @@ internal fun DeleteSubscription.toWalletClient(): Notify.Event.Delete {
 }
 
 @JvmSynthetic
-internal fun Subscription.Active.toEvent(): Notify.Event.Subscription.Result {
-    return Notify.Event.Subscription.Result(
-        Notify.Model.Subscription(
-            topic = notifyTopic.value,
-            account = account.value,
-            relay = relay.toClient(),
-            metadata = dappMetaData.toClient(),
-            scope = mapOfNotificationScope.toClient(),
-            expiry = expiry.seconds,
-        )
+internal fun SubscriptionChanged.toWalletClient(): Notify.Event.SubscriptionsChanged =
+    Notify.Event.SubscriptionsChanged(subscriptions.map { it.toWalletClient() })
+
+
+@JvmSynthetic
+internal fun Subscription.Active.toWalletClient(): Notify.Model.Subscription =
+    Notify.Model.Subscription(
+        topic = notifyTopic.value,
+        account = account.value,
+        relay = relay.toClient(),
+        metadata = dappMetaData.toClient(),
+        scope = mapOfNotificationScope.toClient(),
+        expiry = expiry.seconds,
     )
-}
+
+
+@JvmSynthetic
+internal fun Subscription.Active.toEvent(): Notify.Event.Subscription.Result =
+    Notify.Event.Subscription.Result(toWalletClient())
+
 
 @JvmSynthetic
 internal fun Subscription.Active.toModel(): Notify.Model.Subscription {

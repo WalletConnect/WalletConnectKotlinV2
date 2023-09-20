@@ -14,6 +14,7 @@ import com.walletconnect.web3.modal.ui.components.button.AccountButton
 import com.walletconnect.web3.modal.ui.components.button.AccountButtonType
 import com.walletconnect.web3.modal.ui.components.button.ConnectButton
 import com.walletconnect.web3.modal.ui.components.button.ConnectButtonSize
+import com.walletconnect.web3.modal.ui.components.button.NetworkButton
 import com.walletconnect.web3.modal.ui.components.button.Web3Button
 import com.walletconnect.web3.modal.ui.components.button.rememberWeb3ModalState
 
@@ -34,5 +35,7 @@ fun HomeScreen(navController: NavController) {
         AccountButton(web3ModalState, AccountButtonType.MIXED)
         Spacer(modifier = Modifier.height(20.dp))
         Web3Button(state = web3ModalState)
+        Spacer(modifier = Modifier.height(20.dp))
+        NetworkButton(state = web3ModalState)
     }
 }

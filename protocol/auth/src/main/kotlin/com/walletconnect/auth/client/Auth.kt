@@ -20,7 +20,8 @@ object Auth {
             val id: Long,
             val origin: String,
             val validation: Model.Validation,
-            val verifyUrl: String
+            val verifyUrl: String,
+            val isScam: Boolean?
         ) : Event()
 
         data class ConnectionStateChange(
@@ -52,7 +53,8 @@ object Auth {
             val id: Long,
             val origin: String,
             val validation: Validation,
-            val verifyUrl: String
+            val verifyUrl: String,
+            val isScam: Boolean?
         ) : Event()
 
         data class PayloadParams(

@@ -113,7 +113,7 @@ fun DependencyHandlerScope.wsRestJava() {
 
 fun DependencyHandlerScope.jUnit4() {
     "testImplementation"("junit:junit:$jUnit4Version")
-    "testRuntimeOnly"("org.junit.vintage:junit-vintage-engine")
+    "testRuntimeOnly"("org.junit.vintage:junit-vintage-engine:5.10.0")
 }
 
 fun DependencyHandlerScope.androidXTest() {
@@ -178,7 +178,7 @@ fun DependencyHandlerScope.compose() {
     "implementation"("androidx.compose.material:material")
     "debugImplementation"("androidx.compose.ui:ui-tooling")
     "debugImplementation"("androidx.compose.ui:ui-test-manifest")
-    "androidTestImplementation"("androidx.compose.ui:ui-test-junit4")
+    "androidTestImplementation"("androidx.compose.ui:ui-test-junit4:1.5.1")
     "implementation"("androidx.navigation:navigation-compose:$composeNavigationVersion")
     "androidTestImplementation"("androidx.navigation:navigation-testing:$composeNavigationVersion")
     "implementation"("androidx.lifecycle:lifecycle-viewmodel-compose:$composeViewModelVersion")

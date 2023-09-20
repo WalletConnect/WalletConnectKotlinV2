@@ -2,7 +2,6 @@
 
 package com.walletconnect.notify.di
 
-import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.notify.engine.calls.DecryptMessageUseCase
 import com.walletconnect.notify.engine.calls.DecryptMessageUseCaseInterface
 import com.walletconnect.notify.engine.calls.DeleteMessageUseCase
@@ -21,7 +20,6 @@ import com.walletconnect.notify.engine.calls.SubscribeToDappUseCase
 import com.walletconnect.notify.engine.calls.SubscribeToDappUseCaseInterface
 import com.walletconnect.notify.engine.calls.UpdateSubscriptionRequestUseCase
 import com.walletconnect.notify.engine.calls.UpdateSubscriptionRequestUseCaseInterface
-import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 @JvmSynthetic
@@ -29,16 +27,13 @@ internal fun callModule() = module {
 
     single<SubscribeToDappUseCaseInterface> {
         SubscribeToDappUseCase(
-            serializer = get(),
             jsonRpcInteractor = get(),
-            subscriptionRepository = get(),
             crypto = get(),
-            explorerRepository = get(),
+            extractMetadataFromConfigUseCase = get(),
             metadataStorageRepository = get(),
             fetchDidJwtInteractor = get(),
             extractPublicKeysFromDidJson = get(),
-            generateAppropriateUri = get(),
-            logger = get(),
+            logger = get()
         )
     }
 
@@ -57,8 +52,8 @@ internal fun callModule() = module {
             metadataStorageRepository = get(),
             subscriptionRepository = get(),
             messagesRepository = get(),
-            deleteSubscriptionToNotifySubscriptionStore = get(),
-            fetchDidJwtInteractor = get()
+            fetchDidJwtInteractor = get(),
+            logger = get()
         )
     }
 
@@ -78,10 +73,9 @@ internal fun callModule() = module {
 
     single<RegisterUseCaseInterface> {
         RegisterUseCase(
-            keyserverUrl = get(named(AndroidCommonDITags.KEYSERVER_URL)),
-            identitiesInteractor = get(),
-            setupSyncInNotifyUseCase = get(),
-            getMessagesFromHistoryUseCase = get()
+            registerIdentityUseCase = get(),
+            registeredAccountsRepository = get(),
+            watchSubscriptionsUseCase = get()
         )
     }
 

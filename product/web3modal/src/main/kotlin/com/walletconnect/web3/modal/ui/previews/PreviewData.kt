@@ -2,6 +2,8 @@ package com.walletconnect.web3.modal.ui.previews
 
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import com.walletconnect.android.internal.common.modal.data.model.Wallet
+import com.walletconnect.web3.modal.domain.model.AccountData
+import com.walletconnect.web3.modal.client.Modal
 
 private val metaMask: Wallet
     get() = Wallet(id = "1", name = "MetaMask", homePage = "", order = "", imageUrl = "", mobileLink = "metamask://", playStore = "")
@@ -37,6 +39,15 @@ private val safePal: Wallet
 internal val testWallets: List<Wallet>
     get() = listOf(metaMask, trustWallet, safe, rainbow, zerion, argent, spot, imToken, alphaWallet, omni, bitkeep, tokenPocket, ledgerLive, frontier, safePal)
 
+internal val accountDataPreview: AccountData
+    get() = AccountData(
+    topic = "",
+    address = "0xd2B8b483056b134f9D8cd41F55bB065F9",
+    balance = "543 ETH",
+    chains = testChains,
+    identity = null
+)
+
 internal class ConnectYourWalletPreviewProvider : PreviewParameterProvider<List<Wallet>> {
     override val values = sequenceOf(
         listOf(),
@@ -48,3 +59,23 @@ internal class ConnectYourWalletPreviewProvider : PreviewParameterProvider<List<
     )
 }
 
+internal val ethereumChain: Modal.Model.Chain
+    get() = Modal.Model.Chain(
+        chainName = "Ethereum",
+        chainNamespace = "eip155",
+        chainReference = "1",
+        methods = listOf(),
+        events = listOf()
+    )
+
+internal val arbitrumChain: Modal.Model.Chain
+    get() = Modal.Model.Chain(
+        chainName = "Arbitrum One",
+        chainNamespace = "eip155",
+        chainReference = "42161",
+        methods = listOf(),
+        events = listOf()
+    )
+
+internal val testChains: List<Modal.Model.Chain>
+    get() = listOf(ethereumChain, arbitrumChain)

@@ -1,7 +1,5 @@
 package com.walletconnect.web3.modal.ui
 
-import com.walletconnect.android.internal.common.modal.data.model.Wallet
-import com.walletconnect.web3.modal.domain.model.AccountData
 import com.walletconnect.web3.modal.ui.navigation.Route
 
 internal sealed class Web3ModalState {
@@ -12,7 +10,7 @@ internal sealed class Web3ModalState {
     object Loading : Web3ModalState()
     data class Error(val error: Throwable) : Web3ModalState()
     data class AccountState(
-        val accountData: AccountData
+        val shouldOpenChangeNetwork: Boolean = false
     ) : Web3ModalState()
 }
 

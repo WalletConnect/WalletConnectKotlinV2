@@ -5,11 +5,11 @@ import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.android.internal.common.signing.message.MessageSignatureVerifier
 import com.walletconnect.android.utils.cacao.sign
 import com.walletconnect.util.hexToBytes
-import com.walletconnect.web3.inbox.cacao.CacaoSigner
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import com.walletconnect.web3.wallet.utils.CacaoSigner
+import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertFalse
+import junit.framework.TestCase.assertTrue
+import org.junit.Test
 
 
 internal class EthAccountDelegateTest {
