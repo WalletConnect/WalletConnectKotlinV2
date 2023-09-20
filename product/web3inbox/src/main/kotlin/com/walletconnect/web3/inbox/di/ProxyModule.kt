@@ -10,7 +10,6 @@ import com.walletconnect.web3.inbox.client.Inbox
 import com.walletconnect.web3.inbox.client.toCommon
 import com.walletconnect.web3.inbox.common.proxy.ProxyRequestHandler
 import com.walletconnect.web3.inbox.notify.di.notifyProxyModule
-import com.walletconnect.web3.inbox.sync.di.syncProxyModule
 import com.walletconnect.web3.inbox.webview.WebViewPresenter
 import com.walletconnect.web3.inbox.webview.WebViewWeakReference
 import org.koin.dsl.module
@@ -21,12 +20,11 @@ internal fun proxyModule(
     notifyClient: NotifyInterface,
     onSign: (message: String) -> Inbox.Model.Cacao.Signature,
     config: Inbox.Model.Config,
-    account: AccountId
+    account: AccountId,
 ) = module {
     includes(
         notifyProxyModule(notifyClient, onSign, account),
         chatProxyModule(chatClient, onSign),
-        syncProxyModule()
     )
 
     single { config.toCommon() }

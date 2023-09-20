@@ -13,7 +13,6 @@ import com.walletconnect.chat.common.exceptions.InviteWasAlreadyRespondedTo
 import com.walletconnect.chat.common.exceptions.MissingInviteRequestException
 import com.walletconnect.chat.common.exceptions.PeerError
 import com.walletconnect.chat.common.model.InviteStatus
-import com.walletconnect.chat.engine.sync.use_case.requests.SetReceivedInviteRejectedStatusToChatSentInvitesStoreUseCase
 import com.walletconnect.chat.json_rpc.GetPendingJsonRpcHistoryEntryByIdUseCase
 import com.walletconnect.chat.storage.InvitesStorageRepository
 import com.walletconnect.foundation.common.model.Ttl
@@ -27,7 +26,6 @@ internal class RejectInviteUseCase(
     private val invitesRepository: InvitesStorageRepository,
     private val keyManagementRepository: KeyManagementRepository,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
-    private val setReceivedInviteRejectedStatusToChatSentInvitesStoreUseCase: SetReceivedInviteRejectedStatusToChatSentInvitesStoreUseCase,
 ) : RejectInviteUseCaseInterface {
     override fun reject(inviteId: Long, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
         scope.launch {
@@ -52,7 +50,6 @@ internal class RejectInviteUseCase(
                 val responseParams = JsonRpcResponse.JsonRpcError(jsonRpcHistoryEntry.id, error = JsonRpcResponse.Error(peerError.code, peerError.message))
                 jsonRpcInteractor.publishJsonRpcResponse(rejectTopic, irnParams, responseParams, {}, { error -> return@publishJsonRpcResponse onError(error) })
                 invitesRepository.updateStatusByInviteId(inviteId, InviteStatus.REJECTED)
-                setReceivedInviteRejectedStatusToChatSentInvitesStoreUseCase(inviteeAccountId, inviteId, {}, { error -> onError(error) })
                 onSuccess()
             } catch (e: MissingKeyException) {
                 return@launch onError(e)

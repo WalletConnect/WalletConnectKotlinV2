@@ -20,7 +20,6 @@ import com.walletconnect.push.common.data.storage.SubscriptionRepository
 import com.walletconnect.push.common.model.EngineDO
 import com.walletconnect.push.common.model.toDb
 import com.walletconnect.push.engine.domain.EnginePushSubscriptionNotifier
-import com.walletconnect.push.engine.sync.use_case.requests.SetSubscriptionWithSymmetricKeyToPushSubscriptionStoreUseCase
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -35,7 +34,6 @@ internal class OnPushSubscribeResponseUseCase(
     private val subscriptionRepository: SubscriptionRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val enginePushSubscriptionNotifier: EnginePushSubscriptionNotifier,
-    private val setSubscriptionWithSymmetricKeyToPushSubscriptionStoreUseCase: SetSubscriptionWithSymmetricKeyToPushSubscriptionStoreUseCase,
     private val logger: Logger,
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
@@ -92,7 +90,6 @@ internal class OnPushSubscribeResponseUseCase(
                         }
 
                         val symKey = crypto.getSymmetricKey(pushTopic.value.lowercase())
-                        setSubscriptionWithSymmetricKeyToPushSubscriptionStoreUseCase(activeSubscription, symKey, { logger.log("Synced Subscriptions") }, { error -> logger.error(error) })
 
                         _events.emit(activeSubscription)
                         enginePushSubscriptionNotifier.newlyRespondedRequestedSubscriptionId.updateAndGet { requestedSubscription.requestId to activeSubscription }

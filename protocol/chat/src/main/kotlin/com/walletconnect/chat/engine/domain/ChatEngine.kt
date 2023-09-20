@@ -11,9 +11,7 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.utils.THIRTY_SECONDS
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
-import com.walletconnect.android.sync.client.SyncInterface
 import com.walletconnect.chat.common.json_rpc.ChatParams
-import com.walletconnect.chat.engine.sync.use_case.events.OnSyncUpdateEventUseCase
 import com.walletconnect.chat.engine.use_case.SubscribeToChatTopicsUseCase
 import com.walletconnect.chat.engine.use_case.calls.AcceptInviteUseCase
 import com.walletconnect.chat.engine.use_case.calls.AcceptInviteUseCaseInterface
@@ -69,8 +67,6 @@ internal class ChatEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val pairingHandler: PairingControllerInterface,
     private val subscribeToChatTopicsUseCase: SubscribeToChatTopicsUseCase,
-    private val syncClient: SyncInterface,
-    private val onSyncUpdateEventUseCase: OnSyncUpdateEventUseCase,
     private val acceptInviteUseCase: AcceptInviteUseCase,
     private val rejectInviteUseCase: RejectInviteUseCase,
     private val goPublicUseCase: GoPublicUseCase,
@@ -111,7 +107,6 @@ internal class ChatEngine(
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
-    private var syncUpdateEventsJob: Job? = null
     private var chatEventsJob: Job? = null
 
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
@@ -137,7 +132,6 @@ internal class ChatEngine(
                 if (jsonRpcRequestsJob == null) jsonRpcRequestsJob = collectJsonRpcRequests()
                 if (jsonRpcResponsesJob == null) jsonRpcResponsesJob = collectPeerResponses()
                 if (internalErrorsJob == null) internalErrorsJob = collectInternalErrors()
-                if (syncUpdateEventsJob == null) syncUpdateEventsJob = collectSyncUpdateEvents()
                 if (chatEventsJob == null) chatEventsJob = collectChatEvents()
             }.launchIn(scope)
     }
@@ -164,10 +158,6 @@ internal class ChatEngine(
 
     private fun collectInternalErrors(): Job = merge(jsonRpcInteractor.internalErrors, pairingHandler.findWrongMethodsFlow, subscribeToChatTopicsUseCase.errors)
         .onEach { exception -> _events.emit(exception) }
-        .launchIn(scope)
-
-    private fun collectSyncUpdateEvents(): Job = syncClient.onSyncUpdateEvents
-        .onEach { event -> onSyncUpdateEventUseCase(event) }
         .launchIn(scope)
 
     private fun collectChatEvents(): Job = merge(onInviteRequestUseCase.events, onMessageRequestUseCase.events, onLeaveRequestUseCase.events, onInviteResponseUseCase.events)

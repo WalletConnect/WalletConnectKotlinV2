@@ -9,7 +9,6 @@ import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
-import com.walletconnect.android.sync.client.SyncInterface
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.notify.common.JsonRpcMethod
 import com.walletconnect.notify.engine.calls.DecryptMessageUseCaseInterface
@@ -43,7 +42,6 @@ import kotlinx.coroutines.supervisorScope
 internal class NotifyEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val pairingHandler: PairingControllerInterface,
-    private val syncClient: SyncInterface,
     private val subscribeToDappUseCase: SubscribeToDappUseCaseInterface,
     private val updateUseCase: UpdateSubscriptionRequestUseCaseInterface,
     private val deleteSubscriptionUseCase: DeleteSubscriptionUseCaseInterface,
@@ -73,7 +71,6 @@ internal class NotifyEngine(
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
-    private var syncUpdateEventsJob: Job? = null
     private var notifyEventsJob: Job? = null
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val engineEvent: SharedFlow<EngineEvent> = _engineEvent.asSharedFlow()
@@ -104,7 +101,6 @@ internal class NotifyEngine(
                 if (jsonRpcRequestsJob == null) jsonRpcRequestsJob = collectJsonRpcRequests()
                 if (jsonRpcResponsesJob == null) jsonRpcResponsesJob = collectJsonRpcResponses()
                 if (internalErrorsJob == null) internalErrorsJob = collectInternalErrors()
-                if (syncUpdateEventsJob == null) syncUpdateEventsJob = collectSyncUpdateEvents()
                 if (notifyEventsJob == null) notifyEventsJob = collectNotifyEvents()
             }
             .launchIn(scope)
@@ -136,12 +132,6 @@ internal class NotifyEngine(
         merge(jsonRpcInteractor.internalErrors, pairingHandler.findWrongMethodsFlow)
             .onEach { exception -> _engineEvent.emit(exception) }
             .launchIn(scope)
-
-    private fun collectSyncUpdateEvents(): Job = syncClient.onSyncUpdateEvents
-        .onEach { event ->
-//            onSyncUpdateEventUseCase(event)
-        }
-        .launchIn(scope)
 
     private fun collectNotifyEvents(): Job = merge(
         onNotifySubscribeResponseUseCase.events, onNotifyMessageUseCase.events, onNotifyUpdateResponseUseCase.events, onNotifyDeleteUseCase.events,

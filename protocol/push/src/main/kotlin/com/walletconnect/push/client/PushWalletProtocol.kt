@@ -14,7 +14,6 @@ import com.walletconnect.push.common.model.toEvent
 import com.walletconnect.push.common.model.toModel
 import com.walletconnect.push.common.model.toWalletClient
 import com.walletconnect.push.di.messageModule
-import com.walletconnect.push.di.syncInPushModule
 import com.walletconnect.push.di.walletEngineModule
 import com.walletconnect.push.engine.PushWalletEngine
 import kotlinx.coroutines.flow.launchIn
@@ -36,7 +35,6 @@ class PushWalletProtocol(private val koinApp: KoinApplication = wcKoinApp) : Pus
             koinApp.modules(
                 pushJsonRpcModule(),
                 pushStorageModule(koinApp.koin.get<DatabaseConfig>().PUSH_WALLET_SDK_DB_NAME),
-                syncInPushModule(),
                 walletEngineModule(),
                 messageModule(),
                 commonModule(),

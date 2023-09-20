@@ -71,7 +71,6 @@ internal fun callModule() = module {
             jsonRpcInteractor = get(),
             subscriptionRepository = get(),
             messagesRepository = get(),
-            deleteSubscriptionToPushSubscriptionStore = get(),
             logger = get()
         )
     }
@@ -91,7 +90,6 @@ internal fun callModule() = module {
 
     single<EnableSyncUseCaseInterface> {
         EnableSyncUseCase(
-            setupSyncInPushUseCase = get(),
         )
     }
 
