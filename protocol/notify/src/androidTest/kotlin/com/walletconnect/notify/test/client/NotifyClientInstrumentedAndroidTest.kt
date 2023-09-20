@@ -1,18 +1,17 @@
 package com.walletconnect.notify.test.client
 
 import androidx.core.net.toUri
-import com.walletconnect.android.cacao.signature.SignatureType
-import com.walletconnect.android.utils.cacao.sign
 import com.walletconnect.notify.BuildConfig
 import com.walletconnect.notify.client.Notify
 import com.walletconnect.notify.client.NotifyInterface
-import com.walletconnect.notify.client.cacao.CacaoSigner
 import com.walletconnect.notify.test.scenario.ClientInstrumentedActivityScenario
 import com.walletconnect.notify.test.utils.TestClient
 import com.walletconnect.notify.test.utils.primary.PrimaryNotifyClient
 import com.walletconnect.notify.test.utils.primary.PrimaryNotifyDelegate
 import com.walletconnect.notify.test.utils.secondary.SecondaryNotifyClient
 import com.walletconnect.notify.test.utils.secondary.SecondaryNotifyDelegate
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import okhttp3.Headers
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
@@ -77,26 +76,26 @@ class NotifyClientInstrumentedAndroidTest {
         SecondaryNotifyClient.setDelegate(secondaryNotifyDelegate)
     }
 
-//    @Test
-//    fun deleteSubscription() {
-//        setDelegates(object : PrimaryNotifyDelegate() {
-//            override fun onSubscriptionsChanged(subscriptionsChanged: Notify.Event.SubscriptionsChanged) {
-//                Timber.d("deleteSubscription: primary - deleteSubscribe start")
-//                if (subscriptionsChanged.subscriptions.isNotEmpty()) {
-//
-//                    PrimaryNotifyClient.deleteSubscription(Notify.Params.DeleteSubscription(subscriptionsChanged.subscriptions.first().topic), {
-//                        Timber.d("deleteSubscription: primary - deleteSubscribe failure: ${it.throwable}")
-//                    })
-//                    runBlocking { delay(2000) }
-//
-//                }
-//
-//                scenarioExtension.closeAsSuccess()
-//            }
-//        }, SecondaryNotifyDelegate())
-//
-//        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) {}
-//    }
+    @Test
+    fun deleteSubscription() {
+        setDelegates(object : PrimaryNotifyDelegate() {
+            override fun onSubscriptionsChanged(subscriptionsChanged: Notify.Event.SubscriptionsChanged) {
+                Timber.d("deleteSubscription: primary - deleteSubscribe start")
+                if (subscriptionsChanged.subscriptions.isNotEmpty()) {
+
+                    PrimaryNotifyClient.deleteSubscription(Notify.Params.DeleteSubscription(subscriptionsChanged.subscriptions.first().topic), {
+                        Timber.d("deleteSubscription: primary - deleteSubscribe failure: ${it.throwable}")
+                    })
+                    runBlocking { delay(2000) }
+
+                }
+
+                scenarioExtension.closeAsSuccess()
+            }
+        }, SecondaryNotifyDelegate())
+
+        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) {}
+    }
 
     @Test
     fun areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage() {
@@ -122,11 +121,12 @@ class NotifyClientInstrumentedAndroidTest {
 
                 override fun onSubscriptionsChanged(subscriptionsChanged: Notify.Event.SubscriptionsChanged) {
                     countPrimaryReceivedResponses++
-                    Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - response($countPrimaryReceivedResponses)")
 
                     if (countPrimaryReceivedResponses > 1 && subscriptionsChanged.subscriptions.isNotEmpty()) {
                         didPrimaryReceiveSubscriptions = true
                     }
+                    Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - response($countPrimaryReceivedResponses): $didPrimaryReceiveSubscriptions")
+                    Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - response(${subscriptionsChanged.subscriptions})")
 
                     if (didPrimaryReceiveSubscriptions && didSecondaryReceiveSubscriptions) {
                         if (!wasMessageSent) {
@@ -135,7 +135,6 @@ class NotifyClientInstrumentedAndroidTest {
                             wasMessageSent = true
                         }
                     }
-                    Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - response(${subscriptionsChanged.subscriptions})")
 
 
                     if (subscriptionsChanged.subscriptions.isEmpty()) {
@@ -166,11 +165,20 @@ class NotifyClientInstrumentedAndroidTest {
 
                 override fun onSubscriptionsChanged(subscriptionsChanged: Notify.Event.SubscriptionsChanged) {
                     countSecondaryReceivedResponses++
-                    Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: secondary - response($countSecondaryReceivedResponses)")
-                    Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: secondary - response(${subscriptionsChanged.subscriptions})")
+
 
                     if (countSecondaryReceivedResponses > 1 && subscriptionsChanged.subscriptions.isNotEmpty()) {
                         didSecondaryReceiveSubscriptions = true
+                    }
+                    Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: secondary - response($countSecondaryReceivedResponses): $didSecondaryReceiveSubscriptions")
+                    Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: secondary - response(${subscriptionsChanged.subscriptions})")
+
+                    if (didPrimaryReceiveSubscriptions && didSecondaryReceiveSubscriptions) {
+                        if (!wasMessageSent) {
+                            Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: secondary - message - sent")
+                            sendTestNotification()
+                            wasMessageSent = true
+                        }
                     }
                 }
             })
