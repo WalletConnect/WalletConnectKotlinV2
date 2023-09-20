@@ -14,16 +14,10 @@ internal class WatchSubscriptionsForEveryRegisteredAccountUseCase(
 
     suspend operator fun invoke() = supervisorScope {
         val registeredAccounts = runCatching { registeredAccountsRepository.getAllAccounts() }
-            .getOrElse { error -> return@supervisorScope logger.log("WatchSubscriptionsForEveryRegisteredAccountUseCase - getAllAccounts: $error") }
-        logger.log("WatchSubscriptionsForEveryRegisteredAccountUseCase - accounts(${registeredAccounts.size}): $registeredAccounts")
+            .getOrElse { error -> return@supervisorScope logger.error("WatchSubscriptionsForEveryRegisteredAccountUseCase - getAllAccounts: $error") }
 
         registeredAccounts.forEach { registeredAccount ->
-            watchSubscriptionsUseCase(registeredAccount.accountId, {
-                logger.log("WatchSubscriptionsForEveryRegisteredAccountUseCase - onSuccess: $registeredAccount")
-            }, { error ->
-                logger.log("WatchSubscriptionsForEveryRegisteredAccountUseCase - onFailure: $registeredAccount, $error")
-            })
+            watchSubscriptionsUseCase(registeredAccount.accountId, {}, { error -> logger.log("WatchSubscriptionsForEveryRegisteredAccountUseCase - onFailure: $registeredAccount, $error") })
         }
-
     }
 }
