@@ -27,7 +27,6 @@ internal fun responseModule() = module {
     single {
         OnWatchSubscriptionsResponseUseCase(
             setActiveSubscriptionsUseCase = get(),
-            logger = get(),
         )
     }
 }
