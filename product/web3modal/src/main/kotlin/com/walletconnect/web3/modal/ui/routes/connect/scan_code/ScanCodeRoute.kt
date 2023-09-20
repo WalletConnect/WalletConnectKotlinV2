@@ -24,18 +24,19 @@ import com.walletconnect.modal.ui.components.qr.WalletConnectQRCode
 import com.walletconnect.web3.modal.ui.components.internal.commons.entry.CopyActionEntry
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
+import com.walletconnect.web3.modal.ui.routes.connect.ConnectState
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 @Composable
-internal fun ScanQRCodeRoute(uri: String) {
+internal fun ScanQRCodeRoute(connectState: ConnectState) {
     val context: Context = LocalContext.current
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
 
     ScanQRCodeContent(
-        uri = uri,
+        uri = connectState.uri,
         onCopyLinkClick = {
             Toast.makeText(context, "Link copied", Toast.LENGTH_SHORT).show()
-            clipboardManager.setText(AnnotatedString(uri))
+            clipboardManager.setText(AnnotatedString(connectState.uri))
         }
     )
 }

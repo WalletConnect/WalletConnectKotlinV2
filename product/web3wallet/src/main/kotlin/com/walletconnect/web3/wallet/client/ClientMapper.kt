@@ -141,7 +141,7 @@ internal fun Sign.Model.SessionProposal.toWallet(): Wallet.Model.SessionProposal
     )
 
 internal fun Sign.Model.VerifyContext.toWallet(): Wallet.Model.VerifyContext =
-    Wallet.Model.VerifyContext(id, origin, this.validation.toWallet(), verifyUrl)
+    Wallet.Model.VerifyContext(id, origin, this.validation.toWallet(), verifyUrl, isScam)
 
 internal fun Sign.Model.Validation.toWallet(): Wallet.Model.Validation =
     when (this) {
@@ -195,9 +195,9 @@ internal fun Sign.Model.SessionUpdateResponse.toWallet(): Wallet.Model.SessionUp
 internal fun Auth.Event.AuthRequest.toWallet(): Wallet.Model.AuthRequest = Wallet.Model.AuthRequest(id, pairingTopic, payloadParams.toWallet())
 
 @JvmSynthetic
-internal fun Auth.Event.VerifyContext.toWallet(): Wallet.Model.VerifyContext = Wallet.Model.VerifyContext(id, origin, this.validation.toWallet(), verifyUrl)
+internal fun Auth.Event.VerifyContext.toWallet(): Wallet.Model.VerifyContext = Wallet.Model.VerifyContext(id, origin, this.validation.toWallet(), verifyUrl, isScam)
 @JvmSynthetic
-internal fun Auth.Model.VerifyContext.toWallet(): Wallet.Model.VerifyContext = Wallet.Model.VerifyContext(id, origin, this.validation.toWallet(), verifyUrl)
+internal fun Auth.Model.VerifyContext.toWallet(): Wallet.Model.VerifyContext = Wallet.Model.VerifyContext(id, origin, this.validation.toWallet(), verifyUrl, isScam)
 
 @JvmSynthetic
 internal fun Wallet.Model.SessionProposal.toSign(): Sign.Model.SessionProposal =
