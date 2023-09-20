@@ -52,8 +52,7 @@ internal fun callModule() = module {
             metadataStorageRepository = get(),
             subscriptionRepository = get(),
             messagesRepository = get(),
-            fetchDidJwtInteractor = get(),
-            logger = get()
+            fetchDidJwtInteractor = get()
         )
     }
 
