@@ -10,6 +10,7 @@ import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.domain.model.AccountData
 import com.walletconnect.web3.modal.domain.model.Chain
 import com.walletconnect.web3.modal.domain.usecase.DeleteSessionDataUseCase
+import com.walletconnect.web3.modal.domain.usecase.GetIdentityUseCase
 import com.walletconnect.web3.modal.domain.usecase.GetSelectedChainUseCase
 import com.walletconnect.web3.modal.domain.usecase.GetSessionTopicUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveChainSelectionUseCase
@@ -35,6 +36,7 @@ internal class Web3ModalViewModel(
     private val deleteSessionDataUseCase: DeleteSessionDataUseCase = wcKoinApp.koin.get()
     private val saveChainSelectionUseCase: SaveChainSelectionUseCase = wcKoinApp.koin.get()
     private val getSelectedChainUseCase: GetSelectedChainUseCase = wcKoinApp.koin.get()
+    private val getIdentityUseCase: GetIdentityUseCase = wcKoinApp.koin.get()
 
     private val _modalState: MutableStateFlow<Web3ModalState> = MutableStateFlow(Web3ModalState.Loading)
 
@@ -63,13 +65,15 @@ internal class Web3ModalViewModel(
         val chains = activeSession.getChains()
         val selectedChain = chains.getSelectedChain(getSelectedChainUseCase())
         val address = activeSession.getAddress(selectedChain)
+        val identity = getIdentityUseCase(address, selectedChain.id)
 
         val accountData = AccountData(
             topic = activeSession.topic,
             address = address,
             balance = "",
             selectedChain = selectedChain,
-            chains = chains
+            chains = chains,
+            identity = identity
         )
         _modalState.value = Web3ModalState.AccountState(accountData)
     }

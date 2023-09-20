@@ -30,4 +30,6 @@ internal fun web3ModalModule() = module {
     single { SaveChainSelectionUseCase(repository = get()) }
     single { GetSelectedChainUseCase(repository = get()) }
     single { ObserveSessionTopicUseCase(repository = get()) }
+
+    includes(blockchainApiModule())
 }
