@@ -57,8 +57,7 @@ internal fun engineModule() = module {
             jsonRpcInteractor = get(),
             fetchDidJwtInteractor = get(),
             keyManagementRepository = get(),
-            extractPublicKeysFromDidJsonUseCase = get(),
-            logger = get()
+            extractPublicKeysFromDidJsonUseCase = get()
         )
     }
 
