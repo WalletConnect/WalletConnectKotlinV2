@@ -17,7 +17,7 @@ internal class WatchSubscriptionsForEveryRegisteredAccountUseCase(
             .getOrElse { error -> return@supervisorScope logger.error("WatchSubscriptionsForEveryRegisteredAccountUseCase - getAllAccounts: $error") }
 
         registeredAccounts.forEach { registeredAccount ->
-            watchSubscriptionsUseCase(registeredAccount.accountId, {}, { error -> logger.log("WatchSubscriptionsForEveryRegisteredAccountUseCase - onFailure: $registeredAccount, $error") })
+            watchSubscriptionsUseCase(registeredAccount.accountId, {}, { error -> logger.error("WatchSubscriptionsForEveryRegisteredAccountUseCase - onFailure: $registeredAccount, $error") })
         }
     }
 }
