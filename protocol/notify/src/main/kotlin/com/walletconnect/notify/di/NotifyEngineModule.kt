@@ -3,7 +3,6 @@
 package com.walletconnect.notify.di
 
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
-import com.walletconnect.notify.common.DEFAULT_NOTIFY_SERVER_URL
 import com.walletconnect.notify.common.NotifyServerUrl
 import com.walletconnect.notify.engine.NotifyEngine
 import com.walletconnect.notify.engine.domain.ExtractMetadataFromConfigUseCase
@@ -20,7 +19,7 @@ import org.koin.dsl.module
 @JvmSynthetic
 internal fun engineModule() = module {
 
-    single { NotifyServerUrl(DEFAULT_NOTIFY_SERVER_URL) }
+    single { NotifyServerUrl() }
 
     includes(
         callModule(),
