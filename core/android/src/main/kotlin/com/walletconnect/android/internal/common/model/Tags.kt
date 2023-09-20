@@ -48,44 +48,15 @@ enum class Tags(val id: Int) {
     AUTH_REQUEST(3000),
     AUTH_REQUEST_RESPONSE(3001),
 
-    @Deprecated("Replaced with notify protocol")
-    PUSH_REQUEST(4000),
-
-    @Deprecated("Replaced with notify protocol")
-    PUSH_REQUEST_RESPONSE(4001),
     NOTIFY_SUBSCRIBE(4000),
     NOTIFY_SUBSCRIBE_RESPONSE(4001),
 
-    @Deprecated("Replaced with notify protocol")
-    PUSH_PROPOSE(4010),
-
-    @Deprecated("Replaced with notify protocol")
-    PUSH_PROPOSE_RESPONSE(4011),
-
-    @Deprecated("Replaced with notify protocol")
-    PUSH_MESSAGE(4002),
-
-    @Deprecated("Replaced with notify protocol")
-    PUSH_MESSAGE_RESPONSE(4003),
     NOTIFY_MESSAGE(4002),
     NOTIFY_MESSAGE_RESPONSE(4003),
 
-    @Deprecated("Replaced with notify protocol")
-    PUSH_DELETE(4004),
-    @Deprecated("Replaced with notify protocol")
-    PUSH_DELETE_RESPONSE(4005),
     NOTIFY_DELETE(4004),
     NOTIFY_DELETE_RESPONSE(4005),
 
-    @Deprecated("Replaced with notify protocol")
-    PUSH_SUBSCRIBE(4006),
-    @Deprecated("Replaced with notify protocol")
-    PUSH_SUBSCRIBE_RESPONSE(4007),
-
-    @Deprecated("Replaced with notify protocol")
-    PUSH_UPDATE(4008),
-    @Deprecated("Replaced with notify protocol")
-    PUSH_UPDATE_RESPONSE(4009),
     NOTIFY_UPDATE(4008),
     NOTIFY_UPDATE_RESPONSE(4009),
 
@@ -94,10 +65,6 @@ enum class Tags(val id: Int) {
 
     NOTIFY_SUBSCRIPTIONS_CHANGED(4012),
     NOTIFY_SUBSCRIPTIONS_CHANGED_RESPONSE(4013),
-
-    SYNC_SET(5000),
-
-    SYNC_DELETE(5002),
 
     //todo: Discuss: Should Tags be in specific SDKs?
 }

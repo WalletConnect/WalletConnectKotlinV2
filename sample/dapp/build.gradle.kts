@@ -75,11 +75,9 @@ dependencies {
     firebaseChrashlytics()
 
     debugImplementation(project(":core:android"))
-    debugImplementation(project(":protocol:push"))
     debugImplementation(project(":product:walletconnectmodal"))
 
     releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
     releaseImplementation("com.walletconnect:android-core")
-    releaseImplementation("com.walletconnect:push")
     releaseImplementation(project(":product:walletconnectmodal"))
 }

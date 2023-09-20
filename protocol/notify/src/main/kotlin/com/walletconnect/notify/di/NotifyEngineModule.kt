@@ -92,7 +92,6 @@ internal fun engineModule() = module {
             jsonRpcInteractor = get(),
             pairingHandler = get(),
             logger = get(),
-            syncClient = get(),
             subscribeToDappUseCase = get(),
             updateUseCase = get(),
             deleteSubscriptionUseCase = get(),

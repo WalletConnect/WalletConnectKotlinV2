@@ -8,7 +8,6 @@ import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.relay.NetworkClientTimeout
 import com.walletconnect.android.relay.RelayConnectionInterface
-import com.walletconnect.android.sync.client.SyncInterface
 import com.walletconnect.android.verify.client.VerifyInterface
 
 interface CoreInterface {
@@ -17,7 +16,6 @@ interface CoreInterface {
     val Relay: RelayConnectionInterface
     val Echo: EchoInterface
     val Verify: VerifyInterface
-    val Sync: SyncInterface
     val Explorer: ExplorerInterface
 
     interface Delegate : PairingInterface.Delegate
