@@ -11,9 +11,7 @@ import org.koin.dsl.module
 internal fun responseModule() = module {
 
     single {
-        OnNotifySubscribeResponseUseCase(
-            logger = get(),
-        )
+        OnNotifySubscribeResponseUseCase()
     }
 
     single {

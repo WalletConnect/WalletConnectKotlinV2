@@ -13,7 +13,6 @@ import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.foundation.util.Logger
 import com.walletconnect.foundation.util.jwt.decodeDidPkh
 import com.walletconnect.notify.common.model.Error
 import com.walletconnect.notify.common.model.Subscription
@@ -23,9 +22,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.supervisorScope
 
-internal class OnNotifySubscribeResponseUseCase(
-    private val logger: Logger,
-) {
+internal class OnNotifySubscribeResponseUseCase {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
@@ -33,13 +30,10 @@ internal class OnNotifySubscribeResponseUseCase(
         try {
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcResult -> {
-                    logger.log("OnNotifySubscribeResponseUseCase - response: ${response}")
 
-                    val subscriptionResponseJwtClaim =
-                        extractVerifiedDidJwtClaims<SubscriptionResponseJwtClaim>((response.result as ChatNotifyResponseAuthParams.ResponseAuth).responseAuth).getOrElse { error ->
-                            _events.emit(SDKError(error))
-                            return@supervisorScope
-                        }
+                    val subscriptionResponseJwtClaim = extractVerifiedDidJwtClaims<SubscriptionResponseJwtClaim>((response.result as ChatNotifyResponseAuthParams.ResponseAuth).responseAuth)
+                        .getOrElse { error -> return@supervisorScope _events.emit(SDKError(error)) }
+
                     _events.emit(
                         Subscription.Active(
                             AccountId(decodeDidPkh(subscriptionResponseJwtClaim.subject)),
