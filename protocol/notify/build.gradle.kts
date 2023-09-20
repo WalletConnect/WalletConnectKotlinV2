@@ -26,8 +26,8 @@ android {
 
         buildConfigField(type = "String", name = "SDK_VERSION", value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\"")
         buildConfigField("String", "PROJECT_ID", "\"${System.getenv("WC_CLOUD_PROJECT_ID") ?: ""}\"")
-        buildConfigField("String", "PROD_GM_PROJECT_ID", "\"${System.getenv("PROD_GM_PROJECT_ID") ?: ""}\"")
-        buildConfigField("String", "PROD_GM_SECRET", "\"${System.getenv("PROD_GM_SECRET") ?: ""}\"")
+        buildConfigField("String", "PROD_GM_PROJECT_ID", "\"${requireNotNull(System.getenv("PROD_GM_PROJECT_ID"))}\"")
+        buildConfigField("String", "PROD_GM_SECRET", "\"${requireNotNull(System.getenv("PROD_GM_SECRET"))}\"")
         buildConfigField("Integer", "TEST_TIMEOUT_SECONDS", "${System.getenv("TEST_TIMEOUT_SECONDS") ?: 10}")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
