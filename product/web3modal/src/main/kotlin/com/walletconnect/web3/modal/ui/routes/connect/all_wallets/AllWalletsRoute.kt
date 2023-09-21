@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -32,29 +33,31 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.walletconnect.android.internal.common.explorer.data.model.Wallet
+import com.walletconnect.android.internal.common.modal.data.model.Wallet
 import com.walletconnect.modal.utils.isLandscape
 import com.walletconnect.web3.modal.R
 import com.walletconnect.web3.modal.ui.components.internal.commons.ContentDescription
+import com.walletconnect.web3.modal.ui.components.internal.commons.HorizontalSpacer
+import com.walletconnect.web3.modal.ui.components.internal.commons.ScanQRIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.VerticalSpacer
 import com.walletconnect.web3.modal.ui.components.internal.commons.WalletsLazyGridView
 import com.walletconnect.web3.modal.ui.components.internal.commons.inputs.SearchInput
 import com.walletconnect.web3.modal.ui.components.internal.commons.walletsGridItems
-import com.walletconnect.web3.modal.ui.navigation.connection.navigateToRedirect
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 import com.walletconnect.web3.modal.ui.previews.testWallets
+import com.walletconnect.web3.modal.ui.routes.connect.ConnectState
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 import kotlinx.coroutines.launch
 
 @Composable
 internal fun AllWalletsRoute(
-    navController: NavController,
-    wallets: List<Wallet>
+    connectState: ConnectState
 ) {
     AllWalletsContent(
-        wallets = wallets,
-        onWalletItemClick = { wallet -> navController.navigateToRedirect(wallet) },
+        wallets = connectState.wallets,
+        onWalletItemClick = { wallet -> connectState.navigateToRedirectRoute(wallet) },
+        onScanQRClick = { connectState.navigateToScanQRCode() }
     )
 }
 
@@ -62,6 +65,7 @@ internal fun AllWalletsRoute(
 private fun AllWalletsContent(
     wallets: List<Wallet>,
     onWalletItemClick: (Wallet) -> Unit,
+    onScanQRClick: () -> Unit
 ) {
     var searchInputValue by rememberSaveable() { mutableStateOf("") }
     var searchedWallets = wallets.filteredWallets(searchInputValue)
@@ -76,17 +80,21 @@ private fun AllWalletsContent(
             .padding(horizontal = 12.dp),
     ) {
         VerticalSpacer(height = 12.dp)
-        SearchInput(
-            searchValue = searchInputValue,
-            onSearchValueChange = { searchInputValue = it },
-            onClearClick = {
-                searchedWallets = wallets
-                coroutineScope.launch {
-                    gridState.scrollToItem(0)
+        Row {
+            SearchInput(
+                searchValue = searchInputValue,
+                modifier = Modifier.weight(1f),
+                onSearchValueChange = { searchInputValue = it },
+                onClearClick = {
+                    searchedWallets = wallets
+                    coroutineScope.launch {
+                        gridState.scrollToItem(0)
+                    }
                 }
-            }
-        )
-
+            )
+            HorizontalSpacer(width = 12.dp)
+            ScanQRIcon(onClick = onScanQRClick)
+        }
         if (searchedWallets.isEmpty()) {
             NoWalletsFoundItem()
         } else {
@@ -142,7 +150,7 @@ private fun List<Wallet>.filteredWallets(value: String): List<Wallet> = this.fil
 @Composable
 private fun AllWalletsEmptyPreview() {
     Web3ModalPreview {
-        AllWalletsContent(listOf(), {})
+        AllWalletsContent(listOf(), {}, {})
     }
 }
 
@@ -150,6 +158,6 @@ private fun AllWalletsEmptyPreview() {
 @Composable
 private fun AllWalletsPreview() {
     Web3ModalPreview {
-        AllWalletsContent(testWallets, {})
+        AllWalletsContent(testWallets, {}, {})
     }
 }

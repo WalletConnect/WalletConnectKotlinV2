@@ -7,7 +7,7 @@ import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.sample.common.BuildConfig
-import com.walletconnect.sample.common.WALLET_CONNECT_PROD_RELAY_URL
+import com.walletconnect.sample.common.RELAY_URL
 import com.walletconnect.sample.common.tag
 import com.walletconnect.wcmodal.client.Modal
 import com.walletconnect.wcmodal.client.WalletConnectModal
@@ -18,7 +18,7 @@ class DappSampleApp : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        val serverUri = "wss://$WALLET_CONNECT_PROD_RELAY_URL?projectId=${BuildConfig.PROJECT_ID}"
+        val serverUri = "wss://$RELAY_URL?projectId=${BuildConfig.PROJECT_ID}"
         val appMetaData = Core.Model.AppMetaData(
             name = "Kotlin Dapp",
             description = "Kotlin Dapp Implementation",

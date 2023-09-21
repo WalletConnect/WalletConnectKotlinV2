@@ -4,13 +4,18 @@ package com.walletconnect.auth.engine.domain
 
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
+import com.walletconnect.android.internal.common.model.Validation
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.internal.common.storage.VerifyContextStorageRepository
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
+import com.walletconnect.android.verify.data.model.VerifyContext
 import com.walletconnect.auth.common.json_rpc.AuthParams
+import com.walletconnect.auth.common.model.Events
 import com.walletconnect.auth.engine.pairingTopicToResponseTopicMap
 import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntriesUseCaseInterface
+import com.walletconnect.auth.json_rpc.domain.GetPendingJsonRpcHistoryEntryByTopicUseCase
 import com.walletconnect.auth.json_rpc.model.JsonRpcMethod
 import com.walletconnect.auth.use_case.calls.FormatMessageUseCaseInterface
 import com.walletconnect.auth.use_case.calls.GetListOfVerifyContextsUseCaseInterface
@@ -19,6 +24,7 @@ import com.walletconnect.auth.use_case.calls.RespondAuthRequestUseCaseInterface
 import com.walletconnect.auth.use_case.calls.SendAuthRequestUseCaseInterface
 import com.walletconnect.auth.use_case.requests.OnAuthRequestUseCase
 import com.walletconnect.auth.use_case.responses.OnAuthRequestResponseUseCase
+import com.walletconnect.utils.Empty
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -33,7 +39,9 @@ import kotlinx.coroutines.supervisorScope
 
 internal class AuthEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val verifyContextStorageRepository: VerifyContextStorageRepository,
     private val getPendingJsonRpcHistoryEntriesUseCase: GetPendingJsonRpcHistoryEntriesUseCaseInterface,
+    private val getPendingJsonRpcHistoryEntryByTopicUseCase: GetPendingJsonRpcHistoryEntryByTopicUseCase,
     private val pairingHandler: PairingControllerInterface,
     private val sendAuthRequestUseCase: SendAuthRequestUseCaseInterface,
     private val respondAuthRequestUseCase: RespondAuthRequestUseCaseInterface,
@@ -58,6 +66,7 @@ internal class AuthEngine(
 
     init {
         pairingHandler.register(JsonRpcMethod.WC_AUTH_REQUEST)
+        emitReceivedAuthRequest()
     }
 
     fun setup() {
@@ -104,6 +113,19 @@ internal class AuthEngine(
         } catch (e: Exception) {
             scope.launch { _engineEvent.emit(SDKError(e)) }
         }
+    }
+
+    private fun emitReceivedAuthRequest() {
+        pairingHandler.activePairingFlow
+            .onEach { pairingTopic ->
+                try {
+                    val request = getPendingJsonRpcHistoryEntryByTopicUseCase(pairingTopic)
+                    val context = verifyContextStorageRepository.get(request.id) ?: VerifyContext(request.id, String.Empty, Validation.UNKNOWN, String.Empty, null)
+                    scope.launch { _engineEvent.emit(Events.OnAuthRequest(request.id, request.pairingTopic, request.payloadParams, context)) }
+                } catch (e: Exception) {
+                    println("No auth request for pairing topic: $e")
+                }
+            }.launchIn(scope)
     }
 
     private fun collectAuthEvents(): Job =

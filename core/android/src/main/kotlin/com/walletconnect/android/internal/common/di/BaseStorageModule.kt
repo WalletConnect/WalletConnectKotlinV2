@@ -5,17 +5,16 @@ import com.squareup.sqldelight.EnumColumnAdapter
 import com.walletconnect.android.di.AndroidBuildVariantDITags
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.Validation
-import com.walletconnect.android.internal.common.storage.*
 import com.walletconnect.android.internal.common.storage.IdentitiesStorageRepository
 import com.walletconnect.android.internal.common.storage.JsonRpcHistory
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepository
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.PairingStorageRepository
 import com.walletconnect.android.internal.common.storage.PairingStorageRepositoryInterface
+import com.walletconnect.android.internal.common.storage.VerifyContextStorageRepository
 import com.walletconnect.android.sdk.core.AndroidCoreDatabase
 import com.walletconnect.android.sdk.storage.data.dao.MetaData
 import com.walletconnect.android.sdk.storage.data.dao.VerifyContext
-import com.walletconnect.android.sync.di.syncStorageModule
 import com.walletconnect.utils.Empty
 import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
@@ -95,8 +94,6 @@ fun baseStorageModule(storagePrefix: String = String.Empty) = module {
     single { IdentitiesStorageRepository(get()) }
 
     single { VerifyContextStorageRepository(get()) }
-
-    includes(syncStorageModule())
 
     single { DatabaseConfig(storagePrefix) }
 }

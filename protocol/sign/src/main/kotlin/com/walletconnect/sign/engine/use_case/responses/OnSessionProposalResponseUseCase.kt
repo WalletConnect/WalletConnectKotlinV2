@@ -14,6 +14,7 @@ import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.foundation.common.model.PublicKey
+import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.engine.model.EngineDO
@@ -38,12 +39,13 @@ internal class OnSessionProposalResponseUseCase(
     suspend operator fun invoke(wcResponse: WCResponse, params: SignParams.SessionProposeParams) = supervisorScope {
         try {
             val pairingTopic = wcResponse.topic
-            pairingController.updateExpiry(Core.Params.UpdateExpiry(pairingTopic.value, Expiry(MONTH_IN_SECONDS)))
-            pairingController.activate(Core.Params.Activate(pairingTopic.value))
-            if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) return@supervisorScope
-
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcResult -> {
+                    updatePairing(pairingTopic)
+                    if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) {
+                        _events.emit(SDKError(Throwable("Invalid Pairing")))
+                        return@supervisorScope
+                    }
                     logger.log("Session proposal approve received")
                     val selfPublicKey = PublicKey(params.proposer.publicKey)
                     val approveParams = response.result as CoreSignParams.ApprovalParams
@@ -61,5 +63,10 @@ internal class OnSessionProposalResponseUseCase(
         } catch (e: Exception) {
             _events.emit(SDKError(e))
         }
+    }
+
+    private fun updatePairing(pairingTopic: Topic) = with(pairingController) {
+        updateExpiry(Core.Params.UpdateExpiry(pairingTopic.value, Expiry(MONTH_IN_SECONDS)))
+        activate(Core.Params.Activate(pairingTopic.value))
     }
 }

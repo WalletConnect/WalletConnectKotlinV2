@@ -13,7 +13,6 @@ import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
 import com.walletconnect.android.keyserver.domain.use_case.UnregisterInviteUseCase
 import com.walletconnect.chat.common.exceptions.InvalidAccountIdException
 import com.walletconnect.chat.common.exceptions.InviteKeyNotFound
-import com.walletconnect.chat.engine.sync.use_case.requests.DeleteInviteKeyFromChatInviteKeyStoreUseCase
 import com.walletconnect.chat.jwt.use_case.EncodeUnregisterInviteKeyDidJwtPayloadUseCase
 import com.walletconnect.chat.storage.AccountsStorageRepository
 import com.walletconnect.foundation.util.jwt.encodeX25519DidKey
@@ -27,7 +26,6 @@ internal class GoPrivateUseCase(
     private val keyManagementRepository: KeyManagementRepository,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val unregisterInviteUseCase: UnregisterInviteUseCase,
-    private val deleteInviteKeyFromChatInviteKeyStoreUseCase: DeleteInviteKeyFromChatInviteKeyStoreUseCase,
 ) : GoPrivateUseCaseInterface {
 
     override fun goPrivate(accountId: AccountId, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
@@ -51,7 +49,6 @@ internal class GoPrivateUseCase(
                                 val inviteTopic = keyManagementRepository.getTopicFromKey(invitePublicKey)
                                 keyManagementRepository.removeKeys(inviteTopic.getParticipantTag())
                                 jsonRpcInteractor.unsubscribe(inviteTopic)
-                                deleteInviteKeyFromChatInviteKeyStoreUseCase(accountId)
                                 onSuccess()
                             },
                             onFailure = { error -> onError(error) }

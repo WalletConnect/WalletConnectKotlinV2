@@ -2,111 +2,51 @@
 
 package com.walletconnect.notify.engine.responses
 
-import android.content.res.Resources
 import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtClaims
-import com.walletconnect.android.internal.common.model.AppMetaData
-import com.walletconnect.android.internal.common.model.AppMetaDataType
+import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.Expiry
-import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.params.ChatNotifyResponseAuthParams
+import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
-import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.foundation.util.Logger
-import com.walletconnect.foundation.util.jwt.decodeEd25519DidKey
-import com.walletconnect.notify.common.calcExpiry
+import com.walletconnect.foundation.util.jwt.decodeDidPkh
 import com.walletconnect.notify.common.model.Error
 import com.walletconnect.notify.common.model.Subscription
-import com.walletconnect.notify.common.model.toDb
 import com.walletconnect.notify.data.jwt.subscription.SubscriptionResponseJwtClaim
-import com.walletconnect.notify.data.storage.SubscriptionRepository
-import com.walletconnect.notify.engine.domain.EngineNotifySubscriptionNotifier
-import com.walletconnect.notify.engine.sync.use_case.requests.SetSubscriptionWithSymmetricKeyToNotifySubscriptionStoreUseCase
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.updateAndGet
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
-internal class OnNotifySubscribeResponseUseCase(
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
-    private val crypto: KeyManagementRepository,
-    private val subscriptionRepository: SubscriptionRepository,
-    private val metadataStorageRepository: MetadataStorageRepositoryInterface,
-    private val engineNotifySubscriptionNotifier: EngineNotifySubscriptionNotifier,
-    private val setSubscriptionWithSymmetricKeyToNotifySubscriptionStoreUseCase: SetSubscriptionWithSymmetricKeyToNotifySubscriptionStoreUseCase,
-    private val logger: Logger,
-) {
+internal class OnNotifySubscribeResponseUseCase {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
-    suspend operator fun invoke(wcResponse: WCResponse) = supervisorScope {
+    suspend operator fun invoke(wcResponse: WCResponse, params: CoreNotifyParams.SubscribeParams) = supervisorScope {
         try {
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcResult -> {
-                    val requestedSubscription: Subscription.Requested = subscriptionRepository.getRequestedSubscriptionByRequestId(response.id)
-                        ?: return@supervisorScope _events.emit(SDKError(Resources.NotFoundException("Cannot find subscription for topic: ${wcResponse.topic.value}")))
-                    val subscriptionResponseJwt = extractVerifiedDidJwtClaims<SubscriptionResponseJwtClaim>((response.result as ChatNotifyResponseAuthParams.ResponseAuth).responseAuth).getOrThrow()
-                    val dappGeneratedPublicKey = decodeEd25519DidKey(subscriptionResponseJwt.subject)
-                    val selfPublicKey: PublicKey = crypto.getSelfPublicFromKeyAgreement(requestedSubscription.responseTopic)
-                    val notifyTopic: Topic = crypto.generateTopicFromKeyAgreement(selfPublicKey, dappGeneratedPublicKey)
-                    val updatedExpiry: Expiry = calcExpiry()
-                    val relayProtocolOptions = RelayProtocolOptions()
 
-                    runCatching<Unit> {
-                        with(requestedSubscription) {
-                            subscriptionRepository.insertOrAbortActiveSubscription(
-                                account = account.value,
-                                authenticationPublicKey = requestedSubscription.authenticationPublicKey,
-                                updatedExpiry = updatedExpiry.seconds,
-                                relayProtocol = relayProtocolOptions.protocol,
-                                relayData = relayProtocolOptions.data,
-                                mapOfScope = mapOfNotificationScope.toDb(),
-                                dappGeneratedPublicKey = dappGeneratedPublicKey.keyAsHex,
-                                notifyTopic = notifyTopic.value,
-                                requestedSubscriptionRequestId = requestedSubscription.requestId
-                            )
-                        }
-                    }.mapCatching {
-                        metadataStorageRepository.updateOrAbortMetaDataTopic(requestedSubscription.responseTopic, notifyTopic)
-                    }.fold(onSuccess = {
-                        val activeSubscription = with(requestedSubscription) {
-                            val dappMetaData: AppMetaData = metadataStorageRepository.getByTopicAndType(notifyTopic, AppMetaDataType.PEER)!!
+                    val subscriptionResponseJwtClaim = extractVerifiedDidJwtClaims<SubscriptionResponseJwtClaim>((response.result as ChatNotifyResponseAuthParams.ResponseAuth).responseAuth)
+                        .getOrElse { error -> return@supervisorScope _events.emit(SDKError(error)) }
 
-                            Subscription.Active(account, mapOfNotificationScope, expiry, dappGeneratedPublicKey, authenticationPublicKey, notifyTopic, dappMetaData, requestedSubscription.requestId)
-                        }
+                    _events.emit(
+                        Subscription.Active(
+                            AccountId(decodeDidPkh(subscriptionResponseJwtClaim.subject)),
+                            emptyMap(),
+                            Expiry(0L),
+                            PublicKey(""),
+                            PublicKey(""),
+                            Topic(""),
+                            null,
+                            null
 
-                        jsonRpcInteractor.subscribe(notifyTopic) { error ->
-                            launch {
-                                _events.emit(SDKError(error))
-                                cancel()
-                            }
-                        }
-
-                        jsonRpcInteractor.unsubscribe(requestedSubscription.responseTopic) { error ->
-                            launch {
-                                _events.emit(SDKError(error))
-                                cancel()
-                            }
-                        }
-
-                        val symKey = crypto.getSymmetricKey(notifyTopic.value.lowercase())
-                        setSubscriptionWithSymmetricKeyToNotifySubscriptionStoreUseCase(activeSubscription, symKey, { logger.log("Synced Subscriptions") }, { error -> logger.error(error) })
-
-                        _events.emit(activeSubscription)
-                        engineNotifySubscriptionNotifier.newlyRespondedRequestedSubscriptionId.updateAndGet { requestedSubscription.requestId to activeSubscription }
-                    }, onFailure = {
-                        logger.error(it)
-                        return@supervisorScope _events.emit(SDKError(Resources.NotFoundException("Subscription already exists for topic: ${wcResponse.topic.value}")))
-                    })
+                        )
+                    )
                 }
 
                 is JsonRpcResponse.JsonRpcError -> {

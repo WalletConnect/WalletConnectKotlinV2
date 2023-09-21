@@ -52,35 +52,19 @@ android {
 
 dependencies {
 
-    implementation("androidx.core:core-ktx:1.10.0")
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
-    implementation("com.google.android.material:material:1.8.0")
-
-    // Navigation
-    implementation("androidx.navigation:navigation-compose:2.5.3")
-    implementation("androidx.navigation:navigation-fragment-ktx:2.5.3")
-
-    //compose
-    compose()
-    //override compose material to fix crash at modalsheet
-    implementation("androidx.compose.material:material:1.5.0-alpha04")
-
-    //coil
-    implementation("io.coil-kt:coil-compose:2.3.0")
-
-    // accompanist
+    appCompat()
     accompanist()
+    coil()
+    compose()
+    dataStore()
+    lifecycle()
+    navigationComponent()
+    qrCodeGenerator()
 
-    // Qrcode generator
-    implementation("com.github.alexzhirkevich:custom-qr-generator:1.6.1")
-
-    releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
-    releaseImplementation("com.walletconnect:android-core")
-    releaseImplementation("com.walletconnect:sign")
-    releaseImplementation("com.walletconnect:auth")
-    releaseImplementation(project(":core:modal"))
+    releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
+    releaseImplementation("com.walletconnect:sign:$SIGN_VERSION")
+    releaseImplementation("com.walletconnect:auth:$AUTH_VERSION")
+    releaseImplementation("com.walletconnect:modal-core:$MODAL_CORE_VERSION")
 
     debugImplementation(project(":core:android"))
     debugImplementation(project(":protocol:sign"))

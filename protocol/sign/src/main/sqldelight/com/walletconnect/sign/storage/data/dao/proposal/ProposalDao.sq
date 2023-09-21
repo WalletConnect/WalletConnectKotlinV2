@@ -31,3 +31,8 @@ FROM ProposalDao pd;
 deleteProposal:
 DELETE FROM ProposalDao
 WHERE proposer_key = ?;
+
+getProposalByPairingTopic:
+SELECT pd.request_id, pd.pairingTopic, pd.name, pd.description, pd.url, pd.icons, pd.relay_protocol, pd.relay_data, pd.proposer_key, pd.properties, pd.redirect
+FROM ProposalDao pd
+WHERE pairingTopic = ?;

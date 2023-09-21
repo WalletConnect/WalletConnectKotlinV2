@@ -9,7 +9,8 @@ data class SessionProposalUI(
     val peerUI: PeerUI,
     val namespaces: Map<String, Wallet.Model.Namespace.Proposal>,
     val peerContext: PeerContextUI,
-    val redirect: String
+    val redirect: String,
+    val pubKey: String,
 )
 
 data class WalletMetaData(

@@ -8,5 +8,4 @@ internal interface NotifyJwtBase: JwtClaims {
     val action: String
     val issuedAt: Long
     val expiration: Long
-    val keyserverUrl: String
 }

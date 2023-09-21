@@ -4,6 +4,7 @@ plugins {
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
     id("com.google.firebase.appdistribution")
+//    id("io.sentry.android.gradle") version "3.12.0"
 }
 
 android {
@@ -56,6 +57,7 @@ android {
 
 dependencies {
     implementation(project(":sample:common"))
+    implementation("androidx.compose.material3:material3:1.0.0-alpha08")
 
     firebaseMessaging()
     firebaseChrashlytics()
@@ -68,8 +70,6 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.6.1")
     implementation("androidx.palette:palette:1.0.0")
 
-
-
     // Glide
     implementation("com.github.skydoves:landscapist-glide:2.1.0")
 
@@ -78,6 +78,7 @@ dependencies {
 
     // Compose
     compose()
+    coil()
 
     implementation("com.google.android.gms:play-services-mlkit-barcode-scanning:18.1.0")
     implementation("androidx.lifecycle:lifecycle-process:2.5.1")
@@ -92,6 +93,9 @@ dependencies {
     // Zxing
     implementation("com.google.zxing:core:3.5.0")
 
+    // MixPanel
+    implementation("com.mixpanel.android:mixpanel-android:7.3.1")
+
     // Unit Tests
     jUnit4()
     mockk()
@@ -99,12 +103,10 @@ dependencies {
     // WalletConnect
     debugImplementation(project(":core:android"))
     debugImplementation(project(":product:web3wallet"))
-    debugImplementation(project(":product:web3inbox"))
     debugImplementation(project(":protocol:notify"))
 
     releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
     releaseImplementation("com.walletconnect:android-core")
     releaseImplementation("com.walletconnect:web3wallet")
-    releaseImplementation("com.walletconnect:web3inbox")
     releaseImplementation("com.walletconnect:notify")
 }

@@ -136,7 +136,7 @@ private fun ErrorBanner(message: String) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
-            imageVector = ImageVector.vectorResource(id = R.drawable.orange_warning),
+            imageVector = ImageVector.vectorResource(id = R.drawable.invalid_domain),
             contentDescription = null,
             modifier = Modifier.size(24.dp),
             colorFilter = ColorFilter.tint(color = Color.White)

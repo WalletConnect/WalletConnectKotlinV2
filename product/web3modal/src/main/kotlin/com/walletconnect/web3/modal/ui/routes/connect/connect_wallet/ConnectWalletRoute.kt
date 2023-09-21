@@ -2,7 +2,6 @@ package com.walletconnect.web3.modal.ui.routes.connect.connect_wallet
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -11,28 +10,33 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.walletconnect.android.internal.common.explorer.data.model.Wallet
+import com.walletconnect.android.internal.common.modal.data.model.Wallet
+import com.walletconnect.web3.modal.ui.components.internal.commons.InstalledLabel
 import com.walletconnect.web3.modal.ui.components.internal.commons.ListSelectRow
-import com.walletconnect.web3.modal.ui.components.internal.commons.MultipleWalletIcon
+import com.walletconnect.web3.modal.ui.components.internal.commons.RecentLabel
 import com.walletconnect.web3.modal.ui.components.internal.commons.WalletImage
-import com.walletconnect.web3.modal.ui.components.internal.walletconnect.walletConnectQRCode
+import com.walletconnect.web3.modal.ui.components.internal.walletconnect.allWallets
+import com.walletconnect.web3.modal.ui.model.UiStateBuilder
 import com.walletconnect.web3.modal.ui.navigation.Route
-import com.walletconnect.web3.modal.ui.navigation.connection.navigateToRedirect
 import com.walletconnect.web3.modal.ui.previews.ConnectYourWalletPreviewProvider
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
+import com.walletconnect.web3.modal.ui.routes.connect.ConnectState
 
 @Composable
 internal fun ConnectWalletRoute(
     navController: NavController,
-    wallets: List<Wallet>
+    connectState: ConnectState,
 ) {
-    ConnectWalletContent(
-        wallets = wallets,
-        onWalletItemClick = { navController.navigateToRedirect(it) },
-        onViewAllClick = { navController.navigate(Route.ALL_WALLETS.path) },
-        onScanIconClick = { navController.navigate(Route.QR_CODE.path) }
-    )
+    UiStateBuilder(
+        connectState.getWallets(),
+    ) {
+        ConnectWalletContent(
+            wallets = it,
+            onWalletItemClick = { wallet -> connectState.navigateToRedirectRoute(wallet) },
+            onViewAllClick = { navController.navigate(Route.ALL_WALLETS.path) },
+        )
+    }
 }
 
 @Composable
@@ -40,14 +44,12 @@ private fun ConnectWalletContent(
     wallets: List<Wallet>,
     onWalletItemClick: (Wallet) -> Unit,
     onViewAllClick: () -> Unit,
-    onScanIconClick: () -> Unit,
 ) {
     Column {
         WalletsList(
             wallets = wallets,
             onWalletItemClick = onWalletItemClick,
             onViewAllClick = onViewAllClick,
-            onScanIconClick = onScanIconClick
         )
     }
 }
@@ -56,44 +58,32 @@ private fun ConnectWalletContent(
 private fun WalletsList(
     wallets: List<Wallet>,
     onWalletItemClick: (Wallet) -> Unit,
-    onViewAllClick: () -> Unit,
-    onScanIconClick: () -> Unit
+    onViewAllClick: () -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
     ) {
-        if (wallets.isNotEmpty()) {
-            if (wallets.size <= 3) {
-                itemsIndexed(items = wallets) { _, item -> WalletListSelect(item, onWalletItemClick) }
-                walletConnectQRCode(onClick = onScanIconClick)
-            } else {
-                walletsItemsWithViewAll(wallets, onWalletItemClick, onViewAllClick, onScanIconClick)
-            }
-        } else {
-            walletConnectQRCode(onClick = onScanIconClick)
+        itemsIndexed(items = wallets.take(4)) { _, item ->
+            WalletListSelect(item, onWalletItemClick)
         }
+        allWallets(text = "${wallets.size}+",onClick = onViewAllClick)
     }
 }
 
-private fun LazyListScope.walletsItemsWithViewAll(
-    wallets: List<Wallet>,
-    onWalletItemClick: (Wallet) -> Unit,
-    onViewAllClick: () -> Unit,
-    onScanIconClick: () -> Unit
-) {
-    itemsIndexed(wallets.take(3)) { _, wallet ->
-        WalletListSelect(wallet, onWalletItemClick)
-    }
-    walletConnectQRCode(onClick = onScanIconClick)
-    when(wallets.size) {
-        4 -> item { WalletListSelect(item = wallets[3], onWalletItemClick = { onWalletItemClick(wallets[3])}) }
-        else -> item { AllWalletListSelect(wallets.subList(3, wallets.size), onViewAllClick) }
-    }
-}
 
 @Composable
 private fun WalletListSelect(item: Wallet, onWalletItemClick: (Wallet) -> Unit) {
+    val label: (@Composable (Boolean) -> Unit)? = when {
+        item.isRecent -> {
+            { RecentLabel(it) }
+        }
+        item.isWalletInstalled -> {
+            { InstalledLabel(it) }
+        }
+        else -> null
+    }
+
     ListSelectRow(
         startIcon = {
             WalletImage(
@@ -105,20 +95,8 @@ private fun WalletListSelect(item: Wallet, onWalletItemClick: (Wallet) -> Unit) 
         },
         text = item.name,
         onClick = { onWalletItemClick(item) },
-        contentPadding = PaddingValues(vertical = 4.dp)
-    )
-}
-
-@Composable
-private fun AllWalletListSelect(
-    wallets: List<Wallet>,
-    onViewAllClick: () -> Unit
-) {
-    ListSelectRow(
-        startIcon = { MultipleWalletIcon(wallets = wallets.take(4))},
-        text = "All Wallets",
-        onClick = onViewAllClick,
-        contentPadding = PaddingValues(vertical = 4.dp)
+        contentPadding = PaddingValues(vertical = 4.dp),
+        label = label
     )
 }
 
@@ -128,6 +106,6 @@ private fun ConnectYourWalletPreview(
     @PreviewParameter(ConnectYourWalletPreviewProvider::class) wallets: List<Wallet>
 ) {
     Web3ModalPreview(title = "Connect Wallet") {
-        ConnectWalletContent(wallets, {}, {}, {})
+        ConnectWalletContent(wallets, {}, {})
     }
 }

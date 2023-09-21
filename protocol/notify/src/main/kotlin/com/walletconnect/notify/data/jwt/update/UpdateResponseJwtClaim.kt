@@ -13,7 +13,6 @@ internal data class UpdateResponseJwtClaim(
     @Json(name = "aud") val audience: String,
     @Json(name = "iat") override val issuedAt: Long,
     @Json(name = "exp") override val expiration: Long,
-    @Json(name = "ksu") override val keyserverUrl: String,
-    @Json(name = "app") val dappUrl: String,
+    @Json(name = "app") val app: String,
     @Json(name = "act") override val action: String = "notify_update_response",
 ): NotifyJwtBase

@@ -38,13 +38,13 @@ internal class OnAuthRequestResponseUseCase(
     suspend operator fun invoke(wcResponse: WCResponse, requestParams: AuthParams.RequestParams) = supervisorScope {
         try {
             val pairingTopic = wcResponse.topic
-            updatePairing(pairingTopic, requestParams)
             if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) return@supervisorScope
             pairingTopicToResponseTopicMap.remove(pairingTopic)
 
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcError -> _events.emit(Events.OnAuthResponse(response.id, AuthResponse.Error(response.error.code, response.error.message)))
                 is JsonRpcResponse.JsonRpcResult -> {
+                    updatePairing(pairingTopic, requestParams)
                     val (header, payload, signature) = (response.result as CoreAuthParams.ResponseParams)
                     val cacao = Cacao(header, payload, signature)
                     if (cacaoVerifier.verify(cacao)) {

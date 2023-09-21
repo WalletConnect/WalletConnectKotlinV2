@@ -1,6 +1,7 @@
 package com.walletconnect.sign.engine.use_case.calls
 
 import android.database.sqlite.SQLiteException
+import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.AppMetaDataType
@@ -12,6 +13,7 @@ import com.walletconnect.android.internal.common.storage.MetadataStorageReposito
 import com.walletconnect.android.internal.common.storage.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.ACTIVE_SESSION
 import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
+import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -38,7 +40,8 @@ internal class ApproveSessionUseCase(
     private val proposalStorageRepository: ProposalStorageRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val verifyContextStorageRepository: VerifyContextStorageRepository,
-    private val selfAppMetaData: AppMetaData
+    private val selfAppMetaData: AppMetaData,
+    private val pairingController: PairingControllerInterface
 ) : ApproveSessionUseCaseInterface {
 
     override suspend fun approve(
@@ -47,7 +50,7 @@ internal class ApproveSessionUseCase(
         onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit
     ) = supervisorScope {
-        fun sessionSettle(requestId: Long, proposal: ProposalVO, sessionTopic: Topic, pairingTopic: Topic, ) {
+        fun sessionSettle(requestId: Long, proposal: ProposalVO, sessionTopic: Topic, pairingTopic: Topic) {
             val selfPublicKey = crypto.getSelfPublicFromKeyAgreement(sessionTopic)
             val selfParticipant = SessionParticipantVO(selfPublicKey.keyAsHex, selfAppMetaData)
             val sessionExpiry = ACTIVE_SESSION
@@ -64,7 +67,16 @@ internal class ApproveSessionUseCase(
                 jsonRpcInteractor.publishJsonRpcRequest(
                     topic = sessionTopic,
                     params = irnParams, sessionSettle,
-                    onSuccess = { onSuccess() },
+                    onSuccess = {
+                        onSuccess()
+                        scope.launch {
+                            supervisorScope {
+                                pairingController.activate(Core.Params.Activate(pairingTopic.value))
+                                proposalStorageRepository.deleteProposal(proposerPublicKey)
+                                verifyContextStorageRepository.delete(proposal.requestId)
+                            }
+                        }
+                    },
                     onFailure = { error -> onFailure(error) }
                 )
             } catch (e: SQLiteException) {
@@ -75,8 +87,6 @@ internal class ApproveSessionUseCase(
         }
 
         val proposal = proposalStorageRepository.getProposalByKey(proposerPublicKey)
-        proposalStorageRepository.deleteProposal(proposerPublicKey)
-        verifyContextStorageRepository.delete(proposal.requestId)
         val request = proposal.toSessionProposeRequest()
 
         SignValidator.validateSessionNamespace(sessionNamespaces.toMapOfNamespacesVOSession(), proposal.requiredNamespaces) { error ->

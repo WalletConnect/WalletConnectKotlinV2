@@ -25,7 +25,7 @@ fun rememberTestNavController(): TestNavHostController {
 private fun NavController.createTestGraph() = createGraph(Route.CONNECT_YOUR_WALLET.path) {
     composable(Route.CONNECT_YOUR_WALLET.path) { }
     composable(Route.QR_CODE.path) { }
-    composable(Route.HELP.path) { }
+    composable(Route.WHAT_IS_WALLET.path) { }
     composable(Route.REDIRECT.path + addTitleArg()) {}
     composable("A") { }
 }
