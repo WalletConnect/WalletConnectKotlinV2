@@ -4,7 +4,7 @@ plugins {
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
     id("com.google.firebase.appdistribution")
-    id("io.sentry.android.gradle") version "3.12.0"
+//    id("io.sentry.android.gradle") version "3.12.0"
 }
 
 android {
