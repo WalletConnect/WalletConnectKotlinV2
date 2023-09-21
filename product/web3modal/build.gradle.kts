@@ -61,11 +61,10 @@ dependencies {
     navigationComponent()
     qrCodeGenerator()
 
-    releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
-    releaseImplementation("com.walletconnect:android-core")
-    releaseImplementation("com.walletconnect:sign")
-    releaseImplementation("com.walletconnect:auth")
-    releaseImplementation(project(":core:modal"))
+    releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
+    releaseImplementation("com.walletconnect:sign:$SIGN_VERSION")
+    releaseImplementation("com.walletconnect:auth:$AUTH_VERSION")
+    releaseImplementation("com.walletconnect:modal-core:$MODAL_CORE_VERSION")
 
     debugImplementation(project(":core:android"))
     debugImplementation(project(":protocol:sign"))
