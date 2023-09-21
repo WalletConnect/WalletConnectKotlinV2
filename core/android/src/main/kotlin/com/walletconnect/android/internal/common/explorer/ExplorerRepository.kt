@@ -123,12 +123,12 @@ class ExplorerRepository(
 
     private fun ProjectDTO.toProject(): Project = Project(
         id = id,
-        name = name,
-        description = description,
-        homepage = homepage,
-        imageId = imageId,
-        imageUrl = imageUrl.toImageUrl(),
-        dappUrl = dappUrl ?: homepage //todo change me! once explorer passes dappUrl
+        name = name ?: "Name not provided",
+        description = description ?: "Description not provided",
+        homepage = homepage ?: "Homepage not provided",
+        imageId = imageId ?: "ImageID not provided",
+        imageUrl = imageUrl?.toImageUrl() ?: ImageUrl("", "", ""),
+        dappUrl = dappUrl  ?: "Dapp url not provided",
     )
 
     private fun DappListingsDTO.toDappListing(): DappListings {

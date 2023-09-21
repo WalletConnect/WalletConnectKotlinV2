@@ -8,15 +8,15 @@ data class ProjectDTO(
     @Json(name = "id")
     val id: String,
     @Json(name = "name")
-    val name: String,
+    val name: String?,
     @Json(name = "homepage")
-    val homepage: String,
+    val homepage: String?,
     @Json(name = "image_id")
-    val imageId: String,
+    val imageId: String?,
     @Json(name = "description")
-    val description: String,
+    val description: String?,
     @Json(name = "image_url")
-    val imageUrl: ImageUrlDTO,
+    val imageUrl: ImageUrlDTO?,
     @Json(name = "dapp_url")
     val dappUrl: String?,
 )

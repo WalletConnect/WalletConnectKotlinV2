@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 import com.walletconnect.android.internal.common.explorer.data.model.ImageUrl as WCImageUrl
 
 class ExploreDappsViewModel : ViewModel() {
-        private suspend fun getExplorerProjects() = CoreClient.Explorer.getProjects(0, 100, false)
+    private suspend fun getExplorerProjects() = CoreClient.Explorer.getProjects(0, 500, false)
 
 
     private val _searchText = MutableStateFlow("")
