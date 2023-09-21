@@ -8,7 +8,6 @@ import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
-import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.sign.common.exceptions.PeerError
@@ -21,12 +20,11 @@ import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
 internal class OnSessionExtendUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
-    private val sessionStorageRepository: SessionStorageRepository
+    private val sessionStorageRepository: SessionStorageRepository,
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()

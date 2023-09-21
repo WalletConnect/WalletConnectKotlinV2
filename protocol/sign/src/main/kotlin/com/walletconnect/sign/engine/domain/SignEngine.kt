@@ -221,6 +221,7 @@ internal class SignEngine(
             onSessionEventUseCase.events,
             onSessionSettleUseCase.events,
             onSessionUpdateUseCase.events,
+            onSessionExtendUseCase.events,
             onSessionProposalResponseUseCase.events,
             onSessionSettleResponseUseCase.events,
             onSessionUpdateResponseUseCase.events,
