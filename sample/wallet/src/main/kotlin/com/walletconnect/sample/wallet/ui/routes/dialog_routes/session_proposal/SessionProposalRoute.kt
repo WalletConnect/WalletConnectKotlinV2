@@ -138,7 +138,7 @@ fun AccountAndNetwork(sessionProposalUI: SessionProposalUI) {
 
     Row(modifier = Modifier.padding(start = 20.dp, end = 20.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Column(horizontalAlignment = Alignment.Start) {
-            Text("Wallet", style = TextStyle(color = Color(0xFFC9C9C9), fontSize = 12.sp, fontWeight = FontWeight.SemiBold))
+            Text("Account", style = TextStyle(color = Color(0xFFC9C9C9), fontSize = 12.sp, fontWeight = FontWeight.SemiBold))
             Row(verticalAlignment = Alignment.Bottom) {
                 Image(
                     modifier = Modifier.size(24.dp).padding(end = 4.dp),
@@ -150,7 +150,7 @@ fun AccountAndNetwork(sessionProposalUI: SessionProposalUI) {
         }
 
         Column(horizontalAlignment = Alignment.End) {
-            Text("Network", style = TextStyle(color = Color(0xFFC9C9C9), fontSize = 12.sp, fontWeight = FontWeight.SemiBold))
+            Text("Chain", style = TextStyle(color = Color(0xFFC9C9C9), fontSize = 12.sp, fontWeight = FontWeight.SemiBold))
             Row(verticalAlignment = Alignment.Bottom) {
                 Image(
                     modifier = Modifier.size(24.dp).padding(end = 4.dp),
