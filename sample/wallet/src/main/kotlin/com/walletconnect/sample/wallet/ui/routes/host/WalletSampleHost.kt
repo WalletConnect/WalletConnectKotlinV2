@@ -81,12 +81,10 @@ fun WalletSampleHost(
                 ErrorBanner(connectionState.message)
             }
 
-            if (pairingState is PairingState.Error) {
-                navController.showSnackbar(pairingState.message)
-            }
-
-            if (pairingState is PairingState.Loading) {
-                PairingLoader()
+            when (pairingState) {
+                is PairingState.Error -> navController.showSnackbar(pairingState.message)
+                is PairingState.Loading -> PairingLoader()
+                else -> Unit
             }
         }
     }
