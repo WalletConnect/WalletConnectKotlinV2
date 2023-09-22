@@ -1,6 +1,8 @@
 package com.walletconnect.sample.modal
 
 import android.app.Application
+import com.google.firebase.crashlytics.ktx.crashlytics
+import com.google.firebase.ktx.Firebase
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.relay.ConnectionType
@@ -35,6 +37,7 @@ class ModalSampleApp : Application() {
 
         Web3Modal.initialize(Modal.Params.Init(core = CoreClient)) { error ->
             Timber.e(tag(this), error.throwable.stackTraceToString())
+            Firebase.crashlytics.recordException(error.throwable)
         }
 
         Web3Modal.setChains(modalChains())
