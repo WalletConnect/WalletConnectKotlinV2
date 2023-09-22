@@ -36,6 +36,7 @@ import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import com.walletconnect.sample.common.CompletePreviews
 import com.walletconnect.sample.common.sendResponseDeepLink
 import com.walletconnect.sample.common.ui.theme.PreviewTheme
+import com.walletconnect.sample.common.ui.theme.mismatch_color
 import com.walletconnect.sample.common.ui.theme.verified_color
 import com.walletconnect.sample.common.ui.themedColor
 import com.walletconnect.sample.wallet.ui.common.peer.getValidationColor
@@ -56,9 +57,10 @@ fun SessionRequestRoute(navController: NavHostController, sessionRequestViewMode
     val sessionRequestUI = sessionRequestViewModel.sessionRequest
     val composableScope = rememberCoroutineScope()
     val context = LocalContext.current
+
     when (sessionRequestUI) {
         is SessionRequestUI.Content -> {
-            val allowButtonColor = getValidationColor(sessionRequestUI.peerContextUI.validation)
+            val allowButtonColor = if (sessionRequestUI.peerContextUI.isScam == true) mismatch_color else getValidationColor(sessionRequestUI.peerContextUI.validation)
             SemiTransparentDialog {
                 Spacer(modifier = Modifier.height(24.dp))
                 Peer(peerUI = sessionRequestUI.peerUI, "sends a request", sessionRequestUI.peerContextUI)

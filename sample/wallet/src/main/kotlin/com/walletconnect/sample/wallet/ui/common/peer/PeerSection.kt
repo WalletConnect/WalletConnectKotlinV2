@@ -90,24 +90,29 @@ fun Peer(peerUI: PeerUI, actionText: String?, peerContextUI: PeerContextUI? = nu
 
 @Composable
 private fun VerifyBatch(peerContextUI: PeerContextUI) {
+    val color = if (peerContextUI.isScam == true) mismatch_color else getValidationColor(peerContextUI.validation)
     Row(
         modifier = Modifier
             .padding(vertical = 10.dp, horizontal = 15.dp)
             .clip(CircleShape)
-            .background(color = getValidationColor(peerContextUI.validation).copy(alpha = 0.25f))
+            .background(color = color.copy(alpha = 0.25f))
             .padding(vertical = 5.dp, horizontal = 8.dp),
         horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
             modifier = Modifier.size(20.dp),
-            painter = painterResource(id = peerContextUI.isScam?.let { if (it) R.drawable.security_risk else getValidationIcon(peerContextUI.validation) } ?: getValidationIcon(
+            painter = painterResource(id = peerContextUI.isScam?.let { if (it) R.drawable.ic_scam else getValidationIcon(peerContextUI.validation) } ?: getValidationIcon(
                 peerContextUI.validation
             )),
             contentDescription = null)
         Spacer(modifier = Modifier.width(5.dp))
         Text(
             text = peerContextUI.isScam?.let { if (it) "Security risk" else getValidationTitle(peerContextUI.validation) } ?: getValidationTitle(peerContextUI.validation),
-            style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 12.sp, color = getValidationColor(peerContextUI.validation)),
+            style = TextStyle(
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 12.sp,
+                color = color
+            ),
         )
     }
     Spacer(modifier = Modifier.width(5.dp))

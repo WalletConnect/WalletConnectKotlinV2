@@ -13,6 +13,6 @@ sealed class SessionRequestUI {
         val param: String,
         val chain: String?,
         val method: String,
-        val peerContextUI: PeerContextUI
+        var peerContextUI: PeerContextUI
     ) : SessionRequestUI()
 }

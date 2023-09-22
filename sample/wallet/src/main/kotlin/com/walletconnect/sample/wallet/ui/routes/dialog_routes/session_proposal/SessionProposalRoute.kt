@@ -1,28 +1,29 @@
 package com.walletconnect.sample.wallet.ui.routes.dialog_routes.session_proposal
 
+import android.content.Context
+import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -31,39 +32,33 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.google.accompanist.pager.HorizontalPager
-import com.google.accompanist.pager.HorizontalPagerIndicator
-import com.google.accompanist.pager.rememberPagerState
 import com.walletconnect.sample.common.Chains
 import com.walletconnect.sample.wallet.ui.common.Buttons
-import com.walletconnect.sample.wallet.ui.common.Content
 import com.walletconnect.sample.wallet.ui.common.SemiTransparentDialog
-import com.walletconnect.sample.wallet.ui.common.blue.BlueLabelTexts
-import com.walletconnect.sample.wallet.ui.common.getAllEventsByChainId
-import com.walletconnect.sample.wallet.ui.common.getAllMethodsByChainId
 import com.walletconnect.sample.wallet.ui.common.peer.Peer
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import com.walletconnect.sample.common.CompletePreviews
 import com.walletconnect.sample.common.sendResponseDeepLink
 import com.walletconnect.sample.common.ui.theme.PreviewTheme
-import com.walletconnect.sample.common.ui.theme.unverified_color
-import com.walletconnect.sample.common.ui.theme.verified_color
+import com.walletconnect.sample.common.ui.theme.mismatch_color
 import com.walletconnect.sample.common.ui.themedColor
 import com.walletconnect.sample.wallet.R
+import com.walletconnect.sample.wallet.ui.common.generated.CancelButton
 import com.walletconnect.sample.wallet.ui.common.peer.PeerContextUI
 import com.walletconnect.sample.wallet.ui.common.peer.Validation
 import com.walletconnect.sample.wallet.ui.common.peer.getDescriptionContent
 import com.walletconnect.sample.wallet.ui.common.peer.getDescriptionTitle
 import com.walletconnect.sample.wallet.ui.common.peer.getValidationColor
 import com.walletconnect.sample.wallet.ui.common.peer.getValidationIcon
-import com.walletconnect.web3.wallet.client.Wallet
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @CompletePreviews
@@ -79,7 +74,57 @@ fun SessionProposalRoute(navController: NavHostController, sessionProposalViewMo
     val sessionProposalUI = sessionProposalViewModel.sessionProposal ?: throw Exception("Missing session proposal")
     val composableScope = rememberCoroutineScope()
     val context = LocalContext.current
-    val allowButtonColor = getValidationColor(sessionProposalUI.peerContext.validation)
+    val allowButtonColor = if (sessionProposalUI.peerContext.isScam == true) mismatch_color else getValidationColor(sessionProposalUI.peerContext.validation)
+    val shouldOpenProposalDialog = remember { mutableStateOf(false) }
+    if (shouldOpenProposalDialog.value) {
+        SessionProposalDialog(sessionProposalUI, allowButtonColor, composableScope, sessionProposalViewModel, context, navController)
+    }
+
+    if (sessionProposalUI.peerContext.isScam == true && !shouldOpenProposalDialog.value) {
+        ScammerScreenRoute(sessionProposalUI, navController, shouldOpenProposalDialog)
+    } else {
+        SessionProposalDialog(sessionProposalUI, allowButtonColor, composableScope, sessionProposalViewModel, context, navController)
+    }
+}
+
+@Composable
+fun ScammerScreenRoute(
+    sessionProposalUI: SessionProposalUI,
+    navController: NavHostController,
+    shouldOpenProposalDialog: MutableState<Boolean>
+) {
+    SemiTransparentDialog(Color(0xFF000000)) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.background(mismatch_color.copy(alpha = .25f)).fillMaxWidth()) {
+            Spacer(modifier = Modifier.height(32.dp))
+            Image(modifier = Modifier.size(72.dp), painter = painterResource(R.drawable.ic_scam), contentDescription = null)
+            Text(text = "Website flagged", style = TextStyle(color = Color(0xFFFFFFFF), fontSize = 24.sp, fontWeight = FontWeight.Bold))
+            Text(text = Uri.parse(sessionProposalUI.peerContext.origin).host ?: "", style = TextStyle(color = Color(0xFFC9C9C9)))
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp),
+                text = "The website you're trying to connect with is flagged as malicious by multiple security providers. Approving may lead to loss of funds.",
+                style = TextStyle(color = Color(0xFFFFFFFF), textAlign = TextAlign.Center)
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(text = "Proceed anyway", modifier = Modifier.clickable { shouldOpenProposalDialog.value = true }, style = TextStyle(color = mismatch_color, fontSize = 16.sp))
+            Spacer(modifier = Modifier.height(16.dp))
+            CancelButton(
+                modifier = Modifier.padding(16.dp).height(46.dp).fillMaxWidth().clickable { navController.popBackStack(route = Route.Connections.path, inclusive = false) },
+                backgroundColor = Color(0xFFFFFFFF).copy(.25f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun SessionProposalDialog(
+    sessionProposalUI: SessionProposalUI,
+    allowButtonColor: Color,
+    composableScope: CoroutineScope,
+    sessionProposalViewModel: SessionProposalViewModel,
+    context: Context,
+    navController: NavHostController
+) {
     SemiTransparentDialog {
         Spacer(modifier = Modifier.height(24.dp))
         Peer(peerUI = sessionProposalUI.peerUI, "wants to connect", sessionProposalUI.peerContext)
@@ -176,11 +221,12 @@ fun Permissions(sessionProposalUI: SessionProposalUI) {
 
 @Composable
 private fun ValidationDescription(peerContextUI: PeerContextUI) {
+    val color = if (peerContextUI.isScam == true) mismatch_color else getValidationColor(peerContextUI.validation)
     Row(
         modifier = Modifier
             .padding(end = 20.dp, start = 20.dp)
             .clip(RoundedCornerShape(24.dp))
-            .background(color = getValidationColor(peerContextUI.validation).copy(alpha = 0.25f))
+            .background(color = color.copy(alpha = 0.25f))
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -188,14 +234,14 @@ private fun ValidationDescription(peerContextUI: PeerContextUI) {
         Column(modifier = Modifier.padding(start = 12.dp)) {
             Image(
                 modifier = Modifier.size(24.dp),
-                painter = painterResource(id = peerContextUI.isScam?.let { if (it) R.drawable.security_risk else getValidationIcon(peerContextUI.validation) } ?: getValidationIcon(
+                painter = painterResource(id = peerContextUI.isScam?.let { if (it) R.drawable.ic_scam else getValidationIcon(peerContextUI.validation) } ?: getValidationIcon(
                     peerContextUI.validation
                 )),
                 contentDescription = null)
         }
 
         Column(modifier = Modifier.padding(12.dp), horizontalAlignment = Alignment.Start) {
-            Text(getDescriptionTitle(peerContextUI), style = TextStyle(color = getValidationColor(peerContextUI.validation), fontWeight = FontWeight.Bold, fontSize = 14.sp))
+            Text(getDescriptionTitle(peerContextUI), style = TextStyle(color = color, fontWeight = FontWeight.Bold, fontSize = 14.sp))
             Text(getDescriptionContent(peerContextUI), style = TextStyle(fontSize = 14.sp))
         }
     }

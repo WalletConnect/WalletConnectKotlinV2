@@ -15,8 +15,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun CancelButton(modifier: Modifier = Modifier) {
-    CancelButtonTopLevel(modifier = modifier) {
+fun CancelButton(modifier: Modifier = Modifier, backgroundColor: Color = Color(0xFFD6D6D6)) {
+    CancelButtonTopLevel(modifier = modifier, backgroundColor = backgroundColor) {
         Cancel()
     }
 }
@@ -37,6 +37,7 @@ fun Cancel(modifier: Modifier = Modifier) {
 @Composable
 fun CancelButtonTopLevel(
     modifier: Modifier = Modifier,
+    backgroundColor: Color,
     content: @Composable () -> Unit,
 ) {
     Box(
@@ -51,7 +52,7 @@ fun CancelButtonTopLevel(
                 )
             )
             .clip(RoundedCornerShape(20.dp))
-            .background(Color(0xFFD6D6D6))
+            .background(backgroundColor)
 
     ) {
         content()
