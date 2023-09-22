@@ -5,24 +5,19 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -37,33 +32,24 @@ import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.google.accompanist.pager.HorizontalPager
-import com.google.accompanist.pager.HorizontalPagerIndicator
-import com.google.accompanist.pager.rememberPagerState
 import com.walletconnect.sample.common.Chains
-import com.walletconnect.sample.wallet.ui.common.Buttons
-import com.walletconnect.sample.wallet.ui.common.Content
-import com.walletconnect.sample.wallet.ui.common.SemiTransparentDialog
-import com.walletconnect.sample.wallet.ui.common.blue.BlueLabelTexts
-import com.walletconnect.sample.wallet.ui.common.getAllEventsByChainId
-import com.walletconnect.sample.wallet.ui.common.getAllMethodsByChainId
-import com.walletconnect.sample.wallet.ui.common.peer.Peer
-import com.walletconnect.sample.wallet.ui.routes.Route
-import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import com.walletconnect.sample.common.CompletePreviews
 import com.walletconnect.sample.common.sendResponseDeepLink
 import com.walletconnect.sample.common.ui.theme.PreviewTheme
-import com.walletconnect.sample.common.ui.theme.unverified_color
-import com.walletconnect.sample.common.ui.theme.verified_color
 import com.walletconnect.sample.common.ui.themedColor
 import com.walletconnect.sample.wallet.R
+import com.walletconnect.sample.wallet.ui.common.Buttons
+import com.walletconnect.sample.wallet.ui.common.SemiTransparentDialog
+import com.walletconnect.sample.wallet.ui.common.peer.Peer
 import com.walletconnect.sample.wallet.ui.common.peer.PeerContextUI
 import com.walletconnect.sample.wallet.ui.common.peer.Validation
 import com.walletconnect.sample.wallet.ui.common.peer.getDescriptionContent
 import com.walletconnect.sample.wallet.ui.common.peer.getDescriptionTitle
 import com.walletconnect.sample.wallet.ui.common.peer.getValidationColor
 import com.walletconnect.sample.wallet.ui.common.peer.getValidationIcon
-import com.walletconnect.web3.wallet.client.Wallet
+import com.walletconnect.sample.wallet.ui.routes.Route
+import com.walletconnect.sample.wallet.ui.routes.showSnackbar
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @CompletePreviews
@@ -108,8 +94,11 @@ fun SessionProposalRoute(navController: NavHostController, sessionProposalViewMo
                         if (redirect.isNotEmpty()) {
                             context.sendResponseDeepLink(redirect.toUri())
                         }
+
+                        composableScope.launch(Dispatchers.Main) {
+                            navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                        }
                     }
-                    navController.popBackStack(route = Route.Connections.path, inclusive = false)
                 } catch (e: Throwable) {
                     closeAndShowError(navController, e.message)
                 }
@@ -136,12 +125,16 @@ fun AccountAndNetwork(sessionProposalUI: SessionProposalUI) {
     val network = Chains.values().find { chain -> chain.chainId == chains.first() }
     val account = walletMetaData.namespaces.values.first().accounts.find { account -> account.contains(chains.first()) }?.split(":")?.last()
 
-    Row(modifier = Modifier.padding(start = 20.dp, end = 20.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+    Row(modifier = Modifier
+        .padding(start = 20.dp, end = 20.dp)
+        .fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Column(horizontalAlignment = Alignment.Start) {
             Text("Wallet", style = TextStyle(color = Color(0xFFC9C9C9), fontSize = 12.sp, fontWeight = FontWeight.SemiBold))
             Row(verticalAlignment = Alignment.Bottom) {
                 Image(
-                    modifier = Modifier.size(24.dp).padding(end = 4.dp),
+                    modifier = Modifier
+                        .size(24.dp)
+                        .padding(end = 4.dp),
                     painter = painterResource(id = R.drawable.wc_icon_round),
                     contentDescription = null
                 )
@@ -153,7 +146,9 @@ fun AccountAndNetwork(sessionProposalUI: SessionProposalUI) {
             Text("Network", style = TextStyle(color = Color(0xFFC9C9C9), fontSize = 12.sp, fontWeight = FontWeight.SemiBold))
             Row(verticalAlignment = Alignment.Bottom) {
                 Image(
-                    modifier = Modifier.size(24.dp).padding(end = 4.dp),
+                    modifier = Modifier
+                        .size(24.dp)
+                        .padding(end = 4.dp),
                     painter = painterResource(id = network?.icon ?: R.drawable.wc_icon_round),
                     contentDescription = null
                 )
@@ -225,7 +220,9 @@ private fun RequestedPermissions() {
 @Composable
 private fun PermissionRow(title: String, icon: Int = R.drawable.ic_check, color: Color = Color(0xFF000000)) {
     Row(modifier = Modifier.padding(start = 12.dp, top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-        Image(modifier = Modifier.size(18.dp).padding(end = 4.dp), imageVector = ImageVector.vectorResource(id = icon), contentDescription = "check")
+        Image(modifier = Modifier
+            .size(18.dp)
+            .padding(end = 4.dp), imageVector = ImageVector.vectorResource(id = icon), contentDescription = "check")
         Text(title, style = TextStyle(fontSize = 14.sp, color = color))
     }
 }
