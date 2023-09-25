@@ -52,6 +52,9 @@ import com.walletconnect.sample.common.ui.theme.mismatch_color
 import com.walletconnect.sample.common.ui.themedColor
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.wallet.ui.common.generated.CancelButton
+import com.walletconnect.sample.wallet.ui.common.Buttons
+import com.walletconnect.sample.wallet.ui.common.SemiTransparentDialog
+import com.walletconnect.sample.wallet.ui.common.peer.Peer
 import com.walletconnect.sample.wallet.ui.common.peer.PeerContextUI
 import com.walletconnect.sample.wallet.ui.common.peer.Validation
 import com.walletconnect.sample.wallet.ui.common.peer.getDescriptionContent
@@ -59,6 +62,9 @@ import com.walletconnect.sample.wallet.ui.common.peer.getDescriptionTitle
 import com.walletconnect.sample.wallet.ui.common.peer.getValidationColor
 import com.walletconnect.sample.wallet.ui.common.peer.getValidationIcon
 import kotlinx.coroutines.CoroutineScope
+import com.walletconnect.sample.wallet.ui.routes.Route
+import com.walletconnect.sample.wallet.ui.routes.showSnackbar
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @CompletePreviews
@@ -153,8 +159,11 @@ private fun SessionProposalDialog(
                         if (redirect.isNotEmpty()) {
                             context.sendResponseDeepLink(redirect.toUri())
                         }
+
+                        composableScope.launch(Dispatchers.Main) {
+                            navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                        }
                     }
-                    navController.popBackStack(route = Route.Connections.path, inclusive = false)
                 } catch (e: Throwable) {
                     closeAndShowError(navController, e.message)
                 }

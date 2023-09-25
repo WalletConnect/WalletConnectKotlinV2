@@ -27,7 +27,7 @@ internal class WatchSubscriptionsUseCase(
 ) {
 
     suspend operator fun invoke(accountId: AccountId, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
-        val (peerPublicKey, authenticationPublicKey) = extractPublicKeysFromDidJsonUseCase(notifyServerUrl.toUri()).getOrThrow()
+        val (peerPublicKey, authenticationPublicKey) = extractPublicKeysFromDidJsonUseCase(notifyServerUrl.toUri()).getOrElse { useCaseError -> return@supervisorScope onFailure(useCaseError) }
 
         val requestTopic = keyManagementRepository.getTopicFromKey(peerPublicKey)
 

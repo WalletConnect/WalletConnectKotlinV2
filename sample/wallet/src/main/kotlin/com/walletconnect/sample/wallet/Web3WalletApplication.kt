@@ -8,6 +8,8 @@ import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
 import com.mixpanel.android.mpmetrics.MixpanelAPI
+import com.pandulapeter.beagle.Beagle
+import com.pandulapeter.beagle.common.configuration.Placement
 import com.pandulapeter.beagle.modules.DividerModule
 import com.pandulapeter.beagle.modules.HeaderModule
 import com.pandulapeter.beagle.modules.PaddingModule
@@ -110,7 +112,7 @@ class Web3WalletApplication : Application() {
                 (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("Account", with(EthAccountDelegate) { account.toEthAddress() }))
             },
             PaddingModule(size = PaddingModule.Size.LARGE),
-            TextModule(text = CoreClient.Echo.clientId) {
+            TextModule(text = CoreClient.Echo.clientId, id = CoreClient.Echo.clientId) {
                 (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("ClientId", CoreClient.Echo.clientId))
             },
             DividerModule(),
@@ -138,7 +140,7 @@ class Web3WalletApplication : Application() {
                         }
                     )
                 }
-            )
+            ),
         )
 
         mixPanel = MixpanelAPI.getInstance(this, CommonBuildConfig.MIX_PANEL, true).apply {
@@ -153,10 +155,17 @@ class Web3WalletApplication : Application() {
         })
 
         // For testing purposes only
-        FirebaseMessaging.getInstance().deleteToken().addOnSuccessListener {
-            FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
-                Log.d(tag(this), token)
-            }
+        FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
+            Beagle.add(
+                PaddingModule(size = PaddingModule.Size.LARGE, id = "${token}Padding"),
+                placement = Placement.Below(id = CoreClient.Echo.clientId)
+            )
+            Beagle.add(
+                TextModule(text = token) {
+                    (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("FMC_Token", token))
+                },
+                placement = Placement.Below(id = "${token}Padding")
+            )
         }
     }
 }
