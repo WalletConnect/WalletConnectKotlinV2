@@ -71,11 +71,13 @@ private fun WalletsList(
     }
 }
 
-private fun walletSizeLabel(total: Int): String = if (total % 10 == 0) {
-        total.toString()
+private fun walletSizeLabel(total: Int): String = with(total % 10) {
+    if (this != 0) {
+        "${total-this}+"
     } else {
-        "${(total/10*10)}+"
+        total.toString()
     }
+}
 
 @Composable
 private fun WalletListSelect(item: Wallet, onWalletItemClick: (Wallet) -> Unit) {
