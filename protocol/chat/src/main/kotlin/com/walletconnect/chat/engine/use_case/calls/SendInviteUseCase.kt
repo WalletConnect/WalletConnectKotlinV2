@@ -21,7 +21,6 @@ import com.walletconnect.chat.common.model.Invite
 import com.walletconnect.chat.common.model.InviteStatus
 import com.walletconnect.chat.common.model.SendInvite
 import com.walletconnect.chat.engine.domain.ChatValidator
-import com.walletconnect.chat.engine.sync.use_case.requests.SetSentInviteToChatSentInvitesStoreUseCase
 import com.walletconnect.chat.jwt.use_case.EncodeInviteProposalDidJwtPayloadUseCase
 import com.walletconnect.chat.storage.ContactStorageRepository
 import com.walletconnect.chat.storage.InvitesStorageRepository
@@ -49,7 +48,6 @@ internal class SendInviteUseCase(
     private val identitiesInteractor: IdentitiesInteractor,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val contactRepository: ContactStorageRepository,
-    private val setSentInviteToChatSentInvitesStoreUseCase: SetSentInviteToChatSentInvitesStoreUseCase,
 ) : SendInviteUseCaseInterface {
 
     override suspend fun invite(invite: SendInvite, onSuccess: (Long) -> Unit, onError: (Throwable) -> Unit) {
@@ -110,7 +108,6 @@ internal class SendInviteUseCase(
                         timestamp = inviteId.extractTimestamp()
                     )
                     scope.launch { invitesRepository.insertInvite(sentInvite) }
-                    setSentInviteToChatSentInvitesStoreUseCase(sentInvite, onSuccess = {}, onError = onError)
                     onSuccess(inviteId)
                 },
                 { throwable ->

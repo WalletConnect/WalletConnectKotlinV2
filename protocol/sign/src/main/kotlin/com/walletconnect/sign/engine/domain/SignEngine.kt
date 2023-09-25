@@ -221,6 +221,7 @@ internal class SignEngine(
             onSessionEventUseCase.events,
             onSessionSettleUseCase.events,
             onSessionUpdateUseCase.events,
+            onSessionExtendUseCase.events,
             onSessionProposalResponseUseCase.events,
             onSessionSettleResponseUseCase.events,
             onSessionUpdateResponseUseCase.events,
@@ -278,7 +279,7 @@ internal class SignEngine(
                     scope.launch {
                         supervisorScope {
                             val verifyContext =
-                                verifyContextStorageRepository.get(sessionRequest.request.id) ?: VerifyContext(sessionRequest.request.id, String.Empty, Validation.UNKNOWN, String.Empty)
+                                verifyContextStorageRepository.get(sessionRequest.request.id) ?: VerifyContext(sessionRequest.request.id, String.Empty, Validation.UNKNOWN, String.Empty, null)
                             val sessionRequestEvent = EngineDO.SessionRequestEvent(sessionRequest, verifyContext.toEngineDO())
                             sessionRequestEventsQueue.addLast(sessionRequestEvent)
                         }
@@ -292,7 +293,7 @@ internal class SignEngine(
             .onEach { pairingTopic ->
                 try {
                     val proposal = proposalStorageRepository.getProposalByTopic(pairingTopic.value)
-                    val context = verifyContextStorageRepository.get(proposal.requestId) ?: VerifyContext(proposal.requestId, String.Empty, Validation.UNKNOWN, String.Empty)
+                    val context = verifyContextStorageRepository.get(proposal.requestId) ?: VerifyContext(proposal.requestId, String.Empty, Validation.UNKNOWN, String.Empty, null)
                     val sessionProposalEvent = EngineDO.SessionProposalEvent(proposal = proposal.toEngineDO(), context = context.toEngineDO())
                     scope.launch { _engineEvent.emit(sessionProposalEvent) }
                 } catch (e: Exception) {

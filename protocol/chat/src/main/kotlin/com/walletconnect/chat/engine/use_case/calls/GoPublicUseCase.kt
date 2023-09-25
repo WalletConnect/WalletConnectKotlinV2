@@ -12,7 +12,6 @@ import com.walletconnect.android.internal.utils.getParticipantTag
 import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
 import com.walletconnect.android.keyserver.domain.use_case.RegisterInviteUseCase
 import com.walletconnect.chat.common.exceptions.InvalidAccountIdException
-import com.walletconnect.chat.engine.sync.use_case.requests.SetInviteKeyToChatInviteKeyStoreUseCase
 import com.walletconnect.chat.jwt.use_case.EncodeRegisterInviteKeyDidJwtPayloadUseCase
 import com.walletconnect.chat.storage.AccountsStorageRepository
 import com.walletconnect.foundation.common.model.PrivateKey
@@ -28,7 +27,6 @@ internal class GoPublicUseCase(
     private val keyManagementRepository: KeyManagementRepository,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val registerInviteUseCase: RegisterInviteUseCase,
-    private val setInviteKeyToChatInviteKeyStoreUseCase: SetInviteKeyToChatInviteKeyStoreUseCase,
 ) : GoPublicUseCaseInterface {
 
     override fun goPublic(accountId: AccountId, onSuccess: (String) -> Unit, onError: (Throwable) -> Unit) {
@@ -41,7 +39,6 @@ internal class GoPublicUseCase(
                     accountsRepository.setAccountPublicInviteKey(accountId, invitePublicKey, inviteTopic)
                     jsonRpcInteractor.subscribe(inviteTopic)
 
-                    setInviteKeyToChatInviteKeyStoreUseCase(accountId, invitePublicKey, invitePrivateKey, onSuccess = {}, onError = onError)
                     onSuccess(invitePublicKey.keyAsHex)
                 }
             }

@@ -53,6 +53,7 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.5.1")
     api("com.google.android.material:material:1.7.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
 
     lifecycle()
     navigationComponent()

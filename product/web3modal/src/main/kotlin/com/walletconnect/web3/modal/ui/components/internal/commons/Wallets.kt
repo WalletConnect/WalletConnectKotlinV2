@@ -31,13 +31,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.walletconnect.android.internal.common.explorer.data.model.Wallet
+import com.walletconnect.android.internal.common.modal.data.model.Wallet
 import com.walletconnect.web3.modal.R
 import com.walletconnect.web3.modal.ui.previews.MultipleComponentsPreview
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.testWallets
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 import com.walletconnect.web3.modal.utils.grayColorFilter
+import com.walletconnect.web3.modal.utils.imageHeaders
 
 @Composable
 internal fun MultipleWalletIcon(wallets: List<Wallet>) {
@@ -113,6 +114,7 @@ internal fun WalletImage(url: String, isEnabled: Boolean = true, modifier: Modif
             .data(url)
             .crossfade(true)
             .placeholder(R.drawable.wallet_placeholder)
+            .imageHeaders()
             .build(),
         contentDescription = null,
         modifier = modifier,

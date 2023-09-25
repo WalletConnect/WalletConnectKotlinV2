@@ -1,5 +1,19 @@
 package com.walletconnect.web3.modal.utils
 
+import com.walletconnect.web3.modal.client.Modal
+
+internal fun Modal.Model.ChainImage.getImageData() = when(this) {
+    is Modal.Model.ChainImage.Asset -> id
+    is Modal.Model.ChainImage.Network -> url
+}
+internal fun Modal.Model.Chain.getImageData(): Any = when(chainImage) {
+    is Modal.Model.ChainImage.Asset -> chainImage.id
+    is Modal.Model.ChainImage.Network -> chainImage.url
+    null -> getChainNetworkImageUrl(chainReference).url
+}
+
+internal fun getChainNetworkImageUrl(chainReference: String) = Modal.Model.ChainImage.Network("https://api.web3modal.com/public/getAssetImage/${networkImagesIds[chainReference]}")
+
 internal val networkImagesIds = mapOf(
     // Ethereum
     "1" to "692ed6ba-e569-459a-556a-776476829e00",

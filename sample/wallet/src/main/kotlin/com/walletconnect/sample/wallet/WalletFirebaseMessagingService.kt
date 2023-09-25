@@ -11,14 +11,14 @@ import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.RemoteMessage
+import com.walletconnect.notify.client.Notify
+import com.walletconnect.notify.client.NotifyMessageService
 import com.walletconnect.sample.wallet.ui.Web3WalletActivity
-import com.walletconnect.web3.inbox.client.Inbox
-import com.walletconnect.web3.inbox.notify.Web3InboxFirebaseMessagingService
 import kotlin.random.Random
 import kotlin.random.nextUInt
 
 @SuppressLint("MissingFirebaseInstanceTokenRefresh")
-class WalletFirebaseMessagingService : Web3InboxFirebaseMessagingService() {
+class WalletFirebaseMessagingService : NotifyMessageService() {
     private val TAG = this::class.simpleName
     private val intent by lazy { Intent(this, Web3WalletActivity::class.java).apply { addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) } }
     private val pendingIntent by lazy { PendingIntent.getActivity(this, 0 /* Request code */, intent, PendingIntent.FLAG_IMMUTABLE) }
@@ -33,7 +33,7 @@ class WalletFirebaseMessagingService : Web3InboxFirebaseMessagingService() {
         Log.d(TAG, "Registering New Token Failed:\t$token")
     }
 
-    override fun onMessage(message: Inbox.Model.Message, originalMessage: RemoteMessage) {
+    override fun onMessage(message: Notify.Model.Message, originalMessage: RemoteMessage) {
         Log.d(TAG, "Message:\t$message")
 
         val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)

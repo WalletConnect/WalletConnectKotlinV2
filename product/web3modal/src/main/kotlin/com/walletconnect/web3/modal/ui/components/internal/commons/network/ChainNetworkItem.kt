@@ -16,24 +16,32 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.walletconnect.web3.modal.R
+import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.ui.components.internal.commons.TransparentSurface
 import com.walletconnect.web3.modal.ui.components.internal.commons.VerticalSpacer
+import com.walletconnect.web3.modal.ui.previews.MultipleComponentsPreview
+import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 @Composable
 internal fun ChainNetworkItem(
+    image: Modal.Model.ChainImage,
     isSelected: Boolean,
     isEnabled: Boolean,
     networkName: String,
-    imageUrl: String,
     onItemClick: () -> Unit,
 ) {
+    val data = when (image) {
+        is Modal.Model.ChainImage.Asset -> image.id
+        is Modal.Model.ChainImage.Network -> image.url
+    }
     val backgroundColor: Color
     val textColor: Color
     val borderColor: Color?
     when {
         isSelected -> {
-            backgroundColor = Web3ModalTheme.colors.main005
+            backgroundColor = Web3ModalTheme.colors.main10
             textColor = Web3ModalTheme.colors.main100
             borderColor = Web3ModalTheme.colors.main100
         }
@@ -43,6 +51,7 @@ internal fun ChainNetworkItem(
             textColor = Web3ModalTheme.colors.foreground.color100
             borderColor = null
         }
+
         else -> {
             backgroundColor = Web3ModalTheme.colors.overlay10
             textColor = Web3ModalTheme.colors.overlay15
@@ -50,7 +59,7 @@ internal fun ChainNetworkItem(
         }
     }
     TransparentSurface(
-        modifier = Modifier.padding(4.dp),
+        modifier = Modifier.padding(6.dp),
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(
@@ -58,13 +67,13 @@ internal fun ChainNetworkItem(
                 .width(76.dp)
                 .height(96.dp)
                 .background(backgroundColor)
-                .clickable { onItemClick() }
+                .clickable(isEnabled) { onItemClick() }
                 .padding(horizontal = 2.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             HexagonNetworkImage(
-                url = imageUrl,
+                data = data,
                 isEnabled = isEnabled,
                 borderColor = borderColor,
             )
@@ -78,4 +87,15 @@ internal fun ChainNetworkItem(
             )
         }
     }
+}
+
+@UiModePreview
+@Composable
+private fun ChainNetworkItemPreview() {
+    val image = Modal.Model.ChainImage.Asset(R.drawable.system)
+    MultipleComponentsPreview(
+        { ChainNetworkItem(image = image, isSelected = true, isEnabled = true, networkName = "TestNetwork", onItemClick = {}) },
+        { ChainNetworkItem(image = image, isSelected = false, isEnabled = true, networkName = "TestNetwork", onItemClick = {}) },
+        { ChainNetworkItem(image = image, isSelected = false, isEnabled = false, networkName = "TestNetwork", onItemClick = {}) }
+    )
 }

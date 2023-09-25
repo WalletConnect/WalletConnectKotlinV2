@@ -12,6 +12,8 @@ import com.walletconnect.android.internal.common.explorer.data.model.Injected
 import com.walletconnect.android.internal.common.explorer.data.model.Listing
 import com.walletconnect.android.internal.common.explorer.data.model.Metadata
 import com.walletconnect.android.internal.common.explorer.data.model.Mobile
+import com.walletconnect.android.internal.common.explorer.data.model.Project
+import com.walletconnect.android.internal.common.explorer.data.model.ProjectListing
 import com.walletconnect.android.internal.common.explorer.data.model.SupportedStandard
 import com.walletconnect.android.internal.common.explorer.data.model.Wallet
 import com.walletconnect.android.internal.common.explorer.data.model.WalletListing
@@ -25,17 +27,20 @@ import com.walletconnect.android.internal.common.explorer.data.network.model.Inj
 import com.walletconnect.android.internal.common.explorer.data.network.model.ListingDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.MetadataDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.MobileDTO
-import com.walletconnect.android.internal.common.explorer.data.network.model.WalletDTO
+import com.walletconnect.android.internal.common.explorer.data.network.model.ProjectDTO
+import com.walletconnect.android.internal.common.explorer.data.network.model.ProjectListingDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.SupportedStandardDTO
+import com.walletconnect.android.internal.common.explorer.data.network.model.WalletDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.WalletListingDTO
 import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.android.utils.isWalletInstalled
 
+//discuss: Repository could be inside domain
 class ExplorerRepository(
     private val context: Context,
     private val explorerService: ExplorerService,
     private val projectId: ProjectId,
-    private val explorerApiUrl: String
+    private val explorerApiUrl: String,
 ) {
 
     suspend fun getAllDapps(): DappListings {
@@ -48,11 +53,25 @@ class ExplorerRepository(
         }
     }
 
+    suspend fun getProjects(
+        page: Int,
+        entries: Int,
+        isVerified: Boolean,
+    ): ProjectListing {
+        return with(explorerService.getProjects(projectId.value, entries, page, isVerified)) {
+            if (isSuccessful && body() != null) {
+                body()!!.toProjectListing()
+            } else {
+                throw Throwable(errorBody()?.string())
+            }
+        }
+    }
+
     suspend fun getMobileWallets(
         sdkType: String,
         chains: String?,
         excludedIds: String? = null,
-        recommendedIds: String? = null
+        recommendedIds: String? = null,
     ): WalletListing {
         return with(
             explorerService.getAndroidWallets(
@@ -79,6 +98,7 @@ class ExplorerRepository(
             total = total
         )
     }
+
     private fun WalletDTO.toWallet(): Wallet {
         return Wallet(
             id = id,
@@ -87,12 +107,29 @@ class ExplorerRepository(
             nativeLink = mobile.native,
             universalLink = mobile.universal,
             playStoreLink = app.android
-        ).apply { isWalletInstalled = context.packageManager.isWalletInstalled(this) }
+        ).apply { isWalletInstalled = context.packageManager.isWalletInstalled(appPackage, nativeLink) }
     }
 
     private fun String.buildWalletImageUrl(): String {
         return "$explorerApiUrl/w3m/v1/getWalletImage/$this?projectId=${projectId.value}"
     }
+
+    private fun ProjectListingDTO.toProjectListing(): ProjectListing {
+        return ProjectListing(
+            projects = projects.values.map { it.toProject() },
+            count = count,
+        )
+    }
+
+    private fun ProjectDTO.toProject(): Project = Project(
+        id = id,
+        name = name ?: "Name not provided",
+        description = description ?: "Description not provided",
+        homepage = homepage ?: "Homepage not provided",
+        imageId = imageId ?: "ImageID not provided",
+        imageUrl = imageUrl?.toImageUrl() ?: ImageUrl("", "", ""),
+        dappUrl = dappUrl  ?: "Dapp url not provided",
+    )
 
     private fun DappListingsDTO.toDappListing(): DappListings {
         return DappListings(

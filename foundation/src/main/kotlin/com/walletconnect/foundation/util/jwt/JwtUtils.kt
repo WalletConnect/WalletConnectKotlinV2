@@ -13,6 +13,7 @@ import io.ipfs.multibase.Multibase
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters
 import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters
 import org.bouncycastle.crypto.signers.Ed25519Signer
+import java.net.URI
 import java.util.concurrent.TimeUnit
 
 
@@ -83,6 +84,17 @@ fun encodeDidPkh(caip10Account: String): String {
 
 fun decodeDidPkh(didPkh: String): String = didPkh.split(DID_DELIMITER).takeLast(3).joinToString(DID_DELIMITER)
 
+
+fun encodeDidWeb(appDomain: String): String {
+    val host = URI(appDomain).host
+    return listOf(DID_PREFIX, DID_METHOD_WEB, host).joinToString(DID_DELIMITER)
+}
+
+// todo: What about https:// ?
+fun decodeDidWeb(didWeb: String): String =
+    didWeb.removePrefix(listOf(DID_PREFIX, DID_METHOD_WEB).joinToString(DID_DELIMITER))
+
+
 inline fun <reified C : JwtClaims> decodeJwt(jwt: String): Result<Triple<JwtHeader, C, String>> = runCatching {
     val (headerString, claimsString, signatureString) = jwt.split(JWT_DELIMITER).also { if (it.size != 3) throw Throwable("Unable to split jwt: $jwt") }
 
@@ -131,5 +143,6 @@ const val DID_DELIMITER = ":"
 const val DID_PREFIX = "did"
 const val DID_METHOD_KEY = "key"
 const val DID_METHOD_PKH = "pkh"
+const val DID_METHOD_WEB = "web"
 const val MULTICODEC_ED25519_HEADER = "K36"
 const val MULTICODEC_X25519_HEADER = "Jxg"
