@@ -22,14 +22,17 @@ import com.walletconnect.web3.modal.ui.Web3ModalViewModel
 import com.walletconnect.web3.modal.ui.components.internal.root.Web3ModalRoot
 import com.walletconnect.web3.modal.ui.routes.account.AccountNavGraph
 import com.walletconnect.web3.modal.ui.routes.connect.ConnectionNavGraph
+import com.walletconnect.web3.modal.ui.utils.ComposableLifecycleEffect
+import com.walletconnect.web3.modal.ui.utils.toComponentEvent
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
-// That may be public in the future to allow users use our composable view
 @Composable
-internal fun Web3ModalComponent(
+fun Web3ModalComponent(
     navController: NavHostController = rememberNavController(),
+    shouldOpenChooseNetwork: Boolean,
     closeModal: () -> Unit
 ) {
     val web3ModalViewModel: Web3ModalViewModel = viewModel()
@@ -47,6 +50,12 @@ internal fun Web3ModalComponent(
             .collect()
     }
 
+    ComposableLifecycleEffect(
+        onEvent = { _, event ->
+            coroutineScope.launch { event.toComponentEvent() }
+        }
+    )
+
     Web3ModalRoot(
         navController = navController,
         closeModal = closeModal
@@ -63,12 +72,12 @@ internal fun Web3ModalComponent(
             when (state) {
                 is Web3ModalState.Connect -> ConnectionNavGraph(
                     navController = navController,
-                    shouldOpenChooseNetwork = state.shouldOpenChooseNetwork
+                    shouldOpenChooseNetwork = shouldOpenChooseNetwork
                 )
                 is Web3ModalState.AccountState -> AccountNavGraph(
                     navController = navController,
                     closeModal = closeModal,
-                    shouldOpenChangeNetwork = state.shouldOpenChangeNetwork
+                    shouldOpenChangeNetwork = shouldOpenChooseNetwork
                 )
                 Web3ModalState.Loading -> LoadingModalState()
                 is Web3ModalState.Error -> ErrorModalState(retry = web3ModalViewModel::initModalState)

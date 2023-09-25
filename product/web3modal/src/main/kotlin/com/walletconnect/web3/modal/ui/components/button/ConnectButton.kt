@@ -2,7 +2,6 @@ package com.walletconnect.web3.modal.ui.components.button
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.unit.dp
@@ -14,8 +13,6 @@ import com.walletconnect.web3.modal.ui.components.internal.commons.button.TextBu
 import com.walletconnect.web3.modal.ui.previews.MultipleComponentsPreview
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.theme.ProvideWeb3ModalThemeComposition
-import kotlinx.coroutines.flow.collect
-import timber.log.Timber
 
 enum class ConnectButtonSize {
     NORMAL, SMALL

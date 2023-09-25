@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalCoroutinesApi::class)
-
 package com.walletconnect.web3.modal.ui.components.button
 
 import androidx.compose.runtime.Composable
@@ -7,24 +5,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavController
 import com.walletconnect.android.internal.common.wcKoinApp
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.domain.usecase.GetSelectedChainUseCase
 import com.walletconnect.web3.modal.domain.usecase.GetSessionTopicUseCase
 import com.walletconnect.web3.modal.domain.usecase.ObserveSelectedChainUseCase
 import com.walletconnect.web3.modal.domain.usecase.ObserveSessionTopicUseCase
-import com.walletconnect.web3.modal.ui.navigation.Route
+import com.walletconnect.web3.modal.ui.components.ComponentDelegate
+import com.walletconnect.web3.modal.ui.components.ComponentEvent
 import com.walletconnect.web3.modal.ui.openWeb3Modal
 import com.walletconnect.web3.modal.utils.getAddress
 import com.walletconnect.web3.modal.utils.getChainNetworkImageUrl
 import com.walletconnect.web3.modal.utils.getChains
 import com.walletconnect.web3.modal.utils.getSelectedChain
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 
 @Composable
@@ -41,12 +39,20 @@ class Web3ModalState(
     private val coroutineScope: CoroutineScope,
     private val navController: NavController
 ) {
+    private val logger: Logger = wcKoinApp.koin.get()
     private val observeSelectedChainUseCase: ObserveSelectedChainUseCase = wcKoinApp.koin.get()
     private val observeSessionTopicUseCase: ObserveSessionTopicUseCase = wcKoinApp.koin.get()
     private val getSessionTopicUseCase: GetSessionTopicUseCase = wcKoinApp.koin.get()
     private val getSelectedChainUseCase: GetSelectedChainUseCase = wcKoinApp.koin.get()
 
-    val isOpen = navController.currentBackStackEntryFlow.mapLatest { it.destination.route?.startsWith(Route.WEB3MODAL.path) ?: false }
+    val isOpen = ComponentDelegate.modalComponentEvent
+        .map { event ->
+            when (event) {
+                ComponentEvent.ModalHiddenEvent -> false
+                ComponentEvent.ModalExpandedEvent -> true
+            }
+        }
+        .stateIn(coroutineScope, started = SharingStarted.Lazily, ComponentDelegate.isModalOpen)
 
     private val sessionTopicFlow = observeSessionTopicUseCase()
 
@@ -89,6 +95,9 @@ class Web3ModalState(
     private suspend fun getActiveSession() = getSessionTopicUseCase()?.let { Web3Modal.getActiveSessionByTopic(it) }
 
     internal fun openWeb3Modal(shouldOpenChooseNetwork: Boolean = false) {
-        navController.openWeb3Modal(shouldOpenChooseNetwork = shouldOpenChooseNetwork)
+        navController.openWeb3Modal(
+            shouldOpenChooseNetwork = shouldOpenChooseNetwork,
+            onError = { logger.error(it) }
+        )
     }
 }
