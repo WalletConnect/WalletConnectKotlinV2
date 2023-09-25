@@ -6,6 +6,18 @@ import java.net.URLEncoder
 
 private const val WC_URI_QUERY = "wc?uri="
 
+fun UriHandler.openMobileLink(
+    uri: String,
+    mobileLink: String?,
+    onError: () -> Unit
+) {
+    try {
+        mobileLink?.let { link -> openUri(formatNativeDeeplink(link, uri)) } ?: onError()
+    } catch (e: Exception) {
+        onError()
+    }
+}
+
 fun UriHandler.goToNativeWallet(uri: String, nativeLink: String?) {
     try {
         nativeLink?.let { openUri(formatNativeDeeplink(it, uri)) } ?: Timber.e("Invalid native link")

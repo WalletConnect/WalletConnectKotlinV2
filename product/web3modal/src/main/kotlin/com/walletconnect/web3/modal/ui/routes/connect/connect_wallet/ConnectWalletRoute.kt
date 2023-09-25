@@ -67,10 +67,15 @@ private fun WalletsList(
         itemsIndexed(items = wallets.take(4)) { _, item ->
             WalletListSelect(item, onWalletItemClick)
         }
-        allWallets(text = "${wallets.size}+",onClick = onViewAllClick)
+        allWallets(text = walletSizeLabel(wallets.size), onClick = onViewAllClick)
     }
 }
 
+private fun walletSizeLabel(total: Int): String = if (total % 10 == 0) {
+        total.toString()
+    } else {
+        "${(total/10*10)}+"
+    }
 
 @Composable
 private fun WalletListSelect(item: Wallet, onWalletItemClick: (Wallet) -> Unit) {
