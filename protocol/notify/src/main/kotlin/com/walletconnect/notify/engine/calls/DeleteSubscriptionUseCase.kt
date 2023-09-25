@@ -37,7 +37,7 @@ internal class DeleteSubscriptionUseCase(
         val deleteJwt = fetchDidJwtInteractor.deleteRequest(activeSubscription.account, dappMetaData.url, activeSubscription.authenticationPublicKey)
             .getOrElse { return@supervisorScope onFailure(it) }
 
-        val request = NotifyRpc.NotifyDelete(params = CoreNotifyParams.DeleteParams(deleteJwt.value))
+        val request = NotifyRpc.NotifyDelete(params = CoreNotifyParams.DeleteParams(deleteJwt.value), topic = notifyTopic)
         val irnParams = IrnParams(Tags.NOTIFY_DELETE, Ttl(MONTH_IN_SECONDS))
 
         subscriptionRepository.deleteSubscriptionByNotifyTopic(notifyTopic, account)

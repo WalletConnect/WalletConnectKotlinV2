@@ -277,6 +277,8 @@ internal class JsonRpcInteractor(
         }
     }
 
+
+
     override fun unsubscribe(topic: Topic, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         try {
             checkConnectionWorking()
@@ -337,7 +339,7 @@ internal class JsonRpcInteractor(
 
             clientJsonRpc.topic?.let {
                 if (clientJsonRpc.topic == topic.value) {
-                    println("kobe: OK")
+                    println("kobe: OK: $decryptedMessage")
                     handleRequest(clientJsonRpc, topic, decryptedMessage, publishedAt)
                 } else {
                     println("kobe: ERROR")

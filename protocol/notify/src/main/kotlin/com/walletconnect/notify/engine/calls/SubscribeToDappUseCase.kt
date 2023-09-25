@@ -53,7 +53,7 @@ internal class SubscribeToDappUseCase(
         }
 
         val params = CoreNotifyParams.SubscribeParams(didJwt.value)
-        val request = NotifyRpc.NotifySubscribe(params = params)
+        val request = NotifyRpc.NotifySubscribe(params = params, topic = subscribeTopic.value)
         val irnParams = IrnParams(Tags.NOTIFY_SUBSCRIBE, Ttl(THIRTY_SECONDS))
 
         runCatching<Unit> {

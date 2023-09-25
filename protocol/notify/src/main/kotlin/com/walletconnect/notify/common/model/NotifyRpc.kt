@@ -77,6 +77,8 @@ internal sealed class NotifyRpc : JsonRpcClientSync<CoreNotifyParams> {
         override val method: String = JsonRpcMethod.WC_NOTIFY_WATCH_SUBSCRIPTIONS,
         @Json(name = "params")
         override val params: CoreNotifyParams.WatchSubscriptionsParams,
+        @Json(name = "topic")
+        override var topic: String?,
     ): NotifyRpc()
 
     @JsonClass(generateAdapter = true)
@@ -89,5 +91,7 @@ internal sealed class NotifyRpc : JsonRpcClientSync<CoreNotifyParams> {
         override val method: String = JsonRpcMethod.WC_NOTIFY_SUBSCRIPTIONS_CHANGED,
         @Json(name = "params")
         override val params: CoreNotifyParams.SubscriptionsChangedParams,
+        @Json(name = "topic")
+        override var topic: String?,
     ) : NotifyRpc()
 }

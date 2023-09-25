@@ -38,7 +38,7 @@ internal class WatchSubscriptionsUseCase(
 
         val didJwt = fetchDidJwtInteractor.watchSubscriptionsRequest(accountId, authenticationPublicKey).getOrElse { error -> return@supervisorScope onFailure(error) }
         val watchSubscriptionsParams = CoreNotifyParams.WatchSubscriptionsParams(didJwt.value)
-        val request = NotifyRpc.NotifyWatchSubscriptions(params = watchSubscriptionsParams)
+        val request = NotifyRpc.NotifyWatchSubscriptions(params = watchSubscriptionsParams, topic = requestTopic.value)
         val irnParams = IrnParams(Tags.NOTIFY_WATCH_SUBSCRIPTIONS, Ttl(THIRTY_SECONDS))
 
         jsonRpcInteractor.publishJsonRpcRequest(
