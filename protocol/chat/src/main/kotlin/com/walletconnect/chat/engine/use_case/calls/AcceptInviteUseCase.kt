@@ -15,8 +15,6 @@ import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
 import com.walletconnect.chat.common.exceptions.InviteWasAlreadyRespondedTo
 import com.walletconnect.chat.common.exceptions.MissingInviteRequestException
 import com.walletconnect.chat.common.model.InviteStatus
-import com.walletconnect.chat.common.model.Thread
-import com.walletconnect.chat.engine.sync.use_case.requests.SetThreadWithSymmetricKeyToChatThreadsStoreUseCase
 import com.walletconnect.chat.json_rpc.GetPendingJsonRpcHistoryEntryByIdUseCase
 import com.walletconnect.chat.jwt.use_case.EncodeInviteApprovalDidJwtPayloadUseCase
 import com.walletconnect.chat.storage.InvitesStorageRepository
@@ -35,7 +33,6 @@ internal class AcceptInviteUseCase(
     private val identitiesInteractor: IdentitiesInteractor,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val threadsRepository: ThreadsStorageRepository,
-    private val setThreadWithSymmetricKeyToChatThreadsStoreUseCase: SetThreadWithSymmetricKeyToChatThreadsStoreUseCase,
 ) : AcceptInviteUseCaseInterface {
 
     override fun accept(inviteId: Long, onSuccess: (String) -> Unit, onError: (Throwable) -> Unit) {
@@ -83,13 +80,6 @@ internal class AcceptInviteUseCase(
 
                 threadsRepository.insertThread(threadTopic.value, selfAccount = inviteeAccountId.value, peerAccount = inviterAccountId.value)
                 invitesRepository.updateStatusByInviteId(inviteId, InviteStatus.APPROVED)
-
-                setThreadWithSymmetricKeyToChatThreadsStoreUseCase(
-                    Thread(threadTopic, selfAccount = inviteeAccountId, peerAccount = inviterAccountId),
-                    threadSymmetricKey,
-                    onSuccess = {},
-                    onError = onError
-                )
 
                 jsonRpcInteractor.subscribe(threadTopic) { error -> return@subscribe onError(error) }
                 onSuccess(threadTopic.value)

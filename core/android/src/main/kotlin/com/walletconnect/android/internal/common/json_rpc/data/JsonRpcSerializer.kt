@@ -15,8 +15,8 @@ class JsonRpcSerializer(
     val jsonAdapterEntries: Set<JsonAdapterEntry<*>>,
     val moshiBuilder: Moshi.Builder,
 ) {
-    val moshi: Moshi = moshiBuilder
-        .add { type, _, moshi ->
+    val moshi: Moshi
+        get() = moshiBuilder.add { type, _, moshi ->
             jsonAdapterEntries.firstOrNull { it.type == type }?.adapter?.invoke(moshi)
         }.build()
 

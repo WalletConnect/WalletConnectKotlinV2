@@ -41,7 +41,7 @@ import com.walletconnect.sign.engine.use_case.requests.OnPingUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionDeleteUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionEventUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionExtendUseCase
-import com.walletconnect.sign.engine.use_case.requests.OnSessionProposeUseCase
+import com.walletconnect.sign.engine.use_case.requests.OnSessionProposalUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionRequestUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionSettleUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionUpdateUseCase
@@ -53,6 +53,7 @@ import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCaseByTopicIn
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequestByTopicUseCaseInterface
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequests
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
+import com.walletconnect.sign.storage.proposal.ProposalStorageRepository
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import com.walletconnect.utils.Empty
 import com.walletconnect.utils.isSequenceValid
@@ -74,6 +75,7 @@ internal class SignEngine(
     private val getPendingSessionRequestByTopicUseCase: GetPendingSessionRequestByTopicUseCaseInterface,
     private val getPendingSessionRequests: GetPendingSessionRequests,
     private val crypto: KeyManagementRepository,
+    private val proposalStorageRepository: ProposalStorageRepository,
     private val sessionStorageRepository: SessionStorageRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val pairingController: PairingControllerInterface,
@@ -94,7 +96,7 @@ internal class SignEngine(
     private val getSessionProposalsUseCase: GetSessionProposalsUseCaseInterface,
     private val getVerifyContextByIdUseCase: GetVerifyContextByIdUseCaseInterface,
     private val getListOfVerifyContextsUseCase: GetListOfVerifyContextsUseCaseInterface,
-    private val onSessionProposeUse: OnSessionProposeUseCase,
+    private val onSessionProposeUse: OnSessionProposalUseCase,
     private val onSessionSettleUseCase: OnSessionSettleUseCase,
     private val onSessionRequestUseCase: OnSessionRequestUseCase,
     private val onSessionDeleteUseCase: OnSessionDeleteUseCase,
@@ -145,6 +147,7 @@ internal class SignEngine(
         )
         setupSequenceExpiration()
         propagatePendingSessionRequestsQueue()
+        emitReceivedSessionProposals()
     }
 
     fun setup() {
@@ -218,6 +221,7 @@ internal class SignEngine(
             onSessionEventUseCase.events,
             onSessionSettleUseCase.events,
             onSessionUpdateUseCase.events,
+            onSessionExtendUseCase.events,
             onSessionProposalResponseUseCase.events,
             onSessionSettleResponseUseCase.events,
             onSessionUpdateResponseUseCase.events,
@@ -275,12 +279,26 @@ internal class SignEngine(
                     scope.launch {
                         supervisorScope {
                             val verifyContext =
-                                verifyContextStorageRepository.get(sessionRequest.request.id) ?: VerifyContext(sessionRequest.request.id, String.Empty, Validation.UNKNOWN, String.Empty)
+                                verifyContextStorageRepository.get(sessionRequest.request.id) ?: VerifyContext(sessionRequest.request.id, String.Empty, Validation.UNKNOWN, String.Empty, null)
                             val sessionRequestEvent = EngineDO.SessionRequestEvent(sessionRequest, verifyContext.toEngineDO())
                             sessionRequestEventsQueue.addLast(sessionRequestEvent)
                         }
                     }
                 }
             }
+    }
+
+    private fun emitReceivedSessionProposals() {
+        pairingController.activePairingFlow
+            .onEach { pairingTopic ->
+                try {
+                    val proposal = proposalStorageRepository.getProposalByTopic(pairingTopic.value)
+                    val context = verifyContextStorageRepository.get(proposal.requestId) ?: VerifyContext(proposal.requestId, String.Empty, Validation.UNKNOWN, String.Empty, null)
+                    val sessionProposalEvent = EngineDO.SessionProposalEvent(proposal = proposal.toEngineDO(), context = context.toEngineDO())
+                    scope.launch { _engineEvent.emit(sessionProposalEvent) }
+                } catch (e: Exception) {
+                    println("No proposal for pairing topic: $e")
+                }
+            }.launchIn(scope)
     }
 }

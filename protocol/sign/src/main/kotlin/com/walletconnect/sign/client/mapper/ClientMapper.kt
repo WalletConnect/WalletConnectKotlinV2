@@ -61,7 +61,7 @@ internal fun EngineDO.SessionProposal.toClientSessionProposal(): Sign.Model.Sess
 
 @JvmSynthetic
 internal fun EngineDO.VerifyContext.toClient(): Sign.Model.VerifyContext =
-    Sign.Model.VerifyContext(id, origin, this.validation.toClientValidation(), verifyUrl)
+    Sign.Model.VerifyContext(id, origin, this.validation.toClientValidation(), verifyUrl, isScam)
 
 internal fun Validation.toClientValidation(): Sign.Model.Validation =
     when (this) {

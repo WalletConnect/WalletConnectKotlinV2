@@ -7,16 +7,24 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.walletconnect.web3.modal.client.Modal
+import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
 import com.walletconnect.web3.modal.ui.Web3ModalState
 import com.walletconnect.web3.modal.ui.Web3ModalViewModel
 import com.walletconnect.web3.modal.ui.components.internal.root.Web3ModalRoot
-import com.walletconnect.web3.modal.ui.navigation.Web3ModalNavGraph
+import com.walletconnect.web3.modal.ui.routes.account.AccountNavGraph
+import com.walletconnect.web3.modal.ui.routes.connect.ConnectionNavGraph
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.onEach
 
 // That may be public in the future to allow users use our composable view
 @Composable
@@ -26,6 +34,18 @@ internal fun Web3ModalComponent(
 ) {
     val web3ModalViewModel: Web3ModalViewModel = viewModel()
     val state by web3ModalViewModel.modalState.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        Web3ModalDelegate
+            .wcEventModels
+            .filterIsInstance<Modal.Model.ApprovedSession>()
+            .onEach { event ->
+                web3ModalViewModel.saveSessionTopic(event.topic)
+                closeModal()
+            }
+            .collect()
+    }
 
     Web3ModalRoot(
         navController = navController,
@@ -36,17 +56,19 @@ internal fun Web3ModalComponent(
             contentAlignment = Alignment.BottomCenter,
             transitionSpec = {
                 (fadeIn() + slideInVertically(animationSpec = tween(400),
-                    initialOffsetY = { fullHeight -> fullHeight })).togetherWith(fadeOut(animationSpec = tween(200)))
+                    initialOffsetY = { fullHeight -> fullHeight })).togetherWith(fadeOut(animationSpec = tween(400)))
             },
             label = "Root Animated content"
         ) { state ->
             when (state) {
-                is Web3ModalState.Connect, Web3ModalState.AccountState -> Web3ModalNavGraph(
+                is Web3ModalState.Connect -> ConnectionNavGraph(
                     navController = navController,
-                    web3ModalState = state,
-                    updateRecentWalletId = web3ModalViewModel::updateRecentWalletId,
-                    retryConnection = web3ModalViewModel::retryConnection,
-                    closeModal = closeModal
+                    shouldOpenChooseNetwork = state.shouldOpenChooseNetwork
+                )
+                is Web3ModalState.AccountState -> AccountNavGraph(
+                    navController = navController,
+                    closeModal = closeModal,
+                    shouldOpenChangeNetwork = state.shouldOpenChangeNetwork
                 )
                 Web3ModalState.Loading -> LoadingModalState()
                 is Web3ModalState.Error -> ErrorModalState(retry = web3ModalViewModel::initModalState)

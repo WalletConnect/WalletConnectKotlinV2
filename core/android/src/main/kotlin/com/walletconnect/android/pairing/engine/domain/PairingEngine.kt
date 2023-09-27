@@ -3,7 +3,7 @@ package com.walletconnect.android.pairing.engine.domain
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.MALFORMED_PAIRING_URI_MESSAGE
 import com.walletconnect.android.internal.NO_SEQUENCE_FOR_TOPIC_MESSAGE
-import com.walletconnect.android.internal.PAIRING_NOW_ALLOWED_MESSAGE
+import com.walletconnect.android.internal.PAIRING_NOT_ALLOWED_MESSAGE
 import com.walletconnect.android.internal.Validator
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
@@ -94,6 +94,9 @@ internal class PairingEngine(
     private val _engineEvent: MutableSharedFlow<EngineDO> = MutableSharedFlow()
     val engineEvent: SharedFlow<EngineDO> = _engineEvent.asSharedFlow()
 
+    private val _activePairingTopicFlow: MutableSharedFlow<Topic> = MutableSharedFlow()
+    val activePairingTopicFlow: SharedFlow<Topic> = _activePairingTopicFlow.asSharedFlow()
+
     val internalErrorFlow = MutableSharedFlow<SDKError>()
 
     val jsonRpcErrorFlow: Flow<SDKError> by lazy {
@@ -130,27 +133,31 @@ internal class PairingEngine(
     }
 
     fun pair(uri: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
-        val walletConnectUri: WalletConnectUri =
-            Validator.validateWCUri(uri) ?: return onFailure(MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE))
-
-        if (isPairingValid(walletConnectUri.topic.value)) {
-            return onFailure(PairWithExistingPairingIsNotAllowed(PAIRING_NOW_ALLOWED_MESSAGE))
-        }
-
-        val activePairing = Pairing(walletConnectUri, registeredMethods)
+        val walletConnectUri: WalletConnectUri = Validator.validateWCUri(uri) ?: return onFailure(MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE))
+        val inactivePairing = Pairing(walletConnectUri, registeredMethods)
         val symmetricKey = walletConnectUri.symKey
-        crypto.setKey(symmetricKey, walletConnectUri.topic.value)
 
         try {
-            pairingRepository.insertPairing(activePairing)
-            jsonRpcInteractor.subscribe(
-                topic = activePairing.topic,
-                onSuccess = { onSuccess() },
-                onFailure = { error -> return@subscribe onFailure(error) }
-            )
+            if (isPairingValid(inactivePairing.topic.value)) {
+                val pairing = pairingRepository.getPairingOrNullByTopic(inactivePairing.topic)
+                if (pairing?.isActive == true) {
+                    return onFailure(PairWithExistingPairingIsNotAllowed(PAIRING_NOT_ALLOWED_MESSAGE))
+                } else {
+                    scope.launch {
+                        supervisorScope {
+                            _activePairingTopicFlow.emit(inactivePairing.topic)
+                        }
+                    }
+                }
+            } else {
+                crypto.setKey(symmetricKey, walletConnectUri.topic.value)
+                pairingRepository.insertPairing(inactivePairing)
+            }
+
+            jsonRpcInteractor.subscribe(topic = inactivePairing.topic, onSuccess = { onSuccess() }, onFailure = { error -> return@subscribe onFailure(error) })
         } catch (e: Exception) {
             crypto.removeKeys(walletConnectUri.topic.value)
-            jsonRpcInteractor.unsubscribe(activePairing.topic)
+            jsonRpcInteractor.unsubscribe(inactivePairing.topic)
             onFailure(e)
         }
     }
@@ -199,13 +206,7 @@ internal class PairingEngine(
     }
 
     fun activate(topic: String, onFailure: (Throwable) -> Unit) {
-        pairingRepository.getPairingOrNullByTopic(Topic(topic))?.let { pairing ->
-            if (pairing.isNotExpired()) {
-                pairingRepository.activatePairing(pairing.topic)
-            } else {
-                onFailure(IllegalStateException("Pairing for topic $topic is expired"))
-            }
-        } ?: onFailure(IllegalStateException("Pairing for topic $topic does not exist"))
+        getPairing(topic, onFailure) { pairing -> pairingRepository.activatePairing(pairing.topic) }
     }
 
     fun updateExpiry(topic: String, expiry: Expiry, onFailure: (Throwable) -> Unit) {
@@ -296,15 +297,17 @@ internal class PairingEngine(
         }
     }
 
-    private fun isPairingValid(topic: String): Boolean = pairingRepository.getPairingOrNullByTopic(Topic(topic)).let { pairing ->
-        if (pairing == null) {
-            return@let false
-        } else {
-            return@let pairing.isNotExpired()
-        }
-    }
-
     private fun generateTopic(): Topic = Topic(randomBytes(32).bytesToHex())
+
+    private fun getPairing(topic: String, onFailure: (Throwable) -> Unit, onPairing: (pairing: Pairing) -> Unit) {
+        pairingRepository.getPairingOrNullByTopic(Topic(topic))?.let { pairing ->
+            if (pairing.isNotExpired()) {
+                onPairing(pairing)
+            } else {
+                onFailure(IllegalStateException("Pairing for topic $topic is expired"))
+            }
+        } ?: onFailure(IllegalStateException("Pairing for topic $topic does not exist"))
+    }
 
     private fun Pairing.isNotExpired(): Boolean = (expiry.seconds > CURRENT_TIME_IN_SECONDS).also { isValid ->
         if (!isValid) {
@@ -322,4 +325,7 @@ internal class PairingEngine(
             }
         }
     }
+
+    private fun isPairingValid(topic: String): Boolean =
+        pairingRepository.getPairingOrNullByTopic(Topic(topic))?.let { pairing -> return@let pairing.isNotExpired() } ?: false
 }

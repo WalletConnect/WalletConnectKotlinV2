@@ -81,12 +81,10 @@ fun WalletSampleHost(
                 ErrorBanner(connectionState.message)
             }
 
-            if (pairingState is PairingState.Error) {
-                navController.showSnackbar(pairingState.message)
-            }
-
-            if (pairingState is PairingState.Loading) {
-                PairingLoader()
+            when (pairingState) {
+                is PairingState.Error -> navController.showSnackbar(pairingState.message)
+                is PairingState.Loading -> PairingLoader()
+                else -> Unit
             }
         }
     }
@@ -136,7 +134,7 @@ private fun ErrorBanner(message: String) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
-            imageVector = ImageVector.vectorResource(id = R.drawable.orange_warning),
+            imageVector = ImageVector.vectorResource(id = R.drawable.invalid_domain),
             contentDescription = null,
             modifier = Modifier.size(24.dp),
             colorFilter = ColorFilter.tint(color = Color.White)

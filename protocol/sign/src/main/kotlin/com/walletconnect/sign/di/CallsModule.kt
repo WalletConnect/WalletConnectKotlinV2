@@ -63,7 +63,8 @@ internal fun callsModule() = module {
             jsonRpcInteractor = get(),
             metadataStorageRepository = get(),
             sessionStorageRepository = get(),
-            verifyContextStorageRepository = get()
+            verifyContextStorageRepository = get(),
+            pairingController = get()
         )
     }
 

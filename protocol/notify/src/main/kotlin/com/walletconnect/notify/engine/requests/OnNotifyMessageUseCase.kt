@@ -2,16 +2,18 @@
 
 package com.walletconnect.notify.engine.requests
 
-import com.squareup.moshi.Moshi
-import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtClaims
+import com.walletconnect.android.internal.common.model.AppMetaData
+import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.WCRequest
+import com.walletconnect.android.internal.common.model.params.ChatNotifyResponseAuthParams
 import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.notify.common.model.NotifyMessage
@@ -30,13 +32,21 @@ internal class OnNotifyMessageUseCase(
     private val messagesRepository: MessagesRepository,
     private val subscriptionRepository: SubscriptionRepository,
     private val fetchDidJwtInteractor: FetchDidJwtInteractor,
-    private val _moshi: Moshi.Builder,
+    private val metadataStorageRepository: MetadataStorageRepositoryInterface,
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
     suspend operator fun invoke(request: WCRequest, params: CoreNotifyParams.MessageParams) = supervisorScope {
         extractVerifiedDidJwtClaims<MessageRequestJwtClaim>(params.messageAuth).onSuccess { messageJwt ->
+
+            /* TODO: Add validation after ETHNY
+            *   jwtClaims.iat - compare with current time. Has to be lower
+            *   jwtClaims.exp - compare with current time. Has to be higher
+            *   jwtClaims.act == "notify_message"
+            *   jwtClaims.iss - did:key of dapp authentication key. Add logic when cached value does not match jwtClaims.iss then fetch value again and if value still does not match then throw
+            *   jwtClaims.app - did:web of app domain that this request is associated with. Must match domain of active subscription by topic */
+
             messagesRepository.insertMessage(
                 requestId = request.id,
                 topic = request.topic.value,
@@ -61,29 +71,24 @@ internal class OnNotifyMessageUseCase(
                 )
             )
             _events.emit(notifyRecord)
-        }.mapCatching { jwtMessage ->
-            val stringifiedMessage = _moshi.build().adapter(MessageRequestJwtClaim.Message::class.java).toJson(jwtMessage.message)
-            val messageHash = sha256(stringifiedMessage.encodeToByteArray())
-            val activeSubscription =
-                subscriptionRepository.getActiveSubscriptionByNotifyTopic(request.topic.value) ?: throw IllegalStateException("No active subscription for topic: ${request.topic.value}")
-            val messageReceiptJwt = fetchDidJwtInteractor.messageReceipt(
+        }.mapCatching { _ ->
+
+            val activeSubscription = subscriptionRepository.getActiveSubscriptionByNotifyTopic(request.topic.value)
+                ?: throw IllegalStateException("No active subscription for topic: ${request.topic.value}")
+
+            val metadata: AppMetaData = metadataStorageRepository.getByTopicAndType(activeSubscription.notifyTopic, AppMetaDataType.PEER)
+                ?: throw Exception("No metadata found for topic ${activeSubscription.notifyTopic}")
+
+            val messageResponseJwt = fetchDidJwtInteractor.messageResponse(
                 account = activeSubscription.account,
-                metadataUrl = activeSubscription.dappMetaData!!.url,
+                app = metadata.url,
                 authenticationKey = activeSubscription.authenticationPublicKey,
-                messageHash = messageHash
             ).getOrThrow()
 
-            val messageReceiptParams = CoreNotifyParams.MessageReceiptParams(receiptAuth = messageReceiptJwt.value)
+            val messageResponseParams = ChatNotifyResponseAuthParams.ResponseAuth(responseAuth = messageResponseJwt.value)
             val irnParams = IrnParams(Tags.NOTIFY_MESSAGE_RESPONSE, Ttl(MONTH_IN_SECONDS))
 
-            jsonRpcInteractor.respondWithParams(
-                request.id,
-                request.topic,
-                messageReceiptParams,
-                irnParams
-            ) {
-                throw it
-            }
+            jsonRpcInteractor.respondWithParams(request.id, request.topic, messageResponseParams, irnParams) { throw it }
         }.getOrElse { e ->
             jsonRpcInteractor.respondWithError(
                 request,

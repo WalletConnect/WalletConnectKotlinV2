@@ -17,11 +17,9 @@ dependencies {
         api(project(":protocol:sign"))
         api(project(":protocol:auth"))
         api(project(":protocol:chat"))
-        api(project(":protocol:push"))
         api(project(":protocol:notify"))
         api(project(":product:walletconnectmodal"))
-//        api(project(":product:web3modal"))    TODO: Add back in once web3modal is ready
-        api(project(":product:web3inbox"))
+        api(project(":product:web3modal"))
         api(project(":product:web3wallet"))
     }
 }

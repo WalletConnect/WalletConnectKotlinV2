@@ -4,13 +4,15 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
-import com.walletconnect.android.internal.common.explorer.data.model.Wallet
 
-fun PackageManager.isWalletInstalled(wallet: Wallet): Boolean =
+fun PackageManager.isWalletInstalled(
+    appPackage: String?,
+    nativeLink: String?
+): Boolean =
     try {
-        isPackageInstalled(wallet.appPackage!!)
+        isPackageInstalled(appPackage!!)
     } catch (e: Exception) {
-        canDeeplinkBeResolved(wallet.nativeLink)
+        canDeeplinkBeResolved(nativeLink)
     }
 
 fun PackageManager.isPackageInstalled(packageName: String): Boolean {

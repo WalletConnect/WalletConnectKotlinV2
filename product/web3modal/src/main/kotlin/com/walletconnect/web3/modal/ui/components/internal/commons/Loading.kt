@@ -35,8 +35,16 @@ import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 @Composable
-internal fun LoadingSpinner(tint: Color = Web3ModalTheme.colors.main100) {
-    CircularProgressIndicator(color = tint, modifier = Modifier.size(24.dp))
+internal fun LoadingSpinner(
+    strokeWidth: Dp = 4.dp,
+    size: Dp = 24.dp,
+    tint: Color = Web3ModalTheme.colors.main100
+) {
+    CircularProgressIndicator(
+        strokeWidth = strokeWidth,
+        color = tint,
+        modifier = Modifier.size(size)
+    )
 }
 
 @Composable

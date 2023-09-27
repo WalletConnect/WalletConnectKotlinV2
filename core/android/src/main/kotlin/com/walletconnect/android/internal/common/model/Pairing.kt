@@ -28,11 +28,11 @@ data class Pairing(
 
     constructor(uri: WalletConnectUri, registeredMethods: String) : this(
         topic = uri.topic,
-        expiry = Expiry(ACTIVE_PAIRING),
+        expiry = Expiry(INACTIVE_PAIRING),
         relayProtocol = uri.relay.protocol,
         relayData = uri.relay.data,
         uri = uri.toAbsoluteString(),
-        isActive = true,
+        isActive = false,
         registeredMethods = registeredMethods
     )
 }

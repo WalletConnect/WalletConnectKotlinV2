@@ -1,0 +1,11 @@
+import kotlin.Boolean;
+
+
+DROP TABLE IF EXISTS RequestedSubscriptions;
+
+CREATE TABLE RegisteredAccounts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    accountId TEXT UNIQUE NOT NULL,
+    publicIdentityKey TEXT NOT NULL,
+    isLimited INTEGER AS Boolean NOT NULL
+);

@@ -16,7 +16,6 @@ import com.walletconnect.notify.common.model.Subscription
 import com.walletconnect.notify.data.storage.MessagesRepository
 import com.walletconnect.notify.data.storage.SubscriptionRepository
 import com.walletconnect.notify.engine.domain.FetchDidJwtInteractor
-import com.walletconnect.notify.engine.sync.use_case.requests.DeleteSubscriptionToNotifySubscriptionStoreUseCase
 import kotlinx.coroutines.supervisorScope
 
 internal class DeleteSubscriptionUseCase(
@@ -24,37 +23,29 @@ internal class DeleteSubscriptionUseCase(
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val subscriptionRepository: SubscriptionRepository,
     private val messagesRepository: MessagesRepository,
-    private val deleteSubscriptionToNotifySubscriptionStore: DeleteSubscriptionToNotifySubscriptionStoreUseCase,
     private val fetchDidJwtInteractor: FetchDidJwtInteractor,
 ) : DeleteSubscriptionUseCaseInterface {
 
     override suspend fun deleteSubscription(notifyTopic: String, onFailure: (Throwable) -> Unit) = supervisorScope {
-        val activeSubscription: Subscription.Active =
-            subscriptionRepository.getActiveSubscriptionByNotifyTopic(notifyTopic) ?: return@supervisorScope onFailure(IllegalStateException("Subscription does not exists for $notifyTopic"))
+        val activeSubscription: Subscription.Active = subscriptionRepository.getActiveSubscriptionByNotifyTopic(notifyTopic)
+            ?: return@supervisorScope onFailure(IllegalStateException("Subscription does not exists for $notifyTopic"))
+
+        val account = activeSubscription.account.value
         val dappMetaData = metadataStorageRepository.getByTopicAndType(activeSubscription.notifyTopic, AppMetaDataType.PEER)
             ?: return@supervisorScope onFailure(IllegalStateException("Dapp metadata does not exists for $notifyTopic"))
-        val deleteJwt = fetchDidJwtInteractor.deleteRequest(activeSubscription.account, dappMetaData.url, activeSubscription.authenticationPublicKey).getOrElse {
-            return@supervisorScope onFailure(it)
-        }
+
+        val deleteJwt = fetchDidJwtInteractor.deleteRequest(activeSubscription.account, dappMetaData.url, activeSubscription.authenticationPublicKey)
+            .getOrElse { return@supervisorScope onFailure(it) }
+
         val request = NotifyRpc.NotifyDelete(params = CoreNotifyParams.DeleteParams(deleteJwt.value))
         val irnParams = IrnParams(Tags.NOTIFY_DELETE, Ttl(MONTH_IN_SECONDS))
 
-        subscriptionRepository.deleteSubscriptionByNotifyTopic(notifyTopic)
+        subscriptionRepository.deleteSubscriptionByNotifyTopic(notifyTopic, account)
         messagesRepository.deleteMessagesByTopic(notifyTopic)
 
         jsonRpcInteractor.unsubscribe(Topic(notifyTopic))
-        jsonRpcInteractor.publishJsonRpcRequest(
-            Topic(notifyTopic),
-            irnParams,
-            request,
-            onFailure = {
-                onFailure(it)
-            }
-        )
-
-        deleteSubscriptionToNotifySubscriptionStore(activeSubscription.account, activeSubscription.notifyTopic, onSuccess = {}, onError = {})
+        jsonRpcInteractor.publishJsonRpcRequest(Topic(notifyTopic), irnParams, request, onFailure = { onFailure(it) })
     }
-
 }
 
 internal interface DeleteSubscriptionUseCaseInterface {

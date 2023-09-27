@@ -3,16 +3,13 @@ package com.walletconnect.web3.modal.ui.components.internal.commons.entry
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -25,10 +22,14 @@ import com.walletconnect.web3.modal.ui.previews.MultipleComponentsPreview
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
+internal enum class AccountEntryState {
+    LOADING, NEXT, INFO
+}
+
 @Composable
 internal fun AccountEntry(
     isEnabled: Boolean = true,
-    isLoading: Boolean = false,
+    state: AccountEntryState = AccountEntryState.NEXT,
     onClick: () -> Unit,
     startIcon: @Composable (Boolean) -> Unit,
     content: @Composable (EntryColors) -> Unit,
@@ -36,7 +37,7 @@ internal fun AccountEntry(
     BaseEntry(isEnabled = isEnabled) { entryColors ->
         Row(
             modifier = Modifier
-                .clickable(enabled = isEnabled) { onClick() }
+                .clickable(enabled = state == AccountEntryState.NEXT && isEnabled) { onClick() }
                 .height(56.dp)
                 .background(color = entryColors.background)
                 .padding(horizontal = 12.dp),
@@ -48,10 +49,10 @@ internal fun AccountEntry(
                 content(entryColors)
             }
             HorizontalSpacer(width = 12.dp)
-            if (isLoading) {
-                LoadingSpinner(entryColors.secondaryColor)
-            } else {
-                ChevronRightIcon(entryColors.secondaryColor)
+            when(state) {
+                AccountEntryState.LOADING -> LoadingSpinner(tint = entryColors.secondaryColor)
+                AccountEntryState.NEXT -> ChevronRightIcon(entryColors.secondaryColor)
+                AccountEntryState.INFO -> {}
             }
         }
     }
@@ -65,20 +66,28 @@ private fun AccountEntryPreview() {
         {
             AccountEntry(
                 onClick = {},
-                startIcon = { CircleNetworkImage(url = "", isEnabled = it, placeholder = ContextCompat.getDrawable(LocalContext.current, R.drawable.defi)) }, content = content)
+                startIcon = { CircleNetworkImage(data = "", isEnabled = it, placeholder = ContextCompat.getDrawable(LocalContext.current, R.drawable.defi)) }, content = content)
         },
         {
             AccountEntry(
                 onClick = {},
-                startIcon = { CircleNetworkImage(url = "", isEnabled = it, placeholder = ContextCompat.getDrawable(LocalContext.current, R.drawable.defi)) },
-                isLoading = true,
+                startIcon = { CircleNetworkImage(data = "", isEnabled = it, placeholder = ContextCompat.getDrawable(LocalContext.current, R.drawable.defi)) },
+                state = AccountEntryState.LOADING,
                 content = content
             )
         },
         {
             AccountEntry(
                 onClick = {},
-                startIcon = { CircleNetworkImage(url = "", isEnabled = it, placeholder = ContextCompat.getDrawable(LocalContext.current, R.drawable.defi)) },
+                startIcon = { CircleNetworkImage(data = "", isEnabled = it, placeholder = ContextCompat.getDrawable(LocalContext.current, R.drawable.defi)) },
+                state = AccountEntryState.INFO,
+                content = content
+            )
+        },
+        {
+            AccountEntry(
+                onClick = {},
+                startIcon = { CircleNetworkImage(data = "", isEnabled = it, placeholder = ContextCompat.getDrawable(LocalContext.current, R.drawable.defi)) },
                 isEnabled = false,
                 content = content
             )
