@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalAnimationApi::class)
-
 package com.walletconnect.web3.modal.ui
 
 import android.os.Bundle
@@ -8,12 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.ComponentDialog
 import androidx.activity.OnBackPressedCallback
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.navigation.NavHostController
-import com.google.accompanist.navigation.animation.rememberAnimatedNavController
+import androidx.navigation.compose.rememberNavController
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.walletconnect.web3.modal.ui.components.internal.Web3ModalComponent
 
@@ -24,23 +21,28 @@ class Web3ModalSheet : BottomSheetDialogFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        val shouldOpenChooseNetwork = arguments.getShouldOpenChooseNetworkArg()
+
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                Web3ModalComposeView()
+                Web3ModalComposeView(shouldOpenChooseNetwork)
             }
         }
     }
 
     @Composable
-    private fun Web3ModalComposeView() {
-        val navController = rememberAnimatedNavController()
+    private fun Web3ModalComposeView(
+        shouldOpenChooseNetwork: Boolean
+    ) {
+        val navController = rememberNavController()
         (dialog as? ComponentDialog)?.onBackPressedDispatcher?.addCallback(
             this@Web3ModalSheet,
             onBackPressedCallback(navController)
         )
         Web3ModalComponent(
             navController = navController,
+            shouldOpenChooseNetwork = shouldOpenChooseNetwork,
             closeModal = { this@Web3ModalSheet.dismiss() }
         )
     }
@@ -55,3 +57,5 @@ class Web3ModalSheet : BottomSheetDialogFragment() {
             }
         }
 }
+
+private fun Bundle?.getShouldOpenChooseNetworkArg() = this?.getBoolean(CHOOSE_NETWORK_KEY) ?: false
