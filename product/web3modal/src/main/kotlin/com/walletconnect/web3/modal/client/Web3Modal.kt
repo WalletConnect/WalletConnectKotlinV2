@@ -5,10 +5,6 @@ import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import com.walletconnect.web3.modal.di.web3ModalModule
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
-import com.walletconnect.web3.modal.domain.usecase.GetSelectedChainUseCase
-import com.walletconnect.web3.modal.domain.usecase.SaveChainSelectionUseCase
-import com.walletconnect.web3.modal.utils.getSelectedChain
-import kotlinx.coroutines.runBlocking
 
 object Web3Modal {
 
@@ -34,6 +30,13 @@ object Web3Modal {
         // Utils
         fun onConnectionStateChange(state: Modal.Model.ConnectionState)
         fun onError(error: Modal.Model.Error)
+    }
+
+    interface ComponentDelegate {
+        fun onModalExpanded()
+
+        fun onModalHidden()
+
     }
 
     fun initialize(
