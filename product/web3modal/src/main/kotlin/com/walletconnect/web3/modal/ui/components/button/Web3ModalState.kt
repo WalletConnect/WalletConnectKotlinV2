@@ -46,12 +46,7 @@ class Web3ModalState(
     private val getSelectedChainUseCase: GetSelectedChainUseCase = wcKoinApp.koin.get()
 
     val isOpen = ComponentDelegate.modalComponentEvent
-        .map { event ->
-            when (event) {
-                ComponentEvent.ModalHiddenEvent -> false
-                ComponentEvent.ModalExpandedEvent -> true
-            }
-        }
+        .map { event -> event.isOpen }
         .stateIn(coroutineScope, started = SharingStarted.Lazily, ComponentDelegate.isModalOpen)
 
     private val sessionTopicFlow = observeSessionTopicUseCase()
