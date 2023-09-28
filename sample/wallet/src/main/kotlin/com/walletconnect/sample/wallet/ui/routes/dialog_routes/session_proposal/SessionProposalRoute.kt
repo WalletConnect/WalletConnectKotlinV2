@@ -97,7 +97,7 @@ fun ScammerScreen(
     openDialog: () -> Unit
 ) {
     SemiTransparentDialog(Color(0xFF000000)) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.background(mismatch_color.copy(alpha = .25f)).fillMaxWidth()) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.background(mismatch_color.copy(alpha = .15f)).fillMaxWidth()) {
             Spacer(modifier = Modifier.height(32.dp))
             Image(modifier = Modifier.size(72.dp), painter = painterResource(R.drawable.ic_scam), contentDescription = null)
             Text(text = "Website flagged", style = TextStyle(color = Color(0xFFFFFFFF), fontSize = 24.sp, fontWeight = FontWeight.Bold))
@@ -231,7 +231,7 @@ private fun ValidationDescription(peerContextUI: PeerContextUI) {
         modifier = Modifier
             .padding(end = 20.dp, start = 20.dp)
             .clip(RoundedCornerShape(24.dp))
-            .background(color = getColor(peerContextUI).copy(alpha = 0.25f))
+            .background(color = getColor(peerContextUI).copy(alpha = 0.15f))
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {

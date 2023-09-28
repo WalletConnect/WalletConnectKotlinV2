@@ -92,7 +92,7 @@ private fun VerifyBatch(peerContextUI: PeerContextUI) {
         modifier = Modifier
             .padding(vertical = 10.dp, horizontal = 15.dp)
             .clip(CircleShape)
-            .background(color = getColor(peerContextUI).copy(alpha = 0.25f))
+            .background(color = getColor(peerContextUI).copy(alpha = 0.15f))
             .padding(vertical = 5.dp, horizontal = 8.dp),
         horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically
     ) {
