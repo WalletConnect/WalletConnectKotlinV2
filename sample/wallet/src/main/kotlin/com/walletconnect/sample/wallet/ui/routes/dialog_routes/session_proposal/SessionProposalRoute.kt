@@ -53,6 +53,7 @@ import com.walletconnect.sample.wallet.ui.common.generated.CancelButton
 import com.walletconnect.sample.wallet.ui.common.peer.Peer
 import com.walletconnect.sample.wallet.ui.common.peer.PeerContextUI
 import com.walletconnect.sample.wallet.ui.common.peer.Validation
+import com.walletconnect.sample.wallet.ui.common.peer.getColor
 import com.walletconnect.sample.wallet.ui.common.peer.getDescriptionContent
 import com.walletconnect.sample.wallet.ui.common.peer.getDescriptionTitle
 import com.walletconnect.sample.wallet.ui.common.peer.getValidationColor
@@ -76,7 +77,7 @@ fun SessionProposalRoute(navController: NavHostController, sessionProposalViewMo
     val sessionProposalUI = sessionProposalViewModel.sessionProposal ?: throw Exception("Missing session proposal")
     val composableScope = rememberCoroutineScope()
     val context = LocalContext.current
-    val allowButtonColor = if (sessionProposalUI.peerContext.isScam == true) mismatch_color else getValidationColor(sessionProposalUI.peerContext.validation)
+    val allowButtonColor = getColor(sessionProposalUI.peerContext)
     var shouldOpenProposalDialog by remember { mutableStateOf(false) }
     if (shouldOpenProposalDialog) {
         SessionProposalDialog(sessionProposalUI, allowButtonColor, composableScope, sessionProposalViewModel, context, navController)
@@ -226,12 +227,11 @@ fun Permissions(sessionProposalUI: SessionProposalUI) {
 
 @Composable
 private fun ValidationDescription(peerContextUI: PeerContextUI) {
-    val color = if (peerContextUI.isScam == true) mismatch_color else getValidationColor(peerContextUI.validation)
     Row(
         modifier = Modifier
             .padding(end = 20.dp, start = 20.dp)
             .clip(RoundedCornerShape(24.dp))
-            .background(color = color.copy(alpha = 0.25f))
+            .background(color = getColor(peerContextUI).copy(alpha = 0.25f))
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -246,7 +246,7 @@ private fun ValidationDescription(peerContextUI: PeerContextUI) {
         }
 
         Column(modifier = Modifier.padding(12.dp), horizontalAlignment = Alignment.Start) {
-            Text(getDescriptionTitle(peerContextUI), style = TextStyle(color = color, fontWeight = FontWeight.Bold, fontSize = 14.sp))
+            Text(getDescriptionTitle(peerContextUI), style = TextStyle(color = getColor(peerContextUI), fontWeight = FontWeight.Bold, fontSize = 14.sp))
             Text(getDescriptionContent(peerContextUI), style = TextStyle(fontSize = 14.sp))
         }
     }

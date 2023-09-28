@@ -39,6 +39,7 @@ import com.walletconnect.sample.common.ui.theme.PreviewTheme
 import com.walletconnect.sample.common.ui.theme.mismatch_color
 import com.walletconnect.sample.common.ui.theme.verified_color
 import com.walletconnect.sample.common.ui.themedColor
+import com.walletconnect.sample.wallet.ui.common.peer.getColor
 import com.walletconnect.sample.wallet.ui.common.peer.getValidationColor
 import kotlinx.coroutines.launch
 
@@ -60,7 +61,7 @@ fun SessionRequestRoute(navController: NavHostController, sessionRequestViewMode
 
     when (sessionRequestUI) {
         is SessionRequestUI.Content -> {
-            val allowButtonColor = if (sessionRequestUI.peerContextUI.isScam == true) mismatch_color else getValidationColor(sessionRequestUI.peerContextUI.validation)
+            val allowButtonColor = getColor(sessionRequestUI.peerContextUI)
             SemiTransparentDialog {
                 Spacer(modifier = Modifier.height(24.dp))
                 Peer(peerUI = sessionRequestUI.peerUI, "sends a request", sessionRequestUI.peerContextUI)

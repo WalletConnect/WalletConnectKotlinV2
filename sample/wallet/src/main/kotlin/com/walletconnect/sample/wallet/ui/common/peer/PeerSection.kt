@@ -88,12 +88,11 @@ fun Peer(peerUI: PeerUI, actionText: String?, peerContextUI: PeerContextUI? = nu
 
 @Composable
 private fun VerifyBatch(peerContextUI: PeerContextUI) {
-    val color = if (peerContextUI.isScam == true) mismatch_color else getValidationColor(peerContextUI.validation)
     Row(
         modifier = Modifier
             .padding(vertical = 10.dp, horizontal = 15.dp)
             .clip(CircleShape)
-            .background(color = color.copy(alpha = 0.25f))
+            .background(color = getColor(peerContextUI).copy(alpha = 0.25f))
             .padding(vertical = 5.dp, horizontal = 8.dp),
         horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically
     ) {
@@ -109,7 +108,7 @@ private fun VerifyBatch(peerContextUI: PeerContextUI) {
             style = TextStyle(
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 12.sp,
-                color = color
+                color = getColor(peerContextUI)
             ),
         )
     }
