@@ -9,6 +9,7 @@ import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.domain.model.AccountData
 import com.walletconnect.web3.modal.domain.usecase.DeleteSessionDataUseCase
+import com.walletconnect.web3.modal.domain.usecase.GetEthBalanceUseCase
 import com.walletconnect.web3.modal.domain.usecase.GetIdentityUseCase
 import com.walletconnect.web3.modal.domain.usecase.GetSelectedChainUseCase
 import com.walletconnect.web3.modal.domain.usecase.GetSessionTopicUseCase
@@ -48,6 +49,7 @@ internal class AccountState(
     private val getSelectedChainUseCase: GetSelectedChainUseCase = wcKoinApp.koin.get()
     private val observeSelectedChainUseCase: ObserveSelectedChainUseCase = wcKoinApp.koin.get()
     private val getIdentityUseCase: GetIdentityUseCase = wcKoinApp.koin.get()
+    private val getEthBalanceUseCase: GetEthBalanceUseCase = wcKoinApp.koin.get()
 
     private val accountFlow = flow {
         val activeSession = getSessionTopicUseCase()?.let { Web3Modal.getActiveSessionByTopic(it) }
@@ -56,10 +58,11 @@ internal class AccountState(
             val selectedChain = chains.getSelectedChain(getSelectedChainUseCase())
             val address = activeSession.getAddress(selectedChain)
             val identity = getIdentityUseCase(address, selectedChain.id)
+            val balance = selectedChain.rpcUrl?.let { rpc -> getBalance(selectedChain.token, rpc, address).valueWithSymbol }
             accountData = AccountData(
                 topic = activeSession.topic,
                 address = address,
-                balance = "",
+                balance = balance,
                 chains = chains,
                 identity = identity
             )
@@ -80,6 +83,12 @@ internal class AccountState(
     val selectedChain = observeSelectedChainUseCase().map { savedChainId ->
         Web3Modal.chains.find { it.id == savedChainId } ?: Web3Modal.getSelectedChainOrFirst()
     }
+
+    private suspend fun getBalance(
+        token: Modal.Model.Token,
+        url: String,
+        address: String
+    ) = getEthBalanceUseCase(token, url, address)
 
     fun disconnect(
         topic: String,

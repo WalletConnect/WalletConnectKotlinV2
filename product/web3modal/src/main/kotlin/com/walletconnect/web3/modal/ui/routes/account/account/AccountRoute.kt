@@ -11,7 +11,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.walletconnect.web3.modal.client.Modal
@@ -35,7 +34,6 @@ import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 import com.walletconnect.web3.modal.ui.previews.ethereumChain
-import com.walletconnect.web3.modal.ui.previews.testChains
 import com.walletconnect.web3.modal.ui.routes.account.AccountState
 import com.walletconnect.web3.modal.ui.previews.accountDataPreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
@@ -61,7 +59,7 @@ internal fun AccountRoute(
             AccountScreen(
                 accountData = data,
                 selectedChain = selectedChain,
-                onBlockExplorerClick = { uriHandler.openBlockExplorer(data.address) },
+                onBlockExplorerClick = { url -> uriHandler.openUri(url) },
                 onChangeNetworkClick = { navController.navigate(Route.CHANGE_NETWORK.path) },
                 onDisconnectClick = { accountState.disconnect(data.topic) { closeModal() } }
             )
@@ -73,7 +71,7 @@ internal fun AccountRoute(
 private fun AccountScreen(
     accountData: AccountData,
     selectedChain: Modal.Model.Chain,
-    onBlockExplorerClick: () -> Unit,
+    onBlockExplorerClick: (String) -> Unit,
     onChangeNetworkClick: () -> Unit,
     onDisconnectClick: () -> Unit
 ) {
@@ -88,19 +86,24 @@ private fun AccountScreen(
         AccountImage(address = accountData.address, avatarUrl = accountData.identity?.avatar)
         VerticalSpacer(height = 20.dp)
         AccountName(accountData)
-        Text(
-            text = accountData.balance,
-            style = Web3ModalTheme.typo.paragraph500.copy(Web3ModalTheme.colors.foreground.color200)
-        )
-        VerticalSpacer(height = 12.dp)
-        ChipButton(
-            text = "Block Explorer",
-            startIcon = { CompassIcon() },
-            endIcon = { ExternalIcon(it) },
-            style = ButtonStyle.SHADE,
-            size = ButtonSize.S,
-            onClick = onBlockExplorerClick
-        )
+        accountData.balance?.let { balance ->
+            VerticalSpacer(height = 8.dp)
+            Text(
+                text = balance,
+                style = Web3ModalTheme.typo.paragraph500.copy(Web3ModalTheme.colors.foreground.color200)
+            )
+        }
+        selectedChain.blockExplorerUrl?.let { url ->
+            VerticalSpacer(height = 12.dp)
+            ChipButton(
+                text = "Block Explorer",
+                startIcon = { CompassIcon() },
+                endIcon = { ExternalIcon(it) },
+                style = ButtonStyle.SHADE,
+                size = ButtonSize.S,
+                onClick = { onBlockExplorerClick("$url/address/${accountData.address}") }
+            )
+        }
         VerticalSpacer(height = 20.dp)
         AccountEntry(
             startIcon = { CircleNetworkImage(selectedChain.getImageData()) },
@@ -117,10 +120,6 @@ private fun AccountScreen(
             Text(text = "Disconnect", style = Web3ModalTheme.typo.paragraph600.copy(color = it.textColor))
         }
     }
-}
-
-private fun UriHandler.openBlockExplorer(address: String) {
-    openUri("https://etherscan.io/address/$address")
 }
 
 @UiModePreview
