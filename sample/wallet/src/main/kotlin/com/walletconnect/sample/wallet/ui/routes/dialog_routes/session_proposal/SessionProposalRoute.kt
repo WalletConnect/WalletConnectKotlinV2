@@ -18,10 +18,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,20 +41,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.walletconnect.sample.common.Chains
-import com.walletconnect.sample.wallet.ui.common.Buttons
-import com.walletconnect.sample.wallet.ui.common.SemiTransparentDialog
-import com.walletconnect.sample.wallet.ui.common.peer.Peer
-import com.walletconnect.sample.wallet.ui.routes.Route
-import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import com.walletconnect.sample.common.CompletePreviews
 import com.walletconnect.sample.common.sendResponseDeepLink
 import com.walletconnect.sample.common.ui.theme.PreviewTheme
 import com.walletconnect.sample.common.ui.theme.mismatch_color
 import com.walletconnect.sample.common.ui.themedColor
 import com.walletconnect.sample.wallet.R
-import com.walletconnect.sample.wallet.ui.common.generated.CancelButton
 import com.walletconnect.sample.wallet.ui.common.Buttons
 import com.walletconnect.sample.wallet.ui.common.SemiTransparentDialog
+import com.walletconnect.sample.wallet.ui.common.generated.CancelButton
 import com.walletconnect.sample.wallet.ui.common.peer.Peer
 import com.walletconnect.sample.wallet.ui.common.peer.PeerContextUI
 import com.walletconnect.sample.wallet.ui.common.peer.Validation
@@ -61,9 +57,9 @@ import com.walletconnect.sample.wallet.ui.common.peer.getDescriptionContent
 import com.walletconnect.sample.wallet.ui.common.peer.getDescriptionTitle
 import com.walletconnect.sample.wallet.ui.common.peer.getValidationColor
 import com.walletconnect.sample.wallet.ui.common.peer.getValidationIcon
-import kotlinx.coroutines.CoroutineScope
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.showSnackbar
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -81,23 +77,23 @@ fun SessionProposalRoute(navController: NavHostController, sessionProposalViewMo
     val composableScope = rememberCoroutineScope()
     val context = LocalContext.current
     val allowButtonColor = if (sessionProposalUI.peerContext.isScam == true) mismatch_color else getValidationColor(sessionProposalUI.peerContext.validation)
-    val shouldOpenProposalDialog = remember { mutableStateOf(false) }
-    if (shouldOpenProposalDialog.value) {
+    var shouldOpenProposalDialog by remember { mutableStateOf(false) }
+    if (shouldOpenProposalDialog) {
         SessionProposalDialog(sessionProposalUI, allowButtonColor, composableScope, sessionProposalViewModel, context, navController)
     }
 
-    if (sessionProposalUI.peerContext.isScam == true && !shouldOpenProposalDialog.value) {
-        ScammerScreenRoute(sessionProposalUI, navController, shouldOpenProposalDialog)
+    if (sessionProposalUI.peerContext.isScam == true && !shouldOpenProposalDialog) {
+        ScammerScreen(sessionProposalUI, navController) { shouldOpenProposalDialog = true }
     } else {
         SessionProposalDialog(sessionProposalUI, allowButtonColor, composableScope, sessionProposalViewModel, context, navController)
     }
 }
 
 @Composable
-fun ScammerScreenRoute(
+fun ScammerScreen(
     sessionProposalUI: SessionProposalUI,
     navController: NavHostController,
-    shouldOpenProposalDialog: MutableState<Boolean>
+    openDialog: () -> Unit
 ) {
     SemiTransparentDialog(Color(0xFF000000)) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.background(mismatch_color.copy(alpha = .25f)).fillMaxWidth()) {
@@ -112,7 +108,7 @@ fun ScammerScreenRoute(
                 style = TextStyle(color = Color(0xFFFFFFFF), textAlign = TextAlign.Center)
             )
             Spacer(modifier = Modifier.height(24.dp))
-            Text(text = "Proceed anyway", modifier = Modifier.clickable { shouldOpenProposalDialog.value = true }, style = TextStyle(color = mismatch_color, fontSize = 16.sp))
+            Text(text = "Proceed anyway", modifier = Modifier.clickable { openDialog() }, style = TextStyle(color = mismatch_color, fontSize = 16.sp))
             Spacer(modifier = Modifier.height(16.dp))
             CancelButton(
                 modifier = Modifier.padding(16.dp).height(46.dp).fillMaxWidth().clickable { navController.popBackStack(route = Route.Connections.path, inclusive = false) },
@@ -126,7 +122,7 @@ fun ScammerScreenRoute(
 private fun SessionProposalDialog(
     sessionProposalUI: SessionProposalUI,
     allowButtonColor: Color,
-    composableScope: CoroutineScope,
+    coroutineScope: CoroutineScope,
     sessionProposalViewModel: SessionProposalViewModel,
     context: Context,
     navController: NavHostController
@@ -140,7 +136,7 @@ private fun SessionProposalDialog(
         AccountAndNetwork(sessionProposalUI)
         Spacer(modifier = Modifier.height(18.dp))
         Buttons(allowButtonColor, onDecline = {
-            composableScope.launch {
+            coroutineScope.launch {
                 try {
                     sessionProposalViewModel.reject(sessionProposalUI.pubKey) { redirect ->
                         if (redirect.isNotEmpty()) {
@@ -153,14 +149,14 @@ private fun SessionProposalDialog(
                 }
             }
         }, onAllow = {
-            composableScope.launch {
+            coroutineScope.launch {
                 try {
                     sessionProposalViewModel.approve(sessionProposalUI.pubKey) { redirect ->
                         if (redirect.isNotEmpty()) {
                             context.sendResponseDeepLink(redirect.toUri())
                         }
 
-                        composableScope.launch(Dispatchers.Main) {
+                        coroutineScope.launch(Dispatchers.Main) {
                             navController.popBackStack(route = Route.Connections.path, inclusive = false)
                         }
                     }

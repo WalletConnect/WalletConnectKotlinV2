@@ -31,8 +31,6 @@ import androidx.compose.ui.unit.sp
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 import com.walletconnect.sample.common.ui.theme.mismatch_color
-import com.walletconnect.sample.common.ui.theme.unverified_color
-import com.walletconnect.sample.common.ui.theme.verified_color
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.common.ui.themedColor
 
@@ -71,7 +69,7 @@ fun Peer(peerUI: PeerUI, actionText: String?, peerContextUI: PeerContextUI? = nu
             Spacer(modifier = Modifier.height(8.dp))
             Row {
                 if (peerContextUI?.validation == Validation.VALID) {
-                    Image(painterResource(R.drawable.icon_verified_domain), contentDescription = null)
+                    Image(painterResource(R.drawable.ic_verified_domain), contentDescription = null)
                 }
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
