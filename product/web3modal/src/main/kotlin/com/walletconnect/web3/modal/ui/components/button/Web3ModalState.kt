@@ -80,9 +80,7 @@ class Web3ModalState(
         when (accountButtonType) {
             AccountButtonType.NORMAL -> AccountButtonState.Normal(address = address)
             AccountButtonType.MIXED -> {
-                val balance = selectedChain.rpcUrl?.let { rpcUrl ->
-                    getEthBalanceUseCase(selectedChain.token, rpcUrl, address).valueWithSymbol
-                }
+                val balance = selectedChain.rpcUrl?.let { url -> getEthBalanceUseCase(selectedChain.token, url, address)?.valueWithSymbol }
                 AccountButtonState.Mixed(
                     address = address,
                     chainImage = selectedChain.chainImage ?: getChainNetworkImageUrl(selectedChain.chainReference),

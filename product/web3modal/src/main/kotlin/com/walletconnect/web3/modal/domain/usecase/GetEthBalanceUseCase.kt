@@ -18,7 +18,7 @@ internal class GetEthBalanceUseCase(
             rpcUrl = rpcUrl,
             address = address
         )
-    } catch (e: Exception) {
+    } catch (e: Throwable) {
         logger.error(e)
         null
     }

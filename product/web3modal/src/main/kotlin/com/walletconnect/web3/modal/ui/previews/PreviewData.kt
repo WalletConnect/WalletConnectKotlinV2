@@ -43,7 +43,6 @@ internal val accountDataPreview: AccountData
     get() = AccountData(
     topic = "",
     address = "0xd2B8b483056b134f9D8cd41F55bB065F9",
-    balance = "543 ETH",
     chains = testChains,
     identity = null
 )

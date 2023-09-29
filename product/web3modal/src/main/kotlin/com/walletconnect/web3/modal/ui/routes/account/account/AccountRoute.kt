@@ -16,6 +16,7 @@ import androidx.navigation.NavController
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.domain.model.AccountData
+import com.walletconnect.web3.modal.domain.model.Balance
 import com.walletconnect.web3.modal.ui.components.internal.commons.CloseIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.CompassIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.DisconnectIcon
@@ -47,6 +48,7 @@ internal fun AccountRoute(
 ) {
     val uriHandler = LocalUriHandler.current
     val selectedChain by accountState.selectedChain.collectAsState(initial = Web3Modal.getSelectedChainOrFirst())
+    val balance by accountState.balanceState.collectAsState()
 
     Box(modifier = Modifier.fillMaxWidth()) {
         CloseIcon(
@@ -59,6 +61,7 @@ internal fun AccountRoute(
             AccountScreen(
                 accountData = data,
                 selectedChain = selectedChain,
+                balance = balance,
                 onBlockExplorerClick = { url -> uriHandler.openUri(url) },
                 onChangeNetworkClick = { navController.navigate(Route.CHANGE_NETWORK.path) },
                 onDisconnectClick = { accountState.disconnect(data.topic) { closeModal() } }
@@ -71,6 +74,7 @@ internal fun AccountRoute(
 private fun AccountScreen(
     accountData: AccountData,
     selectedChain: Modal.Model.Chain,
+    balance: Balance?,
     onBlockExplorerClick: (String) -> Unit,
     onChangeNetworkClick: () -> Unit,
     onDisconnectClick: () -> Unit
@@ -86,10 +90,10 @@ private fun AccountScreen(
         AccountImage(address = accountData.address, avatarUrl = accountData.identity?.avatar)
         VerticalSpacer(height = 20.dp)
         AccountName(accountData)
-        accountData.balance?.let { balance ->
+        balance?.let { balance ->
             VerticalSpacer(height = 8.dp)
             Text(
-                text = balance,
+                text = balance.valueWithSymbol,
                 style = Web3ModalTheme.typo.paragraph500.copy(Web3ModalTheme.colors.foreground.color200)
             )
         }
@@ -126,6 +130,6 @@ private fun AccountScreen(
 @Composable
 private fun PreviewAccountScreen() {
     Web3ModalPreview {
-        AccountScreen(accountDataPreview, ethereumChain, {}, {}, {})
+        AccountScreen(accountDataPreview, ethereumChain,null, {}, {}, {})
     }
 }

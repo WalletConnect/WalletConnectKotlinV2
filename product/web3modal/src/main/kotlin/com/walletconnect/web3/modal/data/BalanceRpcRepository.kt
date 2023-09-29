@@ -21,7 +21,7 @@ internal class BalanceRpcRepository(
         )
     ) {
         if (isSuccessful && body() != null) {
-            return@with body()!!.mapResponse(token)
+            body()!!.mapResponse(token)
         } else {
             throw Throwable(errorBody()?.string())
         }
