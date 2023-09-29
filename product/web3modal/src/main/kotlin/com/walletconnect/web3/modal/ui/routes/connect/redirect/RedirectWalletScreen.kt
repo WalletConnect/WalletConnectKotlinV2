@@ -125,38 +125,6 @@ private fun RedirectWalletScreen(
     onOpenPlayStore: () -> Unit,
     onOpenWebApp: () -> Unit
 ) {
-    PlatformBox(
-        platformTab = platformTab,
-        onPlatformTabSelect = onPlatformTabSelect,
-        wallet = wallet,
-        mobileWalletContent = {
-            RedirectMobileWalletScreen(
-                wallet = wallet,
-                state = redirectState,
-                onCopyLinkClick = onCopyLinkClick,
-                onRetry = onMobileRetry,
-                onOpenPlayStore = onOpenPlayStore,
-            )
-        },
-        webWalletContent = {
-            RedirectWebWalletScreen(
-                wallet = wallet,
-                state = redirectState,
-                onCopyLinkClick = onCopyLinkClick,
-                onOpenWebApp = onOpenWebApp
-            )
-        }
-    )
-}
-
-@Composable
-private fun PlatformBox(
-    platformTab: PlatformTab,
-    onPlatformTabSelect: (PlatformTab) -> Unit,
-    wallet: Wallet,
-    mobileWalletContent: @Composable () -> Unit,
-    webWalletContent: @Composable () -> Unit
-) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -166,11 +134,43 @@ private fun PlatformBox(
             PlatformTabRow(platformTab, onPlatformTabSelect)
         }
         VerticalSpacer(height = 28.dp)
-        AnimatedContent(targetState = platformTab, label = "Platform state") { state ->
-            when (state) {
-                PlatformTab.MOBILE -> mobileWalletContent()
-                PlatformTab.WEB -> webWalletContent()
+        when {
+            platformTab == PlatformTab.WEB || redirectState == RedirectState.Loading -> WalletImageWithLoader(url = wallet.imageUrl)
+            redirectState == RedirectState.NotDetected || redirectState == RedirectState.Reject -> RejectWalletImage(wallet.imageUrl)
+        }
+        VerticalSpacer(height = 20.dp)
+        PlatformBox(
+            platformTab = platformTab,
+            mobileWalletContent = {
+                RedirectMobileWalletScreen(
+                    wallet = wallet,
+                    state = redirectState,
+                    onCopyLinkClick = onCopyLinkClick,
+                    onRetry = onMobileRetry,
+                    onOpenPlayStore = onOpenPlayStore,
+                )
+            },
+            webWalletContent = {
+                RedirectWebWalletScreen(
+                    onCopyLinkClick = onCopyLinkClick,
+                    onOpenWebApp = onOpenWebApp
+                )
             }
+        )
+    }
+}
+
+@Composable
+private fun PlatformBox(
+    platformTab: PlatformTab,
+    mobileWalletContent: @Composable () -> Unit,
+    webWalletContent: @Composable () -> Unit
+) {
+
+    AnimatedContent(targetState = platformTab, label = "Platform state") { state ->
+        when (state) {
+            PlatformTab.MOBILE -> mobileWalletContent()
+            PlatformTab.WEB -> webWalletContent()
         }
     }
 }
@@ -192,7 +192,7 @@ private fun RedirectMobileWalletScreen(
         ) {
             when (it) {
                 RedirectState.Loading -> LoadingState(wallet, onRetry, onCopyLinkClick)
-                RedirectState.Reject -> RejectedState(wallet.imageUrl, onRetry)
+                RedirectState.Reject -> RejectedState(onRetry)
                 RedirectState.NotDetected -> NotDetectedWalletState(wallet, onOpenPlayStore)
             }
         }
@@ -201,20 +201,12 @@ private fun RedirectMobileWalletScreen(
 
 @Composable
 private fun RedirectWebWalletScreen(
-    wallet: Wallet,
-    state: RedirectState,
     onCopyLinkClick: () -> Unit,
     onOpenWebApp: () -> Unit
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (state is RedirectState.Reject) {
-            RejectWalletImage(url = wallet.imageUrl)
-        } else {
-            WalletImageWithLoader(url = wallet.imageUrl)
-        }
-        VerticalSpacer(height = 20.dp)
         Text(text = "Open and continue in a browser", style = Web3ModalTheme.typo.paragraph500)
         VerticalSpacer(height = 20.dp)
         ImageButton(
@@ -244,8 +236,6 @@ private fun LoadingState(
     onRetry: () -> Unit,
     onCopyLinkClick: () -> Unit
 ) {
-    WalletImageWithLoader(wallet.imageUrl)
-    VerticalSpacer(height = 20.dp)
     Text(text = "Continue in ${wallet.name}", style = Web3ModalTheme.typo.paragraph500)
     VerticalSpacer(height = 8.dp)
     Text(text = "Accept connection request in your wallet app", style = Web3ModalTheme.typo.small500.copy(color = Web3ModalTheme.colors.foreground.color200))
@@ -272,12 +262,7 @@ private fun WalletImageWithLoader(url: String) {
 }
 
 @Composable
-private fun RejectedState(
-    url: String,
-    onRetry: () -> Unit,
-) {
-    RejectWalletImage(url)
-    VerticalSpacer(height = 20.dp)
+private fun RejectedState(onRetry: () -> Unit) {
     Text(text = "Connection declined", style = Web3ModalTheme.typo.paragraph500.copy(Web3ModalTheme.colors.error))
     VerticalSpacer(height = 8.dp)
     Text(
@@ -295,8 +280,6 @@ private fun NotDetectedWalletState(
     wallet: Wallet,
     onOpenPlayStore: () -> Unit
 ) {
-    RejectWalletImage(wallet.imageUrl)
-    VerticalSpacer(height = 20.dp)
     Text(text = "Download ${wallet.name}", style = Web3ModalTheme.typo.paragraph500)
     VerticalSpacer(height = 8.dp)
     Text(text = "Install ${wallet.name} app to continue", style = Web3ModalTheme.typo.small500.copy(color = Web3ModalTheme.colors.foreground.color200))
@@ -349,7 +332,8 @@ private fun PreviewRedirectWalletScreenWithRejectedState() {
 private fun PreviewRedirectWalletScreenWithNotDetectedState() {
     val wallet = testWallets.first()
     Web3ModalPreview(wallet.name) {
-        RedirectWalletScreen(redirectState = RedirectState.NotDetected, platformTab = PlatformTab.MOBILE, {}, wallet, {}, {}, {}, {})    }
+        RedirectWalletScreen(redirectState = RedirectState.NotDetected, platformTab = PlatformTab.MOBILE, {}, wallet, {}, {}, {}, {})
+    }
 }
 
 @UiModePreview
