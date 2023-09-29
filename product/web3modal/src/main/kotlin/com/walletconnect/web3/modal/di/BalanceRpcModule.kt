@@ -24,5 +24,5 @@ internal fun balanceRpcModule() = module {
 
     single { BalanceRpcRepository(balanceService = get()) }
 
-    single { GetEthBalanceUseCase(balanceRpcRepository = get()) }
+    single { GetEthBalanceUseCase(balanceRpcRepository = get(), logger = get()) }
 }
