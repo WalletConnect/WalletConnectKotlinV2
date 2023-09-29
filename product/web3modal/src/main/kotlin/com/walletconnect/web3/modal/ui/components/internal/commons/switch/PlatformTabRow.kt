@@ -37,7 +37,7 @@ import com.walletconnect.web3.modal.ui.previews.ComponentPreview
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
-enum class PlatformTab(
+internal enum class PlatformTab(
     val value: Int,
     val label: String
 ) {
@@ -45,7 +45,7 @@ enum class PlatformTab(
 }
 
 @Composable
-fun rememberWalletPlatformTabs(initValue: PlatformTab = PlatformTab.MOBILE) = remember {
+internal fun rememberWalletPlatformTabs(initValue: PlatformTab = PlatformTab.MOBILE) = remember {
     mutableStateOf(initValue)
 }
 
