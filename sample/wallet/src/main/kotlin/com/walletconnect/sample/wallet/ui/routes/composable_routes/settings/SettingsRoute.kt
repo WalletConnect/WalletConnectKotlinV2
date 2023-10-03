@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import com.walletconnect.sample.wallet.BuildConfig
 
 @Composable
 fun SettingsRoute(navController: NavHostController) {
@@ -21,5 +22,6 @@ private fun SettingsScreen(
 ) {
     Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
         Text("Settings")
+        Text(BuildConfig.VERSION_NAME)
     }
 }
