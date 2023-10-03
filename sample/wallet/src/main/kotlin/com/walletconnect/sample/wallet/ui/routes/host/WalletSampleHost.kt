@@ -57,16 +57,18 @@ fun WalletSampleHost(
     navController: NavHostController,
     web3walletViewModel: Web3WalletViewModel,
     connectionsViewModel: ConnectionsViewModel,
-    getStartedVisited: Boolean
+    getStartedVisited: Boolean,
 ) {
     val scaffoldState: ScaffoldState = rememberScaffoldState()
     val connectionState = web3walletViewModel.connectionState.collectAsState(ConnectionState.Idle).value
     val pairingState = web3walletViewModel.pairingStateSharedFlow.collectAsState(PairingState.Idle).value
+    val bottomBarState = rememberBottomBarMutableState()
 
     Scaffold(
         scaffoldState = scaffoldState,
         drawerGesturesEnabled = true,
-        drawerContent = { BeagleDrawer() }
+        drawerContent = { BeagleDrawer() },
+        bottomBar = { BottomBar(navController, bottomBarState.value) },
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
             Web3WalletNavGraph(
