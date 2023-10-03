@@ -41,25 +41,33 @@ internal class ProposeSessionUseCase(
         onFailure: (Throwable) -> Unit,
     ) = supervisorScope {
         val relay = RelayProtocolOptions(pairing.relayProtocol, pairing.relayData)
-        validate(requiredNamespaces, optionalNamespaces, properties)
 
-        val selfPublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
-        val sessionProposal: SignParams.SessionProposeParams =
-            toSessionProposeParams(listOf(relay), requiredNamespaces ?: emptyMap(), optionalNamespaces ?: emptyMap(), properties, selfPublicKey, selfAppMetaData)
-        val request = SignRpc.SessionPropose(params = sessionProposal)
-        proposalStorageRepository.insertProposal(sessionProposal.toVO(pairing.topic, request.id))
-        val irnParams = IrnParams(Tags.SESSION_PROPOSE, Ttl(FIVE_MINUTES_IN_SECONDS), true)
-        jsonRpcInteractor.subscribe(pairing.topic) { error -> return@subscribe onFailure(error) }
-
-        jsonRpcInteractor.publishJsonRpcRequest(pairing.topic, irnParams, request,
+        runCatching { validate(requiredNamespaces, optionalNamespaces, properties) }.fold(
             onSuccess = {
-                logger.log("Session proposal sent successfully")
-                onSuccess()
+                val selfPublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
+                val sessionProposal: SignParams.SessionProposeParams =
+                    toSessionProposeParams(listOf(relay), requiredNamespaces ?: emptyMap(), optionalNamespaces ?: emptyMap(), properties, selfPublicKey, selfAppMetaData)
+                val request = SignRpc.SessionPropose(params = sessionProposal)
+                proposalStorageRepository.insertProposal(sessionProposal.toVO(pairing.topic, request.id))
+                val irnParams = IrnParams(Tags.SESSION_PROPOSE, Ttl(FIVE_MINUTES_IN_SECONDS), true)
+                jsonRpcInteractor.subscribe(pairing.topic) { error -> return@subscribe onFailure(error) }
+
+                jsonRpcInteractor.publishJsonRpcRequest(pairing.topic, irnParams, request,
+                    onSuccess = {
+                        logger.log("Session proposal sent successfully")
+                        onSuccess()
+                    },
+                    onFailure = { error ->
+                        logger.error("Failed to send a session proposal: $error")
+                        onFailure(error)
+                    }
+                )
             },
             onFailure = { error ->
-                logger.error("Failed to send a session proposal: $error")
+                logger.error("Failed to validate session proposal: $error")
                 onFailure(error)
-            })
+            }
+        )
     }
 
     private fun validate(
