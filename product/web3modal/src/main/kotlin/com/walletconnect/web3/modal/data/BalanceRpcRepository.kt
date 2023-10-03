@@ -1,5 +1,6 @@
 package com.walletconnect.web3.modal.data
 
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.data.json_rpc.balance.BalanceRequest
 import com.walletconnect.web3.modal.data.json_rpc.balance.BalanceRpcResponse
@@ -7,25 +8,21 @@ import com.walletconnect.web3.modal.data.network.BalanceService
 import com.walletconnect.web3.modal.domain.model.Balance
 
 internal class BalanceRpcRepository(
-    private val balanceService: BalanceService
+    private val balanceService: BalanceService,
+    private val logger: Logger,
 ) {
 
     suspend fun getBalance(
-        token: Modal.Model.Token,
-        rpcUrl: String,
-        address: String
-    ) = with(
+        token: Modal.Model.Token, rpcUrl: String, address: String
+    ) = runCatching {
         balanceService.getBalance(
-            url = rpcUrl,
-            body = BalanceRequest(address = address)
+            url = rpcUrl, body = BalanceRequest(address = address)
         )
-    ) {
-        if (isSuccessful && body() != null) {
-            body()!!.mapResponse(token)
-        } else {
-            throw Throwable(errorBody()?.string())
-        }
-    }
+    }.mapCatching { response ->
+        response.body()!!.mapResponse(token)
+    }.onFailure {
+        logger.error(it)
+    }.getOrNull()
 }
 
 private fun BalanceRpcResponse.mapResponse(token: Modal.Model.Token) = when {

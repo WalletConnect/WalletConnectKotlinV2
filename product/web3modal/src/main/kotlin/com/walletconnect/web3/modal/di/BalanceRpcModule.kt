@@ -14,7 +14,8 @@ internal fun balanceRpcModule() = module {
 
     single(named(BALANCE_RPC_RETROFIT)) {
         Retrofit.Builder()
-            .baseUrl("https://rpc.walletconnect.com/v1/")
+            // Passing url to google to passing retrofit verification. The correct url to chain RPC is provided on the BalanceService::class
+            .baseUrl("https://google.com/")
             .client(get(named(AndroidCommonDITags.OK_HTTP)))
             .addConverterFactory(MoshiConverterFactory.create(get(named(AndroidCommonDITags.MOSHI))))
             .build()
@@ -22,7 +23,7 @@ internal fun balanceRpcModule() = module {
 
     single { get<Retrofit>(named(BALANCE_RPC_RETROFIT)).create(BalanceService::class.java) }
 
-    single { BalanceRpcRepository(balanceService = get()) }
+    single { BalanceRpcRepository(balanceService = get(), logger = get()) }
 
-    single { GetEthBalanceUseCase(balanceRpcRepository = get(), logger = get()) }
+    single { GetEthBalanceUseCase(balanceRpcRepository = get()) }
 }

@@ -14,7 +14,6 @@ import com.walletconnect.web3.modal.domain.usecase.GetSessionTopicUseCase
 import com.walletconnect.web3.modal.domain.usecase.ObserveSelectedChainUseCase
 import com.walletconnect.web3.modal.domain.usecase.ObserveSessionTopicUseCase
 import com.walletconnect.web3.modal.ui.components.ComponentDelegate
-import com.walletconnect.web3.modal.ui.components.ComponentEvent
 import com.walletconnect.web3.modal.ui.openWeb3Modal
 import com.walletconnect.web3.modal.utils.getAddress
 import com.walletconnect.web3.modal.utils.getChainNetworkImageUrl
@@ -80,7 +79,7 @@ class Web3ModalState(
         when (accountButtonType) {
             AccountButtonType.NORMAL -> AccountButtonState.Normal(address = address)
             AccountButtonType.MIXED -> {
-                val balance = selectedChain.rpcUrl?.let { url -> getEthBalanceUseCase(selectedChain.token, url, address)?.valueWithSymbol }
+                val balance = getBalance(selectedChain, address)
                 AccountButtonState.Mixed(
                     address = address,
                     chainImage = selectedChain.chainImage ?: getChainNetworkImageUrl(selectedChain.chainReference),
@@ -92,6 +91,9 @@ class Web3ModalState(
     } catch (e: Exception) {
         AccountButtonState.Invalid
     }
+
+    private suspend fun getBalance(selectedChain: Modal.Model.Chain, address: String) =
+        selectedChain.rpcUrl?.let { url -> getEthBalanceUseCase(selectedChain.token, url, address)?.valueWithSymbol }
 
     private suspend fun getActiveSession() = getSessionTopicUseCase()?.let { Web3Modal.getActiveSessionByTopic(it) }
 

@@ -6,20 +6,14 @@ import com.walletconnect.web3.modal.data.BalanceRpcRepository
 
 internal class GetEthBalanceUseCase(
     private val balanceRpcRepository: BalanceRpcRepository,
-    private val logger: Logger
 ) {
     suspend operator fun invoke(
         token: Modal.Model.Token,
         rpcUrl: String,
         address: String
-    ) = try {
-        balanceRpcRepository.getBalance(
-            token = token,
-            rpcUrl = rpcUrl,
-            address = address
-        )
-    } catch (e: Throwable) {
-        logger.error(e)
-        null
-    }
+    ) = balanceRpcRepository.getBalance(
+        token = token,
+        rpcUrl = rpcUrl,
+        address = address
+    )
 }
