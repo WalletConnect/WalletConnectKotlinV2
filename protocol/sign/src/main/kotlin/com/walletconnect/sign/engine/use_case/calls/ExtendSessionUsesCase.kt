@@ -27,15 +27,15 @@ internal class ExtendSessionUsesCase(
 
     override suspend fun extend(topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
-            throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
+            return@supervisorScope onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic"))
         }
 
         val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic(topic))
         if (!session.isSelfController) {
-            throw UnauthorizedPeerException(UNAUTHORIZED_EXTEND_MESSAGE)
+            return@supervisorScope onFailure(UnauthorizedPeerException(UNAUTHORIZED_EXTEND_MESSAGE))
         }
         if (!session.isAcknowledged) {
-            throw NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
+            return@supervisorScope onFailure(NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic"))
         }
 
         val newExpiration = session.expiry.seconds + WEEK_IN_SECONDS
@@ -52,7 +52,8 @@ internal class ExtendSessionUsesCase(
             onFailure = { error ->
                 logger.error("Sending session extend error: $error")
                 onFailure(error)
-            })
+            }
+        )
     }
 }
 
