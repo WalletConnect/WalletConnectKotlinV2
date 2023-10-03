@@ -274,15 +274,15 @@ internal class SignEngine(
     private fun propagatePendingSessionRequestsQueue() = scope.launch {
         getPendingSessionRequests()
             .map { pendingRequest -> pendingRequest.toSessionRequest(metadataStorageRepository.getByTopicAndType(pendingRequest.topic, AppMetaDataType.PEER)) }
+            .filter { sessionRequest -> CoreValidator.isExpiryWithinBounds(sessionRequest.expiry) }
+            .filter { sessionRequest ->  getSessionsUseCase.getListOfSettledSessions().find { session -> session.topic.value == sessionRequest.topic } != null}
             .onEach { sessionRequest ->
-                if (CoreValidator.isExpiryWithinBounds(sessionRequest.expiry)) {
-                    scope.launch {
-                        supervisorScope {
-                            val verifyContext =
-                                verifyContextStorageRepository.get(sessionRequest.request.id) ?: VerifyContext(sessionRequest.request.id, String.Empty, Validation.UNKNOWN, String.Empty, null)
-                            val sessionRequestEvent = EngineDO.SessionRequestEvent(sessionRequest, verifyContext.toEngineDO())
-                            sessionRequestEventsQueue.addLast(sessionRequestEvent)
-                        }
+                scope.launch {
+                    supervisorScope {
+                        val verifyContext =
+                            verifyContextStorageRepository.get(sessionRequest.request.id) ?: VerifyContext(sessionRequest.request.id, String.Empty, Validation.UNKNOWN, String.Empty, null)
+                        val sessionRequestEvent = EngineDO.SessionRequestEvent(sessionRequest, verifyContext.toEngineDO())
+                        sessionRequestEventsQueue.addLast(sessionRequestEvent)
                     }
                 }
             }
