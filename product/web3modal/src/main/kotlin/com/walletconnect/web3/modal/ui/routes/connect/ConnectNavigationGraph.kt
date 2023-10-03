@@ -14,6 +14,7 @@ import com.walletconnect.web3.modal.ui.routes.connect.connect_wallet.ConnectWall
 import com.walletconnect.web3.modal.ui.routes.connect.get_wallet.GetAWalletRoute
 import com.walletconnect.web3.modal.ui.routes.connect.what_is_wallet.WhatIsWallet
 import com.walletconnect.web3.modal.ui.routes.connect.scan_code.ScanQRCodeRoute
+import com.walletconnect.web3.modal.ui.routes.connect.what_is_wallet.WhatIsWalletOption
 
 @Composable
 internal fun ConnectionNavGraph(
@@ -39,7 +40,10 @@ internal fun ConnectionNavGraph(
             ScanQRCodeRoute(connectState = connectState)
         }
         composable(route = Route.WHAT_IS_WALLET.path) {
-            WhatIsWallet(navController = navController)
+            WhatIsWallet(
+                navController = navController,
+                option = WhatIsWalletOption.GET_WALLET
+            )
         }
         composable(Route.GET_A_WALLET.path) {
             GetAWalletRoute(wallets = connectState.wallets)

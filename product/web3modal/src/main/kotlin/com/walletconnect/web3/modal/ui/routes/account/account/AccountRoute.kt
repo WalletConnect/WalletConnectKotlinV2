@@ -35,7 +35,6 @@ import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 import com.walletconnect.web3.modal.ui.previews.ethereumChain
-import com.walletconnect.web3.modal.ui.previews.testChains
 import com.walletconnect.web3.modal.ui.routes.account.AccountState
 import com.walletconnect.web3.modal.ui.previews.accountDataPreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
@@ -44,8 +43,7 @@ import com.walletconnect.web3.modal.utils.getImageData
 @Composable
 internal fun AccountRoute(
     navController: NavController,
-    accountState: AccountState,
-    closeModal: () -> Unit
+    accountState: AccountState
 ) {
     val uriHandler = LocalUriHandler.current
     val selectedChain by accountState.selectedChain.collectAsState(initial = Web3Modal.getSelectedChainOrFirst())
@@ -55,7 +53,7 @@ internal fun AccountRoute(
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(25.dp),
-            onClick = { closeModal() }
+            onClick = { accountState.closeModal() }
         )
         UiStateBuilder(uiStateFlow = accountState.accountState) { data ->
             AccountScreen(
@@ -63,7 +61,7 @@ internal fun AccountRoute(
                 selectedChain = selectedChain,
                 onBlockExplorerClick = { uriHandler.openBlockExplorer(data.address) },
                 onChangeNetworkClick = { navController.navigate(Route.CHANGE_NETWORK.path) },
-                onDisconnectClick = { accountState.disconnect(data.topic) { closeModal() } }
+                onDisconnectClick = { accountState.disconnect(data.topic) { accountState.closeModal() } }
             )
         }
     }

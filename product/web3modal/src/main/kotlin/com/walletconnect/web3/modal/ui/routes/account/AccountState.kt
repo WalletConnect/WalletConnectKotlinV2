@@ -15,6 +15,7 @@ import com.walletconnect.web3.modal.domain.usecase.GetSessionTopicUseCase
 import com.walletconnect.web3.modal.domain.usecase.ObserveSelectedChainUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveChainSelectionUseCase
 import com.walletconnect.web3.modal.ui.model.UiState
+import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.utils.getAddress
 import com.walletconnect.web3.modal.utils.getChains
 import com.walletconnect.web3.modal.utils.getSelectedChain
@@ -31,14 +32,16 @@ import kotlinx.coroutines.launch
 @Composable
 internal fun rememberAccountState(
     coroutineScope: CoroutineScope,
-    navController: NavController
+    navController: NavController,
+    closeModal: () -> Unit
 ): AccountState = remember(coroutineScope, navController) {
-    AccountState(coroutineScope, navController)
+    AccountState(coroutineScope, navController, closeModal)
 }
 
 internal class AccountState(
     private val coroutineScope: CoroutineScope,
-    private val navController: NavController
+    private val navController: NavController,
+    val closeModal: () -> Unit
 ) {
     private val logger: Logger = wcKoinApp.koin.get()
 
@@ -99,5 +102,13 @@ internal class AccountState(
 
     fun changeActiveChain(chain: Modal.Model.Chain) = coroutineScope.launch {
         saveChainSelectionUseCase(chain.id).also { Web3Modal.selectedChain = chain }
+        navController.popBackStack()
+        if (navController.currentDestination == null) {
+            closeModal()
+        }
+    }
+
+    fun navigateToHelp() {
+        navController.navigate(Route.WHAT_IS_WALLET.path)
     }
 }
