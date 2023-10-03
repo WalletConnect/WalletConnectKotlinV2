@@ -40,7 +40,6 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import coil.size.Scale
-import com.walletconnect.sample.common.ui.WCTopAppBar2
 import com.walletconnect.sample.common.ui.WCTopAppBarIOSLike
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.wallet.ui.routes.Route
