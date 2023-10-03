@@ -7,7 +7,6 @@ import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -22,10 +21,6 @@ class DisconnectSessionUseCaseTest {
     fun setUp() {
         every { logger.error(any() as String) } answers { }
         every { logger.error(any() as Exception) } answers { }
-    }
-
-    @After
-    fun tearDown() {
     }
 
     @Test
