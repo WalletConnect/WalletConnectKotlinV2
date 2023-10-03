@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,6 +23,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,6 +40,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.walletconnect.sample.common.ui.WCTopAppBarIOSLike
+import com.walletconnect.sample.common.ui.theme.PreviewTheme
+import com.walletconnect.sample.common.ui.theme.UiModePreview
 import com.walletconnect.sample.wallet.BuildConfig
 import com.walletconnect.sample.wallet.R
 
@@ -91,7 +93,7 @@ private fun SettingsScreen(
                         LogoutSection(onLogoutClicked)
                     }
                 }
-                if(index != sections.lastIndex) Divider()
+                if (index != sections.lastIndex) Divider()
             }
         }
     }
@@ -163,4 +165,28 @@ fun LogoutSection(onLogoutClicked: () -> Unit) {
             .clickable { onLogoutClicked() }
             .padding(start = 16.dp, top = 10.dp, end = 16.dp, bottom = 12.dp), text = "Log out", color = color, textAlign = TextAlign.Center, fontWeight = FontWeight(600)
     )
+}
+
+@Composable
+@UiModePreview
+fun SettingScreenPreview() {
+    val sections = listOf(
+        Section.SettingsSection(
+            "Account", listOf(
+                Item.SettingCopyableItem("CAIP-10", "eip155:1:0xC3F909f02cF8D9a023d7eb76437E06D312E5f0Cb"),
+                Item.SettingCopyableItem("Private key", "b01d06bb4a18636c12245d9e8b4078917822e461b557b3bf5e4060fee5621b01")
+            )
+        ),
+        Section.SettingsSection(
+            "Device", listOf(
+                Item.SettingCopyableItem("Client ID", "did:key:z6Mko1GgpY4uTw9VL245is45kPYi9UnYKTXYJEhWhgrxsDXz"),
+                Item.SettingCopyableItem("Device token", "314875502ff3a6e23f8a6e8dc3259fe4ee0b429d0ab874efa837e8677b2d215d"),
+                Item.SettingCopyableItem("App Version", BuildConfig.VERSION_NAME)
+            )
+        ),
+    )
+
+    PreviewTheme {
+        SettingsScreen(sections = sections, onLogoutClicked = { }, onSettingClicked = { })
+    }
 }
