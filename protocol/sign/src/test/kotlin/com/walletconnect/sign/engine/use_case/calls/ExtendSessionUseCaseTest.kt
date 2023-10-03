@@ -13,7 +13,6 @@ import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import org.junit.After
 import org.junit.Assert.assertSame
 import org.junit.Assert.fail
 import org.junit.Before
@@ -29,10 +28,6 @@ class ExtendSessionUseCaseTest {
     fun setUp() {
         every { logger.error(any() as String) } answers { }
         every { logger.error(any() as Exception) } answers { }
-    }
-
-    @After
-    fun tearDown() {
     }
 
     @Test
