@@ -38,6 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.walletconnect.sample.common.ui.WCTopAppBarIOSLike
 import com.walletconnect.sample.common.ui.theme.PreviewTheme
@@ -47,17 +48,21 @@ import com.walletconnect.sample.wallet.R
 
 @Composable
 fun SettingsRoute(navController: NavHostController) {
+    val viewModel: SettingsViewModel = viewModel()
+
+    val deviceToken = viewModel.deviceToken.collectAsState().value
+
     val sections = listOf(
         Section.SettingsSection(
             "Account", listOf(
-                Item.SettingCopyableItem("CAIP-10", "eip155:1:0xC3F909f02cF8D9a023d7eb76437E06D312E5f0Cb"),
-                Item.SettingCopyableItem("Private key", "b01d06bb4a18636c12245d9e8b4078917822e461b557b3bf5e4060fee5621b01")
+                Item.SettingCopyableItem("CAIP-10", viewModel.caip10),
+                Item.SettingCopyableItem("Private key", viewModel.privateKey)
             )
         ),
         Section.SettingsSection(
             "Device", listOf(
-                Item.SettingCopyableItem("Client ID", "did:key:z6Mko1GgpY4uTw9VL245is45kPYi9UnYKTXYJEhWhgrxsDXz"),
-                Item.SettingCopyableItem("Device token", "314875502ff3a6e23f8a6e8dc3259fe4ee0b429d0ab874efa837e8677b2d215d"),
+                Item.SettingCopyableItem("Client ID", viewModel.clientId),
+                Item.SettingCopyableItem("Device token", deviceToken),
                 Item.SettingCopyableItem("App Version", BuildConfig.VERSION_NAME)
             )
         ),
