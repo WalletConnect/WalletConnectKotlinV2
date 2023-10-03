@@ -186,11 +186,11 @@ private fun RedirectMobileWalletScreen(
     AnimatedContent(
         targetState = state,
         label = "Redirect Connect Animation",
-    ) {
+    ) { redirectState ->
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            when (it) {
+            when (redirectState) {
                 RedirectState.Loading -> LoadingState(wallet, onRetry, onCopyLinkClick)
                 RedirectState.Reject -> RejectedState(onRetry)
                 RedirectState.NotDetected -> NotDetectedWalletState(wallet, onOpenPlayStore)

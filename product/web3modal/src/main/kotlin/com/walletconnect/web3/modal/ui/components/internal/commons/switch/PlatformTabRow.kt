@@ -41,7 +41,7 @@ internal enum class PlatformTab(
     val value: Int,
     val label: String
 ) {
-    MOBILE(0, "Mobile"), WEB(1, "Webapp")
+    MOBILE(0, "Mobile"), WEB(1, "WebApp")
 }
 
 @Composable
