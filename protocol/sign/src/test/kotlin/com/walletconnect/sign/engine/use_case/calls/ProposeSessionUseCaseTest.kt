@@ -12,7 +12,6 @@ import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.storage.proposal.ProposalStorageRepository
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.unmockkAll
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertSame
@@ -36,7 +35,6 @@ class ProposeSessionUseCaseTest {
 
     @After
     fun tearDown() {
-        unmockkAll()
     }
 
     @Test
