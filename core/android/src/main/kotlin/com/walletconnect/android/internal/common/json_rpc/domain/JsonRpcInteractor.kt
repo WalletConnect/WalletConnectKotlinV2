@@ -281,10 +281,10 @@ internal class JsonRpcInteractor(
 
         if (subscriptions.contains(topic.value)) {
             val subscriptionId = SubscriptionId(subscriptions[topic.value].toString())
-            jsonRpcHistory.deleteRecordsByTopic(topic)
             relay.unsubscribe(topic.value, subscriptionId.id) { result ->
                 result.fold(
                     onSuccess = {
+                        jsonRpcHistory.deleteRecordsByTopic(topic)
                         subscriptions.remove(topic.value)
                         onSuccess()
                     },
