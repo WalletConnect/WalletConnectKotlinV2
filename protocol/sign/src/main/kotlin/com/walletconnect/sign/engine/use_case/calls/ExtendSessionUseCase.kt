@@ -19,11 +19,11 @@ import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignPara
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import kotlinx.coroutines.supervisorScope
 
-internal class ExtendSessionUsesCase(
+internal class ExtendSessionUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val sessionStorageRepository: SessionStorageRepository,
     private val logger: Logger,
-) : ExtendSessionUsesCaseInterface {
+) : ExtendSessionUseCaseInterface {
 
     override suspend fun extend(topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
@@ -57,6 +57,6 @@ internal class ExtendSessionUsesCase(
     }
 }
 
-internal interface ExtendSessionUsesCaseInterface {
+internal interface ExtendSessionUseCaseInterface {
     suspend fun extend(topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit)
 }

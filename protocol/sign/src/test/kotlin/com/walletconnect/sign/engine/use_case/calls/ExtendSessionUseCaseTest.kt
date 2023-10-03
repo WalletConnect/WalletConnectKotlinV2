@@ -20,11 +20,11 @@ import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 
-class ExtendSessionUsesCaseTest {
+class ExtendSessionUseCaseTest {
     private val jsonRpcInteractor = mockk<JsonRpcInteractorInterface>()
     private val sessionStorageRepository = mockk<SessionStorageRepository>()
     private val logger = mockk<Logger>()
-    private val extendSessionUsesCase = ExtendSessionUsesCase(jsonRpcInteractor, sessionStorageRepository, logger)
+    private val extendSessionUseCase = ExtendSessionUseCase(jsonRpcInteractor, sessionStorageRepository, logger)
 
     @Before
     fun setUp() {
@@ -41,7 +41,7 @@ class ExtendSessionUsesCaseTest {
     fun `onFailure is called when sessionStorageRepository isSessionValid is false`() = runTest {
         every { sessionStorageRepository.isSessionValid(any()) } returns false
 
-        extendSessionUsesCase.extend(
+        extendSessionUseCase.extend(
             topic = "topic",
             onSuccess = {
                 fail("onSuccess should not be called since should have validation failed")
@@ -68,7 +68,7 @@ class ExtendSessionUsesCaseTest {
             pairingTopic = "pairingTopic"
         )
 
-        extendSessionUsesCase.extend(
+        extendSessionUseCase.extend(
             topic = "topic",
             onSuccess = {
                 fail("onSuccess should not be called since should have validation failed")
@@ -96,7 +96,7 @@ class ExtendSessionUsesCaseTest {
             pairingTopic = "pairingTopic"
         )
 
-        extendSessionUsesCase.extend(
+        extendSessionUseCase.extend(
             topic = "topic",
             onSuccess = {
                 fail("onSuccess should not be called since should have validation failed")
