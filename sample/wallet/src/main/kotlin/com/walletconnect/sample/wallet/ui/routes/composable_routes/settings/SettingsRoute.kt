@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import com.walletconnect.sample.common.ui.WCTopAppBarIOSLike
 import com.walletconnect.sample.wallet.BuildConfig
 
 @Composable
@@ -21,7 +22,7 @@ private fun SettingsScreen(
     onBack: () -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("Settings")
+        WCTopAppBarIOSLike(titleText = "Settings")
         Text(BuildConfig.VERSION_NAME)
     }
 }
