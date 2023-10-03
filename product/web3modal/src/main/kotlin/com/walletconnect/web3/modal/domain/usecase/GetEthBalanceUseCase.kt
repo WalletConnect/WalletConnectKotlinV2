@@ -1,6 +1,5 @@
 package com.walletconnect.web3.modal.domain.usecase
 
-import com.walletconnect.foundation.util.Logger
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.data.BalanceRpcRepository
 
