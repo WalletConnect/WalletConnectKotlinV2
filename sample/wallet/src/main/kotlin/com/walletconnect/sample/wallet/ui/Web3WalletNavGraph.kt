@@ -30,6 +30,7 @@ import com.walletconnect.sample.wallet.ui.routes.composable_routes.explorer_dapp
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.get_started.GetStartedRoute
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.InboxScreenRoute
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.notifications.NotificationsScreenRoute
+import com.walletconnect.sample.wallet.ui.routes.composable_routes.settings.SettingsRoute
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.auth_request.AuthRequestRoute
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.paste_uri.PasteUriRoute
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.session_proposal.SessionProposalRoute
@@ -117,6 +118,9 @@ fun Web3WalletNavGraph(
             }
             composable(Route.Inbox.path) {
                 InboxScreenRoute(navController)
+            }
+            composable(Route.Settings.path) {
+                SettingsRoute(navController)
             }
             bottomSheet(Route.ScanUri.path) {
                 ScanUriRoute(navController, sheetState, onScanSuccess = { web3walletViewModel.pair(it) })
