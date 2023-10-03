@@ -6,7 +6,6 @@ import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.unmockkAll
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertSame
@@ -28,7 +27,6 @@ class SessionUpdateUseCaseTest {
 
     @After
     fun tearDown() {
-        unmockkAll()
     }
 
     @Test
