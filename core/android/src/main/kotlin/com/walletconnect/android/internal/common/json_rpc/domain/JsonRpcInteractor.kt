@@ -55,7 +55,7 @@ internal class JsonRpcInteractor(
 
     override val isConnectionAvailable: StateFlow<Boolean> get() = relay.isConnectionAvailable
 
-    private val subscriptions: MutableMap<String, String> = mutableMapOf()
+    private var subscriptions: MutableMap<String, String> = mutableMapOf()
 
     init {
         manageSubscriptions()
@@ -260,7 +260,7 @@ internal class JsonRpcInteractor(
             relay.batchSubscribe(topics) { result ->
                 result.fold(
                     onSuccess = { acknowledgement ->
-                        subscriptions.plus(topics.zip(acknowledgement.result).toMap())
+                        subscriptions = subscriptions.plus(topics.zip(acknowledgement.result).toMap()).toMutableMap()
                         onSuccess(topics)
                     },
                     onFailure = { error ->
