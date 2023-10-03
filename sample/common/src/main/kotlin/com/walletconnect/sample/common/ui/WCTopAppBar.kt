@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,6 +25,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -185,3 +187,51 @@ fun WCTopAppBar2(
         }
     }
 }
+
+
+@Composable
+fun WCTopAppBarIOSLike(
+    titleText: String,
+    @DrawableRes firstIcon: Int? = null,
+    @DrawableRes secondIcon: Int? = null,
+    onFirstIconClick: (() -> Unit)? = null,
+    onSecondIconClick: (() -> Unit)? = null,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 20.dp, top = 20.dp, end = 20.dp, bottom = 6.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = titleText,
+            style = TextStyle(
+                fontSize = 24.sp,
+                fontWeight = FontWeight(700),
+            )
+        )
+        Spacer(modifier = Modifier.weight(1f))
+        firstIcon?.let {
+            Image(
+                modifier = Modifier.largerCircularClickable(48.dp) { onFirstIconClick?.invoke() },
+                painter = painterResource(id = firstIcon),
+                contentDescription = null,
+            )
+        }
+        Spacer(modifier = Modifier.width(8.dp))
+        secondIcon?.let {
+            Image(
+                modifier = Modifier.largerCircularClickable(48.dp) { onSecondIconClick?.invoke() },
+                painter = painterResource(id = secondIcon),
+                contentDescription = null,
+            )
+        }
+    }
+}
+
+fun Modifier.largerCircularClickable(size: Dp, onClick: () -> Unit) = this.then(Modifier
+    .size(size)
+    .clip(RoundedCornerShape(size / 2))
+    .clickable { onClick() }
+    .padding(size / 6))
