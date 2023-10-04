@@ -28,7 +28,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
@@ -41,6 +40,8 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import coil.size.Scale
 import com.walletconnect.sample.common.ui.WCTopAppBar
+import com.walletconnect.sample.common.ui.theme.PreviewTheme
+import com.walletconnect.sample.common.ui.theme.UiModePreview
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.wallet.ui.routes.Route
 import timber.log.Timber
@@ -183,15 +184,19 @@ fun InboxItem(navController: NavHostController, url: String, name: String, messa
 }
 
 @Composable
-@Preview
-fun InboxItemPreview() {
-    InboxItem(NavHostController(LocalContext.current), "", "", 0, "")
+@UiModePreview
+fun InboxScreenPreview(@PreviewParameter(InboxScreenPreviewProvider::class) state: InboxState) {
+    PreviewTheme {
+        InboxScreen(NavHostController(LocalContext.current), state)
+    }
 }
 
 @Composable
-@Preview
-fun InboxScreenPreview(@PreviewParameter(InboxScreenPreviewProvider::class) state: InboxState) {
-    InboxScreen(NavHostController(LocalContext.current), state) {}
+@UiModePreview
+fun InboxItemPreview() {
+    PreviewTheme {
+        InboxItem(NavHostController(LocalContext.current), "", "", 0, "")
+    }
 }
 
 private class InboxScreenPreviewProvider : PreviewParameterProvider<InboxState> {
