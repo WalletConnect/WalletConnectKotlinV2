@@ -29,12 +29,6 @@ fun Web3ModalTheme(
     }
 }
 
-@Composable
-fun Web3ModalTheme(
-
-) {
-
-}
 object Web3ModalTheme {
 
     fun provideLightWeb3ModalColors(
