@@ -53,14 +53,13 @@ fun InboxRoute(navController: NavHostController) {
     val state by viewModel.state.collectAsState(InboxState.Empty)
     Timber.d("InboxScreenRoute state - $state")
 
-    InboxScreen(navController, state = state) { navController.popBackStack() }
+    InboxScreen(navController, state = state)
 }
 
 @Composable
 private fun InboxScreen(
     navController: NavHostController,
     state: InboxState,
-    onBackClick: () -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxHeight()) {
         WCTopAppBar(titleText = "Inbox")
