@@ -7,6 +7,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import com.walletconnect.sample.common.ui.WCTopAppBar
+import com.walletconnect.sample.wallet.BuildConfig
 
 @Composable
 fun SettingsRoute(navController: NavHostController) {
@@ -20,6 +22,7 @@ private fun SettingsScreen(
     onBack: () -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("Settings")
+        WCTopAppBar(titleText = "Settings")
+        Text(BuildConfig.VERSION_NAME)
     }
 }

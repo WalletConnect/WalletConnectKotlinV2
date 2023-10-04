@@ -40,7 +40,7 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import coil.size.Scale
-import com.walletconnect.sample.common.ui.WCTopAppBar2
+import com.walletconnect.sample.common.ui.WCTopAppBar
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.wallet.ui.routes.Route
 import timber.log.Timber
@@ -63,11 +63,7 @@ private fun InboxScreen(
     onBackClick: () -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxHeight()) {
-        WCTopAppBar2(titleText = "Notifications", onBackIconClick = onBackClick, firstIcon = null, secondIcon = R.drawable.ic_plus,
-            onSecondIconClick = {
-                navController.navigate(Route.ExploreDapps.path)
-            }
-        )
+        WCTopAppBar(titleText = "Inbox")
 
         when (state) {
             is InboxState.Empty -> {

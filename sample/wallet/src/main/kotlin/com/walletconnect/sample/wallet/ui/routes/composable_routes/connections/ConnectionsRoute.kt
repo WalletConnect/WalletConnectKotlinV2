@@ -41,10 +41,10 @@ import androidx.constraintlayout.compose.ConstraintLayoutScope
 import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
 import com.skydoves.landscapist.glide.GlideImage
+import com.walletconnect.sample.common.ui.TopBarActionImage
 import com.walletconnect.sample.common.ui.WCTopAppBar
 import com.walletconnect.sample.common.ui.findActivity
 import com.walletconnect.sample.common.ui.themedColor
-import com.walletconnect.sample.wallet.BuildConfig
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.wallet.ui.Web3WalletViewModel
 import com.walletconnect.sample.wallet.ui.routes.Route
@@ -75,7 +75,7 @@ fun ConstraintLayoutScope.Title(titleRef: ConstrainedLayoutReference) {
         top.linkTo(parent.top, margin = 0.dp)
         start.linkTo(parent.start)
     }) {
-        WCTopAppBar(titleText = "Connections", versionText = BuildConfig.VERSION_NAME)
+        WCTopAppBar(titleText = "Connections", TopBarActionImage(R.drawable.ic_copy, {}), TopBarActionImage(R.drawable.ic_qr_code, {}))
     }
 }
 
@@ -104,7 +104,7 @@ fun ConstraintLayoutScope.Buttons(navController: NavController, buttonsRef: Cons
                 .clickable {
                     navController.navigate(Route.PasteUri.path)
                 }) {
-                Icon(imageVector = ImageVector.vectorResource(id = R.drawable.paste_icon), contentDescription = "Paste Uri Icon", tint = iconTint)
+                Icon(imageVector = ImageVector.vectorResource(id = R.drawable.ic_copy), contentDescription = "Paste Uri Icon", tint = iconTint)
             }
             Spacer(modifier = Modifier.width(20.dp))
             ConnectionsButton(modifier = Modifier
@@ -112,7 +112,7 @@ fun ConstraintLayoutScope.Buttons(navController: NavController, buttonsRef: Cons
                 .clickable {
                     navController.navigate(Route.ScanUri.path)
                 }) {
-                Icon(imageVector = ImageVector.vectorResource(id = R.drawable.scan_qr_code_icon), contentDescription = "Scan QRCode Icon", tint = iconTint)
+                Icon(imageVector = ImageVector.vectorResource(id = R.drawable.ic_qr_code), contentDescription = "Scan QRCode Icon", tint = iconTint)
             }
             Spacer(modifier = Modifier.width(20.dp))
         }
@@ -227,9 +227,9 @@ fun NoConnections(modifier: Modifier) {
         Text(text = "Apps you connect with will appear here.", maxLines = 1, color = contentColor, style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp))
         Row() {
             Text(text = "To connect ", color = contentColor, style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp))
-            Icon(tint = contentColor, imageVector = ImageVector.vectorResource(id = R.drawable.scan_qr_code_icon), contentDescription = "Scan QRCode Icon")
+            Icon(tint = contentColor, imageVector = ImageVector.vectorResource(id = R.drawable.ic_qr_code), contentDescription = "Scan QRCode Icon", modifier = Modifier.size(24.dp))
             Text(text = " scan or ", color = contentColor, style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp))
-            Icon(tint = contentColor, imageVector = ImageVector.vectorResource(id = R.drawable.paste_icon), contentDescription = "Paste Icon")
+            Icon(tint = contentColor, imageVector = ImageVector.vectorResource(id = R.drawable.ic_copy), contentDescription = "Paste Icon", modifier = Modifier.size(24.dp))
             Text(text = " paste the code", color = contentColor, style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp))
         }
         Text(text = "that’s displayed in the app.", maxLines = 1, color = contentColor, style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp))
