@@ -13,8 +13,7 @@ import androidx.compose.ui.unit.dp
 import com.walletconnect.sample.common.ui.themedColor
 
 @Composable
-fun SemiTransparentDialog(content: @Composable () -> Unit) {
-    val backgroundColor = themedColor(Color(0xFF242425), Color(0xFFFFFFFF))
+fun SemiTransparentDialog(backgroundColor: Color = themedColor(Color(0xFF242425), Color(0xFFFFFFFF)), content: @Composable () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()

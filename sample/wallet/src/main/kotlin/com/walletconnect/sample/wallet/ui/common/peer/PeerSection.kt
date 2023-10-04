@@ -1,5 +1,6 @@
 package com.walletconnect.sample.wallet.ui.common.peer
 
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -30,8 +31,6 @@ import androidx.compose.ui.unit.sp
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.glide.GlideImage
 import com.walletconnect.sample.common.ui.theme.mismatch_color
-import com.walletconnect.sample.common.ui.theme.unverified_color
-import com.walletconnect.sample.common.ui.theme.verified_color
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.common.ui.themedColor
 
@@ -68,13 +67,19 @@ fun Peer(peerUI: PeerUI, actionText: String?, peerContextUI: PeerContextUI? = nu
                 )
             )
             Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = peerUI.peerUri, maxLines = 1, style = TextStyle(
-                    fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = themedColor(darkColor = Color(0xFFC9C9CF).copy(alpha = .6f), lightColor = Color(0xFF3C3C43).copy(alpha = .6f))
+            Row {
+                if (peerContextUI?.validation == Validation.VALID) {
+                    Image(painterResource(R.drawable.ic_verified_domain), contentDescription = null)
+                }
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = Uri.parse(peerUI.peerUri).host ?: "", maxLines = 1, style = TextStyle(
+                        fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = themedColor(darkColor = Color(0xFFC9C9CF).copy(alpha = .6f), lightColor = Color(0xFF3C3C43).copy(alpha = .6f))
+                    )
                 )
-            )
+            }
             Spacer(modifier = Modifier.height(8.dp))
-            if (peerContextUI != null) {
+            if (peerContextUI != null && peerContextUI.validation != Validation.VALID) {
                 VerifyBatch(peerContextUI)
             }
         }
@@ -87,20 +92,24 @@ private fun VerifyBatch(peerContextUI: PeerContextUI) {
         modifier = Modifier
             .padding(vertical = 10.dp, horizontal = 15.dp)
             .clip(CircleShape)
-            .background(color = getValidationColor(peerContextUI.validation).copy(alpha = 0.25f))
+            .background(color = getColor(peerContextUI).copy(alpha = 0.15f))
             .padding(vertical = 5.dp, horizontal = 8.dp),
         horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
             modifier = Modifier.size(20.dp),
-            painter = painterResource(id = peerContextUI.isScam?.let { if (it) R.drawable.security_risk else getValidationIcon(peerContextUI.validation) } ?: getValidationIcon(
+            painter = painterResource(id = peerContextUI.isScam?.let { if (it) R.drawable.ic_scam else getValidationIcon(peerContextUI.validation) } ?: getValidationIcon(
                 peerContextUI.validation
             )),
             contentDescription = null)
         Spacer(modifier = Modifier.width(5.dp))
         Text(
             text = peerContextUI.isScam?.let { if (it) "Security risk" else getValidationTitle(peerContextUI.validation) } ?: getValidationTitle(peerContextUI.validation),
-            style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 12.sp, color = getValidationColor(peerContextUI.validation)),
+            style = TextStyle(
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 12.sp,
+                color = getColor(peerContextUI)
+            ),
         )
     }
     Spacer(modifier = Modifier.width(5.dp))

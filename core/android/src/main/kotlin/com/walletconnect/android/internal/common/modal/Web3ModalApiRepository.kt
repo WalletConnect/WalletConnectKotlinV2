@@ -46,6 +46,7 @@ internal class Web3ModalApiRepository(
             order = walletDTO.order,
             mobileLink = walletDTO.mobileLink,
             playStore = walletDTO.playStore,
+            webAppLink = walletDTO.webappLink,
             isRecommended = recommendedWallets.any { walletDTO.id == it }
         ).apply {
             isWalletInstalled = context.packageManager.isWalletInstalled(appPackage)
