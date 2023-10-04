@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.walletconnect.web3.modal.ui.components.button.AccountButtonType
+import com.walletconnect.web3.modal.ui.Web3ModalTheme
 import com.walletconnect.web3.modal.ui.components.button.NetworkButton
 import com.walletconnect.web3.modal.ui.components.button.Web3Button
 import com.walletconnect.web3.modal.ui.components.button.rememberWeb3ModalState
@@ -25,6 +26,12 @@ fun LabScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         item { Web3Button(state = web3ModalState, accountButtonType = AccountButtonType.MIXED) }
-        item { NetworkButton(state = web3ModalState) }
+        item {
+            Web3ModalTheme(
+                mode = Web3ModalTheme.Mode.AUTO
+            ) {
+                NetworkButton(state = web3ModalState)
+            }
+        }
     }
 }

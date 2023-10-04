@@ -23,4 +23,35 @@
         <enum name="NORMAL" value="0" />
         <enum name="MIXED" value="1" />
     </attr>
+
+    <attr name="modalMode" format="enum">
+        <enum name="AUTO" value="0"/>
+        <enum name="DARK" value="1"/>
+        <enum name="LIGHT" value="2"/>
+    </attr>
+
+    <attr name="modalMain100" format="color"/>
+    <attr name="modalMain90" format="color"/>
+    <attr name="modalMain20" format="color"/>
+    <attr name="modalForeground100" format="color"/>
+    <attr name="modalForeground125" format="color"/>
+    <attr name="modalForeground150" format="color"/>
+    <attr name="modalForeground175" format="color"/>
+    <attr name="modalForeground200" format="color"/>
+    <attr name="modalForeground225" format="color"/>
+    <attr name="modalForeground250" format="color"/>
+    <attr name="modalForeground275" format="color"/>
+    <attr name="modalForeground300" format="color"/>
+    <attr name="modalBackground100" format="color"/>
+    <attr name="modalBackground125" format="color"/>
+    <attr name="modalBackground150" format="color"/>
+    <attr name="modalBackground175" format="color"/>
+    <attr name="modalBackground200" format="color"/>
+    <attr name="modalBackground225" format="color"/>
+    <attr name="modalBackground250" format="color"/>
+    <attr name="modalBackground275" format="color"/>
+    <attr name="modalBackground300" format="color"/>
+    <attr name="modalOverlay" format="color"/>
+    <attr name="modalSuccess" format="color"/>
+    <attr name="modalError" format="color"/>
 </resources>
