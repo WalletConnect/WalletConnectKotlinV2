@@ -28,7 +28,7 @@ import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.C
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.explorer_dapps.ExploreDappsScreenRoute
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.get_started.GetStartedRoute
-import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.InboxScreenRoute
+import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.InboxRoute
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.notifications.NotificationsScreenRoute
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.settings.SettingsRoute
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.auth_request.AuthRequestRoute
@@ -117,7 +117,7 @@ fun Web3WalletNavGraph(
                 ExploreDappsScreenRoute(navController)
             }
             composable(Route.Inbox.path) {
-                InboxScreenRoute(navController)
+                InboxRoute(navController)
             }
             composable(Route.Settings.path) {
                 SettingsRoute(navController)

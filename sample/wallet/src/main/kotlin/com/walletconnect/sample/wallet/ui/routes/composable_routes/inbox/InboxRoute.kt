@@ -48,7 +48,7 @@ import java.net.URLEncoder
 
 
 @Composable
-fun InboxScreenRoute(navController: NavHostController) {
+fun InboxRoute(navController: NavHostController) {
     val viewModel: InboxViewModel = viewModel()
     val state by viewModel.state.collectAsState(InboxState.Empty)
     Timber.d("InboxScreenRoute state - $state")
