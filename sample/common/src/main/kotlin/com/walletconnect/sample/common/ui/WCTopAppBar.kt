@@ -72,3 +72,5 @@ fun Modifier.largerCircularClickable(radius: Dp, onClick: () -> Unit) = composed
         )
     )
 }
+
+// TODO: Add Preview after merging https://github.com/WalletConnect/WalletConnectKotlinV2/pull/1176
