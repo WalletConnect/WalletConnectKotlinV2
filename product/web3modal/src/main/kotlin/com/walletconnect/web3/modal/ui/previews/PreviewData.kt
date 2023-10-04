@@ -43,7 +43,6 @@ internal val accountDataPreview: AccountData
     get() = AccountData(
     topic = "",
     address = "0xd2B8b483056b134f9D8cd41F55bB065F9",
-    balance = "543 ETH",
     chains = testChains,
     identity = null
 )
@@ -59,13 +58,18 @@ internal class ConnectYourWalletPreviewProvider : PreviewParameterProvider<List<
     )
 }
 
+private val ethToken = Modal.Model.Token(name = "Ether", symbol = "ETH", decimal = 18,)
+
 internal val ethereumChain: Modal.Model.Chain
     get() = Modal.Model.Chain(
         chainName = "Ethereum",
         chainNamespace = "eip155",
         chainReference = "1",
         methods = listOf(),
-        events = listOf()
+        events = listOf(),
+        token = ethToken,
+        rpcUrl = "https://cloudflare-eth.com",
+        blockExplorerUrl = "https://etherscan.io"
     )
 
 internal val arbitrumChain: Modal.Model.Chain
@@ -74,7 +78,10 @@ internal val arbitrumChain: Modal.Model.Chain
         chainNamespace = "eip155",
         chainReference = "42161",
         methods = listOf(),
-        events = listOf()
+        events = listOf(),
+        token = ethToken,
+        rpcUrl = "https://arb1.arbitrum.io/rpc",
+        blockExplorerUrl = "https://arbiscan.io"
     )
 
 internal val testChains: List<Modal.Model.Chain>
