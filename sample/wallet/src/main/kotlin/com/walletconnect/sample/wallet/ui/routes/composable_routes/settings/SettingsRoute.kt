@@ -40,7 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.walletconnect.sample.common.ui.WCTopAppBarIOSLike
+import com.walletconnect.sample.common.ui.WCTopAppBar
 import com.walletconnect.sample.common.ui.theme.PreviewTheme
 import com.walletconnect.sample.common.ui.theme.UiModePreview
 import com.walletconnect.sample.wallet.BuildConfig
@@ -85,7 +85,7 @@ private fun SettingsScreen(
     onSettingClicked: (String) -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-        WCTopAppBarIOSLike(titleText = "Settings")
+        WCTopAppBar(titleText = "Settings")
         Divider()
         LazyColumn() {
             itemsIndexed(sections) { index, section ->

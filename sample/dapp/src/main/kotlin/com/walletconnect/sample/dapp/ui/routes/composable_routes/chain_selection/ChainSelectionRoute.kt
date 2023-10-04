@@ -121,7 +121,7 @@ private fun ChainSelectionScreen(
     onConnectSampleWalletClick: () -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
-        WCTopAppBar(titleText = "Chain selection")
+        WCTopAppBarLegacy(titleText = "Chain selection")
         ChainsList(
             chains = chains,
             modifier = Modifier
