@@ -41,6 +41,7 @@ import androidx.constraintlayout.compose.ConstraintLayoutScope
 import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
 import com.skydoves.landscapist.glide.GlideImage
+import com.walletconnect.sample.common.ui.TopBarActionImage
 import com.walletconnect.sample.common.ui.WCTopAppBar
 import com.walletconnect.sample.common.ui.findActivity
 import com.walletconnect.sample.common.ui.themedColor
@@ -74,7 +75,7 @@ fun ConstraintLayoutScope.Title(titleRef: ConstrainedLayoutReference) {
         top.linkTo(parent.top, margin = 0.dp)
         start.linkTo(parent.start)
     }) {
-        WCTopAppBar(titleText = "Connections", R.drawable.ic_copy, R.drawable.ic_qr_code)
+        WCTopAppBar(titleText = "Connections", TopBarActionImage(R.drawable.ic_copy, {}), TopBarActionImage(R.drawable.ic_qr_code, {}))
     }
 }
 

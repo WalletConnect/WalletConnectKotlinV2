@@ -16,11 +16,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -28,10 +26,7 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun WCTopAppBar(
     titleText: String,
-    @DrawableRes firstIcon: Int? = null,
-    @DrawableRes secondIcon: Int? = null,
-    onFirstIconClick: (() -> Unit)? = null,
-    onSecondIconClick: (() -> Unit)? = null,
+    vararg actionImages: TopBarActionImage,
 ) {
     Row(
         modifier = Modifier
@@ -47,30 +42,20 @@ fun WCTopAppBar(
             )
         )
         Spacer(modifier = Modifier.weight(1f))
-        firstIcon?.let {
+        actionImages.forEachIndexed() { index, actionImage ->
             Image(
-                modifier = Modifier.largerCircularClickable(24.dp) { onFirstIconClick?.invoke() },
-                painter = painterResource(id = firstIcon),
+                modifier = Modifier.clickable(indication = rememberRipple(bounded = false, radius = 24.dp), interactionSource = remember { MutableInteractionSource() }, onClick = actionImage.onClick),
+                painter = painterResource(id = actionImage.resource),
                 contentDescription = null,
             )
-        }
-        secondIcon?.let {
-            Spacer(modifier = Modifier.width(24.dp))
-            Image(
-                modifier = Modifier.largerCircularClickable(24.dp) { onSecondIconClick?.invoke() },
-                painter = painterResource(id = secondIcon),
-                contentDescription = null,
-            )
+            if (index != actionImages.lastIndex) Spacer(modifier = Modifier.width(24.dp))
         }
     }
 }
 
-fun Modifier.largerCircularClickable(radius: Dp, onClick: () -> Unit) = composed {
-    this.then(
-        Modifier.clickable(
-            indication = rememberRipple(bounded = false, radius = radius), interactionSource = remember { MutableInteractionSource() }, onClick = onClick
-        )
-    )
-}
+data class TopBarActionImage(
+    @DrawableRes val resource: Int,
+    val onClick: () -> Unit,
+)
 
 // TODO: Add Preview after merging https://github.com/WalletConnect/WalletConnectKotlinV2/pull/1176
