@@ -219,8 +219,8 @@ fun WCTopAppBar(
                 painter = painterResource(id = firstIcon),
                 contentDescription = null,
             )
+            Spacer(modifier = Modifier.width(8.dp))
         }
-        Spacer(modifier = Modifier.width(8.dp))
         secondIcon?.let {
             Image(
                 modifier = Modifier.largerCircularClickable(48.dp) { onSecondIconClick?.invoke() },
