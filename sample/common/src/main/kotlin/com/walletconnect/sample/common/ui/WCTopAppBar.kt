@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.Text
 import androidx.compose.material.ripple.rememberRipple
@@ -21,6 +22,9 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.walletconnect.sample.common.R
+import com.walletconnect.sample.common.ui.theme.PreviewTheme
+import com.walletconnect.sample.common.ui.theme.UiModePreview
 
 
 @Composable
@@ -35,16 +39,13 @@ fun WCTopAppBar(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = titleText, style = TextStyle(
-                fontSize = 24.sp,
-                fontWeight = FontWeight(700),
-            )
-        )
+        Text(text = titleText, style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight(700)))
         Spacer(modifier = Modifier.weight(1f))
         actionImages.forEachIndexed() { index, actionImage ->
             Image(
-                modifier = Modifier.clickable(indication = rememberRipple(bounded = false, radius = 24.dp), interactionSource = remember { MutableInteractionSource() }, onClick = actionImage.onClick),
+                modifier = Modifier
+                    .size(24.dp)
+                    .clickable(indication = rememberRipple(bounded = false, radius = 24.dp), interactionSource = remember { MutableInteractionSource() }, onClick = actionImage.onClick),
                 painter = painterResource(id = actionImage.resource),
                 contentDescription = null,
             )
@@ -58,4 +59,10 @@ data class TopBarActionImage(
     val onClick: () -> Unit,
 )
 
-// TODO: Add Preview after merging https://github.com/WalletConnect/WalletConnectKotlinV2/pull/1176
+@Composable
+@UiModePreview
+fun WCTopAppBarPreview() {
+    PreviewTheme {
+        WCTopAppBar(titleText = "Title", TopBarActionImage(R.drawable.ic_ethereum, {}))
+    }
+}
