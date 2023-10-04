@@ -34,7 +34,7 @@ import com.walletconnect.sample.common.BuildConfig
 import com.walletconnect.sample.common.R
 
 @Composable
-fun WCTopAppBar(
+fun WCTopAppBarLegacy(
     modifier: Modifier = Modifier,
     titleText: String,
     versionText: String = BuildConfig.BOM_VERSION,
@@ -93,8 +93,9 @@ fun WCTopAppBar(
     }
 }
 
+// Will be removed in upcoming PR
 @Composable
-fun WCTopAppBar2(
+fun WCTopAppBarLegacy2(
     titleText: String,
     @DrawableRes firstIcon: Int? = null,
     @DrawableRes secondIcon: Int? = null,
@@ -190,7 +191,7 @@ fun WCTopAppBar2(
 
 
 @Composable
-fun WCTopAppBarIOSLike(
+fun WCTopAppBar(
     titleText: String,
     @DrawableRes firstIcon: Int? = null,
     @DrawableRes secondIcon: Int? = null,
