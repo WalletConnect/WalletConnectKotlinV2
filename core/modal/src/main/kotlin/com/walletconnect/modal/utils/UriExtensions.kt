@@ -26,7 +26,7 @@ fun UriHandler.goToNativeWallet(uri: String, nativeLink: String?) {
     }
 }
 
-fun UriHandler.goToUniversalLink(uri: String, universalLink: String?) {
+fun UriHandler.openWebAppLink(uri: String, universalLink: String?) {
     try {
         universalLink?.let { openUri(formatUniversalLink(it, uri)) } ?: Timber.e("Invalid universal link")
     } catch (e: Exception) {

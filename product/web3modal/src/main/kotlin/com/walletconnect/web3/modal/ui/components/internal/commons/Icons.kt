@@ -258,6 +258,30 @@ internal fun SelectNetworkIcon(
 }
 
 @Composable
+internal fun MobileIcon(
+    tint: Color = Web3ModalTheme.colors.inverse100
+) {
+    Icon(
+        imageVector = ImageVector.vectorResource(id = R.drawable.ic_mobile),
+        contentDescription = ContentDescription.MOBILE.description,
+        tint = tint,
+        modifier = Modifier.size(12.dp),
+    )
+}
+
+@Composable
+internal fun WebIcon(
+    tint: Color = Web3ModalTheme.colors.inverse100
+) {
+    Icon(
+        imageVector = ImageVector.vectorResource(id = R.drawable.ic_web),
+        contentDescription = ContentDescription.WEB.description,
+        tint = tint,
+        modifier = Modifier.size(12.dp),
+    )
+}
+
+@Composable
 @UiModePreview
 private fun IconsPreview() {
     MultipleComponentsPreview(
@@ -273,6 +297,8 @@ private fun IconsPreview() {
         { RecentTransactionIcon() },
         { DisconnectIcon() },
         { AllWalletsIcon() },
-        { SelectNetworkIcon() }
+        { SelectNetworkIcon() },
+        { MobileIcon() },
+        { WebIcon() }
     )
 }

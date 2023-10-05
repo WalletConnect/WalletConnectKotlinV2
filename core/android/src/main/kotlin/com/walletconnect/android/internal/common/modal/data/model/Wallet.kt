@@ -10,11 +10,18 @@ data class Wallet(
     val order: String,
     val mobileLink: String?,
     val playStore: String?,
+    val webAppLink: String?,
     val isRecommended: Boolean = false
 ) {
     val appPackage: String? = playStore?.extractPackage()
     var isRecent: Boolean = false
     var isWalletInstalled: Boolean = false
+
+    val hasMobileWallet: Boolean
+        get() = mobileLink != null
+
+    val hasWebApp: Boolean
+        get() = webAppLink != null
 }
 
 private fun String.extractPackage(): String? = Uri.parse(this).getQueryParameter("id")

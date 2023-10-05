@@ -8,12 +8,12 @@ import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
+import com.walletconnect.web3.modal.domain.usecase.GetEthBalanceUseCase
 import com.walletconnect.web3.modal.domain.usecase.GetSelectedChainUseCase
 import com.walletconnect.web3.modal.domain.usecase.GetSessionTopicUseCase
 import com.walletconnect.web3.modal.domain.usecase.ObserveSelectedChainUseCase
 import com.walletconnect.web3.modal.domain.usecase.ObserveSessionTopicUseCase
 import com.walletconnect.web3.modal.ui.components.ComponentDelegate
-import com.walletconnect.web3.modal.ui.components.ComponentEvent
 import com.walletconnect.web3.modal.ui.openWeb3Modal
 import com.walletconnect.web3.modal.utils.getAddress
 import com.walletconnect.web3.modal.utils.getChainNetworkImageUrl
@@ -44,6 +44,7 @@ class Web3ModalState(
     private val observeSessionTopicUseCase: ObserveSessionTopicUseCase = wcKoinApp.koin.get()
     private val getSessionTopicUseCase: GetSessionTopicUseCase = wcKoinApp.koin.get()
     private val getSelectedChainUseCase: GetSelectedChainUseCase = wcKoinApp.koin.get()
+    private val getEthBalanceUseCase: GetEthBalanceUseCase = wcKoinApp.koin.get()
 
     val isOpen = ComponentDelegate.modalComponentEvent
         .map { event -> event.isOpen }
@@ -77,15 +78,22 @@ class Web3ModalState(
         val address = getAddress(selectedChain)
         when (accountButtonType) {
             AccountButtonType.NORMAL -> AccountButtonState.Normal(address = address)
-            AccountButtonType.MIXED -> AccountButtonState.Mixed(
-                address = address,
-                chainImage = selectedChain.chainImage ?: getChainNetworkImageUrl(selectedChain.chainReference),
-                chainName = selectedChain.chainName
-            )
+            AccountButtonType.MIXED -> {
+                val balance = getBalance(selectedChain, address)
+                AccountButtonState.Mixed(
+                    address = address,
+                    chainImage = selectedChain.chainImage ?: getChainNetworkImageUrl(selectedChain.chainReference),
+                    chainName = selectedChain.chainName,
+                    balance = balance
+                )
+            }
         }
     } catch (e: Exception) {
         AccountButtonState.Invalid
     }
+
+    private suspend fun getBalance(selectedChain: Modal.Model.Chain, address: String) =
+        selectedChain.rpcUrl?.let { url -> getEthBalanceUseCase(selectedChain.token, url, address)?.valueWithSymbol }
 
     private suspend fun getActiveSession() = getSessionTopicUseCase()?.let { Web3Modal.getActiveSessionByTopic(it) }
 
