@@ -37,7 +37,7 @@ class ModalSampleApp : Application() {
 
         Web3Modal.initialize(Modal.Params.Init(core = CoreClient)) { error ->
             Timber.e(tag(this), error.throwable.stackTraceToString())
-            Firebase.crashlytics.recordException(error.throwable)
+//            Firebase.crashlytics.recordException(error.throwable)
         }
 
         Web3Modal.setChains(modalChains())

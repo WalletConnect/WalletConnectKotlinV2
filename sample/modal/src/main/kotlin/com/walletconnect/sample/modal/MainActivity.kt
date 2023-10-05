@@ -7,17 +7,22 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.ExperimentalMaterialApi
@@ -28,6 +33,7 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.ScaffoldState
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
+import androidx.compose.material.primarySurface
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material.ripple.rememberRipple
@@ -38,10 +44,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -53,6 +62,12 @@ import com.walletconnect.sample.modal.compose.ComposeActivity
 import com.walletconnect.sample.modal.kotlindsl.KotlinDSLActivity
 import com.walletconnect.sample.modal.navComponent.NavComponentActivity
 import com.walletconnect.sample.modal.ui.LabScreen
+import com.walletconnect.sample.modal.ui.predefinedGreenDarkTheme
+import com.walletconnect.sample.modal.ui.predefinedGreenLightTheme
+import com.walletconnect.sample.modal.ui.predefinedOrangeDarkTheme
+import com.walletconnect.sample.modal.ui.predefinedOrangeLightTheme
+import com.walletconnect.sample.modal.ui.predefinedRedDarkTheme
+import com.walletconnect.sample.modal.ui.predefinedRedLightTheme
 import com.walletconnect.sample.modal.ui.theme.WalletConnectTheme
 import com.walletconnect.web3.modal.ui.Web3ModalTheme
 import com.walletconnect.web3.modal.ui.web3ModalGraph
@@ -72,28 +87,40 @@ class MainActivity : ComponentActivity() {
 
                 val isDarkTheme = isSystemInDarkTheme()
                 var isDark by remember { mutableStateOf(isDarkTheme) }
+                var darkColors by remember { mutableStateOf(Web3ModalTheme.provideDarkWeb3ModalColor()) }
+                var lightColors by remember { mutableStateOf(Web3ModalTheme.provideLightWeb3ModalColors()) }
 
                 Scaffold(
                     scaffoldState = scaffoldState,
                     topBar = {
-                        TopAppBar(
-                            title = {
-                                Text(
-                                    text = "Web3Modal Lab",
-                                    modifier = Modifier.fillMaxWidth(),
-                                    textAlign = TextAlign.Center
-                                )
-                            },
-                            navigationIcon = {},
-                            actions = {
-                                ThemeModeIcon(isDark) { isDark = it }
-                            }
-                        )
+                        Column {
+                            TopAppBar(
+                                title = {
+                                    Text(
+                                        text = "Web3Modal Lab",
+                                        modifier = Modifier.fillMaxWidth(),
+                                        textAlign = TextAlign.Center
+                                    )
+                                },
+                                navigationIcon = {},
+                                actions = {
+                                    ThemeModeIcon(isDark) { isDark = it }
+                                }
+                            )
+                            PredefineThemes(
+                                onClick = { light, dark ->
+                                    lightColors = light
+                                    darkColors = dark
+                                }
+                            )
+                        }
                     },
                     drawerContent = { DrawerContent() }
                 ) { paddingValues ->
                     Web3ModalTheme(
-                        mode = if (isDark) Web3ModalTheme.Mode.DARK else Web3ModalTheme.Mode.LIGHT
+                        mode = if (isDark) Web3ModalTheme.Mode.DARK else Web3ModalTheme.Mode.LIGHT,
+                        lightColors = lightColors,
+                        darkColors = darkColors
                     ) {
                         ModalBottomSheetLayout(
                             sheetShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
@@ -114,6 +141,49 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun PredefineThemes(
+    onClick: (Web3ModalTheme.Colors, Web3ModalTheme.Colors) -> Unit
+) {
+    LazyRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colors.primarySurface)
+            .padding(horizontal = 18.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.Center
+    ) {
+        item { ThemeItem(color = Color(0xFF47A1FF), text = "Default") { onClick(Web3ModalTheme.provideLightWeb3ModalColors(), Web3ModalTheme.provideDarkWeb3ModalColor()) } }
+        item { ThemeItem(color = Color(0xFFFFA500), text = "Orange") { onClick(predefinedOrangeLightTheme, predefinedOrangeDarkTheme) } }
+        item { ThemeItem(color = Color(0xFFB7342B), text = "Red") { onClick(predefinedRedLightTheme, predefinedRedDarkTheme) } }
+        item { ThemeItem(color = Color(0xFF10B124), text = "Green") { onClick(predefinedGreenLightTheme, predefinedGreenDarkTheme) } }
+    }
+}
+
+
+
+@Composable
+private fun ThemeItem(
+    color: Color,
+    text: String,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .padding(vertical = 4.dp, horizontal = 12.dp)
+            .clickable { },
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .size(25.dp)
+                .background(color, shape = CircleShape)
+                .border(width = 1.dp, color = MaterialTheme.colors.onBackground, shape = CircleShape)
+                .clickable { onClick() })
+        Text(text = text, style = TextStyle(fontSize = 12.sp, color = MaterialTheme.colors.onBackground))
     }
 }
 
