@@ -90,7 +90,7 @@ private fun TabContent(platform: PlatformTab, isSelected: Boolean) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
         PlatformTabIcon(platform = platform, tint = color)
         HorizontalSpacer(width = 4.dp)
-        Text(text = platform.label, style = Web3ModalTheme.typo.small500.copy(color = color))
+        Text(text = platform.label, style = Web3ModalTheme.typo.small400.copy(color = color))
     }
 
 }
