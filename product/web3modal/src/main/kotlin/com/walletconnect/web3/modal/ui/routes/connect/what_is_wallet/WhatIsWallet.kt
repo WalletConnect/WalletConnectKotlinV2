@@ -4,10 +4,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.R
+import com.walletconnect.web3.modal.ui.components.internal.commons.ExternalIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.HelpSection
 import com.walletconnect.web3.modal.ui.components.internal.commons.WalletIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.button.ButtonSize
@@ -16,17 +19,52 @@ import com.walletconnect.web3.modal.ui.components.internal.commons.button.ImageB
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 
-@Composable
-internal fun WhatIsWallet(
-    navController: NavController
-) {
-    WhatIsWallet(
-        onGetWalletClick = { navController.navigate(Route.GET_A_WALLET.path) }
-    )
+internal enum class WhatIsWalletOption {
+    GET_WALLET, LEARN_MORE
 }
 
 @Composable
-private fun WhatIsWallet(onGetWalletClick: () -> Unit) {
+internal fun WhatIsWallet(
+    navController: NavController,
+    option: WhatIsWalletOption
+) {
+    val uriHandler = LocalUriHandler.current
+
+    WhatIsWallet(
+        optionButton = {
+            ImageButton(
+                text = option.label(),
+                image = { option.Icon(it) },
+                style = ButtonStyle.MAIN,
+                size = ButtonSize.S,
+                onClick = {
+                    when (option) {
+                        WhatIsWalletOption.GET_WALLET -> navController.navigate(Route.GET_A_WALLET.path)
+                        WhatIsWalletOption.LEARN_MORE -> uriHandler.openUri("https://ethereum.org/en/developers/docs/networks/")
+                    }
+                }
+            )
+        }
+    )
+}
+
+private fun WhatIsWalletOption.label() = when (this) {
+    WhatIsWalletOption.GET_WALLET -> "Get a Wallet"
+    WhatIsWalletOption.LEARN_MORE -> "Learn more"
+}
+
+@Composable
+private fun WhatIsWalletOption.Icon(tint: Color) {
+    when (this) {
+        WhatIsWalletOption.GET_WALLET -> WalletIcon(tint)
+        WhatIsWalletOption.LEARN_MORE -> ExternalIcon(tint)
+    }
+}
+
+@Composable
+private fun WhatIsWallet(
+    optionButton: @Composable () -> Unit
+) {
     Column(
         modifier = Modifier.padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -50,13 +88,7 @@ private fun WhatIsWallet(onGetWalletClick: () -> Unit) {
             assets = listOf(R.drawable.browser, R.drawable.noun, R.drawable.dao)
         )
         Spacer(modifier = Modifier.height(10.dp))
-        ImageButton(
-            text = "Get a Wallet",
-            image = { WalletIcon(it) },
-            style = ButtonStyle.MAIN,
-            size = ButtonSize.S,
-            onClick = onGetWalletClick
-        )
+        optionButton()
         Spacer(modifier = Modifier.height(30.dp))
     }
 }
