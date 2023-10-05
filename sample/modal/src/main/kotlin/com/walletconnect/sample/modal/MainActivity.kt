@@ -151,7 +151,6 @@ private fun PredefineThemes(
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colors.primarySurface)
             .padding(horizontal = 18.dp, vertical = 4.dp),
         horizontalArrangement = Arrangement.Center
     ) {
