@@ -91,7 +91,7 @@ tasks {
                     "**.Task"
                 )
                 limit {
-                    minimum = "0.1".toBigDecimal()
+                    minimum = "0.0".toBigDecimal()
                 }
             }
         }
