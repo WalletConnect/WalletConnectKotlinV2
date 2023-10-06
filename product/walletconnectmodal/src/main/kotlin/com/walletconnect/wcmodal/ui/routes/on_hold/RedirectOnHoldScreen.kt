@@ -53,7 +53,7 @@ import com.walletconnect.modal.ui.components.common.HorizontalSpacer
 import com.walletconnect.modal.ui.components.common.VerticalSpacer
 import com.walletconnect.modal.ui.components.common.WeightSpacer
 import com.walletconnect.modal.utils.goToNativeWallet
-import com.walletconnect.modal.utils.goToUniversalLink
+import com.walletconnect.modal.utils.openWebAppLink
 import com.walletconnect.modal.utils.openPlayStore
 import com.walletconnect.wcmodal.R
 import com.walletconnect.wcmodal.client.Modal
@@ -95,7 +95,7 @@ internal fun RedirectOnHoldScreen(
                 uriHandler.goToNativeWallet(uri, wallet.nativeLink)
             }
         },
-        onOpenUniversalLink = { uriHandler.goToUniversalLink(uri, wallet.universalLink) },
+        onOpenUniversalLink = { uriHandler.openWebAppLink(uri, wallet.universalLink) },
         onOpenPlayStore = { uriHandler.openPlayStore(wallet.playStoreLink) }
     )
 

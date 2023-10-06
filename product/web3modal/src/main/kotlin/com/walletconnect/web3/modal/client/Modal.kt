@@ -139,14 +139,16 @@ object Modal {
             data class Error(val error: Throwable) : Ping()
         }
 
-        // TODO Add rpc url, blockexplorer url to model
         data class Chain(
             val chainName: String,
             val chainNamespace: String,
             val chainReference: String,
             val methods: List<String>,
             val events: List<String>,
-            val chainImage: ChainImage? = null
+            val token: Token,
+            val chainImage: ChainImage? = null,
+            val rpcUrl: String? = null,
+            val blockExplorerUrl: String? = null
         ) {
             val id: String = "$chainNamespace:$chainReference"
         }
@@ -156,5 +158,11 @@ object Modal {
 
             data class Network(val url: String) : ChainImage()
         }
+
+        data class Token(
+            val name: String,
+            val symbol: String,
+            val decimal: Int
+        )
     }
 }
