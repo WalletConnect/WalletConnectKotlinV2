@@ -5,6 +5,7 @@ interface SignInterface {
         fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal, verifyContext: Sign.Model.VerifyContext)
         fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest, verifyContext: Sign.Model.VerifyContext)
         fun onSessionDelete(deletedSession: Sign.Model.DeletedSession)
+        fun onSessionExtend(session: Sign.Model.Session)
 
         //Responses
         fun onSessionSettleResponse(settleSessionResponse: Sign.Model.SettledSessionResponse)

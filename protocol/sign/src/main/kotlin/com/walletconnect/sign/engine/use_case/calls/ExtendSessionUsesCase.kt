@@ -31,9 +31,6 @@ internal class ExtendSessionUsesCase(
         }
 
         val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic(topic))
-        if (!session.isSelfController) {
-            throw UnauthorizedPeerException(UNAUTHORIZED_EXTEND_MESSAGE)
-        }
         if (!session.isAcknowledged) {
             throw NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
         }
