@@ -53,6 +53,55 @@ object Web3ModalTheme {
         error: Color = defaultDarkWeb3ModalColors.error
     ): Colors = CustomWeb3ModalColor(main100, main90, main20, foreground, background, overlay, success, error)
 
+    fun provideForegroundLightColorPalette(
+        color100: Color = defaultLightWeb3ModalColors.foreground.color100,
+        color125: Color = defaultLightWeb3ModalColors.foreground.color125,
+        color150: Color = defaultLightWeb3ModalColors.foreground.color150,
+        color175: Color = defaultLightWeb3ModalColors.foreground.color175,
+        color200: Color = defaultLightWeb3ModalColors.foreground.color200,
+        color225: Color = defaultLightWeb3ModalColors.foreground.color225,
+        color250: Color = defaultLightWeb3ModalColors.foreground.color250,
+        color275: Color = defaultLightWeb3ModalColors.foreground.color275,
+        color300: Color = defaultLightWeb3ModalColors.foreground.color300,
+    ) = ColorPalette(color100, color125, color150, color175, color200, color225, color250, color275, color300)
+
+    fun provideForegroundDarkColorPalette(
+        color100: Color = defaultDarkWeb3ModalColors.foreground.color100,
+        color125: Color = defaultDarkWeb3ModalColors.foreground.color125,
+        color150: Color = defaultDarkWeb3ModalColors.foreground.color150,
+        color175: Color = defaultDarkWeb3ModalColors.foreground.color175,
+        color200: Color = defaultDarkWeb3ModalColors.foreground.color200,
+        color225: Color = defaultDarkWeb3ModalColors.foreground.color225,
+        color250: Color = defaultDarkWeb3ModalColors.foreground.color250,
+        color275: Color = defaultDarkWeb3ModalColors.foreground.color275,
+        color300: Color = defaultDarkWeb3ModalColors.foreground.color300,
+    ) = ColorPalette(color100, color125, color150, color175, color200, color225, color250, color275, color300)
+
+    fun provideBackgroundLightColorPalette(
+        color100: Color = defaultLightWeb3ModalColors.background.color100,
+        color125: Color = defaultLightWeb3ModalColors.background.color125,
+        color150: Color = defaultLightWeb3ModalColors.background.color150,
+        color175: Color = defaultLightWeb3ModalColors.background.color175,
+        color200: Color = defaultLightWeb3ModalColors.background.color200,
+        color225: Color = defaultLightWeb3ModalColors.background.color225,
+        color250: Color = defaultLightWeb3ModalColors.background.color250,
+        color275: Color = defaultLightWeb3ModalColors.background.color275,
+        color300: Color = defaultLightWeb3ModalColors.background.color300,
+    ) = ColorPalette(color100, color125, color150, color175, color200, color225, color250, color275, color300)
+
+    fun provideBackgroundDarkColorPalette(
+        color100: Color = defaultDarkWeb3ModalColors.background.color100,
+        color125: Color = defaultDarkWeb3ModalColors.background.color125,
+        color150: Color = defaultDarkWeb3ModalColors.background.color150,
+        color175: Color = defaultDarkWeb3ModalColors.background.color175,
+        color200: Color = defaultDarkWeb3ModalColors.background.color200,
+        color225: Color = defaultDarkWeb3ModalColors.background.color225,
+        color250: Color = defaultDarkWeb3ModalColors.background.color250,
+        color275: Color = defaultDarkWeb3ModalColors.background.color275,
+        color300: Color = defaultDarkWeb3ModalColors.background.color300,
+    ) = ColorPalette(color100, color125, color150, color175, color200, color225, color250, color275, color300)
+
+
     enum class Mode {
         LIGHT, DARK, AUTO
     }

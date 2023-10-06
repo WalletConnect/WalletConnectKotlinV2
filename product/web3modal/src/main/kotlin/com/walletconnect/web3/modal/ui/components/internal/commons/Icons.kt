@@ -282,6 +282,18 @@ internal fun WebIcon(
 }
 
 @Composable
+internal fun ForwardIcon(
+    tint: Color = Web3ModalTheme.colors.inverse100
+) {
+    Icon(
+        imageVector = ImageVector.vectorResource(id = R.drawable.ic_forward_chevron),
+        contentDescription = ContentDescription.FORWARD_ARROW.description,
+        tint = tint,
+        modifier = Modifier.size(12.dp),
+    )
+}
+
+@Composable
 @UiModePreview
 private fun IconsPreview() {
     MultipleComponentsPreview(

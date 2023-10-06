@@ -37,7 +37,7 @@ internal fun ErrorModalState(retry: () -> Unit) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Something went wrong", style = Web3ModalTheme.typo.paragraph500)
+        Text(text = "Something went wrong", style = Web3ModalTheme.typo.paragraph400)
         VerticalSpacer(height = 10.dp)
         TryAgainButton(size = ButtonSize.S) {
             retry()

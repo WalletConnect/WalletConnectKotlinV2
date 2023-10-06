@@ -48,13 +48,13 @@ internal fun HelpSection(
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = title,
-            style = Web3ModalTheme.typo.paragraph500,
+            style = Web3ModalTheme.typo.paragraph400,
             textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = body,
-            style = Web3ModalTheme.typo.small500.copy(Web3ModalTheme.colors.foreground.color200),
+            style = Web3ModalTheme.typo.small400.copy(Web3ModalTheme.colors.foreground.color200),
             textAlign = TextAlign.Center,
         )
     }
