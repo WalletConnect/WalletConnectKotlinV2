@@ -33,5 +33,5 @@ internal fun web3ModalModule() = module {
     single { ObserveSessionTopicUseCase(repository = get()) }
     single { ObserveSelectedChainUseCase(repository = get()) }
 
-    includes(blockchainApiModule())
+    includes(blockchainApiModule(), balanceRpcModule())
 }

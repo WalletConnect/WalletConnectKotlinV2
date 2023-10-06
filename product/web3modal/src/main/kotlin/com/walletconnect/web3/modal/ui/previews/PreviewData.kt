@@ -6,35 +6,35 @@ import com.walletconnect.web3.modal.domain.model.AccountData
 import com.walletconnect.web3.modal.client.Modal
 
 private val metaMask: Wallet
-    get() = Wallet(id = "1", name = "MetaMask", homePage = "", order = "", imageUrl = "", mobileLink = "metamask://", playStore = "")
+    get() = Wallet(id = "1", name = "MetaMask", homePage = "", order = "", imageUrl = "", mobileLink = "metamask://", webAppLink = "", playStore = "")
 private val trustWallet: Wallet
-    get() = Wallet(id = "2", name = "Trust Wallet", homePage = "", order = "", imageUrl = "", mobileLink = "trustwallet://", playStore = "")
+    get() = Wallet(id = "2", name = "Trust Wallet", homePage = "", order = "", imageUrl = "", mobileLink = "trustwallet://", webAppLink = "",playStore = "")
 private val safe: Wallet
-    get() = Wallet(id = "3", name = "Safe", homePage = "", order = "", imageUrl = "", mobileLink = "safe://", playStore = "")
+    get() = Wallet(id = "3", name = "Safe", homePage = "", order = "", imageUrl = "", mobileLink = "safe://", webAppLink = "", playStore = "")
 private val rainbow: Wallet
-    get() = Wallet(id = "4", name = "Rainbow", homePage = "", order = "", imageUrl = "", mobileLink = "rainbow://", playStore = "")
+    get() = Wallet(id = "4", name = "Rainbow", homePage = "", order = "", imageUrl = "", mobileLink = "rainbow://", webAppLink = "", playStore = "")
 private val zerion: Wallet
-    get() = Wallet(id = "5", name = "Zerion", homePage = "", order = "", imageUrl = "", mobileLink = "zerion://", playStore = "")
+    get() = Wallet(id = "5", name = "Zerion", homePage = "", order = "", imageUrl = "", mobileLink = "zerion://", webAppLink = "", playStore = "")
 private val argent: Wallet
-    get() = Wallet(id = "6", name = "Argent", homePage = "", order = "", imageUrl = "", mobileLink = "argent://", playStore = "")
+    get() = Wallet(id = "6", name = "Argent", homePage = "", order = "", imageUrl = "", mobileLink = "argent://", webAppLink = "", playStore = "")
 private val spot: Wallet
-    get() = Wallet(id = "7", name = "Spot", homePage = "", order = "", imageUrl = "", mobileLink = "spot://", playStore = "")
+    get() = Wallet(id = "7", name = "Spot", homePage = "", order = "", imageUrl = "", mobileLink = "spot://", webAppLink = "", playStore = "")
 private val imToken: Wallet
-    get() = Wallet(id = "8", name = "imToken", homePage = "", order = "", imageUrl = "", mobileLink = "imtoken://", playStore = "")
+    get() = Wallet(id = "8", name = "imToken", homePage = "", order = "", imageUrl = "", mobileLink = "imtoken://", webAppLink = "", playStore = "")
 private val alphaWallet: Wallet
-    get() = Wallet(id = "9", name = "AlphaWallet", homePage = "", order = "", imageUrl = "", mobileLink = "alphawallet://", playStore = "")
+    get() = Wallet(id = "9", name = "AlphaWallet", homePage = "", order = "", imageUrl = "", mobileLink = "alphawallet://", webAppLink = "", playStore = "")
 private val omni: Wallet
-    get() = Wallet(id = "10", name = "Omni", homePage = "", order = "", imageUrl = "", mobileLink = "omni://", playStore = "")
+    get() = Wallet(id = "10", name = "Omni", homePage = "", order = "", imageUrl = "", mobileLink = "omni://", webAppLink = "", playStore = "")
 private val bitkeep: Wallet
-    get() = Wallet(id = "11", name = "BitKeep", homePage = "", order = "", imageUrl = "", mobileLink = "bitkeep://", playStore = "")
+    get() = Wallet(id = "11", name = "BitKeep", homePage = "", order = "", imageUrl = "", mobileLink = "bitkeep://", webAppLink = "", playStore = "")
 private val tokenPocket: Wallet
-    get() = Wallet(id = "12", name = "TokePocket", homePage = "", order = "", imageUrl = "", mobileLink = "tokenpocket://", playStore = "")
+    get() = Wallet(id = "12", name = "TokePocket", homePage = "", order = "", imageUrl = "", mobileLink = "tokenpocket://", webAppLink = "", playStore = "")
 private val ledgerLive: Wallet
-    get() = Wallet(id = "13", name = "Ledger Live", homePage = "", order = "", imageUrl = "", mobileLink = "ledgerlive://", playStore = "")
+    get() = Wallet(id = "13", name = "Ledger Live", homePage = "", order = "", imageUrl = "", mobileLink = "ledgerlive://", webAppLink = "", playStore = "")
 private val frontier: Wallet
-    get() = Wallet(id = "14", name = "Frontier", homePage = "", order = "", imageUrl = "", mobileLink = "frontier://", playStore = "")
+    get() = Wallet(id = "14", name = "Frontier", homePage = "", order = "", imageUrl = "", mobileLink = "frontier://", webAppLink = "", playStore = "")
 private val safePal: Wallet
-    get() = Wallet(id = "15", name = "SafePal", homePage = "", order = "",imageUrl = "", mobileLink = "safepal://", playStore = "")
+    get() = Wallet(id = "15", name = "SafePal", homePage = "", order = "",imageUrl = "", mobileLink = "safepal://", webAppLink = "", playStore = "")
 
 internal val testWallets: List<Wallet>
     get() = listOf(metaMask, trustWallet, safe, rainbow, zerion, argent, spot, imToken, alphaWallet, omni, bitkeep, tokenPocket, ledgerLive, frontier, safePal)
@@ -43,7 +43,6 @@ internal val accountDataPreview: AccountData
     get() = AccountData(
     topic = "",
     address = "0xd2B8b483056b134f9D8cd41F55bB065F9",
-    balance = "543 ETH",
     chains = testChains,
     identity = null
 )
@@ -59,13 +58,18 @@ internal class ConnectYourWalletPreviewProvider : PreviewParameterProvider<List<
     )
 }
 
+private val ethToken = Modal.Model.Token(name = "Ether", symbol = "ETH", decimal = 18,)
+
 internal val ethereumChain: Modal.Model.Chain
     get() = Modal.Model.Chain(
         chainName = "Ethereum",
         chainNamespace = "eip155",
         chainReference = "1",
         methods = listOf(),
-        events = listOf()
+        events = listOf(),
+        token = ethToken,
+        rpcUrl = "https://cloudflare-eth.com",
+        blockExplorerUrl = "https://etherscan.io"
     )
 
 internal val arbitrumChain: Modal.Model.Chain
@@ -74,7 +78,10 @@ internal val arbitrumChain: Modal.Model.Chain
         chainNamespace = "eip155",
         chainReference = "42161",
         methods = listOf(),
-        events = listOf()
+        events = listOf(),
+        token = ethToken,
+        rpcUrl = "https://arb1.arbitrum.io/rpc",
+        blockExplorerUrl = "https://arbiscan.io"
     )
 
 internal val testChains: List<Modal.Model.Chain>
