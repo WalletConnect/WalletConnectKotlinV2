@@ -54,7 +54,7 @@ internal fun LoadingBorder(
 ) {
     Box(
         modifier = Modifier
-            .drawAnimatedBorder(strokeWidth = 4.dp, shape = RoundedCornerShape(cornerRadius + (cornerRadius/4)), durationMillis = 1500)
+            .drawAnimatedBorder(strokeWidth = 4.dp, shape = RoundedCornerShape(cornerRadius + (cornerRadius/4)), durationMillis = 1700)
     ) {
         Surface(
             color = Color.Transparent,
@@ -79,7 +79,15 @@ private fun Modifier.drawAnimatedBorder(
             repeatMode = RepeatMode.Restart
         ), label = "rotation"
     )
-    val brush = Brush.horizontalGradient(listOf(Web3ModalTheme.colors.main100, Color.Transparent, Color.Transparent, Color.Transparent))
+    val brush = Brush.horizontalGradient(
+        listOf(
+            Web3ModalTheme.colors.main100,
+            Web3ModalTheme.colors.main100,
+            Web3ModalTheme.colors.main100,
+            Color.Transparent, Color.Transparent, Color.Transparent,
+            Color.Transparent, Color.Transparent, Color.Transparent,
+            Color.Transparent, Color.Transparent, Color.Transparent,
+        ))
 
     Modifier
         .clip(shape)

@@ -25,7 +25,7 @@ internal fun DividerOr() {
         FullWidthDivider(modifier = Modifier.weight(1f))
         Text(
             text = "or",
-            style = Web3ModalTheme.typo.small500.copy(color = Web3ModalTheme.colors.foreground.color200),
+            style = Web3ModalTheme.typo.small400.copy(color = Web3ModalTheme.colors.foreground.color200),
             modifier = Modifier.padding(horizontal = 10.dp)
         )
         FullWidthDivider(modifier = Modifier.weight(1f))

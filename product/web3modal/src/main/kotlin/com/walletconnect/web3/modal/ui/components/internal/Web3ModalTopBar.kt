@@ -32,7 +32,7 @@ internal fun Web3ModalTopBar(
         startIcon()
         Text(
             text = title,
-            style = Web3ModalTheme.typo.paragraph700.copy(
+            style = Web3ModalTheme.typo.paragraph600.copy(
                 color = Web3ModalTheme.colors.foreground.color100,
                 textAlign = TextAlign.Center
             ),

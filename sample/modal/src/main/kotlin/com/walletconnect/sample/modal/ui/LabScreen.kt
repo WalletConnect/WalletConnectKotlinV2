@@ -20,18 +20,16 @@ fun LabScreen(
 ) {
     val web3ModalState = rememberWeb3ModalState(navController = navController)
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically),
-        horizontalAlignment = Alignment.CenterHorizontally
+    Web3ModalTheme(
+        mode = Web3ModalTheme.Mode.AUTO
     ) {
-        item { Web3Button(state = web3ModalState, accountButtonType = AccountButtonType.MIXED) }
-        item {
-            Web3ModalTheme(
-                mode = Web3ModalTheme.Mode.AUTO
-            ) {
-                NetworkButton(state = web3ModalState)
-            }
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            item { Web3Button(state = web3ModalState, accountButtonType = AccountButtonType.MIXED) }
+            item { NetworkButton(state = web3ModalState) }
         }
     }
 }
