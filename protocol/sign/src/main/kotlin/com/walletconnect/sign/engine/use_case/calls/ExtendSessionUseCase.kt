@@ -19,23 +19,23 @@ import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignPara
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import kotlinx.coroutines.supervisorScope
 
-internal class ExtendSessionUsesCase(
+internal class ExtendSessionUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val sessionStorageRepository: SessionStorageRepository,
     private val logger: Logger,
-) : ExtendSessionUsesCaseInterface {
+) : ExtendSessionUseCaseInterface {
 
     override suspend fun extend(topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
-            throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
+            return@supervisorScope onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic"))
         }
 
         val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic(topic))
         if (!session.isSelfController) {
-            throw UnauthorizedPeerException(UNAUTHORIZED_EXTEND_MESSAGE)
+            return@supervisorScope onFailure(UnauthorizedPeerException(UNAUTHORIZED_EXTEND_MESSAGE))
         }
         if (!session.isAcknowledged) {
-            throw NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic")
+            return@supervisorScope onFailure(NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic"))
         }
 
         val newExpiration = session.expiry.seconds + WEEK_IN_SECONDS
@@ -52,10 +52,11 @@ internal class ExtendSessionUsesCase(
             onFailure = { error ->
                 logger.error("Sending session extend error: $error")
                 onFailure(error)
-            })
+            }
+        )
     }
 }
 
-internal interface ExtendSessionUsesCaseInterface {
+internal interface ExtendSessionUseCaseInterface {
     suspend fun extend(topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit)
 }

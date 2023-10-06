@@ -46,22 +46,22 @@ internal class SessionRequestUseCase(
 
     override suspend fun sessionRequest(request: EngineDO.Request, onSuccess: (Long) -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         if (!sessionStorageRepository.isSessionValid(Topic(request.topic))) {
-            throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE${request.topic}")
+            return@supervisorScope onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE${request.topic}"))
         }
 
         val nowInSeconds = TimeUnit.SECONDS.convert(Date().time, TimeUnit.SECONDS)
         if (!CoreValidator.isExpiryWithinBounds(request.expiry ?: Expiry(300))) {
-            throw InvalidExpiryException()
+            return@supervisorScope onFailure(InvalidExpiryException())
         }
 
         SignValidator.validateSessionRequest(request) { error ->
-            throw InvalidRequestException(error.message)
+            return@supervisorScope onFailure(InvalidRequestException(error.message))
         }
 
         val namespaces: Map<String, NamespaceVO.Session> =
             sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic(request.topic)).sessionNamespaces
         SignValidator.validateChainIdWithMethodAuthorisation(request.chainId, request.method, namespaces) { error ->
-            throw UnauthorizedMethodException(error.message)
+            return@supervisorScope onFailure(UnauthorizedMethodException(error.message))
         }
 
         val params = SignParams.SessionRequestParams(SessionRequestVO(request.method, request.params), request.chainId)
