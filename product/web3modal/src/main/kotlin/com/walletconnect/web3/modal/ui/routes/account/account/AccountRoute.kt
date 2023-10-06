@@ -93,7 +93,7 @@ private fun AccountScreen(
             VerticalSpacer(height = 8.dp)
             Text(
                 text = balance.valueWithSymbol,
-                style = Web3ModalTheme.typo.paragraph500.copy(Web3ModalTheme.colors.foreground.color200)
+                style = Web3ModalTheme.typo.paragraph400.copy(Web3ModalTheme.colors.foreground.color200)
             )
         }
         selectedChain.blockExplorerUrl?.let { url ->
@@ -113,14 +113,14 @@ private fun AccountScreen(
             onClick = onChangeNetworkClick,
             state = if (accountData.chains.size == 1) AccountEntryState.INFO else AccountEntryState.NEXT
         ) {
-            Text(text = selectedChain.chainName, style = Web3ModalTheme.typo.paragraph600.copy(color = it.textColor))
+            Text(text = selectedChain.chainName, style = Web3ModalTheme.typo.paragraph500.copy(color = it.textColor))
         }
         VerticalSpacer(height = 8.dp)
         AccountEntry(
             startIcon = { DisconnectIcon() },
             onClick = onDisconnectClick
         ) {
-            Text(text = "Disconnect", style = Web3ModalTheme.typo.paragraph600.copy(color = it.textColor))
+            Text(text = "Disconnect", style = Web3ModalTheme.typo.paragraph500.copy(color = it.textColor))
         }
     }
 }

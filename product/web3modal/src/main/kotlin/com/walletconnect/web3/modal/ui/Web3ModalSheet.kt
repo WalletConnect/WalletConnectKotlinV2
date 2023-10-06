@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.core.content.res.use
 import androidx.core.content.res.getColorOrThrow
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController

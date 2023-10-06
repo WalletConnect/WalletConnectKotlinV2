@@ -193,7 +193,7 @@ private fun RedirectMobileWalletScreen(
             when (redirectState) {
                 RedirectState.Loading -> LoadingState(wallet, onRetry, onCopyLinkClick)
                 RedirectState.Reject -> RejectedState(onRetry)
-                RedirectState.NotDetected -> NotDetectedWalletState(wallet, onOpenPlayStore)
+                RedirectState.NotDetected -> NotDetectedWalletState(wallet, onRetry, onOpenPlayStore)
             }
         }
     }
@@ -207,7 +207,7 @@ private fun RedirectWebWalletScreen(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Open and continue in a browser", style = Web3ModalTheme.typo.paragraph500)
+        Text(text = "Open and continue in a browser", style = Web3ModalTheme.typo.paragraph400)
         VerticalSpacer(height = 20.dp)
         ImageButton(
             text = "Open",
@@ -217,10 +217,7 @@ private fun RedirectWebWalletScreen(
             onClick = onOpenWebApp
         )
         VerticalSpacer(height = 20.dp)
-        CopyActionEntry(
-            modifier = Modifier.fillMaxWidth(),
-            onClick = onCopyLinkClick
-        )
+        CopyActionEntry(onClick = onCopyLinkClick)
     }
 }
 
@@ -238,14 +235,11 @@ private fun LoadingState(
 ) {
     Text(text = "Continue in ${wallet.name}", style = Web3ModalTheme.typo.paragraph500)
     VerticalSpacer(height = 8.dp)
-    Text(text = "Accept connection request in your wallet app", style = Web3ModalTheme.typo.small500.copy(color = Web3ModalTheme.colors.foreground.color200))
+    Text(text = "Accept connection request in your wallet app", style = Web3ModalTheme.typo.small400.copy(color = Web3ModalTheme.colors.foreground.color200))
     VerticalSpacer(height = 20.dp)
     TryAgainButton(onClick = onRetry)
     VerticalSpacer(height = 20.dp)
-    CopyActionEntry(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = onCopyLinkClick
-    )
+    CopyActionEntry(onClick = onCopyLinkClick)
 }
 
 @Composable
@@ -263,11 +257,11 @@ private fun WalletImageWithLoader(url: String) {
 
 @Composable
 private fun RejectedState(onRetry: () -> Unit) {
-    Text(text = "Connection declined", style = Web3ModalTheme.typo.paragraph500.copy(Web3ModalTheme.colors.error))
+    Text(text = "Connection declined", style = Web3ModalTheme.typo.paragraph400.copy(Web3ModalTheme.colors.error))
     VerticalSpacer(height = 8.dp)
     Text(
         text = "Connection can be declined if a previous request is still active",
-        style = Web3ModalTheme.typo.small500.copy(color = Web3ModalTheme.colors.foreground.color200),
+        style = Web3ModalTheme.typo.small400.copy(color = Web3ModalTheme.colors.foreground.color200),
         modifier = Modifier.padding(horizontal = 30.dp),
         textAlign = TextAlign.Center
     )
@@ -278,15 +272,18 @@ private fun RejectedState(onRetry: () -> Unit) {
 @Composable
 private fun NotDetectedWalletState(
     wallet: Wallet,
+    onRetry: () -> Unit,
     onOpenPlayStore: () -> Unit
 ) {
-    Text(text = "Download ${wallet.name}", style = Web3ModalTheme.typo.paragraph500)
+    Text(text = "Download ${wallet.name}", style = Web3ModalTheme.typo.paragraph400)
     VerticalSpacer(height = 8.dp)
-    Text(text = "Install ${wallet.name} app to continue", style = Web3ModalTheme.typo.small500.copy(color = Web3ModalTheme.colors.foreground.color200))
+    Text(text = "Install ${wallet.name} app to continue", style = Web3ModalTheme.typo.small400.copy(color = Web3ModalTheme.colors.foreground.color200))
+    VerticalSpacer(height = 20.dp)
+    TryAgainButton(onClick = onRetry)
     VerticalSpacer(height = 16.dp)
     FullWidthDivider()
     VerticalSpacer(height = 16.dp)
-    StoreEntry(text = "Get ${wallet.name}", onClick = onOpenPlayStore)
+    StoreEntry(text = "Don't have ${wallet.name}?", onClick = onOpenPlayStore)
 }
 
 @Composable
