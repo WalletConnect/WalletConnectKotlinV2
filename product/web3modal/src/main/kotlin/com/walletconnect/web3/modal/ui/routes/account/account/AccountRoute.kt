@@ -43,8 +43,7 @@ import com.walletconnect.web3.modal.utils.getImageData
 @Composable
 internal fun AccountRoute(
     navController: NavController,
-    accountState: AccountState,
-    closeModal: () -> Unit
+    accountState: AccountState
 ) {
     val uriHandler = LocalUriHandler.current
     val selectedChain by accountState.selectedChain.collectAsState(initial = Web3Modal.getSelectedChainOrFirst())
@@ -55,7 +54,7 @@ internal fun AccountRoute(
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(25.dp),
-            onClick = { closeModal() }
+            onClick = { accountState.closeModal() }
         )
         UiStateBuilder(uiStateFlow = accountState.accountState) { data ->
             AccountScreen(
@@ -64,7 +63,7 @@ internal fun AccountRoute(
                 balance = balance,
                 onBlockExplorerClick = { url -> uriHandler.openUri(url) },
                 onChangeNetworkClick = { navController.navigate(Route.CHANGE_NETWORK.path) },
-                onDisconnectClick = { accountState.disconnect(data.topic) { closeModal() } }
+                onDisconnectClick = { accountState.disconnect(data.topic) { accountState.closeModal() } }
             )
         }
     }
