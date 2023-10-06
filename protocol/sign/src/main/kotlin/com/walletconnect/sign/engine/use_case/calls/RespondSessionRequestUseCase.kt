@@ -45,8 +45,9 @@ internal class RespondSessionRequestUseCase(
         onFailure: (Throwable) -> Unit,
     ) = supervisorScope {
         val topicWrapper = Topic(topic)
+
         if (!sessionStorageRepository.isSessionValid(topicWrapper)) {
-            throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
+            return@supervisorScope onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic"))
         }
 
         handleExpiration(jsonRpcResponse, topic)

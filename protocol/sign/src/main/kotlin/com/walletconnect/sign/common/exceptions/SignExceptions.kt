@@ -12,5 +12,3 @@ class InvalidEventException(override val message: String?) : WalletConnectExcept
 class InvalidRequestException(override val message: String?) : WalletConnectException(message)
 
 class NotSettledSessionException(override val message: String?) : WalletConnectException(message)
-class CannotFindSequenceForTopic(override val message: String?) : WalletConnectException(message)
-class CannotFindSessionProposalException(override val message: String?) : WalletConnectException(message)
