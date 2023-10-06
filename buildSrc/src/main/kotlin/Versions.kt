@@ -5,10 +5,10 @@ const val KEY_PUBLISH_ARTIFACT_ID = "PUBLISH_ARTIFACT_ID"
 const val KEY_SDK_NAME = "SDK_NAME"
 
 //Latest versions
-const val BOM_VERSION = "1.17.1"
+const val BOM_VERSION = "1.17.2"
 const val FOUNDATION_VERSION = "1.12.0"
-const val CORE_VERSION = "1.22.0"
-const val SIGN_VERSION = "2.20.0"
+const val CORE_VERSION = "1.22.1"
+const val SIGN_VERSION = "2.20.1"
 const val AUTH_VERSION = "1.20.0"
 const val CHAT_VERSION = "1.0.0-beta18"
 const val NOTIFY_VERSION = "1.0.0-alpha04"
