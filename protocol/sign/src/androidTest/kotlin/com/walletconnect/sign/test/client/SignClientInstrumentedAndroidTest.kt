@@ -18,6 +18,7 @@ import com.walletconnect.sign.test.utils.sessionNamespaceKey
 import com.walletconnect.sign.test.utils.wallet.AutoApproveSessionWalletDelegate
 import com.walletconnect.sign.test.utils.wallet.WalletDelegate
 import com.walletconnect.sign.test.utils.wallet.WalletSignClient
+import com.walletconnect.sign.test.utils.wallet.dappClientExtendSession
 import com.walletconnect.sign.test.utils.wallet.rejectOnSessionProposal
 import com.walletconnect.sign.test.utils.wallet.walletClientEmitEvent
 import com.walletconnect.sign.test.utils.wallet.walletClientExtendSession
@@ -215,8 +216,8 @@ class SignClientInstrumentedAndroidTest {
     }
 
     @Test
-    fun receiveSessionExtend() {
-        Timber.d("receiveSessionExtend: start")
+    fun extendSessionByWallet() {
+        Timber.d("receiveSessionExtendByWallet: start")
 
         val walletDelegate = AutoApproveSessionWalletDelegate()
 
@@ -227,6 +228,26 @@ class SignClientInstrumentedAndroidTest {
         val dappDelegate = object : AutoApproveDappDelegate(onSessionApprovedSuccess) {
             override fun onSessionExtend(session: Sign.Model.Session) {
                 scenarioExtension.closeAsSuccess().also { Timber.d("receiveSessionExtend: finish") }
+            }
+        }
+
+        launch(walletDelegate, dappDelegate)
+    }
+
+    @Test
+    fun extendSessionByDapp() {
+        Timber.d("receiveSessionExtendByDapp: start")
+
+        val onSessionApprovedSuccess = { approvedSession: Sign.Model.ApprovedSession ->
+            Timber.d("session approved: ${approvedSession.topic}")
+            dappClientExtendSession(approvedSession.topic)
+        }
+
+        val dappDelegate = AutoApproveDappDelegate(onSessionApprovedSuccess)
+
+        val walletDelegate = object : AutoApproveSessionWalletDelegate() {
+            override fun onSessionExtend(session: Sign.Model.Session) {
+                scenarioExtension.closeAsSuccess().also { Timber.d("Wallet receiveSessionExtend: finish: ${session.expiry}") }
             }
         }
 
