@@ -12,8 +12,8 @@ import org.koin.core.KoinApplication
 internal class VerifyClient(private val koinApp: KoinApplication = wcKoinApp) : VerifyInterface {
     private val verifyService get() = koinApp.koin.get<VerifyService>()
 
-    override fun initialize(verifyUrl: String?) {
-        koinApp.modules(verifyModule(verifyUrl))
+    override fun initialize() {
+        koinApp.modules(verifyModule())
     }
 
     override fun register(attestationId: String, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
