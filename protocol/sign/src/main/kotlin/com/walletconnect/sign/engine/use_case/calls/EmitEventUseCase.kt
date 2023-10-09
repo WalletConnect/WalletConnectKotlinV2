@@ -24,20 +24,26 @@ import kotlinx.coroutines.supervisorScope
 internal class EmitEventUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val sessionStorageRepository: SessionStorageRepository,
-    private val logger: Logger
+    private val logger: Logger,
 ) : EmitEventUseCaseInterface {
 
     override suspend fun emit(topic: String, event: EngineDO.Event, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
-        validate(topic, event)
-
-        val eventParams = SignParams.EventParams(SessionEventVO(event.name, event.data), event.chainId)
-        val sessionEvent = SignRpc.SessionEvent(params = eventParams)
-        val irnParams = IrnParams(Tags.SESSION_EVENT, Ttl(FIVE_MINUTES_IN_SECONDS), true)
-
-        jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionEvent,
+        runCatching { validate(topic, event) }.fold(
             onSuccess = {
-                logger.log("Event sent successfully")
-                onSuccess()
+                val eventParams = SignParams.EventParams(SessionEventVO(event.name, event.data), event.chainId)
+                val sessionEvent = SignRpc.SessionEvent(params = eventParams)
+                val irnParams = IrnParams(Tags.SESSION_EVENT, Ttl(FIVE_MINUTES_IN_SECONDS), true)
+
+                jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionEvent,
+                    onSuccess = {
+                        logger.log("Event sent successfully")
+                        onSuccess()
+                    },
+                    onFailure = { error ->
+                        logger.error("Sending event error: $error")
+                        onFailure(error)
+                    }
+                )
             },
             onFailure = { error ->
                 logger.error("Sending event error: $error")

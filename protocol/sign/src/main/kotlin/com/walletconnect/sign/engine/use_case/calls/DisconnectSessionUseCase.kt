@@ -18,11 +18,11 @@ import kotlinx.coroutines.supervisorScope
 internal class DisconnectSessionUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val sessionStorageRepository: SessionStorageRepository,
-    private val logger: Logger
+    private val logger: Logger,
 ) : DisconnectSessionUseCaseInterface {
     override suspend fun disconnect(topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
-            throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
+            return@supervisorScope onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic"))
         }
 
         val deleteParams = SignParams.DeleteParams(Reason.UserDisconnected.code, Reason.UserDisconnected.message)

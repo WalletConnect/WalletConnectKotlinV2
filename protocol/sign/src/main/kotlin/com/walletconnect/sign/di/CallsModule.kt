@@ -7,8 +7,8 @@ import com.walletconnect.sign.engine.use_case.calls.DisconnectSessionUseCase
 import com.walletconnect.sign.engine.use_case.calls.DisconnectSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.EmitEventUseCase
 import com.walletconnect.sign.engine.use_case.calls.EmitEventUseCaseInterface
-import com.walletconnect.sign.engine.use_case.calls.ExtendSessionUsesCase
-import com.walletconnect.sign.engine.use_case.calls.ExtendSessionUsesCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.ExtendSessionUseCase
+import com.walletconnect.sign.engine.use_case.calls.ExtendSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.GetListOfVerifyContextsUseCase
 import com.walletconnect.sign.engine.use_case.calls.GetListOfVerifyContextsUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.GetPairingsUseCase
@@ -88,7 +88,7 @@ internal fun callsModule() = module {
 
     single<EmitEventUseCaseInterface> { EmitEventUseCase(jsonRpcInteractor = get(), sessionStorageRepository = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
 
-    single<ExtendSessionUsesCaseInterface> { ExtendSessionUsesCase(jsonRpcInteractor = get(), sessionStorageRepository = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
+    single<ExtendSessionUseCaseInterface> { ExtendSessionUseCase(jsonRpcInteractor = get(), sessionStorageRepository = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
 
     single<DisconnectSessionUseCaseInterface> { DisconnectSessionUseCase(jsonRpcInteractor = get(), sessionStorageRepository = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
 

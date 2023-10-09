@@ -260,7 +260,7 @@ internal class JsonRpcInteractor(
             relay.batchSubscribe(topics) { result ->
                 result.fold(
                     onSuccess = { acknowledgement ->
-                        subscriptions.plus(topics.zip(acknowledgement.result).toMap())
+                        subscriptions.plusAssign(topics.zip(acknowledgement.result).toMap())
                         onSuccess(topics)
                     },
                     onFailure = { error ->

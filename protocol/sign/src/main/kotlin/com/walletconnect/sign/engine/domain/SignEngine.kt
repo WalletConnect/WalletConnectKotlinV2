@@ -24,7 +24,7 @@ import com.walletconnect.sign.engine.sessionRequestEventsQueue
 import com.walletconnect.sign.engine.use_case.calls.ApproveSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.DisconnectSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.EmitEventUseCaseInterface
-import com.walletconnect.sign.engine.use_case.calls.ExtendSessionUsesCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.ExtendSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.GetListOfVerifyContextsUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.GetPairingsUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.GetSessionProposalsUseCaseInterface
@@ -89,7 +89,7 @@ internal class SignEngine(
     private val respondSessionRequestUseCase: RespondSessionRequestUseCaseInterface,
     private val pingUseCase: PingUseCaseInterface,
     private val emitEventUseCase: EmitEventUseCaseInterface,
-    private val extendSessionUsesCase: ExtendSessionUsesCaseInterface,
+    private val extendSessionUseCase: ExtendSessionUseCaseInterface,
     private val disconnectSessionUseCase: DisconnectSessionUseCaseInterface,
     private val getSessionsUseCase: GetSessionsUseCaseInterface,
     private val getPairingsUseCase: GetPairingsUseCaseInterface,
@@ -117,7 +117,7 @@ internal class SignEngine(
     RespondSessionRequestUseCaseInterface by respondSessionRequestUseCase,
     PingUseCaseInterface by pingUseCase,
     EmitEventUseCaseInterface by emitEventUseCase,
-    ExtendSessionUsesCaseInterface by extendSessionUsesCase,
+    ExtendSessionUseCaseInterface by extendSessionUseCase,
     DisconnectSessionUseCaseInterface by disconnectSessionUseCase,
     GetSessionsUseCaseInterface by getSessionsUseCase,
     GetPairingsUseCaseInterface by getPairingsUseCase,
@@ -274,15 +274,15 @@ internal class SignEngine(
     private fun propagatePendingSessionRequestsQueue() = scope.launch {
         getPendingSessionRequests()
             .map { pendingRequest -> pendingRequest.toSessionRequest(metadataStorageRepository.getByTopicAndType(pendingRequest.topic, AppMetaDataType.PEER)) }
+            .filter { sessionRequest -> CoreValidator.isExpiryWithinBounds(sessionRequest.expiry) }
+            .filter { sessionRequest ->  getSessionsUseCase.getListOfSettledSessions().find { session -> session.topic.value == sessionRequest.topic } != null}
             .onEach { sessionRequest ->
-                if (CoreValidator.isExpiryWithinBounds(sessionRequest.expiry)) {
-                    scope.launch {
-                        supervisorScope {
-                            val verifyContext =
-                                verifyContextStorageRepository.get(sessionRequest.request.id) ?: VerifyContext(sessionRequest.request.id, String.Empty, Validation.UNKNOWN, String.Empty, null)
-                            val sessionRequestEvent = EngineDO.SessionRequestEvent(sessionRequest, verifyContext.toEngineDO())
-                            sessionRequestEventsQueue.addLast(sessionRequestEvent)
-                        }
+                scope.launch {
+                    supervisorScope {
+                        val verifyContext =
+                            verifyContextStorageRepository.get(sessionRequest.request.id) ?: VerifyContext(sessionRequest.request.id, String.Empty, Validation.UNKNOWN, String.Empty, null)
+                        val sessionRequestEvent = EngineDO.SessionRequestEvent(sessionRequest, verifyContext.toEngineDO())
+                        sessionRequestEventsQueue.addLast(sessionRequestEvent)
                     }
                 }
             }
