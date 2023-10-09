@@ -19,6 +19,7 @@ import com.walletconnect.web3.modal.domain.usecase.ObserveSessionTopicUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveChainSelectionUseCase
 import com.walletconnect.web3.modal.ui.model.UiState
 import com.walletconnect.web3.modal.ui.navigation.Route
+import com.walletconnect.web3.modal.ui.navigation.account.navigateToChainSwitch
 import com.walletconnect.web3.modal.utils.getAddress
 import com.walletconnect.web3.modal.utils.getChains
 import com.walletconnect.web3.modal.utils.getSelectedChain
@@ -125,6 +126,10 @@ internal class AccountState(
         if (navController.currentDestination == null) {
             closeModal()
         }
+    }
+
+    fun navigateToChainSwitchRedirect(chain: Modal.Model.Chain) {
+        navController.navigateToChainSwitch(chain)
     }
 
     fun navigateToHelp() {

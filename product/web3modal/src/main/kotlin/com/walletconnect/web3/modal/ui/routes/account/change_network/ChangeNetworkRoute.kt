@@ -42,7 +42,8 @@ internal fun ChangeNetworkRoute(
             chains = Web3Modal.chains,
             accountData = accountState.accountData,
             selectedChain = selectedChain,
-            onChainItemClick = { accountState.changeActiveChain(it) },
+//            onChainItemClick = { accountState.changeActiveChain(it) },
+            onChainItemClick = { accountState.navigateToChainSwitchRedirect(it) },
             onWhatIsWalletClick = { accountState.navigateToHelp() }
         )
     }
