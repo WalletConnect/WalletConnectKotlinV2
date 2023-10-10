@@ -8,4 +8,5 @@ data class NotificationUI(
     val body: String,
     val url: String?,
     val icon: String?,
+    val isUnread: Boolean,
 )

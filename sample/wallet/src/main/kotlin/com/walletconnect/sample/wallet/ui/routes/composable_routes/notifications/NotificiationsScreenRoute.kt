@@ -4,18 +4,15 @@ import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.DropdownMenu
-import androidx.compose.material.DropdownMenuItem
+import androidx.compose.foundation.text.ClickableText
+import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -39,44 +36,52 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.constraintlayout.compose.Dimension
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import coil.size.Scale
 import com.walletconnect.sample.common.ui.theme.PreviewTheme
-import com.walletconnect.sample.wallet.R
+import com.walletconnect.sample.common.ui.theme.UiModePreview
+import com.walletconnect.sample.common.ui.theme.blue_accent
 import com.walletconnect.sample.wallet.domain.model.NotificationUI
+import com.walletconnect.sample.wallet.ui.common.subscriptions.ActiveSubscriptionsUI
 import com.walletconnect.sample.wallet.ui.routes.Route
+import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.LazyColumnSurroundedWithFogVertically
+import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import com.walletconnect.sample.common.R as CommonR
 
 @Composable
-fun NotificationsScreenRoute(navController: NavHostController, subscriptionTopic: String, subscriptionDappName: String, subscriptionDappIcon: String) {
-    val viewModel: NotificationsViewModel = viewModel()
-    val state by viewModel.test.collectAsState()
+fun NotificationsScreenRoute(navController: NavHostController, subscriptionTopic: String) {
+    val viewModel: NotificationsViewModel = runCatching {
+        viewModel<NotificationsViewModel>(
+            key = subscriptionTopic,
+            factory = NotificationsViewModelFactory(subscriptionTopic)
+        )
+    }.getOrElse {
+        navController.popBackStack()
+        return navController.showSnackbar("Active subscription no longer exists")
+    }
+
+    val state by viewModel.state.collectAsState()
+    val currentSubscription by viewModel.currentSubscription.collectAsState()
 
     NotificationScreen(
-        dappName = subscriptionDappName,
-        dappIcon = subscriptionDappIcon,
+        currentSubscription = currentSubscription,
         state = state,
         onNotificationItemDelete = viewModel::deleteNotification,
         onBackClick = { navController.popBackStack() },
@@ -88,16 +93,11 @@ fun NotificationsScreenRoute(navController: NavHostController, subscriptionTopic
             navController.popBackStack()
         },
     )
-
-    LaunchedEffect(Unit) {
-        viewModel.setSubscriptionTopic(subscriptionTopic)
-    }
 }
 
 @Composable
 private fun NotificationScreen(
-    dappName: String,
-    dappIcon: String,
+    currentSubscription: ActiveSubscriptionsUI,
     state: NotificationsState,
     onNotificationItemDelete: (NotificationUI) -> Unit,
     onBackClick: () -> Unit,
@@ -107,8 +107,8 @@ private fun NotificationScreen(
     Column(modifier = Modifier.fillMaxHeight()) {
         var isMoreExpanded by remember { mutableStateOf(false) }
 
-        TaskBar(
-            dappIconUrl = dappIcon, dappName = dappName, isMoreExpanded,
+        NotificationsHeader(
+            currentSubscription, isMoreExpanded,
             onBackIconClick = onBackClick, onMoreIconClick = { isMoreExpanded = !isMoreExpanded },
             onNotificationSettings = onNotificationSettings, onUnsubscribe = onUnsubscribe
         )
@@ -116,13 +116,10 @@ private fun NotificationScreen(
         if (state is NotificationsState.Success) {
             val lazyListState = rememberLazyListState()
 
-            LazyColumn(
-                state = lazyListState,
-                contentPadding = PaddingValues(top = 10.dp, bottom = 10.dp, end = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.Top),
-            ) {
-                items(state.notifications, key = { it.id }) { notificationUI ->
-                    NotificationItem(notificationUI, onNotificationItemDelete)
+            LazyColumnSurroundedWithFogVertically(indexByWhichShouldDisplayBottomFog = state.notifications.lastIndex - 3) {
+                itemsIndexed(state.notifications, key = { _, it -> it.id }) { index, notificationUI ->
+                    DissmisableNotificationItem(notificationUI, onNotificationItemDelete)
+                    if (index != state.notifications.lastIndex) Divider()
                 }
 
                 CoroutineScope(Dispatchers.Main).launch {
@@ -147,173 +144,9 @@ private fun EmptyState() {
     }
 }
 
-@Composable
-fun MoreMenu(
-    modifier: Modifier,
-    expanded: Boolean,
-    onDismissRequest: () -> Unit,
-    onNotificationSettings: () -> Unit,
-    onUnsubscribe: () -> Unit,
-) {
-    Box(modifier = modifier.wrapContentSize(Alignment.TopStart)) {
-        Image(
-            painter = painterResource(id = R.drawable.ic_more),
-            contentDescription = "More",
-        )
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = onDismissRequest,
-            modifier = Modifier
-                .width(215.dp)
-                .padding(start = 5.dp, top = 5.dp, end = 5.dp, bottom = 5.dp)
-        ) {
-            DropdownMenuItem(onClick = {
-                onDismissRequest()
-
-                onNotificationSettings()
-            }) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(painter = painterResource(R.drawable.ic_notifications_settings), contentDescription = "Notifications settings")
-                    Text(
-                        text = "Notification Preferences",
-                        style = TextStyle(
-                            fontSize = 14.sp,
-                            lineHeight = 17.sp,
-                            fontWeight = FontWeight(700),
-                            color = MaterialTheme.colors.onSurface,
-                            textAlign = TextAlign.Center,
-                        )
-                    )
-                }
-
-            }
-            DropdownMenuItem(onClick = {
-                onDismissRequest()
-                onUnsubscribe()
-            }) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(painter = painterResource(R.drawable.ic_unsubscribe), contentDescription = "Notifications settings", tint = Color(0xFFF05142))
-                    Text(
-                        text = "Unsubscribe",
-                        style = TextStyle(
-                            fontSize = 14.sp,
-                            lineHeight = 17.sp,
-                            fontWeight = FontWeight(700),
-                            color = Color(0xFFF05142),
-                            textAlign = TextAlign.Center,
-                        )
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun TaskBar(
-    dappIconUrl: String,
-    dappName: String,
-    isMoreExpanded: Boolean,
-    onBackIconClick: () -> Unit,
-    onMoreIconClick: () -> Unit,
-    onNotificationSettings: () -> Unit,
-    onUnsubscribe: () -> Unit,
-) {
-    ConstraintLayout(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .clip(RoundedCornerShape(30.dp))
-    ) {
-        val startGuideline = createGuidelineFromStart(10.dp)
-
-        val (
-            backIconRef,
-            iconRef,
-            titleRef,
-            moreRef,
-        ) = createRefs()
-
-        Icon(
-            modifier = Modifier
-                .constrainAs(backIconRef) {
-                    top.linkTo(parent.top)
-                    bottom.linkTo(parent.bottom)
-                    start.linkTo(startGuideline)
-                    width = Dimension.value(12.dp)
-                    height = Dimension.value(12.dp)
-                }
-                .clickable { onBackIconClick() },
-            tint = MaterialTheme.colors.onBackground,
-            imageVector = ImageVector.vectorResource(id = CommonR.drawable.chevron_left),
-            contentDescription = "BackArrow",
-        )
-
-        AsyncImage(
-            modifier = Modifier
-                .constrainAs(iconRef) {
-                    top.linkTo(parent.top)
-                    bottom.linkTo(parent.bottom)
-                    start.linkTo(backIconRef.end, 8.dp)
-                    width = Dimension.value(32.dp)
-                    height = Dimension.value(32.dp)
-                },
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(dappIconUrl)
-                .scale(Scale.FILL)
-                .crossfade(true)
-                .placeholder(R.drawable.sad_face)
-                .build(),
-            contentDescription = null,
-        )
-
-        Text(
-            modifier = Modifier
-                .constrainAs(titleRef) {
-                    top.linkTo(parent.top)
-                    bottom.linkTo(parent.bottom)
-                    start.linkTo(iconRef.end, 8.dp)
-                    end.linkTo(titleRef.start, 8.dp)
-                    width = Dimension.wrapContent
-                    height = Dimension.wrapContent
-                    verticalChainWeight = .5f
-                },
-            text = dappName,
-            style = TextStyle(
-                fontSize = 18.sp,
-                lineHeight = 23.4.sp,
-                fontWeight = FontWeight(600),
-                color = MaterialTheme.colors.onSurface,
-            )
-        )
-
-        MoreMenu(modifier = Modifier
-            .constrainAs(moreRef) {
-                top.linkTo(parent.top)
-                bottom.linkTo(parent.bottom)
-                end.linkTo(parent.end, 8.dp)
-                width = Dimension.wrapContent
-                height = Dimension.wrapContent
-                verticalChainWeight = .5f
-            }
-            .clickable { onMoreIconClick() },
-            expanded = isMoreExpanded,
-            onDismissRequest = onMoreIconClick,
-            onNotificationSettings = onNotificationSettings,
-            onUnsubscribe = onUnsubscribe
-        )
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NotificationItem(
+fun DissmisableNotificationItem(
     notification: NotificationUI,
     onRemove: (NotificationUI) -> Unit,
 ) {
@@ -338,7 +171,7 @@ fun NotificationItem(
                 DismissBackground(dismissState)
             },
             dismissContent = {
-                Notification(false, notification)
+                NotificationItem2(notification)
             }, directions = setOf(DismissDirection.StartToEnd)
 
         )
@@ -380,134 +213,123 @@ fun DismissBackground(dismissState: DismissState) {
 }
 
 @Composable
-fun Notification(isUnread: Boolean = false, notificationUI: NotificationUI) {
-    ConstraintLayout(
+fun NotificationItem2(notificationUI: NotificationUI) {
+    val unreadColor = if (isSystemInDarkTheme()) Color(0xFF0E0F0F) else Color(0xFFeef8ff)
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .wrapContentHeight()
-            .background(color = MaterialTheme.colors.background)
+            .background(if (notificationUI.isUnread) unreadColor else MaterialTheme.colors.background)
+            .padding(horizontal = 20.dp, vertical = 16.dp)
     ) {
-        val (
-            unreadIndicator,
-            avatarIcon,
-            notificationTitle,
-            timestamp,
-            notificationBody,
-        ) = createRefs()
-
-        if (isUnread) {
-            Box(
-                modifier = Modifier
-                    .constrainAs(unreadIndicator) {
-                        top.linkTo(parent.top)
-                        bottom.linkTo(parent.bottom)
-                        start.linkTo(parent.start, 8.dp)
-                        width = Dimension.value(8.dp)
-                        height = Dimension.value(8.dp)
-                        verticalChainWeight = .5f
-                    }
-                    .clip(CircleShape)
-                    .background(color = Color(0xFF3396FF))
+        AsyncImage(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(RoundedCornerShape(10.dp)),
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(notificationUI.icon)
+                .crossfade(200)
+                .build(),
+            contentDescription = null,
+            contentScale = ContentScale.Crop
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Column {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    modifier = Modifier.weight(1f),
+                    text = notificationUI.title,
+                    style = TextStyle(
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight(590),
+                    )
+                )
+                Text(
+                    modifier = Modifier.wrapContentWidth(),
+                    text = notificationUI.date,
+                    style = TextStyle(
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight(510),
+                        color = MaterialTheme.colors.onBackground.copy(alpha = 0.3f)
+                    )
+                )
+                if (notificationUI.isUnread) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .background(color = blue_accent, shape = CircleShape)
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(2.dp))
+            ExpandableText(
+                text = notificationUI.body,
+                style = TextStyle(
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight(400),
+                ),
             )
         }
 
-        AsyncImage(
-            modifier = Modifier
-                .constrainAs(avatarIcon) {
-                    top.linkTo(parent.top)
-                    bottom.linkTo(parent.bottom)
-                    start.linkTo(parent.start, 22.dp)
-                    width = Dimension.value(64.dp)
-                    height = Dimension.value(64.dp)
-                    verticalChainWeight = .5f
-                }
-                .border(width = 1.dp, color = Color(0x1A062B2B), shape = RoundedCornerShape(size = 10.dp)),
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(notificationUI.icon)
-                .scale(Scale.FILL)
-                .crossfade(true)
-                .placeholder(R.drawable.green_check)
-                .build(),
-            contentDescription = null,
-            contentScale = ContentScale.FillBounds
-        )
-
-        Text(
-            modifier = Modifier
-                .constrainAs(notificationTitle) {
-                    top.linkTo(parent.top)
-                    bottom.linkTo(notificationBody.top)
-                    start.linkTo(avatarIcon.end, 12.dp)
-                    end.linkTo(timestamp.start, 5.dp)
-                    width = Dimension.fillToConstraints
-                    height = Dimension.wrapContent
-                    verticalChainWeight = .0f
-                    horizontalChainWeight = 0f
-                },
-            text = notificationUI.title,
-            style = TextStyle(
-                fontSize = 18.sp,
-                lineHeight = 22.sp,
-                fontWeight = FontWeight(700),
-                color = MaterialTheme.colors.onSurface,
-            )
-        )
-
-        Text(
-            modifier = Modifier
-                .constrainAs(timestamp) {
-                    top.linkTo(parent.top)
-                    end.linkTo(parent.end)
-                    width = Dimension.wrapContent
-                    height = Dimension.wrapContent
-                    verticalChainWeight = 0f
-                    horizontalChainWeight = 1f
-                },
-            text = notificationUI.date,
-            style = TextStyle(
-                fontSize = 12.sp,
-                lineHeight = 14.sp,
-                fontWeight = FontWeight(500),
-                color = MaterialTheme.colors.onSurface,
-                letterSpacing = 0.12.sp,
-            )
-        )
-
-        Text(
-            modifier = Modifier
-                .constrainAs(notificationBody) {
-                    top.linkTo(notificationTitle.bottom, 2.dp)
-                    bottom.linkTo(parent.bottom)
-                    start.linkTo(avatarIcon.end, 12.dp)
-                    end.linkTo(parent.end, 4.dp)
-                    width = Dimension.fillToConstraints
-                    height = Dimension.wrapContent
-                    verticalChainWeight = 0f
-                    horizontalChainWeight = 0f
-                },
-            text = notificationUI.body,
-            style = TextStyle(
-                fontSize = 16.sp,
-                lineHeight = 22.sp,
-                fontWeight = FontWeight(400),
-                color = MaterialTheme.colors.onSurface,
-            ),
-            maxLines = 2
-        )
     }
 }
 
-//@CompletePreviews
-@Preview
 @Composable
+fun ExpandableText(
+    text: String,
+    style: TextStyle,
+    maxLines: Int = 3,
+) {
+    var isExpanded by remember { mutableStateOf(false) }
+    var isOverflowed by remember { mutableStateOf(false) }
+    val onTextLayout = { textLayoutResult: TextLayoutResult -> isOverflowed = textLayoutResult.hasVisualOverflow }
+
+    Column() {
+        if (isExpanded) {
+            Text(text = text, style = style)
+            ClickableText(
+                text = AnnotatedString("Show Less"),
+                onClick = { isExpanded = false },
+                style = style.copy(color = blue_accent)
+            )
+        } else {
+            Text(
+                text = text,
+                style = style,
+                onTextLayout = onTextLayout,
+                maxLines = maxLines,
+                overflow = TextOverflow.Ellipsis
+            )
+            if (isOverflowed) {
+                ClickableText(
+                    text = AnnotatedString("Show More"),
+                    onClick = { isExpanded = true },
+                    style = style.copy(color = blue_accent)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+@UiModePreview
 private fun NotificationsScreenPreview(
-//    @PreviewParameter(NotificationsScreenStateProvider::class) state: NotificationsState,
+    @PreviewParameter(NotificationsScreenStateProvider::class) state: NotificationsState,
 ) {
     PreviewTheme {
         NotificationScreen(
-            "Dapp Name",
-            "",
-            state = NotificationsState.Empty,
+            ActiveSubscriptionsUI(
+                "",
+                "https://explorer-api.walletconnect.com/v3/logo/sm/ae213078-71b0-49ac-17e9-294719d92e00?projectId=8e998cd112127e42dce5e2bf74122539",
+                "Dapp Name",
+                0,
+                "WalletConnect sample app for testing Notify features.",
+                "",
+                "gm.walletconnect.com",
+                false,
+                false
+            ),
+            state = state,
             onNotificationItemDelete = {},
             onBackClick = {},
             onNotificationSettings = {},
@@ -522,10 +344,10 @@ private class NotificationsScreenStateProvider : PreviewParameterProvider<Notifi
             NotificationsState.Empty,
             NotificationsState.Success(
                 listOf(
-                    NotificationUI("1", "topic1", "10-10-2023", "Title 1", "Body 1", null, null),
-//                    NotifyNotification("2", "topic2", "03-02-2023", "Title 2", "Body 2", null, null),
-//                    NotifyNotification("3", "topic3", "31-01-2023", "Title 3", "Body 3", null, null),
-//                    NotifyNotification("4", "topic4", "02-07-2022", "Title 4", "Body 4", null, null),
+                    NotificationUI("1", "topic1", "10-10-2023", "Title 1", "Body 1", null, null, true),
+                    NotificationUI("2", "topic2", "03-02-2023", "Title 2", "Body 2", null, null, false),
+                    NotificationUI("3", "topic3", "31-01-2023", "Title 3", "Body 3", null, null, true),
+                    NotificationUI("4", "topic4", "02-07-2022", "Title 4", "Body 4", null, null, false),
                 )
             )
         )

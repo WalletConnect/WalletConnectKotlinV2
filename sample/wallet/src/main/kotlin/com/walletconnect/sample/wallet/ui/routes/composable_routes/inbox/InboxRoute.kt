@@ -39,10 +39,9 @@ import com.walletconnect.sample.common.ui.theme.PreviewTheme
 import com.walletconnect.sample.common.ui.theme.UiModePreview
 import com.walletconnect.sample.common.ui.theme.blue_accent
 import com.walletconnect.sample.wallet.R
+import com.walletconnect.sample.wallet.ui.common.subscriptions.ActiveSubscriptionsUI
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.discover.DiscoverTab
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.discover.ExplorerApp
-import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.subscriptions.ActiveSubscriptionItem
-import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.subscriptions.ActiveSubscriptionsUI
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.subscriptions.SubscriptionsTab
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -218,6 +217,18 @@ private class InboxScreenStatePreviewProvider : PreviewParameterProvider<Subscri
 private class InboxScreenActiveSubscriptionsPreviewProvider : PreviewParameterProvider<List<ActiveSubscriptionsUI>> {
     override val values: Sequence<List<ActiveSubscriptionsUI>> = sequenceOf(
         emptyList(),
-        listOf(ActiveSubscriptionsUI("", "", "Dapp Name", 0, "", "", "", false))
+        listOf(
+            ActiveSubscriptionsUI(
+                "",
+                "https://explorer-api.walletconnect.com/v3/logo/sm/ae213078-71b0-49ac-17e9-294719d92e00?projectId=8e998cd112127e42dce5e2bf74122539",
+                "Dapp Name",
+                0,
+                "WalletConnect sample app for testing Notify features.",
+                "",
+                "gm.walletconnect.com",
+                false,
+                false
+            ),
+        )
     )
 }

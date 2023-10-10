@@ -37,9 +37,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.walletconnect.sample.wallet.ui.common.subscriptions.ActiveSubscriptionsUI
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.LazyColumnSurroundedWithFogVertically
-import java.net.URLEncoder
 
 
 @Composable
@@ -53,10 +53,7 @@ fun ActiveSubscriptions(navController: NavHostController, activeSubscriptions: L
         if (activeSubscriptions.isEmpty()) {
             Text(text = "No apps found")
         } else {
-            LazyColumnSurroundedWithFogVertically(
-                modifier = Modifier,
-                activeSubscriptions.lastIndex - 5
-            ) {
+            LazyColumnSurroundedWithFogVertically(indexByWhichShouldDisplayBottomFog = activeSubscriptions.lastIndex - 5) {
                 unreadActiveSubscriptionItems(navController, activeSubscriptions)
                 readActiveSubscriptionItems(navController, activeSubscriptions)
             }
@@ -125,7 +122,7 @@ fun ActiveSubscriptionItem(navController: NavHostController, url: String, name: 
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
-            .clickable { navController.navigate("${Route.Notifications.path}/$topic/$name/${URLEncoder.encode(url, "UTF-8")}") }
+            .clickable { navController.navigate("${Route.Notifications.path}/$topic") }
             .padding(8.dp)
     ) {
         Row(

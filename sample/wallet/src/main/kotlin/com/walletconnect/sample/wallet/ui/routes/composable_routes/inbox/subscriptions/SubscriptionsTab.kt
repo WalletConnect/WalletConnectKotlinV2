@@ -3,6 +3,7 @@ package com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.subscr
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import com.walletconnect.sample.wallet.ui.common.subscriptions.ActiveSubscriptionsUI
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.SubscriptionsState
 
 

@@ -36,6 +36,7 @@ import com.walletconnect.sample.wallet.ui.routes.dialog_routes.paste_uri.PasteUr
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.session_proposal.SessionProposalRoute
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.session_request.SessionRequestRoute
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.snackbar_message.SnackbarMessageRoute
+import timber.log.Timber
 
 @ExperimentalMaterialNavigationApi
 @Composable
@@ -97,21 +98,13 @@ fun Web3WalletNavGraph(
             )) {
                 ConnectionDetailsRoute(navController, it.arguments?.getInt("connectionId"), connectionsViewModel)
             }
-            composable("${Route.Notifications.path}/{topic}/{name}/{url}", arguments = listOf(
+            composable("${Route.Notifications.path}/{topic}", arguments = listOf(
                 navArgument("topic") {
                     type = NavType.Companion.StringType
                     nullable = false
                 },
-                navArgument("name") {
-                    type = NavType.Companion.StringType
-                    nullable = false
-                },
-                navArgument("url") {
-                    type = NavType.Companion.StringType
-                    nullable = false
-                }
             )) {
-                NotificationsScreenRoute(navController, it.arguments?.getString("topic")!!, it.arguments?.getString("name")!!, it.arguments?.getString("url")!!)
+                NotificationsScreenRoute(navController, it.arguments?.getString("topic")!!)
             }
             composable(Route.ExploreDapps.path) {
                 ExploreDappsScreenRoute(navController)

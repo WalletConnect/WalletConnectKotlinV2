@@ -10,7 +10,8 @@ import com.walletconnect.notify.client.NotifyClient
 import com.walletconnect.sample.wallet.domain.NotifyDelegate
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.discover.ExplorerApp
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.discover.ImageUrl
-import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.subscriptions.ActiveSubscriptionsUI
+import com.walletconnect.sample.wallet.ui.common.subscriptions.ActiveSubscriptionsUI
+import com.walletconnect.sample.wallet.ui.common.subscriptions.toUI
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,7 +25,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import kotlin.random.Random
 import com.walletconnect.android.internal.common.explorer.data.model.ImageUrl as WCImageUrl
 
 class InboxViewModel(application: Application) : AndroidViewModel(application) {
@@ -74,18 +74,7 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun getActiveSubscriptions(subscriptions: List<Notify.Model.Subscription>): List<ActiveSubscriptionsUI> {
-        return subscriptions.map { subscription ->
-            ActiveSubscriptionsUI(
-                topic = subscription.topic,
-                icon = subscription.metadata.icons.first(),
-                name = subscription.metadata.name,
-                messageCount = NotifyClient.getMessageHistory(params = Notify.Params.MessageHistory(subscription.topic)).size,
-                appDomain = subscription.metadata.url,
-                hasUnreadMessages = Random.nextBoolean(),
-                description = subscription.metadata.description,
-                lastReceived = "2D AGO"
-            )
-        }
+        return subscriptions.map { subscription -> subscription.toUI() }
     }
 
 

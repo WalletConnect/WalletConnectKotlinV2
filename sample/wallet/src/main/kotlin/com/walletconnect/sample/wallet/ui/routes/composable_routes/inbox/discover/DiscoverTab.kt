@@ -69,10 +69,7 @@ fun DiscoverTab(state: DiscoverState, apps: List<ExplorerApp>, onAppItemClicked:
 private fun SuccessState(apps: List<ExplorerApp>, onAppItemClicked: () -> Unit) {
     Box() {
         if (apps.isNotEmpty()) {
-            LazyColumnSurroundedWithFogVertically(
-                Modifier,
-                apps.lastIndex - 2
-            ) {
+            LazyColumnSurroundedWithFogVertically(indexByWhichShouldDisplayBottomFog = apps.lastIndex - 2) {
                 itemsIndexed(apps) { index, app ->
                     ExplorerAppItem(explorerApp = app, onAppItemClicked)
                     if (index != apps.lastIndex) Spacer(modifier = Modifier.height(20.dp))

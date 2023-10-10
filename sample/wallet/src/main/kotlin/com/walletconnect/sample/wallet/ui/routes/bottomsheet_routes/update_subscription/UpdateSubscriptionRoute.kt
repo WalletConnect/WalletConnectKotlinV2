@@ -8,16 +8,21 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material3.Button
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
+import androidx.compose.material.Switch
+import androidx.compose.material.SwitchDefaults
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -35,6 +40,7 @@ import com.google.accompanist.navigation.material.BottomSheetNavigatorSheetState
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.walletconnect.notify.client.Notify
 import com.walletconnect.notify.client.NotifyClient
+import com.walletconnect.sample.common.ui.theme.blue_accent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -68,6 +74,7 @@ fun UpdateSubscriptionRoute(navController: NavController, sheetState: BottomShee
     LazyColumn(
         modifier = Modifier
             .clip(shape)
+            .border(1.dp, ButtonDefaults.outlinedBorder.brush, shape)
             .fillMaxWidth()
             .background(MaterialTheme.colors.surface)
             .padding(20.dp, 20.dp, 20.dp, 20.dp),
@@ -85,8 +92,8 @@ fun UpdateSubscriptionRoute(navController: NavController, sheetState: BottomShee
 @Composable
 fun UpdateButton(onClick: () -> Unit) {
     Spacer(modifier = Modifier.height(40.dp))
-    Button(modifier = Modifier.fillMaxWidth(), onClick = onClick) {
-        Text("Update" )
+    Button(modifier = Modifier.fillMaxWidth(), shape = CircleShape, onClick = onClick, colors = ButtonDefaults.buttonColors(backgroundColor = blue_accent)) {
+        Text("Update", style = TextStyle(color = Color(0xFFFFFFFF)))
     }
 }
 
@@ -94,10 +101,13 @@ fun UpdateButton(onClick: () -> Unit) {
 fun NotificationType(name: String, enabled: Boolean, description: String, onClick: (Pair<String, Pair<String, Boolean>>) -> Unit) {
 
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-        Column(modifier = Modifier.weight(0.8f)) {
+        Column(modifier = Modifier.fillMaxWidth(0.8f)) {
             Text(name, style = TextStyle(fontSize = 20.sp, color = MaterialTheme.colors.onSurface))
             Text(description, style = TextStyle(fontSize = 11.sp, color = MaterialTheme.colors.onSurface))
         }
-        Switch(modifier = Modifier.weight(0.2f), checked = enabled, onCheckedChange = { onClick(name to Pair(description, it)) })
+        Switch(
+            checked = enabled, onCheckedChange = { onClick(name to Pair(description, it)) },
+            colors = SwitchDefaults.colors(checkedThumbColor = blue_accent, checkedTrackColor = blue_accent.copy(alpha = 0.5f))
+        )
     }
 }

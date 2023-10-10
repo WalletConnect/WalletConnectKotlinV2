@@ -1,31 +1,40 @@
 package com.walletconnect.sample.wallet.ui.routes.composable_routes.notifications
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.notify.client.Notify
 import com.walletconnect.notify.client.NotifyClient
 import com.walletconnect.sample.wallet.domain.NotifyDelegate
 import com.walletconnect.sample.wallet.domain.model.NotificationUI
+import com.walletconnect.sample.wallet.ui.common.subscriptions.ActiveSubscriptionsUI
+import com.walletconnect.sample.wallet.ui.common.subscriptions.toUI
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import java.text.DateFormat
 import java.util.Calendar
 import java.util.Locale
 import java.util.TimeZone
 import java.util.concurrent.TimeUnit
+import kotlin.random.Random
 
-class NotificationsViewModel : ViewModel() {
-    private val currentSubscriptionTopic = MutableStateFlow("")
+@Suppress("UNCHECKED_CAST")
+class NotificationsViewModelFactory(private val topic: String) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        return NotificationsViewModel(topic) as T
+    }
+}
 
-    val test = merge(currentSubscriptionTopic, NotifyDelegate.notifyEvents).map {
-        if (currentSubscriptionTopic.value.isBlank()) {
-            NotificationsState.Empty
-        } else {
-            val listOfNotificationUI = NotifyClient.getMessageHistory(params = Notify.Params.MessageHistory(currentSubscriptionTopic.value))
+class NotificationsViewModel(topic: String) : ViewModel() {
+    var currentSubscription: MutableStateFlow<ActiveSubscriptionsUI> =
+        MutableStateFlow(NotifyClient.getActiveSubscriptions()[topic]?.toUI() ?: throw IllegalStateException("No subscription found for topic $topic"))
+
+    val state = merge(currentSubscription, NotifyDelegate.notifyEvents).map {
+        run {
+            val listOfNotificationUI = NotifyClient.getMessageHistory(params = Notify.Params.MessageHistory(currentSubscription.value.topic))
                 .values.sortedByDescending { it.publishedAt }
                 .map { messageRecord -> messageRecord.toNotifyNotification() }
 
@@ -35,14 +44,10 @@ class NotificationsViewModel : ViewModel() {
                 NotificationsState.Success(listOfNotificationUI)
             }
         }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), NotificationsState.Empty)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), NotificationsState.Loading)
 
 
     private val notifications = MutableStateFlow<List<NotificationUI>>(listOf())
-
-    fun setSubscriptionTopic(topic: String) {
-        currentSubscriptionTopic.update { topic }
-    }
 
     fun getMessageHistory() {
         val messages = with(NotifyClient) {
@@ -69,7 +74,7 @@ class NotificationsViewModel : ViewModel() {
     fun unsubscribe(onError: (Throwable) -> Unit) {
         NotifyClient.deleteSubscription(
             Notify.Params.DeleteSubscription(
-                currentSubscriptionTopic.value
+                currentSubscription.value.topic
             ), onError = { onError(it.throwable) }
         )
     }
@@ -87,7 +92,8 @@ class NotificationsViewModel : ViewModel() {
             title = message.title,
             body = message.body,
             url = (message as? Notify.Model.Message.Decrypted)?.url,
-            icon = (message as? Notify.Model.Message.Decrypted)?.icon
+            icon = (message as? Notify.Model.Message.Decrypted)?.icon,
+            isUnread = Random.Default.nextBoolean()
         )
 
     private fun getHumanReadableTime(timestampMillis: Long): String {
@@ -111,9 +117,9 @@ class NotificationsViewModel : ViewModel() {
         df.timeZone = TimeZone.getDefault()
 
         return when {
-            seconds < 60 -> "Just now"
-            minutes < 60 -> "$minutes minutes ago"
-            hours < 24 -> "$hours hours ago"
+            seconds < 60 -> "Now"
+            minutes < 60 -> "${minutes}m"
+            hours < 24 -> "${hours}h"
             days == 1L -> "Yesterday"
             days in 2..6 -> daysOfWeek[dayOfWeek - 1] // E.g., "Monday"
             else -> df.format(calendar.time) // Locale-specific date format E.g., 9/15/23 or 15/9/23 based on Timezone
@@ -121,7 +127,8 @@ class NotificationsViewModel : ViewModel() {
     }
 }
 
-sealed class NotificationsState {
+sealed class NotificationsState() {
+    object Loading : NotificationsState()
     object Empty : NotificationsState()
-    data class Success(val notifications: List<NotificationUI>) : NotificationsState()
+    data class Success(val notifications: List<NotificationUI>) : NotificationsState() //todo: model separation
 }

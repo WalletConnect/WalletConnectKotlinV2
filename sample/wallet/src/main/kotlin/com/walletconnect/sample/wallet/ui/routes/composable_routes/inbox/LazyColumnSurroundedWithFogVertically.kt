@@ -6,8 +6,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
@@ -26,47 +27,48 @@ import androidx.compose.ui.unit.dp
 
 
 @Composable
-fun BoxScope.LazyColumnSurroundedWithFogVertically(modifier: Modifier = Modifier, indexByWhichShouldDisplayBottomFog: Int, lazyColumContent: LazyListScope.() -> Unit) {
+fun LazyColumnSurroundedWithFogVertically(modifier: Modifier = Modifier, indexByWhichShouldDisplayBottomFog: Int, lazyColumContent: LazyListScope.() -> Unit) {
     val lazyListState = rememberLazyListState()
     val isScrolled by remember { derivedStateOf { lazyListState.firstVisibleItemScrollOffset > 0 } }
     val isScrolledToTheEnd by remember { derivedStateOf { lazyListState.firstVisibleItemIndex >= indexByWhichShouldDisplayBottomFog } }
 
-    LazyColumn(
-        modifier = modifier,
-        state = lazyListState,
-    ) {
-        lazyColumContent()
-    }
+    Box(modifier = modifier.fillMaxSize()) {
+        LazyColumn(
+            state = lazyListState,
+        ) {
+            lazyColumContent()
+        }
 
-    AnimatedVisibility(
-        modifier = Modifier.align(Alignment.TopCenter),
-        visible = isScrolled,
-        enter = fadeIn(animationSpec = tween(400)),
-        exit = fadeOut(animationSpec = tween(400))
-    ) {
-        Spacer(
-            modifier = Modifier
-                .height(60.dp)
-                .fillMaxWidth()
-                .background(
-                    Brush.verticalGradient(listOf(MaterialTheme.colors.background, Color.Transparent))
-                )
-        )
-    }
+        AnimatedVisibility(
+            modifier = Modifier.align(Alignment.TopCenter),
+            visible = isScrolled,
+            enter = fadeIn(animationSpec = tween(400)),
+            exit = fadeOut(animationSpec = tween(400))
+        ) {
+            Spacer(
+                modifier = Modifier
+                    .height(60.dp)
+                    .fillMaxWidth()
+                    .background(
+                        Brush.verticalGradient(listOf(MaterialTheme.colors.background, Color.Transparent))
+                    )
+            )
+        }
 
-    AnimatedVisibility(
-        modifier = Modifier.align(Alignment.BottomCenter),
-        visible = !isScrolledToTheEnd,
-        enter = fadeIn(animationSpec = tween(400)),
-        exit = fadeOut(animationSpec = tween(400))
-    ) {
-        Spacer(
-            modifier = Modifier
-                .height(60.dp)
-                .fillMaxWidth()
-                .background(
-                    Brush.verticalGradient(listOf(Color.Transparent, MaterialTheme.colors.background))
-                )
-        )
+        AnimatedVisibility(
+            modifier = Modifier.align(Alignment.BottomCenter),
+            visible = !isScrolledToTheEnd,
+            enter = fadeIn(animationSpec = tween(400)),
+            exit = fadeOut(animationSpec = tween(400))
+        ) {
+            Spacer(
+                modifier = Modifier
+                    .height(60.dp)
+                    .fillMaxWidth()
+                    .background(
+                        Brush.verticalGradient(listOf(Color.Transparent, MaterialTheme.colors.background))
+                    )
+            )
+        }
     }
 }
