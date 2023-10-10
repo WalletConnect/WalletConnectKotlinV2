@@ -1,193 +1,201 @@
+@file:OptIn(ExperimentalFoundationApi::class)
+
 package com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.ButtonDefaults
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.text.selection.LocalTextSelectionColors
+import androidx.compose.foundation.text.selection.TextSelectionColors
+import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedButton
+import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.Tab
+import androidx.compose.material.TabRow
+import androidx.compose.material.TabRowDefaults
+import androidx.compose.material.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material.Text
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.constraintlayout.compose.Dimension
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
-import coil.size.Scale
 import com.walletconnect.sample.common.ui.WCTopAppBar
 import com.walletconnect.sample.common.ui.theme.PreviewTheme
 import com.walletconnect.sample.common.ui.theme.UiModePreview
+import com.walletconnect.sample.common.ui.theme.blue_accent
 import com.walletconnect.sample.wallet.R
-import com.walletconnect.sample.wallet.ui.routes.Route
-import timber.log.Timber
-import java.net.URLEncoder
+import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.discover.DiscoverTab
+import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.discover.ExplorerApp
+import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.subscriptions.ActiveSubscriptionItem
+import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.subscriptions.ActiveSubscriptionsUI
+import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.subscriptions.SubscriptionsTab
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 
 @Composable
 fun InboxRoute(navController: NavHostController) {
     val viewModel: InboxViewModel = viewModel()
-    val state by viewModel.state.collectAsState(InboxState.Empty)
-    Timber.d("InboxScreenRoute state - $state")
 
-    InboxScreen(navController, state = state)
+    val subscriptionsState by viewModel.subscriptionsState.collectAsState(SubscriptionsState.Searching)
+    val searchText by viewModel.searchText.collectAsState()
+    val activeSubscriptions by viewModel.activeSubscriptions.collectAsState()
+    val discoverState by viewModel.discoverState.collectAsState()
+    val apps by viewModel.explorerApps.collectAsState()
+    val scope = rememberCoroutineScope()
+
+    InboxScreen(
+        navController,
+        subscriptionsState,
+        discoverState,
+        scope,
+        searchText,
+        viewModel::onSearchTextChange,
+        activeSubscriptions,
+        apps,
+    )
 }
 
 @Composable
 private fun InboxScreen(
     navController: NavHostController,
-    state: InboxState,
+    subscriptionsState: SubscriptionsState,
+    discoverState: DiscoverState,
+    coroutineScope: CoroutineScope,
+    searchText: String,
+    onSearchTextChange: (String) -> Unit,
+    activeSubscriptions: List<ActiveSubscriptionsUI>,
+    apps: List<ExplorerApp>,
 ) {
     Column(modifier = Modifier.fillMaxHeight()) {
         WCTopAppBar(titleText = "Inbox")
+        TabViewWithPager(
+            navController,
+            subscriptionsState,
+            discoverState,
+            coroutineScope,
+            searchText,
+            onSearchTextChange,
+            activeSubscriptions,
+            apps,
+        )
+    }
+}
 
-        when (state) {
-            is InboxState.Empty -> {
+@Composable
+fun TabViewWithPager(
+    navController: NavHostController,
+    subscriptionsState: SubscriptionsState,
+    discoverState: DiscoverState,
+    coroutineScope: CoroutineScope,
+    searchText: String,
+    onSearchTextChange: (String) -> Unit,
+    activeSubscriptions: List<ActiveSubscriptionsUI>,
+    apps: List<ExplorerApp>,
+) {
+    val tabTitles = listOf("Subscriptions", "Discover")
+    val pagerState = rememberPagerState(initialPage = 0, pageCount = { tabTitles.size })
+
+    val navigate = { index: Int ->
+        coroutineScope.launch {
+            pagerState.animateScrollToPage(index)
+        }
+    }
+
+    Column {
+        TabRow(
+            backgroundColor = MaterialTheme.colors.background,
+            selectedTabIndex = pagerState.currentPage,
+            indicator = @Composable { tabPositions ->
+                TabRowDefaults.Indicator(
+                    modifier = Modifier.tabIndicatorOffset(tabPositions[pagerState.currentPage]),
+                    color = blue_accent
+                )
             }
+        ) {
+            tabTitles.forEachIndexed { index, title ->
+                Tab(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = { Text(title, textAlign = TextAlign.Start) },
+                    selected = pagerState.currentPage == index,
+                    onClick = { navigate(index) }
+                )
+            }
+        }
 
-            is InboxState.Subscriptions -> {
-                LazyColumn(
-                    modifier = Modifier
-                        .padding(10.dp),
-                    verticalArrangement = Arrangement.spacedBy(20.dp, alignment = Alignment.Top)
-                ) {
-                    items(
-                        state.listOfActiveSubscriptions
-                    ) { subscription ->
-                        InboxItem(navController, subscription.icon, subscription.name, subscription.messageCount, subscription.topic)
-                    }
-                }
+        SearchBar(searchText, onSearchTextChange)
+        HorizontalPager(state = pagerState) { page ->
+            when (page) {
+                0 -> SubscriptionsTab(navController, subscriptionsState, activeSubscriptions) { navigate(1) }
+                1 -> DiscoverTab(discoverState, apps) { navigate(0) }
+                else -> throw IllegalArgumentException("Invalid page index: $page")
             }
         }
     }
 }
 
 @Composable
-fun InboxItem(navController: NavHostController, url: String, name: String, messageCount: Int, topic: String) {
-    OutlinedButton(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(50.dp),
-        contentPadding = PaddingValues(10.dp),
-        colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.surface),
-        border = BorderStroke(0.dp, color = Color.Transparent),
-        onClick = {
-            navController.navigate("${Route.Notifications.path}/$topic/$name/${URLEncoder.encode(url, "UTF-8")}")
-        }
-    ) {
-        ConstraintLayout(
+fun SearchBar(searchText: String, onSearchTextChange: (String) -> Unit) {
+    val customTextSelectionColors = TextSelectionColors(
+        handleColor = MaterialTheme.colors.onBackground,
+        backgroundColor = MaterialTheme.colors.onBackground.copy(alpha = 0.2f)
+    )
+
+    CompositionLocalProvider(LocalTextSelectionColors provides customTextSelectionColors) {
+        OutlinedTextField(
+            value = searchText,
+            maxLines = 1,
+            onValueChange = onSearchTextChange,
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                cursorColor = MaterialTheme.colors.onBackground,
+                focusedBorderColor = MaterialTheme.colors.onBackground,
+                focusedLabelColor = MaterialTheme.colors.onBackground
+            ),
+            leadingIcon = { Icon(painter = painterResource(id = R.drawable.ic_magnifying_glass), contentDescription = null) },
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight()
-                .background(color = Color.Transparent)
-        ) {
-            val (
-                icon,
-                dappName,
-                badge,
-            ) = createRefs()
+                .padding(start = 20.dp, top = 10.dp, end = 20.dp, bottom = 10.dp),
+            placeholder = { Text(text = "Find you favourite app") }
+        )
+    }
+}
 
-            AsyncImage(
-                modifier = Modifier
-                    .constrainAs(icon) {
-                        top.linkTo(parent.top)
-                        start.linkTo(parent.start)
-                        bottom.linkTo(parent.bottom)
-                        end.linkTo(dappName.start)
-                        width = Dimension.value(40.dp)
-                        height = Dimension.matchParent
-                    },
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(url)
-                    .scale(Scale.FILL)
-                    .crossfade(true)
-                    .placeholder(R.drawable.sad_face)
-                    .build(),
-                contentDescription = null,
-            )
 
-            Text(
-                modifier = Modifier
-                    .constrainAs(dappName) {
-                        top.linkTo(parent.top)
-                        bottom.linkTo(parent.bottom)
-                        start.linkTo(icon.end, 10.dp)
-                        end.linkTo(badge.start, 5.dp)
-                        width = Dimension.fillToConstraints
-                        height = Dimension.fillToConstraints
-                        verticalChainWeight = .5f
-                        horizontalChainWeight = 0f
-                    },
-                text = name,
-                textAlign = TextAlign.Start,
-                style = TextStyle(
-                    fontSize = 18.sp,
-                    lineHeight = 22.sp,
-                    fontWeight = FontWeight(700),
-                    color = MaterialTheme.colors.onSurface,
-                    textAlign = TextAlign.Center,
-                )
-            )
+@Composable
+@UiModePreview
+fun InboxScreenSearchingAndFailureStatePreview(@PreviewParameter(InboxScreenStatePreviewProvider::class) state: SubscriptionsState) {
+    PreviewTheme {
+        InboxScreen(
+            NavHostController(LocalContext.current), state, DiscoverState.Success, CoroutineScope(SupervisorJob() + Dispatchers.IO), "", {}, emptyList(), emptyList()
 
-            Box(
-                modifier = Modifier
-                    .constrainAs(badge) {
-                        top.linkTo(parent.top)
-                        bottom.linkTo(parent.bottom)
-                        start.linkTo(dappName.end)
-                        end.linkTo(parent.end)
-                        width = Dimension.value(22.dp)
-                        height = Dimension.value(22.dp)
-                    }
-                    .border(width = 1.dp, color = Color(0x1A062B2B), shape = RoundedCornerShape(size = 20.dp))
-                    .background(color = Color(0xFF3396FF), shape = RoundedCornerShape(size = 20.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    modifier = Modifier.padding(0.dp),
-                    text = if (messageCount > 99) "99+" else messageCount.toString(),
-                    style = TextStyle(
-                        fontSize = 11.sp,
-                        lineHeight = 11.sp,
-                        fontWeight = FontWeight(600),
-                        color = Color(0xFFFFFFFF),
-                        textAlign = TextAlign.Center,
-                    )
-                )
-            }
-        }
+        )
     }
 }
 
 @Composable
 @UiModePreview
-fun InboxScreenPreview(@PreviewParameter(InboxScreenPreviewProvider::class) state: InboxState) {
+fun InboxScreenSuccessPreview(@PreviewParameter(InboxScreenActiveSubscriptionsPreviewProvider::class) activeSubscriptions: List<ActiveSubscriptionsUI>) {
     PreviewTheme {
-        InboxScreen(NavHostController(LocalContext.current), state)
+        InboxScreen(
+            NavHostController(LocalContext.current), SubscriptionsState.Success, DiscoverState.Success, CoroutineScope(SupervisorJob() + Dispatchers.IO), "", {}, emptyList(), emptyList()
+        )
     }
 }
 
@@ -195,17 +203,21 @@ fun InboxScreenPreview(@PreviewParameter(InboxScreenPreviewProvider::class) stat
 @UiModePreview
 fun InboxItemPreview() {
     PreviewTheme {
-        InboxItem(NavHostController(LocalContext.current), "", "", 0, "")
+//        todo add previews
+//        ActiveSubscriptionItem(NavHostController(LocalContext.current), "", "", 0, "")
     }
 }
 
-private class InboxScreenPreviewProvider : PreviewParameterProvider<InboxState> {
-    override val values: Sequence<InboxState> = sequenceOf(
-        InboxState.Empty,
-        InboxState.Subscriptions(
-            listOf(
-                InboxState.Subscriptions.ActiveSubscriptions("", "", "Dapp Name", 0)
-            )
-        )
+private class InboxScreenStatePreviewProvider : PreviewParameterProvider<SubscriptionsState> {
+    override val values: Sequence<SubscriptionsState> = sequenceOf(
+        SubscriptionsState.Searching,
+        SubscriptionsState.Failure(Throwable("This is a test error")),
+    )
+}
+
+private class InboxScreenActiveSubscriptionsPreviewProvider : PreviewParameterProvider<List<ActiveSubscriptionsUI>> {
+    override val values: Sequence<List<ActiveSubscriptionsUI>> = sequenceOf(
+        emptyList(),
+        listOf(ActiveSubscriptionsUI("", "", "Dapp Name", 0, "", "", "", false))
     )
 }

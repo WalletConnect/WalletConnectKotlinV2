@@ -23,6 +23,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.walletconnect.sample.common.ui.theme.blue_accent
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.wallet.ui.routes.Route
 
@@ -87,7 +88,7 @@ fun BottomNavIconWithBadge(@DrawableRes icon: Int, hasNotification: Boolean) {
         Icon(painterResource(id = icon), contentDescription = null)
 
         if (hasNotification) {
-            val color = Color(0xFF3396FF)
+            val color = blue_accent
             val bgColor = MaterialTheme.colors.background
             // Draw a red dot at the top-end of the icon as an indicator
             Canvas(modifier = Modifier.size(10.dp)) {

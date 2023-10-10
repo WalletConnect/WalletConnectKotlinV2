@@ -46,7 +46,7 @@ fun Web3WalletNavGraph(
     connectionsViewModel: ConnectionsViewModel,
     getStartedVisited: Boolean,
     modifier: Modifier = Modifier,
-    startDestination: String = if (getStartedVisited) Route.Connections.path else Route.GetStarted.path,
+    startDestination: String = if (getStartedVisited) Route.Inbox.path else Route.GetStarted.path,
 ) {
     ModalBottomSheetLayout(
         modifier = modifier,

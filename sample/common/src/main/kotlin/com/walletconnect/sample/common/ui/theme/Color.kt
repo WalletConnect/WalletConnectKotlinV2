@@ -27,3 +27,6 @@ val md_theme_dark_onSurface = Color(0xFFE6E1E5)
 val verified_color = Color(0xFF3396FF)
 val unverified_color = Color(0xFFFF800A)
 val mismatch_color = Color(0xFFED4747)
+
+val blue_accent = Color(0xFF3396FF)
+val border_stroke = Color(0x1A062B2B)
