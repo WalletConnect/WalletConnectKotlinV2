@@ -1,14 +1,20 @@
 CREATE TABLE Identities (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     identity TEXT NOT NULL,
-    accountId TEXT NOT NULL
+    accountId TEXT NOT NULL,
+    message TEXT DEFAULT NULL
 );
 
 insertOrAbortIdentity:
-INSERT OR ABORT INTO Identities(identity, accountId)
-VALUES (?, ?);
+INSERT OR ABORT INTO Identities(identity, accountId, message)
+VALUES (?, ?, ?);
 
 getAccountIdByIdentity:
 SELECT accountId
+FROM Identities
+WHERE identity = ?;
+
+getMessageByIdentity:
+SELECT message
 FROM Identities
 WHERE identity = ?;
