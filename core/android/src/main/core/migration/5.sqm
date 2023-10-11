@@ -1,5 +1,6 @@
 -- migration from 5.db to 6.db
 
--- Add message that was signed to Identities table
+-- Add cacao_payload that was signed and is_mine flag to Identities table
 
-ALTER TABLE Identities ADD COLUMN message TEXT;
+ALTER TABLE Identities ADD COLUMN cacao_payload TEXT DEFAULT NULL;
+ALTER TABLE Identities ADD COLUMN is_mine INTEGER AS Boolean DEFAULT 0;

@@ -2,19 +2,20 @@ CREATE TABLE Identities (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     identity TEXT NOT NULL,
     accountId TEXT NOT NULL,
-    message TEXT DEFAULT NULL
+    cacao_payload TEXT DEFAULT NULL,
+    is_mine INTEGER AS Boolean DEFAULT 0
 );
 
 insertOrAbortIdentity:
-INSERT OR ABORT INTO Identities(identity, accountId, message)
-VALUES (?, ?, ?);
+INSERT OR ABORT INTO Identities(identity, accountId, cacao_payload, is_mine)
+VALUES (?, ?, ?, ?);
 
 getAccountIdByIdentity:
 SELECT accountId
 FROM Identities
 WHERE identity = ?;
 
-getMessageByIdentity:
-SELECT message
+getCacaoPayloadByIdentity:
+SELECT cacao_payload
 FROM Identities
-WHERE identity = ?;
+WHERE identity = ? AND is_mine = 1;
