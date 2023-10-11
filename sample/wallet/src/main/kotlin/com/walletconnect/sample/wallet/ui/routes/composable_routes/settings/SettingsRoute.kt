@@ -108,10 +108,10 @@ fun SettingsSection(title: String, items: List<Item>, onSettingClicked: (String)
         Text(text = title, style = TextStyle(fontSize = 15.sp), fontWeight = FontWeight(700))
         Spacer(modifier = Modifier.height(24.dp))
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            items.forEach {
-                when (it) {
+            items.forEach {item ->
+                when (item) {
                     is Item.SettingCopyableItem -> {
-                        SettingCopyableItem(it.key, it.value, onSettingClicked)
+                        SettingCopyableItem(key = item.key, value = item.value, onSettingClicked = onSettingClicked)
                     }
                 }
             }
