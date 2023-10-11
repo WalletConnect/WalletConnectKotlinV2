@@ -15,8 +15,6 @@ internal class RegisterIdentityUseCase(
     suspend operator fun invoke(
         accountId: AccountId, domain: String, onSign: (String) -> Cacao.Signature?, onSuccess: suspend (PublicKey) -> Unit, onFailure: (Throwable) -> Unit,
     ) = supervisorScope {
-
-
         identitiesInteractor.registerIdentity(accountId, STATEMENT, domain, listOf(identityServerUrl), identityServerUrl, onSign).fold(
             onFailure = onFailure,
             onSuccess = { identityPublicKey -> onSuccess(identityPublicKey) },
