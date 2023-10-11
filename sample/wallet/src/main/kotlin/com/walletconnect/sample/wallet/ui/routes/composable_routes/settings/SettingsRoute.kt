@@ -89,16 +89,11 @@ private fun SettingsScreen(
         Divider()
         LazyColumn() {
             itemsIndexed(sections) { index, section ->
-                when (section) {
-                    is Section.SettingsSection -> {
-                        SettingsSection(section.title, section.items, onSettingClicked)
-                    }
-
-                    is Section.LogoutSection -> {
-                        LogoutSection(onLogoutClicked)
-                    }
+                when {
+                    index != sections.lastIndex -> Divider()
+                    section is Section.SettingsSection -> SettingsSection(section.title, section.items, onSettingClicked)
+                    section is Section.LogoutSection -> LogoutSection(onLogoutClicked)
                 }
-                if (index != sections.lastIndex) Divider()
             }
         }
     }
