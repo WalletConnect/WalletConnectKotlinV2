@@ -54,8 +54,10 @@ class IdentitiesInteractor(
 
     private suspend fun getAlreadyRegisteredIdentity(accountId: AccountId): Result<PublicKey> {
         if (!accountId.isValid()) throw InvalidAccountIdException(accountId)
-        return runCatching { getIdentityPublicKey(accountId) }.onSuccess { storedPublicKey ->
+        return runCatching {
+            val storedPublicKey = getIdentityPublicKey(accountId)
             identitiesRepository.getCacaoPayloadByIdentity(storedPublicKey.keyAsHex) ?: throw AccountHasNoCacaoPayloadStored(accountId)
+            storedPublicKey
         }
     }
 
