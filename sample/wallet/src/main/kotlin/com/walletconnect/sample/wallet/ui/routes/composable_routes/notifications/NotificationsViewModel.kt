@@ -29,7 +29,7 @@ class NotificationsViewModelFactory(private val topic: String) : ViewModelProvid
 }
 
 class NotificationsViewModel(topic: String) : ViewModel() {
-    var currentSubscription: MutableStateFlow<ActiveSubscriptionsUI> =
+    val currentSubscription: MutableStateFlow<ActiveSubscriptionsUI> =
         MutableStateFlow(NotifyClient.getActiveSubscriptions()[topic]?.toUI() ?: throw IllegalStateException("No subscription found for topic $topic"))
 
     val state = merge(currentSubscription, NotifyDelegate.notifyEvents).map {

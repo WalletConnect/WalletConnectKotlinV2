@@ -116,6 +116,7 @@ fun NotificationsHeader(
                 )
             }
         }
+        Spacer(modifier = Modifier.height(2.dp))
         Text(
             text = currentSubscription.appDomain.removePrefix("https://"),
             style = TextStyle(

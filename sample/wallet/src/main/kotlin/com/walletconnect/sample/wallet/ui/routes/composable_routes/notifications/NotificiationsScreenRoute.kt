@@ -116,7 +116,7 @@ private fun NotificationScreen(
         if (state is NotificationsState.Success) {
             val lazyListState = rememberLazyListState()
 
-            LazyColumnSurroundedWithFogVertically(indexByWhichShouldDisplayBottomFog = state.notifications.lastIndex - 3) {
+            LazyColumnSurroundedWithFogVertically(indexByWhichShouldDisplayBottomFog = state.notifications.lastIndex - 5) {
                 itemsIndexed(state.notifications, key = { _, it -> it.id }) { index, notificationUI ->
                     DissmisableNotificationItem(notificationUI, onNotificationItemDelete)
                     if (index != state.notifications.lastIndex) Divider()

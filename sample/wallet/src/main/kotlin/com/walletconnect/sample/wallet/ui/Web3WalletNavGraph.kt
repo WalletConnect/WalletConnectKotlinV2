@@ -3,8 +3,12 @@ package com.walletconnect.sample.wallet.ui
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ModalBottomSheetDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -49,12 +53,16 @@ fun Web3WalletNavGraph(
     modifier: Modifier = Modifier,
     startDestination: String = if (getStartedVisited) Route.Inbox.path else Route.GetStarted.path,
 ) {
+    Timber.d("Web3WalletNavGraph: ${navController.currentBackStackEntry?.destination?.route}")
+
+    var scrimColor by remember { mutableStateOf(Color.Unspecified) }
+
     ModalBottomSheetLayout(
         modifier = modifier,
         bottomSheetNavigator = bottomSheetNavigator,
         sheetShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
         sheetBackgroundColor = Color.Transparent, sheetElevation = 0.dp,
-        scrimColor = Color.Unspecified
+        scrimColor = scrimColor
     ) {
         val sheetState = remember { bottomSheetNavigator.navigatorSheetState }
 
@@ -98,12 +106,14 @@ fun Web3WalletNavGraph(
             )) {
                 ConnectionDetailsRoute(navController, it.arguments?.getInt("connectionId"), connectionsViewModel)
             }
-            composable("${Route.Notifications.path}/{topic}", arguments = listOf(
-                navArgument("topic") {
-                    type = NavType.Companion.StringType
-                    nullable = false
-                },
-            )) {
+            composable(
+                "${Route.Notifications.path}/{topic}", arguments = listOf(
+                    navArgument("topic") {
+                        type = NavType.Companion.StringType
+                        nullable = false
+                    },
+                )
+            ) {
                 NotificationsScreenRoute(navController, it.arguments?.getString("topic")!!)
             }
             composable(Route.ExploreDapps.path) {
@@ -116,13 +126,17 @@ fun Web3WalletNavGraph(
                 SettingsRoute(navController)
             }
             bottomSheet(Route.ScanUri.path) {
+                scrimColor = Color.Unspecified
                 ScanUriRoute(navController, sheetState, onScanSuccess = { web3walletViewModel.pair(it) })
             }
-            bottomSheet("${Route.UpdateSubscription.path}/{topic}", arguments = listOf(
-                navArgument("topic") {
-                    type = NavType.Companion.StringType
-                    nullable = false
-                })) {
+            bottomSheet(
+                "${Route.UpdateSubscription.path}/{topic}", arguments = listOf(
+                    navArgument("topic") {
+                        type = NavType.Companion.StringType
+                        nullable = false
+                    })
+            ) {
+                scrimColor = ModalBottomSheetDefaults.scrimColor
                 UpdateSubscriptionRoute(navController, sheetState, it.arguments?.getString("topic")!!)
             }
             dialog(Route.SessionProposal.path, dialogProperties = DialogProperties(usePlatformDefaultWidth = false)) {
@@ -143,6 +157,7 @@ fun Web3WalletNavGraph(
             bottomSheet("${Route.SnackbarMessage.path}/{message}", arguments = listOf(
                 navArgument("message") { type = NavType.Companion.StringType }
             )) {
+                scrimColor = Color.Unspecified
                 SnackbarMessageRoute(navController, it.arguments?.getString("message"))
             }
         }

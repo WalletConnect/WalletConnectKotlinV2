@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 fun LazyColumnSurroundedWithFogVertically(modifier: Modifier = Modifier, indexByWhichShouldDisplayBottomFog: Int, lazyColumContent: LazyListScope.() -> Unit) {
     val lazyListState = rememberLazyListState()
     val isScrolled by remember { derivedStateOf { lazyListState.firstVisibleItemScrollOffset > 0 } }
+    //todo: calculate end better
     val isScrolledToTheEnd by remember { derivedStateOf { lazyListState.firstVisibleItemIndex >= indexByWhichShouldDisplayBottomFog } }
 
     Box(modifier = modifier.fillMaxSize()) {
