@@ -6,5 +6,5 @@ import com.walletconnect.android.sdk.storage.data.dao.IdentitiesQueries
 class IdentitiesStorageRepository(private val identities: IdentitiesQueries) {
     suspend fun insertIdentity(identityPublicKey: String, accountId: AccountId) = identities.insertOrAbortIdentity(identityPublicKey, accountId.value, null)
     suspend fun getAccountId(identityPublicKey: String) = AccountId(identities.getAccountIdByIdentity(identityPublicKey).executeAsOne())
-    suspend fun getMessageByIdentity(identityPublicKey: String) = identities.getMessageByIdentity(identityPublicKey).executeAsOne()
+    suspend fun getMessageByIdentity(identityPublicKey: String): String? = identities.getMessageByIdentity(identityPublicKey).executeAsOne().message
 }
