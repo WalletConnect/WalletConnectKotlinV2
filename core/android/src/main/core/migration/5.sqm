@@ -1,0 +1,5 @@
+-- migration from 5.db to 6.db
+
+-- Add message that was signed to Identities table
+
+ALTER TABLE Identities ADD COLUMN message TEXT;
