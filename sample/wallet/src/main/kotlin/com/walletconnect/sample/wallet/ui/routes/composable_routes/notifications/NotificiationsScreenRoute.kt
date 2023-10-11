@@ -118,7 +118,7 @@ private fun NotificationScreen(
 
             LazyColumnSurroundedWithFogVertically(indexByWhichShouldDisplayBottomFog = state.notifications.lastIndex - 5) {
                 itemsIndexed(state.notifications, key = { _, it -> it.id }) { index, notificationUI ->
-                    DissmisableNotificationItem(notificationUI, onNotificationItemDelete)
+                    DismissibleNotificationItem(notificationUI, onNotificationItemDelete)
                     if (index != state.notifications.lastIndex) Divider()
                 }
 
@@ -146,7 +146,7 @@ private fun EmptyState() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DissmisableNotificationItem(
+fun DismissibleNotificationItem(
     notification: NotificationUI,
     onRemove: (NotificationUI) -> Unit,
 ) {
@@ -171,7 +171,7 @@ fun DissmisableNotificationItem(
                 DismissBackground(dismissState)
             },
             dismissContent = {
-                NotificationItem2(notification)
+                NotificationItem(notification)
             }, directions = setOf(DismissDirection.StartToEnd)
 
         )
@@ -213,7 +213,7 @@ fun DismissBackground(dismissState: DismissState) {
 }
 
 @Composable
-fun NotificationItem2(notificationUI: NotificationUI) {
+fun NotificationItem(notificationUI: NotificationUI) {
     val unreadColor = if (isSystemInDarkTheme()) Color(0xFF0E0F0F) else Color(0xFFeef8ff)
     Row(
         modifier = Modifier
