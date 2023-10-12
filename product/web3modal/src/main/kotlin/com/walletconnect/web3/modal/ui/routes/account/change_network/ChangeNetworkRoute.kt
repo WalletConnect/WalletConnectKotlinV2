@@ -42,8 +42,7 @@ internal fun ChangeNetworkRoute(
             chains = Web3Modal.chains,
             accountData = accountState.accountData,
             selectedChain = selectedChain,
-//            onChainItemClick = { accountState.changeActiveChain(it) },
-            onChainItemClick = { accountState.navigateToChainSwitchRedirect(it) },
+            onChainItemClick = { accountState.changeActiveChain(it) },
             onWhatIsWalletClick = { accountState.navigateToHelp() }
         )
     }
@@ -96,11 +95,11 @@ private fun ChainNetworkGrid(
             itemsIndexed(chains) { _, item ->
                 ChainNetworkItem(
                     isSelected = item.id == selectedChain.id,
-                    isEnabled = connectedChains.any { it.id == item.id },
+                    isEnabled = true,
                     networkName = item.chainName,
                     image = item.chainImage ?: getChainNetworkImageUrl(item.chainReference)
                 ) {
-                    onItemClick(connectedChains.find { it.id == item.id }!!)
+                    onItemClick(item)
                 }
             }
         }

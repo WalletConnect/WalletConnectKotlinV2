@@ -1,5 +1,6 @@
 package com.walletconnect.web3.modal.ui.routes.account.chain_redirect
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -10,15 +11,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.walletconnect.web3.modal.client.Modal
+import com.walletconnect.web3.modal.client.Web3Modal
+import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
 import com.walletconnect.web3.modal.ui.components.internal.commons.DeclinedIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.LoadingHexagonBorder
 import com.walletconnect.web3.modal.ui.components.internal.commons.VerticalSpacer
@@ -30,21 +37,55 @@ import com.walletconnect.web3.modal.ui.previews.testChains
 import com.walletconnect.web3.modal.ui.routes.account.AccountState
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 import com.walletconnect.web3.modal.utils.getImageData
+import kotlinx.coroutines.launch
 
 @Composable
 internal fun ChainSwitchRedirectRoute(
     accountState: AccountState,
     chain: Modal.Model.Chain,
 ) {
+    val uriHandler = LocalUriHandler.current
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    val switchChain = suspend {
+        accountState.switchChain(
+            from = Web3Modal.getSelectedChainOrFirst(),
+            to = chain,
+            openConnectedWallet = { uri -> uriHandler.openUri(uri) },
+            onError = { Toast.makeText(context, it, Toast.LENGTH_SHORT).show() }
+        )
+    }
+
     var chainSwitchState by remember { mutableStateOf<ChainRedirectState>(ChainRedirectState.Loading) }
 
-    ChainSwitchRedirectScreen(chain = chain, chainRedirectState = chainSwitchState)
+    LaunchedEffect(Unit) {
+        switchChain()
+    }
+
+    LaunchedEffect(Unit) {
+        Web3ModalDelegate.wcEventModels.collect {
+            when (it) {
+                is Modal.Model.UpdatedSession -> accountState.updatedSessionAfterChainSwitch(chain, it)
+                is Modal.Model.SessionRequestResponse -> if (it.result is Modal.Model.JsonRpcResponse.JsonRpcError) {
+                    chainSwitchState = ChainRedirectState.Declined
+                }
+                else -> {}
+            }
+        }
+    }
+    ChainSwitchRedirectScreen(
+        chain = chain,
+        chainRedirectState = chainSwitchState,
+        onTryAgainClick = { scope.launch { switchChain() } }
+    )
 }
 
 @Composable
 private fun ChainSwitchRedirectScreen(
     chain: Modal.Model.Chain,
-    chainRedirectState: ChainRedirectState
+    chainRedirectState: ChainRedirectState,
+    onTryAgainClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -60,7 +101,7 @@ private fun ChainSwitchRedirectScreen(
         ChainSwitchInfo(redirectState = chainRedirectState)
         VerticalSpacer(height = 20.dp)
         AnimatedVisibility(visible = chainRedirectState == ChainRedirectState.Declined) {
-            TryAgainButton {}
+            TryAgainButton { onTryAgainClick() }
         }
 
     }
@@ -112,7 +153,7 @@ private fun ChainNetworkImageWrapper(
         targetState = redirectState,
         label = "ChainNetworkImageWrapper"
     ) { state ->
-        when(state) {
+        when (state) {
             ChainRedirectState.Declined -> {
                 Box {
                     content()
@@ -126,6 +167,7 @@ private fun ChainNetworkImageWrapper(
                     }
                 }
             }
+
             ChainRedirectState.Loading -> {
                 LoadingHexagonBorder {
                     content()
@@ -140,7 +182,7 @@ private fun ChainNetworkImageWrapper(
 private fun ChainSwitchRedirectScreenWithLoadingStatePreview() {
     val chain = testChains.first()
     Web3ModalPreview(title = chain.chainName) {
-        ChainSwitchRedirectScreen(chain, ChainRedirectState.Loading)
+        ChainSwitchRedirectScreen(chain, ChainRedirectState.Loading, {})
     }
 }
 
@@ -149,7 +191,7 @@ private fun ChainSwitchRedirectScreenWithLoadingStatePreview() {
 private fun ChainSwitchRedirectScreenWithDeclinedStatePreview() {
     val chain = testChains.first()
     Web3ModalPreview(title = chain.chainName) {
-        ChainSwitchRedirectScreen(chain, ChainRedirectState.Declined)
+        ChainSwitchRedirectScreen(chain, ChainRedirectState.Declined, {})
     }
 }
 
