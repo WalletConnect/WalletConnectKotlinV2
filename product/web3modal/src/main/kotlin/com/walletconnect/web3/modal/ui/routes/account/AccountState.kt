@@ -209,11 +209,4 @@ internal class AccountState(
     fun navigateToHelp() {
         navController.navigate(Route.WHAT_IS_WALLET.path)
     }
-
-    fun handleChainSwitchSessionRequestResponse(response: Modal.Model.SessionRequestResponse) {
-        when(response.result) {
-            is Modal.Model.JsonRpcResponse.JsonRpcError -> response.result.message
-            is Modal.Model.JsonRpcResponse.JsonRpcResult -> TODO()
-        }
-    }
 }
