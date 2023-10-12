@@ -51,10 +51,8 @@ fun Web3WalletNavGraph(
     connectionsViewModel: ConnectionsViewModel,
     getStartedVisited: Boolean,
     modifier: Modifier = Modifier,
-    startDestination: String = if (getStartedVisited) Route.Inbox.path else Route.GetStarted.path,
+    startDestination: String = if (getStartedVisited) Route.Connections.path else Route.GetStarted.path,
 ) {
-    Timber.d("Web3WalletNavGraph: ${navController.currentBackStackEntry?.destination?.route}")
-
     var scrimColor by remember { mutableStateOf(Color.Unspecified) }
 
     ModalBottomSheetLayout(
