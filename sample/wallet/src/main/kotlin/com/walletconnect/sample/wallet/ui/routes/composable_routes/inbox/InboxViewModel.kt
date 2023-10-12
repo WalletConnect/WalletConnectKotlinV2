@@ -60,7 +60,6 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
             if (text.isBlank()) {
                 activeSubscriptions
             } else {
-                delay(500L)
                 activeSubscriptions.filter { it.doesMatchSearchQuery(text) }
             }.also {
                 if (activeSubscriptions.isEmpty()) _subscriptionsState.update { SubscriptionsState.Unsubscribed }
