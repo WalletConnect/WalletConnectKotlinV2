@@ -1,5 +1,6 @@
 package com.walletconnect.sample.wallet.domain
 
+import android.util.Log
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.web3.wallet.client.Wallet
@@ -55,6 +56,10 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
         scope.launch {
             _walletEvents.emit(sessionDelete)
         }
+    }
+
+    override fun onSessionExtend(session: Wallet.Model.Session) {
+        Log.d("Session Extend", "${session.expiry}")
     }
 
     override fun onSessionProposal(sessionProposal: Wallet.Model.SessionProposal, verifyContext: Wallet.Model.VerifyContext) {
