@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.walletconnect.modal.utils.openUri
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
@@ -47,13 +48,16 @@ internal fun ChainSwitchRedirectRoute(
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val onError: (String?) -> Unit = {
+        Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+    }
 
     val switchChain = suspend {
         accountState.switchChain(
             from = Web3Modal.getSelectedChainOrFirst(),
             to = chain,
-            openConnectedWallet = { uri -> uriHandler.openUri(uri) },
-            onError = { Toast.makeText(context, it, Toast.LENGTH_SHORT).show() }
+            openConnectedWallet = { uri -> uriHandler.openUri(uri) { onError(it.message) } },
+            onError = onError
         )
     }
 
@@ -70,6 +74,7 @@ internal fun ChainSwitchRedirectRoute(
                 is Modal.Model.SessionRequestResponse -> if (it.result is Modal.Model.JsonRpcResponse.JsonRpcError) {
                     chainSwitchState = ChainRedirectState.Declined
                 }
+
                 else -> {}
             }
         }
