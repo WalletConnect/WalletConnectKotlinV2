@@ -1,16 +1,21 @@
 package com.walletconnect.sample.common.ui.theme
 
 import android.app.Activity
+import android.content.res.Configuration
 import android.os.Build
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material.Colors
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.view.WindowCompat
 
 private val LightColors = lightColors(
@@ -42,9 +47,9 @@ private val DarkColors = darkColors(
 @Composable
 fun WCSampleAppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
-    val colors = if(darkTheme) DarkColors else LightColors
+    val colors = if (darkTheme) DarkColors else LightColors
 
     val view = LocalView.current
 
@@ -75,15 +80,19 @@ fun WCSampleAppTheme(
 @Composable
 fun PreviewTheme(content: @Composable () -> Unit) {
     WCTheme(
-        colors = if(isSystemInDarkTheme()) DarkColors else LightColors,
-        content = content
+        colors = if (isSystemInDarkTheme()) DarkColors else LightColors,
+        content = {
+            Column(modifier = Modifier.background(MaterialTheme.colors.background)) {
+                content()
+            }
+        }
     )
 }
 
 @Composable
 internal fun WCTheme(
     colors: Colors,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     MaterialTheme(
         colors = colors,
@@ -91,3 +100,13 @@ internal fun WCTheme(
         content = content
     )
 }
+
+@LightTheme
+@DarkTheme
+annotation class UiModePreview
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_NO)
+internal annotation class LightTheme
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+internal annotation class DarkTheme

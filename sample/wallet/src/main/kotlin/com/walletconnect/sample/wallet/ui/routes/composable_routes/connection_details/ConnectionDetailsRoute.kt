@@ -124,7 +124,7 @@ fun Namespace(namespaces: Map<String, Wallet.Model.Namespace.Session>) {
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         HorizontalPager(
-            modifier = Modifier.height(500.dp),
+            modifier = Modifier.height(450.dp),
             count = accounts.size,
             state = pagerState,
         ) { current ->
