@@ -112,13 +112,14 @@ internal class AccountState(
                 disconnect = Modal.Params.Disconnect(topic),
                 onSuccess = {
                     coroutineScope.launch { deleteSessionDataUseCase() }
-                    coroutineScope.launch(Dispatchers.Main) { closeModal }
+                    coroutineScope.launch(Dispatchers.Main) { closeModal() }
                 },
                 onError = {
                     logger.error(it.throwable)
                 }
             )
         }
+
 
     fun changeActiveChain(chain: Modal.Model.Chain) = coroutineScope.launch {
         if (accountData.chains.contains(chain)) {
