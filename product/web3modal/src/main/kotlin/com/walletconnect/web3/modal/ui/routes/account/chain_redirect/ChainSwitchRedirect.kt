@@ -77,7 +77,10 @@ internal fun ChainSwitchRedirectRoute(
     ChainSwitchRedirectScreen(
         chain = chain,
         chainRedirectState = chainSwitchState,
-        onTryAgainClick = { scope.launch { switchChain() } }
+        onTryAgainClick = {
+            chainSwitchState = ChainRedirectState.Loading
+            scope.launch { switchChain() }
+        }
     )
 }
 
