@@ -108,29 +108,17 @@ internal class AccountState(
         .stateIn(coroutineScope, started = SharingStarted.Lazily, initialValue = null)
 
     fun disconnect(topic: String) {
-        Web3Modal.disconnect(
-            disconnect = Modal.Params.Disconnect(topic),
-            onSuccess = {
-                coroutineScope.launch(Dispatchers.Main) {
-                    deleteSessionDataUseCase()
-                    closeModal()
+            Web3Modal.disconnect(
+                disconnect = Modal.Params.Disconnect(topic),
+                onSuccess = {
+                    coroutineScope.launch { deleteSessionDataUseCase() }
+                    coroutineScope.launch(Dispatchers.Main) { closeModal }
+                },
+                onError = {
+                    logger.error(it.throwable)
                 }
-            },
-            onError = {
-                checkSessionAndClearModalStorageIfNotExist(topic)
-                logger.error(it.throwable)
-            }
-        )
-    }
-
-    private fun checkSessionAndClearModalStorageIfNotExist(topic: String) {
-        coroutineScope.launch(Dispatchers.Main) {
-            if (Web3Modal.getActiveSessionByTopic(topic) != null) {
-                deleteSessionDataUseCase()
-                closeModal()
-            }
+            )
         }
-    }
 
     fun changeActiveChain(chain: Modal.Model.Chain) = coroutineScope.launch {
         if (accountData.chains.contains(chain)) {
