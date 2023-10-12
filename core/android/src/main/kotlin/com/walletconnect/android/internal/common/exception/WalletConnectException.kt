@@ -9,3 +9,4 @@ internal class UserRejectedSigning() : WalletConnectException("User rejected sig
 internal class InvalidIdentityCacao() : WalletConnectException("Invalid identity cacao")
 internal class AccountHasNoIdentityStored(accountId: AccountId) : WalletConnectException("AccountId: $accountId has no identity stored")
 internal class AccountHasNoCacaoPayloadStored(accountId: AccountId) : WalletConnectException("AccountId: $accountId has no message stored")
+internal class AccountHasDifferentStatementStored(accountId: AccountId) : WalletConnectException("AccountId: $accountId has old statement stored")

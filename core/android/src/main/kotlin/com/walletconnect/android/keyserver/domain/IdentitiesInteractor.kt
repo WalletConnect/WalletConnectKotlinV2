@@ -3,6 +3,7 @@ package com.walletconnect.android.keyserver.domain
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.AccountHasNoCacaoPayloadStored
 import com.walletconnect.android.internal.common.exception.AccountHasNoIdentityStored
+import com.walletconnect.android.internal.common.exception.AccountHasDifferentStatementStored
 import com.walletconnect.android.internal.common.exception.InvalidAccountIdException
 import com.walletconnect.android.internal.common.exception.InvalidIdentityCacao
 import com.walletconnect.android.internal.common.exception.UserRejectedSigning
@@ -45,18 +46,22 @@ class IdentitiesInteractor(
     fun getIdentityKeyPair(accountId: AccountId): Pair<PublicKey, PrivateKey> = keyManagementRepository.getKeyPair(getIdentityPublicKey(accountId))
 
     suspend fun registerIdentity(accountId: AccountId, statement: String, domain: String, resources: List<String>, keyserverUrl: String, onSign: (String) -> Cacao.Signature?): Result<PublicKey> =
-        getAlreadyRegisteredIdentity(accountId).onFailure { exception ->
-            when (exception) {
-                is MissingKeyException -> handleNotYetGeneratedIdentities(accountId, statement, domain, resources, onSign)
-                is AccountHasNoCacaoPayloadStored -> handleIdentitiesWithoutCacaoPayload(accountId, statement, domain, resources, keyserverUrl, onSign)
+        getAlreadyRegisteredIdentity(accountId, statement, domain, resources)
+            .recoverCatching { exception ->
+                when (exception) {
+                    is MissingKeyException -> handleNotYetGeneratedIdentities(accountId, statement, domain, resources, onSign).getOrThrow()
+                    is AccountHasNoCacaoPayloadStored, is AccountHasDifferentStatementStored -> handleIdentitiesOutdatedStatements(accountId, statement, domain, resources, keyserverUrl, onSign).getOrThrow()
+                    else -> throw exception
+                }
             }
-        }
 
-    private suspend fun getAlreadyRegisteredIdentity(accountId: AccountId): Result<PublicKey> {
+    private suspend fun getAlreadyRegisteredIdentity(accountId: AccountId, statement: String, domain: String, resources: List<String>): Result<PublicKey> {
         if (!accountId.isValid()) throw InvalidAccountIdException(accountId)
         return runCatching {
             val storedPublicKey = getIdentityPublicKey(accountId)
-            identitiesRepository.getCacaoPayloadByIdentity(storedPublicKey.keyAsHex) ?: throw AccountHasNoCacaoPayloadStored(accountId)
+            val cacaoPayload = identitiesRepository.getCacaoPayloadByIdentity(storedPublicKey.keyAsHex) ?: throw AccountHasNoCacaoPayloadStored(accountId)
+            val generatedPayload = generatePayload(accountId, storedPublicKey, statement, domain, resources).getOrThrow()
+            if (cacaoPayload.statement != generatedPayload.statement) throw AccountHasDifferentStatementStored(accountId)
             storedPublicKey
         }
     }
@@ -68,7 +73,7 @@ class IdentitiesInteractor(
             .onSuccess { storeIdentityPublicKey(identityPublicKey, accountId) }
     }
 
-    private suspend fun handleIdentitiesWithoutCacaoPayload(
+    private suspend fun handleIdentitiesOutdatedStatements(
         accountId: AccountId, statement: String, domain: String, resources: List<String>, keyserverUrl: String, onSign: (String) -> Cacao.Signature?,
     ): Result<PublicKey> {
         val storedKeyPair = getIdentityKeyPair(accountId)

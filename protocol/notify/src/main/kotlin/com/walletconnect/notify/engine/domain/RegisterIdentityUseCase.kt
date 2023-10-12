@@ -13,15 +13,17 @@ internal class RegisterIdentityUseCase(
     private val identityServerUrl: String,
 ) {
     suspend operator fun invoke(
-        accountId: AccountId, domain: String, onSign: (String) -> Cacao.Signature?, onSuccess: suspend (PublicKey) -> Unit, onFailure: (Throwable) -> Unit,
+        accountId: AccountId, domain: String, isLimited: Boolean, onSign: (String) -> Cacao.Signature?, onSuccess: suspend (PublicKey) -> Unit, onFailure: (Throwable) -> Unit,
     ) = supervisorScope {
-        identitiesInteractor.registerIdentity(accountId, STATEMENT, domain, listOf(identityServerUrl), identityServerUrl, onSign).fold(
-            onFailure = onFailure,
-            onSuccess = { identityPublicKey -> onSuccess(identityPublicKey) },
-        )
+        identitiesInteractor
+            .registerIdentity(accountId, if (isLimited) LIMITED_STATEMENT else UNLIMITED_STATEMENT, domain, listOf(identityServerUrl), identityServerUrl, onSign)
+            .fold(onFailure = onFailure, onSuccess = { identityPublicKey -> onSuccess(identityPublicKey) })
     }
 
     companion object {
-        private const val STATEMENT = "I further authorize this app to send and receive messages on my behalf using my WalletConnect identity. Read more at https://walletconnect.com/identity"
+        private const val LIMITED_STATEMENT =
+            "I further authorize this app to send and receive messages on my behalf for THIS domain using my WalletConnect identity. Read more at https://walletconnect.com/identity"
+        private const val UNLIMITED_STATEMENT =
+            "I further authorize this app to send and receive messages on my behalf for ALL domains using my WalletConnect identity. Read more at https://walletconnect.com/identity"
     }
 }
