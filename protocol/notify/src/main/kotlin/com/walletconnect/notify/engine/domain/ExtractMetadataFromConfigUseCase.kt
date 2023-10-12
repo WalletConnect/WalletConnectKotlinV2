@@ -3,17 +3,11 @@
 package com.walletconnect.notify.engine.domain
 
 import android.net.Uri
-import android.util.Base64
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.model.AppMetaData
-import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.notify.common.model.NotificationScope
 import com.walletconnect.notify.data.wellknown.config.NotifyConfigDTO
-import com.walletconnect.notify.data.wellknown.did.DidJsonDTO
-import com.walletconnect.notify.data.wellknown.did.VerificationMethodDTO
-import com.walletconnect.notify.engine.calls.DidJsonPublicKeyPair
-import com.walletconnect.util.bytesToHex
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.URL
@@ -34,7 +28,7 @@ internal class ExtractMetadataFromConfigUseCase(
         }.mapCatching { wellKnownNotifyConfigString ->
             // Parse the did.json
             serializer.tryDeserialize<NotifyConfigDTO>(wellKnownNotifyConfigString)
-                ?: throw Exception("Failed to parse $WC_NOTIFY_CONFIG_JSON. Check that the $$WC_NOTIFY_CONFIG_JSON file matches the specs")
+                ?: throw Exception("Failed to parse $WC_NOTIFY_CONFIG_JSON. Check that the $WC_NOTIFY_CONFIG_JSON file matches the specs")
         }.mapCatching { notifyConfig ->
             Pair(
                 AppMetaData(notifyConfig.description, dappUri.toString(), notifyConfig.icons, notifyConfig.name),

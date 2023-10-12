@@ -10,6 +10,8 @@ open class WalletDelegate : SignClient.WalletDelegate {
     override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal, verifyContext: Sign.Model.VerifyContext) {}
     override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest, verifyContext: Sign.Model.VerifyContext) {}
     override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {}
+    override fun onSessionExtend(session: Sign.Model.Session) {}
+
     override fun onSessionSettleResponse(settleSessionResponse: Sign.Model.SettledSessionResponse) {}
     override fun onSessionUpdateResponse(sessionUpdateResponse: Sign.Model.SessionUpdateResponse) {}
     override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {

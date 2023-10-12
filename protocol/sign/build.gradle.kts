@@ -5,6 +5,7 @@ plugins {
     id("com.google.devtools.ksp") version kspVersion
     id("publish-module-android")
 //    id("de.mannodermaus.android-junit5") version "1.9.3.0"
+    id("jacoco-report")
 }
 
 project.apply {
