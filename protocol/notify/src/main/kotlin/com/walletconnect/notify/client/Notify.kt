@@ -35,16 +35,16 @@ object Notify {
             val account: String,
             val relay: Relay,
             val metadata: Core.Model.AppMetaData,
-            val scope: Map<ScopeName, ScopeSetting>,
+            val scope: Map<ScopeId, ScopeSetting>,
             val expiry: Long,
         ) : Model() {
 
             data class Relay(val protocol: String, val data: String?)
 
             @JvmInline
-            value class ScopeName(val value: String)
+            value class ScopeId(val value: String)
 
-            data class ScopeSetting(val description: String, val enabled: Boolean)
+            data class ScopeSetting(val name: String, val description: String, val enabled: Boolean)
         }
 
         object Cacao : Model() {
