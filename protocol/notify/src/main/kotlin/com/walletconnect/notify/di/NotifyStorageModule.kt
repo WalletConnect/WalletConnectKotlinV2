@@ -52,7 +52,7 @@ internal fun notifyStorageModule(dbName: String) = module {
 
             override fun encode(value: Map<String, Triple<String, String, Boolean>>): String {
                 return value.entries.joinToString(separator = "|") { entry ->
-                    "${entry.key}=${entry.value.first},${entry.value.second},,${entry.value.third}"
+                    "${entry.key}=${entry.value.first},${entry.value.second},${entry.value.third}"
                 }
             }
         }
