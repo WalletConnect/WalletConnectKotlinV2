@@ -17,7 +17,7 @@ internal class ExtractMetadataFromConfigUseCase(private val getNotifyConfigUseCa
         return@withContext getNotifyConfigUseCase(appDomain).mapCatching { notifyConfig ->
             Pair(
                 AppMetaData(description = notifyConfig.description, url = notifyConfig.dappUrl, icons = notifyConfig.imageUrl.toList(), name = notifyConfig.name),
-                notifyConfig.types.map { typeDTO -> NotificationScope.Remote(name = typeDTO.name, description = typeDTO.description, id = typeDTO.id) }
+                notifyConfig.types.map { typeDTO -> NotificationScope.Remote(id = typeDTO.id, name = typeDTO.name, description = typeDTO.description) }
             )
         }
     }

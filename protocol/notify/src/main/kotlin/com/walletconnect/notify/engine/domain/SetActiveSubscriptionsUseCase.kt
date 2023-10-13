@@ -42,9 +42,9 @@ internal class SetActiveSubscriptionsUseCase(
                 //TODO: Those errors are not caught and handled
                 val (metadata, scopes) = extractMetadataFromConfigUseCase(dappUri).getOrThrow()
                 val selectedScopes = scopes.associate { remote ->
-                    remote.name to NotificationScope.Cached(
-                        remote.name, remote.description, remote.id,
-                        subscription.scope.firstOrNull { serverScope -> serverScope == remote.name } != null
+                    remote.id to NotificationScope.Cached(
+                        name = remote.name, description = remote.description, id = remote.id,
+                        isSelected = subscription.scope.firstOrNull { serverScope -> serverScope == remote.id } != null
                     )
                 }
                 //TODO: Those errors are not caught and handled
