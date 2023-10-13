@@ -1,10 +1,9 @@
 @file:JvmSynthetic
 
-package com.walletconnect.notify.data.wellknown.config
+package com.walletconnect.android.internal.common.explorer.data.network.model
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import com.walletconnect.android.internal.common.model.AppMetaData
 
 @JsonClass(generateAdapter = true)
 internal data class NotifyConfigDTO(
@@ -17,5 +16,5 @@ internal data class NotifyConfigDTO(
     @Json(name = "description")
     val description: String,
     @Json(name = "icons")
-    val icons: List<String>
+    val icons: List<String>,
 )
