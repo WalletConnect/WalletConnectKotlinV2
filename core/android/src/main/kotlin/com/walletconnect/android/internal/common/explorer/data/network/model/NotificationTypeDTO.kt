@@ -6,7 +6,7 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-internal data class TypeDTO(
+data class NotificationTypeDTO(
     @Json(name = "name")
     val name: String,
     @Json(name = "id")

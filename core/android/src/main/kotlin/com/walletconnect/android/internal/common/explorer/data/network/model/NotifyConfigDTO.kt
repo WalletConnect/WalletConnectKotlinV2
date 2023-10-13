@@ -6,11 +6,11 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-internal data class NotifyConfigDTO(
+data class NotifyConfigDTO(
     @Json(name = "schemaVersion")
     val schemaVersion: Int,
     @Json(name = "types")
-    val types: List<TypeDTO>,
+    val types: List<NotificationTypeDTO>,
     @Json(name = "name")
     val name: String,
     @Json(name = "description")
