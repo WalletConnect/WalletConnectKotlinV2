@@ -42,7 +42,7 @@ internal fun notifyStorageModule(dbName: String) = module {
                         }
                         // Current compatibility with example 'id=name,description,isSubscribed'
                         3 -> key.lowercase() to values.run {
-                            Triple(key, this.first().trim(), this.last().trim().toBoolean())
+                            Triple(this.first().trim(), this[1].trim(), this.last().trim().toBoolean())
                         }
                         // Fail-over
                         else -> key.lowercase() to Triple(key, key, false) // dummy value
