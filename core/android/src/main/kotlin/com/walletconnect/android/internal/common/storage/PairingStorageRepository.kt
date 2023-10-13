@@ -14,7 +14,15 @@ class PairingStorageRepository(private val pairingQueries: PairingQueries) : Pai
     @Throws(SQLiteException::class)
     override fun insertPairing(pairing: Pairing) {
         with(pairing) {
-            pairingQueries.insertOrAbortPairing(topic.value, expiry.seconds, relayProtocol, relayData, uri, registeredMethods, isActive)
+            pairingQueries.insertOrAbortPairing(
+                topic = topic.value,
+                expiry = expiry.seconds,
+                relay_protocol = relayProtocol,
+                relay_data = relayData,
+                uri = uri,
+                methods = registeredMethods,
+                is_active = isActive
+            )
         }
     }
 
