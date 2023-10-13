@@ -1,4 +1,5 @@
 import com.walletconnect.android.internal.common.model.AppMetaDataType;
+import kotlin.String;
 import kotlin.collections.List;
 
 CREATE TABLE MetaData(
