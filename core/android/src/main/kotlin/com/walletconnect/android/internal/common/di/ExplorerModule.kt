@@ -4,9 +4,10 @@ package com.walletconnect.android.internal.common.di
 
 import com.walletconnect.android.internal.common.explorer.ExplorerRepository
 import com.walletconnect.android.internal.common.explorer.data.network.ExplorerService
+import com.walletconnect.android.internal.common.explorer.domain.usecase.GetNotifyConfigUseCase
 import com.walletconnect.android.internal.common.explorer.domain.usecase.GetProjectsWithPaginationUseCase
-import com.walletconnect.android.internal.common.explorer.domain.usecase.GetWalletsUseCaseInterface
 import com.walletconnect.android.internal.common.explorer.domain.usecase.GetWalletsUseCase
+import com.walletconnect.android.internal.common.explorer.domain.usecase.GetWalletsUseCaseInterface
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import retrofit2.Retrofit
@@ -37,5 +38,6 @@ internal fun explorerModule() = module {
     }
 
     single<GetWalletsUseCaseInterface> { GetWalletsUseCase(get()) }
-    single<GetProjectsWithPaginationUseCase> { GetProjectsWithPaginationUseCase(get()) }
+    single { GetProjectsWithPaginationUseCase(get()) }
+    single { GetNotifyConfigUseCase(get()) }
 }
