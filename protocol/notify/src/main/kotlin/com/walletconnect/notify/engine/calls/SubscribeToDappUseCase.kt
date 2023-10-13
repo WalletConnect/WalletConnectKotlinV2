@@ -39,6 +39,7 @@ internal class SubscribeToDappUseCase(
 ) : SubscribeToDappUseCaseInterface {
 
     override suspend fun subscribeToDapp(dappUri: Uri, account: String, onSuccess: (Long, DidJwt) -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
+        //TODO: Those errors are not caught and handled
         val (dappPublicKey, authenticationPublicKey) = extractPublicKeysFromDidJson(dappUri).getOrThrow()
         val (dappMetaData, dappScopes) = extractMetadataFromConfigUseCase(dappUri).getOrThrow()
 
@@ -48,9 +49,8 @@ internal class SubscribeToDappUseCase(
         val selfPublicKey = crypto.generateAndStoreX25519KeyPair()
         val responseTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, dappPublicKey)
 
-        val didJwt = fetchDidJwtInteractor.subscriptionRequest(AccountId(account), authenticationPublicKey, dappUri.toString(), dappScopes.map { it.name }).getOrElse { error ->
-            return@supervisorScope onFailure(error)
-        }
+        val didJwt = fetchDidJwtInteractor.subscriptionRequest(AccountId(account), authenticationPublicKey, dappUri.toString(), dappScopes.map { it.name })
+            .getOrElse { error -> return@supervisorScope onFailure(error) }
 
         val params = CoreNotifyParams.SubscribeParams(didJwt.value)
         val request = NotifyRpc.NotifySubscribe(params = params)
