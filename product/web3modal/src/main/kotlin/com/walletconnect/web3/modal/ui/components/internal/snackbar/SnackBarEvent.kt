@@ -1,10 +1,20 @@
 package com.walletconnect.web3.modal.ui.components.internal.snackbar
 
-enum class SnackBarEventType {
-    SUCCESS, CANCEL, ERROR
+internal enum class SnackBarEventType {
+    SUCCESS, INFO, ERROR
 }
 
-data class SnackBarEvent(
-    val type: SnackBarEventType,
+internal interface SnackBarEvent {
+    val type: SnackBarEventType
     val message: String
-)
+    val duration: SnackbarDuration
+
+    fun dismiss()
+}
+enum class SnackBarResultState {
+    Dismissed
+}
+
+enum class SnackbarDuration(val value: Long) {
+    SHORT(2000L), LONG(4000L)
+}
