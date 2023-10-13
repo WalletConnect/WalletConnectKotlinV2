@@ -42,7 +42,6 @@ internal class OnNotifyUpdateResponseUseCase(
                     val listOfUpdateScopeNames = notifyUpdateRequestJwtClaim.scope.split(FetchDidJwtInteractor.SCOPES_DELIMITER)
                     val updateNotificationScopeMap: Map<String, NotificationScope.Cached> = subscription.mapOfNotificationScope.entries.associate { (scopeId, scopeDescIsSelected) ->
                         val isNewScopeTrue = listOfUpdateScopeNames.contains(scopeId)
-
                         scopeId to NotificationScope.Cached(scopeDescIsSelected.name, scopeDescIsSelected.description, scopeId, isNewScopeTrue)
                     }
                     val newExpiry = calcExpiry()
