@@ -37,9 +37,7 @@ internal fun engineModule() = module {
 
     single {
         ExtractMetadataFromConfigUseCase(
-            serializer = get(),
-            generateAppropriateUri = get(),
-            logger = get()
+            getNotifyConfigUseCase = get(),
         )
     }
 
