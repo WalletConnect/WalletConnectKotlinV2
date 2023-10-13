@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -18,6 +19,8 @@ import com.walletconnect.web3.modal.ui.components.internal.Web3ModalTopBar
 import com.walletconnect.web3.modal.ui.components.internal.commons.BackArrowIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.FullWidthDivider
 import com.walletconnect.web3.modal.ui.components.internal.commons.QuestionMarkIcon
+import com.walletconnect.web3.modal.ui.components.internal.snackbar.LocalSnackBarComponent
+import com.walletconnect.web3.modal.ui.components.internal.snackbar.SnackBarComponent
 import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.ui.previews.MultipleComponentsPreview
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
@@ -48,20 +51,25 @@ internal fun Web3ModalRoot(
     closeModal: () -> Unit,
     content: @Composable () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Web3ModalTheme.colors.background.color100)
+    val snackBarComponent = SnackBarComponent()
+    CompositionLocalProvider(
+        LocalSnackBarComponent provides snackBarComponent
     ) {
-        title?.let { title ->
-            Web3ModalTopBar(
-                title = title,
-                startIcon = { TopBarStartIcon(rootState) },
-                onCloseIconClick = closeModal
-            )
-            FullWidthDivider()
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Web3ModalTheme.colors.background.color100)
+        ) {
+            title?.let { title ->
+                Web3ModalTopBar(
+                    title = title,
+                    startIcon = { TopBarStartIcon(rootState) },
+                    onCloseIconClick = closeModal
+                )
+                FullWidthDivider()
+            }
+            content()
         }
-        content()
     }
 }
 
