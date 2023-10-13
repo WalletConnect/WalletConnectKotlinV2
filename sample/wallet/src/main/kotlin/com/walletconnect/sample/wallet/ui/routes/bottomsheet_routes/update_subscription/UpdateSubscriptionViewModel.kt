@@ -17,9 +17,9 @@ class UpdateSubscriptionViewModel : ViewModel() {
     val _notificationTypes = MutableStateFlow<Map<String, Triple<String, String, Boolean>>>(emptyMap())
     val notificationTypes = _notificationTypes.asStateFlow()
 
-    fun updateNotificationType(name: String, value: Triple<String, String, Boolean>) {
+    fun updateNotificationType(id: String, value: Triple<String, String, Boolean>) {
         val types = _notificationTypes.value.toMutableMap()
-        types[name] = value
+        types[id] = value
         _notificationTypes.update { types }
     }
 }
