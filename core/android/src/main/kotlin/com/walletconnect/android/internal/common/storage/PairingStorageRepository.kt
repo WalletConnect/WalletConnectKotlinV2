@@ -23,19 +23,19 @@ class PairingStorageRepository(private val pairingQueries: PairingQueries) : Pai
         pairingQueries.deletePairing(topic.value)
     }
 
-    override fun hasTopic(topic: Topic): Boolean = pairingQueries.hasTopic(topic.value).executeAsOneOrNull() != null
+    override fun hasTopic(topic: Topic): Boolean = pairingQueries.hasTopic(topic = topic.value).executeAsOneOrNull() != null
 
     @Throws(SQLiteException::class)
     override fun getListOfPairings(): List<Pairing> = pairingQueries.getListOfPairing(mapper = this::toPairing).executeAsList()
 
     @Throws(SQLiteException::class)
-    override fun activatePairing(topic: Topic) = pairingQueries.activatePairing(ACTIVE_PAIRING, true, topic.value)
+    override fun activatePairing(topic: Topic) = pairingQueries.activatePairing(expiry = ACTIVE_PAIRING, is_active = true, topic = topic.value)
 
     @Throws(SQLiteException::class)
-    override fun updateExpiry(topic: Topic, expiry: Expiry): Unit = pairingQueries.updateOrAbortExpiry(expiry.seconds, topic.value)
+    override fun updateExpiry(topic: Topic, expiry: Expiry): Unit = pairingQueries.updateOrAbortExpiry(expiry = expiry.seconds, topic = topic.value)
 
     @Throws(SQLiteException::class)
-    override fun getPairingOrNullByTopic(topic: Topic): Pairing? = pairingQueries.getPairingByTopic(topic.value, mapper = this::toPairing).executeAsOneOrNull()
+    override fun getPairingOrNullByTopic(topic: Topic): Pairing? = pairingQueries.getPairingByTopic(topic = topic.value, mapper = this::toPairing).executeAsOneOrNull()
 
     private fun toPairing(
         topic: String,
@@ -64,7 +64,6 @@ class PairingStorageRepository(private val pairingQueries: PairingQueries) : Pai
             relayProtocol = relay_protocol,
             relayData = relay_data,
             uri = uri,
-            isActive = is_active,
             registeredMethods = methods
         )
     }
