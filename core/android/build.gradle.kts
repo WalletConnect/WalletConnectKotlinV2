@@ -3,7 +3,8 @@ plugins {
     kotlin("android")
     id("publish-module-android")
     id("jacoco-report")
-    id("com.squareup.sqldelight")
+//    id("com.squareup.sqldelight")
+    alias(libs.plugins.sqlDelight)
     id("com.google.devtools.ksp") version kspVersion
 }
 
@@ -72,11 +73,14 @@ android {
 }
 
 sqldelight {
-    database("AndroidCoreDatabase") {
-        packageName = "com.walletconnect.android.sdk.core"
-        sourceFolders = listOf("core")
-        schemaOutputDirectory = file("src/main/core/databases")
-        verifyMigrations = true
+    databases {
+        create("AndroidCoreDatabase") {
+            packageName.set("com.walletconnect.android.sdk.core")
+            srcDirs.from("core")
+            schemaOutputDirectory.set(file("src/main/core/databases"))
+            verifyMigrations.set(true)
+            verifyDefinitions.set(true)
+        }
     }
 }
 
@@ -86,7 +90,7 @@ dependencies {
 
     coroutines()
     scarletAndroid()
-    sqlDelightAndroid()
+    implementation(libs.bundles.sqlDelight)
     sqlCipher()
     reLinker()
     security()
