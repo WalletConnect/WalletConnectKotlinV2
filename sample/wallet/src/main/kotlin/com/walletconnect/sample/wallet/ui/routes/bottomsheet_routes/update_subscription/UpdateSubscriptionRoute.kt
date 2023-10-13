@@ -72,7 +72,7 @@ fun UpdateSubscriptionRoute(navController: NavController, sheetState: BottomShee
         verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.Top)
     ) {
         items(notificationTypes.toList()) { (id, setting) ->
-            NotificationType(id = id, name = setting.second, enabled = setting.third, description = setting.first, onClick = { (id, setting) ->
+            NotificationType(id = id, name = setting.first, enabled = setting.third, description = setting.second, onClick = { (id, setting) ->
                 viewModel.updateNotificationType(id, setting)
             })
         }
@@ -93,7 +93,7 @@ fun NotificationType(id: String, name: String, enabled: Boolean, description: St
 
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         Column(modifier = Modifier.weight(0.8f)) {
-            Text(id, style = TextStyle(fontSize = 20.sp, color = MaterialTheme.colors.onSurface))
+            Text(name, style = TextStyle(fontSize = 20.sp, color = MaterialTheme.colors.onSurface))
             Text(description, style = TextStyle(fontSize = 11.sp, color = MaterialTheme.colors.onSurface))
         }
         Switch(modifier = Modifier.weight(0.2f), checked = enabled, onCheckedChange = { onClick(id to Triple(name, description, it)) })
