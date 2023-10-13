@@ -196,9 +196,7 @@ internal class PairingEngine(
         }
     }
 
-    fun getPairings(): List<Pairing> {
-        return pairingRepository.getListOfPairings().filter { pairing -> pairing.isNotExpired() && pairing.isActive }
-    }
+    fun getPairings(): List<Pairing> = pairingRepository.getListOfPairings().filter { pairing -> pairing.isNotExpired() }
 
     fun register(vararg method: String) {
         setOfRegisteredMethods.addAll(method)
@@ -308,8 +306,8 @@ internal class PairingEngine(
         } ?: onFailure(IllegalStateException("Pairing for topic $topic does not exist"))
     }
 
-    private fun Pairing.isNotExpired(): Boolean = (expiry.seconds > CURRENT_TIME_IN_SECONDS).also { isValid ->
-        if (!isValid) {
+    private fun Pairing.isNotExpired(): Boolean = isActive.also {
+        if (!isActive) {
             scope.launch {
                 try {
                     jsonRpcInteractor.unsubscribe(topic = this@isNotExpired.topic)
