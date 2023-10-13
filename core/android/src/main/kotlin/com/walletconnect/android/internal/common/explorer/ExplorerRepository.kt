@@ -119,13 +119,17 @@ class ExplorerRepository(
     }
 
     private fun NotifyConfigDTO.toNotifyConfig(): NotifyConfig {
-        return NotifyConfig(
-            schemaVersion = schemaVersion,
-            types = types.map { it.toNotificationType() },
-            name = name,
-            description = description,
-            icons = icons,
-        )
+        return with(data) {
+            NotifyConfig(
+                types = notificationTypes.map { it.toNotificationType() },
+                name = name,
+                description = description,
+                imageUrl = imageUrl.toImageUrl(),
+                homepage = homepage,
+                dappUrl = dappUrl,
+                isVerified = isVerified,
+            )
+        }
     }
 
     private fun NotificationTypeDTO.toNotificationType(): NotificationType = NotificationType(name = name, id = id, description = description)

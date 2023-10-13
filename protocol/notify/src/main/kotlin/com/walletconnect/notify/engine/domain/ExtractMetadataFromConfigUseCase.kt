@@ -3,6 +3,7 @@
 package com.walletconnect.notify.engine.domain
 
 import android.net.Uri
+import com.walletconnect.android.internal.common.explorer.data.model.ImageUrl
 import com.walletconnect.android.internal.common.explorer.domain.usecase.GetNotifyConfigUseCase
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.notify.common.model.NotificationScope
@@ -15,9 +16,11 @@ internal class ExtractMetadataFromConfigUseCase(private val getNotifyConfigUseCa
 
         return@withContext getNotifyConfigUseCase(appDomain).mapCatching { notifyConfig ->
             Pair(
-                AppMetaData(description = notifyConfig.description, url = appUri.toString(), icons = notifyConfig.icons, name = notifyConfig.name),
+                AppMetaData(description = notifyConfig.description, url = notifyConfig.dappUrl, icons = notifyConfig.imageUrl.toList(), name = notifyConfig.name),
                 notifyConfig.types.map { typeDTO -> NotificationScope.Remote(name = typeDTO.name, description = typeDTO.description, id = typeDTO.id) }
             )
         }
     }
+
+    private fun ImageUrl.toList(): List<String> = listOf(sm, md, lg)
 }

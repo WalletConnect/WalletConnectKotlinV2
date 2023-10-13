@@ -3,9 +3,18 @@
 package com.walletconnect.android.internal.common.explorer.data.model
 
 data class NotifyConfig(
-    val schemaVersion: Int,
-    val types: List<NotificationType>,
+    val dappUrl: String,
     val name: String,
+    val homepage: String,
     val description: String,
-    val icons: List<String>,
+    val types: List<NotificationType>,
+    val imageUrl: ImageUrl,
+    val isVerified: Boolean,
+)
+
+
+data class NotificationType(
+    val name: String,
+    val id: String,
+    val description: String,
 )
