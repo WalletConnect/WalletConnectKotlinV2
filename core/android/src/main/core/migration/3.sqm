@@ -1,3 +1,4 @@
+import kotlin.Boolean;
 
 -- migration from 3.db to 4.db
 
