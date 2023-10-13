@@ -47,7 +47,7 @@ object Web3ModalChainsPresets {
             requiredMethods = EthUtils.ethRequiredMethods,
             optionalMethods = EthUtils.ethOptionalMethods,
             events = EthUtils.ethEvents,
-            token = ethToken,
+            token = Modal.Model.Token("Avalanche", "AVAX", 18),
             rpcUrl = "https://api.avax.network/ext/bc/C/rpc",
             blockExplorerUrl = "https://snowtrace.io"
         ),

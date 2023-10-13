@@ -18,7 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
-import com.walletconnect.web3.modal.domain.model.AccountData
 import com.walletconnect.web3.modal.ui.components.internal.commons.NetworkBottomSection
 import com.walletconnect.web3.modal.ui.components.internal.commons.VerticalSpacer
 import com.walletconnect.web3.modal.ui.components.internal.commons.inputs.SearchInput
@@ -27,7 +26,6 @@ import com.walletconnect.web3.modal.ui.model.UiStateBuilder
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 import com.walletconnect.web3.modal.ui.previews.ethereumChain
-import com.walletconnect.web3.modal.ui.previews.testChains
 import com.walletconnect.web3.modal.ui.routes.account.AccountState
 import com.walletconnect.web3.modal.utils.getChainNetworkImageUrl
 
@@ -40,7 +38,6 @@ internal fun ChangeNetworkRoute(
     UiStateBuilder(uiStateFlow = accountState.accountState) {
         ChangeNetworkScreen(
             chains = Web3Modal.chains,
-            accountData = accountState.accountData,
             selectedChain = selectedChain,
             onChainItemClick = { accountState.changeActiveChain(it) },
             onWhatIsWalletClick = { accountState.navigateToHelp() }
@@ -51,7 +48,6 @@ internal fun ChangeNetworkRoute(
 @Composable
 private fun ChangeNetworkScreen(
     chains: List<Modal.Model.Chain>,
-    accountData: AccountData,
     selectedChain: Modal.Model.Chain,
     onChainItemClick: (Modal.Model.Chain) -> Unit,
     onWhatIsWalletClick: () -> Unit
@@ -73,7 +69,6 @@ private fun ChangeNetworkScreen(
         VerticalSpacer(height = 12.dp)
         ChainNetworkGrid(
             chains = chains.filter { it.chainName.contains(searchInputValue, ignoreCase = true) },
-            connectedChains = accountData.chains,
             selectedChain = selectedChain,
             onItemClick = { onChainItemClick(it) }
         )
@@ -84,7 +79,6 @@ private fun ChangeNetworkScreen(
 @Composable
 private fun ChainNetworkGrid(
     chains: List<Modal.Model.Chain>,
-    connectedChains: List<Modal.Model.Chain>,
     selectedChain: Modal.Model.Chain,
     onItemClick: (Modal.Model.Chain) -> Unit
 ) {
@@ -95,7 +89,6 @@ private fun ChainNetworkGrid(
             itemsIndexed(chains) { _, item ->
                 ChainNetworkItem(
                     isSelected = item.id == selectedChain.id,
-                    isEnabled = true,
                     networkName = item.chainName,
                     image = item.chainImage ?: getChainNetworkImageUrl(item.chainReference)
                 ) {
@@ -110,11 +103,6 @@ private fun ChainNetworkGrid(
 @UiModePreview
 private fun ChangeNetworkPreview() {
     Web3ModalPreview("Change Network") {
-        val accountData = AccountData(
-            topic = "",
-            address = "0xd2B8b483056b134f9D8cd41F55bB065F9",
-            chains = testChains
-        )
-        ChangeNetworkScreen(listOf(), accountData, ethereumChain, {}, {})
+        ChangeNetworkScreen(listOf(), ethereumChain, {}, {})
     }
 }
