@@ -18,7 +18,6 @@ import java.net.URL
 internal class ExtractPublicKeysFromDidJsonUseCase(
     private val serializer: JsonRpcSerializer,
     private val generateAppropriateUri: GenerateAppropriateUriUseCase,
-    private val logger: Logger
 ) {
 
     suspend operator fun invoke(uri: Uri): Result<DidJsonPublicKeyPair> = withContext(Dispatchers.IO) {
