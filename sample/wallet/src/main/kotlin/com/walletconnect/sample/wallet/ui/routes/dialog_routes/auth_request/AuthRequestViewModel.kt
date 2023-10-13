@@ -1,6 +1,5 @@
 package com.walletconnect.sample.wallet.ui.routes.dialog_routes.auth_request
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
@@ -10,7 +9,6 @@ import com.walletconnect.sample.wallet.domain.PRIVATE_KEY_1
 import com.walletconnect.sample.wallet.domain.WCDelegate
 import com.walletconnect.sample.wallet.ui.common.peer.PeerUI
 import com.walletconnect.sample.wallet.ui.common.peer.toPeerUI
-import com.walletconnect.sample.common.tag
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import com.walletconnect.web3.wallet.utils.CacaoSigner
