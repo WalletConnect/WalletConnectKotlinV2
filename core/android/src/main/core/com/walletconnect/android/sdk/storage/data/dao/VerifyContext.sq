@@ -1,4 +1,5 @@
 import com.walletconnect.android.internal.common.model.Validation;
+import kotlin.Boolean;
 
 CREATE TABLE VerifyContext (
     id INTEGER PRIMARY KEY NOT NULL,
