@@ -31,15 +31,12 @@ internal fun engineModule() = module {
         ExtractPublicKeysFromDidJsonUseCase(
             serializer = get(),
             generateAppropriateUri = get(),
-            logger = get()
         )
     }
 
     single {
         ExtractMetadataFromConfigUseCase(
-            serializer = get(),
-            generateAppropriateUri = get(),
-            logger = get()
+            getNotifyConfigUseCase = get(),
         )
     }
 

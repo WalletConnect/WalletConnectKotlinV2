@@ -32,7 +32,7 @@ internal class SubscriptionRepository(
                         expiry.seconds,
                         relay.protocol,
                         relay.data,
-                        mapOfNotificationScope.mapValues { scope -> Pair(scope.value.description, scope.value.isSelected) },
+                        mapOfNotificationScope.mapValues { scope -> Triple(scope.value.name, scope.value.description, scope.value.isSelected) },
                         dappGeneratedPublicKey.keyAsHex,
                         notifyTopic.value,
                         requestedSubscriptionId
@@ -41,7 +41,8 @@ internal class SubscriptionRepository(
             }
         }
     }
-    suspend fun updateSubscriptionScopeAndJwtByNotifyTopic(notifyTopic: String, updateScope: Map<String, Pair<String, Boolean>>, newExpiry: Long) = withContext(Dispatchers.IO) {
+
+    suspend fun updateSubscriptionScopeAndJwtByNotifyTopic(notifyTopic: String, updateScope: Map<String, Triple<String, String, Boolean>>, newExpiry: Long) = withContext(Dispatchers.IO) {
         activeSubscriptionsQueries.updateSubscriptionScopeAndExpiryByNotifyTopic(updateScope, newExpiry, notifyTopic)
     }
 
@@ -65,14 +66,21 @@ internal class SubscriptionRepository(
         expiry: Long,
         relay_protocol: String,
         relay_data: String?,
-        map_of_scope: Map<String, Pair<String, Boolean>>,
+        map_of_scope: Map<String, Triple<String, String, Boolean>>,
         dapp_generated_public_key: String,
         notify_topic: String,
         requested_subscription_id: Long?,
     ): Subscription.Active = Subscription.Active(
         account = AccountId(account),
         authenticationPublicKey = PublicKey(authentication_public_key),
-        mapOfNotificationScope = map_of_scope.map { entry -> entry.key to NotificationScope.Cached(entry.key, entry.value.first, entry.value.second) }.toMap(),
+        mapOfNotificationScope = map_of_scope.map { entry ->
+            entry.key to NotificationScope.Cached(
+                id = entry.key,
+                name = entry.value.first,
+                description = entry.value.second,
+                isSelected = entry.value.third
+            )
+        }.toMap(),
         expiry = Expiry(expiry),
         relay = RelayProtocolOptions(relay_protocol, relay_data),
         dappGeneratedPublicKey = PublicKey(dapp_generated_public_key),
