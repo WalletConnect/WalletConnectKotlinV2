@@ -3,7 +3,6 @@ plugins {
     kotlin("android")
     id("publish-module-android")
     id("jacoco-report")
-//    id("com.squareup.sqldelight")
     alias(libs.plugins.sqlDelight)
     id("com.google.devtools.ksp") version kspVersion
 }
