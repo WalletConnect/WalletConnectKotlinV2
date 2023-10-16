@@ -16,7 +16,7 @@ data class Pairing(
     val registeredMethods: String
 ) : Sequence {
     val isActive: Boolean
-        get() = (expiry.seconds - CURRENT_TIME_IN_SECONDS) >= FIVE_MINUTES_IN_SECONDS
+        get() = (expiry.seconds - CURRENT_TIME_IN_SECONDS) > FIVE_MINUTES_IN_SECONDS
 
     constructor(topic: Topic, relay: RelayProtocolOptions, symmetricKey: SymmetricKey, registeredMethods: String) : this(
         topic = topic,
