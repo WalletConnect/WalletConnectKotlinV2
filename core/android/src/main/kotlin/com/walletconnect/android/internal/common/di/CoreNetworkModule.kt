@@ -70,6 +70,7 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
         Interceptor { chain ->
             val updatedRequest = chain.request().newBuilder()
                 .addHeader("User-Agent", get(named(AndroidCommonDITags.USER_AGENT)))
+                .addHeader("Origin", androidContext().packageName)
                 .build()
 
             chain.proceed(updatedRequest)
