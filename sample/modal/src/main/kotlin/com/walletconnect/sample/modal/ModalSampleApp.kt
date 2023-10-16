@@ -11,6 +11,7 @@ import com.walletconnect.sample.common.RELAY_URL
 import com.walletconnect.sample.common.tag
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
+import com.walletconnect.web3.modal.presets.Web3ModalChainsPresets
 import timber.log.Timber
 
 class ModalSampleApp : Application() {
@@ -40,6 +41,6 @@ class ModalSampleApp : Application() {
             Firebase.crashlytics.recordException(error.throwable)
         }
 
-        Web3Modal.setChains(modalChains())
+        Web3Modal.setChains(Web3ModalChainsPresets.ethChains.values.toList())
     }
 }

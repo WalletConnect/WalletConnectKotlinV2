@@ -35,28 +35,33 @@ internal class SessionUpdateUseCase(
         onSuccess: () -> Unit,
         onFailure: (Throwable) -> Unit,
     ) = supervisorScope {
-        validate(topic, namespaces)
+        runCatching { validate(topic, namespaces) }.fold(
+            onSuccess = {
+                val params = SignParams.UpdateNamespacesParams(namespaces.toMapOfNamespacesVOSession())
+                val sessionUpdate = SignRpc.SessionUpdate(params = params)
+                val irnParams = IrnParams(Tags.SESSION_UPDATE, Ttl(DAY_IN_SECONDS))
 
-        val params = SignParams.UpdateNamespacesParams(namespaces.toMapOfNamespacesVOSession())
-        val sessionUpdate = SignRpc.SessionUpdate(params = params)
-        val irnParams = IrnParams(Tags.SESSION_UPDATE, Ttl(DAY_IN_SECONDS))
-
-        try {
-            sessionStorageRepository.insertTempNamespaces(topic, namespaces.toMapOfNamespacesVOSession(), sessionUpdate.id)
-            jsonRpcInteractor.publishJsonRpcRequest(
-                Topic(topic), irnParams, sessionUpdate,
-                onSuccess = {
-                    logger.log("Update sent successfully")
-                    onSuccess()
-                },
-                onFailure = { error ->
-                    logger.error("Sending session update error: $error")
-                    sessionStorageRepository.deleteTempNamespacesByRequestId(sessionUpdate.id)
-                    onFailure(error)
-                })
-        } catch (e: Exception) {
-            onFailure(GenericException("Error updating namespaces: $e"))
-        }
+                try {
+                    sessionStorageRepository.insertTempNamespaces(topic, namespaces.toMapOfNamespacesVOSession(), sessionUpdate.id)
+                    jsonRpcInteractor.publishJsonRpcRequest(
+                        Topic(topic), irnParams, sessionUpdate,
+                        onSuccess = {
+                            logger.log("Update sent successfully")
+                            onSuccess()
+                        },
+                        onFailure = { error ->
+                            logger.error("Sending session update error: $error")
+                            sessionStorageRepository.deleteTempNamespacesByRequestId(sessionUpdate.id)
+                            onFailure(error)
+                        })
+                } catch (e: Exception) {
+                    onFailure(GenericException("Error updating namespaces: $e"))
+                }
+            },
+            onFailure = {
+                onFailure(it)
+            }
+        )
     }
 
     private fun validate(topic: String, namespaces: Map<String, EngineDO.Namespace.Session>) {

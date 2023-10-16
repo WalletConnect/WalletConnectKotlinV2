@@ -22,12 +22,12 @@ class UpdateSubscriptionViewModel(topic: String) : ViewModel() {
     val activeSubscriptionUI: MutableStateFlow<ActiveSubscriptionsUI> = MutableStateFlow(currentSubscription.toUI())
 
 
-    val _notificationTypes = MutableStateFlow(currentSubscription.scope.map { (name, setting) -> name.value to Pair(setting.description, setting.enabled) }.toMap() )
+    val _notificationTypes = MutableStateFlow(currentSubscription.scope.map { (id, setting) -> id.value to Triple(setting.name, setting.description, setting.enabled) }.toMap() )
     val notificationTypes = _notificationTypes.asStateFlow()
 
-    fun updateNotificationType(name: String, value: Pair<String, Boolean>) {
+    fun updateNotificationType(id: String, value: Triple<String, String, Boolean>) {
         val types = _notificationTypes.value.toMutableMap()
-        types[name] = value
+        types[id] = value
         _notificationTypes.update { types }
     }
 }

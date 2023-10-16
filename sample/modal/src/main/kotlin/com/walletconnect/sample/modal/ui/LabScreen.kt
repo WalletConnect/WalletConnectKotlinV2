@@ -8,6 +8,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.walletconnect.web3.modal.ui.components.button.AccountButtonType
+import com.walletconnect.web3.modal.ui.Web3ModalTheme
 import com.walletconnect.web3.modal.ui.components.button.NetworkButton
 import com.walletconnect.web3.modal.ui.components.button.Web3Button
 import com.walletconnect.web3.modal.ui.components.button.rememberWeb3ModalState
@@ -18,12 +20,16 @@ fun LabScreen(
 ) {
     val web3ModalState = rememberWeb3ModalState(navController = navController)
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically),
-        horizontalAlignment = Alignment.CenterHorizontally
+    Web3ModalTheme(
+        mode = Web3ModalTheme.Mode.AUTO
     ) {
-        item { Web3Button(state = web3ModalState) }
-        item { NetworkButton(state = web3ModalState) }
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            item { Web3Button(state = web3ModalState, accountButtonType = AccountButtonType.MIXED) }
+            item { NetworkButton(state = web3ModalState) }
+        }
     }
 }

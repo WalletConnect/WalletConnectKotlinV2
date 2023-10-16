@@ -3,6 +3,7 @@ package com.walletconnect.web3.modal.ui.theme
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import com.walletconnect.web3.modal.ui.Web3ModalTheme
 
 internal data class Web3ModalColors(
     val main100: Color,
@@ -36,7 +37,7 @@ internal data class Web3ModalColors(
     val overlay25: Color = overlay.copy(.25f)
     val overlay30: Color = overlay.copy(.3f)
 }
-internal data class ColorPalette(
+data class ColorPalette(
     val color100: Color,
     val color125: Color,
     val color150: Color,
@@ -48,13 +49,48 @@ internal data class ColorPalette(
     val color300: Color,
 )
 @Composable
-internal fun provideWeb3ModalColors(): Web3ModalColors = if (isSystemInDarkTheme()) {
-    defaultDarkWeb3ModalColors
+internal fun provideWeb3ModalColors(composition: CustomComposition): Web3ModalColors = if (composition.mode.isDarkTheme()) {
+    Web3ModalColors(
+        main100 = composition.darkColors.main100,
+        main90 = composition.darkColors.main90,
+        main20 = composition.darkColors.main20,
+        foreground = composition.darkColors.foreground,
+        background = composition.darkColors.background,
+        overlay = composition.darkColors.overlay,
+        success = composition.darkColors.success,
+        error = composition.darkColors.error,
+        teal = defaultDarkWeb3ModalColors.teal,
+        magenta = defaultDarkWeb3ModalColors.magenta,
+        indigo = defaultDarkWeb3ModalColors.indigo,
+        orange = defaultDarkWeb3ModalColors.orange,
+        purple = defaultDarkWeb3ModalColors.purple
+    )
 } else {
-    defaultLightWeb3ModalColors
+    Web3ModalColors(
+        main100 = composition.lightColors.main100,
+        main90 = composition.lightColors.main90,
+        main20 = composition.lightColors.main20,
+        foreground = composition.lightColors.foreground,
+        background = composition.lightColors.background,
+        overlay = composition.lightColors.overlay,
+        success = composition.lightColors.success,
+        error = composition.lightColors.error,
+        teal = defaultLightWeb3ModalColors.teal,
+        magenta = defaultLightWeb3ModalColors.magenta,
+        indigo = defaultLightWeb3ModalColors.indigo,
+        orange = defaultLightWeb3ModalColors.orange,
+        purple = defaultLightWeb3ModalColors.purple
+    )
 }
 
-private val defaultDarkWeb3ModalColors = Web3ModalColors(
+@Composable
+private fun Web3ModalTheme.Mode.isDarkTheme() = when(this) {
+    Web3ModalTheme.Mode.LIGHT -> false
+    Web3ModalTheme.Mode.DARK -> true
+    Web3ModalTheme.Mode.AUTO -> isSystemInDarkTheme()
+}
+
+internal val defaultDarkWeb3ModalColors = Web3ModalColors(
     main100 = Color(0xFF47A1FF),
     main90 = Color(0xFF59AAFF),
     main20 = Color(0xFF6CB4FF),
@@ -90,7 +126,7 @@ private val defaultDarkWeb3ModalColors = Web3ModalColors(
     purple = Color(0xFF9063F7),
 )
 
-private val defaultLightWeb3ModalColors = Web3ModalColors(
+internal val defaultLightWeb3ModalColors = Web3ModalColors(
     main100 = Color(0xFF3396FF),
     main90 = Color(0xFF2D7DD2),
     main20 = Color(0xFF2978CC),

@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.Text
@@ -20,6 +19,8 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.unit.dp
 import com.walletconnect.web3.modal.ui.components.internal.commons.CopyIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.HorizontalSpacer
+import com.walletconnect.web3.modal.ui.components.internal.commons.button.ButtonSize
+import com.walletconnect.web3.modal.ui.components.internal.commons.button.LinkButton
 import com.walletconnect.web3.modal.ui.previews.MultipleComponentsPreview
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
@@ -49,26 +50,21 @@ internal fun ActionEntry(
                 it(colors.textColor)
                 HorizontalSpacer(width = 8.dp)
             }
-            Text(text = text, style = Web3ModalTheme.typo.paragraph600.copy(color = colors.textColor))
+            Text(text = text, style = Web3ModalTheme.typo.paragraph500.copy(color = colors.textColor))
         }
     }
 }
 
 @Composable
-internal fun CopyActionEntry(modifier: Modifier = Modifier, isEnabled: Boolean = true, onClick: () -> Unit) {
-    ActionEntry(
+internal fun CopyActionEntry(isEnabled: Boolean = true, onClick: () -> Unit) {
+    LinkButton(
         text = "Copy link",
-        modifier = Modifier
-            .height(56.dp)
-            .then(modifier),
-        onClick = onClick,
+        startIcon = {
+            CopyIcon(tint = it, modifier = Modifier.size(12.dp))
+        },
         isEnabled = isEnabled,
-        icon = {
-            CopyIcon(
-                tint = it,
-                modifier = Modifier.size(14.dp)
-            )
-        }
+        size = ButtonSize.S,
+        onClick = onClick
     )
 }
 

@@ -2,6 +2,7 @@ package com.walletconnect.sign.test.utils.wallet
 
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.test.utils.TestClient
+import com.walletconnect.sign.test.utils.dapp.DappSignClient
 import com.walletconnect.sign.test.utils.globalOnError
 import com.walletconnect.sign.test.utils.sessionChains
 import com.walletconnect.sign.test.utils.sessionEvents
@@ -40,6 +41,14 @@ val walletClientExtendSession = { topic: String ->
     WalletSignClient.extend(
         Sign.Params.Extend(topic),
         onSuccess = { Timber.d("Wallet: extendOnSuccess") },
+        onError = ::globalOnError
+    )
+}
+
+val dappClientExtendSession = { topic: String ->
+    DappSignClient.extend(
+        Sign.Params.Extend(topic),
+        onSuccess = { extend -> Timber.d("Dapp: extendOnSuccess: ${extend.topic}") },
         onError = ::globalOnError
     )
 }

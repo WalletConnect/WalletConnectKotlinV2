@@ -3,7 +3,6 @@
 package com.walletconnect.sample.wallet.ui.routes.bottomsheet_routes.update_subscription
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,7 +29,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -68,7 +66,7 @@ fun UpdateSubscriptionRoute(navController: NavController, sheetState: BottomShee
 
     val onUpdateClick = {
         NotifyClient.update(
-            Notify.Params.Update(topic, notificationTypes.filter { (_, value) -> value.second }.map { (name, _) -> name }),
+            Notify.Params.Update(topic, notificationTypes.filter { (_, value) -> value.third }.map { (name, _) -> name }),
             onSuccess = {
                 CoroutineScope(Dispatchers.Main).launch {
                     navController.popBackStack()
@@ -91,9 +89,9 @@ fun UpdateSubscriptionRoute(navController: NavController, sheetState: BottomShee
             .fillMaxWidth()
     ) {
         item { Header(activeSubscriptionsUI.name) }
-        items(notificationTypes.toList()) { (name, setting) ->
-            NotificationType(name = name, enabled = setting.second, description = setting.first, onClick = { (name, setting) ->
-                viewModel.updateNotificationType(name, setting)
+        items(notificationTypes.toList()) { (id, setting) ->
+            NotificationType(id = id, name = setting.first, enabled = setting.third, description = setting.second, onClick = { (id, setting) ->
+                viewModel.updateNotificationType(id, setting)
             })
         }
         item { UpdateButton(onUpdateClick) }
@@ -145,7 +143,7 @@ fun UpdateButton(onClick: () -> Unit) {
 }
 
 @Composable
-fun NotificationType(name: String, enabled: Boolean, description: String, onClick: (Pair<String, Pair<String, Boolean>>) -> Unit) {
+fun NotificationType(id: String, name: String, enabled: Boolean, description: String, onClick: (Pair<String, Triple<String, String, Boolean>>) -> Unit) {
 
     Divider()
     Row(
@@ -159,7 +157,7 @@ fun NotificationType(name: String, enabled: Boolean, description: String, onClic
             Text(description, style = TextStyle(fontSize = 14.sp, color = MaterialTheme.colors.onBackground.copy(alpha = 0.5f), fontWeight = FontWeight(400)))
         }
         Switch(
-            checked = enabled, onCheckedChange = { onClick(name to Pair(description, it)) },
+            checked = enabled, onCheckedChange = { onClick(id to Triple(name, description, it)) },
             colors = SwitchDefaults.colors(checkedThumbColor = blue_accent, checkedTrackColor = blue_accent.copy(alpha = 0.5f))
         )
     }

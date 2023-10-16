@@ -50,7 +50,8 @@ internal sealed class AccountButtonState {
     data class Mixed(
         val address: String,
         val chainImage: Modal.Model.ChainImage,
-        val chainName: String
+        val chainName: String,
+        val balance: String?
     ) : AccountButtonState()
 
     object Invalid : AccountButtonState()
@@ -83,7 +84,7 @@ private fun AccountButtonState(
         is AccountButtonState.Mixed -> AccountButtonMixed(
             address = state.address,
             chainImage = state.chainImage,
-            chainName = state.chainName,
+            chainData = state.balance ?: state.chainName,
             onClick = onClick
         )
     }
@@ -93,7 +94,7 @@ private fun AccountButtonState(
 private fun AccountButtonMixed(
     address: String,
     chainImage: Modal.Model.ChainImage,
-    chainName: String,
+    chainData: String,
     onClick: () -> Unit,
     isEnabled: Boolean = true
 ) {
@@ -128,7 +129,7 @@ private fun AccountButtonMixed(
                 ) {
                     CircleNetworkImage(data = chainImage.getImageData(), size = 24.dp, isEnabled = isEnabled)
                     HorizontalSpacer(width = 6.dp)
-                    Text(text = chainName, style = Web3ModalTheme.typo.paragraph600.copy(color = textColor))
+                    Text(text = chainData, style = Web3ModalTheme.typo.paragraph600.copy(color = textColor))
                     HorizontalSpacer(width = 8.dp)
                     ImageButton(
                         text = address.toVisibleAddress(), image = {
@@ -199,7 +200,7 @@ private fun AccountButtonNormalPreview() {
 @Composable
 private fun AccountButtonMixedPreview() {
     MultipleComponentsPreview(
-        { AccountButtonMixed(chainName = "ETH", chainImage = Modal.Model.ChainImage.Asset(R.drawable.ic_select_network), address = "0x59eAF7DD5a2f5e433083D8BbC8de3439542579cb", onClick = {}) },
-        { AccountButtonMixed(chainName = "ETH", chainImage = Modal.Model.ChainImage.Asset(R.drawable.ic_select_network), address = "0x59eAF7DD5a2f5e433083D8BbC8de3439542579cb", onClick = {}, isEnabled = false) }
+        { AccountButtonMixed(chainData = "ETH", chainImage = Modal.Model.ChainImage.Asset(R.drawable.ic_select_network), address = "0x59eAF7DD5a2f5e433083D8BbC8de3439542579cb", onClick = {}) },
+        { AccountButtonMixed(chainData = "ETH", chainImage = Modal.Model.ChainImage.Asset(R.drawable.ic_select_network), address = "0x59eAF7DD5a2f5e433083D8BbC8de3439542579cb", onClick = {}, isEnabled = false) }
     )
 }

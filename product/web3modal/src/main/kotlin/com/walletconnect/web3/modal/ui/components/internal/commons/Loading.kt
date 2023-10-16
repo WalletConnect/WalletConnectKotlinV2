@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.walletconnect.web3.modal.ui.components.internal.commons.network.HexagonShape
 import com.walletconnect.web3.modal.ui.previews.MultipleComponentsPreview
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
@@ -48,13 +49,30 @@ internal fun LoadingSpinner(
 }
 
 @Composable
+internal fun LoadingHexagonBorder(
+    content: @Composable () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .drawAnimatedBorder(strokeWidth = 4.dp, shape = HexagonShape, durationMillis = 1700)
+    ) {
+        Surface(
+            color = Color.Transparent,
+            shape = HexagonShape,
+        ) {
+            content()
+        }
+    }
+}
+
+@Composable
 internal fun LoadingBorder(
     cornerRadius: Dp,
     content: @Composable () -> Unit,
 ) {
     Box(
         modifier = Modifier
-            .drawAnimatedBorder(strokeWidth = 4.dp, shape = RoundedCornerShape(cornerRadius + (cornerRadius/4)), durationMillis = 1500)
+            .drawAnimatedBorder(strokeWidth = 4.dp, shape = RoundedCornerShape(cornerRadius + (cornerRadius / 4)), durationMillis = 1700)
     ) {
         Surface(
             color = Color.Transparent,
@@ -79,7 +97,16 @@ private fun Modifier.drawAnimatedBorder(
             repeatMode = RepeatMode.Restart
         ), label = "rotation"
     )
-    val brush = Brush.horizontalGradient(listOf(Web3ModalTheme.colors.main100, Color.Transparent, Color.Transparent, Color.Transparent))
+    val brush = Brush.horizontalGradient(
+        listOf(
+            Web3ModalTheme.colors.main100,
+            Web3ModalTheme.colors.main100,
+            Web3ModalTheme.colors.main100,
+            Color.Transparent, Color.Transparent, Color.Transparent,
+            Color.Transparent, Color.Transparent, Color.Transparent,
+            Color.Transparent, Color.Transparent, Color.Transparent,
+        )
+    )
 
     Modifier
         .clip(shape)
@@ -116,6 +143,15 @@ private fun PreviewLoaders() {
         { LoadingSpinner() },
         {
             LoadingBorder(20.dp) {
+                Box(
+                    modifier = Modifier
+                        .size(50.dp)
+                        .background(Color.Blue)
+                )
+            }
+        },
+        {
+            LoadingHexagonBorder {
                 Box(
                     modifier = Modifier
                         .size(50.dp)
