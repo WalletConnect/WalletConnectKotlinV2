@@ -49,7 +49,7 @@ class IdentitiesInteractor(
         getAlreadyRegisteredIdentity(accountId, statement, domain, resources)
             .recoverCatching { exception ->
                 when (exception) {
-                    is MissingKeyException -> handleNotYetGeneratedIdentities(accountId, statement, domain, resources, onSign).getOrThrow()
+                    is MissingKeyException -> generatedIdentity(accountId, statement, domain, resources, onSign).getOrThrow()
                     is AccountHasNoCacaoPayloadStored, is AccountHasDifferentStatementStored -> handleIdentitiesOutdatedStatements(accountId, statement, domain, resources, keyserverUrl, onSign).getOrThrow()
                     else -> throw exception
                 }
@@ -66,7 +66,7 @@ class IdentitiesInteractor(
         }
     }
 
-    private suspend fun handleNotYetGeneratedIdentities(accountId: AccountId, statement: String, domain: String, resources: List<String>, onSign: (String) -> Cacao.Signature?): Result<PublicKey> {
+    private suspend fun generatedIdentity(accountId: AccountId, statement: String, domain: String, resources: List<String>, onSign: (String) -> Cacao.Signature?): Result<PublicKey> {
         val identityPublicKey = generateAndStoreIdentityKeyPair()
         return registerIdentityKeyInKeyserver(accountId, identityPublicKey, statement, domain, resources, onSign)
             .map { identityPublicKey }
@@ -103,7 +103,7 @@ class IdentitiesInteractor(
     private suspend fun resolveAndStoreIdentityRemotely(identityKey: String) = resolveIdentityUseCase(identityKey).mapCatching { response ->
         if (!CacaoVerifier(projectId).verify(response.cacao)) throw InvalidIdentityCacao()
         val accountId = AccountId(decodeDidPkh(response.cacao.payload.iss))
-        identitiesRepository.insertIdentity(identityKey, accountId, response.cacao.payload, isMine = false)
+        identitiesRepository.insertIdentity(identityKey, accountId, response.cacao.payload, isOwner = false)
         accountId
     }
 
@@ -130,7 +130,7 @@ class IdentitiesInteractor(
     ): Result<Unit> {
         val cacao = generateCacao(accountId, identityKey, statement, domain, resources, onSign).getOrThrow()
         return registerIdentityUseCase(cacao).onSuccess {
-            identitiesRepository.insertIdentity(identityKey.keyAsHex, accountId, cacao.payload, isMine = true)
+            identitiesRepository.insertIdentity(identityKey.keyAsHex, accountId, cacao.payload, isOwner = true)
         }
     }
 
