@@ -16,6 +16,7 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.notify.common.NotifyServerUrl
 import com.walletconnect.notify.common.model.NotifyRpc
+import com.walletconnect.notify.data.storage.RegisteredAccountsRepository
 import kotlinx.coroutines.supervisorScope
 
 internal class WatchSubscriptionsUseCase(
@@ -24,6 +25,7 @@ internal class WatchSubscriptionsUseCase(
     private val keyManagementRepository: KeyManagementRepository,
     private val extractPublicKeysFromDidJsonUseCase: ExtractPublicKeysFromDidJsonUseCase,
     private val notifyServerUrl: NotifyServerUrl,
+    private val registeredAccountsRepository: RegisteredAccountsRepository,
 ) {
 
     suspend operator fun invoke(accountId: AccountId, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
@@ -36,7 +38,9 @@ internal class WatchSubscriptionsUseCase(
 
         jsonRpcInteractor.subscribe(responseTopic) { error -> onFailure(error) }
 
-        val didJwt = fetchDidJwtInteractor.watchSubscriptionsRequest(accountId, authenticationPublicKey).getOrElse { error -> return@supervisorScope onFailure(error) }
+        val account = registeredAccountsRepository.getAccountByAccountId(accountId.value)
+        val didJwt = fetchDidJwtInteractor.watchSubscriptionsRequest(accountId, authenticationPublicKey, if(account.isLimited) account.appDomain else null)
+            .getOrElse { error -> return@supervisorScope onFailure(error) }
         val watchSubscriptionsParams = CoreNotifyParams.WatchSubscriptionsParams(didJwt.value)
         val request = NotifyRpc.NotifyWatchSubscriptions(params = watchSubscriptionsParams)
         val irnParams = IrnParams(Tags.NOTIFY_WATCH_SUBSCRIPTIONS, Ttl(THIRTY_SECONDS))
