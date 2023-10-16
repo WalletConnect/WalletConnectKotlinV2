@@ -157,7 +157,7 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
         scope.launch {
             notifyEngine.decryptMessage(params.topic, params.encryptedMessage,
                 onSuccess = { notifyMessage ->
-                    onSuccess(notifyMessage.toWalletClient())
+                    onSuccess(notifyMessage.toWalletClient(params.topic))
                 },
                 onFailure = { error ->
                     onError(Notify.Model.Error(error))

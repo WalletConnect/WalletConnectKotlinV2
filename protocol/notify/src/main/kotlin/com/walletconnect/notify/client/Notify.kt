@@ -24,7 +24,8 @@ object Notify {
                 override val body: String,
                 val icon: String?,
                 val url: String?,
-                val type: String?,
+                val type: String,
+                val topic: String
             ) : Message()
         }
 
