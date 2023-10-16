@@ -27,6 +27,7 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.PairingStorageRepositoryInterface
+import com.walletconnect.android.internal.utils.CURRENT_TIME_IN_SECONDS
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
 import com.walletconnect.android.internal.utils.THIRTY_SECONDS
 import com.walletconnect.android.pairing.engine.model.EngineDO
@@ -306,8 +307,8 @@ internal class PairingEngine(
         } ?: onFailure(IllegalStateException("Pairing for topic $topic does not exist"))
     }
 
-    private fun Pairing.isNotExpired(): Boolean = isActive.also {
-        if (!isActive) {
+    private fun Pairing.isNotExpired(): Boolean = (expiry.seconds > CURRENT_TIME_IN_SECONDS).also { isValid ->
+        if (!isValid) {
             scope.launch {
                 try {
                     jsonRpcInteractor.unsubscribe(topic = this@isNotExpired.topic)
