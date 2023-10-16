@@ -23,7 +23,7 @@ internal class EncodeWatchSubscriptionsRequestJwtUseCase(
             keyserverUrl = keyserverUrl,
             audience = encodeEd25519DidKey(authenticationKey.keyAsBytes),
             subject = encodeDidPkh(accountId.value),
-            appDidWeb = appDomain?.let { encodeDidWeb(it) } ?: "null"
+            appDidWeb = appDomain?.let { encodeDidWeb(it) }
         )
     }
 }

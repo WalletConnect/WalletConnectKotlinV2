@@ -14,7 +14,7 @@ internal data class WatchSubscriptionsRequestJwtClaim(
     @Json(name = "iat") override val issuedAt: Long,
     @Json(name = "exp") override val expiration: Long,
     @Json(name = "ksu") val keyserverUrl: String,
-    @Json(name = "app") val appDidWeb: String ,
+    @Json(name = "app") val appDidWeb: String?,
     @Json(name = "act") override val action: String = "notify_watch_subscriptions",
 ): NotifyJwtBase
 

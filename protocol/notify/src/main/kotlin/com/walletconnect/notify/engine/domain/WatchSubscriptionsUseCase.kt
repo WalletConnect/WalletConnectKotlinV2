@@ -18,6 +18,7 @@ import com.walletconnect.notify.common.NotifyServerUrl
 import com.walletconnect.notify.common.model.NotifyRpc
 import com.walletconnect.notify.data.storage.RegisteredAccountsRepository
 import kotlinx.coroutines.supervisorScope
+import timber.log.Timber
 
 internal class WatchSubscriptionsUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -41,6 +42,7 @@ internal class WatchSubscriptionsUseCase(
         val account = registeredAccountsRepository.getAccountByAccountId(accountId.value)
         val didJwt = fetchDidJwtInteractor.watchSubscriptionsRequest(accountId, authenticationPublicKey, if(account.isLimited) account.appDomain else null)
             .getOrElse { error -> return@supervisorScope onFailure(error) }
+        Timber.d(didJwt.value)
         val watchSubscriptionsParams = CoreNotifyParams.WatchSubscriptionsParams(didJwt.value)
         val request = NotifyRpc.NotifyWatchSubscriptions(params = watchSubscriptionsParams)
         val irnParams = IrnParams(Tags.NOTIFY_WATCH_SUBSCRIPTIONS, Ttl(THIRTY_SECONDS))
