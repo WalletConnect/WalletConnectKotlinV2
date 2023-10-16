@@ -1,7 +1,9 @@
 package com.walletconnect.android.keyserver.domain
 
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
+import com.walletconnect.android.internal.common.exception.AccountHasNoCacaoPayloadStored
 import com.walletconnect.android.internal.common.exception.AccountHasNoIdentityStored
+import com.walletconnect.android.internal.common.exception.AccountHasDifferentStatementStored
 import com.walletconnect.android.internal.common.exception.InvalidAccountIdException
 import com.walletconnect.android.internal.common.exception.InvalidIdentityCacao
 import com.walletconnect.android.internal.common.exception.UserRejectedSigning
@@ -29,7 +31,6 @@ import com.walletconnect.foundation.util.jwt.encodeDidPkh
 import com.walletconnect.foundation.util.jwt.encodeEd25519DidKey
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.randomBytes
-import java.net.URI
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -44,15 +45,42 @@ class IdentitiesInteractor(
 ) {
     fun getIdentityKeyPair(accountId: AccountId): Pair<PublicKey, PrivateKey> = keyManagementRepository.getKeyPair(getIdentityPublicKey(accountId))
 
-    suspend fun registerIdentity(accountId: AccountId, statement: String, domain: String, resources: List<String>, onSign: (String) -> Cacao.Signature?): Result<PublicKey> = try {
+    suspend fun registerIdentity(accountId: AccountId, statement: String, domain: String, resources: List<String>, keyserverUrl: String, onSign: (String) -> Cacao.Signature?): Result<PublicKey> =
+        getAlreadyRegisteredIdentity(accountId, statement, domain, resources)
+            .recoverCatching { exception ->
+                when (exception) {
+                    is MissingKeyException -> generatedIdentity(accountId, statement, domain, resources, onSign).getOrThrow()
+                    is AccountHasNoCacaoPayloadStored, is AccountHasDifferentStatementStored -> handleIdentitiesOutdatedStatements(accountId, statement, domain, resources, keyserverUrl, onSign).getOrThrow()
+                    else -> throw exception
+                }
+            }
+
+    private suspend fun getAlreadyRegisteredIdentity(accountId: AccountId, statement: String, domain: String, resources: List<String>): Result<PublicKey> {
         if (!accountId.isValid()) throw InvalidAccountIdException(accountId)
-        val storedPublicKey = getIdentityPublicKey(accountId)
-        Result.success(storedPublicKey)
-    } catch (e: MissingKeyException) {
+        return runCatching {
+            val storedPublicKey = getIdentityPublicKey(accountId)
+            val cacaoPayload = identitiesRepository.getCacaoPayloadByIdentity(storedPublicKey.keyAsHex) ?: throw AccountHasNoCacaoPayloadStored(accountId)
+            val generatedPayload = generatePayload(accountId, storedPublicKey, statement, domain, resources).getOrThrow()
+            if (cacaoPayload.statement != generatedPayload.statement) throw AccountHasDifferentStatementStored(accountId)
+            storedPublicKey
+        }
+    }
+
+    private suspend fun generatedIdentity(accountId: AccountId, statement: String, domain: String, resources: List<String>, onSign: (String) -> Cacao.Signature?): Result<PublicKey> {
         val identityPublicKey = generateAndStoreIdentityKeyPair()
-        registerIdentityKeyInKeyserver(accountId, identityPublicKey, statement, domain, resources, onSign)
+        return registerIdentityKeyInKeyserver(accountId, identityPublicKey, statement, domain, resources, onSign)
             .map { identityPublicKey }
             .onSuccess { storeIdentityPublicKey(identityPublicKey, accountId) }
+    }
+
+    private suspend fun handleIdentitiesOutdatedStatements(
+        accountId: AccountId, statement: String, domain: String, resources: List<String>, keyserverUrl: String, onSign: (String) -> Cacao.Signature?,
+    ): Result<PublicKey> {
+        val storedKeyPair = getIdentityKeyPair(accountId)
+        val (storedPublicKey, _) = storedKeyPair
+        return unregisterIdentityKeyInKeyserver(accountId, keyserverUrl, storedKeyPair)
+            .map { storedPublicKey }
+            .onSuccess { registerIdentityKeyInKeyserver(accountId, storedPublicKey, statement, domain, resources, onSign) }
     }
 
     suspend fun unregisterIdentity(accountId: AccountId, keyserverUrl: String): Result<PublicKey> = try {
@@ -75,13 +103,15 @@ class IdentitiesInteractor(
     private suspend fun resolveAndStoreIdentityRemotely(identityKey: String) = resolveIdentityUseCase(identityKey).mapCatching { response ->
         if (!CacaoVerifier(projectId).verify(response.cacao)) throw InvalidIdentityCacao()
         val accountId = AccountId(decodeDidPkh(response.cacao.payload.iss))
-        identitiesRepository.insertIdentity(identityKey, accountId)
+        identitiesRepository.insertIdentity(identityKey, accountId, response.cacao.payload, isOwner = false)
         accountId
     }
 
     private fun getIdentityPublicKey(accountId: AccountId): PublicKey = keyManagementRepository.getPublicKey(accountId.getIdentityTag())
 
-    private fun storeIdentityPublicKey(publicKey: PublicKey, accountId: AccountId) = keyManagementRepository.setKey(publicKey, accountId.getIdentityTag())
+    private fun storeIdentityPublicKey(publicKey: PublicKey, accountId: AccountId) {
+        keyManagementRepository.setKey(publicKey, accountId.getIdentityTag())
+    }
 
     private fun removeIdentityKeyPair(publicKey: PublicKey, accountId: AccountId) {
         keyManagementRepository.removeKeys(accountId.getIdentityTag())
@@ -90,11 +120,25 @@ class IdentitiesInteractor(
 
     private fun generateAndStoreIdentityKeyPair(): PublicKey = keyManagementRepository.generateAndStoreEd25519KeyPair()
 
-    private suspend fun registerIdentityKeyInKeyserver(accountId: AccountId, identityKey: PublicKey, statement: String, domain: String, resources: List<String>, onSign: (String) -> Cacao.Signature?): Result<Unit> =
-        registerIdentityUseCase(generateCacao(accountId, identityKey, statement, domain, resources, onSign).getOrThrow())
+    private suspend fun registerIdentityKeyInKeyserver(
+        accountId: AccountId,
+        identityKey: PublicKey,
+        statement: String,
+        domain: String,
+        resources: List<String>,
+        onSign: (String) -> Cacao.Signature?,
+    ): Result<Unit> {
+        val cacao = generateCacao(accountId, identityKey, statement, domain, resources, onSign).getOrThrow()
+        return registerIdentityUseCase(cacao).onSuccess {
+            identitiesRepository.insertIdentity(identityKey.keyAsHex, accountId, cacao.payload, isOwner = true)
+        }
+    }
 
-    private suspend fun unregisterIdentityKeyInKeyserver(accountId: AccountId, keyserverUrl: String, identityKeyPair: Pair<PublicKey, PrivateKey>): Result<Unit> =
-        unregisterIdentityUseCase(generateUnregisterIdAuth(accountId, keyserverUrl, identityKeyPair).getOrThrow().value)
+    private suspend fun unregisterIdentityKeyInKeyserver(accountId: AccountId, keyserverUrl: String, identityKeyPair: Pair<PublicKey, PrivateKey>): Result<Unit> {
+        return unregisterIdentityUseCase(generateUnregisterIdAuth(accountId, keyserverUrl, identityKeyPair).getOrThrow().value).onSuccess {
+            identitiesRepository.removeIdentity(identityKeyPair.first.keyAsHex)
+        }
+    }
 
     private fun generateCacao(accountId: AccountId, identityKey: PublicKey, statement: String, domain: String, resources: List<String>, onSign: (String) -> Cacao.Signature?): Result<Cacao> {
         val payload = generatePayload(accountId, identityKey, statement, domain, resources).getOrThrow()

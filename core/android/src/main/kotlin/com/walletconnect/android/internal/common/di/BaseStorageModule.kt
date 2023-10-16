@@ -1,5 +1,6 @@
 package com.walletconnect.android.internal.common.di
 
+import com.squareup.moshi.Moshi
 import com.squareup.sqldelight.ColumnAdapter
 import com.squareup.sqldelight.EnumColumnAdapter
 import com.walletconnect.android.di.AndroidBuildVariantDITags
@@ -91,7 +92,7 @@ fun baseStorageModule(storagePrefix: String = String.Empty) = module {
 
     single { JsonRpcHistory(get(), get()) }
 
-    single { IdentitiesStorageRepository(get()) }
+    single { IdentitiesStorageRepository(get(), get<Moshi.Builder>(named(AndroidCommonDITags.MOSHI))) }
 
     single { VerifyContextStorageRepository(get()) }
 

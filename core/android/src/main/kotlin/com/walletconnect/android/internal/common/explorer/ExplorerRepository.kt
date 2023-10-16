@@ -12,6 +12,8 @@ import com.walletconnect.android.internal.common.explorer.data.model.Injected
 import com.walletconnect.android.internal.common.explorer.data.model.Listing
 import com.walletconnect.android.internal.common.explorer.data.model.Metadata
 import com.walletconnect.android.internal.common.explorer.data.model.Mobile
+import com.walletconnect.android.internal.common.explorer.data.model.NotificationType
+import com.walletconnect.android.internal.common.explorer.data.model.NotifyConfig
 import com.walletconnect.android.internal.common.explorer.data.model.Project
 import com.walletconnect.android.internal.common.explorer.data.model.ProjectListing
 import com.walletconnect.android.internal.common.explorer.data.model.SupportedStandard
@@ -27,6 +29,8 @@ import com.walletconnect.android.internal.common.explorer.data.network.model.Inj
 import com.walletconnect.android.internal.common.explorer.data.network.model.ListingDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.MetadataDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.MobileDTO
+import com.walletconnect.android.internal.common.explorer.data.network.model.NotificationTypeDTO
+import com.walletconnect.android.internal.common.explorer.data.network.model.NotifyConfigDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.ProjectDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.ProjectListingDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.SupportedStandardDTO
@@ -67,6 +71,18 @@ class ExplorerRepository(
         }
     }
 
+    suspend fun getNotifyConfig(
+        appDomain: String,
+    ): NotifyConfig {
+        return with(explorerService.getNotifyConfig(projectId.value, appDomain)) {
+            if (isSuccessful && body() != null) {
+                body()!!.toNotifyConfig()
+            } else {
+                throw Throwable(errorBody()?.string())
+            }
+        }
+    }
+
     suspend fun getMobileWallets(
         sdkType: String,
         chains: String?,
@@ -75,12 +91,7 @@ class ExplorerRepository(
     ): WalletListing {
         return with(
             explorerService.getAndroidWallets(
-                projectId = projectId.value,
-                chains = chains,
-                sdkType = sdkType,
-                sdkVersion = BuildConfig.SDK_VERSION,
-                excludedIds = excludedIds,
-                recommendedIds = recommendedIds
+                projectId = projectId.value, chains = chains, sdkType = sdkType, sdkVersion = BuildConfig.SDK_VERSION, excludedIds = excludedIds, recommendedIds = recommendedIds
             )
         ) {
             if (isSuccessful && body() != null) {
@@ -93,26 +104,36 @@ class ExplorerRepository(
 
     private fun WalletListingDTO.toWalletListing(): WalletListing {
         return WalletListing(
-            listing = listings.values.map { it.toWallet() },
-            count = count,
-            total = total
+            listing = listings.values.map { it.toWallet() }, count = count, total = total
         )
     }
 
     private fun WalletDTO.toWallet(): Wallet {
         return Wallet(
-            id = id,
-            name = name,
-            imageUrl = imageId.buildWalletImageUrl(),
-            nativeLink = mobile.native,
-            universalLink = mobile.universal,
-            playStoreLink = app.android
+            id = id, name = name, imageUrl = imageId.buildWalletImageUrl(), nativeLink = mobile.native, universalLink = mobile.universal, playStoreLink = app.android
         ).apply { isWalletInstalled = context.packageManager.isWalletInstalled(appPackage) }
     }
 
     private fun String.buildWalletImageUrl(): String {
         return "$explorerApiUrl/w3m/v1/getWalletImage/$this?projectId=${projectId.value}"
     }
+
+    private fun NotifyConfigDTO.toNotifyConfig(): NotifyConfig {
+        return with(data) {
+            NotifyConfig(
+                types = notificationTypes.map { it.toNotificationType() },
+                name = name,
+                description = description,
+                imageUrl = imageUrl.toImageUrl(),
+                homepage = homepage,
+                dappUrl = dappUrl,
+                isVerified = isVerified,
+            )
+        }
+    }
+
+    private fun NotificationTypeDTO.toNotificationType(): NotificationType = NotificationType(name = name, id = id, description = description)
+
 
     private fun ProjectListingDTO.toProjectListing(): ProjectListing {
         return ProjectListing(
@@ -128,14 +149,12 @@ class ExplorerRepository(
         homepage = homepage ?: "Homepage not provided",
         imageId = imageId ?: "ImageID not provided",
         imageUrl = imageUrl?.toImageUrl() ?: ImageUrl("", "", ""),
-        dappUrl = dappUrl  ?: "Dapp url not provided",
+        dappUrl = dappUrl ?: "Dapp url not provided",
     )
 
     private fun DappListingsDTO.toDappListing(): DappListings {
         return DappListings(
-            listings = listings.values.map { it.toListing() },
-            count = count,
-            total = total
+            listings = listings.values.map { it.toListing() }, count = count, total = total
         )
     }
 
@@ -166,22 +185,11 @@ class ExplorerRepository(
     )
 
     private fun AppDTO.toApp(): App = App(
-        browser = browser,
-        ios = ios,
-        android = android,
-        mac = mac,
-        windows = windows,
-        linux = linux,
-        chrome = chrome,
-        firefox = firefox,
-        safari = safari,
-        edge = edge,
-        opera = opera
+        browser = browser, ios = ios, android = android, mac = mac, windows = windows, linux = linux, chrome = chrome, firefox = firefox, safari = safari, edge = edge, opera = opera
     )
 
     private fun InjectedDTO.toInjected(): Injected = Injected(
-        namespace = namespace,
-        injectedId = injectedId
+        namespace = namespace, injectedId = injectedId
     )
 
     private fun MobileDTO.toMobile(): Mobile = Mobile(
@@ -195,11 +203,7 @@ class ExplorerRepository(
     )
 
     private fun SupportedStandardDTO.toSupportedStandard(): SupportedStandard = SupportedStandard(
-        id = id,
-        url = url,
-        title = title,
-        standardId = standardId,
-        standardPrefix = standardPrefix
+        id = id, url = url, title = title, standardId = standardId, standardPrefix = standardPrefix
     )
 
     private fun MetadataDTO.toMetadata(): Metadata = Metadata(
@@ -208,7 +212,6 @@ class ExplorerRepository(
     )
 
     private fun ColorsDTO.toColors(): Colors = Colors(
-        primary = primary,
-        secondary = secondary
+        primary = primary, secondary = secondary
     )
 }

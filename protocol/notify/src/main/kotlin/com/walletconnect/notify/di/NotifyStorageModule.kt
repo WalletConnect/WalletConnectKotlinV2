@@ -19,29 +19,40 @@ internal fun notifyStorageModule(dbName: String) = module {
     fun Scope.createNotifyDB() = NotifyDatabase(
         get(),
         ActiveSubscriptionsAdapter = ActiveSubscriptions.Adapter(
-            map_of_scopeAdapter = get<ColumnAdapter<Map<String, Pair<String, Boolean>>, String>>()
+            map_of_scopeAdapter = get<ColumnAdapter<Map<String, Triple<String, String, Boolean>>, String>>()
         ),
     )
 
     includes(sdkBaseStorageModule(NotifyDatabase.Schema, dbName))
 
-    single<ColumnAdapter<Map<String, Pair<String, Boolean>>, String>> {
-        object : ColumnAdapter<Map<String, Pair<String, Boolean>>, String> {
-            override fun decode(databaseValue: String): Map<String, Pair<String, Boolean>> {
+    single<ColumnAdapter<Map<String, Triple<String, String, Boolean>>, String>> {
+        object : ColumnAdapter<Map<String, Triple<String, String, Boolean>>, String> {
+            override fun decode(databaseValue: String): Map<String, Triple<String, String, Boolean>> {
                 // Split string by | to get each entry
                 return databaseValue.split("|").associate { entry ->
                     // Split each entry by = to get key and value
                     val entries = entry.split("=")
-                    entries.first().trim() to entries.last().split(",").run {
-                        // Split value by , to get description and isSubscribed
-                        this.first().trim() to this.last().trim().toBoolean()
+                    val key = entries.first().trim()
+                    // Split value by , to get description and isSubscribed
+                    val values = entries.last().split(",")
+                    when (values.size) {
+                        // Backward compatibility with example 'name=description,isSubscribed'
+                        2 -> key.lowercase() to values.run {
+                            Triple(key, this.first().trim(), this.last().trim().toBoolean())
+                        }
+                        // Current compatibility with example 'id=name,description,isSubscribed'
+                        3 -> key.lowercase() to values.run {
+                            Triple(this.first().trim(), this[1].trim(), this.last().trim().toBoolean())
+                        }
+                        // Fail-over
+                        else -> key.lowercase() to Triple(key, key, false) // dummy value
                     }
                 }
             }
 
-            override fun encode(value: Map<String, Pair<String, Boolean>>): String {
+            override fun encode(value: Map<String, Triple<String, String, Boolean>>): String {
                 return value.entries.joinToString(separator = "|") { entry ->
-                    "${entry.key}=${entry.value.first},${entry.value.second}"
+                    "${entry.key}=${entry.value.first},${entry.value.second},${entry.value.third}"
                 }
             }
         }

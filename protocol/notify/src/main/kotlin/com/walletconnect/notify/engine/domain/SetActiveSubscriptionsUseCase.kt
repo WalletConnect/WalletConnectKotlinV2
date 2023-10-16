@@ -39,13 +39,15 @@ internal class SetActiveSubscriptionsUseCase(
             with(subscription) {
                 val dappUri = appDomainWithHttps.toUri()
 
+                //TODO: Those errors are not caught and handled
                 val (metadata, scopes) = extractMetadataFromConfigUseCase(dappUri).getOrThrow()
                 val selectedScopes = scopes.associate { remote ->
-                    remote.name to NotificationScope.Cached(
-                        remote.name, remote.description,
-                        subscription.scope.firstOrNull { serverScope -> serverScope == remote.name } != null
+                    remote.id to NotificationScope.Cached(
+                        name = remote.name, description = remote.description, id = remote.id,
+                        isSelected = subscription.scope.firstOrNull { serverScope -> serverScope == remote.id } != null
                     )
                 }
+                //TODO: Those errors are not caught and handled
                 val (dappPublicKey, authenticationPublicKey) = extractPublicKeysFromDidJsonUseCase(dappUri).getOrThrow()
 
                 val symmetricKey = SymmetricKey(symKey)

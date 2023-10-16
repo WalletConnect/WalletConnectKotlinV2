@@ -3,6 +3,7 @@
 package com.walletconnect.android.internal.common.explorer.data.network
 
 import com.walletconnect.android.internal.common.explorer.data.network.model.DappListingsDTO
+import com.walletconnect.android.internal.common.explorer.data.network.model.NotifyConfigDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.ProjectListingDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.WalletListingDTO
 import retrofit2.Response
@@ -21,6 +22,12 @@ interface ExplorerService {
         @Query("page") page: Int,
         @Query("is_verified") isVerified: Boolean,
     ): Response<ProjectListingDTO>
+
+    @GET("w3i/v1/notify-config")
+    suspend fun getNotifyConfig(
+        @Query("projectId") projectId: String,
+        @Query("appDomain") appDomain: String,
+    ): Response<NotifyConfigDTO>
 
     @GET("w3m/v1/getAndroidListings")
     suspend fun getAndroidWallets(

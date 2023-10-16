@@ -88,7 +88,7 @@ class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInter
             Relay.initialize(relayServerUrl, connectionType, networkClientTimeout) { error -> onError(Core.Model.Error(error)) }
         }
 
-        Verify.initialize(metaData.verifyUrl)
+        Verify.initialize()
         Pairing.initialize()
         PairingController.initialize()
     }
