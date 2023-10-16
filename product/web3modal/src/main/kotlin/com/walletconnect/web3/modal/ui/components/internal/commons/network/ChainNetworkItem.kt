@@ -28,8 +28,8 @@ import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 internal fun ChainNetworkItem(
     image: Modal.Model.ChainImage,
     isSelected: Boolean,
-    isEnabled: Boolean,
     networkName: String,
+    isEnabled: Boolean = true,
     onItemClick: () -> Unit,
 ) {
     val data = when (image) {

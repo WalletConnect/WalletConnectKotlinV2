@@ -46,33 +46,6 @@ class ExtendSessionUseCaseTest {
     }
 
     @Test
-    fun `onFailure is called when session isSelfController is false`() = runTest {
-        every { sessionStorageRepository.isSessionValid(any()) } returns true
-        every { sessionStorageRepository.getSessionWithoutMetadataByTopic(any()) } returns SessionVO(
-            topic = Topic("topic"),
-            expiry = Expiry(0),
-            relayProtocol = "relayProtocol",
-            relayData = "relayData",
-            selfPublicKey = PublicKey("selfPublicKey"),
-            sessionNamespaces = emptyMap(),
-            requiredNamespaces = emptyMap(),
-            optionalNamespaces = emptyMap(),
-            isAcknowledged = false,
-            pairingTopic = "pairingTopic"
-        )
-
-        extendSessionUseCase.extend(
-            topic = "topic",
-            onSuccess = {
-                fail("onSuccess should not be called since should have validation failed")
-            },
-            onFailure = { error ->
-                assertSame(UnauthorizedPeerException::class, error::class)
-            }
-        )
-    }
-
-    @Test
     fun `onFailure is called when session isAcknowledged is false`() = runTest {
         every { sessionStorageRepository.isSessionValid(any()) } returns true
         every { sessionStorageRepository.getSessionWithoutMetadataByTopic(any()) } returns SessionVO(

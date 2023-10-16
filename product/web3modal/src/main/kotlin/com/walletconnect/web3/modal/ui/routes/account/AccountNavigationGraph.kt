@@ -6,6 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.walletconnect.web3.modal.ui.navigation.Route
+import com.walletconnect.web3.modal.ui.navigation.account.chainSwitchRoute
 import com.walletconnect.web3.modal.ui.routes.account.account.AccountRoute
 import com.walletconnect.web3.modal.ui.routes.account.change_network.ChangeNetworkRoute
 import com.walletconnect.web3.modal.ui.routes.connect.what_is_wallet.WhatIsWallet
@@ -42,5 +43,6 @@ internal fun AccountNavGraph(
                 option = WhatIsWalletOption.LEARN_MORE
             )
         }
+        chainSwitchRoute(accountState = accountState)
     }
 }

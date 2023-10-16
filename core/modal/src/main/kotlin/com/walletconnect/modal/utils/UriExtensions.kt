@@ -6,6 +6,14 @@ import java.net.URLEncoder
 
 private const val WC_URI_QUERY = "wc?uri="
 
+fun UriHandler.openUri(uri: String, onError: (e: Throwable) -> Unit) {
+    try {
+        openUri(uri)
+    } catch (e: Throwable) {
+        onError(e)
+    }
+}
+
 fun UriHandler.openMobileLink(
     uri: String,
     mobileLink: String?,
