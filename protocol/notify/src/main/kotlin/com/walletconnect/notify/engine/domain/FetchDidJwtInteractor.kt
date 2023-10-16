@@ -84,11 +84,12 @@ internal class FetchDidJwtInteractor(
     suspend fun watchSubscriptionsRequest(
         account: AccountId,
         authenticationKey: PublicKey,
+        appDomain: String?
     ): Result<DidJwt> = registerIdentityAndReturnIdentityKeyPair(account) { (identityPublicKey, identityPrivateKey) ->
 
         return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
             identityPrivateKey,
-            EncodeWatchSubscriptionsRequestJwtUseCase(account, authenticationKey),
+            EncodeWatchSubscriptionsRequestJwtUseCase(account, authenticationKey, appDomain),
             EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = 5, expiryTimeUnit = TimeUnit.MINUTES)
         )
     }
