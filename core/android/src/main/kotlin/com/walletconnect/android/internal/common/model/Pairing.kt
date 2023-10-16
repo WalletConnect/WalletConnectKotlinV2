@@ -2,6 +2,7 @@ package com.walletconnect.android.internal.common.model
 
 import com.walletconnect.android.internal.common.model.type.Sequence
 import com.walletconnect.android.internal.utils.CURRENT_TIME_IN_SECONDS
+import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
 import com.walletconnect.android.pairing.model.INACTIVE_PAIRING
 import com.walletconnect.foundation.common.model.Topic
 
@@ -15,7 +16,7 @@ data class Pairing(
     val registeredMethods: String
 ) : Sequence {
     val isActive: Boolean
-        get() = (expiry.seconds > CURRENT_TIME_IN_SECONDS)
+        get() = (expiry.seconds - CURRENT_TIME_IN_SECONDS) >= FIVE_MINUTES_IN_SECONDS
 
     constructor(topic: Topic, relay: RelayProtocolOptions, symmetricKey: SymmetricKey, registeredMethods: String) : this(
         topic = topic,
