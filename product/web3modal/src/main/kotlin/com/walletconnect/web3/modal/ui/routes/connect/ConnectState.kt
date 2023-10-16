@@ -127,7 +127,7 @@ internal class ConnectState(
             requiredNamespaces = mapOf(
                 selectedChain.chainNamespace to Modal.Model.Namespace.Proposal(
                     chains = listOf(selectedChain.id),
-                    methods = selectedChain.methods,
+                    methods = selectedChain.requiredMethods,
                     events = selectedChain.events
                 )
             ),
@@ -139,7 +139,7 @@ internal class ConnectState(
         .map { (key: String, value: List<Modal.Model.Chain>) ->
             key to Modal.Model.Namespace.Proposal(
                 chains = value.map { it.id },
-                methods = value.flatMap { it.methods }.distinct(),
+                methods = value.flatMap { it.requiredMethods + it.optionalMethods }.distinct(),
                 events = value.flatMap { it.events }.distinct()
             )
         }.toMap()
