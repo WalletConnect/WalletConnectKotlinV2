@@ -2,20 +2,21 @@ CREATE TABLE RegisteredAccounts (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     accountId TEXT UNIQUE NOT NULL,
     publicIdentityKey TEXT NOT NULL,
-    isLimited INTEGER AS Boolean NOT NULL
+    isLimited INTEGER AS Boolean NOT NULL,
+    appDomain TEXT DEFAULT NULL
 );
 
 insertOrIgnoreAccount:
-INSERT OR IGNORE INTO RegisteredAccounts(accountId, publicIdentityKey, isLimited)
-VALUES (?, ?, ?);
+INSERT OR IGNORE INTO RegisteredAccounts(accountId, publicIdentityKey, isLimited, appDomain)
+VALUES (?, ?, ?, ?);
 
 getAccountByAccountId:
-SELECT accountId, publicIdentityKey, isLimited
+SELECT accountId, publicIdentityKey, isLimited, appDomain
 FROM RegisteredAccounts
 WHERE accountId = ?;
 
 getAllAccounts:
-SELECT accountId, publicIdentityKey, isLimited
+SELECT accountId, publicIdentityKey, isLimited, appDomain
 FROM RegisteredAccounts;
 
 deleteAccountByAccountId:
