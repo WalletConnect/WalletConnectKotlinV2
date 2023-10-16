@@ -95,22 +95,16 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
         }
     }
 
-    // TODO: Will add back later
-//    override fun getNotificationTypes(params: Notify.Params.NotificationTypes, onSuccess: (Notify.Model.AvailableTypes) -> Unit, onError: (Notify.Model.Error) -> Unit) {
-//        checkEngineInitialization()
-//
-//        scope.launch {
-//            supervisorScope {
-//                try {
-//                    notifyEngine.getNotificationTypes(params.domain, onSuccess = {
-//                        // TODO onSuccess(Notify.Model.AvailableTypes(it))
-//                    }, onError = { onError(Notify.Model.Error(it)) })
-//                } catch (e: Exception) {
-//                    onError(Notify.Model.Error(e))
-//                }
-//            }
-//        }
-//    }
+    override fun getNotificationTypes(params: Notify.Params.NotificationTypes): Map<String, Notify.Model.NotificationType> {
+        checkEngineInitialization()
+
+        return runBlocking {
+            notifyEngine.getNotificationTypes(params.appDomain).mapValues { (_, notificationType) ->
+                notificationType.toWalletClient()
+            }
+        }
+    }
+
 
     override fun getActiveSubscriptions(): Map<String, Notify.Model.Subscription> {
         checkEngineInitialization()

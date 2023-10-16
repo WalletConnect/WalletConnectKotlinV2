@@ -31,6 +31,12 @@ internal fun NotifyRecord.toWalletClient(): Notify.Model.MessageRecord {
 
 
 @JvmSynthetic
+internal fun NotificationType.toWalletClient(): Notify.Model.NotificationType {
+    return Notify.Model.NotificationType(id, name, description)
+}
+
+
+@JvmSynthetic
 internal fun ((String) -> Notify.Model.Cacao.Signature?).toWalletClient(): (String) -> Cacao.Signature? = { message ->
     this(message)?.let { publicCacaoSignature: Notify.Model.Cacao.Signature ->
         Cacao.Signature(publicCacaoSignature.t, publicCacaoSignature.s, publicCacaoSignature.m)

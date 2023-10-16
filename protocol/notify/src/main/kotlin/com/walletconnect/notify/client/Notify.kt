@@ -52,7 +52,9 @@ object Notify {
             data class Signature(override val t: String, override val s: String, override val m: String? = null) : Model(), SignatureInterface
         }
 
-        data class AvailableTypes(val types: List<String>) : Model()
+        data class NotificationType(val id: String, val name: String, val description: String) : Model()
+
+        data class AvailableTypes(val types: List<NotificationType>) : Model()
 
         data class Error(val throwable: Throwable) : Model()
     }
