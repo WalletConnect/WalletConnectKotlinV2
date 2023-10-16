@@ -7,4 +7,5 @@ data class RegisteredAccount(
     val accountId: AccountId,
     val publicIdentityKey: PublicKey,
     val isLimited: Boolean,
+    val appDomain: String?
 )
