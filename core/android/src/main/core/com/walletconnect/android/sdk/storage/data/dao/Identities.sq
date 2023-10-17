@@ -3,11 +3,11 @@ CREATE TABLE Identities (
     identity TEXT UNIQUE NOT NULL,
     accountId TEXT NOT NULL,
     cacao_payload TEXT DEFAULT NULL,
-    is_mine INTEGER AS Boolean DEFAULT 0
+    is_owner INTEGER AS Boolean DEFAULT 0
 );
 
 insertOrAbortIdentity:
-INSERT OR ABORT INTO Identities(identity, accountId, cacao_payload, is_mine)
+INSERT OR ABORT INTO Identities(identity, accountId, cacao_payload, is_owner)
 VALUES (?, ?, ?, ?);
 
 removeIdentity:
@@ -22,4 +22,4 @@ WHERE identity = ?;
 getCacaoPayloadByIdentity:
 SELECT cacao_payload
 FROM Identities
-WHERE identity = ? AND is_mine = 1;
+WHERE identity = ? AND is_owner = 1;

@@ -15,8 +15,9 @@ internal class RegisteredAccountsRepository(private val registeredAccounts: Regi
         accountId: AccountId,
         publicIdentityKey: PublicKey,
         isLimited: Boolean,
+        appDomain: String?
     ) = withContext(Dispatchers.IO) {
-        registeredAccounts.insertOrIgnoreAccount(accountId.value, publicIdentityKey.keyAsHex, isLimited)
+        registeredAccounts.insertOrIgnoreAccount(accountId.value, publicIdentityKey.keyAsHex, isLimited, appDomain)
     }
 
     suspend fun getAccountByAccountId(accountId: String): RegisteredAccount = withContext(Dispatchers.IO) {
@@ -35,5 +36,6 @@ internal class RegisteredAccountsRepository(private val registeredAccounts: Regi
         accountId: String,
         publicIdentityKey: String,
         isLimited: Boolean,
-    ): RegisteredAccount = RegisteredAccount(AccountId(accountId), PublicKey(publicIdentityKey), isLimited)
+        appDomain: String?
+    ): RegisteredAccount = RegisteredAccount(AccountId(accountId), PublicKey(publicIdentityKey), isLimited, appDomain)
 }

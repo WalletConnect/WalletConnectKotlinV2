@@ -63,7 +63,7 @@ internal fun AccountRoute(
                 balance = balance,
                 onBlockExplorerClick = { url -> uriHandler.openUri(url) },
                 onChangeNetworkClick = { navController.navigate(Route.CHANGE_NETWORK.path) },
-                onDisconnectClick = { accountState.disconnect(data.topic) { accountState.closeModal() } }
+                onDisconnectClick = { accountState.disconnect(data.topic) }
             )
         }
     }
@@ -111,7 +111,7 @@ private fun AccountScreen(
         AccountEntry(
             startIcon = { CircleNetworkImage(selectedChain.getImageData()) },
             onClick = onChangeNetworkClick,
-            state = if (accountData.chains.size == 1) AccountEntryState.INFO else AccountEntryState.NEXT
+            state = AccountEntryState.NEXT
         ) {
             Text(text = selectedChain.chainName, style = Web3ModalTheme.typo.paragraph500.copy(color = it.textColor))
         }

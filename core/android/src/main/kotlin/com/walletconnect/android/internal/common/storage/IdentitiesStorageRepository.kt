@@ -8,8 +8,8 @@ import com.walletconnect.android.sdk.storage.data.dao.IdentitiesQueries
 class IdentitiesStorageRepository(private val identities: IdentitiesQueries, moshiBuilder: Moshi.Builder) {
     private val moshi = moshiBuilder.build()
 
-    suspend fun insertIdentity(identityPublicKey: String, accountId: AccountId, cacaoPayload: Cacao.Payload, isMine: Boolean) =
-        identities.insertOrAbortIdentity(identityPublicKey, accountId.value, moshi.adapter(Cacao.Payload::class.java).toJson(cacaoPayload), isMine)
+    suspend fun insertIdentity(identityPublicKey: String, accountId: AccountId, cacaoPayload: Cacao.Payload, isOwner: Boolean) =
+        identities.insertOrAbortIdentity(identityPublicKey, accountId.value, moshi.adapter(Cacao.Payload::class.java).toJson(cacaoPayload), isOwner)
 
     suspend fun removeIdentity(identityPublicKey: String) = identities.removeIdentity(identityPublicKey)
 

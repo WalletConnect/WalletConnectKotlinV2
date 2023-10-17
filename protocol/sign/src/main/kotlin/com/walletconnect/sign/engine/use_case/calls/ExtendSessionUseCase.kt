@@ -31,9 +31,6 @@ internal class ExtendSessionUseCase(
         }
 
         val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic(topic))
-        if (!session.isSelfController) {
-            return@supervisorScope onFailure(UnauthorizedPeerException(UNAUTHORIZED_EXTEND_MESSAGE))
-        }
         if (!session.isAcknowledged) {
             return@supervisorScope onFailure(NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic"))
         }
@@ -52,8 +49,7 @@ internal class ExtendSessionUseCase(
             onFailure = { error ->
                 logger.error("Sending session extend error: $error")
                 onFailure(error)
-            }
-        )
+            })
     }
 }
 

@@ -38,11 +38,6 @@ internal class OnSessionExtendUseCase(
             }
 
             val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(request.topic)
-            if (!session.isPeerController) {
-                jsonRpcInteractor.respondWithError(request, PeerError.Unauthorized.ExtendRequest(Sequences.SESSION.name), irnParams)
-                return@supervisorScope
-            }
-
             val newExpiry = requestParams.expiry
             SignValidator.validateSessionExtend(newExpiry, session.expiry.seconds) { error ->
                 jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
