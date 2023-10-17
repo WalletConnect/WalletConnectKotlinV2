@@ -13,14 +13,14 @@ internal class GetNotificationTypesUseCase(
     override suspend fun getNotificationTypes(domain: String): Map<String, NotificationType> {
         val notifyConfig = getNotifyConfigUseCase(domain).getOrThrow()
 
-        return notifyConfig.types.map { notificationType ->
+        return notifyConfig.types.associate { notificationType ->
             notificationType.id to NotificationType(
                 name = notificationType.name,
                 id = notificationType.id,
                 description = notificationType.description,
                 isEnabled = true
             )
-        }.toMap()
+        }
     }
 }
 
