@@ -28,6 +28,7 @@ import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.android.ext.koin.androidApplication
+import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import java.util.*
@@ -65,10 +66,11 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
         GenerateJwtStoreClientIdUseCase(get(), get())
     }
 
-    single(named(AndroidCommonDITags.USER_AGENT_INTERCEPTOR)) {
+    single(named(AndroidCommonDITags.SHARED_INTERCEPTOR)) {
         Interceptor { chain ->
             val updatedRequest = chain.request().newBuilder()
                 .addHeader("User-Agent", get(named(AndroidCommonDITags.USER_AGENT)))
+                .addHeader("Origin", androidContext().packageName)
                 .build()
 
             chain.proceed(updatedRequest)
@@ -119,7 +121,7 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
 
     single(named(AndroidCommonDITags.OK_HTTP)) {
         val builder = OkHttpClient.Builder()
-            .addInterceptor(get<Interceptor>(named(AndroidCommonDITags.USER_AGENT_INTERCEPTOR)))
+            .addInterceptor(get<Interceptor>(named(AndroidCommonDITags.SHARED_INTERCEPTOR)))
             .addInterceptor(get<Interceptor>(named(AndroidCommonDITags.FAIL_OVER_INTERCEPTOR)))
             .authenticator((get(named(AndroidCommonDITags.AUTHENTICATOR))))
             .writeTimeout(networkClientTimeout.timeout, networkClientTimeout.timeUnit)
