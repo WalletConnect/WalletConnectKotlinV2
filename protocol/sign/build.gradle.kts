@@ -69,7 +69,6 @@ sqldelight {
     databases {
         create("SignDatabase") {
             packageName.set("com.walletconnect.sign")
-            srcDirs.from("core")
             schemaOutputDirectory.set(file("src/debug/sqldelight/databases"))
             verifyMigrations.set(true)
             verifyDefinitions.set(true)
