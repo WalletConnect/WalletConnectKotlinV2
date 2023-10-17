@@ -1,7 +1,7 @@
 plugins {
     id("com.android.library")
     kotlin("android")
-    id("com.squareup.sqldelight")
+    alias(libs.plugins.sqlDelight)
     id("com.google.devtools.ksp") version kspVersion
     id("publish-module-android")
     id("jacoco-report")
@@ -66,10 +66,14 @@ android {
 }
 
 sqldelight {
-    database("SignDatabase") {
-        packageName = "com.walletconnect.sign"
-        schemaOutputDirectory = file("src/debug/sqldelight/databases")
-        verifyMigrations = true
+    databases {
+        create("SignDatabase") {
+            packageName.set("com.walletconnect.sign")
+            srcDirs.from("core")
+            schemaOutputDirectory.set(file("src/debug/sqldelight/databases"))
+            verifyMigrations.set(true)
+            verifyDefinitions.set(true)
+        }
     }
 }
 
@@ -78,6 +82,8 @@ dependencies {
     releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
 
     moshiKsp()
+    implementation(libs.bundles.sqlDelight)
+
     androidXTest()
     jUnit4()
     robolectric()
