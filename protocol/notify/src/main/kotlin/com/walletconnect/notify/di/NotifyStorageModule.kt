@@ -2,7 +2,7 @@
 
 package com.walletconnect.notify.di
 
-import com.squareup.sqldelight.ColumnAdapter
+import app.cash.sqldelight.ColumnAdapter
 import com.walletconnect.android.di.sdkBaseStorageModule
 import com.walletconnect.android.internal.common.di.deleteDatabase
 import com.walletconnect.notify.NotifyDatabase
