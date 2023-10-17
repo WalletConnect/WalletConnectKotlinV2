@@ -42,7 +42,6 @@ internal class WatchSubscriptionsUseCase(
         val account = registeredAccountsRepository.getAccountByAccountId(accountId.value)
         val didJwt = fetchDidJwtInteractor.watchSubscriptionsRequest(accountId, authenticationPublicKey, if(account.isLimited) account.appDomain else null)
             .getOrElse { error -> return@supervisorScope onFailure(error) }
-        Timber.d(didJwt.value)
         val watchSubscriptionsParams = CoreNotifyParams.WatchSubscriptionsParams(didJwt.value)
         val request = NotifyRpc.NotifyWatchSubscriptions(params = watchSubscriptionsParams)
         val irnParams = IrnParams(Tags.NOTIFY_WATCH_SUBSCRIPTIONS, Ttl(THIRTY_SECONDS))
