@@ -97,5 +97,5 @@ fun baseStorageModule(storagePrefix: String = String.Empty) = module {
 
     single { VerifyContextStorageRepository(verifyContextQueries = get()) }
 
-    single { DatabaseConfig(storagePrefix) }
+    single { DatabaseConfig(storagePrefix = storagePrefix) }
 }
