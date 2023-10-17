@@ -91,5 +91,5 @@ dependencies {
     testJson()
     coroutinesTest()
     scarletTest()
-    sqlDelightTest()
+    testImplementation(libs.bundles.sqlDelightTest)
 }
