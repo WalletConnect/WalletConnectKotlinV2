@@ -89,7 +89,7 @@ fun baseStorageModule(storagePrefix: String = String.Empty) = module {
 
     single<MetadataStorageRepositoryInterface> { MetadataStorageRepository(metaDataQueries = get()) }
 
-    single<PairingStorageRepositoryInterface> { PairingStorageRepository(get()) }
+    single<PairingStorageRepositoryInterface> { PairingStorageRepository(pairingQueries = get()) }
 
     single { JsonRpcHistory(get(), get()) }
 
