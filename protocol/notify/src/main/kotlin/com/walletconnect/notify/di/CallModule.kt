@@ -79,7 +79,9 @@ internal fun callModule() = module {
     }
 
     single<GetNotificationTypesUseCaseInterface> {
-        GetNotificationTypesUseCase()
+        GetNotificationTypesUseCase(
+            getNotifyConfigUseCase = get()
+        )
     }
 
     single<GetListOfActiveSubscriptionsUseCaseInterface> {
