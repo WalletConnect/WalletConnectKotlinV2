@@ -197,9 +197,7 @@ internal class PairingEngine(
         }
     }
 
-    fun getPairings(): List<Pairing> {
-        return pairingRepository.getListOfPairings().filter { pairing -> pairing.isNotExpired() && pairing.isActive }
-    }
+    fun getPairings(): List<Pairing> = pairingRepository.getListOfPairings().filter { pairing -> pairing.isNotExpired() }
 
     fun register(vararg method: String) {
         setOfRegisteredMethods.addAll(method)
