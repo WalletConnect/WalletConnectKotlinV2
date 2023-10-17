@@ -44,6 +44,7 @@ internal fun rememberBottomBarMutableState(): MutableState<BottomBarState> {
 data class BottomBarState(
     val doesConnectionsItemHaveNotifications: Boolean = false,
     val doesInboxItemHaveNotifications: Boolean = false,
+    val isDisplayed: Boolean = true,
 )
 
 
