@@ -1,3 +1,4 @@
+import kotlin.String;
 import kotlin.collections.List;
 
 CREATE TABLE OptionalNamespaceDao (
