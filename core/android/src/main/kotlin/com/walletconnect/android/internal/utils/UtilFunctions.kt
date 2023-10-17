@@ -12,7 +12,6 @@ import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.ext.getFullName
 import java.net.URI
-import java.util.BitSet
 import kotlin.reflect.KClass
 
 @get:JvmSynthetic
@@ -36,9 +35,6 @@ val String.Companion.HexPrefix
 fun <T : SerializableJsonRpc> Module.addSerializerEntry(value: KClass<T>): KoinDefinition<KClass<T>> =
     single(qualifier = named("key_${value.getFullName()}")) { value }
 
-fun Module.addSdkBitsetForUA(bitSet: BitSet): KoinDefinition<BitSet> =
-    single(qualifier = named(bitSet.toBinaryString())) { bitSet }
-
 fun Module.addDeserializerEntry(key: String, value: KClass<*>): KoinDefinition<Pair<String, KClass<*>>> =
     single(qualifier = named("${key}_${value.getFullName()}")) { key to value }
 
@@ -48,27 +44,6 @@ data class JsonAdapterEntry<T>(val type: Class<T>, val adapter: (Moshi) -> JsonA
 fun <T> Module.addJsonAdapter(type: Class<T>, adapter: (Moshi) -> JsonAdapter<T>): KoinDefinition<JsonAdapterEntry<T>> {
     val jsonAdapterEntry = JsonAdapterEntry(type, adapter)
     return single(qualifier = named("$jsonAdapterEntry")) { jsonAdapterEntry }
-}
-
-/**
- * When converting a BitSet to a byte array, the BitSet is converted to a byte array with a dynamic size that is divisible by 8 in little-endian (right to left) order.
- * This means there will be leading zeros in front of the binary string representation of the BitSet
- */
-@JvmSynthetic
-internal fun BitSet.toBinaryString(): String =
-    this.toByteArray().joinToString { byte ->
-        "%8s".format(Integer.toBinaryString(byte.toInt() and 0xFF)).replace(' ', '0')
-    }.replace(", ", "")
-
-@JvmSynthetic
-internal fun String.removeLeadingZeros(): String = this.replaceFirst("^0+(?!$)".toRegex(), "")
-
-@JvmSynthetic
-internal fun combineListOfBitSetsWithOrOperator(bitSets: List<BitSet>): BitSet {
-    return bitSets.reduce { acc, bitSet ->
-        acc.or(bitSet)
-        acc
-    }
 }
 
 @JvmSynthetic

@@ -12,7 +12,6 @@ import com.walletconnect.auth.client.mapper.toClientAuthContext
 import com.walletconnect.auth.client.mapper.toClientAuthRequest
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.model.Events
-import com.walletconnect.auth.di.commonModule
 import com.walletconnect.auth.di.engineModule
 import com.walletconnect.auth.di.jsonRpcModule
 import com.walletconnect.auth.engine.domain.AuthEngine
@@ -36,7 +35,6 @@ internal class AuthProtocol(private val koinApp: KoinApplication = wcKoinApp) : 
                 koinApp.modules(
                     jsonRpcModule(),
                     engineModule(),
-                    commonModule()
                 )
 
                 authEngine = koinApp.koin.get()

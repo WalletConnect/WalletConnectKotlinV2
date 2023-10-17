@@ -19,10 +19,6 @@ import com.walletconnect.android.relay.NetworkClientTimeout
 import com.walletconnect.foundation.network.data.ConnectionController
 import com.walletconnect.foundation.network.data.adapter.FlowStreamAdapter
 import com.walletconnect.foundation.network.data.service.RelayService
-import com.walletconnect.utils.Empty
-import com.walletconnect.utils.combineListOfBitSetsWithOrOperator
-import com.walletconnect.utils.removeLeadingZeros
-import com.walletconnect.utils.toBinaryString
 import okhttp3.Authenticator
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -55,11 +51,7 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
     }
 
     factory(named(AndroidCommonDITags.USER_AGENT)) {
-        val listOfSdkBitsets = getAll<BitSet>().takeUnless { it.isEmpty() } ?: listOf(BitSet())
-        val sdkBitwiseFlags = if (listOfSdkBitsets.isNotEmpty()) {
-            combineListOfBitSetsWithOrOperator(listOfSdkBitsets).toBinaryString().removeLeadingZeros()
-        } else String.Empty
-        """wc-2/kotlin-${sdkVersion}x$sdkBitwiseFlags/android-${Build.VERSION.RELEASE}"""
+        """wc-2/kotlin-${sdkVersion}/android-${Build.VERSION.RELEASE}"""
     }
 
     single {
