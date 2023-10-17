@@ -95,7 +95,7 @@ fun baseStorageModule(storagePrefix: String = String.Empty) = module {
 
     single { IdentitiesStorageRepository(identities = get(), get<Moshi.Builder>(named(AndroidCommonDITags.MOSHI))) }
 
-    single { VerifyContextStorageRepository(get()) }
+    single { VerifyContextStorageRepository(verifyContextQueries = get()) }
 
     single { DatabaseConfig(storagePrefix) }
 }
