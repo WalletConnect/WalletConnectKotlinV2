@@ -1,7 +1,5 @@
 package com.walletconnect.web3.modal.ui.routes.connect.redirect
 
-import android.content.Context
-import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -24,7 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
@@ -50,6 +47,7 @@ import com.walletconnect.web3.modal.ui.components.internal.commons.entry.StoreEn
 import com.walletconnect.web3.modal.ui.components.internal.commons.switch.PlatformTab
 import com.walletconnect.web3.modal.ui.components.internal.commons.switch.PlatformTabRow
 import com.walletconnect.web3.modal.ui.components.internal.commons.switch.rememberWalletPlatformTabs
+import com.walletconnect.web3.modal.ui.components.internal.snackbar.LocalSnackBarHandler
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 import com.walletconnect.web3.modal.ui.previews.testWallets
@@ -62,7 +60,7 @@ internal fun RedirectWalletRoute(
     wallet: Wallet
 ) {
     val uriHandler = LocalUriHandler.current
-    val context: Context = LocalContext.current
+    val snackBar = LocalSnackBarHandler.current
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
     var redirectState by remember { mutableStateOf<RedirectState>(RedirectState.Loading) }
     var platformTab by rememberWalletPlatformTabs(wallet.toPlatform())
@@ -92,7 +90,7 @@ internal fun RedirectWalletRoute(
         onPlatformTabSelect = { platformTab = it },
         wallet = wallet,
         onCopyLinkClick = {
-            Toast.makeText(context, "Link copied", Toast.LENGTH_SHORT).show()
+            snackBar.showSuccessSnack("Link copied")
             clipboardManager.setText(AnnotatedString(connectState.uri))
         },
         onMobileRetry = {

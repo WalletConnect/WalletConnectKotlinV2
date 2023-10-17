@@ -14,6 +14,7 @@ import androidx.navigation.compose.rememberNavController
 import com.walletconnect.web3.modal.ui.components.internal.root.Web3ModalRoot
 import com.walletconnect.web3.modal.ui.components.internal.commons.VerticalSpacer
 import com.walletconnect.web3.modal.ui.components.internal.root.rememberWeb3ModalRootState
+import com.walletconnect.web3.modal.ui.components.internal.snackbar.rememberSnackBarState
 import com.walletconnect.web3.modal.ui.theme.ProvideWeb3ModalThemeComposition
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
@@ -23,8 +24,11 @@ internal fun Web3ModalPreview(
     content: @Composable () -> Unit,
 ) {
     ProvideWeb3ModalThemeComposition {
-        val rootState = rememberWeb3ModalRootState(coroutineScope = rememberCoroutineScope(), navController = rememberNavController())
-        Web3ModalRoot(rootState = rootState, closeModal = {}, title = title) {
+        val scope = rememberCoroutineScope()
+        val rootState = rememberWeb3ModalRootState(coroutineScope = scope, navController = rememberNavController())
+        val snackBarState = rememberSnackBarState(coroutineScope = scope)
+
+        Web3ModalRoot(rootState = rootState, snackBarState = snackBarState, closeModal = {}, title = title) {
             content()
         }
     }
