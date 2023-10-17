@@ -35,16 +35,12 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.constraintlayout.compose.ConstrainedLayoutReference
-import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.constraintlayout.compose.ConstraintLayoutScope
-import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
 import com.skydoves.landscapist.glide.GlideImage
+import com.walletconnect.sample.common.ui.TopBarActionImage
 import com.walletconnect.sample.common.ui.WCTopAppBar
 import com.walletconnect.sample.common.ui.findActivity
 import com.walletconnect.sample.common.ui.themedColor
-import com.walletconnect.sample.wallet.BuildConfig
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.wallet.ui.Web3WalletViewModel
 import com.walletconnect.sample.wallet.ui.routes.Route
@@ -61,79 +57,27 @@ fun ConnectionsRoute(navController: NavController, connectionsViewModel: Connect
     connectionsViewModel.refreshConnections()
     val connections by connectionsViewModel.connections.collectAsState(initial = emptyList())
 
-    ConstraintLayout(modifier = Modifier.fillMaxSize()) {
-        val (title, content, buttons) = createRefs()
-        Title(title)
-        Connections(connections, content, title, buttons) { connectionUI -> navController.navigate("${Route.ConnectionDetails.path}/${connectionUI.id}") }
-        Buttons(navController, buttons)
+    Column(modifier = Modifier.fillMaxSize()) {
+        Title(navController)
+        Connections(connections) { connectionUI -> navController.navigate("${Route.ConnectionDetails.path}/${connectionUI.id}") }
     }
 }
 
 @Composable
-fun ConstraintLayoutScope.Title(titleRef: ConstrainedLayoutReference) {
-    Column(modifier = Modifier.constrainAs(titleRef) {
-        top.linkTo(parent.top, margin = 0.dp)
-        start.linkTo(parent.start)
-    }) {
-        WCTopAppBar(titleText = "Connections", versionText = BuildConfig.VERSION_NAME)
-    }
+fun Title(navController: NavController) {
+    WCTopAppBar(
+        titleText = "Connections",
+        TopBarActionImage(R.drawable.ic_copy) { navController.navigate(Route.PasteUri.path) },
+        TopBarActionImage(R.drawable.ic_qr_code) { navController.navigate(Route.ScanUri.path) }
+    )
 }
 
 @Composable
-fun ConstraintLayoutScope.Buttons(navController: NavController, buttonsRef: ConstrainedLayoutReference) {
-    val iconTint = Color(0xFFFFFFFF)
-    Column(modifier = Modifier.constrainAs(buttonsRef) {
-        bottom.linkTo(parent.bottom, margin = 10.dp)
-        start.linkTo(parent.start)
-        end.linkTo(parent.end)
-    }) {
-        Row {
-            Spacer(modifier = Modifier.width(20.dp))
-            ConnectionsButton(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .clickable {
-                        navController.navigate(Route.Inbox.path)
-                    }
-            ) {
-                Icon(imageVector = ImageVector.vectorResource(id = R.drawable.ic_notification), contentDescription = "Notifications Icon", tint = iconTint)
-            }
-            Spacer(modifier = Modifier.weight(1.0f))
-            ConnectionsButton(modifier = Modifier
-                .clip(CircleShape)
-                .clickable {
-                    navController.navigate(Route.PasteUri.path)
-                }) {
-                Icon(imageVector = ImageVector.vectorResource(id = R.drawable.paste_icon), contentDescription = "Paste Uri Icon", tint = iconTint)
-            }
-            Spacer(modifier = Modifier.width(20.dp))
-            ConnectionsButton(modifier = Modifier
-                .clip(CircleShape)
-                .clickable {
-                    navController.navigate(Route.ScanUri.path)
-                }) {
-                Icon(imageVector = ImageVector.vectorResource(id = R.drawable.scan_qr_code_icon), contentDescription = "Scan QRCode Icon", tint = iconTint)
-            }
-            Spacer(modifier = Modifier.width(20.dp))
-        }
-    }
-}
-
-@Composable
-fun ConstraintLayoutScope.Connections(
+fun Connections(
     connections: List<ConnectionUI>,
-    contentRef: ConstrainedLayoutReference,
-    titleRef: ConstrainedLayoutReference,
-    buttonsRef: ConstrainedLayoutReference,
     onClick: (ConnectionUI) -> Unit = {},
 ) {
-    val modifier = Modifier.constrainAs(contentRef) {
-        top.linkTo(titleRef.bottom)
-        start.linkTo(parent.start)
-        end.linkTo(parent.end)
-        bottom.linkTo(buttonsRef.top)
-        height = Dimension.fillToConstraints
-    }
+    val modifier = Modifier.fillMaxHeight()
     if (connections.isEmpty()) {
         NoConnections(modifier)
     } else {
@@ -217,7 +161,7 @@ fun Connection(
 @Composable
 fun NoConnections(modifier: Modifier) {
     val contentColor = Color(if (isSystemInDarkTheme()) 0xFF585F5F else 0xFF9EA9A9)
-    Column(modifier = modifier.fillMaxHeight(), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(modifier = modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
         Spacer(modifier = Modifier.weight(1f))
         Icon(
             tint = contentColor,
@@ -227,9 +171,9 @@ fun NoConnections(modifier: Modifier) {
         Text(text = "Apps you connect with will appear here.", maxLines = 1, color = contentColor, style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp))
         Row() {
             Text(text = "To connect ", color = contentColor, style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp))
-            Icon(tint = contentColor, imageVector = ImageVector.vectorResource(id = R.drawable.scan_qr_code_icon), contentDescription = "Scan QRCode Icon")
+            Icon(tint = contentColor, imageVector = ImageVector.vectorResource(id = R.drawable.ic_qr_code), contentDescription = "Scan QRCode Icon", modifier = Modifier.size(24.dp))
             Text(text = " scan or ", color = contentColor, style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp))
-            Icon(tint = contentColor, imageVector = ImageVector.vectorResource(id = R.drawable.paste_icon), contentDescription = "Paste Icon")
+            Icon(tint = contentColor, imageVector = ImageVector.vectorResource(id = R.drawable.ic_copy), contentDescription = "Paste Icon", modifier = Modifier.size(24.dp))
             Text(text = " paste the code", color = contentColor, style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp))
         }
         Text(text = "that’s displayed in the app.", maxLines = 1, color = contentColor, style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp))

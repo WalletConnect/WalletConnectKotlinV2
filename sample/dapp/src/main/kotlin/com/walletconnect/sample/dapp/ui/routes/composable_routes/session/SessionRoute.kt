@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.walletconnect.sample.common.ui.WCTopAppBar
+import com.walletconnect.sample.common.ui.WCTopAppBarLegacy
 import com.walletconnect.sample.common.ui.commons.BlueButton
 import com.walletconnect.sample.common.ui.themedColor
 import com.walletconnect.sample.dapp.R
@@ -84,7 +84,7 @@ private fun SessionScreen(
     onDisconnectClick: () -> Unit,
 ) {
     Column {
-        WCTopAppBar(
+        WCTopAppBarLegacy(
             titleText = "Session Chains",
             onBackIconClick = onBackPressed,
         )

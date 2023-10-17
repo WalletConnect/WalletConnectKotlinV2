@@ -1,7 +1,6 @@
 package com.walletconnect.sample.wallet.ui.routes.composable_routes.explorer_dapps
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,7 +49,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.walletconnect.notify.client.Notify
 import com.walletconnect.notify.client.NotifyClient
-import com.walletconnect.sample.common.ui.WCTopAppBar2
+import com.walletconnect.sample.common.ui.WCTopAppBarLegacy2
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.wallet.domain.EthAccountDelegate
 import com.walletconnect.sample.wallet.domain.toEthAddress
@@ -91,7 +90,7 @@ private fun SubscribedDappsScreen(
 ) {
 
     Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-        WCTopAppBar2(titleText = "Explore Apps", onBackIconClick = onBackClick)
+        WCTopAppBarLegacy2(titleText = "Explore Apps", onBackIconClick = onBackClick)
         when (state) {
             ExplorerState.Searching -> {
                 EmptyOrLoadingOrFailureState(text = "Querying apps...", showProgressBar = true)

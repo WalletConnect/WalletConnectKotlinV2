@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.pandulapeter.beagle.DebugMenuView
@@ -45,6 +46,7 @@ import com.walletconnect.sample.common.ui.themedColor
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.wallet.ui.Web3WalletNavGraph
 import com.walletconnect.sample.wallet.ui.Web3WalletViewModel
+import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
 import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import com.walletconnect.sample.wallet.ui.state.ConnectionState
@@ -57,16 +59,19 @@ fun WalletSampleHost(
     navController: NavHostController,
     web3walletViewModel: Web3WalletViewModel,
     connectionsViewModel: ConnectionsViewModel,
-    getStartedVisited: Boolean
+    getStartedVisited: Boolean,
 ) {
     val scaffoldState: ScaffoldState = rememberScaffoldState()
     val connectionState = web3walletViewModel.connectionState.collectAsState(ConnectionState.Idle).value
     val pairingState = web3walletViewModel.pairingStateSharedFlow.collectAsState(PairingState.Idle).value
+    val bottomBarState = rememberBottomBarMutableState()
+    val currentRoute = navController.currentBackStackEntryAsState()
 
     Scaffold(
         scaffoldState = scaffoldState,
         drawerGesturesEnabled = true,
-        drawerContent = { BeagleDrawer() }
+        drawerContent = { BeagleDrawer() },
+        bottomBar = { if (currentRoute.value?.destination?.route != Route.GetStarted.path) BottomBar(navController, bottomBarState.value) },
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
             Web3WalletNavGraph(
@@ -74,7 +79,7 @@ fun WalletSampleHost(
                 navController = navController,
                 getStartedVisited = getStartedVisited,
                 web3walletViewModel = web3walletViewModel,
-                connectionsViewModel = connectionsViewModel
+                connectionsViewModel = connectionsViewModel,
             )
 
             if (connectionState is ConnectionState.Error) {

@@ -20,3 +20,4 @@ data class ProjectDTO(
     @Json(name = "dapp_url")
     val dappUrl: String?,
 )
+//todo Add is_verified
