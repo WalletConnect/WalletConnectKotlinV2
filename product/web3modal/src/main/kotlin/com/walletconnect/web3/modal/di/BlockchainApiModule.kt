@@ -26,7 +26,7 @@ internal fun blockchainApiModule() = module {
     }
 
     single {
-        BlockchainRepository(blockchainService = get())
+        BlockchainRepository(blockchainService = get(), projectId = get())
     }
 
     single { GetIdentityUseCase(blockchainRepository = get()) }

@@ -5,6 +5,7 @@ import com.walletconnect.android.internal.common.modal.Web3ModalApiRepository
 import com.walletconnect.android.internal.common.modal.data.network.Web3ModalService
 import com.walletconnect.android.internal.common.modal.domain.usecase.GetAllWalletsUseCase
 import com.walletconnect.android.internal.common.modal.domain.usecase.GetAllWalletsUseCaseInterface
+import com.walletconnect.android.internal.common.model.ProjectId
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidContext
@@ -20,7 +21,7 @@ internal fun web3ModalModule() = module {
     single(named(AndroidCommonDITags.WEB3MODAL_INTERCEPTOR)) {
         Interceptor { chain ->
             val updatedRequest = chain.request().newBuilder()
-                .addHeader("x-project-id", BuildConfig.PROJECT_ID)
+                .addHeader("x-project-id", get<ProjectId>().value)
                 .addHeader("x-sdk-version", "kotlin-${BuildConfig.SDK_VERSION}")
                 .build()
             chain.proceed(updatedRequest)
