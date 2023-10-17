@@ -1,4 +1,5 @@
 import java.lang.Boolean;
+import kotlin.String;
 import kotlin.collections.Map;
 
 CREATE TABLE SessionDao(
