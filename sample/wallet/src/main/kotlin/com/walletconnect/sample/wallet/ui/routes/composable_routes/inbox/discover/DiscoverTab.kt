@@ -104,7 +104,7 @@ private fun EmptyOrLoadingOrFailureState(text: String, showProgressBar: Boolean 
 fun ExplorerAppItem(explorerApp: ExplorerApp, onAppItemClick: () -> Unit) {
 
     //TODO: Add background gradien
-
+    //TODO: Change to Box
     OutlinedButton(
         modifier = Modifier
             .fillMaxWidth()
