@@ -24,7 +24,7 @@ import org.koin.dsl.module
 fun baseStorageModule(storagePrefix: String = String.Empty) = module {
 
     fun Scope.createCoreDB(): AndroidCoreDatabase = AndroidCoreDatabase(
-        get(named(AndroidBuildVariantDITags.ANDROID_CORE_DATABASE_DRIVER)),
+        driver = get(named(AndroidBuildVariantDITags.ANDROID_CORE_DATABASE_DRIVER)),
         MetaDataAdapter = MetaData.Adapter(
             iconsAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_LIST)),
             typeAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_APPMETADATATYPE))
