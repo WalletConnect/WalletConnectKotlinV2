@@ -16,9 +16,10 @@ import org.koin.dsl.module
 @JvmSynthetic
 internal fun storageModule(dbName: String) = module {
     fun Scope.createChatDB(): ChatDatabase = ChatDatabase(
-        get(), InvitesAdapter = Invites.Adapter(
-            statusAdapter = get(named(ChatDITags.COLUMN_ADAPTER_INVITE_STATUS)),
-            typeAdapter = get(named(ChatDITags.COLUMN_ADAPTER_INVITE_TYPE)),
+        driver = get(),
+        InvitesAdapter = Invites.Adapter(
+            statusAdapter = get<ColumnAdapter<InviteStatus, String>>(named(ChatDITags.COLUMN_ADAPTER_INVITE_STATUS)),
+            typeAdapter = get<ColumnAdapter<InviteType, String>>(named(ChatDITags.COLUMN_ADAPTER_INVITE_TYPE)),
         )
     )
 
