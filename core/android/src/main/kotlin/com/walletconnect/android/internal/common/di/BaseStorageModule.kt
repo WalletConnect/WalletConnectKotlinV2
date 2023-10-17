@@ -67,6 +67,7 @@ fun baseStorageModule(storagePrefix: String = String.Empty) = module {
 
     single<ColumnAdapter<Validation, String>>(named(AndroidCommonDITags.COLUMN_ADAPTER_VALIDATION)) { EnumColumnAdapter() }
 
+    @Suppress("RemoveExplicitTypeArguments")
     single<AndroidCoreDatabase>(named(AndroidBuildVariantDITags.ANDROID_CORE_DATABASE)) {
         try {
             createCoreDB().also { database -> database.jsonRpcHistoryQueries.selectLastInsertedRowId().executeAsOneOrNull() }
