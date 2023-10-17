@@ -58,7 +58,8 @@ internal fun engineModule() = module {
             fetchDidJwtInteractor = get(),
             keyManagementRepository = get(),
             extractPublicKeysFromDidJsonUseCase = get(),
-            notifyServerUrl = get()
+            notifyServerUrl = get(),
+            registeredAccountsRepository = get()
         )
     }
 
