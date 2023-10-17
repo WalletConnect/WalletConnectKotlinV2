@@ -17,7 +17,7 @@ import org.koin.dsl.module
 @JvmSynthetic
 internal fun notifyStorageModule(dbName: String) = module {
     fun Scope.createNotifyDB() = NotifyDatabase(
-        get(),
+        driver = get(),
         ActiveSubscriptionsAdapter = ActiveSubscriptions.Adapter(
             map_of_scopeAdapter = get<ColumnAdapter<Map<String, Triple<String, String, Boolean>>, String>>()
         ),
