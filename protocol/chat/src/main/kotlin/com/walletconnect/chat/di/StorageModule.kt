@@ -15,6 +15,7 @@ import org.koin.dsl.module
 
 @JvmSynthetic
 internal fun storageModule(dbName: String) = module {
+    @Suppress("RemoveExplicitTypeArguments")
     fun Scope.createChatDB(): ChatDatabase = ChatDatabase(
         driver = get(),
         InvitesAdapter = Invites.Adapter(
