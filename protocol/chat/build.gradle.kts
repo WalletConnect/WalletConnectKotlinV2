@@ -1,7 +1,7 @@
 plugins {
     id("com.android.library")
     kotlin("android")
-    id("com.squareup.sqldelight")
+    alias(libs.plugins.sqlDelight)
     id("com.google.devtools.ksp") version kspVersion
     id("publish-module-android")
     id("jacoco-report")
@@ -45,10 +45,13 @@ android {
 }
 
 sqldelight {
-    database("ChatDatabase") {
-        packageName = "com.walletconnect.chat"
-        schemaOutputDirectory = file("src/debug/sqldelight/databases")
-        verifyMigrations = true
+    databases {
+        create("ChatDatabase") {
+            packageName.set("com.walletconnect.chat")
+            schemaOutputDirectory.set(file("src/debug/sqldelight/databases"))
+            verifyMigrations.set(true)
+            verifyDefinitions.set(true)
+        }
     }
 }
 
@@ -58,6 +61,8 @@ dependencies {
 
     retrofit()
     moshiKsp()
+    implementation(libs.bundles.sqlDelight)
+
     androidXTest()
     jUnit4()
     robolectric()
@@ -65,5 +70,5 @@ dependencies {
     testJson()
     coroutinesTest()
     scarletTest()
-    sqlDelightTest()
+    testImplementation(libs.bundles.sqlDelightTest)
 }
