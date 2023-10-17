@@ -187,7 +187,13 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
         checkEngineInitialization()
 
         scope.launch {
-
+            notifyEngine.unregister(
+                params.account,
+                onSuccess = onSuccess,
+                onFailure = { error ->
+                    onError(Notify.Model.Error(error))
+                }
+            )
         }
     }
 

@@ -18,6 +18,7 @@ import com.walletconnect.notify.engine.calls.GetListOfMessagesUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetNotificationTypesUseCaseInterface
 import com.walletconnect.notify.engine.calls.RegisterUseCaseInterface
 import com.walletconnect.notify.engine.calls.SubscribeToDappUseCaseInterface
+import com.walletconnect.notify.engine.calls.UnregisterUseCaseInterface
 import com.walletconnect.notify.engine.calls.UpdateSubscriptionRequestUseCaseInterface
 import com.walletconnect.notify.engine.domain.WatchSubscriptionsForEveryRegisteredAccountUseCase
 import com.walletconnect.notify.engine.requests.OnNotifyDeleteUseCase
@@ -46,7 +47,8 @@ internal class NotifyEngine(
     private val deleteSubscriptionUseCase: DeleteSubscriptionUseCaseInterface,
     private val deleteMessageUseCase: DeleteMessageUseCaseInterface,
     private val decryptMessageUseCase: DecryptMessageUseCaseInterface,
-    private val enableSyncUseCase: RegisterUseCaseInterface,
+    private val registerUseCase: RegisterUseCaseInterface,
+    private val unregisterUseCase: UnregisterUseCaseInterface,
     private val getNotificationTypesUseCase: GetNotificationTypesUseCaseInterface,
     private val getListOfActiveSubscriptionsUseCase: GetListOfActiveSubscriptionsUseCaseInterface,
     private val getListOfMessages: GetListOfMessagesUseCaseInterface,
@@ -62,7 +64,8 @@ internal class NotifyEngine(
     DeleteSubscriptionUseCaseInterface by deleteSubscriptionUseCase,
     DeleteMessageUseCaseInterface by deleteMessageUseCase,
     DecryptMessageUseCaseInterface by decryptMessageUseCase,
-    RegisterUseCaseInterface by enableSyncUseCase,
+    RegisterUseCaseInterface by registerUseCase,
+    UnregisterUseCaseInterface by unregisterUseCase,
     GetNotificationTypesUseCaseInterface by getNotificationTypesUseCase,
     GetListOfActiveSubscriptionsUseCaseInterface by getListOfActiveSubscriptionsUseCase,
     GetListOfMessagesUseCaseInterface by getListOfMessages {
