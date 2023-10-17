@@ -8,10 +8,10 @@ import com.walletconnect.android.internal.common.explorer.data.model.Project
 import com.walletconnect.notify.client.Notify
 import com.walletconnect.notify.client.NotifyClient
 import com.walletconnect.sample.wallet.domain.NotifyDelegate
-import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.discover.ExplorerApp
-import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.discover.ImageUrl
 import com.walletconnect.sample.wallet.ui.common.subscriptions.ActiveSubscriptionsUI
 import com.walletconnect.sample.wallet.ui.common.subscriptions.toUI
+import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.discover.ExplorerApp
+import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.discover.ImageUrl
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -112,7 +112,14 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private suspend fun fetchExplorerApps() {
-        _explorerApps.value = getExplorerProjects().fold(onFailure = { error -> _discoverState.update { DiscoverState.Failure(error) }; emptyList() }, onSuccess = { it.toExplorerApp() })
+        _explorerApps.value = getExplorerProjects()
+            .fold(
+                onFailure = { error ->
+                    _discoverState.update { DiscoverState.Failure(error) }
+                    emptyList()
+                },
+                onSuccess = { it.toExplorerApp() }
+            )
     }
 
     private fun List<Project>.toExplorerApp(): List<ExplorerApp> = map { project ->
