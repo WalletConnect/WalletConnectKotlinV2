@@ -93,7 +93,7 @@ fun baseStorageModule(storagePrefix: String = String.Empty) = module {
 
     single { JsonRpcHistory(jsonRpcHistoryQueries = get(), logger = get()) }
 
-    single { IdentitiesStorageRepository(get(), get<Moshi.Builder>(named(AndroidCommonDITags.MOSHI))) }
+    single { IdentitiesStorageRepository(identities = get(), get<Moshi.Builder>(named(AndroidCommonDITags.MOSHI))) }
 
     single { VerifyContextStorageRepository(get()) }
 
