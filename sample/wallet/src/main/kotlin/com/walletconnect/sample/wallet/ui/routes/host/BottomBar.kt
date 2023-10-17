@@ -18,7 +18,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -27,13 +26,13 @@ import com.walletconnect.sample.common.ui.theme.blue_accent
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.wallet.ui.routes.Route
 
-sealed class BottomBarItem(val route: Route, val label: String, @DrawableRes val icon: Int) {
-    object Connections : BottomBarItem(Route.Connections, "Connections", R.drawable.ic_connections)
-    object Inbox : BottomBarItem(Route.Inbox, "Inbox", R.drawable.ic_inbox)
-    object Settings : BottomBarItem(Route.Settings, "Settings", R.drawable.ic_settings)
+enum class BottomBarItem(val route: Route, val label: String, @DrawableRes val icon: Int) {
+    CONNECTIONS(Route.Connections, "Connections", R.drawable.ic_connections),
+    INBOX(Route.Inbox, "Inbox", R.drawable.ic_inbox),
+    SETTINGS(Route.Settings, "Settings", R.drawable.ic_settings);
 
     companion object {
-        val orderedList = listOf(Connections, Inbox, Settings)
+        val orderedList = listOf(CONNECTIONS, INBOX, SETTINGS)
     }
 }
 
@@ -49,15 +48,15 @@ data class BottomBarState(
 
 
 @Composable
-fun BottomBar(navController: NavController, state: BottomBarState, screens: List<BottomBarItem> = BottomBarItem.orderedList) {
+fun BottomBar(navController: NavController, state: BottomBarState, screens: Array<BottomBarItem> = BottomBarItem.values()) {
     Column() {
         Divider()
         BottomNavigation(backgroundColor = MaterialTheme.colors.background, elevation = 0.dp) {
             val currentRoute = currentRoute(navController)
             screens.forEach { screen ->
                 val hasNotification = when (screen) {
-                    is BottomBarItem.Connections -> state.doesConnectionsItemHaveNotifications
-                    is BottomBarItem.Inbox -> state.doesInboxItemHaveNotifications
+                    BottomBarItem.CONNECTIONS -> state.doesConnectionsItemHaveNotifications
+                    BottomBarItem.INBOX -> state.doesInboxItemHaveNotifications
                     else -> false
                 }
 
