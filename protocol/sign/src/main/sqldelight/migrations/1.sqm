@@ -1,4 +1,6 @@
 import com.walletconnect.android.internal.common.model.AppMetaDataType;
+import kotlin.Boolean;
+import kotlin.String;
 import kotlin.collections.List;
 
 -- migrates 1db to 2db
