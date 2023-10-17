@@ -9,8 +9,10 @@ import com.walletconnect.notify.engine.domain.ExtractMetadataFromConfigUseCase
 import com.walletconnect.notify.engine.domain.ExtractPublicKeysFromDidJsonUseCase
 import com.walletconnect.notify.engine.domain.FetchDidJwtInteractor
 import com.walletconnect.notify.engine.domain.GenerateAppropriateUriUseCase
+import com.walletconnect.notify.engine.domain.GetSelfKeyForWatchSubscriptionUseCase
 import com.walletconnect.notify.engine.domain.RegisterIdentityUseCase
 import com.walletconnect.notify.engine.domain.SetActiveSubscriptionsUseCase
+import com.walletconnect.notify.engine.domain.StopWatchingSubscriptionsUseCase
 import com.walletconnect.notify.engine.domain.WatchSubscriptionsForEveryRegisteredAccountUseCase
 import com.walletconnect.notify.engine.domain.WatchSubscriptionsUseCase
 import org.koin.core.qualifier.named
@@ -53,13 +55,30 @@ internal fun engineModule() = module {
     }
 
     single {
+        GetSelfKeyForWatchSubscriptionUseCase(
+            keyManagementRepository = get(),
+        )
+    }
+
+    single {
         WatchSubscriptionsUseCase(
             jsonRpcInteractor = get(),
             fetchDidJwtInteractor = get(),
             keyManagementRepository = get(),
             extractPublicKeysFromDidJsonUseCase = get(),
             notifyServerUrl = get(),
-            registeredAccountsRepository = get()
+            registeredAccountsRepository = get(),
+            getSelfKeyForWatchSubscriptionUseCase = get()
+        )
+    }
+
+    single {
+        StopWatchingSubscriptionsUseCase(
+            jsonRpcInteractor = get(),
+            keyManagementRepository = get(),
+            extractPublicKeysFromDidJsonUseCase = get(),
+            notifyServerUrl = get(),
+            getSelfKeyForWatchSubscriptionUseCase = get()
         )
     }
 
