@@ -91,7 +91,7 @@ fun baseStorageModule(storagePrefix: String = String.Empty) = module {
 
     single<PairingStorageRepositoryInterface> { PairingStorageRepository(pairingQueries = get()) }
 
-    single { JsonRpcHistory(get(), get()) }
+    single { JsonRpcHistory(jsonRpcHistoryQueries = get(), logger = get()) }
 
     single { IdentitiesStorageRepository(get(), get<Moshi.Builder>(named(AndroidCommonDITags.MOSHI))) }
 
