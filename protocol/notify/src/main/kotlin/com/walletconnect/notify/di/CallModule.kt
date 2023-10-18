@@ -87,7 +87,10 @@ internal fun callModule() = module {
             registeredAccountsRepository = get(),
             stopWatchingSubscriptionsUseCase = get(),
             identitiesInteractor = get(),
-            keyserverUrl = get(named(AndroidCommonDITags.KEYSERVER_URL))
+            keyserverUrl = get(named(AndroidCommonDITags.KEYSERVER_URL)),
+            subscriptionRepository = get(),
+            messagesRepository = get(),
+            jsonRpcInteractor = get()
         )
     }
 
