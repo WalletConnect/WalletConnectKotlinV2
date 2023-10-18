@@ -110,9 +110,8 @@ internal class AccountState(
         .catch { logger.error(it) }
         .stateIn(coroutineScope, started = SharingStarted.Lazily, initialValue = null)
 
-    fun disconnect(topic: String) {
+    fun disconnect() {
             Web3Modal.disconnect(
-                disconnect = Modal.Params.Disconnect(topic),
                 onSuccess = {
                     coroutineScope.launch { deleteSessionDataUseCase() }
                     coroutineScope.launch(Dispatchers.Main) { closeModal() }
@@ -173,8 +172,6 @@ internal class AccountState(
     ) {
         Web3Modal.request(
             Modal.Params.Request(
-                sessionTopic = accountData.topic,
-                chainId = from.id,
                 method = EthUtils.walletSwitchEthChain,
                 params = createSwitchChainParams(to)
             )
@@ -191,8 +188,6 @@ internal class AccountState(
     ) {
         Web3Modal.request(
             Modal.Params.Request(
-                sessionTopic = accountData.topic,
-                chainId = from.id,
                 method = EthUtils.walletAddEthChain,
                 params = createAddEthChainParams(to)
             )

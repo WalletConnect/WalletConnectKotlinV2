@@ -32,10 +32,8 @@ object Modal {
         data class Ping(val topic: String) : Params()
 
         data class Request(
-            val sessionTopic: String,
             val method: String,
             val params: String,
-            val chainId: String,
             val expiry: Long? = null,
         ) : Params()
 
