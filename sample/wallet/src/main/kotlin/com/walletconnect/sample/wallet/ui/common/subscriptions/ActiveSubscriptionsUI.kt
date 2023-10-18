@@ -2,7 +2,6 @@ package com.walletconnect.sample.wallet.ui.common.subscriptions
 
 import com.walletconnect.notify.client.Notify
 import com.walletconnect.notify.client.NotifyClient
-import kotlin.random.Random
 
 data class ActiveSubscriptionsUI(
     val topic: String,
@@ -30,7 +29,7 @@ fun Notify.Model.Subscription.toUI(): ActiveSubscriptionsUI = ActiveSubscription
 
 
     // todo: get actual values
-    hasUnreadMessages = Random.nextBoolean(),
-    lastReceived = "2D AGO",
+    hasUnreadMessages = true,
+    lastReceived = "",
     isVerified = false
 )
