@@ -60,7 +60,7 @@ fun generateKeys(privateKey: String? = null): Triple<String, String, String> {
     }
     Security.addProvider(BouncyCastleProvider())
 
-    val keypair = privateKey?.run { ECKeyPair.create(this.toByteArray()) } ?: Keys.createEcKeyPair()
+    val keypair = privateKey?.run { ECKeyPair.create(this.hexToBytes()) } ?: Keys.createEcKeyPair()
     val newPublicKey = keypair.publicKey.toByteArray().bytesToHex()
     val newPrivateKey = keypair.privateKey.toByteArray().bytesToHex()
 
