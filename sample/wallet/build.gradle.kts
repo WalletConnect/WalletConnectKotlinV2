@@ -34,7 +34,7 @@ android {
             signingConfig = signingConfigs.getByName("debug")
             firebaseAppDistribution {
                 artifactType = "APK"
-                groups = "javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
+                groups = "design-team, javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
             }
         }
     }
