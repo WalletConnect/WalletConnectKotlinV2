@@ -83,3 +83,5 @@ fun getDescriptionContent(peerContextUI: PeerContextUI): String {
         }
     }
 }
+
+fun getColor(peerContextUI: PeerContextUI) = if (peerContextUI.isScam == true) mismatch_color else getValidationColor(peerContextUI.validation)

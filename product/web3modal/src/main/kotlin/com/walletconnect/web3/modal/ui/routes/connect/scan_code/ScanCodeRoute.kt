@@ -1,7 +1,5 @@
 package com.walletconnect.web3.modal.ui.routes.connect.scan_code
 
-import android.content.Context
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
@@ -13,15 +11,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.walletconnect.modal.ui.components.qr.WalletConnectQRCode
 import com.walletconnect.web3.modal.ui.components.internal.commons.entry.CopyActionEntry
+import com.walletconnect.web3.modal.ui.components.internal.snackbar.LocalSnackBarHandler
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 import com.walletconnect.web3.modal.ui.routes.connect.ConnectState
@@ -29,13 +28,13 @@ import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 @Composable
 internal fun ScanQRCodeRoute(connectState: ConnectState) {
-    val context: Context = LocalContext.current
+    val snackBarHandler = LocalSnackBarHandler.current
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
 
     ScanQRCodeContent(
         uri = connectState.uri,
         onCopyLinkClick = {
-            Toast.makeText(context, "Link copied", Toast.LENGTH_SHORT).show()
+            snackBarHandler.showSuccessSnack("Link copied")
             clipboardManager.setText(AnnotatedString(connectState.uri))
         }
     )
@@ -49,18 +48,19 @@ private fun ScanQRCodeContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(20.dp)
+            .padding(20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         QRCode(uri = uri)
         Spacer(modifier = Modifier.height(20.dp))
         Text(
             text = "Scan this QR code with your phone",
             modifier = Modifier.fillMaxWidth(),
-            style = Web3ModalTheme.typo.paragraph500,
+            style = Web3ModalTheme.typo.paragraph400,
             textAlign = TextAlign.Center
         )
-        Spacer(modifier = Modifier.height(20.dp))
-        CopyActionEntry(modifier = Modifier.fillMaxWidth(), onClick = onCopyLinkClick)
+        Spacer(modifier = Modifier.height(12.dp))
+        CopyActionEntry(onClick = onCopyLinkClick)
     }
 }
 

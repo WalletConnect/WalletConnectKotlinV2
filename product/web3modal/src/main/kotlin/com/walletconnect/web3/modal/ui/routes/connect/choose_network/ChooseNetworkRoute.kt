@@ -7,20 +7,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
-import com.walletconnect.web3.modal.ui.components.internal.commons.FullWidthDivider
+import com.walletconnect.web3.modal.ui.components.internal.commons.NetworkBottomSection
 import com.walletconnect.web3.modal.ui.components.internal.commons.VerticalSpacer
 import com.walletconnect.web3.modal.ui.components.internal.commons.network.ChainNetworkItem
 import com.walletconnect.web3.modal.ui.routes.connect.ConnectState
-import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 import com.walletconnect.web3.modal.utils.getChainNetworkImageUrl
 
 @Composable
@@ -33,7 +31,8 @@ internal fun ChooseNetworkRoute(
     ChainNetworkSelector(
         chains = chains,
         selectedChain = selectedChain,
-        onChainItemClick = { chain -> connectState.navigateToConnectWallet(chain) }
+        onChainItemClick = { chain -> connectState.navigateToConnectWallet(chain) },
+        onWhatIsWalletClick = { connectState.navigateToHelp() }
     )
 }
 
@@ -42,11 +41,13 @@ private fun ChainNetworkSelector(
     chains: List<Modal.Model.Chain>,
     selectedChain: Modal.Model.Chain?,
     onChainItemClick: (Modal.Model.Chain) -> Unit,
+    onWhatIsWalletClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 12.dp)
+            .padding(vertical = 12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         VerticalSpacer(height = 12.dp)
         ChainNetworkGrid(
@@ -54,14 +55,7 @@ private fun ChainNetworkSelector(
             selectedChain = selectedChain,
             onItemClick = { onChainItemClick(it) }
         )
-        FullWidthDivider()
-        VerticalSpacer(height = 12.dp)
-        Text(
-            text = "Your connected wallet may not support some of the networks available for this dApp",
-            style = Web3ModalTheme.typo.small500.copy(color = Web3ModalTheme.colors.foreground.color300),
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 12.dp)
-        )
+        NetworkBottomSection(onWhatIsWalletClick)
     }
 }
 

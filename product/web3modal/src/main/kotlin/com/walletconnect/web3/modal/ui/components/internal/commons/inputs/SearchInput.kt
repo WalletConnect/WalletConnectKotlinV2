@@ -72,7 +72,7 @@ internal fun SearchInput(
     BasicTextField(
         value = searchValue,
         onValueChange = onSearchValueChange,
-        textStyle = TextStyle(color = Web3ModalTheme.colors.foreground.color100),
+        textStyle = Web3ModalTheme.typo.paragraph400.copy(color = Web3ModalTheme.colors.foreground.color100),
         cursorBrush = SolidColor(Web3ModalTheme.colors.main100),
         singleLine = true,
         keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus(true) }),
@@ -98,7 +98,7 @@ internal fun SearchInput(
                 HorizontalSpacer(width = 8.dp)
                 Box(modifier = Modifier.weight(1f)) {
                     if (searchValue.isBlank()) {
-                        Text(text = "Search wallets", style = TextStyle(color = Web3ModalTheme.colors.foreground.color275))
+                        Text(text = "Search wallets", style = Web3ModalTheme.typo.paragraph400.copy(color = Web3ModalTheme.colors.foreground.color275))
                     }
                     innerTextField()
                     if (searchValue.isNotBlank()) {

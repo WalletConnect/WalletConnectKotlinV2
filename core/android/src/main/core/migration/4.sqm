@@ -1,4 +1,4 @@
--- migration from 3.db to 4.db
+-- migration from 4.db to 5.db
 
 -- Remove Sync API
 

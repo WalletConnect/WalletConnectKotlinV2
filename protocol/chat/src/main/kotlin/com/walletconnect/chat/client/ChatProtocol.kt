@@ -32,7 +32,6 @@ internal class ChatProtocol(private val koinApp: KoinApplication = wcKoinApp) : 
                     jsonRpcModule(),
                     storageModule(koinApp.koin.get<DatabaseConfig>().CHAT_SDK_DB_NAME),
                     engineModule(),
-                    commonModule()
                 )
             }
 

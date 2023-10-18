@@ -69,6 +69,9 @@ internal class ConnectState(
         Web3Modal.chains.find { it.id == savedChainId } ?: Web3Modal.getSelectedChainOrFirst()
     }
 
+    fun navigateToHelp() {
+        navController.navigate(Route.WHAT_IS_WALLET.path)
+    }
 
     fun navigateToScanQRCode() = connect {
         coroutineScope.launch(Dispatchers.Main) { navController.navigate(Route.QR_CODE.path) }
@@ -124,7 +127,7 @@ internal class ConnectState(
             requiredNamespaces = mapOf(
                 selectedChain.chainNamespace to Modal.Model.Namespace.Proposal(
                     chains = listOf(selectedChain.id),
-                    methods = selectedChain.methods,
+                    methods = selectedChain.requiredMethods,
                     events = selectedChain.events
                 )
             ),
@@ -136,7 +139,7 @@ internal class ConnectState(
         .map { (key: String, value: List<Modal.Model.Chain>) ->
             key to Modal.Model.Namespace.Proposal(
                 chains = value.map { it.id },
-                methods = value.flatMap { it.methods }.distinct(),
+                methods = value.flatMap { it.requiredMethods + it.optionalMethods }.distinct(),
                 events = value.flatMap { it.events }.distinct()
             )
         }.toMap()

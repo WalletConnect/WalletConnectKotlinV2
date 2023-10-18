@@ -4,6 +4,7 @@ plugins {
     id("com.google.devtools.ksp") version kspVersion
     id("publish-module-android")
     id("app.cash.paparazzi") version paparazziVersion
+    id("jacoco-report")
 }
 
 project.apply {

@@ -1,14 +1,25 @@
 CREATE TABLE Identities (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    identity TEXT NOT NULL,
-    accountId TEXT NOT NULL
+    identity TEXT UNIQUE NOT NULL,
+    accountId TEXT NOT NULL,
+    cacao_payload TEXT DEFAULT NULL,
+    is_owner INTEGER AS Boolean DEFAULT 0
 );
 
 insertOrAbortIdentity:
-INSERT OR ABORT INTO Identities(identity, accountId)
-VALUES (?, ?);
+INSERT OR ABORT INTO Identities(identity, accountId, cacao_payload, is_owner)
+VALUES (?, ?, ?, ?);
+
+removeIdentity:
+DELETE FROM Identities
+WHERE identity = ?;
 
 getAccountIdByIdentity:
 SELECT accountId
 FROM Identities
 WHERE identity = ?;
+
+getCacaoPayloadByIdentity:
+SELECT cacao_payload
+FROM Identities
+WHERE identity = ? AND is_owner = 1;

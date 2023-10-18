@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
@@ -16,7 +15,7 @@ internal data class ButtonData(
     val background: Color
 )
 
-internal enum class ButtonStyle { MAIN, ACCENT, SHADE, LOADING, ACCOUNT }
+internal enum class ButtonStyle { MAIN, ACCENT, SHADE, LOADING, ACCOUNT, LINK }
 
 internal enum class ButtonSize { M, S, ACCOUNT_M, ACCOUNT_S }
 
@@ -40,20 +39,21 @@ internal fun ButtonStyle.getTextColor(isEnabled: Boolean) = when (this) {
     ButtonStyle.ACCENT, ButtonStyle.LOADING -> if (isEnabled) Web3ModalTheme.colors.main100 else Web3ModalTheme.colors.overlay20
     ButtonStyle.SHADE -> if (isEnabled) Web3ModalTheme.colors.foreground.color150 else Web3ModalTheme.colors.overlay15
     ButtonStyle.ACCOUNT -> if (isEnabled) Web3ModalTheme.colors.foreground.color100 else Web3ModalTheme.colors.overlay15
+    ButtonStyle.LINK -> if(isEnabled) Web3ModalTheme.colors.foreground.color200 else Web3ModalTheme.colors.overlay15
 }
 
 @Composable
 internal fun ButtonStyle.getBackgroundColor(isEnabled: Boolean) = when (this) {
     ButtonStyle.MAIN -> if (isEnabled) Web3ModalTheme.colors.main100 else Web3ModalTheme.colors.overlay20
     ButtonStyle.ACCENT -> if (isEnabled) Color.Transparent else Web3ModalTheme.colors.overlay10
-    ButtonStyle.SHADE -> if (isEnabled) Color.Transparent else Web3ModalTheme.colors.overlay05
+    ButtonStyle.SHADE, ButtonStyle.LINK -> if (isEnabled) Color.Transparent else Web3ModalTheme.colors.overlay05
     ButtonStyle.LOADING -> Web3ModalTheme.colors.overlay10
     ButtonStyle.ACCOUNT -> if (isEnabled) Web3ModalTheme.colors.overlay10 else Web3ModalTheme.colors.overlay15
 }
 
 @Composable
 internal fun ButtonStyle.getBorder(isEnabled: Boolean) = when (this) {
-    ButtonStyle.MAIN -> if (isEnabled) Color.Transparent else Web3ModalTheme.colors.overlay20
+    ButtonStyle.MAIN, ButtonStyle.LINK -> if (isEnabled) Color.Transparent else Web3ModalTheme.colors.overlay20
     ButtonStyle.ACCENT, ButtonStyle.SHADE, ButtonStyle.LOADING, ButtonStyle.ACCOUNT -> if (isEnabled) Web3ModalTheme.colors.overlay10 else Web3ModalTheme.colors.overlay05
 }
 

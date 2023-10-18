@@ -9,8 +9,8 @@ import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.notify.client.Notify
 
 @JvmSynthetic
-internal fun NotifyMessage.toWalletClient(): Notify.Model.Message.Decrypted {
-    return Notify.Model.Message.Decrypted(title, body, icon, url, type)
+internal fun NotifyMessage.toWalletClient(topic: String): Notify.Model.Message.Decrypted {
+    return Notify.Model.Message.Decrypted(title, body, icon, url, type, topic)
 }
 
 @JvmSynthetic
@@ -24,9 +24,16 @@ internal fun NotifyRecord.toWalletClient(): Notify.Model.MessageRecord {
             body = this.notifyMessage.body,
             icon = this.notifyMessage.icon,
             url = this.notifyMessage.url,
-            type = this.notifyMessage.type
+            type = this.notifyMessage.type,
+            topic = this.topic
         )
     )
+}
+
+
+@JvmSynthetic
+internal fun NotificationType.toWalletClient(): Notify.Model.NotificationType {
+    return Notify.Model.NotificationType(id, name, description)
 }
 
 
@@ -106,9 +113,9 @@ internal fun RelayProtocolOptions.toClient(): Notify.Model.Subscription.Relay {
 }
 
 @JvmSynthetic
-internal fun Map<String, NotificationScope.Cached>.toClient(): Map<Notify.Model.Subscription.ScopeName, Notify.Model.Subscription.ScopeSetting> {
+internal fun Map<String, NotificationScope.Cached>.toClient(): Map<Notify.Model.Subscription.ScopeId, Notify.Model.Subscription.ScopeSetting> {
     return map { (key, value) ->
-        Notify.Model.Subscription.ScopeName(key) to Notify.Model.Subscription.ScopeSetting(value.description, value.isSelected)
+        Notify.Model.Subscription.ScopeId(key) to Notify.Model.Subscription.ScopeSetting(value.name, value.description, value.isSelected)
     }.toMap()
 }
 
@@ -118,6 +125,6 @@ internal fun SDKError.toClient(): Notify.Model.Error {
 }
 
 @JvmSynthetic
-internal fun Map<String, NotificationScope.Cached>.toDb(): Map<String, Pair<String, Boolean>> {
-    return mapValues { (_, value) -> Pair(value.description, value.isSelected) }
+internal fun Map<String, NotificationScope.Cached>.toDb(): Map<String, Triple<String, String, Boolean>> {
+    return mapValues { (_, value) -> Triple(value.name, value.description, value.isSelected) }
 }

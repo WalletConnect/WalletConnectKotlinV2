@@ -6,6 +6,26 @@ import java.net.URLEncoder
 
 private const val WC_URI_QUERY = "wc?uri="
 
+fun UriHandler.openUri(uri: String, onError: (e: Throwable) -> Unit) {
+    try {
+        openUri(uri)
+    } catch (e: Throwable) {
+        onError(e)
+    }
+}
+
+fun UriHandler.openMobileLink(
+    uri: String,
+    mobileLink: String?,
+    onError: () -> Unit
+) {
+    try {
+        mobileLink?.let { link -> openUri(formatNativeDeeplink(link, uri)) } ?: onError()
+    } catch (e: Exception) {
+        onError()
+    }
+}
+
 fun UriHandler.goToNativeWallet(uri: String, nativeLink: String?) {
     try {
         nativeLink?.let { openUri(formatNativeDeeplink(it, uri)) } ?: Timber.e("Invalid native link")
@@ -14,7 +34,7 @@ fun UriHandler.goToNativeWallet(uri: String, nativeLink: String?) {
     }
 }
 
-fun UriHandler.goToUniversalLink(uri: String, universalLink: String?) {
+fun UriHandler.openWebAppLink(uri: String, universalLink: String?) {
     try {
         universalLink?.let { openUri(formatUniversalLink(it, uri)) } ?: Timber.e("Invalid universal link")
     } catch (e: Exception) {

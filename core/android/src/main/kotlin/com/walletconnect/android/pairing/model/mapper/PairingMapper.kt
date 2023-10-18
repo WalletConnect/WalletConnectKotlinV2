@@ -35,7 +35,6 @@ fun Core.Model.Pairing.toPairing(): Pairing =
         relayProtocol,
         relayData,
         uri,
-        isActive,
         registeredMethods
     )
 

@@ -25,10 +25,10 @@ internal class RegisterUseCase(
     ) = supervisorScope {
         val accountId = AccountId(account)
         registerIdentityUseCase(
-            accountId, isLimited, domain, onSign,
+            accountId, domain, isLimited, onSign,
             onFailure = { error -> onFailure(error) },
             onSuccess = { identityPublicKey ->
-                runCatching { registeredAccountsRepository.insertOrIgnoreAccount(accountId, identityPublicKey, isLimited) }.fold(
+                runCatching { registeredAccountsRepository.insertOrIgnoreAccount(accountId, identityPublicKey, isLimited, if (isLimited) domain else null) }.fold(
                     onFailure = { error -> onFailure(error) },
                     onSuccess = { watchSubscriptionsUseCase(accountId, onSuccess = { onSuccess(identityPublicKey.keyAsHex) }, onFailure = { error -> onFailure(error) }) }
                 )

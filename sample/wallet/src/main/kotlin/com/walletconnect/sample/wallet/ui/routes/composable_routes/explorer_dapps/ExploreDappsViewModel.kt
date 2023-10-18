@@ -39,7 +39,6 @@ class ExploreDappsViewModel : ViewModel() {
             if (text.isBlank()) {
                 projects
             } else {
-                delay(500L)
                 projects.filter { it.doesMatchSearchQuery(text) }
             }
         }

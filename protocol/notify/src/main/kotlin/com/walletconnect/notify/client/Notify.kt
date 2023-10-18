@@ -24,7 +24,8 @@ object Notify {
                 override val body: String,
                 val icon: String?,
                 val url: String?,
-                val type: String?,
+                val type: String,
+                val topic: String
             ) : Message()
         }
 
@@ -35,16 +36,16 @@ object Notify {
             val account: String,
             val relay: Relay,
             val metadata: Core.Model.AppMetaData,
-            val scope: Map<ScopeName, ScopeSetting>,
+            val scope: Map<ScopeId, ScopeSetting>,
             val expiry: Long,
         ) : Model() {
 
             data class Relay(val protocol: String, val data: String?)
 
             @JvmInline
-            value class ScopeName(val value: String)
+            value class ScopeId(val value: String)
 
-            data class ScopeSetting(val description: String, val enabled: Boolean)
+            data class ScopeSetting(val name: String, val description: String, val enabled: Boolean)
         }
 
         object Cacao : Model() {
@@ -52,7 +53,7 @@ object Notify {
             data class Signature(override val t: String, override val s: String, override val m: String? = null) : Model(), SignatureInterface
         }
 
-        data class AvailableTypes(val types: List<String>) : Model()
+        data class NotificationType(val id: String, val name: String, val description: String) : Model()
 
         data class Error(val throwable: Throwable) : Model()
     }
@@ -99,5 +100,7 @@ object Notify {
         data class DecryptMessage(val topic: String, val encryptedMessage: String) : Params()
 
         data class Registration(val account: String, val domain: String, val onSign: (String) -> Model.Cacao.Signature?, val isLimited: Boolean = false) : Params()
+
+        data class Unregistration(val account: String) : Params()
     }
 }

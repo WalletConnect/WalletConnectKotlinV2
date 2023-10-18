@@ -5,10 +5,8 @@ import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import com.walletconnect.web3.modal.di.web3ModalModule
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
-import com.walletconnect.web3.modal.domain.usecase.GetSelectedChainUseCase
-import com.walletconnect.web3.modal.domain.usecase.SaveChainSelectionUseCase
-import com.walletconnect.web3.modal.utils.getSelectedChain
-import kotlinx.coroutines.runBlocking
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 object Web3Modal {
 
@@ -34,6 +32,13 @@ object Web3Modal {
         // Utils
         fun onConnectionStateChange(state: Modal.Model.ConnectionState)
         fun onError(error: Modal.Model.Error)
+    }
+
+    interface ComponentDelegate {
+        fun onModalExpanded()
+
+        fun onModalHidden()
+
     }
 
     fun initialize(
@@ -137,6 +142,10 @@ object Web3Modal {
         )
     }
 
+    suspend fun request(request: Modal.Params.Request) = suspendCoroutine<Result<Modal.Model.SentRequest>> { continuation ->
+        request(request, { continuation.resume(Result.success(it)) }, { continuation.resume(Result.failure(it.throwable)) })
+    }
+
     fun ping(ping: Modal.Params.Ping, sessionPing: Modal.Listeners.SessionPing? = null) {
         SignClient.ping(ping.toSign(), sessionPing?.toSign())
     }
@@ -148,6 +157,7 @@ object Web3Modal {
             { onError(it.toModal()) }
         )
     }
+
 
     /**
      * Caution: This function is blocking and runs on the current thread.

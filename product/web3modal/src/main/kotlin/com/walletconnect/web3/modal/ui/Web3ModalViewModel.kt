@@ -14,11 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-internal class Web3ModalViewModel(
-    savedStateHandle: SavedStateHandle
-) : ViewModel() {
-
-    private val shouldOpenChooseNetwork = savedStateHandle.get<Boolean>(CHOOSE_NETWORK_KEY) ?: false
+internal class Web3ModalViewModel: ViewModel() {
 
     private val logger: Logger = wcKoinApp.koin.get()
 
@@ -49,11 +45,11 @@ internal class Web3ModalViewModel(
         }
 
     private fun createAccountModalState() {
-        _modalState.value = Web3ModalState.AccountState(shouldOpenChooseNetwork)
+        _modalState.value = Web3ModalState.AccountState
     }
 
     private fun createConnectModalState() {
-        _modalState.value = Web3ModalState.Connect(shouldOpenChooseNetwork)
+        _modalState.value = Web3ModalState.Connect
     }
     internal fun saveSessionTopic(topic: String) = viewModelScope.launch {
         saveSessionTopicUseCase(topic)

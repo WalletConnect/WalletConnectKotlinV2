@@ -4,6 +4,7 @@ plugins {
     id("com.squareup.sqldelight")
     id("com.google.devtools.ksp") version kspVersion
     id("publish-module-android")
+    id("jacoco-report")
 }
 
 project.apply {

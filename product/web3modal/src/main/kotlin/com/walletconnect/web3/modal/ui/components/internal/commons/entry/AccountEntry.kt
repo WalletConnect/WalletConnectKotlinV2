@@ -61,7 +61,7 @@ internal fun AccountEntry(
 @UiModePreview
 @Composable
 private fun AccountEntryPreview() {
-    val content: @Composable (EntryColors) -> Unit = { Text(text = "Account entry", style = Web3ModalTheme.typo.paragraph600.copy(color = it.textColor))}
+    val content: @Composable (EntryColors) -> Unit = { Text(text = "Account entry", style = Web3ModalTheme.typo.paragraph500.copy(color = it.textColor))}
     MultipleComponentsPreview(
         {
             AccountEntry(

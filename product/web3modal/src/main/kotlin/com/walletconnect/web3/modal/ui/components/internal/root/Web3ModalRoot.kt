@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -18,6 +20,10 @@ import com.walletconnect.web3.modal.ui.components.internal.Web3ModalTopBar
 import com.walletconnect.web3.modal.ui.components.internal.commons.BackArrowIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.FullWidthDivider
 import com.walletconnect.web3.modal.ui.components.internal.commons.QuestionMarkIcon
+import com.walletconnect.web3.modal.ui.components.internal.snackbar.ModalSnackBarHost
+import com.walletconnect.web3.modal.ui.components.internal.snackbar.SnackBarEventType
+import com.walletconnect.web3.modal.ui.components.internal.snackbar.SnackBarState
+import com.walletconnect.web3.modal.ui.components.internal.snackbar.rememberSnackBarState
 import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.ui.previews.MultipleComponentsPreview
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
@@ -32,11 +38,12 @@ internal fun Web3ModalRoot(
 ) {
     val scope = rememberCoroutineScope()
     val rootState = rememberWeb3ModalRootState(coroutineScope = scope, navController = navController)
+    val snackBarState = rememberSnackBarState(coroutineScope = scope)
     val title by rootState.title.collectAsState(null)
 
     Column(verticalArrangement = Arrangement.Bottom) {
         ProvideWeb3ModalThemeComposition {
-            Web3ModalRoot(rootState, title, closeModal, content)
+            Web3ModalRoot(rootState, snackBarState, title, closeModal, content)
         }
     }
 }
@@ -44,24 +51,27 @@ internal fun Web3ModalRoot(
 @Composable
 internal fun Web3ModalRoot(
     rootState: Web3ModalRootState,
+    snackBarState: SnackBarState,
     title: String?,
     closeModal: () -> Unit,
     content: @Composable () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Web3ModalTheme.colors.background.color100)
-    ) {
-        title?.let { title ->
-            Web3ModalTopBar(
-                title = title,
-                startIcon = { TopBarStartIcon(rootState) },
-                onCloseIconClick = closeModal
-            )
-            FullWidthDivider()
+    ModalSnackBarHost(snackBarState) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Web3ModalTheme.colors.background.color100)
+        ) {
+            title?.let { title ->
+                Web3ModalTopBar(
+                    title = title,
+                    startIcon = { TopBarStartIcon(rootState) },
+                    onCloseIconClick = closeModal
+                )
+                FullWidthDivider()
+            }
+            content()
         }
-        content()
     }
 }
 
@@ -72,7 +82,7 @@ private fun TopBarStartIcon(
     if (rootState.canPopUp) {
         BackArrowIcon(onClick = rootState::popUp)
     } else {
-        when(rootState.currentDestinationRoute) {
+        when (rootState.currentDestinationRoute) {
             Route.CONNECT_YOUR_WALLET.path -> QuestionMarkIcon(onClick = rootState::navigateToHelp)
         }
     }
@@ -85,10 +95,11 @@ private fun PreviewWeb3ModalRoot() {
     val scope = rememberCoroutineScope()
     val navController = rememberNavController()
     val rootState = rememberWeb3ModalRootState(coroutineScope = scope, navController = navController)
+    val snackBarState = rememberSnackBarState(coroutineScope = scope)
 
     MultipleComponentsPreview(
-        { Web3ModalRoot(rootState, null, {}, { content() }) },
-        { Web3ModalRoot(rootState, "Top Bar Title", {}, { content() }) }
+        { Web3ModalRoot(rootState, snackBarState, null, {}, { content() }) },
+        { Web3ModalRoot(rootState, snackBarState, "Top Bar Title", {}, { content() }) }
     )
 }
 

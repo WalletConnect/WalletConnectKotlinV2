@@ -47,7 +47,6 @@ class Web3WalletActivity : AppCompatActivity() {
         handleWeb3WalletEvents(web3walletViewModel, connectionsViewModel)
         handleCoreEvents(connectionsViewModel)
         askNotificationPermission()
-        createNotificationChannel()
         setContent(web3walletViewModel, connectionsViewModel)
     }
 
@@ -121,20 +120,6 @@ class Web3WalletActivity : AppCompatActivity() {
                 // Directly ask for the permission
                 requestPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
             }
-        }
-    }
-
-    private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "NotifySample"
-            val descriptionText = "Sample for Notify SDK"
-            val importance = NotificationManager.IMPORTANCE_DEFAULT
-            val channel = NotificationChannel("Notify", name, importance).apply {
-                description = descriptionText
-            }
-            // Register the channel with the system
-            val notificationManager: NotificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
         }
     }
 }
