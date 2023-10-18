@@ -5,6 +5,9 @@ import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import com.walletconnect.web3.modal.di.web3ModalModule
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
+import com.walletconnect.web3.modal.domain.model.InvalidSessionException
+import com.walletconnect.web3.modal.domain.model.toModalError
+import com.walletconnect.web3.modal.utils.toChain
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -68,11 +71,7 @@ object Web3Modal {
         this.chains = chains
     }
 
-    fun selectChain(chain: Modal.Model.Chain) {
-        this.selectedChain = chain
-    }
-
-    fun getSelectedChain() = selectedChain
+    fun getSelectedChain() = Session.getSelectedChainId()?.toChain()
 
     internal fun getSelectedChainOrFirst() = selectedChain ?: chains.first()
 
@@ -122,7 +121,7 @@ object Web3Modal {
         SignClient.setDappDelegate(signDelegate)
     }
 
-    fun connect(
+    internal fun connect(
         connect: Modal.Params.Connect,
         onSuccess: () -> Unit,
         onError: (Modal.Model.Error) -> Unit
@@ -135,8 +134,16 @@ object Web3Modal {
     }
 
     fun request(request: Modal.Params.Request, onSuccess: (Modal.Model.SentRequest) -> Unit = {}, onError: (Modal.Model.Error) -> Unit) {
+        val sessionTopic = Session.getSessionTopic()
+        val selectedChainId = Session.getSelectedChainId()
+
+        if (sessionTopic == null || selectedChainId == null) {
+            onError(InvalidSessionException.toModalError())
+            return
+        }
+
         SignClient.request(
-            request.toSign(),
+            request.toSign(sessionTopic, selectedChainId),
             { onSuccess(it.toModal()) },
             { onError(it.toModal()) }
         )
@@ -146,29 +153,42 @@ object Web3Modal {
         request(request, { continuation.resume(Result.success(it)) }, { continuation.resume(Result.failure(it.throwable)) })
     }
 
-    fun ping(ping: Modal.Params.Ping, sessionPing: Modal.Listeners.SessionPing? = null) {
-        SignClient.ping(ping.toSign(), sessionPing?.toSign())
+    fun ping(sessionPing: Modal.Listeners.SessionPing? = null) {
+        val sessionTopic = Session.getSessionTopic()
+        if (sessionTopic == null) {
+            sessionPing?.onError(Modal.Model.Ping.Error(InvalidSessionException))
+            return
+        }
+        SignClient.ping(Sign.Params.Ping(sessionTopic), sessionPing?.toSign())
     }
 
-    fun disconnect(disconnect: Modal.Params.Disconnect, onSuccess: (Modal.Params.Disconnect) -> Unit = {}, onError: (Modal.Model.Error) -> Unit) {
+    fun disconnect(onSuccess: (Modal.Params.Disconnect) -> Unit = {}, onError: (Modal.Model.Error) -> Unit) {
+        val sessionTopic = Session.getSessionTopic()
+
+        if (sessionTopic == null) {
+            onError(InvalidSessionException.toModalError())
+            return
+        }
+
         SignClient.disconnect(
-            disconnect.toSign(),
-            { onSuccess(it.toModal()) },
+            Sign.Params.Disconnect(sessionTopic),
+            {
+                Session.clearSessionData()
+                onSuccess(it.toModal())
+            },
             { onError(it.toModal()) }
         )
     }
 
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+    internal fun getActiveSessionByTopic(topic: String) = SignClient.getActiveSessionByTopic(topic)?.toModal()
 
     /**
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
-    fun getListOfActiveSessions() = SignClient.getListOfActiveSessions().map { it.toModal() }
-
-    /**
-     * Caution: This function is blocking and runs on the current thread.
-     * It is advised that this function be called from background operation
-     */
-    fun getActiveSessionByTopic(topic: String) = SignClient.getActiveSessionByTopic(topic)?.toModal()
-
+    fun getActiveSession() = Session.getSessionTopic()?.let { SignClient.getActiveSessionByTopic(it)?.toModal() }
 }

@@ -14,7 +14,6 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -33,7 +32,6 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.ScaffoldState
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
-import androidx.compose.material.primarySurface
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.material.ripple.rememberRipple
@@ -51,16 +49,22 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogProperties
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.google.accompanist.navigation.material.ModalBottomSheetLayout
 import com.walletconnect.sample.modal.common.Route
+import com.walletconnect.sample.modal.common.messageArg
 import com.walletconnect.sample.modal.compose.ComposeActivity
 import com.walletconnect.sample.modal.kotlindsl.KotlinDSLActivity
 import com.walletconnect.sample.modal.navComponent.NavComponentActivity
+import com.walletconnect.sample.modal.ui.AlertDialogRoute
 import com.walletconnect.sample.modal.ui.LabScreen
 import com.walletconnect.sample.modal.ui.predefinedGreenDarkTheme
 import com.walletconnect.sample.modal.ui.predefinedGreenLightTheme
@@ -135,6 +139,15 @@ class MainActivity : ComponentActivity() {
                                     LabScreen(navController = navController)
                                 }
                                 web3ModalGraph(navController)
+                                dialog(
+                                    route = Route.AlertDialog.path + "/{$messageArg}",
+                                    arguments = listOf(navArgument(messageArg) { type = NavType.StringType }),
+                                    dialogProperties = DialogProperties(usePlatformDefaultWidth = false)
+                                ) {
+                                    AlertDialogRoute(
+                                        navController, checkNotNull(it.arguments?.getString(messageArg))
+                                    )
+                                }
                             }
                         }
                     }

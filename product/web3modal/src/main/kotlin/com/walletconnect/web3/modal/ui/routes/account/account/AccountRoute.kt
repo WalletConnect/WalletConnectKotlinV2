@@ -63,7 +63,7 @@ internal fun AccountRoute(
                 balance = balance,
                 onBlockExplorerClick = { url -> uriHandler.openUri(url) },
                 onChangeNetworkClick = { navController.navigate(Route.CHANGE_NETWORK.path) },
-                onDisconnectClick = { accountState.disconnect(data.topic) }
+                onDisconnectClick = { accountState.disconnect() }
             )
         }
     }
