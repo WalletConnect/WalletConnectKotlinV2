@@ -183,6 +183,20 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
         }
     }
 
+    override fun unregister(params: Notify.Params.Unregistration, onSuccess: (String) -> Unit, onError: (Notify.Model.Error) -> Unit) {
+        checkEngineInitialization()
+
+        scope.launch {
+            notifyEngine.unregister(
+                params.account,
+                onSuccess = onSuccess,
+                onFailure = { error ->
+                    onError(Notify.Model.Error(error))
+                }
+            )
+        }
+    }
+
     @Throws(IllegalStateException::class)
     private fun checkEngineInitialization() {
         check(::notifyEngine.isInitialized) {

@@ -54,8 +54,11 @@ internal class SubscriptionRepository(
         activeSubscriptionsQueries.getAllActiveSubscriptions(::toActiveSubscriptionWithoutMetadata).executeAsList()
     }
 
+    suspend fun getAccountActiveSubscriptions(accountId: AccountId): List<Subscription.Active> = withContext(Dispatchers.IO) {
+        activeSubscriptionsQueries.getActiveSubscriptionsByAccount(accountId.value, ::toActiveSubscriptionWithoutMetadata).executeAsList()
+    }
 
-    suspend fun deleteSubscriptionByNotifyTopic(notifyTopic: String, account: String) = withContext(Dispatchers.IO) {
+    suspend fun deleteSubscriptionByNotifyTopic(notifyTopic: String) = withContext(Dispatchers.IO) {
         activeSubscriptionsQueries.deleteByNotifyTopic(notifyTopic)
     }
 

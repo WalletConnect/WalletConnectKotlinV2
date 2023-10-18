@@ -55,8 +55,6 @@ object Notify {
 
         data class NotificationType(val id: String, val name: String, val description: String) : Model()
 
-        data class AvailableTypes(val types: List<NotificationType>) : Model()
-
         data class Error(val throwable: Throwable) : Model()
     }
 
@@ -102,5 +100,7 @@ object Notify {
         data class DecryptMessage(val topic: String, val encryptedMessage: String) : Params()
 
         data class Registration(val account: String, val domain: String, val onSign: (String) -> Model.Cacao.Signature?, val isLimited: Boolean = false) : Params()
+
+        data class Unregistration(val account: String) : Params()
     }
 }
