@@ -26,7 +26,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 private const val W3M_SDK = "w3m"
 
@@ -58,7 +57,7 @@ internal class ConnectState(
         }!!
     }
 
-    private var sessionParams = getSessionParamsSelectedChain()
+    private var sessionParams = getSessionParamsSelectedChain(getSelectedChainUseCase())
 
     var wallets: List<Wallet> = listOf()
 
@@ -84,8 +83,7 @@ internal class ConnectState(
 
     fun navigateToConnectWallet(chain: Modal.Model.Chain) {
         coroutineScope.launch { saveChainSelectionUseCase(chain.id) }
-        Web3Modal.selectedChain = chain
-        sessionParams = getSessionParamsSelectedChain()
+        sessionParams = getSessionParamsSelectedChain(chain.id)
         navController.navigate(Route.CONNECT_YOUR_WALLET.path)
     }
 
@@ -121,8 +119,8 @@ internal class ConnectState(
 
     private suspend fun fetchWallets() = getWalletsUseCase(sdkType = W3M_SDK, Web3Modal.excludedWalletsIds, Web3Modal.recommendedWalletsIds).mapRecentWallet(getRecentWalletUseCase())
 
-    private fun getSessionParamsSelectedChain() = with(Web3Modal.chains) {
-        val selectedChain = runBlocking { Web3Modal.chains.getSelectedChain(getSelectedChainUseCase()) }
+    private fun getSessionParamsSelectedChain(chainId: String?) = with(Web3Modal.chains) {
+        val selectedChain = getSelectedChain(chainId)
         Modal.Params.SessionParams(
             requiredNamespaces = mapOf(
                 selectedChain.chainNamespace to Modal.Model.Namespace.Proposal(

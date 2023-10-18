@@ -16,7 +16,6 @@ object Web3Modal {
     internal var excludedWalletsIds: List<String> = listOf()
     internal var recommendedWalletsIds: List<String> = listOf()
 
-    internal var selectedChain: Modal.Model.Chain? = null
     internal var chains: List<Modal.Model.Chain> = listOf()
 
     internal var sessionProperties: Map<String, String>? = null
@@ -73,7 +72,7 @@ object Web3Modal {
 
     fun getSelectedChain() = Session.getSelectedChainId()?.toChain()
 
-    internal fun getSelectedChainOrFirst() = selectedChain ?: chains.first()
+    internal fun getSelectedChainOrFirst() = getSelectedChain() ?: chains.first()
 
     fun setSessionProperties(properties: Map<String, String>) {
         sessionProperties = properties
