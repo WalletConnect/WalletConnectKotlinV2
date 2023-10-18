@@ -48,6 +48,11 @@ SELECT account, authentication_public_key, expiry, relay_protocol, relay_data, m
 FROM ActiveSubscriptions
 WHERE notify_topic = ?;
 
+getActiveSubscriptionsByAccount:
+SELECT account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, dapp_generated_public_key, notify_topic, requested_subscription_id
+FROM ActiveSubscriptions
+WHERE account = ?;
+
 getActiveSubscriptionForeignRequestedSubscriptionIdByNotifyTopic:
 SELECT requested_subscription_id
 FROM ActiveSubscriptions
