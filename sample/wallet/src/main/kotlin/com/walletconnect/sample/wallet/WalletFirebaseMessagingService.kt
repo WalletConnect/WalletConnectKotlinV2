@@ -44,11 +44,11 @@ class WalletFirebaseMessagingService : NotifyMessageService() {
             is Notify.Model.Message.Simple -> "Web3Wallet" to "Web3Wallet"
             is Notify.Model.Message.Decrypted -> message.type to runCatching {
                 // TODO discus with the team how to make it more dev friendly
-                val appUrl = NotifyClient.getActiveSubscriptions()[message.topic]?.metadata?.url ?: throw IllegalStateException("No active subscription for topic: ${message.topic}")
-                val appDomain = URI(appUrl).host ?: throw IllegalStateException("Unable to parse domain from $appUrl")
+                val appMetadata = NotifyClient.getActiveSubscriptions()[message.topic]?.metadata ?: throw IllegalStateException("No active subscription for topic: ${message.topic}")
+                val appDomain = URI(appMetadata.url).host ?: throw IllegalStateException("Unable to parse domain from $appMetadata.url")
 
-                NotifyClient.getNotificationTypes(Notify.Params.NotificationTypes(appDomain))[message.type]?.name
-                    ?: throw IllegalStateException("No notification type for topic: ${message.topic} and type: ${message.type}")
+                val typeName = NotifyClient.getNotificationTypes(Notify.Params.NotificationTypes(appDomain))[message.type]?.name ?: throw IllegalStateException("No notification type for topic:${message.topic} and type: ${message.type}")
+                (appMetadata.name + ": " + typeName)
             }.getOrElse {
                 Timber.e(it)
                 message.type
