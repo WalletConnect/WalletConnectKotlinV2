@@ -44,6 +44,7 @@ import com.walletconnect.sample.common.BuildConfig as CommonBuildConfig
 
 class Web3WalletApplication : Application() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private var addFirebaseBeagleModules: () -> Unit = {}
 
     override fun onCreate() {
         super.onCreate()
@@ -100,48 +101,7 @@ class Web3WalletApplication : Application() {
             }
         )
 
-        initBeagle(
-            this,
-            HeaderModule(
-                title = getString(R.string.app_name),
-                subtitle = BuildConfig.APPLICATION_ID,
-                text = "${BuildConfig.BUILD_TYPE} v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
-            ),
-            DividerModule(),
-            TextModule(text = with(EthAccountDelegate) { account.toEthAddress() }) {
-                (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("Account", with(EthAccountDelegate) { account.toEthAddress() }))
-            },
-            PaddingModule(size = PaddingModule.Size.LARGE),
-            TextModule(text = CoreClient.Echo.clientId, id = CoreClient.Echo.clientId) {
-                (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("ClientId", CoreClient.Echo.clientId))
-            },
-            DividerModule(),
-            TextInputModule(
-                text = "Import Private Key",
-                validator = { text ->
-                    !text.startsWith("0x") && text.length == 64
-                },
-                onValueChanged = { text ->
-                    EthAccountDelegate.privateKey = text
-
-
-                    NotifyClient.register(
-                        params = Notify.Params.Registration(
-                            with(EthAccountDelegate) { account.toEthAddress() },
-                            isLimited = false,
-                            domain = BuildConfig.APPLICATION_ID,
-                            onSign = { message -> CacaoSigner.sign(message, EthAccountDelegate.privateKey.hexToBytes(), SignatureType.EIP191) }
-                        ),
-                        onSuccess = {
-                            Log.e(tag(this), "Register Success")
-                        },
-                        onError = {
-                            Log.e(tag(this), it.throwable.stackTraceToString())
-                        }
-                    )
-                }
-            ),
-        )
+        initializeBeagle()
 
         mixPanel = MixpanelAPI.getInstance(this, CommonBuildConfig.MIX_PANEL, true).apply {
             identify(CoreClient.Echo.clientId)
@@ -156,16 +116,85 @@ class Web3WalletApplication : Application() {
 
         // For testing purposes only
         FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
-            Beagle.add(
-                PaddingModule(size = PaddingModule.Size.LARGE, id = "${token}Padding"),
-                placement = Placement.Below(id = CoreClient.Echo.clientId)
-            )
-            Beagle.add(
-                TextModule(text = token) {
-                    (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("FMC_Token", token))
-                },
-                placement = Placement.Below(id = "${token}Padding")
-            )
+            addFirebaseBeagleModules = {
+                Beagle.add(
+                    PaddingModule(size = PaddingModule.Size.LARGE, id = "${token}Padding"),
+                    placement = Placement.Below(id = CoreClient.Echo.clientId)
+                )
+                Beagle.add(
+                    TextModule(text = token) {
+                        (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("FMC_Token", token))
+                    },
+                    placement = Placement.Below(id = "${token}Padding")
+                )
+            }
+            addFirebaseBeagleModules()
         }
+    }
+
+    private fun initializeBeagle() {
+        initBeagle(
+            this@Web3WalletApplication,
+            HeaderModule(
+                title = getString(R.string.app_name),
+                subtitle = BuildConfig.APPLICATION_ID,
+                text = "${BuildConfig.BUILD_TYPE} v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
+            ),
+            DividerModule(),
+            TextModule(text = with(EthAccountDelegate) { account.toEthAddress() }) {
+                (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("Account", with(EthAccountDelegate) { account.toEthAddress() }))
+            },
+            PaddingModule(size = PaddingModule.Size.LARGE),
+            TextModule(text = with(EthAccountDelegate) { privateKey }) {
+                (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("Private Key", with(EthAccountDelegate) { privateKey }))
+            },
+            PaddingModule(size = PaddingModule.Size.LARGE),
+            TextModule(text = CoreClient.Echo.clientId, id = CoreClient.Echo.clientId) {
+                (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("ClientId", CoreClient.Echo.clientId))
+            },
+            DividerModule(),
+            TextInputModule(
+                text = "Import Private Key",
+                areRealTimeUpdatesEnabled = false,
+                validator = { text ->
+                    !text.startsWith("0x") && text.length == 64
+                },
+                onValueChanged = { text ->
+                    NotifyClient.unregister(
+                        params = Notify.Params.Unregistration(
+                            with(EthAccountDelegate) { account.toEthAddress() },
+                        ),
+                        onSuccess = {
+                            Log.e(tag(this), "Unregister Success")
+
+                            EthAccountDelegate.privateKey = text
+
+
+                            NotifyClient.register(
+                                params = Notify.Params.Registration(
+                                    with(EthAccountDelegate) { account.toEthAddress() },
+                                    isLimited = false,
+                                    domain = BuildConfig.APPLICATION_ID,
+                                    onSign = { message -> CacaoSigner.sign(message, EthAccountDelegate.privateKey.hexToBytes(), SignatureType.EIP191) }
+                                ),
+                                onSuccess = {
+                                    Log.e(tag(this), "Register Success")
+                                    CoroutineScope(Dispatchers.Main).launch {
+                                        initializeBeagle()
+                                    }
+                                },
+                                onError = {
+                                    Log.e(tag(this), it.throwable.stackTraceToString())
+                                }
+                            )
+                        },
+                        onError = {
+                            Log.e(tag(this), it.throwable.stackTraceToString())
+                        }
+                    )
+                }
+            ),
+        )
+        addFirebaseBeagleModules()
     }
 }
