@@ -19,7 +19,6 @@ import java.util.Calendar
 import java.util.Locale
 import java.util.TimeZone
 import java.util.concurrent.TimeUnit
-import kotlin.random.Random
 
 @Suppress("UNCHECKED_CAST")
 class NotificationsViewModelFactory(private val topic: String) : ViewModelProvider.Factory {
@@ -93,7 +92,7 @@ class NotificationsViewModel(topic: String) : ViewModel() {
             body = message.body,
             url = (message as? Notify.Model.Message.Decrypted)?.url,
             icon = (message as? Notify.Model.Message.Decrypted)?.icon,
-            isUnread = Random.Default.nextBoolean()
+            isUnread = false,
         )
 
     private fun getHumanReadableTime(timestampMillis: Long): String {
