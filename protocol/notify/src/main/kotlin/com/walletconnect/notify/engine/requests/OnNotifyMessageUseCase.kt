@@ -61,7 +61,6 @@ internal class OnNotifyMessageUseCase(
                     url = messageJwt.message.url,
                     type = messageJwt.message.type
                 )
-                Timber.d("ONM Message inserted into DB: ${request.publishedAt} ${request.id}")
 
                 val notifyRecord = NotifyRecord(
                     id = request.id,

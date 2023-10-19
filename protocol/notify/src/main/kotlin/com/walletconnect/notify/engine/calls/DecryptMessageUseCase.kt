@@ -49,8 +49,6 @@ internal class DecryptMessageUseCase(
                     type = messageRequestJwt.message.type
                 )
 
-                Timber.d("DM Message inserted into DB: ${clientJsonRpc.id}")
-
                 onSuccess(
                     NotifyMessage(
                         title = messageRequestJwt.message.title,
