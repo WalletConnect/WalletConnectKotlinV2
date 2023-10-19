@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalComposeUiApi::class)
+
 package com.walletconnect.web3.modal.ui.components.internal.root
 
 import androidx.compose.foundation.background
@@ -11,7 +13,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -93,7 +97,11 @@ private fun TopBarStartIcon(
     rootState: Web3ModalRootState
 ) {
     if (rootState.canPopUp) {
-        BackArrowIcon(onClick = rootState::popUp)
+        val keyboardController = LocalSoftwareKeyboardController.current
+        BackArrowIcon(onClick = {
+            keyboardController?.hide()
+            rootState.popUp()
+        })
     } else {
         when (rootState.currentDestinationRoute) {
             Route.CONNECT_YOUR_WALLET.path -> QuestionMarkIcon(onClick = rootState::navigateToHelp)

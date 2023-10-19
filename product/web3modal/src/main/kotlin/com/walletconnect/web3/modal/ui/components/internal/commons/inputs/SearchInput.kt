@@ -36,6 +36,7 @@ import com.walletconnect.web3.modal.ui.components.internal.commons.ContentDescri
 import com.walletconnect.web3.modal.ui.previews.MultipleComponentsPreview
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
+import com.walletconnect.web3.modal.ui.utils.conditionalModifier
 
 @Composable
 internal fun SearchInput(
@@ -67,49 +68,55 @@ internal fun SearchInput(
         }
     }
 
-    BasicTextField(
-        value = searchValue,
-        onValueChange = onSearchValueChange,
-        textStyle = Web3ModalTheme.typo.paragraph400.copy(color = Web3ModalTheme.colors.foreground.color100),
-        cursorBrush = SolidColor(Web3ModalTheme.colors.accent100),
-        singleLine = true,
-        keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus(true) }),
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+    Box(
         modifier = modifier
-            .height(40.dp)
-            .background(color = backgroundColor, shape = RoundedCornerShape(12.dp))
-            .border(width = 1.dp, color = borderColor, shape = RoundedCornerShape(12.dp))
-            .padding(2.dp)
-            .onFocusChanged { isFocused = it.hasFocus }
-            .focusRequester(focusRequester),
-        decorationBox = { innerTextField ->
-            Row(
-                modifier = Modifier.padding(4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                HorizontalSpacer(width = 12.dp)
-                Icon(
-                    tint = Web3ModalTheme.colors.foreground.color275,
-                    imageVector = ImageVector.vectorResource(id = R.drawable.ic_search),
-                    contentDescription = ContentDescription.SEARCH.description,
-                )
-                HorizontalSpacer(width = 8.dp)
-                Box(modifier = Modifier.weight(1f)) {
-                    if (searchValue.isBlank()) {
-                        Text(text = "Search wallets", style = Web3ModalTheme.typo.paragraph400.copy(color = Web3ModalTheme.colors.foreground.color275))
-                    }
-                    innerTextField()
-                    if (searchValue.isNotBlank()) {
-                        InputCancel(modifier = Modifier.align(Alignment.CenterEnd)) {
-                            onSearchValueChange(String.Empty)
-                            onClearClick.invoke()
+            .conditionalModifier(isFocused) { border(width = 3.dp, borderColor.copy(0.2f), shape = RoundedCornerShape(15.dp)) }
+            .padding(3.dp)
+    ) {
+        BasicTextField(
+            value = searchValue,
+            onValueChange = onSearchValueChange,
+            textStyle = Web3ModalTheme.typo.paragraph400.copy(color = Web3ModalTheme.colors.foreground.color100),
+            cursorBrush = SolidColor(Web3ModalTheme.colors.accent100),
+            singleLine = true,
+            keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus(true) }),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+            modifier = Modifier
+                .height(40.dp)
+                .background(color = backgroundColor, shape = RoundedCornerShape(12.dp))
+                .border(width = 1.dp, color = borderColor, shape = RoundedCornerShape(12.dp))
+                .padding(2.dp)
+                .onFocusChanged { isFocused = it.hasFocus }
+                .focusRequester(focusRequester),
+            decorationBox = { innerTextField ->
+                Row(
+                    modifier = Modifier.padding(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    HorizontalSpacer(width = 6.dp)
+                    Icon(
+                        tint = Web3ModalTheme.colors.foreground.color275,
+                        imageVector = ImageVector.vectorResource(id = R.drawable.ic_search),
+                        contentDescription = ContentDescription.SEARCH.description,
+                    )
+                    HorizontalSpacer(width = 8.dp)
+                    Box(modifier = Modifier.weight(1f)) {
+                        if (searchValue.isBlank()) {
+                            Text(text = "Search wallets", style = Web3ModalTheme.typo.paragraph400.copy(color = Web3ModalTheme.colors.foreground.color275))
+                        }
+                        innerTextField()
+                        if (searchValue.isNotBlank()) {
+                            InputCancel(modifier = Modifier.align(Alignment.CenterEnd)) {
+                                onSearchValueChange(String.Empty)
+                                onClearClick.invoke()
+                            }
                         }
                     }
+                    HorizontalSpacer(width = 6.dp)
                 }
-                HorizontalSpacer(width = 12.dp)
-            }
-        },
-    )
+            },
+        )
+    }
 }
 
 @Composable

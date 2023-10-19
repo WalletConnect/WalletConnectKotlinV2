@@ -2,6 +2,7 @@ package com.walletconnect.web3.modal.ui.routes.connect.all_wallets
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -25,8 +26,12 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -78,8 +83,8 @@ private fun AllWalletsContent(
             .fillMaxHeight(gridFraction)
             .padding(horizontal = 12.dp),
     ) {
-        VerticalSpacer(height = 12.dp)
-        Row {
+        VerticalSpacer(height = 10.dp)
+        Row(verticalAlignment = Alignment.CenterVertically) {
             SearchInput(
                 searchValue = searchInputValue,
                 modifier = Modifier.weight(1f),

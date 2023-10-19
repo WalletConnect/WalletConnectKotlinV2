@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.walletconnect.modal.ui.components.qr.QrCodeType
 import com.walletconnect.modal.ui.components.qr.WalletConnectQRCode
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
@@ -94,14 +95,16 @@ private fun QRCode(uri: String) {
             WalletConnectQRCode(
                 qrData = uri,
                 primaryColor = Web3ModalTheme.colors.inverse000,
-                logoColor = Web3ModalTheme.colors.accent100
+                logoColor = Web3ModalTheme.colors.accent100,
+                type = QrCodeType.W3M
             )
         }
     } else {
         WalletConnectQRCode(
             qrData = uri,
             primaryColor = Web3ModalTheme.colors.inverse000,
-            logoColor = Web3ModalTheme.colors.accent100
+            logoColor = Web3ModalTheme.colors.accent100,
+            type = QrCodeType.W3M
         )
     }
 }
