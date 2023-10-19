@@ -2,9 +2,6 @@
 
 package com.walletconnect.sample.wallet.ui
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -42,7 +39,7 @@ class Web3WalletActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val web3walletViewModel: Web3WalletViewModel = Web3WalletViewModel()
+        val web3walletViewModel: Web3WalletViewModel = Web3WalletViewModel(application)
         val connectionsViewModel: ConnectionsViewModel = ConnectionsViewModel()
         handleWeb3WalletEvents(web3walletViewModel, connectionsViewModel)
         handleCoreEvents(connectionsViewModel)
