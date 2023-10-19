@@ -6,6 +6,7 @@ import com.walletconnect.android.internal.common.jwt.did.EncodeDidJwtPayloadUseC
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.util.jwt.encodeDidPkh
+import com.walletconnect.foundation.util.jwt.encodeDidWeb
 import com.walletconnect.foundation.util.jwt.encodeEd25519DidKey
 
 internal class EncodeDeleteRequestJwtUseCase(
@@ -22,7 +23,7 @@ internal class EncodeDeleteRequestJwtUseCase(
             keyserverUrl = keyserverUrl,
             audience = encodeEd25519DidKey(authenticationKey.keyAsBytes),
             subject = encodeDidPkh(accountId.value),
-            app = app
+            app = encodeDidWeb(app)
         )
     }
 }

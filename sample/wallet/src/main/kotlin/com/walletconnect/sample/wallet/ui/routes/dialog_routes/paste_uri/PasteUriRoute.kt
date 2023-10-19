@@ -50,7 +50,7 @@ fun PasteUriRoute(onSubmit: (String) -> Unit) {
         Spacer(modifier = Modifier.height(6.dp))
         Row() {
             Text(text = "To get the URI press the ", color = contentColor, style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp))
-            Icon(tint = contentColor, imageVector = ImageVector.vectorResource(id = R.drawable.paste_icon), contentDescription = "Paste Icon")
+            Icon(tint = contentColor, imageVector = ImageVector.vectorResource(id = R.drawable.ic_copy), contentDescription = "Paste Icon")
             Text(text = " copy to clipboard", color = contentColor, style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp))
         }
         Text(

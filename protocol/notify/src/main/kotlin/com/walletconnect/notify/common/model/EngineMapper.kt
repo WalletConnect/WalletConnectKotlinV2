@@ -9,8 +9,8 @@ import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.notify.client.Notify
 
 @JvmSynthetic
-internal fun NotifyMessage.toWalletClient(): Notify.Model.Message.Decrypted {
-    return Notify.Model.Message.Decrypted(title, body, icon, url, type)
+internal fun NotifyMessage.toWalletClient(topic: String): Notify.Model.Message.Decrypted {
+    return Notify.Model.Message.Decrypted(title, body, icon, url, type, topic)
 }
 
 @JvmSynthetic
@@ -24,9 +24,16 @@ internal fun NotifyRecord.toWalletClient(): Notify.Model.MessageRecord {
             body = this.notifyMessage.body,
             icon = this.notifyMessage.icon,
             url = this.notifyMessage.url,
-            type = this.notifyMessage.type
+            type = this.notifyMessage.type,
+            topic = this.topic
         )
     )
+}
+
+
+@JvmSynthetic
+internal fun NotificationType.toWalletClient(): Notify.Model.NotificationType {
+    return Notify.Model.NotificationType(id, name, description)
 }
 
 

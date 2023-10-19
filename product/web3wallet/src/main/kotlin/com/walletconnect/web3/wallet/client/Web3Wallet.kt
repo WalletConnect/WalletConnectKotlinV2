@@ -3,14 +3,11 @@ package com.walletconnect.web3.wallet.client
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.auth.client.AuthClient
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
-import com.walletconnect.utils.addSdkBitsetForUA
 import kotlinx.coroutines.*
-import org.koin.dsl.module
 import java.util.*
 
 object Web3Wallet {
@@ -90,9 +87,6 @@ object Web3Wallet {
     @Throws(IllegalStateException::class)
     fun initialize(params: Wallet.Params.Init, onSuccess: () -> Unit = {}, onError: (Wallet.Model.Error) -> Unit) {
         coreClient = params.core
-        wcKoinApp.modules(
-            module { addSdkBitsetForUA(bitset) }
-        )
         var clientInitCounter = 0
         SignClient.initialize(Sign.Params.Init(params.core), onSuccess = { clientInitCounter++ }) { error -> onError(Wallet.Model.Error(error.throwable)) }
         AuthClient.initialize(Auth.Params.Init(params.core), onSuccess = { clientInitCounter++ }) { error -> onError(Wallet.Model.Error(error.throwable)) }
@@ -301,9 +295,4 @@ object Web3Wallet {
     }
 
     private const val TIMEOUT: Long = 10000
-    private const val BIT_ORDER = 4 // https://github.com/WalletConnect/walletconnect-docs/blob/main/docs/specs/clients/core/relay/relay-user-agent.md#schema
-    private val bitset: BitSet
-        get() = BitSet().apply {
-            set(BIT_ORDER)
-        }
 }

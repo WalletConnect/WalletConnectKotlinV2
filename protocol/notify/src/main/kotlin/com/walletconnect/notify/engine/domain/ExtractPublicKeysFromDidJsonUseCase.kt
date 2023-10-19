@@ -6,7 +6,6 @@ import android.net.Uri
 import android.util.Base64
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.foundation.common.model.PublicKey
-import com.walletconnect.foundation.util.Logger
 import com.walletconnect.notify.data.wellknown.did.DidJsonDTO
 import com.walletconnect.notify.data.wellknown.did.VerificationMethodDTO
 import com.walletconnect.notify.engine.calls.DidJsonPublicKeyPair
@@ -21,9 +20,9 @@ internal class ExtractPublicKeysFromDidJsonUseCase(
 ) {
 
     suspend operator fun invoke(uri: Uri): Result<DidJsonPublicKeyPair> = withContext(Dispatchers.IO) {
-        val didJsonDappUri = generateAppropriateUri(uri, DID_JSON)
+        val didJsonUri = generateAppropriateUri(uri, DID_JSON)
 
-        val didJsonResult = didJsonDappUri.runCatching {
+        val didJsonResult = didJsonUri.runCatching {
             // Get the did.json from the dapp
             URL(this.toString()).openStream().bufferedReader().use { it.readText() }
         }.mapCatching { wellKnownDidJsonString ->

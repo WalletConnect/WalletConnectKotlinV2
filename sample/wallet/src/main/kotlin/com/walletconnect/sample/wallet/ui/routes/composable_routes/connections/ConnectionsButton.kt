@@ -53,7 +53,7 @@ private fun PasteButtonPreview() {
     MaterialTheme {
         ConnectionsButton(
             content = {
-                Icon(ImageVector.vectorResource(id = R.drawable.paste_icon), contentDescription = "Scan QRCode Icon", tint = Color(0xFFFFFFFF))
+                Icon(ImageVector.vectorResource(id = R.drawable.ic_copy), contentDescription = "Scan QRCode Icon", tint = Color(0xFFFFFFFF))
             }, modifier = Modifier
         )
     }

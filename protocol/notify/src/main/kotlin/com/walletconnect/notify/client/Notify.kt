@@ -24,7 +24,8 @@ object Notify {
                 override val body: String,
                 val icon: String?,
                 val url: String?,
-                val type: String?,
+                val type: String,
+                val topic: String
             ) : Message()
         }
 
@@ -52,7 +53,7 @@ object Notify {
             data class Signature(override val t: String, override val s: String, override val m: String? = null) : Model(), SignatureInterface
         }
 
-        data class AvailableTypes(val types: List<String>) : Model()
+        data class NotificationType(val id: String, val name: String, val description: String) : Model()
 
         data class Error(val throwable: Throwable) : Model()
     }
@@ -99,5 +100,7 @@ object Notify {
         data class DecryptMessage(val topic: String, val encryptedMessage: String) : Params()
 
         data class Registration(val account: String, val domain: String, val onSign: (String) -> Model.Cacao.Signature?, val isLimited: Boolean = false) : Params()
+
+        data class Unregistration(val account: String) : Params()
     }
 }

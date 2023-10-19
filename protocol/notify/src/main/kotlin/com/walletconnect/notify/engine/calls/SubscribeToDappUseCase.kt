@@ -49,7 +49,7 @@ internal class SubscribeToDappUseCase(
         val selfPublicKey = crypto.generateAndStoreX25519KeyPair()
         val responseTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, dappPublicKey)
 
-        val didJwt = fetchDidJwtInteractor.subscriptionRequest(AccountId(account), authenticationPublicKey, dappUri.toString(), dappScopes.map { it.name })
+        val didJwt = fetchDidJwtInteractor.subscriptionRequest(AccountId(account), authenticationPublicKey, dappUri.toString(), dappScopes.map { it.id })
             .getOrElse { error -> return@supervisorScope onFailure(error) }
 
         val params = CoreNotifyParams.SubscribeParams(didJwt.value)

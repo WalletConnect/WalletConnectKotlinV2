@@ -40,7 +40,7 @@ internal class DeleteSubscriptionUseCase(
         val request = NotifyRpc.NotifyDelete(params = CoreNotifyParams.DeleteParams(deleteJwt.value))
         val irnParams = IrnParams(Tags.NOTIFY_DELETE, Ttl(MONTH_IN_SECONDS))
 
-        subscriptionRepository.deleteSubscriptionByNotifyTopic(notifyTopic, account)
+        subscriptionRepository.deleteSubscriptionByNotifyTopic(notifyTopic)
         messagesRepository.deleteMessagesByTopic(notifyTopic)
 
         jsonRpcInteractor.unsubscribe(Topic(notifyTopic))
