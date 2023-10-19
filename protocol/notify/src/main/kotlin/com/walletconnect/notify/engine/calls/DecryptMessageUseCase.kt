@@ -12,13 +12,16 @@ import com.walletconnect.android.internal.common.storage.JsonRpcHistory
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.notify.common.model.NotifyMessage
 import com.walletconnect.notify.data.jwt.message.MessageRequestJwtClaim
+import com.walletconnect.notify.data.storage.MessagesRepository
 import kotlinx.coroutines.supervisorScope
+import timber.log.Timber
 import kotlin.reflect.safeCast
 
 internal class DecryptMessageUseCase(
     private val codec: Codec,
     private val serializer: JsonRpcSerializer,
     private val jsonRpcHistory: JsonRpcHistory,
+    private val messagesRepository: MessagesRepository
 ) : DecryptMessageUseCaseInterface {
 
     override suspend fun decryptMessage(topic: String, message: String, onSuccess: (NotifyMessage) -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
@@ -34,6 +37,19 @@ internal class DecryptMessageUseCase(
                 val messageRequestJwt = extractVerifiedDidJwtClaims<MessageRequestJwtClaim>(notifyMessageJwt.messageAuth).getOrElse {
                     return@supervisorScope onFailure(IllegalArgumentException("The decrypted message does not match WalletConnect Notify Message format"))
                 }
+
+                messagesRepository.insertMessage(
+                    requestId = clientJsonRpc.id,
+                    topic = topic,
+                    publishedAt = clientJsonRpc.id,
+                    title = messageRequestJwt.message.title,
+                    body = messageRequestJwt.message.body,
+                    icon = messageRequestJwt.message.icon,
+                    url = messageRequestJwt.message.url,
+                    type = messageRequestJwt.message.type
+                )
+
+                Timber.d("DM Message inserted into DB: ${clientJsonRpc.id}")
 
                 onSuccess(
                     NotifyMessage(

@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.supervisorScope
+import timber.log.Timber
 
 internal class OnNotifyMessageUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -47,30 +48,35 @@ internal class OnNotifyMessageUseCase(
             *   jwtClaims.iss - did:key of dapp authentication key. Add logic when cached value does not match jwtClaims.iss then fetch value again and if value still does not match then throw
             *   jwtClaims.app - did:web of app domain that this request is associated with. Must match domain of active subscription by topic */
 
-            messagesRepository.insertMessage(
-                requestId = request.id,
-                topic = request.topic.value,
-                publishedAt = request.publishedAt,
-                title = messageJwt.message.title,
-                body = messageJwt.message.body,
-                icon = messageJwt.message.icon,
-                url = messageJwt.message.url,
-                type = messageJwt.message.type
-            )
-
-            val notifyRecord = NotifyRecord(
-                id = request.id,
-                topic = request.topic.value,
-                publishedAt = request.publishedAt,
-                notifyMessage = NotifyMessage(
+            if (messagesRepository.doesMessagesExistsByRequestId(request.id)) {
+                messagesRepository.updateMessageWithPublishedAtByRequestId(request.publishedAt, request.id)
+            } else {
+                messagesRepository.insertMessage(
+                    requestId = request.id,
+                    topic = request.topic.value,
+                    publishedAt = request.publishedAt,
                     title = messageJwt.message.title,
                     body = messageJwt.message.body,
                     icon = messageJwt.message.icon,
                     url = messageJwt.message.url,
                     type = messageJwt.message.type
                 )
-            )
-            _events.emit(notifyRecord)
+                Timber.d("ONM Message inserted into DB: ${request.publishedAt} ${request.id}")
+
+                val notifyRecord = NotifyRecord(
+                    id = request.id,
+                    topic = request.topic.value,
+                    publishedAt = request.publishedAt,
+                    notifyMessage = NotifyMessage(
+                        title = messageJwt.message.title,
+                        body = messageJwt.message.body,
+                        icon = messageJwt.message.icon,
+                        url = messageJwt.message.url,
+                        type = messageJwt.message.type
+                    )
+                )
+                _events.emit(notifyRecord)
+            }
         }.mapCatching { _ ->
 
             val activeSubscription = subscriptionRepository.getActiveSubscriptionByNotifyTopic(request.topic.value)
