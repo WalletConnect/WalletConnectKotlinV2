@@ -1,15 +1,11 @@
 package com.walletconnect.sample.wallet.ui
 
-import android.app.Application
 import android.util.Log
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
-import com.walletconnect.notify.client.Notify
-import com.walletconnect.sample.wallet.domain.NotificationHandler
 import com.walletconnect.sample.wallet.domain.ISSUER
-import com.walletconnect.sample.wallet.domain.NotifyDelegate
 import com.walletconnect.sample.wallet.domain.WCDelegate
 import com.walletconnect.sample.wallet.ui.state.ConnectionState
 import com.walletconnect.sample.wallet.ui.state.PairingState
@@ -21,27 +17,17 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 
-class Web3WalletViewModel(_app: Application) : AndroidViewModel(_app) {
+class Web3WalletViewModel : ViewModel() {
     private val connectivityStateFlow: MutableStateFlow<ConnectionState> = MutableStateFlow(ConnectionState.Idle)
     val connectionState = merge(connectivityStateFlow.asStateFlow(), connectionStateFlow.asStateFlow())
 
     private val _pairingStateSharedFlow: MutableSharedFlow<PairingState> = MutableSharedFlow()
     val pairingStateSharedFlow = _pairingStateSharedFlow.asSharedFlow()
-
-    init {
-        NotifyDelegate.notifyEvents
-            .filterIsInstance<Notify.Event.Message>()
-            .onEach { message -> NotificationHandler.showNotification(message.message.message, getApplication()) }
-            .launchIn(viewModelScope)
-    }
 
     val walletEvents = WCDelegate.walletEvents.map { wcEvent ->
         Log.d("Web3Wallet", "VM: $wcEvent")
