@@ -21,10 +21,12 @@ import com.walletconnect.web3.modal.ui.navigation.connection.navigateToRedirect
 import com.walletconnect.web3.modal.utils.getSelectedChain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
@@ -118,6 +120,9 @@ internal class ConnectState(
             emit(UiState.Error(it))
         }
         .flowOn(Dispatchers.IO)
+        .stateIn(coroutineScope, started = SharingStarted.Lazily, initialValue = getInitialWalletState())
+
+    private fun getInitialWalletState(): UiState<List<Wallet>> = if (wallets.isEmpty()) { UiState.Loading() } else { UiState.Success(wallets) }
 
     private suspend fun fetchWallets() = getWalletsUseCase(sdkType = W3M_SDK, Web3Modal.excludedWalletsIds, Web3Modal.recommendedWalletsIds).mapRecentWallet(getRecentWalletUseCase())
 
