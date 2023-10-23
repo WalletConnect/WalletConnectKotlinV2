@@ -31,26 +31,26 @@ fun Web3ModalTheme(
 object Web3ModalTheme {
 
     fun provideLightWeb3ModalColors(
-        main100: Color = defaultLightWeb3ModalColors.accent100,
-        main90: Color = defaultLightWeb3ModalColors.accent90,
-        main20: Color = defaultLightWeb3ModalColors.accent80,
+        accent100: Color = defaultLightWeb3ModalColors.accent100,
+        accent90: Color = defaultLightWeb3ModalColors.accent90,
+        accent80: Color = defaultLightWeb3ModalColors.accent80,
         foreground: ColorPalette = defaultLightWeb3ModalColors.foreground,
         background: ColorPalette = defaultLightWeb3ModalColors.background,
         overlay: Color = defaultLightWeb3ModalColors.grayGlass,
         success: Color = defaultLightWeb3ModalColors.success,
         error: Color = defaultLightWeb3ModalColors.error
-    ): Colors = CustomWeb3ModalColor(main100, main90, main20, foreground, background, overlay, success, error)
+    ): Colors = CustomWeb3ModalColor(accent100, accent90, accent80, foreground, background, overlay, success, error)
 
     fun provideDarkWeb3ModalColor(
-        main100: Color = defaultDarkWeb3ModalColors.accent100,
-        main90: Color = defaultDarkWeb3ModalColors.accent90,
-        main20: Color = defaultDarkWeb3ModalColors.accent80,
+        accent100: Color = defaultDarkWeb3ModalColors.accent100,
+        accent90: Color = defaultDarkWeb3ModalColors.accent90,
+        accent80: Color = defaultDarkWeb3ModalColors.accent80,
         foreground: ColorPalette = defaultDarkWeb3ModalColors.foreground,
         background: ColorPalette = defaultDarkWeb3ModalColors.background,
         overlay: Color = defaultDarkWeb3ModalColors.grayGlass,
         success: Color = defaultDarkWeb3ModalColors.success,
         error: Color = defaultDarkWeb3ModalColors.error
-    ): Colors = CustomWeb3ModalColor(main100, main90, main20, foreground, background, overlay, success, error)
+    ): Colors = CustomWeb3ModalColor(accent100, accent90, accent80, foreground, background, overlay, success, error)
 
     fun provideForegroundLightColorPalette(
         color100: Color = defaultLightWeb3ModalColors.foreground.color100,
