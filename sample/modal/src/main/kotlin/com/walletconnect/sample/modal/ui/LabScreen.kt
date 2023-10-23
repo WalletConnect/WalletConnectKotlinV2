@@ -44,18 +44,18 @@ fun LabScreen(
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
-        ModalSampleDelegate.wcEventModels.collect {
-            when(it) {
+        ModalSampleDelegate.wcEventModels.collect { event ->
+            when(event) {
                 is Modal.Model.SessionRequestResponse -> {
-                    when(it.result) {
+                    when(event.result) {
                         is Modal.Model.JsonRpcResponse.JsonRpcError -> {
-                            val error = it.result as Modal.Model.JsonRpcResponse.JsonRpcError
+                            val error = event.result as Modal.Model.JsonRpcResponse.JsonRpcError
                             navController.openAlertDialog("Error Message: ${error.message}\n Error Code: ${error.code}")
                         }
-                        is Modal.Model.JsonRpcResponse.JsonRpcResult -> navController.openAlertDialog((it.result as Modal.Model.JsonRpcResponse.JsonRpcResult).result)
+                        is Modal.Model.JsonRpcResponse.JsonRpcResult -> navController.openAlertDialog((event.result as Modal.Model.JsonRpcResponse.JsonRpcResult).result)
                     }
                 }
-                is Modal.Model.Error -> { navController.openAlertDialog(it.throwable.localizedMessage ?:  "Something goes wrong") }
+                is Modal.Model.Error -> { navController.openAlertDialog(event.throwable.localizedMessage ?:  "Something went wrong") }
                 else -> Unit
             }
         }

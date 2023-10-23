@@ -13,9 +13,9 @@ internal object Session {
     private val getSelectedChainUseCase: GetSelectedChainUseCase = wcKoinApp.koin.get()
     private val deleteSessionDataUseCase: DeleteSessionDataUseCase = wcKoinApp.koin.get()
 
-    fun getSessionTopic() = getSessionTopicUseCase()
+    fun getSessionTopic(): String? = getSessionTopicUseCase()
 
-    fun getSelectedChainId() = getSelectedChainUseCase()
+    fun getSelectedChainId(): String? = getSelectedChainUseCase()
 
     fun clearSessionData() {
         scope.launch { deleteSessionDataUseCase() }
