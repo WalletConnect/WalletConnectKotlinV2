@@ -156,15 +156,15 @@ internal fun ChevronRightIcon(
 
 @Composable
 internal fun RecentTransactionIcon(
-    tint: Color = Web3ModalTheme.colors.main100
+    tint: Color = Web3ModalTheme.colors.accent100
 ) {
     Icon(
         imageVector = ImageVector.vectorResource(id = R.drawable.ic_swap),
         contentDescription = ContentDescription.SWAP.description,
         modifier = Modifier
             .size(32.dp)
-            .background(Web3ModalTheme.colors.overlay10, shape = CircleShape)
-            .border(2.dp, Web3ModalTheme.colors.overlay02, shape = CircleShape)
+            .background(Web3ModalTheme.colors.grayGlass10, shape = CircleShape)
+            .border(2.dp, Web3ModalTheme.colors.grayGlass02, shape = CircleShape)
             .padding(8.dp),
         tint = tint
     )
@@ -179,8 +179,8 @@ internal fun DisconnectIcon(
         contentDescription = ContentDescription.DISCONNECT.description,
         modifier = Modifier
             .size(32.dp)
-            .background(Web3ModalTheme.colors.overlay10, shape = CircleShape)
-            .border(2.dp, Web3ModalTheme.colors.overlay02, shape = CircleShape)
+            .background(Web3ModalTheme.colors.grayGlass10, shape = CircleShape)
+            .border(2.dp, Web3ModalTheme.colors.grayGlass02, shape = CircleShape)
             .padding(8.dp),
         tint = tint
     )
@@ -188,7 +188,7 @@ internal fun DisconnectIcon(
 
 @Composable
 internal fun ScanQRIcon(
-    tint: Color = Web3ModalTheme.colors.main100,
+    tint: Color = Web3ModalTheme.colors.accent100,
     onClick: () -> Unit
 ) {
     Icon(
@@ -198,12 +198,12 @@ internal fun ScanQRIcon(
             .roundedClickable { onClick() }
             .size(40.dp)
             .background(
-                color = Web3ModalTheme.colors.main10,
+                color = Web3ModalTheme.colors.accent10,
                 shape = RoundedCornerShape(12.dp)
             )
             .border(
                 width = 1.dp,
-                color = Web3ModalTheme.colors.main10,
+                color = Web3ModalTheme.colors.accent10,
                 shape = RoundedCornerShape(12.dp)
             )
             .padding(10.dp),
@@ -213,7 +213,7 @@ internal fun ScanQRIcon(
 
 @Composable
 internal fun AllWalletsIcon(
-    tint: Color = Web3ModalTheme.colors.main100,
+    tint: Color = Web3ModalTheme.colors.accent100,
 ) {
     Icon(
         imageVector = ImageVector.vectorResource(id = R.drawable.ic_all_wallets),
@@ -221,12 +221,12 @@ internal fun AllWalletsIcon(
         modifier = Modifier
             .size(40.dp)
             .background(
-                color = Web3ModalTheme.colors.main10,
+                color = Web3ModalTheme.colors.accent10,
                 shape = RoundedCornerShape(12.dp)
             )
             .border(
                 width = 1.dp,
-                color = Web3ModalTheme.colors.main10,
+                color = Web3ModalTheme.colors.accent10,
                 shape = RoundedCornerShape(12.dp)
             )
             .padding(10.dp),
@@ -244,13 +244,13 @@ internal fun SelectNetworkIcon(
         modifier = Modifier
             .size(24.dp)
             .background(
-                color = Web3ModalTheme.colors.overlay25,
+                color = Web3ModalTheme.colors.grayGlass25,
                 shape = CircleShape
             )
             .padding(5.dp)
             .border(
                 width = 1.dp,
-                color = Web3ModalTheme.colors.overlay10,
+                color = Web3ModalTheme.colors.grayGlass10,
                 shape = CircleShape
             ),
         tint = tint

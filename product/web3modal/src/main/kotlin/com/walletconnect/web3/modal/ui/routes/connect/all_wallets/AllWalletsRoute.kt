@@ -32,7 +32,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import com.walletconnect.android.internal.common.modal.data.model.Wallet
 import com.walletconnect.modal.utils.isLandscape
 import com.walletconnect.web3.modal.R
@@ -130,7 +129,7 @@ private fun ColumnScope.NoWalletsFoundItem() {
             contentDescription = ContentDescription.WALLET.description,
             modifier = Modifier
                 .size(40.dp)
-                .background(Web3ModalTheme.colors.overlay05, RoundedCornerShape(12.dp))
+                .background(Web3ModalTheme.colors.grayGlass05, RoundedCornerShape(12.dp))
                 .padding(7.dp)
         )
         VerticalSpacer(height = 20.dp)

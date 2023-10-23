@@ -23,7 +23,7 @@ internal fun TextLabel(text: String, isEnabled: Boolean = true) {
     ListLabel(
         text = text,
         isEnabled = isEnabled,
-        backgroundColor = Web3ModalTheme.colors.overlay10,
+        backgroundColor = Web3ModalTheme.colors.grayGlass10,
         labelTextColor = Web3ModalTheme.colors.foreground.color150
     )
 }
@@ -38,7 +38,7 @@ internal fun RecentLabel(isEnabled: Boolean = true) {
     ListLabel(
         text = "RECENT",
         isEnabled = isEnabled,
-        backgroundColor = Web3ModalTheme.colors.overlay10,
+        backgroundColor = Web3ModalTheme.colors.grayGlass10,
         labelTextColor = Web3ModalTheme.colors.foreground.color150
     )
 }
@@ -57,8 +57,8 @@ internal fun InstalledLabel(isEnabled: Boolean = true) {
 private fun ListLabel(
     text: String,
     isEnabled: Boolean,
-    backgroundColor: Color = Web3ModalTheme.colors.main15,
-    labelTextColor: Color = Web3ModalTheme.colors.main100
+    backgroundColor: Color = Web3ModalTheme.colors.accent15,
+    labelTextColor: Color = Web3ModalTheme.colors.accent100
 ) {
     val textColor: Color
     val background: Color
@@ -66,7 +66,7 @@ private fun ListLabel(
         background = backgroundColor
         textColor = labelTextColor
     } else {
-        background = Web3ModalTheme.colors.overlay10
+        background = Web3ModalTheme.colors.grayGlass10
         textColor = Web3ModalTheme.colors.foreground.color300
     }
     Box(
