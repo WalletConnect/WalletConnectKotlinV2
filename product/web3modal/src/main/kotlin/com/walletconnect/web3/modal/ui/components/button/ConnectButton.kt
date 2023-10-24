@@ -1,6 +1,5 @@
 package com.walletconnect.web3.modal.ui.components.button
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -47,30 +46,25 @@ internal fun ConnectButton(
             ConnectButtonSize.NORMAL -> ButtonSize.M
             ConnectButtonSize.SMALL -> ButtonSize.S
         }
-        AnimatedContent(
-            targetState = isLoading && isEnabled,
-            label = "ConnectButton"
-        ) { state ->
-            if (state) {
-                ImageButton(
-                    text = "Connecting...",
-                    image = { LoadingSpinner(size = 10.dp, strokeWidth = 2.dp) },
-                    style = ButtonStyle.LOADING,
-                    size = buttonSize
-                ) {}
-            } else {
-                val text = when (size) {
-                    ConnectButtonSize.NORMAL -> "Connect Wallet"
-                    ConnectButtonSize.SMALL -> "Connect"
-                }
-                TextButton(
-                    text = text,
-                    style = ButtonStyle.MAIN,
-                    size = buttonSize,
-                    isEnabled = isEnabled,
-                    onClick = onClick
-                )
+        if (isLoading && isEnabled) {
+            ImageButton(
+                text = "Connecting...",
+                image = { LoadingSpinner(size = 10.dp, strokeWidth = 2.dp) },
+                style = ButtonStyle.LOADING,
+                size = buttonSize
+            ) {}
+        } else {
+            val text = when (size) {
+                ConnectButtonSize.NORMAL -> "Connect Wallet"
+                ConnectButtonSize.SMALL -> "Connect"
             }
+            TextButton(
+                text = text,
+                style = ButtonStyle.MAIN,
+                size = buttonSize,
+                isEnabled = isEnabled,
+                onClick = onClick
+            )
         }
     }
 }
