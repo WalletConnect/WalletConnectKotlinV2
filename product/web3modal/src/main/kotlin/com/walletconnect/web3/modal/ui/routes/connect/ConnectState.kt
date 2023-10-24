@@ -33,16 +33,18 @@ private const val W3M_SDK = "w3m"
 @Composable
 internal fun rememberConnectState(
     coroutineScope: CoroutineScope,
-    navController: NavController
+    navController: NavController,
+    showError: (String?) -> Unit
 ): ConnectState {
     return remember(coroutineScope, navController) {
-        ConnectState(coroutineScope, navController)
+        ConnectState(coroutineScope, navController, showError)
     }
 }
 
 internal class ConnectState(
     private val coroutineScope: CoroutineScope,
-    private val navController: NavController
+    private val navController: NavController,
+    private val showError: (String?) -> Unit
 ) {
     private val logger: Logger = wcKoinApp.koin.get()
     private val getWalletsUseCase: GetAllWalletsUseCaseInterface = wcKoinApp.koin.get()
@@ -100,7 +102,10 @@ internal class ConnectState(
             Web3Modal.connect(
                 connect = connectParams,
                 onSuccess = { onSuccess(pairing.uri) },
-                onError = { logger.error(it.throwable) }
+                onError = {
+                    showError(it.throwable.localizedMessage)
+                    logger.error(it.throwable)
+                }
             )
         } catch (e: Exception) {
             logger.error(e)
@@ -114,6 +119,7 @@ internal class ConnectState(
         emit(UiState.Success(wallets))
     }
         .catch {
+            showError(it.localizedMessage)
             logger.error(it)
             emit(UiState.Error(it))
         }

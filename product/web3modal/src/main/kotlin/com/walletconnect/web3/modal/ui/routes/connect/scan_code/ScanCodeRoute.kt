@@ -11,6 +11,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ClipboardManager
@@ -19,20 +24,34 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.walletconnect.modal.ui.components.qr.WalletConnectQRCode
+import com.walletconnect.web3.modal.client.Modal
+import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
 import com.walletconnect.web3.modal.ui.components.internal.commons.entry.CopyActionEntry
 import com.walletconnect.web3.modal.ui.components.internal.snackbar.LocalSnackBarHandler
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 import com.walletconnect.web3.modal.ui.routes.connect.ConnectState
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
+import kotlinx.coroutines.flow.filterIsInstance
 
 @Composable
 internal fun ScanQRCodeRoute(connectState: ConnectState) {
     val snackBarHandler = LocalSnackBarHandler.current
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
+    var uri by remember { mutableStateOf(connectState.uri) }
+
+    LaunchedEffect(Unit) {
+        Web3ModalDelegate
+            .wcEventModels
+            .filterIsInstance<Modal.Model.RejectedSession>()
+            .collect {
+                snackBarHandler.showErrorSnack("Declined")
+                connectState.connect { newUri -> uri = newUri }
+            }
+    }
 
     ScanQRCodeContent(
-        uri = connectState.uri,
+        uri = uri,
         onCopyLinkClick = {
             snackBarHandler.showSuccessSnack("Link copied")
             clipboardManager.setText(AnnotatedString(connectState.uri))

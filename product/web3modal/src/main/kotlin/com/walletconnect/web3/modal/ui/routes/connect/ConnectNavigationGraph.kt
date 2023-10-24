@@ -5,6 +5,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.walletconnect.web3.modal.ui.components.internal.snackbar.LocalSnackBarHandler
 import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.ui.navigation.connection.redirectRoute
 import com.walletconnect.web3.modal.ui.routes.connect.choose_network.ChooseNetworkRoute
@@ -21,10 +22,11 @@ internal fun ConnectionNavGraph(
     navController: NavHostController,
     shouldOpenChooseNetwork: Boolean
 ) {
+    val snackBar = LocalSnackBarHandler.current
     val connectState = rememberConnectState(
         coroutineScope = rememberCoroutineScope(),
         navController = navController
-    )
+    ) { message -> snackBar.showErrorSnack(message ?: "Something went wrong") }
     val startDestination = if (shouldOpenChooseNetwork) { Route.CHOOSE_NETWORK.path } else { Route.CONNECT_YOUR_WALLET.path }
     NavHost(
         navController = navController,
