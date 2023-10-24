@@ -4,7 +4,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -61,7 +60,7 @@ internal fun HelpSection(
 }
 
 @Composable
-internal fun ColumnScope.NetworkBottomSection(
+internal fun NetworkBottomSection(
     onClick: () -> Unit
 ) {
     FullWidthDivider()
@@ -87,10 +86,10 @@ internal fun WhatIsNetworkLink(onClick: () -> Unit) {
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            QuestionMarkIcon(tint = Web3ModalTheme.colors.main100, onClick = {})
+            QuestionMarkIcon(tint = Web3ModalTheme.colors.accent100, onClick = {})
             Text(
                 text = "What is a network",
-                style = Web3ModalTheme.typo.small600.copy(color = Web3ModalTheme.colors.main100),
+                style = Web3ModalTheme.typo.small600.copy(color = Web3ModalTheme.colors.accent100),
                 modifier = Modifier.padding(start = 0.dp, end = 8.dp)
             )
         }

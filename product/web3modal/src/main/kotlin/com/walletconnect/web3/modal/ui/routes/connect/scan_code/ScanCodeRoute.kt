@@ -94,14 +94,14 @@ private fun QRCode(uri: String) {
             WalletConnectQRCode(
                 qrData = uri,
                 primaryColor = Web3ModalTheme.colors.inverse000,
-                logoColor = Web3ModalTheme.colors.main100
+                logoColor = Web3ModalTheme.colors.accent100
             )
         }
     } else {
         WalletConnectQRCode(
             qrData = uri,
             primaryColor = Web3ModalTheme.colors.inverse000,
-            logoColor = Web3ModalTheme.colors.main100
+            logoColor = Web3ModalTheme.colors.accent100
         )
     }
 }

@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,7 +27,6 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.walletconnect.modal.ui.components.common.HorizontalSpacer
@@ -56,16 +54,16 @@ internal fun SearchInput(
 
     when {
         isFocused -> {
-            borderColor = Web3ModalTheme.colors.main100
-            backgroundColor = Web3ModalTheme.colors.overlay05
+            borderColor = Web3ModalTheme.colors.accent100
+            backgroundColor = Web3ModalTheme.colors.grayGlass05
         }
         isEnabled -> {
-            borderColor = Web3ModalTheme.colors.overlay05
-            backgroundColor = Web3ModalTheme.colors.overlay05
+            borderColor = Web3ModalTheme.colors.grayGlass05
+            backgroundColor = Web3ModalTheme.colors.grayGlass05
         }
         else -> {
-            borderColor = Web3ModalTheme.colors.overlay10
-            backgroundColor = Web3ModalTheme.colors.overlay15
+            borderColor = Web3ModalTheme.colors.grayGlass10
+            backgroundColor = Web3ModalTheme.colors.grayGlass15
         }
     }
 
@@ -73,7 +71,7 @@ internal fun SearchInput(
         value = searchValue,
         onValueChange = onSearchValueChange,
         textStyle = Web3ModalTheme.typo.paragraph400.copy(color = Web3ModalTheme.colors.foreground.color100),
-        cursorBrush = SolidColor(Web3ModalTheme.colors.main100),
+        cursorBrush = SolidColor(Web3ModalTheme.colors.accent100),
         singleLine = true,
         keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus(true) }),
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),

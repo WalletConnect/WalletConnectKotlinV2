@@ -6,12 +6,12 @@ import androidx.compose.ui.graphics.Color
 import com.walletconnect.web3.modal.ui.Web3ModalTheme
 
 internal data class Web3ModalColors(
-    val main100: Color,
-    val main90: Color,
-    val main20: Color,
+    val accent100: Color,
+    val accent90: Color,
+    val accent80: Color,
     val foreground: ColorPalette,
     val background: ColorPalette,
-    val overlay: Color,
+    val grayGlass: Color,
     val success: Color,
     val error: Color,
     val teal: Color,
@@ -25,17 +25,16 @@ internal data class Web3ModalColors(
 
     val success15 = success.copy(.15f)
 
-    val main15: Color = main100.copy(.15f)
-    val main10: Color = main100.copy(.1f)
-    val main005: Color = main100.copy(.05f)
+    val accent15: Color = accent100.copy(.15f)
+    val accent10: Color = accent100.copy(.1f)
 
-    val overlay02: Color = overlay.copy(.02f)
-    val overlay05: Color = overlay.copy(.05f)
-    val overlay10: Color = overlay.copy(.10f)
-    val overlay15: Color = overlay.copy(.15f)
-    val overlay20: Color = overlay.copy(.2f)
-    val overlay25: Color = overlay.copy(.25f)
-    val overlay30: Color = overlay.copy(.3f)
+    val grayGlass02: Color = grayGlass.copy(.02f)
+    val grayGlass05: Color = grayGlass.copy(.05f)
+    val grayGlass10: Color = grayGlass.copy(.10f)
+    val grayGlass15: Color = grayGlass.copy(.15f)
+    val grayGlass20: Color = grayGlass.copy(.2f)
+    val grayGlass25: Color = grayGlass.copy(.25f)
+    val grayGlass30: Color = grayGlass.copy(.3f)
 }
 data class ColorPalette(
     val color100: Color,
@@ -51,12 +50,12 @@ data class ColorPalette(
 @Composable
 internal fun provideWeb3ModalColors(composition: CustomComposition): Web3ModalColors = if (composition.mode.isDarkTheme()) {
     Web3ModalColors(
-        main100 = composition.darkColors.main100,
-        main90 = composition.darkColors.main90,
-        main20 = composition.darkColors.main20,
+        accent100 = composition.darkColors.accent100,
+        accent90 = composition.darkColors.accent90,
+        accent80 = composition.darkColors.accent80,
         foreground = composition.darkColors.foreground,
         background = composition.darkColors.background,
-        overlay = composition.darkColors.overlay,
+        grayGlass = composition.darkColors.grayGlass,
         success = composition.darkColors.success,
         error = composition.darkColors.error,
         teal = defaultDarkWeb3ModalColors.teal,
@@ -67,12 +66,12 @@ internal fun provideWeb3ModalColors(composition: CustomComposition): Web3ModalCo
     )
 } else {
     Web3ModalColors(
-        main100 = composition.lightColors.main100,
-        main90 = composition.lightColors.main90,
-        main20 = composition.lightColors.main20,
+        accent100 = composition.lightColors.accent100,
+        accent90 = composition.lightColors.accent90,
+        accent80 = composition.lightColors.accent80,
         foreground = composition.lightColors.foreground,
         background = composition.lightColors.background,
-        overlay = composition.lightColors.overlay,
+        grayGlass = composition.lightColors.grayGlass,
         success = composition.lightColors.success,
         error = composition.lightColors.error,
         teal = defaultLightWeb3ModalColors.teal,
@@ -91,9 +90,9 @@ private fun Web3ModalTheme.Mode.isDarkTheme() = when(this) {
 }
 
 internal val defaultDarkWeb3ModalColors = Web3ModalColors(
-    main100 = Color(0xFF47A1FF),
-    main90 = Color(0xFF59AAFF),
-    main20 = Color(0xFF6CB4FF),
+    accent100 = Color(0xFF47A1FF),
+    accent90 = Color(0xFF59AAFF),
+    accent80 = Color(0xFF6CB4FF),
     foreground = ColorPalette(
         Color(0xFFE4E7E7),
         Color(0xFFD0D5D5),
@@ -116,7 +115,7 @@ internal val defaultDarkWeb3ModalColors = Web3ModalColors(
         Color(0xFF363B3B),
         Color(0xFF3B4040)
     ),
-    overlay = Color(0xFFFFFFFF),
+    grayGlass = Color(0xFFFFFFFF),
     success = Color(0xFF26D962),
     error = Color(0xFFF25A67),
     teal = Color(0xFF36E2E2),
@@ -127,9 +126,9 @@ internal val defaultDarkWeb3ModalColors = Web3ModalColors(
 )
 
 internal val defaultLightWeb3ModalColors = Web3ModalColors(
-    main100 = Color(0xFF3396FF),
-    main90 = Color(0xFF2D7DD2),
-    main20 = Color(0xFF2978CC),
+    accent100 = Color(0xFF3396FF),
+    accent90 = Color(0xFF2D7DD2),
+    accent80 = Color(0xFF2978CC),
     foreground = ColorPalette(
         Color(0xFF141414),
         Color(0xFF2D3131),
@@ -152,7 +151,7 @@ internal val defaultLightWeb3ModalColors = Web3ModalColors(
         Color(0xFFDCE7E7),
         Color(0xFFD8E3E3)
     ),
-    overlay = Color(0xFF000000),
+    grayGlass = Color(0xFF000000),
     success = Color(0xFF26B562),
     error = Color(0xFFF05142),
     teal = Color(0xFF2BB6B6),

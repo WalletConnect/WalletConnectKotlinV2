@@ -17,7 +17,6 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
-import com.walletconnect.util.Empty
 import com.walletconnect.web3.modal.R
 import com.walletconnect.web3.modal.ui.components.internal.commons.HorizontalSpacer
 import com.walletconnect.web3.modal.ui.previews.ComponentPreview
@@ -37,7 +36,7 @@ internal fun ModalSnackBar(
             )
             .border(
                 width = 1.dp,
-                color = Web3ModalTheme.colors.overlay05,
+                color = Web3ModalTheme.colors.grayGlass05,
                 shape = shape
             )
             .padding(8.dp)
