@@ -3,7 +3,6 @@ package com.walletconnect.web3.modal.ui.routes.connect
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.walletconnect.web3.modal.ui.components.internal.snackbar.LocalSnackBarHandler
 import com.walletconnect.web3.modal.ui.navigation.Route
@@ -16,6 +15,7 @@ import com.walletconnect.web3.modal.ui.routes.connect.get_wallet.GetAWalletRoute
 import com.walletconnect.web3.modal.ui.routes.connect.what_is_wallet.WhatIsWallet
 import com.walletconnect.web3.modal.ui.routes.connect.scan_code.ScanQRCodeRoute
 import com.walletconnect.web3.modal.ui.routes.connect.what_is_wallet.WhatIsWalletOption
+import com.walletconnect.web3.modal.ui.utils.AnimatedNavGraph
 
 @Composable
 internal fun ConnectionNavGraph(
@@ -28,7 +28,7 @@ internal fun ConnectionNavGraph(
         navController = navController
     ) { message -> snackBar.showErrorSnack(message ?: "Something went wrong") }
     val startDestination = if (shouldOpenChooseNetwork) { Route.CHOOSE_NETWORK.path } else { Route.CONNECT_YOUR_WALLET.path }
-    NavHost(
+    AnimatedNavGraph(
         navController = navController,
         startDestination = startDestination
     ) {
