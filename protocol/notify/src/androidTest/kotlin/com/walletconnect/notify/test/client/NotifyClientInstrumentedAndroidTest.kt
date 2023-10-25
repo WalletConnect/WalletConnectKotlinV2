@@ -42,7 +42,7 @@ class NotifyClientInstrumentedAndroidTest {
                     "title": "GM from Kotlin IT!",
                     "icon": "https://images.unsplash.com/photo-1581224463294-908316338239?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=250&q=80",
                     "url": "https://gm.walletconnect.com",
-                    "type": "gm_hourly"
+                    "type": "cad9a52d-9b0f-4aed-9cca-3e9568a079f9"
                 },
                 "accounts": [
                     "${TestClient.caip10account}"
