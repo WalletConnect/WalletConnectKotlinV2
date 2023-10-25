@@ -23,7 +23,7 @@ concurrency:
 jobs:
   sdk_tests:
     concurrency:
-      group: M1
+      group: ${{ github.repository }}-apple-silicon
       cancel-in-progress: false
     strategy:
       fail-fast: false
