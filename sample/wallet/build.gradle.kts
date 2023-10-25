@@ -3,7 +3,7 @@ plugins {
     kotlin("android")
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
-    id("com.google.firebase.appdistribution")
+    id("signing-config")
 //    id("io.sentry.android.gradle") version "3.12.0"
 }
 
@@ -22,34 +22,29 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
-        buildConfigField("String", "PROJECT_ID", "\"${System.getenv("WC_CLOUD_PROJECT_ID") ?: ""}\"")
-        buildConfigField("String", "BOM_VERSION", "\"${BOM_VERSION ?: ""}\"")
+        buildConfigField(
+            "String",
+            "PROJECT_ID",
+            "\"${System.getenv("WC_CLOUD_PROJECT_ID") ?: ""}\""
+        )
+        buildConfigField("String", "BOM_VERSION", "\"${BOM_VERSION}\"")
     }
 
-    buildTypes {
-        release {
-            isMinifyEnabled = true
-            isDebuggable = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = signingConfigs.getByName("debug")
-            firebaseAppDistribution {
-                artifactType = "APK"
-                groups = "design-team, javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
-            }
-        }
-    }
     compileOptions {
         sourceCompatibility = jvmVersion
         targetCompatibility = jvmVersion
     }
+
     kotlinOptions {
         jvmTarget = jvmVersion.toString()
         freeCompilerArgs = listOf("-Xcontext-receivers")
     }
+
     buildFeatures {
         compose = true
         buildConfig = true
     }
+    
     composeOptions {
         kotlinCompilerExtensionVersion = composeCompilerVersion
     }
@@ -104,6 +99,10 @@ dependencies {
     debugImplementation(project(":core:android"))
     debugImplementation(project(":product:web3wallet"))
     debugImplementation(project(":protocol:notify"))
+
+    internalImplementation(project(":core:android"))
+    internalImplementation(project(":product:web3wallet"))
+    internalImplementation(project(":protocol:notify"))
 
     releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
     releaseImplementation("com.walletconnect:android-core")
