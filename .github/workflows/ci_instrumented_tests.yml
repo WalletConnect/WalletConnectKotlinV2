@@ -32,7 +32,6 @@ jobs:
         conf: [
           { name: 'Full_Suite', command: "allDevicesCheck" },
         ]
-      max-parallel: 1
     name: ${{ matrix.conf.name }}
     runs-on:
       group: apple-silicon
