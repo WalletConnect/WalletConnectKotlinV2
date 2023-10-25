@@ -49,7 +49,7 @@ jobs:
       - name: Check if changes were also made to core module
         id: did_core_change
         run: |
-          CORE_MODULE_CHANGES=$(git diff --name-only ${{ github.event.pull_request.base.ref }} ${{ github.sha }} -- core/android/)
+          CORE_MODULE_CHANGES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} -- core/android/)
           if [ -n "$CORE_MODULE_CHANGES" ]; then
             echo "CHANGED=true" >> $GITHUB_OUTPUT
           else
