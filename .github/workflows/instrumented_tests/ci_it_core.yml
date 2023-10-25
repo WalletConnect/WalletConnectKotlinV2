@@ -1,4 +1,4 @@
-name: SDKs Instrumented Tests
+name: Core Dependent Instrumented Tests
 
 on:
   workflow_dispatch:

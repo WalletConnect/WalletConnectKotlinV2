@@ -1,4 +1,4 @@
-name: SDKs Instrumented Tests
+name: Sign Instrumented Tests
 
 on:
   workflow_dispatch:
