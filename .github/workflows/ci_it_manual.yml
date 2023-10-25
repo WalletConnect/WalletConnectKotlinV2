@@ -29,6 +29,7 @@ jobs:
         conf: [
           { name: 'Android_Core_SDK', command: ":core:android:allDevicesCheck" },
           { name: 'Sign_SDK', command: ":protocol:sign:allDevicesCheck" },
+          { name: 'Notify_SDK', command: ":protocol:notify:allDevicesCheck" },
         ]
       max-parallel: 1 # Run only one a time. Required in our current M1 setup.
     name: ${{ matrix.conf.name }}
@@ -43,4 +44,6 @@ jobs:
           name: ${{ matrix.conf.name }}
           command: ${{ matrix.conf.command }}
           projectId: ${{ secrets.WC_CLOUD_PROJECT_ID }}
+          gmProjectId: ${{ secrets.PROD_GM_PROJECT_ID }}
+          gmSecret: ${{ secrets.PROD_GM_SECRET }}
           testTimeoutSeconds: ${{ github.event.inputs.testTimeoutSeconds || env.TEST_TIMEOUT_SECONDS }} # Prioritise dispatch input timeout over env one
