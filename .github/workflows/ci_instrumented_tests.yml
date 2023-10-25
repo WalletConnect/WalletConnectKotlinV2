@@ -34,8 +34,7 @@ jobs:
       fail-fast: false
       matrix:
         conf: [
-          { name: 'Android_Core_SDK', command: ":core:android:allDevicesCheck" },
-          { name: 'Sign_SDK', command: ":protocol:sign:allDevicesCheck" },
+          { name: 'Full_Suite', command: "allDevicesCheck" },
         ]
       max-parallel: 1
     name: ${{ matrix.conf.name }}
