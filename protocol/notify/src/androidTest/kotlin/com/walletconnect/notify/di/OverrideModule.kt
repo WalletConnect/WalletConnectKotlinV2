@@ -18,7 +18,7 @@ internal fun overrideModule(
     relay: RelayConnectionInterface,
     pairing: PairingInterface,
     pairingController: PairingControllerInterface,
-    storagePrefix: String = "test_"
+    storagePrefix: String
 ) = module {
     val sharedPrefsFile = storagePrefix + SHARED_PREFS_FILE
     val keyStoreAlias = storagePrefix + KEY_STORE_ALIAS
