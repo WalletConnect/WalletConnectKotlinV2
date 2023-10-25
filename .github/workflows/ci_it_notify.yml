@@ -13,7 +13,6 @@ on:
       - master
     path:
       - 'protocol/notify/**'
-      - '!core/android/**'
 
 env:
   TEST_TIMEOUT_SECONDS: 40 # Predefined timeout for integration tests
@@ -43,7 +42,18 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Check if changes were also made to core module
+        id: did_core_change
+        run: |
+          CORE_MODULE_CHANGES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.sha }} -- core/android/)
+          if [ -n "$CORE_MODULE_CHANGES" ]; then
+            echo "CHANGED=true" >> $GITHUB_OUTPUT
+          else
+            echo "CHANGED=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Run instrumented tests
+        if: ${{ steps.did_core_change.outputs.CHANGED == 'false' }}
         uses: ./.github/actions/ci_instrumented_tests
         with:
           name: ${{ matrix.conf.name }}
