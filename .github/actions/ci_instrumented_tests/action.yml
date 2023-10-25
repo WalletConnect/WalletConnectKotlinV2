@@ -39,9 +39,3 @@ runs:
         path: |
           **/reports/**
           emulator.log
-
-    - name: Clean unused managed devices
-      if: always()
-      shell: bash
-      run: ./gradlew cleanManagedDevices --unused-only 2>/dev/null
-      # It sometimes fails, but failure shouldn't be the cause of action being marked as failed, hence `2>/dev/null`
