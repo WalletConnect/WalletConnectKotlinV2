@@ -47,7 +47,7 @@ internal fun MultipleWalletIcon(wallets: List<Wallet>) {
             .size(40.dp)
             .background(Web3ModalTheme.colors.background.color200, shape = RoundedCornerShape(10.dp))
             .padding(1.dp)
-            .border(1.dp, Web3ModalTheme.colors.overlay10, shape = RoundedCornerShape(10.dp)),
+            .border(1.dp, Web3ModalTheme.colors.grayGlass10, shape = RoundedCornerShape(10.dp)),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -136,7 +136,7 @@ internal fun WalletGridItem(
             modifier = Modifier
                 .width(76.dp)
                 .height(100.dp)
-                .background(Web3ModalTheme.colors.overlay05)
+                .background(Web3ModalTheme.colors.grayGlass05)
                 .clickable { onWalletItemClick(wallet) }
                 .padding(horizontal = 2.dp),
             horizontalAlignment = Alignment.CenterHorizontally

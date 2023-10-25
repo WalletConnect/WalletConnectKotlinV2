@@ -68,7 +68,7 @@ internal fun PlatformTabRow(
         modifier = Modifier
             .width(250.dp)
             .height(40.dp)
-            .border(width = 3.dp, color = Web3ModalTheme.colors.overlay02, shape = RoundedCornerShape(80f))
+            .border(width = 3.dp, color = Web3ModalTheme.colors.grayGlass02, shape = RoundedCornerShape(80f))
     ) {
         PlatformTab.values().forEach {
             val isSelected = platformTab == it
@@ -134,8 +134,8 @@ private fun CustomIndicatorWithAnimation(
             .width(indicatorEnd - indicatorStart)
             .padding(2.dp)
             .fillMaxSize()
-            .background(color = Web3ModalTheme.colors.overlay02, RoundedCornerShape(50))
-            .border(BorderStroke(1.dp, Web3ModalTheme.colors.overlay02), RoundedCornerShape(50))
+            .background(color = Web3ModalTheme.colors.grayGlass02, RoundedCornerShape(50))
+            .border(BorderStroke(1.dp, Web3ModalTheme.colors.grayGlass02), RoundedCornerShape(50))
             .zIndex(1f)
     )
 }

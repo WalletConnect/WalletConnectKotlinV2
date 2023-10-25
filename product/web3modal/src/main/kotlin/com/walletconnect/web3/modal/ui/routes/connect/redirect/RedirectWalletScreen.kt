@@ -248,7 +248,7 @@ private fun WalletImageWithLoader(url: String) {
         WalletImage(
             url = url, modifier = Modifier
                 .size(80.dp)
-                .border(width = 1.dp, color = Web3ModalTheme.colors.overlay10, shape = RoundedCornerShape(25.dp))
+                .border(width = 1.dp, color = Web3ModalTheme.colors.grayGlass10, shape = RoundedCornerShape(25.dp))
         )
     }
 }
@@ -290,7 +290,7 @@ private fun RejectWalletImage(url: String) {
         WalletImage(
             url = url, modifier = Modifier
                 .size(80.dp)
-                .border(width = 1.dp, color = Web3ModalTheme.colors.overlay10, shape = RoundedCornerShape(25.dp))
+                .border(width = 1.dp, color = Web3ModalTheme.colors.grayGlass10, shape = RoundedCornerShape(25.dp))
                 .clip(RoundedCornerShape(25.dp))
         )
         Box(

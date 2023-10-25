@@ -39,7 +39,7 @@ import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 internal fun LoadingSpinner(
     strokeWidth: Dp = 4.dp,
     size: Dp = 24.dp,
-    tint: Color = Web3ModalTheme.colors.main100
+    tint: Color = Web3ModalTheme.colors.accent100
 ) {
     CircularProgressIndicator(
         strokeWidth = strokeWidth,
@@ -99,9 +99,9 @@ private fun Modifier.drawAnimatedBorder(
     )
     val brush = Brush.horizontalGradient(
         listOf(
-            Web3ModalTheme.colors.main100,
-            Web3ModalTheme.colors.main100,
-            Web3ModalTheme.colors.main100,
+            Web3ModalTheme.colors.accent100,
+            Web3ModalTheme.colors.accent100,
+            Web3ModalTheme.colors.accent100,
             Color.Transparent, Color.Transparent, Color.Transparent,
             Color.Transparent, Color.Transparent, Color.Transparent,
             Color.Transparent, Color.Transparent, Color.Transparent,

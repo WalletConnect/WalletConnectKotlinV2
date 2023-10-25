@@ -32,10 +32,10 @@ internal fun ListSelectRow(
     val background: Color
     val textColor: Color
     if (isEnabled) {
-        background = Web3ModalTheme.colors.overlay05
+        background = Web3ModalTheme.colors.grayGlass05
         textColor = Web3ModalTheme.colors.foreground.color100
     } else {
-        background = Web3ModalTheme.colors.overlay15
+        background = Web3ModalTheme.colors.grayGlass15
         textColor = Web3ModalTheme.colors.foreground.color300
     }
     Surface(

@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalComposeUiApi::class)
+
 package com.walletconnect.web3.modal.ui.components.internal.root
 
 import androidx.compose.foundation.background
@@ -7,21 +9,23 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.walletconnect.web3.modal.client.Modal
+import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
 import com.walletconnect.web3.modal.ui.components.internal.Web3ModalTopBar
 import com.walletconnect.web3.modal.ui.components.internal.commons.BackArrowIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.FullWidthDivider
 import com.walletconnect.web3.modal.ui.components.internal.commons.QuestionMarkIcon
 import com.walletconnect.web3.modal.ui.components.internal.snackbar.ModalSnackBarHost
-import com.walletconnect.web3.modal.ui.components.internal.snackbar.SnackBarEventType
 import com.walletconnect.web3.modal.ui.components.internal.snackbar.SnackBarState
 import com.walletconnect.web3.modal.ui.components.internal.snackbar.rememberSnackBarState
 import com.walletconnect.web3.modal.ui.navigation.Route
@@ -29,6 +33,9 @@ import com.walletconnect.web3.modal.ui.previews.MultipleComponentsPreview
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.theme.ProvideWeb3ModalThemeComposition
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.onEach
 
 @Composable
 internal fun Web3ModalRoot(
@@ -40,6 +47,16 @@ internal fun Web3ModalRoot(
     val rootState = rememberWeb3ModalRootState(coroutineScope = scope, navController = navController)
     val snackBarState = rememberSnackBarState(coroutineScope = scope)
     val title by rootState.title.collectAsState(null)
+
+    LaunchedEffect(Unit) {
+        Web3ModalDelegate
+            .wcEventModels
+            .filterIsInstance<Modal.Model.Error>()
+            .onEach { event ->
+                snackBarState.showErrorSnack(event.throwable.localizedMessage ?: "Something went wrong")
+            }
+            .collect()
+    }
 
     Column(verticalArrangement = Arrangement.Bottom) {
         ProvideWeb3ModalThemeComposition {
@@ -80,7 +97,11 @@ private fun TopBarStartIcon(
     rootState: Web3ModalRootState
 ) {
     if (rootState.canPopUp) {
-        BackArrowIcon(onClick = rootState::popUp)
+        val keyboardController = LocalSoftwareKeyboardController.current
+        BackArrowIcon(onClick = {
+            keyboardController?.hide()
+            rootState.popUp()
+        })
     } else {
         when (rootState.currentDestinationRoute) {
             Route.CONNECT_YOUR_WALLET.path -> QuestionMarkIcon(onClick = rootState::navigateToHelp)
