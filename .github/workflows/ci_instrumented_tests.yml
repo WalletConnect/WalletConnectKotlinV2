@@ -30,8 +30,10 @@ jobs:
       fail-fast: false
       matrix:
         conf: [
-          { name: 'Full_Suite', command: "allDevicesCheck" },
+          { name: 'Android_Core_SDK', command: ":core:android:allDevicesCheck" },
+          { name: 'Sign_SDK', command: ":protocol:sign:allDevicesCheck" },
         ]
+      max-parallel: 1
     name: ${{ matrix.conf.name }}
     runs-on:
       group: apple-silicon
