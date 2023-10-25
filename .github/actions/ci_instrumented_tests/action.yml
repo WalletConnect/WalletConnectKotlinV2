@@ -2,9 +2,6 @@ name: SDKs Instrumented Tests
 description: 'Runs various Kotlin SDK instrumented tests'
 
 inputs:
-  shouldUseCache:
-    description: 'Flag to use and save cache gradle'
-    default: 'true'
   name:
     description: 'Name of test and emulator'
     required: true
