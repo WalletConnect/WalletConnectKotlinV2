@@ -7,10 +7,13 @@ on:
         description: 'Seconds for test timeout'
         required: true
         default: 40  # should be same as env.TEST_TIMEOUT_SECONDS
-#  pull_request:
-#    branches:
-#      - develop
-#      - master
+  pull_request:
+    branches:
+      - develop
+      - master
+    path:
+      - 'protocol/sign/**'
+      - '!core/android/**'
 
 env:
   TEST_TIMEOUT_SECONDS: 40 # Predefined timeout for integration tests
@@ -26,14 +29,14 @@ concurrency:
 
 jobs:
   sdk_tests:
+    concurrency: M1
     strategy:
       fail-fast: false
       matrix:
         conf: [
-          { name: 'Android_Core_SDK', command: ":core:android:allDevicesCheck" },
           { name: 'Sign_SDK', command: ":protocol:sign:allDevicesCheck" },
         ]
-      max-parallel: 1
+      max-parallel: 1 # Run only one a time. Required in our current M1 setup.
     name: ${{ matrix.conf.name }}
     runs-on:
       group: apple-silicon
