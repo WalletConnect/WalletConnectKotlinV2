@@ -7,7 +7,6 @@ import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.CoreProtocol
 import com.walletconnect.android.di.overrideModule
-import com.walletconnect.android.di.testJsonRpcModule
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
@@ -42,7 +41,6 @@ internal object TestClient {
         private val coreProtocol = CoreClient.apply {
             Timber.d("Primary CP start: ")
             initialize(metadata, RELAY_URL, ConnectionType.MANUAL, app, onError = ::globalOnError)
-            wcKoinApp.modules(testJsonRpcModule())
             Relay.connect(::globalOnError)
             _isInitialized.tryEmit(true)
             Timber.d("Primary CP finish: ")
@@ -80,7 +78,7 @@ internal object TestClient {
             Relay = RelayClient(secondaryKoinApp)
 
             // Override of storage instances and depending objects
-            secondaryKoinApp.modules(overrideModule(Relay, Pairing, PairingController, "test_secondary"), testJsonRpcModule())
+            secondaryKoinApp.modules(overrideModule(Relay, Pairing, PairingController, "test_secondary"))
 
             // Necessary reinit of Relay, Pairing and PairingController
             Relay.initialize(RELAY_URL, ConnectionType.MANUAL) { Timber.e(it) }
