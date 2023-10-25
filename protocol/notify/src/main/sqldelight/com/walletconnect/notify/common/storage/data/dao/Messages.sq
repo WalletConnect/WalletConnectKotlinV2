@@ -19,6 +19,14 @@ SELECT request_id, topic, published_at, title, body, icon, url, type
 FROM Messages
 WHERE topic = ?;
 
+updateMessageWithPublishedAtByRequestId:
+UPDATE Messages
+SET published_at = ?
+WHERE request_id = ?;
+
+doesMessagesExistsByRequestId:
+SELECT EXISTS(SELECT 1 FROM Messages WHERE request_id = ?);
+
 deleteMessageByRequestId:
 DELETE FROM Messages
 WHERE request_id = ?;
