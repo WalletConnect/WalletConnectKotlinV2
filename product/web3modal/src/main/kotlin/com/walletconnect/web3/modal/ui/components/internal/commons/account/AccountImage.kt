@@ -27,7 +27,7 @@ internal fun AccountImage(address: String, avatarUrl: String?) {
         Box(
             modifier = Modifier
                 .size(80.dp)
-                .border(width = 8.dp, color = Web3ModalTheme.colors.overlay05, shape = CircleShape)
+                .border(width = 8.dp, color = Web3ModalTheme.colors.grayGlass05, shape = CircleShape)
                 .padding(8.dp)
                 .background(brush = Brush.linearGradient(generateAvatarColors(address)), shape = CircleShape)
         )
@@ -39,7 +39,7 @@ private fun AccountAvatar(url: String) {
     Box(
         modifier = Modifier
             .size(80.dp)
-            .border(width = 8.dp, color = Web3ModalTheme.colors.overlay05, shape = CircleShape)
+            .border(width = 8.dp, color = Web3ModalTheme.colors.grayGlass05, shape = CircleShape)
             .padding(8.dp)
     ) {
         AsyncImage(

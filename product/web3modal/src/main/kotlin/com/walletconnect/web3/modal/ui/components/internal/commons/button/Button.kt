@@ -85,10 +85,11 @@ internal fun StyledButton(
     val tint = style.getTextColor(isEnabled)
     val textStyle = size.getTextStyle().copy(color = tint)
     val padding = size.getContentPadding()
+    val isClickEnabled = isEnabled && style != ButtonStyle.LOADING
 
     RoundedButton(
         modifier = Modifier
-            .clickable(enabled = isEnabled, onClick = onClick)
+            .clickable(enabled = isClickEnabled, onClick = onClick)
             .background(backgroundColor)
             .border(color = borderColor, width = 1.dp, shape = RoundedCornerShape(100))
             .padding(paddingValues = padding)

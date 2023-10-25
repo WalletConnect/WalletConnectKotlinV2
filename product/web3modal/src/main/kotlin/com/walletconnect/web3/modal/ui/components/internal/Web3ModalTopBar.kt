@@ -29,7 +29,9 @@ internal fun Web3ModalTopBar(
             .padding(horizontal = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        startIcon()
+        Box(modifier = Modifier.size(40.dp)) {
+            startIcon()
+        }
         Text(
             text = title,
             style = Web3ModalTheme.typo.paragraph600.copy(

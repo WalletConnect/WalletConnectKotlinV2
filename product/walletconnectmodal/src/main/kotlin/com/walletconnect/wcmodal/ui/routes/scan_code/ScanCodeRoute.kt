@@ -18,6 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.walletconnect.modal.ui.components.common.ClickableImage
+import com.walletconnect.modal.ui.components.qr.QrCodeType
 import com.walletconnect.modal.ui.components.qr.WalletConnectQRCode
 import com.walletconnect.modal.utils.isLandscape
 import com.walletconnect.wcmodal.R
@@ -67,6 +68,7 @@ private fun ScanQRCodeContent(
             qrData = uri,
             primaryColor = ModalTheme.colors.onBackgroundColor,
             logoColor = ModalTheme.colors.main,
+            type = QrCodeType.WCM,
             modifier = qrCodeModifier
         )
         Spacer(modifier = Modifier.height(8.dp))
