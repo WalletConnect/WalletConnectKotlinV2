@@ -37,7 +37,7 @@ jobs:
           { name: 'Android_Core_SDK', command: ":core:android:allDevicesCheck" },
           { name: 'Sign_SDK', command: ":protocol:sign:allDevicesCheck" },
         ]
-
+      max-parallel: 1
     name: ${{ matrix.conf.name }}
     runs-on: [self-hosted]
     steps:
