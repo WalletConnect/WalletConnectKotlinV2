@@ -44,6 +44,11 @@ jobs:
         with:
           fetch-depth: 0
 
+
+      - name: Display all branches
+        run: |
+          git branch -a
+
       - name: Check if changes were also made to core module
         id: did_core_change
         run: |
