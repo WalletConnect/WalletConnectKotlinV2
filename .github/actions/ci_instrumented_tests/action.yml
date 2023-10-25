@@ -11,9 +11,6 @@ inputs:
   command:
     description: 'Gradle task being run'
     required: true
-  report:
-    description: 'Path to report'
-    required: true
   projectId:
     description: 'WalletConnect projectId'
     required: true
