@@ -12,10 +12,9 @@ val devicesNames = listOf(
 )
 
 fun TestOptions.registerManagedDevices() {
-    val whichDeviceProfile = (System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 0).mod(devicesNames.size)
     managedDevices {
         devices {
-            devicesNames[whichDeviceProfile].let { deviceName ->
+            devicesNames.first().let { deviceName ->
                 val taskSuffix = deviceName.replace(" ", "_")
                 create<ManagedVirtualDevice>("Google32_${taskSuffix}") {
                     device = deviceName
