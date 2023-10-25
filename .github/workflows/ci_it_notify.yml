@@ -41,6 +41,8 @@ jobs:
       group: apple-silicon
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Check if changes were also made to core module
         id: did_core_change
