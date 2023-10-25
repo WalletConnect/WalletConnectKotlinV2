@@ -38,7 +38,8 @@ jobs:
         ]
       max-parallel: 1
     name: ${{ matrix.conf.name }}
-    runs-on: [apple-silicon]
+    runs-on:
+      group: apple-silicon
     steps:
       - uses: actions/checkout@v3
 
