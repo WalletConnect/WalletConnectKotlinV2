@@ -49,6 +49,5 @@ jobs:
           shouldUseCache: ${{ github.event.inputs.testTimeoutSeconds || true }} # Setting to true faster pass unchanged code
           name: ${{ matrix.conf.name }}
           command: ${{ matrix.conf.command }}
-          report: ${{ matrix.conf.report }}
           projectId: ${{ secrets.WC_CLOUD_PROJECT_ID }}
           testTimeoutSeconds: ${{ github.event.inputs.testTimeoutSeconds || env.TEST_TIMEOUT_SECONDS }} # Prioritise dispatch input timeout over env one
