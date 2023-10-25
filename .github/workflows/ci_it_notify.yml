@@ -44,14 +44,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Display all branches
-        run: |
-          git branch -a
-
       - name: Check if changes were also made to core module
         id: did_core_change
         run: |
-          CORE_MODULE_CHANGES=$(git diff --name-only ${{ github.base_ref }}..${{ github.head_ref }} -- core/android/)
+          CORE_MODULE_CHANGES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- core/android/)
           if [ -n "$CORE_MODULE_CHANGES" ]; then
             echo "CHANGED=true" >> $GITHUB_OUTPUT
           else
