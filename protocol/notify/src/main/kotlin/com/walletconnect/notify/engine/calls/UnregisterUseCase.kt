@@ -31,10 +31,12 @@ internal class UnregisterUseCase(
         identitiesInteractor.unregisterIdentity(accountId, keyserverUrl).fold(
             onFailure = { error -> onFailure(error) },
             onSuccess = { identityPublicKey ->
-                runCatching { registeredAccountsRepository.deleteAccountByAccountId(account) }.fold(
+                runCatching {
+                    stopWatchingSubscriptionsUseCase(accountId, onFailure = { error -> onFailure(error) })
+                    registeredAccountsRepository.deleteAccountByAccountId(account)
+                }.fold(
                     onFailure = { error -> onFailure(error) },
                     onSuccess = {
-                        stopWatchingSubscriptionsUseCase(accountId, onFailure)
                         subscriptionRepository.getAccountActiveSubscriptions(accountId).map { it.notifyTopic.value }.map { topic ->
                             jsonRpcInteractor.unsubscribe(Topic(topic)) { error -> onFailure(error) }
                             subscriptionRepository.deleteSubscriptionByNotifyTopic(topic)
