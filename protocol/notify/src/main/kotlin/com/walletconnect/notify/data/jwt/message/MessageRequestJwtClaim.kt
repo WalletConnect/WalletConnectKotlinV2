@@ -14,7 +14,7 @@ internal data class MessageRequestJwtClaim(
     @Json(name = "exp") override val expiration: Long,
     @Json(name = "app") val app: String,
     @Json(name = "msg") val message: Message,
-    @Json(name = "act") override val action: String = "notify_message",
+    @Json(name = "act") override val action: String = ACTION_CLAIM_VALUE,
 ) : NotifyJwtBase {
 
     @JsonClass(generateAdapter = true)
@@ -25,4 +25,19 @@ internal data class MessageRequestJwtClaim(
         @Json(name = "url") val url: String,
         @Json(name = "type") val type: String,
     )
+
+
+    private fun throwIfActionIsInvalid() {
+        if (action != ACTION_CLAIM_VALUE) throw IllegalArgumentException("Invalid action claim was $action instead of $ACTION_CLAIM_VALUE")
+    }
+
+    fun throwIfBaseIsInvalid() {
+        throwIdIssuedAtIsInvalid()
+        throwExpirationAtIsInvalid()
+        throwIfActionIsInvalid()
+    }
+
 }
+
+private const val ACTION_CLAIM_VALUE = "notify_message"
+
