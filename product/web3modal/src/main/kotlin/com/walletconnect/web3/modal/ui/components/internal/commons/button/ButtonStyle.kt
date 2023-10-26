@@ -34,6 +34,13 @@ internal fun ButtonSize.getContentPadding() = when (this) {
 }
 
 @Composable
+internal fun ButtonSize.getHeight() = when (this) {
+    ButtonSize.M, ButtonSize.ACCOUNT_M -> 40.dp
+    ButtonSize.S, ButtonSize.ACCOUNT_S -> 32.dp
+}
+
+
+@Composable
 internal fun ButtonStyle.getTextColor(isEnabled: Boolean) = when (this) {
     ButtonStyle.MAIN -> if (isEnabled) Web3ModalTheme.colors.inverse100 else Web3ModalTheme.colors.foreground.color300
     ButtonStyle.ACCENT, ButtonStyle.LOADING -> if (isEnabled) Web3ModalTheme.colors.accent100 else Web3ModalTheme.colors.grayGlass20

@@ -4,37 +4,38 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawOutline
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.walletconnect.android.internal.common.modal.data.model.Wallet
@@ -44,14 +45,17 @@ import com.walletconnect.web3.modal.ui.components.internal.commons.ContentDescri
 import com.walletconnect.web3.modal.ui.components.internal.commons.HorizontalSpacer
 import com.walletconnect.web3.modal.ui.components.internal.commons.ScanQRIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.VerticalSpacer
-import com.walletconnect.web3.modal.ui.components.internal.commons.WalletsLazyGridView
 import com.walletconnect.web3.modal.ui.components.internal.commons.inputs.SearchInput
+import com.walletconnect.web3.modal.ui.components.internal.commons.inputs.SearchState
+import com.walletconnect.web3.modal.ui.components.internal.commons.inputs.SearchStatePreviewProvider
 import com.walletconnect.web3.modal.ui.components.internal.commons.walletsGridItems
+import com.walletconnect.web3.modal.ui.previews.ComponentPreview
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 import com.walletconnect.web3.modal.ui.previews.testWallets
 import com.walletconnect.web3.modal.ui.routes.connect.ConnectState
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
+import com.walletconnect.web3.modal.ui.utils.conditionalModifier
 import kotlinx.coroutines.launch
 
 @Composable
@@ -71,40 +75,24 @@ private fun AllWalletsContent(
     onWalletItemClick: (Wallet) -> Unit,
     onScanQRClick: () -> Unit
 ) {
-    var searchInputValue by rememberSaveable() { mutableStateOf("") }
-    var searchedWallets = wallets.filteredWallets(searchInputValue)
-    val gridFraction = if (isLandscape) 1f else .9f
-    val color = Web3ModalTheme.colors.background.color275
     val gridState = rememberLazyGridState()
     val coroutineScope = rememberCoroutineScope()
+    val searchState = remember { SearchState(onClearInput = { coroutineScope.launch { gridState.scrollToItem(0) } }) }
+    val state by searchState.state.collectAsState()
+    val searchedWallets = wallets.filteredWallets(state.searchValue)
+    val gridFraction = if (isLandscape) 1f else .95f
+    val color = Web3ModalTheme.colors.background.color275
 
-    Column(
-        modifier = Modifier
-            .fillMaxHeight(gridFraction)
-            .padding(horizontal = 12.dp),
-    ) {
-        VerticalSpacer(height = 10.dp)
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            SearchInput(
-                searchValue = searchInputValue,
-                modifier = Modifier.weight(1f),
-                onSearchValueChange = { searchInputValue = it },
-                onClearClick = {
-                    searchedWallets = wallets
-                    coroutineScope.launch {
-                        gridState.scrollToItem(0)
-                    }
-                }
-            )
-            HorizontalSpacer(width = 12.dp)
-            ScanQRIcon(onClick = onScanQRClick)
-        }
+    Column(modifier = Modifier.fillMaxHeight(gridFraction)) {
+        SearchInputRow(searchState, onScanQRClick)
         if (searchedWallets.isEmpty()) {
             NoWalletsFoundItem()
         } else {
-            WalletsLazyGridView(
+            LazyVerticalGrid(
+                state = rememberLazyGridState(),
+                columns = GridCells.Adaptive(76.dp),
                 modifier = Modifier
-                    .padding(top = 12.dp)
+                    .padding(start = 12.dp, end = 12.dp)
                     .graphicsLayer { alpha = 0.99f }
                     .drawWithContent {
                         val colors = listOf(Color.Transparent, color)
@@ -118,6 +106,41 @@ private fun AllWalletsContent(
                 walletsGridItems(searchedWallets, onWalletItemClick)
             }
         }
+    }
+}
+
+@Composable
+private fun SearchInputRow(
+    searchState: SearchState,
+    onScanQRClick: () -> Unit
+) {
+    val defaultSpacing: Dp = 12.dp
+    val focusBorderWidth: Dp = 4.dp
+    val focusedSpacing: Dp = defaultSpacing - focusBorderWidth
+    val focusBorderColor = Web3ModalTheme.colors.accent20
+
+    val paddingValues: PaddingValues
+    val spacerValue: Dp
+    if (searchState.isFocused) {
+        spacerValue = focusedSpacing
+        paddingValues = PaddingValues(start = focusedSpacing, top = focusedSpacing, bottom = focusedSpacing, end = defaultSpacing)
+    } else {
+        spacerValue = 12.dp
+        paddingValues = PaddingValues(12.dp)
+    }
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(paddingValues)
+    ) {
+        Box(modifier = Modifier
+            .weight(1f)
+            .conditionalModifier(searchState.isFocused) {
+                border(width = focusBorderWidth, color = focusBorderColor, RoundedCornerShape(16.dp)).padding(focusBorderWidth)
+            }) {
+            SearchInput(searchState)
+        }
+        HorizontalSpacer(width = spacerValue)
+        ScanQRIcon(onClick = onScanQRClick)
     }
 }
 
@@ -149,6 +172,14 @@ private fun ColumnScope.NoWalletsFoundItem() {
 }
 
 private fun List<Wallet>.filteredWallets(value: String): List<Wallet> = this.filter { it.name.startsWith(prefix = value, ignoreCase = true) }
+
+@UiModePreview
+@Composable
+private fun SearchRowPreview(
+    @PreviewParameter(SearchStatePreviewProvider::class) state: SearchState
+) {
+    ComponentPreview { SearchInputRow(searchState = state, {}) }
+}
 
 @UiModePreview
 @Composable

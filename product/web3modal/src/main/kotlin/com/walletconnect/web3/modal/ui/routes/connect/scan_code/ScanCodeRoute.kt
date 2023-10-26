@@ -68,7 +68,7 @@ private fun ScanQRCodeContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(20.dp),
+            .padding(vertical = 20.dp, horizontal = 28.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         QRCode(uri = uri)

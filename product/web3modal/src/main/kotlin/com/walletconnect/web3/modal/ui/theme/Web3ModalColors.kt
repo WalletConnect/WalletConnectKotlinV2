@@ -25,6 +25,7 @@ internal data class Web3ModalColors(
 
     val success15 = success.copy(.15f)
 
+    val accent20: Color = accent100.copy(.2f)
     val accent15: Color = accent100.copy(.15f)
     val accent10: Color = accent100.copy(.1f)
 

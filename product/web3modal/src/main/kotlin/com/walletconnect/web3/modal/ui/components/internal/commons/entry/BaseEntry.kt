@@ -26,7 +26,7 @@ internal fun BaseEntry(
     val textColor: Color
     val secondaryColor: Color
     if (isEnabled) {
-        background = Web3ModalTheme.colors.grayGlass05
+        background = Web3ModalTheme.colors.grayGlass02
         textColor = Web3ModalTheme.colors.foreground.color100
         secondaryColor = Web3ModalTheme.colors.foreground.color200
     } else {
