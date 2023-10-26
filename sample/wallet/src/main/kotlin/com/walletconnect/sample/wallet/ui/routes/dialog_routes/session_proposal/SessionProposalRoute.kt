@@ -177,13 +177,10 @@ private fun closeAndShowError(navController: NavHostController, mesage: String?)
 
 @Composable
 fun AccountAndNetwork(sessionProposalUI: SessionProposalUI) {
-    val chains = sessionProposalUI.namespaces.flatMap { (namespaceKey, proposal) ->
-        if (proposal.chains != null) {
-            proposal.chains!!
-        } else {
-            listOf(namespaceKey)
-        }
-    }
+    val requiredChains = getRequiredChains(sessionProposalUI)
+    val optionalChains = getOptionalChains(sessionProposalUI)
+    val chains = if (requiredChains.isEmpty()) optionalChains else requiredChains
+
     val network = Chains.values().find { chain -> chain.chainId == chains.first() }
     val account = walletMetaData.namespaces.values.first().accounts.find { account -> account.contains(chains.first()) }?.split(":")?.last()
 
@@ -211,6 +208,23 @@ fun AccountAndNetwork(sessionProposalUI: SessionProposalUI) {
                 Text(network?.chainName ?: "", style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.SemiBold))
             }
         }
+    }
+}
+
+private fun getOptionalChains(sessionProposalUI: SessionProposalUI) =
+    sessionProposalUI.optionalNamespaces.flatMap { (namespaceKey, proposal) ->
+        if (proposal.chains != null) {
+            proposal.chains!!
+        } else {
+            listOf(namespaceKey)
+        }
+    }
+
+private fun getRequiredChains(sessionProposalUI: SessionProposalUI) = sessionProposalUI.namespaces.flatMap { (namespaceKey, proposal) ->
+    if (proposal.chains != null) {
+        proposal.chains!!
+    } else {
+        listOf(namespaceKey)
     }
 }
 

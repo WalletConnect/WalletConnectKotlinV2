@@ -312,6 +312,8 @@ internal class JsonRpcInteractor(
                     String.Empty
                 }
 
+                println("kobe; Message: $message")
+
                 Triple(message, topic, relayRequest.params.subscriptionData.publishedAt)
             }.collect { (decryptedMessage, topic, publishedAt) ->
                 if (decryptedMessage.isNotEmpty()) {
