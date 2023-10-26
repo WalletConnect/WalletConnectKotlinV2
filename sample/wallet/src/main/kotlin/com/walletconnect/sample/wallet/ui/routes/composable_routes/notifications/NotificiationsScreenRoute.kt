@@ -1,10 +1,13 @@
 package com.walletconnect.sample.wallet.ui.routes.composable_routes.notifications
 
+import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -215,9 +218,18 @@ fun DismissBackground(dismissState: DismissState) {
 @Composable
 fun NotificationItem(notificationUI: NotificationUI) {
     val unreadColor = if (isSystemInDarkTheme()) Color(0xFF0E0F0F) else Color(0xFFeef8ff)
+    val context = LocalContext.current
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable {
+                val parsedUrl = runCatching { Uri.parse(notificationUI.url) }.getOrNull()
+                if (parsedUrl != null) {
+                    val intent = Intent(Intent.ACTION_VIEW, parsedUrl)
+                    context.startActivity(intent)
+                }
+            }
             .background(if (notificationUI.isUnread) unreadColor else MaterialTheme.colors.background)
             .padding(horizontal = 20.dp, vertical = 16.dp)
     ) {
