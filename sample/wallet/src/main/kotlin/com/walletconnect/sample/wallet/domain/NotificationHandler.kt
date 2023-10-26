@@ -104,7 +104,7 @@ object NotificationHandler {
                     Triple(notification.messageId, notification.title, notification.body)
                 }
 
-                val url = (notifications.first() as? Notification.Decrypted)?.url
+                val url = (notifications.first { it is Notification.Decrypted }?.url
                 val pendingIntent = buildPendingIntent(context, url)
 
                 showNotification(
