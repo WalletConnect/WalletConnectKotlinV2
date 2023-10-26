@@ -84,12 +84,12 @@ private fun Map<Int, Color?>.getLightModeColors(): Web3ModalTheme.Colors {
     val defaultColors = Web3ModalTheme.provideLightWeb3ModalColors()
     val (foreground, background) = provideColorPallets(defaultColors)
     return Web3ModalTheme.provideLightWeb3ModalColors(
-        main100 = get(R.attr.modalMain100) ?: defaultColors.main100,
-        main90 = get(R.attr.modalMain90) ?: defaultColors.main90,
-        main20 = get(R.attr.modalMain20) ?: defaultColors.main20,
+        accent100 = get(R.attr.modalAccent100) ?: defaultColors.accent100,
+        accent90 = get(R.attr.modalAccent90) ?: defaultColors.accent90,
+        accent80 = get(R.attr.modalAccent80) ?: defaultColors.accent80,
         foreground = foreground,
         background = background,
-        overlay = get(R.attr.modalOverlay) ?: defaultColors.overlay,
+        overlay = get(R.attr.modalGrayGlass) ?: defaultColors.grayGlass,
         success = get(R.attr.modalSuccess) ?: defaultColors.success,
         error = get(R.attr.modalError) ?: defaultColors.error
     )
@@ -100,12 +100,12 @@ private fun Map<Int, Color?>.getDarkModeColors(): Web3ModalTheme.Colors {
     val defaultColors = Web3ModalTheme.provideDarkWeb3ModalColor()
     val (foreground, background) = provideColorPallets(defaultColors)
     return Web3ModalTheme.provideDarkWeb3ModalColor(
-        main100 = get(R.attr.modalMain100) ?: defaultColors.main100,
-        main90 = get(R.attr.modalMain90) ?: defaultColors.main90,
-        main20 = get(R.attr.modalMain20) ?: defaultColors.main20,
+        accent100 = get(R.attr.modalAccent100) ?: defaultColors.accent100,
+        accent90 = get(R.attr.modalAccent90) ?: defaultColors.accent90,
+        accent80 = get(R.attr.modalAccent80) ?: defaultColors.accent80,
         foreground = foreground,
         background = background,
-        overlay = get(R.attr.modalOverlay) ?: defaultColors.overlay,
+        overlay = get(R.attr.modalGrayGlass) ?: defaultColors.grayGlass,
         success = get(R.attr.modalSuccess) ?: defaultColors.success,
         error = get(R.attr.modalError) ?: defaultColors.error
     )
@@ -144,9 +144,9 @@ private fun Int.toThemeMode(): Web3ModalTheme.Mode = when (this) {
 }
 
 private val themeColorsAttributesMap = mapOf(
-    0 to R.attr.modalMain100,
-    1 to R.attr.modalMain90,
-    2 to R.attr.modalMain20,
+    0 to R.attr.modalAccent100,
+    1 to R.attr.modalAccent90,
+    2 to R.attr.modalAccent80,
     3 to R.attr.modalForeground100,
     4 to R.attr.modalForeground125,
     5 to R.attr.modalForeground150,
@@ -165,7 +165,7 @@ private val themeColorsAttributesMap = mapOf(
     18 to R.attr.modalBackground250,
     19 to R.attr.modalBackground275,
     20 to R.attr.modalBackground300,
-    21 to R.attr.modalOverlay,
+    21 to R.attr.modalGrayGlass,
     22 to R.attr.modalSuccess,
     23 to R.attr.modalError,
 )

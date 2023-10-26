@@ -30,10 +30,10 @@ internal fun InputCancel(
 
     if (isEnabled) {
         tint = Web3ModalTheme.colors.background.color100
-        background = Web3ModalTheme.colors.overlay20
+        background = Web3ModalTheme.colors.grayGlass20
     } else {
         tint = Web3ModalTheme.colors.background.color100
-        background = Web3ModalTheme.colors.overlay10
+        background = Web3ModalTheme.colors.grayGlass10
     }
 
     Surface(

@@ -41,20 +41,20 @@ internal fun ChainNetworkItem(
     val borderColor: Color?
     when {
         isSelected -> {
-            backgroundColor = Web3ModalTheme.colors.main10
-            textColor = Web3ModalTheme.colors.main100
-            borderColor = Web3ModalTheme.colors.main100
+            backgroundColor = Web3ModalTheme.colors.accent10
+            textColor = Web3ModalTheme.colors.accent100
+            borderColor = Web3ModalTheme.colors.accent100
         }
 
         isEnabled -> {
-            backgroundColor = Web3ModalTheme.colors.overlay02
+            backgroundColor = Web3ModalTheme.colors.grayGlass02
             textColor = Web3ModalTheme.colors.foreground.color100
             borderColor = null
         }
 
         else -> {
-            backgroundColor = Web3ModalTheme.colors.overlay10
-            textColor = Web3ModalTheme.colors.overlay15
+            backgroundColor = Web3ModalTheme.colors.grayGlass10
+            textColor = Web3ModalTheme.colors.grayGlass15
             borderColor = null
         }
     }

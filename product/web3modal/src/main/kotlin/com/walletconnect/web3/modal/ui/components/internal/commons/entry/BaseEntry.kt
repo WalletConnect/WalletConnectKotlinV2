@@ -26,13 +26,13 @@ internal fun BaseEntry(
     val textColor: Color
     val secondaryColor: Color
     if (isEnabled) {
-        background = Web3ModalTheme.colors.overlay05
+        background = Web3ModalTheme.colors.grayGlass05
         textColor = Web3ModalTheme.colors.foreground.color100
         secondaryColor = Web3ModalTheme.colors.foreground.color200
     } else {
-        background = Web3ModalTheme.colors.overlay15
-        textColor = Web3ModalTheme.colors.overlay15
-        secondaryColor = Web3ModalTheme.colors.overlay15
+        background = Web3ModalTheme.colors.grayGlass15
+        textColor = Web3ModalTheme.colors.grayGlass15
+        secondaryColor = Web3ModalTheme.colors.grayGlass15
     }
     val entryColors = EntryColors(background, textColor, secondaryColor)
 

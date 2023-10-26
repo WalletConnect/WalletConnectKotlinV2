@@ -58,7 +58,7 @@ class Web3ModalState(
         .stateIn(coroutineScope, started = SharingStarted.Lazily, initialValue = false)
 
     internal val selectedChain = observeSelectedChainUseCase().map { savedChainId ->
-        Web3Modal.chains.find { it.id == savedChainId } ?: Web3Modal.getSelectedChainOrFirst()
+        Web3Modal.chains.find { it.id == savedChainId }
     }
 
     internal val accountNormalButtonState = sessionTopicFlow.combine(selectedChain) { topic, chain -> topic to chain}
@@ -69,7 +69,7 @@ class Web3ModalState(
         .mapOrAccountState(AccountButtonType.MIXED)
         .stateIn(coroutineScope, started = SharingStarted.Lazily, initialValue = AccountButtonState.Loading)
 
-    private fun Flow<Pair<String?, Modal.Model.Chain>>.mapOrAccountState(accountButtonType: AccountButtonType) =
+    private fun Flow<Pair<String?, Modal.Model.Chain?>>.mapOrAccountState(accountButtonType: AccountButtonType) =
         map { topic -> topic.let { getActiveSession()?.mapToAccountButtonState(accountButtonType) } ?: AccountButtonState.Invalid }
 
     private suspend fun Modal.Model.Session.mapToAccountButtonState(accountButtonType: AccountButtonType) = try {

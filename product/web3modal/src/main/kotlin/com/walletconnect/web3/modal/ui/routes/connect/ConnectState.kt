@@ -21,10 +21,12 @@ import com.walletconnect.web3.modal.ui.navigation.connection.navigateToRedirect
 import com.walletconnect.web3.modal.utils.getSelectedChain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
@@ -33,16 +35,18 @@ private const val W3M_SDK = "w3m"
 @Composable
 internal fun rememberConnectState(
     coroutineScope: CoroutineScope,
-    navController: NavController
+    navController: NavController,
+    showError: (String?) -> Unit
 ): ConnectState {
     return remember(coroutineScope, navController) {
-        ConnectState(coroutineScope, navController)
+        ConnectState(coroutineScope, navController, showError)
     }
 }
 
 internal class ConnectState(
     private val coroutineScope: CoroutineScope,
-    private val navController: NavController
+    private val navController: NavController,
+    private val showError: (String?) -> Unit
 ) {
     private val logger: Logger = wcKoinApp.koin.get()
     private val getWalletsUseCase: GetAllWalletsUseCaseInterface = wcKoinApp.koin.get()
@@ -100,7 +104,10 @@ internal class ConnectState(
             Web3Modal.connect(
                 connect = connectParams,
                 onSuccess = { onSuccess(pairing.uri) },
-                onError = { logger.error(it.throwable) }
+                onError = {
+                    showError(it.throwable.localizedMessage)
+                    logger.error(it.throwable)
+                }
             )
         } catch (e: Exception) {
             logger.error(e)
@@ -114,10 +121,14 @@ internal class ConnectState(
         emit(UiState.Success(wallets))
     }
         .catch {
+            showError(it.localizedMessage)
             logger.error(it)
             emit(UiState.Error(it))
         }
         .flowOn(Dispatchers.IO)
+        .stateIn(coroutineScope, started = SharingStarted.Lazily, initialValue = getInitialWalletState())
+
+    private fun getInitialWalletState(): UiState<List<Wallet>> = if (wallets.isEmpty()) { UiState.Loading() } else { UiState.Success(wallets) }
 
     private suspend fun fetchWallets() = getWalletsUseCase(sdkType = W3M_SDK, Web3Modal.excludedWalletsIds, Web3Modal.recommendedWalletsIds).mapRecentWallet(getRecentWalletUseCase())
 

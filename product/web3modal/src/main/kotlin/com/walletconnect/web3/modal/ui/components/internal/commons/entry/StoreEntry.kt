@@ -33,10 +33,10 @@ internal fun StoreEntry(
     val textColor: Color
     if (isEnabled) {
         textColor = Web3ModalTheme.colors.foreground.color200
-        background = Web3ModalTheme.colors.overlay02
+        background = Web3ModalTheme.colors.grayGlass02
     } else {
         textColor = Web3ModalTheme.colors.foreground.color300
-        background = Web3ModalTheme.colors.overlay10
+        background = Web3ModalTheme.colors.grayGlass10
     }
     Surface(
         color = Color.Transparent,
@@ -62,13 +62,13 @@ internal fun StoreEntry(
 private fun GetButton() {
     Row(
         modifier = Modifier
-            .border(width = 1.dp, color = Web3ModalTheme.colors.overlay10, RoundedCornerShape(100))
+            .border(width = 1.dp, color = Web3ModalTheme.colors.grayGlass10, RoundedCornerShape(100))
             .padding(horizontal = 12.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
-        Text(text = "Get", style = Web3ModalTheme.typo.small500.copy(color = Web3ModalTheme.colors.main100))
-        ForwardIcon(tint = Web3ModalTheme.colors.main100)
+        Text(text = "Get", style = Web3ModalTheme.typo.small500.copy(color = Web3ModalTheme.colors.accent100))
+        ForwardIcon(tint = Web3ModalTheme.colors.accent100)
     }
 }
 
