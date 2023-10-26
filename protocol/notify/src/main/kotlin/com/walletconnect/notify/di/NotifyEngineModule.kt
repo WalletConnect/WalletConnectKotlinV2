@@ -75,10 +75,7 @@ internal fun engineModule() = module {
     single {
         StopWatchingSubscriptionsUseCase(
             jsonRpcInteractor = get(),
-            keyManagementRepository = get(),
-            extractPublicKeysFromDidJsonUseCase = get(),
-            notifyServerUrl = get(),
-            getSelfKeyForWatchSubscriptionUseCase = get()
+            registeredAccountsRepository = get()
         )
     }
 
