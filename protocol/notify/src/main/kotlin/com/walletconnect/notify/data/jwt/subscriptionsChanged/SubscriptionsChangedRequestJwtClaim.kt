@@ -15,5 +15,19 @@ internal data class SubscriptionsChangedRequestJwtClaim(
     @Json(name = "iat") override val issuedAt: Long,
     @Json(name = "exp") override val expiration: Long,
     @Json(name = "sbs") val subscriptions: List<ServerSubscription>,
-    @Json(name = "act") override val action: String = "notify_subscriptions_changed",
-): NotifyJwtBase
+    @Json(name = "act") override val action: String = ACTION_CLAIM_VALUE,
+): NotifyJwtBase {
+
+    private fun throwIfActionIsInvalid() {
+        if (action != ACTION_CLAIM_VALUE) throw IllegalArgumentException("Invalid action claim was $action instead of $ACTION_CLAIM_VALUE")
+    }
+
+    fun throwIfBaseIsInvalid() {
+        throwIdIssuedAtIsInvalid()
+        throwExpirationAtIsInvalid()
+        throwIfActionIsInvalid()
+    }
+
+}
+
+private const val ACTION_CLAIM_VALUE = "notify_subscriptions_changed"
