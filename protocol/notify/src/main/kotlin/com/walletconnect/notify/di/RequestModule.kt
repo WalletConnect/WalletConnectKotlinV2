@@ -33,7 +33,10 @@ internal fun requestModule() = module {
             extractPublicKeysFromDidJsonUseCase = get(),
             jsonRpcInteractor = get(),
             logger = get(),
-            notifyServerUrl = get()
+            notifyServerUrl = get(),
+            registeredAccountsRepository = get(),
+            watchSubscriptionsForEveryRegisteredAccountUseCase = get(),
+            accountsRepository = get(),
         )
     }
 }
