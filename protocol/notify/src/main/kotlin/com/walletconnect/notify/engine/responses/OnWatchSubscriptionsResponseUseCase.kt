@@ -10,9 +10,14 @@ import com.walletconnect.android.internal.common.model.params.ChatNotifyResponse
 import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.foundation.util.jwt.decodeDidPkh
+import com.walletconnect.foundation.util.jwt.decodeEd25519DidKey
+import com.walletconnect.notify.common.NotifyServerUrl
 import com.walletconnect.notify.common.model.SubscriptionChanged
 import com.walletconnect.notify.data.jwt.watchSubscriptions.WatchSubscriptionsResponseJwtClaim
+import com.walletconnect.notify.data.storage.RegisteredAccountsRepository
+import com.walletconnect.notify.engine.domain.ExtractPublicKeysFromDidJsonUseCase
 import com.walletconnect.notify.engine.domain.SetActiveSubscriptionsUseCase
+import com.walletconnect.notify.engine.domain.WatchSubscriptionsForEveryRegisteredAccountUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -20,7 +25,12 @@ import kotlinx.coroutines.supervisorScope
 
 internal class OnWatchSubscriptionsResponseUseCase(
     private val setActiveSubscriptionsUseCase: SetActiveSubscriptionsUseCase,
-) {
+    private val extractPublicKeysFromDidJsonUseCase: ExtractPublicKeysFromDidJsonUseCase,
+    private val watchSubscriptionsForEveryRegisteredAccountUseCase: WatchSubscriptionsForEveryRegisteredAccountUseCase,
+    private val accountsRepository: RegisteredAccountsRepository,
+    private val notifyServerUrl: NotifyServerUrl,
+
+    ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
@@ -32,15 +42,9 @@ internal class OnWatchSubscriptionsResponseUseCase(
                     val responseAuth = (response.result as ChatNotifyResponseAuthParams.ResponseAuth).responseAuth
                     val jwtClaims = extractVerifiedDidJwtClaims<WatchSubscriptionsResponseJwtClaim>(responseAuth).getOrThrow()
 
-                    /* TODO: Add validation after ETHNY
-                    *   jwtClaims.iat - compare with current time. Has to be lower
-                    *   jwtClaims.exp - compare with current time. Has to be higher
-                    *   jwtClaims.act == "notify_watch_subscriptions_response"
-                    *   jwtClaims.iss - did:key of Notify Server authentication key. Add logic when cached value does not match jwtClaims.iss then fetch value again and if value still does not match then throw
-                    *   jwtClaims.aud - did:key of client identity key. Client must have this identity key */
+                    jwtClaims.throwIfIsInvalid()
 
                     val subscriptions = setActiveSubscriptionsUseCase(decodeDidPkh(jwtClaims.subject), jwtClaims.subscriptions)
-
                     SubscriptionChanged(subscriptions)
                 }
 
@@ -53,5 +57,25 @@ internal class OnWatchSubscriptionsResponseUseCase(
         }
 
         _events.emit(resultEvent)
+    }
+
+    private suspend fun WatchSubscriptionsResponseJwtClaim.throwIfIsInvalid() {
+        throwIfBaseIsInvalid()
+        throwIfAudienceAndIssuerIsInvalidAndRetriggerWatchingLogicOnOutdatedIssuer()
+    }
+
+    private suspend fun WatchSubscriptionsResponseJwtClaim.throwIfAudienceAndIssuerIsInvalidAndRetriggerWatchingLogicOnOutdatedIssuer() {
+        val expectedIssuer = runCatching { accountsRepository.getAccountByIdentityKey(decodeEd25519DidKey(audience).keyAsHex).notifyServerAuthenticationKey }
+            .getOrElse { throw IllegalStateException("Account does not exist in storage for $audience") } ?: throw IllegalStateException("Cached authentication public key is null")
+
+        val decodedIssuerAsHex = decodeEd25519DidKey(issuer).keyAsHex
+        if (decodedIssuerAsHex != expectedIssuer.keyAsHex) {
+            val (_, newAuthenticationPublicKey) = extractPublicKeysFromDidJsonUseCase(notifyServerUrl.toUri()).getOrThrow()
+
+            if (decodedIssuerAsHex == newAuthenticationPublicKey.keyAsHex)
+                watchSubscriptionsForEveryRegisteredAccountUseCase()
+            else
+                throw IllegalStateException("Issuer $decodedIssuerAsHex is not valid with cached ${expectedIssuer.keyAsHex} or fresh ${newAuthenticationPublicKey.keyAsHex}")
+        }
     }
 }
