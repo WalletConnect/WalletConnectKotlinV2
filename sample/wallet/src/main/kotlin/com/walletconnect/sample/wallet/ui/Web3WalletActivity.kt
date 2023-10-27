@@ -72,8 +72,10 @@ class Web3WalletActivity : AppCompatActivity() {
     private fun handleNotifyMessages() {
         NotifyDelegate.notifyEvents
             .filterIsInstance<Notify.Event.Message>()
-            .onEach { message -> NotificationHandler.showNotification(message.message.message, this) }
+            .onEach { message -> NotificationHandler.addNotification(message.message.message) }
             .launchIn(lifecycleScope)
+
+        NotificationHandler.startNotificationDisplayingJob(lifecycleScope, this)
     }
 
     private fun handleCoreEvents(connectionsViewModel: ConnectionsViewModel) {

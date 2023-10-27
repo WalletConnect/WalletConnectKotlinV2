@@ -1,3 +1,5 @@
+@file:OptIn(FlowPreview::class)
+
 package com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox
 
 import android.app.Application
@@ -12,6 +14,7 @@ import com.walletconnect.sample.wallet.ui.common.subscriptions.ActiveSubscriptio
 import com.walletconnect.sample.wallet.ui.common.subscriptions.toUI
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.discover.ExplorerApp
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.discover.ImageUrl
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -43,6 +46,7 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
                 else -> false
             }
         }
+        .debounce(500L)
         .map { event ->
             when (event) {
                 is Notify.Event.Message -> getActiveSubscriptions(NotifyClient.getActiveSubscriptions().values.toList())

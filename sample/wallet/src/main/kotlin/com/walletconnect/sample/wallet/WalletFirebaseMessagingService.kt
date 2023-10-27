@@ -6,6 +6,7 @@ import com.google.firebase.messaging.RemoteMessage
 import com.walletconnect.notify.client.Notify
 import com.walletconnect.notify.client.NotifyMessageService
 import com.walletconnect.sample.wallet.domain.NotificationHandler
+import kotlinx.coroutines.runBlocking
 
 @SuppressLint("MissingFirebaseInstanceTokenRefresh")
 class WalletFirebaseMessagingService : NotifyMessageService() {
@@ -22,7 +23,7 @@ class WalletFirebaseMessagingService : NotifyMessageService() {
     override fun onMessage(message: Notify.Model.Message, originalMessage: RemoteMessage) {
         Log.d(TAG, "Message:\t$message")
 
-        NotificationHandler.showNotification(message, this)
+        runBlocking { NotificationHandler.addNotification(message) }
     }
 
     override fun onDefaultBehavior(message: RemoteMessage) {
