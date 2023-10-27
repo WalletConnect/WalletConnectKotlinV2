@@ -75,6 +75,7 @@ class SessionProposalViewModel : ViewModel() {
                     peerUri = proposal.url,
                 ),
                 namespaces = proposal.requiredNamespaces,
+                optionalNamespaces = proposal.optionalNamespaces,
                 peerContext = context.toPeerUI(),
                 redirect = proposal.redirect,
                 pubKey = proposal.proposerPublicKey

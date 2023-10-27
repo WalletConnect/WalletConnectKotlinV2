@@ -29,9 +29,9 @@ internal fun ChipButton(
         onClick = onClick
     ) { buttonData ->
         startIcon(buttonData.tint)
-        HorizontalSpacer(width = 6.dp)
+        HorizontalSpacer(width = 4.dp)
         Text(text = text, style = buttonData.textStyle)
-        HorizontalSpacer(width = 6.dp)
+        HorizontalSpacer(width = 4.dp)
         endIcon(buttonData.tint)
     }
 }

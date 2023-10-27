@@ -7,5 +7,5 @@ import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 @Composable
 internal fun FullWidthDivider(modifier: Modifier = Modifier) {
-    Divider(color = Web3ModalTheme.colors.grayGlass05, modifier = modifier)
+    Divider(color = Web3ModalTheme.colors.background.color125, modifier = modifier)
 }

@@ -37,17 +37,14 @@ internal fun BackArrowIcon(
 
 @Composable
 internal fun QuestionMarkIcon(
-    tint: Color = Web3ModalTheme.colors.foreground.color100,
-    onClick: () -> Unit
+    modifier: Modifier = Modifier,
+    tint: Color = Web3ModalTheme.colors.foreground.color100
 ) {
     Icon(
         imageVector = ImageVector.vectorResource(id = R.drawable.ic_question_mark),
         contentDescription = ContentDescription.QUESTION_MARK.description,
         tint = tint,
-        modifier = Modifier
-            .size(36.dp)
-            .roundedClickable(onClick = onClick)
-            .padding(10.dp),
+        modifier = modifier
     )
 }
 
@@ -112,7 +109,7 @@ internal fun ExternalIcon(
     Icon(
         imageVector = ImageVector.vectorResource(id = R.drawable.ic_external_link),
         contentDescription = ContentDescription.EXTERNAL_LINK.description,
-        modifier = Modifier.size(10.dp),
+        modifier = Modifier.size(12.dp),
         tint = tint
     )
 }
@@ -180,7 +177,7 @@ internal fun DisconnectIcon(
         modifier = Modifier
             .size(32.dp)
             .background(Web3ModalTheme.colors.grayGlass10, shape = CircleShape)
-            .border(2.dp, Web3ModalTheme.colors.grayGlass02, shape = CircleShape)
+            .border(2.dp, Web3ModalTheme.colors.grayGlass05, shape = CircleShape)
             .padding(8.dp),
         tint = tint
     )
@@ -229,7 +226,7 @@ internal fun AllWalletsIcon(
                 color = Web3ModalTheme.colors.accent10,
                 shape = RoundedCornerShape(12.dp)
             )
-            .padding(10.dp),
+            .padding(8.dp),
         tint = tint
     )
 }
@@ -298,7 +295,7 @@ internal fun ForwardIcon(
 private fun IconsPreview() {
     MultipleComponentsPreview(
         { BackArrowIcon {} },
-        { QuestionMarkIcon {} },
+        { QuestionMarkIcon() },
         { CloseIcon {} },
         { RetryIcon() },
         { DeclinedIcon() },

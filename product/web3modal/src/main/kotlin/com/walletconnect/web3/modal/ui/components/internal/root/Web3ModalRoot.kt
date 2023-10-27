@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -19,6 +20,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.walletconnect.modal.ui.components.common.roundedClickable
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
 import com.walletconnect.web3.modal.ui.components.internal.Web3ModalTopBar
@@ -104,7 +106,12 @@ private fun TopBarStartIcon(
         })
     } else {
         when (rootState.currentDestinationRoute) {
-            Route.CONNECT_YOUR_WALLET.path -> QuestionMarkIcon(onClick = rootState::navigateToHelp)
+            Route.CONNECT_YOUR_WALLET.path -> QuestionMarkIcon(
+                modifier = Modifier
+                    .size(36.dp)
+                    .roundedClickable(onClick = rootState::navigateToHelp)
+                    .padding(10.dp)
+            )
         }
     }
 }
