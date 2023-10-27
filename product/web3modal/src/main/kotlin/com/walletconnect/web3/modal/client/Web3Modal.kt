@@ -1,5 +1,6 @@
 package com.walletconnect.web3.modal.client
 
+import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
@@ -7,12 +8,15 @@ import com.walletconnect.web3.modal.di.web3ModalModule
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
 import com.walletconnect.web3.modal.domain.model.InvalidSessionException
 import com.walletconnect.web3.modal.domain.model.toModalError
+import com.walletconnect.web3.modal.domain.usecase.DeleteSessionDataUseCase
+import com.walletconnect.web3.modal.domain.usecase.GetSelectedChainUseCase
+import com.walletconnect.web3.modal.domain.usecase.GetSessionTopicUseCase
 import com.walletconnect.web3.modal.utils.toChain
+import kotlinx.coroutines.launch
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 //TODO Change to Client/Protocol/Engine Pattern to break up public facing functions with business logic
-
 object Web3Modal {
 
     internal var excludedWalletsIds: List<String> = listOf()
@@ -21,6 +25,10 @@ object Web3Modal {
     internal var chains: List<Modal.Model.Chain> = listOf()
 
     internal var sessionProperties: Map<String, String>? = null
+
+    private val getSessionTopicUseCase: GetSessionTopicUseCase by lazy { wcKoinApp.koin.get() }
+    private val getSelectedChainUseCase: GetSelectedChainUseCase by lazy { wcKoinApp.koin.get() }
+    private val deleteSessionDataUseCase: DeleteSessionDataUseCase by lazy { wcKoinApp.koin.get() }
 
     interface ModalDelegate {
         fun onSessionApproved(approvedSession: Modal.Model.ApprovedSession)
@@ -72,7 +80,7 @@ object Web3Modal {
         this.chains = chains
     }
 
-    fun getSelectedChain() = Session.getSelectedChainId()?.toChain()
+    fun getSelectedChain() = getSelectedChainUseCase()?.toChain()
 
     internal fun getSelectedChainOrFirst() = getSelectedChain() ?: chains.first()
 
@@ -135,8 +143,8 @@ object Web3Modal {
     }
 
     fun request(request: Modal.Params.Request, onSuccess: (Modal.Model.SentRequest) -> Unit = {}, onError: (Modal.Model.Error) -> Unit) {
-        val sessionTopic = Session.getSessionTopic()
-        val selectedChainId = Session.getSelectedChainId()
+        val sessionTopic = getSessionTopicUseCase()
+        val selectedChainId = getSelectedChainUseCase()
 
         if (sessionTopic == null || selectedChainId == null) {
             onError(InvalidSessionException.toModalError())
@@ -155,7 +163,7 @@ object Web3Modal {
     }
 
     fun ping(sessionPing: Modal.Listeners.SessionPing? = null) {
-        val sessionTopic = Session.getSessionTopic()
+        val sessionTopic = getSessionTopicUseCase()
         if (sessionTopic == null) {
             sessionPing?.onError(Modal.Model.Ping.Error(InvalidSessionException))
             return
@@ -164,7 +172,7 @@ object Web3Modal {
     }
 
     fun disconnect(onSuccess: (Modal.Params.Disconnect) -> Unit = {}, onError: (Modal.Model.Error) -> Unit) {
-        val sessionTopic = Session.getSessionTopic()
+        val sessionTopic = getSessionTopicUseCase()
 
         if (sessionTopic == null) {
             onError(InvalidSessionException.toModalError())
@@ -174,7 +182,7 @@ object Web3Modal {
         SignClient.disconnect(
             Sign.Params.Disconnect(sessionTopic),
             {
-                Session.clearSessionData()
+                scope.launch { deleteSessionDataUseCase() }
                 onSuccess(it.toModal())
             },
             { onError(it.toModal()) }
@@ -191,5 +199,5 @@ object Web3Modal {
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
-    fun getActiveSession() = Session.getSessionTopic()?.let { SignClient.getActiveSessionByTopic(it)?.toModal() }
+    fun getActiveSession() = getSessionTopicUseCase()?.let { SignClient.getActiveSessionByTopic(it)?.toModal() }
 }
