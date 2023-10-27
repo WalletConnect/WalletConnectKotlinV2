@@ -67,7 +67,7 @@ private fun ChainNetworkGrid(
 ) {
     LazyVerticalGrid(
         contentPadding = PaddingValues(horizontal = 10.dp),
-        columns = GridCells.Adaptive(80.dp),
+        columns = GridCells.Adaptive(76.dp),
         content = {
             itemsIndexed(chains) { _, item ->
                 ChainNetworkItem(

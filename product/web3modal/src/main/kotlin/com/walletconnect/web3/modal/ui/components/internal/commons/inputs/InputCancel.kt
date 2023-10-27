@@ -44,7 +44,7 @@ internal fun InputCancel(
         Image(
             imageVector = ImageVector.vectorResource(R.drawable.ic_close),
             contentDescription = ContentDescription.CLEAR.description,
-            modifier = Modifier.size(10.dp).padding(3.dp),
+            modifier = Modifier.size(10.dp).padding(4.dp),
             colorFilter = ColorFilter.tint(tint)
         )
     }

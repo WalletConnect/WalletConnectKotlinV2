@@ -59,7 +59,7 @@ internal fun ChainNetworkItem(
         }
     }
     TransparentSurface(
-        modifier = Modifier.padding(6.dp),
+        modifier = Modifier.padding(4.dp),
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(
@@ -67,8 +67,7 @@ internal fun ChainNetworkItem(
                 .width(76.dp)
                 .height(96.dp)
                 .background(backgroundColor)
-                .clickable(isEnabled) { onItemClick() }
-                .padding(horizontal = 2.dp),
+                .clickable(isEnabled) { onItemClick() },
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -83,7 +82,8 @@ internal fun ChainNetworkItem(
                 style = Web3ModalTheme.typo.tiny500.copy(textColor),
                 textAlign = TextAlign.Center,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(horizontal = 2.dp)
             )
         }
     }

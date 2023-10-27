@@ -49,7 +49,7 @@ internal fun WhatIsWallet(
 }
 
 private fun WhatIsWalletOption.label() = when (this) {
-    WhatIsWalletOption.GET_WALLET -> "Get a Wallet"
+    WhatIsWalletOption.GET_WALLET -> "Get a wallet"
     WhatIsWalletOption.LEARN_MORE -> "Learn more"
 }
 
@@ -75,19 +75,19 @@ private fun WhatIsWallet(
             body = "Log in to any app by connecting your wallet. Say goodbye to countless passwords!",
             assets = listOf(R.drawable.login, R.drawable.profile, R.drawable.lock)
         )
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(24.dp))
         HelpSection(
             title = "A home for your digital assets",
             body = "A wallet lets you store, send and receive digital assets like cryptocurrencies and NFTs.",
             assets = listOf(R.drawable.defi, R.drawable.nft, R.drawable.eth)
         )
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(24.dp))
         HelpSection(
             title = "Your gateway to a new web",
             body = "With your wallet, you can explore and interact with DeFi, NFTs, DAOs, and much more.",
             assets = listOf(R.drawable.browser, R.drawable.noun, R.drawable.dao)
         )
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(20.dp))
         optionButton()
         Spacer(modifier = Modifier.height(30.dp))
     }

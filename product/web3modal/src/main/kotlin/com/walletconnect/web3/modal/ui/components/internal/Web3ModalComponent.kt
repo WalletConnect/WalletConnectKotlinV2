@@ -64,8 +64,8 @@ fun Web3ModalComponent(
             targetState = state,
             contentAlignment = Alignment.BottomCenter,
             transitionSpec = {
-                (fadeIn() + slideInVertically(animationSpec = tween(400),
-                    initialOffsetY = { fullHeight -> fullHeight })).togetherWith(fadeOut(animationSpec = tween(400)))
+                (fadeIn() + slideInVertically(animationSpec = tween(500),
+                    initialOffsetY = { fullHeight -> fullHeight })).togetherWith(fadeOut(animationSpec = tween(500)))
             },
             label = "Root Animated content"
         ) { state ->

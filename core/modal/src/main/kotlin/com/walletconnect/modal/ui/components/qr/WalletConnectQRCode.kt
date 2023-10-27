@@ -98,7 +98,7 @@ private fun createQROptions(
             val wrappedDrawable = DrawableCompat.wrap(rawDrawable!!)
             DrawableCompat.setTint(wrappedDrawable, logoColor.toArgb())
             drawable = wrappedDrawable
-            size = .2f
+            size = .22f
             padding = QrVectorLogoPadding.Natural(.2f)
         }
 

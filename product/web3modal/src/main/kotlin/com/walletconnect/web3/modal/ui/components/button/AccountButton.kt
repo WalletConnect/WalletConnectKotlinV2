@@ -119,7 +119,7 @@ private fun AccountButtonMixed(
                     .clickable(isEnabled) { onClick() }
                     .height(40.dp)
                     .background(backgroundColor)
-                    .border(width = 1.dp, color = borderColor)
+                    .border(width = 1.dp, color = borderColor, shape = CircleShape)
             ) {
                 Row(
                     modifier = Modifier

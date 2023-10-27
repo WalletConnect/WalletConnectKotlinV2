@@ -49,6 +49,6 @@ internal fun Web3ModalTopBar(
 private fun PreviewWeb3ModalTopBar() {
     MultipleComponentsPreview(
         { Web3ModalTopBar(title = "WalletConnect", startIcon = { BackArrowIcon {} }, {}) },
-        { Web3ModalTopBar(title = "WalletConnect", startIcon = { QuestionMarkIcon {} }, {}) }
+        { Web3ModalTopBar(title = "WalletConnect", startIcon = { QuestionMarkIcon() }, {}) }
     )
 }
