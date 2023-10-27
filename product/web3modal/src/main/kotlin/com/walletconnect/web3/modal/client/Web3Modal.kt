@@ -11,6 +11,8 @@ import com.walletconnect.web3.modal.utils.toChain
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
+//TODO Change to Client/Protocol/Engine Pattern to break up public facing functions with business logic
+
 object Web3Modal {
 
     internal var excludedWalletsIds: List<String> = listOf()
