@@ -1,0 +1,28 @@
+import java.lang.Boolean;
+import java.lang.String;
+import java.util.Map;
+import kotlin.Triple;
+
+
+-- Dropping the column as it is unused.
+
+
+ALTER TABLE ActiveSubscriptions RENAME TO TempActiveSubscriptions;
+
+CREATE TABLE ActiveSubscriptions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    account TEXT NOT NULL,
+    authentication_public_key TEXT NOT NULL,
+    expiry INTEGER NOT NULL,
+    relay_protocol TEXT NOT NULL,
+    relay_data TEXT DEFAULT NULL,
+    map_of_scope TEXT AS Map<String, Triple<String, String, Boolean>> NOT NULL,
+    notify_topic TEXT UNIQUE NOT NULL,
+    requested_subscription_id INTEGER UNIQUE DEFAULT NULL
+);
+
+
+INSERT INTO ActiveSubscriptions (id, account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, notify_topic, requested_subscription_id)
+SELECT id, account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, notify_topic, requested_subscription_id FROM TempActiveSubscriptions;
+
+DROP TABLE TempActiveSubscriptions;
