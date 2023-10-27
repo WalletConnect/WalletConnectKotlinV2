@@ -20,7 +20,6 @@ internal sealed class Subscription {
         override val mapOfNotificationScope: Map<String, NotificationScope.Cached>,
         override val expiry: Expiry,
         val authenticationPublicKey: PublicKey,
-        val dappGeneratedPublicKey: PublicKey,
         val notifyTopic: Topic,
         val dappMetaData: AppMetaData? = null,
         val requestedSubscriptionId: Long? = null,

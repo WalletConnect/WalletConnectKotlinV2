@@ -33,7 +33,6 @@ internal class SubscriptionRepository(
                         relay.protocol,
                         relay.data,
                         mapOfNotificationScope.mapValues { scope -> Triple(scope.value.name, scope.value.description, scope.value.isSelected) },
-                        dappGeneratedPublicKey.keyAsHex,
                         notifyTopic.value,
                         requestedSubscriptionId
                     )
@@ -70,7 +69,6 @@ internal class SubscriptionRepository(
         relay_protocol: String,
         relay_data: String?,
         map_of_scope: Map<String, Triple<String, String, Boolean>>,
-        dapp_generated_public_key: String,
         notify_topic: String,
         requested_subscription_id: Long?,
     ): Subscription.Active = Subscription.Active(
@@ -86,7 +84,6 @@ internal class SubscriptionRepository(
         }.toMap(),
         expiry = Expiry(expiry),
         relay = RelayProtocolOptions(relay_protocol, relay_data),
-        dappGeneratedPublicKey = PublicKey(dapp_generated_public_key),
         notifyTopic = Topic(notify_topic),
         dappMetaData = null,
         requestedSubscriptionId = requested_subscription_id
