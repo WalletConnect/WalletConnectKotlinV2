@@ -211,22 +211,9 @@ fun AccountAndNetwork(sessionProposalUI: SessionProposalUI) {
     }
 }
 
-private fun getOptionalChains(sessionProposalUI: SessionProposalUI) =
-    sessionProposalUI.optionalNamespaces.flatMap { (namespaceKey, proposal) ->
-        if (proposal.chains != null) {
-            proposal.chains!!
-        } else {
-            listOf(namespaceKey)
-        }
-    }
+private fun getOptionalChains(sessionProposalUI: SessionProposalUI) = sessionProposalUI.optionalNamespaces.flatMap { (namespaceKey, proposal) -> proposal.chains ?: listOf(namespaceKey) }
 
-private fun getRequiredChains(sessionProposalUI: SessionProposalUI) = sessionProposalUI.namespaces.flatMap { (namespaceKey, proposal) ->
-    if (proposal.chains != null) {
-        proposal.chains!!
-    } else {
-        listOf(namespaceKey)
-    }
-}
+private fun getRequiredChains(sessionProposalUI: SessionProposalUI) = sessionProposalUI.namespaces.flatMap { (namespaceKey, proposal) -> proposal.chains ?: listOf(namespaceKey) }
 
 @Composable
 fun Permissions(sessionProposalUI: SessionProposalUI) {
