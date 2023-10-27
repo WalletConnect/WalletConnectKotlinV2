@@ -1,5 +1,6 @@
-package com.walletconnect.android.di
+package com.walletconnect.notify.di
 
+import com.walletconnect.android.di.coreStorageModule
 import com.walletconnect.android.internal.common.di.coreCryptoModule
 import com.walletconnect.android.internal.common.di.coreJsonRpcModule
 import com.walletconnect.android.internal.common.di.corePairingModule
@@ -13,7 +14,12 @@ private const val KEY_STORE_ALIAS = "wc_keystore_key"
 
 // When called more that once, different `storagePrefix` must be defined.
 @JvmSynthetic
-internal fun overrideModule(relay: RelayConnectionInterface, pairing: PairingInterface, pairingController: PairingControllerInterface, storagePrefix: String) = module {
+internal fun overrideModule(
+    relay: RelayConnectionInterface,
+    pairing: PairingInterface,
+    pairingController: PairingControllerInterface,
+    storagePrefix: String
+) = module {
     val sharedPrefsFile = storagePrefix + SHARED_PREFS_FILE
     val keyStoreAlias = storagePrefix + KEY_STORE_ALIAS
 

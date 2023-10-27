@@ -1,0 +1,92 @@
+name: Instrumented Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      testTimeoutSeconds:
+        description: 'Seconds for test timeout'
+        required: true
+        default: 40  # should be same as env.TEST_TIMEOUT_SECONDS
+  pull_request:
+    branches:
+      - develop
+      - master
+    path:
+      - 'core/android/**'
+      - 'protocol/sign/**'
+      - 'protocol/notify/**'
+
+env:
+  TEST_TIMEOUT_SECONDS: 40 # Predefined timeout for integration tests
+
+concurrency:
+  # Support push/pr as event types with different behaviors each:
+  # 1. push: queue up builds by branch
+  # 2. pr: only allow one run per PR
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.ref_name }}
+  # If there is already a workflow running for the same pull request, cancel it
+  # For non-PR triggers queue up builds
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  sdk_tests:
+    name: Run Instrumented Tests
+    runs-on:
+      group: apple-silicon
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Check what modules were changed
+        id: what_modules_changed
+        shell: bash
+        run: |
+          check_changes() {
+            local module_path=$1
+            local output_variable_name=$2
+          
+            changes=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} -- "$module_path/")
+            
+            if [ -n "$changes" ]; then
+            echo "${output_variable_name}=true" >> $GITHUB_OUTPUT
+            else
+            echo "${output_variable_name}=false" >> $GITHUB_OUTPUT
+            fi
+          }
+        
+          check_changes "core/android" "CORE_MODULE_CHANGED"
+          check_changes "protocol/sign" "SIGN_MODULE_CHANGED"
+          check_changes "protocol/notify" "NOTIFY_MODULE_CHANGED"
+
+
+      - name: Run Core instrumented tests
+        if: ${{ steps.what_modules_changed.outputs.CORE_MODULE_CHANGED == 'true' }} || {{ github.event_name == 'workflow_dispatch' }}
+        uses: ./.github/actions/ci_instrumented_tests
+        with:
+          name: "Android_Core_SDK"
+          command: ":core:android:allDevicesCheck"
+          projectId: ${{ secrets.WC_CLOUD_PROJECT_ID }}
+          gmProjectId: ${{ secrets.PROD_GM_PROJECT_ID }}
+          gmSecret: ${{ secrets.PROD_GM_SECRET }}
+          testTimeoutSeconds: ${{ github.event.inputs.testTimeoutSeconds || env.TEST_TIMEOUT_SECONDS }} # Prioritise dispatch input timeout over env one
+
+      - name: Run Sign instrumented tests
+        if: ${{ steps.what_modules_changed.outputs.CORE_MODULE_CHANGED == 'true' }} || ${{ steps.what_modules_changed.outputs.SIGN_MODULE_CHANGED == 'true' }} || {{ github.event_name == 'workflow_dispatch' }}
+        uses: ./.github/actions/ci_instrumented_tests
+        with:
+          name: "Sign_SDK"
+          command: ":protocol:sign:allDevicesCheck"
+          projectId: ${{ secrets.WC_CLOUD_PROJECT_ID }}
+          gmProjectId: ${{ secrets.PROD_GM_PROJECT_ID }}
+          gmSecret: ${{ secrets.PROD_GM_SECRET }}
+          testTimeoutSeconds: ${{ github.event.inputs.testTimeoutSeconds || env.TEST_TIMEOUT_SECONDS }} # Prioritise dispatch input timeout over env one
+
+      - name: Run Notify instrumented tests
+        if: ${{ steps.what_modules_changed.outputs.CORE_MODULE_CHANGED == 'true' }} || ${{ steps.what_modules_changed.outputs.NOTIFY_MODULE_CHANGED == 'true' }} || {{ github.event_name == 'workflow_dispatch' }}
+        uses: ./.github/actions/ci_instrumented_tests
+        with:
+          name: "Notify_SDK"
+          command: ":protocol:notify:allDevicesCheck"
+          projectId: ${{ secrets.WC_CLOUD_PROJECT_ID }}
+          gmProjectId: ${{ secrets.PROD_GM_PROJECT_ID }}
+          gmSecret: ${{ secrets.PROD_GM_SECRET }}
+          testTimeoutSeconds: ${{ github.event.inputs.testTimeoutSeconds || env.TEST_TIMEOUT_SECONDS }} # Prioritise dispatch input timeout over env one
