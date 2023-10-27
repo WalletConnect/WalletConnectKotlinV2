@@ -1,5 +1,6 @@
 package com.walletconnect.web3.modal.ui.routes.connect.connect_wallet
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -11,7 +12,6 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.walletconnect.android.internal.common.modal.data.model.Wallet
-import com.walletconnect.web3.modal.ui.components.internal.commons.InstalledLabel
 import com.walletconnect.web3.modal.ui.components.internal.commons.ListSelectRow
 import com.walletconnect.web3.modal.ui.components.internal.commons.RecentLabel
 import com.walletconnect.web3.modal.ui.components.internal.commons.WalletImage
@@ -22,6 +22,7 @@ import com.walletconnect.web3.modal.ui.previews.ConnectYourWalletPreviewProvider
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 import com.walletconnect.web3.modal.ui.routes.connect.ConnectState
+import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 @Composable
 internal fun ConnectWalletRoute(
@@ -85,9 +86,6 @@ private fun WalletListSelect(item: Wallet, onWalletItemClick: (Wallet) -> Unit) 
         item.isRecent -> {
             { RecentLabel(it) }
         }
-        item.isWalletInstalled -> {
-            { InstalledLabel(it) }
-        }
         else -> null
     }
 
@@ -97,7 +95,8 @@ private fun WalletListSelect(item: Wallet, onWalletItemClick: (Wallet) -> Unit) 
                 url = item.imageUrl,
                 modifier = Modifier
                     .size(40.dp)
-                    .clip(RoundedCornerShape(10.dp))
+                    .border(width = 1.dp, color = Web3ModalTheme.colors.grayGlass10, shape = RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(12.dp))
             )
         },
         text = item.name,

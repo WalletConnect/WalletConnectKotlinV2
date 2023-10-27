@@ -104,13 +104,13 @@ private fun AccountButtonMixed(
         val textColor: Color
 
         if (isEnabled) {
-            backgroundColor = Web3ModalTheme.colors.overlay02
-            borderColor = Web3ModalTheme.colors.overlay05
+            backgroundColor = Web3ModalTheme.colors.grayGlass02
+            borderColor = Web3ModalTheme.colors.grayGlass05
             textColor = Web3ModalTheme.colors.foreground.color100
         } else {
-            backgroundColor = Web3ModalTheme.colors.overlay15
-            borderColor = Web3ModalTheme.colors.overlay05
-            textColor = Web3ModalTheme.colors.overlay15
+            backgroundColor = Web3ModalTheme.colors.grayGlass15
+            borderColor = Web3ModalTheme.colors.grayGlass05
+            textColor = Web3ModalTheme.colors.grayGlass15
         }
 
         TransparentSurface(shape = RoundedCornerShape(100)) {
@@ -119,7 +119,7 @@ private fun AccountButtonMixed(
                     .clickable(isEnabled) { onClick() }
                     .height(40.dp)
                     .background(backgroundColor)
-                    .border(width = 1.dp, color = borderColor)
+                    .border(width = 1.dp, color = borderColor, shape = CircleShape)
             ) {
                 Row(
                     modifier = Modifier
@@ -136,7 +136,7 @@ private fun AccountButtonMixed(
                             Box(
                                 modifier = Modifier
                                     .size(20.dp)
-                                    .border(width = 1.dp, color = Web3ModalTheme.colors.overlay05, shape = CircleShape)
+                                    .border(width = 1.dp, color = Web3ModalTheme.colors.grayGlass05, shape = CircleShape)
                                     .padding(1.dp)
                                     .background(brush = Brush.linearGradient(generateAvatarColors(address)), shape = CircleShape)
                             )
@@ -162,7 +162,7 @@ private fun AccountButtonNormal(
                 Box(
                     modifier = Modifier
                         .size(20.dp)
-                        .border(width = 1.dp, color = Web3ModalTheme.colors.overlay05, shape = CircleShape)
+                        .border(width = 1.dp, color = Web3ModalTheme.colors.grayGlass05, shape = CircleShape)
                         .padding(1.dp)
                         .background(brush = Brush.linearGradient(generateAvatarColors(address)), shape = CircleShape)
                 )

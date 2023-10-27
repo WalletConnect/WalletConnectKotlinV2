@@ -30,10 +30,10 @@ internal fun InputCancel(
 
     if (isEnabled) {
         tint = Web3ModalTheme.colors.background.color100
-        background = Web3ModalTheme.colors.overlay20
+        background = Web3ModalTheme.colors.grayGlass20
     } else {
         tint = Web3ModalTheme.colors.background.color100
-        background = Web3ModalTheme.colors.overlay10
+        background = Web3ModalTheme.colors.grayGlass10
     }
 
     Surface(
@@ -44,7 +44,7 @@ internal fun InputCancel(
         Image(
             imageVector = ImageVector.vectorResource(R.drawable.ic_close),
             contentDescription = ContentDescription.CLEAR.description,
-            modifier = Modifier.size(10.dp).padding(3.dp),
+            modifier = Modifier.size(10.dp).padding(4.dp),
             colorFilter = ColorFilter.tint(tint)
         )
     }

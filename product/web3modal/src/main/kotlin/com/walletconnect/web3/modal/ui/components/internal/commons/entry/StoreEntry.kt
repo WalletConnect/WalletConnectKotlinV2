@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -18,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.walletconnect.web3.modal.ui.components.internal.commons.ForwardIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.HorizontalSpacer
+import com.walletconnect.web3.modal.ui.components.internal.commons.TransparentSurface
 import com.walletconnect.web3.modal.ui.previews.MultipleComponentsPreview
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.testWallets
@@ -33,10 +35,10 @@ internal fun StoreEntry(
     val textColor: Color
     if (isEnabled) {
         textColor = Web3ModalTheme.colors.foreground.color200
-        background = Web3ModalTheme.colors.overlay02
+        background = Web3ModalTheme.colors.grayGlass02
     } else {
         textColor = Web3ModalTheme.colors.foreground.color300
-        background = Web3ModalTheme.colors.overlay10
+        background = Web3ModalTheme.colors.grayGlass10
     }
     Surface(
         color = Color.Transparent,
@@ -46,29 +48,32 @@ internal fun StoreEntry(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
-                .clickable { onClick() }
-                .background(background).padding(horizontal = 18.dp),
+                .background(background)
+                .padding(horizontal = 18.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(text = text, style = Web3ModalTheme.typo.paragraph500.copy(color = textColor), modifier = Modifier.weight(1f))
             HorizontalSpacer(width = 10.dp)
-            GetButton()
+            GetButton(onClick)
         }
     }
 }
 
 @Composable
-private fun GetButton() {
-    Row(
-        modifier = Modifier
-            .border(width = 1.dp, color = Web3ModalTheme.colors.overlay10, RoundedCornerShape(100))
-            .padding(horizontal = 12.dp, vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
-    ) {
-        Text(text = "Get", style = Web3ModalTheme.typo.small500.copy(color = Web3ModalTheme.colors.main100))
-        ForwardIcon(tint = Web3ModalTheme.colors.main100)
+private fun GetButton(onClick: () -> Unit) {
+    TransparentSurface(shape = RoundedCornerShape(100)) {
+        Row(
+            modifier = Modifier
+                .border(width = 1.dp, color = Web3ModalTheme.colors.grayGlass10, shape = CircleShape)
+                .clickable { onClick() }
+                .padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(text = "Get", style = Web3ModalTheme.typo.small500.copy(color = Web3ModalTheme.colors.accent100))
+            ForwardIcon(tint = Web3ModalTheme.colors.accent100)
+        }
     }
 }
 

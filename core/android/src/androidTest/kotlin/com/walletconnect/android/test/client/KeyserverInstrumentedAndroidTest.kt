@@ -31,18 +31,13 @@ class KeyserverInstrumentedAndroidTest {
     private val domain = "domain.dummy"
 
     @Test
-    fun testNotifySubscriptionChanged(){
-
-    }
-
-    @Test
     fun registerIdentityForEthereumByPrimaryClient() {
         Timber.d("registerIdentityByPrimaryClient: start")
         scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) {
             Timber.d(EthereumAccount.caip10)
             TestClient.Primary.identitiesInteractor.registerIdentity(
                 AccountId(EthereumAccount.caip10),
-                statement, domain, emptyList()
+                statement, domain, emptyList(), TestClient.Primary.keyserverUrl
             ) { message ->
                 CacaoSigner.sign(message, PrivateKey(EthereumAccount.privKey).keyAsBytes, SignatureType.EIP191)
             }.fold(
@@ -72,7 +67,7 @@ class KeyserverInstrumentedAndroidTest {
             Timber.d(SolanaAccount.caip10)
             TestClient.Primary.identitiesInteractor.registerIdentity(
                 AccountId(SolanaAccount.caip10),
-                statement, domain, emptyList()
+                statement, domain, emptyList(), TestClient.Primary.keyserverUrl
             ) { message ->
                 CacaoSigner.sign(message, PrivateKey(SolanaAccount.privKey).keyAsBytes, SignatureType.EIP191)
             }.fold(
@@ -89,10 +84,10 @@ class KeyserverInstrumentedAndroidTest {
                             globalOnError(Throwable("This test supposed to fail before reaching this part"))
                         },
                         // Note: When this error is shown that means Keys Server support solana, hence we need to update the tests here
-                        onFailure = {globalOnError(Throwable("This test supposed to fail before reaching this part"))}
+                        onFailure = { globalOnError(Throwable("This test supposed to fail before reaching this part")) }
                     )
                 },
-                onFailure =  { scenarioExtension.closeAsSuccess() }
+                onFailure = { scenarioExtension.closeAsSuccess() }
             )
         }
     }
@@ -103,7 +98,7 @@ class KeyserverInstrumentedAndroidTest {
         scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) {
             TestClient.Primary.identitiesInteractor.registerIdentity(
                 AccountId(BNBAccount.caip10),
-                statement, domain, emptyList()
+                statement, domain, emptyList(), TestClient.Primary.keyserverUrl
             ) { message ->
                 CacaoSigner.sign(message, PrivateKey(BNBAccount.privKey).keyAsBytes, SignatureType.EIP191)
             }.fold(

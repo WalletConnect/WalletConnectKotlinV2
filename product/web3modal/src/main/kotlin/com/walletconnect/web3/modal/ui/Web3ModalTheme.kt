@@ -1,6 +1,5 @@
 package com.walletconnect.web3.modal.ui
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
@@ -32,26 +31,26 @@ fun Web3ModalTheme(
 object Web3ModalTheme {
 
     fun provideLightWeb3ModalColors(
-        main100: Color = defaultLightWeb3ModalColors.main100,
-        main90: Color = defaultLightWeb3ModalColors.main90,
-        main20: Color = defaultLightWeb3ModalColors.main20,
+        accent100: Color = defaultLightWeb3ModalColors.accent100,
+        accent90: Color = defaultLightWeb3ModalColors.accent90,
+        accent80: Color = defaultLightWeb3ModalColors.accent80,
         foreground: ColorPalette = defaultLightWeb3ModalColors.foreground,
         background: ColorPalette = defaultLightWeb3ModalColors.background,
-        overlay: Color = defaultLightWeb3ModalColors.overlay,
+        overlay: Color = defaultLightWeb3ModalColors.grayGlass,
         success: Color = defaultLightWeb3ModalColors.success,
         error: Color = defaultLightWeb3ModalColors.error
-    ): Colors = CustomWeb3ModalColor(main100, main90, main20, foreground, background, overlay, success, error)
+    ): Colors = CustomWeb3ModalColor(accent100, accent90, accent80, foreground, background, overlay, success, error)
 
     fun provideDarkWeb3ModalColor(
-        main100: Color = defaultDarkWeb3ModalColors.main100,
-        main90: Color = defaultDarkWeb3ModalColors.main90,
-        main20: Color = defaultDarkWeb3ModalColors.main20,
+        accent100: Color = defaultDarkWeb3ModalColors.accent100,
+        accent90: Color = defaultDarkWeb3ModalColors.accent90,
+        accent80: Color = defaultDarkWeb3ModalColors.accent80,
         foreground: ColorPalette = defaultDarkWeb3ModalColors.foreground,
         background: ColorPalette = defaultDarkWeb3ModalColors.background,
-        overlay: Color = defaultDarkWeb3ModalColors.overlay,
+        overlay: Color = defaultDarkWeb3ModalColors.grayGlass,
         success: Color = defaultDarkWeb3ModalColors.success,
         error: Color = defaultDarkWeb3ModalColors.error
-    ): Colors = CustomWeb3ModalColor(main100, main90, main20, foreground, background, overlay, success, error)
+    ): Colors = CustomWeb3ModalColor(accent100, accent90, accent80, foreground, background, overlay, success, error)
 
     fun provideForegroundLightColorPalette(
         color100: Color = defaultLightWeb3ModalColors.foreground.color100,
@@ -107,31 +106,24 @@ object Web3ModalTheme {
     }
 
     interface Colors {
-        val main100: Color
-        val main90: Color
-        val main20: Color
+        val accent100: Color
+        val accent90: Color
+        val accent80: Color
         val foreground: ColorPalette
         val background: ColorPalette
-        val overlay: Color
+        val grayGlass: Color
         val success: Color
         val error: Color
     }
 }
 
-@Composable
-internal fun Web3ModalTheme.Mode.isDarkMode() = when (this) {
-    Web3ModalTheme.Mode.LIGHT -> false
-    Web3ModalTheme.Mode.DARK -> true
-    Web3ModalTheme.Mode.AUTO -> isSystemInDarkTheme()
-}
-
 private class CustomWeb3ModalColor(
-    override val main100: Color,
-    override val main90: Color,
-    override val main20: Color,
+    override val accent100: Color,
+    override val accent90: Color,
+    override val accent80: Color,
     override val foreground: ColorPalette,
     override val background: ColorPalette,
-    override val overlay: Color,
+    override val grayGlass: Color,
     override val success: Color,
     override val error: Color
 ) : Web3ModalTheme.Colors

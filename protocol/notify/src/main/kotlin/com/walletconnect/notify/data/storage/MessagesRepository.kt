@@ -41,12 +41,20 @@ internal class MessagesRepository(private val messagesQueries: MessagesQueries) 
         messagesQueries.getMessagesByTopic(topic, ::mapToMessageRecord).executeAsList()
     }
 
+    suspend fun doesMessagesExistsByRequestId(requestId: Long): Boolean = withContext(Dispatchers.IO) {
+        messagesQueries.doesMessagesExistsByRequestId(requestId).executeAsOne()
+    }
+
     suspend fun deleteMessage(requestId: Long) = withContext(Dispatchers.IO) {
         messagesQueries.deleteMessageByRequestId(requestId)
     }
 
     suspend fun deleteMessagesByTopic(topic: String) = withContext(Dispatchers.IO) {
         messagesQueries.deleteMessagesByTopic(topic)
+    }
+
+    suspend fun updateMessageWithPublishedAtByRequestId(publishedAt: Long, requestId: Long) = withContext(Dispatchers.IO) {
+        messagesQueries.updateMessageWithPublishedAtByRequestId(publishedAt, requestId)
     }
 
     private fun mapToMessageRecord(

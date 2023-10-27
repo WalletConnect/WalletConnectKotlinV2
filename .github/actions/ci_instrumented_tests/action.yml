@@ -2,17 +2,11 @@ name: SDKs Instrumented Tests
 description: 'Runs various Kotlin SDK instrumented tests'
 
 inputs:
-  shouldUseCache:
-    description: 'Flag to use and save cache gradle'
-    default: 'true'
   name:
     description: 'Name of test and emulator'
     required: true
   command:
     description: 'Gradle task being run'
-    required: true
-  report:
-    description: 'Path to report'
     required: true
   projectId:
     description: 'WalletConnect projectId'
@@ -45,9 +39,3 @@ runs:
         path: |
           **/reports/**
           emulator.log
-
-    - name: Clean unused managed devices
-      if: always()
-      shell: bash
-      run: ./gradlew cleanManagedDevices --unused-only 2>/dev/null
-      # It sometimes fails, but failure shouldn't be the cause of action being marked as failed, hence `2>/dev/null`

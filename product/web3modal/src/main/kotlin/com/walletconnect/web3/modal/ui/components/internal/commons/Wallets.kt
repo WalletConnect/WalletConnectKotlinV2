@@ -4,27 +4,20 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridScope
-import androidx.compose.foundation.lazy.grid.LazyGridState
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -47,7 +40,7 @@ internal fun MultipleWalletIcon(wallets: List<Wallet>) {
             .size(40.dp)
             .background(Web3ModalTheme.colors.background.color200, shape = RoundedCornerShape(10.dp))
             .padding(1.dp)
-            .border(1.dp, Web3ModalTheme.colors.overlay10, shape = RoundedCornerShape(10.dp)),
+            .border(1.dp, Web3ModalTheme.colors.grayGlass10, shape = RoundedCornerShape(10.dp)),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -68,27 +61,6 @@ internal fun MultipleWalletIcon(wallets: List<Wallet>) {
             }
         }
 
-    }
-}
-
-@Composable
-internal fun WalletsLazyGridView(
-    modifier: Modifier = Modifier,
-    state: LazyGridState = rememberLazyGridState(),
-    content: LazyGridScope.(Int) -> Unit
-) {
-    val walletItemWidth = 92.dp
-    BoxWithConstraints(
-        modifier = modifier
-    ) {
-        val maxColumnsNumber = maxOf((maxWidth / walletItemWidth).toInt(), 1)
-        LazyVerticalGrid(
-            state = state,
-            columns = GridCells.Fixed(maxColumnsNumber),
-            content = {
-                content(maxColumnsNumber)
-            }
-        )
     }
 }
 
@@ -127,26 +99,25 @@ internal fun WalletGridItem(
     wallet: Wallet,
     onWalletItemClick: (Wallet) -> Unit
 ) {
-    Surface(
-        modifier = Modifier.padding(8.dp),
-        color = Color.Transparent,
+    TransparentSurface(
+        modifier = Modifier.padding(4.dp),
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(
             modifier = Modifier
                 .width(76.dp)
-                .height(100.dp)
-                .background(Web3ModalTheme.colors.overlay05)
-                .clickable { onWalletItemClick(wallet) }
-                .padding(horizontal = 2.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .height(96.dp)
+                .background(Web3ModalTheme.colors.grayGlass02)
+                .clickable { onWalletItemClick(wallet) },
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            VerticalSpacer(height = 8.dp)
             WalletImage(
                 url = wallet.imageUrl,
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(54.dp)
                     .clip(RoundedCornerShape(16.dp))
+                    .border(width = 1.dp, color = Web3ModalTheme.colors.grayGlass10, shape = RoundedCornerShape(16.dp))
             )
             VerticalSpacer(height = 8.dp)
             Text(
@@ -154,7 +125,8 @@ internal fun WalletGridItem(
                 style = Web3ModalTheme.typo.tiny500,
                 textAlign = TextAlign.Center,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(horizontal = 2.dp)
             )
         }
     }

@@ -34,27 +34,34 @@ internal fun ButtonSize.getContentPadding() = when (this) {
 }
 
 @Composable
+internal fun ButtonSize.getHeight() = when (this) {
+    ButtonSize.M, ButtonSize.ACCOUNT_M -> 40.dp
+    ButtonSize.S, ButtonSize.ACCOUNT_S -> 32.dp
+}
+
+
+@Composable
 internal fun ButtonStyle.getTextColor(isEnabled: Boolean) = when (this) {
     ButtonStyle.MAIN -> if (isEnabled) Web3ModalTheme.colors.inverse100 else Web3ModalTheme.colors.foreground.color300
-    ButtonStyle.ACCENT, ButtonStyle.LOADING -> if (isEnabled) Web3ModalTheme.colors.main100 else Web3ModalTheme.colors.overlay20
-    ButtonStyle.SHADE -> if (isEnabled) Web3ModalTheme.colors.foreground.color150 else Web3ModalTheme.colors.overlay15
-    ButtonStyle.ACCOUNT -> if (isEnabled) Web3ModalTheme.colors.foreground.color100 else Web3ModalTheme.colors.overlay15
-    ButtonStyle.LINK -> if(isEnabled) Web3ModalTheme.colors.foreground.color200 else Web3ModalTheme.colors.overlay15
+    ButtonStyle.ACCENT, ButtonStyle.LOADING -> if (isEnabled) Web3ModalTheme.colors.accent100 else Web3ModalTheme.colors.grayGlass20
+    ButtonStyle.SHADE -> if (isEnabled) Web3ModalTheme.colors.foreground.color150 else Web3ModalTheme.colors.grayGlass15
+    ButtonStyle.ACCOUNT -> if (isEnabled) Web3ModalTheme.colors.foreground.color100 else Web3ModalTheme.colors.grayGlass15
+    ButtonStyle.LINK -> if(isEnabled) Web3ModalTheme.colors.foreground.color200 else Web3ModalTheme.colors.grayGlass15
 }
 
 @Composable
 internal fun ButtonStyle.getBackgroundColor(isEnabled: Boolean) = when (this) {
-    ButtonStyle.MAIN -> if (isEnabled) Web3ModalTheme.colors.main100 else Web3ModalTheme.colors.overlay20
-    ButtonStyle.ACCENT -> if (isEnabled) Color.Transparent else Web3ModalTheme.colors.overlay10
-    ButtonStyle.SHADE, ButtonStyle.LINK -> if (isEnabled) Color.Transparent else Web3ModalTheme.colors.overlay05
-    ButtonStyle.LOADING -> Web3ModalTheme.colors.overlay10
-    ButtonStyle.ACCOUNT -> if (isEnabled) Web3ModalTheme.colors.overlay10 else Web3ModalTheme.colors.overlay15
+    ButtonStyle.MAIN -> if (isEnabled) Web3ModalTheme.colors.accent100 else Web3ModalTheme.colors.grayGlass20
+    ButtonStyle.ACCENT -> if (isEnabled) Color.Transparent else Web3ModalTheme.colors.grayGlass10
+    ButtonStyle.SHADE, ButtonStyle.LINK -> if (isEnabled) Color.Transparent else Web3ModalTheme.colors.grayGlass05
+    ButtonStyle.LOADING -> Web3ModalTheme.colors.grayGlass10
+    ButtonStyle.ACCOUNT -> if (isEnabled) Web3ModalTheme.colors.grayGlass10 else Web3ModalTheme.colors.grayGlass15
 }
 
 @Composable
 internal fun ButtonStyle.getBorder(isEnabled: Boolean) = when (this) {
-    ButtonStyle.MAIN, ButtonStyle.LINK -> if (isEnabled) Color.Transparent else Web3ModalTheme.colors.overlay20
-    ButtonStyle.ACCENT, ButtonStyle.SHADE, ButtonStyle.LOADING, ButtonStyle.ACCOUNT -> if (isEnabled) Web3ModalTheme.colors.overlay10 else Web3ModalTheme.colors.overlay05
+    ButtonStyle.MAIN, ButtonStyle.LINK -> if (isEnabled) Color.Transparent else Web3ModalTheme.colors.grayGlass20
+    ButtonStyle.ACCENT, ButtonStyle.SHADE, ButtonStyle.LOADING, ButtonStyle.ACCOUNT -> if (isEnabled) Web3ModalTheme.colors.grayGlass10 else Web3ModalTheme.colors.grayGlass05
 }
 
 internal data class ButtonPreview(

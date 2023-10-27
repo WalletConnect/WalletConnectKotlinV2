@@ -41,15 +41,17 @@ import kotlinx.coroutines.launch
 internal fun rememberAccountState(
     coroutineScope: CoroutineScope,
     navController: NavController,
-    closeModal: () -> Unit
+    closeModal: () -> Unit,
+    showError: (String?) -> Unit
 ): AccountState = remember(coroutineScope, navController) {
-    AccountState(coroutineScope, navController, closeModal)
+    AccountState(coroutineScope, navController, closeModal, showError)
 }
 
 internal class AccountState(
     private val coroutineScope: CoroutineScope,
     private val navController: NavController,
-    val closeModal: () -> Unit
+    val closeModal: () -> Unit,
+    val showError: (String?) -> Unit
 ) {
     private val logger: Logger = wcKoinApp.koin.get()
 
@@ -84,6 +86,7 @@ internal class AccountState(
                 UiState.Error(Throwable("Active session not found"))
             }
         }.catch {
+            showError(it.localizedMessage)
             logger.error(it)
             emit(UiState.Error(it))
         }
@@ -114,6 +117,7 @@ internal class AccountState(
                     coroutineScope.launch(Dispatchers.Main) { closeModal() }
                 },
                 onError = {
+                    showError(it.throwable.localizedMessage)
                     logger.error(it.throwable)
                 }
             )

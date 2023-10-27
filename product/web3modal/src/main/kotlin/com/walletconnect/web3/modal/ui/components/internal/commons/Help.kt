@@ -4,7 +4,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,6 +19,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.walletconnect.web3.modal.R
+import com.walletconnect.web3.modal.ui.previews.ComponentPreview
+import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 @Composable
@@ -45,13 +47,13 @@ internal fun HelpSection(
                 )
             }
         }
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(20.dp))
         Text(
             text = title,
             style = Web3ModalTheme.typo.paragraph400,
             textAlign = TextAlign.Center,
         )
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = body,
             style = Web3ModalTheme.typo.small400.copy(Web3ModalTheme.colors.foreground.color200),
@@ -61,7 +63,7 @@ internal fun HelpSection(
 }
 
 @Composable
-internal fun ColumnScope.NetworkBottomSection(
+internal fun NetworkBottomSection(
     onClick: () -> Unit
 ) {
     FullWidthDivider()
@@ -72,7 +74,7 @@ internal fun ColumnScope.NetworkBottomSection(
         textAlign = TextAlign.Center,
         modifier = Modifier.padding(horizontal = 12.dp)
     )
-    VerticalSpacer(height = 4.dp)
+    VerticalSpacer(height = 12.dp)
     WhatIsNetworkLink(onClick = onClick)
 }
 @Composable
@@ -82,17 +84,37 @@ internal fun WhatIsNetworkLink(onClick: () -> Unit) {
     ) {
         Row(
             modifier = Modifier
-                .padding(4.dp)
-                .clickable(onClick = onClick),
+                .clickable(onClick = onClick)
+                .padding(vertical = 6.dp, horizontal = 20.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            QuestionMarkIcon(tint = Web3ModalTheme.colors.main100, onClick = {})
+            QuestionMarkIcon(tint = Web3ModalTheme.colors.accent100, modifier = Modifier.size(12.dp))
+            HorizontalSpacer(width = 6.dp)
             Text(
                 text = "What is a network",
-                style = Web3ModalTheme.typo.small600.copy(color = Web3ModalTheme.colors.main100),
-                modifier = Modifier.padding(start = 0.dp, end = 8.dp)
+                style = Web3ModalTheme.typo.small600.copy(color = Web3ModalTheme.colors.accent100)
             )
         }
+    }
+}
+
+@Composable
+@UiModePreview
+private fun HelpSectionPreview() {
+    ComponentPreview {
+        HelpSection(
+            title = "One login for all of web3",
+            body = "Log in to any app by connecting your wallet. Say goodbye to countless passwords!",
+            assets = listOf(R.drawable.login, R.drawable.profile, R.drawable.lock)
+        )
+    }
+}
+
+@Composable
+@UiModePreview
+private fun WhatIsNetworkLinkPreview() {
+    ComponentPreview {
+        WhatIsNetworkLink {}
     }
 }

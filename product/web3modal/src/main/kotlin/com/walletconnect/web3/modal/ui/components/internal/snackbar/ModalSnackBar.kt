@@ -5,7 +5,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
@@ -17,7 +20,6 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
-import com.walletconnect.util.Empty
 import com.walletconnect.web3.modal.R
 import com.walletconnect.web3.modal.ui.components.internal.commons.HorizontalSpacer
 import com.walletconnect.web3.modal.ui.previews.ComponentPreview
@@ -31,13 +33,14 @@ internal fun ModalSnackBar(
     val shape = RoundedCornerShape(100)
     Row(
         modifier = Modifier
+            .height(40.dp)
             .background(
-                color = Web3ModalTheme.colors.background.color175,
+                color = Web3ModalTheme.colors.background.color125,
                 shape = shape
             )
             .border(
                 width = 1.dp,
-                color = Web3ModalTheme.colors.overlay05,
+                color = Web3ModalTheme.colors.grayGlass05,
                 shape = shape
             )
             .padding(8.dp)
@@ -59,13 +62,15 @@ internal fun ModalSnackBar(
 
             Icon(
                 imageVector = ImageVector.vectorResource(icon),
+                modifier = Modifier.size(24.dp),
                 contentDescription = "SnackBar icon",
                 tint = tint
             )
             HorizontalSpacer(width = 8.dp)
             Text(
                 text = snackBarEvent.message,
-                style = Web3ModalTheme.typo.paragraph500
+                style = Web3ModalTheme.typo.paragraph500,
+                modifier = Modifier.fillMaxHeight()
             )
             HorizontalSpacer(width = 8.dp)
         }

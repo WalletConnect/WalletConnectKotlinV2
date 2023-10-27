@@ -28,11 +28,11 @@ internal fun AccountName(accountData: AccountData) {
     ) {
         val clipboardManager: ClipboardManager = LocalClipboardManager.current
         val name = accountData.identity?.name ?: accountData.address.toVisibleAddress()
-        Text(text = name, style = Web3ModalTheme.typo.title600)
+        Text(text = name, style = Web3ModalTheme.typo.mediumTitle600)
         CopyIcon(
             modifier = Modifier
-                .size(32.dp)
-                .padding(8.dp)
+                .padding(10.dp)
+                .size(16.dp)
                 .roundedClickable { clipboardManager.setText(AnnotatedString(accountData.address)) }
         )
     }
