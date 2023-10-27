@@ -12,6 +12,7 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.storage.KeyStore
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.foundation.common.model.Topic
+import com.walletconnect.foundation.util.jwt.decodeEd25519DidKey
 import com.walletconnect.notify.common.model.NotificationScope
 import com.walletconnect.notify.common.model.ServerSubscription
 import com.walletconnect.notify.common.model.Subscription
@@ -25,7 +26,6 @@ import kotlinx.coroutines.supervisorScope
 
 internal class SetActiveSubscriptionsUseCase(
     private val subscriptionRepository: SubscriptionRepository,
-    private val extractPublicKeysFromDidJsonUseCase: ExtractPublicKeysFromDidJsonUseCase,
     private val extractMetadataFromConfigUseCase: ExtractMetadataFromConfigUseCase,
     private val metadataRepository: MetadataStorageRepositoryInterface,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -47,8 +47,6 @@ internal class SetActiveSubscriptionsUseCase(
                         isSelected = subscription.scope.firstOrNull { serverScope -> serverScope == remote.id } != null
                     )
                 }
-                //TODO: Those errors are not caught and handled
-                val (dappPublicKey, authenticationPublicKey) = extractPublicKeysFromDidJsonUseCase(dappUri).getOrThrow()
 
                 val symmetricKey = SymmetricKey(symKey)
                 val topic = Topic(sha256(symmetricKey.keyAsBytes))
@@ -59,7 +57,7 @@ internal class SetActiveSubscriptionsUseCase(
 
                 jsonRpcInteractor.subscribe(topic) { error -> launch { _events.emit(SDKError(error)); cancel() } }
 
-                Subscription.Active(AccountId(account), selectedScopes, Expiry(expiry), authenticationPublicKey, dappPublicKey, topic, metadata, null)
+                Subscription.Active(AccountId(account), selectedScopes, Expiry(expiry), decodeEd25519DidKey(appAuthenticationKey), topic, metadata, null)
             }
         }
 
