@@ -1,3 +1,5 @@
+import kotlin.Boolean;
+
 CREATE TABLE Identities (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     identity TEXT UNIQUE NOT NULL,
