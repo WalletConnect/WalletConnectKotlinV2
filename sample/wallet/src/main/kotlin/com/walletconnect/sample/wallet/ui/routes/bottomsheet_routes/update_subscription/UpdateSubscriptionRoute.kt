@@ -49,7 +49,6 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 
-//todo: Add shadow behind the bottomsheet
 @Composable
 fun UpdateSubscriptionRoute(navController: NavController, sheetState: BottomSheetNavigatorSheetState, topic: String) {
 
