@@ -1,3 +1,5 @@
+import kotlin.Boolean;
+
 -- migration from 5.db to 6.db
 
 -- Up until now, we've been using the Identities table to cache the remote identities, hence we can drop it
