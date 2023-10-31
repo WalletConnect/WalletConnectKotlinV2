@@ -1,6 +1,8 @@
 package com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.discover
 
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -102,6 +104,7 @@ private fun EmptyOrLoadingOrFailureState(text: String, showProgressBar: Boolean 
 
 @Composable
 fun ExplorerAppItem(explorerApp: ExplorerApp, onAppItemClick: () -> Unit) {
+    val context = LocalContext.current
 
     //TODO: Add background gradien
     //TODO: Change to Box
@@ -113,7 +116,13 @@ fun ExplorerAppItem(explorerApp: ExplorerApp, onAppItemClick: () -> Unit) {
             .padding(horizontal = 20.dp),
         colors = ButtonDefaults.outlinedButtonColors(backgroundColor = Color.Transparent),
         shape = RoundedCornerShape(12.dp),
-        onClick = {}
+        onClick = {
+            val parsedUrl = runCatching { Uri.parse(explorerApp.homepage) }.getOrNull()
+            if (parsedUrl != null) {
+                val intent = Intent(Intent.ACTION_VIEW, parsedUrl)
+                context.startActivity(intent)
+            }
+        }
     ) {
         Column() {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
