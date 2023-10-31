@@ -34,6 +34,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.walletconnect.notify.client.InvalidDidJsonFileException
 import com.walletconnect.sample.common.ui.WCTopAppBar
 import com.walletconnect.sample.common.ui.theme.PreviewTheme
 import com.walletconnect.sample.common.ui.theme.UiModePreview
@@ -43,10 +44,12 @@ import com.walletconnect.sample.wallet.ui.common.subscriptions.ActiveSubscriptio
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.discover.DiscoverTab
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.discover.ExplorerApp
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.subscriptions.SubscriptionsTab
+import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import java.net.URISyntaxException
 
 
 @Composable
@@ -143,7 +146,18 @@ fun TabViewWithPager(
         HorizontalPager(state = pagerState) { page ->
             when (page) {
                 0 -> SubscriptionsTab(navController, subscriptionsState, activeSubscriptions) { navigate(1) }
-                1 -> DiscoverTab(discoverState, apps) { navigate(0) }
+                1 -> DiscoverTab(discoverState, apps, onSubscribeSuccess = { navigate(0) }, onFailure = {
+                    val message = when (it) {
+                        is InvalidDidJsonFileException -> "Wrong dapp config. Failed to parse did.json file"
+                        is URISyntaxException -> "Wrong dapp config. Unable to open website. Reason: ${it.reason}"
+                        else -> it.localizedMessage
+                    }
+                    coroutineScope.launch {
+                        navController.showSnackbar(message)
+                    }
+
+                })
+
                 else -> throw IllegalArgumentException("Invalid page index: $page")
             }
         }
