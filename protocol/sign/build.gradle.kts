@@ -24,9 +24,21 @@ android {
             minCompileSdk = MIN_SDK
         }
 
-        buildConfigField(type = "String", name = "SDK_VERSION", value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\"")
-        buildConfigField("String", "PROJECT_ID", "\"${System.getenv("WC_CLOUD_PROJECT_ID") ?: ""}\"")
-        buildConfigField("Integer", "TEST_TIMEOUT_SECONDS", "${System.getenv("TEST_TIMEOUT_SECONDS") ?: 10}")
+        buildConfigField(
+            type = "String",
+            name = "SDK_VERSION",
+            value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\""
+        )
+        buildConfigField(
+            "String",
+            "PROJECT_ID",
+            "\"${System.getenv("WC_CLOUD_PROJECT_ID") ?: ""}\""
+        )
+        buildConfigField(
+            "Integer",
+            "TEST_TIMEOUT_SECONDS",
+            "${System.getenv("TEST_TIMEOUT_SECONDS") ?: 10}"
+        )
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         testInstrumentationRunnerArguments += mutableMapOf("clearPackageData" to "true")
@@ -35,7 +47,10 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "${rootDir.path}/gradle/proguard-rules/sdk-rules.pro")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "${rootDir.path}/gradle/proguard-rules/sdk-rules.pro"
+            )
         }
     }
 
@@ -69,7 +84,8 @@ sqldelight {
     databases {
         create("SignDatabase") {
             packageName.set("com.walletconnect.sign")
-            schemaOutputDirectory.set(file("src/debug/sqldelight/databases"))
+            schemaOutputDirectory.set(file("src/main/sqldelight/databases"))
+//            generateAsync.set(true) // TODO: Enable once all repository methods have been converted to suspend functions
             verifyMigrations.set(true)
             verifyDefinitions.set(true)
         }
