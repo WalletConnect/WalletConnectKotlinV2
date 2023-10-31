@@ -8,12 +8,23 @@ internal interface NotifyJwtBase : JwtClaims {
     val action: String
     val issuedAt: Long
     val expiration: Long
+    val requiredActionValue: String
 
-    fun throwIdIssuedAtIsInvalid() {
+    private fun throwIdIssuedAtIsInvalid() {
         if (issuedAt < System.currentTimeMillis()) throw IllegalArgumentException("Invalid issuedAt claim was $issuedAt instead of lower than ${System.currentTimeMillis()}")
     }
 
-    fun throwExpirationAtIsInvalid() {
+    private fun throwExpirationAtIsInvalid() {
         if (expiration > System.currentTimeMillis()) throw IllegalArgumentException("Invalid expiration claim was $expiration instead of greater than ${System.currentTimeMillis()}")
+    }
+
+    private fun throwIfActionIsInvalid() {
+        if (action != requiredActionValue) throw IllegalArgumentException("Invalid action claim was $action instead of $requiredActionValue")
+    }
+
+    fun throwIfBaseIsInvalid() {
+        throwIdIssuedAtIsInvalid()
+        throwExpirationAtIsInvalid()
+        throwIfActionIsInvalid()
     }
 }
