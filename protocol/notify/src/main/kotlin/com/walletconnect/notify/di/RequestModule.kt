@@ -36,7 +36,6 @@ internal fun requestModule() = module {
             notifyServerUrl = get(),
             registeredAccountsRepository = get(),
             watchSubscriptionsForEveryRegisteredAccountUseCase = get(),
-            accountsRepository = get(),
         )
     }
 }
