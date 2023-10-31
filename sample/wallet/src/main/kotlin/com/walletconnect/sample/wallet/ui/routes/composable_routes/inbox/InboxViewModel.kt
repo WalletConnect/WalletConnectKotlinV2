@@ -46,14 +46,13 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
     private val _activeSubscriptions = NotifyDelegate.notifyEvents
         .filter { event ->
             when (event) {
-                is Notify.Event.Message, is Notify.Event.SubscriptionsChanged -> true
+                is Notify.Event.SubscriptionsChanged -> true
                 else -> false
             }
         }
         .debounce(500L)
         .map { event ->
             when (event) {
-                is Notify.Event.Message -> getActiveSubscriptions(NotifyClient.getActiveSubscriptions().values.toList())
                 is Notify.Event.SubscriptionsChanged -> getActiveSubscriptions(event.subscriptions)
                 else -> throw Throwable("It is simply not possible to hit this exception. I blame bit flip.")
             }
