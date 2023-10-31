@@ -39,9 +39,8 @@ internal class SubscribeToDappUseCase(
 ) : SubscribeToDappUseCaseInterface {
 
     override suspend fun subscribeToDapp(dappUri: Uri, account: String, onSuccess: (Long, DidJwt) -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
-        //TODO: Those errors are not caught and handled
-        val (dappPublicKey, authenticationPublicKey) = extractPublicKeysFromDidJson(dappUri).getOrThrow()
-        val (dappMetaData, dappScopes) = extractMetadataFromConfigUseCase(dappUri).getOrThrow()
+        val (dappPublicKey, authenticationPublicKey) = extractPublicKeysFromDidJson(dappUri).getOrElse { error -> return@supervisorScope onFailure(error) }
+        val (dappMetaData, dappScopes) = extractMetadataFromConfigUseCase(dappUri).getOrElse { error -> return@supervisorScope onFailure(error) }
 
         val subscribeTopic = Topic(sha256(dappPublicKey.keyAsBytes))
 
