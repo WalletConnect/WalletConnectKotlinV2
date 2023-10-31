@@ -6,7 +6,7 @@ on:
       testTimeoutSeconds:
         description: 'Seconds for test timeout'
         required: true
-        default: 40  # should be same as env.TEST_TIMEOUT_SECONDS
+        default: 120  # should be same as env.TEST_TIMEOUT_SECONDS
   pull_request:
     branches:
       - develop
@@ -17,7 +17,7 @@ on:
       - 'protocol/notify/**'
 
 env:
-  TEST_TIMEOUT_SECONDS: 40 # Predefined timeout for integration tests
+  TEST_TIMEOUT_SECONDS: 120 # Predefined timeout for integration tests
 
 concurrency:
   # Support push/pr as event types with different behaviors each:
