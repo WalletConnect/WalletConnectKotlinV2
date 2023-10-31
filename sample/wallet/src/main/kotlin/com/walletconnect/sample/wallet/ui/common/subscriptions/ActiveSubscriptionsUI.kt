@@ -33,3 +33,7 @@ fun Notify.Model.Subscription.toUI(): ActiveSubscriptionsUI = ActiveSubscription
     lastReceived = "",
     isVerified = false
 )
+
+fun List<Notify.Model.Subscription>.toUI(): List<ActiveSubscriptionsUI> {
+    return this.map { subscription -> subscription.toUI() }
+}

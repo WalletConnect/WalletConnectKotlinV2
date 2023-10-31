@@ -13,7 +13,6 @@ import com.walletconnect.notify.client.NotifyClient
 import com.walletconnect.sample.wallet.domain.EthAccountDelegate
 import com.walletconnect.sample.wallet.domain.NotifyDelegate
 import com.walletconnect.sample.wallet.domain.toEthAddress
-import com.walletconnect.sample.wallet.ui.common.subscriptions.ActiveSubscriptionsUI
 import com.walletconnect.sample.wallet.ui.common.subscriptions.toUI
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.discover.ExplorerApp
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.discover.ImageUrl
@@ -53,11 +52,10 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
         .debounce(500L)
         .map { event ->
             when (event) {
-                is Notify.Event.SubscriptionsChanged -> getActiveSubscriptions(event.subscriptions)
+                is Notify.Event.SubscriptionsChanged -> event.subscriptions.toUI()
                 else -> throw Throwable("It is simply not possible to hit this exception. I blame bit flip.")
             }
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), getActiveSubscriptions(NotifyClient.getActiveSubscriptions().values.toList()))
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), NotifyClient.getActiveSubscriptions().values.toList().toUI())
 
     private val _activeSubscriptionsTrigger = MutableSharedFlow<Unit>(replay = 1)
 
@@ -80,10 +78,6 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
 
     fun onSearchTextChange(text: String) {
         _searchText.value = text
-    }
-
-    private fun getActiveSubscriptions(subscriptions: List<Notify.Model.Subscription>): List<ActiveSubscriptionsUI> {
-        return subscriptions.map { subscription -> subscription.toUI() }
     }
 
 
