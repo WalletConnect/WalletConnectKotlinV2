@@ -30,6 +30,7 @@ project.extensions.configure(BaseExtension::class.java) {
     }
 
     buildTypes {
+        // Google Play Internal Track
         getByName("release") {
             isMinifyEnabled = true
             isDebuggable = false
@@ -41,6 +42,7 @@ project.extensions.configure(BaseExtension::class.java) {
             }
         }
 
+        // Firebase App Distribution
         create("internal") {
             initWith(getByName("release"))
             isDebuggable = true
