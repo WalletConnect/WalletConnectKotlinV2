@@ -15,9 +15,12 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.OutlinedButton
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -33,6 +36,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -41,15 +45,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
@@ -62,11 +70,10 @@ import com.walletconnect.sample.wallet.ui.common.subscriptions.ActiveSubscriptio
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.LazyColumnSurroundedWithFogVertically
 import com.walletconnect.sample.wallet.ui.routes.showSnackbar
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import timber.log.Timber
+import kotlinx.coroutines.withContext
 
 @Composable
 fun NotificationsScreenRoute(navController: NavHostController, subscriptionTopic: String) {
@@ -82,68 +89,147 @@ fun NotificationsScreenRoute(navController: NavHostController, subscriptionTopic
 
     val state by viewModel.state.collectAsState()
     val currentSubscription by viewModel.currentSubscription.collectAsState()
+    val notifications by viewModel.notifications.collectAsState()
+    val scope = rememberCoroutineScope()
 
     NotificationScreen(
         currentSubscription = currentSubscription,
         state = state,
+        notifications = notifications,
         onNotificationItemDelete = viewModel::deleteNotification,
         onBackClick = { navController.popBackStack() },
         onNotificationSettings = {
             navController.navigate("${Route.UpdateSubscription.path}/$subscriptionTopic")
         },
         onUnsubscribe = {
-            viewModel.unsubscribe { Timber.e(it) }
-            navController.popBackStack()
+            viewModel.unsubscribe(onSuccess = {
+                scope.launch {
+                    navController.popBackStack()
+                }
+            }, onError = {
+                scope.launch {
+                    navController.showSnackbar("Unable to unsubscribe. Reason: ${it.message}")
+                }
+            })
         },
+        onRetry = viewModel::retryFetchingAllNotifications
     )
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            viewModel.fetchAllNotifications()
+        }
+    }
 }
 
 @Composable
 private fun NotificationScreen(
     currentSubscription: ActiveSubscriptionsUI,
     state: NotificationsState,
+    notifications: List<NotificationUI>,
     onNotificationItemDelete: (NotificationUI) -> Unit,
     onBackClick: () -> Unit,
     onNotificationSettings: () -> Unit,
     onUnsubscribe: () -> Unit,
+    onRetry: () -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxHeight()) {
         var isMoreExpanded by remember { mutableStateOf(false) }
 
-        NotificationsHeader(
-            currentSubscription, isMoreExpanded,
-            onBackIconClick = onBackClick, onMoreIconClick = { isMoreExpanded = !isMoreExpanded },
-            onNotificationSettings = onNotificationSettings, onUnsubscribe = onUnsubscribe
-        )
+        if (state !is NotificationsState.Unsubscribing) {
+            NotificationsHeader(
+                currentSubscription, isMoreExpanded,
+                onBackIconClick = onBackClick, onMoreIconClick = { isMoreExpanded = !isMoreExpanded },
+                onNotificationSettings = onNotificationSettings, onUnsubscribe = onUnsubscribe
+            )
+        }
 
-        if (state is NotificationsState.Success) {
-            val lazyListState = rememberLazyListState()
-
-            LazyColumnSurroundedWithFogVertically(indexByWhichShouldDisplayBottomFog = state.notifications.lastIndex - 5) {
-                itemsIndexed(state.notifications, key = { _, it -> it.id }) { index, notificationUI ->
-                    DismissibleNotificationItem(notificationUI, onNotificationItemDelete)
-                    if (index != state.notifications.lastIndex) Divider()
+        when (state) {
+            is NotificationsState.Success, is NotificationsState.IncomingNotifications -> {
+                AnimatedVisibility(
+                    visible = state is NotificationsState.IncomingNotifications,
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 8.dp), horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(text = "Fetching incoming notifications...", style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight(600), color = blue_accent))
+                    }
                 }
 
-                CoroutineScope(Dispatchers.Main).launch {
-                    lazyListState.scrollToItem(0)
+                if (notifications.isEmpty()) {
+                    EmptyOrLoadingOrFailureState("No notifications")
+                } else {
+                    val lazyListState = rememberLazyListState()
+
+                    LazyColumnSurroundedWithFogVertically(lazyListState = lazyListState, indexByWhichShouldDisplayBottomFog = notifications.lastIndex - 5) {
+                        itemsIndexed(notifications, key = { _, it -> it.id }) { index, notificationUI ->
+                            DismissibleNotificationItem(notificationUI, onNotificationItemDelete)
+                            if (index != notifications.lastIndex) Divider()
+                        }
+                    }
+
+                    LaunchedEffect(key1 = notifications) {
+                        withContext(Dispatchers.Main) {
+                            lazyListState.scrollToItem(0)
+                        }
+                    }
                 }
             }
-        } else {
-            EmptyState()
+
+            is NotificationsState.Failure -> {
+                EmptyOrLoadingOrFailureState(text = "${state.error.message}") {
+                    Spacer(modifier = Modifier.height(20.dp))
+                    OutlinedButton(
+                        shape = CircleShape,
+                        colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.background),
+                        onClick = { onRetry() }
+                    ) {
+                        Text(
+                            text = "Retry",
+                            style = TextStyle(
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight(600),
+                                textAlign = TextAlign.Center,
+                                color = MaterialTheme.colors.onBackground
+                            )
+                        )
+                    }
+                }
+
+            }
+
+            NotificationsState.Fetching -> {
+                EmptyOrLoadingOrFailureState(text = "Fetching notifications...") {
+                    Spacer(modifier = Modifier.height(20.dp))
+                    CircularProgressIndicator(modifier = Modifier.size(80.dp), color = blue_accent)
+                }
+            }
+
+            NotificationsState.Unsubscribing -> {
+                EmptyOrLoadingOrFailureState(text = "Unsubscribing...") {
+                    Spacer(modifier = Modifier.height(20.dp))
+                    CircularProgressIndicator(modifier = Modifier.size(80.dp), color = blue_accent)
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun EmptyState() {
+private fun EmptyOrLoadingOrFailureState(text: String, content: @Composable ColumnScope.() -> Unit = {}) {
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(40.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(text = "No notifications")
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(text = text)
+            content()
+        }
     }
 }
 
@@ -342,10 +428,18 @@ private fun NotificationsScreenPreview(
                 false
             ),
             state = state,
+            notifications = listOf(
+                NotificationUI("1", "topic1", "10-10-2023", "Title 1", "Body 1", null, null, true),
+                NotificationUI("2", "topic2", "03-02-2023", "Title 2", "Body 2", null, null, false),
+                NotificationUI("3", "topic3", "31-01-2023", "Title 3", "Body 3", null, null, true),
+                NotificationUI("4", "topic4", "02-07-2022", "Title 4", "Body 4", null, null, false),
+            ),
             onNotificationItemDelete = {},
             onBackClick = {},
             onNotificationSettings = {},
-            onUnsubscribe = {}
+            onUnsubscribe = {},
+            onRetry = {}
+
         )
     }
 }
@@ -353,14 +447,9 @@ private fun NotificationsScreenPreview(
 private class NotificationsScreenStateProvider : PreviewParameterProvider<NotificationsState> {
     override val values: Sequence<NotificationsState>
         get() = sequenceOf(
-            NotificationsState.Empty,
-            NotificationsState.Success(
-                listOf(
-                    NotificationUI("1", "topic1", "10-10-2023", "Title 1", "Body 1", null, null, true),
-                    NotificationUI("2", "topic2", "03-02-2023", "Title 2", "Body 2", null, null, false),
-                    NotificationUI("3", "topic3", "31-01-2023", "Title 3", "Body 3", null, null, true),
-                    NotificationUI("4", "topic4", "02-07-2022", "Title 4", "Body 4", null, null, false),
-                )
-            )
+            NotificationsState.Fetching,
+            NotificationsState.Success,
+            NotificationsState.Failure(IllegalStateException("Failed to fetch notifications")),
+            NotificationsState.Unsubscribing
         )
 }
