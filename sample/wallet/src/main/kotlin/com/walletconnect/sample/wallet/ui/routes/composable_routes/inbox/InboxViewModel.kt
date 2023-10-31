@@ -16,18 +16,19 @@ import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.discove
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.discover.ImageUrl
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import com.walletconnect.android.internal.common.explorer.data.model.ImageUrl as WCImageUrl
 
 class InboxViewModel(application: Application) : AndroidViewModel(application) {
@@ -39,7 +40,6 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
     val searchText = _searchText.asStateFlow()
 
     private val _activeSubscriptions = NotifyDelegate.notifyEvents
-        .onEach { Timber.d("InboxViewModel event - $it") }
         .filter { event ->
             when (event) {
                 is Notify.Event.Message, is Notify.Event.SubscriptionsChanged -> true
@@ -56,11 +56,14 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), getActiveSubscriptions(NotifyClient.getActiveSubscriptions().values.toList()))
 
-    val activeSubscriptions = searchText
+    private val _activeSubscriptionsTrigger = MutableSharedFlow<Unit>(replay = 1)
+
+    val activeSubscriptions = _activeSubscriptionsTrigger
         .debounce(500L)
         .filter { _subscriptionsState.value !is SubscriptionsState.Failure }
         .onEach { _subscriptionsState.update { SubscriptionsState.Searching } }
-        .combine(_activeSubscriptions) { text, activeSubscriptions ->
+        .combine(_activeSubscriptions) { _, activeSubscriptions ->
+            val text = searchText.value
             if (text.isBlank()) {
                 activeSubscriptions
             } else {
@@ -81,17 +84,19 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
     }
 
 
-    private val _discoverState = MutableStateFlow<DiscoverState>(DiscoverState.Searching)
+    private val _discoverState = MutableStateFlow<DiscoverState>(DiscoverState.Fetching)
     val discoverState = _discoverState.asStateFlow()
 
     private suspend fun getExplorerProjects() = CoreClient.Explorer.getProjects(0, 500, false)
 
     private val _explorerApps = MutableStateFlow(emptyList<ExplorerApp>())
-    val explorerApps = searchText
+    private val _explorerAppsTrigger = MutableSharedFlow<Unit>(replay = 1)
+    val explorerApps = _explorerAppsTrigger
         .debounce(500L)
         .filter { _discoverState.value !is DiscoverState.Failure }
         .onEach { _discoverState.update { DiscoverState.Searching } }
-        .combine(_explorerApps) { text, projects ->
+        .combine(_explorerApps) { _, projects ->
+            val text = searchText.value
             if (text.isBlank()) {
                 projects
             } else {
@@ -110,12 +115,26 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _explorerApps.value)
 
     init {
+        searchText.onEach {
+            _explorerAppsTrigger.emit(Unit)
+            _activeSubscriptionsTrigger.emit(Unit)
+        }.launchIn(viewModelScope)
+
+        _activeSubscriptions.onEach {
+            _activeSubscriptionsTrigger.emit(Unit)
+        }.launchIn(viewModelScope)
+
+        _explorerApps.onEach {
+            _explorerAppsTrigger.emit(Unit)
+        }.launchIn(viewModelScope)
+
         viewModelScope.launch {
             fetchExplorerApps()
         }
     }
 
     private suspend fun fetchExplorerApps() {
+        _discoverState.update { DiscoverState.Fetching }
         _explorerApps.value = getExplorerProjects()
             .fold(
                 onFailure = { error ->
@@ -134,6 +153,12 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun WCImageUrl.toExplorerApp(): ImageUrl =
         ImageUrl(sm, md, lg)
+
+    fun retryFetchingExplorerApps() {
+        viewModelScope.launch {
+            fetchExplorerApps()
+        }
+    }
 }
 
 sealed interface SubscriptionsState {
@@ -147,6 +172,8 @@ sealed interface SubscriptionsState {
 
 
 sealed interface DiscoverState {
+    object Fetching : DiscoverState
+
     object Searching : DiscoverState
     data class Failure(val error: Throwable) : DiscoverState
     object Success : DiscoverState

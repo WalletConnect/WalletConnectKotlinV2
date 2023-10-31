@@ -70,6 +70,7 @@ fun InboxRoute(navController: NavHostController) {
         scope,
         searchText,
         viewModel::onSearchTextChange,
+        viewModel::retryFetchingExplorerApps,
         activeSubscriptions,
         apps,
     )
@@ -83,6 +84,7 @@ private fun InboxScreen(
     coroutineScope: CoroutineScope,
     searchText: String,
     onSearchTextChange: (String) -> Unit,
+    onRetry: () -> Unit,
     activeSubscriptions: List<ActiveSubscriptionsUI>,
     apps: List<ExplorerApp>,
 ) {
@@ -95,6 +97,7 @@ private fun InboxScreen(
             coroutineScope,
             searchText,
             onSearchTextChange,
+            onRetry,
             activeSubscriptions,
             apps,
         )
@@ -109,6 +112,7 @@ fun TabViewWithPager(
     coroutineScope: CoroutineScope,
     searchText: String,
     onSearchTextChange: (String) -> Unit,
+    onRetry: () -> Unit,
     activeSubscriptions: List<ActiveSubscriptionsUI>,
     apps: List<ExplorerApp>,
 ) {
@@ -146,7 +150,7 @@ fun TabViewWithPager(
         HorizontalPager(state = pagerState) { page ->
             when (page) {
                 0 -> SubscriptionsTab(navController, subscriptionsState, activeSubscriptions) { navigate(1) }
-                1 -> DiscoverTab(discoverState, apps, onSubscribeSuccess = { navigate(0) }, onFailure = {
+                1 -> DiscoverTab(discoverState, apps, onSubscribeSuccess = { navigate(0) }, onRetry = onRetry, onFailure = {
                     val message = when (it) {
                         is InvalidDidJsonFileException -> "Wrong dapp config. Failed to parse did.json file"
                         is URISyntaxException -> "Wrong dapp config. Unable to open website. Reason: ${it.reason}"
@@ -196,7 +200,7 @@ fun SearchBar(searchText: String, onSearchTextChange: (String) -> Unit) {
 fun InboxScreenSearchingAndFailureStatePreview(@PreviewParameter(InboxScreenStatePreviewProvider::class) state: SubscriptionsState) {
     PreviewTheme {
         InboxScreen(
-            NavHostController(LocalContext.current), state, DiscoverState.Success, CoroutineScope(SupervisorJob() + Dispatchers.IO), "", {}, emptyList(), emptyList()
+            NavHostController(LocalContext.current), state, DiscoverState.Success, CoroutineScope(SupervisorJob() + Dispatchers.IO), "", {}, {}, emptyList(), emptyList()
 
         )
     }
@@ -207,7 +211,7 @@ fun InboxScreenSearchingAndFailureStatePreview(@PreviewParameter(InboxScreenStat
 fun InboxScreenSuccessPreview(@PreviewParameter(InboxScreenActiveSubscriptionsPreviewProvider::class) activeSubscriptions: List<ActiveSubscriptionsUI>) {
     PreviewTheme {
         InboxScreen(
-            NavHostController(LocalContext.current), SubscriptionsState.Success, DiscoverState.Success, CoroutineScope(SupervisorJob() + Dispatchers.IO), "", {}, emptyList(), emptyList()
+            NavHostController(LocalContext.current), SubscriptionsState.Success, DiscoverState.Success, CoroutineScope(SupervisorJob() + Dispatchers.IO), "", {}, {}, emptyList(), emptyList()
         )
     }
 }

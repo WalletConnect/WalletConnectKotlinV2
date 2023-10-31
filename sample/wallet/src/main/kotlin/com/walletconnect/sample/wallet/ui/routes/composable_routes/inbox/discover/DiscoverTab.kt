@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -60,14 +61,36 @@ import java.net.URI
 
 
 @Composable
-fun DiscoverTab(state: DiscoverState, apps: List<ExplorerApp>, onSubscribeSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
+fun DiscoverTab(state: DiscoverState, apps: List<ExplorerApp>, onSubscribeSuccess: () -> Unit, onRetry: () -> Unit, onFailure: (Throwable) -> Unit) {
     when (state) {
-        DiscoverState.Searching -> {
-            EmptyOrLoadingOrFailureState(text = "Querying apps...", showProgressBar = true)
+        DiscoverState.Searching, DiscoverState.Fetching -> {
+            EmptyOrLoadingOrFailureState(text = "Querying apps...") {
+                Spacer(modifier = Modifier.height(20.dp))
+                CircularProgressIndicator(modifier = Modifier.size(80.dp))
+            }
         }
 
         is DiscoverState.Failure -> {
-            EmptyOrLoadingOrFailureState(text = "Failure querying apps from Explorer")
+            EmptyOrLoadingOrFailureState(text = "Failure querying apps from Explorer") {
+                Spacer(modifier = Modifier.height(20.dp))
+                OutlinedButton(
+                    shape = CircleShape,
+                    colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.background),
+                    onClick = {
+                        onRetry()
+                    }
+                ) {
+                    Text(
+                        text = "Retry",
+                        style = TextStyle(
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight(600),
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colors.onBackground
+                        )
+                    )
+                }
+            }
         }
 
         is DiscoverState.Success -> {
@@ -95,7 +118,7 @@ private fun SuccessState(apps: List<ExplorerApp>, onSubscribeSuccess: () -> Unit
 
 
 @Composable
-private fun EmptyOrLoadingOrFailureState(text: String, showProgressBar: Boolean = false) {
+private fun EmptyOrLoadingOrFailureState(text: String, content: @Composable ColumnScope.() -> Unit = {}) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -104,10 +127,7 @@ private fun EmptyOrLoadingOrFailureState(text: String, showProgressBar: Boolean 
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(text = text)
-            if (showProgressBar) {
-                Spacer(modifier = Modifier.height(20.dp))
-                CircularProgressIndicator(modifier = Modifier.size(80.dp))
-            }
+            content()
         }
     }
 }
