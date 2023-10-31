@@ -75,7 +75,8 @@ sqldelight {
     databases {
         create("AndroidCoreDatabase") {
             packageName.set("com.walletconnect.android.sdk.core")
-            schemaOutputDirectory.set(file("src/main/core/databases"))
+            schemaOutputDirectory.set(file("src/main/sqldelight/databases"))
+//            generateAsync.set(true) // TODO: Enable once all repository methods have been converted to suspend functions
             verifyMigrations.set(true)
         }
     }
