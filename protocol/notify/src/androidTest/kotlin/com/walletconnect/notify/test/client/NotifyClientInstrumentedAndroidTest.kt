@@ -10,8 +10,6 @@ import com.walletconnect.notify.test.utils.primary.PrimaryNotifyClient
 import com.walletconnect.notify.test.utils.primary.PrimaryNotifyDelegate
 import com.walletconnect.notify.test.utils.secondary.SecondaryNotifyClient
 import com.walletconnect.notify.test.utils.secondary.SecondaryNotifyDelegate
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
 import okhttp3.Headers
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
@@ -79,21 +77,22 @@ class NotifyClientInstrumentedAndroidTest {
 //    Note: This test is commented out. It's useful whenever we want to manually delete current subscription. However the areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage can handle
 //    testing with existing subscription
 
-//    @Test
+    //    @Test
     fun deleteSubscription() {
         setDelegates(object : PrimaryNotifyDelegate() {
             override fun onSubscriptionsChanged(subscriptionsChanged: Notify.Event.SubscriptionsChanged) {
                 Timber.d("deleteSubscription: primary - deleteSubscribe start")
                 if (subscriptionsChanged.subscriptions.isNotEmpty()) {
 
-                    PrimaryNotifyClient.deleteSubscription(Notify.Params.DeleteSubscription(subscriptionsChanged.subscriptions.first().topic), {
-                        Timber.d("deleteSubscription: primary - deleteSubscribe failure: ${it.throwable}")
-                    })
-                    runBlocking { delay(2000) }
+                    PrimaryNotifyClient.deleteSubscription(Notify.Params.DeleteSubscription(subscriptionsChanged.subscriptions.first().topic),
+                        onSuccess = {
+                            scenarioExtension.closeAsSuccess()
+                        }, onError = {
+                            Timber.d("deleteSubscription: primary - deleteSubscribe failure: ${it.throwable}")
+                        })
 
                 }
 
-                scenarioExtension.closeAsSuccess()
             }
         }, SecondaryNotifyDelegate())
 
@@ -151,7 +150,9 @@ class NotifyClientInstrumentedAndroidTest {
                     } else if (countPrimaryReceivedResponses < 2) {
                         Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - deleteSubscribe start")
 
-                        PrimaryNotifyClient.deleteSubscription(Notify.Params.DeleteSubscription(subscriptionsChanged.subscriptions.first().topic), {
+                        PrimaryNotifyClient.deleteSubscription(Notify.Params.DeleteSubscription(subscriptionsChanged.subscriptions.first().topic), onSuccess = {
+                            scenarioExtension.closeAsSuccess()
+                        }, onError = {
                             Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - deleteSubscribe failure: ${it.throwable}")
                         })
                     }
