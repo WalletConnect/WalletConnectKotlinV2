@@ -20,15 +20,26 @@ android {
     defaultConfig {
         minSdk = MIN_SDK
 
-        buildConfigField(type = "String", name = "SDK_VERSION", value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\"")
-        buildConfigField("String", "PROJECT_ID", "\"${System.getenv("WC_CLOUD_PROJECT_ID") ?: ""}\"")
+        buildConfigField(
+            type = "String",
+            name = "SDK_VERSION",
+            value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\""
+        )
+        buildConfigField(
+            "String",
+            "PROJECT_ID",
+            "\"${System.getenv("WC_CLOUD_PROJECT_ID") ?: ""}\""
+        )
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
             isMinifyEnabled = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "${rootDir.path}/gradle/proguard-rules/sdk-rules.pro")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "${rootDir.path}/gradle/proguard-rules/sdk-rules.pro"
+            )
         }
     }
     compileOptions {
@@ -50,6 +61,7 @@ sqldelight {
         create("AuthDatabase") {
             packageName.set("com.walletconnect.auth")
             schemaOutputDirectory.set(file("src/main/sqldelight/databases"))
+            generateAsync.set(true)
             verifyMigrations.set(true)
             verifyDefinitions.set(true)
         }
