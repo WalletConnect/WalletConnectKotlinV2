@@ -11,6 +11,12 @@ inputs:
   projectId:
     description: 'WalletConnect projectId'
     required: true
+  gmProjectId:
+    description: 'GM Dapp projectId'
+    required: false
+  gmSecret:
+    description: 'GM Dapp secret'
+    required: false
   testTimeoutSeconds:
     description: 'Seconds for test timeout'
     default: '40'
@@ -30,6 +36,8 @@ runs:
       env:
         WC_CLOUD_PROJECT_ID: ${{ inputs.projectId}}
         TEST_TIMEOUT_SECONDS: ${{ inputs.testTimeoutSeconds }}
+        PROD_GM_PROJECT_ID: ${{ inputs.gmProjectId }}
+        PROD_GM_SECRET: ${{ inputs.gmSecret }}
       run: ./gradlew ${{ inputs.command }} -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
 
     - uses: actions/upload-artifact@v3
