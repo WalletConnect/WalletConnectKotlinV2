@@ -42,7 +42,7 @@ interface NotifyInterface {
      */
     fun getMessageHistory(params: Notify.Params.MessageHistory): Map<Long, Notify.Model.MessageRecord>
 
-    fun deleteSubscription(params: Notify.Params.DeleteSubscription, onError: (Notify.Model.Error) -> Unit)
+    fun deleteSubscription(params: Notify.Params.DeleteSubscription, onSuccess: () -> Unit, onError: (Notify.Model.Error) -> Unit)
 
     fun deleteNotifyMessage(params: Notify.Params.DeleteMessage, onSuccess: () -> Unit, onError: (Notify.Model.Error) -> Unit)
 

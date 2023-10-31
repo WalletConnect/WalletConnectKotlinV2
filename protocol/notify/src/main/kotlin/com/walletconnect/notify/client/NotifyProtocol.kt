@@ -125,13 +125,13 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
         }
     }
 
-    override fun deleteSubscription(params: Notify.Params.DeleteSubscription, onError: (Notify.Model.Error) -> Unit) {
+    override fun deleteSubscription(params: Notify.Params.DeleteSubscription, onSuccess: () -> Unit ,onError: (Notify.Model.Error) -> Unit) {
         checkEngineInitialization()
 
         scope.launch {
             supervisorScope {
                 try {
-                    notifyEngine.deleteSubscription(params.topic) { error -> onError(Notify.Model.Error(error)) }
+                    notifyEngine.deleteSubscription(params.topic, onSuccess) { error -> onError(Notify.Model.Error(error)) }
                 } catch (e: Exception) {
                     onError(Notify.Model.Error(e))
                 }

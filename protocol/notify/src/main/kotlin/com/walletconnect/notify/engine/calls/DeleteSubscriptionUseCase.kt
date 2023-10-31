@@ -26,11 +26,10 @@ internal class DeleteSubscriptionUseCase(
     private val fetchDidJwtInteractor: FetchDidJwtInteractor,
 ) : DeleteSubscriptionUseCaseInterface {
 
-    override suspend fun deleteSubscription(notifyTopic: String, onFailure: (Throwable) -> Unit) = supervisorScope {
+    override suspend fun deleteSubscription(notifyTopic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         val activeSubscription: Subscription.Active = subscriptionRepository.getActiveSubscriptionByNotifyTopic(notifyTopic)
             ?: return@supervisorScope onFailure(IllegalStateException("Subscription does not exists for $notifyTopic"))
 
-        val account = activeSubscription.account.value
         val dappMetaData = metadataStorageRepository.getByTopicAndType(activeSubscription.notifyTopic, AppMetaDataType.PEER)
             ?: return@supervisorScope onFailure(IllegalStateException("Dapp metadata does not exists for $notifyTopic"))
 
@@ -40,14 +39,17 @@ internal class DeleteSubscriptionUseCase(
         val request = NotifyRpc.NotifyDelete(params = CoreNotifyParams.DeleteParams(deleteJwt.value))
         val irnParams = IrnParams(Tags.NOTIFY_DELETE, Ttl(MONTH_IN_SECONDS))
 
-        subscriptionRepository.deleteSubscriptionByNotifyTopic(notifyTopic)
-        messagesRepository.deleteMessagesByTopic(notifyTopic)
+        runCatching {
+            subscriptionRepository.deleteSubscriptionByNotifyTopic(notifyTopic)
+            messagesRepository.deleteMessagesByTopic(notifyTopic)
+        }.onFailure { onFailure(it) }
 
-        jsonRpcInteractor.unsubscribe(Topic(notifyTopic))
-        jsonRpcInteractor.publishJsonRpcRequest(Topic(notifyTopic), irnParams, request, onFailure = { onFailure(it) })
+        jsonRpcInteractor.unsubscribe(Topic(notifyTopic), onFailure = onFailure, onSuccess = {
+            jsonRpcInteractor.publishJsonRpcRequest(Topic(notifyTopic), irnParams, request, onFailure = onFailure, onSuccess = onSuccess)
+        })
     }
 }
 
 internal interface DeleteSubscriptionUseCaseInterface {
-    suspend fun deleteSubscription(notifyTopic: String, onFailure: (Throwable) -> Unit)
+    suspend fun deleteSubscription(notifyTopic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit)
 }
