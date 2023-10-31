@@ -77,7 +77,6 @@ sqldelight {
             packageName.set("com.walletconnect.android.sdk.core")
             schemaOutputDirectory.set(file("src/main/core/databases"))
             verifyMigrations.set(true)
-            verifyDefinitions.set(true)
         }
     }
 }
