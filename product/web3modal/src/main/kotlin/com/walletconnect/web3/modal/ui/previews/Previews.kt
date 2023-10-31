@@ -11,18 +11,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.rememberNavController
+import com.walletconnect.android.internal.common.model.ProjectId
+import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.web3.modal.ui.components.internal.root.Web3ModalRoot
 import com.walletconnect.web3.modal.ui.components.internal.commons.VerticalSpacer
 import com.walletconnect.web3.modal.ui.components.internal.root.rememberWeb3ModalRootState
 import com.walletconnect.web3.modal.ui.components.internal.snackbar.rememberSnackBarState
 import com.walletconnect.web3.modal.ui.theme.ProvideWeb3ModalThemeComposition
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
+import org.koin.dsl.module
 
 @Composable
 internal fun Web3ModalPreview(
     title: String? = null,
     content: @Composable () -> Unit,
 ) {
+    previewKoinDefinitions()
     ProvideWeb3ModalThemeComposition {
         val scope = rememberCoroutineScope()
         val rootState = rememberWeb3ModalRootState(coroutineScope = scope, navController = rememberNavController())
@@ -38,6 +42,7 @@ internal fun Web3ModalPreview(
 internal fun ComponentPreview(
     content: @Composable () -> Unit
 ) {
+    previewKoinDefinitions()
     ProvideWeb3ModalThemeComposition {
         Column(modifier = Modifier.background(Web3ModalTheme.colors.background.color100)) {
             content()
@@ -49,6 +54,7 @@ internal fun ComponentPreview(
 internal fun MultipleComponentsPreview(
     vararg content: @Composable () -> Unit
 ) {
+    previewKoinDefinitions()
     ProvideWeb3ModalThemeComposition {
         Column {
             content.forEach {
@@ -58,6 +64,13 @@ internal fun MultipleComponentsPreview(
             }
         }
     }
+}
+
+private fun previewKoinDefinitions() {
+    val modules = listOf(
+        module { single { ProjectId("fakeId") } }
+    )
+    wcKoinApp.koin.loadModules(modules = modules)
 }
 
 @LightTheme

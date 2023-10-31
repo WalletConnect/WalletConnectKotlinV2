@@ -5,16 +5,15 @@ import androidx.compose.runtime.remember
 import androidx.navigation.NavController
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.internal.common.modal.data.model.Wallet
-import com.walletconnect.android.internal.common.modal.domain.usecase.GetAllWalletsUseCaseInterface
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
-import com.walletconnect.web3.modal.domain.usecase.GetRecentWalletUseCase
 import com.walletconnect.web3.modal.domain.usecase.GetSelectedChainUseCase
 import com.walletconnect.web3.modal.domain.usecase.ObserveSelectedChainUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveChainSelectionUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveRecentWalletUseCase
+import com.walletconnect.web3.modal.ui.model.LoadingState
 import com.walletconnect.web3.modal.ui.model.UiState
 import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.ui.navigation.connection.navigateToRedirect
@@ -22,15 +21,13 @@ import com.walletconnect.web3.modal.utils.getSelectedChain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
-private const val W3M_SDK = "w3m"
+internal const val W3M_SDK = "w3m"
 
 @Composable
 internal fun rememberConnectState(
@@ -49,8 +46,7 @@ internal class ConnectState(
     private val showError: (String?) -> Unit
 ) {
     private val logger: Logger = wcKoinApp.koin.get()
-    private val getWalletsUseCase: GetAllWalletsUseCaseInterface = wcKoinApp.koin.get()
-    private val getRecentWalletUseCase: GetRecentWalletUseCase = wcKoinApp.koin.get()
+    private val walletsDataStore = WalletDataSource(showError)
     private val saveRecentWalletUseCase: SaveRecentWalletUseCase = wcKoinApp.koin.get()
     private val saveChainSelectionUseCase: SaveChainSelectionUseCase = wcKoinApp.koin.get()
     private val getSelectedChainUseCase: GetSelectedChainUseCase = wcKoinApp.koin.get()
@@ -73,6 +69,24 @@ internal class ConnectState(
         Web3Modal.chains.find { it.id == savedChainId } ?: Web3Modal.getSelectedChainOrFirst()
     }
 
+    val walletsState: StateFlow<WalletsData> = walletsDataStore.state
+
+    val uiState: StateFlow<UiState<List<Wallet>>> = walletsDataStore.state.map { pagingData ->
+        when {
+            pagingData.error != null -> UiState.Error(pagingData.error)
+            pagingData.loadingState == LoadingState.REFRESH -> UiState.Loading()
+            else -> UiState.Success(pagingData.wallets)
+        }
+    }.stateIn(coroutineScope, started = SharingStarted.Lazily, initialValue = UiState.Loading())
+
+    init {
+        fetchInitialWallets()
+    }
+
+    fun fetchInitialWallets() {
+        coroutineScope.launch { walletsDataStore.fetchInitialWallets() }
+    }
+
     fun navigateToHelp() {
         navController.navigate(Route.WHAT_IS_WALLET.path)
     }
@@ -83,6 +97,7 @@ internal class ConnectState(
 
     fun navigateToRedirectRoute(wallet: Wallet) {
         saveRecentWalletUseCase(wallet.id)
+        walletsDataStore.updateRecentWallet(wallet.id)
         navController.navigateToRedirect(wallet)
     }
 
@@ -114,23 +129,17 @@ internal class ConnectState(
         }
     }
 
-    internal fun getWallets() = flow<UiState<List<Wallet>>> {
-        if (wallets.isEmpty()) {
-            wallets = fetchWallets()
-        }
-        emit(UiState.Success(wallets))
+    fun fetchMoreWallets() {
+        coroutineScope.launch { walletsDataStore.fetchMoreWallets() }
     }
-        .catch {
-            showError(it.localizedMessage)
-            logger.error(it)
-            emit(UiState.Error(it))
-        }
-        .flowOn(Dispatchers.IO)
-        .stateIn(coroutineScope, started = SharingStarted.Lazily, initialValue = getInitialWalletState())
 
-    private fun getInitialWalletState(): UiState<List<Wallet>> = if (wallets.isEmpty()) { UiState.Loading() } else { UiState.Success(wallets) }
+    fun search(searchPhrase: String) {
+        coroutineScope.launch { walletsDataStore.searchWallet(searchPhrase) }
+    }
 
-    private suspend fun fetchWallets() = getWalletsUseCase(sdkType = W3M_SDK, Web3Modal.excludedWalletsIds, Web3Modal.recommendedWalletsIds).mapRecentWallet(getRecentWalletUseCase())
+    fun clearSearch() = walletsDataStore.clearSearch()
+
+    fun getWallet(walletId: String?) = walletsState.value.wallets.find { it.id == walletId }
 
     private fun getSessionParamsSelectedChain() = with(Web3Modal.chains) {
         val selectedChain = runBlocking { Web3Modal.chains.getSelectedChain(getSelectedChainUseCase()) }
@@ -155,7 +164,3 @@ internal class ConnectState(
             )
         }.toMap()
 }
-
-private fun List<Wallet>.mapRecentWallet(id: String?) = map {
-    it.apply { it.isRecent = it.id == id }
-}.sortedWith(compareByDescending<Wallet> { it.isRecent }.thenByDescending { it.isWalletInstalled })

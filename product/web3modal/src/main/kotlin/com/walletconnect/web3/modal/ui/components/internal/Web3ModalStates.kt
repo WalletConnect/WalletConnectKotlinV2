@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import com.walletconnect.modal.ui.components.common.VerticalSpacer
 import com.walletconnect.web3.modal.ui.components.internal.commons.LoadingSpinner
 import com.walletconnect.web3.modal.ui.components.internal.commons.button.ButtonSize
+import com.walletconnect.web3.modal.ui.components.internal.commons.button.ButtonStyle
 import com.walletconnect.web3.modal.ui.components.internal.commons.button.TryAgainButton
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
@@ -39,7 +40,10 @@ internal fun ErrorModalState(retry: () -> Unit) {
     ) {
         Text(text = "Something went wrong", style = Web3ModalTheme.typo.paragraph400)
         VerticalSpacer(height = 10.dp)
-        TryAgainButton(size = ButtonSize.S) {
+        TryAgainButton(
+            size = ButtonSize.M,
+            style = ButtonStyle.MAIN
+        ) {
             retry()
         }
     }

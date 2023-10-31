@@ -12,6 +12,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.walletconnect.android.internal.common.modal.data.model.Wallet
+import com.walletconnect.web3.modal.ui.components.internal.ErrorModalState
 import com.walletconnect.web3.modal.ui.components.internal.commons.ListSelectRow
 import com.walletconnect.web3.modal.ui.components.internal.commons.RecentLabel
 import com.walletconnect.web3.modal.ui.components.internal.commons.WalletImage
@@ -30,7 +31,8 @@ internal fun ConnectWalletRoute(
     connectState: ConnectState,
 ) {
     UiStateBuilder(
-        connectState.getWallets(),
+        connectState.uiState,
+        onError = { ErrorModalState { connectState.fetchInitialWallets() } }
     ) {
         ConnectWalletContent(
             wallets = it,

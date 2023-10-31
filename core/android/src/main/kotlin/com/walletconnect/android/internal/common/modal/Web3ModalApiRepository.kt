@@ -2,8 +2,11 @@ package com.walletconnect.android.internal.common.modal
 
 import android.content.Context
 import com.walletconnect.android.internal.common.modal.data.model.Wallet
+import com.walletconnect.android.internal.common.modal.data.model.WalletAppData
+import com.walletconnect.android.internal.common.modal.data.model.WalletListing
 import com.walletconnect.android.internal.common.modal.data.network.Web3ModalService
 import com.walletconnect.android.internal.common.modal.data.network.model.WalletDTO
+import com.walletconnect.android.internal.common.modal.data.network.model.WalletDataDTO
 import com.walletconnect.android.utils.isWalletInstalled
 
 internal class Web3ModalApiRepository(
@@ -11,33 +14,37 @@ internal class Web3ModalApiRepository(
     private val web3ModalApiUrl: String,
     private val web3ModalService: Web3ModalService
 ) {
-    suspend fun fetchAllWallets(
-        sdkType: String,
-        excludeIds: List<String> = listOf(),
-        recommendedWalletsIds: List<String> = listOf()
-    ): List<Wallet> {
-        val exclude = excludeIds.joinToString(",")
-        val wallets = mutableListOf<Wallet>()
-        var page = 1
-        var count: Int
-        do {
-            val response = web3ModalService.getWallets(sdkType = sdkType, page = page, exclude = exclude)
-            if (response.isSuccessful && response.body() != null) {
-                response.body()!!.let {
-                    count = it.count
-                    page++
-                    wallets.addAll(it.data.toWallets(recommendedWalletsIds))
-                }
-            } else {
-                throw Exception(response.errorBody()?.string())
-            }
-        } while (wallets.size != count)
-        return wallets
+
+    suspend fun getAndroidWalletsData(sdkType: String) = runCatching {
+        web3ModalService.getAndroidData(sdkType = sdkType)
+    }.mapCatching { response ->
+        response.body()!!.let { body -> body.data.toWalletsAppData().filter { it.isInstalled } }
     }
 
-    private fun List<WalletDTO>.toWallets(
-        recommendedWallets: List<String>
-    ): List<Wallet> = map { walletDTO ->
+    suspend fun getWallets(
+        sdkType: String,
+        page: Int,
+        search: String? = null,
+        excludeIds: List<String>? = null,
+        includeWallets: List<String>? = null
+    ) = runCatching {
+        web3ModalService.getWallets(
+            sdkType = sdkType,
+            page = page,
+            search = search,
+            exclude = excludeIds?.joinToString(","),
+            include = includeWallets?.joinToString(",")
+        )
+    }.mapCatching { response ->
+        val body = response.body()!!
+        WalletListing(
+            page = page,
+            totalCount = body.count,
+            wallets = body.data.toWallets()
+        )
+    }
+
+    private fun List<WalletDTO>.toWallets(): List<Wallet> = map { walletDTO ->
         Wallet(
             id = walletDTO.id,
             name = walletDTO.name,
@@ -47,9 +54,16 @@ internal class Web3ModalApiRepository(
             mobileLink = walletDTO.mobileLink,
             playStore = walletDTO.playStore,
             webAppLink = walletDTO.webappLink,
-            isRecommended = recommendedWallets.any { walletDTO.id == it }
         ).apply {
             isWalletInstalled = context.packageManager.isWalletInstalled(appPackage)
         }
+    }
+
+    private fun List<WalletDataDTO>.toWalletsAppData() = map { data ->
+        WalletAppData(
+            id = data.id,
+            appPackage = data.appId,
+            isInstalled = context.packageManager.isWalletInstalled(data.appId)
+        )
     }
 }
