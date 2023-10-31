@@ -197,13 +197,15 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
                 NotifyClient.deleteSubscription(
                     params = params,
                     onSuccess = {
-                        _activeSubscriptions.onEach { afterSubscription ->
-                            if (beforeSubscription != afterSubscription) {
-                                onSuccess()
-                                _discoverState.update { DiscoverState.Fetched }
-                                cancel()
+                        viewModelScope.launch {
+                            _activeSubscriptions.collect { afterSubscription ->
+                                if (beforeSubscription != afterSubscription) {
+                                    onSuccess()
+                                    _discoverState.update { DiscoverState.Fetched }
+                                    this.cancel()
+                                }
                             }
-                        }.launchIn(viewModelScope)
+                        }
                     },
                     onError = {
                         _discoverState.update { DiscoverState.Fetched }

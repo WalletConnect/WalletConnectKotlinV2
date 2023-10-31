@@ -106,7 +106,7 @@ fun NotificationsScreenRoute(navController: NavHostController, subscriptionTopic
                 scope.launch {
                     navController.popBackStack()
                 }
-            }, onError = {
+            }, onFailure = {
                 scope.launch {
                     navController.showSnackbar("Unable to unsubscribe. Reason: ${it.message}")
                 }

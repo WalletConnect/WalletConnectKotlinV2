@@ -122,7 +122,7 @@ class NotificationsViewModel(topic: String) : ViewModel() {
         )
     }
 
-    fun unsubscribe(onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
+    fun unsubscribe(onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         viewModelScope.launch {
             _state.update { NotificationsState.Unsubscribing }
             val beforeSubscription = _activeSubscriptions.value
@@ -131,14 +131,16 @@ class NotificationsViewModel(topic: String) : ViewModel() {
                 Notify.Params.DeleteSubscription(
                     currentSubscription.value.topic
                 ), onSuccess = {
-                    _activeSubscriptions.onEach { afterSubscription ->
-                        if (beforeSubscription != afterSubscription) {
-                            onSuccess()
-                            cancel()
+                    viewModelScope.launch {
+                        _activeSubscriptions.collect { afterSubscription ->
+                            if (beforeSubscription != afterSubscription) {
+                                onSuccess()
+                                this.cancel()
+                            }
                         }
-                    }.launchIn(viewModelScope)
+                    }
                 }, onError = { error ->
-                    onError(error.throwable)
+                    onFailure(error.throwable)
                     _state.update { NotificationsState.Failure(error.throwable) }
                 }
             )
