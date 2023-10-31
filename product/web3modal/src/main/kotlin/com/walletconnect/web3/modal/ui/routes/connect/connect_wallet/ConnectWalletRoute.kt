@@ -36,6 +36,7 @@ internal fun ConnectWalletRoute(
     ) {
         ConnectWalletContent(
             wallets = it,
+            walletsTotalCount = connectState.getWalletsTotalCount(),
             onWalletItemClick = { wallet -> connectState.navigateToRedirectRoute(wallet) },
             onViewAllClick = { navController.navigate(Route.ALL_WALLETS.path) },
         )
@@ -45,12 +46,14 @@ internal fun ConnectWalletRoute(
 @Composable
 private fun ConnectWalletContent(
     wallets: List<Wallet>,
+    walletsTotalCount: Int,
     onWalletItemClick: (Wallet) -> Unit,
     onViewAllClick: () -> Unit,
 ) {
     Column {
         WalletsList(
             wallets = wallets,
+            walletsTotalCount = walletsTotalCount,
             onWalletItemClick = onWalletItemClick,
             onViewAllClick = onViewAllClick,
         )
@@ -60,6 +63,7 @@ private fun ConnectWalletContent(
 @Composable
 private fun WalletsList(
     wallets: List<Wallet>,
+    walletsTotalCount: Int,
     onWalletItemClick: (Wallet) -> Unit,
     onViewAllClick: () -> Unit
 ) {
@@ -70,7 +74,7 @@ private fun WalletsList(
         itemsIndexed(items = wallets.take(4)) { _, item ->
             WalletListSelect(item, onWalletItemClick)
         }
-        allWallets(text = walletSizeLabel(wallets.size), onClick = onViewAllClick)
+        allWallets(text = walletSizeLabel(walletsTotalCount), onClick = onViewAllClick)
     }
 }
 
@@ -114,6 +118,6 @@ private fun ConnectYourWalletPreview(
     @PreviewParameter(ConnectYourWalletPreviewProvider::class) wallets: List<Wallet>
 ) {
     Web3ModalPreview(title = "Connect Wallet") {
-        ConnectWalletContent(wallets, {}, {})
+        ConnectWalletContent(wallets, 200, {}, {})
     }
 }

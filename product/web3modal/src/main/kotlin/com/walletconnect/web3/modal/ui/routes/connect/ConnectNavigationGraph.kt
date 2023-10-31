@@ -48,7 +48,7 @@ internal fun ConnectionNavGraph(
             )
         }
         composable(Route.GET_A_WALLET.path) {
-            GetAWalletRoute(wallets = connectState.wallets.filterNot { it.isWalletInstalled })
+            GetAWalletRoute(wallets = connectState.getNotInstalledWallets() )
         }
         composable(Route.ALL_WALLETS.path) {
             AllWalletsRoute(connectState = connectState)

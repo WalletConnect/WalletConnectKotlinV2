@@ -27,8 +27,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
-internal const val W3M_SDK = "w3m"
-
 @Composable
 internal fun rememberConnectState(
     coroutineScope: CoroutineScope,
@@ -59,8 +57,6 @@ internal class ConnectState(
     }
 
     private var sessionParams = getSessionParamsSelectedChain()
-
-    var wallets: List<Wallet> = listOf()
 
     val uri: String
         get() = pairing.uri
@@ -140,6 +136,10 @@ internal class ConnectState(
     fun clearSearch() = walletsDataStore.clearSearch()
 
     fun getWallet(walletId: String?) = walletsState.value.wallets.find { it.id == walletId }
+
+    fun getNotInstalledWallets() = walletsState.value.wallets.filterNot { it.isWalletInstalled }
+
+    fun getWalletsTotalCount() = walletsDataStore.totalCount
 
     private fun getSessionParamsSelectedChain() = with(Web3Modal.chains) {
         val selectedChain = runBlocking { Web3Modal.chains.getSelectedChain(getSelectedChainUseCase()) }

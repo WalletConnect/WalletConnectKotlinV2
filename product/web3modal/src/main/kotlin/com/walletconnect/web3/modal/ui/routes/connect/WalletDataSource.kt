@@ -9,6 +9,8 @@ import com.walletconnect.web3.modal.domain.usecase.GetRecentWalletUseCase
 import com.walletconnect.web3.modal.ui.model.LoadingState
 import kotlinx.coroutines.flow.MutableStateFlow
 
+private const val W3M_SDK = "w3m"
+
 internal class WalletDataSource(
     private val showError: (String?) -> Unit
 ) {
@@ -17,7 +19,8 @@ internal class WalletDataSource(
     private val getRecentWalletUseCase: GetRecentWalletUseCase = wcKoinApp.koin.get()
 
     private var installedWalletsIds: List<String> = listOf()
-    private var totalCount = 0
+    var totalCount = 0
+        private set
     private var page = 1
     private var wallets: List<Wallet> = listOf()
     private fun getPriorityWallets() =
