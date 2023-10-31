@@ -17,7 +17,9 @@ internal class RegisteredAccountsRepository(private val registeredAccounts: Regi
     }
 
     suspend fun updateNotifyServerData(accountId: AccountId, notifyServerWatchTopic: Topic, notifyServerAuthenticationKey: PublicKey) = withContext(Dispatchers.IO) {
-        registeredAccounts.updateNotifyServerData(accountId.value, notifyServerWatchTopic.value, notifyServerAuthenticationKey.keyAsHex)
+        registeredAccounts.updateNotifyServerData(
+            accountId = accountId.value, notifyServerWatchTopic = notifyServerWatchTopic.value, notifyServerAuthenticationKey = notifyServerAuthenticationKey.keyAsHex
+        )
     }
 
     suspend fun getAccountByAccountId(accountId: String): RegisteredAccount = withContext(Dispatchers.IO) {

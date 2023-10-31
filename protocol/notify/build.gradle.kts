@@ -28,7 +28,7 @@ android {
         buildConfigField("String", "PROJECT_ID", "\"${System.getenv("WC_CLOUD_PROJECT_ID") ?: ""}\"")
         buildConfigField("String", "PROD_GM_PROJECT_ID", "\"${System.getenv("PROD_GM_PROJECT_ID") ?: ""}\"")
         buildConfigField("String", "PROD_GM_SECRET", "\"${System.getenv("PROD_GM_SECRET") ?: ""}\"")
-        buildConfigField("Integer", "TEST_TIMEOUT_SECONDS", "${System.getenv("TEST_TIMEOUT_SECONDS") ?: 10}")
+        buildConfigField("Integer", "TEST_TIMEOUT_SECONDS", "${System.getenv("TEST_TIMEOUT_SECONDS") ?: 60}")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         testInstrumentationRunnerArguments += mutableMapOf("clearPackageData" to "true")

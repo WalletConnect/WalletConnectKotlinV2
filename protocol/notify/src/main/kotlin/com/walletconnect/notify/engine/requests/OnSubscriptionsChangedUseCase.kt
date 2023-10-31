@@ -37,7 +37,6 @@ internal class OnSubscriptionsChangedUseCase(
     private val registeredAccountsRepository: RegisteredAccountsRepository,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val watchSubscriptionsForEveryRegisteredAccountUseCase: WatchSubscriptionsForEveryRegisteredAccountUseCase,
-    private val accountsRepository: RegisteredAccountsRepository,
     private val logger: Logger,
     private val notifyServerUrl: NotifyServerUrl,
 ) {
@@ -48,9 +47,10 @@ internal class OnSubscriptionsChangedUseCase(
         val jwtClaims = extractVerifiedDidJwtClaims<SubscriptionsChangedRequestJwtClaim>(params.subscriptionsChangedAuth).getOrElse { error -> return@supervisorScope logger.error(error) }
 
         val authenticationPublicKey = runCatching { registeredAccountsRepository.getAccountByIdentityKey(decodeEd25519DidKey(jwtClaims.audience).keyAsHex).notifyServerAuthenticationKey }
-            .getOrElse { error -> return@supervisorScope _events.emit(SDKError(error)) } ?: return@supervisorScope _events.emit(SDKError(IllegalStateException("Cached authentication public key is null")))
+            .getOrElse { error -> return@supervisorScope _events.emit(SDKError(error)) }
+            ?: return@supervisorScope _events.emit(SDKError(IllegalStateException("Cached authentication public key is null")))
 
-        jwtClaims.throwIfIsInvalid(authenticationPublicKey.keyAsHex)
+        runCatching { jwtClaims.throwIfIsInvalid(authenticationPublicKey.keyAsHex) }.getOrElse { error -> return@supervisorScope _events.emit(SDKError(error)) }
 
         val account = decodeDidPkh(jwtClaims.subject)
         val subscriptions = setActiveSubscriptionsUseCase(account, jwtClaims.subscriptions)
