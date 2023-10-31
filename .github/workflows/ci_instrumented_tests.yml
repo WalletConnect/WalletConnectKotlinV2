@@ -35,6 +35,8 @@ jobs:
       group: apple-silicon
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Check what modules were changed
         id: what_modules_changed
