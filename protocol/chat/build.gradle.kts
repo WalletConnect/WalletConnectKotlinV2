@@ -48,7 +48,8 @@ sqldelight {
     databases {
         create("ChatDatabase") {
             packageName.set("com.walletconnect.chat")
-            schemaOutputDirectory.set(file("src/debug/sqldelight/databases"))
+            schemaOutputDirectory.set(file("src/main/sqldelight/databases"))
+//            generateAsync.set(true) // TODO: Enable once all repository methods have been converted to suspend functions
             verifyMigrations.set(true)
             verifyDefinitions.set(true)
         }
