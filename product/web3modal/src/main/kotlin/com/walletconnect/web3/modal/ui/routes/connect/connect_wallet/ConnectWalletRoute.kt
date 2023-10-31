@@ -27,7 +27,6 @@ import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 @Composable
 internal fun ConnectWalletRoute(
-    navController: NavController,
     connectState: ConnectState,
 ) {
     UiStateBuilder(
@@ -38,7 +37,7 @@ internal fun ConnectWalletRoute(
             wallets = it,
             walletsTotalCount = connectState.getWalletsTotalCount(),
             onWalletItemClick = { wallet -> connectState.navigateToRedirectRoute(wallet) },
-            onViewAllClick = { navController.navigate(Route.ALL_WALLETS.path) },
+            onViewAllClick = { connectState.navigateToAllWallets() },
         )
     }
 }

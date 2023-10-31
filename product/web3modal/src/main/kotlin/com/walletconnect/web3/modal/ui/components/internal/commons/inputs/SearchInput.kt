@@ -43,10 +43,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 internal class SearchState(
+    searchPhrase: String = String.Empty,
     private val onSearchSubmit: (String) -> Unit,
     private val onClearInput: () -> Unit
 ) {
-    private val _state: MutableStateFlow<SearchData> = MutableStateFlow(SearchData("", false))
+    private val _state: MutableStateFlow<SearchData> = MutableStateFlow(SearchData(searchPhrase, false))
 
     val state: StateFlow<SearchData>
         get() = _state.asStateFlow()
@@ -162,9 +163,9 @@ private fun PreviewSearchInput(
 
 internal class SearchStatePreviewProvider : PreviewParameterProvider<SearchState> {
     override val values: Sequence<SearchState> = sequenceOf(
-        SearchState({}, {}),
-        SearchState({}, {}).apply { onFocusChange(true) },
-        SearchState({}, {}).apply { onSearchValueChange("SearchText"); onFocusChange(true) },
-        SearchState({}, {}).apply { onSearchValueChange("Search Text") }
+        SearchState("", {}, {}),
+        SearchState("", {}, {}).apply { onFocusChange(true) },
+        SearchState("Search text", {}, {}).apply { onFocusChange(true) },
+        SearchState("Search text", {}, {})
     )
 }

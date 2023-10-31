@@ -65,15 +65,18 @@ internal class ConnectState(
         Web3Modal.chains.find { it.id == savedChainId } ?: Web3Modal.getSelectedChainOrFirst()
     }
 
-    val walletsState: StateFlow<WalletsData> = walletsDataStore.state
+    val walletsState: StateFlow<WalletsData> = walletsDataStore.searchWalletsState.stateIn(coroutineScope, SharingStarted.Lazily, WalletsData.empty())
 
-    val uiState: StateFlow<UiState<List<Wallet>>> = walletsDataStore.state.map { pagingData ->
+    val uiState: StateFlow<UiState<List<Wallet>>> = walletsDataStore.walletState.map { pagingData ->
         when {
             pagingData.error != null -> UiState.Error(pagingData.error)
             pagingData.loadingState == LoadingState.REFRESH -> UiState.Loading()
             else -> UiState.Success(pagingData.wallets)
         }
     }.stateIn(coroutineScope, started = SharingStarted.Lazily, initialValue = UiState.Loading())
+
+    val searchPhrase
+        get() = walletsDataStore.searchPhrase
 
     init {
         fetchInitialWallets()
@@ -102,6 +105,11 @@ internal class ConnectState(
         Web3Modal.selectedChain = chain
         sessionParams = getSessionParamsSelectedChain()
         navController.navigate(Route.CONNECT_YOUR_WALLET.path)
+    }
+
+    fun navigateToAllWallets() {
+        clearSearch()
+        navController.navigate(Route.ALL_WALLETS.path)
     }
 
     fun connect(onSuccess: (String) -> Unit) {
@@ -139,7 +147,7 @@ internal class ConnectState(
 
     fun getNotInstalledWallets() = walletsState.value.wallets.filterNot { it.isWalletInstalled }
 
-    fun getWalletsTotalCount() = walletsDataStore.totalCount
+    fun getWalletsTotalCount() = walletsDataStore.totalWalletsCount
 
     private fun getSessionParamsSelectedChain() = with(Web3Modal.chains) {
         val selectedChain = runBlocking { Web3Modal.chains.getSelectedChain(getSelectedChainUseCase()) }

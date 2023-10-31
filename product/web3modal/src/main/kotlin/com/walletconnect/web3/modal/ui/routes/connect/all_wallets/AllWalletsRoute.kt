@@ -83,6 +83,7 @@ internal fun AllWalletsRoute(
 
     AllWalletsContent(
         walletsData = walletsState,
+        searchPhrase = connectState.searchPhrase,
         onSearch = { connectState.search(it) },
         onSearchClear = { connectState.clearSearch() },
         onFetchNextPage = { connectState.fetchMoreWallets() },
@@ -94,6 +95,7 @@ internal fun AllWalletsRoute(
 @Composable
 private fun AllWalletsContent(
     walletsData: WalletsData,
+    searchPhrase: String,
     onSearch: (String) -> Unit,
     onSearchClear: () -> Unit,
     onFetchNextPage: () -> Unit,
@@ -102,13 +104,12 @@ private fun AllWalletsContent(
 ) {
     val gridState = rememberLazyGridState()
     val coroutineScope = rememberCoroutineScope()
+    val scrollToFirstItem = { coroutineScope.launch { gridState.scrollToItem(0) } }
     val searchState = remember {
         SearchState(
-            onSearchSubmit = onSearch,
-            onClearInput = {
-                onSearchClear()
-                coroutineScope.launch { gridState.scrollToItem(0) }
-            }
+            searchPhrase = searchPhrase,
+            onSearchSubmit = { onSearch(it).also { scrollToFirstItem() } },
+            onClearInput = { onSearchClear().also { scrollToFirstItem() } }
         )
     }
     val gridFraction = if (isLandscape) 1f else .95f
@@ -277,7 +278,7 @@ private fun SearchRowPreview(
 @Composable
 private fun AllWalletsEmptyPreview() {
     Web3ModalPreview {
-        AllWalletsContent(WalletsData.empty(), {}, {}, {}, {}, {})
+        AllWalletsContent(WalletsData.empty(), "", {}, {}, {}, {}, {})
     }
 }
 
@@ -285,7 +286,7 @@ private fun AllWalletsEmptyPreview() {
 @Composable
 private fun AllWalletsPreview() {
     Web3ModalPreview {
-        AllWalletsContent(WalletsData.submit(testWallets), {}, {}, {}, {}, {})
+        AllWalletsContent(WalletsData.submit(testWallets),"", {}, {}, {}, {}, {})
     }
 }
 
@@ -293,7 +294,7 @@ private fun AllWalletsPreview() {
 @Composable
 private fun AllWalletsLoadingRefreshPreview() {
     Web3ModalPreview {
-        AllWalletsContent(WalletsData.refresh(), {}, {}, {}, {}, {})
+        AllWalletsContent(WalletsData.refresh(),"", {}, {}, {}, {}, {})
     }
 }
 
@@ -301,6 +302,6 @@ private fun AllWalletsLoadingRefreshPreview() {
 @Composable
 private fun AllWalletsLoadingAppendPreview() {
     Web3ModalPreview {
-        AllWalletsContent(WalletsData.append(testWallets), {}, {}, {}, {}, {})
+        AllWalletsContent(WalletsData.append(testWallets),"", {}, {}, {}, {}, {})
     }
 }
