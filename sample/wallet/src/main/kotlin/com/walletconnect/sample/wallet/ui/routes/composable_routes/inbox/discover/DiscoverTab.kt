@@ -46,27 +46,29 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.net.toUri
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.walletconnect.notify.client.Notify
-import com.walletconnect.notify.client.NotifyClient
+import com.walletconnect.sample.common.ui.theme.blue_accent
 import com.walletconnect.sample.wallet.R
-import com.walletconnect.sample.wallet.domain.EthAccountDelegate
-import com.walletconnect.sample.wallet.domain.toEthAddress
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.DiscoverState
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.LazyColumnSurroundedWithFogVertically
-import timber.log.Timber
 import java.net.URI
 
 
 @Composable
-fun DiscoverTab(state: DiscoverState, apps: List<ExplorerApp>, onSubscribeSuccess: () -> Unit, onRetry: () -> Unit, onFailure: (Throwable) -> Unit) {
+fun DiscoverTab(
+    state: DiscoverState,
+    apps: List<ExplorerApp>,
+    onSubscribedClick: (app: ExplorerApp) -> Unit,
+    onSubscribeClick: (app: ExplorerApp) -> Unit,
+    onRetry: () -> Unit,
+    onFailure: (Throwable) -> Unit,
+) {
     when (state) {
         DiscoverState.Searching, DiscoverState.Fetching -> {
             EmptyOrLoadingOrFailureState(text = "Querying apps...") {
                 Spacer(modifier = Modifier.height(20.dp))
-                CircularProgressIndicator(modifier = Modifier.size(80.dp))
+                CircularProgressIndicator(modifier = Modifier.size(80.dp), color = blue_accent)
             }
         }
 
@@ -93,20 +95,34 @@ fun DiscoverTab(state: DiscoverState, apps: List<ExplorerApp>, onSubscribeSucces
             }
         }
 
-        is DiscoverState.Success -> {
-            SuccessState(apps, onSubscribeSuccess, onFailure)
+        is DiscoverState.Fetched -> {
+            SuccessState(apps, onSubscribedClick, onSubscribeClick, onFailure)
+        }
+
+        is DiscoverState.Subscribing -> {
+            EmptyOrLoadingOrFailureState(text = "Subscribing to ${state.explorerApp.name}") {
+                Spacer(modifier = Modifier.height(20.dp))
+                CircularProgressIndicator(modifier = Modifier.size(80.dp), color = blue_accent)
+            }
+        }
+
+        is DiscoverState.Unsubscribing -> {
+            EmptyOrLoadingOrFailureState(text = "Unsubscribing from ${state.explorerApp.name}") {
+                Spacer(modifier = Modifier.height(20.dp))
+                CircularProgressIndicator(modifier = Modifier.size(80.dp), color = blue_accent)
+            }
         }
     }
 }
 
 
 @Composable
-private fun SuccessState(apps: List<ExplorerApp>, onSubscribeSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
+private fun SuccessState(apps: List<ExplorerApp>, onSubscribedClick: (app: ExplorerApp) -> Unit, onSubscribeClick: (app: ExplorerApp) -> Unit, onFailure: (Throwable) -> Unit) {
     Box() {
         if (apps.isNotEmpty()) {
             LazyColumnSurroundedWithFogVertically(indexByWhichShouldDisplayBottomFog = apps.lastIndex - 2) {
                 itemsIndexed(apps) { index, app ->
-                    ExplorerAppItem(explorerApp = app, onSubscribeSuccess, onFailure)
+                    ExplorerAppItem(explorerApp = app, onSubscribedClick, onSubscribeClick, onFailure)
                     if (index != apps.lastIndex) Spacer(modifier = Modifier.height(20.dp))
                 }
             }
@@ -133,7 +149,7 @@ private fun EmptyOrLoadingOrFailureState(text: String, content: @Composable Colu
 }
 
 @Composable
-fun ExplorerAppItem(explorerApp: ExplorerApp, onSubscribeSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
+fun ExplorerAppItem(explorerApp: ExplorerApp, onSubscribedClick: (app: ExplorerApp) -> Unit, onSubscribeClick: (app: ExplorerApp) -> Unit, onFailure: (Throwable) -> Unit) {
     val context = LocalContext.current
     val hasIcon = remember { mutableStateOf(explorerApp.imageUrl.sm.isNotEmpty()) }
     val gradientRadius = remember { mutableStateOf(IntSize(1, 1)) }
@@ -200,14 +216,7 @@ fun ExplorerAppItem(explorerApp: ExplorerApp, onSubscribeSuccess: () -> Unit, on
                     OutlinedButton(
                         shape = CircleShape,
                         colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.background),
-                        onClick = {
-                            Notify.Params.DeleteSubscription(explorerApp.topic!!).let { deleteParams ->
-                                NotifyClient.deleteSubscription(
-                                    params = deleteParams,
-                                    onError = { Timber.e(it.throwable) }
-                                )
-                            }
-                        }
+                        onClick = { onSubscribedClick(explorerApp) }
                     ) {
                         val color = MaterialTheme.colors.onBackground.copy(alpha = 0.5f)
                         Text(
@@ -226,15 +235,7 @@ fun ExplorerAppItem(explorerApp: ExplorerApp, onSubscribeSuccess: () -> Unit, on
                     OutlinedButton(
                         shape = CircleShape,
                         colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.background),
-                        onClick = {
-                            Notify.Params.Subscribe(explorerApp.homepage.toUri(), with(EthAccountDelegate) { account.toEthAddress() }).let { subscribeParams ->
-                                NotifyClient.subscribe(
-                                    params = subscribeParams,
-                                    onSuccess = onSubscribeSuccess,
-                                    onError = { onFailure(it.throwable) }
-                                )
-                            }
-                        }
+                        onClick = { onSubscribeClick(explorerApp) }
                     ) {
                         Text(
                             text = "Subscribe",

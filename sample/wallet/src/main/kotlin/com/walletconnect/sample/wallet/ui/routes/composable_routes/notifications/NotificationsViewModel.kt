@@ -74,7 +74,7 @@ class NotificationsViewModel(topic: String) : ViewModel() {
         NotifyClient.deleteSubscription(
             Notify.Params.DeleteSubscription(
                 currentSubscription.value.topic
-            ), onError = { onError(it.throwable) }
+            ), onSuccess = {}, onError = { onError(it.throwable) }
         )
     }
 

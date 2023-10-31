@@ -71,6 +71,8 @@ fun InboxRoute(navController: NavHostController) {
         searchText,
         viewModel::onSearchTextChange,
         viewModel::retryFetchingExplorerApps,
+        viewModel::unsubscribeFromDapp,
+        viewModel::subscribeToDapp,
         activeSubscriptions,
         apps,
     )
@@ -85,6 +87,8 @@ private fun InboxScreen(
     searchText: String,
     onSearchTextChange: (String) -> Unit,
     onRetry: () -> Unit,
+    onSubscribedClick: (explorerApp: ExplorerApp, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) -> Unit,
+    onSubscribeClick: (explorerApp: ExplorerApp, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) -> Unit,
     activeSubscriptions: List<ActiveSubscriptionsUI>,
     apps: List<ExplorerApp>,
 ) {
@@ -98,6 +102,8 @@ private fun InboxScreen(
             searchText,
             onSearchTextChange,
             onRetry,
+            onSubscribedClick,
+            onSubscribeClick,
             activeSubscriptions,
             apps,
         )
@@ -113,6 +119,8 @@ fun TabViewWithPager(
     searchText: String,
     onSearchTextChange: (String) -> Unit,
     onRetry: () -> Unit,
+    onSubscribedClick: (explorerApp: ExplorerApp, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) -> Unit,
+    onSubscribeClick: (explorerApp: ExplorerApp, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) -> Unit,
     activeSubscriptions: List<ActiveSubscriptionsUI>,
     apps: List<ExplorerApp>,
 ) {
@@ -148,19 +156,25 @@ fun TabViewWithPager(
 
         SearchBar(searchText, onSearchTextChange)
         HorizontalPager(state = pagerState) { page ->
+            val onFailure: (Throwable) -> Unit = { error: Throwable ->
+                val message = when (error) {
+                    is InvalidDidJsonFileException -> "Wrong dapp config. Failed to parse did.json file"
+                    is URISyntaxException -> "Wrong dapp config. Unable to open website. Reason: ${error.reason}"
+                    else -> error.localizedMessage
+                }
+                coroutineScope.launch {
+                    navController.showSnackbar(message)
+                }
+            }
+
             when (page) {
                 0 -> SubscriptionsTab(navController, subscriptionsState, activeSubscriptions) { navigate(1) }
-                1 -> DiscoverTab(discoverState, apps, onSubscribeSuccess = { navigate(0) }, onRetry = onRetry, onFailure = {
-                    val message = when (it) {
-                        is InvalidDidJsonFileException -> "Wrong dapp config. Failed to parse did.json file"
-                        is URISyntaxException -> "Wrong dapp config. Unable to open website. Reason: ${it.reason}"
-                        else -> it.localizedMessage
-                    }
-                    coroutineScope.launch {
-                        navController.showSnackbar(message)
-                    }
-
-                })
+                1 -> DiscoverTab(
+                    discoverState, apps,
+                    onSubscribedClick = { explorerApp -> onSubscribedClick(explorerApp, { navigate(0) }, onFailure) },
+                    onSubscribeClick = { explorerApp -> onSubscribeClick(explorerApp, { navigate(0) }, onFailure) },
+                    onRetry = onRetry, onFailure = onFailure
+                )
 
                 else -> throw IllegalArgumentException("Invalid page index: $page")
             }
@@ -200,8 +214,17 @@ fun SearchBar(searchText: String, onSearchTextChange: (String) -> Unit) {
 fun InboxScreenSearchingAndFailureStatePreview(@PreviewParameter(InboxScreenStatePreviewProvider::class) state: SubscriptionsState) {
     PreviewTheme {
         InboxScreen(
-            NavHostController(LocalContext.current), state, DiscoverState.Success, CoroutineScope(SupervisorJob() + Dispatchers.IO), "", {}, {}, emptyList(), emptyList()
-
+            NavHostController(LocalContext.current),
+            state,
+            DiscoverState.Fetched,
+            CoroutineScope(SupervisorJob() + Dispatchers.IO),
+            "",
+            {},
+            {},
+            { _, _, _ -> },
+            { _, _, _ -> },
+            emptyList(),
+            emptyList()
         )
     }
 }
@@ -211,7 +234,17 @@ fun InboxScreenSearchingAndFailureStatePreview(@PreviewParameter(InboxScreenStat
 fun InboxScreenSuccessPreview(@PreviewParameter(InboxScreenActiveSubscriptionsPreviewProvider::class) activeSubscriptions: List<ActiveSubscriptionsUI>) {
     PreviewTheme {
         InboxScreen(
-            NavHostController(LocalContext.current), SubscriptionsState.Success, DiscoverState.Success, CoroutineScope(SupervisorJob() + Dispatchers.IO), "", {}, {}, emptyList(), emptyList()
+            NavHostController(LocalContext.current),
+            SubscriptionsState.Success,
+            DiscoverState.Fetched,
+            CoroutineScope(SupervisorJob() + Dispatchers.IO),
+            "",
+            {},
+            {},
+            { _, _, _ -> },
+            { _, _, _ -> },
+            emptyList(),
+            emptyList()
         )
     }
 }

@@ -3,18 +3,22 @@
 package com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox
 
 import android.app.Application
+import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.internal.common.explorer.data.model.Project
 import com.walletconnect.notify.client.Notify
 import com.walletconnect.notify.client.NotifyClient
+import com.walletconnect.sample.wallet.domain.EthAccountDelegate
 import com.walletconnect.sample.wallet.domain.NotifyDelegate
+import com.walletconnect.sample.wallet.domain.toEthAddress
 import com.walletconnect.sample.wallet.ui.common.subscriptions.ActiveSubscriptionsUI
 import com.walletconnect.sample.wallet.ui.common.subscriptions.toUI
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.discover.ExplorerApp
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.discover.ImageUrl
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -111,7 +115,7 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
                 } ?: explorerApp
             }
         }
-        .onEach { _discoverState.update { DiscoverState.Success } }
+        .onEach { _discoverState.update { DiscoverState.Fetched } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _explorerApps.value)
 
     init {
@@ -159,6 +163,63 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
             fetchExplorerApps()
         }
     }
+
+    fun subscribeToDapp(explorerApp: ExplorerApp, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
+        viewModelScope.launch {
+            _discoverState.update { DiscoverState.Subscribing(explorerApp) }
+            val beforeSubscription = _activeSubscriptions.value
+
+            Notify.Params.Subscribe(explorerApp.homepage.toUri(), with(EthAccountDelegate) { account.toEthAddress() }).let { subscribeParams ->
+                NotifyClient.subscribe(
+                    params = subscribeParams,
+                    onSuccess = {
+                        _activeSubscriptions.onEach { afterSubscription ->
+                            if (beforeSubscription != afterSubscription) {
+                                onSuccess()
+                                _discoverState.update { DiscoverState.Fetched }
+                                cancel()
+                            }
+                        }.launchIn(viewModelScope)
+                    },
+                    onError = {
+                        _discoverState.update { DiscoverState.Fetched }
+                        onFailure(it.throwable)
+                    }
+                )
+            }
+        }
+    }
+
+    fun unsubscribeFromDapp(explorerApp: ExplorerApp, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
+        viewModelScope.launch {
+            if (explorerApp.topic == null) {
+                onFailure(Throwable("Cannot unsubscribe from a dapp. Missing topic"))
+                return@launch
+            }
+
+            _discoverState.update { DiscoverState.Unsubscribing(explorerApp) }
+            val beforeSubscription = _activeSubscriptions.value
+
+            Notify.Params.DeleteSubscription(explorerApp.topic).let { params ->
+                NotifyClient.deleteSubscription(
+                    params = params,
+                    onSuccess = {
+                        _activeSubscriptions.onEach { afterSubscription ->
+                            if (beforeSubscription != afterSubscription) {
+                                onSuccess()
+                                _discoverState.update { DiscoverState.Fetched }
+                                cancel()
+                            }
+                        }.launchIn(viewModelScope)
+                    },
+                    onError = {
+                        _discoverState.update { DiscoverState.Fetched }
+                        onFailure(it.throwable)
+                    }
+                )
+            }
+        }
+    }
 }
 
 sealed interface SubscriptionsState {
@@ -173,8 +234,9 @@ sealed interface SubscriptionsState {
 
 sealed interface DiscoverState {
     object Fetching : DiscoverState
-
+    object Fetched : DiscoverState
     object Searching : DiscoverState
     data class Failure(val error: Throwable) : DiscoverState
-    object Success : DiscoverState
+    data class Subscribing(val explorerApp: ExplorerApp) : DiscoverState
+    data class Unsubscribing(val explorerApp: ExplorerApp) : DiscoverState
 }
