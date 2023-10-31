@@ -3,7 +3,9 @@ package com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.discov
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,15 +27,22 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedButton
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
@@ -47,10 +56,11 @@ import com.walletconnect.sample.wallet.domain.toEthAddress
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.DiscoverState
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.LazyColumnSurroundedWithFogVertically
 import timber.log.Timber
+import java.net.URI
 
 
 @Composable
-fun DiscoverTab(state: DiscoverState, apps: List<ExplorerApp>, onAppItemClicked: () -> Unit) {
+fun DiscoverTab(state: DiscoverState, apps: List<ExplorerApp>, onSubscribeSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
     when (state) {
         DiscoverState.Searching -> {
             EmptyOrLoadingOrFailureState(text = "Querying apps...", showProgressBar = true)
@@ -61,19 +71,19 @@ fun DiscoverTab(state: DiscoverState, apps: List<ExplorerApp>, onAppItemClicked:
         }
 
         is DiscoverState.Success -> {
-            SuccessState(apps, onAppItemClicked)
+            SuccessState(apps, onSubscribeSuccess, onFailure)
         }
     }
 }
 
 
 @Composable
-private fun SuccessState(apps: List<ExplorerApp>, onAppItemClicked: () -> Unit) {
+private fun SuccessState(apps: List<ExplorerApp>, onSubscribeSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
     Box() {
         if (apps.isNotEmpty()) {
             LazyColumnSurroundedWithFogVertically(indexByWhichShouldDisplayBottomFog = apps.lastIndex - 2) {
                 itemsIndexed(apps) { index, app ->
-                    ExplorerAppItem(explorerApp = app, onAppItemClicked)
+                    ExplorerAppItem(explorerApp = app, onSubscribeSuccess, onFailure)
                     if (index != apps.lastIndex) Spacer(modifier = Modifier.height(20.dp))
                 }
             }
@@ -103,24 +113,42 @@ private fun EmptyOrLoadingOrFailureState(text: String, showProgressBar: Boolean 
 }
 
 @Composable
-fun ExplorerAppItem(explorerApp: ExplorerApp, onAppItemClick: () -> Unit) {
+fun ExplorerAppItem(explorerApp: ExplorerApp, onSubscribeSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
     val context = LocalContext.current
-
-    OutlinedButton(
+    val hasIcon = remember { mutableStateOf(explorerApp.imageUrl.sm.isNotEmpty()) }
+    val gradientRadius = remember { mutableStateOf(IntSize(1, 1)) }
+    val boxShape = RoundedCornerShape(12.dp)
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(180.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .padding(horizontal = 20.dp),
-        colors = ButtonDefaults.outlinedButtonColors(backgroundColor = Color.Transparent),
-        shape = RoundedCornerShape(12.dp),
-        onClick = {
-            val parsedUrl = runCatching { Uri.parse(explorerApp.homepage) }.getOrNull()
-            if (parsedUrl != null) {
-                val intent = Intent(Intent.ACTION_VIEW, parsedUrl)
-                context.startActivity(intent)
+            .padding(horizontal = 20.dp)
+            .onGloballyPositioned { coordinates ->
+                gradientRadius.value = coordinates.size
             }
-        }
+            .height(180.dp)
+            .clip(boxShape)
+            .border(1.dp, ButtonDefaults.outlinedBorder.brush, boxShape)
+            .background(
+                Brush.radialGradient(
+                    colors = listOf(Color(0x403ABDF2), Color(0x203ABDF2), Color(0x103ABDF2), Color(0x053ABDF2), Color(0x00FFFFFF)),
+                    center = Offset(gradientRadius.value.width.toFloat() / 6f, -(gradientRadius.value.height.toFloat() / 2.5f)),
+                    radius = gradientRadius.value.width.toFloat()
+                ), shape = boxShape
+            )
+            .clickable {
+                runCatching {
+                    val parsedUrl = Uri.parse(
+                        URI(explorerApp.homepage)
+                            .toURL()
+                            .toString()
+                    )
+                    if (parsedUrl != null) {
+                        val intent = Intent(Intent.ACTION_VIEW, parsedUrl)
+                        context.startActivity(intent)
+                    }
+                }.getOrElse { onFailure(it) }
+            }
+            .padding(horizontal = 20.dp, vertical = 16.dp),
     ) {
         Column() {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -128,11 +156,23 @@ fun ExplorerAppItem(explorerApp: ExplorerApp, onAppItemClick: () -> Unit) {
                     modifier = Modifier
                         .clip(CircleShape)
                         .size(48.dp)
+                        .background(
+                            if (hasIcon.value) Color.Transparent
+                            else Color(0xFFE2FDFF)
+                        )
                         .border(1.dp, ButtonDefaults.outlinedBorder.brush, CircleShape),
                     model = ImageRequest.Builder(LocalContext.current)
-                        .data(explorerApp.imageUrl.sm)
+                        .data(explorerApp.imageUrl.sm.takeIf { hasIcon.value })
+                        .fallback(R.drawable.ic_globe)
+                        .error(R.drawable.ic_globe)
                         .crossfade(200)
+                        .listener(
+                            onError = { _, _ ->
+                                hasIcon.value = false
+                            }
+                        )
                         .build(),
+                    contentScale = if (hasIcon.value) ContentScale.Fit else ContentScale.None,
                     contentDescription = "",
                 )
 
@@ -170,8 +210,8 @@ fun ExplorerAppItem(explorerApp: ExplorerApp, onAppItemClick: () -> Unit) {
                             Notify.Params.Subscribe(explorerApp.homepage.toUri(), with(EthAccountDelegate) { account.toEthAddress() }).let { subscribeParams ->
                                 NotifyClient.subscribe(
                                     params = subscribeParams,
-                                    onSuccess = onAppItemClick,
-                                    onError = { Timber.e(it.throwable) }
+                                    onSuccess = onSubscribeSuccess,
+                                    onError = { onFailure(it.throwable) }
                                 )
                             }
                         }
@@ -218,4 +258,6 @@ fun ExplorerAppItem(explorerApp: ExplorerApp, onAppItemClick: () -> Unit) {
         }
     }
 }
+
+
 
