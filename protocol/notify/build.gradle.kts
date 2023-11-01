@@ -70,7 +70,7 @@ sqldelight {
         create("NotifyDatabase") {
             packageName.set("com.walletconnect.notify")
             schemaOutputDirectory.set(file("src/main/sqldelight/databases"))
-            generateAsync.set(true)
+//            generateAsync.set(true) TODO uncomment once all SDKs have this flag enabled
             verifyMigrations.set(true)
             verifyDefinitions.set(true)
         }
