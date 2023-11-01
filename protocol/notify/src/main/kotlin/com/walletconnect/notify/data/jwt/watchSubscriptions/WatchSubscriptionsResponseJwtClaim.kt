@@ -17,17 +17,7 @@ internal data class WatchSubscriptionsResponseJwtClaim(
     @Json(name = "sbs") val subscriptions: List<ServerSubscription>,
     @Json(name = "act") override val action: String = ACTION_CLAIM_VALUE,
 ) : NotifyJwtBase {
-
-    private fun throwIfActionIsInvalid() {
-        if (action != ACTION_CLAIM_VALUE) throw IllegalArgumentException("Invalid action claim was $action instead of $ACTION_CLAIM_VALUE")
-    }
-
-    fun throwIfBaseIsInvalid() {
-        throwIdIssuedAtIsInvalid()
-        throwExpirationAtIsInvalid()
-        throwIfActionIsInvalid()
-    }
-
+    override val requiredActionValue: String = ACTION_CLAIM_VALUE
 }
 
 private const val ACTION_CLAIM_VALUE = "notify_watch_subscriptions_response"

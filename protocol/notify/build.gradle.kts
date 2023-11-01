@@ -25,6 +25,13 @@ android {
         }
 
         buildConfigField(type = "String", name = "SDK_VERSION", value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\"")
+        buildConfigField("String", "PROJECT_ID", "\"${System.getenv("WC_CLOUD_PROJECT_ID") ?: ""}\"")
+        buildConfigField("String", "PROD_GM_PROJECT_ID", "\"${System.getenv("PROD_GM_PROJECT_ID") ?: ""}\"")
+        buildConfigField("String", "PROD_GM_SECRET", "\"${System.getenv("PROD_GM_SECRET") ?: ""}\"")
+        buildConfigField("Integer", "TEST_TIMEOUT_SECONDS", "${System.getenv("TEST_TIMEOUT_SECONDS") ?: 60}")
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunnerArguments += mutableMapOf("clearPackageData" to "true")
     }
 
     buildTypes {
@@ -42,9 +49,15 @@ android {
         freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.time.ExperimentalTime"
     }
 
-    testOptions.unitTests {
-        isIncludeAndroidResources = true
-        isReturnDefaultValues = true
+    testOptions {
+        execution = "ANDROIDX_TEST_ORCHESTRATOR"
+
+        unitTests {
+            isIncludeAndroidResources = true
+            isReturnDefaultValues = true
+        }
+
+        registerManagedDevices()
     }
 
     buildFeatures {
