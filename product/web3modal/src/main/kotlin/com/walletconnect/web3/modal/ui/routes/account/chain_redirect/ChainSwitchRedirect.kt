@@ -23,7 +23,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.walletconnect.modal.utils.openUri
 import com.walletconnect.web3.modal.client.Modal
-import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
 import com.walletconnect.web3.modal.ui.components.internal.commons.DeclinedIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.LoadingHexagonBorder
@@ -51,7 +50,6 @@ internal fun ChainSwitchRedirectRoute(
 
     val switchChain = suspend {
         accountState.switchChain(
-            from = Web3Modal.getSelectedChainOrFirst(),
             to = chain,
             openConnectedWallet = { uri -> uriHandler.openUri(uri) { onError(it.message) } },
             onError = onError

@@ -110,9 +110,8 @@ internal class AccountState(
         .catch { logger.error(it) }
         .stateIn(coroutineScope, started = SharingStarted.Lazily, initialValue = null)
 
-    fun disconnect(topic: String) {
+    fun disconnect() {
             Web3Modal.disconnect(
-                disconnect = Modal.Params.Disconnect(topic),
                 onSuccess = {
                     coroutineScope.launch { deleteSessionDataUseCase() }
                     coroutineScope.launch(Dispatchers.Main) { closeModal() }
@@ -127,7 +126,7 @@ internal class AccountState(
 
     fun changeActiveChain(chain: Modal.Model.Chain) = coroutineScope.launch {
         if (accountData.chains.contains(chain)) {
-            saveChainSelectionUseCase(chain.id).also { Web3Modal.selectedChain = chain }
+            saveChainSelectionUseCase(chain.id)
             navController.popBackStack()
             if (navController.currentDestination == null) {
                 closeModal()
@@ -142,7 +141,7 @@ internal class AccountState(
         updatedSession: Modal.Model.UpdatedSession
     ) {
         if (updatedSession.getChains().contains(chain)) {
-            saveChainSelectionUseCase(chain.id).also { Web3Modal.selectedChain = chain }
+            saveChainSelectionUseCase(chain.id)
             saveSessionTopicUseCase(updatedSession.topic)
             navController.popBackStack(Route.CHANGE_NETWORK.path, inclusive = true)
             if (navController.currentDestination == null) {
@@ -152,29 +151,25 @@ internal class AccountState(
     }
 
     suspend fun switchChain(
-        from: Modal.Model.Chain,
         to: Modal.Model.Chain,
         openConnectedWallet: (String) -> Unit,
         onError: (String?) -> Unit
     ) {
         val isChainApproved = accountData.chains.contains(to)
         if (!isChainApproved && to.optionalMethods.contains(EthUtils.walletAddEthChain)) {
-            addEthChain(from, to, openConnectedWallet, onError)
+            addEthChain(to, openConnectedWallet, onError)
         } else {
-            switchEthChain(from, to, openConnectedWallet, onError)
+            switchEthChain(to, openConnectedWallet, onError)
         }
     }
 
     private suspend fun switchEthChain(
-        from: Modal.Model.Chain,
         to: Modal.Model.Chain,
         openConnectedWallet: (String) -> Unit,
         onError: (String?) -> Unit
     ) {
         Web3Modal.request(
             Modal.Params.Request(
-                sessionTopic = accountData.topic,
-                chainId = from.id,
                 method = EthUtils.walletSwitchEthChain,
                 params = createSwitchChainParams(to)
             )
@@ -184,15 +179,12 @@ internal class AccountState(
     }
 
     private suspend fun addEthChain(
-        from: Modal.Model.Chain,
         to: Modal.Model.Chain,
         onSuccess: (String) -> Unit,
         onError: (String?) -> Unit
     ) {
         Web3Modal.request(
             Modal.Params.Request(
-                sessionTopic = accountData.topic,
-                chainId = from.id,
                 method = EthUtils.walletAddEthChain,
                 params = createAddEthChainParams(to)
             )
