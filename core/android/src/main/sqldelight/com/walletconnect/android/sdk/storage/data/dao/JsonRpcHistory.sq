@@ -1,3 +1,5 @@
+import kotlin.String;
+
 CREATE TABLE JsonRpcHistoryDao(
   id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
   request_id INTEGER UNIQUE NOT NULL,

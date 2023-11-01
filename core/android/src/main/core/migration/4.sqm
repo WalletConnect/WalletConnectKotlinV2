@@ -1,7 +1,0 @@
--- migration from 4.db to 5.db
-
--- Remove Sync API
-
-DROP TABLE IF EXISTS StoreValues;
-DROP TABLE IF EXISTS Accounts;
-DROP TABLE IF EXISTS Stores;

@@ -1,10 +1,9 @@
 plugins {
     id("com.android.library")
     kotlin("android")
-    id("com.squareup.sqldelight")
+    alias(libs.plugins.sqlDelight)
     id("com.google.devtools.ksp") version kspVersion
     id("publish-module-android")
-//    id("de.mannodermaus.android-junit5") version "1.9.3.0"
     id("jacoco-report")
 }
 
@@ -25,9 +24,21 @@ android {
             minCompileSdk = MIN_SDK
         }
 
-        buildConfigField(type = "String", name = "SDK_VERSION", value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\"")
-        buildConfigField("String", "PROJECT_ID", "\"${System.getenv("WC_CLOUD_PROJECT_ID") ?: ""}\"")
-        buildConfigField("Integer", "TEST_TIMEOUT_SECONDS", "${System.getenv("TEST_TIMEOUT_SECONDS") ?: 10}")
+        buildConfigField(
+            type = "String",
+            name = "SDK_VERSION",
+            value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\""
+        )
+        buildConfigField(
+            "String",
+            "PROJECT_ID",
+            "\"${System.getenv("WC_CLOUD_PROJECT_ID") ?: ""}\""
+        )
+        buildConfigField(
+            "Integer",
+            "TEST_TIMEOUT_SECONDS",
+            "${System.getenv("TEST_TIMEOUT_SECONDS") ?: 10}"
+        )
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         testInstrumentationRunnerArguments += mutableMapOf("clearPackageData" to "true")
@@ -36,7 +47,10 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "${rootDir.path}/gradle/proguard-rules/sdk-rules.pro")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "${rootDir.path}/gradle/proguard-rules/sdk-rules.pro"
+            )
         }
     }
 
@@ -67,10 +81,14 @@ android {
 }
 
 sqldelight {
-    database("SignDatabase") {
-        packageName = "com.walletconnect.sign"
-        schemaOutputDirectory = file("src/debug/sqldelight/databases")
-        verifyMigrations = true
+    databases {
+        create("SignDatabase") {
+            packageName.set("com.walletconnect.sign")
+            schemaOutputDirectory.set(file("src/main/sqldelight/databases"))
+//            generateAsync.set(true) // TODO: Enable once all repository methods have been converted to suspend functions
+            verifyMigrations.set(true)
+            verifyDefinitions.set(true)
+        }
     }
 }
 
@@ -79,6 +97,8 @@ dependencies {
     releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
 
     moshiKsp()
+    implementation(libs.bundles.sqlDelight)
+
     androidXTest()
     jUnit4()
     robolectric()
@@ -86,5 +106,5 @@ dependencies {
     testJson()
     coroutinesTest()
     scarletTest()
-    sqlDelightTest()
+    testImplementation(libs.bundles.sqlDelightTest)
 }

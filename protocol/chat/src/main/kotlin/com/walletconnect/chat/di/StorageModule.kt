@@ -1,9 +1,8 @@
 package com.walletconnect.chat.di
 
-import com.squareup.sqldelight.ColumnAdapter
-import com.squareup.sqldelight.EnumColumnAdapter
+import app.cash.sqldelight.ColumnAdapter
+import app.cash.sqldelight.EnumColumnAdapter
 import com.walletconnect.android.di.sdkBaseStorageModule
-import com.walletconnect.android.internal.common.di.DatabaseConfig
 import com.walletconnect.android.internal.common.di.deleteDatabase
 import com.walletconnect.chat.ChatDatabase
 import com.walletconnect.chat.common.model.InviteStatus
@@ -16,10 +15,12 @@ import org.koin.dsl.module
 
 @JvmSynthetic
 internal fun storageModule(dbName: String) = module {
+    @Suppress("RemoveExplicitTypeArguments")
     fun Scope.createChatDB(): ChatDatabase = ChatDatabase(
-        get(), InvitesAdapter = Invites.Adapter(
-            statusAdapter = get(named(ChatDITags.COLUMN_ADAPTER_INVITE_STATUS)),
-            typeAdapter = get(named(ChatDITags.COLUMN_ADAPTER_INVITE_TYPE)),
+        driver = get(),
+        InvitesAdapter = Invites.Adapter(
+            statusAdapter = get<ColumnAdapter<InviteStatus, String>>(named(ChatDITags.COLUMN_ADAPTER_INVITE_STATUS)),
+            typeAdapter = get<ColumnAdapter<InviteType, String>>(named(ChatDITags.COLUMN_ADAPTER_INVITE_TYPE)),
         )
     )
 

@@ -1,7 +1,7 @@
 plugins {
     id("com.android.library")
     kotlin("android")
-    id("com.squareup.sqldelight")
+    alias(libs.plugins.sqlDelight)
     id("com.google.devtools.ksp") version kspVersion
     id("publish-module-android")
     id("jacoco-report")
@@ -66,10 +66,14 @@ android {
 }
 
 sqldelight {
-    database("NotifyDatabase") {
-        packageName = "com.walletconnect.notify"
-        schemaOutputDirectory = file("src/main/sqldelight/databases")
-        verifyMigrations = true
+    databases {
+        create("NotifyDatabase") {
+            packageName.set("com.walletconnect.notify")
+            schemaOutputDirectory.set(file("src/main/sqldelight/databases"))
+//            generateAsync.set(true) TODO uncomment once all SDKs have this flag enabled
+            verifyMigrations.set(true)
+            verifyDefinitions.set(true)
+        }
     }
 }
 
@@ -79,6 +83,8 @@ dependencies {
 
     implementation("com.squareup.retrofit2:converter-scalars:2.9.0")
     moshiKsp()
+    implementation(libs.bundles.sqlDelight)
+
     androidXTest()
     firebaseMessaging()
     jUnit4()
@@ -87,5 +93,5 @@ dependencies {
     testJson()
     coroutinesTest()
     scarletTest()
-    sqlDelightTest()
+    testImplementation(libs.bundles.sqlDelightTest)
 }

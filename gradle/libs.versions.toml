@@ -1,0 +1,16 @@
+[versions]
+sqlDelight = "2.0.0"
+
+[libraries]
+sqlDelight-android = { module = "app.cash.sqldelight:android-driver", version.ref = "sqlDelight" }
+sqlDelight-coroutines = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqlDelight" }
+sqlDelight-adapters = { module = "app.cash.sqldelight:primitive-adapters", version.ref = "sqlDelight" }
+sqlDelight-test = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "sqlDelight" }
+sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version = "3.8.10.2" }
+
+[bundles]
+sqlDelight = ["sqlDelight-android", "sqlDelight-coroutines", "sqlDelight-adapters"]
+sqlDelightTest = ["sqlDelight-test", "sqlite-jdbc"]
+
+[plugins]
+sqlDelight = { id = "app.cash.sqldelight", version.ref = "sqlDelight" }

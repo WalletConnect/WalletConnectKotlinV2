@@ -1,0 +1,10 @@
+-- migration from 4.db to 5.db
+
+-- Remove Sync API
+
+DROP TABLE IF EXISTS StoreValues;
+DROP TABLE IF EXISTS Accounts;
+DROP TABLE IF EXISTS Stores;
+
+ALTER TABLE Identities ADD COLUMN cacao_payload TEXT DEFAULT NULL;
+ALTER TABLE Identities ADD COLUMN is_owner INTEGER DEFAULT 0;

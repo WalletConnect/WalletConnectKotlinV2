@@ -1,7 +1,7 @@
 plugins {
     id("com.android.library")
     kotlin("android")
-    id("com.squareup.sqldelight")
+    alias(libs.plugins.sqlDelight)
     id("com.google.devtools.ksp") version kspVersion
     id("publish-module-android")
     id("jacoco-report")
@@ -20,15 +20,26 @@ android {
     defaultConfig {
         minSdk = MIN_SDK
 
-        buildConfigField(type = "String", name = "SDK_VERSION", value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\"")
-        buildConfigField("String", "PROJECT_ID", "\"${System.getenv("WC_CLOUD_PROJECT_ID") ?: ""}\"")
+        buildConfigField(
+            type = "String",
+            name = "SDK_VERSION",
+            value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\""
+        )
+        buildConfigField(
+            "String",
+            "PROJECT_ID",
+            "\"${System.getenv("WC_CLOUD_PROJECT_ID") ?: ""}\""
+        )
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
             isMinifyEnabled = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "${rootDir.path}/gradle/proguard-rules/sdk-rules.pro")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "${rootDir.path}/gradle/proguard-rules/sdk-rules.pro"
+            )
         }
     }
     compileOptions {
@@ -46,12 +57,17 @@ android {
 }
 
 sqldelight {
-    database("AuthDatabase") {
-        packageName = "com.walletconnect.auth"
-        schemaOutputDirectory = file("src/main/sqldelight/databases")
-        verifyMigrations = true
+    databases {
+        create("AuthDatabase") {
+            packageName.set("com.walletconnect.auth")
+            schemaOutputDirectory.set(file("src/main/sqldelight/databases"))
+            generateAsync.set(true)
+            verifyMigrations.set(true)
+            verifyDefinitions.set(true)
+        }
     }
 }
+
 
 dependencies {
     debugImplementation(project(":core:android"))
@@ -59,13 +75,15 @@ dependencies {
 
     okhttp()
     moshiKsp()
+    implementation(libs.bundles.sqlDelight)
+
     androidXTest()
     robolectric()
     mockk()
     testJson()
     coroutinesTest()
     scarletTest()
-    sqlDelightTest()
+    testImplementation(libs.bundles.sqlDelightTest)
     jUnit4()
     web3jCrypto()
 }
