@@ -23,6 +23,7 @@ import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Rule
+import org.junit.Test
 import timber.log.Timber
 
 class NotifyClientInstrumentedAndroidTest {
@@ -99,7 +100,7 @@ class NotifyClientInstrumentedAndroidTest {
         scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) {}
     }
 
-    //    @Test //TODO this test fails without a reason
+    @Test //TODO this test fails without a reason
     fun areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage() {
         Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: start")
         var countPrimaryReceivedResponses = 0
