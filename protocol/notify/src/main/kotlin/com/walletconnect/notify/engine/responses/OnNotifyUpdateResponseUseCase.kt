@@ -48,7 +48,7 @@ internal class OnNotifyUpdateResponseUseCase(
 
                     subscriptionRepository.updateSubscriptionScopeAndJwtByNotifyTopic(subscription.notifyTopic.value, updateNotificationScopeMap.toDb(), newExpiry.seconds)
 
-                    with(subscription) { UpdateSubscription.Result(account, mapOfNotificationScope, newExpiry, dappGeneratedPublicKey, notifyTopic, dappMetaData, relay) }
+                    with(subscription) { UpdateSubscription.Result(account, mapOfNotificationScope, newExpiry, subscription.authenticationPublicKey, notifyTopic, dappMetaData, relay) }
                 }
 
                 is JsonRpcResponse.JsonRpcError -> {
