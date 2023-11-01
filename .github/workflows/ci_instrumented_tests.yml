@@ -74,10 +74,10 @@ jobs:
           echo if: ${{ github.event_name == 'workflow_dispatch' }}
 
       - name: Should Run Core 3
-        if: {{ github.event_name == 'workflow_dispatch' }}
+        if: ${{ steps.what_modules_changed.outputs.CORE_MODULE_CHANGED == 'true' }} || {{ github.event_name == 'workflow_dispatch' }}
         shell: bash
         run: |
-          echo if: {{ github.event_name == 'workflow_dispatch' }}
+          echo if: ${{ steps.what_modules_changed.outputs.CORE_MODULE_CHANGED == 'true' }} || {{ github.event_name == 'workflow_dispatch' }}
 
       - name: Run Core instrumented tests
         if: ${{ steps.what_modules_changed.outputs.CORE_MODULE_CHANGED == 'true' }} || ${{ github.event_name == 'workflow_dispatch' }}
