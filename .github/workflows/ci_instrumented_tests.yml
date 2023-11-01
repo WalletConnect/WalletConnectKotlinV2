@@ -61,9 +61,26 @@ jobs:
           check_changes "protocol/sign" "SIGN_MODULE_CHANGED"
           check_changes "protocol/notify" "NOTIFY_MODULE_CHANGED"
 
+      - name: Should Run Core 1
+        if: ${{ steps.what_modules_changed.outputs.CORE_MODULE_CHANGED == 'true' }}
+        shell: bash
+        run: |
+          echo if: ${{ steps.what_modules_changed.outputs.CORE_MODULE_CHANGED == 'true' }}
+
+      - name: Should Run Core 2
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        shell: bash
+        run: |
+          echo if: ${{ github.event_name == 'workflow_dispatch' }}
+
+      - name: Should Run Core 3
+        if: {{ github.event_name == 'workflow_dispatch' }}
+        shell: bash
+        run: |
+          echo if: {{ github.event_name == 'workflow_dispatch' }}
 
       - name: Run Core instrumented tests
-        if: ${{ steps.what_modules_changed.outputs.CORE_MODULE_CHANGED == 'true' }} || {{ github.event_name == 'workflow_dispatch' }}
+        if: ${{ steps.what_modules_changed.outputs.CORE_MODULE_CHANGED == 'true' }} || ${{ github.event_name == 'workflow_dispatch' }}
         uses: ./.github/actions/ci_instrumented_tests
         with:
           name: "Android_Core_SDK"
@@ -74,7 +91,7 @@ jobs:
           testTimeoutSeconds: ${{ github.event.inputs.testTimeoutSeconds || env.TEST_TIMEOUT_SECONDS }} # Prioritise dispatch input timeout over env one
 
       - name: Run Sign instrumented tests
-        if: ${{ steps.what_modules_changed.outputs.CORE_MODULE_CHANGED == 'true' }} || ${{ steps.what_modules_changed.outputs.SIGN_MODULE_CHANGED == 'true' }} || {{ github.event_name == 'workflow_dispatch' }}
+        if: ${{ steps.what_modules_changed.outputs.CORE_MODULE_CHANGED == 'true' }} || ${{ steps.what_modules_changed.outputs.SIGN_MODULE_CHANGED == 'true' }} || ${{ github.event_name == 'workflow_dispatch' }}
         uses: ./.github/actions/ci_instrumented_tests
         with:
           name: "Sign_SDK"
@@ -85,7 +102,7 @@ jobs:
           testTimeoutSeconds: ${{ github.event.inputs.testTimeoutSeconds || env.TEST_TIMEOUT_SECONDS }} # Prioritise dispatch input timeout over env one
 
       - name: Run Notify instrumented tests
-        if: ${{ steps.what_modules_changed.outputs.CORE_MODULE_CHANGED == 'true' }} || ${{ steps.what_modules_changed.outputs.NOTIFY_MODULE_CHANGED == 'true' }} || {{ github.event_name == 'workflow_dispatch' }}
+        if: ${{ steps.what_modules_changed.outputs.CORE_MODULE_CHANGED == 'true' }} || ${{ steps.what_modules_changed.outputs.NOTIFY_MODULE_CHANGED == 'true' }} || ${{ github.event_name == 'workflow_dispatch' }}
         uses: ./.github/actions/ci_instrumented_tests
         with:
           name: "Notify_SDK"
