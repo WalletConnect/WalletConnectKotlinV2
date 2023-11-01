@@ -42,7 +42,7 @@ internal class DeleteSubscriptionUseCase(
         runCatching {
             subscriptionRepository.deleteSubscriptionByNotifyTopic(notifyTopic)
             messagesRepository.deleteMessagesByTopic(notifyTopic)
-        }.onFailure { onFailure(it) }
+        }.onFailure {  return@supervisorScope onFailure(it) }
 
         jsonRpcInteractor.unsubscribe(Topic(notifyTopic), onFailure = onFailure, onSuccess = {
             jsonRpcInteractor.publishJsonRpcRequest(Topic(notifyTopic), irnParams, request, onFailure = onFailure, onSuccess = onSuccess)
