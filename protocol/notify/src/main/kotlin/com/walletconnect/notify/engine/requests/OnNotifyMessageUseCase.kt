@@ -7,6 +7,7 @@ import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtCl
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.IrnParams
+import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.params.ChatNotifyResponseAuthParams
@@ -16,6 +17,8 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
 import com.walletconnect.foundation.common.model.Ttl
+import com.walletconnect.foundation.util.jwt.decodeDidWeb
+import com.walletconnect.foundation.util.jwt.decodeEd25519DidKey
 import com.walletconnect.notify.common.model.NotifyMessage
 import com.walletconnect.notify.common.model.NotifyRecord
 import com.walletconnect.notify.data.jwt.message.MessageRequestJwtClaim
@@ -26,7 +29,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.supervisorScope
-import timber.log.Timber
+import java.net.URI
 
 internal class OnNotifyMessageUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -39,14 +42,15 @@ internal class OnNotifyMessageUseCase(
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
     suspend operator fun invoke(request: WCRequest, params: CoreNotifyParams.MessageParams) = supervisorScope {
-        extractVerifiedDidJwtClaims<MessageRequestJwtClaim>(params.messageAuth).onSuccess { messageJwt ->
+        val activeSubscription = subscriptionRepository.getActiveSubscriptionByNotifyTopic(request.topic.value)
+            ?: throw IllegalStateException("No active subscription for topic: ${request.topic.value}")
 
-            /* TODO: Add validation after ETHNY
-            *   jwtClaims.iat - compare with current time. Has to be lower
-            *   jwtClaims.exp - compare with current time. Has to be higher
-            *   jwtClaims.act == "notify_message"
-            *   jwtClaims.iss - did:key of dapp authentication key. Add logic when cached value does not match jwtClaims.iss then fetch value again and if value still does not match then throw
-            *   jwtClaims.app - did:web of app domain that this request is associated with. Must match domain of active subscription by topic */
+        val metadata: AppMetaData = metadataStorageRepository.getByTopicAndType(activeSubscription.notifyTopic, AppMetaDataType.PEER)
+            ?: throw Exception("No metadata found for topic ${activeSubscription.notifyTopic}")
+
+
+        extractVerifiedDidJwtClaims<MessageRequestJwtClaim>(params.messageAuth).onSuccess { messageJwt ->
+            messageJwt.throwIfIsInvalid(URI(metadata.url).host, activeSubscription.authenticationPublicKey.keyAsHex)
 
             if (messagesRepository.doesMessagesExistsByRequestId(request.id)) {
                 messagesRepository.updateMessageWithPublishedAtByRequestId(request.publishedAt, request.id)
@@ -76,14 +80,7 @@ internal class OnNotifyMessageUseCase(
                 )
                 _events.emit(notifyRecord)
             }
-        }.mapCatching { _ ->
-
-            val activeSubscription = subscriptionRepository.getActiveSubscriptionByNotifyTopic(request.topic.value)
-                ?: throw IllegalStateException("No active subscription for topic: ${request.topic.value}")
-
-            val metadata: AppMetaData = metadataStorageRepository.getByTopicAndType(activeSubscription.notifyTopic, AppMetaDataType.PEER)
-                ?: throw Exception("No metadata found for topic ${activeSubscription.notifyTopic}")
-
+        }.runCatching {
             val messageResponseJwt = fetchDidJwtInteractor.messageResponse(
                 account = activeSubscription.account,
                 app = metadata.url,
@@ -94,12 +91,30 @@ internal class OnNotifyMessageUseCase(
             val irnParams = IrnParams(Tags.NOTIFY_MESSAGE_RESPONSE, Ttl(MONTH_IN_SECONDS))
 
             jsonRpcInteractor.respondWithParams(request.id, request.topic, messageResponseParams, irnParams) { throw it }
-        }.getOrElse { e ->
+        }.getOrElse { error ->
+            _events.emit(SDKError(error))
             jsonRpcInteractor.respondWithError(
                 request,
-                Uncategorized.GenericError("Cannot handle the notify message: ${e.message}, topic: ${request.topic}"),
+                Uncategorized.GenericError("Cannot handle the notify message: ${error.message}, topic: ${request.topic}"),
                 IrnParams(Tags.NOTIFY_MESSAGE_RESPONSE, Ttl(MONTH_IN_SECONDS))
             )
         }
+    }
+
+    private fun MessageRequestJwtClaim.throwIfIsInvalid(expectedApp: String, expectedIssuer: String) {
+        throwIfBaseIsInvalid()
+        throwIfAppIsInvalid(expectedApp)
+        throwIfIssuerIsInvalid(expectedIssuer)
+    }
+
+    private fun MessageRequestJwtClaim.throwIfAppIsInvalid(expectedAppDomain: String) {
+        val decodedAppDomain = decodeDidWeb(app)
+        if (decodedAppDomain != expectedAppDomain) throw IllegalStateException("Invalid app claim was $decodedAppDomain instead of $expectedAppDomain")
+    }
+
+
+    private fun MessageRequestJwtClaim.throwIfIssuerIsInvalid(expectedIssuerAsHex: String) {
+        val decodedIssuerAsHex = decodeEd25519DidKey(issuer).keyAsHex
+        if (decodedIssuerAsHex != expectedIssuerAsHex) throw IllegalStateException("Invalid issuer claim was $decodedIssuerAsHex instead of $expectedIssuerAsHex")
     }
 }

@@ -40,11 +40,9 @@ internal class OnNotifySubscribeResponseUseCase {
                             emptyMap(),
                             Expiry(0L),
                             PublicKey(""),
-                            PublicKey(""),
                             Topic(""),
                             null,
                             null
-
                         )
                     )
                 }
