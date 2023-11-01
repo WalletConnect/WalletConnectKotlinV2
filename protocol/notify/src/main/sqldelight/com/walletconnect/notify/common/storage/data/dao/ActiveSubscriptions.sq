@@ -11,14 +11,13 @@ CREATE TABLE ActiveSubscriptions (
     relay_protocol TEXT NOT NULL,
     relay_data TEXT DEFAULT NULL,
     map_of_scope TEXT AS Map<String, Triple<String, String, Boolean>> NOT NULL,
-    dapp_generated_public_key TEXT NOT NULL,
     notify_topic TEXT UNIQUE NOT NULL,
     requested_subscription_id INTEGER UNIQUE DEFAULT NULL
 );
 
 insertOrAbortActiveSubscribtion:
-INSERT OR ABORT INTO ActiveSubscriptions(account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, dapp_generated_public_key, notify_topic, requested_subscription_id)
-VALUES ( ?, ?, ?, ?, ? , ?, ?, ?, ?);
+INSERT OR ABORT INTO ActiveSubscriptions(account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, notify_topic, requested_subscription_id)
+VALUES ( ?, ?, ?, ?, ? , ?, ?, ?);
 
 updateOrAbortActiveSubscribtion:
 UPDATE OR ABORT ActiveSubscriptions
@@ -29,34 +28,23 @@ SET
     relay_protocol = ?,
     relay_data = ?,
     map_of_scope = ?,
-    dapp_generated_public_key = ?,
     notify_topic = ?,
     requested_subscription_id = ?
 WHERE notify_topic = ?;
 
-getSubscriptionByDappGeneratedPublicKey:
-SELECT account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, dapp_generated_public_key, notify_topic, requested_subscription_id
-FROM ActiveSubscriptions
-WHERE dapp_generated_public_key = ?;
-
 getAllActiveSubscriptions:
-SELECT account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, dapp_generated_public_key, notify_topic, requested_subscription_id
+SELECT account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, notify_topic, requested_subscription_id
 FROM ActiveSubscriptions;
 
 getActiveSubscriptionByNotifyTopic:
-SELECT account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, dapp_generated_public_key, notify_topic, requested_subscription_id
+SELECT account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, notify_topic, requested_subscription_id
 FROM ActiveSubscriptions
 WHERE notify_topic = ?;
 
 getActiveSubscriptionsByAccount:
-SELECT account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, dapp_generated_public_key, notify_topic, requested_subscription_id
+SELECT account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, notify_topic, requested_subscription_id
 FROM ActiveSubscriptions
 WHERE account = ?;
-
-getActiveSubscriptionForeignRequestedSubscriptionIdByNotifyTopic:
-SELECT requested_subscription_id
-FROM ActiveSubscriptions
-WHERE notify_topic = ?;
 
 updateSubscriptionScopeAndExpiryByNotifyTopic:
 UPDATE OR ABORT ActiveSubscriptions
@@ -70,6 +58,3 @@ WHERE notify_topic = ?;
 deleteByAccount:
 DELETE FROM ActiveSubscriptions
 WHERE account = ?;
-
-doesNotifyTopicExist:
-SELECT EXISTS(SELECT 1 FROM ActiveSubscriptions WHERE notify_topic = ?);
