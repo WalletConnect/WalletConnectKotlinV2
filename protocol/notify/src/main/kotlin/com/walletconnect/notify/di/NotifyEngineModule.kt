@@ -88,7 +88,6 @@ internal fun engineModule() = module {
     single {
         SetActiveSubscriptionsUseCase(
             subscriptionRepository = get(),
-            extractPublicKeysFromDidJsonUseCase = get(),
             extractMetadataFromConfigUseCase = get(),
             metadataRepository = get(),
             jsonRpcInteractor = get(),
