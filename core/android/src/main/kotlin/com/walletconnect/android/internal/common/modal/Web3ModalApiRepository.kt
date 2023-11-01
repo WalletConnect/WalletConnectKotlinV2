@@ -18,7 +18,7 @@ internal class Web3ModalApiRepository(
     suspend fun getAndroidWalletsData(sdkType: String) = runCatching {
         web3ModalService.getAndroidData(sdkType = sdkType)
     }.mapCatching { response ->
-        response.body()!!.let { body -> body.data.toWalletsAppData().filter { it.isInstalled } }
+        response.body()!!.data.toWalletsAppData().filter { it.isInstalled }
     }
 
     suspend fun getWallets(
