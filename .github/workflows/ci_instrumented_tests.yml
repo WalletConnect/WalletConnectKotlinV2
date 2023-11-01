@@ -50,8 +50,10 @@ jobs:
             
             if [ -n "$changes" ]; then
             echo "${output_variable_name}=true" >> $GITHUB_OUTPUT
+            echo "${output_variable_name}=true"
             else
             echo "${output_variable_name}=false" >> $GITHUB_OUTPUT
+            echo "${output_variable_name}=false"
             fi
           }
         
