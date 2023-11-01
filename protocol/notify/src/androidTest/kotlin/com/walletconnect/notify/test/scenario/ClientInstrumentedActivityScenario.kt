@@ -1,15 +1,20 @@
 package com.walletconnect.notify.test.scenario
 
+import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.foundation.network.model.Relay
 import com.walletconnect.notify.test.BuildConfig
 import com.walletconnect.notify.test.utils.TestClient
 import junit.framework.TestCase.fail
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.rules.TestRule
@@ -22,6 +27,10 @@ import kotlin.time.Duration.Companion.seconds
 //  Research why switching this to class made tests run 10x longer
 
 class ClientInstrumentedActivityScenario : TestRule, ActivityScenario() {
+    private val reconnectScope = CoroutineScope(Dispatchers.IO)
+    private var primaryReconnectJob : Job? = null
+    private var secondaryReconnectJob : Job? = null
+
     override fun apply(base: Statement, description: Description): Statement {
         return object : Statement() {
             override fun evaluate() {
@@ -35,6 +44,8 @@ class ClientInstrumentedActivityScenario : TestRule, ActivityScenario() {
     fun afterAll() {
         unregisterIdentities()
         scenario?.close()
+        primaryReconnectJob?.cancel()
+        secondaryReconnectJob?.cancel()
     }
 
     private fun unregisterIdentities() {
@@ -84,6 +95,24 @@ class ClientInstrumentedActivityScenario : TestRule, ActivityScenario() {
 
             dappRelayJob.cancel()
             walletRelayJob.cancel()
+            primaryReconnectJob = TestClient.Primary.Relay.isConnectionAvailable.onEach { isConnectionAvailable ->
+                if (!isConnectionAvailable) {
+                    reconnectScope.launch {
+                        TestClient.Primary.Relay.connect { error: Core.Model.Error ->
+                            Timber.e(error.throwable)
+                        }
+                    }
+                }
+            }.launchIn(scope)
+            secondaryReconnectJob = TestClient.Secondary.Relay.isConnectionAvailable.onEach { isConnectionAvailable ->
+                if (!isConnectionAvailable) {
+                    reconnectScope.launch {
+                        TestClient.Secondary.Relay.connect { error: Core.Model.Error ->
+                            Timber.e(error.throwable)
+                        }
+                    }
+                }
+            }.launchIn(scope)
         }
     }
 }
