@@ -20,7 +20,8 @@ internal fun Modal.Model.UpdatedSession.getChains() = namespaces.values.toList()
     .flatMap { it.chains ?: listOf() }
     .mapNotNull { it.toChain() }
 
-private fun String.toChain() = Web3Modal.chains.find { it.id == this }
+internal fun String.toChain() = Web3Modal.chains.find { it.id == this }
+
 private fun Modal.Model.Session.getAccounts() = namespaces.values.toList().flatMap { it.accounts }
 
 private fun Modal.Model.Session.getDefaultChain() = getAccounts()

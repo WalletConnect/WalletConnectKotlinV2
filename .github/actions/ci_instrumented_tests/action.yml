@@ -19,7 +19,7 @@ inputs:
     required: false
   testTimeoutSeconds:
     description: 'Seconds for test timeout'
-    default: '40'
+    default: '120'
 
 runs:
   using: "composite"

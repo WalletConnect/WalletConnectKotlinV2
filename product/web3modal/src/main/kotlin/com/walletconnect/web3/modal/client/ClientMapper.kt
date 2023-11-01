@@ -49,7 +49,7 @@ internal fun Modal.Params.Disconnect.toSign() = Sign.Params.Disconnect(sessionTo
 
 internal fun Modal.Params.Ping.toSign() = Sign.Params.Ping(topic)
 
-internal fun Modal.Params.Request.toSign() = Sign.Params.Request(sessionTopic, method, params, chainId, expiry)
+internal fun Modal.Params.Request.toSign(sessionTopic: String, chainId: String) = Sign.Params.Request(sessionTopic, method, params, chainId, expiry)
 
 
 internal fun Modal.Listeners.SessionPing.toSign() = object : Sign.Listeners.SessionPing {

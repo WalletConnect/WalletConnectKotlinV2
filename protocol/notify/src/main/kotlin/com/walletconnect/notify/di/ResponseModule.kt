@@ -24,6 +24,10 @@ internal fun responseModule() = module {
     single {
         OnWatchSubscriptionsResponseUseCase(
             setActiveSubscriptionsUseCase = get(),
+            extractPublicKeysFromDidJsonUseCase = get(),
+            watchSubscriptionsForEveryRegisteredAccountUseCase = get(),
+            accountsRepository = get(),
+            notifyServerUrl = get()
         )
     }
 }
