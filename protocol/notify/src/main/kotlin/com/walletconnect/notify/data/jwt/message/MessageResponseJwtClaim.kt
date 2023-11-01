@@ -15,5 +15,9 @@ internal data class MessageResponseJwtClaim(
     @Json(name = "ksu") val keyserverUrl: String,
     @Json(name = "sub") val subject: String,
     @Json(name = "app") val app: String,
-    @Json(name = "act") override val action: String = "notify_message_response",
-) : NotifyJwtBase
+    @Json(name = "act") override val action: String = ACTION_CLAIM_VALUE,
+) : NotifyJwtBase {
+    override val requiredActionValue: String = ACTION_CLAIM_VALUE
+}
+
+private const val ACTION_CLAIM_VALUE = "notify_message_response"
