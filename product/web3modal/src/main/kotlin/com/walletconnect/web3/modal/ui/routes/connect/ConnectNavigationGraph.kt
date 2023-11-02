@@ -33,10 +33,7 @@ internal fun ConnectionNavGraph(
         startDestination = startDestination
     ) {
         composable(route = Route.CONNECT_YOUR_WALLET.path) {
-            ConnectWalletRoute(
-                navController = navController,
-                connectState = connectState
-            )
+            ConnectWalletRoute(connectState = connectState)
         }
         composable(route = Route.QR_CODE.path) {
             ScanQRCodeRoute(connectState = connectState)
@@ -48,7 +45,7 @@ internal fun ConnectionNavGraph(
             )
         }
         composable(Route.GET_A_WALLET.path) {
-            GetAWalletRoute(wallets = connectState.wallets.filterNot { it.isWalletInstalled })
+            GetAWalletRoute(wallets = connectState.getNotInstalledWallets() )
         }
         composable(Route.ALL_WALLETS.path) {
             AllWalletsRoute(connectState = connectState)

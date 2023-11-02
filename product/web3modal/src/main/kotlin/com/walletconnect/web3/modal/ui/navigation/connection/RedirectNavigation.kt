@@ -28,7 +28,7 @@ internal fun NavGraphBuilder.redirectRoute(
         arguments = listOf(navArgument(WALLET_ID_KEY) { type = NavType.StringType })
     ) { backStackEntry ->
         val walletId = backStackEntry.arguments?.getString(WALLET_ID_KEY, String.Empty)
-        val wallet = connectState.wallets.find { it.id == walletId }
+        val wallet = connectState.getWallet(walletId)
         wallet?.let { RedirectWalletRoute(connectState = connectState, wallet = it) } ?: Timber.e("Invalid wallet id")
     }
 }

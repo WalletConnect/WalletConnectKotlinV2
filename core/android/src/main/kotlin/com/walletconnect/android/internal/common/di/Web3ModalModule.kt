@@ -3,8 +3,10 @@ package com.walletconnect.android.internal.common.di
 import com.walletconnect.android.BuildConfig
 import com.walletconnect.android.internal.common.modal.Web3ModalApiRepository
 import com.walletconnect.android.internal.common.modal.data.network.Web3ModalService
-import com.walletconnect.android.internal.common.modal.domain.usecase.GetAllWalletsUseCase
-import com.walletconnect.android.internal.common.modal.domain.usecase.GetAllWalletsUseCaseInterface
+import com.walletconnect.android.internal.common.modal.domain.usecase.GetInstalledWalletsIdsUseCase
+import com.walletconnect.android.internal.common.modal.domain.usecase.GetInstalledWalletsIdsUseCaseInterface
+import com.walletconnect.android.internal.common.modal.domain.usecase.GetWalletsUseCase
+import com.walletconnect.android.internal.common.modal.domain.usecase.GetWalletsUseCaseInterface
 import com.walletconnect.android.internal.common.model.ProjectId
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -53,5 +55,6 @@ internal fun web3ModalModule() = module {
         )
     }
 
-    single<GetAllWalletsUseCaseInterface> { GetAllWalletsUseCase(web3ModalApiRepository = get()) }
+    single<GetInstalledWalletsIdsUseCaseInterface> { GetInstalledWalletsIdsUseCase(web3ModalApiRepository = get()) }
+    single<GetWalletsUseCaseInterface> { GetWalletsUseCase(web3ModalApiRepository = get()) }
 }

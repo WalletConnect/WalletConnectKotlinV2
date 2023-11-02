@@ -14,8 +14,12 @@ import kotlinx.coroutines.flow.StateFlow
 
 internal sealed class UiState<T> {
     data class Success<T>(val data: T) : UiState<T>()
-    data class Loading<T>(val data: T? = null) : UiState<T>()
+    data class Loading<T>(val data: T? = null, val loadingState: LoadingState = LoadingState.REFRESH) : UiState<T>()
     data class Error<T>(val error: Throwable) : UiState<T>()
+}
+
+internal enum class LoadingState {
+    REFRESH, APPEND
 }
 
 @Composable

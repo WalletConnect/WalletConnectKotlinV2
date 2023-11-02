@@ -13,6 +13,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,9 +43,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 internal class SearchState(
+    searchPhrase: String = String.Empty,
+    private val onSearchSubmit: (String) -> Unit,
     private val onClearInput: () -> Unit
 ) {
-    val _state: MutableStateFlow<SearchData> = MutableStateFlow(SearchData("", false))
+    private val _state: MutableStateFlow<SearchData> = MutableStateFlow(SearchData(searchPhrase, false))
 
     val state: StateFlow<SearchData>
         get() = _state.asStateFlow()
@@ -56,6 +60,10 @@ internal class SearchState(
 
     fun onSearchValueChange(value: String) {
         _state.update { it.copy(searchValue = value) }
+    }
+
+    fun onSearchSubmit() {
+        onSearchSubmit(searchValue)
     }
 
     fun onFocusChange(isFocused: Boolean) {
@@ -82,6 +90,7 @@ internal fun SearchInput(
     val focusManager = LocalFocusManager.current
     val borderColor: Color
     val backgroundColor: Color
+    val state by searchState.state.collectAsState()
 
     when {
         searchState.isFocused -> {
@@ -99,12 +108,15 @@ internal fun SearchInput(
     }
 
     BasicTextField(
-        value = searchState.searchValue,
+        value = state.searchValue,
         onValueChange = searchState::onSearchValueChange,
         textStyle = Web3ModalTheme.typo.paragraph400.copy(color = Web3ModalTheme.colors.foreground.color100),
         cursorBrush = SolidColor(Web3ModalTheme.colors.accent100),
         singleLine = true,
-        keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus(true) }),
+        keyboardActions = KeyboardActions(onSearch = {
+            searchState.onSearchSubmit()
+            focusManager.clearFocus(true) }
+        ),
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
         modifier = Modifier
             .height(40.dp)
@@ -125,11 +137,11 @@ internal fun SearchInput(
                 )
                 HorizontalSpacer(width = 8.dp)
                 Box(modifier = Modifier.weight(1f)) {
-                    if (searchState.searchValue.isBlank()) {
+                    if (state.searchValue.isBlank()) {
                         Text(text = "Search wallets", style = Web3ModalTheme.typo.paragraph400.copy(color = Web3ModalTheme.colors.foreground.color275))
                     }
                     innerTextField()
-                    if (searchState.searchValue.isNotBlank()) {
+                    if (state.searchValue.isNotBlank()) {
                         InputCancel(modifier = Modifier.align(Alignment.CenterEnd)) {
                             searchState.onSearchClearInput()
                         }
@@ -151,9 +163,9 @@ private fun PreviewSearchInput(
 
 internal class SearchStatePreviewProvider : PreviewParameterProvider<SearchState> {
     override val values: Sequence<SearchState> = sequenceOf(
-        SearchState {  },
-        SearchState {  }.apply { onFocusChange(true) },
-        SearchState {  }.apply { onSearchValueChange("SearchText"); onFocusChange(true) },
-        SearchState {  }.apply { onSearchValueChange("Search Text") }
+        SearchState("", {}, {}),
+        SearchState("", {}, {}).apply { onFocusChange(true) },
+        SearchState("Search text", {}, {}).apply { onFocusChange(true) },
+        SearchState("Search text", {}, {})
     )
 }

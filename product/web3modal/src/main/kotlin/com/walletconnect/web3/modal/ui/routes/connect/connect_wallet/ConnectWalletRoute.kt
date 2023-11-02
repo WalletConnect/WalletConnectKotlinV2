@@ -12,6 +12,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.walletconnect.android.internal.common.modal.data.model.Wallet
+import com.walletconnect.web3.modal.ui.components.internal.ErrorModalState
 import com.walletconnect.web3.modal.ui.components.internal.commons.ListSelectRow
 import com.walletconnect.web3.modal.ui.components.internal.commons.RecentLabel
 import com.walletconnect.web3.modal.ui.components.internal.commons.WalletImage
@@ -26,16 +27,17 @@ import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 @Composable
 internal fun ConnectWalletRoute(
-    navController: NavController,
     connectState: ConnectState,
 ) {
     UiStateBuilder(
-        connectState.getWallets(),
+        connectState.uiState,
+        onError = { ErrorModalState { connectState.fetchInitialWallets() } }
     ) {
         ConnectWalletContent(
             wallets = it,
+            walletsTotalCount = connectState.getWalletsTotalCount(),
             onWalletItemClick = { wallet -> connectState.navigateToRedirectRoute(wallet) },
-            onViewAllClick = { navController.navigate(Route.ALL_WALLETS.path) },
+            onViewAllClick = { connectState.navigateToAllWallets() },
         )
     }
 }
@@ -43,12 +45,14 @@ internal fun ConnectWalletRoute(
 @Composable
 private fun ConnectWalletContent(
     wallets: List<Wallet>,
+    walletsTotalCount: Int,
     onWalletItemClick: (Wallet) -> Unit,
     onViewAllClick: () -> Unit,
 ) {
     Column {
         WalletsList(
             wallets = wallets,
+            walletsTotalCount = walletsTotalCount,
             onWalletItemClick = onWalletItemClick,
             onViewAllClick = onViewAllClick,
         )
@@ -58,6 +62,7 @@ private fun ConnectWalletContent(
 @Composable
 private fun WalletsList(
     wallets: List<Wallet>,
+    walletsTotalCount: Int,
     onWalletItemClick: (Wallet) -> Unit,
     onViewAllClick: () -> Unit
 ) {
@@ -68,7 +73,7 @@ private fun WalletsList(
         itemsIndexed(items = wallets.take(4)) { _, item ->
             WalletListSelect(item, onWalletItemClick)
         }
-        allWallets(text = walletSizeLabel(wallets.size), onClick = onViewAllClick)
+        allWallets(text = walletSizeLabel(walletsTotalCount), onClick = onViewAllClick)
     }
 }
 
@@ -112,6 +117,6 @@ private fun ConnectYourWalletPreview(
     @PreviewParameter(ConnectYourWalletPreviewProvider::class) wallets: List<Wallet>
 ) {
     Web3ModalPreview(title = "Connect Wallet") {
-        ConnectWalletContent(wallets, {}, {})
+        ConnectWalletContent(wallets, 200, {}, {})
     }
 }
