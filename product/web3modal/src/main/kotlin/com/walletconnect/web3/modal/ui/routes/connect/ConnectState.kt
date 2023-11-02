@@ -141,7 +141,7 @@ internal class ConnectState(
 
     fun clearSearch() = walletsDataStore.clearSearch()
 
-    fun getWallet(walletId: String?) = walletsState.value.wallets.find { it.id == walletId }
+    fun getWallet(walletId: String?) = walletsDataStore.getWallet(walletId)
 
     fun getNotInstalledWallets() = walletsState.value.wallets.filterNot { it.isWalletInstalled }
 
