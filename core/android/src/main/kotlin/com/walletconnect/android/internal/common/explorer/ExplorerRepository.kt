@@ -144,12 +144,12 @@ class ExplorerRepository(
 
     private fun ProjectDTO.toProject(): Project = Project(
         id = id,
-        name = name ?: "Name not provided",
-        description = description ?: "Description not provided",
-        homepage = homepage ?: "Homepage not provided",
-        imageId = imageId ?: "ImageID not provided",
+        name = name?.takeIf { it.isNotBlank() } ?: "Name not provided",
+        description = description?.takeIf { it.isNotBlank() } ?: "Description not provided",
+        homepage = homepage?.takeIf { it.isNotBlank() } ?: "Homepage not provided",
+        imageId = imageId?.takeIf { it.isNotBlank() } ?: "ImageID not provided",
         imageUrl = imageUrl?.toImageUrl() ?: ImageUrl("", "", ""),
-        dappUrl = dappUrl ?: "Dapp url not provided",
+        dappUrl = dappUrl?.takeIf { it.isNotBlank() } ?: "Dapp url not provided",
     )
 
     private fun DappListingsDTO.toDappListing(): DappListings {
