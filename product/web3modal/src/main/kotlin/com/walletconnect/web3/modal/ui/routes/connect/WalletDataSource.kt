@@ -137,6 +137,9 @@ internal class WalletDataSource(
             }
         }
     }
+
+    fun getWallet(walletId: String?) = walletsListingData.wallets.find { wallet -> wallet.id == walletId }
+
 }
 
 private fun List<Wallet>.filteredWallets(value: String): List<Wallet> = this.filter { it.name.startsWith(prefix = value, ignoreCase = true) }
