@@ -2,9 +2,6 @@
 
 package com.walletconnect.sample.wallet.ui
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -23,10 +20,14 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
+import com.walletconnect.notify.client.Notify
 import com.walletconnect.sample.common.ui.theme.WCSampleAppTheme
+import com.walletconnect.sample.wallet.domain.NotificationHandler
+import com.walletconnect.sample.wallet.domain.NotifyDelegate
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
 import com.walletconnect.sample.wallet.ui.routes.host.WalletSampleHost
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
@@ -42,11 +43,12 @@ class Web3WalletActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val web3walletViewModel: Web3WalletViewModel = Web3WalletViewModel()
-        val connectionsViewModel: ConnectionsViewModel = ConnectionsViewModel()
+        val web3walletViewModel = Web3WalletViewModel()
+        val connectionsViewModel = ConnectionsViewModel()
         handleWeb3WalletEvents(web3walletViewModel, connectionsViewModel)
         handleCoreEvents(connectionsViewModel)
         askNotificationPermission()
+        handleNotifyMessages()
         setContent(web3walletViewModel, connectionsViewModel)
     }
 
@@ -65,6 +67,15 @@ class Web3WalletActivity : AppCompatActivity() {
                 WalletSampleHost(bottomSheetNavigator, navController, web3walletViewModel, connectionsViewModel, getStartedVisited)
             }
         }
+    }
+
+    private fun handleNotifyMessages() {
+        NotifyDelegate.notifyEvents
+            .filterIsInstance<Notify.Event.Message>()
+            .onEach { message -> NotificationHandler.addNotification(message.message.message) }
+            .launchIn(lifecycleScope)
+
+        NotificationHandler.startNotificationDisplayingJob(lifecycleScope, this)
     }
 
     private fun handleCoreEvents(connectionsViewModel: ConnectionsViewModel) {

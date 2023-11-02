@@ -1,0 +1,32 @@
+ALTER TABLE RegisteredAccounts ADD COLUMN notifyServerWatchTopic TEXT DEFAULT NULL;
+ALTER TABLE RegisteredAccounts ADD COLUMN notifyServerAuthenticationKey TEXT DEFAULT NULL;
+
+
+-- The way repostitory was using the table suggest there are no duplicates.
+-- Two different accounts shouldn't have the same publicIdentityKey.
+-- However if there are drop duplicates of publicIdentityKey. Keep the one with the highest id.
+-- Any old account would need to re-register. Which means signing a SIWE once again. Which is fine.
+
+DELETE FROM RegisteredAccounts
+WHERE id NOT IN (
+    SELECT MAX(id)
+    FROM RegisteredAccounts
+    GROUP BY publicIdentityKey
+);
+
+ALTER TABLE RegisteredAccounts RENAME TO TempRegisteredAccounts;
+
+CREATE TABLE RegisteredAccounts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    accountId TEXT UNIQUE NOT NULL,
+    publicIdentityKey TEXT UNIQUE NOT NULL,
+    isLimited INTEGER AS Boolean NOT NULL,
+    appDomain TEXT DEFAULT NULL,
+    notifyServerWatchTopic TEXT DEFAULT NULL,
+    notifyServerAuthenticationKey TEXT DEFAULT NULL
+);
+
+INSERT INTO RegisteredAccounts (id, accountId, publicIdentityKey, isLimited, appDomain, notifyServerWatchTopic, notifyServerAuthenticationKey)
+SELECT id, accountId, publicIdentityKey, isLimited, appDomain, notifyServerWatchTopic, notifyServerAuthenticationKey FROM TempRegisteredAccounts;
+
+DROP TABLE TempRegisteredAccounts;

@@ -27,13 +27,13 @@ internal fun WalletConnectLogo(
     val border: Color
     val colorFilter: ColorFilter?
     if (isEnabled) {
-        background = Web3ModalTheme.colors.main100
-        border = Web3ModalTheme.colors.overlay10
+        background = Web3ModalTheme.colors.accent100
+        border = Web3ModalTheme.colors.grayGlass10
         colorFilter = null
     } else {
         background = Web3ModalTheme.colors.background.color300
-        border = Web3ModalTheme.colors.overlay05
-        colorFilter = ColorFilter.tint(Web3ModalTheme.colors.overlay30)
+        border = Web3ModalTheme.colors.grayGlass05
+        colorFilter = ColorFilter.tint(Web3ModalTheme.colors.grayGlass30)
     }
 
     Image(

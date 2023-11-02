@@ -8,6 +8,7 @@ import com.walletconnect.web3.wallet.client.Wallet
 data class SessionProposalUI(
     val peerUI: PeerUI,
     val namespaces: Map<String, Wallet.Model.Namespace.Proposal>,
+    val optionalNamespaces: Map<String, Wallet.Model.Namespace.Proposal> = mapOf(),
     val peerContext: PeerContextUI,
     val redirect: String,
     val pubKey: String,

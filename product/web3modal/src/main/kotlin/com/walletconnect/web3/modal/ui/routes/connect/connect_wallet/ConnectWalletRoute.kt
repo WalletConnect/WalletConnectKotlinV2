@@ -1,5 +1,6 @@
 package com.walletconnect.web3.modal.ui.routes.connect.connect_wallet
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -11,7 +12,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.walletconnect.android.internal.common.modal.data.model.Wallet
-import com.walletconnect.web3.modal.ui.components.internal.commons.InstalledLabel
+import com.walletconnect.web3.modal.ui.components.internal.ErrorModalState
 import com.walletconnect.web3.modal.ui.components.internal.commons.ListSelectRow
 import com.walletconnect.web3.modal.ui.components.internal.commons.RecentLabel
 import com.walletconnect.web3.modal.ui.components.internal.commons.WalletImage
@@ -22,19 +23,21 @@ import com.walletconnect.web3.modal.ui.previews.ConnectYourWalletPreviewProvider
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 import com.walletconnect.web3.modal.ui.routes.connect.ConnectState
+import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 @Composable
 internal fun ConnectWalletRoute(
-    navController: NavController,
     connectState: ConnectState,
 ) {
     UiStateBuilder(
-        connectState.getWallets(),
+        connectState.uiState,
+        onError = { ErrorModalState { connectState.fetchInitialWallets() } }
     ) {
         ConnectWalletContent(
             wallets = it,
+            walletsTotalCount = connectState.getWalletsTotalCount(),
             onWalletItemClick = { wallet -> connectState.navigateToRedirectRoute(wallet) },
-            onViewAllClick = { navController.navigate(Route.ALL_WALLETS.path) },
+            onViewAllClick = { connectState.navigateToAllWallets() },
         )
     }
 }
@@ -42,12 +45,14 @@ internal fun ConnectWalletRoute(
 @Composable
 private fun ConnectWalletContent(
     wallets: List<Wallet>,
+    walletsTotalCount: Int,
     onWalletItemClick: (Wallet) -> Unit,
     onViewAllClick: () -> Unit,
 ) {
     Column {
         WalletsList(
             wallets = wallets,
+            walletsTotalCount = walletsTotalCount,
             onWalletItemClick = onWalletItemClick,
             onViewAllClick = onViewAllClick,
         )
@@ -57,6 +62,7 @@ private fun ConnectWalletContent(
 @Composable
 private fun WalletsList(
     wallets: List<Wallet>,
+    walletsTotalCount: Int,
     onWalletItemClick: (Wallet) -> Unit,
     onViewAllClick: () -> Unit
 ) {
@@ -67,7 +73,7 @@ private fun WalletsList(
         itemsIndexed(items = wallets.take(4)) { _, item ->
             WalletListSelect(item, onWalletItemClick)
         }
-        allWallets(text = walletSizeLabel(wallets.size), onClick = onViewAllClick)
+        allWallets(text = walletSizeLabel(walletsTotalCount), onClick = onViewAllClick)
     }
 }
 
@@ -85,9 +91,6 @@ private fun WalletListSelect(item: Wallet, onWalletItemClick: (Wallet) -> Unit) 
         item.isRecent -> {
             { RecentLabel(it) }
         }
-        item.isWalletInstalled -> {
-            { InstalledLabel(it) }
-        }
         else -> null
     }
 
@@ -97,7 +100,8 @@ private fun WalletListSelect(item: Wallet, onWalletItemClick: (Wallet) -> Unit) 
                 url = item.imageUrl,
                 modifier = Modifier
                     .size(40.dp)
-                    .clip(RoundedCornerShape(10.dp))
+                    .border(width = 1.dp, color = Web3ModalTheme.colors.grayGlass10, shape = RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(12.dp))
             )
         },
         text = item.name,
@@ -113,6 +117,6 @@ private fun ConnectYourWalletPreview(
     @PreviewParameter(ConnectYourWalletPreviewProvider::class) wallets: List<Wallet>
 ) {
     Web3ModalPreview(title = "Connect Wallet") {
-        ConnectWalletContent(wallets, {}, {})
+        ConnectWalletContent(wallets, 200, {}, {})
     }
 }

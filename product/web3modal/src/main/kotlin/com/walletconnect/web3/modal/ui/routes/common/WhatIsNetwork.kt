@@ -51,7 +51,7 @@ private fun WhatIsNetwork(
         Spacer(modifier = Modifier.height(10.dp))
         ImageButton(
             text = "Learn more",
-            image = { ExternalIcon(Web3ModalTheme.colors.main100) },
+            image = { ExternalIcon(Web3ModalTheme.colors.accent100) },
             style = ButtonStyle.MAIN,
             size = ButtonSize.S,
             onClick = onLearnMoreClick

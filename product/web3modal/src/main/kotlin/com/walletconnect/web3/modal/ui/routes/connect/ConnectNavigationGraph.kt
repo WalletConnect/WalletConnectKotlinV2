@@ -3,8 +3,8 @@ package com.walletconnect.web3.modal.ui.routes.connect
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.walletconnect.web3.modal.ui.components.internal.snackbar.LocalSnackBarHandler
 import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.ui.navigation.connection.redirectRoute
 import com.walletconnect.web3.modal.ui.routes.connect.choose_network.ChooseNetworkRoute
@@ -15,26 +15,25 @@ import com.walletconnect.web3.modal.ui.routes.connect.get_wallet.GetAWalletRoute
 import com.walletconnect.web3.modal.ui.routes.connect.what_is_wallet.WhatIsWallet
 import com.walletconnect.web3.modal.ui.routes.connect.scan_code.ScanQRCodeRoute
 import com.walletconnect.web3.modal.ui.routes.connect.what_is_wallet.WhatIsWalletOption
+import com.walletconnect.web3.modal.ui.utils.AnimatedNavGraph
 
 @Composable
 internal fun ConnectionNavGraph(
     navController: NavHostController,
     shouldOpenChooseNetwork: Boolean
 ) {
+    val snackBar = LocalSnackBarHandler.current
     val connectState = rememberConnectState(
         coroutineScope = rememberCoroutineScope(),
         navController = navController
-    )
+    ) { message -> snackBar.showErrorSnack(message ?: "Something went wrong") }
     val startDestination = if (shouldOpenChooseNetwork) { Route.CHOOSE_NETWORK.path } else { Route.CONNECT_YOUR_WALLET.path }
-    NavHost(
+    AnimatedNavGraph(
         navController = navController,
         startDestination = startDestination
     ) {
         composable(route = Route.CONNECT_YOUR_WALLET.path) {
-            ConnectWalletRoute(
-                navController = navController,
-                connectState = connectState
-            )
+            ConnectWalletRoute(connectState = connectState)
         }
         composable(route = Route.QR_CODE.path) {
             ScanQRCodeRoute(connectState = connectState)
@@ -46,7 +45,7 @@ internal fun ConnectionNavGraph(
             )
         }
         composable(Route.GET_A_WALLET.path) {
-            GetAWalletRoute(wallets = connectState.wallets)
+            GetAWalletRoute(wallets = connectState.getNotInstalledWallets() )
         }
         composable(Route.ALL_WALLETS.path) {
             AllWalletsRoute(connectState = connectState)

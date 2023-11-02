@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Surface
@@ -32,10 +33,10 @@ internal fun ListSelectRow(
     val background: Color
     val textColor: Color
     if (isEnabled) {
-        background = Web3ModalTheme.colors.overlay05
+        background = Web3ModalTheme.colors.grayGlass02
         textColor = Web3ModalTheme.colors.foreground.color100
     } else {
-        background = Web3ModalTheme.colors.overlay15
+        background = Web3ModalTheme.colors.grayGlass15
         textColor = Web3ModalTheme.colors.foreground.color300
     }
     Surface(
@@ -46,8 +47,9 @@ internal fun ListSelectRow(
         Row(
             modifier = modifier
                 .clickable(onClick = onClick)
+                .height(56.dp)
                 .background(background)
-                .padding(vertical = 12.dp, horizontal = 8.dp)
+                .padding(horizontal = 8.dp)
                 .clipToBounds(),
             verticalAlignment = Alignment.CenterVertically
         ) {

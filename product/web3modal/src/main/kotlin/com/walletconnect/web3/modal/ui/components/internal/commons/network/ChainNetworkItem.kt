@@ -41,25 +41,25 @@ internal fun ChainNetworkItem(
     val borderColor: Color?
     when {
         isSelected -> {
-            backgroundColor = Web3ModalTheme.colors.main10
-            textColor = Web3ModalTheme.colors.main100
-            borderColor = Web3ModalTheme.colors.main100
+            backgroundColor = Web3ModalTheme.colors.accent10
+            textColor = Web3ModalTheme.colors.accent100
+            borderColor = Web3ModalTheme.colors.accent100
         }
 
         isEnabled -> {
-            backgroundColor = Web3ModalTheme.colors.overlay02
+            backgroundColor = Web3ModalTheme.colors.grayGlass02
             textColor = Web3ModalTheme.colors.foreground.color100
             borderColor = null
         }
 
         else -> {
-            backgroundColor = Web3ModalTheme.colors.overlay10
-            textColor = Web3ModalTheme.colors.overlay15
+            backgroundColor = Web3ModalTheme.colors.grayGlass10
+            textColor = Web3ModalTheme.colors.grayGlass15
             borderColor = null
         }
     }
     TransparentSurface(
-        modifier = Modifier.padding(6.dp),
+        modifier = Modifier.padding(4.dp),
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(
@@ -67,8 +67,7 @@ internal fun ChainNetworkItem(
                 .width(76.dp)
                 .height(96.dp)
                 .background(backgroundColor)
-                .clickable(isEnabled) { onItemClick() }
-                .padding(horizontal = 2.dp),
+                .clickable(isEnabled) { onItemClick() },
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -83,7 +82,8 @@ internal fun ChainNetworkItem(
                 style = Web3ModalTheme.typo.tiny500.copy(textColor),
                 textAlign = TextAlign.Center,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(horizontal = 2.dp)
             )
         }
     }

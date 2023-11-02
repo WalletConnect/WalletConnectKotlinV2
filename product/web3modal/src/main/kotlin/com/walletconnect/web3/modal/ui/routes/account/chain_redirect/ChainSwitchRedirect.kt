@@ -1,6 +1,5 @@
 package com.walletconnect.web3.modal.ui.routes.account.chain_redirect
 
-import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -19,13 +18,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.walletconnect.modal.utils.openUri
 import com.walletconnect.web3.modal.client.Modal
-import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
 import com.walletconnect.web3.modal.ui.components.internal.commons.DeclinedIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.LoadingHexagonBorder
@@ -46,15 +43,13 @@ internal fun ChainSwitchRedirectRoute(
     chain: Modal.Model.Chain,
 ) {
     val uriHandler = LocalUriHandler.current
-    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val onError: (String?) -> Unit = {
-        Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+        accountState.showError(it ?: "Something went wrong")
     }
 
     val switchChain = suspend {
         accountState.switchChain(
-            from = Web3Modal.getSelectedChainOrFirst(),
             to = chain,
             openConnectedWallet = { uri -> uriHandler.openUri(uri) { onError(it.message) } },
             onError = onError

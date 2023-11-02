@@ -5,17 +5,17 @@ const val KEY_PUBLISH_ARTIFACT_ID = "PUBLISH_ARTIFACT_ID"
 const val KEY_SDK_NAME = "SDK_NAME"
 
 //Latest versions
-const val BOM_VERSION = "1.18.0"
+const val BOM_VERSION = "1.19.0"
 const val FOUNDATION_VERSION = "1.12.0"
-const val CORE_VERSION = "1.23.0"
-const val SIGN_VERSION = "2.21.0"
-const val AUTH_VERSION = "1.21.0"
-const val CHAT_VERSION = "1.0.0-beta20"
-const val NOTIFY_VERSION = "1.0.0-beta01"
-const val WEB_3_WALLET = "1.16.0"
-const val WEB_3_MODAL = "1.0.0-alpha11"
-const val WC_MODAL_VERSION = "1.0.0-alpha07"
-const val MODAL_CORE_VERSION = "1.0.0-alpha06"
+const val CORE_VERSION = "1.24.0"
+const val SIGN_VERSION = "2.22.0"
+const val AUTH_VERSION = "1.22.0"
+const val CHAT_VERSION = "1.0.0-beta21"
+const val NOTIFY_VERSION = "1.0.0-beta02"
+const val WEB_3_WALLET = "1.17.0"
+const val WEB_3_MODAL = "1.0.0-beta01"
+const val WC_MODAL_VERSION = "1.0.0-beta01"
+const val MODAL_CORE_VERSION = "1.0.0-beta01"
 
 val jvmVersion = JavaVersion.VERSION_11
 const val MIN_SDK: Int = 23

@@ -42,7 +42,7 @@ internal fun CircleNetworkImage(
     Box(
         modifier = Modifier
             .size(size)
-            .border(width = 2.dp, color = Web3ModalTheme.colors.overlay05, shape = CircleShape)
+            .border(width = 2.dp, color = Web3ModalTheme.colors.grayGlass05, shape = CircleShape)
             .padding(2.dp)
     ) {
         AsyncImage(

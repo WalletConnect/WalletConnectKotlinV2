@@ -30,9 +30,9 @@
         <enum name="LIGHT" value="2"/>
     </attr>
 
-    <attr name="modalMain100" format="color"/>
-    <attr name="modalMain90" format="color"/>
-    <attr name="modalMain20" format="color"/>
+    <attr name="modalAccent100" format="color"/>
+    <attr name="modalAccent90" format="color"/>
+    <attr name="modalAccent80" format="color"/>
     <attr name="modalForeground100" format="color"/>
     <attr name="modalForeground125" format="color"/>
     <attr name="modalForeground150" format="color"/>
@@ -51,7 +51,7 @@
     <attr name="modalBackground250" format="color"/>
     <attr name="modalBackground275" format="color"/>
     <attr name="modalBackground300" format="color"/>
-    <attr name="modalOverlay" format="color"/>
+    <attr name="modalGrayGlass" format="color"/>
     <attr name="modalSuccess" format="color"/>
     <attr name="modalError" format="color"/>
 </resources>

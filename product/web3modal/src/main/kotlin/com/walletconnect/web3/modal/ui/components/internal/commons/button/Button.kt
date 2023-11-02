@@ -6,6 +6,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Surface
@@ -14,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
@@ -50,7 +53,7 @@ internal fun ImageButton(
     StyledButton(style = style, size = size, isEnabled = isEnabled, onClick = onClick) {
         image(it.tint)
         HorizontalSpacer(width = 4.dp)
-        Text(text = text, style = it.textStyle)
+        Text(text = text, style = it.textStyle, modifier = Modifier.fillMaxHeight())
     }
 }
 
@@ -68,7 +71,7 @@ internal fun TextButton(
         isEnabled = isEnabled,
         onClick = onClick
     ) {
-        Text(text = text, style = it.textStyle)
+        Text(text = text, style = it.textStyle.copy(textAlign = TextAlign.Center))
     }
 }
 
@@ -85,10 +88,13 @@ internal fun StyledButton(
     val tint = style.getTextColor(isEnabled)
     val textStyle = size.getTextStyle().copy(color = tint)
     val padding = size.getContentPadding()
+    val isClickEnabled = isEnabled && style != ButtonStyle.LOADING
+    val height = size.getHeight()
 
     RoundedButton(
         modifier = Modifier
-            .clickable(enabled = isEnabled, onClick = onClick)
+            .height(height)
+            .clickable(enabled = isClickEnabled, onClick = onClick)
             .background(backgroundColor)
             .border(color = borderColor, width = 1.dp, shape = RoundedCornerShape(100))
             .padding(paddingValues = padding)

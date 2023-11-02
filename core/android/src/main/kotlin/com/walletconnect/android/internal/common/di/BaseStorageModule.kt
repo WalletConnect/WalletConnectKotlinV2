@@ -1,8 +1,8 @@
 package com.walletconnect.android.internal.common.di
 
 import com.squareup.moshi.Moshi
-import com.squareup.sqldelight.ColumnAdapter
-import com.squareup.sqldelight.EnumColumnAdapter
+import app.cash.sqldelight.ColumnAdapter
+import app.cash.sqldelight.EnumColumnAdapter
 import com.walletconnect.android.di.AndroidBuildVariantDITags
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.Validation
@@ -24,7 +24,7 @@ import org.koin.dsl.module
 fun baseStorageModule(storagePrefix: String = String.Empty) = module {
 
     fun Scope.createCoreDB(): AndroidCoreDatabase = AndroidCoreDatabase(
-        get(named(AndroidBuildVariantDITags.ANDROID_CORE_DATABASE_DRIVER)),
+        driver = get(named(AndroidBuildVariantDITags.ANDROID_CORE_DATABASE_DRIVER)),
         MetaDataAdapter = MetaData.Adapter(
             iconsAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_LIST)),
             typeAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_APPMETADATATYPE))
@@ -67,6 +67,7 @@ fun baseStorageModule(storagePrefix: String = String.Empty) = module {
 
     single<ColumnAdapter<Validation, String>>(named(AndroidCommonDITags.COLUMN_ADAPTER_VALIDATION)) { EnumColumnAdapter() }
 
+    @Suppress("RemoveExplicitTypeArguments")
     single<AndroidCoreDatabase>(named(AndroidBuildVariantDITags.ANDROID_CORE_DATABASE)) {
         try {
             createCoreDB().also { database -> database.jsonRpcHistoryQueries.selectLastInsertedRowId().executeAsOneOrNull() }
@@ -86,15 +87,15 @@ fun baseStorageModule(storagePrefix: String = String.Empty) = module {
 
     single { get<AndroidCoreDatabase>(named(AndroidBuildVariantDITags.ANDROID_CORE_DATABASE)).verifyContextQueries }
 
-    single<MetadataStorageRepositoryInterface> { MetadataStorageRepository(get()) }
+    single<MetadataStorageRepositoryInterface> { MetadataStorageRepository(metaDataQueries = get()) }
 
-    single<PairingStorageRepositoryInterface> { PairingStorageRepository(get()) }
+    single<PairingStorageRepositoryInterface> { PairingStorageRepository(pairingQueries = get()) }
 
-    single { JsonRpcHistory(get(), get()) }
+    single { JsonRpcHistory(jsonRpcHistoryQueries = get(), logger = get()) }
 
-    single { IdentitiesStorageRepository(get(), get<Moshi.Builder>(named(AndroidCommonDITags.MOSHI))) }
+    single { IdentitiesStorageRepository(identities = get(), get<Moshi.Builder>(named(AndroidCommonDITags.MOSHI))) }
 
-    single { VerifyContextStorageRepository(get()) }
+    single { VerifyContextStorageRepository(verifyContextQueries = get()) }
 
-    single { DatabaseConfig(storagePrefix) }
+    single { DatabaseConfig(storagePrefix = storagePrefix) }
 }

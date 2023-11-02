@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -27,8 +28,10 @@ import androidx.compose.ui.unit.dp
 
 
 @Composable
-fun LazyColumnSurroundedWithFogVertically(modifier: Modifier = Modifier, indexByWhichShouldDisplayBottomFog: Int, lazyColumContent: LazyListScope.() -> Unit) {
-    val lazyListState = rememberLazyListState()
+fun LazyColumnSurroundedWithFogVertically(
+    modifier: Modifier = Modifier, lazyListState: LazyListState = rememberLazyListState(),
+    indexByWhichShouldDisplayBottomFog: Int, lazyColumContent: LazyListScope.() -> Unit,
+) {
     val isScrolled by remember { derivedStateOf { lazyListState.firstVisibleItemScrollOffset > 0 } }
     //todo: calculate end better
     val isScrolledToTheEnd by remember { derivedStateOf { lazyListState.firstVisibleItemIndex >= indexByWhichShouldDisplayBottomFog } }

@@ -6,6 +6,7 @@ import android.net.Uri
 import android.util.Base64
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.foundation.common.model.PublicKey
+import com.walletconnect.notify.client.InvalidDidJsonFileException
 import com.walletconnect.notify.data.wellknown.did.DidJsonDTO
 import com.walletconnect.notify.data.wellknown.did.VerificationMethodDTO
 import com.walletconnect.notify.engine.calls.DidJsonPublicKeyPair
@@ -54,7 +55,7 @@ internal class ExtractPublicKeysFromDidJsonUseCase(
         }
     }
 
-    private fun generateException(keyName: String, uri: Uri) = Exception("$keyName is missing from $uri. Check that the $DID_JSON matches the specs.")
+    private fun generateException(keyName: String, uri: Uri) = InvalidDidJsonFileException("$keyName is missing from $uri. Check that the $DID_JSON matches the specs.")
 
     private fun extractPublicKey(id: String, verificationMethodList: List<VerificationMethodDTO>): PublicKey {
         val verificationMethod = verificationMethodList.firstOrNull { verificationMethod -> verificationMethod.id == id } ?: throw Exception("Failed to find verification key")

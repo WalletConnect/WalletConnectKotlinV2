@@ -6,15 +6,19 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedButton
@@ -41,7 +45,11 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun NoActiveSubscriptions(onDiscoverMoreClicked: () -> Unit) {
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
         val isVisible = remember { mutableStateOf(false) }
 
         LaunchedEffect(Unit) {
@@ -50,9 +58,7 @@ fun NoActiveSubscriptions(onDiscoverMoreClicked: () -> Unit) {
         }
 
         AnimatedVisibility(
-            modifier = Modifier
-                .align(Alignment.Center)
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             visible = isVisible.value,
             enter = fadeIn(animationSpec = tween(800)) + slideInVertically(animationSpec = tween(1200), initialOffsetY = { 60 })
         ) {
@@ -62,24 +68,29 @@ fun NoActiveSubscriptions(onDiscoverMoreClicked: () -> Unit) {
                 Color(0xff58c0e7), Color(0xff58c0e7), Color(0xff58c0e7),
                 Color.Transparent
             )
-
-            Canvas(
-                modifier = Modifier
-                    .offset(y = (-80).dp)
-                    .size(800.dp)
-                    .rotate(250f)
-                    .blur(60.dp)
-                    .alpha(0.5f),
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()
             ) {
-                drawCircle(
-                    brush = Brush.sweepGradient(colors = colors),
-                    center = center,
-                    radius = size.minDimension / 3f
-                )
+                Spacer(modifier = Modifier.height(60.dp))
+                Canvas(
+                    modifier = Modifier
+                        .requiredSize(400.dp)
+                        .rotate(250f)
+                        .blur(60.dp)
+                        .alpha(0.5f),
+                ) {
+                    drawCircle(
+                        brush = Brush.sweepGradient(colors = colors),
+                        center = center,
+                        radius = size.minDimension / 3f
+                    )
+                }
             }
 
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Spacer(modifier = Modifier.height(60.dp))
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()
+            ) {
+                Spacer(modifier = Modifier.height(100.dp))
                 Image(painter = painterResource(id = R.drawable.ic_discover), contentDescription = null)
                 Text(
                     text = "Add your first app",

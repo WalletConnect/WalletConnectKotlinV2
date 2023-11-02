@@ -1,4 +1,0 @@
-
--- migration from 3.db to 4.db
-
-ALTER TABLE VerifyContext ADD COLUMN is_scam INTEGER AS Boolean;

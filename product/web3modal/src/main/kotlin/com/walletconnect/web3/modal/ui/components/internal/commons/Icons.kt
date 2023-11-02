@@ -37,17 +37,14 @@ internal fun BackArrowIcon(
 
 @Composable
 internal fun QuestionMarkIcon(
-    tint: Color = Web3ModalTheme.colors.foreground.color100,
-    onClick: () -> Unit
+    modifier: Modifier = Modifier,
+    tint: Color = Web3ModalTheme.colors.foreground.color100
 ) {
     Icon(
         imageVector = ImageVector.vectorResource(id = R.drawable.ic_question_mark),
         contentDescription = ContentDescription.QUESTION_MARK.description,
         tint = tint,
-        modifier = Modifier
-            .size(36.dp)
-            .roundedClickable(onClick = onClick)
-            .padding(10.dp),
+        modifier = modifier
     )
 }
 
@@ -112,7 +109,7 @@ internal fun ExternalIcon(
     Icon(
         imageVector = ImageVector.vectorResource(id = R.drawable.ic_external_link),
         contentDescription = ContentDescription.EXTERNAL_LINK.description,
-        modifier = Modifier.size(10.dp),
+        modifier = Modifier.size(12.dp),
         tint = tint
     )
 }
@@ -156,15 +153,15 @@ internal fun ChevronRightIcon(
 
 @Composable
 internal fun RecentTransactionIcon(
-    tint: Color = Web3ModalTheme.colors.main100
+    tint: Color = Web3ModalTheme.colors.accent100
 ) {
     Icon(
         imageVector = ImageVector.vectorResource(id = R.drawable.ic_swap),
         contentDescription = ContentDescription.SWAP.description,
         modifier = Modifier
             .size(32.dp)
-            .background(Web3ModalTheme.colors.overlay10, shape = CircleShape)
-            .border(2.dp, Web3ModalTheme.colors.overlay02, shape = CircleShape)
+            .background(Web3ModalTheme.colors.grayGlass10, shape = CircleShape)
+            .border(2.dp, Web3ModalTheme.colors.grayGlass02, shape = CircleShape)
             .padding(8.dp),
         tint = tint
     )
@@ -179,8 +176,8 @@ internal fun DisconnectIcon(
         contentDescription = ContentDescription.DISCONNECT.description,
         modifier = Modifier
             .size(32.dp)
-            .background(Web3ModalTheme.colors.overlay10, shape = CircleShape)
-            .border(2.dp, Web3ModalTheme.colors.overlay02, shape = CircleShape)
+            .background(Web3ModalTheme.colors.grayGlass10, shape = CircleShape)
+            .border(2.dp, Web3ModalTheme.colors.grayGlass05, shape = CircleShape)
             .padding(8.dp),
         tint = tint
     )
@@ -188,7 +185,7 @@ internal fun DisconnectIcon(
 
 @Composable
 internal fun ScanQRIcon(
-    tint: Color = Web3ModalTheme.colors.main100,
+    tint: Color = Web3ModalTheme.colors.accent100,
     onClick: () -> Unit
 ) {
     Icon(
@@ -198,12 +195,12 @@ internal fun ScanQRIcon(
             .roundedClickable { onClick() }
             .size(40.dp)
             .background(
-                color = Web3ModalTheme.colors.main10,
+                color = Web3ModalTheme.colors.accent10,
                 shape = RoundedCornerShape(12.dp)
             )
             .border(
                 width = 1.dp,
-                color = Web3ModalTheme.colors.main10,
+                color = Web3ModalTheme.colors.accent10,
                 shape = RoundedCornerShape(12.dp)
             )
             .padding(10.dp),
@@ -213,7 +210,7 @@ internal fun ScanQRIcon(
 
 @Composable
 internal fun AllWalletsIcon(
-    tint: Color = Web3ModalTheme.colors.main100,
+    tint: Color = Web3ModalTheme.colors.accent100,
 ) {
     Icon(
         imageVector = ImageVector.vectorResource(id = R.drawable.ic_all_wallets),
@@ -221,15 +218,15 @@ internal fun AllWalletsIcon(
         modifier = Modifier
             .size(40.dp)
             .background(
-                color = Web3ModalTheme.colors.main10,
+                color = Web3ModalTheme.colors.accent10,
                 shape = RoundedCornerShape(12.dp)
             )
             .border(
                 width = 1.dp,
-                color = Web3ModalTheme.colors.main10,
+                color = Web3ModalTheme.colors.accent10,
                 shape = RoundedCornerShape(12.dp)
             )
-            .padding(10.dp),
+            .padding(8.dp),
         tint = tint
     )
 }
@@ -244,13 +241,13 @@ internal fun SelectNetworkIcon(
         modifier = Modifier
             .size(24.dp)
             .background(
-                color = Web3ModalTheme.colors.overlay25,
+                color = Web3ModalTheme.colors.grayGlass25,
                 shape = CircleShape
             )
             .padding(5.dp)
             .border(
                 width = 1.dp,
-                color = Web3ModalTheme.colors.overlay10,
+                color = Web3ModalTheme.colors.grayGlass10,
                 shape = CircleShape
             ),
         tint = tint
@@ -298,7 +295,7 @@ internal fun ForwardIcon(
 private fun IconsPreview() {
     MultipleComponentsPreview(
         { BackArrowIcon {} },
-        { QuestionMarkIcon {} },
+        { QuestionMarkIcon() },
         { CloseIcon {} },
         { RetryIcon() },
         { DeclinedIcon() },

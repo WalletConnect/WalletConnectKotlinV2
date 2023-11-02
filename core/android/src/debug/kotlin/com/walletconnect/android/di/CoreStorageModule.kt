@@ -1,7 +1,9 @@
 package com.walletconnect.android.di
 
-import com.squareup.sqldelight.android.AndroidSqliteDriver
-import com.squareup.sqldelight.db.SqlDriver
+import app.cash.sqldelight.db.QueryResult
+import app.cash.sqldelight.db.SqlDriver
+import app.cash.sqldelight.db.SqlSchema
+import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import com.walletconnect.android.internal.common.di.DatabaseConfig
 import com.walletconnect.android.internal.common.di.baseStorageModule
 import com.walletconnect.android.sdk.core.AndroidCoreDatabase
@@ -23,7 +25,7 @@ fun coreStorageModule(storagePrefix: String = String.Empty) = module {
     }
 }
 
-fun sdkBaseStorageModule(databaseSchema: SqlDriver.Schema, databaseName: String) = module {
+fun sdkBaseStorageModule(databaseSchema: SqlSchema<QueryResult.Value<Unit>>, databaseName: String) = module {
     single<SqlDriver> {
         AndroidSqliteDriver(
             schema = databaseSchema,

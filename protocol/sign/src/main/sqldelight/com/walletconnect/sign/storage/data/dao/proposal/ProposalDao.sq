@@ -1,5 +1,6 @@
-import kotlin.collections.Map;
+import kotlin.String;
 import kotlin.collections.List;
+import kotlin.collections.Map;
 
 CREATE TABLE ProposalDao (
    request_id INTEGER PRIMARY KEY NOT NULL,

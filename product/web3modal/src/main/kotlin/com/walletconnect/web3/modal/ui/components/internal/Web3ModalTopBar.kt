@@ -29,7 +29,9 @@ internal fun Web3ModalTopBar(
             .padding(horizontal = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        startIcon()
+        Box(modifier = Modifier.size(40.dp)) {
+            startIcon()
+        }
         Text(
             text = title,
             style = Web3ModalTheme.typo.paragraph600.copy(
@@ -47,6 +49,6 @@ internal fun Web3ModalTopBar(
 private fun PreviewWeb3ModalTopBar() {
     MultipleComponentsPreview(
         { Web3ModalTopBar(title = "WalletConnect", startIcon = { BackArrowIcon {} }, {}) },
-        { Web3ModalTopBar(title = "WalletConnect", startIcon = { QuestionMarkIcon {} }, {}) }
+        { Web3ModalTopBar(title = "WalletConnect", startIcon = { QuestionMarkIcon() }, {}) }
     )
 }

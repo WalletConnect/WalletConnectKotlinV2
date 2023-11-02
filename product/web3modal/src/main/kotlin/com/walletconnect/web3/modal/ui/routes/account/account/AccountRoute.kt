@@ -53,7 +53,7 @@ internal fun AccountRoute(
         CloseIcon(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(25.dp),
+                .padding(18.dp),
             onClick = { accountState.closeModal() }
         )
         UiStateBuilder(uiStateFlow = accountState.accountState) { data ->
@@ -63,7 +63,7 @@ internal fun AccountRoute(
                 balance = balance,
                 onBlockExplorerClick = { url -> uriHandler.openUri(url) },
                 onChangeNetworkClick = { navController.navigate(Route.CHANGE_NETWORK.path) },
-                onDisconnectClick = { accountState.disconnect(data.topic) }
+                onDisconnectClick = { accountState.disconnect() }
             )
         }
     }
@@ -82,7 +82,7 @@ private fun AccountScreen(
         modifier = Modifier
             .fillMaxWidth()
             .padding(
-                top = 40.dp, bottom = 16.dp, start = 12.dp, end = 12.dp
+                top = 32.dp, bottom = 16.dp, start = 12.dp, end = 12.dp
             ),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {

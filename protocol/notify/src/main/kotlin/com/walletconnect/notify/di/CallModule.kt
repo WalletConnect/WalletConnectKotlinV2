@@ -70,7 +70,8 @@ internal fun callModule() = module {
         DecryptMessageUseCase(
             codec = get(),
             serializer = get(),
-            jsonRpcHistory = get()
+            jsonRpcHistory = get(),
+            messagesRepository = get()
         )
     }
 
