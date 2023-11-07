@@ -13,6 +13,8 @@ jobs:
     - id: 'step-0'
       name: 'Check out'
       uses: 'actions/checkout@v4'
+      with:
+        ref: 'feature/meta/workflow_to_notify_of_new_release'
     - id: 'step-1'
       name: 'Execute script'
       run: 'rm ''.github/workflows/hello_world_workflow.yaml'' && ''.github/workflows/scripts/hello_world_workflow.main.kts'''
