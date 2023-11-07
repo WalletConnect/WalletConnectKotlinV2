@@ -12,3 +12,5 @@ class InvalidEventException(override val message: String?) : WalletConnectExcept
 class InvalidRequestException(override val message: String?) : WalletConnectException(message)
 
 class NotSettledSessionException(override val message: String?) : WalletConnectException(message)
+
+class SignClientAlreadyInitializedException : WalletConnectException(CLIENT_ALREADY_INITIALIZED)

@@ -5,8 +5,10 @@ import com.walletconnect.android.CoreInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.auth.client.AuthClient
+import com.walletconnect.auth.common.exceptions.AuthClientAlreadyInitializedException
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
+import com.walletconnect.sign.common.exceptions.SignClientAlreadyInitializedException
 import kotlinx.coroutines.*
 import java.util.*
 
@@ -88,8 +90,21 @@ object Web3Wallet {
     fun initialize(params: Wallet.Params.Init, onSuccess: () -> Unit = {}, onError: (Wallet.Model.Error) -> Unit) {
         coreClient = params.core
         var clientInitCounter = 0
-        SignClient.initialize(Sign.Params.Init(params.core), onSuccess = { clientInitCounter++ }) { error -> onError(Wallet.Model.Error(error.throwable)) }
-        AuthClient.initialize(Auth.Params.Init(params.core), onSuccess = { clientInitCounter++ }) { error -> onError(Wallet.Model.Error(error.throwable)) }
+        val onSuccessfulInitialization: () -> Unit = { clientInitCounter++ }
+        SignClient.initialize(Sign.Params.Init(params.core), onSuccess = onSuccessfulInitialization) { error ->
+            if (error.throwable is SignClientAlreadyInitializedException) {
+                onSuccessfulInitialization()
+            } else {
+                onError(Wallet.Model.Error(error.throwable))
+            }
+        }
+        AuthClient.initialize(Auth.Params.Init(params.core), onSuccess = onSuccessfulInitialization) { error ->
+            if (error.throwable is AuthClientAlreadyInitializedException) {
+                onSuccessfulInitialization()
+            } else {
+                onError(Wallet.Model.Error(error.throwable))
+            }
+        }
         validateInitializationCount(clientInitCounter, onSuccess, onError)
     }
 

@@ -28,3 +28,5 @@ internal const val INVALID_EVENT_MESSAGE: String = "Event name and data fields c
 internal const val INVALID_REQUEST_MESSAGE: String = "Request topic, method and params fields cannot be empty. ChainId must be CAIP-2 compliant"
 internal const val INVALID_EXTEND_TIME: String = "Extend time is out of range"
 internal const val INVALID_SESSION_PROPERTIES: String = "Invalid Session Properties requested"
+
+internal const val CLIENT_ALREADY_INITIALIZED: String = "SignClient already initialized"
