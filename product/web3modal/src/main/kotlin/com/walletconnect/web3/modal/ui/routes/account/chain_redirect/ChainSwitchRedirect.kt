@@ -142,7 +142,8 @@ private fun ChainNetworkImage(
     ChainNetworkImageWrapper(redirectState) {
         HexagonNetworkImage(
             data = chain.getImageData(),
-            isEnabled = true
+            isEnabled = true,
+            size = 96.dp
         )
     }
 }
