@@ -7,15 +7,13 @@ import io.github.typesafegithub.workflows.domain.RunnerType.UbuntuLatest
 import io.github.typesafegithub.workflows.domain.triggers.WorkflowDispatch
 import io.github.typesafegithub.workflows.dsl.workflow
 import io.github.typesafegithub.workflows.yaml.writeToFile
-import kotlin.io.path.pathString
 
 workflow(
     name = "Test workflow",
-    on = listOf(WorkflowDispatch(emptyMap(), emptyMap())),
-    sourceFile = __FILE__.toPath().also { println(it.pathString) },
-    yamlConsistencyJobCondition = null
+    on = listOf(WorkflowDispatch()),
+    sourceFile = __FILE__.toPath(),
 ) {
-    job(id = "test_job", runsOn = UbuntuLatest, needs = emptyList()) {
+    job(id = "test_job", runsOn = UbuntuLatest) {
         uses(
             name = "Check out",
             action = CheckoutV4(ref = "feature/meta/workflow_to_notify_of_new_release")
