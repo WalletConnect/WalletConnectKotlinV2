@@ -2,9 +2,12 @@ package com.walletconnect.web3.modal.ui.routes.connect.scan_code
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -27,8 +30,10 @@ import com.walletconnect.modal.ui.components.qr.QrCodeType
 import com.walletconnect.modal.ui.components.qr.WalletConnectQRCode
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
+import com.walletconnect.web3.modal.ui.components.internal.OrientationBox
 import com.walletconnect.web3.modal.ui.components.internal.commons.entry.CopyActionEntry
 import com.walletconnect.web3.modal.ui.components.internal.snackbar.LocalSnackBarHandler
+import com.walletconnect.web3.modal.ui.previews.Landscape
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 import com.walletconnect.web3.modal.ui.routes.connect.ConnectState
@@ -62,6 +67,48 @@ internal fun ScanQRCodeRoute(connectState: ConnectState) {
 
 @Composable
 private fun ScanQRCodeContent(
+    uri: String, onCopyLinkClick: () -> Unit
+) {
+    OrientationBox(
+        portrait = { PortraitContent(uri, onCopyLinkClick) },
+        landscape = { LandscapeContent(uri, onCopyLinkClick) }
+    )
+
+}
+
+@Composable
+private fun LandscapeContent(
+    uri: String,
+    onCopyLinkClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(vertical = 5.dp, horizontal = 10.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .padding(vertical = 5.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            QRCode(uri = uri)
+        }
+        Column(
+            modifier = Modifier.weight(1f),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            ScanQrCodeLabel()
+            Spacer(modifier = Modifier.height(12.dp))
+            CopyActionEntry(onClick = onCopyLinkClick)
+        }
+    }
+}
+
+@Composable
+private fun PortraitContent(
     uri: String,
     onCopyLinkClick: () -> Unit
 ) {
@@ -73,15 +120,18 @@ private fun ScanQRCodeContent(
     ) {
         QRCode(uri = uri)
         Spacer(modifier = Modifier.height(20.dp))
-        Text(
-            text = "Scan this QR code with your phone",
-            modifier = Modifier.fillMaxWidth(),
-            style = Web3ModalTheme.typo.paragraph400,
-            textAlign = TextAlign.Center
-        )
+        ScanQrCodeLabel()
         Spacer(modifier = Modifier.height(12.dp))
         CopyActionEntry(onClick = onCopyLinkClick)
     }
+}
+
+@Composable
+private fun ScanQrCodeLabel() {
+    Text(
+        text = "Scan this QR code with your phone",
+        modifier = Modifier.fillMaxWidth(), style = Web3ModalTheme.typo.paragraph400, textAlign = TextAlign.Center
+    )
 }
 
 @Composable
@@ -110,6 +160,7 @@ private fun QRCode(uri: String) {
 }
 
 @UiModePreview
+@Landscape
 @Composable
 private fun ScanQRCodePreview() {
     Web3ModalPreview("Mobile Wallets") {
