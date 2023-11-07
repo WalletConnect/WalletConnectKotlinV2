@@ -10,7 +10,7 @@ import io.github.typesafegithub.workflows.yaml.writeToFile
 
 workflow(
     name = "Test workflow",
-    on = listOf(WorkflowDispatch()),
+    on = listOf(WorkflowDispatch(emptyMap(), emptyMap())),
     sourceFile = __FILE__.toPath(),
 ) {
     job(id = "test_job", runsOn = UbuntuLatest) {
