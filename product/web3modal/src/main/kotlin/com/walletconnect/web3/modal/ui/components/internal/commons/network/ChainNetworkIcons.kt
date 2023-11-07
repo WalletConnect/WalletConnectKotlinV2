@@ -119,37 +119,31 @@ internal val HexagonShape = object : Shape {
 
 internal fun drawCustomHexagonPath(size: Size): Path {
     return Path().apply {
-        customHexagon(size)
+        val centerX = size.width / 2
+        val centerY = size.height / 2
+        val radius = size.minDimension / 2f
+        val cornerRadius = 5f
+
+        moveTo(centerX, size.height - cornerRadius)
+        for (i in 1..6) {
+            val angle = i * 60.0
+            val x = centerX + radius * cos(Math.toRadians(angle)).toFloat()
+            val y = centerY + radius * sin(Math.toRadians(angle)).toFloat()
+
+
+            val controlPointX = centerX + (radius - cornerRadius) * cos(Math.toRadians(angle)).toFloat()
+            val controlPointY = centerY + (radius - cornerRadius) * sin(Math.toRadians(angle)).toFloat()
+            val endPointX = centerX + radius * cos(Math.toRadians(angle - 60)).toFloat()
+            val endPointY = centerY + radius * sin(Math.toRadians(angle - 60)).toFloat()
+
+            cubicTo(
+                endPointY, endPointX,
+                y, x,
+                controlPointY, controlPointX,
+            )
+        }
+        close()
     }
-}
-
-internal fun Path.customHexagon(size: Size) {
-
-
-    val centerX = size.width / 2
-    val centerY = size.height / 2
-    val radius = size.minDimension / 2f
-    val cornerRadius = 5f
-
-    moveTo(centerX, size.height - cornerRadius)
-    for (i in 1..6) {
-        val angle = i * 60.0
-        val x = centerX + radius * cos(Math.toRadians(angle)).toFloat()
-        val y = centerY + radius * sin(Math.toRadians(angle)).toFloat()
-
-
-        val controlPointX = centerX + (radius - cornerRadius) * cos(Math.toRadians(angle)).toFloat()
-        val controlPointY = centerY + (radius - cornerRadius) * sin(Math.toRadians(angle)).toFloat()
-        val endPointX = centerX + radius * cos(Math.toRadians(angle - 60)).toFloat()
-        val endPointY = centerY + radius * sin(Math.toRadians(angle - 60)).toFloat()
-
-        cubicTo(
-            endPointY, endPointX,
-            y, x,
-            controlPointY, controlPointX,
-        )
-    }
-    close()
 }
 
 @Composable
