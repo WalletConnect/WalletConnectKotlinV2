@@ -1,4 +1,4 @@
-# This file was generated using Kotlin DSL (.github/workflows/scripts/hello_world_workflow.main.kts).
+# This file was generated using Kotlin DSL (.github/workflows/hello_world_workflow.main.kts).
 # If you want to modify the workflow, please change the Kotlin file and regenerate this YAML file.
 # Generated with https://github.com/typesafegithub/github-workflows-kt
 
@@ -15,12 +15,14 @@ jobs:
         uses: 'actions/checkout@v4'
       - id: 'step-1'
         name: 'Execute script'
-        run: 'rm ''.github/workflows/hello_world_workflow.yaml'' && ''.github/workflows/scripts/hello_world_workflow.main.kts'''
+        run: 'rm ''.github/workflows/hello_world_workflow.yaml'' && ''.github/workflows/hello_world_workflow.main.kts'''
       - id: 'step-2'
         name: 'Consistency check'
         run: 'git diff --exit-code ''.github/workflows/hello_world_workflow.yaml'''
   test_job:
     runs-on: 'ubuntu-latest'
+    needs:
+      - 'check_yaml_consistency'
     steps:
       - id: 'step-0'
         name: 'Check out'
