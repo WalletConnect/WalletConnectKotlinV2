@@ -7,11 +7,12 @@ import io.github.typesafegithub.workflows.domain.RunnerType.UbuntuLatest
 import io.github.typesafegithub.workflows.domain.triggers.WorkflowDispatch
 import io.github.typesafegithub.workflows.dsl.workflow
 import io.github.typesafegithub.workflows.yaml.writeToFile
+import kotlin.io.path.pathString
 
 workflow(
     name = "Test workflow",
     on = listOf(WorkflowDispatch(emptyMap(), emptyMap())),
-    sourceFile = __FILE__.toPath(),
+    sourceFile = __FILE__.toPath().also { println(it.pathString) },
     yamlConsistencyJobCondition = null
 ) {
     job(id = "test_job", runsOn = UbuntuLatest, needs = emptyList()) {
@@ -22,4 +23,4 @@ workflow(
         run(name = "Print greeting", command = "echo 'Hello world!'")
         run(name = "Print greeting", command = "echo 'Hello world!2'")
     }
-}.writeToFile()
+}.writeToFile(addConsistencyCheck = false)
