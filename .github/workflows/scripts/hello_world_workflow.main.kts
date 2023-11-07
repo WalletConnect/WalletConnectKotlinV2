@@ -12,8 +12,9 @@ workflow(
     name = "Test workflow",
     on = listOf(WorkflowDispatch(emptyMap(), emptyMap())),
     sourceFile = __FILE__.toPath(),
+    yamlConsistencyJobCondition = null
 ) {
-    job(id = "test_job", runsOn = UbuntuLatest) {
+    job(id = "test_job", runsOn = UbuntuLatest, needs = emptyList()) {
         uses(
             name = "Check out",
             action = CheckoutV4(ref = "feature/meta/workflow_to_notify_of_new_release")
