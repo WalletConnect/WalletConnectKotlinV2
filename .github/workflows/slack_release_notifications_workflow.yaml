@@ -1,0 +1,31 @@
+# This file was generated using Kotlin DSL (.github/workflows/scripts/slack_release_notifications_workflow.main.kts).
+# If you want to modify the workflow, please change the Kotlin file and regenerate this YAML file.
+# Generated with https://github.com/typesafegithub/github-workflows-kt
+
+name: 'Slack Release Notifications'
+on:
+  release:
+    types:
+    - 'published'
+jobs:
+  push-notifications:
+    runs-on: 'ubuntu-latest'
+    strategy:
+      matrix:
+        conf:
+        - webhook_url: '${{ secrets.SLACK_WEBHOOK_URL_KOTLIN }}'
+    steps:
+    - id: 'step-0'
+      name: 'Check out'
+      uses: 'actions/checkout@v4'
+    - id: 'step-1'
+      name: 'Notify Channel'
+      uses: 'slackapi/slack-github-action@v1.24.0'
+      with:
+        payload: |-
+          {
+            "text":"Kotlin Release ${{ github.event.release.name }} was just released. Please update and let us know if you have any issues."
+          }
+      env:
+        SLACK_WEBHOOK_URL: '${{ matrix.conf.webhook_url }}'
+        SLACK_WEBHOOK_TYPE: 'INCOMING_WEBHOOK'
