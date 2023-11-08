@@ -86,7 +86,7 @@ object Web3Modal {
         runCatching {
             wcKoinApp.modules(web3ModalModule())
             setDelegate(Web3ModalDelegate)
-        }.onFailure { error -> onError(Modal.Model.Error(error)) }
+        }.onFailure { error -> return@onInitializedClient onError(Modal.Model.Error(error)) }
         onSuccess()
     }
 
