@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.rememberNavController
@@ -82,3 +83,6 @@ internal annotation class LightTheme
 
 @Preview(uiMode = UI_MODE_NIGHT_YES)
 internal annotation class DarkTheme
+
+@Preview(device = Devices.AUTOMOTIVE_1024p, widthDp = 720, heightDp = 360, uiMode = UI_MODE_NIGHT_YES)
+internal annotation class Landscape

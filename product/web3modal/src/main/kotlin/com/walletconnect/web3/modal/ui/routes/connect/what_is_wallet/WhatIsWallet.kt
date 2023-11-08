@@ -1,6 +1,8 @@
 package com.walletconnect.web3.modal.ui.routes.connect.what_is_wallet
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -66,7 +68,9 @@ private fun WhatIsWallet(
     optionButton: @Composable () -> Unit
 ) {
     Column(
-        modifier = Modifier.padding(horizontal = 20.dp),
+        modifier = Modifier
+            .padding(horizontal = 20.dp)
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(20.dp))
