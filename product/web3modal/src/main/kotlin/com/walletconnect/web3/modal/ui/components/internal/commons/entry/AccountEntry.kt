@@ -54,6 +54,7 @@ internal fun AccountEntry(
                 AccountEntryState.NEXT -> ChevronRightIcon(entryColors.secondaryColor)
                 AccountEntryState.INFO -> {}
             }
+            HorizontalSpacer(width = 6.dp)
         }
     }
 }

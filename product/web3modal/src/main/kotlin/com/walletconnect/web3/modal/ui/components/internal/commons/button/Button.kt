@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -22,9 +23,11 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import com.walletconnect.web3.modal.ui.components.internal.commons.HorizontalSpacer
 import com.walletconnect.web3.modal.ui.components.internal.commons.RetryIcon
+import com.walletconnect.web3.modal.ui.components.internal.commons.WalletIcon
 import com.walletconnect.web3.modal.ui.previews.ComponentPreview
 import com.walletconnect.web3.modal.ui.previews.MultipleComponentsPreview
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
+import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 @Composable
 internal fun TryAgainButton(
@@ -37,6 +40,7 @@ internal fun TryAgainButton(
         image = { RetryIcon(it) },
         style = style,
         size = size,
+        paddingValues = PaddingValues(start = 12.dp, top = 8.dp, bottom = 8.dp, end = 16.dp),
         onClick = onClick
     )
 }
@@ -47,13 +51,35 @@ internal fun ImageButton(
     image: @Composable (Color) -> Unit,
     style: ButtonStyle,
     size: ButtonSize,
+    paddingValues: PaddingValues? = null,
     isEnabled: Boolean = true,
-    onClick: () -> Unit,
+    onClick: (() -> Unit)? = null
 ) {
-    StyledButton(style = style, size = size, isEnabled = isEnabled, onClick = onClick) {
-        image(it.tint)
-        HorizontalSpacer(width = 4.dp)
-        Text(text = text, style = it.textStyle, modifier = Modifier.fillMaxHeight())
+    val backgroundColor = style.getBackgroundColor(isEnabled)
+    val borderColor = style.getBorder(isEnabled)
+    val tint = style.getTextColor(isEnabled)
+    val textStyle = size.getTextStyle().copy(color = tint)
+    val isClickEnabled = isEnabled && style != ButtonStyle.LOADING
+    val height = size.getHeight()
+
+    Surface(
+        color = Color.Transparent,
+        shape = RoundedCornerShape(100)
+    ) {
+        Row(
+            modifier = Modifier
+                .height(height)
+                .clickable(isClickEnabled) { onClick?.invoke() }
+                .border(width = 1.dp, color = borderColor, shape = RoundedCornerShape(100))
+                .background(backgroundColor)
+                .padding(paddingValues ?: size.getContentPadding()),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            image(tint)
+            HorizontalSpacer(width = 4.dp)
+            Text(text = text, style = textStyle)
+        }
     }
 }
 

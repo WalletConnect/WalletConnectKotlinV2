@@ -145,9 +145,9 @@ private fun WalletsGrid(
     Box {
         LazyVerticalGrid(
             state = gridState,
-            columns = GridCells.Adaptive(76.dp),
+            columns = GridCells.FixedSize(76.dp),
             modifier = Modifier
-                .padding(start = 12.dp, end = 12.dp)
+                .padding(horizontal = 10.dp)
                 .graphicsLayer { alpha = 0.99f }
                 .drawWithContent {
                     val colors = listOf(Color.Transparent, color)
@@ -156,7 +156,8 @@ private fun WalletsGrid(
                         brush = Brush.verticalGradient(colors, startY = 0f, endY = 40f),
                         blendMode = BlendMode.DstIn,
                     )
-                }
+                },
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             walletsGridItems(walletsData.wallets, onWalletItemClick)
             if (walletsData.loadingState == LoadingState.APPEND) {
@@ -213,10 +214,11 @@ private fun SearchInputRow(
     val focusBorderWidth: Dp = 4.dp
     val focusedSpacing: Dp = defaultSpacing - focusBorderWidth
     val focusBorderColor = Web3ModalTheme.colors.accent20
+    val state by searchState.state.collectAsState()
 
     val paddingValues: PaddingValues
     val spacerValue: Dp
-    if (searchState.isFocused) {
+    if (state.isFocused) {
         spacerValue = focusedSpacing
         paddingValues = PaddingValues(start = focusedSpacing, top = focusedSpacing, bottom = focusedSpacing, end = defaultSpacing)
     } else {
@@ -229,7 +231,7 @@ private fun SearchInputRow(
     ) {
         Box(modifier = Modifier
             .weight(1f)
-            .conditionalModifier(searchState.isFocused) {
+            .conditionalModifier(state.isFocused) {
                 border(width = focusBorderWidth, color = focusBorderColor, RoundedCornerShape(16.dp)).padding(focusBorderWidth)
             }) {
             SearchInput(searchState)

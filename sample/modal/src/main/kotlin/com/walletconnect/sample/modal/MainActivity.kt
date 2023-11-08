@@ -99,7 +99,7 @@ class MainActivity : ComponentActivity() {
                     darkColors = darkColors
                 ) {
                     ModalBottomSheetLayout(
-                        sheetShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+                        sheetShape = RoundedCornerShape(topStart = 36.dp, topEnd = 36.dp),
                         bottomSheetNavigator = bottomSheetNavigator,
                     ) {
                         Scaffold(

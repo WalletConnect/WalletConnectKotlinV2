@@ -97,7 +97,7 @@ internal fun WalletIcon(
     Icon(
         imageVector = ImageVector.vectorResource(id = R.drawable.ic_wallet),
         contentDescription = ContentDescription.WALLET.description,
-        modifier = Modifier.size(14.dp),
+        modifier = Modifier.size(12.dp),
         tint = tint
     )
 }
@@ -159,9 +159,10 @@ internal fun RecentTransactionIcon(
         imageVector = ImageVector.vectorResource(id = R.drawable.ic_swap),
         contentDescription = ContentDescription.SWAP.description,
         modifier = Modifier
+            .border(2.dp, Web3ModalTheme.colors.grayGlass02, shape = CircleShape)
+            .padding(2.dp)
             .size(32.dp)
             .background(Web3ModalTheme.colors.grayGlass10, shape = CircleShape)
-            .border(2.dp, Web3ModalTheme.colors.grayGlass02, shape = CircleShape)
             .padding(8.dp),
         tint = tint
     )
@@ -175,9 +176,10 @@ internal fun DisconnectIcon(
         imageVector = ImageVector.vectorResource(id = R.drawable.ic_disconnect),
         contentDescription = ContentDescription.DISCONNECT.description,
         modifier = Modifier
+            .border(2.dp, Web3ModalTheme.colors.grayGlass05, shape = CircleShape)
+            .padding(2.dp)
             .size(32.dp)
             .background(Web3ModalTheme.colors.grayGlass10, shape = CircleShape)
-            .border(2.dp, Web3ModalTheme.colors.grayGlass05, shape = CircleShape)
             .padding(8.dp),
         tint = tint
     )
@@ -283,7 +285,7 @@ internal fun ForwardIcon(
     tint: Color = Web3ModalTheme.colors.inverse100
 ) {
     Icon(
-        imageVector = ImageVector.vectorResource(id = R.drawable.ic_forward_chevron),
+        imageVector = ImageVector.vectorResource(id = R.drawable.ic_chevron_right),
         contentDescription = ContentDescription.FORWARD_ARROW.description,
         tint = tint,
         modifier = Modifier.size(12.dp),

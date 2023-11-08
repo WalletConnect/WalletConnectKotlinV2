@@ -406,9 +406,7 @@ private fun NotDetectedWalletState(
     RedirectLabel(state = state, wallet = wallet)
     VerticalSpacer(height = 20.dp)
     TryAgainButton(onClick = onRetry)
-    VerticalSpacer(height = 16.dp)
-    FullWidthDivider()
-    VerticalSpacer(height = 16.dp)
+    VerticalSpacer(height = 32.dp)
     StoreEntry(text = "Don't have ${wallet.name}?", onClick = onOpenPlayStore)
 }
 
@@ -418,13 +416,13 @@ private fun RejectWalletImage(url: String) {
         WalletImage(
             url = url, modifier = Modifier
                 .size(80.dp)
-                .border(width = 1.dp, color = Web3ModalTheme.colors.grayGlass10, shape = RoundedCornerShape(25.dp))
-                .clip(RoundedCornerShape(25.dp))
+                .border(width = 1.dp, color = Web3ModalTheme.colors.grayGlass10, shape = RoundedCornerShape(28.dp))
+                .clip(RoundedCornerShape(28.dp))
         )
         Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .background(Web3ModalTheme.colors.background.color100, shape = CircleShape)
+                .background(Web3ModalTheme.colors.background.color125, shape = CircleShape)
                 .padding(2.dp)
         ) {
             DeclinedIcon()

@@ -95,7 +95,7 @@ internal fun SearchInput(
     when {
         searchState.isFocused -> {
             borderColor = Web3ModalTheme.colors.accent100
-            backgroundColor = Web3ModalTheme.colors.grayGlass05
+            backgroundColor = Web3ModalTheme.colors.grayGlass10
         }
         isEnabled -> {
             borderColor = Web3ModalTheme.colors.grayGlass05

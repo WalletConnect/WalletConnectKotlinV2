@@ -24,7 +24,7 @@ internal fun Web3ModalTopBar(
 ) {
     Row(
         modifier = Modifier
-            .height(60.dp)
+            .height(64.dp)
             .fillMaxWidth()
             .padding(horizontal = 20.dp),
         verticalAlignment = Alignment.CenterVertically

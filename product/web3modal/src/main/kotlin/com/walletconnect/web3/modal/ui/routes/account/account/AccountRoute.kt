@@ -93,7 +93,7 @@ private fun AccountScreen(
         VerticalSpacer(height = 20.dp)
         AccountName(accountData)
         balance?.let { balance ->
-            VerticalSpacer(height = 8.dp)
+            VerticalSpacer(height = 4.dp)
             Text(
                 text = balance.valueWithSymbol,
                 style = Web3ModalTheme.typo.paragraph400.copy(Web3ModalTheme.colors.foreground.color200)
@@ -135,3 +135,12 @@ private fun PreviewAccountScreen() {
         AccountScreen(accountDataPreview, ethereumChain,null, {}, {}, {})
     }
 }
+
+@UiModePreview
+@Composable
+private fun PreviewAccountScreenWithBalance() {
+    Web3ModalPreview {
+        AccountScreen(accountDataPreview, ethereumChain, Balance(ethereumChain.token, "0000000"), {}, {}, {})
+    }
+}
+

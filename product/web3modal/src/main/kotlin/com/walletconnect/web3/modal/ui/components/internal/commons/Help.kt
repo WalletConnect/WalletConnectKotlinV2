@@ -31,9 +31,7 @@ internal fun HelpSection(
     assets: List<Int>
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
+        modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row {
@@ -90,7 +88,7 @@ internal fun WhatIsNetworkLink(onClick: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             QuestionMarkIcon(tint = Web3ModalTheme.colors.accent100, modifier = Modifier.size(12.dp))
-            HorizontalSpacer(width = 6.dp)
+            HorizontalSpacer(width = 4.dp)
             Text(
                 text = "What is a network",
                 style = Web3ModalTheme.typo.small600.copy(color = Web3ModalTheme.colors.accent100)

@@ -9,8 +9,7 @@ import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.ui.navigation.account.chainSwitchRoute
 import com.walletconnect.web3.modal.ui.routes.account.account.AccountRoute
 import com.walletconnect.web3.modal.ui.routes.account.change_network.ChangeNetworkRoute
-import com.walletconnect.web3.modal.ui.routes.connect.what_is_wallet.WhatIsWallet
-import com.walletconnect.web3.modal.ui.routes.connect.what_is_wallet.WhatIsWalletOption
+import com.walletconnect.web3.modal.ui.routes.account.what_is_network.WhatIsNetworkRoute
 import com.walletconnect.web3.modal.ui.utils.AnimatedNavGraph
 
 @Composable
@@ -41,10 +40,7 @@ internal fun AccountNavGraph(
             ChangeNetworkRoute(accountState = accountState)
         }
         composable(route = Route.WHAT_IS_WALLET.path) {
-            WhatIsWallet(
-                navController = navController,
-                option = WhatIsWalletOption.LEARN_MORE
-            )
+            WhatIsNetworkRoute()
         }
         chainSwitchRoute(accountState = accountState)
     }

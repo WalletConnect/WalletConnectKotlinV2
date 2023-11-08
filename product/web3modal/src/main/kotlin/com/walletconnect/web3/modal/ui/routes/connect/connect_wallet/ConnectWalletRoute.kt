@@ -49,14 +49,12 @@ private fun ConnectWalletContent(
     onWalletItemClick: (Wallet) -> Unit,
     onViewAllClick: () -> Unit,
 ) {
-    Column {
-        WalletsList(
-            wallets = wallets,
-            walletsTotalCount = walletsTotalCount,
-            onWalletItemClick = onWalletItemClick,
-            onViewAllClick = onViewAllClick,
-        )
-    }
+    WalletsList(
+        wallets = wallets,
+        walletsTotalCount = walletsTotalCount,
+        onWalletItemClick = onWalletItemClick,
+        onViewAllClick = onViewAllClick,
+    )
 }
 
 @Composable
@@ -79,7 +77,7 @@ private fun WalletsList(
 
 private fun walletSizeLabel(total: Int): String = with(total % 10) {
     if (this != 0) {
-        "${total-this}+"
+        "${total - this}+"
     } else {
         total.toString()
     }
