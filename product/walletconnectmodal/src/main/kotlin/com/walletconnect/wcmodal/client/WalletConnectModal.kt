@@ -65,7 +65,7 @@ object WalletConnectModal {
         runCatching {
             wcKoinApp.modules(walletConnectModalModule())
             setDelegate(WalletConnectModalDelegate)
-        }.onFailure { error -> onError(Modal.Model.Error(error)) }
+        }.onFailure { error -> return@onInitializedClient onError(Modal.Model.Error(error)) }
         onSuccess()
     }
 
