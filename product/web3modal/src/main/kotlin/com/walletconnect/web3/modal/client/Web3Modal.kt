@@ -70,8 +70,7 @@ object Web3Modal {
                 if (error.throwable is SignClientAlreadyInitializedException) {
                     onInitializedClient(init, onSuccess, onError)
                 } else {
-                    onError(Modal.Model.Error(error.throwable))
-                    return@initialize
+                    return@initialize onError(Modal.Model.Error(error.throwable))
                 }
             }
         )
