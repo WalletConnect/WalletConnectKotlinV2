@@ -10,6 +10,7 @@ import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.pairing.model.mapper.toPairing
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.client.mapper.*
+import com.walletconnect.sign.common.exceptions.SignClientAlreadyInitializedException
 import com.walletconnect.sign.di.engineModule
 import com.walletconnect.sign.di.signJsonRpcModule
 import com.walletconnect.sign.di.storageModule
@@ -45,7 +46,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
                 onError(Sign.Model.Error(e))
             }
         } else {
-            onError(Sign.Model.Error(IllegalStateException("SignClient already initialized")))
+            onError(Sign.Model.Error(SignClientAlreadyInitializedException()))
         }
     }
 

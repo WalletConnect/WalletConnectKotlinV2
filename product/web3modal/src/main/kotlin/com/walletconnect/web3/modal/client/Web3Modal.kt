@@ -4,6 +4,7 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
+import com.walletconnect.sign.common.exceptions.SignClientAlreadyInitializedException
 import com.walletconnect.web3.modal.di.web3ModalModule
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
 import com.walletconnect.web3.modal.domain.model.InvalidSessionException
@@ -12,6 +13,8 @@ import com.walletconnect.web3.modal.domain.usecase.DeleteSessionDataUseCase
 import com.walletconnect.web3.modal.domain.usecase.GetSelectedChainUseCase
 import com.walletconnect.web3.modal.domain.usecase.GetSessionTopicUseCase
 import com.walletconnect.web3.modal.utils.toChain
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -61,19 +64,30 @@ object Web3Modal {
         SignClient.initialize(
             init = Sign.Params.Init(init.core),
             onSuccess = {
-                this.excludedWalletsIds = init.excludedWalletIds
-                this.recommendedWalletsIds = init.recommendedWalletsIds
-                runCatching {
-                    wcKoinApp.modules(web3ModalModule())
-                    setDelegate(Web3ModalDelegate)
-                }.onFailure { error -> onError(Modal.Model.Error(error)) }
-                onSuccess()
+                onInitializedClient(init, onSuccess, onError)
             },
             onError = { error ->
-                onError(Modal.Model.Error(error.throwable))
-                return@initialize
+                if (error.throwable is SignClientAlreadyInitializedException) {
+                    onInitializedClient(init, onSuccess, onError)
+                } else {
+                    return@initialize onError(Modal.Model.Error(error.throwable))
+                }
             }
         )
+    }
+
+    private fun onInitializedClient(
+        init: Modal.Params.Init,
+        onSuccess: () -> Unit = {},
+        onError: (Modal.Model.Error) -> Unit
+    ) {
+        this.excludedWalletsIds = init.excludedWalletIds
+        this.recommendedWalletsIds = init.recommendedWalletsIds
+        runCatching {
+            wcKoinApp.modules(web3ModalModule())
+            setDelegate(Web3ModalDelegate)
+        }.onFailure { error -> return@onInitializedClient onError(Modal.Model.Error(error)) }
+        onSuccess()
     }
 
     fun setChains(chains: List<Modal.Model.Chain>) {
@@ -90,44 +104,20 @@ object Web3Modal {
 
     @Throws(IllegalStateException::class)
     fun setDelegate(delegate: ModalDelegate) {
-        val signDelegate = object : SignClient.DappDelegate {
-            override fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession) {
-                delegate.onSessionApproved(approvedSession.toModal())
+        Web3ModalDelegate.wcEventModels.onEach { event ->
+            when(event) {
+                is Modal.Model.ApprovedSession -> delegate.onSessionApproved(event)
+                is Modal.Model.ConnectionState -> delegate.onConnectionStateChange(event)
+                is Modal.Model.DeletedSession.Success -> delegate.onSessionDelete(event)
+                is Modal.Model.Error -> delegate.onError(event)
+                is Modal.Model.RejectedSession -> delegate.onSessionRejected(event)
+                is Modal.Model.Session -> delegate.onSessionExtend(event)
+                is Modal.Model.SessionEvent -> delegate.onSessionEvent(event)
+                is Modal.Model.SessionRequestResponse -> delegate.onSessionRequestResponse(event)
+                is Modal.Model.UpdatedSession -> delegate.onSessionUpdate(event)
+                else -> Unit
             }
-
-            override fun onSessionRejected(rejectedSession: Sign.Model.RejectedSession) {
-                delegate.onSessionRejected(rejectedSession.toModal())
-            }
-
-            override fun onSessionUpdate(updatedSession: Sign.Model.UpdatedSession) {
-                delegate.onSessionUpdate(updatedSession.toModal())
-            }
-
-            override fun onSessionEvent(sessionEvent: Sign.Model.SessionEvent) {
-                delegate.onSessionEvent(sessionEvent.toModal())
-            }
-
-            override fun onSessionExtend(session: Sign.Model.Session) {
-                delegate.onSessionExtend(session.toModal())
-            }
-
-            override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {
-                delegate.onSessionDelete(deletedSession.toModal())
-            }
-
-            override fun onSessionRequestResponse(response: Sign.Model.SessionRequestResponse) {
-                delegate.onSessionRequestResponse(response.toModal())
-            }
-
-            override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {
-                delegate.onConnectionStateChange(state.toModal())
-            }
-
-            override fun onError(error: Sign.Model.Error) {
-                delegate.onError(error.toModal())
-            }
-        }
-        SignClient.setDappDelegate(signDelegate)
+        }.launchIn(scope)
     }
 
     internal fun connect(
