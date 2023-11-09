@@ -273,7 +273,7 @@ internal fun WebIcon(
     tint: Color = Web3ModalTheme.colors.inverse100
 ) {
     Icon(
-        imageVector = ImageVector.vectorResource(id = R.drawable.ic_web),
+        imageVector = ImageVector.vectorResource(id = R.drawable.ic_browser),
         contentDescription = ContentDescription.WEB.description,
         tint = tint,
         modifier = Modifier.size(12.dp),
