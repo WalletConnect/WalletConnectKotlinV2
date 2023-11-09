@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.walletconnect.modal.ui.components.common.roundedClickable
 import com.walletconnect.web3.modal.R
@@ -73,7 +74,7 @@ internal fun RetryIcon(
         imageVector = ImageVector.vectorResource(id = R.drawable.ic_retry),
         contentDescription = ContentDescription.RETRY.description,
         tint = tint,
-        modifier = Modifier.size(12.dp),
+        modifier = Modifier.size(14.dp),
     )
 }
 
@@ -104,12 +105,13 @@ internal fun WalletIcon(
 
 @Composable
 internal fun ExternalIcon(
-    tint: Color = Web3ModalTheme.colors.foreground.color200
+    tint: Color = Web3ModalTheme.colors.foreground.color200,
+    size: Dp = 12.dp,
 ) {
     Icon(
         imageVector = ImageVector.vectorResource(id = R.drawable.ic_external_link),
         contentDescription = ContentDescription.EXTERNAL_LINK.description,
-        modifier = Modifier.size(12.dp),
+        modifier = Modifier.size(size),
         tint = tint
     )
 }

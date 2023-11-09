@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -129,13 +130,14 @@ internal fun SearchInput(
                 modifier = Modifier.padding(4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                HorizontalSpacer(width = 6.dp)
+                HorizontalSpacer(width = 10.dp)
                 Icon(
                     tint = Web3ModalTheme.colors.foreground.color275,
+                    modifier = Modifier.size(14.dp),
                     imageVector = ImageVector.vectorResource(id = R.drawable.ic_search),
                     contentDescription = ContentDescription.SEARCH.description,
                 )
-                HorizontalSpacer(width = 8.dp)
+                HorizontalSpacer(width = 6.dp)
                 Box(modifier = Modifier.weight(1f)) {
                     if (state.searchValue.isBlank()) {
                         Text(text = "Search wallets", style = Web3ModalTheme.typo.paragraph400.copy(color = Web3ModalTheme.colors.foreground.color275))

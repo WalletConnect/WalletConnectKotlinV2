@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,7 +22,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,26 +32,25 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.walletconnect.android.internal.common.modal.data.model.Wallet
-import com.walletconnect.modal.utils.openWebAppLink
 import com.walletconnect.modal.utils.openMobileLink
 import com.walletconnect.modal.utils.openPlayStore
+import com.walletconnect.modal.utils.openWebAppLink
 import com.walletconnect.util.Empty
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
 import com.walletconnect.web3.modal.ui.components.internal.OrientationBox
 import com.walletconnect.web3.modal.ui.components.internal.commons.DeclinedIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.ExternalIcon
-import com.walletconnect.web3.modal.ui.components.internal.commons.entry.CopyActionEntry
 import com.walletconnect.web3.modal.ui.components.internal.commons.LoadingBorder
 import com.walletconnect.web3.modal.ui.components.internal.commons.VerticalSpacer
 import com.walletconnect.web3.modal.ui.components.internal.commons.WalletImage
 import com.walletconnect.web3.modal.ui.components.internal.commons.button.ButtonSize
 import com.walletconnect.web3.modal.ui.components.internal.commons.button.ButtonStyle
-import com.walletconnect.web3.modal.ui.components.internal.commons.button.ImageButton
+import com.walletconnect.web3.modal.ui.components.internal.commons.button.ChipButton
 import com.walletconnect.web3.modal.ui.components.internal.commons.button.TryAgainButton
+import com.walletconnect.web3.modal.ui.components.internal.commons.entry.CopyActionEntry
 import com.walletconnect.web3.modal.ui.components.internal.commons.entry.StoreEntry
 import com.walletconnect.web3.modal.ui.components.internal.commons.switch.PlatformTab
 import com.walletconnect.web3.modal.ui.components.internal.commons.switch.PlatformTabRow
@@ -159,11 +158,11 @@ private fun PortraitRedirectWalletContent(
             PlatformTabRow(platformTab, onPlatformTabSelect)
         }
         WalletImageBox(
-            height = 140.dp,
             platformTab = platformTab,
             redirectState = redirectState,
             wallet = wallet
         )
+        VerticalSpacer(height = 8.dp)
         PlatformBox(
             platformTab = platformTab,
             mobileWalletContent = {
@@ -216,7 +215,6 @@ private fun LandscapeRedirectContent(
             }
             VerticalSpacer(height = 16.dp)
             WalletImageBox(
-                height = 120.dp,
                 platformTab = platformTab,
                 redirectState = redirectState,
                 wallet = wallet
@@ -261,13 +259,12 @@ private fun LandscapeRedirectContent(
 
 @Composable
 private fun WalletImageBox(
-    height: Dp,
     platformTab: PlatformTab,
     redirectState: RedirectState,
     wallet: Wallet
 ) {
     Box(
-        modifier = Modifier.height(height),
+        modifier = Modifier.height(130.dp),
         contentAlignment = Alignment.Center
     ) {
         when {
@@ -306,17 +303,21 @@ private fun RedirectLabel(state: RedirectState, wallet: Wallet) {
             descriptionStyle = Web3ModalTheme.typo.small400.copy(color = Web3ModalTheme.colors.foreground.color200)
         }
     }
-    Text(text = header, style = headerStyle)
-    if (description.isNotEmpty()) {
-        VerticalSpacer(height = 8.dp)
-        Text(
-            text = description,
-            style = descriptionStyle,
-            modifier = Modifier.padding(horizontal = 30.dp),
-            textAlign = TextAlign.Center
-        )
+    Column(
+        modifier = Modifier.padding(horizontal = 30.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(text = header, style = headerStyle)
+        if (description.isNotEmpty()) {
+            VerticalSpacer(height = 8.dp)
+            Text(
+                text = description,
+                style = descriptionStyle,
+                textAlign = TextAlign.Center
+            )
+        }
     }
-
 }
 
 @Composable
@@ -374,11 +375,13 @@ private fun RedirectWebWalletScreen(
             textAlign = TextAlign.Center
         )
         VerticalSpacer(height = 20.dp)
-        ImageButton(
+        ChipButton(
             text = "Open",
-            image = { ExternalIcon(it) },
+            startIcon = {},
+            endIcon = { ExternalIcon(size = 14.dp, tint = it) },
             style = ButtonStyle.ACCENT,
             size = ButtonSize.M,
+            paddingValues = PaddingValues(horizontal = 12.dp),
             onClick = onOpenWebApp
         )
         VerticalSpacer(height = 20.dp)
@@ -409,7 +412,7 @@ private fun LoadingState(
 @Composable
 private fun WalletImageWithLoader(url: String) {
     LoadingBorder(
-        cornerRadius = 25.dp
+        cornerRadius = 28.dp
     ) {
         RoundedWalletImage(url = url)
     }

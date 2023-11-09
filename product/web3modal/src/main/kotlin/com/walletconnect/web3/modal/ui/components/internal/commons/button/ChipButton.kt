@@ -60,7 +60,7 @@ internal fun ChipButton(
         ) {
             startIcon(tint)
             HorizontalSpacer(width = 4.dp)
-            Text(text = text, style = textStyle, modifier = Modifier.fillMaxHeight())
+            Text(text = text, style = textStyle)
             HorizontalSpacer(width = 4.dp)
             endIcon(tint)
         }

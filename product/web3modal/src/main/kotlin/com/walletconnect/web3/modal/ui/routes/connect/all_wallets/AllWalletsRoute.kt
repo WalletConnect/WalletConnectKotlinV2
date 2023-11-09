@@ -145,7 +145,7 @@ private fun WalletsGrid(
     Box {
         LazyVerticalGrid(
             state = gridState,
-            columns = GridCells.FixedSize(76.dp),
+            columns = GridCells.FixedSize(82.dp),
             modifier = Modifier
                 .padding(horizontal = 10.dp)
                 .graphicsLayer { alpha = 0.99f }
@@ -157,6 +157,7 @@ private fun WalletsGrid(
                         blendMode = BlendMode.DstIn,
                     )
                 },
+            verticalArrangement = Arrangement.Center,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             walletsGridItems(walletsData.wallets, onWalletItemClick)

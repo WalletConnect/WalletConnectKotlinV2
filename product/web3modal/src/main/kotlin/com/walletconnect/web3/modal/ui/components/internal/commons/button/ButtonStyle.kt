@@ -27,10 +27,10 @@ internal fun ButtonSize.getTextStyle() = when (this) {
 
 @Composable
 internal fun ButtonSize.getContentPadding() = when (this) {
-    ButtonSize.M -> PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-    ButtonSize.S -> PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-    ButtonSize.ACCOUNT_M -> PaddingValues(start = 8.dp, end = 12.dp, top = 8.dp, bottom = 8.dp)
-    ButtonSize.ACCOUNT_S -> PaddingValues(start = 6.dp, end = 12.dp, top = 5.dp, bottom = 5.dp)
+    ButtonSize.M -> PaddingValues(horizontal = 16.dp)
+    ButtonSize.S -> PaddingValues(horizontal = 12.dp)
+    ButtonSize.ACCOUNT_M -> PaddingValues(start = 8.dp, end = 12.dp)
+    ButtonSize.ACCOUNT_S -> PaddingValues(start = 6.dp, end = 12.dp)
 }
 
 @Composable

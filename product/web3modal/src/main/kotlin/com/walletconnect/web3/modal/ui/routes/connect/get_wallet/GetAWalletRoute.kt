@@ -14,9 +14,9 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import com.walletconnect.android.internal.common.modal.data.model.Wallet
 import com.walletconnect.modal.utils.openPlayStore
+import com.walletconnect.web3.modal.ui.components.internal.commons.AllWalletsIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.ExternalIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.ListSelectRow
-import com.walletconnect.web3.modal.ui.components.internal.commons.MultipleWalletIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.WalletImage
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
@@ -57,8 +57,8 @@ private fun GetAWalletContent(
         }
         item {
             ListSelectRow(
-                startIcon = { MultipleWalletIcon(wallets = wallets.take(4)) },
-                text = "Explore All",
+                startIcon = { AllWalletsIcon() },
+                text = "Explore all",
                 contentPadding = PaddingValues(vertical = 4.dp),
                 label = { ExternalIcon() },
                 onClick = { uriHandler.openUri("https://explorer.walletconnect.com/?type=wallet") }

@@ -101,7 +101,7 @@ internal fun WalletGridItem(
     onWalletItemClick: (Wallet) -> Unit
 ) {
     TransparentSurface(
-        modifier = Modifier.padding(4.dp),
+        modifier = Modifier.padding(2.dp),
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(
