@@ -58,10 +58,14 @@ internal object Web3ModalDelegate : Web3Modal.ModalDelegate {
     }
 
     override fun onConnectionStateChange(state: Modal.Model.ConnectionState) {
-
+        scope.launch {
+            _wcEventModels.emit(state)
+        }
     }
 
     override fun onError(error: Modal.Model.Error) {
-
+        scope.launch {
+            _wcEventModels.emit(error)
+        }
     }
 }
