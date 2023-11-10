@@ -115,7 +115,7 @@ private fun PortraitContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 20.dp, horizontal = 28.dp),
+            .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         QRCode(uri = uri)

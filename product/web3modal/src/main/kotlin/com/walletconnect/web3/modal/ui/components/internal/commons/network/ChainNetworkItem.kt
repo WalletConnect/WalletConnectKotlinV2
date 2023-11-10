@@ -59,8 +59,8 @@ internal fun ChainNetworkItem(
         }
     }
     TransparentSurface(
-        modifier = Modifier.padding(4.dp),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.padding(2.dp)
     ) {
         Column(
             modifier = Modifier

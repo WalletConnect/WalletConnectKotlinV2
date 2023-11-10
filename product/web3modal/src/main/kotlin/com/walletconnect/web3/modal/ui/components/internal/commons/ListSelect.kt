@@ -74,6 +74,7 @@ internal fun ListSelectRow(
 private fun ListSelectRowPreview() {
     MultipleComponentsPreview(
         { ListSelectRow(startIcon = { WalletConnectLogo(it) }, text = "WalletConnect") {} },
-        { ListSelectRow(startIcon = { WalletConnectLogo(it) }, text = "WalletConnect", isEnabled = false) {} }
+        { ListSelectRow(startIcon = { WalletConnectLogo(it) }, text = "WalletConnect", isEnabled = false) {} },
+        { ListSelectRow(startIcon = { WalletConnectLogo(it) }, text = "WalletConnect", label = { InstalledLabel() }) {} },
     )
 }

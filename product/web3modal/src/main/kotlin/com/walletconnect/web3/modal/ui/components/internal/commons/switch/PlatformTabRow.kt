@@ -10,13 +10,17 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Icon
 import androidx.compose.material.Tab
 import androidx.compose.material.TabPosition
 import androidx.compose.material.TabRow
@@ -27,9 +31,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import com.walletconnect.web3.modal.R
+import com.walletconnect.web3.modal.ui.components.internal.commons.ContentDescription
 import com.walletconnect.web3.modal.ui.components.internal.commons.HorizontalSpacer
 import com.walletconnect.web3.modal.ui.components.internal.commons.MobileIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.WebIcon
@@ -38,10 +48,9 @@ import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 internal enum class PlatformTab(
-    val value: Int,
-    val label: String
+    val value: Int, val label: String
 ) {
-    MOBILE(0, "Mobile"), WEB(1, "WebApp")
+    MOBILE(0, "Mobile"), WEB(1, "Browser")
 }
 
 @Composable
@@ -51,8 +60,7 @@ internal fun rememberWalletPlatformTabs(initValue: PlatformTab = PlatformTab.MOB
 
 @Composable
 internal fun PlatformTabRow(
-    platformTab: PlatformTab,
-    onPlatformTabSelect: (PlatformTab) -> Unit
+    platformTab: PlatformTab, onPlatformTabSelect: (PlatformTab) -> Unit
 ) {
     val indicator = @Composable { tabPositions: List<TabPosition> ->
         CustomIndicatorWithAnimation(tabPositions, platformTab)
@@ -66,9 +74,9 @@ internal fun PlatformTabRow(
         indicator = indicator,
         divider = {},
         modifier = Modifier
-            .width(250.dp)
-            .height(40.dp)
-            .border(width = 3.dp, color = Web3ModalTheme.colors.grayGlass02, shape = RoundedCornerShape(80f))
+            .width(210.dp)
+            .height(32.dp)
+            .background(color = Web3ModalTheme.colors.grayGlass02, shape = RoundedCornerShape(80f))
     ) {
         PlatformTab.values().forEach {
             val isSelected = platformTab == it
@@ -87,18 +95,25 @@ internal fun PlatformTabRow(
 @Composable
 private fun TabContent(platform: PlatformTab, isSelected: Boolean) {
     val color = if (isSelected) Web3ModalTheme.colors.foreground.color100 else Web3ModalTheme.colors.foreground.color200
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+    Row(
+        modifier = Modifier.fillMaxHeight(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
         PlatformTabIcon(platform = platform, tint = color)
         HorizontalSpacer(width = 4.dp)
-        Text(text = platform.label, style = Web3ModalTheme.typo.small400.copy(color = color))
+        Text(
+            text = platform.label,
+            style = Web3ModalTheme.typo.small500.copy(color = color, textAlign = TextAlign.Center),
+            modifier = Modifier.wrapContentHeight()
+        )
     }
 
 }
 
 @Composable
 private fun CustomIndicatorWithAnimation(
-    tabPositions: List<TabPosition>,
-    platformState: PlatformTab
+    tabPositions: List<TabPosition>, platformState: PlatformTab
 ) {
     val transition = updateTransition(platformState.value, label = "")
     val indicatorStart by transition.animateDp(
@@ -108,8 +123,7 @@ private fun CustomIndicatorWithAnimation(
             } else {
                 spring(dampingRatio = 1f, stiffness = 1000f)
             }
-        },
-        label = "Indicator start animation"
+        }, label = "Indicator start animation"
     ) {
         tabPositions[it].left
     }
@@ -121,8 +135,7 @@ private fun CustomIndicatorWithAnimation(
             } else {
                 spring(dampingRatio = 1f, stiffness = 50f)
             }
-        },
-        label = "Indicator end animation"
+        }, label = "Indicator end animation"
     ) {
         tabPositions[it].right
     }
@@ -132,7 +145,7 @@ private fun CustomIndicatorWithAnimation(
             .offset(x = indicatorStart)
             .wrapContentSize(align = Alignment.BottomStart)
             .width(indicatorEnd - indicatorStart)
-            .padding(2.dp)
+            .padding(3.dp)
             .fillMaxSize()
             .background(color = Web3ModalTheme.colors.grayGlass02, RoundedCornerShape(50))
             .border(BorderStroke(1.dp, Web3ModalTheme.colors.grayGlass02), RoundedCornerShape(50))

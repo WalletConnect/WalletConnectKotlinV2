@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.walletconnect.modal.ui.components.common.roundedClickable
 import com.walletconnect.web3.modal.R
@@ -73,7 +74,7 @@ internal fun RetryIcon(
         imageVector = ImageVector.vectorResource(id = R.drawable.ic_retry),
         contentDescription = ContentDescription.RETRY.description,
         tint = tint,
-        modifier = Modifier.size(12.dp),
+        modifier = Modifier.size(14.dp),
     )
 }
 
@@ -97,19 +98,20 @@ internal fun WalletIcon(
     Icon(
         imageVector = ImageVector.vectorResource(id = R.drawable.ic_wallet),
         contentDescription = ContentDescription.WALLET.description,
-        modifier = Modifier.size(14.dp),
+        modifier = Modifier.size(12.dp),
         tint = tint
     )
 }
 
 @Composable
 internal fun ExternalIcon(
-    tint: Color = Web3ModalTheme.colors.foreground.color200
+    tint: Color = Web3ModalTheme.colors.foreground.color200,
+    size: Dp = 12.dp,
 ) {
     Icon(
         imageVector = ImageVector.vectorResource(id = R.drawable.ic_external_link),
         contentDescription = ContentDescription.EXTERNAL_LINK.description,
-        modifier = Modifier.size(12.dp),
+        modifier = Modifier.size(size),
         tint = tint
     )
 }
@@ -159,9 +161,10 @@ internal fun RecentTransactionIcon(
         imageVector = ImageVector.vectorResource(id = R.drawable.ic_swap),
         contentDescription = ContentDescription.SWAP.description,
         modifier = Modifier
+            .border(2.dp, Web3ModalTheme.colors.grayGlass02, shape = CircleShape)
+            .padding(2.dp)
             .size(32.dp)
             .background(Web3ModalTheme.colors.grayGlass10, shape = CircleShape)
-            .border(2.dp, Web3ModalTheme.colors.grayGlass02, shape = CircleShape)
             .padding(8.dp),
         tint = tint
     )
@@ -175,9 +178,10 @@ internal fun DisconnectIcon(
         imageVector = ImageVector.vectorResource(id = R.drawable.ic_disconnect),
         contentDescription = ContentDescription.DISCONNECT.description,
         modifier = Modifier
+            .border(2.dp, Web3ModalTheme.colors.grayGlass05, shape = CircleShape)
+            .padding(2.dp)
             .size(32.dp)
             .background(Web3ModalTheme.colors.grayGlass10, shape = CircleShape)
-            .border(2.dp, Web3ModalTheme.colors.grayGlass05, shape = CircleShape)
             .padding(8.dp),
         tint = tint
     )
@@ -271,7 +275,7 @@ internal fun WebIcon(
     tint: Color = Web3ModalTheme.colors.inverse100
 ) {
     Icon(
-        imageVector = ImageVector.vectorResource(id = R.drawable.ic_web),
+        imageVector = ImageVector.vectorResource(id = R.drawable.ic_browser),
         contentDescription = ContentDescription.WEB.description,
         tint = tint,
         modifier = Modifier.size(12.dp),
@@ -283,7 +287,7 @@ internal fun ForwardIcon(
     tint: Color = Web3ModalTheme.colors.inverse100
 ) {
     Icon(
-        imageVector = ImageVector.vectorResource(id = R.drawable.ic_forward_chevron),
+        imageVector = ImageVector.vectorResource(id = R.drawable.ic_chevron_right),
         contentDescription = ContentDescription.FORWARD_ARROW.description,
         tint = tint,
         modifier = Modifier.size(12.dp),

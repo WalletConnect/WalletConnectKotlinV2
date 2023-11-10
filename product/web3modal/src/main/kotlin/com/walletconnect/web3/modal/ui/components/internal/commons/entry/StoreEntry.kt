@@ -67,11 +67,12 @@ private fun GetButton(onClick: () -> Unit) {
             modifier = Modifier
                 .border(width = 1.dp, color = Web3ModalTheme.colors.grayGlass10, shape = CircleShape)
                 .clickable { onClick() }
-                .padding(horizontal = 12.dp, vertical = 6.dp),
+                .padding(start = 12.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
             Text(text = "Get", style = Web3ModalTheme.typo.small500.copy(color = Web3ModalTheme.colors.accent100))
+            HorizontalSpacer(width = 4.dp)
             ForwardIcon(tint = Web3ModalTheme.colors.accent100)
         }
     }

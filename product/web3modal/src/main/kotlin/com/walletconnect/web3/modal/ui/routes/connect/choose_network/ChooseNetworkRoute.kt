@@ -1,7 +1,7 @@
 package com.walletconnect.web3.modal.ui.routes.connect.choose_network
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -16,7 +16,6 @@ import androidx.compose.ui.unit.dp
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.ui.components.internal.commons.NetworkBottomSection
-import com.walletconnect.web3.modal.ui.components.internal.commons.VerticalSpacer
 import com.walletconnect.web3.modal.ui.components.internal.commons.network.ChainNetworkItem
 import com.walletconnect.web3.modal.ui.routes.connect.ConnectState
 import com.walletconnect.web3.modal.utils.getChainNetworkImageUrl
@@ -49,7 +48,6 @@ private fun ChainNetworkSelector(
             .padding(vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        VerticalSpacer(height = 12.dp)
         ChainNetworkGrid(
             chains = chains,
             selectedChain = selectedChain,
@@ -66,8 +64,10 @@ private fun ChainNetworkGrid(
     onItemClick: (Modal.Model.Chain) -> Unit
 ) {
     LazyVerticalGrid(
-        contentPadding = PaddingValues(horizontal = 10.dp),
-        columns = GridCells.Adaptive(76.dp),
+        columns = GridCells.FixedSize(82.dp),
+        modifier = Modifier.padding(horizontal = 10.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalArrangement = Arrangement.Center,
         content = {
             itemsIndexed(chains) { _, item ->
                 ChainNetworkItem(

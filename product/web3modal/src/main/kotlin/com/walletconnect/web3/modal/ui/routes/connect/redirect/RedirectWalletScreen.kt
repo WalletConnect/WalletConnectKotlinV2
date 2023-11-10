@@ -6,8 +6,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -32,23 +34,23 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.walletconnect.android.internal.common.modal.data.model.Wallet
-import com.walletconnect.modal.utils.openWebAppLink
 import com.walletconnect.modal.utils.openMobileLink
 import com.walletconnect.modal.utils.openPlayStore
+import com.walletconnect.modal.utils.openWebAppLink
+import com.walletconnect.util.Empty
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
 import com.walletconnect.web3.modal.ui.components.internal.OrientationBox
 import com.walletconnect.web3.modal.ui.components.internal.commons.DeclinedIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.ExternalIcon
-import com.walletconnect.web3.modal.ui.components.internal.commons.entry.CopyActionEntry
-import com.walletconnect.web3.modal.ui.components.internal.commons.FullWidthDivider
 import com.walletconnect.web3.modal.ui.components.internal.commons.LoadingBorder
 import com.walletconnect.web3.modal.ui.components.internal.commons.VerticalSpacer
 import com.walletconnect.web3.modal.ui.components.internal.commons.WalletImage
 import com.walletconnect.web3.modal.ui.components.internal.commons.button.ButtonSize
 import com.walletconnect.web3.modal.ui.components.internal.commons.button.ButtonStyle
-import com.walletconnect.web3.modal.ui.components.internal.commons.button.ImageButton
+import com.walletconnect.web3.modal.ui.components.internal.commons.button.ChipButton
 import com.walletconnect.web3.modal.ui.components.internal.commons.button.TryAgainButton
+import com.walletconnect.web3.modal.ui.components.internal.commons.entry.CopyActionEntry
 import com.walletconnect.web3.modal.ui.components.internal.commons.entry.StoreEntry
 import com.walletconnect.web3.modal.ui.components.internal.commons.switch.PlatformTab
 import com.walletconnect.web3.modal.ui.components.internal.commons.switch.PlatformTabRow
@@ -155,12 +157,12 @@ private fun PortraitRedirectWalletContent(
         if (wallet.hasMobileWallet && wallet.hasWebApp) {
             PlatformTabRow(platformTab, onPlatformTabSelect)
         }
-        VerticalSpacer(height = 28.dp)
-        when {
-            platformTab == PlatformTab.WEB || redirectState == RedirectState.Loading -> WalletImageWithLoader(url = wallet.imageUrl)
-            redirectState == RedirectState.NotDetected || redirectState == RedirectState.Reject -> RejectWalletImage(wallet.imageUrl)
-        }
-        VerticalSpacer(height = 20.dp)
+        WalletImageBox(
+            platformTab = platformTab,
+            redirectState = redirectState,
+            wallet = wallet
+        )
+        VerticalSpacer(height = 8.dp)
         PlatformBox(
             platformTab = platformTab,
             mobileWalletContent = {
@@ -174,6 +176,7 @@ private fun PortraitRedirectWalletContent(
             },
             webWalletContent = {
                 RedirectWebWalletScreen(
+                    wallet = wallet,
                     onCopyLinkClick = onCopyLinkClick,
                     onOpenWebApp = onOpenWebApp
                 )
@@ -211,12 +214,13 @@ private fun LandscapeRedirectContent(
                 PlatformTabRow(platformTab, onPlatformTabSelect)
             }
             VerticalSpacer(height = 16.dp)
-            when {
-                platformTab == PlatformTab.WEB || redirectState == RedirectState.Loading -> WalletImageWithLoader(url = wallet.imageUrl)
-                redirectState == RedirectState.NotDetected || redirectState == RedirectState.Reject -> RejectWalletImage(wallet.imageUrl)
-            }
+            WalletImageBox(
+                platformTab = platformTab,
+                redirectState = redirectState,
+                wallet = wallet
+            )
             if (redirectState == RedirectState.NotDetected) {
-                VerticalSpacer(height = 16.dp)
+                VerticalSpacer(height = 8.dp)
                 StoreEntry(text = "Don't have ${wallet.name}?", onClick = onOpenPlayStore)
             }
             VerticalSpacer(height = 16.dp)
@@ -243,11 +247,30 @@ private fun LandscapeRedirectContent(
                 },
                 webWalletContent = {
                     RedirectWebWalletScreen(
+                        wallet = wallet,
                         onCopyLinkClick = onCopyLinkClick,
                         onOpenWebApp = onOpenWebApp
                     )
                 }
             )
+        }
+    }
+}
+
+@Composable
+private fun WalletImageBox(
+    platformTab: PlatformTab,
+    redirectState: RedirectState,
+    wallet: Wallet
+) {
+    Box(
+        modifier = Modifier.height(130.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        when {
+            redirectState == RedirectState.NotDetected || platformTab == PlatformTab.WEB -> RoundedWalletImage(url = wallet.imageUrl)
+            redirectState == RedirectState.Loading -> WalletImageWithLoader(url = wallet.imageUrl)
+            redirectState == RedirectState.Reject -> RejectWalletImage(wallet.imageUrl)
         }
     }
 }
@@ -274,21 +297,27 @@ private fun RedirectLabel(state: RedirectState, wallet: Wallet) {
         }
 
         RedirectState.NotDetected -> {
-            header = "Download ${wallet.name}"
-            description = "Install ${wallet.name} app to continue"
+            header = "App not installed"
+            description = String.Empty
             headerStyle = Web3ModalTheme.typo.paragraph400
             descriptionStyle = Web3ModalTheme.typo.small400.copy(color = Web3ModalTheme.colors.foreground.color200)
         }
     }
-    Text(text = header, style = headerStyle)
-    VerticalSpacer(height = 8.dp)
-    Text(
-        text = description,
-        style = descriptionStyle,
+    Column(
         modifier = Modifier.padding(horizontal = 30.dp),
-        textAlign = TextAlign.Center
-    )
-
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(text = header, style = headerStyle)
+        if (description.isNotEmpty()) {
+            VerticalSpacer(height = 8.dp)
+            Text(
+                text = description,
+                style = descriptionStyle,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
 }
 
 @Composable
@@ -297,7 +326,6 @@ private fun PlatformBox(
     mobileWalletContent: @Composable () -> Unit,
     webWalletContent: @Composable () -> Unit
 ) {
-
     AnimatedContent(targetState = platformTab, label = "Platform state") { state ->
         when (state) {
             PlatformTab.MOBILE -> mobileWalletContent()
@@ -324,7 +352,7 @@ private fun RedirectMobileWalletScreen(
             when (redirectState) {
                 RedirectState.Loading -> LoadingState(state, wallet, onRetry, onCopyLinkClick)
                 RedirectState.Reject -> RejectedState(state, wallet, onRetry)
-                RedirectState.NotDetected -> NotDetectedWalletState(state, wallet, onRetry, onOpenPlayStore)
+                RedirectState.NotDetected -> NotDetectedWalletState(state, wallet, onOpenPlayStore)
             }
         }
     }
@@ -332,19 +360,28 @@ private fun RedirectMobileWalletScreen(
 
 @Composable
 private fun RedirectWebWalletScreen(
+    wallet: Wallet,
     onCopyLinkClick: () -> Unit,
     onOpenWebApp: () -> Unit
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Open and continue in a browser", style = Web3ModalTheme.typo.paragraph400)
+        Text(text = "Continue in ${wallet.name}", style = Web3ModalTheme.typo.paragraph400)
+        VerticalSpacer(height = 8.dp)
+        Text(
+            text = "Accept connection request in the wallet",
+            style = Web3ModalTheme.typo.small400.copy(color = Web3ModalTheme.colors.foreground.color200),
+            textAlign = TextAlign.Center
+        )
         VerticalSpacer(height = 20.dp)
-        ImageButton(
+        ChipButton(
             text = "Open",
-            image = { ExternalIcon(it) },
+            startIcon = {},
+            endIcon = { ExternalIcon(size = 14.dp, tint = it) },
             style = ButtonStyle.ACCENT,
             size = ButtonSize.M,
+            paddingValues = PaddingValues(horizontal = 12.dp),
             onClick = onOpenWebApp
         )
         VerticalSpacer(height = 20.dp)
@@ -375,14 +412,20 @@ private fun LoadingState(
 @Composable
 private fun WalletImageWithLoader(url: String) {
     LoadingBorder(
-        cornerRadius = 25.dp
+        cornerRadius = 28.dp
     ) {
-        WalletImage(
-            url = url, modifier = Modifier
-                .size(80.dp)
-                .border(width = 1.dp, color = Web3ModalTheme.colors.grayGlass10, shape = RoundedCornerShape(25.dp))
-        )
+        RoundedWalletImage(url = url)
     }
+}
+
+@Composable
+private fun RoundedWalletImage(url: String) {
+    WalletImage(
+        url = url, modifier = Modifier
+            .size(80.dp)
+            .border(width = 1.dp, color = Web3ModalTheme.colors.grayGlass10, shape = RoundedCornerShape(28.dp))
+            .clip(RoundedCornerShape(28.dp))
+    )
 }
 
 @Composable
@@ -400,31 +443,21 @@ private fun RejectedState(
 private fun NotDetectedWalletState(
     state: RedirectState,
     wallet: Wallet,
-    onRetry: () -> Unit,
     onOpenPlayStore: () -> Unit
 ) {
     RedirectLabel(state = state, wallet = wallet)
-    VerticalSpacer(height = 20.dp)
-    TryAgainButton(onClick = onRetry)
-    VerticalSpacer(height = 16.dp)
-    FullWidthDivider()
-    VerticalSpacer(height = 16.dp)
+    VerticalSpacer(height = 28.dp)
     StoreEntry(text = "Don't have ${wallet.name}?", onClick = onOpenPlayStore)
 }
 
 @Composable
 private fun RejectWalletImage(url: String) {
     Box {
-        WalletImage(
-            url = url, modifier = Modifier
-                .size(80.dp)
-                .border(width = 1.dp, color = Web3ModalTheme.colors.grayGlass10, shape = RoundedCornerShape(25.dp))
-                .clip(RoundedCornerShape(25.dp))
-        )
+        RoundedWalletImage(url = url)
         Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .background(Web3ModalTheme.colors.background.color100, shape = CircleShape)
+                .background(Web3ModalTheme.colors.background.color125, shape = CircleShape)
                 .padding(2.dp)
         ) {
             DeclinedIcon()

@@ -5,7 +5,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -117,30 +119,30 @@ private fun AccountButtonMixed(
             Box(
                 modifier = Modifier
                     .clickable(isEnabled) { onClick() }
+                    .border(width = 1.dp, color = borderColor, shape = CircleShape)
                     .height(40.dp)
                     .background(backgroundColor)
-                    .border(width = 1.dp, color = borderColor, shape = CircleShape)
             ) {
                 Row(
-                    modifier = Modifier
-                        .padding(start = 8.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+                    modifier = Modifier.padding(start = 8.dp, end = 4.dp).fillMaxHeight(),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     CircleNetworkImage(data = chainImage.getImageData(), size = 24.dp, isEnabled = isEnabled)
-                    HorizontalSpacer(width = 6.dp)
+                    HorizontalSpacer(width = 4.dp)
                     Text(text = chainData, style = Web3ModalTheme.typo.paragraph600.copy(color = textColor))
                     HorizontalSpacer(width = 8.dp)
                     ImageButton(
                         text = address.toVisibleAddress(), image = {
                             Box(
                                 modifier = Modifier
-                                    .size(20.dp)
-                                    .border(width = 1.dp, color = Web3ModalTheme.colors.grayGlass05, shape = CircleShape)
-                                    .padding(1.dp)
+                                    .size(22.dp)
+                                    .border(width = 2.dp, color = Web3ModalTheme.colors.grayGlass05, shape = CircleShape)
+                                    .padding(2.dp)
                                     .background(brush = Brush.linearGradient(generateAvatarColors(address)), shape = CircleShape)
                             )
                         },
+                        paddingValues = PaddingValues(start = 4.dp, end = 8.dp),
                         isEnabled = isEnabled,
                         style = ButtonStyle.ACCOUNT,
                         size = ButtonSize.ACCOUNT_S,
@@ -154,19 +156,26 @@ private fun AccountButtonMixed(
 
 @Composable
 private fun AccountButtonNormal(
-    address: String, onClick: () -> Unit, isEnabled: Boolean = true
+    address: String,
+    onClick: () -> Unit,
+    isEnabled: Boolean = true
 ) {
     ProvideWeb3ModalThemeComposition {
         ImageButton(
             text = address.toVisibleAddress(), image = {
                 Box(
                     modifier = Modifier
-                        .size(20.dp)
-                        .border(width = 1.dp, color = Web3ModalTheme.colors.grayGlass05, shape = CircleShape)
-                        .padding(1.dp)
+                        .size(22.dp)
+                        .border(width = 2.dp, color = Web3ModalTheme.colors.grayGlass05, shape = CircleShape)
+                        .padding(2.dp)
                         .background(brush = Brush.linearGradient(generateAvatarColors(address)), shape = CircleShape)
                 )
-            }, isEnabled = isEnabled, style = ButtonStyle.ACCOUNT, size = ButtonSize.ACCOUNT_M, onClick = onClick
+            },
+            paddingValues = PaddingValues(start = 6.dp, end = 12.dp, top = 4.dp, bottom = 4.dp),
+            isEnabled = isEnabled,
+            style = ButtonStyle.ACCOUNT,
+            size = ButtonSize.ACCOUNT_S,
+            onClick = onClick
         )
     }
 }
