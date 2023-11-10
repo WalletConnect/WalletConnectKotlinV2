@@ -22,8 +22,8 @@ internal class RegisterIdentityUseCase(
 
     companion object {
         private const val LIMITED_STATEMENT =
-            "I further authorize this app to send and receive messages on my behalf for THIS domain using my WalletConnect identity. Read more at https://walletconnect.com/identity"
+            "I further authorize this app to send me notifications. Read more at https://walletconnect.com/notifications"
         private const val UNLIMITED_STATEMENT =
-            "I further authorize this app to send and receive messages on my behalf for ALL domains using my WalletConnect identity. Read more at https://walletconnect.com/identity"
+            "I further authorize this app to view and manage my notifications for ALL apps. Read more at https://walletconnect.com/notifications"
     }
 }

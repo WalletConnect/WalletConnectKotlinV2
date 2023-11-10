@@ -162,7 +162,7 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
             _discoverState.update { DiscoverState.Subscribing(explorerApp) }
             val beforeSubscription = _activeSubscriptions.value
 
-            Notify.Params.Subscribe(explorerApp.homepage.toUri(), with(EthAccountDelegate) { account.toEthAddress() }).let { subscribeParams ->
+            Notify.Params.Subscribe(explorerApp.dappUrl.toUri(), with(EthAccountDelegate) { account.toEthAddress() }).let { subscribeParams ->
                 NotifyClient.subscribe(
                     params = subscribeParams,
                     onSuccess = {

@@ -59,10 +59,14 @@ internal object WalletConnectModalDelegate : WalletConnectModal.ModalDelegate {
     }
 
     override fun onConnectionStateChange(state: Modal.Model.ConnectionState) {
-
+        scope.launch {
+            _wcEventModels.emit(state)
+        }
     }
 
     override fun onError(error: Modal.Model.Error) {
-        Timber.e(error.throwable)
+        scope.launch {
+            _wcEventModels.emit(error)
+        }
     }
 }
