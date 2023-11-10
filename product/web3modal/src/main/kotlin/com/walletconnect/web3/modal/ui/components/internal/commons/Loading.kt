@@ -15,18 +15,23 @@ import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.PathMeasure
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.addOutline
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -54,7 +59,7 @@ internal fun LoadingHexagonBorder(
 ) {
     Box(
         modifier = Modifier
-            .drawAnimatedBorder(strokeWidth = 4.dp, shape = HexagonShape, durationMillis = 1700)
+            .drawAnimatedBorder(strokeWidth = 4.dp, progress = .25f, shape = HexagonShape, durationMillis = 1000)
     ) {
         Surface(
             color = Color.Transparent,
@@ -72,7 +77,7 @@ internal fun LoadingBorder(
 ) {
     Box(
         modifier = Modifier
-            .drawAnimatedBorder(strokeWidth = 4.dp, shape = RoundedCornerShape(cornerRadius + (cornerRadius / 4)), durationMillis = 1700)
+            .drawAnimatedBorder(strokeWidth = 4.dp, progress = .25f, shape = RoundedCornerShape(cornerRadius + (cornerRadius / 4)), durationMillis = 1000)
     ) {
         Surface(
             color = Color.Transparent,
@@ -82,34 +87,27 @@ internal fun LoadingBorder(
         }
     }
 }
-
 private fun Modifier.drawAnimatedBorder(
     strokeWidth: Dp,
+    progress: Float,
     shape: Shape,
     durationMillis: Int
 ) = composed {
+    val loaderColor = Web3ModalTheme.colors.accent100
+    var pathLenght by remember { mutableFloatStateOf(0f) }
     val infiniteTransition = rememberInfiniteTransition(label = "rotation")
-    val angle by infiniteTransition.animateFloat(
+    val loaderProgress by infiniteTransition.animateFloat(
         initialValue = 0f,
-        targetValue = 360f,
+        targetValue = pathLenght,
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         ), label = "rotation"
     )
-    val brush = Brush.horizontalGradient(
-        listOf(
-            Web3ModalTheme.colors.accent100,
-            Web3ModalTheme.colors.accent100,
-            Web3ModalTheme.colors.accent100,
-            Color.Transparent, Color.Transparent, Color.Transparent,
-            Color.Transparent, Color.Transparent, Color.Transparent,
-            Color.Transparent, Color.Transparent, Color.Transparent,
-        )
-    )
 
     Modifier
         .clip(shape)
+        .padding(strokeWidth)
         .drawWithCache {
             val strokeWidthPx = strokeWidth.toPx()
             val outline: Outline = shape.createOutline(size, layoutDirection, this)
@@ -117,23 +115,24 @@ private fun Modifier.drawAnimatedBorder(
                 drawContent()
                 with(drawContext.canvas.nativeCanvas) {
                     val checkPoint = saveLayer(null, null)
-                    drawOutline(
-                        outline = outline,
-                        color = Color.Gray,
-                        style = Stroke(strokeWidthPx * 2)
-                    )
-                    rotate(angle) {
-                        drawCircle(
-                            brush = brush,
-                            radius = size.width,
-                            blendMode = BlendMode.SrcIn,
+                    val path = Path().apply { addOutline(outline) }
+                    val pathMeasure = PathMeasure().apply { setPath(path, false) }
+                    pathLenght = pathMeasure.length
+                    drawPath(
+                        path = path,
+                        color = loaderColor,
+                        style = Stroke(
+                            width = strokeWidthPx,
+                            pathEffect = PathEffect.dashPathEffect(floatArrayOf(0f, (1f - progress) * pathMeasure.length, progress * pathMeasure.length, 0f), loaderProgress),
+                            cap = StrokeCap.Round,
+                            join = StrokeJoin.Round
                         )
-                    }
+                    )
                     restoreToCount(checkPoint)
                 }
             }
         }
-        .padding(10.dp)
+        .padding(8.dp)
 }
 
 @UiModePreview
