@@ -85,7 +85,7 @@ object Web3Modal {
         this.recommendedWalletsIds = init.recommendedWalletsIds
         runCatching {
             wcKoinApp.modules(web3ModalModule())
-            setDelegate(Web3ModalDelegate)
+            setInternalDelegate(Web3ModalDelegate)
         }.onFailure { error -> return@onInitializedClient onError(Modal.Model.Error(error)) }
         onSuccess()
     }
@@ -118,6 +118,48 @@ object Web3Modal {
                 else -> Unit
             }
         }.launchIn(scope)
+    }
+
+    @Throws(IllegalStateException::class)
+    private fun setInternalDelegate(delegate: ModalDelegate) {
+        val signDelegate = object : SignClient.DappDelegate {
+            override fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession) {
+                delegate.onSessionApproved(approvedSession.toModal())
+            }
+
+            override fun onSessionRejected(rejectedSession: Sign.Model.RejectedSession) {
+                delegate.onSessionRejected(rejectedSession.toModal())
+            }
+
+            override fun onSessionUpdate(updatedSession: Sign.Model.UpdatedSession) {
+                delegate.onSessionUpdate(updatedSession.toModal())
+            }
+
+            override fun onSessionEvent(sessionEvent: Sign.Model.SessionEvent) {
+                delegate.onSessionEvent(sessionEvent.toModal())
+            }
+
+            override fun onSessionExtend(session: Sign.Model.Session) {
+                delegate.onSessionExtend(session.toModal())
+            }
+
+            override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {
+                delegate.onSessionDelete(deletedSession.toModal())
+            }
+
+            override fun onSessionRequestResponse(response: Sign.Model.SessionRequestResponse) {
+                delegate.onSessionRequestResponse(response.toModal())
+            }
+
+            override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {
+                delegate.onConnectionStateChange(state.toModal())
+            }
+
+            override fun onError(error: Sign.Model.Error) {
+                delegate.onError(error.toModal())
+            }
+        }
+        SignClient.setDappDelegate(signDelegate)
     }
 
     internal fun connect(

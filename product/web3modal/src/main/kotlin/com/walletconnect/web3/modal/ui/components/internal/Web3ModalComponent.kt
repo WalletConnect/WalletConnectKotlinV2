@@ -44,7 +44,7 @@ fun Web3ModalComponent(
             .wcEventModels
             .filterIsInstance<Modal.Model.ApprovedSession>()
             .onEach { event ->
-                web3ModalViewModel.saveSessionTopic(event.topic)
+                web3ModalViewModel.saveSession(event)
                 closeModal()
             }
             .collect()
