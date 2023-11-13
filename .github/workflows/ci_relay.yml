@@ -30,6 +30,6 @@ jobs:
         env:
           TEST_RELAY_URL: wss://relay.walletconnect.com
           TEST_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
-          PROD_GM_PROJECT_ID: ${{ secrets.PROD_GM_PROJECT_ID }}
-          PROD_GM_SECRET: ${{ secrets.PROD_GM_SECRET }}
+          NOTIFY_INTEGRATION_TESTS_PROJECT_ID: ${{ secrets.NOTIFY_INTEGRATION_TESTS_PROJECT_ID }}
+          NOTIFY_INTEGRATION_TESTS_SECRET: ${{ secrets.NOTIFY_INTEGRATION_TESTS_SECRET }}
         uses: ./.github/actions/ci_relay

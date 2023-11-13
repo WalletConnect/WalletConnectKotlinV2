@@ -55,8 +55,8 @@ jobs:
       - name: Sdk Migration Verification
         env:
           WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
-          PROD_GM_PROJECT_ID: ${{ secrets.PROD_GM_PROJECT_ID }}
-          PROD_GM_SECRET: ${{ secrets.PROD_GM_SECRET }}
+          NOTIFY_INTEGRATION_TESTS_PROJECT_ID: ${{ secrets.NOTIFY_INTEGRATION_TESTS_PROJECT_ID }}
+          NOTIFY_INTEGRATION_TESTS_SECRET: ${{ secrets.NOTIFY_INTEGRATION_TESTS_SECRET }}
         run: ./gradlew ${{ matrix.conf.command }}
 
       - name: Stop Gradle

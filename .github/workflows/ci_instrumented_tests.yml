@@ -68,8 +68,8 @@ jobs:
           name: "Android_Core_SDK"
           command: ":core:android:allDevicesCheck"
           projectId: ${{ secrets.WC_CLOUD_PROJECT_ID }}
-          gmProjectId: ${{ secrets.PROD_GM_PROJECT_ID }}
-          gmSecret: ${{ secrets.PROD_GM_SECRET }}
+          notifyProjectId: ${{ secrets.NOTIFY_INTEGRATION_TESTS_PROJECT_ID }}
+          notifySecret: ${{ secrets.NOTIFY_INTEGRATION_TESTS_SECRET }}
           testTimeoutSeconds: ${{ github.event.inputs.testTimeoutSeconds || env.TEST_TIMEOUT_SECONDS }} # Prioritise dispatch input timeout over env one
 
       - name: Run Sign instrumented tests
@@ -79,17 +79,17 @@ jobs:
           name: "Sign_SDK"
           command: ":protocol:sign:allDevicesCheck"
           projectId: ${{ secrets.WC_CLOUD_PROJECT_ID }}
-          gmProjectId: ${{ secrets.PROD_GM_PROJECT_ID }}
-          gmSecret: ${{ secrets.PROD_GM_SECRET }}
+          notifyProjectId: ${{ secrets.NOTIFY_INTEGRATION_TESTS_PROJECT_ID }}
+          notifySecret: ${{ secrets.NOTIFY_INTEGRATION_TESTS_SECRET }}
           testTimeoutSeconds: ${{ github.event.inputs.testTimeoutSeconds || env.TEST_TIMEOUT_SECONDS }} # Prioritise dispatch input timeout over env one
 
-#      - name: Run Notify instrumented tests
-#        if: ${{ steps.what_modules_changed.outputs.CORE_MODULE_CHANGED == 'true' || steps.what_modules_changed.outputs.NOTIFY_MODULE_CHANGED == 'true' || github.event_name == 'workflow_dispatch' }}
-#        uses: ./.github/actions/ci_instrumented_tests
-#        with:
-#          name: "Notify_SDK"
-#          command: ":protocol:notify:allDevicesCheck"
-#          projectId: ${{ secrets.WC_CLOUD_PROJECT_ID }}
-#          gmProjectId: ${{ secrets.PROD_GM_PROJECT_ID }}
-#          gmSecret: ${{ secrets.PROD_GM_SECRET }}
-#          testTimeoutSeconds: ${{ github.event.inputs.testTimeoutSeconds || env.TEST_TIMEOUT_SECONDS }} # Prioritise dispatch input timeout over env one
+      - name: Run Notify instrumented tests
+        if: ${{ steps.what_modules_changed.outputs.CORE_MODULE_CHANGED == 'true' || steps.what_modules_changed.outputs.NOTIFY_MODULE_CHANGED == 'true' || github.event_name == 'workflow_dispatch' }}
+        uses: ./.github/actions/ci_instrumented_tests
+        with:
+          name: "Notify_SDK"
+          command: ":protocol:notify:allDevicesCheck"
+          projectId: ${{ secrets.WC_CLOUD_PROJECT_ID }}
+          notifyProjectId: ${{ secrets.NOTIFY_INTEGRATION_TESTS_PROJECT_ID }}
+          notifySecret: ${{ secrets.NOTIFY_INTEGRATION_TESTS_SECRET }}
+          testTimeoutSeconds: ${{ github.event.inputs.testTimeoutSeconds || env.TEST_TIMEOUT_SECONDS }} # Prioritise dispatch input timeout over env one
