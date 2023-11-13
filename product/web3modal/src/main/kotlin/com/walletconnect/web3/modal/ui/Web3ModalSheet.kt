@@ -7,10 +7,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.ComponentDialog
 import androidx.activity.OnBackPressedCallback
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.unit.dp
 import androidx.core.content.res.use
 import androidx.core.content.res.getColorOrThrow
 import androidx.navigation.NavHostController
@@ -24,7 +27,7 @@ import com.walletconnect.web3.modal.ui.theme.ColorPalette
 class Web3ModalSheet : BottomSheetDialogFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        requireContext().setTheme(R.style.Web3ModalTheme)
+        requireContext().setTheme(R.style.Web3ModalTheme_DialogTheme)
         super.onCreate(savedInstanceState)
     }
 
@@ -61,11 +64,15 @@ class Web3ModalSheet : BottomSheetDialogFragment() {
             this@Web3ModalSheet,
             onBackPressedCallback(navController)
         )
-        Web3ModalComponent(
-            navController = navController,
-            shouldOpenChooseNetwork = shouldOpenChooseNetwork,
-            closeModal = { this@Web3ModalSheet.dismiss() }
-        )
+        Surface(
+            shape = RoundedCornerShape(topStart = 36.dp, topEnd = 36.dp)
+        ) {
+            Web3ModalComponent(
+                navController = navController,
+                shouldOpenChooseNetwork = shouldOpenChooseNetwork,
+                closeModal = { this@Web3ModalSheet.dismiss() }
+            )
+        }
     }
 
 

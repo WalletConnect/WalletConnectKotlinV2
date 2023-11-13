@@ -143,7 +143,7 @@ internal class ConnectState(
 
     fun getWallet(walletId: String?) = walletsDataStore.getWallet(walletId)
 
-    fun getNotInstalledWallets() = walletsState.value.wallets.filterNot { it.isWalletInstalled }
+    fun getNotInstalledWallets() = walletsDataStore.wallets.filterNot { it.isWalletInstalled }
 
     fun getWalletsTotalCount() = walletsDataStore.totalWalletsCount
 
