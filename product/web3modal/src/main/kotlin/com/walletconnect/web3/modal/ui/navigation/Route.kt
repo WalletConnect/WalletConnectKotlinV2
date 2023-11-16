@@ -6,12 +6,10 @@ enum class Route(val path: String, val title: String? = null) {
     //Common
     WEB3MODAL("web3_modal"),
     CHOOSE_NETWORK("choose_network", "Select network"),
-    WHAT_IS_NETWORK("what_is_network", "What is a network?"),
-
     //Connect routes
     CONNECT_YOUR_WALLET("connect_your_wallet", "Connect wallet"),
     QR_CODE("qr_code", "WalletConnect"),
-    WHAT_IS_WALLET("what_is_wallet", "What is wallet?"),
+    WHAT_IS_WALLET("what_is_wallet", "What is a wallet?"),
     GET_A_WALLET("get_a_wallet", "Get a wallet"),
     ALL_WALLETS("all_wallets", "All wallets"),
     REDIRECT("redirect"),
@@ -20,5 +18,6 @@ enum class Route(val path: String, val title: String? = null) {
     ACCOUNT("account"),
     CHANGE_NETWORK("change_network", "Select network"),
     CHAIN_SWITCH_REDIRECT("chain_switch_redirect"),
-    RECENT_TRANSACTION("recent_transaction")
+    RECENT_TRANSACTION("recent_transaction"),
+    WHAT_IS_NETWORK("what_is_network", "What is a network?")
 }

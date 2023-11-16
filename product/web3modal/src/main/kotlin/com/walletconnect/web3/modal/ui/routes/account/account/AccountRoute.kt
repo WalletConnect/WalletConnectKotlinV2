@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -50,12 +52,6 @@ internal fun AccountRoute(
     val balance by accountState.balanceState.collectAsState()
 
     Box(modifier = Modifier.fillMaxWidth()) {
-        CloseIcon(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(18.dp),
-            onClick = { accountState.closeModal() }
-        )
         UiStateBuilder(uiStateFlow = accountState.accountState) { data ->
             AccountScreen(
                 accountData = data,
@@ -66,6 +62,12 @@ internal fun AccountRoute(
                 onDisconnectClick = { accountState.disconnect() }
             )
         }
+        CloseIcon(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(18.dp),
+            onClick = { accountState.closeModal() }
+        )
     }
 }
 
@@ -81,6 +83,7 @@ private fun AccountScreen(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
             .padding(
                 top = 32.dp, bottom = 16.dp, start = 12.dp, end = 12.dp
             ),
@@ -90,7 +93,7 @@ private fun AccountScreen(
         VerticalSpacer(height = 20.dp)
         AccountName(accountData)
         balance?.let { balance ->
-            VerticalSpacer(height = 8.dp)
+            VerticalSpacer(height = 4.dp)
             Text(
                 text = balance.valueWithSymbol,
                 style = Web3ModalTheme.typo.paragraph400.copy(Web3ModalTheme.colors.foreground.color200)
@@ -132,3 +135,12 @@ private fun PreviewAccountScreen() {
         AccountScreen(accountDataPreview, ethereumChain,null, {}, {}, {})
     }
 }
+
+@UiModePreview
+@Composable
+private fun PreviewAccountScreenWithBalance() {
+    Web3ModalPreview {
+        AccountScreen(accountDataPreview, ethereumChain, Balance(ethereumChain.token, "0000000"), {}, {}, {})
+    }
+}
+

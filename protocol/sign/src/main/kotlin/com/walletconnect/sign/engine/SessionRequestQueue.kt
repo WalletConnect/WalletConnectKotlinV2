@@ -1,6 +1,6 @@
 package com.walletconnect.sign.engine
 
 import com.walletconnect.sign.engine.model.EngineDO
-import java.util.LinkedList
+import java.util.concurrent.ConcurrentLinkedQueue
 
-internal val sessionRequestEventsQueue: LinkedList<EngineDO.SessionRequestEvent> = LinkedList()
+internal val sessionRequestEventsQueue = ConcurrentLinkedQueue<EngineDO.SessionRequestEvent>()

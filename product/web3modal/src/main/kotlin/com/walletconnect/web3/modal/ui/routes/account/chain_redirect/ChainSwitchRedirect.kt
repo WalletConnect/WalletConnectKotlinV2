@@ -47,16 +47,19 @@ internal fun ChainSwitchRedirectRoute(
     val onError: (String?) -> Unit = {
         accountState.showError(it ?: "Something went wrong")
     }
+    var chainSwitchState by remember { mutableStateOf<ChainRedirectState>(ChainRedirectState.Loading) }
 
     val switchChain = suspend {
         accountState.switchChain(
             to = chain,
-            openConnectedWallet = { uri -> uriHandler.openUri(uri) { onError(it.message) } },
+            openConnectedWallet = { uri ->
+                uriHandler.openUri(uri) {
+                    chainSwitchState = ChainRedirectState.Declined
+                }
+            },
             onError = onError
         )
     }
-
-    var chainSwitchState by remember { mutableStateOf<ChainRedirectState>(ChainRedirectState.Loading) }
 
     LaunchedEffect(Unit) {
         switchChain()
@@ -142,7 +145,8 @@ private fun ChainNetworkImage(
     ChainNetworkImageWrapper(redirectState) {
         HexagonNetworkImage(
             data = chain.getImageData(),
-            isEnabled = true
+            isEnabled = true,
+            size = 96.dp
         )
     }
 }

@@ -9,11 +9,16 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Density
@@ -29,8 +34,8 @@ import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 import com.walletconnect.web3.modal.utils.grayColorFilter
 import com.walletconnect.web3.modal.utils.imageHeaders
-import java.lang.Float.min
-import kotlin.math.sqrt
+import kotlin.math.cos
+import kotlin.math.sin
 
 @Composable
 internal fun CircleNetworkImage(
@@ -63,9 +68,11 @@ internal fun CircleNetworkImage(
 internal fun HexagonNetworkImage(
     data: Any?,
     isEnabled: Boolean,
+    size: Dp = 56.dp,
     borderColor: Color? = null,
     placeholder: Drawable? = null
 ) {
+    val overlayColor = Web3ModalTheme.colors.grayGlass10
     AsyncImage(
         model = ImageRequest.Builder(LocalContext.current)
             .data(data)
@@ -75,17 +82,29 @@ internal fun HexagonNetworkImage(
             .build(),
         contentDescription = null,
         modifier = Modifier
-            .size(56.dp)
+            .size(size)
             .graphicsLayer {
                 shape = HexagonShape
                 clip = true
             }
-            .border(1.dp, borderColor ?: Color.Transparent, shape = HexagonShape),
+            .drawWithContent {
+                drawContent()
+                drawPath(
+                    path = drawCustomHexagonPath(this.size),
+                    color = borderColor ?: overlayColor,
+                    style = Stroke(
+                        width = 2.dp.toPx(),
+                        cap = StrokeCap.Round,
+                        join = StrokeJoin.Round
+                    ),
+                    blendMode = BlendMode.SrcOver
+                )
+            },
         colorFilter = if (isEnabled) null else grayColorFilter
     )
 }
 
-internal val HexagonShape = object: Shape {
+internal val HexagonShape = object : Shape {
 
     override fun createOutline(
         size: Size,
@@ -100,24 +119,31 @@ internal val HexagonShape = object: Shape {
 
 internal fun drawCustomHexagonPath(size: Size): Path {
     return Path().apply {
-        val radius = min(size.width / 2f, size.height / 2f)
-        customHexagon(radius, size)
+        val centerX = size.width / 2
+        val centerY = size.height / 2
+        val radius = size.minDimension / 2f
+        val cornerRadius = 5f
+
+        moveTo(centerX, size.height - cornerRadius)
+        for (i in 1..6) {
+            val angle = i * 60.0
+            val x = centerX + radius * cos(Math.toRadians(angle)).toFloat()
+            val y = centerY + radius * sin(Math.toRadians(angle)).toFloat()
+
+
+            val controlPointX = centerX + (radius - cornerRadius) * cos(Math.toRadians(angle)).toFloat()
+            val controlPointY = centerY + (radius - cornerRadius) * sin(Math.toRadians(angle)).toFloat()
+            val endPointX = centerX + radius * cos(Math.toRadians(angle - 60)).toFloat()
+            val endPointY = centerY + radius * sin(Math.toRadians(angle - 60)).toFloat()
+
+            cubicTo(
+                endPointY, endPointX,
+                y, x,
+                controlPointY, controlPointX,
+            )
+        }
+        close()
     }
-}
-
-internal fun Path.customHexagon(radius: Float, size: Size) {
-    val triangleHeight = (sqrt(3.0) * radius / 2)
-    val centerX = size.width / 2
-    val centerY = size.height / 2
-
-    moveTo(centerX, centerY + radius)
-    lineTo((centerX - triangleHeight).toFloat(), centerY + radius/2)
-    lineTo((centerX - triangleHeight).toFloat(), centerY - radius/2)
-    lineTo(centerX, centerY - radius)
-    lineTo((centerX + triangleHeight).toFloat(), centerY - radius/2)
-    lineTo((centerX + triangleHeight).toFloat(), centerY + radius/2)
-
-    close()
 }
 
 @Composable

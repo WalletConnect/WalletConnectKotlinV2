@@ -1,10 +1,14 @@
 package com.walletconnect.wcmodal.client
 
+import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.wcmodal.domain.WalletConnectModalDelegate
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
+import com.walletconnect.sign.common.exceptions.SignClientAlreadyInitializedException
 import com.walletconnect.wcmodal.di.walletConnectModalModule
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
 object WalletConnectModal {
 
@@ -38,24 +42,53 @@ object WalletConnectModal {
     ) {
         SignClient.initialize(
             init = Sign.Params.Init(init.core),
-            onSuccess = {
-                this.excludedWalletsIds = init.excludedWalletIds
-                this.recommendedWalletsIds = init.recommendedWalletsIds
-                _sessionParams = init.sessionParams
-                runCatching {
-                    wcKoinApp.modules(walletConnectModalModule())
-                    setDelegate(WalletConnectModalDelegate)
-                }.onFailure { error -> onError(Modal.Model.Error(error)) }
-                onSuccess()
-            },
+            onSuccess = { onInitializedClient(init, onSuccess, onError) },
             onError = { error ->
-                onError(Modal.Model.Error(error.throwable))
-                return@initialize
+                if (error.throwable is SignClientAlreadyInitializedException) {
+                    onInitializedClient(init, onSuccess, onError)
+                } else {
+                    onError(Modal.Model.Error(error.throwable))
+                    return@initialize
+                }
             }
         )
     }
+
+    private fun onInitializedClient(
+        init: Modal.Params.Init,
+        onSuccess: () -> Unit = {},
+        onError: (Modal.Model.Error) -> Unit
+    ) {
+        this.excludedWalletsIds = init.excludedWalletIds
+        this.recommendedWalletsIds = init.recommendedWalletsIds
+        _sessionParams = init.sessionParams
+        runCatching {
+            wcKoinApp.modules(walletConnectModalModule())
+            setInternalDelegate(WalletConnectModalDelegate)
+        }.onFailure { error -> return@onInitializedClient onError(Modal.Model.Error(error)) }
+        onSuccess()
+    }
+
     @Throws(IllegalStateException::class)
     fun setDelegate(delegate: ModalDelegate) {
+        WalletConnectModalDelegate.wcEventModels.onEach { event ->
+            when(event) {
+                is Modal.Model.ApprovedSession -> delegate.onSessionApproved(event)
+                is Modal.Model.ConnectionState -> delegate.onConnectionStateChange(event)
+                is Modal.Model.DeletedSession.Success -> delegate.onSessionDelete(event)
+                is Modal.Model.Error -> delegate.onError(event)
+                is Modal.Model.RejectedSession -> delegate.onSessionRejected(event)
+                is Modal.Model.Session -> delegate.onSessionExtend(event)
+                is Modal.Model.SessionEvent -> delegate.onSessionEvent(event)
+                is Modal.Model.SessionRequestResponse -> delegate.onSessionRequestResponse(event)
+                is Modal.Model.UpdatedSession -> delegate.onSessionUpdate(event)
+                else -> Unit
+            }
+        }.launchIn(scope)
+    }
+
+    @Throws(IllegalStateException::class)
+    private fun setInternalDelegate(delegate: ModalDelegate) {
         val signDelegate = object : SignClient.DappDelegate {
             override fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession) {
                 delegate.onSessionApproved(approvedSession.toModal())

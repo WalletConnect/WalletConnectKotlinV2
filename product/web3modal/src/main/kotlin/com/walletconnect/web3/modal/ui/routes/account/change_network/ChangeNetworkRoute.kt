@@ -1,7 +1,7 @@
 package com.walletconnect.web3.modal.ui.routes.account.change_network
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -72,8 +72,10 @@ private fun ChainNetworkGrid(
     onItemClick: (Modal.Model.Chain) -> Unit
 ) {
     LazyVerticalGrid(
-        contentPadding = PaddingValues(horizontal = 10.dp),
-        columns = GridCells.Adaptive(76.dp),
+        columns = GridCells.FixedSize(82.dp),
+        modifier = Modifier.padding(horizontal = 10.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalArrangement = Arrangement.Center,
         content = {
             itemsIndexed(chains) { _, item ->
                 ChainNetworkItem(

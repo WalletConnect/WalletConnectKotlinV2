@@ -42,10 +42,15 @@ fun Web3ModalComponent(
     LaunchedEffect(Unit) {
         Web3ModalDelegate
             .wcEventModels
-            .filterIsInstance<Modal.Model.ApprovedSession>()
             .onEach { event ->
-                web3ModalViewModel.saveSessionTopic(event.topic)
-                closeModal()
+                when(event) {
+                    is Modal.Model.ApprovedSession -> {
+                        web3ModalViewModel.saveSession(event)
+                        closeModal()
+                    }
+                    is Modal.Model.DeletedSession.Success -> { closeModal() }
+                    else -> Unit
+                }
             }
             .collect()
     }

@@ -55,7 +55,7 @@ internal fun ConnectButton(
             ) {}
         } else {
             val text = when (size) {
-                ConnectButtonSize.NORMAL -> "Connect Wallet"
+                ConnectButtonSize.NORMAL -> "Connect wallet"
                 ConnectButtonSize.SMALL -> "Connect"
             }
             TextButton(

@@ -79,7 +79,7 @@ internal fun Web3ModalRoot(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Web3ModalTheme.colors.background.color100)
+                .background(Web3ModalTheme.colors.background.color125)
         ) {
             title?.let { title ->
                 Web3ModalTopBar(

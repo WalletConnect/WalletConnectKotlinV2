@@ -93,47 +93,46 @@ class MainActivity : ComponentActivity() {
                 var isDark by remember { mutableStateOf(isDarkTheme) }
                 var darkColors by remember { mutableStateOf(Web3ModalTheme.provideDarkWeb3ModalColor()) }
                 var lightColors by remember { mutableStateOf(Web3ModalTheme.provideLightWeb3ModalColors()) }
-
-                Scaffold(
-                    scaffoldState = scaffoldState,
-                    topBar = {
-                        Column {
-                            TopAppBar(
-                                title = {
-                                    Text(
-                                        text = "Web3Modal Lab",
-                                        modifier = Modifier.fillMaxWidth(),
-                                        textAlign = TextAlign.Center
-                                    )
-                                },
-                                navigationIcon = {},
-                                actions = {
-                                    ThemeModeIcon(isDark) { isDark = it }
-                                }
-                            )
-                            PredefineThemes(
-                                onClick = { light, dark ->
-                                    lightColors = light
-                                    darkColors = dark
-                                }
-                            )
-                        }
-                    },
-                    drawerContent = { DrawerContent() }
-                ) { paddingValues ->
-                    Web3ModalTheme(
-                        mode = if (isDark) Web3ModalTheme.Mode.DARK else Web3ModalTheme.Mode.LIGHT,
-                        lightColors = lightColors,
-                        darkColors = darkColors
+                Web3ModalTheme(
+                    mode = if (isDark) Web3ModalTheme.Mode.DARK else Web3ModalTheme.Mode.LIGHT,
+                    lightColors = lightColors,
+                    darkColors = darkColors
+                ) {
+                    ModalBottomSheetLayout(
+                        sheetShape = RoundedCornerShape(topStart = 36.dp, topEnd = 36.dp),
+                        bottomSheetNavigator = bottomSheetNavigator,
                     ) {
-                        ModalBottomSheetLayout(
-                            sheetShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-                            bottomSheetNavigator = bottomSheetNavigator,
-                            modifier = Modifier.padding(paddingValues)
-                        ) {
+                        Scaffold(
+                            scaffoldState = scaffoldState,
+                            topBar = {
+                                Column {
+                                    TopAppBar(
+                                        title = {
+                                            Text(
+                                                text = "Web3Modal Lab",
+                                                modifier = Modifier.fillMaxWidth(),
+                                                textAlign = TextAlign.Center
+                                            )
+                                        },
+                                        navigationIcon = {},
+                                        actions = {
+                                            ThemeModeIcon(isDark) { isDark = it }
+                                        }
+                                    )
+                                    PredefineThemes(
+                                        onClick = { light, dark ->
+                                            lightColors = light
+                                            darkColors = dark
+                                        }
+                                    )
+                                }
+                            },
+                            drawerContent = { DrawerContent() }
+                        ) { paddingValues ->
                             NavHost(
                                 navController = navController,
-                                startDestination = Route.Lab.path
+                                startDestination = Route.Lab.path,
+                                modifier = Modifier.padding(paddingValues)
                             ) {
                                 composable(Route.Lab.path) {
                                     LabScreen(navController = navController)
@@ -173,7 +172,6 @@ private fun PredefineThemes(
         item { ThemeItem(color = Color(0xFF10B124), text = "Green") { onClick(predefinedGreenLightTheme, predefinedGreenDarkTheme) } }
     }
 }
-
 
 
 @Composable
