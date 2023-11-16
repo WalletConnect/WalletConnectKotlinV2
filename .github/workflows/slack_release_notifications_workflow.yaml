@@ -12,8 +12,8 @@ jobs:
     runs-on: 'ubuntu-latest'
     strategy:
       matrix:
-        conf:
-        - webhook_url: '${{ secrets.SLACK_WEBHOOK_URL_KOTLIN }}'
+        conf: 
+        - webhook_url: SLACK_WEBHOOK_URL_KOTLIN
     steps:
     - id: 'step-0'
       name: 'Check out'
@@ -27,5 +27,5 @@ jobs:
             "text":"Kotlin Release ${{ github.event.release.name }} was just released. Please update and let us know if you have any issues."
           }
       env:
-        SLACK_WEBHOOK_URL: '${{ matrix.conf.webhook_url }}'
+        SLACK_WEBHOOK_URL: '${{ secrets[matrix.conf.webhook_url] }}'
         SLACK_WEBHOOK_TYPE: 'INCOMING_WEBHOOK'
