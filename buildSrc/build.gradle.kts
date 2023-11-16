@@ -9,7 +9,7 @@ repositories {
     gradlePluginPortal()
 }
 
-kotlin.jvmToolchain(11)
+kotlin.jvmToolchain(JavaVersion.VERSION_11.majorVersion.toInt())
 
 dependencies {
     implementation("com.android.tools.build:gradle:8.0.2") // when changing, remember to change version in Versions.kt in buildSrc module
