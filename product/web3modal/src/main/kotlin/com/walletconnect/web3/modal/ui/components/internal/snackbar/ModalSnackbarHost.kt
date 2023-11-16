@@ -39,6 +39,7 @@ internal fun ModalSnackBarHost(
                 visible = isVisibleSnackBar,
                 modifier = Modifier
                     .padding(top = 10.dp)
+                    .padding(horizontal = 60.dp)
                     .align(Alignment.TopCenter),
                 enter = fadeIn() + scaleIn(),
                 exit = fadeOut() + scaleOut()
