@@ -17,7 +17,7 @@ import org.koin.dsl.module
 internal fun storageModule(dbName: String) = module {
     @Suppress("RemoveExplicitTypeArguments")
     fun Scope.createChatDB(): ChatDatabase = ChatDatabase(
-        driver = get(),
+        driver = get(named(dbName)),
         InvitesAdapter = Invites.Adapter(
             statusAdapter = get<ColumnAdapter<InviteStatus, String>>(named(ChatDITags.COLUMN_ADAPTER_INVITE_STATUS)),
             typeAdapter = get<ColumnAdapter<InviteType, String>>(named(ChatDITags.COLUMN_ADAPTER_INVITE_TYPE)),

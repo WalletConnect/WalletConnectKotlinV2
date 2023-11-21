@@ -26,7 +26,7 @@ fun coreStorageModule(storagePrefix: String = String.Empty) = module {
 }
 
 fun sdkBaseStorageModule(databaseSchema: SqlSchema<QueryResult.Value<Unit>>, databaseName: String) = module {
-    single<SqlDriver> {
+    single<SqlDriver>(named(databaseName)) {
         AndroidSqliteDriver(
             schema = databaseSchema,
             context = androidContext(),

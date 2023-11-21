@@ -4,12 +4,15 @@ package com.walletconnect.notify.di
 
 import app.cash.sqldelight.ColumnAdapter
 import com.walletconnect.android.di.sdkBaseStorageModule
+import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.di.deleteDatabase
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.notify.NotifyDatabase
 import com.walletconnect.notify.common.storage.data.dao.ActiveSubscriptions
 import com.walletconnect.notify.data.storage.MessagesRepository
 import com.walletconnect.notify.data.storage.RegisteredAccountsRepository
 import com.walletconnect.notify.data.storage.SubscriptionRepository
+import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
 
@@ -17,7 +20,7 @@ import org.koin.dsl.module
 @JvmSynthetic
 internal fun notifyStorageModule(dbName: String) = module {
     fun Scope.createNotifyDB() = NotifyDatabase(
-        driver = get(),
+        driver = get(named(dbName)),
         ActiveSubscriptionsAdapter = ActiveSubscriptions.Adapter(
             map_of_scopeAdapter = get<ColumnAdapter<Map<String, Triple<String, String, Boolean>>, String>>()
         ),
@@ -61,7 +64,7 @@ internal fun notifyStorageModule(dbName: String) = module {
     single {
         try {
             createNotifyDB().also {
-                it.activeSubscriptionsQueries.getAllActiveSubscriptions().executeAsOneOrNull()
+                it.registeredAccountsQueries.getAllAccounts().executeAsList()
             }
         } catch (e: Exception) {
             deleteDatabase(dbName)

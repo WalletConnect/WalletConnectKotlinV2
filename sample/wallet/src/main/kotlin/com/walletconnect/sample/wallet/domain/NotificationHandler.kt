@@ -2,7 +2,6 @@
 
 package com.walletconnect.sample.wallet.domain
 
-import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -25,6 +24,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -201,12 +201,12 @@ object NotificationHandler {
         _notificationsFlow.emit(notification)
     }
 
-    @SuppressLint("InlinedApi")
-    fun startNotificationDisplayingJob(coroutineScope: CoroutineScope, context: Context) {
-        _notificationsFlow
+    fun startNotificationDisplayingJob(scope: CoroutineScope, context: Context): Job {
+        return _notificationsFlow
             .debounceUniqueAndGroupByChannelId(2000)
             .addChannelName()
             .buildAndShowNotification(context, 5000)
-            .launchIn(coroutineScope)
+            .launchIn(scope)
     }
+
 }

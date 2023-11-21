@@ -192,7 +192,7 @@ fun coreStorageModule(storagePrefix: String = String.Empty) = module {
 @SuppressLint("HardwareIds")
 fun sdkBaseStorageModule(databaseSchema: SqlSchema<QueryResult.Value<Unit>>, databaseName: String) = module {
 
-    single<SqlDriver> {
+    single<SqlDriver>(named(databaseName)) {
         AndroidSqliteDriver(
             schema = databaseSchema,
             context = androidContext(),

@@ -1,8 +1,8 @@
 package com.walletconnect.android.internal.common.di
 
-import com.squareup.moshi.Moshi
 import app.cash.sqldelight.ColumnAdapter
 import app.cash.sqldelight.EnumColumnAdapter
+import com.squareup.moshi.Moshi
 import com.walletconnect.android.di.AndroidBuildVariantDITags
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.Validation

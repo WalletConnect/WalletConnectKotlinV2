@@ -18,9 +18,11 @@ import com.pandulapeter.beagle.modules.TextModule
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.cacao.signature.SignatureType
+import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.utils.cacao.sign
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.notify.client.Notify
 import com.walletconnect.notify.client.NotifyClient
 import com.walletconnect.notify.client.cacao.CacaoSigner
@@ -28,6 +30,8 @@ import com.walletconnect.sample.common.RELAY_URL
 import com.walletconnect.sample.common.initBeagle
 import com.walletconnect.sample.common.tag
 import com.walletconnect.sample.wallet.domain.EthAccountDelegate
+import com.walletconnect.sample.wallet.domain.NotificationHandler
+import com.walletconnect.sample.wallet.domain.NotifyDelegate
 import com.walletconnect.sample.wallet.domain.mixPanel
 import com.walletconnect.sample.wallet.domain.toEthAddress
 import com.walletconnect.sample.wallet.ui.state.ConnectionState
@@ -38,7 +42,11 @@ import com.walletconnect.web3.wallet.client.Web3Wallet
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import org.koin.core.qualifier.named
 import timber.log.Timber
 import com.walletconnect.sample.common.BuildConfig as CommonBuildConfig
 
@@ -130,6 +138,8 @@ class Web3WalletApplication : Application() {
             }
             addFirebaseBeagleModules()
         }
+
+        handleNotifyMessages()
     }
 
     private fun initializeBeagle() {
@@ -197,4 +207,31 @@ class Web3WalletApplication : Application() {
         )
         addFirebaseBeagleModules()
     }
+
+
+    private fun handleNotifyMessages() {
+        val scope = CoroutineScope(Dispatchers.Default)
+
+        val job = NotifyDelegate.notifyEvents
+            .filterIsInstance<Notify.Event.Message>()
+            .onEach { message -> NotificationHandler.addNotification(message.message.message) }
+            .launchIn(scope)
+
+
+        val job2 = NotificationHandler.startNotificationDisplayingJob(scope, this)
+
+
+        job.invokeOnCompletion { cause ->
+            onScopeCancelled(cause, "job")
+        }
+
+        job2.invokeOnCompletion { cause ->
+            onScopeCancelled(cause, "job2")
+        }
+    }
+
+    private fun onScopeCancelled(error: Throwable?, job: String) {
+        wcKoinApp.koin.get<Logger>(named(AndroidCommonDITags.LOGGER)).error("onScopeCancelled($job): $error")
+    }
+
 }
