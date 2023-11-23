@@ -33,6 +33,41 @@ object Core {
             val isActive: Boolean,
             val registeredMethods: String
         ) : Model()
+
+
+        sealed class Message : Model() {
+            data class Notify(
+                val title: String,
+                val body: String,
+                val icon: String?,
+                val url: String?,
+                val type: String,
+                val topic: String
+            ) : Message()
+
+            data class Simple(
+                val title: String,
+                val body: String
+            ) : Message()
+
+            data class Decrypted(
+                val metadata: Metadata,
+                val request: Request
+            ) : Message() {
+                data class Metadata(
+                    val name: String,
+                    val description: String,
+                    val url: String,
+                    val icons: List<String>,
+                )
+
+                data class Request(
+                    val id: Long,
+                    val method: String,
+                    val params: String,
+                )
+            }
+        }
     }
 
     sealed class Params {
@@ -48,5 +83,7 @@ object Core {
         data class UpdateExpiry(val topic: String, val expiry: Expiry) : Params()
 
         data class UpdateMetadata(val topic: String, val metadata: Model.AppMetaData, val metaDataType: AppMetaDataType) : Params()
+
+        data class DecryptMessage(val topic: String, val encryptedMessage: String) : Params()
     }
 }

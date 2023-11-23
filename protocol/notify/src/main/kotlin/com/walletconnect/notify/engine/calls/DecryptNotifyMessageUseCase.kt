@@ -2,6 +2,8 @@
 
 package com.walletconnect.notify.engine.calls
 
+import com.walletconnect.android.echo.DecryptMessageUseCaseInterface
+import com.walletconnect.android.echo.Message
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
@@ -10,21 +12,19 @@ import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.sync.ClientJsonRpc
 import com.walletconnect.android.internal.common.storage.JsonRpcHistory
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.notify.common.model.NotifyMessage
 import com.walletconnect.notify.data.jwt.message.MessageRequestJwtClaim
 import com.walletconnect.notify.data.storage.MessagesRepository
 import kotlinx.coroutines.supervisorScope
-import timber.log.Timber
 import kotlin.reflect.safeCast
 
-internal class DecryptMessageUseCase(
+internal class DecryptNotifyMessageUseCase(
     private val codec: Codec,
     private val serializer: JsonRpcSerializer,
     private val jsonRpcHistory: JsonRpcHistory,
     private val messagesRepository: MessagesRepository
 ) : DecryptMessageUseCaseInterface {
 
-    override suspend fun decryptMessage(topic: String, message: String, onSuccess: (NotifyMessage) -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
+    override suspend fun decryptMessage(topic: String, message: String, onSuccess: (Message) -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         try {
             val decryptedMessageString = codec.decrypt(Topic(topic), message)
             val messageHash = sha256(decryptedMessageString.toByteArray())
@@ -50,7 +50,7 @@ internal class DecryptMessageUseCase(
                 )
 
                 onSuccess(
-                    NotifyMessage(
+                    Message.Notify(
                         title = messageRequestJwt.message.title,
                         body = messageRequestJwt.message.body,
                         icon = messageRequestJwt.message.icon,
@@ -63,8 +63,4 @@ internal class DecryptMessageUseCase(
             onFailure(e)
         }
     }
-}
-
-internal interface DecryptMessageUseCaseInterface {
-    suspend fun decryptMessage(topic: String, message: String, onSuccess: (NotifyMessage) -> Unit, onFailure: (Throwable) -> Unit)
 }

@@ -48,6 +48,8 @@ android {
 }
 
 dependencies {
+    firebaseMessaging()
+
     debugImplementation(project(":core:android"))
     debugImplementation(project(":protocol:sign"))
     debugImplementation(project(":protocol:auth"))

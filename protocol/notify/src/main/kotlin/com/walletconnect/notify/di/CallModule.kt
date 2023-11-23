@@ -2,9 +2,9 @@
 
 package com.walletconnect.notify.di
 
+import com.walletconnect.android.echo.DecryptMessageUseCaseInterface
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
-import com.walletconnect.notify.engine.calls.DecryptMessageUseCase
-import com.walletconnect.notify.engine.calls.DecryptMessageUseCaseInterface
+import com.walletconnect.notify.engine.calls.DecryptNotifyMessageUseCase
 import com.walletconnect.notify.engine.calls.DeleteMessageUseCase
 import com.walletconnect.notify.engine.calls.DeleteMessageUseCaseInterface
 import com.walletconnect.notify.engine.calls.DeleteSubscriptionUseCase
@@ -67,7 +67,7 @@ internal fun callModule() = module {
     }
 
     single<DecryptMessageUseCaseInterface> {
-        DecryptMessageUseCase(
+        DecryptNotifyMessageUseCase(
             codec = get(),
             serializer = get(),
             jsonRpcHistory = get(),

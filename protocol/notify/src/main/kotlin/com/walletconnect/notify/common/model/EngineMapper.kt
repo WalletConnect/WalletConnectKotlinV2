@@ -2,6 +2,7 @@
 
 package com.walletconnect.notify.common.model
 
+import com.walletconnect.android.echo.Message
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
@@ -9,7 +10,7 @@ import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.notify.client.Notify
 
 @JvmSynthetic
-internal fun NotifyMessage.toWalletClient(topic: String): Notify.Model.Message.Decrypted {
+internal fun Message.Notify.toWalletClient(topic: String): Notify.Model.Message.Decrypted {
     return Notify.Model.Message.Decrypted(title, body, icon, url, type, topic)
 }
 

@@ -2,6 +2,7 @@
 
 package com.walletconnect.notify.engine
 
+import com.walletconnect.android.echo.DecryptMessageUseCaseInterface
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
@@ -10,7 +11,6 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.notify.common.JsonRpcMethod
-import com.walletconnect.notify.engine.calls.DecryptMessageUseCaseInterface
 import com.walletconnect.notify.engine.calls.DeleteMessageUseCaseInterface
 import com.walletconnect.notify.engine.calls.DeleteSubscriptionUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetListOfActiveSubscriptionsUseCaseInterface

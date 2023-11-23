@@ -20,7 +20,7 @@ internal object EchoClient : EchoInterface {
     private const val SUCCESS_STATUS = "SUCCESS"
 
     override fun register(firebaseAccessToken: String, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
-        val body = EchoBody(clientId, firebaseAccessToken)
+        val body = EchoBody(clientId, firebaseAccessToken, enableAlwaysDecrypted = true)
 
         scope.launch(Dispatchers.IO) {
             supervisorScope {

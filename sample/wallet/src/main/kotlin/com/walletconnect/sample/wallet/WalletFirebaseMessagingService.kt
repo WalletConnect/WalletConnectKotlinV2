@@ -2,6 +2,8 @@ package com.walletconnect.sample.wallet
 
 import android.annotation.SuppressLint
 import com.google.firebase.messaging.RemoteMessage
+import com.walletconnect.android.Core
+import com.walletconnect.android.echo.PushMessagingService
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.foundation.util.Logger
@@ -12,8 +14,14 @@ import kotlinx.coroutines.runBlocking
 import org.koin.core.qualifier.named
 
 @SuppressLint("MissingFirebaseInstanceTokenRefresh")
-class WalletFirebaseMessagingService : NotifyMessageService() {
+class NotifyFirebaseMessagingService : NotifyMessageService() { //PushMessagingService() {
+
     private val logger: Logger by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.LOGGER)) }
+
+    //For PushMessagingService
+//    override fun onMessage(message: Core.Model.Message, originalMessage: RemoteMessage) {
+//        TODO("Not yet implemented")
+//    }
 
     override fun newToken(token: String) {
         logger.log("Registering New Token Success:\t$token")
@@ -24,7 +32,8 @@ class WalletFirebaseMessagingService : NotifyMessageService() {
     }
 
     override fun onMessage(message: Notify.Model.Message, originalMessage: RemoteMessage) {
-        logger.log("Message:\t$message")
+
+        println("kobe; OnMessage: $message")
 
         runBlocking { NotificationHandler.addNotification(message) }
     }

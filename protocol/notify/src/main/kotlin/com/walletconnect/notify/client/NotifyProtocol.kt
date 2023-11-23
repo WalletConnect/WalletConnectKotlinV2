@@ -1,5 +1,6 @@
 package com.walletconnect.notify.client
 
+import com.walletconnect.android.echo.Message
 import com.walletconnect.android.internal.common.di.DatabaseConfig
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
@@ -125,7 +126,7 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
         }
     }
 
-    override fun deleteSubscription(params: Notify.Params.DeleteSubscription, onSuccess: () -> Unit ,onError: (Notify.Model.Error) -> Unit) {
+    override fun deleteSubscription(params: Notify.Params.DeleteSubscription, onSuccess: () -> Unit, onError: (Notify.Model.Error) -> Unit) {
         checkEngineInitialization()
 
         scope.launch {
@@ -153,11 +154,12 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
         }
     }
 
+    //todo: make deprecated?
     override fun decryptMessage(params: Notify.Params.DecryptMessage, onSuccess: (Notify.Model.Message.Decrypted) -> Unit, onError: (Notify.Model.Error) -> Unit) {
         scope.launch {
             notifyEngine.decryptMessage(params.topic, params.encryptedMessage,
                 onSuccess = { notifyMessage ->
-                    onSuccess(notifyMessage.toWalletClient(params.topic))
+                    (notifyMessage as Message.Notify).run { onSuccess(notifyMessage.toWalletClient(params.topic)) }
                 },
                 onFailure = { error ->
                     onError(Notify.Model.Error(error))

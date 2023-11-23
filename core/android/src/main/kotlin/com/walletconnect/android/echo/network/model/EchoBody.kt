@@ -10,5 +10,7 @@ data class EchoBody(
     @Json(name = "token")
     val token: String,
     @Json(name = "type")
-    val type: String = "fcm"
+    val type: String = "fcm",
+    @Json(name = "always_raw")
+    val enableAlwaysDecrypted: Boolean?
 )
