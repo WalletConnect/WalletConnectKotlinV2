@@ -15,17 +15,18 @@ private val Project.secrets: Properties
 
 project.extensions.configure(BaseExtension::class.java) {
     signingConfigs {
-        create("internal_release") {
-            storeFile = File(rootDir, secrets.getProperty("WC_FILENAME_INTERNAL"))
-            storePassword = secrets.getProperty("WC_STORE_PASSWORD_INTERNAL")
-            keyAlias = secrets.getProperty("WC_KEYSTORE_ALIAS")
-            keyPassword = secrets.getProperty("WC_KEY_PASSWORD_INTERNAL")
-        }
         create("upload") {
             storeFile = File(rootDir, secrets.getProperty("WC_FILENAME_UPLOAD"))
             storePassword = secrets.getProperty("WC_STORE_PASSWORD_UPLOAD")
             keyAlias = secrets.getProperty("WC_KEYSTORE_ALIAS")
             keyPassword = secrets.getProperty("WC_KEY_PASSWORD_UPLOAD")
+        }
+
+        create("internal_release") {
+            storeFile = File(rootDir, secrets.getProperty("WC_FILENAME_INTERNAL"))
+            storePassword = secrets.getProperty("WC_STORE_PASSWORD_INTERNAL")
+            keyAlias = secrets.getProperty("WC_KEYSTORE_ALIAS")
+            keyPassword = secrets.getProperty("WC_KEY_PASSWORD_INTERNAL")
         }
     }
 
