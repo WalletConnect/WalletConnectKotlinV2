@@ -40,7 +40,8 @@ project.extensions.configure(BaseExtension::class.java) {
             defaultConfig.versionCode = SAMPLE_VERSION_CODE
             firebaseAppDistribution {
                 artifactType = "AAB"
-                groups = "design-team, javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
+//                groups = "design-team, javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
+                groups = "test"
             }
         }
 
@@ -57,7 +58,8 @@ project.extensions.configure(BaseExtension::class.java) {
                 "$SAMPLE_VERSION_CODE${System.getenv("GITHUB_RUN_ATTEMPT") ?: ""}".toInt()
             firebaseAppDistribution {
                 artifactType = "APK"
-                groups = "design-team, javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
+//                groups = "design-team, javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
+                groups = "test"
             }
         }
 
@@ -69,7 +71,8 @@ project.extensions.configure(BaseExtension::class.java) {
                 "$SAMPLE_VERSION_CODE${System.getenv("GITHUB_RUN_ATTEMPT") ?: ""}".toInt()
             firebaseAppDistribution {
                 artifactType = "APK"
-                groups = "design-team, javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
+//                groups = "design-team, javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
+                groups = "test"
             }
         }
     }
