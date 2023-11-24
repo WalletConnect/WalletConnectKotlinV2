@@ -49,7 +49,7 @@ project.extensions.configure(BaseExtension::class.java) {
             isMinifyEnabled = false
             isDebuggable = true
             applicationIdSuffix(".internal")
-            matchingFallbacks += "release"
+            matchingFallbacks += listOf("release", "debug")
             signingConfig = signingConfigs.getByName("internal_release")
             versionNameSuffix =
                 "${System.getenv("GITHUB_RUN_ATTEMPT")?.let { ".$it" } ?: ""}-internal"
