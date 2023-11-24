@@ -14,7 +14,7 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.exceptions.PeerError
 import com.walletconnect.sign.common.model.PendingRequest
-import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
+import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.common.model.vo.proposal.ProposalVO
@@ -196,39 +196,39 @@ private fun convertToURI(it: String) = try {
 }
 
 @JvmSynthetic
-internal fun Map<String, EngineDO.Namespace.Proposal>.toNamespacesVORequired(): Map<String, NamespaceVO.Proposal> =
+internal fun Map<String, EngineDO.Namespace.Proposal>.toNamespacesVORequired(): Map<String, Namespace.Proposal> =
     this.mapValues { (_, namespace) ->
-        NamespaceVO.Proposal(chains = namespace.chains, methods = namespace.methods, events = namespace.events)
+        Namespace.Proposal(chains = namespace.chains, methods = namespace.methods, events = namespace.events)
     }
 
 @JvmSynthetic
-internal fun Map<String, EngineDO.Namespace.Proposal>.toNamespacesVOOptional(): Map<String, NamespaceVO.Proposal> =
+internal fun Map<String, EngineDO.Namespace.Proposal>.toNamespacesVOOptional(): Map<String, Namespace.Proposal> =
     this.mapValues { (_, namespace) ->
-        NamespaceVO.Proposal(chains = namespace.chains, methods = namespace.methods, events = namespace.events)
+        Namespace.Proposal(chains = namespace.chains, methods = namespace.methods, events = namespace.events)
     }
 
 @JvmSynthetic
-internal fun Map<String, NamespaceVO.Proposal>.toMapOfEngineNamespacesRequired(): Map<String, EngineDO.Namespace.Proposal> =
-    this.mapValues { (_, namespace) ->
-        EngineDO.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
-    }
-
-@JvmSynthetic
-internal fun Map<String, NamespaceVO.Proposal>.toMapOfEngineNamespacesOptional(): Map<String, EngineDO.Namespace.Proposal> =
+internal fun Map<String, Namespace.Proposal>.toMapOfEngineNamespacesRequired(): Map<String, EngineDO.Namespace.Proposal> =
     this.mapValues { (_, namespace) ->
         EngineDO.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic
-internal fun Map<String, NamespaceVO.Session>.toMapOfEngineNamespacesSession(): Map<String, EngineDO.Namespace.Session> =
+internal fun Map<String, Namespace.Proposal>.toMapOfEngineNamespacesOptional(): Map<String, EngineDO.Namespace.Proposal> =
+    this.mapValues { (_, namespace) ->
+        EngineDO.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
+    }
+
+@JvmSynthetic
+internal fun Map<String, Namespace.Session>.toMapOfEngineNamespacesSession(): Map<String, EngineDO.Namespace.Session> =
     this.mapValues { (_, namespaceVO) ->
         EngineDO.Namespace.Session(namespaceVO.chains, namespaceVO.accounts, namespaceVO.methods, namespaceVO.events)
     }
 
 @JvmSynthetic
-internal fun Map<String, EngineDO.Namespace.Session>.toMapOfNamespacesVOSession(): Map<String, NamespaceVO.Session> =
+internal fun Map<String, EngineDO.Namespace.Session>.toMapOfNamespacesVOSession(): Map<String, Namespace.Session> =
     this.mapValues { (_, namespace) ->
-        NamespaceVO.Session(namespace.chains, namespace.accounts, namespace.methods, namespace.events)
+        Namespace.Session(namespace.chains, namespace.accounts, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic

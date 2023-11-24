@@ -3,7 +3,7 @@ package com.walletconnect.sign.common.model.vo.proposal
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.Redirect
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
+import com.walletconnect.android.internal.common.model.Namespace
 
 internal data class ProposalVO(
     val requestId: Long,
@@ -13,8 +13,8 @@ internal data class ProposalVO(
     val url: String,
     val icons: List<String>,
     val redirect: String,
-    val requiredNamespaces: Map<String, NamespaceVO.Proposal>,
-    val optionalNamespaces: Map<String, NamespaceVO.Proposal>,
+    val requiredNamespaces: Map<String, Namespace.Proposal>,
+    val optionalNamespaces: Map<String, Namespace.Proposal>,
     val properties: Map<String, String>?,
     val proposerPublicKey: String,
     val relayProtocol: String,

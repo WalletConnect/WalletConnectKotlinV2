@@ -5,7 +5,7 @@ package com.walletconnect.sign.storage.proposal
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
+import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.sign.common.model.vo.proposal.ProposalVO
 import com.walletconnect.sign.storage.data.dao.optionalnamespaces.OptionalNamespaceDaoQueries
 import com.walletconnect.sign.storage.data.dao.proposal.ProposalDaoQueries
@@ -83,8 +83,8 @@ class ProposalStorageRepository(
         properties: Map<String, String>?,
         redirect: String,
     ): ProposalVO {
-        val requiredNamespaces: Map<String, NamespaceVO.Proposal> = getRequiredNamespaces(request_id)
-        val optionalNamespaces: Map<String, NamespaceVO.Proposal> = getOptionalNamespaces(request_id)
+        val requiredNamespaces: Map<String, Namespace.Proposal> = getRequiredNamespaces(request_id)
+        val optionalNamespaces: Map<String, Namespace.Proposal> = getOptionalNamespaces(request_id)
 
         return ProposalVO(
             requestId = request_id,
@@ -104,28 +104,28 @@ class ProposalStorageRepository(
     }
 
     @Throws(SQLiteException::class)
-    private fun insertRequiredNamespace(namespaces: Map<String, NamespaceVO.Proposal>, proposalId: Long) {
+    private fun insertRequiredNamespace(namespaces: Map<String, Namespace.Proposal>, proposalId: Long) {
         namespaces.forEach { (key, value) ->
             requiredNamespaceDaoQueries.insertOrAbortProposalNamespace(proposalId, key, value.chains, value.methods, value.events)
         }
     }
 
     @Throws(SQLiteException::class)
-    private fun insertOptionalNamespace(namespaces: Map<String, NamespaceVO.Proposal>?, proposalId: Long) {
+    private fun insertOptionalNamespace(namespaces: Map<String, Namespace.Proposal>?, proposalId: Long) {
         namespaces?.forEach { (key, value) ->
             optionalNamespaceDaoQueries.insertOrAbortOptionalNamespace(proposalId, key, value.chains, value.methods, value.events)
         }
     }
 
-    private fun getRequiredNamespaces(id: Long): Map<String, NamespaceVO.Proposal> {
+    private fun getRequiredNamespaces(id: Long): Map<String, Namespace.Proposal> {
         return requiredNamespaceDaoQueries.getProposalNamespaces(id) { key, chains, methods, events ->
-            key to NamespaceVO.Proposal(chains = chains, methods = methods, events = events)
+            key to Namespace.Proposal(chains = chains, methods = methods, events = events)
         }.executeAsList().toMap()
     }
 
-    private fun getOptionalNamespaces(id: Long): Map<String, NamespaceVO.Proposal> {
+    private fun getOptionalNamespaces(id: Long): Map<String, Namespace.Proposal> {
         return optionalNamespaceDaoQueries.getOptionalNamespaces(id) { key, chains, methods, events ->
-            key to NamespaceVO.Proposal(chains = chains, methods = methods, events = events)
+            key to Namespace.Proposal(chains = chains, methods = methods, events = events)
         }.executeAsList().toMap()
     }
 }

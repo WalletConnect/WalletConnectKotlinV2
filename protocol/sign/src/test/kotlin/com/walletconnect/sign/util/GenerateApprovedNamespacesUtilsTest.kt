@@ -3,7 +3,7 @@ package com.walletconnect.sign.util
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.utils.generateApprovedNamespaces
 import com.walletconnect.sign.client.utils.normalizeNamespaces
-import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
+import com.walletconnect.android.internal.common.model.Namespace
 import junit.framework.TestCase.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Test
@@ -13,12 +13,12 @@ class GenerateApprovedNamespacesUtilsTest {
     @Test
     fun testNamespacesNormalizationFromChainIndexing() {
         val namespaces = mapOf(
-            "eip155:1" to NamespaceVO.Proposal(methods = listOf("method_1", "method_2"), events = listOf("event_1", "event_2")),
-            "eip155:2" to NamespaceVO.Proposal(methods = listOf("method_11", "method_22"), events = listOf("event_11", "event_22")),
+            "eip155:1" to Namespace.Proposal(methods = listOf("method_1", "method_2"), events = listOf("event_1", "event_2")),
+            "eip155:2" to Namespace.Proposal(methods = listOf("method_11", "method_22"), events = listOf("event_11", "event_22")),
         )
 
         val normalizedNamespaces = mapOf(
-            "eip155" to NamespaceVO.Proposal(
+            "eip155" to Namespace.Proposal(
                 chains = listOf("eip155:1", "eip155:2"),
                 methods = listOf("method_1", "method_2", "method_11", "method_22"),
                 events = listOf("event_1", "event_2", "event_11", "event_22")
@@ -32,12 +32,12 @@ class GenerateApprovedNamespacesUtilsTest {
     @Test
     fun testNamespacesNormalizationMixedApproach() {
         val namespaces = mapOf(
-            "eip155:1" to NamespaceVO.Proposal(methods = listOf("method_1", "method_2"), events = listOf("event_1", "event_2")),
-            "eip155" to NamespaceVO.Proposal(chains = listOf("eip155:2"), methods = listOf("method_11", "method_22"), events = listOf("event_11", "event_22")),
+            "eip155:1" to Namespace.Proposal(methods = listOf("method_1", "method_2"), events = listOf("event_1", "event_2")),
+            "eip155" to Namespace.Proposal(chains = listOf("eip155:2"), methods = listOf("method_11", "method_22"), events = listOf("event_11", "event_22")),
         )
 
         val normalizedNamespaces = mapOf(
-            "eip155" to NamespaceVO.Proposal(
+            "eip155" to Namespace.Proposal(
                 chains = listOf("eip155:1", "eip155:2"),
                 methods = listOf("method_1", "method_2", "method_11", "method_22"),
                 events = listOf("event_1", "event_2", "event_11", "event_22")
@@ -51,7 +51,7 @@ class GenerateApprovedNamespacesUtilsTest {
     @Test
     fun testNamespacesNormalizationWithNormalizedMap() {
         val namespaces = mapOf(
-            "eip155" to NamespaceVO.Proposal(
+            "eip155" to Namespace.Proposal(
                 chains = listOf("eip155:1", "eip155:2"),
                 methods = listOf("method_1", "method_2", "method_11", "method_22"),
                 events = listOf("event_1", "event_2", "event_11", "event_22")
@@ -59,7 +59,7 @@ class GenerateApprovedNamespacesUtilsTest {
         )
 
         val normalizedNamespaces = mapOf(
-            "eip155" to NamespaceVO.Proposal(
+            "eip155" to Namespace.Proposal(
                 chains = listOf("eip155:1", "eip155:2"),
                 methods = listOf("method_1", "method_2", "method_11", "method_22"),
                 events = listOf("event_1", "event_2", "event_11", "event_22")

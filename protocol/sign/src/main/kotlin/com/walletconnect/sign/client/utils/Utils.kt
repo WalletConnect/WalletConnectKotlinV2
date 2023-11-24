@@ -7,7 +7,7 @@ import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.mapper.toClient
 import com.walletconnect.sign.client.mapper.toProposalNamespacesVO
 import com.walletconnect.sign.client.mapper.toSessionNamespacesVO
-import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
+import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.sign.common.validator.SignValidator
 
 fun generateApprovedNamespaces(
@@ -26,14 +26,14 @@ fun generateApprovedNamespaces(
         return supportedNamespacesVO.toClient()
     }
 
-    val approvedNamespaces = mutableMapOf<String, NamespaceVO.Session>()
+    val approvedNamespaces = mutableMapOf<String, Namespace.Session>()
     normalizedRequiredNamespaces.forEach { (key, requiredNamespace) ->
         val chains = supportedNamespacesVO[key]?.chains?.filter { chain -> requiredNamespace.chains!!.contains(chain) } ?: emptyList()
         val methods = supportedNamespaces[key]?.methods?.filter { method -> requiredNamespace.methods.contains(method) } ?: emptyList()
         val events = supportedNamespaces[key]?.events?.filter { event -> requiredNamespace.events.contains(event) } ?: emptyList()
         val accounts = chains.flatMap { chain -> supportedNamespaces[key]?.accounts?.filter { account -> SignValidator.getChainFromAccount(account) == chain } ?: emptyList() }
 
-        approvedNamespaces[key] = NamespaceVO.Session(chains = chains, methods = methods, events = events, accounts = accounts)
+        approvedNamespaces[key] = Namespace.Session(chains = chains, methods = methods, events = events, accounts = accounts)
     }
 
     normalizedOptionalNamespaces.forEach { (key, optionalNamespace) ->
@@ -43,7 +43,7 @@ fun generateApprovedNamespaces(
         val events = supportedNamespaces[key]?.events?.filter { event -> optionalNamespace.events.contains(event) } ?: emptyList()
         val accounts = chains.flatMap { chain -> supportedNamespaces[key]?.accounts?.filter { account -> SignValidator.getChainFromAccount(account) == chain } ?: emptyList() }
 
-        approvedNamespaces[key] = NamespaceVO.Session(
+        approvedNamespaces[key] = Namespace.Session(
             chains = approvedNamespaces[key]?.chains?.plus(chains)?.distinct() ?: chains,
             methods = approvedNamespaces[key]?.methods?.plus(methods)?.distinct() ?: methods,
             events = approvedNamespaces[key]?.events?.plus(events)?.distinct() ?: events,
@@ -54,12 +54,12 @@ fun generateApprovedNamespaces(
     return approvedNamespaces.toClient()
 }
 
-internal fun normalizeNamespaces(namespaces: Map<String, NamespaceVO.Proposal>): Map<String, NamespaceVO.Proposal> {
+internal fun normalizeNamespaces(namespaces: Map<String, Namespace.Proposal>): Map<String, Namespace.Proposal> {
     if (SignValidator.isNamespaceKeyRegexCompliant(namespaces)) return namespaces
-    return mutableMapOf<String, NamespaceVO.Proposal>().apply {
+    return mutableMapOf<String, Namespace.Proposal>().apply {
         namespaces.forEach { (key, namespace) ->
             val normalizedKey = normalizeKey(key)
-            this[normalizedKey] = NamespaceVO.Proposal(
+            this[normalizedKey] = Namespace.Proposal(
                 chains = getChains(normalizedKey).plus(getNamespaceChains(key, namespace)),
                 methods = getMethods(normalizedKey).plus(namespace.methods),
                 events = getEvents(normalizedKey).plus(namespace.events)
@@ -68,8 +68,8 @@ internal fun normalizeNamespaces(namespaces: Map<String, NamespaceVO.Proposal>):
     }.toMap()
 }
 
-private fun getNamespaceChains(key: String, namespace: NamespaceVO) = if (CoreValidator.isChainIdCAIP2Compliant(key)) listOf(key) else namespace.chains!!
+private fun getNamespaceChains(key: String, namespace: Namespace) = if (CoreValidator.isChainIdCAIP2Compliant(key)) listOf(key) else namespace.chains!!
 private fun normalizeKey(key: String): String = if (CoreValidator.isChainIdCAIP2Compliant(key)) SignValidator.getNamespaceKeyFromChainId(key) else key
-private fun MutableMap<String, NamespaceVO.Proposal>.getChains(normalizedKey: String) = (this[normalizedKey]?.chains ?: emptyList())
-private fun MutableMap<String, NamespaceVO.Proposal>.getMethods(normalizedKey: String) = (this[normalizedKey]?.methods ?: emptyList())
-private fun MutableMap<String, NamespaceVO.Proposal>.getEvents(normalizedKey: String) = (this[normalizedKey]?.events ?: emptyList())
+private fun MutableMap<String, Namespace.Proposal>.getChains(normalizedKey: String) = (this[normalizedKey]?.chains ?: emptyList())
+private fun MutableMap<String, Namespace.Proposal>.getMethods(normalizedKey: String) = (this[normalizedKey]?.methods ?: emptyList())
+private fun MutableMap<String, Namespace.Proposal>.getEvents(normalizedKey: String) = (this[normalizedKey]?.events ?: emptyList())

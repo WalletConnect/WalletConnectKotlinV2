@@ -17,7 +17,7 @@ import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.exceptions.InvalidRequestException
 import com.walletconnect.sign.common.exceptions.NO_SEQUENCE_FOR_TOPIC_MESSAGE
 import com.walletconnect.sign.common.exceptions.UnauthorizedMethodException
-import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
+import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpc
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionRequestVO
@@ -58,7 +58,7 @@ internal class SessionRequestUseCase(
             return@supervisorScope onFailure(InvalidRequestException(error.message))
         }
 
-        val namespaces: Map<String, NamespaceVO.Session> =
+        val namespaces: Map<String, Namespace.Session> =
             sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic(request.topic)).sessionNamespaces
         SignValidator.validateChainIdWithMethodAuthorisation(request.chainId, request.method, namespaces) { error ->
             return@supervisorScope onFailure(UnauthorizedMethodException(error.message))

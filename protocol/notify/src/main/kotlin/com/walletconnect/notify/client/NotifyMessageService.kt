@@ -1,13 +1,9 @@
 package com.walletconnect.notify.client
 
 import android.annotation.SuppressLint
-import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.walletconnect.android.Core
-import com.walletconnect.android.CoreClient
 import com.walletconnect.android.echo.PushMessagingService
-import org.bouncycastle.util.encoders.Base64
-import org.json.JSONObject
 
 @SuppressLint("MissingFirebaseInstanceTokenRefresh")
 abstract class NotifyMessageService : PushMessagingService() {
@@ -18,7 +14,9 @@ abstract class NotifyMessageService : PushMessagingService() {
         when (message) {
             is Core.Model.Message.Notify -> onMessage(message.toNotify(), originalMessage)
             is Core.Model.Message.Simple -> onMessage(message.toNotify(), originalMessage)
-            is Core.Model.Message.Decrypted -> TODO()
+            else -> {
+                //Ignore or should NotifyMessagingService handle Sign and Auth notifications?
+            }
         }
     }
 

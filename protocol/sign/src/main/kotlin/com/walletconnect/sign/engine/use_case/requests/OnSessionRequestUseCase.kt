@@ -17,7 +17,7 @@ import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
 import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.sign.common.model.type.Sequences
-import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
+import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.common.validator.SignValidator
 import com.walletconnect.sign.engine.model.EngineDO
@@ -63,7 +63,7 @@ internal class OnSessionRequestUseCase(
                 )
                 return@supervisorScope
             }
-            val (sessionNamespaces: Map<String, NamespaceVO.Session>, sessionPeerAppMetaData: AppMetaData?) =
+            val (sessionNamespaces: Map<String, Namespace.Session>, sessionPeerAppMetaData: AppMetaData?) =
                 sessionStorageRepository.getSessionWithoutMetadataByTopic(request.topic)
                     .run {
                         val peerAppMetaData = metadataStorageRepository.getByTopicAndType(this.topic, AppMetaDataType.PEER)

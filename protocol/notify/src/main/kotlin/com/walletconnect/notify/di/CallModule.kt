@@ -66,7 +66,7 @@ internal fun callModule() = module {
         )
     }
 
-    single<DecryptMessageUseCaseInterface> {
+    single<DecryptMessageUseCaseInterface>(named(AndroidCommonDITags.DECRYPT_NOTIFY_MESSAGE)) {
         DecryptNotifyMessageUseCase(
             codec = get(),
             serializer = get(),

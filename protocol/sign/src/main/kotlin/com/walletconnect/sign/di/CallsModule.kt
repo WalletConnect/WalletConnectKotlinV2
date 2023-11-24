@@ -1,8 +1,10 @@
 package com.walletconnect.sign.di
 
+import com.walletconnect.android.echo.DecryptMessageUseCaseInterface
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.sign.engine.use_case.calls.ApproveSessionUseCase
 import com.walletconnect.sign.engine.use_case.calls.ApproveSessionUseCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.DecryptSignMessageUseCase
 import com.walletconnect.sign.engine.use_case.calls.DisconnectSessionUseCase
 import com.walletconnect.sign.engine.use_case.calls.DisconnectSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.EmitEventUseCase
@@ -81,6 +83,14 @@ internal fun callsModule() = module {
             sessionStorageRepository = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
             getPendingJsonRpcHistoryEntryByIdUseCase = get()
+        )
+    }
+
+    single<DecryptMessageUseCaseInterface>(named(AndroidCommonDITags.DECRYPT_SIGN_MESSAGE)) {
+        DecryptSignMessageUseCase(
+            codec = get(),
+            serializer = get(),
+            metadataRepository = get(),
         )
     }
 

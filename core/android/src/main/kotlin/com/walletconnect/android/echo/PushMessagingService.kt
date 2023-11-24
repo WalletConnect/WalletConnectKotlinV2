@@ -4,15 +4,21 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
+import com.walletconnect.android.internal.common.di.AndroidCommonDITags
+import com.walletconnect.android.internal.common.model.Namespace
+import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import org.bouncycastle.util.encoders.Base64
 import org.json.JSONObject
+import org.koin.core.qualifier.named
 
 abstract class PushMessagingService : FirebaseMessagingService() {
-
-    private val decryptNotifyMessageUseCase: DecryptMessageUseCaseInterface by lazy { wcKoinApp.koin.get() }
+    private val decryptNotifyMessageUseCase: DecryptMessageUseCaseInterface by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.DECRYPT_NOTIFY_MESSAGE)) }
+    private val decryptSignMessageUseCase: DecryptMessageUseCaseInterface by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.DECRYPT_SIGN_MESSAGE)) }
+    private val decryptAuthMessageUseCase: DecryptMessageUseCaseInterface by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.DECRYPT_AUTH_MESSAGE)) }
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
@@ -22,12 +28,8 @@ abstract class PushMessagingService : FirebaseMessagingService() {
         //todo: should be called whenever tha flag is changed!
 
         CoreClient.Echo.register(token,
-            onSuccess = {
-                newToken(token)
-            },
-            onError = { error ->
-                registeringFailed(token, error)
-            }
+            onSuccess = { newToken(token) },
+            onError = { error -> registeringFailed(token, error) }
         )
     }
 
@@ -38,25 +40,32 @@ abstract class PushMessagingService : FirebaseMessagingService() {
 
         with(message) {
             try {
-                if (isLegacyNotification()) {
-                    when (MessageFlags.findMessageFlag(data.getValue(KEY_FLAGS))) {
-                        MessageFlags.ENCRYPTED -> decryptNotifyMessage()
-                        MessageFlags.CHAT, MessageFlags.NOTIFY, MessageFlags.SIGN, MessageFlags.AUTH -> prepareSimpleNotification()
-                    }
-                } else if (notification?.isValid() == true) { //todo: add check for encrypted notification
-                    println("kobe: onValidNotification")
-                    val simpleMessage = with(requireNotNull(notification)) {
-                        Core.Model.Message.Simple(
-                            title = title!!,
-                            body = body!!,
-                        )
+                when {
+                    isLegacyNotification() -> {
+                        when (MessageFlags.findMessageFlag(data.getValue(KEY_FLAGS))) {
+                            MessageFlags.ENCRYPTED -> decryptNotifyMessage(data.getValue(KEY_BLOB))
+                            MessageFlags.CHAT, MessageFlags.NOTIFY, MessageFlags.SIGN, MessageFlags.AUTH -> prepareSimpleNotification()
+                        }
                     }
 
-                    onMessage(simpleMessage, this)
-                } else {
-                    //todo: Check Tags for Decrypting the message
-                    println("kobe: onDefaultMessage")
-                    onDefaultBehavior(this)
+                    isEncryptedNotification() -> {
+                        when (data.getValue(KEY_TAG)) {
+                            Tags.SESSION_PROPOSE.id.toString(), Tags.SESSION_REQUEST.id.toString() -> decryptSignMessage()
+                            Tags.AUTH_REQUEST.id.toString() -> decryptAuthMessage()
+                            Tags.NOTIFY_MESSAGE.id.toString() -> decryptNotifyMessage(data.getValue(KEY_MESSAGE))
+                        }
+                    }
+
+                    notification?.isValid() == true -> {
+                        println("kobe: onValidNotification")
+                        val simpleMessage = with(requireNotNull(notification)) { Core.Model.Message.Simple(title = title!!, body = body!!) }
+                        onMessage(simpleMessage, this)
+                    }
+
+                    else -> {
+                        println("kobe: onDefaultMessage")
+                        onDefaultBehavior(this)
+                    }
                 }
             } catch (e: Exception) {
                 onError(e, message)
@@ -75,15 +84,52 @@ abstract class PushMessagingService : FirebaseMessagingService() {
     abstract fun onError(throwable: Throwable, defaultMessage: RemoteMessage)
 
     private fun RemoteMessage.isLegacyNotification() = data.containsKey(KEY_TOPIC) && data.containsKey(KEY_BLOB) && data.containsKey(KEY_FLAGS)
+    private fun RemoteMessage.isEncryptedNotification() = data.containsKey(KEY_TOPIC) && data.containsKey(KEY_TAG) && data.containsKey(KEY_MESSAGE)
 
-    private fun RemoteMessage.decryptNotifyMessage() {
-        println("kobe: onNotifyEncryptedMessage")
+    private fun RemoteMessage.decryptNotifyMessage(encryptedMessage: String) {
+        println("kobe: onDecryptedNotifyMessage")
+
         scope.launch {
-            decryptNotifyMessageUseCase.decryptMessage(data.getValue(KEY_TOPIC), data.getValue(KEY_BLOB),
-                onSuccess = { notifyMessage -> (notifyMessage as Message.Notify).run { onMessage(this.toCore(data.getValue(KEY_TOPIC)), this@decryptNotifyMessage) } },
-                onFailure = { throwable -> onError(throwable, this@decryptNotifyMessage) }
-            )
+            supervisorScope {
+
+                decryptNotifyMessageUseCase.decryptMessage(data.getValue(KEY_TOPIC), encryptedMessage,
+                    onSuccess = { message ->
+                        println("kobe: ResultNotify: $message")
+                        if (message is Message.Notify) {
+                            println("kobe: Notify")
+                            onMessage(message.toCore(data.getValue(KEY_TOPIC)), this@decryptNotifyMessage)
+                        }
+                    },
+                    onFailure = { throwable -> onError(throwable, this@decryptNotifyMessage) }
+                )
+            }
         }
+    }
+
+    private fun RemoteMessage.decryptSignMessage() {
+        println("kobe: onDecryptedWeb3WalletMessage")
+
+        scope.launch {
+            supervisorScope {
+
+                decryptSignMessageUseCase.decryptMessage(data.getValue(KEY_TOPIC), data.getValue(KEY_MESSAGE),
+                    onSuccess = { message ->
+                        println("kobe: Result web3wallet: $message")
+
+                        when (message) {
+                            is Message.SessionProposal -> onMessage(message.toCore(), this@decryptSignMessage)
+                            is Message.SessionRequest -> onMessage(message.toCore(), this@decryptSignMessage)
+                            else -> onDefaultBehavior(this@decryptSignMessage)
+                        }
+                    },
+                    onFailure = { throwable -> onError(throwable, this@decryptSignMessage) }
+                )
+            }
+        }
+    }
+
+    private fun RemoteMessage.decryptAuthMessage() {
+
     }
 
     private fun RemoteMessage.prepareSimpleNotification() {
@@ -118,8 +164,13 @@ abstract class PushMessagingService : FirebaseMessagingService() {
     }
 
     private companion object {
-        // For Decrypted Messages
         const val KEY_TOPIC = "topic"
+
+        // For Encrypted Messages
+        const val KEY_TAG = "tag"
+        const val KEY_MESSAGE = "message"
+
+        // For Legacy Messages
         const val KEY_BLOB = "blob"
         const val KEY_FLAGS = "flags"
 
@@ -128,5 +179,39 @@ abstract class PushMessagingService : FirebaseMessagingService() {
         const val KEY_BODY = "body"
 
         fun Message.Notify.toCore(topic: String): Core.Model.Message.Notify = Core.Model.Message.Notify(title, body, icon, url, type, topic)
+        fun Message.SessionProposal.toCore(): Core.Model.Message.SessionProposal =
+            Core.Model.Message.SessionProposal(
+                id,
+                pairingTopic,
+                name,
+                description,
+                url,
+                icons,
+                redirect,
+                requiredNamespaces.toCore(),
+                optionalNamespaces.toCore(),
+                properties,
+                proposerPublicKey,
+                relayProtocol,
+                relayData
+            )
+
+        fun Message.SessionRequest.toCore(): Core.Model.Message.SessionRequest =
+            Core.Model.Message.SessionRequest(
+                topic,
+                chainId,
+                Core.Model.AppMetaData(
+                    peerMetaData?.name ?: "",
+                    peerMetaData?.description ?: "",
+                    peerMetaData?.url ?: "",
+                    peerMetaData?.icons ?: emptyList(),
+                    peerMetaData?.redirect?.native ?: "",
+                    peerMetaData?.verifyUrl ?: ""
+                ),
+                Core.Model.Message.SessionRequest.JSONRPCRequest(request.id, request.method, request.params)
+            )
+
+        fun Map<String, Namespace.Proposal>.toCore(): Map<String, Core.Model.Namespace.Proposal> =
+            mapValues { (_, namespace) -> Core.Model.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events) }
     }
 }

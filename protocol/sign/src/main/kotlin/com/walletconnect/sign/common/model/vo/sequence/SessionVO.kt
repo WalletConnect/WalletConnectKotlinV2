@@ -7,7 +7,7 @@ import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.type.Sequence
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
+import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.common.model.vo.proposal.ProposalVO
@@ -24,9 +24,9 @@ internal data class SessionVO(
     val selfAppMetaData: AppMetaData? = null,
     val peerPublicKey: PublicKey? = null,
     val peerAppMetaData: AppMetaData? = null,
-    val sessionNamespaces: Map<String, NamespaceVO.Session>,
-    val requiredNamespaces: Map<String, NamespaceVO.Proposal>,
-    val optionalNamespaces: Map<String, NamespaceVO.Proposal>?,
+    val sessionNamespaces: Map<String, Namespace.Session>,
+    val requiredNamespaces: Map<String, Namespace.Proposal>,
+    val optionalNamespaces: Map<String, Namespace.Proposal>?,
     val properties: Map<String, String>? = null,
     val isAcknowledged: Boolean,
     val pairingTopic: String
@@ -70,8 +70,8 @@ internal data class SessionVO(
             settleParams: SignParams.SessionSettleParams,
             selfPublicKey: PublicKey,
             selfMetadata: AppMetaData,
-            requiredNamespaces: Map<String, NamespaceVO.Proposal>,
-            optionalNamespaces: Map<String, NamespaceVO.Proposal>?,
+            requiredNamespaces: Map<String, Namespace.Proposal>,
+            optionalNamespaces: Map<String, Namespace.Proposal>?,
             properties: Map<String, String>?,
             pairingTopic: String
         ): SessionVO {

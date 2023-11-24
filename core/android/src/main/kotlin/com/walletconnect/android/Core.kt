@@ -2,6 +2,7 @@ package com.walletconnect.android
 
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.Expiry
+import com.walletconnect.android.internal.common.model.Namespace
 
 object Core {
     sealed interface Listeners {
@@ -34,8 +35,30 @@ object Core {
             val registeredMethods: String
         ) : Model()
 
+        sealed class Namespace : Model() {
 
-        sealed class Message : Model() {
+            //Required or Optional
+            data class Proposal(
+                val chains: List<String>? = null,
+                val methods: List<String>,
+                val events: List<String>,
+            ) : Namespace()
+
+            data class Session(
+                val chains: List<String>? = null,
+                val accounts: List<String>,
+                val methods: List<String>,
+                val events: List<String>,
+            ) : Namespace()
+        }
+
+        sealed class Message {
+
+            data class Simple(
+                val title: String,
+                val body: String
+            ) : Message()
+
             data class Notify(
                 val title: String,
                 val body: String,
@@ -45,26 +68,53 @@ object Core {
                 val topic: String
             ) : Message()
 
-            data class Simple(
-                val title: String,
-                val body: String
+            data class SessionProposal(
+                val id: Long,
+                val pairingTopic: String,
+                val name: String,
+                val description: String,
+                val url: String,
+                val icons: List<String>,
+                val redirect: String,
+                val requiredNamespaces: Map<String, Namespace.Proposal>,
+                val optionalNamespaces: Map<String, Namespace.Proposal>,
+                val properties: Map<String, String>?,
+                val proposerPublicKey: String,
+                val relayProtocol: String,
+                val relayData: String?,
             ) : Message()
 
-            data class Decrypted(
-                val metadata: Metadata,
-                val request: Request
+            data class SessionRequest(
+                val topic: String,
+                val chainId: String?,
+                val peerMetaData: AppMetaData?,
+                val request: JSONRPCRequest,
             ) : Message() {
-                data class Metadata(
-                    val name: String,
-                    val description: String,
-                    val url: String,
-                    val icons: List<String>,
-                )
-
-                data class Request(
+                data class JSONRPCRequest(
                     val id: Long,
                     val method: String,
                     val params: String,
+                ) : Message()
+            }
+
+            data class AuthRequest(
+                val id: Long,
+                val pairingTopic: String,
+                val payloadParams: PayloadParams,
+            ) : Message() {
+                data class PayloadParams(
+                    val type: String,
+                    val chainId: String,
+                    val domain: String,
+                    val aud: String,
+                    val version: String,
+                    val nonce: String,
+                    val iat: String,
+                    val nbf: String?,
+                    val exp: String?,
+                    val statement: String?,
+                    val requestId: String?,
+                    val resources: List<String>?,
                 )
             }
         }
@@ -83,7 +133,5 @@ object Core {
         data class UpdateExpiry(val topic: String, val expiry: Expiry) : Params()
 
         data class UpdateMetadata(val topic: String, val metadata: Model.AppMetaData, val metaDataType: AppMetaDataType) : Params()
-
-        data class DecryptMessage(val topic: String, val encryptedMessage: String) : Params()
     }
 }

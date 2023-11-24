@@ -2,18 +2,14 @@ package com.walletconnect.web3.wallet.client
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreInterface
-import com.walletconnect.android.echo.DecryptMessageUseCaseInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.auth.client.AuthClient
 import com.walletconnect.auth.common.exceptions.AuthClientAlreadyInitializedException
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import com.walletconnect.sign.common.exceptions.SignClientAlreadyInitializedException
-import com.walletconnect.web3.wallet.use_case.DecryptWeb3WalletMessageUseCase
 import kotlinx.coroutines.*
-import org.koin.dsl.module
 import java.util.*
 
 object Web3Wallet {
@@ -95,7 +91,6 @@ object Web3Wallet {
         coreClient = params.core
         var clientInitCounter = 0
         val onSuccessfulInitialization: () -> Unit = { clientInitCounter++ }
-        initModule()
 
         SignClient.initialize(Sign.Params.Init(params.core), onSuccess = onSuccessfulInitialization) { error ->
             if (error.throwable is SignClientAlreadyInitializedException) {
@@ -296,20 +291,6 @@ object Web3Wallet {
     @Throws(IllegalStateException::class)
     fun getListOfVerifyContexts(): List<Wallet.Model.VerifyContext> {
         return SignClient.getListOfVerifyContexts().map { verifyContext -> verifyContext.toWallet() }.plus(AuthClient.getListOfVerifyContexts().map { verifyContext -> verifyContext.toWallet() })
-    }
-
-    private fun initModule() {
-        wcKoinApp.modules(
-            module {
-                single<DecryptMessageUseCaseInterface> {
-                    DecryptWeb3WalletMessageUseCase(
-                        codec = get(),
-                        serializer = get(),
-                        metadataRepository = get(),
-                    )
-                }
-            }
-        )
     }
 
     private fun validateInitializationCount(clientInitCounter: Int, onSuccess: () -> Unit, onError: (Wallet.Model.Error) -> Unit) {

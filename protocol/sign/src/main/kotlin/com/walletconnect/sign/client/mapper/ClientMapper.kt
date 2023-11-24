@@ -10,7 +10,7 @@ import com.walletconnect.android.internal.common.model.Validation
 import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.common.model.PendingRequest
-import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
+import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.sign.engine.model.EngineDO
 
 @JvmSynthetic
@@ -206,19 +206,19 @@ internal fun Map<String, Sign.Model.Namespace.Session>.toMapOfEngineNamespacesSe
     }
 
 @JvmSynthetic
-internal fun Map<String, Sign.Model.Namespace.Proposal>.toProposalNamespacesVO(): Map<String, NamespaceVO.Proposal> =
+internal fun Map<String, Sign.Model.Namespace.Proposal>.toProposalNamespacesVO(): Map<String, Namespace.Proposal> =
     mapValues { (_, namespace) ->
-        NamespaceVO.Proposal(chains = namespace.chains, methods = namespace.methods, events = namespace.events)
+        Namespace.Proposal(chains = namespace.chains, methods = namespace.methods, events = namespace.events)
     }
 
 @JvmSynthetic
-internal fun Map<String, Sign.Model.Namespace.Session>.toSessionNamespacesVO(): Map<String, NamespaceVO.Session> =
+internal fun Map<String, Sign.Model.Namespace.Session>.toSessionNamespacesVO(): Map<String, Namespace.Session> =
     mapValues { (_, namespace) ->
-        NamespaceVO.Session(namespace.chains, namespace.accounts, namespace.methods, namespace.events)
+        Namespace.Session(namespace.chains, namespace.accounts, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic
-internal fun Map<String, NamespaceVO.Session>.toClient(): Map<String, Sign.Model.Namespace.Session> =
+internal fun Map<String, Namespace.Session>.toClient(): Map<String, Sign.Model.Namespace.Session> =
     mapValues { (_, namespace) ->
         Sign.Model.Namespace.Session(namespace.chains, namespace.accounts, namespace.methods, namespace.events)
     }

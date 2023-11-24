@@ -316,6 +316,8 @@ internal class JsonRpcInteractor(
             }.collect { (decryptedMessage, topic, publishedAt) ->
                 if (decryptedMessage.isNotEmpty()) {
                     try {
+                        println("kobe: Message: $decryptedMessage")
+
                         manageSubscriptions(decryptedMessage, topic, publishedAt)
                     } catch (e: Exception) {
                         handleError("ManSub: ${e.stackTraceToString()}")
