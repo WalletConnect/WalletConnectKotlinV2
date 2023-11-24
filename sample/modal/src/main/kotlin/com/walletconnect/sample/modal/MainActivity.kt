@@ -73,6 +73,7 @@ import com.walletconnect.sample.modal.ui.predefinedOrangeLightTheme
 import com.walletconnect.sample.modal.ui.predefinedRedDarkTheme
 import com.walletconnect.sample.modal.ui.predefinedRedLightTheme
 import com.walletconnect.sample.modal.ui.theme.WalletConnectTheme
+import com.walletconnect.sample.modal.view.ViewActivity
 import com.walletconnect.web3.modal.ui.Web3ModalTheme
 import com.walletconnect.web3.modal.ui.web3ModalGraph
 
@@ -245,6 +246,13 @@ private fun DrawerContent() {
             context.startActivity(intent)
         }) {
             Text(text = "Navigation component")
+        }
+        Spacer(modifier = Modifier.height(40.dp))
+        Button(onClick = {
+            val intent = Intent(context, ViewActivity::class.java)
+            context.startActivity(intent)
+        }) {
+            Text(text = "Android View")
         }
     }
 }
