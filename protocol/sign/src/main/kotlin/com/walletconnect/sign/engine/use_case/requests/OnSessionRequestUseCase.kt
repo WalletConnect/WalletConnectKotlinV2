@@ -85,7 +85,7 @@ internal class OnSessionRequestUseCase(
                     sessionRequestEventsQueue.find { event -> CoreValidator.isExpiryWithinBounds(event.request.expiry) } ?: sessionRequestEvent
                 }
 
-                sessionRequestEventsQueue.addLast(sessionRequestEvent)
+                sessionRequestEventsQueue.add(sessionRequestEvent)
                 scope.launch { _events.emit(event) }
             }
         } catch (e: Exception) {

@@ -144,6 +144,7 @@ object Web3Modal {
             }
 
             override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {
+                scope.launch { deleteSessionDataUseCase() }
                 delegate.onSessionDelete(deletedSession.toModal())
             }
 
@@ -210,11 +211,10 @@ object Web3Modal {
             onError(InvalidSessionException.toModalError())
             return
         }
-
+        scope.launch { deleteSessionDataUseCase() }
         SignClient.disconnect(
             Sign.Params.Disconnect(sessionTopic),
             {
-                scope.launch { deleteSessionDataUseCase() }
                 onSuccess(it.toModal())
             },
             { onError(it.toModal()) }
