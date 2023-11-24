@@ -46,7 +46,7 @@ project.extensions.configure(BaseExtension::class.java) {
 
         // Firebase App Distribution
         create("internal") {
-            initWith(getByName("release"))
+            isMinifyEnabled = false
             isDebuggable = true
             applicationIdSuffix(".internal")
             matchingFallbacks += "release"
