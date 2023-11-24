@@ -37,6 +37,7 @@ project.extensions.configure(BaseExtension::class.java) {
             isDebuggable = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.getByName("upload")
+            defaultConfig.versionCode = SAMPLE_VERSION_CODE
             firebaseAppDistribution {
                 artifactType = "AAB"
                 groups = "design-team, javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
@@ -50,6 +51,10 @@ project.extensions.configure(BaseExtension::class.java) {
             applicationIdSuffix(".internal")
             matchingFallbacks += "release"
             signingConfig = signingConfigs.getByName("internal_release")
+            versionNameSuffix =
+                "${System.getenv("GITHUB_RUN_ATTEMPT")?.let { ".$it" } ?: ""}-internal"
+            defaultConfig.versionCode =
+                "$SAMPLE_VERSION_CODE${System.getenv("GITHUB_RUN_ATTEMPT") ?: ""}".toInt()
             firebaseAppDistribution {
                 artifactType = "APK"
                 groups = "design-team, javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
@@ -59,6 +64,9 @@ project.extensions.configure(BaseExtension::class.java) {
         getByName("debug") {
             applicationIdSuffix(".debug")
             signingConfig = signingConfigs.getByName("debug")
+            versionNameSuffix = "${System.getenv("GITHUB_RUN_ATTEMPT")?.let { ".$it" } ?: ""}-debug"
+            defaultConfig.versionCode =
+                "$SAMPLE_VERSION_CODE${System.getenv("GITHUB_RUN_ATTEMPT") ?: ""}".toInt()
             firebaseAppDistribution {
                 artifactType = "APK"
                 groups = "design-team, javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
