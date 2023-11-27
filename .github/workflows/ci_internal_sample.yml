@@ -45,11 +45,15 @@ jobs:
           SECRETS_PROPERTIES: ${{ secrets.SECRETS_PROPERTIES }}
         run: echo $SECRETS_PROPERTIES > ./secrets.properties
 
+      - name: Create Firebase Service Credentials file
+        env:
+          FIREBASE_SERVICE_CREDENTIALS: ${{ secrets.FIREBASE_SERVICE_CREDENTIALS }}
+        run: echo $FIREBASE_SERVICE_CREDENTIALS > firebase_service_credentials.json
+
       - name: Decode Internal Keystore
         env:
           ENCODED_STRING_INTERNAL: ${{ secrets.WC_KOTLIN_INTERNAL_KEYSTORE }}
           SIGNING_KEY_STORE_PATH_INTERNAL: ${{ secrets.WC_KOTLIN_INTERNAL_KEYSTORE_PATH }}
-
         run: |
           echo $ENCODED_STRING_INTERNAL > keystore-b64.txt
           base64 -d keystore-b64.txt > $SIGNING_KEY_STORE_PATH_INTERNAL
