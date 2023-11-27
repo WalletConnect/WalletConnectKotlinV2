@@ -2,6 +2,7 @@
 
 package com.walletconnect.sign.client
 
+import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.di.DatabaseConfig
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
@@ -56,8 +57,8 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
 
         signEngine.engineEvent.onEach { event ->
             when (event) {
-                is EngineDO.SessionProposalEvent -> delegate.onSessionProposal(event.proposal.toClientSessionProposal(), event.context.toClient())
-                is EngineDO.SessionRequestEvent -> delegate.onSessionRequest(event.request.toClientSessionRequest(), event.context.toClient())
+                is EngineDO.SessionProposalEvent -> delegate.onSessionProposal(event.proposal.toClientSessionProposal(), event.context.toCore())
+                is EngineDO.SessionRequestEvent -> delegate.onSessionRequest(event.request.toClientSessionRequest(), event.context.toCore())
                 is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
                 is EngineDO.SessionExtend -> delegate.onSessionExtend(event.toClientActiveSession())
                 //Responses
@@ -316,6 +317,31 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
         }
     }
 
+    override fun decryptMessage(params: Sign.Params.DecryptMessage, onSuccess: (Sign.Model.Message) -> Unit, onError: (Sign.Model.Error) -> Unit) {
+        checkEngineInitialization()
+
+        scope.launch {
+            try {
+                signEngine.decryptMessage(
+                    topic = params.topic,
+                    message = params.encryptedMessage,
+                    onSuccess = { message ->
+                        when (message) {
+                            is Core.Model.Message.SessionRequest -> onSuccess(message.toSign())
+                            is Core.Model.Message.SessionProposal -> onSuccess(message.toSign())
+                            else -> {
+                                //Ignore
+                            }
+                        }
+                    },
+                    onFailure = { error -> onError(Sign.Model.Error(error)) }
+                )
+            } catch (error: Exception) {
+                onError(Sign.Model.Error(error))
+            }
+        }
+    }
+
     @Throws(IllegalStateException::class)
     override fun getListOfActiveSessions(): List<Sign.Model.Session> {
         checkEngineInitialization()
@@ -385,13 +411,13 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     @Throws(IllegalStateException::class)
     override fun getVerifyContext(id: Long): Sign.Model.VerifyContext? {
         checkEngineInitialization()
-        return runBlocking { signEngine.getVerifyContext(id)?.toClient() }
+        return runBlocking { signEngine.getVerifyContext(id)?.toCore() }
     }
 
     @Throws(IllegalStateException::class)
     override fun getListOfVerifyContexts(): List<Sign.Model.VerifyContext> {
         checkEngineInitialization()
-        return runBlocking { signEngine.getListOfVerifyContexts().map { verifyContext -> verifyContext.toClient() } }
+        return runBlocking { signEngine.getListOfVerifyContexts().map { verifyContext -> verifyContext.toCore() } }
     }
 
 // TODO: Uncomment once reinit scope logic is added

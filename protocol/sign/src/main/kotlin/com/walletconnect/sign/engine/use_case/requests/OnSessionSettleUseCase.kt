@@ -13,7 +13,7 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
-import com.walletconnect.android.pairing.model.mapper.toClient
+import com.walletconnect.android.utils.toClient
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.sign.common.exceptions.PeerError

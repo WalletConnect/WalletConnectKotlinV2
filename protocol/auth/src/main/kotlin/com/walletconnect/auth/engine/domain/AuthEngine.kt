@@ -2,6 +2,7 @@
 
 package com.walletconnect.auth.engine.domain
 
+import com.walletconnect.android.echo.DecryptMessageUseCaseInterface
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Validation
@@ -46,6 +47,7 @@ internal class AuthEngine(
     private val sendAuthRequestUseCase: SendAuthRequestUseCaseInterface,
     private val respondAuthRequestUseCase: RespondAuthRequestUseCaseInterface,
     private val formatMessageUseCase: FormatMessageUseCaseInterface,
+    private val decryptAuthMessageUseCase: DecryptMessageUseCaseInterface,
     private val getVerifyContextUseCase: GetVerifyContextUseCaseInterface,
     private val getListOfVerifyContextsUseCase: GetListOfVerifyContextsUseCaseInterface,
     private val onAuthRequestUseCase: OnAuthRequestUseCase,
@@ -53,6 +55,7 @@ internal class AuthEngine(
 ) : SendAuthRequestUseCaseInterface by sendAuthRequestUseCase,
     RespondAuthRequestUseCaseInterface by respondAuthRequestUseCase,
     FormatMessageUseCaseInterface by formatMessageUseCase,
+    DecryptMessageUseCaseInterface by decryptAuthMessageUseCase,
     GetPendingJsonRpcHistoryEntriesUseCaseInterface by getPendingJsonRpcHistoryEntriesUseCase,
     GetVerifyContextUseCaseInterface by getVerifyContextUseCase,
     GetListOfVerifyContextsUseCaseInterface by getListOfVerifyContextsUseCase {

@@ -2,7 +2,6 @@
 
 package com.walletconnect.notify.engine.requests
 
-import com.walletconnect.android.echo.Message
 import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtClaims
 import com.walletconnect.android.internal.common.model.AppMetaData
@@ -20,6 +19,7 @@ import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.jwt.decodeDidWeb
 import com.walletconnect.foundation.util.jwt.decodeEd25519DidKey
+import com.walletconnect.notify.common.model.NotifyMessage
 import com.walletconnect.notify.common.model.NotifyRecord
 import com.walletconnect.notify.data.jwt.message.MessageRequestJwtClaim
 import com.walletconnect.notify.data.storage.MessagesRepository
@@ -70,7 +70,7 @@ internal class OnNotifyMessageUseCase(
                     id = request.id,
                     topic = request.topic.value,
                     publishedAt = request.publishedAt,
-                    notifyMessage = Message.Notify(
+                    notifyMessage = NotifyMessage(
                         title = messageJwt.message.title,
                         body = messageJwt.message.body,
                         icon = messageJwt.message.icon,

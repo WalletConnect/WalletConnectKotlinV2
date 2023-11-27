@@ -2,9 +2,11 @@
 
 package com.walletconnect.sign.di
 
+import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdUseCase
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequests
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 @JvmSynthetic
@@ -28,6 +30,7 @@ internal fun engineModule() = module {
             disconnectSessionUseCase = get(),
             emitEventUseCase = get(),
             extendSessionUseCase = get(),
+            decryptMessageUseCase = get(named(AndroidCommonDITags.DECRYPT_SIGN_MESSAGE)),
             getListOfVerifyContextsUseCase = get(),
             getPairingsUseCase = get(),
             getPendingRequestsByTopicUseCase = get(),

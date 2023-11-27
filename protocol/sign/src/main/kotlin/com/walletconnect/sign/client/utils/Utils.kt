@@ -4,7 +4,7 @@ package com.walletconnect.sign.client.utils
 
 import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.sign.client.Sign
-import com.walletconnect.sign.client.mapper.toClient
+import com.walletconnect.sign.client.mapper.toCore
 import com.walletconnect.sign.client.mapper.toProposalNamespacesVO
 import com.walletconnect.sign.client.mapper.toSessionNamespacesVO
 import com.walletconnect.android.internal.common.model.Namespace
@@ -23,7 +23,7 @@ fun generateApprovedNamespaces(
     SignValidator.validateSupportedNamespace(supportedNamespacesVO, normalizedRequiredNamespaces) { error -> throw Exception(error.message) }
 
     if (proposal.requiredNamespaces.isEmpty() && proposal.optionalNamespaces.isEmpty()) {
-        return supportedNamespacesVO.toClient()
+        return supportedNamespacesVO.toCore()
     }
 
     val approvedNamespaces = mutableMapOf<String, Namespace.Session>()
@@ -51,7 +51,7 @@ fun generateApprovedNamespaces(
         )
     }
 
-    return approvedNamespaces.toClient()
+    return approvedNamespaces.toCore()
 }
 
 internal fun normalizeNamespaces(namespaces: Map<String, Namespace.Proposal>): Map<String, Namespace.Proposal> {

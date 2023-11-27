@@ -2,15 +2,16 @@
 
 package com.walletconnect.sign.client.mapper
 
+import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.Expiry
+import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Validation
-import com.walletconnect.android.pairing.model.mapper.toClient
+import com.walletconnect.android.utils.toClient
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.common.model.PendingRequest
-import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.sign.engine.model.EngineDO
 
 @JvmSynthetic
@@ -32,6 +33,7 @@ internal fun EngineDO.SessionUpdateNamespacesResponse.toClientUpdateSessionNames
     when (this) {
         is EngineDO.SessionUpdateNamespacesResponse.Result ->
             Sign.Model.SessionUpdateResponse.Result(topic.value, namespaces.toMapOfClientNamespacesSession())
+
         is EngineDO.SessionUpdateNamespacesResponse.Error -> Sign.Model.SessionUpdateResponse.Error(errorMessage)
     }
 
@@ -60,7 +62,7 @@ internal fun EngineDO.SessionProposal.toClientSessionProposal(): Sign.Model.Sess
     )
 
 @JvmSynthetic
-internal fun EngineDO.VerifyContext.toClient(): Sign.Model.VerifyContext =
+internal fun EngineDO.VerifyContext.toCore(): Sign.Model.VerifyContext =
     Sign.Model.VerifyContext(id, origin, this.validation.toClientValidation(), verifyUrl, isScam)
 
 internal fun Validation.toClientValidation(): Sign.Model.Validation =
@@ -218,9 +220,15 @@ internal fun Map<String, Sign.Model.Namespace.Session>.toSessionNamespacesVO(): 
     }
 
 @JvmSynthetic
-internal fun Map<String, Namespace.Session>.toClient(): Map<String, Sign.Model.Namespace.Session> =
+internal fun Map<String, Namespace.Session>.toCore(): Map<String, Sign.Model.Namespace.Session> =
     mapValues { (_, namespace) ->
         Sign.Model.Namespace.Session(namespace.chains, namespace.accounts, namespace.methods, namespace.events)
+    }
+
+@JvmSynthetic
+internal fun Map<String, Core.Model.Namespace.Proposal>.toSign(): Map<String, Sign.Model.Namespace.Proposal> =
+    mapValues { (_, namespace) ->
+        Sign.Model.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
     }
 
 @JvmSynthetic
@@ -231,3 +239,29 @@ internal fun ConnectionState.toClientConnectionState(): Sign.Model.ConnectionSta
 internal fun SDKError.toClientError(): Sign.Model.Error =
     Sign.Model.Error(this.exception)
 
+@JvmSynthetic
+internal fun Core.Model.Message.SessionProposal.toSign(): Sign.Model.Message.SessionProposal =
+    Sign.Model.Message.SessionProposal(
+        id,
+        pairingTopic,
+        name,
+        description,
+        url,
+        icons,
+        redirect,
+        requiredNamespaces.toSign(),
+        optionalNamespaces.toSign(),
+        properties,
+        proposerPublicKey,
+        relayProtocol,
+        relayData
+    )
+
+@JvmSynthetic
+internal fun Core.Model.Message.SessionRequest.toSign(): Sign.Model.Message.SessionRequest =
+    Sign.Model.Message.SessionRequest(
+        topic,
+        chainId,
+        peerMetaData,
+        Sign.Model.Message.SessionRequest.JSONRPCRequest(request.id, request.method, request.params)
+    )

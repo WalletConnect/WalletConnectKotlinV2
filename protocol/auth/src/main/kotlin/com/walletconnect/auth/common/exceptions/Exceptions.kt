@@ -9,3 +9,5 @@ internal object InvalidCacaoException : WalletConnectException(CACAO_IS_NOT_VALI
 internal class InvalidParamsException(override val message: String) : WalletConnectException(message)
 
 class AuthClientAlreadyInitializedException : WalletConnectException(CLIENT_ALREADY_INITIALIZED)
+
+class InvalidAuthParamsType : WalletConnectException(INVALID_AUTH_PARAMS_TYPE)

@@ -2,6 +2,7 @@
 
 package com.walletconnect.auth.client.mapper
 
+import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Validation
@@ -9,9 +10,13 @@ import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.signing.cacao.CacaoType
 import com.walletconnect.android.verify.data.model.VerifyContext
 import com.walletconnect.auth.client.Auth
-import com.walletconnect.auth.common.model.*
+import com.walletconnect.auth.common.model.AuthResponse
+import com.walletconnect.auth.common.model.Events
+import com.walletconnect.auth.common.model.PayloadParams
+import com.walletconnect.auth.common.model.PendingRequest
+import com.walletconnect.auth.common.model.Respond
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
 
 @JvmSynthetic
 internal fun Auth.Params.Respond.toCommon(): Respond = when (this) {
@@ -124,3 +129,8 @@ internal fun Cacao.Signature.toClient(): Auth.Model.Cacao.Signature = Auth.Model
 
 @JvmSynthetic
 internal fun VerifyContext.toClient(): Auth.Model.VerifyContext = Auth.Model.VerifyContext(id, origin, validation.toClientValidation(), verifyUrl, isScam)
+
+@JvmSynthetic
+internal fun Core.Model.Message.AuthRequest.toAuth(): Auth.Model.Message.AuthRequest = with(payloadParams) {
+    Auth.Model.Message.AuthRequest(id, pairingTopic, metadata, Auth.Model.Message.AuthRequest.PayloadParams(type, chainId, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources))
+}

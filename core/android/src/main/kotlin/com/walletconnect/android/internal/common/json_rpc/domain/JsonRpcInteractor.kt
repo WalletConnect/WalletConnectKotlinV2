@@ -303,7 +303,7 @@ internal class JsonRpcInteractor(
         scope.launch {
             relay.subscriptionRequest.map { relayRequest ->
                 //TODO silences 4050
-                if(relayRequest.params.subscriptionData.tag == 4050) return@map Triple(String.Empty, Topic(""), 0L)
+                if (relayRequest.params.subscriptionData.tag == 4050) return@map Triple(String.Empty, Topic(""), 0L)
                 val topic = Topic(relayRequest.subscriptionTopic)
                 val message = try {
                     chaChaPolyCodec.decrypt(topic, relayRequest.message)
@@ -316,8 +316,6 @@ internal class JsonRpcInteractor(
             }.collect { (decryptedMessage, topic, publishedAt) ->
                 if (decryptedMessage.isNotEmpty()) {
                     try {
-                        println("kobe: Message: $decryptedMessage")
-
                         manageSubscriptions(decryptedMessage, topic, publishedAt)
                     } catch (e: Exception) {
                         handleError("ManSub: ${e.stackTraceToString()}")

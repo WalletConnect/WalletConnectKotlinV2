@@ -1,6 +1,8 @@
 package com.walletconnect.auth.di
 
+import com.walletconnect.android.echo.DecryptMessageUseCaseInterface
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
+import com.walletconnect.auth.use_case.calls.DecryptAuthMessageUseCase
 import com.walletconnect.auth.use_case.calls.FormatMessageUseCase
 import com.walletconnect.auth.use_case.calls.FormatMessageUseCaseInterface
 import com.walletconnect.auth.use_case.calls.GetListOfVerifyContextsUseCase
@@ -28,6 +30,14 @@ internal fun callsModule() = module {
             cacaoVerifier = get(),
             pairingController = get(),
             logger = get(named(AndroidCommonDITags.LOGGER))
+        )
+    }
+
+    single<DecryptMessageUseCaseInterface>(named(AndroidCommonDITags.DECRYPT_AUTH_MESSAGE)) {
+        DecryptAuthMessageUseCase(
+            codec = get(),
+            serializer = get(),
+            metadataRepository = get(),
         )
     }
 

@@ -2,8 +2,8 @@
 
 package com.walletconnect.notify.engine.calls
 
+import com.walletconnect.android.Core
 import com.walletconnect.android.echo.DecryptMessageUseCaseInterface
-import com.walletconnect.android.echo.Message
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
@@ -24,7 +24,7 @@ internal class DecryptNotifyMessageUseCase(
     private val messagesRepository: MessagesRepository
 ) : DecryptMessageUseCaseInterface {
 
-    override suspend fun decryptMessage(topic: String, message: String, onSuccess: (Message) -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
+    override suspend fun decryptMessage(topic: String, message: String, onSuccess: (Core.Model.Message) -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         try {
             val decryptedMessageString = codec.decrypt(Topic(topic), message)
             val messageHash = sha256(decryptedMessageString.toByteArray())
@@ -50,12 +50,13 @@ internal class DecryptNotifyMessageUseCase(
                 )
 
                 onSuccess(
-                    Message.Notify(
+                    Core.Model.Message.Notify(
                         title = messageRequestJwt.message.title,
                         body = messageRequestJwt.message.body,
                         icon = messageRequestJwt.message.icon,
                         url = messageRequestJwt.message.url,
-                        type = messageRequestJwt.message.type
+                        type = messageRequestJwt.message.type,
+                        topic = topic
                     )
                 )
             }

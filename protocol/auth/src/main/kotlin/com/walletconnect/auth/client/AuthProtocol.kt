@@ -2,11 +2,13 @@
 
 package com.walletconnect.auth.client
 
+import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
+import com.walletconnect.auth.client.mapper.toAuth
 import com.walletconnect.auth.client.mapper.toClient
 import com.walletconnect.auth.client.mapper.toClientAuthContext
 import com.walletconnect.auth.client.mapper.toClientAuthRequest
@@ -110,6 +112,23 @@ internal class AuthProtocol(private val koinApp: KoinApplication = wcKoinApp) : 
             runBlocking { authEngine.formatMessage(params.payloadParams.toCommon(), params.issuer) }
         } catch (error: Exception) {
             null
+        }
+    }
+
+    override fun decryptMessage(params: Auth.Params.DecryptMessage, onSuccess: (Auth.Model.Message.AuthRequest) -> Unit, onError: (Auth.Model.Error) -> Unit) {
+        checkEngineInitialization()
+
+        scope.launch {
+            try {
+                authEngine.decryptMessage(
+                    topic = params.topic,
+                    message = params.encryptedMessage,
+                    onSuccess = { message -> (message as? Core.Model.Message.AuthRequest)?.run { onSuccess(message.toAuth()) } },
+                    onFailure = { error -> onError(Auth.Model.Error(error)) }
+                )
+            } catch (error: Exception) {
+                onError(Auth.Model.Error(error))
+            }
         }
     }
 

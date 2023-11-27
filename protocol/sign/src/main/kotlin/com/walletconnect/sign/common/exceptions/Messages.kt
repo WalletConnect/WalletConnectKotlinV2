@@ -30,3 +30,4 @@ internal const val INVALID_EXTEND_TIME: String = "Extend time is out of range"
 internal const val INVALID_SESSION_PROPERTIES: String = "Invalid Session Properties requested"
 
 internal const val CLIENT_ALREADY_INITIALIZED: String = "SignClient already initialized"
+internal const val INVALID_SIGN_PARAMS_TYPE: String = "Invalid Sign params type"

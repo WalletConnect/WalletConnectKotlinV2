@@ -39,6 +39,8 @@ object Wallet {
             data class Result(override val id: Long, val signature: Model.Cacao.Signature, val issuer: String) : AuthRequestResponse()
             data class Error(override val id: Long, val code: Int, val message: String) : AuthRequestResponse()
         }
+
+        data class DecryptMessage(val topic: String, val encryptedMessage: String) : Params()
     }
 
     sealed class Model {
@@ -213,5 +215,64 @@ object Wallet {
             val pairingTopic: String,
             val payloadParams: PayloadParams,
         ) : Model()
+
+        sealed class Message : Model()  {
+
+            data class Simple(
+                val title: String,
+                val body: String
+            ) : Message()
+
+            data class SessionProposal(
+                val id: Long,
+                val pairingTopic: String,
+                val name: String,
+                val description: String,
+                val url: String,
+                val icons: List<String>,
+                val redirect: String,
+                val requiredNamespaces: Map<String, Namespace.Proposal>,
+                val optionalNamespaces: Map<String, Namespace.Proposal>,
+                val properties: Map<String, String>?,
+                val proposerPublicKey: String,
+                val relayProtocol: String,
+                val relayData: String?,
+            ) : Message()
+
+            data class SessionRequest(
+                val topic: String,
+                val chainId: String?,
+                val peerMetaData: Core.Model.AppMetaData?,
+                val request: JSONRPCRequest,
+            ) : Message() {
+                data class JSONRPCRequest(
+                    val id: Long,
+                    val method: String,
+                    val params: String,
+                ) : Message()
+            }
+
+            data class AuthRequest(
+                val id: Long,
+                val pairingTopic: String,
+                val metadata: Core.Model.AppMetaData,
+                val payloadParams: PayloadParams,
+            ) : Message() {
+                data class PayloadParams(
+                    val type: String,
+                    val chainId: String,
+                    val domain: String,
+                    val aud: String,
+                    val version: String,
+                    val nonce: String,
+                    val iat: String,
+                    val nbf: String?,
+                    val exp: String?,
+                    val statement: String?,
+                    val requestId: String?,
+                    val resources: List<String>?,
+                )
+            }
+        }
     }
 }

@@ -25,6 +25,8 @@ interface AuthInterface {
 
     fun respond(params: Auth.Params.Respond, onSuccess: (Auth.Params.Respond) -> Unit = {}, onError: (Auth.Model.Error) -> Unit)
 
+    fun decryptMessage(params: Auth.Params.DecryptMessage, onSuccess: (Auth.Model.Message.AuthRequest) -> Unit, onError: (Auth.Model.Error) -> Unit)
+
     /**
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation

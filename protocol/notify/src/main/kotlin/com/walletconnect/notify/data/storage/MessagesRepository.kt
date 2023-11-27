@@ -2,7 +2,7 @@
 
 package com.walletconnect.notify.data.storage
 
-import com.walletconnect.android.echo.Message
+import com.walletconnect.notify.common.model.NotifyMessage
 import com.walletconnect.notify.common.model.NotifyRecord
 import com.walletconnect.notify.common.storage.data.dao.MessagesQueries
 import kotlinx.coroutines.Dispatchers
@@ -70,7 +70,7 @@ internal class MessagesRepository(private val messagesQueries: MessagesQueries) 
         id = requestId,
         topic = topic,
         publishedAt = publishedAt,
-        notifyMessage = Message.Notify(
+        notifyMessage = NotifyMessage(
             title = title,
             body = body,
             icon = icon,

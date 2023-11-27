@@ -7,21 +7,18 @@ import com.walletconnect.android.echo.PushMessagingService
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.foundation.util.Logger
-import com.walletconnect.notify.client.Notify
-import com.walletconnect.notify.client.NotifyMessageService
-import com.walletconnect.sample.wallet.domain.NotificationHandler
-import kotlinx.coroutines.runBlocking
 import org.koin.core.qualifier.named
 
 @SuppressLint("MissingFirebaseInstanceTokenRefresh")
-class NotifyFirebaseMessagingService : NotifyMessageService() { //PushMessagingService() {
+class WalletFirebaseMessagingService : PushMessagingService() {
 
     private val logger: Logger by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.LOGGER)) }
 
-    //For PushMessagingService
-//    override fun onMessage(message: Core.Model.Message, originalMessage: RemoteMessage) {
-//        TODO("Not yet implemented")
-//    }
+    override fun onMessage(message: Core.Model.Message, originalMessage: RemoteMessage) {
+        println("kobe; OnMessage: $message")
+
+//        runBlocking { NotificationHandler.addNotification(message) }
+    }
 
     override fun newToken(token: String) {
         logger.log("Registering New Token Success:\t$token")
@@ -31,12 +28,12 @@ class NotifyFirebaseMessagingService : NotifyMessageService() { //PushMessagingS
         logger.log("Registering New Token Failed:\t$token")
     }
 
-    override fun onMessage(message: Notify.Model.Message, originalMessage: RemoteMessage) {
-
-        println("kobe; OnMessage: $message")
-
-        runBlocking { NotificationHandler.addNotification(message) }
-    }
+//    override fun onMessage(message: Notify.Model.Message, originalMessage: RemoteMessage) {
+//
+//        println("kobe; OnMessage: $message")
+//
+//        runBlocking { NotificationHandler.addNotification(message) }
+//    }
 
     override fun onDefaultBehavior(message: RemoteMessage) {
         logger.log("onDefaultBehavior: ${message.to}")

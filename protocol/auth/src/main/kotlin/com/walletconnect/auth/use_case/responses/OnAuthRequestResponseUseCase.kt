@@ -8,13 +8,12 @@ import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.params.CoreAuthParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
-import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
 import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
-import com.walletconnect.android.pairing.model.mapper.toClient
+import com.walletconnect.android.utils.toClient
 import com.walletconnect.auth.common.exceptions.PeerError
 import com.walletconnect.auth.common.json_rpc.AuthParams
 import com.walletconnect.auth.common.model.AuthResponse
@@ -24,7 +23,6 @@ import com.walletconnect.foundation.common.model.Topic
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
 internal class OnAuthRequestResponseUseCase(

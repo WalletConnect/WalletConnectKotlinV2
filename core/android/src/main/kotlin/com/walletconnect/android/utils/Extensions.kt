@@ -3,8 +3,15 @@
 package com.walletconnect.android.utils
 
 import android.net.Uri
-import com.walletconnect.android.internal.common.exception.*
+import com.walletconnect.android.Core
+import com.walletconnect.android.internal.common.exception.GenericException
+import com.walletconnect.android.internal.common.exception.InvalidProjectIdException
+import com.walletconnect.android.internal.common.exception.ProjectIdDoesNotExistException
+import com.walletconnect.android.internal.common.exception.UnableToConnectToWebsocketException
+import com.walletconnect.android.internal.common.exception.WalletConnectException
+import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.relay.ConnectionType
+import com.walletconnect.utils.Empty
 import java.net.HttpURLConnection
 
 @JvmSynthetic
@@ -50,3 +57,5 @@ internal val Throwable.toWalletConnectException: WalletConnectException
 @get:JvmSynthetic
 val Int.Companion.DefaultId
     get() = -1
+
+fun AppMetaData?.toClient() = Core.Model.AppMetaData(this?.name ?: String.Empty, this?.description ?: String.Empty, this?.url ?: String.Empty, this?.icons ?: emptyList(), this?.redirect?.native)

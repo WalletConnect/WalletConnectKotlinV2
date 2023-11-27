@@ -12,7 +12,7 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
-import com.walletconnect.android.pairing.model.mapper.toClient
+import com.walletconnect.android.utils.toClient
 import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams

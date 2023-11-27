@@ -2,7 +2,7 @@
 
 package com.walletconnect.notify.engine.calls
 
-import com.walletconnect.android.echo.Message
+import com.walletconnect.notify.common.model.NotifyMessage
 import com.walletconnect.notify.common.model.NotifyRecord
 import com.walletconnect.notify.data.storage.MessagesRepository
 import kotlinx.coroutines.supervisorScope
@@ -17,7 +17,7 @@ internal class GetListOfMessagesUseCase(
                 id = messageRecord.id,
                 topic = messageRecord.topic,
                 publishedAt = messageRecord.publishedAt,
-                notifyMessage = Message.Notify(
+                notifyMessage = NotifyMessage(
                     title = messageRecord.notifyMessage.title,
                     body = messageRecord.notifyMessage.body,
                     icon = messageRecord.notifyMessage.icon,

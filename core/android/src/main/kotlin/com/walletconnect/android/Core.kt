@@ -52,7 +52,7 @@ object Core {
             ) : Namespace()
         }
 
-        sealed class Message {
+        sealed class Message : Model() {
 
             data class Simple(
                 val title: String,
@@ -100,6 +100,7 @@ object Core {
             data class AuthRequest(
                 val id: Long,
                 val pairingTopic: String,
+                val metadata: AppMetaData,
                 val payloadParams: PayloadParams,
             ) : Message() {
                 data class PayloadParams(

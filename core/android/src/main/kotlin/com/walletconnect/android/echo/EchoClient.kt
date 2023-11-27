@@ -19,8 +19,8 @@ internal object EchoClient : EchoInterface {
     private val projectId by lazy { wcKoinApp.koin.get<ProjectId>() }
     private const val SUCCESS_STATUS = "SUCCESS"
 
-    override fun register(firebaseAccessToken: String, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
-        val body = EchoBody(clientId, firebaseAccessToken, enableAlwaysDecrypted = true)
+    override fun register(firebaseAccessToken: String, enableEncrypted: Boolean?, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
+        val body = EchoBody(clientId, firebaseAccessToken, enableEncrypted = enableEncrypted)
 
         scope.launch(Dispatchers.IO) {
             supervisorScope {

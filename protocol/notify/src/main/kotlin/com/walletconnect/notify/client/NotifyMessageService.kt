@@ -8,14 +8,11 @@ import com.walletconnect.android.echo.PushMessagingService
 @SuppressLint("MissingFirebaseInstanceTokenRefresh")
 abstract class NotifyMessageService : PushMessagingService() {
     override fun onMessage(message: Core.Model.Message, originalMessage: RemoteMessage) {
-
-        println("kobe: Notify Message: $message")
-
         when (message) {
             is Core.Model.Message.Notify -> onMessage(message.toNotify(), originalMessage)
             is Core.Model.Message.Simple -> onMessage(message.toNotify(), originalMessage)
             else -> {
-                //Ignore or should NotifyMessagingService handle Sign and Auth notifications?
+                //Ignore: NotifyMessageService handles only Notify notifications, to get all types of notifications use PushMessagingService
             }
         }
     }
