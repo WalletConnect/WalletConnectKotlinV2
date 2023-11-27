@@ -94,7 +94,7 @@ object Core {
                     val id: Long,
                     val method: String,
                     val params: String,
-                ) : Message()
+                )
             }
 
             data class AuthRequest(

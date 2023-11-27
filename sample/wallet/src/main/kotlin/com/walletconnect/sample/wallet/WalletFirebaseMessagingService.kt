@@ -7,6 +7,8 @@ import com.walletconnect.android.echo.PushMessagingService
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.foundation.util.Logger
+import com.walletconnect.sample.wallet.domain.NotificationHandler
+import kotlinx.coroutines.runBlocking
 import org.koin.core.qualifier.named
 
 @SuppressLint("MissingFirebaseInstanceTokenRefresh")
@@ -17,7 +19,7 @@ class WalletFirebaseMessagingService : PushMessagingService() {
     override fun onMessage(message: Core.Model.Message, originalMessage: RemoteMessage) {
         println("kobe; OnMessage: $message")
 
-//        runBlocking { NotificationHandler.addNotification(message) }
+        runBlocking { NotificationHandler.addNotification(message) }
     }
 
     override fun newToken(token: String) {
