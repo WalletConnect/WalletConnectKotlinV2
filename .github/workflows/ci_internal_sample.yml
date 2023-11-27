@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  release_samples:
+  release_samples_internal:
     strategy:
       matrix:
         conf: [
