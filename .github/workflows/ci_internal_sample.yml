@@ -8,9 +8,9 @@ jobs:
     strategy:
       matrix:
         conf: [
-          { name: wallet, command: ":sample:wallet:assembleInternal :sample:wallet:appDistributionUploadInternal" }#,
-          #          { name: dapp, command: ":sample:dapp:assembleInternal :sample:dapp:appDistributionUploadInternal" },
-          #          { name: modal, command: ":sample:modal:assembleInternal :sample:modal:appDistributionUploadInternal" }
+          { name: wallet, command: ":sample:wallet:assembleInternal --full-stacktrace :sample:wallet:appDistributionUploadInternal" },
+          { name: dapp, command: ":sample:dapp:assembleRelease :sample:dapp:appDistributionUploadRelease" },
+          { name: modal, command: ":sample:modal:assembleRelease :sample:modal:appDistributionUploadRelease" }
         ]
     name: ${{ matrix.conf.name }}
     runs-on: ubuntu-latest
