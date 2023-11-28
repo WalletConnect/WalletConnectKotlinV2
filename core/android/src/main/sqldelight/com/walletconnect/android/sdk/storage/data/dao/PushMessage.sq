@@ -15,3 +15,8 @@ WHERE id = ?;
 
 doesMessagesExistsByRequestId:
 SELECT EXISTS(SELECT 1 FROM PushMessage WHERE id = ?);
+
+-- delete when session is disconnected
+deleteMessageByTopic:
+DELETE FROM PushMessage
+WHERE topic = ?;

@@ -2,6 +2,7 @@
 
 package com.walletconnect.android.echo.client
 
+import com.walletconnect.android.echo.EchoInterface
 import com.walletconnect.android.echo.network.EchoService
 import com.walletconnect.android.echo.network.model.EchoBody
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags

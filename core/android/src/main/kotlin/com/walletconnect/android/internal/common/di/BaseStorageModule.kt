@@ -88,6 +88,8 @@ fun baseStorageModule(storagePrefix: String = String.Empty) = module {
 
     single { get<AndroidCoreDatabase>(named(AndroidBuildVariantDITags.ANDROID_CORE_DATABASE)).verifyContextQueries }
 
+    single { get<AndroidCoreDatabase>(named(AndroidBuildVariantDITags.ANDROID_CORE_DATABASE)).pushMessageQueries }
+
     single<MetadataStorageRepositoryInterface> { MetadataStorageRepository(metaDataQueries = get()) }
 
     single<PairingStorageRepositoryInterface> { PairingStorageRepository(pairingQueries = get()) }

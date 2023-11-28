@@ -5,8 +5,6 @@ import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.exception.NoRelayConnectionException
 import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
-import com.walletconnect.android.internal.common.json_rpc.model.toJsonRpcError
-import com.walletconnect.android.internal.common.json_rpc.model.toJsonRpcResponse
 import com.walletconnect.android.internal.common.json_rpc.model.toRelay
 import com.walletconnect.android.internal.common.json_rpc.model.toWCResponse
 import com.walletconnect.android.internal.common.model.EnvelopeType
@@ -22,6 +20,7 @@ import com.walletconnect.android.internal.common.model.type.Error
 import com.walletconnect.android.internal.common.model.type.JsonRpcClientSync
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.internal.common.storage.push_messages.PushMessageStorageRepository
 import com.walletconnect.android.internal.common.storage.rpc.JsonRpcHistory
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.relay.RelayConnectionInterface
@@ -40,6 +39,7 @@ internal class JsonRpcInteractor(
     private val relay: RelayConnectionInterface,
     private val chaChaPolyCodec: Codec,
     private val jsonRpcHistory: JsonRpcHistory,
+    private val pushMessageStorage: PushMessageStorageRepository,
     private val logger: Logger,
 ) : JsonRpcInteractorInterface {
     private val serializer: JsonRpcSerializer get() = wcKoinApp.koin.get()
@@ -110,8 +110,7 @@ internal class JsonRpcInteractor(
             return onFailure(e)
         }
 
-        val jsonResponseDO = response.toJsonRpcResponse()
-        val responseJson = serializer.serialize(jsonResponseDO) ?: return onFailure(IllegalStateException("JsonRpcInteractor: Unknown result params"))
+        val responseJson = serializer.serialize(response) ?: return onFailure(IllegalStateException("JsonRpcInteractor: Unknown result params"))
         val encryptedResponse = chaChaPolyCodec.encrypt(topic, responseJson, envelopeType, participants)
         relay.publish(topic.value, encryptedResponse, params.toRelay()) { result ->
             result.fold(
@@ -306,6 +305,8 @@ internal class JsonRpcInteractor(
                 if (relayRequest.params.subscriptionData.tag == 4050) return@map Triple(String.Empty, Topic(""), 0L)
                 val topic = Topic(relayRequest.subscriptionTopic)
 
+
+
                 println("kobe; Relay request: $relayRequest")
 
                 val message = try {
@@ -374,7 +375,7 @@ internal class JsonRpcInteractor(
 
         if (jsonRpcRecord != null) {
             serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->
-                _peerResponse.emit(jsonRpcRecord.toWCResponse(jsonRpcError.toJsonRpcError(), params))
+                _peerResponse.emit(jsonRpcRecord.toWCResponse(jsonRpcError, params))
             } ?: handleError("JsonRpcInteractor: Unknown error params")
         }
     }
