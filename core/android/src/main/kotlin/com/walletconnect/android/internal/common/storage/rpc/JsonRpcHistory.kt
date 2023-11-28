@@ -1,4 +1,4 @@
-package com.walletconnect.android.internal.common.storage
+package com.walletconnect.android.internal.common.storage.rpc
 
 import com.walletconnect.android.internal.common.json_rpc.model.JsonRpcHistoryRecord
 import com.walletconnect.android.sdk.storage.data.dao.JsonRpcHistoryQueries

@@ -2,8 +2,8 @@ package com.walletconnect.android
 
 import android.app.Application
 import com.walletconnect.android.di.coreStorageModule
-import com.walletconnect.android.echo.EchoClient
-import com.walletconnect.android.echo.EchoInterface
+import com.walletconnect.android.echo.client.EchoClient
+import com.walletconnect.android.echo.client.EchoInterface
 import com.walletconnect.android.internal.common.di.coreCommonModule
 import com.walletconnect.android.internal.common.di.coreCryptoModule
 import com.walletconnect.android.internal.common.di.coreJsonRpcModule

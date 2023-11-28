@@ -18,7 +18,7 @@ import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.signing.cacao.CacaoType
 import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
 import com.walletconnect.android.internal.common.signing.cacao.toCAIP122Message
-import com.walletconnect.android.internal.common.storage.IdentitiesStorageRepository
+import com.walletconnect.android.internal.common.storage.identity.IdentitiesStorageRepository
 import com.walletconnect.android.internal.utils.getIdentityTag
 import com.walletconnect.android.keyserver.domain.use_case.RegisterIdentityUseCase
 import com.walletconnect.android.keyserver.domain.use_case.ResolveIdentityUseCase

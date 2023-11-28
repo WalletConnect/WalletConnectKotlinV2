@@ -1,4 +1,4 @@
-package com.walletconnect.android.internal.common.storage
+package com.walletconnect.android.internal.common.storage.verify
 
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android.internal.common.model.Validation

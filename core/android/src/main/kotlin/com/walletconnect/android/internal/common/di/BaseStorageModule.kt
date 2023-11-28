@@ -1,18 +1,19 @@
 package com.walletconnect.android.internal.common.di
 
-import com.squareup.moshi.Moshi
 import app.cash.sqldelight.ColumnAdapter
 import app.cash.sqldelight.EnumColumnAdapter
+import com.squareup.moshi.Moshi
 import com.walletconnect.android.di.AndroidBuildVariantDITags
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.Validation
-import com.walletconnect.android.internal.common.storage.IdentitiesStorageRepository
-import com.walletconnect.android.internal.common.storage.JsonRpcHistory
-import com.walletconnect.android.internal.common.storage.MetadataStorageRepository
-import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
-import com.walletconnect.android.internal.common.storage.PairingStorageRepository
-import com.walletconnect.android.internal.common.storage.PairingStorageRepositoryInterface
-import com.walletconnect.android.internal.common.storage.VerifyContextStorageRepository
+import com.walletconnect.android.internal.common.storage.identity.IdentitiesStorageRepository
+import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepository
+import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
+import com.walletconnect.android.internal.common.storage.pairing.PairingStorageRepository
+import com.walletconnect.android.internal.common.storage.pairing.PairingStorageRepositoryInterface
+import com.walletconnect.android.internal.common.storage.push_messages.PushMessageStorageRepository
+import com.walletconnect.android.internal.common.storage.rpc.JsonRpcHistory
+import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.sdk.core.AndroidCoreDatabase
 import com.walletconnect.android.sdk.storage.data.dao.MetaData
 import com.walletconnect.android.sdk.storage.data.dao.VerifyContext
@@ -96,6 +97,8 @@ fun baseStorageModule(storagePrefix: String = String.Empty) = module {
     single { IdentitiesStorageRepository(identities = get(), get<Moshi.Builder>(named(AndroidCommonDITags.MOSHI))) }
 
     single { VerifyContextStorageRepository(verifyContextQueries = get()) }
+
+    single { PushMessageStorageRepository(pushMessageQueries = get()) }
 
     single { DatabaseConfig(storagePrefix = storagePrefix) }
 }

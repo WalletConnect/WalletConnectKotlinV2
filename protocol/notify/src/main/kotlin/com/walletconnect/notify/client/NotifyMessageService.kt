@@ -3,7 +3,7 @@ package com.walletconnect.notify.client
 import android.annotation.SuppressLint
 import com.google.firebase.messaging.RemoteMessage
 import com.walletconnect.android.Core
-import com.walletconnect.android.echo.PushMessagingService
+import com.walletconnect.android.echo.notifications.PushMessagingService
 
 @SuppressLint("MissingFirebaseInstanceTokenRefresh")
 abstract class NotifyMessageService : PushMessagingService() {

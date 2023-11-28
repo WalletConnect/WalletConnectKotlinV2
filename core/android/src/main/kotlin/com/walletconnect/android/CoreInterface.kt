@@ -1,7 +1,7 @@
 package com.walletconnect.android
 
 import android.app.Application
-import com.walletconnect.android.echo.EchoInterface
+import com.walletconnect.android.echo.client.EchoInterface
 import com.walletconnect.android.internal.common.explorer.ExplorerInterface
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface

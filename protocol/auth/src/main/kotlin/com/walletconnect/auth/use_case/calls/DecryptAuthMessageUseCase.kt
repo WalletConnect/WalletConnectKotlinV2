@@ -1,14 +1,14 @@
 package com.walletconnect.auth.use_case.calls
 
 import com.walletconnect.android.Core
-import com.walletconnect.android.echo.DecryptMessageUseCaseInterface
+import com.walletconnect.android.echo.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.sync.ClientJsonRpc
 import com.walletconnect.android.internal.common.model.type.ClientParams
-import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
+import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.utils.toClient
 import com.walletconnect.auth.common.exceptions.InvalidAuthParamsType
 import com.walletconnect.auth.common.json_rpc.AuthParams

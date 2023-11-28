@@ -1,6 +1,6 @@
 @file:JvmSynthetic
 
-package com.walletconnect.android.echo
+package com.walletconnect.android.echo.client
 
 import com.walletconnect.android.echo.network.EchoService
 import com.walletconnect.android.echo.network.model.EchoBody

@@ -11,7 +11,7 @@ import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
+import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
 import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase

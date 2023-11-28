@@ -1,7 +1,7 @@
 package com.walletconnect.sign.engine.use_case.calls
 
 import com.walletconnect.android.Core
-import com.walletconnect.android.echo.DecryptMessageUseCaseInterface
+import com.walletconnect.android.echo.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.model.AppMetaData
@@ -9,7 +9,7 @@ import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.model.sync.ClientJsonRpc
 import com.walletconnect.android.internal.common.model.type.ClientParams
-import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
+import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.utils.toClient
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.exceptions.InvalidSignParamsType
@@ -23,6 +23,9 @@ internal class DecryptSignMessageUseCase(
     override suspend fun decryptMessage(topic: String, message: String, onSuccess: (Core.Model.Message) -> Unit, onFailure: (Throwable) -> Unit) {
         try {
             val decryptedMessageString = codec.decrypt(Topic(topic), message)
+
+            println("kobe; Decrypted Sign Message: $decryptedMessageString")
+
             val clientJsonRpc: ClientJsonRpc = serializer.tryDeserialize<ClientJsonRpc>(decryptedMessageString) ?: throw InvalidSignParamsType()
             val params: ClientParams = serializer.deserialize(clientJsonRpc.method, decryptedMessageString) ?: throw InvalidSignParamsType()
             val metadata: AppMetaData = metadataRepository.getByTopicAndType(Topic(topic), AppMetaDataType.PEER) ?: throw InvalidSignParamsType()

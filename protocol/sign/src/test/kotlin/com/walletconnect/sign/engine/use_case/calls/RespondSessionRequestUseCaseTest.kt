@@ -2,7 +2,7 @@ package com.walletconnect.sign.engine.use_case.calls
 
 import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
-import com.walletconnect.android.internal.common.storage.VerifyContextStorageRepository
+import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdUseCase
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository

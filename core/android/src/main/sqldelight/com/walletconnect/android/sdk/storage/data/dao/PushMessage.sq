@@ -1,0 +1,17 @@
+CREATE TABLE PushMessage (
+	id INTEGER PRIMARY KEY NOT NULL,
+	topic TEXT NOT NULL,
+  	blob TEXT NOT NULL
+);
+
+insertMessage:
+INSERT OR REPLACE INTO PushMessage(id, topic, blob)
+VALUES (?, ?, ?);
+
+getPushMessageById:
+SELECT id, topic, blob
+FROM PushMessage
+WHERE id = ?;
+
+doesMessagesExistsByRequestId:
+SELECT EXISTS(SELECT 1 FROM PushMessage WHERE id = ?);

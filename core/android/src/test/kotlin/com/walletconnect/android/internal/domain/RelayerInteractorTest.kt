@@ -11,7 +11,7 @@ import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.type.ClientParams
 import com.walletconnect.android.internal.common.model.type.Error
 import com.walletconnect.android.internal.common.model.type.JsonRpcClientSync
-import com.walletconnect.android.internal.common.storage.JsonRpcHistory
+import com.walletconnect.android.internal.common.storage.rpc.JsonRpcHistory
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.relay.RelayConnectionInterface
 import com.walletconnect.foundation.common.model.Topic

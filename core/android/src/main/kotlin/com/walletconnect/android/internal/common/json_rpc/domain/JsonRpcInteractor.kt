@@ -22,7 +22,7 @@ import com.walletconnect.android.internal.common.model.type.Error
 import com.walletconnect.android.internal.common.model.type.JsonRpcClientSync
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.common.storage.JsonRpcHistory
+import com.walletconnect.android.internal.common.storage.rpc.JsonRpcHistory
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.relay.RelayConnectionInterface
 import com.walletconnect.foundation.common.model.SubscriptionId
@@ -305,12 +305,17 @@ internal class JsonRpcInteractor(
                 //TODO silences 4050
                 if (relayRequest.params.subscriptionData.tag == 4050) return@map Triple(String.Empty, Topic(""), 0L)
                 val topic = Topic(relayRequest.subscriptionTopic)
+
+                println("kobe; Relay request: $relayRequest")
+
                 val message = try {
                     chaChaPolyCodec.decrypt(topic, relayRequest.message)
                 } catch (e: Exception) {
                     handleError("ManSub: ${e.stackTraceToString()}")
                     String.Empty
                 }
+
+                println("kobe; Message: $message")
 
                 Triple(message, topic, relayRequest.params.subscriptionData.publishedAt)
             }.collect { (decryptedMessage, topic, publishedAt) ->

@@ -1,7 +1,7 @@
 package com.walletconnect.auth.json_rpc.domain
 
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
-import com.walletconnect.android.internal.common.storage.JsonRpcHistory
+import com.walletconnect.android.internal.common.storage.rpc.JsonRpcHistory
 import com.walletconnect.auth.common.json_rpc.AuthRpc
 import com.walletconnect.auth.common.model.PendingRequest
 import com.walletconnect.auth.engine.mapper.toPendingRequest

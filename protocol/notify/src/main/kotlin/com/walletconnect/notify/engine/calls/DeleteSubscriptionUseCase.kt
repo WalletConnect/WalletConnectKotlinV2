@@ -7,7 +7,7 @@ import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
-import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
+import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl

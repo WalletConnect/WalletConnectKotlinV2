@@ -1,7 +1,7 @@
 package com.walletconnect.android.internal.common.di
 
 import android.content.SharedPreferences
-import com.walletconnect.android.echo.EchoInterface
+import com.walletconnect.android.echo.client.EchoInterface
 import com.walletconnect.android.echo.network.EchoService
 import org.koin.core.qualifier.named
 import org.koin.dsl.module

@@ -2,7 +2,7 @@
 
 package com.walletconnect.notify.di
 
-import com.walletconnect.android.echo.DecryptMessageUseCaseInterface
+import com.walletconnect.android.echo.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.notify.engine.calls.DecryptNotifyMessageUseCase
 import com.walletconnect.notify.engine.calls.DeleteMessageUseCase

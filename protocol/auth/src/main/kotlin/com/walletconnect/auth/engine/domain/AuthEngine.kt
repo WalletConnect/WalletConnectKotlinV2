@@ -2,14 +2,14 @@
 
 package com.walletconnect.auth.engine.domain
 
-import com.walletconnect.android.echo.DecryptMessageUseCaseInterface
+import com.walletconnect.android.echo.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Validation
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.common.storage.VerifyContextStorageRepository
+import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.verify.data.model.VerifyContext
 import com.walletconnect.auth.common.json_rpc.AuthParams

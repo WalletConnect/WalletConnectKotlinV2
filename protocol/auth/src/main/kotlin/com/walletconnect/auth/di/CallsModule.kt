@@ -1,6 +1,6 @@
 package com.walletconnect.auth.di
 
-import com.walletconnect.android.echo.DecryptMessageUseCaseInterface
+import com.walletconnect.android.echo.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.auth.use_case.calls.DecryptAuthMessageUseCase
 import com.walletconnect.auth.use_case.calls.FormatMessageUseCase

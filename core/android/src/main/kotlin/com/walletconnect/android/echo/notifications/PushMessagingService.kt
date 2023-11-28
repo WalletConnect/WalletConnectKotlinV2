@@ -1,4 +1,4 @@
-package com.walletconnect.android.echo
+package com.walletconnect.android.echo.notifications //todo: should change package from echo to push?
 
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage

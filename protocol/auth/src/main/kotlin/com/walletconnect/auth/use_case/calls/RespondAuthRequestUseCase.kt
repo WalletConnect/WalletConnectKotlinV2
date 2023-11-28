@@ -19,7 +19,7 @@ import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.signing.cacao.CacaoType
 import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
 import com.walletconnect.android.internal.common.signing.cacao.Issuer
-import com.walletconnect.android.internal.common.storage.VerifyContextStorageRepository
+import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
 import com.walletconnect.android.pairing.handler.PairingControllerInterface

@@ -2,7 +2,7 @@
 
 package com.walletconnect.sign.engine.domain
 
-import com.walletconnect.android.echo.DecryptMessageUseCaseInterface
+import com.walletconnect.android.echo.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.ConnectionState
@@ -11,8 +11,8 @@ import com.walletconnect.android.internal.common.model.Validation
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
-import com.walletconnect.android.internal.common.storage.VerifyContextStorageRepository
+import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
+import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.verify.data.model.VerifyContext

@@ -1,6 +1,6 @@
 @file:JvmSynthetic
 
-package com.walletconnect.android.internal.common.storage
+package com.walletconnect.android.internal.common.storage.metadata
 
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android.internal.common.model.AppMetaData

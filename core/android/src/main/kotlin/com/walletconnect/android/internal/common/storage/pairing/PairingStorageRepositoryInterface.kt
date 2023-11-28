@@ -1,4 +1,4 @@
-package com.walletconnect.android.internal.common.storage
+package com.walletconnect.android.internal.common.storage.pairing
 
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.Pairing

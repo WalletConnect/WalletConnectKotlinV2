@@ -14,7 +14,7 @@ import com.walletconnect.android.internal.common.model.params.ChatNotifyResponse
 import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
-import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
+import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.jwt.decodeDidWeb

@@ -1,4 +1,4 @@
-package com.walletconnect.android.echo
+package com.walletconnect.android.echo.notifications
 
 import com.walletconnect.android.Core
 

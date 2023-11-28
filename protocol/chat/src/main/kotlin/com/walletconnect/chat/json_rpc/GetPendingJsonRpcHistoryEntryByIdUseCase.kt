@@ -2,7 +2,7 @@ package com.walletconnect.chat.json_rpc
 
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.json_rpc.model.JsonRpcHistoryRecord
-import com.walletconnect.android.internal.common.storage.JsonRpcHistory
+import com.walletconnect.android.internal.common.storage.rpc.JsonRpcHistory
 import com.walletconnect.chat.common.json_rpc.ChatRpc
 import com.walletconnect.chat.common.model.JsonRpcHistoryEntry
 import com.walletconnect.foundation.common.model.Topic

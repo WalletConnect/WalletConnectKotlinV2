@@ -25,8 +25,8 @@ import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.WalletConnectUri
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
-import com.walletconnect.android.internal.common.storage.PairingStorageRepositoryInterface
+import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
+import com.walletconnect.android.internal.common.storage.pairing.PairingStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.CURRENT_TIME_IN_SECONDS
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
 import com.walletconnect.android.internal.utils.THIRTY_SECONDS

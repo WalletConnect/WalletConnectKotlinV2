@@ -1,6 +1,6 @@
 package com.walletconnect.auth.use_case.calls
 
-import com.walletconnect.android.internal.common.storage.VerifyContextStorageRepository
+import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.verify.data.model.VerifyContext
 import kotlinx.coroutines.supervisorScope
 

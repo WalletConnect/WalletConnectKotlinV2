@@ -1,6 +1,6 @@
 package com.walletconnect.sign.di
 
-import com.walletconnect.android.echo.DecryptMessageUseCaseInterface
+import com.walletconnect.android.echo.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.sign.engine.use_case.calls.ApproveSessionUseCase
 import com.walletconnect.sign.engine.use_case.calls.ApproveSessionUseCaseInterface

@@ -2,7 +2,7 @@ package com.walletconnect.sign.json_rpc.domain
 
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.json_rpc.model.JsonRpcHistoryRecord
-import com.walletconnect.android.internal.common.storage.JsonRpcHistory
+import com.walletconnect.android.internal.common.storage.rpc.JsonRpcHistory
 import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpc
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams

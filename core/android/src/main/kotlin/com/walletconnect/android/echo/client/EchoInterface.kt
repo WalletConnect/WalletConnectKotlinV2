@@ -1,4 +1,4 @@
-package com.walletconnect.android.echo
+package com.walletconnect.android.echo.client
 
 interface EchoInterface {
     val clientId: String
