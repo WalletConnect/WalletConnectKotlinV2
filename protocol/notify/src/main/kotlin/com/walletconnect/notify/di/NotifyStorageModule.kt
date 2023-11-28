@@ -4,9 +4,7 @@ package com.walletconnect.notify.di
 
 import app.cash.sqldelight.ColumnAdapter
 import com.walletconnect.android.di.sdkBaseStorageModule
-import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.di.deleteDatabase
-import com.walletconnect.foundation.util.Logger
 import com.walletconnect.notify.NotifyDatabase
 import com.walletconnect.notify.common.storage.data.dao.ActiveSubscriptions
 import com.walletconnect.notify.data.storage.MessagesRepository

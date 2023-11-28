@@ -222,11 +222,11 @@ class Web3WalletApplication : Application() {
 
 
         job.invokeOnCompletion { cause ->
-            onScopeCancelled(cause, "job")
+            onScopeCancelled(cause, "notifyEventsJob")
         }
 
         job2.invokeOnCompletion { cause ->
-            onScopeCancelled(cause, "job2")
+            onScopeCancelled(cause, "notificationDisplayingJob")
         }
     }
 
