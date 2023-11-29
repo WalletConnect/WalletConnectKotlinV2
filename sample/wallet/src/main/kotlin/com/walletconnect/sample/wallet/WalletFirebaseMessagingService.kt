@@ -13,12 +13,9 @@ import org.koin.core.qualifier.named
 
 @SuppressLint("MissingFirebaseInstanceTokenRefresh")
 class WalletFirebaseMessagingService : PushMessagingService() {
-
     private val logger: Logger by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.LOGGER)) }
 
     override fun onMessage(message: Core.Model.Message, originalMessage: RemoteMessage) {
-        println("kobe; OnNotifications: $message")
-
         runBlocking { NotificationHandler.addNotification(message) }
     }
 

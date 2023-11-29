@@ -1,12 +1,13 @@
 CREATE TABLE PushMessage (
-	id INTEGER PRIMARY KEY NOT NULL,
+	id TEXT PRIMARY KEY NOT NULL,
 	topic TEXT NOT NULL,
-  	blob TEXT NOT NULL
+  	blob TEXT NOT NULL,
+  	tag INTEGER NOT NULL
 );
 
 insertMessage:
-INSERT OR REPLACE INTO PushMessage(id, topic, blob)
-VALUES (?, ?, ?);
+INSERT OR REPLACE INTO PushMessage(id, topic, blob, tag)
+VALUES (?, ?, ?,?);
 
 getPushMessageById:
 SELECT id, topic, blob

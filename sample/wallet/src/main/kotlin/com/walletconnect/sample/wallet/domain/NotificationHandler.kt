@@ -250,17 +250,18 @@ object NotificationHandler {
                 message.peerMetaData?.icons?.firstOrNull()
             )
 
-            is Core.Model.Message.SessionProposal -> Notification.SessionProposal(
-                message.hashCode(),
-                W3W_CHANNEL_ID,
-                "New session proposal!",
-                "A new session proposal arrived from ${message.name}, please check your wallet",
-                message.name,
-                message.description,
-                message.url,
-                message.icons.firstOrNull(),
-                message.redirect
-            )
+            is Core.Model.Message.SessionProposal ->
+                Notification.SessionProposal(
+                    message.hashCode(),
+                    W3W_CHANNEL_ID,
+                    "New session proposal!",
+                    "A new session proposal arrived from ${message.name}, please check your wallet",
+                    message.name,
+                    message.description,
+                    message.url,
+                    message.icons.firstOrNull(),
+                    message.redirect
+                )
         }
 
         _notificationsFlow.emit(notification)

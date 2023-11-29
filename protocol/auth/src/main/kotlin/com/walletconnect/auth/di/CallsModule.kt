@@ -38,6 +38,7 @@ internal fun callsModule() = module {
             codec = get(),
             serializer = get(),
             metadataRepository = get(),
+            pushMessageStorageRepository = get()
         )
     }
 

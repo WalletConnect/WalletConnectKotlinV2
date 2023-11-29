@@ -3,10 +3,10 @@ package com.walletconnect.android.echo.notifications //todo: should change packa
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.walletconnect.android.Core
-import com.walletconnect.android.CoreClient
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.internal.common.storage.push_messages.PushMessagesRepository
 import com.walletconnect.android.internal.common.wcKoinApp
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
@@ -18,18 +18,15 @@ abstract class PushMessagingService : FirebaseMessagingService() {
     private val decryptNotifyMessageUseCase: DecryptMessageUseCaseInterface by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.DECRYPT_NOTIFY_MESSAGE)) }
     private val decryptSignMessageUseCase: DecryptMessageUseCaseInterface by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.DECRYPT_SIGN_MESSAGE)) }
     private val decryptAuthMessageUseCase: DecryptMessageUseCaseInterface by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.DECRYPT_AUTH_MESSAGE)) }
+    private val pushMessagesRepository: PushMessagesRepository by lazy { wcKoinApp.koin.get() }
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-
-        CoreClient.Echo.register(firebaseAccessToken = token, enableEncrypted = true, onSuccess = { newToken(token) }, onError = { error -> registeringFailed(token, error) })
+        newToken(token)
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
-
-        println("kobe; Remote Message: ${message.data}")
-
         with(message) {
             try {
                 when {
@@ -41,11 +38,16 @@ abstract class PushMessagingService : FirebaseMessagingService() {
                     }
 
                     isEncryptedNotification() -> {
-                        when (data.getValue(KEY_TAG)) {
-                            Tags.SESSION_PROPOSE.id.toString(), Tags.SESSION_REQUEST.id.toString() -> decryptSignMessage()
-                            Tags.AUTH_REQUEST.id.toString() -> decryptAuthMessage()
-                            Tags.NOTIFY_MESSAGE.id.toString() -> decryptNotifyMessage(data.getValue(KEY_MESSAGE))
-                        }
+                        pushMessagesRepository.notificationTags
+                            .map { tag -> tag.toString() }
+                            .filter { tag -> tag == data.getValue(KEY_TAG) }
+                            .onEach { tag ->
+                                when (tag) {
+                                    Tags.SESSION_PROPOSE.id.toString(), Tags.SESSION_REQUEST.id.toString() -> decryptSignMessage()
+                                    Tags.AUTH_REQUEST.id.toString() -> decryptAuthMessage()
+                                    Tags.NOTIFY_MESSAGE.id.toString() -> decryptNotifyMessage(data.getValue(KEY_MESSAGE))
+                                }
+                            }
                     }
 
                     notification?.isValid() == true -> {
@@ -78,9 +80,7 @@ abstract class PushMessagingService : FirebaseMessagingService() {
         scope.launch {
             supervisorScope {
                 decryptNotifyMessageUseCase.decryptMessage(data.getValue(KEY_TOPIC), encryptedMessage,
-                    onSuccess = { message ->
-                        if (message is Core.Model.Message.Notify) onMessage(message, this@decryptNotifyMessage)
-                    },
+                    onSuccess = { message -> if (message is Core.Model.Message.Notify) onMessage(message, this@decryptNotifyMessage) },
                     onFailure = { throwable -> onError(throwable, this@decryptNotifyMessage) }
                 )
             }
@@ -105,16 +105,10 @@ abstract class PushMessagingService : FirebaseMessagingService() {
     }
 
     private fun RemoteMessage.decryptAuthMessage() {
-        println("kobe: onDecryptedAuthMessage")
-
         scope.launch {
             supervisorScope {
                 decryptAuthMessageUseCase.decryptMessage(data.getValue(KEY_TOPIC), data.getValue(KEY_MESSAGE),
-                    onSuccess = { message ->
-                        println("kobe: Result auth: $message")
-                        if (message is Core.Model.Message.AuthRequest) onMessage(message, this@decryptAuthMessage)
-
-                    },
+                    onSuccess = { message -> if (message is Core.Model.Message.AuthRequest) onMessage(message, this@decryptAuthMessage) },
                     onFailure = { throwable -> onError(throwable, this@decryptAuthMessage) }
                 )
             }
@@ -134,6 +128,7 @@ abstract class PushMessagingService : FirebaseMessagingService() {
     }
 
     private fun RemoteMessage.Notification?.isValid(): Boolean = this != null && title != null && body != null
+
     // https://github.com/WalletConnect/walletconnect-docs/blob/a867df86ac1a6153a94cdda4b6e0dbd49f4dbb5a/docs/specs/servers/echo/spec.md?plain=1#L98
     private enum class MessageFlags(val value: Int) {
         SIGN(1 shl 1),

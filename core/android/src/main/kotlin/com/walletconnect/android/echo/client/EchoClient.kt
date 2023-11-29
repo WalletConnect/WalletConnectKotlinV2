@@ -8,6 +8,7 @@ import com.walletconnect.android.echo.network.model.EchoBody
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.internal.common.storage.push_messages.PushMessagesRepository
 import com.walletconnect.android.internal.common.wcKoinApp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,9 +19,11 @@ internal object EchoClient : EchoInterface {
     private val echoService by lazy { wcKoinApp.koin.get<EchoService>() }
     override val clientId by lazy { wcKoinApp.koin.get<String>(named(AndroidCommonDITags.CLIENT_ID)) }
     private val projectId by lazy { wcKoinApp.koin.get<ProjectId>() }
+    private val pushMessagesRepository: PushMessagesRepository by lazy { wcKoinApp.koin.get() }
     private const val SUCCESS_STATUS = "SUCCESS"
 
     override fun register(firebaseAccessToken: String, enableEncrypted: Boolean?, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
+        if (enableEncrypted == true) pushMessagesRepository.enablePushNotifications()
         val body = EchoBody(clientId, firebaseAccessToken, enableEncrypted = enableEncrypted)
 
         scope.launch(Dispatchers.IO) {

@@ -11,7 +11,7 @@ import com.walletconnect.android.internal.common.storage.metadata.MetadataStorag
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.pairing.PairingStorageRepository
 import com.walletconnect.android.internal.common.storage.pairing.PairingStorageRepositoryInterface
-import com.walletconnect.android.internal.common.storage.push_messages.PushMessageStorageRepository
+import com.walletconnect.android.internal.common.storage.push_messages.PushMessagesRepository
 import com.walletconnect.android.internal.common.storage.rpc.JsonRpcHistory
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.sdk.core.AndroidCoreDatabase
@@ -100,7 +100,7 @@ fun baseStorageModule(storagePrefix: String = String.Empty) = module {
 
     single { VerifyContextStorageRepository(verifyContextQueries = get()) }
 
-    single { PushMessageStorageRepository(pushMessageQueries = get()) }
+    single { PushMessagesRepository(pushMessageQueries = get()) }
 
     single { DatabaseConfig(storagePrefix = storagePrefix) }
 }

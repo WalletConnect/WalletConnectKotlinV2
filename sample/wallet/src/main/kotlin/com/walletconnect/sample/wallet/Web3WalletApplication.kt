@@ -125,6 +125,15 @@ class Web3WalletApplication : Application() {
         // For testing purposes only
         FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
             addFirebaseBeagleModules = {
+
+                Web3Wallet.registerDeviceToken(firebaseAccessToken = token, enableEncrypted = true,
+                    onSuccess = {
+                        Timber.tag(tag(this)).e("Successfully registered firebase token for Web3Wallet")
+                    },
+                    onError = {
+                        Timber.tag(tag(this)).e("Error while registering firebase token for Web3Wallet: ${it.throwable}")
+                    })
+
                 Beagle.add(
                     PaddingModule(size = PaddingModule.Size.LARGE, id = "${token}Padding"),
                     placement = Placement.Below(id = CoreClient.Echo.clientId)
