@@ -212,20 +212,20 @@ class Web3WalletApplication : Application() {
     private fun handleNotifyMessages() {
         val scope = CoroutineScope(Dispatchers.Default)
 
-        val job = NotifyDelegate.notifyEvents
+        val notifyEventsJob = NotifyDelegate.notifyEvents
             .filterIsInstance<Notify.Event.Message>()
             .onEach { message -> NotificationHandler.addNotification(message.message.message) }
             .launchIn(scope)
 
 
-        val job2 = NotificationHandler.startNotificationDisplayingJob(scope, this)
+        val notificationDisplayingJob = NotificationHandler.startNotificationDisplayingJob(scope, this)
 
 
-        job.invokeOnCompletion { cause ->
+        notifyEventsJob.invokeOnCompletion { cause ->
             onScopeCancelled(cause, "notifyEventsJob")
         }
 
-        job2.invokeOnCompletion { cause ->
+        notificationDisplayingJob.invokeOnCompletion { cause ->
             onScopeCancelled(cause, "notificationDisplayingJob")
         }
     }
