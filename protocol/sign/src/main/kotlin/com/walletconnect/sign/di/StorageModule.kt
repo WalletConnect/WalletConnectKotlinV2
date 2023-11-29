@@ -22,7 +22,7 @@ import org.koin.dsl.module
 @JvmSynthetic
 internal fun storageModule(dbName: String): Module = module {
     fun Scope.createSignDB(): SignDatabase = SignDatabase(
-        get(named(dbName)),
+        driver = get(named(dbName)),
         NamespaceDaoAdapter = NamespaceDao.Adapter(
             accountsAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_LIST)),
             methodsAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_LIST)),
