@@ -28,8 +28,8 @@ import kotlin.time.Duration.Companion.seconds
 
 class ClientInstrumentedActivityScenario : TestRule, ActivityScenario() {
     private val reconnectScope = CoroutineScope(Dispatchers.IO)
-    private var primaryReconnectJob : Job? = null
-    private var secondaryReconnectJob : Job? = null
+    private var primaryReconnectJob: Job? = null
+    private var secondaryReconnectJob: Job? = null
 
     override fun apply(base: Statement, description: Description): Statement {
         return object : Statement() {
@@ -58,8 +58,13 @@ class ClientInstrumentedActivityScenario : TestRule, ActivityScenario() {
     }
 
     private fun beforeAll() {
+        initLogging()
+    }
+
+    // Notify tests require initialization after setting delegates hence the need for this method to be extracted
+    fun initializeClients() {
         runBlocking {
-            initLogging()
+
             val isDappRelayReady = MutableStateFlow(false)
             val isWalletRelayReady = MutableStateFlow(false)
 
