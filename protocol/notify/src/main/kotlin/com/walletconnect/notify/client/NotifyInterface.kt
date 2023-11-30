@@ -5,7 +5,10 @@ interface NotifyInterface {
 
         fun onNotifySubscription(notifySubscribe: Notify.Event.Subscription)
 
+        @Deprecated("We renamed this function to onNotifyMessage for consistency")
         fun onNotifyMessage(notifyMessage: Notify.Event.Message)
+
+        fun onNotifyNotification(notifyNotification: Notify.Event.Notification)
 
         fun onNotifyDelete(notifyDelete: Notify.Event.Delete)
 
@@ -48,6 +51,7 @@ interface NotifyInterface {
 
     fun decryptMessage(params: Notify.Params.DecryptMessage, onSuccess: (Notify.Model.Message.Decrypted) -> Unit, onError: (Notify.Model.Error) -> Unit)
 
+    @Deprecated("Use register instead")
     fun register(params: Notify.Params.Registration, onSuccess: (String) -> Unit, onError: (Notify.Model.Error) -> Unit)
 
     fun unregister(params: Notify.Params.Unregistration, onSuccess: (String) -> Unit, onError: (Notify.Model.Error) -> Unit)
