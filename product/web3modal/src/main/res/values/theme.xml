@@ -4,4 +4,16 @@
     <style name="Web3ModalTheme">
         <item name="modalMode">AUTO</item>
     </style>
+
+    <style name="Web3ModalTheme.DialogTheme" parent="Web3ModalTheme">
+        <item name="bottomSheetDialogTheme">@style/Web3ModalBottomSheetDialogTheme</item>
+    </style>
+
+    <style name="Web3ModalBottomSheetDialogTheme" parent="Theme.Design.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Web3ModalStyle</item>
+    </style>
+
+    <style name="Web3ModalStyle" parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@android:color/transparent</item>
+    </style>
 </resources>

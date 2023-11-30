@@ -282,7 +282,7 @@ internal class SignEngine(
                         val verifyContext =
                             verifyContextStorageRepository.get(sessionRequest.request.id) ?: VerifyContext(sessionRequest.request.id, String.Empty, Validation.UNKNOWN, String.Empty, null)
                         val sessionRequestEvent = EngineDO.SessionRequestEvent(sessionRequest, verifyContext.toEngineDO())
-                        sessionRequestEventsQueue.addLast(sessionRequestEvent)
+                        sessionRequestEventsQueue.add(sessionRequestEvent)
                     }
                 }
             }

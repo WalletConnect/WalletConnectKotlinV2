@@ -113,12 +113,12 @@ internal class AccountState(
     fun disconnect() {
             Web3Modal.disconnect(
                 onSuccess = {
-                    coroutineScope.launch { deleteSessionDataUseCase() }
                     coroutineScope.launch(Dispatchers.Main) { closeModal() }
                 },
                 onError = {
                     showError(it.throwable.localizedMessage)
                     logger.error(it.throwable)
+                    coroutineScope.launch(Dispatchers.Main) { closeModal() }
                 }
             )
         }

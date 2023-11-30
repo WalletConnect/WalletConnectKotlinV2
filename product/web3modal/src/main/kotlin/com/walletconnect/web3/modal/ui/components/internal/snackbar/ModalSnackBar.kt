@@ -35,6 +35,10 @@ internal fun ModalSnackBar(
         modifier = Modifier
             .height(40.dp)
             .background(
+                color = Web3ModalTheme.colors.background.color125,
+                shape = shape
+            )
+            .background(
                 color = Web3ModalTheme.colors.grayGlass05,
                 shape = shape
             )

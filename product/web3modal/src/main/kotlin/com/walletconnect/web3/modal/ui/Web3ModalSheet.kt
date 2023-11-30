@@ -7,10 +7,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.ComponentDialog
 import androidx.activity.OnBackPressedCallback
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.unit.dp
 import androidx.core.content.res.use
 import androidx.core.content.res.getColorOrThrow
 import androidx.navigation.NavHostController
@@ -24,7 +27,7 @@ import com.walletconnect.web3.modal.ui.theme.ColorPalette
 class Web3ModalSheet : BottomSheetDialogFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        requireContext().setTheme(R.style.Web3ModalTheme)
+        requireContext().setTheme(R.style.Web3ModalTheme_DialogTheme)
         super.onCreate(savedInstanceState)
     }
 
@@ -61,11 +64,15 @@ class Web3ModalSheet : BottomSheetDialogFragment() {
             this@Web3ModalSheet,
             onBackPressedCallback(navController)
         )
-        Web3ModalComponent(
-            navController = navController,
-            shouldOpenChooseNetwork = shouldOpenChooseNetwork,
-            closeModal = { this@Web3ModalSheet.dismiss() }
-        )
+        Surface(
+            shape = RoundedCornerShape(topStart = 36.dp, topEnd = 36.dp)
+        ) {
+            Web3ModalComponent(
+                navController = navController,
+                shouldOpenChooseNetwork = shouldOpenChooseNetwork,
+                closeModal = { this@Web3ModalSheet.dismiss() }
+            )
+        }
     }
 
 
@@ -80,7 +87,7 @@ class Web3ModalSheet : BottomSheetDialogFragment() {
 }
 
 @Composable
-private fun Map<Int, Color?>.getLightModeColors(): Web3ModalTheme.Colors {
+internal fun Map<Int, Color?>.getLightModeColors(): Web3ModalTheme.Colors {
     val defaultColors = Web3ModalTheme.provideLightWeb3ModalColors()
     val (foreground, background) = provideColorPallets(defaultColors)
     return Web3ModalTheme.provideLightWeb3ModalColors(
@@ -96,7 +103,7 @@ private fun Map<Int, Color?>.getLightModeColors(): Web3ModalTheme.Colors {
 }
 
 @Composable
-private fun Map<Int, Color?>.getDarkModeColors(): Web3ModalTheme.Colors {
+internal fun Map<Int, Color?>.getDarkModeColors(): Web3ModalTheme.Colors {
     val defaultColors = Web3ModalTheme.provideDarkWeb3ModalColor()
     val (foreground, background) = provideColorPallets(defaultColors)
     return Web3ModalTheme.provideDarkWeb3ModalColor(
@@ -170,14 +177,14 @@ private val themeColorsAttributesMap = mapOf(
     23 to R.attr.modalError,
 )
 
-private fun Context.getColorMap() =
+internal fun Context.getColorMap() =
     obtainStyledAttributes(themeColorsAttributesMap.values.toIntArray()).use {
         themeColorsAttributesMap.keys.map { id ->
             themeColorsAttributesMap[id]!! to try { it.getColorOrThrow(id).toComposeColor() } catch (e: Exception) { null }
         }
     }.toMap()
 
-private fun Context.getThemeMode() = obtainStyledAttributes(intArrayOf(R.attr.modalMode))
+internal fun Context.getThemeMode() = obtainStyledAttributes(intArrayOf(R.attr.modalMode))
     .use { it.getInt(0, 0) }.toThemeMode()
 
 private fun Bundle?.getShouldOpenChooseNetworkArg() = this?.getBoolean(CHOOSE_NETWORK_KEY) ?: false
