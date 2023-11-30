@@ -67,6 +67,7 @@
         <activity android:name=".compose.ComposeActivity"/>
         <activity android:name=".kotlindsl.KotlinDSLActivity" />
         <activity android:name=".navComponent.NavComponentActivity" />
+        <activity android:name=".view.ViewActivity"/>
     </application>
 
 </manifest>

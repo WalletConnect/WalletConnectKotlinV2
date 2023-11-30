@@ -87,7 +87,7 @@ class Web3ModalSheet : BottomSheetDialogFragment() {
 }
 
 @Composable
-private fun Map<Int, Color?>.getLightModeColors(): Web3ModalTheme.Colors {
+internal fun Map<Int, Color?>.getLightModeColors(): Web3ModalTheme.Colors {
     val defaultColors = Web3ModalTheme.provideLightWeb3ModalColors()
     val (foreground, background) = provideColorPallets(defaultColors)
     return Web3ModalTheme.provideLightWeb3ModalColors(
@@ -103,7 +103,7 @@ private fun Map<Int, Color?>.getLightModeColors(): Web3ModalTheme.Colors {
 }
 
 @Composable
-private fun Map<Int, Color?>.getDarkModeColors(): Web3ModalTheme.Colors {
+internal fun Map<Int, Color?>.getDarkModeColors(): Web3ModalTheme.Colors {
     val defaultColors = Web3ModalTheme.provideDarkWeb3ModalColor()
     val (foreground, background) = provideColorPallets(defaultColors)
     return Web3ModalTheme.provideDarkWeb3ModalColor(
@@ -177,14 +177,14 @@ private val themeColorsAttributesMap = mapOf(
     23 to R.attr.modalError,
 )
 
-private fun Context.getColorMap() =
+internal fun Context.getColorMap() =
     obtainStyledAttributes(themeColorsAttributesMap.values.toIntArray()).use {
         themeColorsAttributesMap.keys.map { id ->
             themeColorsAttributesMap[id]!! to try { it.getColorOrThrow(id).toComposeColor() } catch (e: Exception) { null }
         }
     }.toMap()
 
-private fun Context.getThemeMode() = obtainStyledAttributes(intArrayOf(R.attr.modalMode))
+internal fun Context.getThemeMode() = obtainStyledAttributes(intArrayOf(R.attr.modalMode))
     .use { it.getInt(0, 0) }.toThemeMode()
 
 private fun Bundle?.getShouldOpenChooseNetworkArg() = this?.getBoolean(CHOOSE_NETWORK_KEY) ?: false

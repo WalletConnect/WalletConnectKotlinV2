@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <declare-styleable name="Web3ModalView">
+        <attr name="open_network_select" format="boolean"/>
+    </declare-styleable>
+
     <declare-styleable name="ConnectButton">
         <attr name="connect_button_size" />
     </declare-styleable>
