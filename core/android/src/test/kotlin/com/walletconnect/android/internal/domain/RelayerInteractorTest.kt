@@ -11,6 +11,7 @@ import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.type.ClientParams
 import com.walletconnect.android.internal.common.model.type.Error
 import com.walletconnect.android.internal.common.model.type.JsonRpcClientSync
+import com.walletconnect.android.internal.common.storage.push_messages.PushMessagesRepository
 import com.walletconnect.android.internal.common.storage.rpc.JsonRpcHistory
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.relay.RelayConnectionInterface
@@ -52,6 +53,7 @@ internal class RelayerInteractorTest {
         every { encrypt(any(), any(), any()) } returns ""
     }
 
+    private val pushMessagesRepository: PushMessagesRepository = mockk()
 
     private val logger: Logger = object : Logger {
         override fun log(logMsg: String?) {
@@ -72,7 +74,7 @@ internal class RelayerInteractorTest {
     }
 
     private val sut =
-        spyk(JsonRpcInteractor(relay, codec, jsonRpcHistory, logger), recordPrivateCalls = true) {
+        spyk(JsonRpcInteractor(relay, codec, jsonRpcHistory, pushMessagesRepository, logger), recordPrivateCalls = true) {
             every { checkConnectionWorking() } answers { }
         }
 
