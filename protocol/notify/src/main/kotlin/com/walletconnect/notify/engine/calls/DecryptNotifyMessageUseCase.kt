@@ -3,7 +3,7 @@
 package com.walletconnect.notify.engine.calls
 
 import com.walletconnect.android.Core
-import com.walletconnect.android.echo.notifications.DecryptMessageUseCaseInterface
+import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer

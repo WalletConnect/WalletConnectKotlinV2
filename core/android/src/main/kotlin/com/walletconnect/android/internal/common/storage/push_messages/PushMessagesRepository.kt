@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 
-internal class PushMessagesRepository(private val pushMessageQueries: PushMessageQueries) {
+class PushMessagesRepository(private val pushMessageQueries: PushMessageQueries) {
 
     val notificationTags = listOf(Tags.SESSION_PROPOSE.id, Tags.SESSION_REQUEST.id, Tags.AUTH_REQUEST.id, Tags.NOTIFY_MESSAGE.id)
 

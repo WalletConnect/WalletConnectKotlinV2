@@ -2,7 +2,7 @@
 
 package com.walletconnect.sign.engine.domain
 
-import com.walletconnect.android.echo.notifications.DecryptMessageUseCaseInterface
+import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.ConnectionState

@@ -2,7 +2,7 @@
 
 package com.walletconnect.auth.engine.domain
 
-import com.walletconnect.android.echo.notifications.DecryptMessageUseCaseInterface
+import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Validation

@@ -1,6 +1,6 @@
-package com.walletconnect.android.echo
+package com.walletconnect.android.push
 
-interface EchoInterface {
+interface PushInterface {
     val clientId: String
 
     fun register(firebaseAccessToken: String, enableEncrypted: Boolean = false, onSuccess: () -> Unit, onError: (Throwable) -> Unit)

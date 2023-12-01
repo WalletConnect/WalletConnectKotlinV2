@@ -112,7 +112,7 @@ class Web3WalletApplication : Application() {
         initializeBeagle()
 
         mixPanel = MixpanelAPI.getInstance(this, CommonBuildConfig.MIX_PANEL, true).apply {
-            identify(CoreClient.Echo.clientId)
+            identify(CoreClient.Push.clientId)
             people.set("\$name", with(EthAccountDelegate) { account.toEthAddress() })
         }
 
@@ -136,7 +136,7 @@ class Web3WalletApplication : Application() {
 
                 Beagle.add(
                     PaddingModule(size = PaddingModule.Size.LARGE, id = "${token}Padding"),
-                    placement = Placement.Below(id = CoreClient.Echo.clientId)
+                    placement = Placement.Below(id = CoreClient.Push.clientId)
                 )
                 Beagle.add(
                     TextModule(text = token) {
@@ -168,8 +168,8 @@ class Web3WalletApplication : Application() {
                 (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("Private Key", with(EthAccountDelegate) { privateKey }))
             },
             PaddingModule(size = PaddingModule.Size.LARGE),
-            TextModule(text = CoreClient.Echo.clientId, id = CoreClient.Echo.clientId) {
-                (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("ClientId", CoreClient.Echo.clientId))
+            TextModule(text = CoreClient.Push.clientId, id = CoreClient.Push.clientId) {
+                (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("ClientId", CoreClient.Push.clientId))
             },
             DividerModule(),
             TextInputModule(
