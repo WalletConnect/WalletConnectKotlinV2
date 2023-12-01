@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 
-class PushMessagesRepository(private val pushMessageQueries: PushMessageQueries) {
+internal class PushMessagesRepository(private val pushMessageQueries: PushMessageQueries) {
 
     val notificationTags = listOf(Tags.SESSION_PROPOSE.id, Tags.SESSION_REQUEST.id, Tags.AUTH_REQUEST.id, Tags.NOTIFY_MESSAGE.id)
 
@@ -24,12 +24,12 @@ class PushMessagesRepository(private val pushMessageQueries: PushMessageQueries)
 
     @Throws(SQLiteException::class)
     suspend fun insertPushMessage(id: String, topic: String, blob: String, tag: Int) = withContext(Dispatchers.IO) {
-        pushMessageQueries.insertMessage(id, topic, blob, tag.toLong())
+        pushMessageQueries.upsertMessage(id, topic, blob, tag.toLong())
     }
 
     @Throws(SQLiteException::class)
     suspend fun doesPushMessageExist(id: String): Boolean = withContext(Dispatchers.IO) {
-        pushMessageQueries.doesMessagesExistsByRequestId(id).executeAsOne()
+        pushMessageQueries.doesMessagesExistsByRequestId(id).executeAsOneOrNull() ?: false
     }
 
     @Throws(SQLiteException::class)

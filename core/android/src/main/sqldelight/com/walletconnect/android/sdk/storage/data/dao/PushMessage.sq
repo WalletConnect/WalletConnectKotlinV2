@@ -5,7 +5,7 @@ CREATE TABLE PushMessage (
   	tag INTEGER NOT NULL
 );
 
-insertMessage:
+upsertMessage:
 INSERT OR REPLACE INTO PushMessage(id, topic, blob, tag)
 VALUES (?, ?, ?, ?);
 

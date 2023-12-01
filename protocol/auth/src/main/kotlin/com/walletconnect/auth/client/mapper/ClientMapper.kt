@@ -16,7 +16,7 @@ import com.walletconnect.auth.common.model.PayloadParams
 import com.walletconnect.auth.common.model.PendingRequest
 import com.walletconnect.auth.common.model.Respond
 import java.text.SimpleDateFormat
-import java.util.Calendar
+import java.util.*
 
 @JvmSynthetic
 internal fun Auth.Params.Respond.toCommon(): Respond = when (this) {
