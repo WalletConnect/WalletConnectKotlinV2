@@ -7,7 +7,7 @@ CREATE TABLE PushMessage (
 
 insertMessage:
 INSERT OR REPLACE INTO PushMessage(id, topic, blob, tag)
-VALUES (?, ?, ?,?);
+VALUES (?, ?, ?, ?);
 
 getPushMessageById:
 SELECT id, topic, blob

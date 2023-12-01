@@ -111,7 +111,7 @@ object Web3Wallet {
     }
 
     @Throws(IllegalStateException::class)
-    fun registerDeviceToken(firebaseAccessToken: String, enableEncrypted: Boolean? = false, onSuccess: () -> Unit, onError: (Wallet.Model.Error) -> Unit) {
+    fun registerDeviceToken(firebaseAccessToken: String, enableEncrypted: Boolean = false, onSuccess: () -> Unit, onError: (Wallet.Model.Error) -> Unit) {
         coreClient.Echo.register(firebaseAccessToken, enableEncrypted, onSuccess) { error -> onError(Wallet.Model.Error(error)) }
     }
 

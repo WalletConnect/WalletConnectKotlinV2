@@ -22,8 +22,8 @@ internal object EchoClient : EchoInterface {
     private val pushMessagesRepository: PushMessagesRepository by lazy { wcKoinApp.koin.get() }
     private const val SUCCESS_STATUS = "SUCCESS"
 
-    override fun register(firebaseAccessToken: String, enableEncrypted: Boolean?, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
-        if (enableEncrypted == true) pushMessagesRepository.enablePushNotifications()
+    override fun register(firebaseAccessToken: String, enableEncrypted: Boolean, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
+        if (enableEncrypted) pushMessagesRepository.enablePushNotifications()
         val body = EchoBody(clientId, firebaseAccessToken, enableEncrypted = enableEncrypted)
 
         scope.launch(Dispatchers.IO) {
