@@ -67,7 +67,7 @@ import com.walletconnect.web3.modal.ui.previews.ComponentPreview
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 import com.walletconnect.web3.modal.ui.previews.testWallets
-import com.walletconnect.web3.modal.ui.routes.connect.ConnectState
+import com.walletconnect.web3.modal.ui.routes.connect.ConnectViewModel
 import com.walletconnect.web3.modal.ui.routes.connect.WalletsData
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 import com.walletconnect.web3.modal.ui.utils.conditionalModifier
@@ -77,18 +77,18 @@ import kotlinx.coroutines.launch
 
 @Composable
 internal fun AllWalletsRoute(
-    connectState: ConnectState
+    connectViewModel: ConnectViewModel
 ) {
-    val walletsState by connectState.walletsState.collectAsState()
+    val walletsState by connectViewModel.walletsState.collectAsState()
 
     AllWalletsContent(
         walletsData = walletsState,
-        searchPhrase = connectState.searchPhrase,
-        onSearch = { connectState.search(it) },
-        onSearchClear = { connectState.clearSearch() },
-        onFetchNextPage = { connectState.fetchMoreWallets() },
-        onWalletItemClick = { wallet -> connectState.navigateToRedirectRoute(wallet) },
-        onScanQRClick = { connectState.navigateToScanQRCode() }
+        searchPhrase = connectViewModel.searchPhrase,
+        onSearch = { connectViewModel.search(it) },
+        onSearchClear = { connectViewModel.clearSearch() },
+        onFetchNextPage = { connectViewModel.fetchMoreWallets() },
+        onWalletItemClick = { wallet -> connectViewModel.navigateToRedirectRoute(wallet) },
+        onScanQRClick = { connectViewModel.navigateToScanQRCode() }
     )
 }
 

@@ -23,21 +23,21 @@ import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 import com.walletconnect.web3.modal.ui.previews.ethereumChain
 import com.walletconnect.web3.modal.ui.previews.testChains
-import com.walletconnect.web3.modal.ui.routes.account.AccountState
+import com.walletconnect.web3.modal.ui.routes.account.AccountViewModel
 import com.walletconnect.web3.modal.utils.getChainNetworkImageUrl
 
 @Composable
 internal fun ChangeNetworkRoute(
-    accountState: AccountState
+    accountViewModel: AccountViewModel
 ) {
-    val selectedChain by accountState.selectedChain.collectAsState(initial = Web3Modal.getSelectedChainOrFirst())
+    val selectedChain by accountViewModel.selectedChain.collectAsState(initial = Web3Modal.getSelectedChainOrFirst())
 
-    UiStateBuilder(uiStateFlow = accountState.accountState) {
+    UiStateBuilder(uiStateFlow = accountViewModel.accountState) {
         ChangeNetworkScreen(
             chains = Web3Modal.chains,
             selectedChain = selectedChain,
-            onChainItemClick = { accountState.changeActiveChain(it) },
-            onWhatIsWalletClick = { accountState.navigateToHelp() }
+            onChainItemClick = { accountViewModel.changeActiveChain(it) },
+            onWhatIsWalletClick = { accountViewModel.navigateToHelp() }
         )
     }
 }

@@ -10,7 +10,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import com.walletconnect.android.internal.common.modal.data.model.Wallet
 import com.walletconnect.web3.modal.ui.components.internal.ErrorModalState
 import com.walletconnect.web3.modal.ui.components.internal.commons.ListSelectRow
@@ -18,26 +17,25 @@ import com.walletconnect.web3.modal.ui.components.internal.commons.RecentLabel
 import com.walletconnect.web3.modal.ui.components.internal.commons.WalletImage
 import com.walletconnect.web3.modal.ui.components.internal.walletconnect.allWallets
 import com.walletconnect.web3.modal.ui.model.UiStateBuilder
-import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.ui.previews.ConnectYourWalletPreviewProvider
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
-import com.walletconnect.web3.modal.ui.routes.connect.ConnectState
+import com.walletconnect.web3.modal.ui.routes.connect.ConnectViewModel
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 @Composable
 internal fun ConnectWalletRoute(
-    connectState: ConnectState,
+    connectViewModel: ConnectViewModel
 ) {
     UiStateBuilder(
-        connectState.uiState,
-        onError = { ErrorModalState { connectState.fetchInitialWallets() } }
+        connectViewModel.uiState,
+        onError = { ErrorModalState { connectViewModel.fetchInitialWallets() } }
     ) {
         ConnectWalletContent(
             wallets = it,
-            walletsTotalCount = connectState.getWalletsTotalCount(),
-            onWalletItemClick = { wallet -> connectState.navigateToRedirectRoute(wallet) },
-            onViewAllClick = { connectState.navigateToAllWallets() },
+            walletsTotalCount = connectViewModel.getWalletsTotalCount(),
+            onWalletItemClick = { wallet -> connectViewModel.navigateToRedirectRoute(wallet) },
+            onViewAllClick = { connectViewModel.navigateToAllWallets() },
         )
     }
 }

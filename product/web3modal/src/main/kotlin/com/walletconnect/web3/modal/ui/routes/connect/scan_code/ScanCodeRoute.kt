@@ -36,15 +36,15 @@ import com.walletconnect.web3.modal.ui.components.internal.snackbar.LocalSnackBa
 import com.walletconnect.web3.modal.ui.previews.Landscape
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
-import com.walletconnect.web3.modal.ui.routes.connect.ConnectState
+import com.walletconnect.web3.modal.ui.routes.connect.ConnectViewModel
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 import kotlinx.coroutines.flow.filterIsInstance
 
 @Composable
-internal fun ScanQRCodeRoute(connectState: ConnectState) {
+internal fun ScanQRCodeRoute(connectViewModel: ConnectViewModel) {
     val snackBarHandler = LocalSnackBarHandler.current
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
-    var uri by remember { mutableStateOf(connectState.uri) }
+    var uri by remember { mutableStateOf(connectViewModel.uri) }
 
     LaunchedEffect(Unit) {
         Web3ModalDelegate
@@ -52,7 +52,7 @@ internal fun ScanQRCodeRoute(connectState: ConnectState) {
             .filterIsInstance<Modal.Model.RejectedSession>()
             .collect {
                 snackBarHandler.showErrorSnack("Declined")
-                connectState.connect { newUri -> uri = newUri }
+                connectViewModel.connect { newUri -> uri = newUri }
             }
     }
 
@@ -60,7 +60,7 @@ internal fun ScanQRCodeRoute(connectState: ConnectState) {
         uri = uri,
         onCopyLinkClick = {
             snackBarHandler.showSuccessSnack("Link copied")
-            clipboardManager.setText(AnnotatedString(connectState.uri))
+            clipboardManager.setText(AnnotatedString(connectViewModel.uri))
         }
     )
 }
