@@ -5,9 +5,11 @@ package com.walletconnect.android.internal.common.storage.push_messages
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.sdk.storage.data.dao.PushMessageQueries
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.withContext
 
 class PushMessagesRepository(private val pushMessageQueries: PushMessageQueries) {
 
@@ -21,18 +23,17 @@ class PushMessagesRepository(private val pushMessageQueries: PushMessageQueries)
     }
 
     @Throws(SQLiteException::class)
-    suspend fun insertPushMessage(id: String, topic: String, blob: String, tag: Int) {
+    suspend fun insertPushMessage(id: String, topic: String, blob: String, tag: Int) = withContext(Dispatchers.IO) {
         pushMessageQueries.insertMessage(id, topic, blob, tag.toLong())
-
     }
 
     @Throws(SQLiteException::class)
-    suspend fun doesPushMessageExist(id: String): Boolean {
-        return pushMessageQueries.doesMessagesExistsByRequestId(id).executeAsOne()
+    suspend fun doesPushMessageExist(id: String): Boolean = withContext(Dispatchers.IO) {
+        pushMessageQueries.doesMessagesExistsByRequestId(id).executeAsOne()
     }
 
     @Throws(SQLiteException::class)
-    suspend fun deletePushMessagesByTopic(topic: String) {
+    suspend fun deletePushMessagesByTopic(topic: String) = withContext(Dispatchers.IO) {
         pushMessageQueries.deleteMessageByTopic(topic)
     }
 }

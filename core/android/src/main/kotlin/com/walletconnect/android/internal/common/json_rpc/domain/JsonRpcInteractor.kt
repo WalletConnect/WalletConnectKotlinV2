@@ -294,9 +294,9 @@ internal class JsonRpcInteractor(
                                 jsonRpcHistory.deleteRecordsByTopic(topic)
                                 subscriptions.remove(topic.value)
                                 pushMessageStorage.deletePushMessagesByTopic(topic.value)
+                                onSuccess()
                             }
                         }
-                        onSuccess()
                     },
                     onFailure = { error ->
                         logger.error("Unsubscribe to topic: $topic error: $error")
