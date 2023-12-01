@@ -60,12 +60,12 @@ import com.walletconnect.web3.modal.ui.previews.Landscape
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 import com.walletconnect.web3.modal.ui.previews.testWallets
-import com.walletconnect.web3.modal.ui.routes.connect.ConnectState
+import com.walletconnect.web3.modal.ui.routes.connect.ConnectViewModel
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 @Composable
 internal fun RedirectWalletRoute(
-    connectState: ConnectState,
+    connectState: ConnectViewModel,
     wallet: Wallet
 ) {
     val uriHandler = LocalUriHandler.current
