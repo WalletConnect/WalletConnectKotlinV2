@@ -40,8 +40,7 @@ project.extensions.configure(BaseExtension::class.java) {
             defaultConfig.versionCode = SAMPLE_VERSION_CODE
             firebaseAppDistribution {
                 artifactType = "AAB"
-//                groups = "design-team, javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
-                groups = "test"
+                groups = "design-team, javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
             }
         }
 
@@ -52,15 +51,12 @@ project.extensions.configure(BaseExtension::class.java) {
             applicationIdSuffix(".internal")
             matchingFallbacks += listOf("release", "debug")
             signingConfig = signingConfigs.getByName("internal_release")
-            versionNameSuffix =
-                "${System.getenv("GITHUB_RUN_ATTEMPT")?.let { ".$it" } ?: ""}-internal"
-            defaultConfig.versionCode =
-                "$SAMPLE_VERSION_CODE${System.getenv("GITHUB_RUN_ATTEMPT") ?: ""}".toInt()
+            versionNameSuffix = "${System.getenv("GITHUB_RUN_ATTEMPT")?.let { ".$it" } ?: ""}-internal"
+            defaultConfig.versionCode = "$SAMPLE_VERSION_CODE${System.getenv("GITHUB_RUN_ATTEMPT") ?: ""}".toInt()
             firebaseAppDistribution {
                 artifactType = "APK"
                 serviceCredentialsFile = File(rootDir, "firebase_service_credentials.json").path
-//                groups = "design-team, javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
-                groups = "test"
+                groups = "design-team, javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
             }
         }
 
@@ -68,13 +64,11 @@ project.extensions.configure(BaseExtension::class.java) {
             applicationIdSuffix(".debug")
             signingConfig = signingConfigs.getByName("debug")
             versionNameSuffix = "${System.getenv("GITHUB_RUN_ATTEMPT")?.let { ".$it" } ?: ""}-debug"
-            defaultConfig.versionCode =
-                "$SAMPLE_VERSION_CODE${System.getenv("GITHUB_RUN_ATTEMPT") ?: ""}".toInt()
+            defaultConfig.versionCode = "$SAMPLE_VERSION_CODE${System.getenv("GITHUB_RUN_ATTEMPT") ?: ""}".toInt()
             firebaseAppDistribution {
                 artifactType = "APK"
                 serviceCredentialsFile = File(rootDir, "firebase_service_credentials.json").path
-//                groups = "design-team, javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
-                groups = "test"
+                groups = "design-team, javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
             }
         }
     }
