@@ -2,6 +2,8 @@ name: Release Samples
 
 on:
   workflow_dispatch:
+  release:
+    types: [ published ]
 
 jobs:
   release_samples:
