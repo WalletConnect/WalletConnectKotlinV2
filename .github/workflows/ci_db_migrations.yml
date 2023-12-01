@@ -52,6 +52,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
+      - name: Fetch Properties File
+        env:
+          SECRETS_PROPERTIES: ${{ secrets.SECRETS_PROPERTIES }}
+        run: echo $SECRETS_PROPERTIES | base64 --decode > secrets.properties
+
       - name: Sdk Migration Verification
         env:
           WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}

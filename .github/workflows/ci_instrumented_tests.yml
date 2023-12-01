@@ -61,6 +61,11 @@ jobs:
           check_changes "protocol/sign" "SIGN_MODULE_CHANGED"
           check_changes "protocol/notify" "NOTIFY_MODULE_CHANGED"
 
+      - name: Fetch Properties File
+        env:
+          SECRETS_PROPERTIES: ${{ secrets.SECRETS_PROPERTIES }}
+        run: echo $SECRETS_PROPERTIES | base64 --decode > secrets.properties
+
       - name: Run Core instrumented tests
         if: ${{ steps.what_modules_changed.outputs.CORE_MODULE_CHANGED == 'true' || github.event_name == 'workflow_dispatch' }}
         uses: ./.github/actions/ci_instrumented_tests
