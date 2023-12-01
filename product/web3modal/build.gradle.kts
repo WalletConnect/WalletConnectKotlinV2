@@ -62,6 +62,8 @@ dependencies {
     navigationComponent()
     qrCodeGenerator()
 
+    coinbase()
+
     releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
     releaseImplementation("com.walletconnect:sign:$SIGN_VERSION")
     releaseImplementation("com.walletconnect:modal-core:$MODAL_CORE_VERSION")
