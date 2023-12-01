@@ -5,7 +5,7 @@ import com.walletconnect.android.CoreClient
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
 
-interface ParingController {
+internal interface ParingController {
 
     fun connect(
         sessionParams: Modal.Params.SessionParams,
@@ -16,13 +16,12 @@ interface ParingController {
     val uri: String
 }
 
-class PairingControllerImpl: ParingController {
+internal class PairingControllerImpl: ParingController {
 
     private var _pairing: Core.Model.Pairing? = null
 
     private val pairing: Core.Model.Pairing
         get() = _pairing ?: generatePairing()
-
 
     override fun connect(
         sessionParams: Modal.Params.SessionParams,
@@ -50,9 +49,7 @@ class PairingControllerImpl: ParingController {
     override val uri: String
         get() = pairing.uri
 
-
     private fun generatePairing() = CoreClient.Pairing.create { error ->
         throw IllegalStateException("Creating Pairing failed: ${error.throwable.stackTraceToString()}")
     }!!.also { _pairing = it }
-
 }
