@@ -1,5 +1,8 @@
+
 package com.walletconnect.web3.modal.ui.components.internal
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -12,6 +15,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -25,7 +29,6 @@ import com.walletconnect.web3.modal.ui.routes.connect.ConnectionNavGraph
 import com.walletconnect.web3.modal.ui.utils.ComposableLifecycleEffect
 import com.walletconnect.web3.modal.ui.utils.toComponentEvent
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
@@ -38,6 +41,13 @@ fun Web3ModalComponent(
     val web3ModalViewModel: Web3ModalViewModel = viewModel()
     val state by web3ModalViewModel.modalState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
+
+
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult(),
+        onResult = { result -> result.data }
+    )
 
     LaunchedEffect(Unit) {
         Web3ModalDelegate
@@ -54,6 +64,9 @@ fun Web3ModalComponent(
             }
             .collect()
     }
+
+    val context = LocalContext.current
+
 
     ComposableLifecycleEffect(
         onEvent = { _, event ->

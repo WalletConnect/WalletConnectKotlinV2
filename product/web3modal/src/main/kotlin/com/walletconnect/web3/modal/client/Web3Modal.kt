@@ -1,5 +1,6 @@
 package com.walletconnect.web3.modal.client
 
+import android.content.Context
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.sign.client.Sign
@@ -33,6 +34,7 @@ object Web3Modal {
     private val getSelectedChainUseCase: GetSelectedChainUseCase by lazy { wcKoinApp.koin.get() }
     private val deleteSessionDataUseCase: DeleteSessionDataUseCase by lazy { wcKoinApp.koin.get() }
 
+    internal lateinit var coinbaseClient: CoinbaseClient
     interface ModalDelegate {
         fun onSessionApproved(approvedSession: Modal.Model.ApprovedSession)
         fun onSessionRejected(rejectedSession: Modal.Model.RejectedSession)
@@ -73,6 +75,10 @@ object Web3Modal {
                     return@initialize onError(Modal.Model.Error(error.throwable))
                 }
             }
+        )
+        coinbaseClient = CoinbaseClient(
+            context = wcKoinApp.koin.get(),
+            appMetaData = wcKoinApp.koin.get()
         )
     }
 

@@ -52,6 +52,16 @@ internal class WalletDataSource(
         if (searchPhrase.isEmpty()) { state } else { search }
     }
 
+    val coinbaseWallet: Wallet = Wallet(
+        id = "fd20dc426fb37566d803205b19bbc1d4096b248ac04548e3cfb6b3a38bd033aa",
+        name = "Coinbase Wallet",
+        homePage = "https://www.coinbase.com/wallet/",
+        imageUrl = "https://api.web3modal.com/getWalletImage/a5ebc364-8f91-4200-fcc6-be81310a0000",
+        order = "",
+        mobileLink = null,
+        playStore = "https://play.google.com/store/apps/details?id=org.toshi",
+        webAppLink = null,
+    )
 
     suspend fun fetchInitialWallets() {
         walletState.value = WalletsData.refresh()
@@ -59,7 +69,13 @@ internal class WalletDataSource(
             fetchWalletsAppData()
             val installedWallets = fetchInstalledAndRecommendedWallets()
             val walletsListing = getWalletsUseCase(sdkType = W3M_SDK, page = 1, excludeIds = getPriorityWallets() + Web3Modal.excludedWalletsIds)
-            walletsListingData = ListingData(page = 1, totalCount = walletsListing.totalCount, wallets = (installedWallets.wallets + walletsListing.wallets).mapRecentWallet(getRecentWalletUseCase()))
+            walletsListingData = ListingData(
+                page = 1,
+                totalCount = walletsListing.totalCount,
+                wallets = (installedWallets.wallets + walletsListing.wallets).mapRecentWallet(getRecentWalletUseCase()).toMutableList().apply {
+                    add(2, coinbaseWallet)
+                }
+            )
             walletState.value = WalletsData.submit(walletsListingData.wallets)
         } catch (exception: Exception) {
             showError(exception.message)
