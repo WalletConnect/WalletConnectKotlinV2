@@ -1,7 +1,6 @@
 package com.walletconnect.auth.use_case.calls
 
 import com.walletconnect.android.Core
-import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
@@ -11,6 +10,7 @@ import com.walletconnect.android.internal.common.model.sync.ClientJsonRpc
 import com.walletconnect.android.internal.common.model.type.ClientParams
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.push_messages.PushMessagesRepository
+import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.android.utils.toClient
 import com.walletconnect.auth.common.exceptions.InvalidAuthParamsType
 import com.walletconnect.auth.common.json_rpc.AuthParams
@@ -26,14 +26,14 @@ class DecryptAuthMessageUseCase(
         try {
             if (!pushMessageStorageRepository.doesPushMessageExist(sha256(message.toByteArray()))) {
                 val decryptedMessageString = codec.decrypt(Topic(topic), message)
-                val clientJsonRpc: ClientJsonRpc = serializer.tryDeserialize<ClientJsonRpc>(decryptedMessageString) ?: throw InvalidAuthParamsType()
-                val params: ClientParams = serializer.deserialize(clientJsonRpc.method, decryptedMessageString) ?: throw InvalidAuthParamsType()
-                val metadata: AppMetaData = metadataRepository.getByTopicAndType(Topic(topic), AppMetaDataType.PEER) ?: throw InvalidAuthParamsType()
+                val clientJsonRpc: ClientJsonRpc = serializer.tryDeserialize<ClientJsonRpc>(decryptedMessageString) ?: return onFailure(InvalidAuthParamsType())
+                val params: ClientParams = serializer.deserialize(clientJsonRpc.method, decryptedMessageString) ?: return onFailure(InvalidAuthParamsType())
+                val metadata: AppMetaData = metadataRepository.getByTopicAndType(Topic(topic), AppMetaDataType.PEER) ?: return onFailure(InvalidAuthParamsType())
 
                 if (params is AuthParams.RequestParams) {
                     onSuccess(params.toMessage(clientJsonRpc.id, topic, metadata))
                 } else {
-                    throw InvalidAuthParamsType()
+                    onFailure(InvalidAuthParamsType())
                 }
             }
         } catch (e: Exception) {
