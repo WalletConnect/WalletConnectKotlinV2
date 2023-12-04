@@ -80,7 +80,7 @@ abstract class PushMessagingService : FirebaseMessagingService() {
         scope.launch {
             supervisorScope {
                 decryptNotifyMessageUseCase.decryptMessage(data.getValue(KEY_TOPIC), encryptedMessage,
-                    onSuccess = { message -> if (message is Core.Model.Message.Notify) onMessage(message, this@decryptNotifyMessage) },
+                    onSuccess = { message -> onMessage(message, this@decryptNotifyMessage) },
                     onFailure = { throwable -> onError(throwable, this@decryptNotifyMessage) }
                 )
             }
@@ -91,13 +91,7 @@ abstract class PushMessagingService : FirebaseMessagingService() {
         scope.launch {
             supervisorScope {
                 decryptSignMessageUseCase.decryptMessage(data.getValue(KEY_TOPIC), data.getValue(KEY_MESSAGE),
-                    onSuccess = { message ->
-                        when (message) {
-                            is Core.Model.Message.SessionProposal -> onMessage(message, this@decryptSignMessage)
-                            is Core.Model.Message.SessionRequest -> onMessage(message, this@decryptSignMessage)
-                            else -> onDefaultBehavior(this@decryptSignMessage)
-                        }
-                    },
+                    onSuccess = { message -> onMessage(message, this@decryptSignMessage) },
                     onFailure = { throwable -> onError(throwable, this@decryptSignMessage) }
                 )
             }
@@ -108,7 +102,7 @@ abstract class PushMessagingService : FirebaseMessagingService() {
         scope.launch {
             supervisorScope {
                 decryptAuthMessageUseCase.decryptMessage(data.getValue(KEY_TOPIC), data.getValue(KEY_MESSAGE),
-                    onSuccess = { message -> if (message is Core.Model.Message.AuthRequest) onMessage(message, this@decryptAuthMessage) },
+                    onSuccess = { message -> onMessage(message, this@decryptAuthMessage) },
                     onFailure = { throwable -> onError(throwable, this@decryptAuthMessage) }
                 )
             }
