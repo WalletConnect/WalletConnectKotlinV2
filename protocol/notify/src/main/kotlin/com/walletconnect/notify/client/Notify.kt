@@ -149,7 +149,7 @@ object Notify {
 
         data class Register(val cacaoPayloadWithIdentityPrivateKey: Model.CacaoPayloadWithIdentityPrivateKey, val signature: Model.Cacao.Signature) : Params()
 
-        data class IsRegistered(val account: String) : Params()
+        data class IsRegistered(val account: String, val domain: String, val allApps: Boolean = false) : Params()
 
         data class Unregistration(val account: String) : Params()
     }
