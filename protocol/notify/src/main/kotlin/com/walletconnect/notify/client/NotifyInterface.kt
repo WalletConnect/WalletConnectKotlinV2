@@ -5,7 +5,7 @@ interface NotifyInterface {
 
         fun onNotifySubscription(notifySubscribe: Notify.Event.Subscription)
 
-        @Deprecated("We renamed this function to onNotifyMessage for consistency")
+        @Deprecated("We renamed this function to onNotifyMessage for consistency. Using both onNotifyMessage and onNotifyNotification will result in duplicate notifications")
         fun onNotifyMessage(notifyMessage: Notify.Event.Message)
 
         fun onNotifyNotification(notifyNotification: Notify.Event.Notification)

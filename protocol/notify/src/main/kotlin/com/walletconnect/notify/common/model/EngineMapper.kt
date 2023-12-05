@@ -7,6 +7,8 @@ import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.notify.client.Notify
+import java.lang.IllegalArgumentException
+import kotlin.jvm.Throws
 
 @JvmSynthetic
 internal fun NotifyMessage.toWalletClient(topic: String): Notify.Model.Message.Decrypted {
@@ -29,6 +31,27 @@ internal fun NotifyRecord.toWalletClient(): Notify.Model.MessageRecord {
         )
     )
 }
+
+
+@JvmSynthetic
+@Throws(IllegalArgumentException::class)
+internal fun NotifyRecord.toClient(): Notify.Model.NotificationRecord {
+    return Notify.Model.NotificationRecord(
+        id = this.id.toString(),
+        topic = this.topic,
+        publishedAt = this.publishedAt,
+        message = Notify.Model.Notification.Decrypted(
+            title = this.notifyMessage.title,
+            body = this.notifyMessage.body,
+            icon = this.notifyMessage.icon,
+            url = this.notifyMessage.url,
+            type = this.notifyMessage.type,
+            topic = this.topic
+        ),
+        metadata = this.metadata?.let { it.toClient() } ?: run { throw IllegalArgumentException("Metadata is null") }
+    )
+}
+
 
 
 @JvmSynthetic

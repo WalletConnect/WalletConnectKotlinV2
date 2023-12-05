@@ -54,7 +54,10 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
             when (event) {
                 is Subscription.Active -> delegate.onNotifySubscription(event.toEvent())
                 is Error -> delegate.onNotifySubscription(event.toWalletClient())
-                is NotifyRecord -> delegate.onNotifyMessage(Notify.Event.Message(event.toWalletClient()))
+                is NotifyRecord -> {
+                    delegate.onNotifyMessage(Notify.Event.Message(event.toWalletClient()))
+                    delegate.onNotifyNotification(Notify.Event.Notification(event.toClient()))
+                }
                 is UpdateSubscription.Result -> delegate.onNotifyUpdate(event.toWalletClient())
                 is UpdateSubscription.Error -> delegate.onNotifyUpdate(event.toWalletClient())
                 is DeleteSubscription -> delegate.onNotifyDelete(event.toWalletClient())
@@ -116,6 +119,7 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
         }
     }
 
+    @Deprecated("We renamed this function to getNotificationHistory for consistency")
     override fun getMessageHistory(params: Notify.Params.MessageHistory): Map<Long, Notify.Model.MessageRecord> {
         checkEngineInitialization()
 
@@ -125,7 +129,16 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
         }
     }
 
-    override fun deleteSubscription(params: Notify.Params.DeleteSubscription, onSuccess: () -> Unit ,onError: (Notify.Model.Error) -> Unit) {
+    override fun getNotificationHistory(params: Notify.Params.NotificationHistory): Map<Long, Notify.Model.NotificationRecord> {
+        checkEngineInitialization()
+
+        return runBlocking {
+            notifyEngine.getListOfMessages(params.topic)
+                .mapValues { (_, messageRecord) -> messageRecord.toWalletClient() }
+        }
+    }
+
+    override fun deleteSubscription(params: Notify.Params.DeleteSubscription, onSuccess: () -> Unit, onError: (Notify.Model.Error) -> Unit) {
         checkEngineInitialization()
 
         scope.launch {

@@ -38,7 +38,7 @@ object Notify {
             data class Simple(
                 override val title: String,
                 override val body: String,
-            ) : Message()
+            ) : Notification()
 
             data class Decrypted(
                 override val title: String,
@@ -47,7 +47,7 @@ object Notify {
                 val url: String?,
                 val type: String,
                 val topic: String,
-            ) : Message()
+            ) : Notification()
         }
 
         @Deprecated("We renamed data class to NotificationRecord for consistency")

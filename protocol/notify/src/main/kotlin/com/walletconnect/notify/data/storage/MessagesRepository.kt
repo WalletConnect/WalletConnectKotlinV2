@@ -24,7 +24,7 @@ internal class MessagesRepository(private val messagesQueries: MessagesQueries) 
     }
 
     suspend fun getMessagesByTopic(topic: String): List<NotifyRecord> = withContext(Dispatchers.IO) {
-        messagesQueries.getMessagesByTopic(topic, ::mapToMessageRecord).executeAsList()
+        messagesQueries.getMessagesByTopic(topic, ::mapToMessageRecordWithoutMetadata).executeAsList()
     }
 
     suspend fun doesMessagesExistsByRequestId(requestId: Long): Boolean = withContext(Dispatchers.IO) {
@@ -43,7 +43,7 @@ internal class MessagesRepository(private val messagesQueries: MessagesQueries) 
         messagesQueries.updateMessageWithPublishedAtByRequestId(publishedAt, requestId)
     }
 
-    private fun mapToMessageRecord(
+    private fun mapToMessageRecordWithoutMetadata(
         requestId: Long,
         topic: String,
         publishedAt: Long,
@@ -62,6 +62,7 @@ internal class MessagesRepository(private val messagesQueries: MessagesQueries) 
             icon = icon,
             url = url,
             type = type
-        )
+        ),
+        metadata = null
     )
 }

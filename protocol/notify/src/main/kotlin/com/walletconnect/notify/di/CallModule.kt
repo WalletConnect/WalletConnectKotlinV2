@@ -110,7 +110,8 @@ internal fun callModule() = module {
 
     single<GetListOfMessagesUseCaseInterface> {
         GetListOfMessagesUseCase(
-            messagesRepository = get()
+            messagesRepository = get(),
+            metadataStorageRepository = get()
         )
     }
 }
