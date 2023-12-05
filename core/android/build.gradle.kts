@@ -5,6 +5,7 @@ plugins {
     id("jacoco-report")
     alias(libs.plugins.sqlDelight)
     id("com.google.devtools.ksp") version kspVersion
+    id("org.jetbrains.kotlinx.kover")
 }
 
 project.apply {
