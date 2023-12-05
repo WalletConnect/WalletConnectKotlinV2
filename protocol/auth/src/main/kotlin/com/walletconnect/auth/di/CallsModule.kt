@@ -1,7 +1,8 @@
 package com.walletconnect.auth.di
 
-import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
+import com.walletconnect.android.internal.common.model.Tags
+import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.auth.use_case.calls.DecryptAuthMessageUseCase
 import com.walletconnect.auth.use_case.calls.FormatMessageUseCase
 import com.walletconnect.auth.use_case.calls.FormatMessageUseCaseInterface
@@ -34,12 +35,15 @@ internal fun callsModule() = module {
     }
 
     single<DecryptMessageUseCaseInterface>(named(AndroidCommonDITags.DECRYPT_AUTH_MESSAGE)) {
-        DecryptAuthMessageUseCase(
+        val useCase = DecryptAuthMessageUseCase(
             codec = get(),
             serializer = get(),
             metadataRepository = get(),
             pushMessageStorageRepository = get()
         )
+
+        get<MutableMap<String, DecryptMessageUseCaseInterface>>(named(AndroidCommonDITags.DECRYPT_USE_CASES))[Tags.AUTH_REQUEST.id.toString()] = useCase
+        useCase
     }
 
     single<FormatMessageUseCaseInterface> { FormatMessageUseCase() }

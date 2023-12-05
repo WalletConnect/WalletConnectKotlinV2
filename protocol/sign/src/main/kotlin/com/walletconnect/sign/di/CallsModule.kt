@@ -1,7 +1,8 @@
 package com.walletconnect.sign.di
 
-import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
+import com.walletconnect.android.internal.common.model.Tags
+import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.ApproveSessionUseCase
 import com.walletconnect.sign.engine.use_case.calls.ApproveSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.DecryptSignMessageUseCase
@@ -87,12 +88,15 @@ internal fun callsModule() = module {
     }
 
     single<DecryptMessageUseCaseInterface>(named(AndroidCommonDITags.DECRYPT_SIGN_MESSAGE)) {
-        DecryptSignMessageUseCase(
+        val useCase = DecryptSignMessageUseCase(
             codec = get(),
             serializer = get(),
             metadataRepository = get(),
             pushMessageStorage = get(),
         )
+
+        get<MutableMap<String, DecryptMessageUseCaseInterface>>(named(AndroidCommonDITags.DECRYPT_USE_CASES))[Tags.SESSION_PROPOSE.id.toString()] = useCase
+        useCase
     }
 
     single<PingUseCaseInterface> { PingUseCase(sessionStorageRepository = get(), jsonRpcInteractor = get(), pairingInterface = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }

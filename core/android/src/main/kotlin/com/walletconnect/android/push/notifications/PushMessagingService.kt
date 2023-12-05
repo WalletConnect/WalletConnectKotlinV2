@@ -15,9 +15,9 @@ import org.json.JSONObject
 import org.koin.core.qualifier.named
 
 abstract class PushMessagingService : FirebaseMessagingService() {
-    private val decryptNotifyMessageUseCase: DecryptMessageUseCaseInterface by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.DECRYPT_NOTIFY_MESSAGE)) }
-    private val decryptSignMessageUseCase: DecryptMessageUseCaseInterface by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.DECRYPT_SIGN_MESSAGE)) }
-    private val decryptAuthMessageUseCase: DecryptMessageUseCaseInterface by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.DECRYPT_AUTH_MESSAGE)) }
+    private val decryptMessageUseCases: Map<String, DecryptMessageUseCaseInterface> by lazy {
+        wcKoinApp.koin.get<MutableMap<String, DecryptMessageUseCaseInterface>>(named(AndroidCommonDITags.DECRYPT_USE_CASES)).toMap()
+    }
     private val pushMessagesRepository: PushMessagesRepository by lazy { wcKoinApp.koin.get() }
 
     override fun onNewToken(token: String) {
@@ -32,7 +32,7 @@ abstract class PushMessagingService : FirebaseMessagingService() {
                 when {
                     isLegacyNotification() -> {
                         when (MessageFlags.findMessageFlag(data.getValue(KEY_FLAGS))) {
-                            MessageFlags.ENCRYPTED -> decryptNotifyMessage(data.getValue(KEY_BLOB))
+                            MessageFlags.ENCRYPTED -> decryptNotification(Tags.NOTIFY_MESSAGE.id.toString(), data.getValue(KEY_BLOB))
                             MessageFlags.CHAT, MessageFlags.NOTIFY, MessageFlags.SIGN, MessageFlags.AUTH -> prepareSimpleNotification()
                         }
                     }
@@ -41,13 +41,8 @@ abstract class PushMessagingService : FirebaseMessagingService() {
                         pushMessagesRepository.notificationTags
                             .map { tag -> tag.toString() }
                             .filter { tag -> tag == data.getValue(KEY_TAG) }
-                            .onEach { tag ->
-                                when (tag) {
-                                    Tags.SESSION_PROPOSE.id.toString(), Tags.SESSION_REQUEST.id.toString() -> decryptSignMessage()
-                                    Tags.AUTH_REQUEST.id.toString() -> decryptAuthMessage()
-                                    Tags.NOTIFY_MESSAGE.id.toString() -> decryptNotifyMessage(data.getValue(KEY_MESSAGE))
-                                }
-                            }
+                            .map { tag -> if (tag == Tags.SESSION_REQUEST.id.toString()) Tags.SESSION_PROPOSE.id.toString() else tag }
+                            .onEach { tag -> decryptNotification(tag, data.getValue(KEY_MESSAGE)) }
                     }
 
                     notification?.isValid() == true -> {
@@ -76,34 +71,12 @@ abstract class PushMessagingService : FirebaseMessagingService() {
     private fun RemoteMessage.isLegacyNotification() = data.containsKey(KEY_TOPIC) && data.containsKey(KEY_BLOB) && data.containsKey(KEY_FLAGS)
     private fun RemoteMessage.isEncryptedNotification() = data.containsKey(KEY_TOPIC) && data.containsKey(KEY_TAG) && data.containsKey(KEY_MESSAGE)
 
-    private fun RemoteMessage.decryptNotifyMessage(encryptedMessage: String) {
+    private fun RemoteMessage.decryptNotification(tag: String, encryptedMessage: String) {
         scope.launch {
             supervisorScope {
-                decryptNotifyMessageUseCase.decryptMessage(data.getValue(KEY_TOPIC), encryptedMessage,
-                    onSuccess = { message -> onMessage(message, this@decryptNotifyMessage) },
-                    onFailure = { throwable -> onError(throwable, this@decryptNotifyMessage) }
-                )
-            }
-        }
-    }
-
-    private fun RemoteMessage.decryptSignMessage() {
-        scope.launch {
-            supervisorScope {
-                decryptSignMessageUseCase.decryptMessage(data.getValue(KEY_TOPIC), data.getValue(KEY_MESSAGE),
-                    onSuccess = { message -> onMessage(message, this@decryptSignMessage) },
-                    onFailure = { throwable -> onError(throwable, this@decryptSignMessage) }
-                )
-            }
-        }
-    }
-
-    private fun RemoteMessage.decryptAuthMessage() {
-        scope.launch {
-            supervisorScope {
-                decryptAuthMessageUseCase.decryptMessage(data.getValue(KEY_TOPIC), data.getValue(KEY_MESSAGE),
-                    onSuccess = { message -> onMessage(message, this@decryptAuthMessage) },
-                    onFailure = { throwable -> onError(throwable, this@decryptAuthMessage) }
+                decryptMessageUseCases.getValue(tag).decryptMessage(data.getValue(KEY_TOPIC), encryptedMessage,
+                    onSuccess = { message -> onMessage(message, this@decryptNotification) },
+                    onFailure = { throwable -> onError(throwable, this@decryptNotification) }
                 )
             }
         }

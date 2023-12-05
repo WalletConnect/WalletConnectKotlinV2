@@ -3,6 +3,7 @@ package com.walletconnect.android.internal.common.di
 import android.content.SharedPreferences
 import com.walletconnect.android.push.PushInterface
 import com.walletconnect.android.push.network.PushService
+import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import retrofit2.Retrofit
@@ -28,4 +29,6 @@ internal fun pushModule() = module {
     single(named(AndroidCommonDITags.CLIENT_ID)) {
         requireNotNull(get<SharedPreferences>().getString(PushInterface.KEY_CLIENT_ID, null))
     }
+
+    single<MutableMap<String, DecryptMessageUseCaseInterface>>(named(AndroidCommonDITags.DECRYPT_USE_CASES)) { mutableMapOf() }
 }
