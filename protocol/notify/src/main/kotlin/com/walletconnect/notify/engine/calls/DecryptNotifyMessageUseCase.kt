@@ -24,7 +24,7 @@ internal class DecryptNotifyMessageUseCase(
     private val messagesRepository: MessagesRepository
 ) : DecryptMessageUseCaseInterface {
 
-    override suspend fun decryptMessage(topic: String, message: String, onSuccess: (Core.Model.Message) -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
+    override suspend fun decryptNotification(topic: String, message: String, onSuccess: (Core.Model.Message) -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         try {
             val decryptedMessageString = codec.decrypt(Topic(topic), message)
             val messageHash = sha256(decryptedMessageString.toByteArray())

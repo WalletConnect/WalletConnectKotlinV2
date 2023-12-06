@@ -23,7 +23,7 @@ internal class DecryptSignMessageUseCase(
     private val metadataRepository: MetadataStorageRepositoryInterface,
     private val pushMessageStorage: PushMessagesRepository
 ) : DecryptMessageUseCaseInterface {
-    override suspend fun decryptMessage(topic: String, message: String, onSuccess: (Core.Model.Message) -> Unit, onFailure: (Throwable) -> Unit) {
+    override suspend fun decryptNotification(topic: String, message: String, onSuccess: (Core.Model.Message) -> Unit, onFailure: (Throwable) -> Unit) {
         try {
             if (!pushMessageStorage.doesPushMessageExist(sha256(message.toByteArray()))) {
                 val decryptedMessageString = codec.decrypt(Topic(topic), message)

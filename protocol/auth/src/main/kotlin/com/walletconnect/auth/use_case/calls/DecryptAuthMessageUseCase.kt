@@ -22,7 +22,7 @@ class DecryptAuthMessageUseCase(
     private val metadataRepository: MetadataStorageRepositoryInterface,
     private val pushMessageStorageRepository: PushMessagesRepository
 ) : DecryptMessageUseCaseInterface {
-    override suspend fun decryptMessage(topic: String, message: String, onSuccess: (Core.Model.Message) -> Unit, onFailure: (Throwable) -> Unit) {
+    override suspend fun decryptNotification(topic: String, message: String, onSuccess: (Core.Model.Message) -> Unit, onFailure: (Throwable) -> Unit) {
         try {
             if (!pushMessageStorageRepository.doesPushMessageExist(sha256(message.toByteArray()))) {
                 val decryptedMessageString = codec.decrypt(Topic(topic), message)

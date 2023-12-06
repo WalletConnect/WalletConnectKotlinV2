@@ -74,7 +74,7 @@ abstract class PushMessagingService : FirebaseMessagingService() {
     private fun RemoteMessage.decryptNotification(tag: String, encryptedMessage: String) {
         scope.launch {
             supervisorScope {
-                decryptMessageUseCases.getValue(tag).decryptMessage(data.getValue(KEY_TOPIC), encryptedMessage,
+                decryptMessageUseCases.getValue(tag).decryptNotification(data.getValue(KEY_TOPIC), encryptedMessage,
                     onSuccess = { message -> onMessage(message, this@decryptNotification) },
                     onFailure = { throwable -> onError(throwable, this@decryptNotification) }
                 )

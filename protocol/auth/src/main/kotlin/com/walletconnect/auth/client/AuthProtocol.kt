@@ -120,7 +120,7 @@ internal class AuthProtocol(private val koinApp: KoinApplication = wcKoinApp) : 
 
         scope.launch {
             try {
-                authEngine.decryptMessage(
+                authEngine.decryptNotification(
                     topic = params.topic,
                     message = params.encryptedMessage,
                     onSuccess = { message -> (message as? Core.Model.Message.AuthRequest)?.run { onSuccess(message.toAuth()) } },

@@ -156,7 +156,7 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
 
     override fun decryptMessage(params: Notify.Params.DecryptMessage, onSuccess: (Notify.Model.Message.Decrypted) -> Unit, onError: (Notify.Model.Error) -> Unit) {
         scope.launch {
-            notifyEngine.decryptMessage(params.topic, params.encryptedMessage,
+            notifyEngine.decryptNotification(params.topic, params.encryptedMessage,
                 onSuccess = { notifyMessage ->
                     (notifyMessage as? Core.Model.Message.Notify)?.run { onSuccess(notifyMessage.toWalletClient(params.topic)) }
                 },

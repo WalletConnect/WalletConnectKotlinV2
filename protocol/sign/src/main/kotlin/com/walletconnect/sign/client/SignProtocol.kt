@@ -322,7 +322,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
 
         scope.launch {
             try {
-                signEngine.decryptMessage(
+                signEngine.decryptNotification(
                     topic = params.topic,
                     message = params.encryptedMessage,
                     onSuccess = { message ->
