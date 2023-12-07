@@ -17,21 +17,21 @@ import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.ui.components.internal.commons.NetworkBottomSection
 import com.walletconnect.web3.modal.ui.components.internal.commons.network.ChainNetworkItem
-import com.walletconnect.web3.modal.ui.routes.connect.ConnectState
+import com.walletconnect.web3.modal.ui.routes.connect.ConnectViewModel
 import com.walletconnect.web3.modal.utils.getChainNetworkImageUrl
 
 @Composable
 internal fun ChooseNetworkRoute(
-    connectState: ConnectState
+    connectViewModel: ConnectViewModel
 ) {
     val chains = Web3Modal.chains
-    val selectedChain by connectState.selectedChain.collectAsState(initial = null)
+    val selectedChain by connectViewModel.selectedChain.collectAsState(initial = null)
 
     ChainNetworkSelector(
         chains = chains,
         selectedChain = selectedChain,
-        onChainItemClick = { chain -> connectState.navigateToConnectWallet(chain) },
-        onWhatIsWalletClick = { connectState.navigateToHelp() }
+        onChainItemClick = { chain -> connectViewModel.navigateToConnectWallet(chain) },
+        onWhatIsWalletClick = { connectViewModel.navigateToHelp() }
     )
 }
 

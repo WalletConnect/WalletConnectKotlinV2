@@ -1,8 +1,7 @@
 package com.walletconnect.web3.modal.ui.routes.connect
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.navigation.NavController
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.internal.common.modal.data.model.Wallet
 import com.walletconnect.android.internal.common.wcKoinApp
@@ -15,56 +14,32 @@ import com.walletconnect.web3.modal.domain.usecase.SaveChainSelectionUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveRecentWalletUseCase
 import com.walletconnect.web3.modal.ui.model.LoadingState
 import com.walletconnect.web3.modal.ui.model.UiState
+import com.walletconnect.web3.modal.ui.navigation.Navigator
+import com.walletconnect.web3.modal.ui.navigation.NavigatorImpl
 import com.walletconnect.web3.modal.ui.navigation.Route
-import com.walletconnect.web3.modal.ui.navigation.connection.navigateToRedirect
+import com.walletconnect.web3.modal.ui.navigation.connection.toRedirectPath
 import com.walletconnect.web3.modal.utils.getSelectedChain
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-@Composable
-internal fun rememberConnectState(
-    coroutineScope: CoroutineScope,
-    navController: NavController,
-    showError: (String?) -> Unit
-): ConnectState {
-    return remember(coroutineScope, navController) {
-        ConnectState(coroutineScope, navController, showError)
-    }
-}
-
-internal class ConnectState(
-    private val coroutineScope: CoroutineScope,
-    private val navController: NavController,
-    private val showError: (String?) -> Unit
-) {
+internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), ParingController by PairingControllerImpl() {
     private val logger: Logger = wcKoinApp.koin.get()
-    private val walletsDataStore = WalletDataSource(showError)
+    private val walletsDataStore = WalletDataSource { showError(it) }
     private val saveRecentWalletUseCase: SaveRecentWalletUseCase = wcKoinApp.koin.get()
     private val saveChainSelectionUseCase: SaveChainSelectionUseCase = wcKoinApp.koin.get()
     private val getSelectedChainUseCase: GetSelectedChainUseCase = wcKoinApp.koin.get()
     private val observeSelectedChainUseCase: ObserveSelectedChainUseCase = wcKoinApp.koin.get()
 
-    private val pairing by lazy {
-        CoreClient.Pairing.create { error ->
-            throw IllegalStateException("Creating Pairing failed: ${error.throwable.stackTraceToString()}")
-        }!!
-    }
-
     private var sessionParams = getSessionParamsSelectedChain(getSelectedChainUseCase())
-
-    val uri: String
-        get() = pairing.uri
 
     val selectedChain = observeSelectedChainUseCase().map { savedChainId ->
         Web3Modal.chains.find { it.id == savedChainId } ?: Web3Modal.getSelectedChainOrFirst()
     }
 
-    val walletsState: StateFlow<WalletsData> = walletsDataStore.searchWalletsState.stateIn(coroutineScope, SharingStarted.Lazily, WalletsData.empty())
+    val walletsState: StateFlow<WalletsData> = walletsDataStore.searchWalletsState.stateIn(viewModelScope, SharingStarted.Lazily, WalletsData.empty())
 
     val uiState: StateFlow<UiState<List<Wallet>>> = walletsDataStore.walletState.map { pagingData ->
         when {
@@ -72,7 +47,7 @@ internal class ConnectState(
             pagingData.loadingState == LoadingState.REFRESH -> UiState.Loading()
             else -> UiState.Success(pagingData.wallets)
         }
-    }.stateIn(coroutineScope, started = SharingStarted.Lazily, initialValue = UiState.Loading())
+    }.stateIn(viewModelScope, started = SharingStarted.Lazily, initialValue = UiState.Loading())
 
     val searchPhrase
         get() = walletsDataStore.searchPhrase
@@ -82,61 +57,47 @@ internal class ConnectState(
     }
 
     fun fetchInitialWallets() {
-        coroutineScope.launch { walletsDataStore.fetchInitialWallets() }
+        viewModelScope.launch { walletsDataStore.fetchInitialWallets() }
     }
 
     fun navigateToHelp() {
-        navController.navigate(Route.WHAT_IS_WALLET.path)
+        navigateTo(Route.WHAT_IS_WALLET.path)
     }
 
-    fun navigateToScanQRCode() = connect {
-        coroutineScope.launch(Dispatchers.Main) { navController.navigate(Route.QR_CODE.path) }
-    }
+    fun navigateToScanQRCode() = connect { navigateTo(Route.QR_CODE.path) }
 
     fun navigateToRedirectRoute(wallet: Wallet) {
         saveRecentWalletUseCase(wallet.id)
         walletsDataStore.updateRecentWallet(wallet.id)
-        navController.navigateToRedirect(wallet)
+        navigateTo(wallet.toRedirectPath())
     }
 
     fun navigateToConnectWallet(chain: Modal.Model.Chain) {
-        coroutineScope.launch { saveChainSelectionUseCase(chain.id) }
+        viewModelScope.launch { saveChainSelectionUseCase(chain.id) }
         sessionParams = getSessionParamsSelectedChain(chain.id)
-        navController.navigate(Route.CONNECT_YOUR_WALLET.path)
+        navigateTo(Route.CONNECT_YOUR_WALLET.path)
     }
 
     fun navigateToAllWallets() {
         clearSearch()
-        navController.navigate(Route.ALL_WALLETS.path)
+        navigateTo(Route.ALL_WALLETS.path)
     }
 
-    fun connect(onSuccess: (String) -> Unit) {
-        try {
-            val connectParams = Modal.Params.Connect(
-                sessionParams.requiredNamespaces,
-                sessionParams.optionalNamespaces,
-                sessionParams.properties,
-                pairing
-            )
-            Web3Modal.connect(
-                connect = connectParams,
-                onSuccess = { onSuccess(pairing.uri) },
-                onError = {
-                    showError(it.throwable.localizedMessage)
-                    logger.error(it.throwable)
-                }
-            )
-        } catch (e: Exception) {
-            logger.error(e)
+    fun connect(onSuccess: (String) -> Unit) = connect(
+        sessionParams = sessionParams,
+        onSuccess = onSuccess,
+        onError = {
+            showError(it.localizedMessage)
+            logger.error(it)
         }
-    }
+    )
 
     fun fetchMoreWallets() {
-        coroutineScope.launch { walletsDataStore.fetchMoreWallets() }
+        viewModelScope.launch { walletsDataStore.fetchMoreWallets() }
     }
 
     fun search(searchPhrase: String) {
-        coroutineScope.launch { walletsDataStore.searchWallet(searchPhrase) }
+        viewModelScope.launch { walletsDataStore.searchWallet(searchPhrase) }
     }
 
     fun clearSearch() = walletsDataStore.clearSearch()

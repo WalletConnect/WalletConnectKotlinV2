@@ -30,17 +30,17 @@ class NotifyClientInstrumentedAndroidTest {
 
 
     private val mediaTypeString = "application/json; charset=utf-8"
-    private val notifyUrl = "https://notify.walletconnect.com/${BuildConfig.PROD_GM_PROJECT_ID}/notify"
+    private val notifyUrl = "https://notify.walletconnect.com/${BuildConfig.NOTIFY_INTEGRATION_TESTS_PROJECT_ID}/notify"
     private fun createBody(): RequestBody {
         val jsonMediaType: MediaType = mediaTypeString.toMediaType()
         val postBody =
             """{
                 "notification": {
                     "body": "This was send from our IT",
-                    "title": "GM from Kotlin IT!",
-                    "icon": "https://images.unsplash.com/photo-1581224463294-908316338239?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=250&q=80",
-                    "url": "https://gm.walletconnect.com",
-                    "type": "cad9a52d-9b0f-4aed-9cca-3e9568a079f9"
+                    "title": "Kotlin Notify API IT!",
+                    "icon": "https://github.com/WalletConnect/walletconnect-assets/blob/master/Icon/Black/Icon.png?raw=true",
+                    "url": "https://specs.walletconnect.com",
+                    "type": "f173f231-a45c-4dc0-aa5d-956eb04f7360"
                 },
                 "accounts": [
                     "${TestClient.caip10account}"
@@ -53,7 +53,7 @@ class NotifyClientInstrumentedAndroidTest {
     private fun createHeaders(): Headers {
         return Headers.Builder()
             .add("Content-Type", "application/json")
-            .add("Authorization", "Bearer ${BuildConfig.PROD_GM_SECRET}")
+            .add("Authorization", "Bearer ${BuildConfig.NOTIFY_INTEGRATION_TESTS_SECRET}")
             .build()
     }
 
@@ -62,6 +62,7 @@ class NotifyClientInstrumentedAndroidTest {
         val response: Response = OkHttpClient().newCall(request).execute()
         val responseString = response.body?.string() ?: throw Exception("Response body is null")
 
+        Timber.d("sendTestNotification: $responseString, ${getResponseResult(responseString)}")
         return getResponseResult(responseString)[0] == TestClient.caip10account
     }
 
@@ -74,34 +75,8 @@ class NotifyClientInstrumentedAndroidTest {
         SecondaryNotifyClient.setDelegate(secondaryNotifyDelegate)
     }
 
-//    Note: This test is commented out. It's useful whenever we want to manually delete current subscription. However the areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage can handle
-//    testing with existing subscription
-
-    //    @Test
-    fun deleteSubscription() {
-        setDelegates(object : PrimaryNotifyDelegate() {
-            override fun onSubscriptionsChanged(subscriptionsChanged: Notify.Event.SubscriptionsChanged) {
-                Timber.d("deleteSubscription: primary - deleteSubscribe start")
-                if (subscriptionsChanged.subscriptions.isNotEmpty()) {
-
-                    PrimaryNotifyClient.deleteSubscription(Notify.Params.DeleteSubscription(subscriptionsChanged.subscriptions.first().topic),
-                        onSuccess = {
-                            scenarioExtension.closeAsSuccess()
-                        }, onError = {
-                            Timber.d("deleteSubscription: primary - deleteSubscribe failure: ${it.throwable}")
-                        })
-
-                }
-
-            }
-        }, SecondaryNotifyDelegate())
-
-        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) {}
-    }
-
-    @Test //TODO this test fails without a reason
+    @Test
     fun areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage() {
-        Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: start")
         var countPrimaryReceivedResponses = 0
         var countSecondaryReceivedResponses = 0
         var didPrimaryReceiveSubscriptions = false
@@ -111,7 +86,7 @@ class NotifyClientInstrumentedAndroidTest {
         var didSecondaryReceiveMessage = false
 
         scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) {
-
+            Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: start")
             setDelegates(object : PrimaryNotifyDelegate() {
                 override fun onNotifyMessage(notifyMessage: Notify.Event.Message) {
                     didPrimaryReceiveMessage = true
@@ -142,7 +117,7 @@ class NotifyClientInstrumentedAndroidTest {
                     if (subscriptionsChanged.subscriptions.isEmpty()) {
                         Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - subscribe start")
 
-                        PrimaryNotifyClient.subscribe(Notify.Params.Subscribe("https://gm.walletconnect.com".toUri(), TestClient.caip10account), {
+                        PrimaryNotifyClient.subscribe(Notify.Params.Subscribe("https://wc-notify-swift-integration-tests-prod.pages.dev".toUri(), TestClient.caip10account), {
                             Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - subscribe success")
                         }, {
                             Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - subscribe failure: ${it.throwable}")
@@ -186,6 +161,8 @@ class NotifyClientInstrumentedAndroidTest {
                     }
                 }
             })
+            Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: delegates set")
+            scenarioExtension.initializeClients()
         }
     }
 }

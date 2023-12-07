@@ -24,6 +24,6 @@ internal class RegisterIdentityUseCase(
         private const val LIMITED_STATEMENT =
             "I further authorize this app to send me notifications. Read more at https://walletconnect.com/notifications"
         private const val UNLIMITED_STATEMENT =
-            "I further authorize this app to view and manage my notifications for ALL apps. Read more at https://walletconnect.com/notifications"
+            "I further authorize this app to view and manage my notifications for ALL apps. Read more at https://walletconnect.com/notifications-all-apps"
     }
 }
