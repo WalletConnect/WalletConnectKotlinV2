@@ -83,6 +83,30 @@ sqldelight {
     }
 }
 
+koverReport {
+    androidReports("release") {
+        filters {
+            excludes {
+                classes(
+                    "*Fragment",
+                    "*Fragment\$*",
+                    "*Activity",
+                    "*Activity\$*",
+                    "*.databinding.*",
+                    "*.BuildConfig",
+
+                    // excludes debug classes
+                    "*.DebugUtil"
+                )
+            }
+        }
+
+        xml {
+            this.setReportFile(File(rootDir, ".qodana/code-coverage/coverage.xml"))
+        }
+    }
+}
+
 dependencies {
     debugApi(project(":foundation"))
     releaseApi("com.walletconnect:foundation:$FOUNDATION_VERSION")
