@@ -21,17 +21,21 @@ jobs:
           java-version: '17'
           architecture: x86_64
           cache: gradle
-      - name: Create Kover Report
+      - name: 'Create Kover Report'
         run: ./gradlew :core:android:koverXmlReportRelease
-      - name: Archive coverage data  # Archive data for using by Qodana
+      - name: 'Move Code Coverage Report'
+        run: |
+          mkdir -p .qodana/code-coverage
+          mv core/android/build/kover/bin-reports/* .qodana/code-coverage
+      - name: 'Archive coverage data'  # Archive data for using by Qodana
         uses: actions/upload-artifact@v2
         with:
-          name: coverage.xml
+          name: testReleaseUnitTest.ic
           path: .qodana/code-coverage
-
       - name: 'Qodana Scan'
         uses: JetBrains/qodana-action@main
         env:
           QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
         with:
+          args: "--linter,jetbrains/qodana-jvm-android:2023.2"
           pr-mode: false
