@@ -100,10 +100,12 @@ koverReport {
                 )
             }
         }
-
-        xml {
-            this.setReportFile(File(rootDir, ".qodana/code-coverage/coverage.xml"))
-        }
+//        binary {
+//
+//        }
+//        xml {
+//            this.setReportFile(File(rootDir, ".qodana/code-coverage/coverage.xml"))
+//        }
     }
 }
 
