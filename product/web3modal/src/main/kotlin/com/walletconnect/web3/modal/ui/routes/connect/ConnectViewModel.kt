@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl() {
+internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), ParingController by PairingControllerImpl() {
     private val logger: Logger = wcKoinApp.koin.get()
     private val walletsDataStore = WalletDataSource { showError(it) }
     private val saveRecentWalletUseCase: SaveRecentWalletUseCase = wcKoinApp.koin.get()
@@ -33,16 +33,7 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl() {
     private val getSelectedChainUseCase: GetSelectedChainUseCase = wcKoinApp.koin.get()
     private val observeSelectedChainUseCase: ObserveSelectedChainUseCase = wcKoinApp.koin.get()
 
-    private val pairing by lazy {
-        CoreClient.Pairing.create { error ->
-            throw IllegalStateException("Creating Pairing failed: ${error.throwable.stackTraceToString()}")
-        }!!
-    }
-
     private var sessionParams = getSessionParamsSelectedChain(getSelectedChainUseCase())
-
-    val uri: String
-        get() = pairing.uri
 
     val selectedChain = observeSelectedChainUseCase().map { savedChainId ->
         Web3Modal.chains.find { it.id == savedChainId } ?: Web3Modal.getSelectedChainOrFirst()
@@ -92,26 +83,14 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl() {
         navigateTo(Route.ALL_WALLETS.path)
     }
 
-    fun connect(onSuccess: (String) -> Unit) {
-        try {
-            val connectParams = Modal.Params.Connect(
-                sessionParams.requiredNamespaces,
-                sessionParams.optionalNamespaces,
-                sessionParams.properties,
-                pairing
-            )
-            Web3Modal.connect(
-                connect = connectParams,
-                onSuccess = { onSuccess(pairing.uri) },
-                onError = {
-                    showError(it.throwable.localizedMessage)
-                    logger.error(it.throwable)
-                }
-            )
-        } catch (e: Exception) {
-            logger.error(e)
+    fun connect(onSuccess: (String) -> Unit) = connect(
+        sessionParams = sessionParams,
+        onSuccess = onSuccess,
+        onError = {
+            showError(it.localizedMessage)
+            logger.error(it)
         }
-    }
+    )
 
     fun fetchMoreWallets() {
         viewModelScope.launch { walletsDataStore.fetchMoreWallets() }

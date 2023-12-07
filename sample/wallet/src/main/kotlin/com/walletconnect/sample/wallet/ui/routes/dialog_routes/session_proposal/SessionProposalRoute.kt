@@ -56,7 +56,6 @@ import com.walletconnect.sample.wallet.ui.common.peer.Validation
 import com.walletconnect.sample.wallet.ui.common.peer.getColor
 import com.walletconnect.sample.wallet.ui.common.peer.getDescriptionContent
 import com.walletconnect.sample.wallet.ui.common.peer.getDescriptionTitle
-import com.walletconnect.sample.wallet.ui.common.peer.getValidationColor
 import com.walletconnect.sample.wallet.ui.common.peer.getValidationIcon
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.showSnackbar
@@ -97,7 +96,9 @@ fun ScammerScreen(
     openDialog: () -> Unit
 ) {
     SemiTransparentDialog(Color(0xFF000000)) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.background(mismatch_color.copy(alpha = .15f)).fillMaxWidth()) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier
+            .background(mismatch_color.copy(alpha = .15f))
+            .fillMaxWidth()) {
             Spacer(modifier = Modifier.height(32.dp))
             Image(modifier = Modifier.size(72.dp), painter = painterResource(R.drawable.ic_scam), contentDescription = null)
             Text(text = "Website flagged", style = TextStyle(color = Color(0xFFFFFFFF), fontSize = 24.sp, fontWeight = FontWeight.Bold))
@@ -112,7 +113,16 @@ fun ScammerScreen(
             Text(text = "Proceed anyway", modifier = Modifier.clickable { openDialog() }, style = TextStyle(color = mismatch_color, fontSize = 16.sp))
             Spacer(modifier = Modifier.height(16.dp))
             CancelButton(
-                modifier = Modifier.padding(16.dp).height(46.dp).fillMaxWidth().clickable { navController.popBackStack(route = Route.Connections.path, inclusive = false) },
+                modifier = Modifier
+                    .padding(16.dp)
+                    .height(46.dp)
+                    .fillMaxWidth()
+                    .clickable {
+                        navController.popBackStack(
+                            route = Route.Connections.path,
+                            inclusive = false
+                        )
+                    },
                 backgroundColor = Color(0xFFFFFFFF).copy(.25f)
             )
         }
@@ -184,13 +194,17 @@ fun AccountAndNetwork(sessionProposalUI: SessionProposalUI) {
     val network = Chains.values().find { chain -> chain.chainId == chains.first() }
     val account = walletMetaData.namespaces.values.first().accounts.find { account -> account.contains(chains.first()) }?.split(":")?.last()
 
-    Row(modifier = Modifier.padding(start = 20.dp, end = 20.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+    Row(modifier = Modifier
+        .padding(start = 20.dp, end = 20.dp)
+        .fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Column(horizontalAlignment = Alignment.Start) {
             Text("Account", style = TextStyle(color = Color(0xFFC9C9C9), fontSize = 12.sp, fontWeight = FontWeight.SemiBold))
             Row(verticalAlignment = Alignment.Bottom) {
                 Image(
-                    modifier = Modifier.size(24.dp).padding(end = 4.dp),
-                    painter = painterResource(id = R.drawable.wc_icon_round),
+                    modifier = Modifier
+                        .size(24.dp)
+                        .padding(end = 4.dp),
+                    painter = painterResource(id = R.mipmap.ic_launcher_round),
                     contentDescription = null
                 )
                 Text(account?.toVisibleAddress() ?: "", style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.SemiBold))
@@ -201,8 +215,10 @@ fun AccountAndNetwork(sessionProposalUI: SessionProposalUI) {
             Text("Chain", style = TextStyle(color = Color(0xFFC9C9C9), fontSize = 12.sp, fontWeight = FontWeight.SemiBold))
             Row(verticalAlignment = Alignment.Bottom) {
                 Image(
-                    modifier = Modifier.size(24.dp).padding(end = 4.dp),
-                    painter = painterResource(id = network?.icon ?: R.drawable.wc_icon_round),
+                    modifier = Modifier
+                        .size(24.dp)
+                        .padding(end = 4.dp),
+                    painter = painterResource(id = network?.icon ?: R.mipmap.ic_launcher_round),
                     contentDescription = null
                 )
                 Text(network?.chainName ?: "", style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.SemiBold))
@@ -258,7 +274,10 @@ private fun RequestedPermissions() {
     Column(
         modifier = Modifier
             .padding(end = 20.dp, start = 20.dp)
-            .border(border = BorderStroke(1.dp, Color(0xFFC9C9C9)), shape = RoundedCornerShape(24.dp))
+            .border(
+                border = BorderStroke(1.dp, Color(0xFFC9C9C9)),
+                shape = RoundedCornerShape(24.dp)
+            )
             .fillMaxWidth(),
     ) {
         Text(
@@ -277,7 +296,9 @@ private fun RequestedPermissions() {
 @Composable
 private fun PermissionRow(title: String, icon: Int = R.drawable.ic_check, color: Color = Color(0xFF000000)) {
     Row(modifier = Modifier.padding(start = 12.dp, top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-        Image(modifier = Modifier.size(18.dp).padding(end = 4.dp), imageVector = ImageVector.vectorResource(id = icon), contentDescription = "check")
+        Image(modifier = Modifier
+            .size(18.dp)
+            .padding(end = 4.dp), imageVector = ImageVector.vectorResource(id = icon), contentDescription = "check")
         Text(title, style = TextStyle(fontSize = 14.sp, color = color))
     }
 }
