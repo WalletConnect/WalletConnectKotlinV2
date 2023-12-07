@@ -22,7 +22,7 @@ jobs:
           architecture: x86_64
           cache: gradle
       - name: 'Create Kover Report'
-        run: ./gradlew :core:android:koverXmlReportRelease
+        run: ./gradlew :core:android:koverBinaryReportRelease
       - name: 'Move Code Coverage Report'
         run: |
           mkdir -p .qodana/code-coverage
