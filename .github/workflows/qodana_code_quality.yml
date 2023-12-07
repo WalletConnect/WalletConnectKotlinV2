@@ -15,24 +15,35 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
+
       - uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
           java-version: '17'
           architecture: x86_64
           cache: gradle
+
+      - name: Fetch Properties File
+        env:
+          SECRETS_PROPERTIES: ${{ secrets.SECRETS_PROPERTIES }}
+        run: echo $SECRETS_PROPERTIES | base64 --decode > secrets.properties
+
       # Not support for Android atm - https://youtrack.jetbrains.com/issue/QD-7909/Code-Coverage-in-Qodana-for-Android
+
       #      - name: 'Create Kover Report'
       #        run: ./gradlew :core:android:koverBinaryReportRelease
+
       #      - name: 'Move Code Coverage Report'
       #        run: |
       #          mkdir -p .qodana/code-coverage
       #          mv core/android/build/kover/bin-reports/* .qodana/code-coverage
+
       #      - name: 'Archive coverage data'  # Archive data for using by Qodana
       #        uses: actions/upload-artifact@v2
       #        with:
       #          name: testReleaseUnitTest.ic
       #          path: .qodana/code-coverage
+
       - name: 'Qodana Scan'
         uses: JetBrains/qodana-action@main
         env:
