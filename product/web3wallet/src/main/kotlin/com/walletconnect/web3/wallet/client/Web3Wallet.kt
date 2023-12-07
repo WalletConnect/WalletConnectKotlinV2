@@ -89,7 +89,7 @@ object Web3Wallet {
     @Throws(IllegalStateException::class)
     fun initialize(params: Wallet.Params.Init, onSuccess: () -> Unit = {}, onError: (Wallet.Model.Error) -> Unit) {
         coreClient = params.core
-        var clientInitCounter = 1
+        var clientInitCounter = 0
         val onSuccessfulInitialization: () -> Unit = { clientInitCounter++ }
 
         SignClient.initialize(Sign.Params.Init(params.core), onSuccess = onSuccessfulInitialization) { error ->
