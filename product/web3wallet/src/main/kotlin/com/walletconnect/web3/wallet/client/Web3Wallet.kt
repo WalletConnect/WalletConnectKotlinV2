@@ -89,8 +89,9 @@ object Web3Wallet {
     @Throws(IllegalStateException::class)
     fun initialize(params: Wallet.Params.Init, onSuccess: () -> Unit = {}, onError: (Wallet.Model.Error) -> Unit) {
         coreClient = params.core
-        var clientInitCounter = 0
+        var clientInitCounter = 1
         val onSuccessfulInitialization: () -> Unit = { clientInitCounter++ }
+
         SignClient.initialize(Sign.Params.Init(params.core), onSuccess = onSuccessfulInitialization) { error ->
             if (error.throwable is SignClientAlreadyInitializedException) {
                 onSuccessfulInitialization()
@@ -299,8 +300,9 @@ object Web3Wallet {
                     while (true) {
                         if (clientInitCounter == 2) {
                             onSuccess()
-                            break
+                            return@withTimeout
                         }
+                        delay(100)
                     }
                 }
             } catch (e: Exception) {
