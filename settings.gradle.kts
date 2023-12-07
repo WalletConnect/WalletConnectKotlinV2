@@ -1,6 +1,7 @@
 rootProject.name = "WalletConnect"
 
 val excludedDirs = listOf(
+    ".qodana",
     "undefined",
     ".idea",
     ".git",
@@ -34,4 +35,8 @@ pluginManagement {
         google()
         mavenCentral()
     }
+}
+
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.7.0"
 }
