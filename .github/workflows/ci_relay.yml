@@ -21,7 +21,6 @@ concurrency:
 
 jobs:
   integration_tests:
-    secrets: inherit
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
