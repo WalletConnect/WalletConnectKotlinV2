@@ -44,7 +44,7 @@ internal class RegisterUseCase(
         identitiesInteractor.registerIdentity(identityPublicKey, cacaoPayload, signature).fold(
             onFailure = { error -> onFailure(error) },
             onSuccess = {
-                runCatching { registeredAccountsRepository.insertOrIgnoreAccount(accountId, identityPublicKey, !allApps, if (!allApps) cacaoPayload.domain else null) }.fold(
+                runCatching { registeredAccountsRepository.insertOrIgnoreAccount(accountId, identityPublicKey, allApps, if (!allApps) cacaoPayload.domain else null) }.fold(
                     onFailure = { error -> onFailure(error) },
                     onSuccess = { watchSubscriptionsUseCase(accountId, onSuccess = { onSuccess(identityPublicKey.keyAsHex) }, onFailure = { error -> onFailure(error) }) }
                 )

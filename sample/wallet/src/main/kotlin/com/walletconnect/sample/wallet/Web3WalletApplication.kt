@@ -216,33 +216,46 @@ class Web3WalletApplication : Application() {
     }
 
     private fun registerAccount() {
-        NotifyClient.prepareRegistration(
-            params = Notify.Params.PrepareRegistration(
+
+        val isRegistered = NotifyClient.isRegistered(
+            params = Notify.Params.IsRegistered(
                 account = with(EthAccountDelegate) { account.toEthAddress() },
                 domain = BuildConfig.APPLICATION_ID,
                 allApps = true,
             ),
-            onSuccess = { cacaoPayloadWithIdentityPrivateKey, message ->
-                Log.e(tag(this), "PrepareRegistration Success")
-
-                val signature = CacaoSigner.sign(message, EthAccountDelegate.privateKey.hexToBytes(), SignatureType.EIP191)
-
-                NotifyClient.register(
-                    params = Notify.Params.Register(
-                        cacaoPayloadWithIdentityPrivateKey = cacaoPayloadWithIdentityPrivateKey,
-                        signature = signature,
-                    ),
-                    onSuccess = {
-                        Log.e(tag(this), "Register Success")
-                    },
-                    onError = {
-                        Log.e(tag(this), it.throwable.stackTraceToString())
-                    }
-                )
-
-            },
-            onError = { Log.e(tag(this), it.throwable.stackTraceToString()) }
         )
+
+        if (!isRegistered) {
+            NotifyClient.prepareRegistration(
+                params = Notify.Params.PrepareRegistration(
+                    account = with(EthAccountDelegate) { account.toEthAddress() },
+                    domain = BuildConfig.APPLICATION_ID,
+                    allApps = true,
+                ),
+                onSuccess = { cacaoPayloadWithIdentityPrivateKey, message ->
+                    Log.e(tag(this), "PrepareRegistration Success")
+
+                    val signature = CacaoSigner.sign(message, EthAccountDelegate.privateKey.hexToBytes(), SignatureType.EIP191)
+
+                    NotifyClient.register(
+                        params = Notify.Params.Register(
+                            cacaoPayloadWithIdentityPrivateKey = cacaoPayloadWithIdentityPrivateKey,
+                            signature = signature,
+                        ),
+                        onSuccess = {
+                            Log.e(tag(this), "Register Success")
+                        },
+                        onError = {
+                            Log.e(tag(this), it.throwable.stackTraceToString())
+                        }
+                    )
+
+                },
+                onError = { Log.e(tag(this), it.throwable.stackTraceToString()) }
+            )
+        } else {
+            Log.e(tag(this), "${with(EthAccountDelegate) { account.toEthAddress() }} is already registered")
+        }
     }
 
 }

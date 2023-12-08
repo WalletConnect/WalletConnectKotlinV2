@@ -20,16 +20,15 @@ internal class IsRegisteredUseCase(
         try {
             registeredAccountsRepository.getAccountByAccountId(account).let { registeredAccount ->
                 return when {
-                    registeredAccount.appDomain != domain -> false
+                    !allApps && registeredAccount.appDomain != domain -> false
                     allApps && !registeredAccount.allApps -> false
                     !allApps && registeredAccount.allApps -> false
-                    else -> identitiesInteractor.getAlreadyRegisteredValidIdentity(AccountId(account), Statement.fromBoolean(allApps).content, domain, listOf(identityServerUrl)).map { true }
+                    else -> identitiesInteractor.getAlreadyRegisteredValidIdentity(AccountId(account), Statement.fromBoolean(allApps).content, domain, listOf(identityServerUrl))
+                        .map { true }
                         .recover { exception ->
                             when (exception) {
                                 is MissingKeyException, is AccountHasNoCacaoPayloadStored, is AccountHasDifferentStatementStored -> false
-                                else -> {
-                                    false
-                                }
+                                else -> { false }
                             }
                         }.getOrElse { false }
                 }

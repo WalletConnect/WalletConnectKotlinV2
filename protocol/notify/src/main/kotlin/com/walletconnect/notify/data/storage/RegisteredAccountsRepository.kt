@@ -12,8 +12,8 @@ import kotlinx.coroutines.withContext
 
 internal class RegisteredAccountsRepository(private val registeredAccounts: RegisteredAccountsQueries) {
 
-    suspend fun insertOrIgnoreAccount(accountId: AccountId, publicIdentityKey: PublicKey, isLimited: Boolean, appDomain: String?) = withContext(Dispatchers.IO) {
-        registeredAccounts.insertOrIgnoreAccount(accountId.value, publicIdentityKey.keyAsHex, isLimited, appDomain)
+    suspend fun insertOrIgnoreAccount(accountId: AccountId, publicIdentityKey: PublicKey, allApps: Boolean, appDomain: String?) = withContext(Dispatchers.IO) {
+        registeredAccounts.insertOrIgnoreAccount(accountId.value, publicIdentityKey.keyAsHex, allApps, appDomain)
     }
 
     suspend fun updateNotifyServerData(accountId: AccountId, notifyServerWatchTopic: Topic, notifyServerAuthenticationKey: PublicKey) = withContext(Dispatchers.IO) {
@@ -39,7 +39,7 @@ internal class RegisteredAccountsRepository(private val registeredAccounts: Regi
     }
 
     private fun toRegisterAccount(
-        accountId: String, publicIdentityKey: String, isLimited: Boolean, appDomain: String?, notifyServerWatchTopic: String?, notifyServerAuthenticationKey: String?,
+        accountId: String, publicIdentityKey: String, allApps: Boolean, appDomain: String?, notifyServerWatchTopic: String?, notifyServerAuthenticationKey: String?,
     ): RegisteredAccount =
-        RegisteredAccount(AccountId(accountId), PublicKey(publicIdentityKey), isLimited, appDomain, notifyServerWatchTopic?.let { Topic(it) }, notifyServerAuthenticationKey?.let { PublicKey(it) })
+        RegisteredAccount(AccountId(accountId), PublicKey(publicIdentityKey), allApps, appDomain, notifyServerWatchTopic?.let { Topic(it) }, notifyServerAuthenticationKey?.let { PublicKey(it) })
 }
