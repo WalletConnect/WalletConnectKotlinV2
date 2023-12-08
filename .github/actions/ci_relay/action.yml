@@ -14,6 +14,8 @@ runs:
 
     - name: Fetch Properties File
       shell: bash
+      env:
+        SECRETS_PROPERTIES: ${{ secrets.SECRETS_PROPERTIES }}
       run: echo $SECRETS_PROPERTIES | base64 --decode > secrets.properties
 
     - name: Relay integration tests
