@@ -7,12 +7,16 @@ import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.pairing.model.mapper.toClient
 import com.walletconnect.notify.client.Notify
-import java.lang.IllegalArgumentException
-import kotlin.jvm.Throws
 
 @JvmSynthetic
 internal fun NotifyMessage.toWalletClient(topic: String): Notify.Model.Message.Decrypted {
     return Notify.Model.Message.Decrypted(title, body, icon, url, type, topic)
+}
+
+
+@JvmSynthetic
+internal fun NotifyMessage.toClient(topic: String): Notify.Model.Notification.Decrypted {
+    return Notify.Model.Notification.Decrypted(title, body, icon, url, type, topic)
 }
 
 @JvmSynthetic
@@ -53,10 +57,20 @@ internal fun NotifyRecord.toClient(): Notify.Model.NotificationRecord {
 }
 
 
-
 @JvmSynthetic
 internal fun NotificationType.toWalletClient(): Notify.Model.NotificationType {
     return Notify.Model.NotificationType(id, name, description)
+}
+
+
+@JvmSynthetic
+internal fun CacaoPayloadWithIdentityPrivateKey.toClient(): Notify.Model.CacaoPayloadWithIdentityPrivateKey {
+    return Notify.Model.CacaoPayloadWithIdentityPrivateKey(payload.toClient(), key)
+}
+
+@JvmSynthetic
+internal fun Cacao.Payload.toClient(): Notify.Model.Cacao.Payload {
+    return Notify.Model.Cacao.Payload(iss, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
 }
 
 

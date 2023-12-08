@@ -10,12 +10,12 @@ import com.walletconnect.notify.common.model.NotifyRecord
 import com.walletconnect.notify.data.storage.MessagesRepository
 import kotlinx.coroutines.supervisorScope
 
-internal class GetListOfMessagesUseCase(
+internal class GetListOfNotificationsUseCase(
     private val messagesRepository: MessagesRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
-) : GetListOfMessagesUseCaseInterface {
+) : GetListOfNotificationsUseCaseInterface {
 
-    override suspend fun getListOfMessages(topic: String): Map<Long, NotifyRecord> = supervisorScope {
+    override suspend fun getListOfNotifications(topic: String): Map<Long, NotifyRecord> = supervisorScope {
         val dappMetaData = metadataStorageRepository.getByTopicAndType(Topic(topic), AppMetaDataType.PEER)
             ?: throw IllegalStateException("Dapp metadata does not exists for $topic")
 
@@ -33,6 +33,6 @@ internal class GetListOfMessagesUseCase(
     }
 }
 
-internal interface GetListOfMessagesUseCaseInterface {
-    suspend fun getListOfMessages(topic: String): Map<Long, NotifyRecord>
+internal interface GetListOfNotificationsUseCaseInterface {
+    suspend fun getListOfNotifications(topic: String): Map<Long, NotifyRecord>
 }

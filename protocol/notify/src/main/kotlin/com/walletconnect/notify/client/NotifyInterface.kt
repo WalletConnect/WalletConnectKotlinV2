@@ -72,7 +72,11 @@ interface NotifyInterface {
 
     fun prepareRegistration(params: Notify.Params.PrepareRegistration, onSuccess: (Notify.Model.CacaoPayloadWithIdentityPrivateKey, String) -> Unit, onError: (Notify.Model.Error) -> Unit)
 
-    fun isRegistered(params: Notify.Params.IsRegistered, onSuccess: (Boolean) -> Unit, onError: (Notify.Model.Error) -> Unit)
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+    fun isRegistered(params: Notify.Params.IsRegistered): Boolean
 
     fun unregister(params: Notify.Params.Unregistration, onSuccess: (String) -> Unit, onError: (Notify.Model.Error) -> Unit)
 }

@@ -5,16 +5,22 @@ package com.walletconnect.notify.di
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.notify.engine.calls.DecryptMessageUseCase
 import com.walletconnect.notify.engine.calls.DecryptMessageUseCaseInterface
-import com.walletconnect.notify.engine.calls.DeleteMessageUseCase
-import com.walletconnect.notify.engine.calls.DeleteMessageUseCaseInterface
+import com.walletconnect.notify.engine.calls.DeleteNotificationUseCase
+import com.walletconnect.notify.engine.calls.DeleteNotificationUseCaseInterface
 import com.walletconnect.notify.engine.calls.DeleteSubscriptionUseCase
 import com.walletconnect.notify.engine.calls.DeleteSubscriptionUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetListOfActiveSubscriptionsUseCase
 import com.walletconnect.notify.engine.calls.GetListOfActiveSubscriptionsUseCaseInterface
-import com.walletconnect.notify.engine.calls.GetListOfMessagesUseCase
-import com.walletconnect.notify.engine.calls.GetListOfMessagesUseCaseInterface
+import com.walletconnect.notify.engine.calls.GetListOfNotificationsUseCase
+import com.walletconnect.notify.engine.calls.GetListOfNotificationsUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetNotificationTypesUseCase
 import com.walletconnect.notify.engine.calls.GetNotificationTypesUseCaseInterface
+import com.walletconnect.notify.engine.calls.IsRegisteredUseCase
+import com.walletconnect.notify.engine.calls.IsRegisteredUseCaseInterface
+import com.walletconnect.notify.engine.calls.LegacyRegisterUseCase
+import com.walletconnect.notify.engine.calls.LegacyRegisterUseCaseInterface
+import com.walletconnect.notify.engine.calls.PrepareRegistrationUseCase
+import com.walletconnect.notify.engine.calls.PrepareRegistrationUseCaseInterface
 import com.walletconnect.notify.engine.calls.RegisterUseCase
 import com.walletconnect.notify.engine.calls.RegisterUseCaseInterface
 import com.walletconnect.notify.engine.calls.SubscribeToDappUseCase
@@ -60,8 +66,8 @@ internal fun callModule() = module {
         )
     }
 
-    single<DeleteMessageUseCaseInterface> {
-        DeleteMessageUseCase(
+    single<DeleteNotificationUseCaseInterface> {
+        DeleteNotificationUseCase(
             messagesRepository = get()
         )
     }
@@ -75,11 +81,37 @@ internal fun callModule() = module {
         )
     }
 
-    single<RegisterUseCaseInterface> {
-        RegisterUseCase(
+    single<LegacyRegisterUseCaseInterface> {
+        LegacyRegisterUseCase(
             registerIdentityUseCase = get(),
             registeredAccountsRepository = get(),
             watchSubscriptionsUseCase = get()
+        )
+    }
+
+    single<RegisterUseCaseInterface> {
+        RegisterUseCase(
+            registeredAccountsRepository = get(),
+            identitiesInteractor = get(),
+            watchSubscriptionsUseCase = get(),
+            keyManagementRepository = get(),
+            projectId = get()
+        )
+    }
+
+    single<IsRegisteredUseCaseInterface> {
+        IsRegisteredUseCase(
+            registeredAccountsRepository = get(),
+            identitiesInteractor = get(),
+            identityServerUrl = get(named(AndroidCommonDITags.KEYSERVER_URL))
+        )
+    }
+
+    single<PrepareRegistrationUseCaseInterface> {
+        PrepareRegistrationUseCase(
+            identitiesInteractor = get(),
+            identityServerUrl = get(named(AndroidCommonDITags.KEYSERVER_URL)),
+            keyManagementRepository = get()
         )
     }
 
@@ -108,8 +140,8 @@ internal fun callModule() = module {
         )
     }
 
-    single<GetListOfMessagesUseCaseInterface> {
-        GetListOfMessagesUseCase(
+    single<GetListOfNotificationsUseCaseInterface> {
+        GetListOfNotificationsUseCase(
             messagesRepository = get(),
             metadataStorageRepository = get()
         )

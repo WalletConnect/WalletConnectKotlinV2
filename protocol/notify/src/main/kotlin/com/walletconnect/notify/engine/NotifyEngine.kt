@@ -11,11 +11,17 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.notify.common.JsonRpcMethod
 import com.walletconnect.notify.engine.calls.DecryptMessageUseCaseInterface
-import com.walletconnect.notify.engine.calls.DeleteMessageUseCaseInterface
+import com.walletconnect.notify.engine.calls.DeleteNotificationUseCaseInterface
 import com.walletconnect.notify.engine.calls.DeleteSubscriptionUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetListOfActiveSubscriptionsUseCaseInterface
-import com.walletconnect.notify.engine.calls.GetListOfMessagesUseCaseInterface
+import com.walletconnect.notify.engine.calls.GetListOfNotificationsUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetNotificationTypesUseCaseInterface
+import com.walletconnect.notify.engine.calls.IsRegisteredUseCase
+import com.walletconnect.notify.engine.calls.IsRegisteredUseCaseInterface
+import com.walletconnect.notify.engine.calls.LegacyRegisterUseCaseInterface
+import com.walletconnect.notify.engine.calls.PrepareRegistrationUseCase
+import com.walletconnect.notify.engine.calls.PrepareRegistrationUseCaseInterface
+import com.walletconnect.notify.engine.calls.RegisterUseCase
 import com.walletconnect.notify.engine.calls.RegisterUseCaseInterface
 import com.walletconnect.notify.engine.calls.SubscribeToDappUseCaseInterface
 import com.walletconnect.notify.engine.calls.UnregisterUseCaseInterface
@@ -45,13 +51,13 @@ internal class NotifyEngine(
     private val subscribeToDappUseCase: SubscribeToDappUseCaseInterface,
     private val updateUseCase: UpdateSubscriptionRequestUseCaseInterface,
     private val deleteSubscriptionUseCase: DeleteSubscriptionUseCaseInterface,
-    private val deleteMessageUseCase: DeleteMessageUseCaseInterface,
+    private val deleteMessageUseCase: DeleteNotificationUseCaseInterface,
     private val decryptMessageUseCase: DecryptMessageUseCaseInterface,
-    private val registerUseCase: RegisterUseCaseInterface,
+    private val legacyRegisterUseCase: LegacyRegisterUseCaseInterface,
     private val unregisterUseCase: UnregisterUseCaseInterface,
     private val getNotificationTypesUseCase: GetNotificationTypesUseCaseInterface,
     private val getListOfActiveSubscriptionsUseCase: GetListOfActiveSubscriptionsUseCaseInterface,
-    private val getListOfMessages: GetListOfMessagesUseCaseInterface,
+    private val getListOfMessages: GetListOfNotificationsUseCaseInterface,
     private val onNotifyMessageUseCase: OnNotifyMessageUseCase,
     private val onNotifyDeleteUseCase: OnNotifyDeleteUseCase,
     private val onSubscriptionsChangedUseCase: OnSubscriptionsChangedUseCase,
@@ -59,16 +65,22 @@ internal class NotifyEngine(
     private val onNotifyUpdateResponseUseCase: OnNotifyUpdateResponseUseCase,
     private val onWatchSubscriptionsResponseUseCase: OnWatchSubscriptionsResponseUseCase,
     private val watchSubscriptionsForEveryRegisteredAccountUseCase: WatchSubscriptionsForEveryRegisteredAccountUseCase,
+    private val isRegisteredUseCase: IsRegisteredUseCase,
+    private val prepareRegistrationUseCase: PrepareRegistrationUseCase,
+    private val registerUseCase: RegisterUseCase,
 ) : SubscribeToDappUseCaseInterface by subscribeToDappUseCase,
     UpdateSubscriptionRequestUseCaseInterface by updateUseCase,
     DeleteSubscriptionUseCaseInterface by deleteSubscriptionUseCase,
-    DeleteMessageUseCaseInterface by deleteMessageUseCase,
+    DeleteNotificationUseCaseInterface by deleteMessageUseCase,
     DecryptMessageUseCaseInterface by decryptMessageUseCase,
+    LegacyRegisterUseCaseInterface by legacyRegisterUseCase,
     RegisterUseCaseInterface by registerUseCase,
     UnregisterUseCaseInterface by unregisterUseCase,
     GetNotificationTypesUseCaseInterface by getNotificationTypesUseCase,
     GetListOfActiveSubscriptionsUseCaseInterface by getListOfActiveSubscriptionsUseCase,
-    GetListOfMessagesUseCaseInterface by getListOfMessages {
+    GetListOfNotificationsUseCaseInterface by getListOfMessages,
+    IsRegisteredUseCaseInterface by isRegisteredUseCase,
+    PrepareRegistrationUseCaseInterface by prepareRegistrationUseCase {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
     private var internalErrorsJob: Job? = null
