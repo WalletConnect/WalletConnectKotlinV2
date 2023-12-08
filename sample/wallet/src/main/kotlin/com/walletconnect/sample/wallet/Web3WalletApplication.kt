@@ -52,13 +52,12 @@ import com.walletconnect.sample.common.BuildConfig as CommonBuildConfig
 class Web3WalletApplication : Application() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var addFirebaseBeagleModules: () -> Unit = {}
-    private val logger: Logger by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.LOGGER)) }
+    private lateinit var logger: Logger
 
     override fun onCreate() {
         super.onCreate()
 
         EthAccountDelegate.application = this
-        logger.log("Account: ${EthAccountDelegate.account}")
 
         val projectId = BuildConfig.PROJECT_ID
         val serverUrl = "wss://$RELAY_URL?projectId=${projectId}"
@@ -82,6 +81,9 @@ class Web3WalletApplication : Application() {
                 connectionStateFlow.emit(ConnectionState.Error(error.throwable.message ?: ""))
             }
         }
+
+        logger = wcKoinApp.koin.get(named(AndroidCommonDITags.LOGGER))
+        logger.log("Account: ${EthAccountDelegate.account}")
 
         Web3Wallet.initialize(Wallet.Params.Init(core = CoreClient)) { error ->
             Firebase.crashlytics.recordException(error.throwable)
@@ -238,7 +240,7 @@ class Web3WalletApplication : Application() {
                 onError = { logger.error(it.throwable.stackTraceToString()) }
             )
         } else {
-            logger.log("${with(EthAccountDelegate) { account.toEthAddress() }} is already registered")
+            logger.log("$account is already registered")
         }
     }
 
