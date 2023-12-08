@@ -145,11 +145,11 @@ object Notify {
         @Deprecated("We changed the registration flow to be more secure. Please use PrepareRegistration and Register instead")
         data class Registration(val account: String, val domain: String, val onSign: (String) -> Model.Cacao.Signature?, val isLimited: Boolean = false) : Params()
 
-        data class PrepareRegistration(val account: String, val domain: String, val allApps: Boolean = false) : Params()
+        data class PrepareRegistration(val account: String, val domain: String, val allApps: Boolean = true) : Params()
 
         data class Register(val cacaoPayloadWithIdentityPrivateKey: Model.CacaoPayloadWithIdentityPrivateKey, val signature: Model.Cacao.Signature) : Params()
 
-        data class IsRegistered(val account: String, val domain: String, val allApps: Boolean = false) : Params()
+        data class IsRegistered(val account: String, val domain: String, val allApps: Boolean = true) : Params()
 
         data class Unregistration(val account: String) : Params()
     }
