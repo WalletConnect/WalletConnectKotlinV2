@@ -33,14 +33,22 @@ internal class RegisterUseCase(
     ) = supervisorScope {
         val (cacaoPayload, identityPrivateKey) = cacaoPayloadWithIdentityPrivateKey
         val accountId = AccountId(Issuer(cacaoPayload.iss).accountId)
-        val identityPublicKey = keyManagementRepository.deriveAndStoreEd25519KeyPair(identityPrivateKey)
 
-        //todo ogarnąć walidację
-        if (encodeEd25519DidKey(identityPublicKey.keyAsBytes) != cacaoPayload.aud) return@supervisorScope onFailure(IllegalArgumentException("Invalid aud"))
-        runCatching { CacaoVerifier(projectId).verify(Cacao(CacaoType.EIP4361.toHeader(), cacaoPayload, signature)) }.getOrElse { error -> return@supervisorScope onFailure(error) }
+        if (!accountId.isValid())
+            return@supervisorScope onFailure(IllegalArgumentException("AccountId: ${accountId.value} is not CAIP-10 compliant"))
 
+        val identityPublicKey = runCatching { keyManagementRepository.deriveAndStoreEd25519KeyPair(identityPrivateKey) }
+            .getOrElse { return@supervisorScope onFailure(IllegalArgumentException("Unable to derive identity key")) }
 
-        val allApps = Statement.toBoolean(cacaoPayload.statement)
+        val allApps = runCatching { Statement.toBoolean(cacaoPayload.statement) }
+            .getOrElse { return@supervisorScope onFailure(IllegalArgumentException("Invalid statement")) }
+
+        if (encodeEd25519DidKey(identityPublicKey.keyAsBytes) != cacaoPayload.aud)
+            return@supervisorScope onFailure(IllegalArgumentException("Invalid aud"))
+
+        runCatching { CacaoVerifier(projectId).verify(Cacao(CacaoType.EIP4361.toHeader(), cacaoPayload, signature)) }
+            .getOrElse { error -> return@supervisorScope onFailure(IllegalArgumentException("Invalid signature")) }
+
         identitiesInteractor.registerIdentity(identityPublicKey, cacaoPayload, signature).fold(
             onFailure = { error -> onFailure(error) },
             onSuccess = {
