@@ -1,4 +1,4 @@
-package com.walletconnect.android.internal.common.storage
+package com.walletconnect.android.internal.common.storage.identity
 
 import com.squareup.moshi.Moshi
 import com.walletconnect.android.internal.common.model.AccountId

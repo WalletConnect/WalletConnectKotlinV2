@@ -2,13 +2,14 @@
 
 package com.walletconnect.auth.engine.domain
 
+import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Validation
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.common.storage.VerifyContextStorageRepository
+import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.verify.data.model.VerifyContext
 import com.walletconnect.auth.common.json_rpc.AuthParams
@@ -46,6 +47,7 @@ internal class AuthEngine(
     private val sendAuthRequestUseCase: SendAuthRequestUseCaseInterface,
     private val respondAuthRequestUseCase: RespondAuthRequestUseCaseInterface,
     private val formatMessageUseCase: FormatMessageUseCaseInterface,
+    private val decryptAuthMessageUseCase: DecryptMessageUseCaseInterface,
     private val getVerifyContextUseCase: GetVerifyContextUseCaseInterface,
     private val getListOfVerifyContextsUseCase: GetListOfVerifyContextsUseCaseInterface,
     private val onAuthRequestUseCase: OnAuthRequestUseCase,
@@ -53,6 +55,7 @@ internal class AuthEngine(
 ) : SendAuthRequestUseCaseInterface by sendAuthRequestUseCase,
     RespondAuthRequestUseCaseInterface by respondAuthRequestUseCase,
     FormatMessageUseCaseInterface by formatMessageUseCase,
+    DecryptMessageUseCaseInterface by decryptAuthMessageUseCase,
     GetPendingJsonRpcHistoryEntriesUseCaseInterface by getPendingJsonRpcHistoryEntriesUseCase,
     GetVerifyContextUseCaseInterface by getVerifyContextUseCase,
     GetListOfVerifyContextsUseCaseInterface by getListOfVerifyContextsUseCase {

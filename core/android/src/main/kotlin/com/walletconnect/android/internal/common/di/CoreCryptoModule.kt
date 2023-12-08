@@ -12,7 +12,7 @@ import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.crypto.kmr.BouncyCastleKeyManagementRepository
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.jwt.clientid.ClientIdJwtRepositoryAndroid
-import com.walletconnect.android.internal.common.storage.KeyChain
+import com.walletconnect.android.internal.common.storage.key_chain.KeyChain
 import com.walletconnect.foundation.crypto.data.repository.ClientIdJwtRepository
 import com.walletconnect.foundation.util.Logger
 import org.koin.android.ext.koin.androidContext
@@ -21,7 +21,7 @@ import org.koin.core.scope.Scope
 import org.koin.dsl.module
 import java.io.File
 import java.security.KeyStore
-import com.walletconnect.android.internal.common.storage.KeyStore as WCKeyStore
+import com.walletconnect.android.internal.common.storage.key_chain.KeyStore as WCKeyStore
 
 private const val ANDROID_KEY_STORE = "AndroidKeyStore"
 private const val SHARED_PREFS_FILE = "wc_key_store"

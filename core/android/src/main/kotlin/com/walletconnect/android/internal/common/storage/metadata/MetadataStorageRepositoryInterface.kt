@@ -1,4 +1,4 @@
-package com.walletconnect.android.internal.common.storage
+package com.walletconnect.android.internal.common.storage.metadata
 
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.AppMetaDataType

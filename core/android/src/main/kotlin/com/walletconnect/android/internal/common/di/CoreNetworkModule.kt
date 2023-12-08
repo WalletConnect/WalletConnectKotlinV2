@@ -80,7 +80,7 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
                 val host = request.url.host
                 when {
                     shouldFallbackRelay(host) -> chain.proceed(request.newBuilder().url(get<String>(named(AndroidCommonDITags.RELAY_URL))).build())
-                    shouldFallbackEcho(host) -> chain.proceed(request.newBuilder().url(getFallbackEchoUrl(request.url.toString())).build())
+                    shouldFallbackPush(host) -> chain.proceed(request.newBuilder().url(getFallbackPushUrl(request.url.toString())).build())
                     shouldFallbackVerify(host) -> chain.proceed(request.newBuilder().url(getFallbackVerifyUrl(request.url.toString())).build())
                     else -> chain.proceed(request)
                 }
@@ -88,7 +88,7 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
                 if (isFailOverException(e)) {
                     when (request.url.host) {
                         DEFAULT_RELAY_URL.host -> fallbackRelay(request, chain)
-                        DEFAULT_ECHO_URL.host -> fallbackEcho(request, chain)
+                        DEFAULT_PUSH_URL.host -> fallbackPush(request, chain)
                         DEFAULT_VERIFY_URL.host -> fallbackVerify(request, chain)
                         else -> chain.proceed(request)
                     }

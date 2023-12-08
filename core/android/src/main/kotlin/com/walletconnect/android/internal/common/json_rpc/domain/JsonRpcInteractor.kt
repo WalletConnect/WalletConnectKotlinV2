@@ -2,11 +2,10 @@ package com.walletconnect.android.internal.common.json_rpc.domain
 
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.codec.Codec
+import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.exception.NoRelayConnectionException
 import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
-import com.walletconnect.android.internal.common.json_rpc.model.toJsonRpcError
-import com.walletconnect.android.internal.common.json_rpc.model.toJsonRpcResponse
 import com.walletconnect.android.internal.common.json_rpc.model.toRelay
 import com.walletconnect.android.internal.common.json_rpc.model.toWCResponse
 import com.walletconnect.android.internal.common.model.EnvelopeType
@@ -22,24 +21,31 @@ import com.walletconnect.android.internal.common.model.type.Error
 import com.walletconnect.android.internal.common.model.type.JsonRpcClientSync
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.common.storage.JsonRpcHistory
+import com.walletconnect.android.internal.common.storage.push_messages.PushMessagesRepository
+import com.walletconnect.android.internal.common.storage.rpc.JsonRpcHistory
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.relay.RelayConnectionInterface
 import com.walletconnect.foundation.common.model.SubscriptionId
 import com.walletconnect.foundation.common.model.Topic
+import com.walletconnect.foundation.network.model.Relay
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.utils.Empty
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 
 internal class JsonRpcInteractor(
     private val relay: RelayConnectionInterface,
     private val chaChaPolyCodec: Codec,
     private val jsonRpcHistory: JsonRpcHistory,
+    private val pushMessageStorage: PushMessagesRepository,
     private val logger: Logger,
 ) : JsonRpcInteractorInterface {
     private val serializer: JsonRpcSerializer get() = wcKoinApp.koin.get()
@@ -110,8 +116,7 @@ internal class JsonRpcInteractor(
             return onFailure(e)
         }
 
-        val jsonResponseDO = response.toJsonRpcResponse()
-        val responseJson = serializer.serialize(jsonResponseDO) ?: return onFailure(IllegalStateException("JsonRpcInteractor: Unknown result params"))
+        val responseJson = serializer.serialize(response) ?: return onFailure(IllegalStateException("JsonRpcInteractor: Unknown result params"))
         val encryptedResponse = chaChaPolyCodec.encrypt(topic, responseJson, envelopeType, participants)
         relay.publish(topic.value, encryptedResponse, params.toRelay()) { result ->
             result.fold(
@@ -284,9 +289,14 @@ internal class JsonRpcInteractor(
             relay.unsubscribe(topic.value, subscriptionId.id) { result ->
                 result.fold(
                     onSuccess = {
-                        jsonRpcHistory.deleteRecordsByTopic(topic)
-                        subscriptions.remove(topic.value)
-                        onSuccess()
+                        scope.launch {
+                            supervisorScope {
+                                jsonRpcHistory.deleteRecordsByTopic(topic)
+                                subscriptions.remove(topic.value)
+                                pushMessageStorage.deletePushMessagesByTopic(topic.value)
+                                onSuccess()
+                            }
+                        }
                     },
                     onFailure = { error ->
                         logger.error("Unsubscribe to topic: $topic error: $error")
@@ -303,16 +313,10 @@ internal class JsonRpcInteractor(
         scope.launch {
             relay.subscriptionRequest.map { relayRequest ->
                 //TODO silences 4050
-                if(relayRequest.params.subscriptionData.tag == 4050) return@map Triple(String.Empty, Topic(""), 0L)
+                if (relayRequest.tag == 4050) return@map Triple(String.Empty, Topic(""), 0L)
                 val topic = Topic(relayRequest.subscriptionTopic)
-                val message = try {
-                    chaChaPolyCodec.decrypt(topic, relayRequest.message)
-                } catch (e: Exception) {
-                    handleError("ManSub: ${e.stackTraceToString()}")
-                    String.Empty
-                }
-
-                Triple(message, topic, relayRequest.params.subscriptionData.publishedAt)
+                storePushRequestsIfEnabled(relayRequest, topic)
+                Triple(decryptMessage(topic, relayRequest), topic, relayRequest.publishedAt)
             }.collect { (decryptedMessage, topic, publishedAt) ->
                 if (decryptedMessage.isNotEmpty()) {
                     try {
@@ -324,6 +328,24 @@ internal class JsonRpcInteractor(
             }
         }
     }
+
+    private fun storePushRequestsIfEnabled(relayRequest: Relay.Model.Call.Subscription.Request, topic: Topic) {
+        pushMessageStorage.arePushNotificationsEnabled
+            .filter { areEnabled -> areEnabled }
+            .onEach {
+                pushMessageStorage.notificationTags
+                    .filter { tag -> tag == relayRequest.tag }
+                    .onEach { tag -> pushMessageStorage.insertPushMessage(sha256(relayRequest.message.toByteArray()), topic.value, relayRequest.message, tag) }
+            }.launchIn(scope)
+    }
+
+    private fun decryptMessage(topic: Topic, relayRequest: Relay.Model.Call.Subscription.Request) =
+        try {
+            chaChaPolyCodec.decrypt(topic, relayRequest.message)
+        } catch (e: Exception) {
+            handleError("ManSub: ${e.stackTraceToString()}")
+            String.Empty
+        }
 
     private suspend fun manageSubscriptions(decryptedMessage: String, topic: Topic, publishedAt: Long) {
         serializer.tryDeserialize<ClientJsonRpc>(decryptedMessage)?.let { clientJsonRpc ->
@@ -369,7 +391,7 @@ internal class JsonRpcInteractor(
 
         if (jsonRpcRecord != null) {
             serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->
-                _peerResponse.emit(jsonRpcRecord.toWCResponse(jsonRpcError.toJsonRpcError(), params))
+                _peerResponse.emit(jsonRpcRecord.toWCResponse(jsonRpcError, params))
             } ?: handleError("JsonRpcInteractor: Unknown error params")
         }
     }

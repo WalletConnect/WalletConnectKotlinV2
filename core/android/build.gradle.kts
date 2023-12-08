@@ -126,6 +126,7 @@ dependencies {
     kethereum()
     retrofit()
     beagleOkHttp()
+    firebaseMessaging()
 
     jUnit4()
     androidXTest()

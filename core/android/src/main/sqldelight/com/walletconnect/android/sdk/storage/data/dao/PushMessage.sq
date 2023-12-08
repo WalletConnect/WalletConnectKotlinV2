@@ -1,0 +1,23 @@
+CREATE TABLE PushMessage (
+	id TEXT PRIMARY KEY NOT NULL,
+	topic TEXT NOT NULL,
+  	blob TEXT NOT NULL,
+  	tag INTEGER NOT NULL
+);
+
+upsertMessage:
+INSERT OR REPLACE INTO PushMessage(id, topic, blob, tag)
+VALUES (?, ?, ?, ?);
+
+getPushMessageById:
+SELECT id, topic, blob
+FROM PushMessage
+WHERE id = ?;
+
+doesMessagesExistsByRequestId:
+SELECT EXISTS(SELECT 1 FROM PushMessage WHERE id = ?);
+
+-- delete when session is disconnected
+deleteMessageByTopic:
+DELETE FROM PushMessage
+WHERE topic = ?;

@@ -1,4 +1,4 @@
-package com.walletconnect.android.internal.common.storage
+package com.walletconnect.android.internal.common.storage.rpc
 
 import com.walletconnect.android.internal.common.json_rpc.model.JsonRpcHistoryRecord
 import com.walletconnect.android.sdk.storage.data.dao.JsonRpcHistoryQueries
@@ -57,9 +57,6 @@ class JsonRpcHistory(
         jsonRpcHistoryQueries.getJsonRpcRecords(mapper = ::toRecord)
             .executeAsList()
             .filter { record -> record.response == null }
-
-    fun getRecordById(id: Long): JsonRpcHistoryRecord? =
-        jsonRpcHistoryQueries.getJsonRpcHistoryRecord(id, mapper = ::toRecord).executeAsOneOrNull()
 
     fun getPendingRecordById(id: Long): JsonRpcHistoryRecord? {
         val record = jsonRpcHistoryQueries.getJsonRpcHistoryRecord(id, mapper = ::toRecord).executeAsOneOrNull()

@@ -5,7 +5,7 @@ package com.walletconnect.android.internal.common.crypto.kmr
 import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.model.MissingKeyException
 import com.walletconnect.android.internal.common.model.SymmetricKey
-import com.walletconnect.android.internal.common.storage.KeyStore
+import com.walletconnect.android.internal.common.storage.key_chain.KeyStore
 import com.walletconnect.foundation.common.model.Key
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey

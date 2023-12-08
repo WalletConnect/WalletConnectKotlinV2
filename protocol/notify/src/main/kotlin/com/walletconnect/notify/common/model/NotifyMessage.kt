@@ -9,4 +9,3 @@ internal data class NotifyMessage(
     val url: String?,
     val type: String,
 )
-

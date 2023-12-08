@@ -1,10 +1,10 @@
-package com.walletconnect.android.echo.network.model
+package com.walletconnect.android.push.network.model
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-data class EchoResponse(
+data class PushResponse(
     @Json(name = "errors")
     val errors: List<Error>?,
     @Json(name = "fields")

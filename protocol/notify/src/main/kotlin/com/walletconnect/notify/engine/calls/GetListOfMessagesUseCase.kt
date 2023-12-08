@@ -9,7 +9,7 @@ import kotlinx.coroutines.supervisorScope
 
 internal class GetListOfMessagesUseCase(
     private val messagesRepository: MessagesRepository,
-): GetListOfMessagesUseCaseInterface {
+) : GetListOfMessagesUseCaseInterface {
 
     override suspend fun getListOfMessages(topic: String): Map<Long, NotifyRecord> = supervisorScope {
         messagesRepository.getMessagesByTopic(topic).map { messageRecord ->
