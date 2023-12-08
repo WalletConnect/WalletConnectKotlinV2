@@ -7,11 +7,11 @@ import com.walletconnect.android.internal.common.storage.metadata.MetadataStorag
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.notify.common.model.NotifyMessage
 import com.walletconnect.notify.common.model.NotifyRecord
-import com.walletconnect.notify.data.storage.MessagesRepository
+import com.walletconnect.notify.data.storage.NotificationsRepository
 import kotlinx.coroutines.supervisorScope
 
 internal class GetListOfNotificationsUseCase(
-    private val messagesRepository: MessagesRepository,
+    private val notificationsRepository: NotificationsRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
 ) : GetListOfNotificationsUseCaseInterface {
 
@@ -19,10 +19,10 @@ internal class GetListOfNotificationsUseCase(
         val dappMetaData = metadataStorageRepository.getByTopicAndType(Topic(topic), AppMetaDataType.PEER)
             ?: throw IllegalStateException("Dapp metadata does not exists for $topic")
 
-        messagesRepository
-            .getMessagesByTopic(topic)
-            .map { messageRecord ->
-                with(messageRecord) {
+        notificationsRepository
+            .getNotificationsByTopic(topic)
+            .map { notifyRecord ->
+                with(notifyRecord) {
                     NotifyRecord(
                         id = id, topic = topic, publishedAt = publishedAt, metadata = dappMetaData,
                         notifyMessage = NotifyMessage(title = notifyMessage.title, body = notifyMessage.body, icon = notifyMessage.icon, url = notifyMessage.url, type = notifyMessage.type),

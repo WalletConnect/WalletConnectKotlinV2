@@ -2,16 +2,16 @@
 
 package com.walletconnect.notify.engine.calls
 
-import com.walletconnect.notify.data.storage.MessagesRepository
+import com.walletconnect.notify.data.storage.NotificationsRepository
 import kotlinx.coroutines.supervisorScope
 
 internal class DeleteNotificationUseCase(
-    private val messagesRepository: MessagesRepository,
+    private val notificationsRepository: NotificationsRepository,
 ) : DeleteNotificationUseCaseInterface {
 
     override suspend fun deleteNotification(requestId: Long, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         try {
-            messagesRepository.deleteMessage(requestId)
+            notificationsRepository.deleteNotification(requestId)
             onSuccess()
         } catch (e: Exception) {
             onFailure(e)

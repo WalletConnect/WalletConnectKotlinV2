@@ -62,14 +62,14 @@ internal fun callModule() = module {
             jsonRpcInteractor = get(),
             metadataStorageRepository = get(),
             subscriptionRepository = get(),
-            messagesRepository = get(),
+            notificationsRepository = get(),
             fetchDidJwtInteractor = get()
         )
     }
 
     single<DeleteNotificationUseCaseInterface> {
         DeleteNotificationUseCase(
-            messagesRepository = get()
+            notificationsRepository = get()
         )
     }
 
@@ -78,7 +78,7 @@ internal fun callModule() = module {
             codec = get(),
             serializer = get(),
             jsonRpcHistory = get(),
-            messagesRepository = get()
+            notificationsRepository = get()
         )
 
         get<MutableMap<String, DecryptMessageUseCaseInterface>>(named(AndroidCommonDITags.DECRYPT_USE_CASES))[Tags.NOTIFY_MESSAGE.id.toString()] = useCase
@@ -126,7 +126,7 @@ internal fun callModule() = module {
             identitiesInteractor = get(),
             keyserverUrl = get(named(AndroidCommonDITags.KEYSERVER_URL)),
             subscriptionRepository = get(),
-            messagesRepository = get(),
+            notificationsRepository = get(),
             jsonRpcInteractor = get()
         )
     }
@@ -146,7 +146,7 @@ internal fun callModule() = module {
 
     single<GetListOfNotificationsUseCaseInterface> {
         GetListOfNotificationsUseCase(
-            messagesRepository = get(),
+            notificationsRepository = get(),
             metadataStorageRepository = get()
         )
     }

@@ -11,27 +11,27 @@ CREATE TABLE Notifications (
     type TEXT NOT NULL
 );
 
-insertMessage:
+insertNotification:
 INSERT OR REPLACE INTO Notifications(request_id, topic, published_at, title, body, icon, url, type)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 
-getMessagesByTopic:
+getNotificationsByTopic:
 SELECT request_id, topic, published_at, title, body, icon, url, type
 FROM Notifications
 WHERE topic = ?;
 
-updateMessageWithPublishedAtByRequestId:
+updateNotificationWithPublishedAtByRequestId:
 UPDATE Notifications
 SET published_at = ?
 WHERE request_id = ?;
 
-doesMessagesExistsByRequestId:
+doesNotificationsExistsByRequestId:
 SELECT EXISTS(SELECT 1 FROM Notifications WHERE request_id = ?);
 
-deleteMessageByRequestId:
+deleteNotificationByRequestId:
 DELETE FROM Notifications
 WHERE request_id = ?;
 
-deleteMessagesByTopic:
+deleteNotificationsByTopic:
 DELETE FROM Notifications
 WHERE topic = ?;
