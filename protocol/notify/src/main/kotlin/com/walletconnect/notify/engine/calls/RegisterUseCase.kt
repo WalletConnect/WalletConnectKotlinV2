@@ -32,7 +32,7 @@ internal class RegisterUseCase(
         onFailure: (Throwable) -> Unit,
     ) = supervisorScope {
         val (cacaoPayload, identityPrivateKey) = cacaoPayloadWithIdentityPrivateKey
-        val accountId = AccountId(Issuer(cacaoPayload.iss).address)
+        val accountId = AccountId(Issuer(cacaoPayload.iss).accountId)
         val identityPublicKey = keyManagementRepository.deriveAndStoreEd25519KeyPair(identityPrivateKey)
 
         //todo ogarnąć walidację

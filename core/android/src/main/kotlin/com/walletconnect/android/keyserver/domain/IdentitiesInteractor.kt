@@ -61,7 +61,7 @@ class IdentitiesInteractor(
 
     suspend fun registerIdentity(identityPublicKey: PublicKey, payload: Cacao.Payload, signature: Cacao.Signature): Result<Unit> =
         registerIdentityUseCase(Cacao(CacaoType.EIP4361.toHeader(), payload, signature)).onSuccess {
-            val accountId = AccountId(Issuer(payload.iss).address)
+            val accountId = AccountId(Issuer(payload.iss).accountId)
             identitiesRepository.insertIdentity(identityPublicKey.keyAsHex, accountId, payload, isOwner = true)
             storeIdentityPublicKey(identityPublicKey, accountId)
         }
