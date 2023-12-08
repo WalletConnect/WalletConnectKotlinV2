@@ -196,6 +196,7 @@ internal fun Auth.Event.AuthRequest.toWallet(): Wallet.Model.AuthRequest = Walle
 
 @JvmSynthetic
 internal fun Auth.Event.VerifyContext.toWallet(): Wallet.Model.VerifyContext = Wallet.Model.VerifyContext(id, origin, this.validation.toWallet(), verifyUrl, isScam)
+
 @JvmSynthetic
 internal fun Auth.Model.VerifyContext.toWallet(): Wallet.Model.VerifyContext = Wallet.Model.VerifyContext(id, origin, this.validation.toWallet(), verifyUrl, isScam)
 
@@ -215,3 +216,40 @@ internal fun Wallet.Model.SessionProposal.toSign(): Sign.Model.SessionProposal =
         relayProtocol,
         relayData
     )
+
+@JvmSynthetic
+internal fun Sign.Model.Message.SessionProposal.toWallet(): Wallet.Model.Message.SessionProposal =
+    Wallet.Model.Message.SessionProposal(
+        id,
+        pairingTopic,
+        name,
+        description,
+        url,
+        icons,
+        redirect,
+        requiredNamespaces.toWalletProposalNamespaces(),
+        optionalNamespaces.toWalletProposalNamespaces(),
+        properties,
+        proposerPublicKey,
+        relayProtocol,
+        relayData
+    )
+
+@JvmSynthetic
+internal fun Sign.Model.Message.SessionRequest.toWallet(): Wallet.Model.Message.SessionRequest =
+    Wallet.Model.Message.SessionRequest(
+        topic,
+        chainId,
+        peerMetaData,
+        Wallet.Model.Message.SessionRequest.JSONRPCRequest(request.id, request.method, request.params)
+    )
+
+@JvmSynthetic
+internal fun Auth.Model.Message.AuthRequest.toWallet(): Wallet.Model.Message.AuthRequest = with(payloadParams) {
+    Wallet.Model.Message.AuthRequest(
+        id,
+        pairingTopic,
+        metadata,
+        Wallet.Model.Message.AuthRequest.PayloadParams(type, chainId, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
+    )
+}

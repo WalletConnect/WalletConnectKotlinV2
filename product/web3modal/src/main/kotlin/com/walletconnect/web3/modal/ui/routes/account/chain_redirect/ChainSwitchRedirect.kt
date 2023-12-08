@@ -32,32 +32,28 @@ import com.walletconnect.web3.modal.ui.components.internal.commons.network.Hexag
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 import com.walletconnect.web3.modal.ui.previews.testChains
-import com.walletconnect.web3.modal.ui.routes.account.AccountState
+import com.walletconnect.web3.modal.ui.routes.account.AccountViewModel
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 import com.walletconnect.web3.modal.utils.getImageData
 import kotlinx.coroutines.launch
 
 @Composable
 internal fun ChainSwitchRedirectRoute(
-    accountState: AccountState,
+    accountViewModel: AccountViewModel,
     chain: Modal.Model.Chain,
 ) {
     val uriHandler = LocalUriHandler.current
     val scope = rememberCoroutineScope()
-    val onError: (String?) -> Unit = {
-        accountState.showError(it ?: "Something went wrong")
-    }
     var chainSwitchState by remember { mutableStateOf<ChainRedirectState>(ChainRedirectState.Loading) }
 
     val switchChain = suspend {
-        accountState.switchChain(
+        accountViewModel.switchChain(
             to = chain,
             openConnectedWallet = { uri ->
                 uriHandler.openUri(uri) {
                     chainSwitchState = ChainRedirectState.Declined
                 }
-            },
-            onError = onError
+            }
         )
     }
 
@@ -68,7 +64,7 @@ internal fun ChainSwitchRedirectRoute(
     LaunchedEffect(Unit) {
         Web3ModalDelegate.wcEventModels.collect {
             when (it) {
-                is Modal.Model.UpdatedSession -> accountState.updatedSessionAfterChainSwitch(chain, it)
+                is Modal.Model.UpdatedSession -> accountViewModel.updatedSessionAfterChainSwitch(chain, it)
                 is Modal.Model.SessionRequestResponse -> if (it.result is Modal.Model.JsonRpcResponse.JsonRpcError) {
                     chainSwitchState = ChainRedirectState.Declined
                 }

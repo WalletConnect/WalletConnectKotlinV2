@@ -1,7 +1,6 @@
 package com.walletconnect.android.internal.common.explorer.data.model
 
 import android.net.Uri
-import com.walletconnect.android.internal.common.modal.data.model.Wallet
 
 @Deprecated("Replaced with Web3Modal API")
 data class Wallet(

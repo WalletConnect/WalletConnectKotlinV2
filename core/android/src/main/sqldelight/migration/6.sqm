@@ -1,0 +1,8 @@
+-- migration from 6.db to 7.db
+
+CREATE TABLE PushMessage (
+	id TEXT PRIMARY KEY NOT NULL,
+	topic TEXT NOT NULL,
+  	blob TEXT NOT NULL,
+  	tag INTEGER NOT NULL
+);

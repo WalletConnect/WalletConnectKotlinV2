@@ -12,6 +12,10 @@ runs:
         architecture: x86_64
         cache: 'gradle'
 
+    - name: Fetch Properties File
+      shell: bash
+      run: echo $SECRETS_PROPERTIES | base64 --decode > secrets.properties
+
     - name: Relay integration tests
       # TODO: Add SDK_VERSION env var
       shell: bash

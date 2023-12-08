@@ -2,18 +2,16 @@ package com.walletconnect.android
 
 import android.app.Application
 import com.walletconnect.android.di.coreStorageModule
-import com.walletconnect.android.echo.EchoClient
-import com.walletconnect.android.echo.EchoInterface
 import com.walletconnect.android.internal.common.di.coreCommonModule
 import com.walletconnect.android.internal.common.di.coreCryptoModule
 import com.walletconnect.android.internal.common.di.coreJsonRpcModule
 import com.walletconnect.android.internal.common.di.corePairingModule
-import com.walletconnect.android.internal.common.di.echoModule
 import com.walletconnect.android.internal.common.di.explorerModule
 import com.walletconnect.android.internal.common.di.keyServerModule
+import com.walletconnect.android.internal.common.di.pushModule
+import com.walletconnect.android.internal.common.di.web3ModalModule
 import com.walletconnect.android.internal.common.explorer.ExplorerInterface
 import com.walletconnect.android.internal.common.explorer.ExplorerProtocol
-import com.walletconnect.android.internal.common.di.web3ModalModule
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.android.internal.common.model.Redirect
@@ -22,6 +20,8 @@ import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.client.PairingProtocol
 import com.walletconnect.android.pairing.handler.PairingController
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
+import com.walletconnect.android.push.PushInterface
+import com.walletconnect.android.push.client.PushClient
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.relay.NetworkClientTimeout
 import com.walletconnect.android.relay.RelayClient
@@ -38,7 +38,9 @@ class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInter
     override val Pairing: PairingInterface = PairingProtocol(koinApp)
     override val PairingController: PairingControllerInterface = PairingController(koinApp)
     override var Relay = RelayClient(koinApp)
-    override val Echo: EchoInterface = EchoClient
+    @Deprecated(message = "Replaced with Push")
+    override val Echo: PushInterface = PushClient
+    override val Push: PushInterface = PushClient
     override val Verify: VerifyInterface = VerifyClient(koinApp)
     override val Explorer: ExplorerInterface = ExplorerProtocol(koinApp)
 
@@ -71,10 +73,11 @@ class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInter
                 coreCryptoModule(),
                 module { single { ProjectId(relayServerUrl.projectId()) } },
                 coreStorageModule(),
-                echoModule(),
+                pushModule(),
                 module { single { relay ?: Relay } },
                 module { single { with(metaData) { AppMetaData(name = name, description = description, url = url, icons = icons, redirect = Redirect(redirect)) } } },
                 module { single { Echo } },
+                module { single { Push } },
                 module { single { Verify } },
                 coreJsonRpcModule(),
                 corePairingModule(Pairing, PairingController),

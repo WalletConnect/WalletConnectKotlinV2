@@ -5,6 +5,7 @@ plugins {
     id("jacoco-report")
     alias(libs.plugins.sqlDelight)
     id("com.google.devtools.ksp") version kspVersion
+    id("org.jetbrains.kotlinx.kover")
 }
 
 project.apply {
@@ -82,6 +83,32 @@ sqldelight {
     }
 }
 
+koverReport {
+    androidReports("release") {
+        filters {
+            excludes {
+                classes(
+                    "*Fragment",
+                    "*Fragment\$*",
+                    "*Activity",
+                    "*Activity\$*",
+                    "*.databinding.*",
+                    "*.BuildConfig",
+
+                    // excludes debug classes
+                    "*.DebugUtil"
+                )
+            }
+        }
+//        binary {
+//
+//        }
+//        xml {
+//            this.setReportFile(File(rootDir, ".qodana/code-coverage/coverage.xml"))
+//        }
+    }
+}
+
 dependencies {
     debugApi(project(":foundation"))
     releaseApi("com.walletconnect:foundation:$FOUNDATION_VERSION")
@@ -99,6 +126,7 @@ dependencies {
     kethereum()
     retrofit()
     beagleOkHttp()
+    firebaseMessaging()
 
     jUnit4()
     androidXTest()
