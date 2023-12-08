@@ -1,6 +1,5 @@
--- todo: rename to notifications
 
-CREATE TABLE Messages (
+CREATE TABLE Notifications (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     request_id INTEGER UNIQUE NOT NULL,
     topic TEXT NOT NULL,
@@ -13,26 +12,26 @@ CREATE TABLE Messages (
 );
 
 insertMessage:
-INSERT OR REPLACE INTO Messages(request_id, topic, published_at, title, body, icon, url, type)
+INSERT OR REPLACE INTO Notifications(request_id, topic, published_at, title, body, icon, url, type)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 
 getMessagesByTopic:
 SELECT request_id, topic, published_at, title, body, icon, url, type
-FROM Messages
+FROM Notifications
 WHERE topic = ?;
 
 updateMessageWithPublishedAtByRequestId:
-UPDATE Messages
+UPDATE Notifications
 SET published_at = ?
 WHERE request_id = ?;
 
 doesMessagesExistsByRequestId:
-SELECT EXISTS(SELECT 1 FROM Messages WHERE request_id = ?);
+SELECT EXISTS(SELECT 1 FROM Notifications WHERE request_id = ?);
 
 deleteMessageByRequestId:
-DELETE FROM Messages
+DELETE FROM Notifications
 WHERE request_id = ?;
 
 deleteMessagesByTopic:
-DELETE FROM Messages
+DELETE FROM Notifications
 WHERE topic = ?;

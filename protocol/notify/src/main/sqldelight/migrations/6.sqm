@@ -1,0 +1,3 @@
+-- Renaming table
+
+ALTER TABLE Messages RENAME TO Notifications;
