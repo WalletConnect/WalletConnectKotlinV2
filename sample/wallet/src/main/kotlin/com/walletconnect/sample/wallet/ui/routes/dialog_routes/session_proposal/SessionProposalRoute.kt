@@ -93,12 +93,14 @@ fun SessionProposalRoute(navController: NavHostController, sessionProposalViewMo
 fun ScammerScreen(
     sessionProposalUI: SessionProposalUI,
     navController: NavHostController,
-    openDialog: () -> Unit
+    openDialog: () -> Unit,
 ) {
     SemiTransparentDialog(Color(0xFF000000)) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier
-            .background(mismatch_color.copy(alpha = .15f))
-            .fillMaxWidth()) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier
+                .background(mismatch_color.copy(alpha = .15f))
+                .fillMaxWidth()
+        ) {
             Spacer(modifier = Modifier.height(32.dp))
             Image(modifier = Modifier.size(72.dp), painter = painterResource(R.drawable.ic_scam), contentDescription = null)
             Text(text = "Website flagged", style = TextStyle(color = Color(0xFFFFFFFF), fontSize = 24.sp, fontWeight = FontWeight.Bold))
@@ -136,7 +138,7 @@ private fun SessionProposalDialog(
     coroutineScope: CoroutineScope,
     sessionProposalViewModel: SessionProposalViewModel,
     context: Context,
-    navController: NavHostController
+    navController: NavHostController,
 ) {
     SemiTransparentDialog {
         Spacer(modifier = Modifier.height(24.dp))
@@ -194,9 +196,11 @@ fun AccountAndNetwork(sessionProposalUI: SessionProposalUI) {
     val network = Chains.values().find { chain -> chain.chainId == chains.first() }
     val account = walletMetaData.namespaces.values.first().accounts.find { account -> account.contains(chains.first()) }?.split(":")?.last()
 
-    Row(modifier = Modifier
-        .padding(start = 20.dp, end = 20.dp)
-        .fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+    Row(
+        modifier = Modifier
+            .padding(start = 20.dp, end = 20.dp)
+            .fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
+    ) {
         Column(horizontalAlignment = Alignment.Start) {
             Text("Account", style = TextStyle(color = Color(0xFFC9C9C9), fontSize = 12.sp, fontWeight = FontWeight.SemiBold))
             Row(verticalAlignment = Alignment.Bottom) {
@@ -204,7 +208,7 @@ fun AccountAndNetwork(sessionProposalUI: SessionProposalUI) {
                     modifier = Modifier
                         .size(24.dp)
                         .padding(end = 4.dp),
-                    painter = painterResource(id = R.mipmap.ic_launcher_round),
+                    painter = painterResource(id = R.drawable.wc_icon_round),
                     contentDescription = null
                 )
                 Text(account?.toVisibleAddress() ?: "", style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.SemiBold))
@@ -218,7 +222,7 @@ fun AccountAndNetwork(sessionProposalUI: SessionProposalUI) {
                     modifier = Modifier
                         .size(24.dp)
                         .padding(end = 4.dp),
-                    painter = painterResource(id = network?.icon ?: R.mipmap.ic_launcher_round),
+                    painter = painterResource(id = network?.icon ?: R.drawable.wc_icon_round),
                     contentDescription = null
                 )
                 Text(network?.chainName ?: "", style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.SemiBold))
@@ -296,9 +300,11 @@ private fun RequestedPermissions() {
 @Composable
 private fun PermissionRow(title: String, icon: Int = R.drawable.ic_check, color: Color = Color(0xFF000000)) {
     Row(modifier = Modifier.padding(start = 12.dp, top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-        Image(modifier = Modifier
-            .size(18.dp)
-            .padding(end = 4.dp), imageVector = ImageVector.vectorResource(id = icon), contentDescription = "check")
+        Image(
+            modifier = Modifier
+                .size(18.dp)
+                .padding(end = 4.dp), imageVector = ImageVector.vectorResource(id = icon), contentDescription = "check"
+        )
         Text(title, style = TextStyle(fontSize = 14.sp, color = color))
     }
 }
