@@ -2,7 +2,6 @@
 
 package com.walletconnect.notify.engine
 
-import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
@@ -10,8 +9,8 @@ import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
+import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.notify.common.JsonRpcMethod
-import com.walletconnect.notify.engine.calls.DecryptMessageUseCaseInterface
 import com.walletconnect.notify.engine.calls.DeleteNotificationUseCaseInterface
 import com.walletconnect.notify.engine.calls.DeleteSubscriptionUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetListOfActiveSubscriptionsUseCaseInterface
@@ -66,9 +65,9 @@ internal class NotifyEngine(
     private val onNotifyUpdateResponseUseCase: OnNotifyUpdateResponseUseCase,
     private val onWatchSubscriptionsResponseUseCase: OnWatchSubscriptionsResponseUseCase,
     private val watchSubscriptionsForEveryRegisteredAccountUseCase: WatchSubscriptionsForEveryRegisteredAccountUseCase,
-    private val isRegisteredUseCase: IsRegisteredUseCase,
-    private val prepareRegistrationUseCase: PrepareRegistrationUseCase,
-    private val registerUseCase: RegisterUseCase,
+    private val isRegisteredUseCase: IsRegisteredUseCaseInterface,
+    private val prepareRegistrationUseCase: PrepareRegistrationUseCaseInterface,
+    private val registerUseCase: RegisterUseCaseInterface,
 ) : SubscribeToDappUseCaseInterface by subscribeToDappUseCase,
     UpdateSubscriptionRequestUseCaseInterface by updateUseCase,
     DeleteSubscriptionUseCaseInterface by deleteSubscriptionUseCase,

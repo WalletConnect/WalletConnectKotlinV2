@@ -35,7 +35,7 @@ internal class RegisterUseCase(
         val accountId = AccountId(Issuer(cacaoPayload.iss).address)
         val identityPublicKey = keyManagementRepository.deriveAndStoreEd25519KeyPair(identityPrivateKey)
 
-        // ogarnąć walidację
+        //todo ogarnąć walidację
         if (encodeEd25519DidKey(identityPublicKey.keyAsBytes) != cacaoPayload.aud) return@supervisorScope onFailure(IllegalArgumentException("Invalid aud"))
         runCatching { CacaoVerifier(projectId).verify(Cacao(CacaoType.EIP4361.toHeader(), cacaoPayload, signature)) }.getOrElse { error -> return@supervisorScope onFailure(error) }
 

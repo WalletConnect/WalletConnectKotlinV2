@@ -50,15 +50,10 @@ class IdentitiesInteractor(
         getAlreadyRegisteredValidIdentity(accountId, statement, domain, resources)
             .recoverCatching { exception ->
                 when (exception) {
-                    is MissingKeyException -> generatedIdentity(accountId, statement, domain, resources, onSign).getOrThrow()
-                    is AccountHasNoCacaoPayloadStored, is AccountHasDifferentStatementStored -> handleIdentitiesOutdatedStatements(
-                        accountId,
-                        statement,
-                        domain,
-                        resources,
-                        keyserverUrl,
-                        onSign
-                    ).getOrThrow()
+                    is MissingKeyException -> generateAndStoreNewIdentity(accountId, statement, domain, resources, onSign).getOrThrow()
+
+                    is AccountHasNoCacaoPayloadStored, is AccountHasDifferentStatementStored ->
+                        handleIdentitiesOutdatedStatements(accountId, statement, domain, resources, keyserverUrl, onSign).getOrThrow()
 
                     else -> throw exception
                 }
@@ -83,7 +78,7 @@ class IdentitiesInteractor(
         }
     }
 
-    private suspend fun generatedIdentity(accountId: AccountId, statement: String, domain: String, resources: List<String>, onSign: (String) -> Cacao.Signature?): Result<PublicKey> {
+    private suspend fun generateAndStoreNewIdentity(accountId: AccountId, statement: String, domain: String, resources: List<String>, onSign: (String) -> Cacao.Signature?): Result<PublicKey> {
         val identityPublicKey = generateAndStoreIdentityKeyPair()
         return registerIdentityKeyInKeyserver(accountId, identityPublicKey, statement, domain, resources, onSign)
             .map { identityPublicKey }

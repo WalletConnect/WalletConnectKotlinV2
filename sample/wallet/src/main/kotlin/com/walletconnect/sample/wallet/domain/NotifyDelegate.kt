@@ -32,6 +32,13 @@ object NotifyDelegate : NotifyClient.Delegate {
         }
     }
 
+    override fun onNotifyNotification(notifyNotification: Notify.Event.Notification) {
+        scope.launch {
+            Timber.d("NotifyDelegate.onNotifyNotification - $notifyNotification")
+            _notifyEvents.emit(notifyNotification)
+        }
+    }
+
     override fun onNotifyDelete(notifyDelete: Notify.Event.Delete) {
 
     }

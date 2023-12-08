@@ -12,6 +12,7 @@ import com.walletconnect.notify.common.model.Subscription
 import com.walletconnect.notify.common.model.SubscriptionChanged
 import com.walletconnect.notify.common.model.UpdateSubscription
 import com.walletconnect.notify.common.model.toClient
+import com.walletconnect.notify.common.model.toCommon
 import com.walletconnect.notify.common.model.toEvent
 import com.walletconnect.notify.common.model.toModel
 import com.walletconnect.notify.common.model.toWalletClient
@@ -186,23 +187,18 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
                 onSuccess = { notifyMessage ->
                     (notifyMessage as? Core.Model.Message.Notify)?.run { onSuccess(notifyMessage.toWalletClient(params.topic)) }
                 },
-                onFailure = { error ->
-                    onError(Notify.Model.Error(error))
-                }
+                onFailure = { error -> onError(Notify.Model.Error(error)) }
             )
         }
     }
 
     override fun decryptNotification(params: Notify.Params.DecryptNotification, onSuccess: (Notify.Model.Notification.Decrypted) -> Unit, onError: (Notify.Model.Error) -> Unit) {
         scope.launch {
-            //todo: rename to decryptNotification after merge with develop
-            notifyEngine.decryptMessage(params.topic, params.encryptedMessage,
-                onSuccess = { notifyMessage ->
-                    onSuccess(notifyMessage.toClient(params.topic))
+            notifyEngine.decryptNotification(params.topic, params.encryptedMessage,
+                onSuccess = { notification ->
+                    (notification as? Core.Model.Message.Notify)?.run { onSuccess(notification.toClient(params.topic)) }
                 },
-                onFailure = { error ->
-                    onError(Notify.Model.Error(error))
-                }
+                onFailure = { error -> onError(Notify.Model.Error(error)) }
             )
         }
     }
@@ -218,9 +214,7 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
                 params.domain,
                 params.onSign.toWalletClient(),
                 onSuccess = onSuccess,
-                onFailure = { error ->
-                    onError(Notify.Model.Error(error))
-                }
+                onFailure = { error -> onError(Notify.Model.Error(error)) }
             )
         }
     }
@@ -229,11 +223,10 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
         checkEngineInitialization()
 
         scope.launch {
-            notifyEngine.prepareRegistration(
-                account = params.account,
-                domain = params.domain,
-                allApps = params.allApps,
-                onSuccess = { cacaoPayloadWithIdentityPrivateKey, message -> onSuccess(cacaoPayloadWithIdentityPrivateKey.toClient(), message) },
+            notifyEngine.register(
+                cacaoPayloadWithIdentityPrivateKey = params.cacaoPayloadWithIdentityPrivateKey.toCommon(),
+                signature = params.signature.toCommon(),
+                onSuccess = onSuccess,
                 onFailure = { error -> onError(Notify.Model.Error(error)) },
             )
         }
@@ -268,17 +261,13 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
             notifyEngine.unregister(
                 params.account,
                 onSuccess = onSuccess,
-                onFailure = { error ->
-                    onError(Notify.Model.Error(error))
-                }
+                onFailure = { error -> onError(Notify.Model.Error(error)) }
             )
         }
     }
 
     @Throws(IllegalStateException::class)
     private fun checkEngineInitialization() {
-        check(::notifyEngine.isInitialized) {
-            "WalletClient needs to be initialized first using the initialize function"
-        }
+        check(::notifyEngine.isInitialized) { "WalletClient needs to be initialized first using the initialize function" }
     }
 }

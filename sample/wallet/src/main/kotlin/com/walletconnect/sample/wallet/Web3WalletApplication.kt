@@ -95,19 +95,7 @@ class Web3WalletApplication : Application() {
             Log.e(tag(this), error.throwable.stackTraceToString())
         }
 
-        NotifyClient.register(
-            params = Notify.Params.Registration(
-                with(EthAccountDelegate) { account.toEthAddress() },
-                domain = BuildConfig.APPLICATION_ID,
-                onSign = { message -> CacaoSigner.sign(message, EthAccountDelegate.privateKey.hexToBytes(), SignatureType.EIP191) }
-            ),
-            onSuccess = {
-                Log.e(tag(this), "Register Success")
-            },
-            onError = {
-                Log.e(tag(this), it.throwable.stackTraceToString())
-            }
-        )
+        registerAccount()
 
         initializeBeagle()
 
@@ -189,23 +177,7 @@ class Web3WalletApplication : Application() {
                             EthAccountDelegate.privateKey = text
 
 
-                            NotifyClient.register(
-                                params = Notify.Params.Registration(
-                                    with(EthAccountDelegate) { account.toEthAddress() },
-                                    isLimited = false,
-                                    domain = BuildConfig.APPLICATION_ID,
-                                    onSign = { message -> CacaoSigner.sign(message, EthAccountDelegate.privateKey.hexToBytes(), SignatureType.EIP191) }
-                                ),
-                                onSuccess = {
-                                    Log.e(tag(this), "Register Success")
-                                    CoroutineScope(Dispatchers.Main).launch {
-                                        initializeBeagle()
-                                    }
-                                },
-                                onError = {
-                                    Log.e(tag(this), it.throwable.stackTraceToString())
-                                }
-                            )
+                            registerAccount()
                         },
                         onError = {
                             Log.e(tag(this), it.throwable.stackTraceToString())
@@ -222,8 +194,8 @@ class Web3WalletApplication : Application() {
         val scope = CoroutineScope(Dispatchers.Default)
 
         val notifyEventsJob = NotifyDelegate.notifyEvents
-            .filterIsInstance<Notify.Event.Message>()
-            .onEach { message -> NotificationHandler.addNotification(message.message.message) }
+            .filterIsInstance<Notify.Event.Notification>()
+            .onEach { notification -> NotificationHandler.addNotification(notification.notification.message) }
             .launchIn(scope)
 
 
@@ -241,6 +213,36 @@ class Web3WalletApplication : Application() {
 
     private fun onScopeCancelled(error: Throwable?, job: String) {
         wcKoinApp.koin.get<Logger>(named(AndroidCommonDITags.LOGGER)).error("onScopeCancelled($job): $error")
+    }
+
+    private fun registerAccount() {
+        NotifyClient.prepareRegistration(
+            params = Notify.Params.PrepareRegistration(
+                account = with(EthAccountDelegate) { account.toEthAddress() },
+                domain = BuildConfig.APPLICATION_ID,
+                allApps = true,
+            ),
+            onSuccess = { cacaoPayloadWithIdentityPrivateKey, message ->
+                Log.e(tag(this), "PrepareRegistration Success")
+
+                val signature = CacaoSigner.sign(message, EthAccountDelegate.privateKey.hexToBytes(), SignatureType.EIP191)
+
+                NotifyClient.register(
+                    params = Notify.Params.Register(
+                        cacaoPayloadWithIdentityPrivateKey = cacaoPayloadWithIdentityPrivateKey,
+                        signature = signature,
+                    ),
+                    onSuccess = {
+                        Log.e(tag(this), "Register Success")
+                    },
+                    onError = {
+                        Log.e(tag(this), it.throwable.stackTraceToString())
+                    }
+                )
+
+            },
+            onError = { Log.e(tag(this), it.throwable.stackTraceToString()) }
+        )
     }
 
 }

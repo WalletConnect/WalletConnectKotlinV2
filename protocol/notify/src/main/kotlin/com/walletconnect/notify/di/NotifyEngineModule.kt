@@ -125,6 +125,7 @@ internal fun engineModule() = module {
             onSubscriptionsChangedUseCase = get(),
             isRegisteredUseCase = get(),
             prepareRegistrationUseCase = get(),
+            registerUseCase = get(),
         )
     }
 }

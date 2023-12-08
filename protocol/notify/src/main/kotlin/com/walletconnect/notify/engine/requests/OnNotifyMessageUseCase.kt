@@ -75,8 +75,9 @@ internal class OnNotifyMessageUseCase(
                         body = messageJwt.message.body,
                         icon = messageJwt.message.icon,
                         url = messageJwt.message.url,
-                        type = messageJwt.message.type
-                    )
+                        type = messageJwt.message.type,
+                    ),
+                    metadata = metadata
                 )
                 _events.emit(notifyRecord)
             }

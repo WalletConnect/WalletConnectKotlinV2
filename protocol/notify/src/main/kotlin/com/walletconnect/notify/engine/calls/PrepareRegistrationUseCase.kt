@@ -19,12 +19,12 @@ internal class PrepareRegistrationUseCase(
         val identityPublicKey = identitiesInteractor.generateAndStoreIdentityKeyPair()
         val (_, identityPrivateKey) = keyManagementRepository.getKeyPair(identityPublicKey)
 
-        identitiesInteractor.generatePayload(AccountId(account), identityPublicKey, Statement.fromBoolean(allApps).content, domain, listOf(identityServerUrl)).fold(
-            onFailure = { error -> onFailure(error) },
-            onSuccess = { cacaoPayload -> onSuccess(CacaoPayloadWithIdentityPrivateKey(cacaoPayload, identityPrivateKey), cacaoPayload.toCAIP122Message()) }
-        )
-
-        keyManagementRepository.removeKeys(identityPublicKey.keyAsHex)
+        identitiesInteractor.generatePayload(AccountId(account), identityPublicKey, Statement.fromBoolean(allApps).content, domain, listOf(identityServerUrl))
+            .also { keyManagementRepository.removeKeys(identityPublicKey.keyAsHex) }
+            .fold(
+                onFailure = { error -> onFailure(error) },
+                onSuccess = { cacaoPayload -> onSuccess(CacaoPayloadWithIdentityPrivateKey(cacaoPayload, identityPrivateKey), cacaoPayload.toCAIP122Message()) }
+            )
     }
 }
 

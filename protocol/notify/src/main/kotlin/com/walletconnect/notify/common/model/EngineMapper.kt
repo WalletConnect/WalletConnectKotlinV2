@@ -16,6 +16,12 @@ internal fun Core.Model.Message.Notify.toWalletClient(topic: String): Notify.Mod
 
 
 @JvmSynthetic
+internal fun Core.Model.Message.Notify.toClient(topic: String): Notify.Model.Notification.Decrypted {
+    return Notify.Model.Notification.Decrypted(title, body, icon, url, type, topic)
+}
+
+
+@JvmSynthetic
 internal fun NotifyMessage.toClient(topic: String): Notify.Model.Notification.Decrypted {
     return Notify.Model.Notification.Decrypted(title, body, icon, url, type, topic)
 }
@@ -69,6 +75,13 @@ internal fun CacaoPayloadWithIdentityPrivateKey.toClient(): Notify.Model.CacaoPa
     return Notify.Model.CacaoPayloadWithIdentityPrivateKey(payload.toClient(), key)
 }
 
+
+@JvmSynthetic
+internal fun Notify.Model.CacaoPayloadWithIdentityPrivateKey.toCommon(): CacaoPayloadWithIdentityPrivateKey {
+    return CacaoPayloadWithIdentityPrivateKey(payload.toCommon(), key)
+}
+
+
 @JvmSynthetic
 internal fun Cacao.Payload.toClient(): Notify.Model.Cacao.Payload {
     return Notify.Model.Cacao.Payload(iss, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
@@ -76,11 +89,21 @@ internal fun Cacao.Payload.toClient(): Notify.Model.Cacao.Payload {
 
 
 @JvmSynthetic
+internal fun Notify.Model.Cacao.Payload.toCommon(): Cacao.Payload {
+    return Cacao.Payload(iss, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
+}
+
+@JvmSynthetic
 internal fun ((String) -> Notify.Model.Cacao.Signature?).toWalletClient(): (String) -> Cacao.Signature? = { message ->
     this(message)?.let { publicCacaoSignature: Notify.Model.Cacao.Signature ->
         Cacao.Signature(publicCacaoSignature.t, publicCacaoSignature.s, publicCacaoSignature.m)
     }
 }
+
+
+@JvmSynthetic
+internal fun Notify.Model.Cacao.Signature.toCommon(): Cacao.Signature = Cacao.Signature(t, s, m)
+
 
 @JvmSynthetic
 internal fun DeleteSubscription.toWalletClient(): Notify.Event.Delete {
