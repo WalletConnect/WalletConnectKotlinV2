@@ -1,6 +1,8 @@
 package com.walletconnect.web3.modal.client
 
-import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import androidx.activity.result.ActivityResultLauncher
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.sign.client.Sign
@@ -80,6 +82,14 @@ object Web3Modal {
             context = wcKoinApp.koin.get(),
             appMetaData = wcKoinApp.koin.get()
         )
+    }
+
+    fun setLauncher(launcher: ActivityResultLauncher<Intent>) {
+        coinbaseClient.setLauncher(launcher)
+    }
+
+    fun handleResult(uri: Uri) {
+        coinbaseClient.handleResponse(uri)
     }
 
     private fun onInitializedClient(
@@ -179,6 +189,13 @@ object Web3Modal {
             onSuccess,
             { onError(it.toModal()) }
         )
+    }
+
+    internal fun connectCoinbase(
+        onSuccess: (String) -> Unit,
+        onError: (Throwable) -> Unit
+    ) {
+        coinbaseClient.connect(onSuccess = onSuccess, onError = onError)
     }
 
     fun request(request: Modal.Params.Request, onSuccess: (Modal.Model.SentRequest) -> Unit = {}, onError: (Modal.Model.Error) -> Unit) {

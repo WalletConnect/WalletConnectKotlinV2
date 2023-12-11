@@ -62,12 +62,26 @@ object Modal {
             ) : Namespace()
         }
 
-        data class ApprovedSession(
-            val topic: String,
-            val metaData: Core.Model.AppMetaData?,
-            val namespaces: Map<String, Namespace.Session>,
-            val accounts: List<String>,
-        ) : Model()
+        sealed class ApprovedSession : Model() {
+            data class WalletConnectSession(
+                val topic: String,
+                val metaData: Core.Model.AppMetaData?,
+                val namespaces: Map<String, Namespace.Session>,
+                val accounts: List<String>,
+            ): ApprovedSession()
+
+            data class CoinbaseSession(
+                val chain: String,
+                val networkId: String,
+                val address: String
+            )
+        }
+//        data class ApprovedSession(
+//            val topic: String,
+//            val metaData: Core.Model.AppMetaData?,
+//            val namespaces: Map<String, Namespace.Session>,
+//            val accounts: List<String>,
+//        ) : Model()
 
         data class RejectedSession(val topic: String, val reason: String) : Model()
 
@@ -163,5 +177,10 @@ object Modal {
             val symbol: String,
             val decimal: Int
         )
+    }
+
+    enum class ConnectorType {
+        WALLET_CONNECT,
+        COINBASE
     }
 }

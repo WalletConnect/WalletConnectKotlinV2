@@ -6,6 +6,8 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -74,12 +76,20 @@ import com.walletconnect.sample.modal.ui.predefinedRedDarkTheme
 import com.walletconnect.sample.modal.ui.predefinedRedLightTheme
 import com.walletconnect.sample.modal.ui.theme.WalletConnectTheme
 import com.walletconnect.sample.modal.view.ViewActivity
+import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.ui.Web3ModalTheme
 import com.walletconnect.web3.modal.ui.web3ModalGraph
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        Web3Modal.setLauncher(
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+                result -> result.data?.data?.let { Web3Modal.handleResult(it) }
+            }
+        )
+
         setContent {
             WalletConnectTheme {
                 val scaffoldState: ScaffoldState = rememberScaffoldState()

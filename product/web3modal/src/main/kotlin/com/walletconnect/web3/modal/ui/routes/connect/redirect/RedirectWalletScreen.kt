@@ -62,6 +62,7 @@ import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 import com.walletconnect.web3.modal.ui.previews.testWallets
 import com.walletconnect.web3.modal.ui.routes.connect.ConnectViewModel
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
+import timber.log.Timber
 
 @Composable
 internal fun RedirectWalletRoute(
@@ -84,12 +85,18 @@ internal fun RedirectWalletRoute(
     }
 
     LaunchedEffect(Unit) {
-        connectState.connect { uri ->
-            uriHandler.openMobileLink(
-                uri = uri,
-                mobileLink = wallet.mobileLink,
-                onError = { redirectState = RedirectState.NotDetected }
-            )
+        if (wallet.name == "Coinbase Wallet") {
+            connectState.connectInjectWallet {
+                Timber.d(it)
+            }
+        } else {
+            connectState.connect { uri ->
+                uriHandler.openMobileLink(
+                    uri = uri,
+                    mobileLink = wallet.mobileLink,
+                    onError = { redirectState = RedirectState.NotDetected }
+                )
+            }
         }
     }
 

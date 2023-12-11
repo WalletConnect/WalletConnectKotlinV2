@@ -15,6 +15,12 @@ internal object Web3ModalDelegate : Web3Modal.ModalDelegate {
     private val _wcEventModels: MutableSharedFlow<Modal.Model?> = MutableSharedFlow()
     val wcEventModels: SharedFlow<Modal.Model?> =  _wcEventModels.asSharedFlow()
 
+    fun emit(event: Modal.Model?) {
+        scope.launch {
+            _wcEventModels.emit(event)
+        }
+    }
+
     override fun onSessionApproved(approvedSession: Modal.Model.ApprovedSession) {
         scope.launch {
             _wcEventModels.emit(approvedSession)

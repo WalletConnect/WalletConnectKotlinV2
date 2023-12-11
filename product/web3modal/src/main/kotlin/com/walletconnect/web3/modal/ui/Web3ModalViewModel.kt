@@ -60,4 +60,8 @@ internal class Web3ModalViewModel: ViewModel() {
         saveSessionTopicUseCase(event.topic)
         saveChainSelectionUseCase(Web3Modal.chains.getSelectedChain(getSelectedChainUseCase()).id)
     }
+
+    internal fun saveCoinbaseSession(topic: String) = viewModelScope.launch {
+        saveSessionTopicUseCase(topic)
+    }
 }

@@ -113,6 +113,18 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl() {
         }
     }
 
+    fun connectInjectWallet(
+        onSuccess: (String) -> Unit
+    ) {
+        Web3Modal.connectCoinbase(
+            onSuccess = onSuccess,
+            onError = {
+                showError(it.localizedMessage)
+                logger.error(it)
+            }
+        )
+    }
+
     fun fetchMoreWallets() {
         viewModelScope.launch { walletsDataStore.fetchMoreWallets() }
     }
