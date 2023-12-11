@@ -9,9 +9,11 @@ import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Validation
+import com.walletconnect.android.internal.common.signing.cacao.CacaoType
 import com.walletconnect.android.utils.toClient
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.common.model.PendingRequest
+import com.walletconnect.sign.common.model.vo.clientsync.common.PayloadParams
 import com.walletconnect.sign.engine.model.EngineDO
 
 @JvmSynthetic
@@ -86,7 +88,7 @@ internal fun EngineDO.SessionRequest.toClientSessionRequest(): Sign.Model.Sessio
     )
 
 @JvmSynthetic
-internal fun Sign.Params.Authenticate.toEngine(): EngineDO.PayloadParams = EngineDO.PayloadParams(chains, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
+internal fun Sign.Params.Authenticate.toPayloadParams(): PayloadParams = PayloadParams(CacaoType.EIP4361.header, chains, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
 
 @JvmSynthetic
 internal fun Sign.Model.JsonRpcResponse.JsonRpcResult.toRpcResult(): JsonRpcResponse.JsonRpcResult = JsonRpcResponse.JsonRpcResult(id, result = result)
