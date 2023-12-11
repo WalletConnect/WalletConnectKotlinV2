@@ -5,6 +5,8 @@ import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.ApproveSessionUseCase
 import com.walletconnect.sign.engine.use_case.calls.ApproveSessionUseCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.AuthenticateSessionUseCase
+import com.walletconnect.sign.engine.use_case.calls.AuthenticateSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.DecryptSignMessageUseCase
 import com.walletconnect.sign.engine.use_case.calls.DisconnectSessionUseCase
 import com.walletconnect.sign.engine.use_case.calls.DisconnectSessionUseCaseInterface
@@ -52,6 +54,15 @@ internal fun callsModule() = module {
             crypto = get(),
             selfAppMetaData = get(),
             proposalStorageRepository = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER))
+        )
+    }
+
+    single<AuthenticateSessionUseCaseInterface> {
+        AuthenticateSessionUseCase(
+            jsonRpcInteractor = get(),
+            crypto = get(),
+            selfAppMetaData = get(),
             logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }

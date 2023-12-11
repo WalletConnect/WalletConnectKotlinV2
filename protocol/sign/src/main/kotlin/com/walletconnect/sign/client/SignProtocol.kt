@@ -114,6 +114,24 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     }
 
     @Throws(IllegalStateException::class)
+    override fun authenticate(
+        authenticate: Sign.Params.Authenticate,
+        onSuccess: () -> Unit,
+        onError: (Sign.Model.Error) -> Unit,
+    ) {
+        checkEngineInitialization()
+        scope.launch {
+            try {
+                signEngine.authenticate(authenticate.toEngine(), authenticate.pairingTopic,
+                    onSuccess = { onSuccess() },
+                    onFailure = { throwable -> onError(Sign.Model.Error(throwable)) })
+            } catch (error: Exception) {
+                onError(Sign.Model.Error(error))
+            }
+        }
+    }
+
+    @Throws(IllegalStateException::class)
     override fun pair(
         pair: Sign.Params.Pair,
         onSuccess: (Sign.Params.Pair) -> Unit,

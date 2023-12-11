@@ -47,6 +47,20 @@ internal sealed class EngineDO {
         val relayData: String?,
     ) : EngineDO(), EngineEvent
 
+    data class PayloadParams(
+        val chains: List<String>,
+        val domain: String,
+        val aud: String,
+        val version: String,
+        val nonce: String,
+        val iat: String,
+        val nbf: String?,
+        val exp: String?,
+        val statement: String?,
+        val requestId: String?,
+        val resources: List<String>?,
+    ) : EngineDO()
+
     data class VerifyContext(
         val id: Long,
         val origin: String,

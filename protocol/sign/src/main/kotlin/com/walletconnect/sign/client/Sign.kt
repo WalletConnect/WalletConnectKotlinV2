@@ -234,6 +234,21 @@ object Sign {
             val pairing: Core.Model.Pairing,
         ) : Params()
 
+        data class Authenticate(
+            val chains: List<String>,
+            val domain: String,
+            val aud: String,
+            val version: String,
+            val nonce: String,
+            val iat: String,
+            val nbf: String?,
+            val exp: String?,
+            val statement: String?,
+            val requestId: String?,
+            val resources: List<String>?,
+            val pairingTopic: String
+        ) : Params()
+
         data class Pair(val uri: String) : Params()
 
         data class Approve(

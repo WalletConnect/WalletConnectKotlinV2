@@ -86,6 +86,9 @@ internal fun EngineDO.SessionRequest.toClientSessionRequest(): Sign.Model.Sessio
     )
 
 @JvmSynthetic
+internal fun Sign.Params.Authenticate.toEngine(): EngineDO.PayloadParams = EngineDO.PayloadParams(chains, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
+
+@JvmSynthetic
 internal fun Sign.Model.JsonRpcResponse.JsonRpcResult.toRpcResult(): JsonRpcResponse.JsonRpcResult = JsonRpcResponse.JsonRpcResult(id, result = result)
 
 @JvmSynthetic

@@ -24,6 +24,7 @@ internal fun engineModule() = module {
             jsonRpcInteractor = get(),
             crypto = get(),
             proposalStorageRepository = get(),
+            authenticateSessionUseCase = get(),
             sessionStorageRepository = get(),
             metadataStorageRepository = get(),
             approveSessionUseCase = get(),
@@ -58,7 +59,7 @@ internal fun engineModule() = module {
             rejectSessionUseCase = get(),
             respondSessionRequestUseCase = get(),
             sessionRequestUseCase = get(),
-            sessionUpdateUseCase = get(),
+            sessionUpdateUseCase = get()
         )
     }
 }

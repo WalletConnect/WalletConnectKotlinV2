@@ -36,10 +36,9 @@ interface SignInterface {
     fun setWalletDelegate(delegate: WalletDelegate)
     fun setDappDelegate(delegate: DappDelegate)
 
-    fun connect(
-        connect: Sign.Params.Connect, onSuccess: () -> Unit,
-        onError: (Sign.Model.Error) -> Unit
-    )
+    fun connect(connect: Sign.Params.Connect, onSuccess: () -> Unit, onError: (Sign.Model.Error) -> Unit)
+
+    fun authenticate(authenticate: Sign.Params.Authenticate, onSuccess: () -> Unit, onError: (Sign.Model.Error) -> Unit, )
 
     @Deprecated(
         message = "Creating a pairing will be moved to CoreClient to make pairing SDK agnostic",

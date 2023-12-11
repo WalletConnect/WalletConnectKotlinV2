@@ -2,7 +2,6 @@
 
 package com.walletconnect.sign.engine.domain
 
-import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.ConnectionState
@@ -15,6 +14,7 @@ import com.walletconnect.android.internal.common.storage.metadata.MetadataStorag
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
+import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.android.verify.data.model.VerifyContext
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
@@ -23,6 +23,7 @@ import com.walletconnect.sign.engine.model.mapper.toEngineDO
 import com.walletconnect.sign.engine.model.mapper.toSessionRequest
 import com.walletconnect.sign.engine.sessionRequestEventsQueue
 import com.walletconnect.sign.engine.use_case.calls.ApproveSessionUseCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.AuthenticateSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.DisconnectSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.EmitEventUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.ExtendSessionUseCaseInterface
@@ -82,6 +83,7 @@ internal class SignEngine(
     private val pairingController: PairingControllerInterface,
     private val verifyContextStorageRepository: VerifyContextStorageRepository,
     private val proposeSessionUseCase: ProposeSessionUseCaseInterface,
+    private val authenticateSessionUseCase: AuthenticateSessionUseCaseInterface,
     private val pairUseCase: PairUseCaseInterface,
     private val rejectSessionUseCase: RejectSessionUseCaseInterface,
     private val approveSessionUseCase: ApproveSessionUseCaseInterface,
@@ -111,6 +113,7 @@ internal class SignEngine(
     private val onSessionUpdateResponseUseCase: OnSessionUpdateResponseUseCase,
     private val onSessionRequestResponseUseCase: OnSessionRequestResponseUseCase,
 ) : ProposeSessionUseCaseInterface by proposeSessionUseCase,
+    AuthenticateSessionUseCaseInterface by authenticateSessionUseCase,
     PairUseCaseInterface by pairUseCase,
     RejectSessionUseCaseInterface by rejectSessionUseCase,
     ApproveSessionUseCaseInterface by approveSessionUseCase,
@@ -140,6 +143,7 @@ internal class SignEngine(
     init {
         pairingController.register(
             JsonRpcMethod.WC_SESSION_PROPOSE,
+            JsonRpcMethod.WC_SESSION_AUTHENTICATE,
             JsonRpcMethod.WC_SESSION_SETTLE,
             JsonRpcMethod.WC_SESSION_REQUEST,
             JsonRpcMethod.WC_SESSION_EVENT,
