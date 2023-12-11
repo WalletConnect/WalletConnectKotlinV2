@@ -15,7 +15,7 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.exceptions.PeerError
 import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.android.internal.common.model.Namespace
-import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
+import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipant
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.common.model.vo.proposal.ProposalVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
@@ -145,7 +145,7 @@ internal fun SessionVO.toSessionApproved(): EngineDO.SessionApproved =
 
 @JvmSynthetic
 internal fun ProposalVO.toSessionSettleParams(
-    selfParticipant: SessionParticipantVO,
+    selfParticipant: SessionParticipant,
     sessionExpiry: Long,
     namespaces: Map<String, EngineDO.Namespace.Session>,
 ): SignParams.SessionSettleParams =
