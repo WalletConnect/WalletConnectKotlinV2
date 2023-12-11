@@ -6,7 +6,7 @@ import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SessionProposer
-import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
+import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpc
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import junit.framework.TestCase.assertEquals
@@ -46,14 +46,14 @@ class AttestationIdGenerationTest {
         val params =
             SignParams.SessionProposeParams(
                 requiredNamespaces = mapOf(
-                    "eip155" to NamespaceVO.Proposal(
+                    "eip155" to Namespace.Proposal(
                         chains = listOf("eip155:1", "eip155:42161"),
                         methods = listOf("eth_sendTransaction", "eth_signTransaction", "personal_sign", "eth_signTypedData"),
                         events = listOf("chainChanged", "accountsChanged")
                     )
                 ),
                 optionalNamespaces = mapOf(
-                    "polkadot" to NamespaceVO.Proposal(
+                    "polkadot" to Namespace.Proposal(
                         chains = listOf("polkadot:91b171bb158e2d3848fa23a9f1c25182"),
                         methods = listOf("polkadot_signTransaction", "polkadot_signMessage"),
                         events = listOf("chainChanged", "accountsChanged")
@@ -83,7 +83,7 @@ class AttestationIdGenerationTest {
         val params =
             SignParams.SessionProposeParams(
                 requiredNamespaces = mapOf(
-                    "eip155" to NamespaceVO.Proposal(
+                    "eip155" to Namespace.Proposal(
                         chains = listOf("eip155:1"),
                         methods = listOf("eth_sendTransaction", "eth_signTransaction", "eth_sign", "personal_sign", "eth_signTypedData"),
                         events = listOf("chainChanged", "accountsChanged")

@@ -2,6 +2,7 @@
 
 package com.walletconnect.sign.engine.domain
 
+import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.ConnectionState
@@ -10,8 +11,8 @@ import com.walletconnect.android.internal.common.model.Validation
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
-import com.walletconnect.android.internal.common.storage.VerifyContextStorageRepository
+import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
+import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.verify.data.model.VerifyContext
@@ -91,6 +92,7 @@ internal class SignEngine(
     private val emitEventUseCase: EmitEventUseCaseInterface,
     private val extendSessionUseCase: ExtendSessionUseCaseInterface,
     private val disconnectSessionUseCase: DisconnectSessionUseCaseInterface,
+    private val decryptMessageUseCase: DecryptMessageUseCaseInterface,
     private val getSessionsUseCase: GetSessionsUseCaseInterface,
     private val getPairingsUseCase: GetPairingsUseCaseInterface,
     private val getSessionProposalsUseCase: GetSessionProposalsUseCaseInterface,
@@ -119,6 +121,7 @@ internal class SignEngine(
     EmitEventUseCaseInterface by emitEventUseCase,
     ExtendSessionUseCaseInterface by extendSessionUseCase,
     DisconnectSessionUseCaseInterface by disconnectSessionUseCase,
+    DecryptMessageUseCaseInterface by decryptMessageUseCase,
     GetSessionsUseCaseInterface by getSessionsUseCase,
     GetPairingsUseCaseInterface by getPairingsUseCase,
     GetPendingRequestsUseCaseByTopicInterface by getPendingRequestsByTopicUseCase,

@@ -3,8 +3,9 @@
 package com.walletconnect.notify.di
 
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
-import com.walletconnect.notify.engine.calls.DecryptMessageUseCase
-import com.walletconnect.notify.engine.calls.DecryptMessageUseCaseInterface
+import com.walletconnect.android.internal.common.model.Tags
+import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
+import com.walletconnect.notify.engine.calls.DecryptNotifyMessageUseCase
 import com.walletconnect.notify.engine.calls.DeleteMessageUseCase
 import com.walletconnect.notify.engine.calls.DeleteMessageUseCaseInterface
 import com.walletconnect.notify.engine.calls.DeleteSubscriptionUseCase
@@ -66,13 +67,16 @@ internal fun callModule() = module {
         )
     }
 
-    single<DecryptMessageUseCaseInterface> {
-        DecryptMessageUseCase(
+    single<DecryptMessageUseCaseInterface>(named(AndroidCommonDITags.DECRYPT_NOTIFY_MESSAGE)) {
+        val useCase = DecryptNotifyMessageUseCase(
             codec = get(),
             serializer = get(),
             jsonRpcHistory = get(),
             messagesRepository = get()
         )
+
+        get<MutableMap<String, DecryptMessageUseCaseInterface>>(named(AndroidCommonDITags.DECRYPT_USE_CASES))[Tags.NOTIFY_MESSAGE.id.toString()] = useCase
+        useCase
     }
 
     single<RegisterUseCaseInterface> {

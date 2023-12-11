@@ -2,6 +2,8 @@ name: Release Samples
 
 on:
   workflow_dispatch:
+  release:
+    types: [ published ]
 
 jobs:
   release_samples:
@@ -40,12 +42,33 @@ jobs:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
         run: echo $GOOGLE_SERVICES_JSON > ./sample/${{ matrix.conf.name}}/google-services.json
 
+      - name: Fetch Properties File
+        env:
+          SECRETS_PROPERTIES: ${{ secrets.SECRETS_PROPERTIES }}
+        run: echo $SECRETS_PROPERTIES | base64 --decode > secrets.properties
+
+      - name: Decode Internal Keystore
+        env:
+          ENCODED_STRING_INTERNAL: ${{ secrets.WC_KOTLIN_INTERNAL_KEYSTORE }}
+          SIGNING_KEY_STORE_PATH_INTERNAL: ${{ secrets.WC_KOTLIN_INTERNAL_KEYSTORE_PATH }}
+        run: |
+          echo $ENCODED_STRING_INTERNAL > keystore-b64.txt
+          base64 -d keystore-b64.txt > $SIGNING_KEY_STORE_PATH_INTERNAL
+
+      - name: Decode Upload Keystore
+        env:
+          ENCODED_STRING_UPLOAD: ${{ secrets.WC_KOTLIN_UPLOAD_KEYSTORE }}
+          SIGNING_KEY_STORE_PATH_UPLOAD: ${{ secrets.WC_KOTLIN_UPLOAD_KEYSTORE_PATH }}
+        run: |
+          echo $ENCODED_STRING_UPLOAD > keystore-b64.txt
+          base64 -d keystore-b64.txt > $SIGNING_KEY_STORE_PATH_UPLOAD
+
       - name: Release sample
         env:
           WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-          PROD_GM_PROJECT_ID: ${{ secrets.PROD_GM_PROJECT_ID }}
-          PROD_GM_SECRET: ${{ secrets.PROD_GM_SECRET }}
+          NOTIFY_INTEGRATION_TESTS_PROJECT_ID: ${{ secrets.NOTIFY_INTEGRATION_TESTS_PROJECT_ID }}
+          NOTIFY_INTEGRATION_TESTS_SECRET: ${{ secrets.NOTIFY_INTEGRATION_TESTS_SECRET }}
         run: ./gradlew ${{ matrix.conf.command }}
 
       - name: Stop Gradle

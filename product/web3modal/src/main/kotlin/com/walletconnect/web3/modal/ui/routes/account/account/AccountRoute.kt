@@ -37,7 +37,7 @@ import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 import com.walletconnect.web3.modal.ui.previews.ethereumChain
-import com.walletconnect.web3.modal.ui.routes.account.AccountState
+import com.walletconnect.web3.modal.ui.routes.account.AccountViewModel
 import com.walletconnect.web3.modal.ui.previews.accountDataPreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 import com.walletconnect.web3.modal.utils.getImageData
@@ -45,28 +45,28 @@ import com.walletconnect.web3.modal.utils.getImageData
 @Composable
 internal fun AccountRoute(
     navController: NavController,
-    accountState: AccountState
+    accountViewModel: AccountViewModel
 ) {
     val uriHandler = LocalUriHandler.current
-    val selectedChain by accountState.selectedChain.collectAsState(initial = Web3Modal.getSelectedChainOrFirst())
-    val balance by accountState.balanceState.collectAsState()
+    val selectedChain by accountViewModel.selectedChain.collectAsState(initial = Web3Modal.getSelectedChainOrFirst())
+    val balance by accountViewModel.balanceState.collectAsState()
 
     Box(modifier = Modifier.fillMaxWidth()) {
-        UiStateBuilder(uiStateFlow = accountState.accountState) { data ->
+        UiStateBuilder(uiStateFlow = accountViewModel.accountState) { data ->
             AccountScreen(
                 accountData = data,
                 selectedChain = selectedChain,
                 balance = balance,
                 onBlockExplorerClick = { url -> uriHandler.openUri(url) },
                 onChangeNetworkClick = { navController.navigate(Route.CHANGE_NETWORK.path) },
-                onDisconnectClick = { accountState.disconnect() }
+                onDisconnectClick = { accountViewModel.disconnect() }
             )
         }
         CloseIcon(
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(18.dp),
-            onClick = { accountState.closeModal() }
+            onClick = { accountViewModel.closeModal() }
         )
     }
 }

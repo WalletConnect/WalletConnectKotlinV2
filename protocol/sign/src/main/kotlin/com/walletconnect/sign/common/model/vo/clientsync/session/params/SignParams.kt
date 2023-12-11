@@ -7,7 +7,7 @@ import com.squareup.moshi.JsonClass
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SessionProposer
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
-import com.walletconnect.sign.common.model.vo.clientsync.common.NamespaceVO
+import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionEventVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionRequestVO
@@ -18,9 +18,9 @@ internal sealed class SignParams : CoreSignParams() {
     @JsonClass(generateAdapter = true)
     internal data class SessionProposeParams(
         @Json(name = "requiredNamespaces")
-        val requiredNamespaces: Map<String, NamespaceVO.Proposal>,
+        val requiredNamespaces: Map<String, Namespace.Proposal>,
         @Json(name = "optionalNamespaces")
-        val optionalNamespaces: Map<String, NamespaceVO.Proposal>?,
+        val optionalNamespaces: Map<String, Namespace.Proposal>?,
         @Json(name = "relays")
         val relays: List<RelayProtocolOptions>,
         @Json(name = "proposer")
@@ -36,7 +36,7 @@ internal sealed class SignParams : CoreSignParams() {
         @Json(name = "controller")
         val controller: SessionParticipantVO,
         @Json(name = "namespaces")
-        val namespaces: Map<String, NamespaceVO.Session>,
+        val namespaces: Map<String, Namespace.Session>,
         @Json(name = "expiry")
         val expiry: Long,
     ) : SignParams()
@@ -58,7 +58,7 @@ internal sealed class SignParams : CoreSignParams() {
 
     internal class UpdateNamespacesParams(
         @Json(name = "namespaces")
-        val namespaces: Map<String, NamespaceVO.Session>,
+        val namespaces: Map<String, Namespace.Session>,
     ) : SignParams()
 
     internal data class ExtendParams(

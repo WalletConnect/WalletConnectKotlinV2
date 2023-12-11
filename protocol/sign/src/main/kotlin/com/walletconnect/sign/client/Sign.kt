@@ -188,6 +188,37 @@ object Sign {
         data class ConnectionState(
             val isAvailable: Boolean,
         ) : Model()
+
+        sealed class Message : Model() {
+            data class SessionProposal(
+                val id: Long,
+                val pairingTopic: String,
+                val name: String,
+                val description: String,
+                val url: String,
+                val icons: List<String>,
+                val redirect: String,
+                val requiredNamespaces: Map<String, Namespace.Proposal>,
+                val optionalNamespaces: Map<String, Namespace.Proposal>,
+                val properties: Map<String, String>?,
+                val proposerPublicKey: String,
+                val relayProtocol: String,
+                val relayData: String?,
+            ) : Message()
+
+            data class SessionRequest(
+                val topic: String,
+                val chainId: String?,
+                val peerMetaData: Core.Model.AppMetaData?,
+                val request: JSONRPCRequest,
+            ) : Message() {
+                data class JSONRPCRequest(
+                    val id: Long,
+                    val method: String,
+                    val params: String,
+                ) : Message()
+            }
+        }
     }
 
     sealed class Params {
@@ -236,5 +267,7 @@ object Sign {
             Params()
 
         data class Extend(val topic: String) : Params()
+
+        data class DecryptMessage(val topic: String, val encryptedMessage: String) : Params()
     }
 }

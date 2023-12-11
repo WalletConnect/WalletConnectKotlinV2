@@ -3,7 +3,7 @@
 package com.walletconnect.android.internal.common.jwt.clientid
 
 import com.walletconnect.android.internal.common.exception.CannotFindKeyPairException
-import com.walletconnect.android.internal.common.storage.KeyStore
+import com.walletconnect.android.internal.common.storage.key_chain.KeyStore
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.crypto.data.repository.BaseClientIdJwtRepository
