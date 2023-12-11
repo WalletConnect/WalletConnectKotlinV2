@@ -19,12 +19,12 @@ import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignPara
 import java.util.Date
 import java.util.concurrent.TimeUnit
 
-internal class AuthenticateSessionUseCase(
+internal class SessionAuthenticateUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val crypto: KeyManagementRepository,
     private val selfAppMetaData: AppMetaData,
     private val logger: Logger
-) : AuthenticateSessionUseCaseInterface {
+) : SessionAuthenticateUseCaseInterface {
     override suspend fun authenticate(payloadParams: PayloadParams, topic: String, expiry: Expiry?, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         val nowInSeconds = TimeUnit.SECONDS.convert(Date().time, TimeUnit.SECONDS)
 //        if (!CoreValidator.isExpiryWithinBounds(expiry ?: Expiry(300))) {
@@ -68,6 +68,6 @@ internal class AuthenticateSessionUseCase(
     } ?: Ttl(DAY_IN_SECONDS)
 }
 
-internal interface AuthenticateSessionUseCaseInterface {
+internal interface SessionAuthenticateUseCaseInterface {
     suspend fun authenticate(payloadParams: PayloadParams, topic: String, expiry: Expiry?, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit)
 }

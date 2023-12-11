@@ -23,7 +23,6 @@ import com.walletconnect.sign.engine.model.mapper.toEngineDO
 import com.walletconnect.sign.engine.model.mapper.toSessionRequest
 import com.walletconnect.sign.engine.sessionRequestEventsQueue
 import com.walletconnect.sign.engine.use_case.calls.ApproveSessionUseCaseInterface
-import com.walletconnect.sign.engine.use_case.calls.AuthenticateSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.DisconnectSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.EmitEventUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.ExtendSessionUseCaseInterface
@@ -37,9 +36,11 @@ import com.walletconnect.sign.engine.use_case.calls.PingUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.ProposeSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.RejectSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.RespondSessionRequestUseCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.SessionAuthenticateUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.SessionRequestUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.SessionUpdateUseCaseInterface
 import com.walletconnect.sign.engine.use_case.requests.OnPingUseCase
+import com.walletconnect.sign.engine.use_case.requests.OnSessionAuthenticateUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionDeleteUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionEventUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionExtendUseCase
@@ -47,6 +48,7 @@ import com.walletconnect.sign.engine.use_case.requests.OnSessionProposalUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionRequestUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionSettleUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionUpdateUseCase
+import com.walletconnect.sign.engine.use_case.responses.OnSessionAuthenticateResponseUseCase
 import com.walletconnect.sign.engine.use_case.responses.OnSessionProposalResponseUseCase
 import com.walletconnect.sign.engine.use_case.responses.OnSessionRequestResponseUseCase
 import com.walletconnect.sign.engine.use_case.responses.OnSessionSettleResponseUseCase
@@ -83,7 +85,7 @@ internal class SignEngine(
     private val pairingController: PairingControllerInterface,
     private val verifyContextStorageRepository: VerifyContextStorageRepository,
     private val proposeSessionUseCase: ProposeSessionUseCaseInterface,
-    private val authenticateSessionUseCase: AuthenticateSessionUseCaseInterface,
+    private val authenticateSessionUseCase: SessionAuthenticateUseCaseInterface,
     private val pairUseCase: PairUseCaseInterface,
     private val rejectSessionUseCase: RejectSessionUseCaseInterface,
     private val approveSessionUseCase: ApproveSessionUseCaseInterface,
@@ -101,6 +103,7 @@ internal class SignEngine(
     private val getVerifyContextByIdUseCase: GetVerifyContextByIdUseCaseInterface,
     private val getListOfVerifyContextsUseCase: GetListOfVerifyContextsUseCaseInterface,
     private val onSessionProposeUse: OnSessionProposalUseCase,
+    private val onAuthenticateSessionUseCase: OnSessionAuthenticateUseCase,
     private val onSessionSettleUseCase: OnSessionSettleUseCase,
     private val onSessionRequestUseCase: OnSessionRequestUseCase,
     private val onSessionDeleteUseCase: OnSessionDeleteUseCase,
@@ -109,11 +112,12 @@ internal class SignEngine(
     private val onSessionExtendUseCase: OnSessionExtendUseCase,
     private val onPingUseCase: OnPingUseCase,
     private val onSessionProposalResponseUseCase: OnSessionProposalResponseUseCase,
+    private val onSessionAuthenticateResponseUseCase: OnSessionAuthenticateResponseUseCase,
     private val onSessionSettleResponseUseCase: OnSessionSettleResponseUseCase,
     private val onSessionUpdateResponseUseCase: OnSessionUpdateResponseUseCase,
     private val onSessionRequestResponseUseCase: OnSessionRequestResponseUseCase,
 ) : ProposeSessionUseCaseInterface by proposeSessionUseCase,
-    AuthenticateSessionUseCaseInterface by authenticateSessionUseCase,
+    SessionAuthenticateUseCaseInterface by authenticateSessionUseCase,
     PairUseCaseInterface by pairUseCase,
     RejectSessionUseCaseInterface by rejectSessionUseCase,
     ApproveSessionUseCaseInterface by approveSessionUseCase,
@@ -192,6 +196,7 @@ internal class SignEngine(
             .onEach { request ->
                 when (val requestParams = request.params) {
                     is SignParams.SessionProposeParams -> onSessionProposeUse(request, requestParams)
+                    is SignParams.SessionAuthenticateParams -> onAuthenticateSessionUseCase
                     is SignParams.SessionSettleParams -> onSessionSettleUseCase(request, requestParams)
                     is SignParams.SessionRequestParams -> onSessionRequestUseCase(request, requestParams)
                     is SignParams.DeleteParams -> onSessionDeleteUseCase(request, requestParams)
@@ -225,6 +230,7 @@ internal class SignEngine(
             onSessionRequestUseCase.events,
             onSessionDeleteUseCase.events,
             onSessionProposeUse.events,
+            onAuthenticateSessionUseCase.events,
             onSessionEventUseCase.events,
             onSessionSettleUseCase.events,
             onSessionUpdateUseCase.events,
@@ -232,7 +238,8 @@ internal class SignEngine(
             onSessionProposalResponseUseCase.events,
             onSessionSettleResponseUseCase.events,
             onSessionUpdateResponseUseCase.events,
-            onSessionRequestResponseUseCase.events
+            onSessionRequestResponseUseCase.events,
+            onSessionAuthenticateResponseUseCase.events
         )
             .onEach { event -> _engineEvent.emit(event) }
             .launchIn(scope)
@@ -282,7 +289,7 @@ internal class SignEngine(
         getPendingSessionRequests()
             .map { pendingRequest -> pendingRequest.toSessionRequest(metadataStorageRepository.getByTopicAndType(pendingRequest.topic, AppMetaDataType.PEER)) }
             .filter { sessionRequest -> CoreValidator.isExpiryWithinBounds(sessionRequest.expiry) }
-            .filter { sessionRequest ->  getSessionsUseCase.getListOfSettledSessions().find { session -> session.topic.value == sessionRequest.topic } != null}
+            .filter { sessionRequest -> getSessionsUseCase.getListOfSettledSessions().find { session -> session.topic.value == sessionRequest.topic } != null }
             .onEach { sessionRequest ->
                 scope.launch {
                     supervisorScope {
