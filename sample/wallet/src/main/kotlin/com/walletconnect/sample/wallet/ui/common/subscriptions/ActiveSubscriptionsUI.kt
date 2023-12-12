@@ -2,10 +2,12 @@ package com.walletconnect.sample.wallet.ui.common.subscriptions
 
 import com.walletconnect.notify.client.Notify
 import com.walletconnect.notify.client.NotifyClient
+import com.walletconnect.sample.wallet.ui.common.ImageUrl
+import com.walletconnect.sample.wallet.ui.common.toImageUrl
 
 data class ActiveSubscriptionsUI(
     val topic: String,
-    val icon: String,
+    val imageUrl: ImageUrl,
     val name: String,
     val messageCount: Int,
     val description: String,
@@ -21,9 +23,9 @@ data class ActiveSubscriptionsUI(
 
 fun Notify.Model.Subscription.toUI(): ActiveSubscriptionsUI = ActiveSubscriptionsUI(
     topic = topic,
-    icon = metadata.icons.first(),
+    imageUrl = metadata.icons.toImageUrl(),
     name = metadata.name,
-    messageCount = NotifyClient.getMessageHistory(params = Notify.Params.MessageHistory(topic)).size,
+    messageCount = NotifyClient.getNotificationHistory(params = Notify.Params.NotificationHistory(topic)).size,
     appDomain = metadata.url,
     description = metadata.description,
 

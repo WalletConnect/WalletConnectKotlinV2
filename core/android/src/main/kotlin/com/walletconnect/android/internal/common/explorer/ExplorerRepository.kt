@@ -124,7 +124,7 @@ class ExplorerRepository(
                 types = notificationTypes.map { it.toNotificationType() },
                 name = name,
                 description = description,
-                imageUrl = imageUrl.toImageUrl(),
+                imageUrl = imageUrl?.toImageUrl(),
                 homepage = homepage,
                 dappUrl = dappUrl,
                 isVerified = isVerified,

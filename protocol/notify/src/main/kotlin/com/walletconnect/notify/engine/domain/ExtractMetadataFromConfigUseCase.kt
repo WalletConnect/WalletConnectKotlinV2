@@ -22,5 +22,5 @@ internal class ExtractMetadataFromConfigUseCase(private val getNotifyConfigUseCa
         }
     }
 
-    private fun ImageUrl.toList(): List<String> = listOf(sm, md, lg)
+    private fun ImageUrl?.toList(): List<String> = if (this != null) listOf(sm, md, lg) else listOf("", "", "")
 }

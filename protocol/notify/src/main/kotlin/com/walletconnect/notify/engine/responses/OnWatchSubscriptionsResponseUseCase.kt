@@ -44,7 +44,7 @@ internal class OnWatchSubscriptionsResponseUseCase(
 
                     jwtClaims.throwIfIsInvalid()
 
-                    val subscriptions = setActiveSubscriptionsUseCase(decodeDidPkh(jwtClaims.subject), jwtClaims.subscriptions)
+                    val subscriptions = setActiveSubscriptionsUseCase(decodeDidPkh(jwtClaims.subject), jwtClaims.subscriptions).getOrThrow()
                     SubscriptionChanged(subscriptions)
                 }
 

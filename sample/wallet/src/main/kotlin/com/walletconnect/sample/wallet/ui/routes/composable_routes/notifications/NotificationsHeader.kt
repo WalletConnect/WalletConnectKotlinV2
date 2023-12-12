@@ -2,6 +2,7 @@ package com.walletconnect.sample.wallet.ui.routes.composable_routes.notification
 
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -14,7 +15,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Divider
@@ -24,12 +24,15 @@ import androidx.compose.material.OutlinedButton
 import androidx.compose.material.Text
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
@@ -41,11 +44,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.walletconnect.notify.client.Notify
-import com.walletconnect.notify.client.NotifyClient
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.wallet.ui.common.subscriptions.ActiveSubscriptionsUI
-import timber.log.Timber
 
 
 @Composable
@@ -57,6 +57,8 @@ fun NotificationsHeader(
     onNotificationSettings: () -> Unit,
     onUnsubscribe: () -> Unit,
 ) {
+    val hasIcon = remember { mutableStateOf(currentSubscription.imageUrl.sm.isNotEmpty()) }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -81,11 +83,23 @@ fun NotificationsHeader(
                 modifier = Modifier
                     .size(64.dp)
                     .clip(CircleShape)
+                    .background(
+                        if (hasIcon.value) Color.Transparent
+                        else Color(0xFFE2FDFF)
+                    )
                     .border(1.dp, ButtonDefaults.outlinedBorder.brush, CircleShape),
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(currentSubscription.icon)
+                    .data(currentSubscription.imageUrl.sm.takeIf { hasIcon.value })
+                    .fallback(R.drawable.ic_globe)
+                    .error(R.drawable.ic_globe)
                     .crossfade(200)
+                    .listener(
+                        onError = { _, _ ->
+                            hasIcon.value = false
+                        }
+                    )
                     .build(),
+                contentScale = if (hasIcon.value) ContentScale.Fit else ContentScale.None,
                 contentDescription = null
             )
             NotificationsOptionsMenu(

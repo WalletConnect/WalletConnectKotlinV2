@@ -13,9 +13,9 @@ import com.walletconnect.notify.client.NotifyClient
 import com.walletconnect.sample.wallet.domain.EthAccountDelegate
 import com.walletconnect.sample.wallet.domain.NotifyDelegate
 import com.walletconnect.sample.wallet.domain.toEthAddress
+import com.walletconnect.sample.wallet.ui.common.ImageUrl
 import com.walletconnect.sample.wallet.ui.common.subscriptions.toUI
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.discover.ExplorerApp
-import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.discover.ImageUrl
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
@@ -130,18 +130,17 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
                     _discoverState.update { DiscoverState.Failure(error) }
                     emptyList()
                 },
-                onSuccess = { it.toExplorerApp() }
+                onSuccess = { it.toUI() }
             )
     }
 
-    private fun List<Project>.toExplorerApp(): List<ExplorerApp> = map { project ->
+    private fun List<Project>.toUI(): List<ExplorerApp> = map { project ->
         with(project) {
-            ExplorerApp(id, name, homepage, imageId, description, imageUrl.toExplorerApp(), dappUrl, false)
+            ExplorerApp(id, name, homepage, imageId, description, imageUrl.toUI(), dappUrl, false)
         }
     }
 
-    private fun WCImageUrl.toExplorerApp(): ImageUrl =
-        ImageUrl(sm, md, lg)
+    private fun WCImageUrl.toUI(): ImageUrl = ImageUrl(sm, md, lg)
 
     fun retryFetchingExplorerApps() {
         viewModelScope.launch {
