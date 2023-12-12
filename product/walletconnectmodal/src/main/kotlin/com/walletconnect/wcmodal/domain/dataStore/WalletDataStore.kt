@@ -1,17 +1,17 @@
-package com.walletconnect.web3.modal.ui.routes.connect
+package com.walletconnect.wcmodal.domain.dataStore
 
 import com.walletconnect.android.internal.common.modal.data.model.Wallet
 import com.walletconnect.android.internal.common.modal.domain.usecase.GetInstalledWalletsIdsUseCaseInterface
 import com.walletconnect.android.internal.common.modal.domain.usecase.GetWalletsUseCaseInterface
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.util.Empty
-import com.walletconnect.web3.modal.client.Web3Modal
-import com.walletconnect.web3.modal.domain.usecase.GetRecentWalletUseCase
 import com.walletconnect.modal.ui.model.LoadingState
+import com.walletconnect.util.Empty
+import com.walletconnect.wcmodal.client.WalletConnectModal
+import com.walletconnect.wcmodal.domain.usecase.GetRecentWalletUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 
-private const val W3M_SDK = "w3m"
+private const val WCM_SDK = "wcm"
 
 private data class ListingData(
     var page: Int = 1,
@@ -25,7 +25,7 @@ private data class ListingData(
 }
 
 internal class WalletDataSource(
-    private val showError: (String?) -> Unit
+    private val showError: (Exception) -> Unit
 ) {
     private val getWalletsUseCase: GetWalletsUseCaseInterface = wcKoinApp.koin.get()
     private val getWalletsAppDataUseCase: GetInstalledWalletsIdsUseCaseInterface = wcKoinApp.koin.get()
@@ -44,7 +44,7 @@ internal class WalletDataSource(
     val wallets: List<Wallet>
         get() = walletsListingData.wallets
 
-    private fun getPriorityWallets() = (getRecentWalletUseCase()?.let { listOf(it) } ?: listOf()) + installedWalletsIds + Web3Modal.recommendedWalletsIds
+    private fun getPriorityWallets() = (getRecentWalletUseCase()?.let { listOf(it) } ?: listOf()) + installedWalletsIds + WalletConnectModal.recommendedWalletsIds
     private val searchState: MutableStateFlow<WalletsData> = MutableStateFlow(WalletsData.empty())
     val walletState: MutableStateFlow<WalletsData> = MutableStateFlow(WalletsData.empty())
 
@@ -52,17 +52,16 @@ internal class WalletDataSource(
         if (searchPhrase.isEmpty()) { state } else { search }
     }
 
-
     suspend fun fetchInitialWallets() {
         walletState.value = WalletsData.refresh()
         try {
             fetchWalletsAppData()
             val installedWallets = fetchInstalledAndRecommendedWallets()
-            val walletsListing = getWalletsUseCase(sdkType = W3M_SDK, page = 1, excludeIds = getPriorityWallets() + Web3Modal.excludedWalletsIds)
+            val walletsListing = getWalletsUseCase(sdkType = WCM_SDK, page = 1, excludeIds = getPriorityWallets() + WalletConnectModal.excludedWalletsIds)
             walletsListingData = ListingData(page = 1, totalCount = walletsListing.totalCount, wallets = (installedWallets.wallets + walletsListing.wallets).mapRecentWallet(getRecentWalletUseCase()))
             walletState.value = WalletsData.submit(walletsListingData.wallets)
         } catch (exception: Exception) {
-            showError(exception.message)
+            showError(exception)
             walletState.value = WalletsData.error(error = exception)
         }
     }
@@ -72,14 +71,14 @@ internal class WalletDataSource(
     }
 
     private suspend fun fetchWalletsAppData() {
-        installedWalletsIds = getWalletsAppDataUseCase(sdkType = W3M_SDK)
+        installedWalletsIds = getWalletsAppDataUseCase(sdkType = WCM_SDK)
     }
 
     private suspend fun fetchInstalledAndRecommendedWallets() = getWalletsUseCase(
-        sdkType = W3M_SDK,
+        sdkType = WCM_SDK,
         page = 1,
         includes = getPriorityWallets(),
-        excludeIds = Web3Modal.excludedWalletsIds
+        excludeIds = WalletConnectModal.excludedWalletsIds
     )
 
     suspend fun fetchMoreWallets() {
@@ -87,11 +86,11 @@ internal class WalletDataSource(
             if (walletsListingData.wallets.size < walletsListingData.totalCount) {
                 try {
                     walletState.value = WalletsData.append(walletsListingData.wallets)
-                    val response = getWalletsUseCase(sdkType = W3M_SDK, page = walletsListingData.page + 1, excludeIds = getPriorityWallets() + Web3Modal.excludedWalletsIds)
+                    val response = getWalletsUseCase(sdkType = WCM_SDK, page = walletsListingData.page + 1, excludeIds = getPriorityWallets() + WalletConnectModal.excludedWalletsIds)
                     walletsListingData.addNextPage(response.wallets)
                     walletState.value = WalletsData.submit(walletsListingData.wallets)
                 } catch (exception: Exception) {
-                    showError(exception.message)
+                    showError(exception)
                     walletState.value = WalletsData.error(walletsListingData.wallets, error = exception)
                 }
             }
@@ -101,8 +100,8 @@ internal class WalletDataSource(
     }
 
     fun clearSearch() {
-        searchPhrase = String.Empty
         searchState.value = WalletsData.empty()
+        searchPhrase = String.Empty
     }
 
     suspend fun searchWallet(searchPhrase: String) {
@@ -113,11 +112,11 @@ internal class WalletDataSource(
             if (walletsListingData.wallets.size < walletsListingData.totalCount) {
                 try {
                     searchState.value = WalletsData.refresh()
-                    val searchResponse = getWalletsUseCase(sdkType = W3M_SDK, search = searchPhrase, page = 1, excludeIds = Web3Modal.excludedWalletsIds)
+                    val searchResponse = getWalletsUseCase(sdkType = WCM_SDK, search = searchPhrase, page = 1, excludeIds = WalletConnectModal.excludedWalletsIds)
                     searchListingData = ListingData(page = 1, totalCount = searchResponse.totalCount, wallets = searchResponse.wallets)
                     searchState.value = WalletsData.submit(wallets = searchListingData.wallets)
                 } catch (exception: Exception) {
-                    showError(exception.message)
+                    showError(exception)
                     searchState.value = WalletsData.error(walletsListingData.wallets, error = exception)
                 }
             } else {
@@ -131,18 +130,17 @@ internal class WalletDataSource(
         if (searchListingData.wallets.size < searchListingData.totalCount) {
             try {
                 searchState.value = WalletsData.append(searchListingData.wallets)
-                val searchResponse = getWalletsUseCase(sdkType = W3M_SDK, search = searchPhrase, page = searchListingData.page + 1, excludeIds = Web3Modal.excludedWalletsIds)
+                val searchResponse = getWalletsUseCase(sdkType = WCM_SDK, search = searchPhrase, page = searchListingData.page + 1, excludeIds = WalletConnectModal.excludedWalletsIds)
                 searchListingData.addNextPage(searchResponse.wallets)
                 searchState.value = WalletsData.submit(searchListingData.wallets)
             } catch (exception: Exception) {
-                showError(exception.message)
+                showError(exception)
                 searchState.value = WalletsData.error(searchListingData.wallets, error = exception)
             }
         }
     }
 
     fun getWallet(walletId: String?) = walletsListingData.wallets.find { wallet -> wallet.id == walletId }
-
 }
 
 private fun List<Wallet>.filteredWallets(value: String): List<Wallet> = this.filter { it.name.startsWith(prefix = value, ignoreCase = true) }
