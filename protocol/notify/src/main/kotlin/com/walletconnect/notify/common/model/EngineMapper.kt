@@ -14,6 +14,18 @@ internal fun Core.Model.Message.Notify.toWalletClient(topic: String): Notify.Mod
     return Notify.Model.Message.Decrypted(title, body, icon, url, type, topic)
 }
 
+
+@JvmSynthetic
+internal fun Core.Model.Message.Notify.toClient(topic: String): Notify.Model.Notification.Decrypted {
+    return Notify.Model.Notification.Decrypted(title, body, icon, url, type, topic)
+}
+
+
+@JvmSynthetic
+internal fun NotifyMessage.toClient(topic: String): Notify.Model.Notification.Decrypted {
+    return Notify.Model.Notification.Decrypted(title, body, icon, url, type, topic)
+}
+
 @JvmSynthetic
 internal fun NotifyRecord.toWalletClient(): Notify.Model.MessageRecord {
     return Notify.Model.MessageRecord(
@@ -33,10 +45,53 @@ internal fun NotifyRecord.toWalletClient(): Notify.Model.MessageRecord {
 
 
 @JvmSynthetic
+@Throws(IllegalArgumentException::class)
+internal fun NotifyRecord.toClient(): Notify.Model.NotificationRecord {
+    return Notify.Model.NotificationRecord(
+        id = this.id.toString(),
+        topic = this.topic,
+        publishedAt = this.publishedAt,
+        message = Notify.Model.Notification.Decrypted(
+            title = this.notifyMessage.title,
+            body = this.notifyMessage.body,
+            icon = this.notifyMessage.icon,
+            url = this.notifyMessage.url,
+            type = this.notifyMessage.type,
+            topic = this.topic
+        ),
+        metadata = this.metadata?.let { it.toClient() } ?: run { throw IllegalArgumentException("Metadata is null") }
+    )
+}
+
+
+@JvmSynthetic
 internal fun NotificationType.toWalletClient(): Notify.Model.NotificationType {
     return Notify.Model.NotificationType(id, name, description)
 }
 
+
+@JvmSynthetic
+internal fun CacaoPayloadWithIdentityPrivateKey.toClient(): Notify.Model.CacaoPayloadWithIdentityPrivateKey {
+    return Notify.Model.CacaoPayloadWithIdentityPrivateKey(payload.toClient(), key)
+}
+
+
+@JvmSynthetic
+internal fun Notify.Model.CacaoPayloadWithIdentityPrivateKey.toCommon(): CacaoPayloadWithIdentityPrivateKey {
+    return CacaoPayloadWithIdentityPrivateKey(payload.toCommon(), key)
+}
+
+
+@JvmSynthetic
+internal fun Cacao.Payload.toClient(): Notify.Model.Cacao.Payload {
+    return Notify.Model.Cacao.Payload(iss, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
+}
+
+
+@JvmSynthetic
+internal fun Notify.Model.Cacao.Payload.toCommon(): Cacao.Payload {
+    return Cacao.Payload(iss, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
+}
 
 @JvmSynthetic
 internal fun ((String) -> Notify.Model.Cacao.Signature?).toWalletClient(): (String) -> Cacao.Signature? = { message ->
@@ -44,6 +99,11 @@ internal fun ((String) -> Notify.Model.Cacao.Signature?).toWalletClient(): (Stri
         Cacao.Signature(publicCacaoSignature.t, publicCacaoSignature.s, publicCacaoSignature.m)
     }
 }
+
+
+@JvmSynthetic
+internal fun Notify.Model.Cacao.Signature.toCommon(): Cacao.Signature = Cacao.Signature(t, s, m)
+
 
 @JvmSynthetic
 internal fun DeleteSubscription.toWalletClient(): Notify.Event.Delete {

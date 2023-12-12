@@ -13,7 +13,7 @@ import com.walletconnect.android.internal.common.model.sync.ClientJsonRpc
 import com.walletconnect.android.internal.common.storage.rpc.JsonRpcHistory
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.notify.data.jwt.message.MessageRequestJwtClaim
-import com.walletconnect.notify.data.storage.MessagesRepository
+import com.walletconnect.notify.data.storage.NotificationsRepository
 import kotlinx.coroutines.supervisorScope
 import kotlin.reflect.safeCast
 
@@ -21,7 +21,7 @@ internal class DecryptNotifyMessageUseCase(
     private val codec: Codec,
     private val serializer: JsonRpcSerializer,
     private val jsonRpcHistory: JsonRpcHistory,
-    private val messagesRepository: MessagesRepository
+    private val notificationsRepository: NotificationsRepository
 ) : DecryptMessageUseCaseInterface {
 
     override suspend fun decryptNotification(topic: String, message: String, onSuccess: (Core.Model.Message) -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
@@ -38,7 +38,7 @@ internal class DecryptNotifyMessageUseCase(
                     return@supervisorScope onFailure(IllegalArgumentException("The decrypted message does not match WalletConnect Notify Message format"))
                 }
 
-                messagesRepository.insertMessage(
+                notificationsRepository.insertNotification(
                     requestId = clientJsonRpc.id,
                     topic = topic,
                     publishedAt = clientJsonRpc.id,
