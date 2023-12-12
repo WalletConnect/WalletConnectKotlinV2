@@ -3,6 +3,7 @@
 package com.walletconnect.sign.di
 
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
+import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
 import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdUseCase
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequests
@@ -17,6 +18,8 @@ internal fun engineModule() = module {
     single { GetPendingSessionRequests(jsonRpcHistory = get(), serializer = get()) }
 
     single { GetPendingJsonRpcHistoryEntryByIdUseCase(jsonRpcHistory = get(), serializer = get()) }
+
+    single { CacaoVerifier(projectId = get()) }
 
     single {
         SignEngine(
@@ -61,7 +64,9 @@ internal fun engineModule() = module {
             sessionRequestUseCase = get(),
             sessionUpdateUseCase = get(),
             onAuthenticateSessionUseCase = get(),
-            onSessionAuthenticateResponseUseCase = get()
+            onSessionAuthenticateResponseUseCase = get(),
+            approveSessionAuthenticateUseCase = get(),
+            rejectSessionAuthenticateUseCase = get()
         )
     }
 }

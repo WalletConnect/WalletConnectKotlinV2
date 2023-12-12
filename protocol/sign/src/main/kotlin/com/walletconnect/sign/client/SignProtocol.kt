@@ -187,6 +187,37 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
         }
     }
 
+    @Throws(IllegalStateException::class)
+    override fun approveSessionAuthenticate(approve: Sign.Params.ApproveSessionAuthenticate, onSuccess: (Sign.Params.ApproveSessionAuthenticate) -> Unit, onError: (Sign.Model.Error) -> Unit) {
+        checkEngineInitialization()
+
+        scope.launch {
+            try {
+                signEngine.approveSessionAuthenticate(
+                    approve.id, approve.cacaos.toCommon(),
+                    onSuccess = { onSuccess(approve) },
+                    onFailure = { error -> onError(Sign.Model.Error(error)) }
+                )
+
+            } catch (error: Exception) {
+                onError(Sign.Model.Error(error))
+            }
+        }
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun rejectSessionAuthenticate(reject: Sign.Params.RejectSessionAuthenticate, onSuccess: (Sign.Params.RejectSessionAuthenticate) -> Unit, onError: (Sign.Model.Error) -> Unit) {
+        checkEngineInitialization()
+
+        scope.launch {
+            try {
+                signEngine.rejectSessionAuthenticate(reject.id, reject.reason, onSuccess = { onSuccess(reject) }) { error -> onError(Sign.Model.Error(error)) }
+            } catch (error: Exception) {
+                onError(Sign.Model.Error(error))
+            }
+        }
+    }
+
     @Deprecated(
         "The onSuccess callback has been replaced with a new callback that returns Sign.Model.SentRequest",
         replaceWith = ReplaceWith("this.request(request, onSuccessWithSentRequest, onError)", "com.walletconnect.sign.client")

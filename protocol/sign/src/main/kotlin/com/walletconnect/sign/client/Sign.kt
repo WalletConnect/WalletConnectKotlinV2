@@ -1,7 +1,10 @@
 package com.walletconnect.sign.client
 
+import androidx.annotation.Keep
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreInterface
+import com.walletconnect.android.cacao.SignatureInterface
+import com.walletconnect.android.internal.common.signing.cacao.Issuer
 import com.walletconnect.sign.common.model.vo.clientsync.common.PayloadParams
 import java.net.URI
 import kotlin.time.Duration
@@ -241,6 +244,31 @@ object Sign {
             val requestId: String?,
             val resources: List<String>?,
         ) : Model()
+
+        data class Cacao(
+            val header: Header,
+            val payload: Payload,
+            val signature: Signature,
+        ) : Model() {
+            @Keep
+            data class Signature(override val t: String, override val s: String, override val m: String? = null) : Model(), SignatureInterface
+            data class Header(val t: String) : Model()
+            data class Payload(
+                val iss: String,
+                val domain: String,
+                val aud: String,
+                val version: String,
+                val nonce: String,
+                val iat: String,
+                val nbf: String?,
+                val exp: String?,
+                val statement: String?,
+                val requestId: String?,
+                val resources: List<String>?,
+            ) : Model() {
+                val address: String get() = Issuer(iss).address
+            }
+        }
     }
 
     sealed class Params {
@@ -270,6 +298,9 @@ object Sign {
         ) : Params()
 
         data class Reject(val proposerPublicKey: String, val reason: String) : Params()
+
+        data class ApproveSessionAuthenticate(val id: Long, val cacaos: List<Model.Cacao>) : Params()
+        data class RejectSessionAuthenticate(val id: Long, val reason: String) : Params()
 
         data class Disconnect(val sessionTopic: String) : Params()
 

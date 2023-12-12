@@ -22,6 +22,7 @@ import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toEngineDO
 import com.walletconnect.sign.engine.model.mapper.toSessionRequest
 import com.walletconnect.sign.engine.sessionRequestEventsQueue
+import com.walletconnect.sign.engine.use_case.calls.ApproveSessionAuthenticateUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.ApproveSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.DisconnectSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.EmitEventUseCaseInterface
@@ -34,6 +35,7 @@ import com.walletconnect.sign.engine.use_case.calls.GetVerifyContextByIdUseCaseI
 import com.walletconnect.sign.engine.use_case.calls.PairUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.PingUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.ProposeSessionUseCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.RejectSessionAuthenticateUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.RejectSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.RespondSessionRequestUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.SessionAuthenticateUseCaseInterface
@@ -89,6 +91,8 @@ internal class SignEngine(
     private val pairUseCase: PairUseCaseInterface,
     private val rejectSessionUseCase: RejectSessionUseCaseInterface,
     private val approveSessionUseCase: ApproveSessionUseCaseInterface,
+    private val approveSessionAuthenticateUseCase: ApproveSessionAuthenticateUseCaseInterface,
+    private val rejectSessionAuthenticateUseCase: RejectSessionAuthenticateUseCaseInterface,
     private val sessionUpdateUseCase: SessionUpdateUseCaseInterface,
     private val sessionRequestUseCase: SessionRequestUseCaseInterface,
     private val respondSessionRequestUseCase: RespondSessionRequestUseCaseInterface,
@@ -121,6 +125,8 @@ internal class SignEngine(
     PairUseCaseInterface by pairUseCase,
     RejectSessionUseCaseInterface by rejectSessionUseCase,
     ApproveSessionUseCaseInterface by approveSessionUseCase,
+    ApproveSessionAuthenticateUseCaseInterface by approveSessionAuthenticateUseCase,
+    RejectSessionAuthenticateUseCaseInterface by rejectSessionAuthenticateUseCase,
     SessionUpdateUseCaseInterface by sessionUpdateUseCase,
     SessionRequestUseCaseInterface by sessionRequestUseCase,
     RespondSessionRequestUseCaseInterface by respondSessionRequestUseCase,

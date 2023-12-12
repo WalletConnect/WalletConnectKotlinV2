@@ -9,6 +9,7 @@ import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Validation
+import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.signing.cacao.CacaoType
 import com.walletconnect.android.utils.toClient
 import com.walletconnect.sign.client.Sign
@@ -88,6 +89,33 @@ internal fun EngineDO.SessionRequest.toClientSessionRequest(): Sign.Model.Sessio
 @JvmSynthetic
 internal fun Sign.Params.Authenticate.toPayloadParams(): PayloadParams = with(payloadParams) {
     PayloadParams(CacaoType.CAIP222.header, chains, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
+}
+
+@JvmSynthetic
+internal fun List<Sign.Model.Cacao>.toCommon(): List<Cacao> = mutableListOf<Cacao>().apply {
+    this@toCommon.forEach { cacao: Sign.Model.Cacao ->
+        with(cacao) {
+            add(
+                Cacao(
+                    Cacao.Header(header.t),
+                    Cacao.Payload(
+                        payload.iss,
+                        payload.domain,
+                        payload.aud,
+                        payload.version,
+                        payload.nonce,
+                        payload.iat,
+                        payload.nbf,
+                        payload.exp,
+                        payload.statement,
+                        payload.requestId,
+                        payload.resources
+                    ),
+                    Cacao.Signature(signature.t, signature.s, signature.m)
+                )
+            )
+        }
+    }
 }
 
 @JvmSynthetic

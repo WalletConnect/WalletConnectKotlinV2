@@ -48,6 +48,8 @@ interface SignInterface {
     fun pair(pair: Sign.Params.Pair, onSuccess: (Sign.Params.Pair) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun approveSession(approve: Sign.Params.Approve, onSuccess: (Sign.Params.Approve) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun rejectSession(reject: Sign.Params.Reject, onSuccess: (Sign.Params.Reject) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
+    fun approveSessionAuthenticate(approve: Sign.Params.ApproveSessionAuthenticate, onSuccess: (Sign.Params.ApproveSessionAuthenticate) -> Unit, onError: (Sign.Model.Error) -> Unit)
+    fun rejectSessionAuthenticate(reject: Sign.Params.RejectSessionAuthenticate, onSuccess: (Sign.Params.RejectSessionAuthenticate) -> Unit, onError: (Sign.Model.Error) -> Unit)
 
     @Deprecated(
         message = "The onSuccess callback has been replaced with a new callback that returns Sign.Model.SentRequest",
