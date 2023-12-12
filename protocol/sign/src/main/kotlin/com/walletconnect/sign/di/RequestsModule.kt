@@ -18,7 +18,7 @@ internal fun requestsModule() = module {
 
     single { OnSessionProposalUseCase(pairingController = get(), jsonRpcInteractor = get(), proposalStorageRepository = get(), resolveAttestationIdUseCase = get()) }
 
-    single { OnSessionAuthenticateUseCase(pairingController = get(), jsonRpcInteractor = get(), resolveAttestationIdUseCase = get()) }
+    single { OnSessionAuthenticateUseCase(jsonRpcInteractor = get(), resolveAttestationIdUseCase = get()) }
 
     single {
         OnSessionSettleUseCase(

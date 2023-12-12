@@ -196,7 +196,7 @@ internal class SignEngine(
             .onEach { request ->
                 when (val requestParams = request.params) {
                     is SignParams.SessionProposeParams -> onSessionProposeUse(request, requestParams)
-                    is SignParams.SessionAuthenticateParams -> onAuthenticateSessionUseCase
+                    is SignParams.SessionAuthenticateParams -> onAuthenticateSessionUseCase(request, requestParams)
                     is SignParams.SessionSettleParams -> onSessionSettleUseCase(request, requestParams)
                     is SignParams.SessionRequestParams -> onSessionRequestUseCase(request, requestParams)
                     is SignParams.DeleteParams -> onSessionDeleteUseCase(request, requestParams)
@@ -213,6 +213,7 @@ internal class SignEngine(
             .onEach { response ->
                 when (val params = response.params) {
                     is SignParams.SessionProposeParams -> onSessionProposalResponseUseCase(response, params)
+                    is SignParams.SessionAuthenticateParams -> onSessionAuthenticateResponseUseCase(response, params)
                     is SignParams.SessionSettleParams -> onSessionSettleResponseUseCase(response)
                     is SignParams.UpdateNamespacesParams -> onSessionUpdateResponseUseCase(response)
                     is SignParams.SessionRequestParams -> onSessionRequestResponseUseCase(response, params)

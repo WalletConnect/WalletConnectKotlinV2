@@ -33,9 +33,7 @@ internal fun EngineDO.SettledSessionResponse.toClientSettledSessionResponse(): S
 @JvmSynthetic
 internal fun EngineDO.SessionUpdateNamespacesResponse.toClientUpdateSessionNamespacesResponse(): Sign.Model.SessionUpdateResponse =
     when (this) {
-        is EngineDO.SessionUpdateNamespacesResponse.Result ->
-            Sign.Model.SessionUpdateResponse.Result(topic.value, namespaces.toMapOfClientNamespacesSession())
-
+        is EngineDO.SessionUpdateNamespacesResponse.Result -> Sign.Model.SessionUpdateResponse.Result(topic.value, namespaces.toMapOfClientNamespacesSession())
         is EngineDO.SessionUpdateNamespacesResponse.Error -> Sign.Model.SessionUpdateResponse.Error(errorMessage)
     }
 
@@ -88,7 +86,9 @@ internal fun EngineDO.SessionRequest.toClientSessionRequest(): Sign.Model.Sessio
     )
 
 @JvmSynthetic
-internal fun Sign.Params.Authenticate.toPayloadParams(): PayloadParams = PayloadParams(CacaoType.EIP4361.header, chains, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
+internal fun Sign.Params.Authenticate.toPayloadParams(): PayloadParams = with(payloadParams) {
+    PayloadParams(CacaoType.CAIP222.header, chains, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
+}
 
 @JvmSynthetic
 internal fun Sign.Model.JsonRpcResponse.JsonRpcResult.toRpcResult(): JsonRpcResponse.JsonRpcResult = JsonRpcResponse.JsonRpcResult(id, result = result)
@@ -106,6 +106,13 @@ internal fun EngineDO.SessionDelete.toClientDeletedSession(): Sign.Model.Deleted
 @JvmSynthetic
 internal fun EngineDO.SessionEvent.toClientSessionEvent(): Sign.Model.SessionEvent =
     Sign.Model.SessionEvent(name, data)
+
+@JvmSynthetic
+internal fun EngineDO.SessionAuthenticateEvent.toClientSessionAuthenticated(): Sign.Model.SessionAuthenticated =
+    Sign.Model.SessionAuthenticated(id, pairingTopic, payloadParams.toClient())
+
+@JvmSynthetic
+internal fun PayloadParams.toClient(): Sign.Model.PayloadParams = Sign.Model.PayloadParams(type, chains, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
 
 @JvmSynthetic
 internal fun EngineDO.Session.toClientActiveSession(): Sign.Model.Session =

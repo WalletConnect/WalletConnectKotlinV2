@@ -40,6 +40,10 @@ object Web3Wallet {
                 delegate.onSessionProposal(sessionProposal.toWallet(), verifyContext.toWallet())
             }
 
+            override fun onSessionAuthenticated(sessionAuthenticated: Sign.Model.SessionAuthenticated, verifyContext: Sign.Model.VerifyContext) {
+                println("kobe: Authenticated sessions")
+            }
+
             override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest, verifyContext: Sign.Model.VerifyContext) {
                 delegate.onSessionRequest(sessionRequest.toWallet(), verifyContext.toWallet())
             }

@@ -58,6 +58,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
         signEngine.engineEvent.onEach { event ->
             when (event) {
                 is EngineDO.SessionProposalEvent -> delegate.onSessionProposal(event.proposal.toClientSessionProposal(), event.context.toCore())
+                is EngineDO.SessionAuthenticateEvent -> delegate.onSessionAuthenticated(event.toClientSessionAuthenticated(), event.verifyContext.toCore())
                 is EngineDO.SessionRequestEvent -> delegate.onSessionRequest(event.request.toClientSessionRequest(), event.context.toCore())
                 is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
                 is EngineDO.SessionExtend -> delegate.onSessionExtend(event.toClientActiveSession())

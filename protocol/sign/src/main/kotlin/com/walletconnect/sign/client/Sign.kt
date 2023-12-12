@@ -2,6 +2,7 @@ package com.walletconnect.sign.client
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreInterface
+import com.walletconnect.sign.common.model.vo.clientsync.common.PayloadParams
 import java.net.URI
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -219,6 +220,27 @@ object Sign {
                 ) : Message()
             }
         }
+
+        data class SessionAuthenticated(
+            val id: Long,
+            val pairingTopic: String,
+            val payloadParams: PayloadParams,
+        )
+
+        data class PayloadParams(
+            val type: String,
+            val chains: List<String>,
+            val domain: String,
+            val aud: String,
+            val version: String,
+            val nonce: String,
+            val iat: String,
+            val nbf: String?,
+            val exp: String?,
+            val statement: String?,
+            val requestId: String?,
+            val resources: List<String>?,
+        ) : Model()
     }
 
     sealed class Params {
@@ -235,18 +257,8 @@ object Sign {
         ) : Params()
 
         data class Authenticate(
-            val chains: List<String>,
-            val domain: String,
-            val aud: String,
-            val version: String,
-            val nonce: String,
-            val iat: String,
-            val nbf: String?,
-            val exp: String?,
-            val statement: String?,
-            val requestId: String?,
-            val resources: List<String>?,
-            val pairingTopic: String
+            val pairingTopic: String,
+            val payloadParams: Model.PayloadParams
         ) : Params()
 
         data class Pair(val uri: String) : Params()
