@@ -25,7 +25,7 @@ internal class SessionAuthenticateUseCase(
     private val selfAppMetaData: AppMetaData,
     private val logger: Logger
 ) : SessionAuthenticateUseCaseInterface {
-    override suspend fun authenticate(payloadParams: PayloadParams, topic: String, expiry: Expiry?, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
+    override suspend fun authenticate(payloadParams: PayloadParams, topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         val nowInSeconds = TimeUnit.SECONDS.convert(Date().time, TimeUnit.SECONDS)
 //        if (!CoreValidator.isExpiryWithinBounds(expiry ?: Expiry(300))) {
 //            return@supervisorScope onFailure(InvalidExpiryException())
@@ -33,12 +33,13 @@ internal class SessionAuthenticateUseCase(
 
         val responsePublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
         val responseTopic: Topic = crypto.getTopicFromKey(responsePublicKey)
-        val authParams: SignParams.SessionAuthenticateParams = SignParams.SessionAuthenticateParams(Requester(responsePublicKey.keyAsHex, selfAppMetaData), payloadParams, expiry)
+        val authParams: SignParams.SessionAuthenticateParams = SignParams.SessionAuthenticateParams(Requester(responsePublicKey.keyAsHex, selfAppMetaData), payloadParams)
         val authRequest: SignRpc.SessionAuthenticate = SignRpc.SessionAuthenticate(params = authParams)
         val irnParamsTtl = getIrnParamsTtl(null, nowInSeconds)
         val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE, irnParamsTtl, true)
         val pairingTopic = Topic(topic)
-        val requestTtlInSeconds = expiry?.run { seconds - nowInSeconds } ?: DAY_IN_SECONDS
+        //todo: use exp from payload
+//        val requestTtlInSeconds = expiry?.run { seconds - nowInSeconds } ?: DAY_IN_SECONDS
         crypto.setKey(responsePublicKey, responseTopic.getParticipantTag())
 
         jsonRpcInteractor.publishJsonRpcRequest(pairingTopic, irnParams, authRequest,
@@ -69,5 +70,5 @@ internal class SessionAuthenticateUseCase(
 }
 
 internal interface SessionAuthenticateUseCaseInterface {
-    suspend fun authenticate(payloadParams: PayloadParams, topic: String, expiry: Expiry?, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit)
+    suspend fun authenticate(payloadParams: PayloadParams, topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit)
 }

@@ -93,7 +93,9 @@ internal fun callsModule() = module {
             cacaoVerifier = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
             verifyContextStorageRepository = get(),
-            pairingController = get()
+            pairingController = get(),
+            getPendingSessionAuthenticateRequest = get(),
+            selfAppMetaData = get()
         )
     }
 
@@ -102,7 +104,8 @@ internal fun callsModule() = module {
             jsonRpcInteractor = get(),
             crypto = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
-            verifyContextStorageRepository = get()
+            verifyContextStorageRepository = get(),
+            getPendingSessionAuthenticateRequest = get()
         )
     }
 

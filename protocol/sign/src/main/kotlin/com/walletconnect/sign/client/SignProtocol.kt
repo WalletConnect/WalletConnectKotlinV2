@@ -123,7 +123,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
         checkEngineInitialization()
         scope.launch {
             try {
-                signEngine.authenticate(authenticate.toPayloadParams(), authenticate.pairingTopic, null, //todo: Handle expiry
+                signEngine.authenticate(authenticate.toPayloadParams(), authenticate.pairingTopic,
                     onSuccess = { onSuccess() },
                     onFailure = { throwable -> onError(Sign.Model.Error(throwable)) })
             } catch (error: Exception) {

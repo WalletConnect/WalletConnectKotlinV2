@@ -2,6 +2,7 @@ package com.walletconnect.sign.engine.use_case.requests
 
 import com.walletconnect.android.internal.common.exception.Invalid
 import com.walletconnect.android.internal.common.exception.Uncategorized
+import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
@@ -32,7 +33,8 @@ internal class OnSessionAuthenticateUseCase(
     suspend operator fun invoke(request: WCRequest, authenticateSessionParams: SignParams.SessionAuthenticateParams) = supervisorScope {
         val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE_RESPONSE, Ttl(DAY_IN_SECONDS))
         try {
-            if (!CoreValidator.isExpiryWithinBounds(authenticateSessionParams.expiry)) {
+            val expiry = authenticateSessionParams.payloadParams.exp?.toLong()?.let { Expiry(it) }
+            if (!CoreValidator.isExpiryWithinBounds(expiry)) {
                 jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
                 return@supervisorScope
             }

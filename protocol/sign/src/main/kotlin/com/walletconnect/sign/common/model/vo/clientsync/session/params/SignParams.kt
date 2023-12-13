@@ -4,7 +4,6 @@ package com.walletconnect.sign.common.model.vo.clientsync.session.params
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SessionProposer
@@ -37,9 +36,7 @@ internal sealed class SignParams : CoreSignParams() {
         @Json(name = "requester")
         val requester: Requester,
         @Json(name = "payloadParams")
-        val payloadParams: PayloadParams,
-        @Json(name = "expiry")
-        val expiry: Expiry? = null
+        val payloadParams: PayloadParams
     ) : SignParams()
 
     @JsonClass(generateAdapter = true)
