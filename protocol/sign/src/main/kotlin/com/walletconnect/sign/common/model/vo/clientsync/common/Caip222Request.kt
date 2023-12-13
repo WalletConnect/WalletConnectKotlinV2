@@ -2,7 +2,7 @@ package com.walletconnect.sign.common.model.vo.clientsync.common
 
 import com.squareup.moshi.Json
 
-data class PayloadParams(
+data class Caip222Request(
     @Json(name = "type")
     val type: String,
     @Json(name = "chains")

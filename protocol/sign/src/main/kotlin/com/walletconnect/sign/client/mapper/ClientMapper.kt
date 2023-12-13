@@ -14,7 +14,7 @@ import com.walletconnect.android.internal.common.signing.cacao.CacaoType
 import com.walletconnect.android.utils.toClient
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.common.model.PendingRequest
-import com.walletconnect.sign.common.model.vo.clientsync.common.PayloadParams
+import com.walletconnect.sign.common.model.vo.clientsync.common.Caip222Request
 import com.walletconnect.sign.engine.model.EngineDO
 
 @JvmSynthetic
@@ -94,8 +94,8 @@ internal fun EngineDO.SessionRequest.toClientSessionRequest(): Sign.Model.Sessio
     )
 
 @JvmSynthetic
-internal fun Sign.Params.Authenticate.toPayloadParams(): PayloadParams = with(payloadParams) {
-    PayloadParams(CacaoType.CAIP222.header, chains, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
+internal fun Sign.Params.Authenticate.toPayloadParams(): Caip222Request = with(payloadParams) {
+    Caip222Request(CacaoType.CAIP222.header, chains, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
 }
 
 @JvmSynthetic
@@ -171,10 +171,10 @@ internal fun EngineDO.SessionEvent.toClientSessionEvent(): Sign.Model.SessionEve
 
 @JvmSynthetic
 internal fun EngineDO.SessionAuthenticateEvent.toClientSessionAuthenticated(): Sign.Model.SessionAuthenticated =
-    Sign.Model.SessionAuthenticated(id, pairingTopic, payloadParams.toClient())
+    Sign.Model.SessionAuthenticated(id, pairingTopic, caip222Request.toClient())
 
 @JvmSynthetic
-internal fun PayloadParams.toClient(): Sign.Model.PayloadParams = Sign.Model.PayloadParams(type, chains, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
+internal fun Caip222Request.toClient(): Sign.Model.PayloadParams = Sign.Model.PayloadParams(type, chains, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
 
 @JvmSynthetic
 internal fun EngineDO.Session.toClientActiveSession(): Sign.Model.Session =

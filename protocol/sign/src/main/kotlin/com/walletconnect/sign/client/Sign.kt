@@ -5,7 +5,6 @@ import com.walletconnect.android.Core
 import com.walletconnect.android.CoreInterface
 import com.walletconnect.android.cacao.SignatureInterface
 import com.walletconnect.android.internal.common.signing.cacao.Issuer
-import com.walletconnect.sign.common.model.vo.clientsync.common.PayloadParams
 import java.net.URI
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
