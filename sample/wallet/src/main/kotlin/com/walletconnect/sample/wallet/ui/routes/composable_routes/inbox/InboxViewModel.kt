@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -43,19 +44,10 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
     val searchText = _searchText.asStateFlow()
 
     private val _activeSubscriptions = NotifyDelegate.notifyEvents
-        .filter { event ->
-            when (event) {
-                is Notify.Event.SubscriptionsChanged -> true
-                else -> false
-            }
-        }
+        .filterIsInstance<Notify.Event.SubscriptionsChanged>()
         .debounce(500L)
-        .map { event ->
-            when (event) {
-                is Notify.Event.SubscriptionsChanged -> event.subscriptions.toUI()
-                else -> throw Throwable("It is simply not possible to hit this exception. I blame bit flip.")
-            }
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), NotifyClient.getActiveSubscriptions().values.toList().toUI())
+        .map { event -> event.subscriptions.toUI() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), NotifyClient.getActiveSubscriptions().values.toList().toUI())
 
     private val _activeSubscriptionsTrigger = MutableSharedFlow<Unit>(replay = 1)
 

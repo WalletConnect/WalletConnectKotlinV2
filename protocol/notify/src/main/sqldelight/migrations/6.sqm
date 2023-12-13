@@ -1,0 +1,24 @@
+import kotlin.Boolean;
+
+-- Renaming table
+
+ALTER TABLE Messages RENAME TO Notifications;
+
+-- Chaning isLimited to allApps. This flips/negate the boolean value
+
+ALTER TABLE RegisteredAccounts RENAME TO TempRegisterAccounts;
+
+CREATE TABLE RegisteredAccounts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    accountId TEXT UNIQUE NOT NULL,
+    publicIdentityKey TEXT UNIQUE NOT NULL,
+    allApps INTEGER AS Boolean NOT NULL,
+    appDomain TEXT DEFAULT NULL,
+    notifyServerWatchTopic TEXT DEFAULT NULL,
+    notifyServerAuthenticationKey TEXT DEFAULT NULL
+);
+
+INSERT OR IGNORE INTO RegisteredAccounts(accountId, publicIdentityKey, allApps, appDomain, notifyServerWatchTopic, notifyServerAuthenticationKey)
+SELECT accountId, publicIdentityKey, CASE WHEN isLimited THEN 0 ELSE 1 END, appDomain, notifyServerWatchTopic, notifyServerAuthenticationKey FROM TempRegisterAccounts;
+
+DROP TABLE TempRegisterAccounts;

@@ -268,9 +268,9 @@ object NotificationHandler {
     }
 
 
-    suspend fun addNotification(message: Notify.Model.Message) {
+    suspend fun addNotification(message: Notify.Model.Notification) {
         val notification =
-            if (message is Notify.Model.Message.Decrypted) Notification.Decrypted(message.hashCode(), message.type, message.title, message.body, message.topic, message.url, message.url)
+            if (message is Notify.Model.Notification.Decrypted) Notification.Decrypted(message.hashCode(), message.type, message.title, message.body, message.topic, message.url, message.url)
             else Notification.Simple(message.hashCode(), W3W_CHANNEL_ID, message.title, message.body)
 
         _notificationsFlow.emit(notification)
