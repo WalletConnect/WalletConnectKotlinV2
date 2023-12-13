@@ -227,6 +227,16 @@ object Web3Wallet {
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
+//    @Throws(IllegalStateException::class)
+//    fun formatAuthenticateMessage(params: Wallet.Params.FormatMessage): String? {
+//        val authParams = Auth.Params.FormatMessage(params.payloadParams.toSign(), params.issuer)
+//        return SignClient.f(authParams)
+//    }
+
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
     @Throws(IllegalStateException::class)
     fun formatMessage(params: Wallet.Params.FormatMessage): String? {
         val authParams = Auth.Params.FormatMessage(params.payloadParams.toSign(), params.issuer)

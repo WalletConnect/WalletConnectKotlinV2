@@ -124,12 +124,23 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
         checkEngineInitialization()
         scope.launch {
             try {
-                signEngine.authenticate(authenticate.toPayloadParams(), authenticate.pairingTopic,
+                signEngine.authenticate(authenticate.payloadParams.toCaip222Request(), authenticate.pairingTopic,
                     onSuccess = { onSuccess() },
                     onFailure = { throwable -> onError(Sign.Model.Error(throwable)) })
             } catch (error: Exception) {
                 onError(Sign.Model.Error(error))
             }
+        }
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun formatAuthenticateMessage(formatMessage: Sign.Params.FormatMessage): String? {
+        checkEngineInitialization()
+
+        return try {
+            runBlocking { signEngine.formatMessage(formatMessage.payloadParams.toCaip222Request(), formatMessage.iss) }
+        } catch (error: Exception) {
+            null
         }
     }
 

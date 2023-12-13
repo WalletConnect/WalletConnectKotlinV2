@@ -94,7 +94,7 @@ internal fun EngineDO.SessionRequest.toClientSessionRequest(): Sign.Model.Sessio
     )
 
 @JvmSynthetic
-internal fun Sign.Params.Authenticate.toPayloadParams(): Caip222Request = with(payloadParams) {
+internal fun Sign.Model.PayloadParams.toCaip222Request(): Caip222Request = with(this) {
     Caip222Request(CacaoType.CAIP222.header, chains, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
 }
 

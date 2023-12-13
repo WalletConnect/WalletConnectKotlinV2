@@ -5,16 +5,20 @@ package com.walletconnect.sign.engine.model.mapper
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.Expiry
+import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SessionProposer
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
+import com.walletconnect.android.internal.common.signing.cacao.Cacao
+import com.walletconnect.android.internal.common.signing.cacao.Issuer
+import com.walletconnect.android.internal.common.signing.cacao.toCAIP122Message
 import com.walletconnect.android.verify.data.model.VerifyContext
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.exceptions.PeerError
 import com.walletconnect.sign.common.model.PendingRequest
-import com.walletconnect.android.internal.common.model.Namespace
+import com.walletconnect.sign.common.model.vo.clientsync.common.Caip222Request
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipant
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.common.model.vo.proposal.ProposalVO
@@ -279,3 +283,22 @@ internal fun ValidationError.toPeerError() = when (this) {
 @JvmSynthetic
 internal fun VerifyContext.toEngineDO(): EngineDO.VerifyContext =
     EngineDO.VerifyContext(id, origin, validation, verifyUrl, isScam)
+
+@JvmSynthetic
+internal fun Caip222Request.toCacaoPayload(iss: Issuer): Cacao.Payload = Cacao.Payload(
+    iss.value,
+    domain = domain,
+    aud = aud,
+    version = version,
+    nonce = nonce,
+    iat = iat,
+    nbf = nbf,
+    exp = exp,
+    statement = statement,
+    requestId = requestId,
+    resources = resources
+)
+
+@JvmSynthetic
+internal fun Caip222Request.toCAIP122Message(iss: Issuer, chainName: String = "Ethereum"): String =//todo: Figure out dynamic chain name
+    this.toCacaoPayload(iss).toCAIP122Message(chainName)

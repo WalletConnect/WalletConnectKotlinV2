@@ -14,6 +14,8 @@ import com.walletconnect.sign.engine.use_case.calls.EmitEventUseCase
 import com.walletconnect.sign.engine.use_case.calls.EmitEventUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.ExtendSessionUseCase
 import com.walletconnect.sign.engine.use_case.calls.ExtendSessionUseCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.FormatAuthenticateMessageUseCase
+import com.walletconnect.sign.engine.use_case.calls.FormatAuthenticateMessageUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.GetListOfVerifyContextsUseCase
 import com.walletconnect.sign.engine.use_case.calls.GetListOfVerifyContextsUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.GetPairingsUseCase
@@ -158,4 +160,6 @@ internal fun callsModule() = module {
     single<GetVerifyContextByIdUseCaseInterface> { GetVerifyContextByIdUseCase(verifyContextStorageRepository = get()) }
 
     single<GetListOfVerifyContextsUseCaseInterface> { GetListOfVerifyContextsUseCase(verifyContextStorageRepository = get()) }
+
+    single<FormatAuthenticateMessageUseCaseInterface> { FormatAuthenticateMessageUseCase() }
 }

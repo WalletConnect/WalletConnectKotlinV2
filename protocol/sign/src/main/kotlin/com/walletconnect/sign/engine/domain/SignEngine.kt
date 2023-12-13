@@ -27,6 +27,7 @@ import com.walletconnect.sign.engine.use_case.calls.ApproveSessionUseCaseInterfa
 import com.walletconnect.sign.engine.use_case.calls.DisconnectSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.EmitEventUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.ExtendSessionUseCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.FormatAuthenticateMessageUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.GetListOfVerifyContextsUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.GetPairingsUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.GetSessionProposalsUseCaseInterface
@@ -97,6 +98,7 @@ internal class SignEngine(
     private val sessionRequestUseCase: SessionRequestUseCaseInterface,
     private val respondSessionRequestUseCase: RespondSessionRequestUseCaseInterface,
     private val pingUseCase: PingUseCaseInterface,
+    private val formatAuthenticateMessageUseCase: FormatAuthenticateMessageUseCaseInterface,
     private val emitEventUseCase: EmitEventUseCaseInterface,
     private val extendSessionUseCase: ExtendSessionUseCaseInterface,
     private val disconnectSessionUseCase: DisconnectSessionUseCaseInterface,
@@ -131,6 +133,7 @@ internal class SignEngine(
     SessionRequestUseCaseInterface by sessionRequestUseCase,
     RespondSessionRequestUseCaseInterface by respondSessionRequestUseCase,
     PingUseCaseInterface by pingUseCase,
+    FormatAuthenticateMessageUseCaseInterface by formatAuthenticateMessageUseCase,
     EmitEventUseCaseInterface by emitEventUseCase,
     ExtendSessionUseCaseInterface by extendSessionUseCase,
     DisconnectSessionUseCaseInterface by disconnectSessionUseCase,

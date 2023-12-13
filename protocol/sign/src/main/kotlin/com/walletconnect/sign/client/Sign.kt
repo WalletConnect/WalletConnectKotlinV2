@@ -294,6 +294,8 @@ object Sign {
             val payloadParams: Model.PayloadParams
         ) : Params()
 
+        data class FormatMessage(val payloadParams: Model.PayloadParams, val iss: String) : Params()
+
         data class Pair(val uri: String) : Params()
 
         data class Approve(

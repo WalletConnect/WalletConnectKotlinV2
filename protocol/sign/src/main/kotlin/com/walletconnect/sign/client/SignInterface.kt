@@ -40,7 +40,7 @@ interface SignInterface {
 
     fun connect(connect: Sign.Params.Connect, onSuccess: () -> Unit, onError: (Sign.Model.Error) -> Unit)
 
-    fun authenticate(authenticate: Sign.Params.Authenticate, onSuccess: () -> Unit, onError: (Sign.Model.Error) -> Unit, )
+    fun authenticate(authenticate: Sign.Params.Authenticate, onSuccess: () -> Unit, onError: (Sign.Model.Error) -> Unit)
 
     @Deprecated(
         message = "Creating a pairing will be moved to CoreClient to make pairing SDK agnostic",
@@ -51,6 +51,8 @@ interface SignInterface {
     fun rejectSession(reject: Sign.Params.Reject, onSuccess: (Sign.Params.Reject) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun approveSessionAuthenticate(approve: Sign.Params.ApproveSessionAuthenticate, onSuccess: (Sign.Params.ApproveSessionAuthenticate) -> Unit, onError: (Sign.Model.Error) -> Unit)
     fun rejectSessionAuthenticate(reject: Sign.Params.RejectSessionAuthenticate, onSuccess: (Sign.Params.RejectSessionAuthenticate) -> Unit, onError: (Sign.Model.Error) -> Unit)
+
+    fun formatAuthenticateMessage(formatMessage: Sign.Params.FormatMessage): String?
 
     @Deprecated(
         message = "The onSuccess callback has been replaced with a new callback that returns Sign.Model.SentRequest",
