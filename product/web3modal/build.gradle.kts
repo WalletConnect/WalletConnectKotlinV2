@@ -8,7 +8,7 @@ plugins {
 
 project.apply {
     extra[KEY_PUBLISH_ARTIFACT_ID] = "web3modal"
-    extra[KEY_PUBLISH_VERSION] = WEB_3_MODAL
+    extra[KEY_PUBLISH_VERSION] = WEB_3_MODAL_VERSION
     extra[KEY_SDK_NAME] = "web3modal"
 }
 
