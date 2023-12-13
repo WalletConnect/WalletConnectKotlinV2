@@ -123,7 +123,7 @@ fun LazyListScope.readActiveSubscriptionItems(navController: NavHostController, 
 
 @Composable
 fun ActiveSubscriptionItem(navController: NavHostController, imageUrl: ImageUrl, name: String, description: String, topic: String, endContent: @Composable (() -> Unit)) {
-    val hasIcon = remember { mutableStateOf(imageUrl.sm.isNotEmpty()) }
+    val hasIcon = remember { mutableStateOf(imageUrl.small.isNotEmpty()) }
 
     Box(
         modifier = Modifier
@@ -149,7 +149,7 @@ fun ActiveSubscriptionItem(navController: NavHostController, imageUrl: ImageUrl,
                     )
                     .border(1.dp, ButtonDefaults.outlinedBorder.brush, CircleShape),
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(imageUrl.sm.takeIf { hasIcon.value })
+                    .data(imageUrl.small.takeIf { hasIcon.value })
                     .fallback(R.drawable.ic_globe)
                     .error(R.drawable.ic_globe)
                     .crossfade(200)

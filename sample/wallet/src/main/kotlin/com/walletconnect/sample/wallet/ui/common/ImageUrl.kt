@@ -1,15 +1,15 @@
 package com.walletconnect.sample.wallet.ui.common
 
 data class ImageUrl(
-    val sm: String,
-    val md: String,
-    val lg: String,
+    val small: String,
+    val medium: String,
+    val large: String,
 )
 
 fun List<String>.toImageUrl(): ImageUrl {
     return ImageUrl(
-        sm = this.getOrElse(0) { "" },
-        md = this.getOrElse(0) { "" },
-        lg = this.getOrElse(0) { "" },
+        small = this.getOrElse(0) { "" },
+        medium = this.getOrElse(1) { "" },
+        large = this.getOrElse(2) { "" },
     )
 }

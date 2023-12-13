@@ -151,7 +151,7 @@ private fun EmptyOrLoadingOrFailureState(text: String, content: @Composable Colu
 @Composable
 fun ExplorerAppItem(explorerApp: ExplorerApp, onSubscribedClick: (app: ExplorerApp) -> Unit, onSubscribeClick: (app: ExplorerApp) -> Unit, onFailure: (Throwable) -> Unit) {
     val context = LocalContext.current
-    val hasIcon = remember { mutableStateOf(explorerApp.imageUrl.sm.isNotEmpty()) }
+    val hasIcon = remember { mutableStateOf(explorerApp.imageUrl.small.isNotEmpty()) }
     val gradientRadius = remember { mutableStateOf(IntSize(1, 1)) }
     val boxShape = RoundedCornerShape(12.dp)
     Box(
@@ -198,7 +198,7 @@ fun ExplorerAppItem(explorerApp: ExplorerApp, onSubscribedClick: (app: ExplorerA
                         )
                         .border(1.dp, ButtonDefaults.outlinedBorder.brush, CircleShape),
                     model = ImageRequest.Builder(LocalContext.current)
-                        .data(explorerApp.imageUrl.sm.takeIf { hasIcon.value })
+                        .data(explorerApp.imageUrl.small.takeIf { hasIcon.value })
                         .fallback(R.drawable.ic_globe)
                         .error(R.drawable.ic_globe)
                         .crossfade(200)

@@ -57,7 +57,7 @@ fun NotificationsHeader(
     onNotificationSettings: () -> Unit,
     onUnsubscribe: () -> Unit,
 ) {
-    val hasIcon = remember { mutableStateOf(currentSubscription.imageUrl.sm.isNotEmpty()) }
+    val hasIcon = remember { mutableStateOf(currentSubscription.imageUrl.small.isNotEmpty()) }
 
     Column(
         modifier = Modifier
@@ -89,7 +89,7 @@ fun NotificationsHeader(
                     )
                     .border(1.dp, ButtonDefaults.outlinedBorder.brush, CircleShape),
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(currentSubscription.imageUrl.sm.takeIf { hasIcon.value })
+                    .data(currentSubscription.imageUrl.small.takeIf { hasIcon.value })
                     .fallback(R.drawable.ic_globe)
                     .error(R.drawable.ic_globe)
                     .crossfade(200)
