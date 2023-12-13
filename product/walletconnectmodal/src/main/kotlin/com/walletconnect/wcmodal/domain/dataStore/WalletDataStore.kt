@@ -38,13 +38,11 @@ internal class WalletDataSource(
 
     var searchPhrase = String.Empty
 
-    val totalWalletsCount: Int
-        get() = walletsListingData.totalCount + installedWalletsIds.size
-
     val wallets: List<Wallet>
         get() = walletsListingData.wallets
 
     private fun getPriorityWallets() = (getRecentWalletUseCase()?.let { listOf(it) } ?: listOf()) + installedWalletsIds + WalletConnectModal.recommendedWalletsIds
+
     private val searchState: MutableStateFlow<WalletsData> = MutableStateFlow(WalletsData.empty())
     val walletState: MutableStateFlow<WalletsData> = MutableStateFlow(WalletsData.empty())
 
