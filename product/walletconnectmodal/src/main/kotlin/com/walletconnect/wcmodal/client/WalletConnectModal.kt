@@ -2,11 +2,11 @@ package com.walletconnect.wcmodal.client
 
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.wcmodal.domain.WalletConnectModalDelegate
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import com.walletconnect.sign.common.exceptions.SignClientAlreadyInitializedException
 import com.walletconnect.wcmodal.di.walletConnectModalModule
+import com.walletconnect.wcmodal.domain.WalletConnectModalDelegate
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
@@ -116,6 +116,10 @@ object WalletConnectModal {
 
             override fun onSessionRequestResponse(response: Sign.Model.SessionRequestResponse) {
                 delegate.onSessionRequestResponse(response.toModal())
+            }
+
+            override fun onSessionAuthenticateResponse(sessionUpdateResponse: Sign.Model.SessionAuthenticateResponse) {
+                TODO("Not yet implemented")
             }
 
             override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {

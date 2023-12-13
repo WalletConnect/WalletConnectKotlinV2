@@ -69,7 +69,8 @@ internal fun engineModule() = module {
             onAuthenticateSessionUseCase = get(),
             onSessionAuthenticateResponseUseCase = get(),
             approveSessionAuthenticateUseCase = get(),
-            rejectSessionAuthenticateUseCase = get()
+            rejectSessionAuthenticateUseCase = get(),
+            formatAuthenticateMessageUseCase = get()
         )
     }
 }

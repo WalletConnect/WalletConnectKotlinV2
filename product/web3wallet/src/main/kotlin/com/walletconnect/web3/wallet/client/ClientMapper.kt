@@ -55,10 +55,27 @@ internal fun Wallet.Model.Cacao.Signature.toAuth(): Auth.Model.Cacao.Signature =
 internal fun Wallet.Model.SessionEvent.toSign(): Sign.Model.SessionEvent = Sign.Model.SessionEvent(name, data)
 
 @JvmSynthetic
-internal fun Wallet.Model.PayloadParams.toSign(): Auth.Model.PayloadParams =
+internal fun Wallet.Model.PayloadParams.toAuth(): Auth.Model.PayloadParams =
     Auth.Model.PayloadParams(
         type = type,
         chainId = chainId,
+        domain = domain,
+        aud = aud,
+        version = version,
+        nonce = nonce,
+        iat = iat,
+        nbf = nbf,
+        exp = exp,
+        statement = statement,
+        requestId = requestId,
+        resources = resources,
+    )
+
+@JvmSynthetic
+internal fun Wallet.Model.PayloadAuthRequestParams.toSign(): Sign.Model.PayloadParams =
+    Sign.Model.PayloadParams(
+        type = type,
+        chains = chains,
         domain = domain,
         aud = aud,
         version = version,

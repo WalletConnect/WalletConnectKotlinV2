@@ -152,6 +152,10 @@ object Web3Modal {
                 delegate.onSessionRequestResponse(response.toModal())
             }
 
+            override fun onSessionAuthenticateResponse(sessionUpdateResponse: Sign.Model.SessionAuthenticateResponse) {
+                TODO("Not yet implemented")
+            }
+
             override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {
                 delegate.onConnectionStateChange(state.toModal())
             }

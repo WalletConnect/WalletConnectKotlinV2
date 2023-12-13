@@ -33,6 +33,8 @@ object Wallet {
 
         data class FormatMessage(val payloadParams: Model.PayloadParams, val issuer: String) : Params()
 
+        data class FormatAuthMessage(val payloadParams: Model.PayloadAuthRequestParams, val issuer: String) : Params()
+
         sealed class AuthRequestResponse : Params() {
             abstract val id: Long
 
@@ -157,6 +159,22 @@ object Wallet {
             val requestId: String?,
             val resources: List<String>?,
         ) : Model()
+
+        data class PayloadAuthRequestParams(
+            val type: String,
+            val chains: List<String>,
+            val domain: String,
+            val aud: String,
+            val version: String,
+            val nonce: String,
+            val iat: String,
+            val nbf: String?,
+            val exp: String?,
+            val statement: String?,
+            val requestId: String?,
+            val resources: List<String>?,
+        ) : Model()
+
 
         data class SessionEvent(val name: String, val data: String) : Model()
 
