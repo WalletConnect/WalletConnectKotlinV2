@@ -9,6 +9,7 @@ import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.internal.common.model.Validation
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.Sequence
+import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.verify.data.model.VerifyContext
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.model.vo.clientsync.common.PayloadParams
@@ -109,6 +110,11 @@ internal sealed class EngineDO {
         val data: String,
         val chainId: String?,
     ) : EngineDO(), EngineEvent
+
+    sealed class SessionAuthenticateResponse : EngineDO(), EngineEvent {
+        data class Result(val id: Long, val cacaos: List<Cacao>) : SessionAuthenticateResponse()
+        data class Error(val id: Long, val code: Int, val message: String) : SessionAuthenticateResponse()
+    }
 
     sealed class SettledSessionResponse : EngineDO(), EngineEvent {
         data class Result(val settledSession: Session) : SettledSessionResponse()

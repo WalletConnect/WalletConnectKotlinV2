@@ -20,8 +20,8 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
-import com.walletconnect.sign.common.exceptions.InvalidCacaoException
 import com.walletconnect.sign.common.exceptions.MissingSessionAuthenticateRequest
+import com.walletconnect.sign.common.exceptions.PeerError
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionAuthenticateRequest
 import kotlinx.coroutines.supervisorScope
@@ -51,13 +51,32 @@ internal class ApproveSessionAuthenticateUseCase(
 //            if (checkExpiry(expiry, responseTopic, respond, authParams)) return@supervisorScope onFailure(InvalidExpiryException())
 //        }
 
-        cacaos.forEach { cacao -> if (!cacaoVerifier.verify(cacao)) throw InvalidCacaoException() }
 
         val sessionAuthenticateParams: SignParams.SessionAuthenticateParams = jsonRpcHistoryEntry.params
         val receiverPublicKey = PublicKey(sessionAuthenticateParams.requester.publicKey)
         val senderPublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
         val symmetricKey: SymmetricKey = crypto.generateSymmetricKeyFromKeyAgreement(senderPublicKey, receiverPublicKey)
         val responseTopic: Topic = crypto.getTopicFromKey(receiverPublicKey)
+
+        val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE_RESPONSE, Ttl(DAY_IN_SECONDS), false)
+
+        cacaos.forEach { cacao ->
+            if (!cacaoVerifier.verify(cacao)) {
+                //todo: handle error codes
+                jsonRpcInteractor.respondWithError(id,
+                    responseTopic,
+                    PeerError.EIP1193.UserRejectedRequest("Invalid CACAO"),
+                    irnParams,
+                    EnvelopeType.ONE,
+                    Participants(senderPublicKey, receiverPublicKey),
+                    onSuccess = {
+                        logger.log("Error successfully sent on topic: $responseTopic")
+                    },
+                    onFailure = {
+                        logger.error("Error failure on topic: $responseTopic")
+                    })
+            }
+        }
 
         val responseParams = CoreSignParams.SessionAuthenticateApproveParams(
             responder = Participant(
@@ -70,7 +89,6 @@ internal class ApproveSessionAuthenticateUseCase(
         val response: JsonRpcResponse = JsonRpcResponse.JsonRpcResult(id, result = responseParams)
 
         crypto.setKey(symmetricKey, responseTopic.value)
-        val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE_RESPONSE, Ttl(DAY_IN_SECONDS), false)
 
         jsonRpcInteractor.publishJsonRpcResponse(
             responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),

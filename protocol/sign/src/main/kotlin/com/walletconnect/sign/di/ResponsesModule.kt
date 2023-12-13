@@ -34,7 +34,11 @@ internal fun responsesModule() = module {
     }
 
     single {
-        OnSessionAuthenticateResponseUseCase(jsonRpcInteractor = get(), pairingController = get(), crypto = get(), logger = get(named(AndroidCommonDITags.LOGGER)), pairingInterface = get())
+        OnSessionAuthenticateResponseUseCase(
+            pairingController = get(),
+            pairingInterface = get(),
+            cacaoVerifier = get()
+        )
     }
 
     single { OnSessionUpdateResponseUseCase(sessionStorageRepository = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
