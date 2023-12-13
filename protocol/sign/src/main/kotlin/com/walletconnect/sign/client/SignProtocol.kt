@@ -86,6 +86,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
                 is EngineDO.SessionExtend -> delegate.onSessionExtend(event.toClientActiveSession())
                 //Responses
                 is EngineDO.SessionPayloadResponse -> delegate.onSessionRequestResponse(event.toClientSessionPayloadResponse())
+                is EngineDO.SessionAuthenticateResponse -> delegate.onSessionAuthenticateResponse(event.toClientSessionAuthenticateResponse())
                 //Utils
                 is ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
                 is SDKError -> delegate.onError(event.toClientError())

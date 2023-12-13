@@ -117,6 +117,12 @@ object Sign {
             data class Error(val errorMessage: String) : SessionUpdateResponse()
         }
 
+        sealed class SessionAuthenticateResponse : Model() {
+            data class Result(val id: Long, val cacaos: List<Cacao>) : SessionAuthenticateResponse()
+            data class Error(val id: Long, val code: Int, val message: String) : SessionAuthenticateResponse()
+        }
+
+
         sealed class DeletedSession : Model() {
             data class Success(val topic: String, val reason: String) : DeletedSession()
             data class Error(val error: Throwable) : DeletedSession()

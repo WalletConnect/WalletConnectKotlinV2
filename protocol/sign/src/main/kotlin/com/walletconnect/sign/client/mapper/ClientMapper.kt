@@ -32,6 +32,13 @@ internal fun EngineDO.SettledSessionResponse.toClientSettledSessionResponse(): S
     }
 
 @JvmSynthetic
+internal fun EngineDO.SessionAuthenticateResponse.toClientSessionAuthenticateResponse(): Sign.Model.SessionAuthenticateResponse =
+    when (this) {
+        is EngineDO.SessionAuthenticateResponse.Result -> Sign.Model.SessionAuthenticateResponse.Result(id, cacaos.toClient())
+        is EngineDO.SessionAuthenticateResponse.Error -> Sign.Model.SessionAuthenticateResponse.Error(id, code, message)
+    }
+
+@JvmSynthetic
 internal fun EngineDO.SessionUpdateNamespacesResponse.toClientUpdateSessionNamespacesResponse(): Sign.Model.SessionUpdateResponse =
     when (this) {
         is EngineDO.SessionUpdateNamespacesResponse.Result -> Sign.Model.SessionUpdateResponse.Result(topic.value, namespaces.toMapOfClientNamespacesSession())
@@ -112,6 +119,33 @@ internal fun List<Sign.Model.Cacao>.toCommon(): List<Cacao> = mutableListOf<Caca
                         payload.resources
                     ),
                     Cacao.Signature(signature.t, signature.s, signature.m)
+                )
+            )
+        }
+    }
+}
+
+@JvmSynthetic
+internal fun List<Cacao>.toClient(): List<Sign.Model.Cacao> = mutableListOf<Sign.Model.Cacao>().apply {
+    this@toClient.forEach { cacao: Cacao ->
+        with(cacao) {
+            add(
+                Sign.Model.Cacao(
+                    Sign.Model.Cacao.Header(header.t),
+                    Sign.Model.Cacao.Payload(
+                        payload.iss,
+                        payload.domain,
+                        payload.aud,
+                        payload.version,
+                        payload.nonce,
+                        payload.iat,
+                        payload.nbf,
+                        payload.exp,
+                        payload.statement,
+                        payload.requestId,
+                        payload.resources
+                    ),
+                    Sign.Model.Cacao.Signature(signature.t, signature.s, signature.m)
                 )
             )
         }

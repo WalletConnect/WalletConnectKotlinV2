@@ -27,6 +27,7 @@ interface SignInterface {
 
         //Responses
         fun onSessionRequestResponse(response: Sign.Model.SessionRequestResponse)
+        fun onSessionAuthenticateResponse(sessionUpdateResponse: Sign.Model.SessionAuthenticateResponse)
 
         // Utils
         fun onConnectionStateChange(state: Sign.Model.ConnectionState)
