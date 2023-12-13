@@ -272,7 +272,7 @@ private class InboxScreenActiveSubscriptionsPreviewProvider : PreviewParameterPr
         listOf(
             ActiveSubscriptionsUI(
                 "",
-                ImageUrl("https://explorer-api.walletconnect.com/v3/logo/sm/ae213078-71b0-49ac-17e9-294719d92e00?projectId=8e998cd112127e42dce5e2bf74122539", "", ""),
+                ImageUrl("https://raw.githubusercontent.com/WalletConnect/walletconnect-assets/master/Icon/Gradient/Icon.png", "", ""),
                 "Dapp Name",
                 0,
                 "WalletConnect sample app for testing Notify features.",

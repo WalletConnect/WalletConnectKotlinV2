@@ -17,20 +17,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -38,12 +32,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
-import com.walletconnect.sample.wallet.R
-import com.walletconnect.sample.wallet.ui.common.subscriptions.ActiveSubscriptionsUI
-import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.common.ImageUrl
+import com.walletconnect.sample.wallet.ui.common.subscriptions.ActiveSubscriptionsUI
+import com.walletconnect.sample.wallet.ui.common.subscriptions.SubscriptionIcon
+import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.LazyColumnSurroundedWithFogVertically
 
 
@@ -123,8 +115,6 @@ fun LazyListScope.readActiveSubscriptionItems(navController: NavHostController, 
 
 @Composable
 fun ActiveSubscriptionItem(navController: NavHostController, imageUrl: ImageUrl, name: String, description: String, topic: String, endContent: @Composable (() -> Unit)) {
-    val hasIcon = remember { mutableStateOf(imageUrl.small.isNotEmpty()) }
-
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -138,30 +128,7 @@ fun ActiveSubscriptionItem(navController: NavHostController, imageUrl: ImageUrl,
                 .fillMaxHeight(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
-            AsyncImage(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .size(48.dp)
-                    .background(
-                        if (hasIcon.value) Color.Transparent
-                        else Color(0xFFE2FDFF)
-                    )
-                    .border(1.dp, ButtonDefaults.outlinedBorder.brush, CircleShape),
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(imageUrl.small.takeIf { hasIcon.value })
-                    .fallback(R.drawable.ic_globe)
-                    .error(R.drawable.ic_globe)
-                    .crossfade(200)
-                    .listener(
-                        onError = { _, _ ->
-                            hasIcon.value = false
-                        }
-                    )
-                    .build(),
-                contentScale = if (hasIcon.value) ContentScale.Fit else ContentScale.None,
-                contentDescription = null,
-            )
+            SubscriptionIcon(size = 48.dp, imageUrl = imageUrl)
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.Start) {
                 Text(
