@@ -99,6 +99,11 @@ internal fun Sign.Model.PayloadParams.toCaip222Request(): Caip222Request = with(
 }
 
 @JvmSynthetic
+internal fun Sign.Model.PayloadParams.toCacaoPayload(issuer: String): Sign.Model.Cacao.Payload = with(this) {
+    Sign.Model.Cacao.Payload(issuer, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
+}
+
+@JvmSynthetic
 internal fun List<Sign.Model.Cacao>.toCommon(): List<Cacao> = mutableListOf<Cacao>().apply {
     this@toCommon.forEach { cacao: Sign.Model.Cacao ->
         with(cacao) {

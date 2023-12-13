@@ -2,12 +2,14 @@
 
 package com.walletconnect.sign.client.utils
 
+import com.walletconnect.android.internal.common.model.Namespace
+import com.walletconnect.android.internal.common.signing.cacao.CacaoType
 import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.sign.client.Sign
+import com.walletconnect.sign.client.mapper.toCacaoPayload
 import com.walletconnect.sign.client.mapper.toCore
 import com.walletconnect.sign.client.mapper.toProposalNamespacesVO
 import com.walletconnect.sign.client.mapper.toSessionNamespacesVO
-import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.sign.common.validator.SignValidator
 
 fun generateApprovedNamespaces(
@@ -73,3 +75,11 @@ private fun normalizeKey(key: String): String = if (CoreValidator.isChainIdCAIP2
 private fun MutableMap<String, Namespace.Proposal>.getChains(normalizedKey: String) = (this[normalizedKey]?.chains ?: emptyList())
 private fun MutableMap<String, Namespace.Proposal>.getMethods(normalizedKey: String) = (this[normalizedKey]?.methods ?: emptyList())
 private fun MutableMap<String, Namespace.Proposal>.getEvents(normalizedKey: String) = (this[normalizedKey]?.events ?: emptyList())
+
+fun generateCACAO(payload: Sign.Model.PayloadParams, issuer: String, signature: String, type: String): Sign.Model.Cacao {
+    return Sign.Model.Cacao(
+        header = Sign.Model.Cacao.Header(t = CacaoType.CAIP222.header),
+        payload = payload.toCacaoPayload(issuer),
+        signature = Sign.Model.Cacao.Signature(t = type, s = signature)
+    )
+}
