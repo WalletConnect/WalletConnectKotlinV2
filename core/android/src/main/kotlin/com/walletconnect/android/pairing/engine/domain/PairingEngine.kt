@@ -25,8 +25,8 @@ import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.WalletConnectUri
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
-import com.walletconnect.android.internal.common.storage.PairingStorageRepositoryInterface
+import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
+import com.walletconnect.android.internal.common.storage.pairing.PairingStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.CURRENT_TIME_IN_SECONDS
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
 import com.walletconnect.android.internal.utils.THIRTY_SECONDS
@@ -34,7 +34,7 @@ import com.walletconnect.android.pairing.engine.model.EngineDO
 import com.walletconnect.android.pairing.model.PairingJsonRpcMethod
 import com.walletconnect.android.pairing.model.PairingParams
 import com.walletconnect.android.pairing.model.PairingRpc
-import com.walletconnect.android.pairing.model.mapper.toClient
+import com.walletconnect.android.pairing.model.mapper.toSign
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
@@ -122,7 +122,7 @@ internal class PairingEngine(
             metadataRepository.upsertPeerMetadata(this.topic, selfMetaData, AppMetaDataType.SELF)
             jsonRpcInteractor.subscribe(this.topic) { error -> return@subscribe onFailure(error) }
 
-            this.toClient()
+            this.toSign()
         }.onFailure { throwable ->
             crypto.removeKeys(pairingTopic.value)
             pairingRepository.deletePairing(pairingTopic)

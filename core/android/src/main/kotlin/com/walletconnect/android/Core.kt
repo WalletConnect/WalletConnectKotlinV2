@@ -2,6 +2,7 @@ package com.walletconnect.android
 
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.Expiry
+import com.walletconnect.android.internal.common.model.Namespace
 
 object Core {
     sealed interface Listeners {
@@ -33,6 +34,91 @@ object Core {
             val isActive: Boolean,
             val registeredMethods: String
         ) : Model()
+
+        sealed class Namespace : Model() {
+
+            //Required or Optional
+            data class Proposal(
+                val chains: List<String>? = null,
+                val methods: List<String>,
+                val events: List<String>,
+            ) : Namespace()
+
+            data class Session(
+                val chains: List<String>? = null,
+                val accounts: List<String>,
+                val methods: List<String>,
+                val events: List<String>,
+            ) : Namespace()
+        }
+
+        sealed class Message : Model() {
+
+            data class Simple(
+                val title: String,
+                val body: String
+            ) : Message()
+
+            data class Notify(
+                val title: String,
+                val body: String,
+                val icon: String?,
+                val url: String?,
+                val type: String,
+                val topic: String
+            ) : Message()
+
+            data class SessionProposal(
+                val id: Long,
+                val pairingTopic: String,
+                val name: String,
+                val description: String,
+                val url: String,
+                val icons: List<String>,
+                val redirect: String,
+                val requiredNamespaces: Map<String, Namespace.Proposal>,
+                val optionalNamespaces: Map<String, Namespace.Proposal>,
+                val properties: Map<String, String>?,
+                val proposerPublicKey: String,
+                val relayProtocol: String,
+                val relayData: String?,
+            ) : Message()
+
+            data class SessionRequest(
+                val topic: String,
+                val chainId: String?,
+                val peerMetaData: AppMetaData?,
+                val request: JSONRPCRequest,
+            ) : Message() {
+                data class JSONRPCRequest(
+                    val id: Long,
+                    val method: String,
+                    val params: String,
+                )
+            }
+
+            data class AuthRequest(
+                val id: Long,
+                val pairingTopic: String,
+                val metadata: AppMetaData,
+                val payloadParams: PayloadParams,
+            ) : Message() {
+                data class PayloadParams(
+                    val type: String,
+                    val chainId: String,
+                    val domain: String,
+                    val aud: String,
+                    val version: String,
+                    val nonce: String,
+                    val iat: String,
+                    val nbf: String?,
+                    val exp: String?,
+                    val statement: String?,
+                    val requestId: String?,
+                    val resources: List<String>?,
+                )
+            }
+        }
     }
 
     sealed class Params {

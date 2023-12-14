@@ -5,23 +5,23 @@ const val KEY_PUBLISH_ARTIFACT_ID = "PUBLISH_ARTIFACT_ID"
 const val KEY_SDK_NAME = "SDK_NAME"
 
 //Latest versions
-const val BOM_VERSION = "1.20.0"
-const val FOUNDATION_VERSION = "1.12.0"
-const val CORE_VERSION = "1.25.0"
-const val SIGN_VERSION = "2.23.0"
-const val AUTH_VERSION = "1.23.0"
-const val CHAT_VERSION = "1.0.0-beta22"
-const val NOTIFY_VERSION = "1.0.0-beta03"
-const val WEB_3_WALLET = "1.18.0"
-const val WEB_3_MODAL = "1.0.0"
-const val WC_MODAL_VERSION = "1.0.0-beta02"
-const val MODAL_CORE_VERSION = "1.0.0-beta02"
+const val BOM_VERSION = "1.21.0"
+const val FOUNDATION_VERSION = "1.13.0"
+const val CORE_VERSION = "1.26.0"
+const val SIGN_VERSION = "2.24.0"
+const val AUTH_VERSION = "1.24.0"
+const val CHAT_VERSION = "1.0.0-beta23"
+const val NOTIFY_VERSION = "1.0.0-beta04"
+const val WEB_3_WALLET = "1.19.0"
+const val WEB_3_MODAL = "1.1.0"
+const val WC_MODAL_VERSION = "1.1.0"
+const val MODAL_CORE_VERSION = "1.1.0"
 
 val jvmVersion = JavaVersion.VERSION_11
 const val MIN_SDK: Int = 23
 const val TARGET_SDK: Int = 33
 const val COMPILE_SDK: Int = TARGET_SDK
-val SAMPLE_VERSION_CODE = BOM_VERSION.split(".").run { "${this[1]}${this[2]}" }.toInt()
+val SAMPLE_VERSION_CODE = BOM_VERSION.replace(".", "").toInt()
 const val SAMPLE_VERSION_NAME = BOM_VERSION
 const val agpVersion = "8.0.2" // when changing, remember to change version in build.gradle.kts in buildSrc module
 const val kotlinVersion = "1.8.21" // when changing, remember to change version in build.gradle.kts in buildSrc module

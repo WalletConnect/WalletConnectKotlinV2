@@ -2,7 +2,6 @@
 
 package com.walletconnect.sample.wallet.domain
 
-import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -17,6 +16,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.graphics.drawable.toBitmap
 import coil.ImageLoader
 import coil.request.ImageRequest
+import com.walletconnect.android.Core
 import com.walletconnect.notify.client.Notify
 import com.walletconnect.notify.client.NotifyClient
 import com.walletconnect.sample.wallet.R
@@ -25,6 +25,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -41,7 +42,7 @@ import java.net.URI
 
 object NotificationHandler {
 
-    private const val SIMPLE_CHANNEL_ID = "Web3Wallet"
+    private const val W3W_CHANNEL_ID = "Web3Wallet"
     private val _notificationsFlow: MutableSharedFlow<Notification> = MutableSharedFlow()
 
     private sealed interface Notification {
@@ -53,8 +54,40 @@ object NotificationHandler {
         data class Simple(override val messageId: Int, override val channelId: String, override val title: String, override val body: String) : Notification
 
         data class Decrypted(
-            override val messageId: Int, override val channelId: String, override val title: String,
-            override val body: String, val topic: String, val url: String?, val iconUrl: String?,
+            override val messageId: Int, override val channelId: String, override val title: String, override val body: String, val topic: String, val url: String?, val iconUrl: String?
+        ) : Notification //Notify
+
+        data class SessionProposal(
+            override val messageId: Int,
+            override val channelId: String,
+            override val title: String,
+            override val body: String,
+            val name: String,
+            val description: String,
+            val url: String,
+            val iconUrl: String?,
+            val redirect: String
+        ) : Notification
+
+        data class SessionRequest(
+            override val messageId: Int,
+            override val channelId: String,
+            override val title: String,
+            override val body: String,
+            val chainId: String?,
+            val topic: String,
+            val url: String?,
+            val iconUrl: String?
+        ) : Notification
+
+        data class AuthRequest(
+            override val messageId: Int,
+            override val channelId: String,
+            override val title: String,
+            override val body: String,
+            val topic: String,
+            val url: String?,
+            val iconUrl: String?
         ) : Notification
     }
 
@@ -78,7 +111,7 @@ object NotificationHandler {
 
     private fun Flow<Map<String, List<Notification>>>.addChannelName(): Flow<Map<String, NotificationsWithMetadata>> = this.map { notificationsMap ->
         notificationsMap.mapValues { (channelId, notifications) ->
-            val (channelName: String, iconUrl: String?) = if (channelId == SIMPLE_CHANNEL_ID) channelId to null else runCatching {
+            val (channelName: String, iconUrl: String?) = if (channelId == W3W_CHANNEL_ID) channelId to null else runCatching {
                 val topic = (notifications.first() as Notification.Decrypted).topic
 
                 // TODO discus with the team how to make it more dev friendly
@@ -192,21 +225,63 @@ object NotificationHandler {
         }
     }
 
+    suspend fun addNotification(message: Core.Model.Message) {
+        val notification = when (message) {
+            is Core.Model.Message.Simple -> Notification.Simple(message.hashCode(), W3W_CHANNEL_ID, message.title, message.body)
+            is Core.Model.Message.Notify -> Notification.Decrypted(message.hashCode(), message.type, message.title, message.body, message.topic, message.url, message.url)
+            is Core.Model.Message.AuthRequest -> Notification.AuthRequest(
+                message.hashCode(),
+                W3W_CHANNEL_ID,
+                "New Authentication Request!",
+                "A new authentication request arrived from ${message.metadata.name}, please check your wallet",
+                message.pairingTopic,
+                message.metadata.url,
+                message.metadata.icons.firstOrNull()
+            )
 
-    suspend fun addNotification(message: Notify.Model.Message) {
-        val notification =
-            if (message is Notify.Model.Message.Decrypted) Notification.Decrypted(message.hashCode(), message.type, message.title, message.body, message.topic, message.url, message.url)
-            else Notification.Simple(message.hashCode(), SIMPLE_CHANNEL_ID, message.title, message.body)
+            is Core.Model.Message.SessionRequest -> Notification.SessionRequest(
+                message.hashCode(),
+                W3W_CHANNEL_ID,
+                "New session request!",
+                "A new session request ${message.request.method} arrived from ${message.peerMetaData?.name}, please check your wallet",
+                message.chainId,
+                message.topic,
+                message.peerMetaData?.url,
+                message.peerMetaData?.icons?.firstOrNull()
+            )
+
+            is Core.Model.Message.SessionProposal ->
+                Notification.SessionProposal(
+                    message.hashCode(),
+                    W3W_CHANNEL_ID,
+                    "New session proposal!",
+                    "A new session proposal arrived from ${message.name}, please check your wallet",
+                    message.name,
+                    message.description,
+                    message.url,
+                    message.icons.firstOrNull(),
+                    message.redirect
+                )
+        }
 
         _notificationsFlow.emit(notification)
     }
 
-    @SuppressLint("InlinedApi")
-    fun startNotificationDisplayingJob(coroutineScope: CoroutineScope, context: Context) {
-        _notificationsFlow
+
+    suspend fun addNotification(message: Notify.Model.Notification) {
+        val notification =
+            if (message is Notify.Model.Notification.Decrypted) Notification.Decrypted(message.hashCode(), message.type, message.title, message.body, message.topic, message.url, message.url)
+            else Notification.Simple(message.hashCode(), W3W_CHANNEL_ID, message.title, message.body)
+
+        _notificationsFlow.emit(notification)
+    }
+
+    fun startNotificationDisplayingJob(scope: CoroutineScope, context: Context): Job {
+        return _notificationsFlow
             .debounceUniqueAndGroupByChannelId(2000)
             .addChannelName()
             .buildAndShowNotification(context, 5000)
-            .launchIn(coroutineScope)
+            .launchIn(scope)
     }
+
 }

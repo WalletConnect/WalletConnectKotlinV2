@@ -20,14 +20,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
-import com.walletconnect.notify.client.Notify
 import com.walletconnect.sample.common.ui.theme.WCSampleAppTheme
-import com.walletconnect.sample.wallet.domain.NotificationHandler
 import com.walletconnect.sample.wallet.domain.NotifyDelegate
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
 import com.walletconnect.sample.wallet.ui.routes.host.WalletSampleHost
-import kotlinx.coroutines.flow.filterIsInstance
+import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
@@ -48,8 +46,8 @@ class Web3WalletActivity : AppCompatActivity() {
         handleWeb3WalletEvents(web3walletViewModel, connectionsViewModel)
         handleCoreEvents(connectionsViewModel)
         askNotificationPermission()
-        handleNotifyMessages()
         setContent(web3walletViewModel, connectionsViewModel)
+        handleErrors()
     }
 
     private fun setContent(
@@ -69,15 +67,6 @@ class Web3WalletActivity : AppCompatActivity() {
         }
     }
 
-    private fun handleNotifyMessages() {
-        NotifyDelegate.notifyEvents
-            .filterIsInstance<Notify.Event.Message>()
-            .onEach { message -> NotificationHandler.addNotification(message.message.message) }
-            .launchIn(lifecycleScope)
-
-        NotificationHandler.startNotificationDisplayingJob(lifecycleScope, this)
-    }
-
     private fun handleCoreEvents(connectionsViewModel: ConnectionsViewModel) {
         connectionsViewModel.coreEvents
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
@@ -91,6 +80,14 @@ class Web3WalletActivity : AppCompatActivity() {
                     else -> Unit
                 }
             }
+            .launchIn(lifecycleScope)
+    }
+
+
+    private fun handleErrors() {
+        NotifyDelegate.notifyErrors
+            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .onEach { error -> runCatching { this.navController.showSnackbar(error.throwable.message ?: error.throwable.toString()) } }
             .launchIn(lifecycleScope)
     }
 

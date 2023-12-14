@@ -8,6 +8,7 @@ import com.walletconnect.auth.client.AuthClient
 import com.walletconnect.auth.common.exceptions.AuthClientAlreadyInitializedException
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
+import com.walletconnect.sign.common.exceptions.InvalidSignParamsType
 import com.walletconnect.sign.common.exceptions.SignClientAlreadyInitializedException
 import kotlinx.coroutines.*
 import java.util.*
@@ -91,6 +92,7 @@ object Web3Wallet {
         coreClient = params.core
         var clientInitCounter = 0
         val onSuccessfulInitialization: () -> Unit = { clientInitCounter++ }
+
         SignClient.initialize(Sign.Params.Init(params.core), onSuccess = onSuccessfulInitialization) { error ->
             if (error.throwable is SignClientAlreadyInitializedException) {
                 onSuccessfulInitialization()
@@ -109,8 +111,32 @@ object Web3Wallet {
     }
 
     @Throws(IllegalStateException::class)
-    fun registerDeviceToken(firebaseAccessToken: String, onSuccess: () -> Unit, onError: (Wallet.Model.Error) -> Unit) {
-        coreClient.Echo.register(firebaseAccessToken, onSuccess) { error -> onError(Wallet.Model.Error(error)) }
+    fun registerDeviceToken(firebaseAccessToken: String, enableEncrypted: Boolean = false, onSuccess: () -> Unit, onError: (Wallet.Model.Error) -> Unit) {
+        coreClient.Echo.register(firebaseAccessToken, enableEncrypted, onSuccess) { error -> onError(Wallet.Model.Error(error)) }
+    }
+
+    @Throws(IllegalStateException::class)
+    fun decryptMessage(params: Wallet.Params.DecryptMessage, onSuccess: (Wallet.Model.Message) -> Unit, onError: (Wallet.Model.Error) -> Unit) {
+        scope.launch {
+            SignClient.decryptMessage(
+                Sign.Params.DecryptMessage(params.topic, params.encryptedMessage),
+                onSuccess = { message ->
+                    when (message) {
+                        is Sign.Model.Message.SessionRequest -> onSuccess(message.toWallet())
+                        is Sign.Model.Message.SessionProposal -> onSuccess(message.toWallet())
+                        else -> { /*Ignore*/ }
+                    }
+                },
+                onError = { signError ->
+                    if (signError.throwable is InvalidSignParamsType) {
+                        AuthClient.decryptMessage(Auth.Params.DecryptMessage(params.topic, params.encryptedMessage),
+                            onSuccess = { message -> (message as? Auth.Model.Message.AuthRequest)?.run { onSuccess(message.toWallet()) } },
+                            onError = { error -> onError(Wallet.Model.Error(error.throwable)) })
+                    } else {
+                        onError(Wallet.Model.Error(signError.throwable))
+                    }
+                })
+        }
     }
 
     @Throws(IllegalStateException::class)
@@ -299,8 +325,9 @@ object Web3Wallet {
                     while (true) {
                         if (clientInitCounter == 2) {
                             onSuccess()
-                            break
+                            return@withTimeout
                         }
+                        delay(100)
                     }
                 }
             } catch (e: Exception) {

@@ -5,7 +5,7 @@ package com.walletconnect.android.internal.common.crypto.kmr
 import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.model.MissingKeyException
 import com.walletconnect.android.internal.common.model.SymmetricKey
-import com.walletconnect.android.internal.common.storage.KeyStore
+import com.walletconnect.android.internal.common.storage.key_chain.KeyStore
 import com.walletconnect.foundation.common.model.Key
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
@@ -14,6 +14,7 @@ import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.hexToBytes
 import org.bouncycastle.crypto.digests.SHA256Digest
 import org.bouncycastle.crypto.generators.HKDFBytesGenerator
+import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters
 import org.bouncycastle.crypto.params.HKDFParameters
 import org.bouncycastle.math.ec.rfc7748.X25519
 import org.bouncycastle.math.ec.rfc8032.Ed25519
@@ -58,6 +59,14 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
 
         setKeyPair(PublicKey(publicKey.bytesToHex().lowercase()), PrivateKey(privateKey.bytesToHex().lowercase()))
         return PublicKey(publicKey.bytesToHex().lowercase())
+    }
+
+    override fun deriveAndStoreEd25519KeyPair(privateKey: PrivateKey): PublicKey {
+        val privateKeyParameters = Ed25519PrivateKeyParameters(privateKey.keyAsHex.hexToBytes(), 0)
+        val publicKey = PublicKey(privateKeyParameters.generatePublicKey().encoded.bytesToHex().lowercase())
+
+        setKeyPair(publicKey, privateKey)
+        return publicKey
     }
 
     override fun generateAndStoreX25519KeyPair(): PublicKey {

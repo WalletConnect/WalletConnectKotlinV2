@@ -222,7 +222,7 @@ fun DependencyHandlerScope.beagle() {
 }
 
 fun DependencyHandlerScope.beagleOkHttp() {
-    "implementation"("io.github.pandulapeter.beagle:log-okhttp:$beagleVersion")
+    "api"("io.github.pandulapeter.beagle:log-okhttp:$beagleVersion")
 }
 
 fun DependencyHandlerScope.dataStore() {

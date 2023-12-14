@@ -101,6 +101,8 @@ object Relay {
 
                     val subscriptionTopic: String = params.subscriptionData.topic
                     val message: String = params.subscriptionData.message
+                    val tag: Int = params.subscriptionData.tag
+                    val publishedAt: Long = params.subscriptionData.publishedAt
 
                     data class Params(
                         val subscriptionId: String,
