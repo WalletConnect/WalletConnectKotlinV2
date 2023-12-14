@@ -44,6 +44,7 @@ internal class SessionAuthenticateUseCase(
 
         jsonRpcInteractor.publishJsonRpcRequest(pairingTopic, irnParams, authRequest,
             onSuccess = {
+                logger.error("Session authenticate sent successfully on topic: $pairingTopic")
                 try {
                     jsonRpcInteractor.subscribe(responseTopic) { error -> return@subscribe onFailure(error) }
                 } catch (e: Exception) {
