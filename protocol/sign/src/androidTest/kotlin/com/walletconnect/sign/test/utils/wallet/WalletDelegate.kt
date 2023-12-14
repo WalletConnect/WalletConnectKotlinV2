@@ -8,8 +8,7 @@ import timber.log.Timber
 
 open class WalletDelegate : SignClient.WalletDelegate {
     override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal, verifyContext: Sign.Model.VerifyContext) {}
-    override fun onSessionAuthenticated(sessionAuthenticated: Sign.Model.SessionAuthenticated, verifyContext: Sign.Model.VerifyContext) {
-    }
+    override fun onSessionAuthenticated(sessionAuthenticated: Sign.Model.SessionAuthenticated, verifyContext: Sign.Model.VerifyContext) {}
 
     override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest, verifyContext: Sign.Model.VerifyContext) {}
     override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {}

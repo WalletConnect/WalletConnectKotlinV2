@@ -2,6 +2,7 @@ package com.walletconnect.sign.test.client
 
 import com.walletconnect.android.Core
 import com.walletconnect.sign.BuildConfig
+import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import com.walletconnect.sign.test.scenario.SignClientInstrumentedActivityScenario
 import com.walletconnect.sign.test.utils.TestClient
@@ -38,7 +39,7 @@ class SessionAuthenticateInstrumentedAndroidTest {
         scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { pairDappAndWallet { scenarioExtension.closeAsSuccess().also { Timber.d("pair: finish") } } }
     }
 
-//    @Test
+    //    @Test
 //    fun approveSessionAuthenticated() {
 //        Timber.d("establishSession: start")
 //
@@ -47,23 +48,26 @@ class SessionAuthenticateInstrumentedAndroidTest {
 //        launch(walletDelegate, dappDelegate)
 //    }
 //
-//    @Test
-//    fun rejectSessionAuthenticated() {
-//        Timber.d("receiveRejectSession: start")
-//
-//        val walletDelegate = object : WalletDelegate() {
-//            override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal, verifyContext: Sign.Model.VerifyContext) {
-//                sessionProposal.rejectOnSessionProposal()
-//            }
-//        }
-//
-//        val dappDelegate = object : DappDelegate() {
-//            override fun onSessionRejected(rejectedSession: Sign.Model.RejectedSession) {
-//                scenarioExtension.closeAsSuccess().also { Timber.d("receiveRejectSession: finish") }
-//            }
-//        }
-//        launch(walletDelegate, dappDelegate)
-//    }
+    @Test
+    fun rejectSessionAuthenticated() {
+        Timber.d("rejectSessionAuthenticated: start")
+
+        val walletDelegate = object : WalletDelegate() {
+            override fun onSessionAuthenticated(sessionAuthenticated: Sign.Model.SessionAuthenticated, verifyContext: Sign.Model.VerifyContext) {
+                val params = Sign.Params.RejectSessionAuthenticate(sessionAuthenticated.id, "User rejections")
+                WalletSignClient.rejectSessionAuthenticate(params, onSuccess = {}, onError = ::globalOnError)
+            }
+        }
+
+        val dappDelegate = object : DappDelegate() {
+            override fun onSessionAuthenticateResponse(sessionUpdateResponse: Sign.Model.SessionAuthenticateResponse) {
+                if (sessionUpdateResponse is Sign.Model.SessionAuthenticateResponse.Error) {
+                    scenarioExtension.closeAsSuccess().also { Timber.d("receiveRejectSession: finish") }
+                }
+            }
+        }
+        launch(walletDelegate, dappDelegate)
+    }
 
     private fun pairDappAndWallet(onPairSuccess: (pairing: Core.Model.Pairing) -> Unit) {
         TestClient.Dapp.Pairing.getPairings().let { pairings ->
