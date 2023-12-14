@@ -8,7 +8,7 @@ data class NotifyConfig(
     val homepage: String,
     val description: String,
     val types: List<NotificationType>,
-    val imageUrl: ImageUrl,
+    val imageUrl: ImageUrl?,
     val isVerified: Boolean,
 )
 
