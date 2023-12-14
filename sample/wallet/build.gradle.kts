@@ -22,7 +22,7 @@ android {
             useSupportLibrary = true
         }
         buildConfigField("String", "PROJECT_ID","\"${System.getenv("WC_CLOUD_PROJECT_ID") ?: ""}\"")
-        buildConfigField("String", "BOM_VERSION", "\"${BOM_VERSION}\"")
+        buildConfigField("String", "example.BOM_VERSION", "\"${BOM_VERSION}\"")
     }
 
     compileOptions {

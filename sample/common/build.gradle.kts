@@ -15,7 +15,7 @@ android {
         consumerProguardFiles("consumer-rules.pro")
         buildConfigField("String", "PROJECT_ID", "\"${System.getenv("WC_CLOUD_PROJECT_ID") ?: ""}\"")
         buildConfigField("String", "MIX_PANEL", "\"${System.getenv("MIX_PANEL") ?: ""}\"")
-        buildConfigField("String", "BOM_VERSION", "\"$BOM_VERSION\"")
+        buildConfigField("String", "example.BOM_VERSION", "\"$BOM_VERSION\"")
         resValue("string", "sentry_dsn", System.getenv("SENTRY_DSN") ?: "")
     }
 

@@ -33,7 +33,7 @@ allprojects {
 app/build.gradle.kts
 
 ```gradle
-implementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
+implementation(platform("com.walletconnect:android-bom:$example.BOM_VERSION"))
 implementation("com.walletconnect:android-core")
 implementation("com.walletconnect:web3modal")
 ```
