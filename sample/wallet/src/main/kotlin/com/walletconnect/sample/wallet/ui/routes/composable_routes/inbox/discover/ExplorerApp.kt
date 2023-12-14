@@ -1,5 +1,7 @@
 package com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.discover
 
+import com.walletconnect.sample.wallet.ui.common.ImageUrl
+
 
 data class ExplorerApp(
     val id: String,
@@ -17,10 +19,4 @@ data class ExplorerApp(
         return matchingCombinations.any { it.contains(query, ignoreCase = true) }
     }
 }
-
-data class ImageUrl(
-    val sm: String,
-    val md: String,
-    val lg: String,
-)
 
