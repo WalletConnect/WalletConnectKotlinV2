@@ -5,7 +5,6 @@ plugins {
     id("jacoco-report")
     alias(libs.plugins.sqlDelight)
     id("com.google.devtools.ksp") version kspVersion
-    id("org.jetbrains.kotlinx.kover")
 }
 
 project.apply {
@@ -80,32 +79,6 @@ sqldelight {
 //            generateAsync.set(true) // TODO: Enable once all repository methods have been converted to suspend functions
             verifyMigrations.set(true)
         }
-    }
-}
-
-koverReport {
-    androidReports("release") {
-        filters {
-            excludes {
-                classes(
-                    "*Fragment",
-                    "*Fragment\$*",
-                    "*Activity",
-                    "*Activity\$*",
-                    "*.databinding.*",
-                    "*.BuildConfig",
-
-                    // excludes debug classes
-                    "*.DebugUtil"
-                )
-            }
-        }
-//        binary {
-//
-//        }
-//        xml {
-//            this.setReportFile(File(rootDir, ".qodana/code-coverage/coverage.xml"))
-//        }
     }
 }
 
