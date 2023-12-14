@@ -1,9 +1,9 @@
 package com.walletconnect.notify.test.scenario
 
 import com.walletconnect.android.Core
-import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.foundation.network.model.Relay
+import com.walletconnect.notify.client.Notify
 import com.walletconnect.notify.test.BuildConfig
 import com.walletconnect.notify.test.utils.TestClient
 import junit.framework.TestCase.fail
@@ -42,19 +42,44 @@ class ClientInstrumentedActivityScenario : TestRule, ActivityScenario() {
     }
 
     fun afterAll() {
-        unregisterIdentities()
+        unregister()
         scenario?.close()
         primaryReconnectJob?.cancel()
         secondaryReconnectJob?.cancel()
     }
 
-    private fun unregisterIdentities() {
+    private fun unregister() {
         Timber.d("afterAll unregister: start")
+
+        val isPrimaryReady = MutableStateFlow(false)
+        val isSecondaryReady = MutableStateFlow(false)
+
+        TestClient.Primary.notifyClient.unregister(Notify.Params.Unregistration(TestClient.caip10account), { identityKey ->
+            Timber.d("Primary unregister: $identityKey")
+            isPrimaryReady.value = true
+        }, { error ->
+            Timber.e(error.throwable)
+        })
+        TestClient.Secondary.notifyClient.unregister(Notify.Params.Unregistration(TestClient.caip10account), { identityKey ->
+            Timber.d("Secondary unregister: $identityKey")
+            isSecondaryReady.value = true
+        }, { error ->
+            Timber.e(error.throwable)
+        })
+
+        val timeoutDuration = BuildConfig.TEST_TIMEOUT_SECONDS.seconds
         runBlocking {
-            TestClient.Primary.identitiesInteractor.unregisterIdentity(AccountId(TestClient.caip10account), "https://keys.walletconnect.com")
-            TestClient.Secondary.identitiesInteractor.unregisterIdentity(AccountId(TestClient.caip10account), "https://keys.walletconnect.com")
+            runCatching {
+                withTimeout(timeoutDuration) {
+                    while (!isPrimaryReady.value && !isSecondaryReady.value) {
+                        delay(100)
+                    }
+                }
+            }.fold(
+                onSuccess = { Timber.d("afterAll unregister: finish") },
+                onFailure = { fail("Unable to unregister within $timeoutDuration") }
+            )
         }
-        Timber.d("afterAll unregister: finish")
     }
 
     private fun beforeAll() {

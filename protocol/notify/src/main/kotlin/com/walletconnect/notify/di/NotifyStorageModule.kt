@@ -7,7 +7,7 @@ import com.walletconnect.android.di.sdkBaseStorageModule
 import com.walletconnect.android.internal.common.di.deleteDatabase
 import com.walletconnect.notify.NotifyDatabase
 import com.walletconnect.notify.common.storage.data.dao.ActiveSubscriptions
-import com.walletconnect.notify.data.storage.MessagesRepository
+import com.walletconnect.notify.data.storage.NotificationsRepository
 import com.walletconnect.notify.data.storage.RegisteredAccountsRepository
 import com.walletconnect.notify.data.storage.SubscriptionRepository
 import org.koin.core.qualifier.named
@@ -70,11 +70,11 @@ internal fun notifyStorageModule(dbName: String) = module {
         }
     }
 
-    single { get<NotifyDatabase>().messagesQueries }
+    single { get<NotifyDatabase>().notificationsQueries }
     single { get<NotifyDatabase>().activeSubscriptionsQueries }
     single { get<NotifyDatabase>().registeredAccountsQueries }
 
     single { SubscriptionRepository(activeSubscriptionsQueries = get()) }
-    single { MessagesRepository(messagesQueries = get()) }
+    single { NotificationsRepository(notificationsQueries = get()) }
     single { RegisteredAccountsRepository(registeredAccounts = get()) }
 }

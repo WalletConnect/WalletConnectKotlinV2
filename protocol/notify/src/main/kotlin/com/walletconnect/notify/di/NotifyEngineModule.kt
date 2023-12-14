@@ -111,7 +111,7 @@ internal fun engineModule() = module {
             deleteSubscriptionUseCase = get(),
             deleteMessageUseCase = get(),
             decryptMessageUseCase = get(named(AndroidCommonDITags.DECRYPT_NOTIFY_MESSAGE)),
-            registerUseCase = get(),
+            legacyRegisterUseCase = get(),
             unregisterUseCase = get(),
             getNotificationTypesUseCase = get(),
             getListOfActiveSubscriptionsUseCase = get(),
@@ -122,7 +122,10 @@ internal fun engineModule() = module {
             onNotifyUpdateResponseUseCase = get(),
             onWatchSubscriptionsResponseUseCase = get(),
             watchSubscriptionsForEveryRegisteredAccountUseCase = get(),
-            onSubscriptionsChangedUseCase = get()
+            onSubscriptionsChangedUseCase = get(),
+            isRegisteredUseCase = get(),
+            prepareRegistrationUseCase = get(),
+            registerUseCase = get(),
         )
     }
 }

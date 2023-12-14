@@ -2,6 +2,7 @@
 
 package com.walletconnect.notify.common.model
 
+import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 
 internal data class NotifyRecord(
@@ -9,4 +10,5 @@ internal data class NotifyRecord(
     val topic: String,
     val publishedAt: Long,
     val notifyMessage: NotifyMessage,
+    val metadata: AppMetaData?,
 ) : EngineEvent
