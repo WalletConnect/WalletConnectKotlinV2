@@ -195,7 +195,9 @@ object Wallet {
         ) : Model() {
             @Keep
             data class Signature(override val t: String, override val s: String, override val m: String? = null) : Model(), SignatureInterface
-            data class Header(val t: String) : Model()
+            data class Header(val t: String) : Model() {
+
+            }
             data class Payload(
                 val iss: String,
                 val domain: String,

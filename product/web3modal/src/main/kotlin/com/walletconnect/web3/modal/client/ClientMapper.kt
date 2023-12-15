@@ -1,5 +1,6 @@
 package com.walletconnect.web3.modal.client
 
+import com.walletconnect.android.internal.common.signing.cacao.CacaoType
 import com.walletconnect.sign.client.Sign
 
 // toModal()
@@ -23,9 +24,43 @@ internal fun Sign.Model.DeletedSession.toModal() = when(this) {
 
 internal fun Sign.Model.SessionRequestResponse.toModal() = Modal.Model.SessionRequestResponse(topic, chainId, method, result.toModal())
 
+@JvmSynthetic
+internal fun Sign.Model.SessionAuthenticateResponse.toModal(): Modal.Model.SessionAuthenticateResponse =
+    when (this) {
+        is Sign.Model.SessionAuthenticateResponse.Result -> Modal.Model.SessionAuthenticateResponse.Result(id, cacaos.toClient())
+        is Sign.Model.SessionAuthenticateResponse.Error -> Modal.Model.SessionAuthenticateResponse.Error(id, code, message)
+    }
+
 internal fun Sign.Model.JsonRpcResponse.toModal() = when(this) {
     is Sign.Model.JsonRpcResponse.JsonRpcError -> Modal.Model.JsonRpcResponse.JsonRpcError(id, code, message)
     is Sign.Model.JsonRpcResponse.JsonRpcResult -> Modal.Model.JsonRpcResponse.JsonRpcResult(id, result)
+}
+
+@JvmSynthetic
+internal fun List<Sign.Model.Cacao>.toClient(): List<Modal.Model.Cacao> = mutableListOf<Modal.Model.Cacao>().apply {
+    this@toClient.forEach { cacao: Sign.Model.Cacao ->
+        with(cacao) {
+            add(
+                Modal.Model.Cacao(
+                    Modal.Model.Cacao.Header(header.t),
+                    Modal.Model.Cacao.Payload(
+                        payload.iss,
+                        payload.domain,
+                        payload.aud,
+                        payload.version,
+                        payload.nonce,
+                        payload.iat,
+                        payload.nbf,
+                        payload.exp,
+                        payload.statement,
+                        payload.requestId,
+                        payload.resources
+                    ),
+                    Modal.Model.Cacao.Signature(signature.t, signature.s, signature.m)
+                )
+            )
+        }
+    }
 }
 
 internal fun Sign.Model.ConnectionState.toModal() = Modal.Model.ConnectionState(isAvailable)
@@ -42,6 +77,14 @@ internal fun Sign.Model.Ping.Error.toModal() = Modal.Model.Ping.Error(error)
 
 // toSign()
 internal fun Modal.Params.Connect.toSign() = Sign.Params.Connect(namespaces?.toSign(), optionalNamespaces?.toSign(), properties, pairing)
+
+internal fun Modal.Params.Authenticate.toSign(): Sign.Params.Authenticate = with(this) {
+    Sign.Params.Authenticate(pairingTopic, payloadParams.toSign())
+}
+
+internal fun Modal.Model.PayloadParams.toSign(): Sign.Model.PayloadParams = with(this) {
+    Sign.Model.PayloadParams(CacaoType.CAIP222.header, chains, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
+}
 
 internal fun Map<String, Modal.Model.Namespace.Proposal>.toSign() = mapValues { (_, namespace) -> Sign.Model.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events) }
 

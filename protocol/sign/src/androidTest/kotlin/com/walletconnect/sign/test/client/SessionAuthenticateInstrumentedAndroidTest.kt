@@ -75,8 +75,8 @@ class SessionAuthenticateInstrumentedAndroidTest {
         }
 
         val dappDelegate = object : DappDelegate() {
-            override fun onSessionAuthenticateResponse(sessionUpdateResponse: Sign.Model.SessionAuthenticateResponse) {
-                if (sessionUpdateResponse is Sign.Model.SessionAuthenticateResponse.Result) {
+            override fun onSessionAuthenticateResponse(sessionAuthenticateResponse: Sign.Model.SessionAuthenticateResponse) {
+                if (sessionAuthenticateResponse is Sign.Model.SessionAuthenticateResponse.Result) {
                     scenarioExtension.closeAsSuccess().also { Timber.d("receiveApproveSessionAuthenticate: finish") }
                 }
             }
@@ -96,8 +96,8 @@ class SessionAuthenticateInstrumentedAndroidTest {
         }
 
         val dappDelegate = object : DappDelegate() {
-            override fun onSessionAuthenticateResponse(sessionUpdateResponse: Sign.Model.SessionAuthenticateResponse) {
-                if (sessionUpdateResponse is Sign.Model.SessionAuthenticateResponse.Error) {
+            override fun onSessionAuthenticateResponse(sessionAuthenticateResponse: Sign.Model.SessionAuthenticateResponse) {
+                if (sessionAuthenticateResponse is Sign.Model.SessionAuthenticateResponse.Error) {
                     scenarioExtension.closeAsSuccess().also { Timber.d("receiveRejectSessionAuthenticate: finish") }
                 }
             }

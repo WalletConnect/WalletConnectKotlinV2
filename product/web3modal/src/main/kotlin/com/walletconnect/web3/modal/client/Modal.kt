@@ -1,8 +1,11 @@
 package com.walletconnect.web3.modal.client
 
 import androidx.annotation.DrawableRes
+import androidx.annotation.Keep
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreInterface
+import com.walletconnect.android.cacao.SignatureInterface
+import com.walletconnect.android.internal.common.signing.cacao.Issuer
 
 object Modal {
 
@@ -25,6 +28,11 @@ object Modal {
             val optionalNamespaces: Map<String, Model.Namespace.Proposal>? = null,
             val properties: Map<String, String>? = null,
             val pairing: Core.Model.Pairing,
+        ) : Params()
+
+        data class Authenticate(
+            val pairingTopic: String,
+            val payloadParams: Model.PayloadParams
         ) : Params()
 
         data class Disconnect(val sessionTopic: String) : Params()
@@ -61,6 +69,21 @@ object Modal {
                 val events: List<String>,
             ) : Namespace()
         }
+
+        data class PayloadParams(
+            val type: String,
+            val chains: List<String>,
+            val domain: String,
+            val aud: String,
+            val version: String,
+            val nonce: String,
+            val iat: String,
+            val nbf: String?,
+            val exp: String?,
+            val statement: String?,
+            val requestId: String?,
+            val resources: List<String>?,
+        ) : Model()
 
         data class ApprovedSession(
             val topic: String,
@@ -131,6 +154,36 @@ object Modal {
             val params: String,
             val chainId: String,
         ) : Model()
+
+        sealed class SessionAuthenticateResponse : Model() {
+            data class Result(val id: Long, val cacaos: List<Cacao>) : SessionAuthenticateResponse()
+            data class Error(val id: Long, val code: Int, val message: String) : SessionAuthenticateResponse()
+        }
+
+        data class Cacao(
+            val header: Header,
+            val payload: Payload,
+            val signature: Signature,
+        ) : Model() {
+            @Keep
+            data class Signature(override val t: String, override val s: String, override val m: String? = null) : Model(), SignatureInterface
+            data class Header(val t: String) : Model()
+            data class Payload(
+                val iss: String,
+                val domain: String,
+                val aud: String,
+                val version: String,
+                val nonce: String,
+                val iat: String,
+                val nbf: String?,
+                val exp: String?,
+                val statement: String?,
+                val requestId: String?,
+                val resources: List<String>?,
+            ) : Model() {
+                val address: String get() = Issuer(iss).address
+            }
+        }
 
         sealed class Ping : Model() {
             data class Success(val topic: String) : Ping()
