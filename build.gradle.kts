@@ -3,7 +3,6 @@ import com.android.build.gradle.BaseExtension
 plugins {
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
     id("release-scripts")
-    id("org.jetbrains.kotlinx.kover") version "0.7.5" apply false
 }
 
 buildscript {

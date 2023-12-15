@@ -17,9 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -27,7 +25,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -35,9 +32,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
+import com.walletconnect.sample.wallet.ui.common.ImageUrl
 import com.walletconnect.sample.wallet.ui.common.subscriptions.ActiveSubscriptionsUI
+import com.walletconnect.sample.wallet.ui.common.subscriptions.SubscriptionIcon
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.LazyColumnSurroundedWithFogVertically
 
@@ -80,7 +77,7 @@ fun LazyListScope.unreadActiveSubscriptionItems(navController: NavHostController
         }
         items(unreadActiveSubscriptionItems) { subscription ->
             Spacer(modifier = Modifier.height(8.dp))
-            UnreadActiveSubscriptionItem(navController, subscription.icon, subscription.name, subscription.messageCount, subscription.description, subscription.topic)
+            UnreadActiveSubscriptionItem(navController, subscription.imageUrl, subscription.name, subscription.messageCount, subscription.description, subscription.topic)
         }
         item {
             Spacer(modifier = Modifier.height(24.dp))
@@ -107,7 +104,7 @@ fun LazyListScope.readActiveSubscriptionItems(navController: NavHostController, 
         }
         items(readActiveSubscriptionItems) { subscription ->
             Spacer(modifier = Modifier.height(8.dp))
-            ReadActiveSubscriptionItem(navController, subscription.icon, subscription.name, subscription.lastReceived, subscription.description, subscription.topic)
+            ReadActiveSubscriptionItem(navController, subscription.imageUrl, subscription.name, subscription.lastReceived, subscription.description, subscription.topic)
         }
         item {
             Spacer(modifier = Modifier.height(24.dp))
@@ -117,7 +114,7 @@ fun LazyListScope.readActiveSubscriptionItems(navController: NavHostController, 
 
 
 @Composable
-fun ActiveSubscriptionItem(navController: NavHostController, url: String, name: String, description: String, topic: String, endContent: @Composable (() -> Unit)) {
+fun ActiveSubscriptionItem(navController: NavHostController, imageUrl: ImageUrl, name: String, description: String, topic: String, endContent: @Composable (() -> Unit)) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -131,18 +128,7 @@ fun ActiveSubscriptionItem(navController: NavHostController, url: String, name: 
                 .fillMaxHeight(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
-            AsyncImage(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .border(1.dp, ButtonDefaults.outlinedBorder.brush, CircleShape),
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(url)
-                    .crossfade(200)
-                    .build(),
-                contentDescription = null,
-            )
+            SubscriptionIcon(size = 48.dp, imageUrl = imageUrl)
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.Start) {
                 Text(
@@ -170,8 +156,8 @@ fun ActiveSubscriptionItem(navController: NavHostController, url: String, name: 
 }
 
 @Composable
-fun ReadActiveSubscriptionItem(navController: NavHostController, url: String, name: String, lastReceived: String, description: String, topic: String) {
-    ActiveSubscriptionItem(navController, url, name, description, topic) {
+fun ReadActiveSubscriptionItem(navController: NavHostController, imageUrl: ImageUrl, name: String, lastReceived: String, description: String, topic: String) {
+    ActiveSubscriptionItem(navController, imageUrl, name, description, topic) {
         Text(
             text = lastReceived,
             style = TextStyle(
@@ -185,8 +171,8 @@ fun ReadActiveSubscriptionItem(navController: NavHostController, url: String, na
 
 
 @Composable
-fun UnreadActiveSubscriptionItem(navController: NavHostController, url: String, name: String, messageCount: Int, description: String, topic: String) {
-    ActiveSubscriptionItem(navController, url, name, description, topic) {
+fun UnreadActiveSubscriptionItem(navController: NavHostController, imageUrl: ImageUrl, name: String, messageCount: Int, description: String, topic: String) {
+    ActiveSubscriptionItem(navController, imageUrl, name, description, topic) {
         Box(
             modifier = Modifier
                 .size(22.dp)

@@ -18,7 +18,7 @@ data class NotifyConfigDataDTO(
     @Json(name = "homepage") val homepage: String,
     @Json(name = "description") val description: String,
     @Json(name = "dapp_url") val dappUrl: String,
-    @Json(name = "image_url") val imageUrl: ImageUrlDTO,
+    @Json(name = "image_url") val imageUrl: ImageUrlDTO?,
     @Json(name = "notificationTypes") val notificationTypes: List<NotificationTypeDTO>,
     @Json(name = "isVerified") val isVerified: Boolean,
 )

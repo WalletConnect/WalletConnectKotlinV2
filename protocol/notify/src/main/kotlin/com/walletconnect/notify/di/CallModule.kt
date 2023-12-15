@@ -6,16 +6,22 @@ import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.notify.engine.calls.DecryptNotifyMessageUseCase
-import com.walletconnect.notify.engine.calls.DeleteMessageUseCase
-import com.walletconnect.notify.engine.calls.DeleteMessageUseCaseInterface
+import com.walletconnect.notify.engine.calls.DeleteNotificationUseCase
+import com.walletconnect.notify.engine.calls.DeleteNotificationUseCaseInterface
 import com.walletconnect.notify.engine.calls.DeleteSubscriptionUseCase
 import com.walletconnect.notify.engine.calls.DeleteSubscriptionUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetListOfActiveSubscriptionsUseCase
 import com.walletconnect.notify.engine.calls.GetListOfActiveSubscriptionsUseCaseInterface
-import com.walletconnect.notify.engine.calls.GetListOfMessagesUseCase
-import com.walletconnect.notify.engine.calls.GetListOfMessagesUseCaseInterface
+import com.walletconnect.notify.engine.calls.GetListOfNotificationsUseCase
+import com.walletconnect.notify.engine.calls.GetListOfNotificationsUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetNotificationTypesUseCase
 import com.walletconnect.notify.engine.calls.GetNotificationTypesUseCaseInterface
+import com.walletconnect.notify.engine.calls.IsRegisteredUseCase
+import com.walletconnect.notify.engine.calls.IsRegisteredUseCaseInterface
+import com.walletconnect.notify.engine.calls.LegacyRegisterUseCase
+import com.walletconnect.notify.engine.calls.LegacyRegisterUseCaseInterface
+import com.walletconnect.notify.engine.calls.PrepareRegistrationUseCase
+import com.walletconnect.notify.engine.calls.PrepareRegistrationUseCaseInterface
 import com.walletconnect.notify.engine.calls.RegisterUseCase
 import com.walletconnect.notify.engine.calls.RegisterUseCaseInterface
 import com.walletconnect.notify.engine.calls.SubscribeToDappUseCase
@@ -56,14 +62,14 @@ internal fun callModule() = module {
             jsonRpcInteractor = get(),
             metadataStorageRepository = get(),
             subscriptionRepository = get(),
-            messagesRepository = get(),
+            notificationsRepository = get(),
             fetchDidJwtInteractor = get()
         )
     }
 
-    single<DeleteMessageUseCaseInterface> {
-        DeleteMessageUseCase(
-            messagesRepository = get()
+    single<DeleteNotificationUseCaseInterface> {
+        DeleteNotificationUseCase(
+            notificationsRepository = get()
         )
     }
 
@@ -72,18 +78,44 @@ internal fun callModule() = module {
             codec = get(),
             serializer = get(),
             jsonRpcHistory = get(),
-            messagesRepository = get()
+            notificationsRepository = get()
         )
 
         get<MutableMap<String, DecryptMessageUseCaseInterface>>(named(AndroidCommonDITags.DECRYPT_USE_CASES))[Tags.NOTIFY_MESSAGE.id.toString()] = useCase
         useCase
     }
 
-    single<RegisterUseCaseInterface> {
-        RegisterUseCase(
+    single<LegacyRegisterUseCaseInterface> {
+        LegacyRegisterUseCase(
             registerIdentityUseCase = get(),
             registeredAccountsRepository = get(),
             watchSubscriptionsUseCase = get()
+        )
+    }
+
+    single<RegisterUseCaseInterface> {
+        RegisterUseCase(
+            registeredAccountsRepository = get(),
+            identitiesInteractor = get(),
+            watchSubscriptionsUseCase = get(),
+            keyManagementRepository = get(),
+            projectId = get()
+        )
+    }
+
+    single<IsRegisteredUseCaseInterface> {
+        IsRegisteredUseCase(
+            registeredAccountsRepository = get(),
+            identitiesInteractor = get(),
+            identityServerUrl = get(named(AndroidCommonDITags.KEYSERVER_URL))
+        )
+    }
+
+    single<PrepareRegistrationUseCaseInterface> {
+        PrepareRegistrationUseCase(
+            identitiesInteractor = get(),
+            identityServerUrl = get(named(AndroidCommonDITags.KEYSERVER_URL)),
+            keyManagementRepository = get()
         )
     }
 
@@ -94,7 +126,7 @@ internal fun callModule() = module {
             identitiesInteractor = get(),
             keyserverUrl = get(named(AndroidCommonDITags.KEYSERVER_URL)),
             subscriptionRepository = get(),
-            messagesRepository = get(),
+            notificationsRepository = get(),
             jsonRpcInteractor = get()
         )
     }
@@ -112,9 +144,10 @@ internal fun callModule() = module {
         )
     }
 
-    single<GetListOfMessagesUseCaseInterface> {
-        GetListOfMessagesUseCase(
-            messagesRepository = get()
+    single<GetListOfNotificationsUseCaseInterface> {
+        GetListOfNotificationsUseCase(
+            notificationsRepository = get(),
+            metadataStorageRepository = get()
         )
     }
 }

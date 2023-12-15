@@ -10,6 +10,8 @@ import com.walletconnect.notify.test.utils.primary.PrimaryNotifyClient
 import com.walletconnect.notify.test.utils.primary.PrimaryNotifyDelegate
 import com.walletconnect.notify.test.utils.secondary.SecondaryNotifyClient
 import com.walletconnect.notify.test.utils.secondary.SecondaryNotifyDelegate
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import okhttp3.Headers
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
@@ -88,7 +90,7 @@ class NotifyClientInstrumentedAndroidTest {
         scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) {
             Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: start")
             setDelegates(object : PrimaryNotifyDelegate() {
-                override fun onNotifyMessage(notifyMessage: Notify.Event.Message) {
+                override fun onNotifyNotification(notifyNotification: Notify.Event.Notification) {
                     didPrimaryReceiveMessage = true
                     Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - message - received")
                     if (didPrimaryReceiveMessage && didSecondaryReceiveMessage && didPrimaryReceiveSubscriptions && didSecondaryReceiveSubscriptions) {
@@ -125,6 +127,7 @@ class NotifyClientInstrumentedAndroidTest {
                     } else if (countPrimaryReceivedResponses < 2) {
                         Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - deleteSubscribe start")
 
+                        runBlocking { delay(1000) }
                         PrimaryNotifyClient.deleteSubscription(Notify.Params.DeleteSubscription(subscriptionsChanged.subscriptions.first().topic), onSuccess = {
                             scenarioExtension.closeAsSuccess()
                         }, onError = {
@@ -133,7 +136,8 @@ class NotifyClientInstrumentedAndroidTest {
                     }
                 }
             }, object : SecondaryNotifyDelegate() {
-                override fun onNotifyMessage(notifyMessage: Notify.Event.Message) {
+
+                override fun onNotifyNotification(notifyNotification: Notify.Event.Notification) {
                     didSecondaryReceiveMessage = true
                     Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: secondary - message - received")
 

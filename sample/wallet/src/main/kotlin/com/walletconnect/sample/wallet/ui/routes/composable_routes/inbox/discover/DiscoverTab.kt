@@ -36,7 +36,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -46,10 +45,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.walletconnect.sample.common.ui.theme.blue_accent
 import com.walletconnect.sample.wallet.R
+import com.walletconnect.sample.wallet.ui.common.subscriptions.SubscriptionIcon
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.DiscoverState
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.LazyColumnSurroundedWithFogVertically
 import java.net.URI
@@ -151,7 +149,6 @@ private fun EmptyOrLoadingOrFailureState(text: String, content: @Composable Colu
 @Composable
 fun ExplorerAppItem(explorerApp: ExplorerApp, onSubscribedClick: (app: ExplorerApp) -> Unit, onSubscribeClick: (app: ExplorerApp) -> Unit, onFailure: (Throwable) -> Unit) {
     val context = LocalContext.current
-    val hasIcon = remember { mutableStateOf(explorerApp.imageUrl.sm.isNotEmpty()) }
     val gradientRadius = remember { mutableStateOf(IntSize(1, 1)) }
     val boxShape = RoundedCornerShape(12.dp)
     Box(
@@ -188,29 +185,7 @@ fun ExplorerAppItem(explorerApp: ExplorerApp, onSubscribedClick: (app: ExplorerA
     ) {
         Column() {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                AsyncImage(
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .size(48.dp)
-                        .background(
-                            if (hasIcon.value) Color.Transparent
-                            else Color(0xFFE2FDFF)
-                        )
-                        .border(1.dp, ButtonDefaults.outlinedBorder.brush, CircleShape),
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(explorerApp.imageUrl.sm.takeIf { hasIcon.value })
-                        .fallback(R.drawable.ic_globe)
-                        .error(R.drawable.ic_globe)
-                        .crossfade(200)
-                        .listener(
-                            onError = { _, _ ->
-                                hasIcon.value = false
-                            }
-                        )
-                        .build(),
-                    contentScale = if (hasIcon.value) ContentScale.Fit else ContentScale.None,
-                    contentDescription = "",
-                )
+                SubscriptionIcon(size = 48.dp, imageUrl = explorerApp.imageUrl)
 
                 if (explorerApp.isSubscribed) {
                     OutlinedButton(
