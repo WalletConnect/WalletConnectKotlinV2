@@ -1,8 +1,8 @@
 package com.walletconnect.sample.dapp.domain
 
+import com.walletconnect.sample.common.tag
 import com.walletconnect.wcmodal.client.Modal
 import com.walletconnect.wcmodal.client.WalletConnectModal
-import com.walletconnect.sample.common.tag
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -68,6 +68,10 @@ object DappDelegate : WalletConnectModal.ModalDelegate {
         scope.launch {
             _wcEventModels.emit(response)
         }
+    }
+
+    override fun onSessionAuthenticateResponse(sessionUpdateResponse: Modal.Model.SessionAuthenticateResponse) {
+        TODO("Not yet implemented")
     }
 
     fun deselectAccountDetails() {

@@ -18,6 +18,7 @@ object Web3Wallet {
 
     interface WalletDelegate {
         fun onSessionProposal(sessionProposal: Wallet.Model.SessionProposal, verifyContext: Wallet.Model.VerifyContext)
+        fun onSessionAuthenticated(sessionAuthenticated: Wallet.Model.SessionAuthenticated, verifyContext: Wallet.Model.VerifyContext)
         fun onSessionRequest(sessionRequest: Wallet.Model.SessionRequest, verifyContext: Wallet.Model.VerifyContext)
         fun onSessionDelete(sessionDelete: Wallet.Model.SessionDelete)
         fun onSessionExtend(session: Wallet.Model.Session)
@@ -38,6 +39,10 @@ object Web3Wallet {
         val signWalletDelegate = object : SignClient.WalletDelegate {
             override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal, verifyContext: Sign.Model.VerifyContext) {
                 delegate.onSessionProposal(sessionProposal.toWallet(), verifyContext.toWallet())
+            }
+
+            override fun onSessionAuthenticated(sessionAuthenticated: Sign.Model.SessionAuthenticated, verifyContext: Sign.Model.VerifyContext) {
+                delegate.onSessionAuthenticated(sessionAuthenticated.toWallet(), verifyContext.toWallet())
             }
 
             override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest, verifyContext: Sign.Model.VerifyContext) {
@@ -124,7 +129,8 @@ object Web3Wallet {
                     when (message) {
                         is Sign.Model.Message.SessionRequest -> onSuccess(message.toWallet())
                         is Sign.Model.Message.SessionProposal -> onSuccess(message.toWallet())
-                        else -> { /*Ignore*/ }
+                        else -> { /*Ignore*/
+                        }
                     }
                 },
                 onError = { signError ->
@@ -168,6 +174,32 @@ object Web3Wallet {
         val signParams = Sign.Params.Reject(params.proposerPublicKey, params.reason)
         SignClient.rejectSession(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
+
+    @Throws(IllegalStateException::class)
+    fun approveSessionAuthenticate(
+        params: Wallet.Params.ApproveSessionAuthenticate,
+        onSuccess: (Wallet.Params.ApproveSessionAuthenticate) -> Unit = {},
+        onError: (Wallet.Model.Error) -> Unit,
+    ) {
+        val signParams = Sign.Params.ApproveSessionAuthenticate(params.id, params.cacaos.toSign())
+        SignClient.approveSessionAuthenticate(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
+    }
+
+    @Throws(IllegalStateException::class)
+    fun rejectSessionAuthenticate(
+        params: Wallet.Params.RejectSessionAuthenticate,
+        onSuccess: (Wallet.Params.RejectSessionAuthenticate) -> Unit = {},
+        onError: (Wallet.Model.Error) -> Unit,
+    ) {
+        val signParams = Sign.Params.RejectSessionAuthenticate(params.id, params.reason)
+        SignClient.rejectSessionAuthenticate(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
+    }
+
+    @Throws(Exception::class)
+    fun generateCACAO(payloadParams: Wallet.Model.PayloadAuthRequestParams, issuer: String, signature: Wallet.Model.Cacao.Signature): Wallet.Model.Cacao {
+        return com.walletconnect.sign.client.utils.generateCACAO(payloadParams.toSign(), issuer, signature.toSign()).toWallet()
+    }
+
 
     @Throws(IllegalStateException::class)
     fun updateSession(
@@ -224,8 +256,18 @@ object Web3Wallet {
      * It is advised that this function be called from background operation
      */
     @Throws(IllegalStateException::class)
+    fun formatAuthenticateMessage(params: Wallet.Params.FormatAuthMessage): String? {
+        val signParams = Sign.Params.FormatMessage(params.payloadParams.toSign(), params.issuer)
+        return SignClient.formatAuthenticateMessage(signParams)
+    }
+
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+    @Throws(IllegalStateException::class)
     fun formatMessage(params: Wallet.Params.FormatMessage): String? {
-        val authParams = Auth.Params.FormatMessage(params.payloadParams.toSign(), params.issuer)
+        val authParams = Auth.Params.FormatMessage(params.payloadParams.toAuth(), params.issuer)
         return AuthClient.formatMessage(authParams)
     }
 

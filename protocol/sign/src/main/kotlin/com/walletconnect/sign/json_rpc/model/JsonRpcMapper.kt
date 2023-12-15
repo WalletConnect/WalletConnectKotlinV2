@@ -28,3 +28,13 @@ internal fun JsonRpcHistoryRecord.toPending(params: SignParams.SessionRequestPar
         params.chainId,
         params,
     )
+
+@JvmSynthetic
+internal fun JsonRpcHistoryRecord.toPending(params: SignParams.SessionAuthenticateParams): PendingRequest<SignParams.SessionAuthenticateParams> =
+    PendingRequest(
+        id,
+        Topic(topic),
+        method,
+        null,
+        params,
+    )

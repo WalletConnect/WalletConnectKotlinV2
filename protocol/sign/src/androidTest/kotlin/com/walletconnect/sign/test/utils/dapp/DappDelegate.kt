@@ -15,6 +15,8 @@ open class DappDelegate : SignClient.DappDelegate {
     override fun onSessionExtend(session: Sign.Model.Session) {}
     override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {}
     override fun onSessionRequestResponse(response: Sign.Model.SessionRequestResponse) {}
+    override fun onSessionAuthenticateResponse(sessionAuthenticateResponse: Sign.Model.SessionAuthenticateResponse) {}
+
     override fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession) {}
     override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {
         Timber.d("Dapp: onConnectionStateChange: $state")

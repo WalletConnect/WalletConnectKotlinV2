@@ -4,11 +4,13 @@ package com.walletconnect.sign.common.model.vo.clientsync.session.params
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
+import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SessionProposer
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
-import com.walletconnect.android.internal.common.model.Namespace
-import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
+import com.walletconnect.sign.common.model.vo.clientsync.common.Caip222Request
+import com.walletconnect.sign.common.model.vo.clientsync.common.Requester
+import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipant
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionEventVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionRequestVO
 import com.walletconnect.utils.DefaultId
@@ -30,11 +32,19 @@ internal sealed class SignParams : CoreSignParams() {
     ) : SignParams()
 
     @JsonClass(generateAdapter = true)
+    internal data class SessionAuthenticateParams(
+        @Json(name = "requester")
+        val requester: Requester,
+        @Json(name = "caip222Request")
+        val caip222Request: Caip222Request
+    ) : SignParams()
+
+    @JsonClass(generateAdapter = true)
     internal data class SessionSettleParams(
         @Json(name = "relay")
         val relay: RelayProtocolOptions,
         @Json(name = "controller")
-        val controller: SessionParticipantVO,
+        val controller: SessionParticipant,
         @Json(name = "namespaces")
         val namespaces: Map<String, Namespace.Session>,
         @Json(name = "expiry")

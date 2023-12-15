@@ -9,12 +9,11 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 internal object WalletConnectModalDelegate : WalletConnectModal.ModalDelegate {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val _wcEventModels: MutableSharedFlow<Modal.Model?> = MutableSharedFlow()
-    val wcEventModels: SharedFlow<Modal.Model?> =  _wcEventModels.asSharedFlow()
+    val wcEventModels: SharedFlow<Modal.Model?> = _wcEventModels.asSharedFlow()
 
     override fun onSessionApproved(approvedSession: Modal.Model.ApprovedSession) {
         scope.launch {
@@ -55,6 +54,12 @@ internal object WalletConnectModalDelegate : WalletConnectModal.ModalDelegate {
     override fun onSessionRequestResponse(response: Modal.Model.SessionRequestResponse) {
         scope.launch {
             _wcEventModels.emit(response)
+        }
+    }
+
+    override fun onSessionAuthenticateResponse(sessionUpdateResponse: Modal.Model.SessionAuthenticateResponse) {
+        scope.launch {
+            _wcEventModels.emit(sessionUpdateResponse)
         }
     }
 

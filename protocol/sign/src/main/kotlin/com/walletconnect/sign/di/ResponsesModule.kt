@@ -1,6 +1,7 @@
 package com.walletconnect.sign.di
 
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
+import com.walletconnect.sign.engine.use_case.responses.OnSessionAuthenticateResponseUseCase
 import com.walletconnect.sign.engine.use_case.responses.OnSessionProposalResponseUseCase
 import com.walletconnect.sign.engine.use_case.responses.OnSessionRequestResponseUseCase
 import com.walletconnect.sign.engine.use_case.responses.OnSessionSettleResponseUseCase
@@ -29,6 +30,14 @@ internal fun responsesModule() = module {
             sessionStorageRepository = get(),
             metadataStorageRepository = get(),
             logger = get(named(AndroidCommonDITags.LOGGER))
+        )
+    }
+
+    single {
+        OnSessionAuthenticateResponseUseCase(
+            pairingController = get(),
+            pairingInterface = get(),
+            cacaoVerifier = get()
         )
     }
 

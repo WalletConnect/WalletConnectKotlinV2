@@ -71,6 +71,10 @@ object ModalSampleDelegate : Web3Modal.ModalDelegate {
         }
     }
 
+    override fun onSessionAuthenticateResponse(sessionUpdateResponse: Modal.Model.SessionAuthenticateResponse) {
+        TODO("Not yet implemented")
+    }
+
     fun deselectAccountDetails() {
         selectedSessionTopic = null
     }

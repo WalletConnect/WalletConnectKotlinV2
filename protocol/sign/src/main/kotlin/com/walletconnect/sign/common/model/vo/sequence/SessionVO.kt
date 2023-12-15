@@ -8,7 +8,7 @@ import com.walletconnect.android.internal.common.model.type.Sequence
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.android.internal.common.model.Namespace
-import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
+import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipant
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.common.model.vo.proposal.ProposalVO
 import com.walletconnect.sign.engine.model.EngineDO
@@ -40,7 +40,7 @@ internal data class SessionVO(
         internal fun createUnacknowledgedSession(
             sessionTopic: Topic,
             proposal: ProposalVO,
-            selfParticipant: SessionParticipantVO,
+            selfParticipant: SessionParticipant,
             sessionExpiry: Long,
             namespaces: Map<String, EngineDO.Namespace.Session>,
             pairingTopic: String
