@@ -18,6 +18,7 @@ object Web3Wallet {
 
     interface WalletDelegate {
         fun onSessionProposal(sessionProposal: Wallet.Model.SessionProposal, verifyContext: Wallet.Model.VerifyContext)
+        fun onSessionAuthenticated(sessionAuthenticated: Wallet.Model.SessionAuthenticated, verifyContext: Wallet.Model.VerifyContext)
         fun onSessionRequest(sessionRequest: Wallet.Model.SessionRequest, verifyContext: Wallet.Model.VerifyContext)
         fun onSessionDelete(sessionDelete: Wallet.Model.SessionDelete)
         fun onSessionExtend(session: Wallet.Model.Session)
@@ -41,7 +42,7 @@ object Web3Wallet {
             }
 
             override fun onSessionAuthenticated(sessionAuthenticated: Sign.Model.SessionAuthenticated, verifyContext: Sign.Model.VerifyContext) {
-                println("kobe: Authenticated sessions")
+                delegate.onSessionAuthenticated(sessionAuthenticated.toWallet(), verifyContext.toWallet())
             }
 
             override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest, verifyContext: Sign.Model.VerifyContext) {
@@ -128,7 +129,8 @@ object Web3Wallet {
                     when (message) {
                         is Sign.Model.Message.SessionRequest -> onSuccess(message.toWallet())
                         is Sign.Model.Message.SessionProposal -> onSuccess(message.toWallet())
-                        else -> { /*Ignore*/ }
+                        else -> { /*Ignore*/
+                        }
                     }
                 },
                 onError = { signError ->
@@ -172,6 +174,32 @@ object Web3Wallet {
         val signParams = Sign.Params.Reject(params.proposerPublicKey, params.reason)
         SignClient.rejectSession(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
+
+    @Throws(IllegalStateException::class)
+    fun approveSessionAuthenticate(
+        params: Wallet.Params.ApproveSessionAuthenticate,
+        onSuccess: (Wallet.Params.ApproveSessionAuthenticate) -> Unit = {},
+        onError: (Wallet.Model.Error) -> Unit,
+    ) {
+        val signParams = Sign.Params.ApproveSessionAuthenticate(params.id, params.cacaos.toSign())
+        SignClient.approveSessionAuthenticate(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
+    }
+
+    @Throws(IllegalStateException::class)
+    fun rejectSessionAuthenticate(
+        params: Wallet.Params.RejectSessionAuthenticate,
+        onSuccess: (Wallet.Params.RejectSessionAuthenticate) -> Unit = {},
+        onError: (Wallet.Model.Error) -> Unit,
+    ) {
+        val signParams = Sign.Params.RejectSessionAuthenticate(params.id, params.reason)
+        SignClient.rejectSessionAuthenticate(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
+    }
+
+    @Throws(Exception::class)
+    fun generateCACAO(payloadParams: Wallet.Model.PayloadAuthRequestParams, issuer: String, signature: Wallet.Model.Cacao.Signature): Wallet.Model.Cacao {
+        return com.walletconnect.sign.client.utils.generateCACAO(payloadParams.toSign(), issuer, signature.toSign()).toWallet()
+    }
+
 
     @Throws(IllegalStateException::class)
     fun updateSession(
