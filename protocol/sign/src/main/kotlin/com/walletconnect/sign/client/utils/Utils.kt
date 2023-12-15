@@ -76,10 +76,10 @@ private fun MutableMap<String, Namespace.Proposal>.getChains(normalizedKey: Stri
 private fun MutableMap<String, Namespace.Proposal>.getMethods(normalizedKey: String) = (this[normalizedKey]?.methods ?: emptyList())
 private fun MutableMap<String, Namespace.Proposal>.getEvents(normalizedKey: String) = (this[normalizedKey]?.events ?: emptyList())
 
-fun generateCACAO(payload: Sign.Model.PayloadParams, issuer: String, signature: String, type: String): Sign.Model.Cacao {
+fun generateCACAO(payload: Sign.Model.PayloadParams, issuer: String, signature: Sign.Model.Cacao.Signature): Sign.Model.Cacao {
     return Sign.Model.Cacao(
         header = Sign.Model.Cacao.Header(t = CacaoType.CAIP222.header),
         payload = payload.toCacaoPayload(issuer),
-        signature = Sign.Model.Cacao.Signature(t = type, s = signature)
+        signature = signature
     )
 }
