@@ -62,7 +62,7 @@ import com.walletconnect.web3.modal.ui.components.internal.commons.inputs.Search
 import com.walletconnect.web3.modal.ui.components.internal.commons.inputs.SearchState
 import com.walletconnect.web3.modal.ui.components.internal.commons.inputs.SearchStatePreviewProvider
 import com.walletconnect.web3.modal.ui.components.internal.commons.walletsGridItems
-import com.walletconnect.web3.modal.ui.model.LoadingState
+import com.walletconnect.modal.ui.model.LoadingState
 import com.walletconnect.web3.modal.ui.previews.ComponentPreview
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview

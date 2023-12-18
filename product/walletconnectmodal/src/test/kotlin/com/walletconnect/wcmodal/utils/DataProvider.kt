@@ -1,21 +1,37 @@
 package com.walletconnect.wcmodal.utils
 
-import com.walletconnect.android.internal.common.explorer.data.model.Wallet
+import com.walletconnect.android.internal.common.modal.data.model.Wallet
 
-internal val metaMask = Wallet(id = "1", name = "MetaMask", imageUrl = "", nativeLink = "metamask://", universalLink = "", playStoreLink = "")
-internal val trustWallet = Wallet(id = "2", name = "Trust Wallet", imageUrl = "", nativeLink = "trustwallet://", universalLink = null, playStoreLink = "")
-internal val safe = Wallet(id = "3", name = "Safe", imageUrl = "", nativeLink = "safe://", universalLink = null, playStoreLink = "")
-internal val rainbow = Wallet(id = "4", name = "Rainbow", imageUrl = "", nativeLink = "rainbow://", universalLink = null, playStoreLink = "")
-internal val zerion = Wallet(id = "5", name = "Zerion", imageUrl = "", nativeLink = "zerion://", universalLink = null, playStoreLink = "")
-internal val argent = Wallet(id = "6", name = "Argent", imageUrl = "", nativeLink = "argent://", universalLink = null, playStoreLink = "")
-internal val spot = Wallet(id = "7", name = "Spot", imageUrl = "", nativeLink = "spot://", universalLink = null, playStoreLink = "")
-internal val imToken = Wallet(id = "8", name = "imToken", imageUrl = "", nativeLink = "imtoken://", universalLink = null, playStoreLink = "")
-internal val alphaWallet = Wallet(id = "9", name = "AlphaWallet", imageUrl = "", nativeLink = "alphawallet://", universalLink = null, playStoreLink = "")
-internal val omni = Wallet(id = "10", name = "Omni", imageUrl = "", nativeLink = "omni://", universalLink = null, playStoreLink = "")
-internal val bitkeep = Wallet(id = "11", name = "BitKeep", imageUrl = "", nativeLink = "bitkeep://", universalLink = null, playStoreLink = "")
-internal val tokenPocket = Wallet(id = "12", name = "TokePocket", imageUrl = "", nativeLink = "tokenpocket://", universalLink = null, playStoreLink = "")
-internal val ledgerLive = Wallet(id = "13", name = "Ledger Live", imageUrl = "", nativeLink = "ledgerlive://", universalLink = null, playStoreLink = "")
-internal val frontier = Wallet(id = "14", name = "Frontier", imageUrl = "", nativeLink = "frontier://", universalLink = null, playStoreLink = "")
-internal val safePal = Wallet(id = "15", name = "SafePal", imageUrl = "", nativeLink = "safepal://", universalLink = null, playStoreLink = "")
+private val metaMask: Wallet
+    get() = Wallet(id = "1", name = "MetaMask", homePage = "", order = "", imageUrl = "", mobileLink = "metamask://", webAppLink = "", playStore = "")
+private val trustWallet: Wallet
+    get() = Wallet(id = "2", name = "Trust Wallet", homePage = "", order = "", imageUrl = "", mobileLink = "trustwallet://", webAppLink = "",playStore = "")
+private val safe: Wallet
+    get() = Wallet(id = "3", name = "Safe", homePage = "", order = "", imageUrl = "", mobileLink = "safe://", webAppLink = "", playStore = "")
+private val rainbow: Wallet
+    get() = Wallet(id = "4", name = "Rainbow", homePage = "", order = "", imageUrl = "", mobileLink = "rainbow://", webAppLink = "", playStore = "")
+private val zerion: Wallet
+    get() = Wallet(id = "5", name = "Zerion", homePage = "", order = "", imageUrl = "", mobileLink = "zerion://", webAppLink = "", playStore = "")
+private val argent: Wallet
+    get() = Wallet(id = "6", name = "Argent", homePage = "", order = "", imageUrl = "", mobileLink = "argent://", webAppLink = "", playStore = "")
+private val spot: Wallet
+    get() = Wallet(id = "7", name = "Spot", homePage = "", order = "", imageUrl = "", mobileLink = "spot://", webAppLink = "", playStore = "")
+private val imToken: Wallet
+    get() = Wallet(id = "8", name = "imToken", homePage = "", order = "", imageUrl = "", mobileLink = "imtoken://", webAppLink = "", playStore = "")
+private val alphaWallet: Wallet
+    get() = Wallet(id = "9", name = "AlphaWallet", homePage = "", order = "", imageUrl = "", mobileLink = "alphawallet://", webAppLink = "", playStore = "")
+private val omni: Wallet
+    get() = Wallet(id = "10", name = "Omni", homePage = "", order = "", imageUrl = "", mobileLink = "omni://", webAppLink = "", playStore = "")
+private val bitkeep: Wallet
+    get() = Wallet(id = "11", name = "BitKeep", homePage = "", order = "", imageUrl = "", mobileLink = "bitkeep://", webAppLink = "", playStore = "")
+private val tokenPocket: Wallet
+    get() = Wallet(id = "12", name = "TokePocket", homePage = "", order = "", imageUrl = "", mobileLink = "tokenpocket://", webAppLink = "", playStore = "")
+private val ledgerLive: Wallet
+    get() = Wallet(id = "13", name = "Ledger Live", homePage = "", order = "", imageUrl = "", mobileLink = "ledgerlive://", webAppLink = "", playStore = "")
+private val frontier: Wallet
+    get() = Wallet(id = "14", name = "Frontier", homePage = "", order = "", imageUrl = "", mobileLink = "frontier://", webAppLink = "", playStore = "")
+private val safePal: Wallet
+    get() = Wallet(id = "15", name = "SafePal", homePage = "", order = "",imageUrl = "", mobileLink = "safepal://", webAppLink = "", playStore = "")
 
-internal val wallets = listOf(metaMask, trustWallet, safe, rainbow, zerion, argent, spot, imToken, alphaWallet, omni, bitkeep, tokenPocket, ledgerLive, frontier, safePal)
+internal val testWallets: List<Wallet>
+    get() = listOf(metaMask, trustWallet, safe, rainbow, zerion, argent, spot, imToken, alphaWallet, omni, bitkeep, tokenPocket, ledgerLive, frontier, safePal)

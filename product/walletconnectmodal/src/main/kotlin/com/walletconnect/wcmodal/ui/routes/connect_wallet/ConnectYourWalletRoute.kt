@@ -1,5 +1,10 @@
 package com.walletconnect.wcmodal.ui.routes.connect_wallet
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,6 +21,8 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,8 +34,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.walletconnect.android.internal.common.explorer.data.model.Wallet
+import com.walletconnect.android.internal.common.modal.data.model.Wallet
 import com.walletconnect.modal.ui.components.common.ClickableImage
+import com.walletconnect.modal.ui.model.UiState
 import com.walletconnect.wcmodal.R
 import com.walletconnect.wcmodal.ui.components.ModalTopBar
 import com.walletconnect.wcmodal.ui.components.WalletImage
@@ -39,18 +47,33 @@ import com.walletconnect.wcmodal.ui.navigation.Route
 import com.walletconnect.wcmodal.ui.preview.ModalPreview
 import com.walletconnect.wcmodal.ui.theme.ModalTheme
 import com.walletconnect.modal.utils.isLandscape
+import com.walletconnect.wcmodal.ui.ErrorModalState
+import com.walletconnect.wcmodal.ui.LoadingModalState
+import com.walletconnect.wcmodal.ui.WalletConnectModalViewModel
 
 @Composable
 internal fun ConnectYourWalletRoute(
     navController: NavController,
-    wallets: List<Wallet>
+    viewModel: WalletConnectModalViewModel,
 ) {
-    ConnectYourWalletContent(
-        wallets = wallets,
-        onWalletItemClick = { navController.navigate(Route.OnHold.path + "/${it.id}") },
-        onViewAllClick = { navController.navigate(Route.AllWallets.path) },
-        onScanIconClick = { navController.navigate(Route.ScanQRCode.path) }
-    )
+
+    val uiState by viewModel.uiState.collectAsState()
+    AnimatedContent(
+        targetState = uiState,
+        label = "UiStateBuilder $uiState",
+        transitionSpec = { fadeIn() + slideInHorizontally { it / 2 } togetherWith fadeOut() }
+    ) { state ->
+        when (state) {
+            is UiState.Error -> ErrorModalState { viewModel.fetchInitialWallets() }
+            is UiState.Loading -> LoadingModalState()
+            is UiState.Success -> ConnectYourWalletContent(
+                wallets = state.data,
+                onWalletItemClick = { navController.navigate(Route.OnHold.path + "/${it.id}") },
+                onViewAllClick = { navController.navigate(Route.AllWallets.path) },
+                onScanIconClick = { navController.navigate(Route.ScanQRCode.path) }
+            )
+        }
+    }
 }
 
 @Composable
@@ -93,7 +116,7 @@ private fun WalletsGrid(
                 walletsGridItems(wallets, onWalletItemClick)
             } else {
                 walletsGridItemsWithViewAll(
-                    if (isLandscape) walletsInColumn else walletsInColumn*2,
+                    if (isLandscape) walletsInColumn else walletsInColumn * 2,
                     wallets,
                     onWalletItemClick,
                     onViewAllClick
@@ -155,8 +178,7 @@ private fun ViewAllItem(
                 .padding(10.dp)
                 .background(ModalTheme.colors.secondaryBackgroundColor, shape = RoundedCornerShape(14.dp))
                 .border(1.dp, ModalTheme.colors.dividerColor, shape = RoundedCornerShape(14.dp))
-                .padding(1.dp)
-            ,
+                .padding(1.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
