@@ -31,12 +31,13 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.walletconnect.android.internal.common.explorer.data.model.Wallet
+import com.walletconnect.android.internal.common.modal.data.model.Wallet
 import com.walletconnect.modal.utils.openPlayStore
 import com.walletconnect.wcmodal.R
 import com.walletconnect.wcmodal.ui.components.ModalTopBar
 import com.walletconnect.wcmodal.ui.components.RoundedMainButton
 import com.walletconnect.wcmodal.ui.theme.ModalTheme
+import com.walletconnect.wcmodal.ui.utils.imageHeaders
 
 @Composable
 internal fun GetAWalletRoute(
@@ -121,6 +122,7 @@ private fun WalletListItem(wallet: Wallet) {
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(wallet.imageUrl)
                     .crossfade(true)
+                    .imageHeaders()
                     .build(),
                 contentDescription = null,
                 modifier = Modifier
@@ -138,7 +140,7 @@ private fun WalletListItem(wallet: Wallet) {
             )
             RoundedMainButton(
                 text = "Get",
-                onClick = { uriHandler.openPlayStore(wallet.playStoreLink) },
+                onClick = { uriHandler.openPlayStore(wallet.playStore) },
                 endIcon = {
                     Image(
                         imageVector = ImageVector.vectorResource(id = R.drawable.ic_forward_chevron),

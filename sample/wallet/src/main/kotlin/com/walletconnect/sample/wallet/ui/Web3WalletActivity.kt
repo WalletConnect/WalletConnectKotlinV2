@@ -25,9 +25,9 @@ import com.walletconnect.sample.wallet.domain.NotifyDelegate
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
 import com.walletconnect.sample.wallet.ui.routes.host.WalletSampleHost
-import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import timber.log.Timber
 
 class Web3WalletActivity : AppCompatActivity() {
     private lateinit var navController: NavHostController
@@ -87,7 +87,7 @@ class Web3WalletActivity : AppCompatActivity() {
     private fun handleErrors() {
         NotifyDelegate.notifyErrors
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-            .onEach { error -> runCatching { this.navController.showSnackbar(error.throwable.message ?: error.throwable.toString()) } }
+            .onEach { error -> Timber.e(error.throwable) }
             .launchIn(lifecycleScope)
     }
 
