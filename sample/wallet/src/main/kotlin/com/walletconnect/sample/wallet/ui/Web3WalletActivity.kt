@@ -21,11 +21,13 @@ import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.walletconnect.sample.common.ui.theme.WCSampleAppTheme
+import com.walletconnect.sample.wallet.domain.NotifyDelegate
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
 import com.walletconnect.sample.wallet.ui.routes.host.WalletSampleHost
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import timber.log.Timber
 
 class Web3WalletActivity : AppCompatActivity() {
     private lateinit var navController: NavHostController
@@ -45,6 +47,7 @@ class Web3WalletActivity : AppCompatActivity() {
         handleCoreEvents(connectionsViewModel)
         askNotificationPermission()
         setContent(web3walletViewModel, connectionsViewModel)
+        handleErrors()
     }
 
     private fun setContent(
@@ -77,6 +80,14 @@ class Web3WalletActivity : AppCompatActivity() {
                     else -> Unit
                 }
             }
+            .launchIn(lifecycleScope)
+    }
+
+
+    private fun handleErrors() {
+        NotifyDelegate.notifyErrors
+            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .onEach { error -> Timber.e(error.throwable) }
             .launchIn(lifecycleScope)
     }
 
