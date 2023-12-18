@@ -1,5 +1,7 @@
 package com.walletconnect.web3.modal.ui.routes.account
 
+import com.android.resources.NightMode
+import com.android.resources.ScreenOrientation
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
@@ -45,14 +47,16 @@ internal class ChangeNetworkRouteTest: ScreenShotTest("account/${Route.CHANGE_NE
 
     @Test
     fun `test ChangeNetworkRoute in DarkMode`() = runRouteScreenShotTest(
-        title = Route.CHANGE_NETWORK.title
+        title = Route.CHANGE_NETWORK.title,
+        nightMode = NightMode.NIGHT
     ) {
         ChangeNetworkRoute(accountViewModel = viewModel)
     }
 
     @Test
     fun `test ChangeNetworkRoute in Landscape`() = runRouteScreenShotTest(
-        title = Route.CHANGE_NETWORK.title
+        title = Route.CHANGE_NETWORK.title,
+        orientation = ScreenOrientation.LANDSCAPE
     ) {
         ChangeNetworkRoute(accountViewModel = viewModel)
     }
