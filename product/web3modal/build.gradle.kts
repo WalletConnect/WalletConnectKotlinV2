@@ -3,6 +3,7 @@ plugins {
     kotlin("android")
     id("com.google.devtools.ksp") version kspVersion
     id("publish-module-android")
+    id("app.cash.paparazzi") version paparazziVersion
     id("jacoco-report")
 }
 
@@ -49,6 +50,10 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = composeCompilerVersion
     }
+
+    tasks.withType(Test::class.java) {
+        jvmArgs("-XX:+AllowRedefinitionToAddDeleteMethods")
+    }
 }
 
 dependencies {
@@ -61,6 +66,11 @@ dependencies {
     lifecycle()
     navigationComponent()
     qrCodeGenerator()
+
+    jUnit4()
+    mockk()
+    coroutinesTest()
+    turbine()
 
     releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
     releaseImplementation("com.walletconnect:sign:$SIGN_VERSION")

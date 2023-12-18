@@ -84,7 +84,7 @@ internal fun ChainSwitchRedirectRoute(
 }
 
 @Composable
-private fun ChainSwitchRedirectScreen(
+internal fun ChainSwitchRedirectScreen(
     chain: Modal.Model.Chain,
     chainRedirectState: ChainRedirectState,
     onTryAgainClick: () -> Unit
