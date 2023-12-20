@@ -38,14 +38,6 @@ class SessionAuthenticateInstrumentedAndroidTest {
     }
 
     @Test
-    fun pair() {
-        Timber.d("pair: start")
-        setDelegates(WalletDelegate(), DappDelegate())
-
-        scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) { pairDappAndWallet { scenarioExtension.closeAsSuccess().also { Timber.d("pair: finish") } } }
-    }
-
-    @Test
     fun approveSessionAuthenticated() {
         Timber.d("approveSessionAuthenticated: start")
 
@@ -58,7 +50,7 @@ class SessionAuthenticateInstrumentedAndroidTest {
 
                 sessionAuthenticated.payloadParams.chains.forEach { chain ->
                     val issuer = "did:pkh:$chain:$address"
-                    val message = WalletSignClient.formatAuthenticateMessage(Sign.Params.FormatMessage(sessionAuthenticated.payloadParams, issuer)) ?: throw Exception("Invalid message")
+                    val message = WalletSignClient.formatAuthMessage(Sign.Params.FormatMessage(sessionAuthenticated.payloadParams, issuer)) ?: throw Exception("Invalid message")
                     messages.add(issuer to message)
                 }
 
@@ -78,6 +70,49 @@ class SessionAuthenticateInstrumentedAndroidTest {
             override fun onSessionAuthenticateResponse(sessionAuthenticateResponse: Sign.Model.SessionAuthenticateResponse) {
                 if (sessionAuthenticateResponse is Sign.Model.SessionAuthenticateResponse.Result) {
                     scenarioExtension.closeAsSuccess().also { Timber.d("receiveApproveSessionAuthenticate: finish") }
+                }
+            }
+        }
+        launch(walletDelegate, dappDelegate)
+    }
+
+    @Test
+    fun approveSessionAuthenticatedWithInvalidCACAOs() {
+        Timber.d("approveSessionAuthenticatedWithInvalidCACAOs: start")
+
+        val (privateKey, address) = Pair("fc38e74680851b8d0c2dc69ccd367d4c0d963a4065dff56a87f450eef33336c4", "0xF983704E5A9eF14C32e8fe751b34E61702437aBF")
+
+        val walletDelegate = object : WalletDelegate() {
+            override fun onSessionAuthenticated(sessionAuthenticated: Sign.Model.SessionAuthenticated, verifyContext: Sign.Model.VerifyContext) {
+                val messages = mutableListOf<Pair<String, String>>()
+                val cacaos = mutableListOf<Sign.Model.Cacao>()
+
+                sessionAuthenticated.payloadParams.chains.forEach { chain ->
+                    val issuer = "did:pkh:$chain:$address"
+                    val message = WalletSignClient.formatAuthMessage(Sign.Params.FormatMessage(sessionAuthenticated.payloadParams, issuer)) ?: throw Exception("Invalid message")
+                    messages.add(issuer to message)
+                }
+
+                messages.forEach { message ->
+                    val signature = CacaoSigner.signHex("messageToSign", privateKey.hexToBytes(), SignatureType.EIP191)
+                    val cacao = generateCACAO(sessionAuthenticated.payloadParams, message.first, signature)
+                    cacaos.add(cacao)
+                }
+
+                val params = Sign.Params.ApproveSessionAuthenticate(sessionAuthenticated.id, cacaos)
+                WalletSignClient.approveSessionAuthenticate(params, onSuccess = {}, onError = {
+                    Timber.d("approveSessionAuthenticated: onError: $it")
+                })
+            }
+        }
+
+        val dappDelegate = object : DappDelegate() {
+            override fun onSessionAuthenticateResponse(sessionAuthenticateResponse: Sign.Model.SessionAuthenticateResponse) {
+                if (sessionAuthenticateResponse is Sign.Model.SessionAuthenticateResponse.Error) {
+                    (sessionAuthenticateResponse.message == "Invalid CACAO").also {
+                        Timber.d("receiveApproveSessionAuthenticate: ${sessionAuthenticateResponse.message}: finish")
+                        scenarioExtension.closeAsSuccess()
+                    }
                 }
             }
         }

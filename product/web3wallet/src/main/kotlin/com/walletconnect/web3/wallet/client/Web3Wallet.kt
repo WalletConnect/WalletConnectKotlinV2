@@ -129,8 +129,7 @@ object Web3Wallet {
                     when (message) {
                         is Sign.Model.Message.SessionRequest -> onSuccess(message.toWallet())
                         is Sign.Model.Message.SessionProposal -> onSuccess(message.toWallet())
-                        else -> { /*Ignore*/
-                        }
+                        else -> { /*Ignore*/ }
                     }
                 },
                 onError = { signError ->
@@ -256,9 +255,9 @@ object Web3Wallet {
      * It is advised that this function be called from background operation
      */
     @Throws(IllegalStateException::class)
-    fun formatAuthenticateMessage(params: Wallet.Params.FormatAuthMessage): String? {
+    fun formatAuthMessage(params: Wallet.Params.FormatAuthMessage): String? {
         val signParams = Sign.Params.FormatMessage(params.payloadParams.toSign(), params.issuer)
-        return SignClient.formatAuthenticateMessage(signParams)
+        return SignClient.formatAuthMessage(signParams)
     }
 
     /**
