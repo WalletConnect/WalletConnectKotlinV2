@@ -7,6 +7,7 @@ enum class VersionBumpType { RELEASE, FIX, MANUAL }
 enum class InputType { AUTOMATIC, MANUAL }
 
 const val PROPERTY_MODULE_KEY = "modules"
+const val MODULE_SEPARATOR = ","
 const val PROPERTY_TYPE_KEY = "type"
 const val VERSIONS_FILE_PATH = "buildSrc/src/main/kotlin/Versions.kt"
 const val CHECK_MODULES_SCRIPT_PATH = "buildSrc/scripts/check_modules.sh"
@@ -14,6 +15,7 @@ const val CHECK_MODULES_OUTPUT_PATH = "buildSrc/scripts/check_modules_output.txt
 const val README_FILE_PATH = "ReadMe.md"
 const val VERSION_SUFFIX = "_VERSION"
 const val MODULE_CHANGED_SUFFIX = "_MODULE_CHANGED"
+const val CHART_DELIMETER = "|"
 
 // note: Must match names in Version.kt
 enum class Version(var chartPosition: Int? = null) {
@@ -67,8 +69,8 @@ fun parseChangedModules(properties: Map<String, Any>): Map<String, Any> {
             modulesChangeStatus
                 .filter { it.value }
                 .map { it.key.removeSuffix(MODULE_CHANGED_SUFFIX) }
-                .joinToString(",")
-                .let { put("modules", it) }
+                .joinToString(MODULE_SEPARATOR)
+                .let { put(PROPERTY_MODULE_KEY, it) }
         }
 }
 
@@ -112,10 +114,10 @@ fun bumpVersions(
 
 fun String.replaceChartVersion(version: Version, currentValue: String, bumpedValue: String): String {
     return if (version.chartPosition == null) this
-    else this.split("|")
+    else this.split(CHART_DELIMETER)
         .toMutableList()
         .apply { this[version.chartPosition!!] = this[version.chartPosition!!].replace(currentValue, bumpedValue) }
-        .joinToString("|")
+        .joinToString(CHART_DELIMETER)
 }
 
 fun writeFiles(bumpVersionResult: BumpVersionResult, versionsFilePath: String = VERSIONS_FILE_PATH, readmeFilePath: String = README_FILE_PATH) {
@@ -135,12 +137,12 @@ fun parseInput(properties: Map<String, Any>, inputType: InputType): Map<Version,
 // ./gradlew fixBump -Pmodules=FOUNDATION,CORE,SIGN,AUTH,CHAT,NOTIFY,WEB_3_WALLET,WEB_3_MODAL,WC_MODAL,MODAL_CORE
 // ./gradlew releaseBump -Pmodules=FOUNDATION
 fun parseAutomaticInput(properties: Map<String, Any>): Map<Version, Boolean> {
-    val modules = properties[PROPERTY_MODULE_KEY]?.run(String::class::safeCast)?.run { this.uppercase().split(',') } ?: throw Exception("No modules specified.")
+    val modules = properties[PROPERTY_MODULE_KEY]?.run(String::class::safeCast)?.run { this.uppercase().split(MODULE_SEPARATOR) } ?: throw Exception("No modules specified.")
     var versions = Version.values().associate { version -> version to modules.contains(version.name) }
-    return ensureDependencies(versions)
+    return ensureModuleDependenciesWhenBumping(versions)
 }
 
-fun ensureDependencies(parsedVersions: Map<Version, Boolean>): Map<Version, Boolean> {
+fun ensureModuleDependenciesWhenBumping(parsedVersions: Map<Version, Boolean>): Map<Version, Boolean> {
     var versions = parsedVersions.entries.associate { (k, v) ->
         k to when (k) {
             Version.BOM -> true

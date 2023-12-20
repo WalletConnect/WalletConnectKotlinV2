@@ -82,14 +82,16 @@ internal class VersionBumpTest {
     @Test
     fun replaceChartVersionTest() {
         val versions = mapOf(Version.BOM to true, Version.CORE to true)
-        var newFirstRow: String? = "| 1.21.0                                                                                  | 1.26.0                   | 2.24.0                    | 1.24.0        " +
+
+        // Example row from versions file
+        var newFirstRow = "| 1.21.0                                                                                  | 1.26.0                   | 2.24.0                    | 1.24.0        " +
                 "            | 1.0.0-beta23              | 1.0.0-beta04                  | 1.19.0                           | 1.1.0                          | 1.1.0                                 " +
                 "           |\n"
 
         versions.filter { it.value }.forEach { (version, _) ->
             newFirstRow = when (version){
-                Version.BOM -> newFirstRow?.replaceChartVersion(version, "1.21.0", "1.22.0")
-                Version.CORE -> newFirstRow?.replaceChartVersion(version, "1.26.0", "1.27.0")
+                Version.BOM -> newFirstRow.replaceChartVersion(version, "1.21.0", "1.22.0")
+                Version.CORE -> newFirstRow.replaceChartVersion(version, "1.26.0", "1.27.0")
                 else -> newFirstRow
             }
         }
