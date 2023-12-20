@@ -175,8 +175,8 @@ internal fun EngineDO.SessionEvent.toClientSessionEvent(): Sign.Model.SessionEve
     Sign.Model.SessionEvent(name, data)
 
 @JvmSynthetic
-internal fun EngineDO.SessionAuthenticateEvent.toClientSessionAuthenticated(): Sign.Model.SessionAuthenticated =
-    Sign.Model.SessionAuthenticated(id, pairingTopic, caip222Request.toClient())
+internal fun EngineDO.SessionAuthenticateEvent.toClientSessionAuthenticate(): Sign.Model.SessionAuthenticate =
+    Sign.Model.SessionAuthenticate(id, pairingTopic, caip222Request.toClient())
 
 @JvmSynthetic
 internal fun Caip222Request.toClient(): Sign.Model.PayloadParams = Sign.Model.PayloadParams(type, chains, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)

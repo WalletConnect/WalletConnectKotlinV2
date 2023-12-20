@@ -23,7 +23,7 @@ val dappClientConnect = { pairing: Core.Model.Pairing ->
 
 val dappClientAuthenticate = { pairing: Core.Model.Pairing ->
     val authenticateParams = Sign.Params.Authenticate(payloadParams = payloadParams, pairingTopic = pairing.topic)
-    DappSignClient.authenticate(
+    DappSignClient.sessionAuthenticate(
         authenticateParams,
         onSuccess = { Timber.d("DappClient: on sent authenticate success") },
         onError = ::globalOnError

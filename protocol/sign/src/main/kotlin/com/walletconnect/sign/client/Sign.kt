@@ -229,7 +229,7 @@ object Sign {
             }
         }
 
-        data class SessionAuthenticated(
+        data class SessionAuthenticate(
             val id: Long,
             val pairingTopic: String,
             val payloadParams: PayloadParams,

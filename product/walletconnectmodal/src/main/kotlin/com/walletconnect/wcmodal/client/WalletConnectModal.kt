@@ -157,7 +157,7 @@ object WalletConnectModal {
         onError: (Modal.Model.Error) -> Unit,
     ) {
 
-        SignClient.authenticate(authenticate.toSign(),
+        SignClient.sessionAuthenticate(authenticate.toSign(),
             onSuccess = { onSuccess() },
             onError = { onError(it.toModal()) })
     }

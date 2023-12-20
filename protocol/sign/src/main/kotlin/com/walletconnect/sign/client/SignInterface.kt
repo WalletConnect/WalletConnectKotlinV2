@@ -3,7 +3,7 @@ package com.walletconnect.sign.client
 interface SignInterface {
     interface WalletDelegate {
         fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal, verifyContext: Sign.Model.VerifyContext)
-        fun onSessionAuthenticated(sessionAuthenticated: Sign.Model.SessionAuthenticated, verifyContext: Sign.Model.VerifyContext)
+        fun onSessionAuthenticate(sessionAuthenticate: Sign.Model.SessionAuthenticate, verifyContext: Sign.Model.VerifyContext)
         fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest, verifyContext: Sign.Model.VerifyContext)
         fun onSessionDelete(deletedSession: Sign.Model.DeletedSession)
         fun onSessionExtend(session: Sign.Model.Session)
@@ -40,7 +40,7 @@ interface SignInterface {
 
     fun connect(connect: Sign.Params.Connect, onSuccess: () -> Unit, onError: (Sign.Model.Error) -> Unit)
 
-    fun authenticate(authenticate: Sign.Params.Authenticate, onSuccess: () -> Unit, onError: (Sign.Model.Error) -> Unit)
+    fun sessionAuthenticate(authenticate: Sign.Params.Authenticate, onSuccess: () -> Unit, onError: (Sign.Model.Error) -> Unit)
 
     @Deprecated(
         message = "Creating a pairing will be moved to CoreClient to make pairing SDK agnostic",
@@ -49,8 +49,8 @@ interface SignInterface {
     fun pair(pair: Sign.Params.Pair, onSuccess: (Sign.Params.Pair) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun approveSession(approve: Sign.Params.Approve, onSuccess: (Sign.Params.Approve) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun rejectSession(reject: Sign.Params.Reject, onSuccess: (Sign.Params.Reject) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
-    fun approveSessionAuthenticate(approve: Sign.Params.ApproveSessionAuthenticate, onSuccess: (Sign.Params.ApproveSessionAuthenticate) -> Unit, onError: (Sign.Model.Error) -> Unit)
-    fun rejectSessionAuthenticate(reject: Sign.Params.RejectSessionAuthenticate, onSuccess: (Sign.Params.RejectSessionAuthenticate) -> Unit, onError: (Sign.Model.Error) -> Unit)
+    fun approveSessionAuthenticated(approve: Sign.Params.ApproveSessionAuthenticate, onSuccess: (Sign.Params.ApproveSessionAuthenticate) -> Unit, onError: (Sign.Model.Error) -> Unit)
+    fun rejectSessionAuthenticated(reject: Sign.Params.RejectSessionAuthenticate, onSuccess: (Sign.Params.RejectSessionAuthenticate) -> Unit, onError: (Sign.Model.Error) -> Unit)
     fun formatAuthMessage(formatMessage: Sign.Params.FormatMessage): String?
 
     @Deprecated(
