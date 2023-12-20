@@ -54,7 +54,7 @@ internal class VersionBumpTest {
         assertEquals(expectedVersionsText, result.versionFileText)
     }
 
-    // Tests how the script works in fix mode, when only auth and w3m modules are changed
+    // Tests how the script works in fix mode, when only auth module is changed
     @Test
     fun fixOnlyAuthBumpTest() {
         val result = bumpVersions(mapOf("modules" to "auth"), VersionBumpType.FIX, InputType.AUTOMATIC, VERSION_FILE_PATH, README_FILE_PATH)
@@ -66,7 +66,7 @@ internal class VersionBumpTest {
         assertEquals(expectedVersionsText, result.versionFileText)
     }
 
-    // Tests how the script works in fix mode, when only auth and w3m modules are changed
+    // Tests how the script works in fix mode, when only sign module is changed
     @Test
     fun fixOnlySignBumpTest() {
         val result = bumpVersions(mapOf("modules" to "sign"), VersionBumpType.FIX, InputType.AUTOMATIC, VERSION_FILE_PATH, README_FILE_PATH)
@@ -77,6 +77,20 @@ internal class VersionBumpTest {
         assertEquals(expectedReadmeText, result.readmeFileText)
         assertEquals(expectedVersionsText, result.versionFileText)
     }
+
+
+    // Tests how the script works in fix mode, when only auth and w3m modules are changed
+    @Test
+    fun fixSignAndModalCoreBumpTest() {
+        val result = bumpVersions(mapOf("modules" to "sign,modal_core"), VersionBumpType.FIX, InputType.AUTOMATIC, VERSION_FILE_PATH, README_FILE_PATH)
+
+        val expectedReadmeText = File("$RESOURCE_FOLDER_PATH/fixSignAndModalCoreResult/Result_Readme.md").readText()
+        val expectedVersionsText = File("$RESOURCE_FOLDER_PATH/fixSignAndModalCoreResult/Result_Versions.txt").readText()
+
+        assertEquals(expectedReadmeText, result.readmeFileText)
+        assertEquals(expectedVersionsText, result.versionFileText)
+    }
+
 
     // Tests how the replaceChartVersion works
     @Test

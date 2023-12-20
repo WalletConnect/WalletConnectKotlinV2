@@ -82,8 +82,7 @@ fun bumpVersions(
     readmeFilePath: String = README_FILE_PATH,
 ): BumpVersionResult {
 
-    val versions = parseInput(properties, inputType)
-
+    val versions: Map<Version, Boolean> = parseInput(properties, inputType)
     val versionsFile = File(versionsFilePath)
     val readmeFile = File(readmeFilePath)
 
@@ -142,57 +141,56 @@ fun parseAutomaticInput(properties: Map<String, Any>): Map<Version, Boolean> {
     return ensureModuleDependenciesWhenBumping(versions)
 }
 
-fun ensureModuleDependenciesWhenBumping(parsedVersions: Map<Version, Boolean>): Map<Version, Boolean> {
-    var versions = parsedVersions.entries.associate { (k, v) ->
+fun Map<Version, Boolean>.bumpBOM(): Map<Version, Boolean> =
+    entries.associate { (k, v) ->
         k to when (k) {
             Version.BOM -> true
             else -> v
         }
     }
 
+fun Map<Version, Boolean>.bumpAllModules(): Map<Version, Boolean> = mapValues { true }
+fun Map<Version, Boolean>.bumpCoreDependantModules(): Map<Version, Boolean> = entries.associate { (k, v) ->
+    k to when (k) {
+        Version.FOUNDATION -> v
+        else -> true
+    }
+}
+
+fun Map<Version, Boolean>.bumpModalCoreDependantModules(): Map<Version, Boolean> = entries.associate { (k, v) ->
+    k to when (k) {
+        Version.WEB_3_MODAL, Version.WC_MODAL -> true
+        else -> v
+    }
+}
+
+fun Map<Version, Boolean>.bumpSignDependantModules(): Map<Version, Boolean> = entries.associate { (k, v) ->
+    k to when (k) {
+        Version.WEB_3_WALLET, Version.WEB_3_MODAL, Version.WC_MODAL -> true
+        else -> v
+    }
+}
+
+fun Map<Version, Boolean>.bumpAuthDependantModules(): Map<Version, Boolean> = entries.associate { (k, v) ->
+    k to when (k) {
+        Version.WEB_3_WALLET -> true
+        else -> v
+    }
+}
+
+
+fun ensureModuleDependenciesWhenBumping(parsedVersions: Map<Version, Boolean>): Map<Version, Boolean> {
+    val versions = parsedVersions.bumpBOM()
+
     return when {
-        versions[Version.FOUNDATION] == true -> {
-            versions.mapValues { true }
+        versions[Version.FOUNDATION] == true -> versions.bumpAllModules()
+        versions[Version.CORE] == true -> versions.bumpCoreDependantModules()
+        else -> {
+            versions
+                .run { if (this[Version.SIGN] == true) bumpSignDependantModules() else this }
+                .run { if (this[Version.AUTH] == true) bumpAuthDependantModules() else this }
+                .run { if (this[Version.MODAL_CORE] == true) bumpModalCoreDependantModules() else this }
         }
-
-        versions[Version.CORE] == true -> {
-            versions.entries.associate { (k, v) ->
-                k to when (k) {
-                    Version.FOUNDATION -> v
-                    else -> true
-                }
-            }
-        }
-
-        versions[Version.MODAL_CORE] == true -> {
-            versions.entries.associate { (k, v) ->
-                k to when (k) {
-                    Version.WEB_3_MODAL, Version.WC_MODAL -> true
-                    else -> v
-                }
-            }
-        }
-
-        versions[Version.SIGN] == true -> {
-            versions.entries.associate { (k, v) ->
-                k to when (k) {
-                    Version.WEB_3_WALLET -> true
-                    Version.WEB_3_MODAL -> true
-                    else -> v
-                }
-            }
-        }
-
-        versions[Version.AUTH] == true -> {
-            versions.entries.associate { (k, v) ->
-                k to when (k) {
-                    Version.WEB_3_WALLET -> true
-                    else -> v
-                }
-            }
-        }
-
-        else -> versions
     }
 }
 
@@ -202,4 +200,3 @@ fun parseManualInput(properties: Map<String, Any>): Map<Version, Boolean> {
         version to (properties[version.name]?.run(String::class::safeCast)?.run { true } ?: false)
     }
 }
-
