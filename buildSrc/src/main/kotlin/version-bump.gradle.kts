@@ -1,10 +1,3 @@
-// [x] Wszystko ładnie ma działać za odpaleniem jednego skryptu
-// [ ] Udokumentować co jeszcze trzeba zrobić żeby łądnie działało w CI
-// [x] Dodać testy -> kod wywalić z tego pliku do osobnego pliku i testować
-// [x] zmienić readme aby miało - zamist kropki w czacie
-// [ ] ogarnać jak zrobić release z GHA
-
-
 tasks {
     val properties = project.properties as Map<String, Any>
 
