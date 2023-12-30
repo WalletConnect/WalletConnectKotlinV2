@@ -46,11 +46,12 @@ project.extensions.configure(BaseExtension::class.java) {
 
         // Firebase App Distribution
         create("internal") {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             isDebuggable = true
             applicationIdSuffix(".internal")
-            matchingFallbacks += listOf("release", "debug")
+            matchingFallbacks += listOf("debug")
             signingConfig = signingConfigs.getByName("internal_release")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             versionNameSuffix = "${System.getenv("GITHUB_RUN_ATTEMPT")?.let { ".$it" } ?: ""}-internal"
             defaultConfig.versionCode = "$SAMPLE_VERSION_CODE${System.getenv("GITHUB_RUN_ATTEMPT") ?: ""}".toInt()
             firebaseAppDistribution {
