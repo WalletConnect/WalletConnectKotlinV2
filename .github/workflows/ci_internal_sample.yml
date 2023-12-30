@@ -9,7 +9,7 @@ jobs:
       matrix:
         conf: [
           { name: wallet, command: ":sample:wallet:assembleInternal --full-stacktrace :sample:wallet:appDistributionUploadInternal" },
-          { name: dapp, command: ":sample:dapp:assembleRelease :sample:dapp:appDistributionUploadRelease" },
+          { name: dapp, command: ":sample:dapp:assembleInternal :sample:dapp:appDistributionUploadInternal" },
           { name: modal, command: ":sample:modal:assembleRelease :sample:modal:appDistributionUploadRelease" }
         ]
     name: ${{ matrix.conf.name }}
