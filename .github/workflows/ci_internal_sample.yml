@@ -63,10 +63,6 @@ jobs:
           echo $ENCODED_STRING_INTERNAL > keystore-b64.txt
           base64 -d keystore-b64.txt > wc_kotlin_internal.keystore
 
-      - name: Test if credentials.json exists
-        run: test -s credentials.json && echo 1 || echo 0
-#        run: test -f ./credentials.json && echo "credentials.json exists" || echo "credentials.json does not exist"
-
       - name: Release sample - Internal
         env:
           WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
