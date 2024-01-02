@@ -64,8 +64,7 @@ jobs:
           base64 -d keystore-b64.txt > $SIGNING_KEY_STORE_PATH_INTERNAL
 
       - name: Test if credentials.json exists
-        run: [ -s credentials.json ] /
-          && echo 1 || echo 0
+        run: test -s credentials.json && echo 1 || echo 0
 #        run: test -f ./credentials.json && echo "credentials.json exists" || echo "credentials.json does not exist"
 
       - name: Release sample - Internal
