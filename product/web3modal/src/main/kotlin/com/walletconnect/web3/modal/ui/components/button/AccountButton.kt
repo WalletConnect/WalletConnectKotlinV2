@@ -75,7 +75,7 @@ fun AccountButton(
 }
 
 @Composable
-private fun AccountButtonState(
+internal fun AccountButtonState(
     state: AccountButtonState,
     onClick: () -> Unit,
 ) {
