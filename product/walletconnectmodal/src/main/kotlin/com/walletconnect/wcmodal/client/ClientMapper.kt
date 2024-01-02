@@ -38,29 +38,25 @@ internal fun Sign.Model.SessionAuthenticateResponse.toModal(): Modal.Model.Sessi
     }
 
 @JvmSynthetic
-internal fun List<Sign.Model.Cacao>.toClient(): List<Modal.Model.Cacao> = mutableListOf<Modal.Model.Cacao>().apply {
-    this@toClient.forEach { cacao: Sign.Model.Cacao ->
-        with(cacao) {
-            add(
-                Modal.Model.Cacao(
-                    Modal.Model.Cacao.Header(header.t),
-                    Modal.Model.Cacao.Payload(
-                        payload.iss,
-                        payload.domain,
-                        payload.aud,
-                        payload.version,
-                        payload.nonce,
-                        payload.iat,
-                        payload.nbf,
-                        payload.exp,
-                        payload.statement,
-                        payload.requestId,
-                        payload.resources
-                    ),
-                    Modal.Model.Cacao.Signature(signature.t, signature.s, signature.m)
-                )
-            )
-        }
+internal fun List<Sign.Model.Cacao>.toClient(): List<Modal.Model.Cacao> = this.map {
+    with(it){
+        Modal.Model.Cacao(
+            Modal.Model.Cacao.Header(header.t),
+            Modal.Model.Cacao.Payload(
+                payload.iss,
+                payload.domain,
+                payload.aud,
+                payload.version,
+                payload.nonce,
+                payload.iat,
+                payload.nbf,
+                payload.exp,
+                payload.statement,
+                payload.requestId,
+                payload.resources
+            ),
+            Modal.Model.Cacao.Signature(signature.t, signature.s, signature.m)
+        )
     }
 }
 

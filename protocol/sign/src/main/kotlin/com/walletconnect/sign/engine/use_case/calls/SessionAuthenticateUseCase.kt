@@ -6,6 +6,7 @@ import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.utils.CURRENT_TIME_IN_SECONDS
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
 import com.walletconnect.android.internal.utils.getParticipantTag
 import com.walletconnect.foundation.common.model.PublicKey
@@ -16,8 +17,6 @@ import com.walletconnect.sign.common.model.vo.clientsync.common.Caip222Request
 import com.walletconnect.sign.common.model.vo.clientsync.common.Requester
 import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpc
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
-import java.util.Date
-import java.util.concurrent.TimeUnit
 
 internal class SessionAuthenticateUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -26,7 +25,6 @@ internal class SessionAuthenticateUseCase(
     private val logger: Logger
 ) : SessionAuthenticateUseCaseInterface {
     override suspend fun authenticate(caip222Request: Caip222Request, topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
-        val nowInSeconds = TimeUnit.SECONDS.convert(Date().time, TimeUnit.SECONDS)
 //        if (!CoreValidator.isExpiryWithinBounds(expiry ?: Expiry(300))) {
 //            return@supervisorScope onFailure(InvalidExpiryException())
 //        }
@@ -35,7 +33,7 @@ internal class SessionAuthenticateUseCase(
         val responseTopic: Topic = crypto.getTopicFromKey(responsePublicKey)
         val authParams: SignParams.SessionAuthenticateParams = SignParams.SessionAuthenticateParams(Requester(responsePublicKey.keyAsHex, selfAppMetaData), caip222Request)
         val authRequest: SignRpc.SessionAuthenticate = SignRpc.SessionAuthenticate(params = authParams)
-        val irnParamsTtl = getIrnParamsTtl(null, nowInSeconds)
+        val irnParamsTtl = getIrnParamsTtl(null, CURRENT_TIME_IN_SECONDS)
         val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE, irnParamsTtl, true)
         val pairingTopic = Topic(topic)
         //todo: use exp from payload

@@ -49,6 +49,10 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = composeCompilerVersion
     }
+
+    tasks.withType(Test::class.java) {
+        jvmArgs("-XX:+AllowRedefinitionToAddDeleteMethods")
+    }
 }
 
 dependencies {
