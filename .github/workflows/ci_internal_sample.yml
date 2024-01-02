@@ -62,7 +62,7 @@ jobs:
         run: |
           echo $ENCODED_STRING_INTERNAL > keystore-b64.txt
           base64 -d keystore-b64.txt > wc_kotlin_internal.keystore
-#$SIGNING_KEY_STORE_PATH_INTERNAL
+
       - name: Test if credentials.json exists
         run: [ -s credentials.json ] /
           && echo 1 || echo 0
