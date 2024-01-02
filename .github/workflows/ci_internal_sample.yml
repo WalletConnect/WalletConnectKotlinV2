@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         conf: [
-          { name: wallet, command: ":sample:wallet:assembleInternal --full-stacktrace :sample:wallet:appDistributionUploadInternal" },
+          { name: wallet, command: ":sample:wallet:assembleInternal :sample:wallet:appDistributionUploadInternal" },
           { name: dapp, command: ":sample:dapp:assembleInternal :sample:dapp:appDistributionUploadInternal" },
           { name: modal, command: ":sample:modal:assembleRelease :sample:modal:appDistributionUploadRelease" }
         ]
