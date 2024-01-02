@@ -8,9 +8,9 @@ jobs:
     strategy:
       matrix:
         conf: [
-          { name: wallet, command: ":sample:wallet:assembleInternal :sample:wallet:appDistributionUploadInternal" },
-          { name: dapp, command: ":sample:dapp:assembleInternal :sample:dapp:appDistributionUploadInternal" },
-          { name: modal, command: ":sample:modal:assembleInternal :sample:modal:appDistributionUploadInternal" }
+          { name: dapp, command: ":sample:dapp:assembleInternal :sample:dapp:appDistributionUploadInternal" }#,
+#          { name: wallet, command: ":sample:wallet:assembleInternal :sample:wallet:appDistributionUploadInternal" },
+#          { name: modal, command: ":sample:modal:assembleRelease :sample:modal:appDistributionUploadRelease" }
         ]
     name: ${{ matrix.conf.name }}
     runs-on: ubuntu-latest
@@ -40,15 +40,20 @@ jobs:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
         run: echo $GOOGLE_SERVICES_JSON > ./sample/${{ matrix.conf.name}}/google-services.json
 
-      - name: Create Firebase Service Credentials file
+      - name: Create Google Services Credentials File
         env:
-          FIREBASE_SERVICE_CREDENTIALS: ${{ secrets.FIREBASE_SERVICE_CREDENTIALS }}
-        run: echo $FIREBASE_SERVICE_CREDENTIALS | base64 --decode > credentials.json
+          GOOGLE_SERVICES_CREDENTIALS_JSON: ${{ secrets.GOOGLE_SERVICES_CREDENTIALS_JSON }}
+        run: echo $GOOGLE_SERVICES_CREDENTIALS_JSON | base64 --decode > credentials.json
 
       - name: Fetch Properties File
         env:
           SECRETS_PROPERTIES: ${{ secrets.SECRETS_PROPERTIES }}
         run: echo $SECRETS_PROPERTIES | base64 --decode > secrets.properties
+
+      - name: Create Firebase Service Credentials file
+        env:
+          FIREBASE_SERVICE_CREDENTIALS: ${{ secrets.FIREBASE_SERVICE_CREDENTIALS }}
+        run: echo $FIREBASE_SERVICE_CREDENTIALS > firebase_service_credentials.json
 
       - name: Decode Internal Keystore
         env:
@@ -56,7 +61,12 @@ jobs:
           SIGNING_KEY_STORE_PATH_INTERNAL: ${{ secrets.WC_KOTLIN_INTERNAL_KEYSTORE_PATH }}
         run: |
           echo $ENCODED_STRING_INTERNAL > keystore-b64.txt
-          base64 -d keystore-b64.txt > wc_kotlin_internal.keystore
+          base64 -d keystore-b64.txt > $SIGNING_KEY_STORE_PATH_INTERNAL
+
+      - name: Test if credentials.json exists
+        run: [ -s credentials.json ] /
+          && echo 1 || echo 0
+#        run: test -f ./credentials.json && echo "credentials.json exists" || echo "credentials.json does not exist"
 
       - name: Release sample - Internal
         env:
