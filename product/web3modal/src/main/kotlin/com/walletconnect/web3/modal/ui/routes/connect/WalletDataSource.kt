@@ -7,7 +7,7 @@ import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.util.Empty
 import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.domain.usecase.GetRecentWalletUseCase
-import com.walletconnect.web3.modal.ui.model.LoadingState
+import com.walletconnect.modal.ui.model.LoadingState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 
@@ -101,8 +101,8 @@ internal class WalletDataSource(
     }
 
     fun clearSearch() {
-        searchState.value = WalletsData.empty()
         searchPhrase = String.Empty
+        searchState.value = WalletsData.empty()
     }
 
     suspend fun searchWallet(searchPhrase: String) {
