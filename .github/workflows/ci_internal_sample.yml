@@ -63,13 +63,18 @@ jobs:
           echo $ENCODED_STRING_INTERNAL > keystore-b64.txt
           base64 -d keystore-b64.txt > $SIGNING_KEY_STORE_PATH_INTERNAL
 
-      - name: Release sample - Internal
-        env:
-          WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-          PROD_GM_PROJECT_ID: ${{ secrets.PROD_GM_PROJECT_ID }}
-          PROD_GM_SECRET: ${{ secrets.PROD_GM_SECRET }}
-        run: ./gradlew ${{ matrix.conf.command }}
+      - name: Test if credentials.json exists
+        run: |
+          [ -f ./credentials.json ] |
+          && echo "File exists" || echo "File does not exist"
+
+#      - name: Release sample - Internal
+#        env:
+#          WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
+#          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+#          PROD_GM_PROJECT_ID: ${{ secrets.PROD_GM_PROJECT_ID }}
+#          PROD_GM_SECRET: ${{ secrets.PROD_GM_SECRET }}
+#        run: ./gradlew ${{ matrix.conf.command }}
 
       - name: Stop Gradle
         run: ./gradlew --stop
