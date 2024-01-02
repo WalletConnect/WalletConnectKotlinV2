@@ -104,56 +104,48 @@ internal fun Sign.Model.PayloadParams.toCacaoPayload(issuer: String): Sign.Model
 }
 
 @JvmSynthetic
-internal fun List<Sign.Model.Cacao>.toCommon(): List<Cacao> = mutableListOf<Cacao>().apply {
-    this@toCommon.forEach { cacao: Sign.Model.Cacao ->
-        with(cacao) {
-            add(
-                Cacao(
-                    Cacao.Header(header.t),
-                    Cacao.Payload(
-                        payload.iss,
-                        payload.domain,
-                        payload.aud,
-                        payload.version,
-                        payload.nonce,
-                        payload.iat,
-                        payload.nbf,
-                        payload.exp,
-                        payload.statement,
-                        payload.requestId,
-                        payload.resources
-                    ),
-                    Cacao.Signature(signature.t, signature.s, signature.m)
-                )
-            )
-        }
+internal fun List<Sign.Model.Cacao>.toCommon(): List<Cacao> = this.map {
+    with(it) {
+        Cacao(
+            Cacao.Header(header.t),
+            Cacao.Payload(
+                payload.iss,
+                payload.domain,
+                payload.aud,
+                payload.version,
+                payload.nonce,
+                payload.iat,
+                payload.nbf,
+                payload.exp,
+                payload.statement,
+                payload.requestId,
+                payload.resources
+            ),
+            Cacao.Signature(signature.t, signature.s, signature.m)
+        )
     }
 }
 
 @JvmSynthetic
-internal fun List<Cacao>.toClient(): List<Sign.Model.Cacao> = mutableListOf<Sign.Model.Cacao>().apply {
-    this@toClient.forEach { cacao: Cacao ->
-        with(cacao) {
-            add(
-                Sign.Model.Cacao(
-                    Sign.Model.Cacao.Header(header.t),
-                    Sign.Model.Cacao.Payload(
-                        payload.iss,
-                        payload.domain,
-                        payload.aud,
-                        payload.version,
-                        payload.nonce,
-                        payload.iat,
-                        payload.nbf,
-                        payload.exp,
-                        payload.statement,
-                        payload.requestId,
-                        payload.resources
-                    ),
-                    Sign.Model.Cacao.Signature(signature.t, signature.s, signature.m)
-                )
-            )
-        }
+internal fun List<Cacao>.toClient(): List<Sign.Model.Cacao> = this.map {
+    with(it) {
+        Sign.Model.Cacao(
+            Sign.Model.Cacao.Header(header.t),
+            Sign.Model.Cacao.Payload(
+                payload.iss,
+                payload.domain,
+                payload.aud,
+                payload.version,
+                payload.nonce,
+                payload.iat,
+                payload.nbf,
+                payload.exp,
+                payload.statement,
+                payload.requestId,
+                payload.resources
+            ),
+            Sign.Model.Cacao.Signature(signature.t, signature.s, signature.m)
+        )
     }
 }
 
