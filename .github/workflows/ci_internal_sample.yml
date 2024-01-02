@@ -8,9 +8,9 @@ jobs:
     strategy:
       matrix:
         conf: [
-          { name: wallet, command: ":sample:wallet:assembleInternal :sample:wallet:appDistributionUploadInternal" },
-          { name: dapp, command: ":sample:dapp:assembleInternal :sample:dapp:appDistributionUploadInternal" },
-          { name: modal, command: ":sample:modal:assembleRelease :sample:modal:appDistributionUploadRelease" }
+          { name: dapp, command: ":sample:dapp:assembleInternal :sample:dapp:appDistributionUploadInternal" }#,
+#          { name: wallet, command: ":sample:wallet:assembleInternal :sample:wallet:appDistributionUploadInternal" },
+#          { name: modal, command: ":sample:modal:assembleRelease :sample:modal:appDistributionUploadRelease" }
         ]
     name: ${{ matrix.conf.name }}
     runs-on: ubuntu-latest
@@ -42,7 +42,7 @@ jobs:
 
       - name: Create Google Services Credentials File
         env:
-          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_CREDENTIALS_JSON }}
+          GOOGLE_SERVICES_CREDENTIALS_JSON: ${{ secrets.GOOGLE_SERVICES_CREDENTIALS_JSON }}
         run: echo $GOOGLE_SERVICES_CREDENTIALS_JSON | base64 --decode > ./credentials.json
 
       - name: Fetch Properties File
