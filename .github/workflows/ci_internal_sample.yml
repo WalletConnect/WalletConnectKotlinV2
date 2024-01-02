@@ -61,18 +61,20 @@ jobs:
           SIGNING_KEY_STORE_PATH_INTERNAL: ${{ secrets.WC_KOTLIN_INTERNAL_KEYSTORE_PATH }}
         run: |
           echo $ENCODED_STRING_INTERNAL > keystore-b64.txt
-          base64 -d keystore-b64.txt > $SIGNING_KEY_STORE_PATH_INTERNAL
-
+          base64 -d keystore-b64.txt > wc_kotlin_internal.keystore
+#$SIGNING_KEY_STORE_PATH_INTERNAL
       - name: Test if credentials.json exists
-        run: test -f ./credentials.json && echo "credentials.json exists" || echo "credentials.json does not exist"
+        run: [ -s credentials.json ] /
+          && echo 1 || echo 0
+#        run: test -f ./credentials.json && echo "credentials.json exists" || echo "credentials.json does not exist"
 
-#      - name: Release sample - Internal
-#        env:
-#          WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
-#          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
-#          PROD_GM_PROJECT_ID: ${{ secrets.PROD_GM_PROJECT_ID }}
-#          PROD_GM_SECRET: ${{ secrets.PROD_GM_SECRET }}
-#        run: ./gradlew ${{ matrix.conf.command }}
+      - name: Release sample - Internal
+        env:
+          WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          PROD_GM_PROJECT_ID: ${{ secrets.PROD_GM_PROJECT_ID }}
+          PROD_GM_SECRET: ${{ secrets.PROD_GM_SECRET }}
+        run: ./gradlew ${{ matrix.conf.command }}
 
       - name: Stop Gradle
         run: ./gradlew --stop
