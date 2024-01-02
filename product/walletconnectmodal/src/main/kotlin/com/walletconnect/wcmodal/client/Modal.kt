@@ -73,18 +73,18 @@ object Modal {
         }
 
         data class PayloadParams(
-            val type: String,
             val chains: List<String>,
             val domain: String,
-            val aud: String,
-            val version: String,
             val nonce: String,
-            val iat: String,
+            val aud: String,
+            val type: String?,
             val nbf: String?,
+            val iat: String,
             val exp: String?,
             val statement: String?,
             val requestId: String?,
             val resources: List<String>?,
+            val methods: List<String>?
         ) : Model()
 
         data class ApprovedSession(

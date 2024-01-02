@@ -80,7 +80,20 @@ internal fun Modal.Params.Authenticate.toSign(): Sign.Params.Authenticate = with
 }
 
 internal fun Modal.Model.PayloadParams.toSign(): Sign.Model.PayloadParams = with(this) {
-    Sign.Model.PayloadParams(CacaoType.CAIP222.header, chains, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
+    Sign.Model.PayloadParams(
+        chains = chains,
+        type = type ?: CacaoType.CAIP222.header,
+        domain = domain,
+        aud = aud,
+        nonce = nonce,
+        iat = iat,
+        nbf = nbf,
+        exp = exp,
+        statement = statement,
+        requestId = requestId,
+        resources = resources,
+        methods = methods
+    )
 }
 
 internal fun Map<String, Modal.Model.Namespace.Proposal>.toSign() = mapValues { (_, namespace) -> Sign.Model.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events) }
