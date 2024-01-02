@@ -32,7 +32,18 @@ object Modal {
 
         data class Authenticate(
             val pairingTopic: String,
-            val payloadParams: Model.PayloadParams
+            val chains: List<String>,
+            val domain: String,
+            val nonce: String,
+            val aud: String,
+            val type: String?,
+            val nbf: String?,
+            val iat: String,
+            val exp: String?,
+            val statement: String?,
+            val requestId: String?,
+            val resources: List<String>?,
+            val methods: List<String>?
         ) : Params()
 
         data class Disconnect(val sessionTopic: String) : Params()
@@ -83,8 +94,7 @@ object Modal {
             val exp: String?,
             val statement: String?,
             val requestId: String?,
-            val resources: List<String>?,
-            val methods: List<String>?
+            val resources: List<String>?
         ) : Model()
 
         data class ApprovedSession(

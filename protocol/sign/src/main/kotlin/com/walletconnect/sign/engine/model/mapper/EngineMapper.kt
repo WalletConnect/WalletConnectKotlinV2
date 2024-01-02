@@ -18,7 +18,8 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.exceptions.PeerError
 import com.walletconnect.sign.common.model.PendingRequest
-import com.walletconnect.sign.common.model.vo.clientsync.common.Caip222Request
+import com.walletconnect.sign.common.model.vo.clientsync.common.PayloadParams
+import com.walletconnect.sign.common.model.vo.clientsync.common.Requester
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipant
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.common.model.vo.proposal.ProposalVO
@@ -285,7 +286,11 @@ internal fun VerifyContext.toEngineDO(): EngineDO.VerifyContext =
     EngineDO.VerifyContext(id, origin, validation, verifyUrl, isScam)
 
 @JvmSynthetic
-internal fun Caip222Request.toCacaoPayload(iss: Issuer): Cacao.Payload = Cacao.Payload(
+internal fun Requester.toEngineDO(): EngineDO.Participant =
+    EngineDO.Participant(publicKey, metadata)
+
+@JvmSynthetic
+internal fun PayloadParams.toCacaoPayload(iss: Issuer): Cacao.Payload = Cacao.Payload(
     iss.value,
     domain = domain,
     aud = aud,
@@ -300,5 +305,5 @@ internal fun Caip222Request.toCacaoPayload(iss: Issuer): Cacao.Payload = Cacao.P
 )
 
 @JvmSynthetic
-internal fun Caip222Request.toCAIP122Message(iss: Issuer, chainName: String = "Ethereum"): String =//todo: Figure out dynamic chain name
+internal fun PayloadParams.toCAIP122Message(iss: Issuer, chainName: String = "Ethereum"): String =//todo: Figure out dynamic chain name
     this.toCacaoPayload(iss).toCAIP122Message(chainName)

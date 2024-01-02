@@ -88,8 +88,7 @@ internal fun Wallet.Model.PayloadAuthRequestParams.toSign(): Sign.Model.PayloadP
         exp = exp,
         statement = statement,
         requestId = requestId,
-        resources = resources,
-        methods = methods
+        resources = resources
     )
 
 @JvmSynthetic
@@ -163,7 +162,10 @@ internal fun Sign.Model.SessionProposal.toWallet(): Wallet.Model.SessionProposal
 
 @JvmSynthetic
 internal fun Sign.Model.SessionAuthenticate.toWallet(): Wallet.Model.SessionAuthenticated =
-    Wallet.Model.SessionAuthenticated(id, pairingTopic, payloadParams.toWallet())
+    Wallet.Model.SessionAuthenticated(id, topic, participant.toWallet(), payloadParams.toWallet())
+
+@JvmSynthetic
+internal fun Sign.Model.Participant.toWallet(): Wallet.Model.Participant = Wallet.Model.Participant(publicKey, metadata)
 
 @JvmSynthetic
 internal fun Sign.Model.PayloadParams.toWallet(): Wallet.Model.PayloadAuthRequestParams =
@@ -178,8 +180,7 @@ internal fun Sign.Model.PayloadParams.toWallet(): Wallet.Model.PayloadAuthReques
         exp = exp,
         statement = statement,
         requestId = requestId,
-        resources = resources,
-        methods = methods
+        resources = resources
     )
 
 internal fun Sign.Model.VerifyContext.toWallet(): Wallet.Model.VerifyContext =

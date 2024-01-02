@@ -33,7 +33,7 @@ internal class OnSessionAuthenticateUseCase(
     suspend operator fun invoke(request: WCRequest, authenticateSessionParams: SignParams.SessionAuthenticateParams) = supervisorScope {
         val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE_RESPONSE, Ttl(DAY_IN_SECONDS))
         try {
-            val expiry = authenticateSessionParams.caip222Request.exp?.toLong()?.let { Expiry(it) }
+            val expiry = authenticateSessionParams.authPayload.exp?.toLong()?.let { Expiry(it) }
             if (!CoreValidator.isExpiryWithinBounds(expiry)) {
                 jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
                 return@supervisorScope
@@ -42,7 +42,15 @@ internal class OnSessionAuthenticateUseCase(
             val url = authenticateSessionParams.requester.metadata.url
             resolveAttestationIdUseCase(request.id, request.message, url) { verifyContext ->
                 scope.launch {
-                    _events.emit(EngineDO.SessionAuthenticateEvent(request.id, request.topic.value, authenticateSessionParams.caip222Request, verifyContext.toEngineDO()))
+                    _events.emit(
+                        EngineDO.SessionAuthenticateEvent(
+                            request.id,
+                            request.topic.value,
+                            authenticateSessionParams.authPayload,
+                            authenticateSessionParams.requester.toEngineDO(),
+                            verifyContext.toEngineDO()
+                        )
+                    )
                 }
             }
         } catch (e: Exception) {

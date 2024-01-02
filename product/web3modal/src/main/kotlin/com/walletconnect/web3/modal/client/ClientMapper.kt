@@ -76,7 +76,21 @@ internal fun Sign.Model.Ping.Error.toModal() = Modal.Model.Ping.Error(error)
 internal fun Modal.Params.Connect.toSign() = Sign.Params.Connect(namespaces?.toSign(), optionalNamespaces?.toSign(), properties, pairing)
 
 internal fun Modal.Params.Authenticate.toSign(): Sign.Params.Authenticate = with(this) {
-    Sign.Params.Authenticate(pairingTopic, payloadParams.toSign())
+    Sign.Params.Authenticate(
+        pairingTopic,
+        chains = chains,
+        domain = domain,
+        aud = aud,
+        nonce = nonce,
+        iat = iat,
+        nbf = nbf,
+        exp = exp,
+        statement = statement,
+        requestId = requestId,
+        resources = resources,
+        methods = methods,
+        type = type ?: CacaoType.CAIP222.header
+    )
 }
 
 internal fun Modal.Model.PayloadParams.toSign(): Sign.Model.PayloadParams = with(this) {
@@ -92,7 +106,6 @@ internal fun Modal.Model.PayloadParams.toSign(): Sign.Model.PayloadParams = with
         statement = statement,
         requestId = requestId,
         resources = resources,
-        methods = methods
     )
 }
 

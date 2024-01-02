@@ -4,6 +4,7 @@ import androidx.annotation.Keep
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreInterface
 import com.walletconnect.android.cacao.SignatureInterface
+import com.walletconnect.android.internal.common.model.Participant
 import com.walletconnect.android.internal.common.signing.cacao.Issuer
 import java.net.URI
 import kotlin.time.Duration
@@ -231,9 +232,15 @@ object Sign {
 
         data class SessionAuthenticate(
             val id: Long,
-            val pairingTopic: String,
-            val payloadParams: PayloadParams,
+            val topic: String,
+            val participant: Participant,
+            val payloadParams: PayloadParams
         )
+
+        data class Participant(
+            val publicKey: String,
+            val metadata: Core.Model.AppMetaData?,
+        ) : Model()
 
         data class PayloadParams(
             val chains: List<String>,
@@ -247,7 +254,6 @@ object Sign {
             val statement: String?,
             val requestId: String?,
             val resources: List<String>?,
-            val methods: List<String>?
         ) : Model()
 
         data class Cacao(
@@ -291,7 +297,18 @@ object Sign {
 
         data class Authenticate(
             val pairingTopic: String,
-            val payloadParams: Model.PayloadParams
+            val chains: List<String>,
+            val domain: String,
+            val nonce: String,
+            val aud: String,
+            val type: String?,
+            val nbf: String?,
+            val iat: String,
+            val exp: String?,
+            val statement: String?,
+            val requestId: String?,
+            val resources: List<String>?,
+            val methods: List<String>?
         ) : Params()
 
         data class FormatMessage(val payloadParams: Model.PayloadParams, val iss: String) : Params()

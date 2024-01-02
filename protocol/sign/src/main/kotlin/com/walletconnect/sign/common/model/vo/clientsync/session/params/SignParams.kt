@@ -8,7 +8,7 @@ import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SessionProposer
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
-import com.walletconnect.sign.common.model.vo.clientsync.common.Caip222Request
+import com.walletconnect.sign.common.model.vo.clientsync.common.PayloadParams
 import com.walletconnect.sign.common.model.vo.clientsync.common.Requester
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipant
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionEventVO
@@ -35,8 +35,8 @@ internal sealed class SignParams : CoreSignParams() {
     internal data class SessionAuthenticateParams(
         @Json(name = "requester")
         val requester: Requester,
-        @Json(name = "caip222Request")
-        val caip222Request: Caip222Request
+        @Json(name = "authPayload")
+        val authPayload: PayloadParams
     ) : SignParams()
 
     @JsonClass(generateAdapter = true)

@@ -72,7 +72,13 @@ object Wallet {
         data class SessionAuthenticated(
             val id: Long,
             val pairingTopic: String,
+            val participant: Participant,
             val payloadParams: PayloadAuthRequestParams,
+        ) : Model()
+
+        data class Participant(
+            val publicKey: String,
+            val metadata: Core.Model.AppMetaData?,
         ) : Model()
 
         data class VerifyContext(
@@ -82,7 +88,7 @@ object Wallet {
             val verifyUrl: String,
             val isScam: Boolean?
         ) : Model()
-
+        {}
         enum class Validation {
             VALID, INVALID, UNKNOWN
         }
@@ -181,8 +187,7 @@ object Wallet {
             val exp: String?,
             val statement: String?,
             val requestId: String?,
-            val resources: List<String>?,
-            val methods: List<String>?
+            val resources: List<String>?
         ) : Model()
 
 

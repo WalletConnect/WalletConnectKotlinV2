@@ -11,7 +11,7 @@ import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.Sequence
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.sign.common.model.vo.clientsync.common.Caip222Request
+import com.walletconnect.sign.common.model.vo.clientsync.common.PayloadParams
 import java.net.URI
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions as CoreRelayProtocolOptions
 
@@ -34,7 +34,12 @@ internal sealed class EngineDO {
         val context: VerifyContext
     ) : EngineDO(), EngineEvent
 
-    data class SessionAuthenticateEvent(val id: Long, val pairingTopic: String, val caip222Request: Caip222Request, val verifyContext: VerifyContext) : EngineDO(), EngineEvent
+    data class SessionAuthenticateEvent(val id: Long, val pairingTopic: String, val payloadParams: PayloadParams, val participant: Participant, val verifyContext: VerifyContext) : EngineDO(), EngineEvent
+
+    data class Participant(
+        val publicKey: String,
+        val metadata: AppMetaData,
+    ) : EngineDO()
 
     data class SessionProposal(
         val pairingTopic: String,
