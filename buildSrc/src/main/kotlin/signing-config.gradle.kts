@@ -56,7 +56,7 @@ project.extensions.configure(BaseExtension::class.java) {
             defaultConfig.versionCode = "$SAMPLE_VERSION_CODE${System.getenv("GITHUB_RUN_ATTEMPT") ?: ""}".toInt()
             firebaseAppDistribution {
                 artifactType = "APK"
-                serviceCredentialsFile = File(rootDir, "firebase_service_credentials.json").path
+                serviceCredentialsFile = File(rootDir, "credentials.json").path
                 groups = "test"
             }
         }
@@ -68,7 +68,7 @@ project.extensions.configure(BaseExtension::class.java) {
             defaultConfig.versionCode = "$SAMPLE_VERSION_CODE${System.getenv("GITHUB_RUN_ATTEMPT") ?: ""}".toInt()
             firebaseAppDistribution {
                 artifactType = "APK"
-                serviceCredentialsFile = File(rootDir, "firebase_service_credentials.json").path
+                serviceCredentialsFile = File(rootDir, "credentials.json").path
                 groups = "test"
             }
         }
