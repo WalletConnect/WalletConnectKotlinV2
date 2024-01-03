@@ -2,8 +2,6 @@ package com.walletconnect.sign.test.utils
 
 import com.walletconnect.android.Core
 import com.walletconnect.sign.client.Sign
-import com.walletconnect.util.bytesToHex
-import com.walletconnect.util.randomBytes
 import junit.framework.TestCase.fail
 import timber.log.Timber
 
@@ -29,18 +27,3 @@ val proposalNamespace = Sign.Model.Namespace.Proposal(sessionChains, sessionMeth
 
 val proposalNamespaces: Map<String, Sign.Model.Namespace.Proposal> = mapOf(sessionNamespaceKey to proposalNamespace)
 val sessionNamespaces: Map<String, Sign.Model.Namespace.Session> = mapOf(sessionNamespaceKey to sessionNamespace)
-
-val payloadParams = Sign.Model.PayloadParams(
-    type = "caip222",
-    chains = listOf("eip155:1", "eip155:37"),
-    domain = "sample.dapp",
-    aud = "https://react-auth-dapp.vercel.app/",
-    version = "2",
-    nonce = randomBytes(12).bytesToHex(),
-    iat = "2023-12-14T14:15:55.440Z",
-    exp = null,
-    nbf = null,
-    statement = "Sign in with wallet.",
-    requestId = null,
-    resources = null
-)

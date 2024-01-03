@@ -45,19 +45,19 @@ class SessionAuthenticateInstrumentedAndroidTest {
 
         val walletDelegate = object : WalletDelegate() {
             override fun onSessionAuthenticate(sessionAuthenticate: Sign.Model.SessionAuthenticate, verifyContext: Sign.Model.VerifyContext) {
-                val messages = mutableListOf<Pair<String, String>>()
+                val issuerToMessages = mutableListOf<Pair<String, String>>()
                 val cacaos = mutableListOf<Sign.Model.Cacao>()
 
                 sessionAuthenticate.payloadParams.chains.forEach { chain ->
                     val issuer = "did:pkh:$chain:$address"
                     val message = WalletSignClient.formatAuthMessage(Sign.Params.FormatMessage(sessionAuthenticate.payloadParams, issuer)) ?: throw Exception("Invalid message")
-                    messages.add(issuer to message)
+                    issuerToMessages.add(issuer to message)
                 }
 
-                messages.forEach { message ->
-                    val messageToSign = Numeric.toHexString(message.second.toByteArray())
+                issuerToMessages.forEach { issuerToMessage ->
+                    val messageToSign = Numeric.toHexString(issuerToMessage.second.toByteArray())
                     val signature = CacaoSigner.signHex(messageToSign, privateKey.hexToBytes(), SignatureType.EIP191)
-                    val cacao = generateCACAO(sessionAuthenticate.payloadParams, message.first, signature)
+                    val cacao = generateCACAO(sessionAuthenticate.payloadParams, issuerToMessage.first, signature)
                     cacaos.add(cacao)
                 }
 
