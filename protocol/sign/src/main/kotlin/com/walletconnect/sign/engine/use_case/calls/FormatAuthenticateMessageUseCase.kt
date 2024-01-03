@@ -14,7 +14,10 @@ internal class FormatAuthenticateMessageUseCase : FormatAuthenticateMessageUseCa
         if (!CoreValidator.isChainIdCAIP2Compliant(issuer.chainId)) throw Exception() //throw InvalidParamsException("Issuer chainId is not CAIP-2 compliant")
         if (!CoreValidator.isAccountIdCAIP10Compliant(issuer.accountId)) throw Exception()// throw InvalidParamsException("Issuer address is not CAIP-10 compliant")
 
-        //todo: hardcoded Ethereum?
+
+        //TODO: decode recaps
+
+        //todo: hardcoded Ethereum? add new method for caip222
         return@supervisorScope payloadParams.toCAIP122Message(issuer)
     }
 }

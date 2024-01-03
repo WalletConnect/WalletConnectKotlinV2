@@ -17,6 +17,7 @@ import com.walletconnect.sign.common.model.vo.clientsync.common.PayloadParams
 import com.walletconnect.sign.common.model.vo.clientsync.common.Requester
 import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpc
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
+import org.json.JSONObject
 
 internal class SessionAuthenticateUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -28,6 +29,17 @@ internal class SessionAuthenticateUseCase(
 //        if (!CoreValidator.isExpiryWithinBounds(expiry ?: Expiry(300))) {
 //            return@supervisorScope onFailure(InvalidExpiryException())
 //        }
+
+        //TODO: Multi namespace - throw error, chains validation
+
+        //TODO build recaps, encode base65, add prefix, add to resources
+        val att =
+            payloadParams.chains.forEach { chainId ->
+
+            }
+
+        val recaps = JSONObject().put("att", JSONObject().put("eip155", listOf(JSONObject().put("request/eth_signTypedData_v4", listOf<String>()))))
+
 
         val responsePublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
         val responseTopic: Topic = crypto.getTopicFromKey(responsePublicKey)
