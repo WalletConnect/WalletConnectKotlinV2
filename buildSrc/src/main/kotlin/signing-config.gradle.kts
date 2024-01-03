@@ -40,7 +40,7 @@ project.extensions.configure(BaseExtension::class.java) {
             defaultConfig.versionCode = SAMPLE_VERSION_CODE
             firebaseAppDistribution {
                 artifactType = "AAB"
-                groups = "test"
+                groups = "design-team, javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
             }
         }
 
@@ -57,7 +57,7 @@ project.extensions.configure(BaseExtension::class.java) {
             firebaseAppDistribution {
                 artifactType = "APK"
                 serviceCredentialsFile = File(rootDir, "credentials.json").path
-                groups = "test"
+                groups = "design-team, javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
             }
         }
 
@@ -69,7 +69,7 @@ project.extensions.configure(BaseExtension::class.java) {
             firebaseAppDistribution {
                 artifactType = "APK"
                 serviceCredentialsFile = File(rootDir, "credentials.json").path
-                groups = "test"
+                groups = "design-team, javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
             }
         }
     }
