@@ -13,10 +13,13 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
-import com.walletconnect.sign.common.model.vo.clientsync.common.PayloadParams
 import com.walletconnect.sign.common.model.vo.clientsync.common.Requester
 import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpc
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
+import com.walletconnect.sign.common.validator.SignValidator
+import com.walletconnect.sign.engine.model.EngineDO
+import com.walletconnect.sign.engine.model.mapper.toCommon
+import org.bouncycastle.util.encoders.Base64
 import org.json.JSONObject
 
 internal class SessionAuthenticateUseCase(
@@ -25,7 +28,7 @@ internal class SessionAuthenticateUseCase(
     private val selfAppMetaData: AppMetaData,
     private val logger: Logger
 ) : SessionAuthenticateUseCaseInterface {
-    override suspend fun authenticate(payloadParams: PayloadParams, methods: List<String>?, topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
+    override suspend fun authenticate(payloadParams: EngineDO.PayloadParams, methods: List<String>?, topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
 //        if (!CoreValidator.isExpiryWithinBounds(expiry ?: Expiry(300))) {
 //            return@supervisorScope onFailure(InvalidExpiryException())
 //        }
@@ -33,21 +36,22 @@ internal class SessionAuthenticateUseCase(
         //TODO: Multi namespace - throw error, chains validation
 
         //TODO build recaps, encode base65, add prefix, add to resources
-        val att =
-            payloadParams.chains.forEach { chainId ->
-
-            }
-
-        val recaps = JSONObject().put("att", JSONObject().put("eip155", listOf(JSONObject().put("request/eth_signTypedData_v4", listOf<String>()))))
+        val namespace = SignValidator.getNamespaceKeyFromChainId(payloadParams.chains.first())
+        val requests: List<JSONObject> = methods?.map { method -> JSONObject().put("request/$method", listOf<String>()) } ?: listOf()
+        val recaps = JSONObject().put("att", JSONObject().put(namespace, requests))
+        val base64Recaps = Base64.toBase64String(recaps.toString().toByteArray(Charsets.UTF_8))
+        val reCapsUrl = "urn:recap:$base64Recaps"
+        if (payloadParams.resources == null) payloadParams.resources = listOf(reCapsUrl) else payloadParams.resources!!.toMutableList().add(reCapsUrl)
 
 
         val responsePublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
         val responseTopic: Topic = crypto.getTopicFromKey(responsePublicKey)
-        val authParams: SignParams.SessionAuthenticateParams = SignParams.SessionAuthenticateParams(Requester(responsePublicKey.keyAsHex, selfAppMetaData), payloadParams)
+        val authParams: SignParams.SessionAuthenticateParams = SignParams.SessionAuthenticateParams(Requester(responsePublicKey.keyAsHex, selfAppMetaData), payloadParams.toCommon())
         val authRequest: SignRpc.SessionAuthenticate = SignRpc.SessionAuthenticate(params = authParams)
         val irnParamsTtl = getIrnParamsTtl(null, CURRENT_TIME_IN_SECONDS)
         val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE, irnParamsTtl, true)
         val pairingTopic = Topic(topic)
+
         //todo: use exp from payload
 //        val requestTtlInSeconds = expiry?.run { seconds - nowInSeconds } ?: DAY_IN_SECONDS
         crypto.setKey(responsePublicKey, responseTopic.getParticipantTag())
@@ -81,5 +85,5 @@ internal class SessionAuthenticateUseCase(
 }
 
 internal interface SessionAuthenticateUseCaseInterface {
-    suspend fun authenticate(payloadParams: PayloadParams, methods: List<String>?, topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit)
+    suspend fun authenticate(payloadParams: EngineDO.PayloadParams, methods: List<String>?, topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit)
 }

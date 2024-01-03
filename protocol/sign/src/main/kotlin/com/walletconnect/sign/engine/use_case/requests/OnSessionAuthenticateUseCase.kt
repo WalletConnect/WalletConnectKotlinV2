@@ -46,7 +46,7 @@ internal class OnSessionAuthenticateUseCase(
                         EngineDO.SessionAuthenticateEvent(
                             request.id,
                             request.topic.value,
-                            authenticateSessionParams.authPayload,
+                            authenticateSessionParams.authPayload.toEngineDO(),
                             authenticateSessionParams.requester.toEngineDO(),
                             verifyContext.toEngineDO()
                         )

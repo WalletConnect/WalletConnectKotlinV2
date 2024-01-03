@@ -99,8 +99,21 @@ internal fun Sign.Model.PayloadParams.toCaip222Request(): PayloadParams = with(t
 }
 
 @JvmSynthetic
-internal fun Sign.Params.Authenticate.toPayloadParams(): PayloadParams = with(this) {
-    PayloadParams(CacaoType.CAIP222.header, chains, domain, aud, "1", nonce, iat, nbf, exp, statement, requestId, resources)
+internal fun Sign.Params.Authenticate.toPayloadParams(): EngineDO.PayloadParams = with(this) {
+    EngineDO.PayloadParams(
+        type = CacaoType.CAIP222.header,
+        chains = chains,
+        domain = domain,
+        aud = aud,
+        version = "1",
+        nonce = nonce,
+        iat = iat,
+        nbf = nbf,
+        exp = exp,
+        statement = statement,
+        requestId = requestId,
+        resources = resources
+    )
 }
 
 @JvmSynthetic
@@ -185,7 +198,7 @@ internal fun EngineDO.SessionAuthenticateEvent.toClientSessionAuthenticate(): Si
 internal fun EngineDO.Participant.toClient(): Sign.Model.Participant = Sign.Model.Participant(publicKey, metadata.toClient())
 
 @JvmSynthetic
-internal fun PayloadParams.toClient(): Sign.Model.PayloadParams = Sign.Model.PayloadParams(
+internal fun EngineDO.PayloadParams.toClient(): Sign.Model.PayloadParams = Sign.Model.PayloadParams(
     type = type,
     chains = chains,
     domain = domain,

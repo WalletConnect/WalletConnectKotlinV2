@@ -11,6 +11,7 @@ import com.walletconnect.android.internal.common.model.SessionProposer
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
+import com.walletconnect.android.internal.common.signing.cacao.CacaoType
 import com.walletconnect.android.internal.common.signing.cacao.Issuer
 import com.walletconnect.android.internal.common.signing.cacao.toCAIP122Message
 import com.walletconnect.android.verify.data.model.VerifyContext
@@ -288,6 +289,40 @@ internal fun VerifyContext.toEngineDO(): EngineDO.VerifyContext =
 @JvmSynthetic
 internal fun Requester.toEngineDO(): EngineDO.Participant =
     EngineDO.Participant(publicKey, metadata)
+
+@JvmSynthetic
+internal fun EngineDO.PayloadParams.toCommon(): PayloadParams =
+    PayloadParams(
+        domain = domain,
+        aud = aud,
+        version = version,
+        nonce = nonce,
+        iat = iat,
+        nbf = nbf,
+        exp = exp,
+        statement = statement,
+        requestId = requestId,
+        resources = resources,
+        chains = chains,
+        type = type ?: CacaoType.CAIP222.header
+    )
+
+@JvmSynthetic
+internal fun PayloadParams.toEngineDO(): EngineDO.PayloadParams =
+    EngineDO.PayloadParams(
+        domain = domain,
+        aud = aud,
+        version = version,
+        nonce = nonce,
+        iat = iat,
+        nbf = nbf,
+        exp = exp,
+        statement = statement,
+        requestId = requestId,
+        resources = resources,
+        chains = chains,
+        type = type
+    )
 
 @JvmSynthetic
 internal fun PayloadParams.toCacaoPayload(iss: Issuer): Cacao.Payload = Cacao.Payload(

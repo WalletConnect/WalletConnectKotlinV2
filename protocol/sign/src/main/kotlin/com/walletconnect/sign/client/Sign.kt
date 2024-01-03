@@ -253,7 +253,7 @@ object Sign {
             val exp: String?,
             val statement: String?,
             val requestId: String?,
-            val resources: List<String>?,
+            var resources: List<String>?,
         ) : Model()
 
         data class Cacao(

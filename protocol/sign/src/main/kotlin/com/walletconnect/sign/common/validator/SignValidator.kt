@@ -165,23 +165,6 @@ internal object SignValidator {
         )
     }
 
-    private fun allAccountsWithChains(namespaces: Map<String, Namespace.Session>): Map<String, List<String>> {
-        val accountsByChains = namespaces
-            .filter { (namespaceKey, namespace) -> isNamespaceRegexCompliant(namespaceKey) && namespace.chains != null }
-            .flatMap { (_, namespace) -> namespace.accounts.map { account -> account to namespace.chains!! } }
-            .toMap()
-
-        val accountsByNamespaceKey = namespaces
-            .filter { (namespaceKey, namespace) -> isChainIdCAIP2Compliant(namespaceKey) && namespace.chains == null }
-            .flatMap { (namespaceKey, namespace) -> namespace.accounts.map { account -> account to listOf(namespaceKey) } }
-            .toMap()
-
-        return (accountsByChains.asSequence() + accountsByNamespaceKey.asSequence())
-            .distinct()
-            .groupBy({ it.key }, { it.value })
-            .mapValues { (_, values) -> values.flatten() }
-    }
-
     private fun allMethodsWithChains(namespaces: Map<String, Namespace>): Map<String, List<String>> {
         val methodsByChains = namespaces
             .filter { (namespaceKey, namespace) -> isNamespaceRegexCompliant(namespaceKey) && namespace.chains != null }

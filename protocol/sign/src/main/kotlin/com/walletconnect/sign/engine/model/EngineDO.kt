@@ -36,6 +36,20 @@ internal sealed class EngineDO {
 
     data class SessionAuthenticateEvent(val id: Long, val pairingTopic: String, val payloadParams: PayloadParams, val participant: Participant, val verifyContext: VerifyContext) : EngineDO(), EngineEvent
 
+    data class PayloadParams(
+        val chains: List<String>,
+        val domain: String,
+        val nonce: String,
+        val aud: String,
+        val type: String?,
+        val nbf: String?,
+        val iat: String,
+        val exp: String?,
+        val statement: String?,
+        val requestId: String?,
+        var resources: List<String>?,
+        val version : String
+    ) : EngineDO()
     data class Participant(
         val publicKey: String,
         val metadata: AppMetaData,
