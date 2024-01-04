@@ -81,7 +81,6 @@ class SessionAuthenticateInstrumentedAndroidTest {
         Timber.d("approveSessionAuthenticatedWithInvalidCACAOs: start")
 
         val (privateKey, address) = Pair("fc38e74680851b8d0c2dc69ccd367d4c0d963a4065dff56a87f450eef33336c4", "0xF983704E5A9eF14C32e8fe751b34E61702437aBF")
-
         val walletDelegate = object : WalletDelegate() {
             override fun onSessionAuthenticate(sessionAuthenticate: Sign.Model.SessionAuthenticate, verifyContext: Sign.Model.VerifyContext) {
                 val messages = mutableListOf<Pair<String, String>>()

@@ -35,7 +35,7 @@ internal class FormatAuthenticateMessageUseCase : FormatAuthenticateMessageUseCa
             val action = actionString.split(ACTION_DELIMITER)[ACTION_POSITION]
             actions.add(actionType to action)
         }
-        val actionsString = actions.joinToString(separator = ",") { action -> "'${action.first}': '${action.second}'" }
+        val actionsString = actions.sortedBy { action -> action.second }.joinToString(separator = ",") { action -> "'${action.first}': '${action.second}'" }
 
 //todo: hardcoded Ethereum? add new method for caip222
         //todo: Figure out dynamic chain name

@@ -68,20 +68,6 @@ data class Cacao(
 @JvmSynthetic
 internal fun Cacao.Signature.toSignature(): Signature = Signature.fromString(s)
 
-//fun Cacao.Payload.toCAIP122Message(chainName: String = "Ethereum"): String {
-//    var message = "$domain wants you to sign in with your $chainName account:\n${Issuer(iss).address}\n\n"
-//    if (statement != null) message += "$statement\n"
-//    message += "\nURI: $aud\nVersion: $version\nChain ID: ${Issuer(iss).chainIdReference}\nNonce: $nonce\nIssued At: $iat"
-//    if (exp != null) message += "\nExpiration Time: $exp"
-//    if (nbf != null) message += "\nNot Before: $nbf"
-//    if (requestId != null) message += "\nRequest ID: $requestId"
-//    if (!resources.isNullOrEmpty()) {
-//        message += "\nResources:"
-//        resources.forEach { resource -> message += "\n- $resource" }
-//    }
-//    return message
-//}
-
 fun Cacao.Payload.toCAIP222Message(chainName: String = "Ethereum", actionsString: String = String.Empty): String {
     var message = "$domain wants you to sign in with your $chainName account:\n${Issuer(iss).address}\n\n"
     if (statement != null) message += "$statement\n"

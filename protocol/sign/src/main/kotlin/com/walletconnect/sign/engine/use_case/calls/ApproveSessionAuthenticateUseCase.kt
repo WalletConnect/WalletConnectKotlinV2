@@ -60,9 +60,7 @@ internal class ApproveSessionAuthenticateUseCase(
 
         val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE_RESPONSE, Ttl(DAY_IN_SECONDS))
 
-        cacaos.find { cacao ->
-            !cacaoVerifier.verify(cacao)
-        }?.also {
+        cacaos.find { cacao -> !cacaoVerifier.verify(cacao) }?.also {
             logger.error("Invalid Cacao")
             //todo: handle error codes
             jsonRpcInteractor.respondWithError(id,
