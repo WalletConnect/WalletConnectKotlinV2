@@ -1,0 +1,73 @@
+name: 'Setup Required files'
+description: 'Setup required files for building samples'
+
+inputs:
+  GOOGLE_SERVICES_JSON:
+    description: 'Google Services Json file'
+    required: true
+  FIREBASE_SERVICE_CREDENTIALS:
+    description: 'Firebase Service Credentials file'
+    required: true
+  SECRETS_PROPERTIES:
+    description: 'Secrets properties file'
+    required: true
+  ENCODED_STRING_INTERNAL:
+    description: 'Encoded string for internal keystore'
+    required: true
+  SIGNING_KEY_STORE_PATH_INTERNAL:
+    description: 'Path to store internal keystore'
+    required: true
+  ENCODED_STRING_UPLOAD:
+    description: 'Encoded string for upload keystore'
+    required: true
+  SIGNING_KEY_STORE_PATH_UPLOAD:
+    description: 'Path to store upload keystore'
+    required: true
+
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Java 17
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+        architecture: x86_64
+        cache: 'gradle'
+
+    - name: Create Google Services Json File
+      shell: bash
+      env:
+        GOOGLE_SERVICES_JSON: ${{ inputs.GOOGLE_SERVICES_JSON }}
+      run: echo $GOOGLE_SERVICES_JSON > ./sample/${{ matrix.conf.name}}/google-services.json
+
+    - name: Create Firebase Service Credentials file
+      shell: bash
+      env:
+        FIREBASE_SERVICE_CREDENTIALS: ${{ inputs.FIREBASE_SERVICE_CREDENTIALS }}
+      run: echo $FIREBASE_SERVICE_CREDENTIALS | base64 --decode > credentials.json
+
+    - name: Fetch Properties File
+      shell: bash
+      env:
+        SECRETS_PROPERTIES: ${{ inputs.SECRETS_PROPERTIES }}
+      run: echo $SECRETS_PROPERTIES | base64 --decode > secrets.properties
+
+    - name: Decode Internal Keystore
+      shell: bash
+      env:
+        ENCODED_STRING_INTERNAL: ${{ inputs.ENCODED_STRING_INTERNAL }}
+        SIGNING_KEY_STORE_PATH_INTERNAL: ${{ inputs.SIGNING_KEY_STORE_PATH_INTERNAL }}
+      run: |
+        echo $ENCODED_STRING_INTERNAL > keystore-b64.txt
+        base64 -d keystore-b64.txt > $SIGNING_KEY_STORE_PATH_INTERNAL
+
+    - name: Decode Upload Keystore
+      shell: bash
+      env:
+        ENCODED_STRING_UPLOAD: ${{ inputs.WC_KOTLIN_UPLOAD_KEYSTORE }}
+        SIGNING_KEY_STORE_PATH_UPLOAD: ${{ inputs.WC_KOTLIN_UPLOAD_KEYSTORE_PATH }}
+      run: |
+        echo $ENCODED_STRING_UPLOAD > keystore-b64.txt
+        base64 -d keystore-b64.txt > $SIGNING_KEY_STORE_PATH_UPLOAD

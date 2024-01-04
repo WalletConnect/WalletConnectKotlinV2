@@ -46,16 +46,17 @@ project.extensions.configure(BaseExtension::class.java) {
 
         // Firebase App Distribution
         create("internal") {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             isDebuggable = true
             applicationIdSuffix(".internal")
-            matchingFallbacks += listOf("release", "debug")
+            matchingFallbacks += listOf("debug")
             signingConfig = signingConfigs.getByName("internal_release")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             versionNameSuffix = "${System.getenv("GITHUB_RUN_ATTEMPT")?.let { ".$it" } ?: ""}-internal"
             defaultConfig.versionCode = "$SAMPLE_VERSION_CODE${System.getenv("GITHUB_RUN_ATTEMPT") ?: ""}".toInt()
             firebaseAppDistribution {
                 artifactType = "APK"
-                serviceCredentialsFile = File(rootDir, "firebase_service_credentials.json").path
+                serviceCredentialsFile = File(rootDir, "credentials.json").path
                 groups = "design-team, javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
             }
         }
@@ -67,7 +68,7 @@ project.extensions.configure(BaseExtension::class.java) {
             defaultConfig.versionCode = "$SAMPLE_VERSION_CODE${System.getenv("GITHUB_RUN_ATTEMPT") ?: ""}".toInt()
             firebaseAppDistribution {
                 artifactType = "APK"
-                serviceCredentialsFile = File(rootDir, "firebase_service_credentials.json").path
+                serviceCredentialsFile = File(rootDir, "credentials.json").path
                 groups = "design-team, javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
             }
         }
