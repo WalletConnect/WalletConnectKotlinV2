@@ -35,29 +35,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-#      - name: Create Google Services Json File
-#        env:
-#          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
-#        run: echo $GOOGLE_SERVICES_JSON > ./sample/${{ matrix.conf.name}}/google-services.json
-#
-#      - name: Create Firebase Service Credentials file
-#        env:
-#          FIREBASE_SERVICE_CREDENTIALS: ${{ secrets.FIREBASE_SERVICE_CREDENTIALS }}
-#        run: echo $FIREBASE_SERVICE_CREDENTIALS | base64 --decode > credentials.json
-#
-#      - name: Fetch Properties File
-#        env:
-#          SECRETS_PROPERTIES: ${{ secrets.SECRETS_PROPERTIES }}
-#        run: echo $SECRETS_PROPERTIES | base64 --decode > secrets.properties
-#
-#      - name: Decode Internal Keystore
-#        env:
-#          ENCODED_STRING_INTERNAL: ${{ secrets.WC_KOTLIN_INTERNAL_KEYSTORE }}
-#          SIGNING_KEY_STORE_PATH_INTERNAL: ${{ secrets.WC_KOTLIN_INTERNAL_KEYSTORE_PATH }}
-#        run: |
-#          echo $ENCODED_STRING_INTERNAL > keystore-b64.txt
-#          base64 -d keystore-b64.txt > $SIGNING_KEY_STORE_PATH_INTERNAL
-
       - name: Setup Required files to build samples
         with:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
@@ -65,6 +42,8 @@ jobs:
           SECRETS_PROPERTIES: ${{ secrets.SECRETS_PROPERTIES }}
           ENCODED_STRING_INTERNAL: ${{ secrets.WC_KOTLIN_INTERNAL_KEYSTORE }}
           SIGNING_KEY_STORE_PATH_INTERNAL: ${{ secrets.WC_KOTLIN_INTERNAL_KEYSTORE_PATH }}
+          ENCODED_STRING_UPLOAD: ${{ secrets.WC_KOTLIN_UPLOAD_KEYSTORE }}
+          SIGNING_KEY_STORE_PATH_UPLOAD: ${{ secrets.WC_KOTLIN_UPLOAD_KEYSTORE_PATH }}
         uses: ./.github/actions/ci_setup
 
       - name: Release sample - Internal
