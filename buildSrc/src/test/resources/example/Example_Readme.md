@@ -49,7 +49,7 @@ WalletConnect v2 protocols for Android applications.
 
 
 ## BOM Instructions:
-To help manage compatible dependencies stay in sync, we've introduced a [BOM](https://docs.gradle.org/current/userguide/platforms.html#sub:bom_import) to the Kotlin SDK. With this, you only need to update the BOM version to get the latest SDKs. Just add the BOM as a dependency and then list the SDKs you want to include into your project.    
+To help manage compatible dependencies stay in sync, we've introduced a [BOM](https://docs.gradle.org/current/userguide/platforms.html#sub:bom_import) to the Kotlin SDK. With this, you only need to update the BOM version to get the latest SDKs. Just add the BOM as a dependency and then list the SDKs you want to include into your project.
 
 ### example build.gradle.kts
 ```kotlin

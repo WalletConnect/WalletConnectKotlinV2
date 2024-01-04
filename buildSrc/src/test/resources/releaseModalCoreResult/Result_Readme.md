@@ -11,6 +11,7 @@ WalletConnect v2 protocols for Android applications.
 
 | BOM                                                                                     | [Core SDK](core/android) | [Sign SDK](protocol/sign) | [Auth SDK](protocol/auth) | [Chat SDK](protocol/chat) | [Notify SDK](protocol/notify) | [web3wallet](product/web3wallet) | [web3modal](product/web3modal) | [WalletConnectModal](product/walletconnectmodal) |
 |-----------------------------------------------------------------------------------------|--------------------------|---------------------------|---------------------------|---------------------------|:------------------------------|----------------------------------|--------------------------------|--------------------------------------------------|
+| 1.22.0                                                                                  | 1.26.0                   | 2.24.0                    | 1.24.0                    | 1.0.0-beta23              | 1.0.0-beta04                  | 1.19.0                           | 1.2.0                          | 1.2.0                                            |
 | 1.21.0                                                                                  | 1.26.0                   | 2.24.0                    | 1.24.0                    | 1.0.0-beta23              | 1.0.0-beta04                  | 1.19.0                           | 1.1.0                          | 1.1.0                                            |
 | 1.20.0                                                                                  | 1.25.0                   | 2.23.0                    | 1.23.0                    | 1.0.0-beta22              | 1.0.0-beta03                  | 1.18.0                           | 1.0.0                          | 1.0.0-beta02                                     |
 | 1.19.1                                                                                  | 1.24.0                   | 2.22.0                    | 1.22.0                    | 1.0.0-beta21              | 1.0.0-beta02                  | 1.17.0                           | 1.0.0-beta02                   | 1.0.0-beta01                                     |
@@ -49,7 +50,7 @@ WalletConnect v2 protocols for Android applications.
 
 
 ## BOM Instructions:
-To help manage compatible dependencies stay in sync, we've introduced a [BOM](https://docs.gradle.org/current/userguide/platforms.html#sub:bom_import) to the Kotlin SDK. With this, you only need to update the BOM version to get the latest SDKs. Just add the BOM as a dependency and then list the SDKs you want to include into your project.    
+To help manage compatible dependencies stay in sync, we've introduced a [BOM](https://docs.gradle.org/current/userguide/platforms.html#sub:bom_import) to the Kotlin SDK. With this, you only need to update the BOM version to get the latest SDKs. Just add the BOM as a dependency and then list the SDKs you want to include into your project.
 
 ### example build.gradle.kts
 ```kotlin
