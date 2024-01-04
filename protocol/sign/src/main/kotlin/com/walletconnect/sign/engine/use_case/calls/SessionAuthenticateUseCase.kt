@@ -13,6 +13,7 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
+import com.walletconnect.sign.common.ATT_KEY
 import com.walletconnect.sign.common.model.vo.clientsync.common.Requester
 import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpc
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
@@ -20,6 +21,7 @@ import com.walletconnect.sign.common.validator.SignValidator
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toCommon
 import org.bouncycastle.util.encoders.Base64
+import org.json.JSONArray
 import org.json.JSONObject
 
 internal class SessionAuthenticateUseCase(
@@ -34,12 +36,31 @@ internal class SessionAuthenticateUseCase(
 //        }
 
         //TODO: Multi namespace - throw error, chains validation
-
-        //TODO build recaps, encode base65, add prefix, add to resources
         val namespace = SignValidator.getNamespaceKeyFromChainId(payloadParams.chains.first())
-        val requests: List<JSONObject> = methods?.map { method -> JSONObject().put("request/$method", listOf<String>()) } ?: listOf()
-        val recaps = JSONObject().put("att", JSONObject().put(namespace, requests))
-        val base64Recaps = Base64.toBase64String(recaps.toString().toByteArray(Charsets.UTF_8))
+        val actionsJsonArray = JSONArray()
+
+        methods?.forEachIndexed { index, method -> actionsJsonArray.put(index, JSONObject().put("request/$method", JSONArray())) }
+
+        val recaps =
+            JSONObject().put(
+                ATT_KEY,
+                JSONObject().put(
+                    namespace, actionsJsonArray
+//                    JSONArray()
+//                        .put(
+//                            0,
+//                            JSONObject().put("request/eth_signTypedData_v4", JSONArray())
+//                        )
+//                        .put(
+//                            1,
+//                            JSONObject().put("request/personal_sign", JSONArray())
+//                        )
+                )
+            ).toString().replace("\\/", "/")
+
+        println("cipa: $recaps")
+
+        val base64Recaps = Base64.toBase64String(recaps.toByteArray(Charsets.UTF_8))
         val reCapsUrl = "urn:recap:$base64Recaps"
         if (payloadParams.resources == null) payloadParams.resources = listOf(reCapsUrl) else payloadParams.resources!!.toMutableList().add(reCapsUrl)
 

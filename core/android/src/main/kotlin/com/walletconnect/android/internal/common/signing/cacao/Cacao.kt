@@ -5,6 +5,7 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 import com.walletconnect.android.cacao.SignatureInterface
 import com.walletconnect.android.internal.common.signing.signature.Signature
+import com.walletconnect.utils.Empty
 
 @JsonClass(generateAdapter = true)
 data class Cacao(
@@ -67,9 +68,24 @@ data class Cacao(
 @JvmSynthetic
 internal fun Cacao.Signature.toSignature(): Signature = Signature.fromString(s)
 
-fun Cacao.Payload.toCAIP122Message(chainName: String = "Ethereum"): String {
+//fun Cacao.Payload.toCAIP122Message(chainName: String = "Ethereum"): String {
+//    var message = "$domain wants you to sign in with your $chainName account:\n${Issuer(iss).address}\n\n"
+//    if (statement != null) message += "$statement\n"
+//    message += "\nURI: $aud\nVersion: $version\nChain ID: ${Issuer(iss).chainIdReference}\nNonce: $nonce\nIssued At: $iat"
+//    if (exp != null) message += "\nExpiration Time: $exp"
+//    if (nbf != null) message += "\nNot Before: $nbf"
+//    if (requestId != null) message += "\nRequest ID: $requestId"
+//    if (!resources.isNullOrEmpty()) {
+//        message += "\nResources:"
+//        resources.forEach { resource -> message += "\n- $resource" }
+//    }
+//    return message
+//}
+
+fun Cacao.Payload.toCAIP222Message(chainName: String = "Ethereum", actionsString: String = String.Empty): String {
     var message = "$domain wants you to sign in with your $chainName account:\n${Issuer(iss).address}\n\n"
     if (statement != null) message += "$statement\n"
+    if (actionsString.isNotEmpty()) message += "I further authorize the stated URI to perform the following actions on my behalf: (1) $actionsString for '${Issuer(iss).namespace}'\n"
     message += "\nURI: $aud\nVersion: $version\nChain ID: ${Issuer(iss).chainIdReference}\nNonce: $nonce\nIssued At: $iat"
     if (exp != null) message += "\nExpiration Time: $exp"
     if (nbf != null) message += "\nNot Before: $nbf"
@@ -78,5 +94,8 @@ fun Cacao.Payload.toCAIP122Message(chainName: String = "Ethereum"): String {
         message += "\nResources:"
         resources.forEach { resource -> message += "\n- $resource" }
     }
+
+    print(message)
+
     return message
 }

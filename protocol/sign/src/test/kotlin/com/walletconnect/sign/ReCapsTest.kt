@@ -1,6 +1,7 @@
 package com.walletconnect.sign
 
 import org.bouncycastle.util.encoders.Base64
+import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Test
 
@@ -14,15 +15,19 @@ class ReCapsTest {
             JSONObject().put(
                 "att",
                 JSONObject().put(
-                    "eip155", listOf(
-                        JSONObject()
-                            .put("request/eth_signTypedData_v4", listOf<String>()),
-                        JSONObject()
-                            .put("request/personal_sign", listOf<String>())
-                    )
+                    "eip155",
+                    JSONArray()
+                        .put(
+                            0,
+                            JSONObject().put("request/eth_signTypedData_v4", JSONArray())
+                        )
+                        .put(
+                            1,
+                            JSONObject().put("request/personal_sign", JSONArray())
+                        )
                 )
             )
-        print(recaps.toString())
+        println(recaps.toString())
         val base64Recaps = Base64.toBase64String(recaps.toString().toByteArray(Charsets.UTF_8))
         val reCapsUrl = "urn:recap:$base64Recaps"
 
@@ -33,6 +38,7 @@ class ReCapsTest {
     fun decodeReCapsBase64() {
         val withoutPrefix = encodedRecaps.removePrefix("urn:recap:")
         val reCaps = Base64.decode(withoutPrefix).toString(Charsets.UTF_8)
+        print(reCaps)
         val requests = (JSONObject(reCaps).get("att") as JSONObject).getJSONArray("eip155")
 
         assert((requests.getJSONObject(0).keys().next() as String).split("/")[1] == "eth_signTypedData_v4")

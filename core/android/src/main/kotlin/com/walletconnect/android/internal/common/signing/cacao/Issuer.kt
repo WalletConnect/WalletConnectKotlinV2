@@ -9,6 +9,8 @@ data class Issuer(val value: String) {
         get() = value.split(ISS_DELIMITER)[ISS_POSITION_OF_REFERENCE]
     val address: String
         get() = value.split(ISS_DELIMITER)[ISS_POSITION_OF_ADDRESS]
+    val namespace
+        get() = value.split(ISS_DELIMITER)[ISS_POSITION_OF_NAMESPACE]
     val accountId
         get() = "$chainId:$address"
 

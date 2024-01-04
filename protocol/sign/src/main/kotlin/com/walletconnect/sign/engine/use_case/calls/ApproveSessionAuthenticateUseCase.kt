@@ -60,7 +60,9 @@ internal class ApproveSessionAuthenticateUseCase(
 
         val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE_RESPONSE, Ttl(DAY_IN_SECONDS))
 
-        cacaos.find { cacao -> !cacaoVerifier.verify(cacao) }?.also{
+        cacaos.find { cacao ->
+            !cacaoVerifier.verify(cacao)
+        }?.also {
             logger.error("Invalid Cacao")
             //todo: handle error codes
             jsonRpcInteractor.respondWithError(id,
@@ -70,7 +72,7 @@ internal class ApproveSessionAuthenticateUseCase(
                 EnvelopeType.ONE,
                 Participants(senderPublicKey, receiverPublicKey),
                 onSuccess = {
-                    return@respondWithError onFailure(Throwable("Error successfully sent on topic: $responseTopic"))
+                    return@respondWithError onFailure(Throwable("Invalid CACAO error successfully sent on topic: $responseTopic"))
                 },
                 onFailure = {
                     logger.error("Error failure on topic: $responseTopic")

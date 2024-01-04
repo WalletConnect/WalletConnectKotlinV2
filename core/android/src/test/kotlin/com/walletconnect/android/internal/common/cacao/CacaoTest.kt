@@ -6,7 +6,7 @@ import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.signing.cacao.CacaoType
 import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
-import com.walletconnect.android.internal.common.signing.cacao.toCAIP122Message
+import com.walletconnect.android.internal.common.signing.cacao.toCAIP222Message
 import com.walletconnect.android.utils.cacao.CacaoSignerInterface
 import com.walletconnect.android.utils.cacao.sign
 import com.walletconnect.android.utils.cacao.signHex
@@ -38,8 +38,8 @@ internal class CacaoTest {
 
     @Test
     fun signAndVerifyWithEIP191Test() {
-        print(payload.toCAIP122Message(chainName))
-        val message = payload.toCAIP122Message(chainName)
+        print(payload.toCAIP222Message(chainName))
+        val message = payload.toCAIP222Message(chainName)
         val signature: Cacao.Signature = cacaoSigner.sign(message, privateKey, SignatureType.EIP191)
         val cacao = Cacao(CacaoType.EIP4361.toHeader(), payload, signature)
         val result: Boolean = cacaoVerifier.verify(cacao)
@@ -48,8 +48,8 @@ internal class CacaoTest {
 
     @Test
     fun signHexAndVerifyWithEIP191Test() {
-        print(payload.toCAIP122Message(chainName))
-        val message = payload.toCAIP122Message(chainName)
+        print(payload.toCAIP222Message(chainName))
+        val message = payload.toCAIP222Message(chainName)
         val signature: Cacao.Signature = cacaoSigner.signHex(Numeric.toHexString(message.toByteArray()), privateKey, SignatureType.EIP191)
         val cacao = Cacao(CacaoType.EIP4361.toHeader(), payload, signature)
         val result: Boolean = cacaoVerifier.verify(cacao)
@@ -100,7 +100,7 @@ internal class CacaoTest {
         )
 
         val signatureString = "0xdeaddeaddead4095116db01baaf276361efd3a73c28cf8cc28dabefa945b8d536011289ac0a3b048600c1e692ff173ca944246cf7ceb319ac2262d27b395c82b1c"
-        val signature: Cacao.Signature = Cacao.Signature(SignatureType.EIP1271.header, signatureString, payload.toCAIP122Message())
+        val signature: Cacao.Signature = Cacao.Signature(SignatureType.EIP1271.header, signatureString, payload.toCAIP222Message())
         val cacao = Cacao(CacaoType.EIP4361.toHeader(), payload, signature)
         val result: Boolean = cacaoVerifier.verify(cacao)
         Assert.assertFalse(result)

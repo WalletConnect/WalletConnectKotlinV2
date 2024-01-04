@@ -2,7 +2,7 @@ package com.walletconnect.android.internal.common.cacao
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
-import com.walletconnect.android.internal.common.signing.cacao.toCAIP122Message
+import com.walletconnect.android.internal.common.signing.cacao.toCAIP222Message
 import junit.framework.TestCase.assertEquals
 import org.junit.Test
 
@@ -37,7 +37,7 @@ internal class MapperTest {
                 "Nonce: 32891756\n" +
                 "Issued At: 2021-09-30T16:25:24Z"
 
-        assertEquals(message, payload.toCAIP122Message(chainName))
+        assertEquals(message, payload.toCAIP222Message(chainName))
     }
 
     @Test
@@ -69,7 +69,7 @@ internal class MapperTest {
                 "- ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/\n" +
                 "- https://example.com/my-web2-claim.json"
 
-        assertEquals(message, payload.toCAIP122Message(chainName))
+        assertEquals(message, payload.toCAIP222Message(chainName))
     }
 
     @Test
@@ -99,7 +99,7 @@ internal class MapperTest {
                 "Issued At: 2021-09-30T16:25:24Z\n" +
                 "Request ID: someRequestId"
 
-        assertEquals(message, payload.toCAIP122Message(chainName))
+        assertEquals(message, payload.toCAIP222Message(chainName))
     }
 
     @Test
@@ -129,7 +129,7 @@ internal class MapperTest {
                 "Nonce: 32891756\n" +
                 "Issued At: 2021-09-30T16:25:24Z"
 
-        assertEquals(message, payload.toCAIP122Message(chainName))
+        assertEquals(message, payload.toCAIP222Message(chainName))
     }
 
     @Test
@@ -159,7 +159,7 @@ internal class MapperTest {
                 "Issued At: 2021-09-30T16:25:24Z\n" +
                 "Expiration Time: 2021-09-31T16:25:24Z"
 
-        assertEquals(message, payload.toCAIP122Message(chainName))
+        assertEquals(message, payload.toCAIP222Message(chainName))
     }
 
     @Test
@@ -189,7 +189,7 @@ internal class MapperTest {
                 "Issued At: 2021-09-30T16:25:24Z\n" +
                 "Not Before: 2021-09-31T16:25:24Z"
 
-        assertEquals(message, payload.toCAIP122Message(chainName))
+        assertEquals(message, payload.toCAIP222Message(chainName))
     }
 
     @Test
@@ -225,6 +225,6 @@ internal class MapperTest {
                 "- ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/\n" +
                 "- https://example.com/my-web2-claim.json"
 
-        assertEquals(message, payload.toCAIP122Message(chainName))
+        assertEquals(message, payload.toCAIP222Message(chainName))
     }
 }

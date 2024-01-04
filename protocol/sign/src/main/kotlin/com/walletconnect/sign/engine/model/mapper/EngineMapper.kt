@@ -13,7 +13,7 @@ import com.walletconnect.android.internal.common.model.params.CoreSignParams
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.signing.cacao.CacaoType
 import com.walletconnect.android.internal.common.signing.cacao.Issuer
-import com.walletconnect.android.internal.common.signing.cacao.toCAIP122Message
+import com.walletconnect.android.internal.common.signing.cacao.toCAIP222Message
 import com.walletconnect.android.verify.data.model.VerifyContext
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
@@ -340,5 +340,5 @@ internal fun PayloadParams.toCacaoPayload(iss: Issuer): Cacao.Payload = Cacao.Pa
 )
 
 @JvmSynthetic
-internal fun PayloadParams.toCAIP122Message(iss: Issuer, chainName: String = "Ethereum"): String =//todo: Figure out dynamic chain name
-    this.toCacaoPayload(iss).toCAIP122Message(chainName)
+internal fun PayloadParams.toCAIP222Message(iss: Issuer, actionString: String, chainName: String): String =
+    this.toCacaoPayload(iss).toCAIP222Message(chainName, actionString)

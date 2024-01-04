@@ -140,6 +140,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
         return try {
             runBlocking { signEngine.formatMessage(formatMessage.payloadParams.toCaip222Request(), formatMessage.iss) }
         } catch (error: Exception) {
+            print("kobe; $error")
             null
         }
     }
