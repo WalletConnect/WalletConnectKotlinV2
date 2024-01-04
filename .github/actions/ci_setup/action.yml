@@ -11,10 +11,10 @@ inputs:
   SECRETS_PROPERTIES:
     description: 'Secrets properties file'
     required: true
-  WC_KOTLIN_INTERNAL_KEYSTORE:
+  ENCODED_STRING_INTERNAL:
     description: 'Encoded string for internal keystore'
     required: true
-  WC_KOTLIN_INTERNAL_KEYSTORE_PATH:
+  SIGNING_KEY_STORE_PATH_INTERNAL:
     description: 'Path to store internal keystore'
     required: true
 
@@ -50,8 +50,8 @@ runs:
     - name: Decode Internal Keystore
       shell: bash
       env:
-        ENCODED_STRING_INTERNAL: ${{ inputs.WC_KOTLIN_INTERNAL_KEYSTORE }}
-        SIGNING_KEY_STORE_PATH_INTERNAL: ${{ inputs.WC_KOTLIN_INTERNAL_KEYSTORE_PATH }}
+        ENCODED_STRING_INTERNAL: ${{ inputs.ENCODED_STRING_INTERNAL }}
+        SIGNING_KEY_STORE_PATH_INTERNAL: ${{ inputs.SIGNING_KEY_STORE_PATH_INTERNAL }}
       run: |
         echo $ENCODED_STRING_INTERNAL > keystore-b64.txt
         base64 -d keystore-b64.txt > $SIGNING_KEY_STORE_PATH_INTERNAL
