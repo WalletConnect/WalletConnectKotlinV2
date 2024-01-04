@@ -43,6 +43,7 @@ object Web3Modal {
 
         //Responses
         fun onSessionRequestResponse(response: Modal.Model.SessionRequestResponse)
+        fun onSessionAuthenticateResponse(sessionUpdateResponse: Modal.Model.SessionAuthenticateResponse)
 
         // Utils
         fun onConnectionStateChange(state: Modal.Model.ConnectionState)
@@ -105,7 +106,7 @@ object Web3Modal {
     @Throws(IllegalStateException::class)
     fun setDelegate(delegate: ModalDelegate) {
         Web3ModalDelegate.wcEventModels.onEach { event ->
-            when(event) {
+            when (event) {
                 is Modal.Model.ApprovedSession -> delegate.onSessionApproved(event)
                 is Modal.Model.ConnectionState -> delegate.onConnectionStateChange(event)
                 is Modal.Model.DeletedSession.Success -> delegate.onSessionDelete(event)
@@ -115,6 +116,7 @@ object Web3Modal {
                 is Modal.Model.SessionEvent -> delegate.onSessionEvent(event)
                 is Modal.Model.SessionRequestResponse -> delegate.onSessionRequestResponse(event)
                 is Modal.Model.UpdatedSession -> delegate.onSessionUpdate(event)
+                is Modal.Model.SessionAuthenticateResponse -> delegate.onSessionAuthenticateResponse(event)
                 else -> Unit
             }
         }.launchIn(scope)
@@ -152,6 +154,10 @@ object Web3Modal {
                 delegate.onSessionRequestResponse(response.toModal())
             }
 
+            override fun onSessionAuthenticateResponse(sessionAuthenticateResponse: Sign.Model.SessionAuthenticateResponse) {
+                delegate.onSessionAuthenticateResponse(sessionAuthenticateResponse.toModal())
+            }
+
             override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {
                 delegate.onConnectionStateChange(state.toModal())
             }
@@ -170,9 +176,19 @@ object Web3Modal {
     ) {
         SignClient.connect(
             connect.toSign(),
-            onSuccess,
-            { onError(it.toModal()) }
-        )
+            onSuccess
+        ) { onError(it.toModal()) }
+    }
+
+    fun authenticate(
+        authenticate: Modal.Params.Authenticate,
+        onSuccess: () -> Unit,
+        onError: (Modal.Model.Error) -> Unit,
+    ) {
+
+        SignClient.authenticate(authenticate.toSign(),
+            onSuccess = { onSuccess() },
+            onError = { onError(it.toModal()) })
     }
 
     fun request(request: Modal.Params.Request, onSuccess: (Modal.Model.SentRequest) -> Unit = {}, onError: (Modal.Model.Error) -> Unit) {

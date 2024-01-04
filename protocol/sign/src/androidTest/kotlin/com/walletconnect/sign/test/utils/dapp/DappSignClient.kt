@@ -4,6 +4,7 @@ import com.walletconnect.android.Core
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.test.utils.TestClient
 import com.walletconnect.sign.test.utils.globalOnError
+import com.walletconnect.sign.test.utils.payloadParams
 import com.walletconnect.sign.test.utils.proposalNamespaces
 import com.walletconnect.sign.test.utils.sessionChains
 import com.walletconnect.sign.test.utils.sessionMethods
@@ -16,6 +17,15 @@ val dappClientConnect = { pairing: Core.Model.Pairing ->
     DappSignClient.connect(
         connectParams,
         onSuccess = { Timber.d("DappClient: connect onSuccess") },
+        onError = ::globalOnError
+    )
+}
+
+val dappClientAuthenticate = { pairing: Core.Model.Pairing ->
+    val authenticateParams = Sign.Params.Authenticate(payloadParams = payloadParams, pairingTopic = pairing.topic)
+    DappSignClient.authenticate(
+        authenticateParams,
+        onSuccess = { Timber.d("DappClient: on sent authenticate success") },
         onError = ::globalOnError
     )
 }

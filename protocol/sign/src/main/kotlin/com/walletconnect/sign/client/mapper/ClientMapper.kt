@@ -9,9 +9,12 @@ import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Validation
+import com.walletconnect.android.internal.common.signing.cacao.Cacao
+import com.walletconnect.android.internal.common.signing.cacao.CacaoType
 import com.walletconnect.android.utils.toClient
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.common.model.PendingRequest
+import com.walletconnect.sign.common.model.vo.clientsync.common.Caip222Request
 import com.walletconnect.sign.engine.model.EngineDO
 
 @JvmSynthetic
@@ -29,11 +32,16 @@ internal fun EngineDO.SettledSessionResponse.toClientSettledSessionResponse(): S
     }
 
 @JvmSynthetic
+internal fun EngineDO.SessionAuthenticateResponse.toClientSessionAuthenticateResponse(): Sign.Model.SessionAuthenticateResponse =
+    when (this) {
+        is EngineDO.SessionAuthenticateResponse.Result -> Sign.Model.SessionAuthenticateResponse.Result(id, cacaos.toClient())
+        is EngineDO.SessionAuthenticateResponse.Error -> Sign.Model.SessionAuthenticateResponse.Error(id, code, message)
+    }
+
+@JvmSynthetic
 internal fun EngineDO.SessionUpdateNamespacesResponse.toClientUpdateSessionNamespacesResponse(): Sign.Model.SessionUpdateResponse =
     when (this) {
-        is EngineDO.SessionUpdateNamespacesResponse.Result ->
-            Sign.Model.SessionUpdateResponse.Result(topic.value, namespaces.toMapOfClientNamespacesSession())
-
+        is EngineDO.SessionUpdateNamespacesResponse.Result -> Sign.Model.SessionUpdateResponse.Result(topic.value, namespaces.toMapOfClientNamespacesSession())
         is EngineDO.SessionUpdateNamespacesResponse.Error -> Sign.Model.SessionUpdateResponse.Error(errorMessage)
     }
 
@@ -86,6 +94,62 @@ internal fun EngineDO.SessionRequest.toClientSessionRequest(): Sign.Model.Sessio
     )
 
 @JvmSynthetic
+internal fun Sign.Model.PayloadParams.toCaip222Request(): Caip222Request = with(this) {
+    Caip222Request(CacaoType.CAIP222.header, chains, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
+}
+
+@JvmSynthetic
+internal fun Sign.Model.PayloadParams.toCacaoPayload(issuer: String): Sign.Model.Cacao.Payload = with(this) {
+    Sign.Model.Cacao.Payload(issuer, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
+}
+
+@JvmSynthetic
+internal fun List<Sign.Model.Cacao>.toCommon(): List<Cacao> = this.map {
+    with(it) {
+        Cacao(
+            Cacao.Header(header.t),
+            Cacao.Payload(
+                payload.iss,
+                payload.domain,
+                payload.aud,
+                payload.version,
+                payload.nonce,
+                payload.iat,
+                payload.nbf,
+                payload.exp,
+                payload.statement,
+                payload.requestId,
+                payload.resources
+            ),
+            Cacao.Signature(signature.t, signature.s, signature.m)
+        )
+    }
+}
+
+@JvmSynthetic
+internal fun List<Cacao>.toClient(): List<Sign.Model.Cacao> = this.map {
+    with(it) {
+        Sign.Model.Cacao(
+            Sign.Model.Cacao.Header(header.t),
+            Sign.Model.Cacao.Payload(
+                payload.iss,
+                payload.domain,
+                payload.aud,
+                payload.version,
+                payload.nonce,
+                payload.iat,
+                payload.nbf,
+                payload.exp,
+                payload.statement,
+                payload.requestId,
+                payload.resources
+            ),
+            Sign.Model.Cacao.Signature(signature.t, signature.s, signature.m)
+        )
+    }
+}
+
+@JvmSynthetic
 internal fun Sign.Model.JsonRpcResponse.JsonRpcResult.toRpcResult(): JsonRpcResponse.JsonRpcResult = JsonRpcResponse.JsonRpcResult(id, result = result)
 
 @JvmSynthetic
@@ -101,6 +165,13 @@ internal fun EngineDO.SessionDelete.toClientDeletedSession(): Sign.Model.Deleted
 @JvmSynthetic
 internal fun EngineDO.SessionEvent.toClientSessionEvent(): Sign.Model.SessionEvent =
     Sign.Model.SessionEvent(name, data)
+
+@JvmSynthetic
+internal fun EngineDO.SessionAuthenticateEvent.toClientSessionAuthenticated(): Sign.Model.SessionAuthenticated =
+    Sign.Model.SessionAuthenticated(id, pairingTopic, caip222Request.toClient())
+
+@JvmSynthetic
+internal fun Caip222Request.toClient(): Sign.Model.PayloadParams = Sign.Model.PayloadParams(type, chains, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
 
 @JvmSynthetic
 internal fun EngineDO.Session.toClientActiveSession(): Sign.Model.Session =

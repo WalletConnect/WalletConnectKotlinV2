@@ -58,6 +58,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
         signEngine.engineEvent.onEach { event ->
             when (event) {
                 is EngineDO.SessionProposalEvent -> delegate.onSessionProposal(event.proposal.toClientSessionProposal(), event.context.toCore())
+                is EngineDO.SessionAuthenticateEvent -> delegate.onSessionAuthenticated(event.toClientSessionAuthenticated(), event.verifyContext.toCore())
                 is EngineDO.SessionRequestEvent -> delegate.onSessionRequest(event.request.toClientSessionRequest(), event.context.toCore())
                 is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
                 is EngineDO.SessionExtend -> delegate.onSessionExtend(event.toClientActiveSession())
@@ -85,6 +86,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
                 is EngineDO.SessionExtend -> delegate.onSessionExtend(event.toClientActiveSession())
                 //Responses
                 is EngineDO.SessionPayloadResponse -> delegate.onSessionRequestResponse(event.toClientSessionPayloadResponse())
+                is EngineDO.SessionAuthenticateResponse -> delegate.onSessionAuthenticateResponse(event.toClientSessionAuthenticateResponse())
                 //Utils
                 is ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
                 is SDKError -> delegate.onError(event.toClientError())
@@ -110,6 +112,35 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
             } catch (error: Exception) {
                 onError(Sign.Model.Error(error))
             }
+        }
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun authenticate(
+        authenticate: Sign.Params.Authenticate,
+        onSuccess: () -> Unit,
+        onError: (Sign.Model.Error) -> Unit,
+    ) {
+        checkEngineInitialization()
+        scope.launch {
+            try {
+                signEngine.authenticate(authenticate.payloadParams.toCaip222Request(), authenticate.pairingTopic,
+                    onSuccess = { onSuccess() },
+                    onFailure = { throwable -> onError(Sign.Model.Error(throwable)) })
+            } catch (error: Exception) {
+                onError(Sign.Model.Error(error))
+            }
+        }
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun formatAuthMessage(formatMessage: Sign.Params.FormatMessage): String? {
+        checkEngineInitialization()
+
+        return try {
+            runBlocking { signEngine.formatMessage(formatMessage.payloadParams.toCaip222Request(), formatMessage.iss) }
+        } catch (error: Exception) {
+            null
         }
     }
 
@@ -162,6 +193,37 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
                 signEngine.reject(reject.proposerPublicKey, reject.reason, onSuccess = { onSuccess(reject) }) { error ->
                     onError(Sign.Model.Error(error))
                 }
+            } catch (error: Exception) {
+                onError(Sign.Model.Error(error))
+            }
+        }
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun approveSessionAuthenticate(approve: Sign.Params.ApproveSessionAuthenticate, onSuccess: (Sign.Params.ApproveSessionAuthenticate) -> Unit, onError: (Sign.Model.Error) -> Unit) {
+        checkEngineInitialization()
+
+        scope.launch {
+            try {
+                signEngine.approveSessionAuthenticate(
+                    approve.id, approve.cacaos.toCommon(),
+                    onSuccess = { onSuccess(approve) },
+                    onFailure = { error -> onError(Sign.Model.Error(error)) }
+                )
+
+            } catch (error: Exception) {
+                onError(Sign.Model.Error(error))
+            }
+        }
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun rejectSessionAuthenticate(reject: Sign.Params.RejectSessionAuthenticate, onSuccess: (Sign.Params.RejectSessionAuthenticate) -> Unit, onError: (Sign.Model.Error) -> Unit) {
+        checkEngineInitialization()
+
+        scope.launch {
+            try {
+                signEngine.rejectSessionAuthenticate(reject.id, reject.reason, onSuccess = { onSuccess(reject) }) { error -> onError(Sign.Model.Error(error)) }
             } catch (error: Exception) {
                 onError(Sign.Model.Error(error))
             }

@@ -2,11 +2,11 @@ package com.walletconnect.wcmodal.client
 
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.wcmodal.domain.WalletConnectModalDelegate
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import com.walletconnect.sign.common.exceptions.SignClientAlreadyInitializedException
 import com.walletconnect.wcmodal.di.walletConnectModalModule
+import com.walletconnect.wcmodal.domain.WalletConnectModalDelegate
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
@@ -29,6 +29,7 @@ object WalletConnectModal {
 
         //Responses
         fun onSessionRequestResponse(response: Modal.Model.SessionRequestResponse)
+        fun onSessionAuthenticateResponse(sessionUpdateResponse: Modal.Model.SessionAuthenticateResponse)
 
         // Utils
         fun onConnectionStateChange(state: Modal.Model.ConnectionState)
@@ -72,7 +73,7 @@ object WalletConnectModal {
     @Throws(IllegalStateException::class)
     fun setDelegate(delegate: ModalDelegate) {
         WalletConnectModalDelegate.wcEventModels.onEach { event ->
-            when(event) {
+            when (event) {
                 is Modal.Model.ApprovedSession -> delegate.onSessionApproved(event)
                 is Modal.Model.ConnectionState -> delegate.onConnectionStateChange(event)
                 is Modal.Model.DeletedSession.Success -> delegate.onSessionDelete(event)
@@ -82,6 +83,7 @@ object WalletConnectModal {
                 is Modal.Model.SessionEvent -> delegate.onSessionEvent(event)
                 is Modal.Model.SessionRequestResponse -> delegate.onSessionRequestResponse(event)
                 is Modal.Model.UpdatedSession -> delegate.onSessionUpdate(event)
+                is Modal.Model.SessionAuthenticateResponse -> delegate.onSessionAuthenticateResponse(event)
                 else -> Unit
             }
         }.launchIn(scope)
@@ -118,6 +120,10 @@ object WalletConnectModal {
                 delegate.onSessionRequestResponse(response.toModal())
             }
 
+            override fun onSessionAuthenticateResponse(sessionAuthenticateResponse: Sign.Model.SessionAuthenticateResponse) {
+                delegate.onSessionAuthenticateResponse(sessionAuthenticateResponse.toModal())
+            }
+
             override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {
                 delegate.onConnectionStateChange(state.toModal())
             }
@@ -143,6 +149,17 @@ object WalletConnectModal {
             onSuccess = onSuccess,
             onError = { onError(it.toModal()) }
         )
+    }
+
+    fun authenticate(
+        authenticate: Modal.Params.Authenticate,
+        onSuccess: () -> Unit,
+        onError: (Modal.Model.Error) -> Unit,
+    ) {
+
+        SignClient.authenticate(authenticate.toSign(),
+            onSuccess = { onSuccess() },
+            onError = { onError(it.toModal()) })
     }
 
     fun request(request: Modal.Params.Request, onSuccess: (Modal.Model.SentRequest) -> Unit = {}, onError: (Modal.Model.Error) -> Unit) {

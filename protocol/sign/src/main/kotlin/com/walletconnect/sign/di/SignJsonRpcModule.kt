@@ -21,6 +21,7 @@ internal fun signJsonRpcModule() = module {
     addSerializerEntry(SignRpc.SessionDelete::class)
     addSerializerEntry(SignRpc.SessionSettle::class)
     addSerializerEntry(SignRpc.SessionExtend::class)
+    addSerializerEntry(SignRpc.SessionAuthenticate::class)
 
     addDeserializerEntry(JsonRpcMethod.WC_SESSION_PROPOSE, SignRpc.SessionPropose::class)
     addDeserializerEntry(JsonRpcMethod.WC_SESSION_SETTLE, SignRpc.SessionSettle::class)
@@ -30,6 +31,7 @@ internal fun signJsonRpcModule() = module {
     addDeserializerEntry(JsonRpcMethod.WC_SESSION_EVENT, SignRpc.SessionEvent::class)
     addDeserializerEntry(JsonRpcMethod.WC_SESSION_UPDATE, SignRpc.SessionUpdate::class)
     addDeserializerEntry(JsonRpcMethod.WC_SESSION_EXTEND, SignRpc.SessionExtend::class)
+    addDeserializerEntry(JsonRpcMethod.WC_SESSION_AUTHENTICATE, SignRpc.SessionAuthenticate::class)
 
     addJsonAdapter(SessionRequestVO::class.java, ::SessionRequestVOJsonAdapter)
 }

@@ -57,6 +57,12 @@ internal object Web3ModalDelegate : Web3Modal.ModalDelegate {
         }
     }
 
+    override fun onSessionAuthenticateResponse(sessionUpdateResponse: Modal.Model.SessionAuthenticateResponse) {
+        scope.launch {
+            _wcEventModels.emit(sessionUpdateResponse)
+        }
+    }
+
     override fun onConnectionStateChange(state: Modal.Model.ConnectionState) {
         scope.launch {
             _wcEventModels.emit(state)

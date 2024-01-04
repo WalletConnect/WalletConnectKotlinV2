@@ -3,6 +3,8 @@ package com.walletconnect.sign.di
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.ApproveSessionAuthenticateUseCase
+import com.walletconnect.sign.engine.use_case.calls.ApproveSessionAuthenticateUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.ApproveSessionUseCase
 import com.walletconnect.sign.engine.use_case.calls.ApproveSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.DecryptSignMessageUseCase
@@ -12,6 +14,8 @@ import com.walletconnect.sign.engine.use_case.calls.EmitEventUseCase
 import com.walletconnect.sign.engine.use_case.calls.EmitEventUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.ExtendSessionUseCase
 import com.walletconnect.sign.engine.use_case.calls.ExtendSessionUseCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.FormatAuthenticateMessageUseCase
+import com.walletconnect.sign.engine.use_case.calls.FormatAuthenticateMessageUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.GetListOfVerifyContextsUseCase
 import com.walletconnect.sign.engine.use_case.calls.GetListOfVerifyContextsUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.GetPairingsUseCase
@@ -28,10 +32,14 @@ import com.walletconnect.sign.engine.use_case.calls.PingUseCase
 import com.walletconnect.sign.engine.use_case.calls.PingUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.ProposeSessionUseCase
 import com.walletconnect.sign.engine.use_case.calls.ProposeSessionUseCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.RejectSessionAuthenticateUseCase
+import com.walletconnect.sign.engine.use_case.calls.RejectSessionAuthenticateUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.RejectSessionUseCase
 import com.walletconnect.sign.engine.use_case.calls.RejectSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.RespondSessionRequestUseCase
 import com.walletconnect.sign.engine.use_case.calls.RespondSessionRequestUseCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.SessionAuthenticateUseCase
+import com.walletconnect.sign.engine.use_case.calls.SessionAuthenticateUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.SessionRequestUseCase
 import com.walletconnect.sign.engine.use_case.calls.SessionRequestUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.SessionUpdateUseCase
@@ -56,6 +64,15 @@ internal fun callsModule() = module {
         )
     }
 
+    single<SessionAuthenticateUseCaseInterface> {
+        SessionAuthenticateUseCase(
+            jsonRpcInteractor = get(),
+            crypto = get(),
+            selfAppMetaData = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER))
+        )
+    }
+
     single<PairUseCaseInterface> { PairUseCase(pairingInterface = get()) }
 
     single<ApproveSessionUseCaseInterface> {
@@ -68,6 +85,29 @@ internal fun callsModule() = module {
             sessionStorageRepository = get(),
             verifyContextStorageRepository = get(),
             pairingController = get()
+        )
+    }
+
+    single<ApproveSessionAuthenticateUseCaseInterface> {
+        ApproveSessionAuthenticateUseCase(
+            jsonRpcInteractor = get(),
+            crypto = get(),
+            cacaoVerifier = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER)),
+            verifyContextStorageRepository = get(),
+            pairingController = get(),
+            getPendingSessionAuthenticateRequest = get(),
+            selfAppMetaData = get()
+        )
+    }
+
+    single<RejectSessionAuthenticateUseCaseInterface> {
+        RejectSessionAuthenticateUseCase(
+            jsonRpcInteractor = get(),
+            crypto = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER)),
+            verifyContextStorageRepository = get(),
+            getPendingSessionAuthenticateRequest = get()
         )
     }
 
@@ -120,4 +160,6 @@ internal fun callsModule() = module {
     single<GetVerifyContextByIdUseCaseInterface> { GetVerifyContextByIdUseCase(verifyContextStorageRepository = get()) }
 
     single<GetListOfVerifyContextsUseCaseInterface> { GetListOfVerifyContextsUseCase(verifyContextStorageRepository = get()) }
+
+    single<FormatAuthenticateMessageUseCaseInterface> { FormatAuthenticateMessageUseCase() }
 }

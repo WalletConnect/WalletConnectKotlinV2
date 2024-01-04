@@ -19,6 +19,10 @@ object Wallet {
             val relayProtocol: String? = null,
         ) : Params()
 
+        data class ApproveSessionAuthenticate(val id: Long, val cacaos: List<Model.Cacao>) : Params()
+
+        data class RejectSessionAuthenticate(val id: Long, val reason: String) : Params()
+
         data class SessionReject(val proposerPublicKey: String, val reason: String) : Params()
 
         data class SessionUpdate(val sessionTopic: String, val namespaces: Map<String, Model.Namespace.Session>) : Params()
@@ -32,6 +36,8 @@ object Wallet {
         data class SessionDisconnect(val sessionTopic: String) : Params()
 
         data class FormatMessage(val payloadParams: Model.PayloadParams, val issuer: String) : Params()
+
+        data class FormatAuthMessage(val payloadParams: Model.PayloadAuthRequestParams, val issuer: String) : Params()
 
         sealed class AuthRequestResponse : Params() {
             abstract val id: Long
@@ -61,6 +67,12 @@ object Wallet {
             val proposerPublicKey: String,
             val relayProtocol: String,
             val relayData: String?,
+        ) : Model()
+
+        data class SessionAuthenticated(
+            val id: Long,
+            val pairingTopic: String,
+            val payloadParams: PayloadAuthRequestParams,
         ) : Model()
 
         data class VerifyContext(
@@ -158,6 +170,22 @@ object Wallet {
             val resources: List<String>?,
         ) : Model()
 
+        data class PayloadAuthRequestParams(
+            val type: String,
+            val chains: List<String>,
+            val domain: String,
+            val aud: String,
+            val version: String,
+            val nonce: String,
+            val iat: String,
+            val nbf: String?,
+            val exp: String?,
+            val statement: String?,
+            val requestId: String?,
+            val resources: List<String>?,
+        ) : Model()
+
+
         data class SessionEvent(val name: String, val data: String) : Model()
 
         data class Cacao(
@@ -216,7 +244,7 @@ object Wallet {
             val payloadParams: PayloadParams,
         ) : Model()
 
-        sealed class Message : Model()  {
+        sealed class Message : Model() {
 
             data class Simple(
                 val title: String,
