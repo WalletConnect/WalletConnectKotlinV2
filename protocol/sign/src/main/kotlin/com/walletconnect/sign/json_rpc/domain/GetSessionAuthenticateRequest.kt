@@ -8,13 +8,12 @@ import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpc
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.json_rpc.model.toRequest
 
-class GetPendingSessionAuthenticateRequest(
+class GetSessionAuthenticateRequest(
     private val jsonRpcHistory: JsonRpcHistory,
     private val serializer: JsonRpcSerializer
 ) {
-
     internal operator fun invoke(id: Long): Request<SignParams.SessionAuthenticateParams>? {
-        val record: JsonRpcHistoryRecord? = jsonRpcHistory.getPendingRecordById(id)
+        val record: JsonRpcHistoryRecord? = jsonRpcHistory.getRecordById(id)
         var entry: Request<SignParams.SessionAuthenticateParams>? = null
 
         if (record != null) {

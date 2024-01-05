@@ -63,6 +63,10 @@ class JsonRpcHistory(
         return if (record != null && record.response == null) record else null
     }
 
+    fun getRecordById(id: Long): JsonRpcHistoryRecord? {
+        return jsonRpcHistoryQueries.getJsonRpcHistoryRecord(id, mapper = ::toRecord).executeAsOneOrNull()
+    }
+
     private fun toRecord(requestId: Long, topic: String, method: String, body: String, response: String?): JsonRpcHistoryRecord =
         JsonRpcHistoryRecord(requestId, topic, method, body, response)
 }

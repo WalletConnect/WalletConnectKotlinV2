@@ -13,7 +13,7 @@ import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.signing.cacao.CacaoType
 import com.walletconnect.android.utils.toClient
 import com.walletconnect.sign.client.Sign
-import com.walletconnect.sign.common.model.PendingRequest
+import com.walletconnect.sign.common.model.Request
 import com.walletconnect.sign.common.model.vo.clientsync.common.PayloadParams
 import com.walletconnect.sign.engine.model.EngineDO
 import java.text.SimpleDateFormat
@@ -36,7 +36,7 @@ internal fun EngineDO.SettledSessionResponse.toClientSettledSessionResponse(): S
 @JvmSynthetic
 internal fun EngineDO.SessionAuthenticateResponse.toClientSessionAuthenticateResponse(): Sign.Model.SessionAuthenticateResponse =
     when (this) {
-        is EngineDO.SessionAuthenticateResponse.Result -> Sign.Model.SessionAuthenticateResponse.Result(id, cacaos.toClient())
+        is EngineDO.SessionAuthenticateResponse.Result -> Sign.Model.SessionAuthenticateResponse.Result(id, cacaos.toClient(), session.toClientActiveSession())
         is EngineDO.SessionAuthenticateResponse.Error -> Sign.Model.SessionAuthenticateResponse.Error(id, code, message)
     }
 
@@ -277,7 +277,7 @@ internal fun EngineDO.PairingSettle.toClientSettledPairing(): Sign.Model.Pairing
     Sign.Model.Pairing(topic.value, appMetaData?.toClient())
 
 @JvmSynthetic
-internal fun List<PendingRequest<String>>.mapToPendingRequests(): List<Sign.Model.PendingRequest> = map { request ->
+internal fun List<Request<String>>.mapToPendingRequests(): List<Sign.Model.PendingRequest> = map { request ->
     Sign.Model.PendingRequest(
         request.id,
         request.topic.value,

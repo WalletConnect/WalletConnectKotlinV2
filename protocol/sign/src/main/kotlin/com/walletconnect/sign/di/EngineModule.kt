@@ -8,6 +8,7 @@ import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdUseCase
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionAuthenticateRequest
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequests
+import com.walletconnect.sign.json_rpc.domain.GetSessionAuthenticateRequest
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
@@ -21,6 +22,8 @@ internal fun engineModule() = module {
     single { GetPendingJsonRpcHistoryEntryByIdUseCase(jsonRpcHistory = get(), serializer = get()) }
 
     single { GetPendingSessionAuthenticateRequest(jsonRpcHistory = get(), serializer = get()) }
+
+    single { GetSessionAuthenticateRequest(jsonRpcHistory = get(), serializer = get()) }
 
     single { CacaoVerifier(projectId = get()) }
 

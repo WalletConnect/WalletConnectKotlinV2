@@ -3,7 +3,7 @@ package com.walletconnect.sign.common.model
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.foundation.common.model.Topic
 
-internal data class PendingRequest<T>(
+internal data class Request<T>(
     val id: Long,
     val topic: Topic,
     val method: String,

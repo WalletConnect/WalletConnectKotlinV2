@@ -6,6 +6,7 @@ import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.model.type.Sequence
+import com.walletconnect.android.internal.utils.ACTIVE_SESSION
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipant
@@ -91,6 +92,37 @@ internal data class SessionVO(
                 optionalNamespaces = optionalNamespaces,
                 properties = properties,
                 isAcknowledged = true,
+                pairingTopic = pairingTopic
+            )
+        }
+
+        @JvmSynthetic
+        internal fun createAuthenticatedSession(
+            sessionTopic: Topic,
+            peerPublicKey: PublicKey,
+            peerMetadata: AppMetaData,
+            selfPublicKey: PublicKey,
+            selfMetadata: AppMetaData,
+            controllerKey: PublicKey?,
+            requiredNamespaces: Map<String, Namespace.Proposal>,
+            sessionNamespaces: Map<String, Namespace.Session>,
+            pairingTopic: String
+        ): SessionVO {
+            return SessionVO(
+                sessionTopic,
+                Expiry(ACTIVE_SESSION),
+                relayProtocol = "irn",
+                relayData = null,
+                peerPublicKey = peerPublicKey,
+                peerAppMetaData = peerMetadata,
+                selfPublicKey = selfPublicKey,
+                selfAppMetaData = selfMetadata,
+                controllerKey = controllerKey,
+                sessionNamespaces = sessionNamespaces,
+                requiredNamespaces = requiredNamespaces,
+                optionalNamespaces = null,
+                isAcknowledged = true,
+                isAuthenticated = true,
                 pairingTopic = pairingTopic
             )
         }

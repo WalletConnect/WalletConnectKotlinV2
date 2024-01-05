@@ -64,7 +64,8 @@ data class Cacao(
         @Json(name = "resources")
         val resources: List<String>?,
     ) {
-        val actionsString get() = decodeReCaps(Issuer(iss))
+        val actionsString get() = getActionsString(Issuer(iss))
+        val methods get() = getActions(Issuer(iss))
 
         companion object {
             const val CURRENT_VERSION = "1"
@@ -96,12 +97,18 @@ fun Cacao.Payload.toCAIP222Message(chainName: String = "Ethereum"): String {
         resources.forEach { resource -> message += "\n- $resource" }
     }
 
-    print(message)
-
     return message
 }
 
-private fun Cacao.Payload.decodeReCaps(issuer: Issuer): String {
+private fun Cacao.Payload.getActionsString(issuer: Issuer): String {
+    return decodeReCaps(issuer).entries.joinToString(", ") { "'${it.key}': " + it.value.joinToString(", ") { value -> "'$value'" } }
+}
+
+private fun Cacao.Payload.getActions(issuer: Issuer): List<String> {
+    return decodeReCaps(issuer).values.flatten()
+}
+
+private fun Cacao.Payload.decodeReCaps(issuer: Issuer): MutableMap<String, MutableList<String>> {
     val encodedReCaps = resources?.find { resource -> resource.startsWith(RECAPS_PREFIX) }?.removePrefix(RECAPS_PREFIX) ?: throw Exception()
     val reCaps = Base64.decode(encodedReCaps).toString(Charsets.UTF_8)
     val requests = (JSONObject(reCaps).get(ATT_KEY) as JSONObject).getJSONArray(issuer.namespace)
@@ -113,7 +120,5 @@ private fun Cacao.Payload.decodeReCaps(issuer: Issuer): String {
         val action = actionString.split(ACTION_DELIMITER)[ACTION_POSITION]
         actions[actionType]?.add(action) ?: actions.put(actionType, mutableListOf(action))
     }
-
-
-    return actions.entries.joinToString(", ") { "'${it.key}': " + it.value.joinToString(", ") { value -> "'$value'" } }
+    return actions
 }
