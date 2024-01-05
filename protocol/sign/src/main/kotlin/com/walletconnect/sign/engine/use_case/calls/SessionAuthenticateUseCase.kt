@@ -6,6 +6,8 @@ import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.signing.cacao.Cacao.Payload.Companion.ATT_KEY
+import com.walletconnect.android.internal.common.signing.cacao.Cacao.Payload.Companion.RECAPS_PREFIX
 import com.walletconnect.android.internal.utils.CURRENT_TIME_IN_SECONDS
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
 import com.walletconnect.android.internal.utils.getParticipantTag
@@ -13,7 +15,6 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
-import com.walletconnect.sign.common.ATT_KEY
 import com.walletconnect.sign.common.model.vo.clientsync.common.Requester
 import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpc
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
@@ -44,24 +45,12 @@ internal class SessionAuthenticateUseCase(
         val recaps =
             JSONObject().put(
                 ATT_KEY,
-                JSONObject().put(
-                    namespace, actionsJsonArray
-//                    JSONArray()
-//                        .put(
-//                            0,
-//                            JSONObject().put("request/eth_signTypedData_v4", JSONArray())
-//                        )
-//                        .put(
-//                            1,
-//                            JSONObject().put("request/personal_sign", JSONArray())
-//                        )
-                )
+                JSONObject().put(namespace, actionsJsonArray)
             ).toString().replace("\\/", "/")
 
-        println("cipa: $recaps")
 
         val base64Recaps = Base64.toBase64String(recaps.toByteArray(Charsets.UTF_8))
-        val reCapsUrl = "urn:recap:$base64Recaps"
+        val reCapsUrl = "$RECAPS_PREFIX$base64Recaps"
         if (payloadParams.resources == null) payloadParams.resources = listOf(reCapsUrl) else payloadParams.resources!!.toMutableList().add(reCapsUrl)
 
 

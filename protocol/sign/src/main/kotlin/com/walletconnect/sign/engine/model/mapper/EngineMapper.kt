@@ -340,5 +340,5 @@ internal fun PayloadParams.toCacaoPayload(iss: Issuer): Cacao.Payload = Cacao.Pa
 )
 
 @JvmSynthetic
-internal fun PayloadParams.toCAIP222Message(iss: Issuer, actionString: String, chainName: String): String =
-    this.toCacaoPayload(iss).toCAIP222Message(chainName, actionString)
+internal fun PayloadParams.toCAIP222Message(iss: Issuer, chainName: String): String =
+    this.toCacaoPayload(iss).toCAIP222Message(chainName)

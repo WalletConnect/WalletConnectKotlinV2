@@ -37,6 +37,7 @@ class ReCapsTest {
     @Test
     fun decodeReCapsBase64() {
         val withoutPrefix = encodedRecaps.removePrefix("urn:recap:")
+
         val reCaps = Base64.decode(withoutPrefix).toString(Charsets.UTF_8)
         print(reCaps)
         val requests = (JSONObject(reCaps).get("att") as JSONObject).getJSONArray("eip155")

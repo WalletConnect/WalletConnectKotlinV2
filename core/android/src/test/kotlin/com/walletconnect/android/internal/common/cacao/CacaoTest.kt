@@ -31,7 +31,11 @@ internal class CacaoTest {
         exp = null,
         statement = "I accept the ServiceOrg Terms of Service: https://service.invalid/tos",
         requestId = null,
-        resources = listOf("ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/", "https://example.com/my-web2-claim.json")
+        resources = listOf(
+            "ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/",
+            "https://example.com/my-web2-claim.json",
+            "urn:recap:eyJhdHQiOnsiZWlwMTU1IjpbeyJyZXF1ZXN0L2V0aF9zaWduVHlwZWREYXRhX3Y0IjpbXX0seyJyZXF1ZXN0L3BlcnNvbmFsX3NpZ24iOltdfV19fQ=="
+        )
     )
 
     private val privateKey = "305c6cde3846927892cd32762f6120539f3ec74c9e3a16b9b798b1e85351ae2a".hexToBytes()
@@ -41,17 +45,17 @@ internal class CacaoTest {
         print(payload.toCAIP222Message(chainName))
         val message = payload.toCAIP222Message(chainName)
         val signature: Cacao.Signature = cacaoSigner.sign(message, privateKey, SignatureType.EIP191)
-        val cacao = Cacao(CacaoType.EIP4361.toHeader(), payload, signature)
+        val cacao = Cacao(CacaoType.CAIP222.toHeader(), payload, signature)
         val result: Boolean = cacaoVerifier.verify(cacao)
         Assert.assertTrue(result)
     }
 
     @Test
     fun signHexAndVerifyWithEIP191Test() {
-        print(payload.toCAIP222Message(chainName))
+        println(payload.toCAIP222Message(chainName))
         val message = payload.toCAIP222Message(chainName)
         val signature: Cacao.Signature = cacaoSigner.signHex(Numeric.toHexString(message.toByteArray()), privateKey, SignatureType.EIP191)
-        val cacao = Cacao(CacaoType.EIP4361.toHeader(), payload, signature)
+        val cacao = Cacao(CacaoType.CAIP222.toHeader(), payload, signature)
         val result: Boolean = cacaoVerifier.verify(cacao)
         assert(result)
     }
