@@ -42,14 +42,14 @@ internal class OnSessionAuthenticateResponseUseCase(
                     updatePairing(pairingTopic, params)
                     val params = (response.result as CoreSignParams.SessionAuthenticateApproveParams)
 
-                    params.caip222Response.forEach { cacao ->
+                    params.cacaos.forEach { cacao ->
                         if (!cacaoVerifier.verify(cacao)) {
                             _events.emit(EngineDO.SessionAuthenticateResponse.Error(response.id, 1111, "Message")) //todo: handle errors
                             return@supervisorScope
                         }
                     }
 
-                    _events.emit(EngineDO.SessionAuthenticateResponse.Result(response.id, params.caip222Response)) //todo: add Participant?
+                    _events.emit(EngineDO.SessionAuthenticateResponse.Result(response.id, params.cacaos)) //todo: add Participant?
                 }
             }
         } catch (e: Exception) {

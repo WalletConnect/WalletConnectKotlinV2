@@ -4,10 +4,10 @@ package com.walletconnect.sign.common.model.vo.sequence
 
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.Expiry
+import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.model.type.Sequence
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipant
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.common.model.vo.proposal.ProposalVO
@@ -29,6 +29,7 @@ internal data class SessionVO(
     val optionalNamespaces: Map<String, Namespace.Proposal>?,
     val properties: Map<String, String>? = null,
     val isAcknowledged: Boolean,
+    val isAuthenticated: Boolean = false,
     val pairingTopic: String
 ) : Sequence {
     val isPeerController: Boolean = peerPublicKey?.keyAsHex == controllerKey?.keyAsHex

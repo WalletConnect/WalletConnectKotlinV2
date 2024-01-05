@@ -83,7 +83,6 @@ internal fun Modal.Params.Authenticate.toSign(): Sign.Params.Authenticate = with
         domain = domain,
         aud = aud,
         nonce = nonce,
-        iat = iat,
         nbf = nbf,
         exp = exp,
         statement = statement,
