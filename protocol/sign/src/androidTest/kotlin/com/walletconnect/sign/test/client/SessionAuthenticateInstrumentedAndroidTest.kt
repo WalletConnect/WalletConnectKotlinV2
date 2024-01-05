@@ -79,6 +79,11 @@ class SessionAuthenticateInstrumentedAndroidTest {
     }
 
     @Test
+    fun sendSessionRequestOverAuthenticatedSession() {
+
+    }
+
+    @Test
     fun approveSessionAuthenticatedWithInvalidCACAOs() {
         Timber.d("approveSessionAuthenticatedWithInvalidCACAOs: start")
 

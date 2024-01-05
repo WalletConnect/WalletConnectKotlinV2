@@ -13,12 +13,12 @@ CREATE TABLE SessionDao(
    self_participant TEXT NOT NULL,
    peer_participant TEXT,
    is_acknowledged INTEGER AS Boolean NOT NULL,
-   is_authenticated INTEGER AS Boolean NOT NULL,
-   properties TEXT AS Map<String, String>
+   properties TEXT AS Map<String, String>,
+   is_authenticated INTEGER AS Boolean NOT NULL
 );
 
 insertOrAbortSession:
-INSERT OR ABORT INTO SessionDao(topic, pairingTopic, expiry, relay_protocol, relay_data, controller_key, self_participant, peer_participant, is_acknowledged, is_authenticated, properties)
+INSERT OR ABORT INTO SessionDao(topic, pairingTopic, expiry, relay_protocol, relay_data, controller_key, self_participant, peer_participant, is_acknowledged, properties, is_authenticated)
 VALUES (?,  ?, ?,?, ?, ?, ?, ?, ?, ?, ?);
 
 lastInsertedRow:
