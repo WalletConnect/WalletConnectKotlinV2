@@ -62,7 +62,6 @@ internal class ApproveSessionAuthenticateUseCase(
             val symmetricKey: SymmetricKey = crypto.generateSymmetricKeyFromKeyAgreement(senderPublicKey, receiverPublicKey)
             val responseTopic: Topic = crypto.getTopicFromKey(receiverPublicKey)
             val sessionTopic = crypto.getTopicFromKey(symmetricKey)
-
             val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE_RESPONSE, Ttl(DAY_IN_SECONDS))
 
             if (cacaos.find { cacao -> !cacaoVerifier.verify(cacao) } != null) {
@@ -101,6 +100,7 @@ internal class ApproveSessionAuthenticateUseCase(
             val responseParams = CoreSignParams.SessionAuthenticateApproveParams(responder = Participant(publicKey = senderPublicKey.keyAsHex, metadata = selfAppMetaData), cacaos = cacaos)
             val response: JsonRpcResponse = JsonRpcResponse.JsonRpcResult(id, result = responseParams)
             crypto.setKey(symmetricKey, sessionTopic.value)
+            jsonRpcInteractor.subscribe(sessionTopic) { error -> onFailure(error) }
 
             jsonRpcInteractor.publishJsonRpcResponse(responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
                 onSuccess = {
