@@ -29,7 +29,6 @@ val dappClientAuthenticate = { pairing: Core.Model.Pairing ->
         domain = "sample.dapp",
         aud = "https://react-auth-dapp.vercel.app/",
         nonce = randomBytes(12).bytesToHex(),
-        iat = "2023-12-14T14:15:55.440Z",
         exp = null,
         nbf = null,
         statement = "Sign in with wallet.",

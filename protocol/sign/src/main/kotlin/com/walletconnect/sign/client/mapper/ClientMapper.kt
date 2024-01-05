@@ -16,6 +16,8 @@ import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.sign.common.model.vo.clientsync.common.PayloadParams
 import com.walletconnect.sign.engine.model.EngineDO
+import java.text.SimpleDateFormat
+import java.util.Calendar
 
 @JvmSynthetic
 internal fun Sign.Model.JsonRpcResponse.toJsonRpcResponse(): JsonRpcResponse =
@@ -107,7 +109,7 @@ internal fun Sign.Params.Authenticate.toPayloadParams(): EngineDO.PayloadParams 
         aud = aud,
         version = "1",
         nonce = nonce,
-        iat = iat,
+        iat = SimpleDateFormat(Cacao.Payload.ISO_8601_PATTERN).format(Calendar.getInstance().time),
         nbf = nbf,
         exp = exp,
         statement = statement,
