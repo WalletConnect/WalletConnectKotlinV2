@@ -22,8 +22,8 @@ import com.walletconnect.sample.modal.ModalSampleDelegate
 import com.walletconnect.sample.modal.common.openAlertDialog
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
-import com.walletconnect.web3.modal.client.models.Request
-import com.walletconnect.web3.modal.client.models.SentRequestResult
+import com.walletconnect.web3.modal.client.models.request.Request
+import com.walletconnect.web3.modal.client.models.request.SentRequestResult
 import com.walletconnect.web3.modal.ui.components.button.AccountButtonType
 import com.walletconnect.web3.modal.ui.Web3ModalTheme
 import com.walletconnect.web3.modal.ui.components.button.NetworkButton

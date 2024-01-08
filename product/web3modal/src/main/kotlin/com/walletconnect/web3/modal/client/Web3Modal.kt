@@ -7,8 +7,8 @@ import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import com.walletconnect.sign.common.exceptions.SignClientAlreadyInitializedException
 import com.walletconnect.util.Empty
-import com.walletconnect.web3.modal.client.models.Request
-import com.walletconnect.web3.modal.client.models.SentRequestResult
+import com.walletconnect.web3.modal.client.models.request.Request
+import com.walletconnect.web3.modal.client.models.request.SentRequestResult
 import com.walletconnect.web3.modal.di.web3ModalModule
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
 import com.walletconnect.web3.modal.domain.model.Session

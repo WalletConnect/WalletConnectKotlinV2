@@ -6,8 +6,8 @@ import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.modal.ui.model.UiState
 import com.walletconnect.web3.modal.client.Modal
-import com.walletconnect.web3.modal.client.models.Request
-import com.walletconnect.web3.modal.client.models.SentRequestResult
+import com.walletconnect.web3.modal.client.models.request.Request
+import com.walletconnect.web3.modal.client.models.request.SentRequestResult
 import com.walletconnect.web3.modal.domain.model.AccountData
 import com.walletconnect.web3.modal.domain.model.Session
 import com.walletconnect.web3.modal.domain.usecase.GetEthBalanceUseCase

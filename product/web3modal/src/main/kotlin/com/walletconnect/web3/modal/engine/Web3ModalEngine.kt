@@ -15,9 +15,9 @@ import com.walletconnect.web3.modal.engine.coinbase.CoinbaseClient
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.client.models.Account
-import com.walletconnect.web3.modal.client.models.Request
-import com.walletconnect.web3.modal.client.models.SentRequestResult
-import com.walletconnect.web3.modal.client.models.toSentRequest
+import com.walletconnect.web3.modal.client.models.request.Request
+import com.walletconnect.web3.modal.client.models.request.SentRequestResult
+import com.walletconnect.web3.modal.client.models.request.toSentRequest
 import com.walletconnect.web3.modal.client.toModal
 import com.walletconnect.web3.modal.client.toSign
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate

@@ -1,7 +1,7 @@
 package com.walletconnect.web3.modal.client
 
 import com.walletconnect.sign.client.Sign
-import com.walletconnect.web3.modal.client.models.Request
+import com.walletconnect.web3.modal.client.models.request.Request
 
 internal fun Sign.Model.ApprovedSession.toModal() = Modal.Model.ApprovedSession.WalletConnectSession(topic, metaData, namespaces.toModal(), accounts)
 
@@ -49,7 +49,6 @@ internal fun Modal.Params.Disconnect.toSign() = Sign.Params.Disconnect(sessionTo
 internal fun Modal.Params.Ping.toSign() = Sign.Params.Ping(topic)
 
 internal fun Request.toSign(sessionTopic: String, chainId: String) = Sign.Params.Request(sessionTopic, method, params, chainId, expiry)
-
 
 internal fun Modal.Listeners.SessionPing.toSign() = object : Sign.Listeners.SessionPing {
     override fun onSuccess(pingSuccess: Sign.Model.Ping.Success) {

@@ -24,7 +24,7 @@ import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.util.Empty
 import com.walletconnect.web3.modal.client.Modal
-import com.walletconnect.web3.modal.client.models.Request
+import com.walletconnect.web3.modal.client.models.request.Request
 import com.walletconnect.web3.modal.domain.usecase.GetSelectedChainUseCase
 
 internal const val COINBASE_WALLET_ID = "fd20dc426fb37566d803205b19bbc1d4096b248ac04548e3cfb6b3a38bd033aa"
