@@ -69,15 +69,16 @@ import kotlinx.coroutines.launch
 fun ConnectionDetailsRoute(navController: NavController, connectionId: Int?, connectionsViewModel: ConnectionsViewModel) {
     connectionsViewModel.currentConnectionId = connectionId
     val connectionUI by remember { connectionsViewModel.currentConnectionUI }
-    var isLoading by remember { mutableStateOf(false) }
+    var isEmitLoading by remember { mutableStateOf(false) }
+    var isDeleteLoading by remember { mutableStateOf(false) }
     val composableScope = rememberCoroutineScope()
 
     connectionUI?.let { connectionUI ->
         Column(modifier = Modifier.fillMaxWidth()) {
-            TopButtons(navController, isEmitVisible = connectionUI.type is ConnectionType.Sign, isLoading = isLoading) {
+            TopButtons(navController, isEmitVisible = connectionUI.type is ConnectionType.Sign, isLoading = isEmitLoading) {
                 when (connectionUI.type) {
                     is ConnectionType.Sign -> {
-                        isLoading = true
+                        isEmitLoading = true
                         val account = connectionUI.type.namespaces.values.first().accounts.first()
                         val lastDelimiterIndex = account.indexOfLast { it == ':' }
                         val chainId = account.dropLast(account.lastIndex - lastDelimiterIndex + 1)
@@ -89,13 +90,13 @@ fun ConnectionDetailsRoute(navController: NavController, connectionId: Int?, con
                                 event = Wallet.Model.SessionEvent(event, "someData"), chainId
                             ),
                             onSuccess = {
-                                isLoading = false
+                                isEmitLoading = false
                                 composableScope.launch(Dispatchers.Main) {
                                     navController.showSnackbar("Event emitted: ${it.event.name}")
                                 }
                             },
                             onError = { error ->
-                                isLoading = false
+                                isEmitLoading = false
                                 Firebase.crashlytics.recordException(error.throwable)
                                 composableScope.launch(Dispatchers.Main) {
                                     navController.showSnackbar("Event emit error. Error: ${error.throwable.message}")
@@ -108,17 +109,34 @@ fun ConnectionDetailsRoute(navController: NavController, connectionId: Int?, con
             Spacer(modifier = Modifier.height(16.dp))
             Connection(connectionUI)
             Spacer(modifier = Modifier.height(16.dp))
-            ConnectionType(connectionUI, onDelete = {
-                when (connectionUI.type) {
-                    is ConnectionType.Sign -> {
-                        Web3Wallet.disconnectSession(Wallet.Params.SessionDisconnect(connectionUI.type.topic)) { error ->
-                            Firebase.crashlytics.recordException(error.throwable)
+            ConnectionType(connectionUI, isDeleteLoading,
+                onDelete = {
+                    when (connectionUI.type) {
+                        is ConnectionType.Sign -> {
+                            isDeleteLoading = true
+                            Web3Wallet.disconnectSession(Wallet.Params.SessionDisconnect(connectionUI.type.topic)) { error ->
+                                Firebase.crashlytics.recordException(error.throwable)
+                            }
+                            Web3Wallet.disconnectSession(Wallet.Params.SessionDisconnect(connectionUI.type.topic),
+                                onSuccess = {
+                                    isDeleteLoading = false
+                                    connectionsViewModel.refreshConnections()
+                                    composableScope.launch(Dispatchers.Main) {
+                                        navController.popBackStack()
+                                        navController.showSnackbar("Session disconnected")
+                                    }
+                                },
+                                onError = { error ->
+                                    Firebase.crashlytics.recordException(error.throwable)
+                                    isDeleteLoading = false
+                                    connectionsViewModel.refreshConnections()
+                                    composableScope.launch(Dispatchers.Main) {
+                                        navController.showSnackbar("Session disconnection error: ${error.throwable.message}")
+                                    }
+                                })
                         }
-                        connectionsViewModel.refreshConnections()
-                        navController.popBackStack()
                     }
-                }
-            })
+                })
         }
     } ?: run {
         Text("Something went wrong :C")
@@ -126,18 +144,31 @@ fun ConnectionDetailsRoute(navController: NavController, connectionId: Int?, con
 }
 
 @Composable
-fun ConnectionType(connectionUI: ConnectionUI, onDelete: () -> Unit) {
+fun ConnectionType(connectionUI: ConnectionUI, isLoading: Boolean, onDelete: () -> Unit) {
     Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         when (val type = connectionUI.type) {
             is ConnectionType.Sign -> Namespace(type.namespaces)
         }
 
-        Text(modifier = Modifier
-            .clip(RoundedCornerShape(5.dp))
-            .clickable { onDelete() }
-            .padding(horizontal = 20.dp, vertical = 5.dp),
-            text = "Delete",
-            style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 20.sp, color = themedColor(darkColor = 0xfff25a67, lightColor = 0xfff05142)))
+        AnimatedContent(targetState = isLoading, label = "Loading") { state ->
+            if (state) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .size(64.dp)
+                        .padding(8.dp)
+                        .wrapContentWidth(align = Alignment.CenterHorizontally)
+                        .wrapContentHeight(align = Alignment.CenterVertically),
+                    color = themedColor(darkColor = 0xfff25a67, lightColor = 0xfff05142), strokeWidth = 4.dp
+                )
+            } else {
+                Text(modifier = Modifier
+                    .clip(RoundedCornerShape(5.dp))
+                    .clickable { onDelete() }
+                    .padding(horizontal = 20.dp, vertical = 5.dp),
+                    text = "Delete",
+                    style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 20.sp, color = themedColor(darkColor = 0xfff25a67, lightColor = 0xfff05142)))
+            }
+        }
     }
 }
 
