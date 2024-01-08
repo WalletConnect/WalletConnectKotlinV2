@@ -8,7 +8,6 @@ import com.walletconnect.util.Empty
 import com.walletconnect.web3.modal.domain.usecase.GetRecentWalletUseCase
 import com.walletconnect.web3.modal.engine.Web3ModalEngine
 import com.walletconnect.web3.modal.engine.coinbase.COINBASE_WALLET_ID
-import com.walletconnect.web3.modal.ui.model.LoadingState
 import com.walletconnect.modal.ui.model.LoadingState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.foundation.util.Logger
+import com.walletconnect.modal.ui.model.UiState
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.models.Request
 import com.walletconnect.web3.modal.client.models.SentRequestResult
@@ -17,7 +18,6 @@ import com.walletconnect.web3.modal.domain.usecase.SaveChainSelectionUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveSessionUseCase
 import com.walletconnect.web3.modal.engine.Web3ModalEngine
 import com.walletconnect.web3.modal.engine.coinbase.CoinbaseResult
-import com.walletconnect.web3.modal.ui.model.UiState
 import com.walletconnect.web3.modal.ui.navigation.Navigator
 import com.walletconnect.web3.modal.ui.navigation.NavigatorImpl
 import com.walletconnect.web3.modal.ui.navigation.Route
