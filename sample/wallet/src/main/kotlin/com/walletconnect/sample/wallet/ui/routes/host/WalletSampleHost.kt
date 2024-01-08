@@ -23,7 +23,12 @@ import androidx.compose.material.ScaffoldState
 import androidx.compose.material.Text
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,6 +56,7 @@ import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.C
 import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import com.walletconnect.sample.wallet.ui.state.ConnectionState
 import com.walletconnect.sample.wallet.ui.state.PairingState
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterialNavigationApi::class)
 @Composable
@@ -84,6 +90,8 @@ fun WalletSampleHost(
 
             if (connectionState is ConnectionState.Error) {
                 ErrorBanner(connectionState.message)
+            } else if (connectionState is ConnectionState.Ok) {
+                RestoredConnectionBanner()
             }
 
             when (pairingState) {
@@ -146,6 +154,34 @@ private fun ErrorBanner(message: String) {
         )
         Spacer(modifier = Modifier.width(4.dp))
         Text(text = message, color = Color.White)
+    }
+}
+
+@Composable
+private fun RestoredConnectionBanner() {
+    var shouldShow by remember { mutableStateOf(true) }
+
+    LaunchedEffect(key1 = Unit) {
+        delay(2000)
+        shouldShow = false
+    }
+    if (shouldShow) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFF93c47d))
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Image(
+                imageVector = ImageVector.vectorResource(id = R.drawable.ic_check_white),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                colorFilter = ColorFilter.tint(color = Color.White)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(text = "Network connection is OK", color = Color.White)
+        }
     }
 }
 
