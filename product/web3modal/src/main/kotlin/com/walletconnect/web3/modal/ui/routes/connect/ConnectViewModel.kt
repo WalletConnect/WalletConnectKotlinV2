@@ -2,7 +2,6 @@ package com.walletconnect.web3.modal.ui.routes.connect
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.walletconnect.android.CoreClient
 import com.walletconnect.android.internal.common.modal.data.model.Wallet
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.foundation.util.Logger
@@ -25,7 +24,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl() {
+internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), ParingController by PairingControllerImpl() {
     private val logger: Logger = wcKoinApp.koin.get()
     private val walletsDataStore = WalletDataSource { showError(it) }
     private val saveRecentWalletUseCase: SaveRecentWalletUseCase = wcKoinApp.koin.get()
@@ -33,16 +32,7 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl() {
     private val observeSelectedChainUseCase: ObserveSelectedChainUseCase = wcKoinApp.koin.get()
     private val web3ModalEngine: Web3ModalEngine = wcKoinApp.koin.get()
 
-    private val pairing by lazy {
-        CoreClient.Pairing.create { error ->
-            throw IllegalStateException("Creating Pairing failed: ${error.throwable.stackTraceToString()}")
-        }!!
-    }
-
     private var sessionParams = getSessionParamsSelectedChain(Web3Modal.selectedChain?.id)
-
-    val uri: String
-        get() = pairing.uri
 
     val selectedChain = observeSelectedChainUseCase().map { savedChainId ->
         Web3Modal.chains.find { it.id == savedChainId } ?: web3ModalEngine.getSelectedChainOrFirst()
@@ -92,26 +82,33 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl() {
         navigateTo(Route.ALL_WALLETS.path)
     }
 
-    fun connectWalletConnect(onSuccess: (String) -> Unit) {
-        try {
-            val connectParams = Modal.Params.Connect(
-                sessionParams.requiredNamespaces,
-                sessionParams.optionalNamespaces,
-                sessionParams.properties,
-                pairing
-            )
-            web3ModalEngine.connectWC(
-                connect = connectParams,
-                onSuccess = { onSuccess(pairing.uri) },
-                onError = {
-                    showError(it.localizedMessage)
-                    logger.error(it)
-                }
-            )
-        } catch (e: Exception) {
-            logger.error(e)
+    fun connectWalletConnect(onSuccess: (String) -> Unit) = connect(
+        sessionParams = sessionParams,
+        onSuccess = onSuccess,
+        onError = {
+            showError(it.localizedMessage)
+            logger.error(it)
         }
-    }
+    )
+//        try {
+//            val connectParams = Modal.Params.Connect(
+//                sessionParams.requiredNamespaces,
+//                sessionParams.optionalNamespaces,
+//                sessionParams.properties,
+//                pairing
+//            )
+//            web3ModalEngine.connectWC(
+//                connect = connectParams,
+//                onSuccess = { onSuccess(pairing.uri) },
+//                onError = {
+//                    showError(it.localizedMessage)
+//                    logger.error(it)
+//                }
+//            )
+//        } catch (e: Exception) {
+//            logger.error(e)
+//        }
+//    }
 
     fun connectCoinbase(onSuccess: () -> Unit = {}) {
         web3ModalEngine.connectCoinbase(

@@ -8,7 +8,7 @@ plugins {
 
 project.apply {
     extra[KEY_PUBLISH_ARTIFACT_ID] = "web3wallet"
-    extra[KEY_PUBLISH_VERSION] = WEB_3_WALLET
+    extra[KEY_PUBLISH_VERSION] = WEB_3_WALLET_VERSION
     extra[KEY_SDK_NAME] = "web3wallet"
 }
 
@@ -48,6 +48,8 @@ android {
 }
 
 dependencies {
+    firebaseMessaging()
+
     debugImplementation(project(":core:android"))
     debugImplementation(project(":protocol:sign"))
     debugImplementation(project(":protocol:auth"))

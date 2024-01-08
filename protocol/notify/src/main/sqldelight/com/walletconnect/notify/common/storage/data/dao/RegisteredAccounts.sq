@@ -4,14 +4,14 @@ CREATE TABLE RegisteredAccounts (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     accountId TEXT UNIQUE NOT NULL,
     publicIdentityKey TEXT UNIQUE NOT NULL,
-    isLimited INTEGER AS Boolean NOT NULL,
+    allApps INTEGER AS Boolean NOT NULL,
     appDomain TEXT DEFAULT NULL,
     notifyServerWatchTopic TEXT DEFAULT NULL,
     notifyServerAuthenticationKey TEXT DEFAULT NULL
 );
 
 insertOrIgnoreAccount:
-INSERT OR IGNORE INTO RegisteredAccounts(accountId, publicIdentityKey, isLimited, appDomain)
+INSERT OR IGNORE INTO RegisteredAccounts(accountId, publicIdentityKey, allApps, appDomain)
 VALUES (?, ?, ?, ?);
 
 updateNotifyServerData:
@@ -20,17 +20,17 @@ SET notifyServerWatchTopic = ?, notifyServerAuthenticationKey = ?
 WHERE accountId = ?;
 
 getAccountByAccountId:
-SELECT accountId, publicIdentityKey, isLimited, appDomain, notifyServerWatchTopic, notifyServerAuthenticationKey
+SELECT accountId, publicIdentityKey, allApps, appDomain, notifyServerWatchTopic, notifyServerAuthenticationKey
 FROM RegisteredAccounts
 WHERE accountId = ?;
 
 getAccountByIdentityKey:
-SELECT accountId, publicIdentityKey, isLimited, appDomain, notifyServerWatchTopic, notifyServerAuthenticationKey
+SELECT accountId, publicIdentityKey, allApps, appDomain, notifyServerWatchTopic, notifyServerAuthenticationKey
 FROM RegisteredAccounts
 WHERE publicIdentityKey = ?;
 
 getAllAccounts:
-SELECT accountId, publicIdentityKey, isLimited, appDomain, notifyServerWatchTopic, notifyServerAuthenticationKey
+SELECT accountId, publicIdentityKey, allApps, appDomain, notifyServerWatchTopic, notifyServerAuthenticationKey
 FROM RegisteredAccounts;
 
 deleteAccountByAccountId:

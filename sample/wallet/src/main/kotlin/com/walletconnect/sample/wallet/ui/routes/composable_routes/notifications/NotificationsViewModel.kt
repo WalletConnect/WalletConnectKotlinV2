@@ -42,19 +42,10 @@ class NotificationsViewModelFactory(private val topic: String) : ViewModelProvid
 
 class NotificationsViewModel(topic: String) : ViewModel() {
     private val _activeSubscriptions = NotifyDelegate.notifyEvents
-        .filter { event ->
-            when (event) {
-                is Notify.Event.SubscriptionsChanged -> true
-                else -> false
-            }
-        }
+        .filterIsInstance<Notify.Event.SubscriptionsChanged>()
         .debounce(500L)
-        .map { event ->
-            when (event) {
-                is Notify.Event.SubscriptionsChanged -> event.subscriptions.toUI()
-                else -> throw Throwable("It is simply not possible to hit this exception. I blame bit flip.")
-            }
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), NotifyClient.getActiveSubscriptions().values.toList().toUI())
+        .map { event -> event.subscriptions.toUI() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), NotifyClient.getActiveSubscriptions().values.toList().toUI())
 
     val currentSubscription: MutableStateFlow<ActiveSubscriptionsUI> =
         MutableStateFlow(_activeSubscriptions.value.firstOrNull { it.topic == topic } ?: throw IllegalStateException("No subscription found for topic $topic"))
@@ -71,9 +62,9 @@ class NotificationsViewModel(topic: String) : ViewModel() {
 
     init {
         NotifyDelegate.notifyEvents
-            .filterIsInstance<Notify.Event.Message>()
-            .filter { event -> event.message.topic == topic }
-            .onEach { event -> _notifications.addNotification(event.message.toNotifyNotification()) }
+            .filterIsInstance<Notify.Event.Notification>()
+            .filter { event -> event.notification.topic == topic }
+            .onEach { event -> _notifications.addNotification(event.notification.toNotifyNotification()) }
             .onEach { _state.update { NotificationsState.IncomingNotifications }}
             .debounce(500L)
             .onEach { _notificationsTrigger.emit(Unit) }
@@ -104,14 +95,14 @@ class NotificationsViewModel(topic: String) : ViewModel() {
     }
 
     private suspend fun getActiveSubscriptionNotifications(): List<NotificationUI> =
-        NotifyClient.getMessageHistory(params = Notify.Params.MessageHistory(currentSubscription.value.topic))
+        NotifyClient.getNotificationHistory(params = Notify.Params.NotificationHistory(currentSubscription.value.topic))
             .values.sortedByDescending { it.publishedAt }
             .map { messageRecord -> messageRecord.toNotifyNotification() }
 
 
     fun deleteNotification(notificationUI: NotificationUI) {
-        NotifyClient.deleteNotifyMessage(
-            Notify.Params.DeleteMessage(notificationUI.id.toLong()),
+        NotifyClient.deleteNotification(
+            Notify.Params.DeleteNotification(notificationUI.id.toLong()),
             onSuccess = {
                 _notifications.deleteNotification(notificationUI)
                 viewModelScope.launch { _notificationsTrigger.emit(Unit) }
@@ -155,15 +146,15 @@ class NotificationsViewModel(topic: String) : ViewModel() {
         value = value - notificationUI
     }
 
-    private fun Notify.Model.MessageRecord.toNotifyNotification(): NotificationUI =
+    private fun Notify.Model.NotificationRecord.toNotifyNotification(): NotificationUI =
         NotificationUI(
             id = id,
             topic = topic,
             date = getHumanReadableTime(publishedAt),
             title = message.title,
             body = message.body,
-            url = (message as? Notify.Model.Message.Decrypted)?.url,
-            icon = (message as? Notify.Model.Message.Decrypted)?.icon,
+            url = (message as? Notify.Model.Notification.Decrypted)?.url,
+            icon = (message as? Notify.Model.Notification.Decrypted)?.icon,
             isUnread = false,
         )
 

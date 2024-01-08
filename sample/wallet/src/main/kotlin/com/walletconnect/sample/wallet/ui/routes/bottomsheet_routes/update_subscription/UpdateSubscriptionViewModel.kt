@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -29,19 +30,10 @@ class UpdateSubscriptionViewModelFactory(private val topic: String) : ViewModelP
 
 class UpdateSubscriptionViewModel(val topic: String) : ViewModel() {
     private val _activeSubscriptions = NotifyDelegate.notifyEvents
-        .filter { event ->
-            when (event) {
-                is Notify.Event.SubscriptionsChanged -> true
-                else -> false
-            }
-        }
+        .filterIsInstance<Notify.Event.SubscriptionsChanged>()
         .debounce(500L)
-        .map { event ->
-            when (event) {
-                is Notify.Event.SubscriptionsChanged -> event.subscriptions
-                else -> throw Throwable("It is simply not possible to hit this exception. I blame bit flip.")
-            }
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), NotifyClient.getActiveSubscriptions().values.toList())
+        .map { event -> event.subscriptions }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), NotifyClient.getActiveSubscriptions().values.toList())
 
     private val currentSubscription: Notify.Model.Subscription =
         _activeSubscriptions.value.firstOrNull { it.topic == topic } ?: throw IllegalStateException("No subscription found for topic $topic")

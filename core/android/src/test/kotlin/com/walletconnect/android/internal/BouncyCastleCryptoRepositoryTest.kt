@@ -1,7 +1,7 @@
 package com.walletconnect.android.internal
 
 import com.walletconnect.android.internal.common.crypto.kmr.BouncyCastleKeyManagementRepository
-import com.walletconnect.android.internal.common.storage.KeyStore
+import com.walletconnect.android.internal.common.storage.key_chain.KeyStore
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
@@ -106,5 +106,20 @@ internal class BouncyCastleCryptoRepositoryTest {
 
         val secretKeyAfterRemoval = sut.getSymmetricKey(topicVO.value)
         assertEquals(String.Empty, secretKeyAfterRemoval.keyAsHex)
+    }
+
+    @Test
+    fun `Derived PublicKey from previously generated PrivateKey is correct`() {
+        val publicKey = sut.generateAndStoreEd25519KeyPair()
+        val (_, privateKey) = sut.getKeyPair(publicKey)
+
+        sut.removeKeys(publicKey.keyAsHex)
+
+        val derivedPublicKey = sut.deriveAndStoreEd25519KeyPair(privateKey)
+
+        val (_, secondPrivateKey) = sut.getKeyPair(publicKey)
+
+        assertEquals(publicKey.keyAsHex, derivedPublicKey.keyAsHex)
+        assertEquals(privateKey.keyAsHex, secondPrivateKey.keyAsHex)
     }
 }

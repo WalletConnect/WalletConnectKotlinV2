@@ -3,12 +3,13 @@ plugins {
     kotlin("android")
     id("com.google.devtools.ksp") version kspVersion
     id("publish-module-android")
+    id("app.cash.paparazzi") version paparazziVersion
     id("jacoco-report")
 }
 
 project.apply {
     extra[KEY_PUBLISH_ARTIFACT_ID] = "web3modal"
-    extra[KEY_PUBLISH_VERSION] = WEB_3_MODAL
+    extra[KEY_PUBLISH_VERSION] = WEB_3_MODAL_VERSION
     extra[KEY_SDK_NAME] = "web3modal"
 }
 
@@ -49,6 +50,10 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = composeCompilerVersion
     }
+
+    tasks.withType(Test::class.java) {
+        jvmArgs("-XX:+AllowRedefinitionToAddDeleteMethods")
+    }
 }
 
 dependencies {
@@ -61,8 +66,12 @@ dependencies {
     lifecycle()
     navigationComponent()
     qrCodeGenerator()
-
     coinbase()
+
+    jUnit4()
+    mockk()
+    coroutinesTest()
+    turbine()
 
     releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
     releaseImplementation("com.walletconnect:sign:$SIGN_VERSION")

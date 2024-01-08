@@ -13,7 +13,7 @@ internal fun requestModule() = module {
     single {
         OnNotifyMessageUseCase(
             jsonRpcInteractor = get(),
-            messagesRepository = get(),
+            notificationsRepository = get(),
             subscriptionRepository = get(),
             fetchDidJwtInteractor = get(),
             metadataStorageRepository = get(),

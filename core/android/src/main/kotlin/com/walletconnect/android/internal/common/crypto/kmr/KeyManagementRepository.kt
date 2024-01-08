@@ -15,6 +15,9 @@ interface KeyManagementRepository {
     fun getKeyPair(key: PublicKey): Pair<PublicKey, PrivateKey>
     fun setKeyPair(publicKey: PublicKey, privateKey: PrivateKey)
     fun generateAndStoreEd25519KeyPair(): PublicKey
+
+    fun deriveAndStoreEd25519KeyPair(privateKey: PrivateKey): PublicKey
+
     fun generateAndStoreX25519KeyPair(): PublicKey
     fun setKeyAgreement(topic: Topic, self: PublicKey, peer: PublicKey)
     fun getSelfPublicFromKeyAgreement(topic: Topic): PublicKey

@@ -1,10 +1,10 @@
 package com.walletconnect.android
 
 import android.app.Application
-import com.walletconnect.android.echo.EchoInterface
 import com.walletconnect.android.internal.common.explorer.ExplorerInterface
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
+import com.walletconnect.android.push.PushInterface
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.relay.NetworkClientTimeout
 import com.walletconnect.android.relay.RelayConnectionInterface
@@ -14,7 +14,9 @@ interface CoreInterface {
     val Pairing: PairingInterface
     val PairingController: PairingControllerInterface
     val Relay: RelayConnectionInterface
-    val Echo: EchoInterface
+    @Deprecated(message = "Replaced with Push")
+    val Echo: PushInterface
+    val Push: PushInterface
     val Verify: VerifyInterface
     val Explorer: ExplorerInterface
 

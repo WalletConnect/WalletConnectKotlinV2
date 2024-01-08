@@ -127,7 +127,7 @@ internal fun RedirectWalletRoute(
 }
 
 @Composable
-private fun RedirectWalletScreen(
+internal fun RedirectWalletScreen(
     redirectState: RedirectState,
     platformTab: PlatformTab,
     onPlatformTabSelect: (PlatformTab) -> Unit,

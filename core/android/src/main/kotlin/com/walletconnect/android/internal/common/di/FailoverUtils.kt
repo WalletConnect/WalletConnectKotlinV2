@@ -12,9 +12,9 @@ import java.net.SocketException
 internal const val DEFAULT_RELAY_URL: String = "wss://relay.walletconnect.com"
 internal const val FAIL_OVER_RELAY_URL: String = "wss://relay.walletconnect.org"
 
-internal var ECHO_URL: String = "https://echo.walletconnect.com/"
-internal const val DEFAULT_ECHO_URL: String = "https://echo.walletconnect.com/"
-internal const val FAIL_OVER_ECHO_URL: String = "https://echo.walletconnect.org"
+internal var PUSH_URL: String = "https://echo.walletconnect.com/"
+internal const val DEFAULT_PUSH_URL: String = "https://echo.walletconnect.com/"
+internal const val FAIL_OVER_PUSH_URL: String = "https://echo.walletconnect.org"
 
 internal var VERIFY_URL: String = "https://verify.walletconnect.com/"
 internal const val DEFAULT_VERIFY_URL: String = "https://verify.walletconnect.com/"
@@ -25,11 +25,11 @@ internal var wasEchoFailOvered = false
 internal var wasVerifyFailOvered = false
 
 internal fun shouldFallbackRelay(host: String): Boolean = wasRelayFailOvered && host == DEFAULT_RELAY_URL.host
-internal fun shouldFallbackEcho(host: String): Boolean = wasEchoFailOvered && host == DEFAULT_ECHO_URL.host
+internal fun shouldFallbackPush(host: String): Boolean = wasEchoFailOvered && host == DEFAULT_PUSH_URL.host
 internal fun shouldFallbackVerify(host: String): Boolean = wasVerifyFailOvered && host == DEFAULT_VERIFY_URL.host
-internal fun getFallbackEchoUrl(url: String): String = with(Uri.parse(url)) {
+internal fun getFallbackPushUrl(url: String): String = with(Uri.parse(url)) {
     val (path, query) = Pair(this.path, this.query)
-    return@with "$FAIL_OVER_ECHO_URL$path?$query}"
+    return@with "$FAIL_OVER_PUSH_URL$path?$query}"
 }
 
 internal fun getFallbackVerifyUrl(url: String): String = "$FAIL_OVER_VERIFY_URL/attestation/${Uri.parse(url).lastPathSegment}"
@@ -37,10 +37,10 @@ internal fun getFallbackVerifyUrl(url: String): String = "$FAIL_OVER_VERIFY_URL/
 internal fun isFailOverException(e: Exception) = (e is SocketException || e is IOException)
 internal val String.host: String? get() = Uri.parse(this).host
 
-internal fun fallbackEcho(request: Request, chain: Interceptor.Chain): Response {
-    ECHO_URL = FAIL_OVER_ECHO_URL
+internal fun fallbackPush(request: Request, chain: Interceptor.Chain): Response {
+    PUSH_URL = FAIL_OVER_PUSH_URL
     wasEchoFailOvered = true
-    return chain.proceed(request.newBuilder().url(getFallbackEchoUrl(request.url.toString())).build())
+    return chain.proceed(request.newBuilder().url(getFallbackPushUrl(request.url.toString())).build())
 }
 
 internal fun fallbackVerify(request: Request, chain: Interceptor.Chain): Response {

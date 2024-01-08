@@ -4,7 +4,7 @@ plugins {
     kotlin("kapt")
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
-    id("com.google.firebase.appdistribution")
+    id("signing-config")
 }
 
 android {
@@ -15,7 +15,6 @@ android {
         applicationId = "com.walletconnect.sample.modal"
         minSdk = MIN_SDK
         targetSdk = TARGET_SDK
-        versionCode = SAMPLE_VERSION_CODE
         versionName = SAMPLE_VERSION_NAME
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -24,19 +23,6 @@ android {
         }
         buildConfigField("String", "PROJECT_ID", "\"${System.getenv("WC_CLOUD_PROJECT_ID") ?: ""}\"")
         buildConfigField("String", "BOM_VERSION", "\"${BOM_VERSION}\"")
-    }
-
-    buildTypes {
-        release {
-            isDebuggable = true
-            isMinifyEnabled = true
-            signingConfig = signingConfigs.getByName("debug")
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            firebaseAppDistribution {
-                artifactType = "APK"
-                groups = "javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
-            }
-        }
     }
 
     compileOptions {
@@ -71,6 +57,9 @@ dependencies {
 
     debugImplementation(project(":core:android"))
     debugImplementation(project(":product:web3modal"))
+
+    internalImplementation(project(":core:android"))
+    internalImplementation(project(":product:web3modal"))
 
     releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
     releaseImplementation("com.walletconnect:android-core")

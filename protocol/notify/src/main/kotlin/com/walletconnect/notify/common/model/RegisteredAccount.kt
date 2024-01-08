@@ -7,7 +7,7 @@ import com.walletconnect.foundation.common.model.Topic
 data class RegisteredAccount(
     val accountId: AccountId,
     val publicIdentityKey: PublicKey,
-    val isLimited: Boolean,
+    val allApps: Boolean,
     val appDomain: String?,
     val notifyServerWatchTopic: Topic?,
     val notifyServerAuthenticationKey: PublicKey?,

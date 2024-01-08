@@ -12,6 +12,9 @@ open class SecondaryNotifyDelegate : NotifyInterface.Delegate {
     override fun onNotifyMessage(notifyMessage: Notify.Event.Message) {
     }
 
+    override fun onNotifyNotification(notifyNotification: Notify.Event.Notification) {
+    }
+
     override fun onNotifyDelete(notifyDelete: Notify.Event.Delete) {
     }
 

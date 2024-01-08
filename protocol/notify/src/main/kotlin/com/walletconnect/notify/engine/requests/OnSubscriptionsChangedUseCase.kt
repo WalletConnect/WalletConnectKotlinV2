@@ -53,7 +53,7 @@ internal class OnSubscriptionsChangedUseCase(
         runCatching { jwtClaims.throwIfIsInvalid(authenticationPublicKey.keyAsHex) }.getOrElse { error -> return@supervisorScope _events.emit(SDKError(error)) }
 
         val account = decodeDidPkh(jwtClaims.subject)
-        val subscriptions = setActiveSubscriptionsUseCase(account, jwtClaims.subscriptions)
+        val subscriptions = setActiveSubscriptionsUseCase(account, jwtClaims.subscriptions).getOrElse { error -> return@supervisorScope _events.emit(SDKError(error)) }
 
         val didJwt = fetchDidJwtInteractor.subscriptionsChangedResponse(AccountId(account), authenticationPublicKey).getOrElse { error -> return@supervisorScope logger.error(error) }
 

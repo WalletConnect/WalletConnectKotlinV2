@@ -14,7 +14,7 @@ import com.walletconnect.android.internal.common.model.params.ChatNotifyResponse
 import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
-import com.walletconnect.android.internal.common.storage.MetadataStorageRepositoryInterface
+import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.jwt.decodeDidWeb
@@ -22,7 +22,7 @@ import com.walletconnect.foundation.util.jwt.decodeEd25519DidKey
 import com.walletconnect.notify.common.model.NotifyMessage
 import com.walletconnect.notify.common.model.NotifyRecord
 import com.walletconnect.notify.data.jwt.message.MessageRequestJwtClaim
-import com.walletconnect.notify.data.storage.MessagesRepository
+import com.walletconnect.notify.data.storage.NotificationsRepository
 import com.walletconnect.notify.data.storage.SubscriptionRepository
 import com.walletconnect.notify.engine.domain.FetchDidJwtInteractor
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -33,7 +33,7 @@ import java.net.URI
 
 internal class OnNotifyMessageUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
-    private val messagesRepository: MessagesRepository,
+    private val notificationsRepository: NotificationsRepository,
     private val subscriptionRepository: SubscriptionRepository,
     private val fetchDidJwtInteractor: FetchDidJwtInteractor,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
@@ -52,10 +52,10 @@ internal class OnNotifyMessageUseCase(
         extractVerifiedDidJwtClaims<MessageRequestJwtClaim>(params.messageAuth).onSuccess { messageJwt ->
             messageJwt.throwIfIsInvalid(URI(metadata.url).host, activeSubscription.authenticationPublicKey.keyAsHex)
 
-            if (messagesRepository.doesMessagesExistsByRequestId(request.id)) {
-                messagesRepository.updateMessageWithPublishedAtByRequestId(request.publishedAt, request.id)
+            if (notificationsRepository.doesNotificationsExistsByRequestId(request.id)) {
+                notificationsRepository.updateNotificationWithPublishedAtByRequestId(request.publishedAt, request.id)
             } else {
-                messagesRepository.insertMessage(
+                notificationsRepository.insertNotification(
                     requestId = request.id,
                     topic = request.topic.value,
                     publishedAt = request.publishedAt,
@@ -75,8 +75,9 @@ internal class OnNotifyMessageUseCase(
                         body = messageJwt.message.body,
                         icon = messageJwt.message.icon,
                         url = messageJwt.message.url,
-                        type = messageJwt.message.type
-                    )
+                        type = messageJwt.message.type,
+                    ),
+                    metadata = metadata
                 )
                 _events.emit(notifyRecord)
             }
