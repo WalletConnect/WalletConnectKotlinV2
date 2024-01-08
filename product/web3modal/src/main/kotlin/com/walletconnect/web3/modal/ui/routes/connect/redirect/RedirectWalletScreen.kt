@@ -40,6 +40,7 @@ import com.walletconnect.modal.utils.openWebAppLink
 import com.walletconnect.util.Empty
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
+import com.walletconnect.web3.modal.engine.coinbase.isCoinbaseWallet
 import com.walletconnect.web3.modal.ui.components.internal.OrientationBox
 import com.walletconnect.web3.modal.ui.components.internal.commons.DeclinedIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.ExternalIcon
@@ -62,7 +63,6 @@ import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 import com.walletconnect.web3.modal.ui.previews.testWallets
 import com.walletconnect.web3.modal.ui.routes.connect.ConnectViewModel
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
-import timber.log.Timber
 
 @Composable
 internal fun RedirectWalletRoute(
@@ -85,12 +85,10 @@ internal fun RedirectWalletRoute(
     }
 
     LaunchedEffect(Unit) {
-        if (wallet.name == "Coinbase Wallet") {
-            connectState.connectInjectWallet {
-                Timber.d(it)
-            }
+        if (wallet.isCoinbaseWallet()) {
+            connectState.connectCoinbase()
         } else {
-            connectState.connect { uri ->
+            connectState.connectWalletConnect { uri ->
                 uriHandler.openMobileLink(
                     uri = uri,
                     mobileLink = wallet.mobileLink,
@@ -110,7 +108,7 @@ internal fun RedirectWalletRoute(
             clipboardManager.setText(AnnotatedString(connectState.uri))
         },
         onMobileRetry = {
-            connectState.connect { uri ->
+            connectState.connectWalletConnect { uri ->
                 redirectState = RedirectState.Loading
                 uriHandler.openMobileLink(
                     uri = uri,
@@ -121,7 +119,7 @@ internal fun RedirectWalletRoute(
         },
         onOpenPlayStore = { uriHandler.openPlayStore(wallet.playStore) },
         onOpenWebApp = {
-            connectState.connect {
+            connectState.connectWalletConnect {
                 uriHandler.openWebAppLink(it, wallet.webAppLink)
             }
         }

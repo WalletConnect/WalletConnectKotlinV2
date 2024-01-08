@@ -1,42 +1,33 @@
 package com.walletconnect.web3.modal.client
 
-import android.content.Intent
-import android.net.Uri
-import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.ComponentActivity
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import com.walletconnect.sign.common.exceptions.SignClientAlreadyInitializedException
+import com.walletconnect.util.Empty
+import com.walletconnect.web3.modal.client.models.Request
+import com.walletconnect.web3.modal.client.models.SentRequestResult
 import com.walletconnect.web3.modal.di.web3ModalModule
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
-import com.walletconnect.web3.modal.domain.model.InvalidSessionException
+import com.walletconnect.web3.modal.domain.model.Session
 import com.walletconnect.web3.modal.domain.model.toModalError
-import com.walletconnect.web3.modal.domain.usecase.DeleteSessionDataUseCase
-import com.walletconnect.web3.modal.domain.usecase.GetSelectedChainUseCase
-import com.walletconnect.web3.modal.domain.usecase.GetSessionTopicUseCase
-import com.walletconnect.web3.modal.utils.toChain
+import com.walletconnect.web3.modal.engine.Web3ModalEngine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
+import org.jetbrains.annotations.ApiStatus.Experimental
 
-//TODO Change to Client/Protocol/Engine Pattern to break up public facing functions with business logic
 object Web3Modal {
-
-    internal var excludedWalletsIds: List<String> = listOf()
-    internal var recommendedWalletsIds: List<String> = listOf()
 
     internal var chains: List<Modal.Model.Chain> = listOf()
 
     internal var sessionProperties: Map<String, String>? = null
 
-    private val getSessionTopicUseCase: GetSessionTopicUseCase by lazy { wcKoinApp.koin.get() }
-    private val getSelectedChainUseCase: GetSelectedChainUseCase by lazy { wcKoinApp.koin.get() }
-    private val deleteSessionDataUseCase: DeleteSessionDataUseCase by lazy { wcKoinApp.koin.get() }
+    internal var selectedChain: Modal.Model.Chain? = null
 
-    internal lateinit var coinbaseClient: CoinbaseClient
+    private lateinit var web3ModalEngine: Web3ModalEngine
+
     interface ModalDelegate {
         fun onSessionApproved(approvedSession: Modal.Model.ApprovedSession)
         fun onSessionRejected(rejectedSession: Modal.Model.RejectedSession)
@@ -78,18 +69,16 @@ object Web3Modal {
                 }
             }
         )
-        coinbaseClient = CoinbaseClient(
-            context = wcKoinApp.koin.get(),
-            appMetaData = wcKoinApp.koin.get()
-        )
     }
 
-    fun setLauncher(launcher: ActivityResultLauncher<Intent>) {
-        coinbaseClient.setLauncher(launcher)
+    @Experimental
+    fun register(activity: ComponentActivity) {
+        web3ModalEngine.registerCoinbaseLauncher(activity)
     }
 
-    fun handleResult(uri: Uri) {
-        coinbaseClient.handleResponse(uri)
+    @Experimental
+    fun unregister() {
+        web3ModalEngine.unregisterCoinbase()
     }
 
     private fun onInitializedClient(
@@ -97,11 +86,11 @@ object Web3Modal {
         onSuccess: () -> Unit = {},
         onError: (Modal.Model.Error) -> Unit
     ) {
-        this.excludedWalletsIds = init.excludedWalletIds
-        this.recommendedWalletsIds = init.recommendedWalletsIds
         runCatching {
             wcKoinApp.modules(web3ModalModule())
-            setInternalDelegate(Web3ModalDelegate)
+            web3ModalEngine = wcKoinApp.koin.get()
+            web3ModalEngine.setup(init)
+            web3ModalEngine.setInternalDelegate(Web3ModalDelegate)
         }.onFailure { error -> return@onInitializedClient onError(Modal.Model.Error(error)) }
         onSuccess()
     }
@@ -110,9 +99,7 @@ object Web3Modal {
         this.chains = chains
     }
 
-    fun getSelectedChain() = getSelectedChainUseCase()?.toChain()
-
-    internal fun getSelectedChainOrFirst() = getSelectedChain() ?: chains.first()
+    fun getSelectedChain() = selectedChain
 
     fun setSessionProperties(properties: Map<String, String>) {
         sessionProperties = properties
@@ -121,7 +108,7 @@ object Web3Modal {
     @Throws(IllegalStateException::class)
     fun setDelegate(delegate: ModalDelegate) {
         Web3ModalDelegate.wcEventModels.onEach { event ->
-            when(event) {
+            when (event) {
                 is Modal.Model.ApprovedSession -> delegate.onSessionApproved(event)
                 is Modal.Model.ConnectionState -> delegate.onConnectionStateChange(event)
                 is Modal.Model.DeletedSession.Success -> delegate.onSessionDelete(event)
@@ -136,113 +123,64 @@ object Web3Modal {
         }.launchIn(scope)
     }
 
-    @Throws(IllegalStateException::class)
-    private fun setInternalDelegate(delegate: ModalDelegate) {
-        val signDelegate = object : SignClient.DappDelegate {
-            override fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession) {
-                delegate.onSessionApproved(approvedSession.toModal())
-            }
-
-            override fun onSessionRejected(rejectedSession: Sign.Model.RejectedSession) {
-                delegate.onSessionRejected(rejectedSession.toModal())
-            }
-
-            override fun onSessionUpdate(updatedSession: Sign.Model.UpdatedSession) {
-                delegate.onSessionUpdate(updatedSession.toModal())
-            }
-
-            override fun onSessionEvent(sessionEvent: Sign.Model.SessionEvent) {
-                delegate.onSessionEvent(sessionEvent.toModal())
-            }
-
-            override fun onSessionExtend(session: Sign.Model.Session) {
-                delegate.onSessionExtend(session.toModal())
-            }
-
-            override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {
-                scope.launch { deleteSessionDataUseCase() }
-                delegate.onSessionDelete(deletedSession.toModal())
-            }
-
-            override fun onSessionRequestResponse(response: Sign.Model.SessionRequestResponse) {
-                delegate.onSessionRequestResponse(response.toModal())
-            }
-
-            override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {
-                delegate.onConnectionStateChange(state.toModal())
-            }
-
-            override fun onError(error: Sign.Model.Error) {
-                delegate.onError(error.toModal())
-            }
-        }
-        SignClient.setDappDelegate(signDelegate)
-    }
-
-    internal fun connect(
-        connect: Modal.Params.Connect,
-        onSuccess: () -> Unit,
+    @Deprecated(
+        message = "Modal.Params.Request is deprecated",
+        replaceWith = ReplaceWith("com.walletconnect.web3.modal.client.models.Request")
+    )
+    fun request(
+        request: Modal.Params.Request,
+        onSuccess: (Modal.Model.SentRequest) -> Unit = {},
         onError: (Modal.Model.Error) -> Unit
     ) {
-        SignClient.connect(
-            connect.toSign(),
-            onSuccess,
-            { onError(it.toModal()) }
+        web3ModalEngine.request(
+            request = Request(request.method, request.params, request.expiry),
+            onSuccess = { onSuccess(it.sentRequestToModal()) },
+            onError = { onError(it.toModalError()) }
         )
     }
 
-    internal fun connectCoinbase(
-        onSuccess: (String) -> Unit,
+    fun request(
+        request: Request,
+        onSuccess: (SentRequestResult) -> Unit = {},
         onError: (Throwable) -> Unit
+    ) = web3ModalEngine.request(request, onSuccess, onError)
+
+    private fun SentRequestResult.sentRequestToModal() = when (this) {
+        is SentRequestResult.Cb -> Modal.Model.SentRequest(Long.MIN_VALUE, String.Empty, method, params, chainId)
+        is SentRequestResult.WC -> Modal.Model.SentRequest(requestId, sessionTopic, method, params, chainId)
+    }
+
+    fun request(
+        request: Request,
+        onSuccess: () -> Unit,
+        onError: (Throwable) -> Unit
+    ) = web3ModalEngine.request(request, { onSuccess() }, onError)
+
+    fun ping(sessionPing: Modal.Listeners.SessionPing? = null) = web3ModalEngine.ping(sessionPing)
+
+    @Deprecated(
+        message = "This has become deprecate in favor of the parameterless disconnect function",
+        level = DeprecationLevel.WARNING
+    )
+    fun disconnect(
+        onSuccess: (Modal.Params.Disconnect) -> Unit = {},
+        onError: (Modal.Model.Error) -> Unit
     ) {
-        coinbaseClient.connect(onSuccess = onSuccess, onError = onError)
-    }
-
-    fun request(request: Modal.Params.Request, onSuccess: (Modal.Model.SentRequest) -> Unit = {}, onError: (Modal.Model.Error) -> Unit) {
-        val sessionTopic = getSessionTopicUseCase()
-        val selectedChainId = getSelectedChainUseCase()
-
-        if (sessionTopic == null || selectedChainId == null) {
-            onError(InvalidSessionException.toModalError())
-            return
+        val topic = when (val session = web3ModalEngine.getActiveSession()) {
+            is Session.WalletConnect -> session.topic
+            else -> String.Empty
         }
 
-        SignClient.request(
-            request.toSign(sessionTopic, selectedChainId),
-            { onSuccess(it.toModal()) },
-            { onError(it.toModal()) }
+        web3ModalEngine.disconnect(
+            onSuccess = { onSuccess(Modal.Params.Disconnect(topic)) },
+            onError = { onError(it.toModalError()) }
         )
     }
 
-    suspend fun request(request: Modal.Params.Request) = suspendCoroutine<Result<Modal.Model.SentRequest>> { continuation ->
-        request(request, { continuation.resume(Result.success(it)) }, { continuation.resume(Result.failure(it.throwable)) })
-    }
-
-    fun ping(sessionPing: Modal.Listeners.SessionPing? = null) {
-        val sessionTopic = getSessionTopicUseCase()
-        if (sessionTopic == null) {
-            sessionPing?.onError(Modal.Model.Ping.Error(InvalidSessionException))
-            return
-        }
-        SignClient.ping(Sign.Params.Ping(sessionTopic), sessionPing?.toSign())
-    }
-
-    fun disconnect(onSuccess: (Modal.Params.Disconnect) -> Unit = {}, onError: (Modal.Model.Error) -> Unit) {
-        val sessionTopic = getSessionTopicUseCase()
-
-        if (sessionTopic == null) {
-            onError(InvalidSessionException.toModalError())
-            return
-        }
-        scope.launch { deleteSessionDataUseCase() }
-        SignClient.disconnect(
-            Sign.Params.Disconnect(sessionTopic),
-            {
-                onSuccess(it.toModal())
-            },
-            { onError(it.toModal()) }
-        )
-    }
+    fun disconnect(
+        onSuccess: () -> Unit,
+        onError: (Throwable) -> Unit
+    ) = web3ModalEngine.disconnect(onSuccess, onError)
 
     /**
      * Caution: This function is blocking and runs on the current thread.
@@ -254,5 +192,22 @@ object Web3Modal {
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
-    fun getActiveSession() = getSessionTopicUseCase()?.let { SignClient.getActiveSessionByTopic(it)?.toModal() }
+    @Deprecated(
+        message = "Getting active session is replaced with getAccount()",
+        replaceWith = ReplaceWith("com.walletconnect.web3.modal.client.Web3Modal.getAccount()"),
+        level = DeprecationLevel.WARNING
+    )
+    fun getActiveSession() = (web3ModalEngine.getActiveSession() as? Session.WalletConnect)?.topic?.let { SignClient.getActiveSessionByTopic(it)?.toModal() }
+
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+    fun getAccount() = web3ModalEngine.getAccount()
+
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+    fun getConnectorType() = web3ModalEngine.getConnectorType()
 }

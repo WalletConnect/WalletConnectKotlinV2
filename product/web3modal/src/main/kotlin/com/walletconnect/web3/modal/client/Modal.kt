@@ -18,6 +18,7 @@ object Modal {
             val core: CoreInterface,
             val excludedWalletIds: List<String> = listOf(),
             val recommendedWalletsIds: List<String> = listOf(),
+            val coinbaseEnabled: Boolean = true
         ) : Params()
 
         data class Connect(
@@ -27,10 +28,19 @@ object Modal {
             val pairing: Core.Model.Pairing,
         ) : Params()
 
+        @Deprecated(
+            message = "This has become deprecate in favor of the parameterless disconnect function",
+            level = DeprecationLevel.WARNING
+        )
         data class Disconnect(val sessionTopic: String) : Params()
 
         data class Ping(val topic: String) : Params()
 
+        @Deprecated(
+            message = "Converted to sealed class to support multiple connectors",
+            replaceWith = ReplaceWith("com.walletconnect.web3.modal.client.models.Request"),
+            level = DeprecationLevel.WARNING
+        )
         data class Request(
             val method: String,
             val params: String,
@@ -74,14 +84,8 @@ object Modal {
                 val chain: String,
                 val networkId: String,
                 val address: String
-            )
+            ): ApprovedSession()
         }
-//        data class ApprovedSession(
-//            val topic: String,
-//            val metaData: Core.Model.AppMetaData?,
-//            val namespaces: Map<String, Namespace.Session>,
-//            val accounts: List<String>,
-//        ) : Model()
 
         data class RejectedSession(val topic: String, val reason: String) : Model()
 
@@ -138,6 +142,11 @@ object Modal {
             ) : JsonRpcResponse()
         }
 
+        @Deprecated(
+            message = "Converted to sealed class to support multiple connectors",
+            replaceWith = ReplaceWith("com.walletconnect.web3.modal.client.models.SentRequestResult"),
+            level = DeprecationLevel.WARNING
+        )
         data class SentRequest(
             val requestId: Long,
             val sessionTopic: String,

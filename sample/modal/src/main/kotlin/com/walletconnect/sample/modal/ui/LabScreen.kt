@@ -12,7 +12,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.walletconnect.sample.common.getEthSendTransaction
@@ -21,9 +20,10 @@ import com.walletconnect.sample.common.getPersonalSignBody
 import com.walletconnect.sample.common.ui.commons.BlueButton
 import com.walletconnect.sample.modal.ModalSampleDelegate
 import com.walletconnect.sample.modal.common.openAlertDialog
-import com.walletconnect.util.Empty
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
+import com.walletconnect.web3.modal.client.models.Request
+import com.walletconnect.web3.modal.client.models.SentRequestResult
 import com.walletconnect.web3.modal.ui.components.button.AccountButtonType
 import com.walletconnect.web3.modal.ui.Web3ModalTheme
 import com.walletconnect.web3.modal.ui.components.button.NetworkButton
@@ -40,7 +40,6 @@ fun LabScreen(
     val isConnected by web3ModalState.isConnected.collectAsState()
 
     val coroutineScope = rememberCoroutineScope()
-    val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
@@ -72,20 +71,16 @@ fun LabScreen(
             item { Web3Button(state = web3ModalState, accountButtonType = AccountButtonType.MIXED) }
             item { NetworkButton(state = web3ModalState) }
             if (isConnected) {
-                Web3Modal.getActiveSession()?.let { session ->
-                    val selectedChainId = Web3Modal.getSelectedChain()?.id ?: ""
-                    val account = session.namespaces.values.toList().flatMap { it.accounts }.find { it.startsWith(selectedChainId) }?.split(":")?.last() ?: String.Empty
-                    val onSuccess: (Modal.Model.SentRequest) -> Unit = {
-                        session.redirect?.let { uriHandler.openUri(it) }
-                    }
-                    val onError: (Modal.Model.Error) -> Unit = {
+                Web3Modal.getAccount()?.let { session ->
+                    val account = session.address
+                    val onError: (Throwable) -> Unit = {
                         coroutineScope.launch(Dispatchers.Main) {
-                            Toast.makeText(context, it.throwable.localizedMessage ?: "Error trying to send request", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, it.localizedMessage ?: "Error trying to send request", Toast.LENGTH_SHORT).show()
                         }
                     }
-                    item { BlueButton(text = "Personal sign", onClick = { sendPersonalSignRequest(account, onSuccess, onError) }) }
-                    item { BlueButton(text = "Eth send transaction", onClick = { sendEthSendTransactionRequest(account, onSuccess, onError) }) }
-                    item { BlueButton(text = "Eth sign typed data", onClick = { sendEthSignTypedDataRequest(account, onSuccess, onError) }) }
+                    item { BlueButton(text = "Personal sign", onClick = { sendPersonalSignRequest(account, {}, onError) }) }
+                    item { BlueButton(text = "Eth send transaction", onClick = { sendEthSendTransactionRequest(account, {}, onError) }) }
+                    item { BlueButton(text = "Eth sign typed data", onClick = { sendEthSignTypedDataRequest(account, {}, onError) }) }
                 }
             }
         }
@@ -94,11 +89,11 @@ fun LabScreen(
 
 private fun sendPersonalSignRequest(
     account: String,
-    onSuccess: (Modal.Model.SentRequest) -> Unit,
-    onError: (Modal.Model.Error) -> Unit
+    onSuccess: (SentRequestResult) -> Unit,
+    onError: (Throwable) -> Unit
 ) {
     Web3Modal.request(
-        request = Modal.Params.Request("personal_sign", getPersonalSignBody(account)),
+        request = Request("personal_sign", getPersonalSignBody(account)),
         onSuccess = onSuccess,
         onError = onError,
     )
@@ -106,11 +101,11 @@ private fun sendPersonalSignRequest(
 
 private fun sendEthSendTransactionRequest(
     account: String,
-    onSuccess: (Modal.Model.SentRequest) -> Unit,
-    onError: (Modal.Model.Error) -> Unit
+    onSuccess: (SentRequestResult) -> Unit,
+    onError: (Throwable) -> Unit
 ) {
     Web3Modal.request(
-        request = Modal.Params.Request("eth_sendTransaction", getEthSendTransaction(account)),
+        request = Request("eth_sendTransaction", getEthSendTransaction(account)),
         onSuccess = onSuccess,
         onError = onError,
     )
@@ -118,11 +113,11 @@ private fun sendEthSendTransactionRequest(
 
 private fun sendEthSignTypedDataRequest(
     account: String,
-    onSuccess: (Modal.Model.SentRequest) -> Unit,
-    onError: (Modal.Model.Error) -> Unit
+    onSuccess: (SentRequestResult) -> Unit,
+    onError: (Throwable) -> Unit
 ) {
     Web3Modal.request(
-        request = Modal.Params.Request("eth_signTypedData", getEthSignTypedData(account)),
+        request = Request("eth_signTypedData", getEthSignTypedData(account)),
         onSuccess = onSuccess,
         onError = onError,
     )

@@ -41,10 +41,9 @@ internal val testWallets: List<Wallet>
 
 internal val accountDataPreview: AccountData
     get() = AccountData(
-    topic = "",
-    address = "0xd2B8b483056b134f9D8cd41F55bB065F9",
-    chains = testChains,
-    identity = null
+        address = "0xd2B8b483056b134f9D8cd41F55bB065F9",
+        chains = testChains,
+        identity = null
 )
 
 internal class ConnectYourWalletPreviewProvider : PreviewParameterProvider<List<Wallet>> {

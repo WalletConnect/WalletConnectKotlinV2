@@ -8,10 +8,10 @@ import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
-import com.walletconnect.web3.modal.domain.usecase.GetSelectedChainUseCase
 import com.walletconnect.web3.modal.domain.usecase.ObserveSelectedChainUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveChainSelectionUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveRecentWalletUseCase
+import com.walletconnect.web3.modal.engine.Web3ModalEngine
 import com.walletconnect.web3.modal.ui.model.LoadingState
 import com.walletconnect.web3.modal.ui.model.UiState
 import com.walletconnect.web3.modal.ui.navigation.Navigator
@@ -30,8 +30,8 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl() {
     private val walletsDataStore = WalletDataSource { showError(it) }
     private val saveRecentWalletUseCase: SaveRecentWalletUseCase = wcKoinApp.koin.get()
     private val saveChainSelectionUseCase: SaveChainSelectionUseCase = wcKoinApp.koin.get()
-    private val getSelectedChainUseCase: GetSelectedChainUseCase = wcKoinApp.koin.get()
     private val observeSelectedChainUseCase: ObserveSelectedChainUseCase = wcKoinApp.koin.get()
+    private val web3ModalEngine: Web3ModalEngine = wcKoinApp.koin.get()
 
     private val pairing by lazy {
         CoreClient.Pairing.create { error ->
@@ -39,13 +39,13 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl() {
         }!!
     }
 
-    private var sessionParams = getSessionParamsSelectedChain(getSelectedChainUseCase())
+    private var sessionParams = getSessionParamsSelectedChain(Web3Modal.selectedChain?.id)
 
     val uri: String
         get() = pairing.uri
 
     val selectedChain = observeSelectedChainUseCase().map { savedChainId ->
-        Web3Modal.chains.find { it.id == savedChainId } ?: Web3Modal.getSelectedChainOrFirst()
+        Web3Modal.chains.find { it.id == savedChainId } ?: web3ModalEngine.getSelectedChainOrFirst()
     }
 
     val walletsState: StateFlow<WalletsData> = walletsDataStore.searchWalletsState.stateIn(viewModelScope, SharingStarted.Lazily, WalletsData.empty())
@@ -73,7 +73,7 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl() {
         navigateTo(Route.WHAT_IS_WALLET.path)
     }
 
-    fun navigateToScanQRCode() = connect { navigateTo(Route.QR_CODE.path) }
+    fun navigateToScanQRCode() = connectWalletConnect { navigateTo(Route.QR_CODE.path) }
 
     fun navigateToRedirectRoute(wallet: Wallet) {
         saveRecentWalletUseCase(wallet.id)
@@ -92,7 +92,7 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl() {
         navigateTo(Route.ALL_WALLETS.path)
     }
 
-    fun connect(onSuccess: (String) -> Unit) {
+    fun connectWalletConnect(onSuccess: (String) -> Unit) {
         try {
             val connectParams = Modal.Params.Connect(
                 sessionParams.requiredNamespaces,
@@ -100,12 +100,12 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl() {
                 sessionParams.properties,
                 pairing
             )
-            Web3Modal.connect(
+            web3ModalEngine.connectWC(
                 connect = connectParams,
                 onSuccess = { onSuccess(pairing.uri) },
                 onError = {
-                    showError(it.throwable.localizedMessage)
-                    logger.error(it.throwable)
+                    showError(it.localizedMessage)
+                    logger.error(it)
                 }
             )
         } catch (e: Exception) {
@@ -113,10 +113,8 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl() {
         }
     }
 
-    fun connectInjectWallet(
-        onSuccess: (String) -> Unit
-    ) {
-        Web3Modal.connectCoinbase(
+    fun connectCoinbase(onSuccess: () -> Unit = {}) {
+        web3ModalEngine.connectCoinbase(
             onSuccess = onSuccess,
             onError = {
                 showError(it.localizedMessage)

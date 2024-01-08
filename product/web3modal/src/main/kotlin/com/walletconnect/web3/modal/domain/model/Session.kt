@@ -4,28 +4,28 @@ import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory
 
-sealed class Session {
+internal sealed class Session(
+    open val address: String,
+    open val chain: String,
+) {
     @JsonClass(generateAdapter = true)
-    data class WalletConnectSession(
-        val chain: String,
-        val address: String
-    ): Session()
-
-    @JsonClass(generateAdapter = true)
-    data class CoinbaseSession(
+    data class WalletConnect(
+        override val address: String,
+        override val chain: String,
         val topic: String,
-        val chain: String
-    ): Session()
+    ): Session(chain, address)
 
-    object Invalid: Session()
+    @JsonClass(generateAdapter = true)
+    data class Coinbase(
+        override val chain: String,
+        override val address: String
+    ): Session(chain, address)
+
 }
 
-internal fun buildWeb3ModalMoshi(moshi: Moshi) = moshi.newBuilder().add(sessionAdapter).build()
+internal fun buildWeb3ModalMoshi(moshi: Moshi.Builder): Moshi = moshi.add(sessionAdapter).build()
 
 internal val sessionAdapter = PolymorphicJsonAdapterFactory.of(Session::class.java, "type")
-    .withSubtype(Session.WalletConnectSession::class.java, "wcsession")
-    .withSubtype(Session.CoinbaseSession::class.java, "coinbase")
-    .withDefaultValue(Session.Invalid)
-
-
-//{"chain":"eth","networkId":1,"address":"0x8ea13985153989d9ebDB94dC45F46398c4f6858c"}
+    .withSubtype(Session.WalletConnect::class.java, "wcsession")
+    .withSubtype(Session.Coinbase::class.java, "coinbase")
+    .withDefaultValue(null)
