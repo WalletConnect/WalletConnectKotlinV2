@@ -7,18 +7,25 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
@@ -29,18 +36,22 @@ import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.walletconnect.android.utils.isPackageInstalled
-import com.walletconnect.wcmodal.ui.openWalletConnectModal
-import com.walletconnect.wcmodal.ui.state.rememberModalState
+import com.walletconnect.sample.common.Chains
+import com.walletconnect.sample.common.CompletePreviews
+import com.walletconnect.sample.common.ui.WCTopAppBarLegacy
+import com.walletconnect.sample.common.ui.coloredShadow
+import com.walletconnect.sample.common.ui.commons.BlueButton
+import com.walletconnect.sample.common.ui.conditionalModifier
+import com.walletconnect.sample.common.ui.theme.PreviewTheme
+import com.walletconnect.sample.common.ui.toColor
+import com.walletconnect.sample.dapp.BuildConfig
 import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.sample.dapp.ui.routes.Route
 import com.walletconnect.sample.dapp.ui.routes.bottom_routes.PairingSelectionResult
 import com.walletconnect.sample.dapp.ui.routes.bottom_routes.pairingSelectionResultKey
-import com.walletconnect.sample.common.Chains
-import com.walletconnect.sample.common.CompletePreviews
-import com.walletconnect.sample.common.ui.*
-import com.walletconnect.sample.common.ui.commons.BlueButton
-import com.walletconnect.sample.common.ui.theme.PreviewTheme
 import com.walletconnect.wcmodal.client.WalletConnectModal
+import com.walletconnect.wcmodal.ui.openWalletConnectModal
+import com.walletconnect.wcmodal.ui.state.rememberModalState
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -57,11 +68,12 @@ fun ChainSelectionRoute(navController: NavController) {
                 pairingSelectionResultKey
             )?.let {
                 navController.currentBackStackEntry?.savedStateHandle?.remove<PairingSelectionResult>(pairingSelectionResultKey)
-                when(it) {
+                when (it) {
                     PairingSelectionResult.NewPairing -> {
                         WalletConnectModal.setSessionParams(viewModel.getSessionParams())
                         navController.openWalletConnectModal()
                     }
+
                     PairingSelectionResult.None -> Unit
                     is PairingSelectionResult.SelectedPairing -> viewModel.connectToWallet(it.position)
                 }
@@ -71,7 +83,7 @@ fun ChainSelectionRoute(navController: NavController) {
 
     LaunchedEffect(Unit) {
         viewModel.walletEvents.collect { event ->
-            when(event) {
+            when (event) {
                 DappSampleEvents.SessionApproved -> navController.navigate(Route.Session.path)
                 else -> Unit
             }
@@ -101,7 +113,11 @@ fun ChainSelectionRoute(navController: NavController) {
                 viewModel.connectToWallet { uri ->
                     val intent = Intent(Intent.ACTION_VIEW).apply {
                         data = uri.replace("wc:", "wc://").toUri()
-                        `package` = SAMPLE_WALLET_PACKAGE
+                        `package` = when (BuildConfig.BUILD_TYPE) {
+                            "debug" -> SAMPLE_WALLET_DEBUG_PACKAGE
+                            "internal" -> SAMPLE_WALLET_INTERNAL_PACKAGE
+                            else -> SAMPLE_WALLET_RELEASE_PACKAGE
+                        }
                     }
                     context.startActivity(intent)
                 }
@@ -232,5 +248,10 @@ private class ChainSelectionStateProvider : PreviewParameterProvider<List<ChainS
         )
 }
 
-private const val SAMPLE_WALLET_PACKAGE = "com.walletconnect.sample.wallet"
-private fun Context.isSampleWalletInstalled() = packageManager.isPackageInstalled(SAMPLE_WALLET_PACKAGE)
+private const val SAMPLE_WALLET_DEBUG_PACKAGE = "com.walletconnect.sample.wallet.debug"
+private const val SAMPLE_WALLET_INTERNAL_PACKAGE = "com.walletconnect.sample.wallet.internal"
+private const val SAMPLE_WALLET_RELEASE_PACKAGE = "com.walletconnect.sample.wallet"
+private fun Context.isSampleWalletInstalled() =
+    (BuildConfig.BUILD_TYPE == "debug" && packageManager.isPackageInstalled(SAMPLE_WALLET_DEBUG_PACKAGE)) ||
+            (BuildConfig.BUILD_TYPE == "release" && packageManager.isPackageInstalled(SAMPLE_WALLET_RELEASE_PACKAGE)) ||
+            (BuildConfig.BUILD_TYPE == "internal" && packageManager.isPackageInstalled(SAMPLE_WALLET_INTERNAL_PACKAGE))

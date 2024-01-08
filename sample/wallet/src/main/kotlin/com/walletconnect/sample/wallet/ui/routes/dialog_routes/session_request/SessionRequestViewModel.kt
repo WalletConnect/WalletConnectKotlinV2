@@ -7,20 +7,17 @@ import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
 import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.android.utils.cacao.sign
+import com.walletconnect.sample.common.Chains
 import com.walletconnect.sample.wallet.domain.EthAccountDelegate
 import com.walletconnect.sample.wallet.domain.WCDelegate
 import com.walletconnect.sample.wallet.ui.common.peer.PeerUI
 import com.walletconnect.sample.wallet.ui.common.peer.toPeerUI
-import com.walletconnect.sample.common.Chains
 import com.walletconnect.util.hexToBytes
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import com.walletconnect.web3.wallet.utils.CacaoSigner
 import org.json.JSONArray
 import org.web3j.utils.Numeric.hexStringToByteArray
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 
 class SessionRequestViewModel : ViewModel() {
     var sessionRequest: SessionRequestUI = generateSessionRequestUI()
@@ -30,34 +27,30 @@ class SessionRequestViewModel : ViewModel() {
         sessionRequest = SessionRequestUI.Initial
     }
 
-    suspend fun reject(sendSessionRequestResponseDeepLink: (Uri) -> Unit) {
-        return suspendCoroutine { continuation ->
-            val sessionRequest = sessionRequest as? SessionRequestUI.Content
-            if (sessionRequest != null) {
-                val result = Wallet.Params.SessionRequestResponse(
-                    sessionTopic = sessionRequest.topic,
-                    jsonRpcResponse = Wallet.Model.JsonRpcResponse.JsonRpcError(
-                        id = sessionRequest.requestId,
-                        code = 500,
-                        message = "Kotlin Wallet Error"
-                    )
+    fun reject(onSuccess: (Uri?) -> Unit = {}, onError: (String) -> Unit = {}) {
+        val sessionRequest = sessionRequest as? SessionRequestUI.Content
+        if (sessionRequest != null) {
+            val result = Wallet.Params.SessionRequestResponse(
+                sessionTopic = sessionRequest.topic,
+                jsonRpcResponse = Wallet.Model.JsonRpcResponse.JsonRpcError(
+                    id = sessionRequest.requestId,
+                    code = 500,
+                    message = "Kotlin Wallet Error"
                 )
-
-                Web3Wallet.respondSessionRequest(result,
-                    onSuccess = {
-                        continuation.resume(Unit)
-                        WCDelegate.sessionRequestEvent = null
-                        sendResponseDeepLink(sessionRequest, sendSessionRequestResponseDeepLink)
-                        clearSessionRequest()
-                    },
-                    onError = { error ->
-                        continuation.resumeWithException(error.throwable)
-                        WCDelegate.sessionRequestEvent = null
-                        Firebase.crashlytics.recordException(error.throwable)
-                        sendResponseDeepLink(sessionRequest, sendSessionRequestResponseDeepLink)
-                        clearSessionRequest()
-                    })
-            }
+            )
+            val redirect = Web3Wallet.getActiveSessionByTopic(sessionRequest.topic)?.redirect?.toUri()
+            Web3Wallet.respondSessionRequest(result,
+                onSuccess = {
+                    WCDelegate.sessionRequestEvent = null
+                    clearSessionRequest()
+                    onSuccess(redirect)
+                },
+                onError = { error ->
+                    WCDelegate.sessionRequestEvent = null
+                    Firebase.crashlytics.recordException(error.throwable)
+                    clearSessionRequest()
+                    onError(error.throwable.message ?: "Undefined error, please check your Internet connection")
+                })
         }
     }
 
@@ -70,61 +63,50 @@ class SessionRequestViewModel : ViewModel() {
         }
     }
 
-    suspend fun approve(sendSessionRequestResponseDeepLink: (Uri) -> Unit) {
-        return suspendCoroutine { continuation ->
-            val sessionRequest = sessionRequest as? SessionRequestUI.Content
-            if (sessionRequest != null) {
-                val result: String = when {
-                    sessionRequest.method == PERSONAL_SIGN_METHOD -> CacaoSigner.sign(
-                        sessionRequest.param,
-                        EthAccountDelegate.privateKey.hexToBytes(),
-                        SignatureType.EIP191
-                    ).s
+    fun approve(onSuccess: (Uri?) -> Unit = {}, onError: (String) -> Unit = {}) {
+        val sessionRequest = sessionRequest as? SessionRequestUI.Content
+        if (sessionRequest != null) {
+            val result: String = when {
+                sessionRequest.method == PERSONAL_SIGN_METHOD -> CacaoSigner.sign(
+                    sessionRequest.param,
+                    EthAccountDelegate.privateKey.hexToBytes(),
+                    SignatureType.EIP191
+                ).s
 
-                    sessionRequest.chain?.contains(
-                        Chains.Info.Eth.chain,
-                        true
-                    ) == true -> """0xa3f20717a250c2b0b729b7e5becbff67fdaef7e0699da4de7ca5895b02a170a12d887fd3b17bfdce3481f10bea41f45ba9f709d39ce8325427b57afcfc994cee1b"""
+                sessionRequest.chain?.contains(
+                    Chains.Info.Eth.chain,
+                    true
+                ) == true -> """0xa3f20717a250c2b0b729b7e5becbff67fdaef7e0699da4de7ca5895b02a170a12d887fd3b17bfdce3481f10bea41f45ba9f709d39ce8325427b57afcfc994cee1b"""
 
-                    sessionRequest.chain?.contains(
-                        Chains.Info.Cosmos.chain,
-                        true
-                    ) == true -> """{"signature":"pBvp1bMiX6GiWmfYmkFmfcZdekJc19GbZQanqaGa\/kLPWjoYjaJWYttvm17WoDMyn4oROas4JLu5oKQVRIj911==","pub_key":{"value":"psclI0DNfWq6cOlGrKD9wNXPxbUsng6Fei77XjwdkPSt","type":"tendermint\/PubKeySecp256k1"}}"""
+                sessionRequest.chain?.contains(
+                    Chains.Info.Cosmos.chain,
+                    true
+                ) == true -> """{"signature":"pBvp1bMiX6GiWmfYmkFmfcZdekJc19GbZQanqaGa\/kLPWjoYjaJWYttvm17WoDMyn4oROas4JLu5oKQVRIj911==","pub_key":{"value":"psclI0DNfWq6cOlGrKD9wNXPxbUsng6Fei77XjwdkPSt","type":"tendermint\/PubKeySecp256k1"}}"""
 
-                    else -> throw Exception("Unsupported Chain")
-                }
-                val response = Wallet.Params.SessionRequestResponse(
-                    sessionTopic = sessionRequest.topic,
-                    jsonRpcResponse = Wallet.Model.JsonRpcResponse.JsonRpcResult(
-                        sessionRequest.requestId,
-                        result
-                    )
-                )
-
-                Web3Wallet.respondSessionRequest(response,
-                    onSuccess = {
-                        continuation.resume(Unit)
-                        WCDelegate.sessionRequestEvent = null
-                        sendResponseDeepLink(sessionRequest, sendSessionRequestResponseDeepLink)
-                        clearSessionRequest()
-                    },
-                    onError = { error ->
-                        continuation.resumeWithException(error.throwable)
-                        WCDelegate.sessionRequestEvent = null
-                        Firebase.crashlytics.recordException(error.throwable)
-                        sendResponseDeepLink(sessionRequest, sendSessionRequestResponseDeepLink)
-                        clearSessionRequest()
-                    })
+                else -> throw Exception("Unsupported Chain")
             }
-        }
-    }
+            val response = Wallet.Params.SessionRequestResponse(
+                sessionTopic = sessionRequest.topic,
+                jsonRpcResponse = Wallet.Model.JsonRpcResponse.JsonRpcResult(
+                    sessionRequest.requestId,
+                    result
+                )
+            )
 
-    private fun sendResponseDeepLink(
-        sessionRequest: SessionRequestUI.Content,
-        sendSessionRequestResponseDeepLink: (Uri) -> Unit,
-    ) {
-        Web3Wallet.getActiveSessionByTopic(sessionRequest.topic)?.redirect?.toUri()
-            ?.let { deepLinkUri -> sendSessionRequestResponseDeepLink(deepLinkUri) }
+            val redirect = Web3Wallet.getActiveSessionByTopic(sessionRequest.topic)?.redirect?.toUri()
+            Web3Wallet.respondSessionRequest(response,
+                onSuccess = {
+                    WCDelegate.sessionRequestEvent = null
+                    clearSessionRequest()
+                    onSuccess(redirect)
+                },
+                onError = { error ->
+                    WCDelegate.sessionRequestEvent = null
+                    Firebase.crashlytics.recordException(error.throwable)
+                    clearSessionRequest()
+                    onError(error.throwable.message ?: "Undefined error, please check your Internet connection")
+                })
+        }
     }
 
     private fun generateSessionRequestUI(): SessionRequestUI {

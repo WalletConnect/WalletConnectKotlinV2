@@ -2,6 +2,7 @@
 
 package com.walletconnect.sample.wallet.ui.routes.composable_routes.connection_details
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -15,14 +16,19 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -42,6 +48,7 @@ import com.google.accompanist.pager.rememberPagerState
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
 import com.skydoves.landscapist.glide.GlideImage
+import com.walletconnect.sample.common.ui.themedColor
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.wallet.domain.accounts
 import com.walletconnect.sample.wallet.ui.common.Content
@@ -53,30 +60,48 @@ import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.C
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionUI
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
 import com.walletconnect.sample.wallet.ui.routes.showSnackbar
-import com.walletconnect.sample.common.ui.themedColor
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @Composable
 fun ConnectionDetailsRoute(navController: NavController, connectionId: Int?, connectionsViewModel: ConnectionsViewModel) {
     connectionsViewModel.currentConnectionId = connectionId
     val connectionUI by remember { connectionsViewModel.currentConnectionUI }
+    var isLoading by remember { mutableStateOf(false) }
+    val composableScope = rememberCoroutineScope()
 
     connectionUI?.let { connectionUI ->
         Column(modifier = Modifier.fillMaxWidth()) {
-            TopButtons(navController, isEmitVisible = connectionUI.type is ConnectionType.Sign) {
+            TopButtons(navController, isEmitVisible = connectionUI.type is ConnectionType.Sign, isLoading = isLoading) {
                 when (connectionUI.type) {
                     is ConnectionType.Sign -> {
+                        isLoading = true
                         val account = connectionUI.type.namespaces.values.first().accounts.first()
                         val lastDelimiterIndex = account.indexOfLast { it == ':' }
                         val chainId = account.dropLast(account.lastIndex - lastDelimiterIndex + 1)
                         val event = getAllEventsByChainId(connectionUI.type.namespaces.values.first(), account).first()
 
-                        Web3Wallet.emitSessionEvent(Wallet.Params.SessionEmit(connectionUI.type.topic, event = Wallet.Model.SessionEvent(event, "someData"), chainId)) {
-                            Firebase.crashlytics.recordException(it.throwable)
-                            navController.showSnackbar("Event emit error. Check logs")
-                        }
-                        navController.showSnackbar("Event emitted")
+                        Web3Wallet.emitSessionEvent(
+                            Wallet.Params.SessionEmit(
+                                connectionUI.type.topic,
+                                event = Wallet.Model.SessionEvent(event, "someData"), chainId
+                            ),
+                            onSuccess = {
+                                isLoading = false
+                                composableScope.launch(Dispatchers.Main) {
+                                    navController.showSnackbar("Event emitted: ${it.event.name}")
+                                }
+                            },
+                            onError = { error ->
+                                isLoading = false
+                                Firebase.crashlytics.recordException(error.throwable)
+                                composableScope.launch(Dispatchers.Main) {
+                                    navController.showSnackbar("Event emit error. Error: ${error.throwable.message}")
+                                }
+                            }
+                        )
                     }
                 }
             }
@@ -206,7 +231,7 @@ fun Connection(connectionUI: ConnectionUI) {
 }
 
 @Composable
-fun TopButtons(navController: NavController, isEmitVisible: Boolean, onEmit: () -> Unit) {
+fun TopButtons(navController: NavController, isEmitVisible: Boolean, isLoading: Boolean, onEmit: () -> Unit) {
     val color = Color(0xFF3496ff)
     val style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 17.sp, color = color)
     Row(
@@ -225,13 +250,26 @@ fun TopButtons(navController: NavController, isEmitVisible: Boolean, onEmit: () 
             Text(text = "Connections", style = style)
         }
         if (isEmitVisible) {
-            Text(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(5.dp))
-                    .clickable { onEmit() }
-                    .padding(horizontal = 10.dp, vertical = 5.dp),
-                text = "Emit", style = style
-            )
+            AnimatedContent(targetState = isLoading, label = "Loading") { state ->
+                if (state) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .padding(8.dp)
+                            .wrapContentWidth(align = Alignment.CenterHorizontally)
+                            .wrapContentHeight(align = Alignment.CenterVertically),
+                        color = color, strokeWidth = 4.dp
+                    )
+                } else {
+                    Text(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(5.dp))
+                            .clickable { onEmit() }
+                            .padding(horizontal = 10.dp, vertical = 5.dp),
+                        text = "Emit", style = style
+                    )
+                }
+            }
         }
     }
 }

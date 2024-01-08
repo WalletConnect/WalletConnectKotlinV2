@@ -140,6 +140,8 @@ private fun SessionProposalDialog(
     context: Context,
     navController: NavHostController,
 ) {
+    var isConfirmLoading by remember { mutableStateOf(false) }
+    var isCancelLoading by remember { mutableStateOf(false) }
     SemiTransparentDialog {
         Spacer(modifier = Modifier.height(24.dp))
         Peer(peerUI = sessionProposalUI.peerUI, "wants to connect", sessionProposalUI.peerContext)
@@ -148,43 +150,65 @@ private fun SessionProposalDialog(
         Spacer(modifier = Modifier.height(18.dp))
         AccountAndNetwork(sessionProposalUI)
         Spacer(modifier = Modifier.height(18.dp))
-        Buttons(allowButtonColor, onDecline = {
-            coroutineScope.launch {
-                try {
-                    sessionProposalViewModel.reject(sessionProposalUI.pubKey) { redirect ->
-                        if (redirect.isNotEmpty()) {
-                            context.sendResponseDeepLink(redirect.toUri())
-                        }
-                    }
-                    navController.popBackStack(route = Route.Connections.path, inclusive = false)
-                } catch (e: Throwable) {
-                    closeAndShowError(navController, e.message)
-                }
-            }
-        }, onAllow = {
-            coroutineScope.launch {
-                try {
-                    sessionProposalViewModel.approve(sessionProposalUI.pubKey) { redirect ->
-                        if (redirect.isNotEmpty()) {
-                            context.sendResponseDeepLink(redirect.toUri())
-                        }
+        Buttons(
+            allowButtonColor,
+            onCancel = {
+                isCancelLoading = true
 
-                        coroutineScope.launch(Dispatchers.Main) {
-                            navController.popBackStack(route = Route.Connections.path, inclusive = false)
-                        }
-                    }
+                try {
+                    sessionProposalViewModel.reject(sessionProposalUI.pubKey,
+                        onSuccess = { redirect ->
+                            isCancelLoading = false
+                            if (redirect.isNotEmpty()) {
+                                context.sendResponseDeepLink(redirect.toUri())
+                            }
+                            coroutineScope.launch(Dispatchers.Main) {
+                                navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                            }
+                        },
+                        onError = { error ->
+                            isCancelLoading = false
+                            closeAndShowError(navController, error, coroutineScope)
+                        })
                 } catch (e: Throwable) {
-                    closeAndShowError(navController, e.message)
+                    closeAndShowError(navController, e.message, coroutineScope)
                 }
-            }
-        })
+            },
+            onConfirm = {
+                isConfirmLoading = true
+
+                try {
+                    sessionProposalViewModel.approve(sessionProposalUI.pubKey,
+                        onSuccess = { redirect ->
+                            isConfirmLoading = false
+                            if (redirect.isNotEmpty()) {
+                                context.sendResponseDeepLink(redirect.toUri())
+                            }
+
+                            coroutineScope.launch(Dispatchers.Main) {
+                                navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                            }
+                        },
+                        onError = { error ->
+                            isConfirmLoading = false
+                            closeAndShowError(navController, error, coroutineScope)
+                        })
+                } catch (e: Throwable) {
+                    closeAndShowError(navController, e.message, coroutineScope)
+                }
+            },
+            isLoadingConfirm = isConfirmLoading,
+            isLoadingCancel = isCancelLoading
+        )
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
-private fun closeAndShowError(navController: NavHostController, mesage: String?) {
-    navController.popBackStack(route = Route.Connections.path, inclusive = false)
-    navController.showSnackbar(mesage ?: "Session proposal error, please check your Internet connection")
+private fun closeAndShowError(navController: NavHostController, mesage: String?, coroutineScope: CoroutineScope) {
+    coroutineScope.launch(Dispatchers.Main) {
+        navController.popBackStack(route = Route.Connections.path, inclusive = false)
+        navController.showSnackbar(mesage ?: "Session proposal error, please check your Internet connection")
+    }
 }
 
 @Composable
