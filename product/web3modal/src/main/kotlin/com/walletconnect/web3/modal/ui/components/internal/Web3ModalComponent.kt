@@ -12,6 +12,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -25,12 +26,12 @@ import com.walletconnect.web3.modal.ui.routes.connect.ConnectionNavGraph
 import com.walletconnect.web3.modal.ui.utils.ComposableLifecycleEffect
 import com.walletconnect.web3.modal.ui.utils.toComponentEvent
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 @Composable
 fun Web3ModalComponent(
+    modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
     shouldOpenChooseNetwork: Boolean,
     closeModal: () -> Unit
@@ -62,6 +63,7 @@ fun Web3ModalComponent(
     )
 
     Web3ModalRoot(
+        modifier = modifier,
         navController = navController,
         closeModal = closeModal
     ) {
