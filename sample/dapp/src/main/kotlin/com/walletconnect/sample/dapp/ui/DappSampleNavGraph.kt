@@ -33,7 +33,6 @@ fun DappSampleNavGraph(
     bottomSheetNavigator: BottomSheetNavigator,
     navController: NavHostController,
     startDestination: String,
-    dappSampleViewModel: DappSampleViewModel,
 ) {
     ModalBottomSheetLayout(
         bottomSheetNavigator = bottomSheetNavigator,
@@ -47,7 +46,7 @@ fun DappSampleNavGraph(
             startDestination = startDestination
         ) {
             composable(Route.ChainSelection.path) {
-                ChainSelectionRoute(navController, dappSampleViewModel)
+                ChainSelectionRoute(navController)
             }
             composable(Route.Session.path, deepLinks = listOf(NavDeepLink("kotlin-dapp-wc://request"))) {
                 SessionRoute(navController)

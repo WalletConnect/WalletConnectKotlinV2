@@ -12,16 +12,21 @@ import com.walletconnect.sample.dapp.domain.DappDelegate
 import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.wcmodal.client.Modal
 import com.walletconnect.wcmodal.client.WalletConnectModal
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
 
 class ChainSelectionViewModel : ViewModel() {
+    private val _awaitingProposalSharedFlow: MutableSharedFlow<Boolean> = MutableSharedFlow()
+    val awaitingSharedFlow = _awaitingProposalSharedFlow.asSharedFlow()
 
     private val chains: List<ChainSelectionUi> =
         Chains.values().map { it.toChainUiState() }
@@ -42,6 +47,12 @@ class ChainSelectionViewModel : ViewModel() {
             else -> DappSampleEvents.NoAction
         }
     }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
+
+    fun awaitingProposalResponse(isAwaiting: Boolean) {
+        viewModelScope.launch {
+            _awaitingProposalSharedFlow.emit(isAwaiting)
+        }
+    }
 
     fun updateChainSelectState(position: Int, selected: Boolean) {
         _uiState.update {

@@ -5,18 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.walletconnect.sample.dapp.domain.DappDelegate
 import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.wcmodal.client.Modal
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.launch
 
 class DappSampleViewModel : ViewModel() {
-
-    private val _awaitingProposalSharedFlow: MutableSharedFlow<Boolean> = MutableSharedFlow()
-    val awaitingSharedFlow = _awaitingProposalSharedFlow.asSharedFlow()
-
     val events = DappDelegate
         .wcEventModels
         .map { event ->
@@ -28,10 +21,4 @@ class DappSampleViewModel : ViewModel() {
                 else -> DappSampleEvents.NoAction
             }
         }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
-
-    fun awaitingProposalResponse(isAwaiting: Boolean) {
-        viewModelScope.launch {
-            _awaitingProposalSharedFlow.emit(isAwaiting)
-        }
-    }
 }
