@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -49,13 +50,15 @@ import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.sample.dapp.ui.routes.Route
 import com.walletconnect.sample.dapp.ui.routes.bottom_routes.PairingSelectionResult
 import com.walletconnect.sample.dapp.ui.routes.bottom_routes.pairingSelectionResultKey
+import com.walletconnect.sample.dapp.ui.routes.host.DappSampleViewModel
 import com.walletconnect.wcmodal.client.WalletConnectModal
 import com.walletconnect.wcmodal.ui.openWalletConnectModal
 import com.walletconnect.wcmodal.ui.state.rememberModalState
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
-fun ChainSelectionRoute(navController: NavController) {
+fun ChainSelectionRoute(navController: NavController, dappViewModel: DappSampleViewModel) {
+    val composableScope = rememberCoroutineScope()
     val context = LocalContext.current
     val viewModel: ChainSelectionViewModel = viewModel()
     val chainsState by viewModel.uiState.collectAsState()
@@ -84,7 +87,15 @@ fun ChainSelectionRoute(navController: NavController) {
     LaunchedEffect(Unit) {
         viewModel.walletEvents.collect { event ->
             when (event) {
-                DappSampleEvents.SessionApproved -> navController.navigate(Route.Session.path)
+                DappSampleEvents.SessionApproved -> {
+                    navController.navigate(Route.Session.path)
+                }
+
+                DappSampleEvents.SessionRejected -> {
+//                    dappViewModel.awaitingProposalResponse(false)
+                    Toast.makeText(context, "Session has been rejected", Toast.LENGTH_SHORT).show()
+                }
+
                 else -> Unit
             }
         }
@@ -110,17 +121,23 @@ fun ChainSelectionRoute(navController: NavController) {
         },
         onConnectSampleWalletClick = {
             if (viewModel.isAnyChainSelected) {
-                viewModel.connectToWallet { uri ->
-                    val intent = Intent(Intent.ACTION_VIEW).apply {
-                        data = uri.replace("wc:", "wc://").toUri()
-                        `package` = when (BuildConfig.BUILD_TYPE) {
-                            "debug" -> SAMPLE_WALLET_DEBUG_PACKAGE
-                            "internal" -> SAMPLE_WALLET_INTERNAL_PACKAGE
-                            else -> SAMPLE_WALLET_RELEASE_PACKAGE
+//                dappViewModel.awaitingProposalResponse(true)
+                viewModel.connectToWallet(
+                    onSuccess = { uri ->
+                        val intent = Intent(Intent.ACTION_VIEW).apply {
+                            data = uri.replace("wc:", "wc://").toUri()
+                            `package` = when (BuildConfig.BUILD_TYPE) {
+                                "debug" -> SAMPLE_WALLET_DEBUG_PACKAGE
+                                "internal" -> SAMPLE_WALLET_INTERNAL_PACKAGE
+                                else -> SAMPLE_WALLET_RELEASE_PACKAGE
+                            }
                         }
-                    }
-                    context.startActivity(intent)
-                }
+                        context.startActivity(intent)
+                    },
+                    onError = { error ->
+                        dappViewModel.awaitingProposalResponse(false)
+                        Toast.makeText(context, "Error while connecting: $error", Toast.LENGTH_SHORT).show()
+                    })
             } else {
                 Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
             }

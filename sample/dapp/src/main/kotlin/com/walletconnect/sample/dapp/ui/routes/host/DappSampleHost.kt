@@ -4,13 +4,19 @@ package com.walletconnect.sample.dapp.ui.routes.host
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.Scaffold
@@ -20,20 +26,27 @@ import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
+import com.walletconnect.sample.common.ui.themedColor
 import com.walletconnect.sample.dapp.R
 import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.sample.dapp.ui.DappSampleNavGraph
@@ -51,17 +64,15 @@ fun DappSampleHost() {
     val bottomSheetNavigator = BottomSheetNavigator(sheetState)
     val navController = rememberNavController(bottomSheetNavigator)
     val viewModel: DappSampleViewModel = viewModel()
+    val awaitingProposalResponse = viewModel.awaitingSharedFlow.collectAsState(false).value
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
-                DappSampleEvents.Disconnect -> navController.navigate(Route.ChainSelection.path)
+                is DappSampleEvents.Disconnect -> navController.navigate(Route.ChainSelection.path)
                 is DappSampleEvents.RequestError -> scaffoldState.snackbarHostState.showSnackbar(event.exceptionMsg)
-                DappSampleEvents.SessionExtend -> scaffoldState.snackbarHostState.showSnackbar("Session extended")
-                is DappSampleEvents.ConnectionEvent -> {
-                    isOfflineState = !event.isAvailable
-                }
-
+                is DappSampleEvents.SessionExtend -> scaffoldState.snackbarHostState.showSnackbar("Session extended")
+                is DappSampleEvents.ConnectionEvent -> isOfflineState = !event.isAvailable
                 else -> Unit
             }
         }
@@ -70,19 +81,53 @@ fun DappSampleHost() {
     Scaffold(
         scaffoldState = scaffoldState
     ) { innerPadding ->
-        Column(modifier = Modifier.padding(innerPadding)) {
+        Box(modifier = Modifier.padding(innerPadding)) {
+            DappSampleNavGraph(
+                bottomSheetNavigator = bottomSheetNavigator,
+                navController = navController,
+                startDestination = Route.ChainSelection.path,
+                viewModel
+            )
+
             if (isOfflineState) {
                 NoConnectionIndicator()
             } else {
                 RestoredConnectionIndicator()
             }
-            DappSampleNavGraph(
-                bottomSheetNavigator = bottomSheetNavigator,
-                navController = navController,
-                startDestination = Route.ChainSelection.path
-            )
 
+            if (awaitingProposalResponse) {
+                Loader()
+            }
         }
+    }
+}
+
+@Composable
+private fun BoxScope.Loader() {
+    Column(
+        modifier = Modifier
+            .align(Alignment.Center)
+            .clip(RoundedCornerShape(34.dp))
+            .background(themedColor(Color(0xFF242425).copy(alpha = .95f), Color(0xFFF2F2F7).copy(alpha = .95f)))
+            .padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        CircularProgressIndicator(
+            strokeWidth = 8.dp,
+            modifier = Modifier
+                .size(75.dp), color = Color(0xFFB8F53D)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "Awaiting response...",
+            maxLines = 1,
+            style = TextStyle(
+                fontWeight = FontWeight.Medium,
+                fontSize = 22.sp,
+                color = themedColor(Color(0xFFb9b3b5), Color(0xFF484648))
+            ),
+        )
     }
 }
 

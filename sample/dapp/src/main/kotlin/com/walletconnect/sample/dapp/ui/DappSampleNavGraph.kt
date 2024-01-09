@@ -19,19 +19,21 @@ import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.google.accompanist.navigation.material.ModalBottomSheetLayout
 import com.google.accompanist.navigation.material.bottomSheet
-import com.walletconnect.wcmodal.ui.walletConnectModalGraph
 import com.walletconnect.sample.dapp.ui.routes.Route
 import com.walletconnect.sample.dapp.ui.routes.bottom_routes.PairingSelectionRoute
 import com.walletconnect.sample.dapp.ui.routes.composable_routes.account.AccountRoute
 import com.walletconnect.sample.dapp.ui.routes.composable_routes.chain_selection.ChainSelectionRoute
 import com.walletconnect.sample.dapp.ui.routes.composable_routes.session.SessionRoute
 import com.walletconnect.sample.dapp.ui.routes.dialog_routes.MessageDialogRoute
+import com.walletconnect.sample.dapp.ui.routes.host.DappSampleViewModel
+import com.walletconnect.wcmodal.ui.walletConnectModalGraph
 
 @Composable
 fun DappSampleNavGraph(
     bottomSheetNavigator: BottomSheetNavigator,
     navController: NavHostController,
     startDestination: String,
+    dappSampleViewModel: DappSampleViewModel,
 ) {
     ModalBottomSheetLayout(
         bottomSheetNavigator = bottomSheetNavigator,
@@ -45,7 +47,7 @@ fun DappSampleNavGraph(
             startDestination = startDestination
         ) {
             composable(Route.ChainSelection.path) {
-                ChainSelectionRoute(navController)
+                ChainSelectionRoute(navController, dappSampleViewModel)
             }
             composable(Route.Session.path, deepLinks = listOf(NavDeepLink("kotlin-dapp-wc://request"))) {
                 SessionRoute(navController)

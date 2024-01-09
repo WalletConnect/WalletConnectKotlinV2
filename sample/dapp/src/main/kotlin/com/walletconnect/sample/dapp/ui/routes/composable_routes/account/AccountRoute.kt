@@ -3,6 +3,7 @@ package com.walletconnect.sample.dapp.ui.routes.composable_routes.account
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -30,26 +31,37 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.walletconnect.sample.common.ui.commons.BlueButton
+import com.walletconnect.sample.common.ui.commons.FullScreenLoader
+import com.walletconnect.sample.common.ui.commons.Loader
 import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.sample.dapp.ui.openMessageDialog
 import com.walletconnect.sample.dapp.ui.routes.Route
-import com.walletconnect.sample.common.ui.commons.BlueButton
-import com.walletconnect.sample.common.ui.commons.FullScreenLoader
 import timber.log.Timber
 
 @Composable
 fun AccountRoute(navController: NavController) {
     val viewModel: AccountViewModel = viewModel()
     val state by viewModel.uiState.collectAsState()
+    val awaitResponse = viewModel.awaitResponse.collectAsState(false).value
 
     LaunchedEffect(Unit) {
         viewModel.fetchAccountDetails()
 
         viewModel.events.collect { event ->
             when (event) {
-                is DappSampleEvents.RequestSuccess -> { navController.openMessageDialog(event.result) }
-                is DappSampleEvents.RequestPeerError -> { navController.openMessageDialog(event.errorMsg) }
-                is DappSampleEvents.RequestError -> { navController.openMessageDialog(event.exceptionMsg) }
+                is DappSampleEvents.RequestSuccess -> {
+                    navController.openMessageDialog(event.result)
+                }
+
+                is DappSampleEvents.RequestPeerError -> {
+                    navController.openMessageDialog(event.errorMsg)
+                }
+
+                is DappSampleEvents.RequestError -> {
+                    navController.openMessageDialog(event.exceptionMsg)
+                }
+
                 is DappSampleEvents.Disconnect -> navController.popBackStack(Route.ChainSelection.path, false)
                 else -> Unit
             }
@@ -58,7 +70,8 @@ fun AccountRoute(navController: NavController) {
 
     AccountScreen(
         state = state,
-        onMethodClick = viewModel::requestMethod
+        onMethodClick = viewModel::requestMethod,
+        awaitResponse
     )
 }
 
@@ -66,10 +79,11 @@ fun AccountRoute(navController: NavController) {
 private fun AccountScreen(
     state: AccountUi,
     onMethodClick: (String, (Uri) -> Unit) -> Unit,
+    awaitResponse: Boolean,
 ) {
     when (state) {
         AccountUi.Loading -> FullScreenLoader()
-        is AccountUi.AccountData -> AccountContent(state, onMethodClick)
+        is AccountUi.AccountData -> AccountContent(state, onMethodClick, awaitResponse)
     }
 }
 
@@ -77,18 +91,25 @@ private fun AccountScreen(
 fun AccountContent(
     state: AccountUi.AccountData,
     onMethodClick: (String, (Uri) -> Unit) -> Unit,
+    awaitResponse: Boolean,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(20.dp)
-    ) {
-        ChainData(chain = state)
-        Spacer(modifier = Modifier.height(6.dp))
-        MethodList(
-            methods = state.listOfMethods,
-            onMethodClick = onMethodClick
-        )
+    Box {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(20.dp)
+        ) {
+            ChainData(chain = state)
+            Spacer(modifier = Modifier.height(6.dp))
+            MethodList(
+                methods = state.listOfMethods,
+                onMethodClick = onMethodClick
+            )
+        }
+
+        if (awaitResponse) {
+            Loader()
+        }
     }
 }
 

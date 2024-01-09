@@ -2,6 +2,8 @@ package com.walletconnect.sample.dapp.ui.routes.composable_routes.chain_selectio
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.crashlytics.ktx.crashlytics
+import com.google.firebase.ktx.Firebase
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.sample.common.Chains
@@ -10,14 +12,12 @@ import com.walletconnect.sample.dapp.domain.DappDelegate
 import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.wcmodal.client.Modal
 import com.walletconnect.wcmodal.client.WalletConnectModal
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
 
@@ -99,34 +99,38 @@ class ChainSelectionViewModel : ViewModel() {
         properties = getProperties()
     )
 
-    fun connectToWallet(pairingTopicPosition: Int = -1, onProposedSequence: (String) -> Unit = {}) {
-        val pairing: Core.Model.Pairing = if (pairingTopicPosition > -1) {
-            CoreClient.Pairing.getPairings()[pairingTopicPosition]
-        } else {
-            CoreClient.Pairing.create() { error ->
-                //todo handle error, log
-                throw IllegalStateException("Creating Pairing failed: ${error.throwable.stackTraceToString()}")
-            }!!
-        }
-
-        val connectParams =
-            Modal.Params.Connect(
-                namespaces = getNamespaces(),
-                optionalNamespaces = getOptionalNamespaces(),
-                properties = getProperties(),
-                pairing = pairing
-            )
-
-        WalletConnectModal.connect(connectParams,
-            onSuccess = {
-                viewModelScope.launch(Dispatchers.Main) {
-                    onProposedSequence(pairing.uri)
-                }
-            },
-            onError = { error ->
-                Timber.tag(tag(this)).e(error.throwable.stackTraceToString())
+    fun connectToWallet(pairingTopicPosition: Int = -1, onSuccess: (String) -> Unit = {}, onError: (String) -> Unit = {}) {
+        try {
+            val pairing: Core.Model.Pairing = if (pairingTopicPosition > -1) {
+                CoreClient.Pairing.getPairings()[pairingTopicPosition]
+            } else {
+                CoreClient.Pairing.create { error ->
+                    onError("Creating Pairing failed: ${error.throwable.stackTraceToString()}")
+                }!!
             }
-        )
 
+            val connectParams =
+                Modal.Params.Connect(
+                    namespaces = getNamespaces(),
+                    optionalNamespaces = getOptionalNamespaces(),
+                    properties = getProperties(),
+                    pairing = pairing
+                )
+
+            WalletConnectModal.connect(connectParams,
+                onSuccess = {
+                    onSuccess(pairing.uri)
+                },
+                onError = { error ->
+                    Timber.tag(tag(this)).e(error.throwable.stackTraceToString())
+                    Firebase.crashlytics.recordException(error.throwable)
+                    onError(error.throwable.message ?: "Unknown error, please contact support")
+                }
+            )
+        } catch (e: Exception) {
+            Firebase.crashlytics.recordException(e)
+            Timber.tag(tag(this)).e(e)
+            onError(e.message ?: "Unknown error, please contact support")
+        }
     }
 }
