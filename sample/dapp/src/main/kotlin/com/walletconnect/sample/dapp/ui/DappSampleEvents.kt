@@ -11,6 +11,9 @@ sealed class DappSampleEvents {
     object PingError : DappSampleEvents()
 
     object Disconnect : DappSampleEvents()
+    data class DisconnectError(val message: String) : DappSampleEvents()
+
+    object DisconnectLoading : DappSampleEvents()
 
     data class RequestSuccess(val result: String) : DappSampleEvents()
 
