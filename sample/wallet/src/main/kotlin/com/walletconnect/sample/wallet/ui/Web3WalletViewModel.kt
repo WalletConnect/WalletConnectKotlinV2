@@ -81,11 +81,18 @@ class Web3WalletViewModel : ViewModel() {
             _pairingStateSharedFlow.emit(PairingState.Loading)
         }
 
-        val pairingParams = Wallet.Params.Pair(pairingUri)
-        Web3Wallet.pair(pairingParams) { error ->
-            Firebase.crashlytics.recordException(error.throwable)
+        try {
+            val pairingParams = Wallet.Params.Pair(pairingUri)
+            Web3Wallet.pair(pairingParams) { error ->
+                Firebase.crashlytics.recordException(error.throwable)
+                viewModelScope.launch {
+                    _pairingStateSharedFlow.emit(PairingState.Error(error.throwable.message ?: "Unexpected error happened, please contact support"))
+                }
+            }
+        } catch (e: Exception) {
+            Firebase.crashlytics.recordException(e)
             viewModelScope.launch {
-                _pairingStateSharedFlow.emit(PairingState.Error(error.throwable.message ?: ""))
+                _pairingStateSharedFlow.emit(PairingState.Error(e.message ?: "Unexpected error happened, please contact support"))
             }
         }
     }

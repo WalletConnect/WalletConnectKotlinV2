@@ -37,6 +37,9 @@ object CoreValidator {
             (FIVE_MINUTES_IN_SECONDS..WEEK_IN_SECONDS).contains(this)
         } ?: true
 
+    @JvmSynthetic
+    fun Expiry.isExpired(): Boolean = seconds < CURRENT_TIME_IN_SECONDS
+
     private const val NAMESPACE_REGEX: String = "^[-a-z0-9]{3,8}$"
     private const val REFERENCE_REGEX: String = "^[-_a-zA-Z0-9]{1,32}$"
     private const val ACCOUNT_ADDRESS_REGEX: String = "^[-.%a-zA-Z0-9]{1,128}$"

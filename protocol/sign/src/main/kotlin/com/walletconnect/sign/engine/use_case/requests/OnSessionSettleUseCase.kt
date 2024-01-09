@@ -11,6 +11,7 @@ import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
+import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.utils.toClient
@@ -58,6 +59,13 @@ internal class OnSessionSettleUseCase(
         } catch (e: Exception) {
             jsonRpcInteractor.respondWithError(request, PeerError.Failure.SessionSettlementFailed(e.message ?: String.Empty), irnParams)
             return@supervisorScope
+        }
+
+        proposal.expiry.let { expiry ->
+            if (expiry.isExpired()) {
+                jsonRpcInteractor.respondWithError(request, PeerError.Failure.SessionSettlementFailed("Session proposal expired"), irnParams)
+                return@supervisorScope
+            }
         }
 
         val (requiredNamespaces, optionalNamespaces, properties) = proposal.run { Triple(requiredNamespaces, optionalNamespaces, properties) }

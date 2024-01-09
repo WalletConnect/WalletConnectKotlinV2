@@ -12,7 +12,6 @@ import com.walletconnect.web3.wallet.client.Web3Wallet
 class SessionProposalViewModel : ViewModel() {
     val sessionProposal: SessionProposalUI? = generateSessionProposalUI()
     fun approve(proposalPublicKey: String, onSuccess: (String) -> Unit = {}, onError: (String) -> Unit = {}) {
-
         if (Web3Wallet.getSessionProposals().isNotEmpty()) {
             val sessionProposal: Wallet.Model.SessionProposal = requireNotNull(Web3Wallet.getSessionProposals().find { it.proposerPublicKey == proposalPublicKey })
             val sessionNamespaces = Web3Wallet.generateApprovedNamespaces(sessionProposal = sessionProposal, supportedNamespaces = walletMetaData.namespaces)
@@ -29,7 +28,6 @@ class SessionProposalViewModel : ViewModel() {
                     onSuccess(sessionProposal.redirect)
                 })
         }
-
     }
 
     fun reject(proposalPublicKey: String, onSuccess: (String) -> Unit = {}, onError: (String) -> Unit = {}) {

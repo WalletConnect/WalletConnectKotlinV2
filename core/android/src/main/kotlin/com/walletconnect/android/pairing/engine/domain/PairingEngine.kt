@@ -8,6 +8,7 @@ import com.walletconnect.android.internal.Validator
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
+import com.walletconnect.android.internal.common.exception.ExpiredPairingException
 import com.walletconnect.android.internal.common.exception.Invalid
 import com.walletconnect.android.internal.common.exception.MalformedWalletConnectUri
 import com.walletconnect.android.internal.common.exception.PairWithExistingPairingIsNotAllowed
@@ -86,6 +87,18 @@ internal class PairingEngine(
                     jsonRpcRequestsJob = collectJsonRpcRequestsFlow()
                 }
             }.launchIn(scope)
+
+
+//        flow {
+//
+//        }
+        pairingRepository.getListOfPairings()
+            .filter { pairing -> !pairing.isActive }
+            .onEach { pairing ->
+                if (!pairing.isNotExpired()){
+
+                }
+            }
     }
 
     private val _topicExpiredFlow: MutableSharedFlow<Topic> = MutableSharedFlow()
@@ -138,9 +151,12 @@ internal class PairingEngine(
         val symmetricKey = walletConnectUri.symKey
 
         try {
-            if (isPairingValid(inactivePairing.topic.value)) {
+            if (pairingRepository.getPairingOrNullByTopic(inactivePairing.topic) != null) {
                 val pairing = pairingRepository.getPairingOrNullByTopic(inactivePairing.topic)
-                if (pairing?.isActive == true) {
+                if (!pairing!!.isNotExpired()) {
+                    return onFailure(ExpiredPairingException("Pairing expired: ${pairing.topic}"))
+                }
+                if (pairing.isActive) {
                     return onFailure(PairWithExistingPairingIsNotAllowed(PAIRING_NOT_ALLOWED_MESSAGE))
                 } else {
                     scope.launch {

@@ -3,9 +3,10 @@
 package com.walletconnect.sign.storage.proposal
 
 import android.database.sqlite.SQLiteException
+import com.walletconnect.android.internal.common.model.Expiry
+import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.sign.common.model.vo.proposal.ProposalVO
 import com.walletconnect.sign.storage.data.dao.optionalnamespaces.OptionalNamespaceDaoQueries
 import com.walletconnect.sign.storage.data.dao.proposal.ProposalDaoQueries
@@ -34,7 +35,8 @@ class ProposalStorageRepository(
             relayData,
             proposerPublicKey,
             properties,
-            redirect
+            redirect,
+            expiry.seconds
         )
 
         insertRequiredNamespace(requiredNamespaces, requestId)
@@ -82,6 +84,7 @@ class ProposalStorageRepository(
         proposer_key: String,
         properties: Map<String, String>?,
         redirect: String,
+        expiry: Long
     ): ProposalVO {
         val requiredNamespaces: Map<String, Namespace.Proposal> = getRequiredNamespaces(request_id)
         val optionalNamespaces: Map<String, Namespace.Proposal> = getOptionalNamespaces(request_id)
@@ -99,7 +102,8 @@ class ProposalStorageRepository(
             proposerPublicKey = proposer_key,
             properties = properties,
             requiredNamespaces = requiredNamespaces,
-            optionalNamespaces = optionalNamespaces
+            optionalNamespaces = optionalNamespaces,
+            expiry = Expiry(expiry)
         )
     }
 

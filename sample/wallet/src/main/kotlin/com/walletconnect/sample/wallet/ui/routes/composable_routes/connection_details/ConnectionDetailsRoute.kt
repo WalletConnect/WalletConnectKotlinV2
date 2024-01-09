@@ -50,7 +50,6 @@ import com.google.firebase.ktx.Firebase
 import com.skydoves.landscapist.glide.GlideImage
 import com.walletconnect.sample.common.ui.themedColor
 import com.walletconnect.sample.wallet.R
-import com.walletconnect.sample.wallet.domain.accounts
 import com.walletconnect.sample.wallet.ui.common.Content
 import com.walletconnect.sample.wallet.ui.common.InnerContent
 import com.walletconnect.sample.wallet.ui.common.blue.BlueLabelTexts
@@ -135,6 +134,7 @@ fun ConnectionDetailsRoute(navController: NavController, connectionId: Int?, con
                                 Web3Wallet.updateSession(params,
                                     onSuccess = {
                                         isUpdateLoading = false
+                                        connectionsViewModel.refreshConnections()
                                         composableScope.launch(Dispatchers.Main) {
                                             navController.showSnackbar("Session updated")
                                         }
@@ -183,7 +183,7 @@ fun ConnectionDetailsRoute(navController: NavController, connectionId: Int?, con
                                     isDeleteLoading = false
                                     connectionsViewModel.refreshConnections()
                                     composableScope.launch(Dispatchers.Main) {
-                                        navController.showSnackbar("Session disconnection error: ${error.throwable.message}")
+                                        navController.showSnackbar("Session disconnection error: ${error.throwable.message ?: "Unknown error please contact support"}")
                                     }
                                 })
                         }
@@ -227,16 +227,15 @@ fun ConnectionType(connectionUI: ConnectionUI, isLoading: Boolean, onDelete: () 
 @Composable
 fun Namespace(namespaces: Map<String, Wallet.Model.Namespace.Session>) {
     val pagerState = rememberPagerState()
-    val accounts = namespaces.flatMap { (namespace, session) -> session.accounts }
+    val accounts = namespaces.flatMap { (namespace, session) -> session.accounts }.distinctBy { "${it.split(":")[0]}:${it.split(":")[1]}" }
     val accountsToSessions: Map<String, Wallet.Model.Namespace.Session> = namespaces.flatMap { (namespace, proposal) -> proposal.accounts.map { chain -> chain to proposal } }.toMap()
-
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         HorizontalPager(
             modifier = Modifier.height(450.dp),
             count = accounts.size,
             state = pagerState,
         ) { current ->
-            accounts[current].also { chain -> ChainPermissions(chain, accountsToSessions) }
+            accounts[current].also { account -> ChainPermissions(account, accountsToSessions) }
         }
 
         if (accounts.size > 1) {
@@ -255,9 +254,9 @@ fun ChainPermissions(account: String, accountsToSessions: Map<String, Wallet.Mod
     val session: Wallet.Model.Namespace.Session = accountsToSessions[account]!!
     val lastDelimiterIndex = account.indexOfLast { it == ':' }
     val chainId = account.dropLast(account.lastIndex - lastDelimiterIndex + 1)
+    println("kobe: chainid: $chainId")
     Content(title = chainId.uppercase()) {
-        Accounts(accounts.filter { it.first.chainId == chainId }.map { (chain, address) -> "${chain.chainId}:$address" })
-
+        Accounts(session.accounts.filter { "${it.split(":")[0]}:${it.split(":")[1]}" == chainId})
         val sections = mapOf("Methods" to getAllMethodsByChainId(session, account), "Events" to getAllEventsByChainId(session, account))
         sections.forEach { (title, values) -> BlueLabelTexts(title, values, title != "Events") }
     }

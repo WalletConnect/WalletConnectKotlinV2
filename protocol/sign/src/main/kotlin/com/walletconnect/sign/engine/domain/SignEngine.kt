@@ -2,7 +2,6 @@
 
 package com.walletconnect.sign.engine.domain
 
-import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.ConnectionState
@@ -15,6 +14,7 @@ import com.walletconnect.android.internal.common.storage.metadata.MetadataStorag
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
+import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.android.verify.data.model.VerifyContext
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
@@ -300,7 +300,7 @@ internal class SignEngine(
                     val sessionProposalEvent = EngineDO.SessionProposalEvent(proposal = proposal.toEngineDO(), context = context.toEngineDO())
                     scope.launch { _engineEvent.emit(sessionProposalEvent) }
                 } catch (e: Exception) {
-                    println("No proposal for pairing topic: $e")
+                    scope.launch { _engineEvent.emit(SDKError(Throwable("No proposal for pairing topic: $e"))) }
                 }
             }.launchIn(scope)
     }

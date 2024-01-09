@@ -41,7 +41,7 @@ class CoreValidatorTest {
     }
 
     @Test
-    fun `is expiry in bounds test`(){
+    fun `is expiry in bounds test`() {
         assertTrue(CoreValidator.isExpiryWithinBounds(Expiry(300)))
         assertTrue(CoreValidator.isExpiryWithinBounds(Expiry(1500)))
         assertTrue(CoreValidator.isExpiryWithinBounds(Expiry(30000)))

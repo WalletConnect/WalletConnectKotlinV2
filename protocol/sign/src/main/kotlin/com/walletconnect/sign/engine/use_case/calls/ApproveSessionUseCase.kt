@@ -12,12 +12,14 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.ACTIVE_SESSION
+import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.sign.common.exceptions.InvalidNamespaceException
+import com.walletconnect.sign.common.exceptions.SessionProposalExpiredException
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpc
 import com.walletconnect.sign.common.model.vo.proposal.ProposalVO
@@ -88,6 +90,9 @@ internal class ApproveSessionUseCase(
 
         val proposal = proposalStorageRepository.getProposalByKey(proposerPublicKey)
         val request = proposal.toSessionProposeRequest()
+        if (proposal.expiry.isExpired()) {
+            throw SessionProposalExpiredException("Session proposal expired")
+        }
 
         SignValidator.validateSessionNamespace(sessionNamespaces.toMapOfNamespacesVOSession(), proposal.requiredNamespaces) { error ->
             throw InvalidNamespaceException(error.message)

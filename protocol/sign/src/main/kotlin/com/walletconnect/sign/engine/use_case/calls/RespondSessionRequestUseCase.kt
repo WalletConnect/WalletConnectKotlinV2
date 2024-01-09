@@ -4,6 +4,8 @@ import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
 import com.walletconnect.android.internal.common.exception.Invalid
 import com.walletconnect.android.internal.common.exception.InvalidExpiryException
+import com.walletconnect.android.internal.common.exception.RequestExpiredException
+import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.WCRequest
@@ -13,6 +15,7 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.CoreValidator
+import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -50,7 +53,13 @@ internal class RespondSessionRequestUseCase(
             return@supervisorScope onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic"))
         }
 
-        handleExpiration(jsonRpcResponse, topic)
+        val expiry = getPendingJsonRpcHistoryEntryByIdUseCase(jsonRpcResponse.id)?.params?.request?.expiry
+        expiry?.let {
+            if (!CoreValidator.isExpiryWithinBounds(expiry)) {
+                throw InvalidExpiryException()
+            }
+            checkExpiry(it, topic, jsonRpcResponse)
+        }
 
         val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
         jsonRpcInteractor.publishJsonRpcResponse(topic = Topic(topic), params = irnParams, response = jsonRpcResponse,
@@ -58,7 +67,7 @@ internal class RespondSessionRequestUseCase(
                 logger.log("Session payload sent successfully")
                 scope.launch {
                     supervisorScope {
-                        removePendingSessionRequestAndEmit(jsonRpcResponse)
+                        removePendingSessionRequestAndEmit(jsonRpcResponse.id)
                     }
                 }
                 onSuccess()
@@ -70,26 +79,24 @@ internal class RespondSessionRequestUseCase(
         )
     }
 
-    private suspend fun handleExpiration(jsonRpcResponse: JsonRpcResponse, topic: String) {
-        getPendingJsonRpcHistoryEntryByIdUseCase(jsonRpcResponse.id)?.params?.request?.expiry?.let { expiry ->
-            if (!CoreValidator.isExpiryWithinBounds(expiry)) {
-                val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
-                val request = WCRequest(Topic(topic), jsonRpcResponse.id, JsonRpcMethod.WC_SESSION_REQUEST, object : ClientParams {})
-                jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams, onSuccess = {
-                    scope.launch {
-                        supervisorScope {
-                            removePendingSessionRequestAndEmit(jsonRpcResponse)
-                        }
+    private fun checkExpiry(expiry: Expiry, topic: String, jsonRpcResponse: JsonRpcResponse) {
+        if (expiry.isExpired()) {
+            val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
+            val request = WCRequest(Topic(topic), jsonRpcResponse.id, JsonRpcMethod.WC_SESSION_REQUEST, object : ClientParams {})
+            jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams, onSuccess = {
+                scope.launch {
+                    supervisorScope {
+                        removePendingSessionRequestAndEmit(jsonRpcResponse.id)
                     }
-                })
-                throw InvalidExpiryException()
-            }
+                }
+            })
+            throw RequestExpiredException("This request has expired, id: ${jsonRpcResponse.id}")
         }
     }
 
-    private suspend fun removePendingSessionRequestAndEmit(jsonRpcResponse: JsonRpcResponse) {
-        verifyContextStorageRepository.delete(jsonRpcResponse.id)
-        sessionRequestEventsQueue.find { pendingRequestEvent -> pendingRequestEvent.request.request.id == jsonRpcResponse.id }?.let { event ->
+    private suspend fun removePendingSessionRequestAndEmit(id: Long) {
+        verifyContextStorageRepository.delete(id)
+        sessionRequestEventsQueue.find { pendingRequestEvent -> pendingRequestEvent.request.request.id == id }?.let { event ->
             sessionRequestEventsQueue.remove(event)
         }
         if (sessionRequestEventsQueue.isNotEmpty()) {

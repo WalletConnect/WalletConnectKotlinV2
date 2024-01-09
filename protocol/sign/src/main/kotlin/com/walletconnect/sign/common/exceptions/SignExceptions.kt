@@ -16,3 +16,5 @@ class NotSettledSessionException(override val message: String?) : WalletConnectE
 class SignClientAlreadyInitializedException : WalletConnectException(CLIENT_ALREADY_INITIALIZED)
 
 class InvalidSignParamsType : WalletConnectException(INVALID_SIGN_PARAMS_TYPE)
+
+class SessionProposalExpiredException(override val message: String?) : WalletConnectException(message)

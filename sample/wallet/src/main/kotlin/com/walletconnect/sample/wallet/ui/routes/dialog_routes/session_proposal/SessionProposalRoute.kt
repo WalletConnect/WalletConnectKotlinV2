@@ -148,7 +148,12 @@ private fun SessionProposalDialog(
         Spacer(modifier = Modifier.height(18.dp))
         Permissions(sessionProposalUI = sessionProposalUI)
         Spacer(modifier = Modifier.height(18.dp))
-        AccountAndNetwork(sessionProposalUI)
+        AccountAndNetwork(sessionProposalUI) { error ->
+            coroutineScope.launch(Dispatchers.Main) {
+                navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                navController.showSnackbar(error)
+            }
+        }
         Spacer(modifier = Modifier.height(18.dp))
         Buttons(
             allowButtonColor,
@@ -212,11 +217,14 @@ private fun closeAndShowError(navController: NavHostController, mesage: String?,
 }
 
 @Composable
-fun AccountAndNetwork(sessionProposalUI: SessionProposalUI) {
+fun AccountAndNetwork(sessionProposalUI: SessionProposalUI, onErrorAction: (message: String) -> Unit) {
     val requiredChains = getRequiredChains(sessionProposalUI)
     val optionalChains = getOptionalChains(sessionProposalUI)
     val chains = if (requiredChains.isEmpty()) optionalChains else requiredChains
-
+    if (chains.isEmpty()) {
+        onErrorAction("Missing chains")
+        return
+    }
     val network = Chains.values().find { chain -> chain.chainId == chains.first() }
     val account = walletMetaData.namespaces.values.first().accounts.find { account -> account.contains(chains.first()) }?.split(":")?.last()
 

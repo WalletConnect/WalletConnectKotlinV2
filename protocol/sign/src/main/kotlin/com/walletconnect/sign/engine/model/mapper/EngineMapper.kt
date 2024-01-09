@@ -5,16 +5,17 @@ package com.walletconnect.sign.engine.model.mapper
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.Expiry
+import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SessionProposer
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
+import com.walletconnect.android.internal.utils.PROPOSAL_EXPIRY
 import com.walletconnect.android.verify.data.model.VerifyContext
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.exceptions.PeerError
 import com.walletconnect.sign.common.model.PendingRequest
-import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.common.model.vo.proposal.ProposalVO
@@ -69,7 +70,8 @@ internal fun SignParams.SessionProposeParams.toVO(topic: Topic, requestId: Long)
         properties = properties,
         proposerPublicKey = proposer.publicKey,
         relayProtocol = relays.first().protocol,
-        relayData = relays.first().data
+        relayData = relays.first().data,
+        expiry = Expiry(PROPOSAL_EXPIRY)
     )
 
 @JvmSynthetic
