@@ -98,6 +98,7 @@ class SessionRequestViewModel : ViewModel() {
                 onSuccess = {
                     WCDelegate.sessionRequestEvent = null
                     clearSessionRequest()
+                    println("kobe: redirect: $redirect")
                     onSuccess(redirect)
                 },
                 onError = { error ->

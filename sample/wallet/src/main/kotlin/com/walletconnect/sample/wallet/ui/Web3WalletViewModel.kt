@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
+import com.walletconnect.android.Core
 import com.walletconnect.sample.wallet.domain.ISSUER
 import com.walletconnect.sample.wallet.domain.WCDelegate
 import com.walletconnect.sample.wallet.ui.state.ConnectionState
@@ -17,8 +18,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 
@@ -28,6 +31,14 @@ class Web3WalletViewModel : ViewModel() {
 
     private val _pairingStateSharedFlow: MutableSharedFlow<PairingState> = MutableSharedFlow()
     val pairingStateSharedFlow = _pairingStateSharedFlow.asSharedFlow()
+
+    init {
+        WCDelegate.coreEvents.onEach { coreEvent ->
+            if (coreEvent is Core.Model.ExpiredPairing) {
+                _pairingStateSharedFlow.emit(PairingState.Error("Pairing expired, please pair again"))
+            }
+        }.launchIn(viewModelScope)
+    }
 
     val walletEvents = WCDelegate.walletEvents.map { wcEvent ->
         Log.d("Web3Wallet", "VM: $wcEvent")

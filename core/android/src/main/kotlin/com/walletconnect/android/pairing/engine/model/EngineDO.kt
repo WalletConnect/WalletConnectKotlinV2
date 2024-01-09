@@ -8,4 +8,8 @@ internal sealed class EngineDO {
         val topic: String,
         val reason: String,
     ) : EngineDO()
+
+    data class PairingExpire(
+        val topic: String
+    ) : EngineDO()
 }

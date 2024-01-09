@@ -63,6 +63,9 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
     }
 
     override fun onSessionProposal(sessionProposal: Wallet.Model.SessionProposal, verifyContext: Wallet.Model.VerifyContext) {
+
+        println("kobe: Session Proposal: $sessionProposal")
+
         sessionProposalEvent = Pair(sessionProposal, verifyContext)
 
         scope.launch {
@@ -93,6 +96,12 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
     override fun onPairingDelete(deletedPairing: Core.Model.DeletedPairing) {
         scope.launch {
             _coreEvents.emit(deletedPairing)
+        }
+    }
+
+    override fun onPairingExpired(expiredPairing: Core.Model.ExpiredPairing) {
+        scope.launch {
+            _coreEvents.emit(expiredPairing)
         }
     }
 }

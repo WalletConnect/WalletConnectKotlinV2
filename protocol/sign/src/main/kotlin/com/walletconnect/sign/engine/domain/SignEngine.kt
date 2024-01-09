@@ -268,6 +268,8 @@ internal class SignEngine(
                         crypto.removeKeys(sessionTopic)
                     })
                 }
+
+                println("kobe: Pairing Sign Expired: $topic")
             }.launchIn(scope)
         } catch (e: Exception) {
             scope.launch { _engineEvent.emit(SDKError(e)) }
@@ -278,7 +280,7 @@ internal class SignEngine(
         getPendingSessionRequests()
             .map { pendingRequest -> pendingRequest.toSessionRequest(metadataStorageRepository.getByTopicAndType(pendingRequest.topic, AppMetaDataType.PEER)) }
             .filter { sessionRequest -> CoreValidator.isExpiryWithinBounds(sessionRequest.expiry) }
-            .filter { sessionRequest ->  getSessionsUseCase.getListOfSettledSessions().find { session -> session.topic.value == sessionRequest.topic } != null}
+            .filter { sessionRequest -> getSessionsUseCase.getListOfSettledSessions().find { session -> session.topic.value == sessionRequest.topic } != null }
             .onEach { sessionRequest ->
                 scope.launch {
                     supervisorScope {
@@ -295,7 +297,10 @@ internal class SignEngine(
         pairingController.activePairingFlow
             .onEach { pairingTopic ->
                 try {
+                    println("kobe: active pairing: $pairingTopic")
                     val proposal = proposalStorageRepository.getProposalByTopic(pairingTopic.value)
+
+                    println("kobe: pending proposal: $proposal$")
                     val context = verifyContextStorageRepository.get(proposal.requestId) ?: VerifyContext(proposal.requestId, String.Empty, Validation.UNKNOWN, String.Empty, null)
                     val sessionProposalEvent = EngineDO.SessionProposalEvent(proposal = proposal.toEngineDO(), context = context.toEngineDO())
                     scope.launch { _engineEvent.emit(sessionProposalEvent) }

@@ -32,6 +32,7 @@ internal class PairingProtocol(private val koinApp: KoinApplication = wcKoinApp)
         pairingEngine.engineEvent.onEach { event ->
             when (event) {
                 is EngineDO.PairingDelete -> delegate.onPairingDelete(event.toSign())
+                is EngineDO.PairingExpire -> delegate.onPairingExpired(Core.Model.ExpiredPairing(event.topic))
             }
         }.launchIn(scope)
     }

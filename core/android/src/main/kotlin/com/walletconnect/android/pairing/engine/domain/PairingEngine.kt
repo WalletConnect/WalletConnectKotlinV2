@@ -45,14 +45,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withTimeout
@@ -71,6 +76,17 @@ internal class PairingEngine(
     private val setOfRegisteredMethods: MutableSet<String> = mutableSetOf()
     private val registeredMethods: String get() = setOfRegisteredMethods.joinToString(",") { it }
 
+    private val _topicExpiredFlow: MutableSharedFlow<Topic> = MutableSharedFlow()
+    val topicExpiredFlow: SharedFlow<Topic> = _topicExpiredFlow.asSharedFlow()
+
+    private val _engineEvent: MutableSharedFlow<EngineDO> = MutableSharedFlow()
+    val engineEvent: SharedFlow<EngineDO> = merge(_engineEvent.asSharedFlow(), _topicExpiredFlow.asSharedFlow().map { EngineDO.PairingExpire(it.value) }).shareIn(scope, SharingStarted.Lazily, 1)
+
+    private val _activePairingTopicFlow: MutableSharedFlow<Topic> = MutableSharedFlow()
+    val activePairingTopicFlow: SharedFlow<Topic> = _activePairingTopicFlow.asSharedFlow()
+
+    val internalErrorFlow = MutableSharedFlow<SDKError>()
+
     init {
         setOfRegisteredMethods.addAll(listOf(PairingJsonRpcMethod.WC_PAIRING_DELETE, PairingJsonRpcMethod.WC_PAIRING_PING))
 
@@ -88,29 +104,8 @@ internal class PairingEngine(
                 }
             }.launchIn(scope)
 
-
-//        flow {
-//
-//        }
-        pairingRepository.getListOfPairings()
-            .filter { pairing -> !pairing.isActive }
-            .onEach { pairing ->
-                if (!pairing.isNotExpired()){
-
-                }
-            }
+        pairingExpiryWatcher()
     }
-
-    private val _topicExpiredFlow: MutableSharedFlow<Topic> = MutableSharedFlow()
-    val topicExpiredFlow: SharedFlow<Topic> = _topicExpiredFlow.asSharedFlow()
-
-    private val _engineEvent: MutableSharedFlow<EngineDO> = MutableSharedFlow()
-    val engineEvent: SharedFlow<EngineDO> = _engineEvent.asSharedFlow()
-
-    private val _activePairingTopicFlow: MutableSharedFlow<Topic> = MutableSharedFlow()
-    val activePairingTopicFlow: SharedFlow<Topic> = _activePairingTopicFlow.asSharedFlow()
-
-    val internalErrorFlow = MutableSharedFlow<SDKError>()
 
     val jsonRpcErrorFlow: Flow<SDKError> by lazy {
         jsonRpcInteractor.clientSyncJsonRpc
@@ -236,6 +231,19 @@ internal class PairingEngine(
         metadataRepository.upsertPeerMetadata(Topic(topic), metadata, metaDataType)
     }
 
+    private fun pairingExpiryWatcher() {
+        flow {
+            while (true) {
+                emit(Unit)
+                delay(2000)
+            }
+        }.onEach {
+            pairingRepository
+                .getListOfPairings()
+                .onEach { pairing -> pairing.isNotExpired() }
+        }.launchIn(scope)
+    }
+
     private fun collectJsonRpcRequestsFlow(): Job =
         jsonRpcInteractor.clientSyncJsonRpc
             .filter { request -> request.params is PairingParams }
@@ -248,7 +256,7 @@ internal class PairingEngine(
 
     private fun resubscribeToPairingFlow() {
         try {
-            val pairingTopics = pairingRepository.getListOfPairings().map { pairing -> pairing.topic.value }
+            val pairingTopics = pairingRepository.getListOfPairings().filter { pairing -> pairing.isNotExpired() }.map { pairing -> pairing.topic.value }
             jsonRpcInteractor.batchSubscribe(pairingTopics) { error -> scope.launch { internalErrorFlow.emit(SDKError(error)) } }
         } catch (e: Exception) {
             scope.launch { internalErrorFlow.emit(SDKError(e)) }
@@ -331,7 +339,7 @@ internal class PairingEngine(
                     pairingRepository.deletePairing(this@isNotExpired.topic)
                     metadataRepository.deleteMetaData(this@isNotExpired.topic)
                     crypto.removeKeys(this@isNotExpired.topic.value)
-
+                    println("kobe; emit expired pairing")
                     _topicExpiredFlow.emit(this@isNotExpired.topic)
                 } catch (e: Exception) {
                     _topicExpiredFlow.emit(this@isNotExpired.topic)
