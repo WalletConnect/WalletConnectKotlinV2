@@ -70,20 +70,27 @@ class SessionViewModel : ViewModel() {
 
     fun ping() {
         val pingParams = Modal.Params.Ping(topic = requireNotNull(DappDelegate.selectedSessionTopic))
+        viewModelScope.launch { _sessionEvents.emit(DappSampleEvents.PingLoading) }
 
-        WalletConnectModal.ping(pingParams, object : Modal.Listeners.SessionPing {
-            override fun onSuccess(pingSuccess: Modal.Model.Ping.Success) {
-                viewModelScope.launch {
-                    _sessionEvents.emit(DappSampleEvents.PingSuccess(pingSuccess.topic))
+        try {
+            WalletConnectModal.ping(pingParams, object : Modal.Listeners.SessionPing {
+                override fun onSuccess(pingSuccess: Modal.Model.Ping.Success) {
+                    viewModelScope.launch {
+                        _sessionEvents.emit(DappSampleEvents.PingSuccess(pingSuccess.topic))
+                    }
                 }
-            }
 
-            override fun onError(pingError: Modal.Model.Ping.Error) {
-                viewModelScope.launch {
-                    _sessionEvents.emit(DappSampleEvents.PingError)
+                override fun onError(pingError: Modal.Model.Ping.Error) {
+                    viewModelScope.launch {
+                        _sessionEvents.emit(DappSampleEvents.PingError)
+                    }
                 }
+            })
+        } catch (e: Exception) {
+            viewModelScope.launch {
+                _sessionEvents.emit(DappSampleEvents.PingError)
             }
-        })
+        }
     }
 
     fun disconnect() {

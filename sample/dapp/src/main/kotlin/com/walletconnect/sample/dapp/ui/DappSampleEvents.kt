@@ -10,6 +10,8 @@ sealed class DappSampleEvents {
 
     object PingError : DappSampleEvents()
 
+    object PingLoading : DappSampleEvents()
+
     object Disconnect : DappSampleEvents()
     data class DisconnectError(val message: String) : DappSampleEvents()
 
@@ -23,8 +25,8 @@ sealed class DappSampleEvents {
 
     object NoAction : DappSampleEvents()
 
-    data class SessionEvent(val name: String, val data: String): DappSampleEvents()
+    data class SessionEvent(val name: String, val data: String) : DappSampleEvents()
 
-    object SessionExtend: DappSampleEvents()
-    data class ConnectionEvent(val isAvailable: Boolean): DappSampleEvents()
+    object SessionExtend : DappSampleEvents()
+    data class ConnectionEvent(val isAvailable: Boolean) : DappSampleEvents()
 }

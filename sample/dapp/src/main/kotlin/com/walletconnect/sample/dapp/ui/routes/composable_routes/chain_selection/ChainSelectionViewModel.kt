@@ -4,12 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
-import com.walletconnect.wcmodal.client.Modal
-import com.walletconnect.wcmodal.client.WalletConnectModal
-import com.walletconnect.sample.dapp.domain.DappDelegate
-import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.sample.common.Chains
 import com.walletconnect.sample.common.tag
+import com.walletconnect.sample.dapp.domain.DappDelegate
+import com.walletconnect.sample.dapp.ui.DappSampleEvents
+import com.walletconnect.wcmodal.client.Modal
+import com.walletconnect.wcmodal.client.WalletConnectModal
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -104,6 +104,7 @@ class ChainSelectionViewModel : ViewModel() {
             CoreClient.Pairing.getPairings()[pairingTopicPosition]
         } else {
             CoreClient.Pairing.create() { error ->
+                //todo handle error, log
                 throw IllegalStateException("Creating Pairing failed: ${error.throwable.stackTraceToString()}")
             }!!
         }

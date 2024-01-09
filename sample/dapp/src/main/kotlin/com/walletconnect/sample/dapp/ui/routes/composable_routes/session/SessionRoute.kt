@@ -49,7 +49,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.walletconnect.sample.common.ui.WCTopAppBarLegacy
-import com.walletconnect.sample.common.ui.commons.BlueButton
 import com.walletconnect.sample.common.ui.commons.ButtonWithLoader
 import com.walletconnect.sample.common.ui.themedColor
 import com.walletconnect.sample.dapp.R
@@ -65,12 +64,22 @@ fun SessionRoute(
     val viewModel: SessionViewModel = viewModel()
     val state by viewModel.uiState.collectAsState()
     var isDisconnectLoading by remember { mutableStateOf(false) }
+    var isPingLoading by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.sessionEvent.collect { event ->
             when (event) {
-                is DappSampleEvents.PingSuccess -> Toast.makeText(context, "Pinged Peer Successfully on Topic: ${event.topic}", Toast.LENGTH_SHORT).show()
-                is DappSampleEvents.PingError -> Toast.makeText(context, "Pinged Peer Unsuccessfully", Toast.LENGTH_SHORT).show()
+                is DappSampleEvents.PingSuccess -> {
+                    isPingLoading = false
+                    Toast.makeText(context, "Pinged Peer Successfully on Topic: ${event.topic}", Toast.LENGTH_SHORT).show()
+                }
+
+                is DappSampleEvents.PingError -> {
+                    isPingLoading = false
+                    Toast.makeText(context, "Pinged Peer Unsuccessfully", Toast.LENGTH_SHORT).show()
+                }
+
+                is DappSampleEvents.PingLoading -> isPingLoading = true
                 is DappSampleEvents.Disconnect -> {
                     isDisconnectLoading = false
                     navController.popBackStack(Route.ChainSelection.path, inclusive = false)
@@ -94,7 +103,8 @@ fun SessionRoute(
         onSessionClick = navController::navigateToAccount,
         onPingClick = viewModel::ping,
         onDisconnectClick = viewModel::disconnect,
-        isDisconnectLoading
+        isDisconnectLoading,
+        isPingLoading
     )
 }
 
@@ -105,14 +115,15 @@ private fun SessionScreen(
     onSessionClick: (String) -> Unit,
     onPingClick: () -> Unit,
     onDisconnectClick: () -> Unit,
-    isDisconnectLoading: Boolean
+    isDisconnectLoading: Boolean,
+    isPingLoading: Boolean,
 ) {
     Column {
         WCTopAppBarLegacy(
             titleText = "Session Chains",
             onBackIconClick = onBackPressed,
         )
-        ChainsAction(onPingClick, onDisconnectClick, isDisconnectLoading)
+        ChainsAction(onPingClick, onDisconnectClick, isDisconnectLoading, isPingLoading)
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             item {
                 Text(
@@ -137,7 +148,8 @@ private fun SessionScreen(
 private fun ChainsAction(
     onPingClick: () -> Unit,
     onDisconnectClick: () -> Unit,
-    isDisconnectLoading: Boolean
+    isDisconnectLoading: Boolean,
+    isPingLoading: Boolean
 ) {
     var isExpanded by remember { mutableStateOf(false) }
     Box(modifier = Modifier.fillMaxWidth()) {
@@ -159,7 +171,8 @@ private fun ChainsAction(
                 SessionActions(
                     onPingClick = onPingClick,
                     onDisconnectClick = onDisconnectClick,
-                    isDisconnectLoading
+                    isDisconnectLoading,
+                    isPingLoading
                 )
             }
         }
@@ -177,7 +190,8 @@ private fun ChainsAction(
 private fun SessionActions(
     onPingClick: () -> Unit,
     onDisconnectClick: () -> Unit,
-    isDisconnectLoading: Boolean
+    isDisconnectLoading: Boolean,
+    isPingLoading: Boolean
 ) {
     Row(
         modifier = Modifier
@@ -185,7 +199,7 @@ private fun SessionActions(
             .horizontalScroll(rememberScrollState())
     ) {
         val modifier = Modifier.padding(8.dp)
-        BlueButton(text = "Ping", onClick = onPingClick, modifier = modifier)
+        ButtonWithLoader(text = "Ping", onClick = onPingClick, modifier = modifier, isPingLoading)
         Spacer(modifier = Modifier.width(4.dp))
         ButtonWithLoader(text = "Disconnect", onClick = onDisconnectClick, modifier = modifier, isDisconnectLoading)
     }
