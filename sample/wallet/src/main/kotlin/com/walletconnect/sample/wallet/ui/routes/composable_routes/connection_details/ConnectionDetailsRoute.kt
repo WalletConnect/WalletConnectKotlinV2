@@ -260,7 +260,6 @@ fun ChainPermissions(account: String, accountsToSessions: Map<String, Wallet.Mod
     val session: Wallet.Model.Namespace.Session = accountsToSessions[account]!!
     val lastDelimiterIndex = account.indexOfLast { it == ':' }
     val chainId = account.dropLast(account.lastIndex - lastDelimiterIndex + 1)
-    println("kobe: chainid: $chainId")
     Content(title = chainId.uppercase()) {
         Accounts(session.accounts.filter { "${it.split(":")[0]}:${it.split(":")[1]}" == chainId })
         val sections = mapOf("Methods" to getAllMethodsByChainId(session, account), "Events" to getAllEventsByChainId(session, account))

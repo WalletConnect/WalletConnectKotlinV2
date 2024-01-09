@@ -153,7 +153,6 @@ private fun MethodList(
                 onClick = {
                     onMethodClick(item) { uri ->
                         try {
-                            println("kobe: AccountRoute: $uri")
                             context.startActivity(Intent(Intent.ACTION_VIEW, uri))
                         } catch (e: Exception) {
                             Timber.tag("AccountRoute").d("Activity not found: $e")

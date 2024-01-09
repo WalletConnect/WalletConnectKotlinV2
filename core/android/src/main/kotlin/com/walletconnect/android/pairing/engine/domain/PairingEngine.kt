@@ -339,7 +339,6 @@ internal class PairingEngine(
                     pairingRepository.deletePairing(this@isNotExpired.topic)
                     metadataRepository.deleteMetaData(this@isNotExpired.topic)
                     crypto.removeKeys(this@isNotExpired.topic.value)
-                    println("kobe; emit expired pairing")
                     _topicExpiredFlow.emit(this@isNotExpired.topic)
                 } catch (e: Exception) {
                     _topicExpiredFlow.emit(this@isNotExpired.topic)

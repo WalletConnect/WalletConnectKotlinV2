@@ -27,6 +27,7 @@ object DappDelegate : WalletConnectModal.ModalDelegate, CoreClient.CoreDelegate 
 
     init {
         WalletConnectModal.setDelegate(this)
+        CoreClient.setDelegate(this)
     }
 
     override fun onSessionApproved(approvedSession: Modal.Model.ApprovedSession) {
@@ -98,7 +99,6 @@ object DappDelegate : WalletConnectModal.ModalDelegate, CoreClient.CoreDelegate 
     }
 
     override fun onPairingExpired(expiredPairing: Core.Model.ExpiredPairing) {
-        println("kobe: Pairing expired: ${expiredPairing.topic}")
         scope.launch {
             _coreEvents.emit(expiredPairing)
         }
