@@ -13,42 +13,54 @@ class SessionProposalViewModel : ViewModel() {
     val sessionProposal: SessionProposalUI? = generateSessionProposalUI()
     fun approve(proposalPublicKey: String, onSuccess: (String) -> Unit = {}, onError: (String) -> Unit = {}) {
         if (Web3Wallet.getSessionProposals().isNotEmpty()) {
-            val sessionProposal: Wallet.Model.SessionProposal = requireNotNull(Web3Wallet.getSessionProposals().find { it.proposerPublicKey == proposalPublicKey })
-            val sessionNamespaces = Web3Wallet.generateApprovedNamespaces(sessionProposal = sessionProposal, supportedNamespaces = walletMetaData.namespaces)
-            val approveProposal = Wallet.Params.SessionApprove(proposerPublicKey = sessionProposal.proposerPublicKey, namespaces = sessionNamespaces)
+            try {
+                val sessionProposal: Wallet.Model.SessionProposal = requireNotNull(Web3Wallet.getSessionProposals().find { it.proposerPublicKey == proposalPublicKey })
+                val sessionNamespaces = Web3Wallet.generateApprovedNamespaces(sessionProposal = sessionProposal, supportedNamespaces = walletMetaData.namespaces)
+                val approveProposal = Wallet.Params.SessionApprove(proposerPublicKey = sessionProposal.proposerPublicKey, namespaces = sessionNamespaces)
 
-            Web3Wallet.approveSession(approveProposal,
-                onError = { error ->
-                    Firebase.crashlytics.recordException(error.throwable)
-                    WCDelegate.sessionProposalEvent = null
-                    onError(error.throwable.message ?: "Undefined error, please check your Internet connection")
-                },
-                onSuccess = {
-                    WCDelegate.sessionProposalEvent = null
-                    onSuccess(sessionProposal.redirect)
-                })
+                Web3Wallet.approveSession(approveProposal,
+                    onError = { error ->
+                        Firebase.crashlytics.recordException(error.throwable)
+                        WCDelegate.sessionProposalEvent = null
+                        onError(error.throwable.message ?: "Undefined error, please check your Internet connection")
+                    },
+                    onSuccess = {
+                        WCDelegate.sessionProposalEvent = null
+                        onSuccess(sessionProposal.redirect)
+                    })
+            } catch (e: Exception) {
+                Firebase.crashlytics.recordException(e)
+                WCDelegate.sessionProposalEvent = null
+                onError(e.message ?: "Undefined error, please check your Internet connection")
+            }
         }
     }
 
     fun reject(proposalPublicKey: String, onSuccess: (String) -> Unit = {}, onError: (String) -> Unit = {}) {
         if (Web3Wallet.getSessionProposals().isNotEmpty()) {
-            val sessionProposal: Wallet.Model.SessionProposal = requireNotNull(Web3Wallet.getSessionProposals().find { it.proposerPublicKey == proposalPublicKey })
-            val rejectionReason = "Reject Session"
-            val reject = Wallet.Params.SessionReject(
-                proposerPublicKey = sessionProposal.proposerPublicKey,
-                reason = rejectionReason
-            )
+            try {
+                val sessionProposal: Wallet.Model.SessionProposal = requireNotNull(Web3Wallet.getSessionProposals().find { it.proposerPublicKey == proposalPublicKey })
+                val rejectionReason = "Reject Session"
+                val reject = Wallet.Params.SessionReject(
+                    proposerPublicKey = sessionProposal.proposerPublicKey,
+                    reason = rejectionReason
+                )
 
-            Web3Wallet.rejectSession(reject,
-                onSuccess = {
-                    WCDelegate.sessionProposalEvent = null
-                    onSuccess(sessionProposal.redirect)
-                },
-                onError = { error ->
-                    Firebase.crashlytics.recordException(error.throwable)
-                    WCDelegate.sessionProposalEvent = null
-                    onError(error.throwable.message ?: "Undefined error, please check your Internet connection")
-                })
+                Web3Wallet.rejectSession(reject,
+                    onSuccess = {
+                        WCDelegate.sessionProposalEvent = null
+                        onSuccess(sessionProposal.redirect)
+                    },
+                    onError = { error ->
+                        Firebase.crashlytics.recordException(error.throwable)
+                        WCDelegate.sessionProposalEvent = null
+                        onError(error.throwable.message ?: "Undefined error, please check your Internet connection")
+                    })
+            } catch (e: Exception) {
+                Firebase.crashlytics.recordException(e)
+                WCDelegate.sessionProposalEvent = null
+                onError(e.message ?: "Undefined error, please check your Internet connection")
+            }
         }
     }
 

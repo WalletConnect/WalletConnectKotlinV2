@@ -122,6 +122,7 @@ class Web3WalletApplication : Application() {
                     },
                     onError = {
                         logger.error("Error while registering firebase token for Web3Wallet: ${it.throwable}")
+                        Firebase.crashlytics.recordException(Throwable("Error while registering firebase token for Web3Wallet: ${it.throwable}"))
                     })
 
                 Beagle.add(

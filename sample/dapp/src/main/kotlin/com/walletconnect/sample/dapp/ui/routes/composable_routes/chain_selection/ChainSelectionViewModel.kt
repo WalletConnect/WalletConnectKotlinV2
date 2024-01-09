@@ -48,6 +48,13 @@ class ChainSelectionViewModel : ViewModel() {
         }
     }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
+    val coreEvents = DappDelegate.coreEvents.map { walletEvent: Core.Model ->
+        when (walletEvent) {
+            is Core.Model.ExpiredPairing -> DappSampleEvents.PairingExpired
+            else -> DappSampleEvents.NoAction
+        }
+    }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
+
     fun awaitingProposalResponse(isAwaiting: Boolean) {
         viewModelScope.launch {
             _awaitingProposalSharedFlow.emit(isAwaiting)
@@ -111,6 +118,9 @@ class ChainSelectionViewModel : ViewModel() {
     )
 
     fun connectToWallet(pairingTopicPosition: Int = -1, onSuccess: (String) -> Unit = {}, onError: (String) -> Unit = {}) {
+        viewModelScope.launch {
+            _awaitingProposalSharedFlow.emit(true)
+        }
         try {
             val pairing: Core.Model.Pairing = if (pairingTopicPosition > -1) {
                 CoreClient.Pairing.getPairings()[pairingTopicPosition]
@@ -133,6 +143,9 @@ class ChainSelectionViewModel : ViewModel() {
                     onSuccess(pairing.uri)
                 },
                 onError = { error ->
+                    viewModelScope.launch {
+                        _awaitingProposalSharedFlow.emit(false)
+                    }
                     Timber.tag(tag(this)).e(error.throwable.stackTraceToString())
                     Firebase.crashlytics.recordException(error.throwable)
                     onError(error.throwable.message ?: "Unknown error, please contact support")

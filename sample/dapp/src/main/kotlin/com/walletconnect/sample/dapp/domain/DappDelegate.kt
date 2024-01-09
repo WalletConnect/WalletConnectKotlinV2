@@ -1,8 +1,10 @@
 package com.walletconnect.sample.dapp.domain
 
+import com.walletconnect.android.Core
+import com.walletconnect.android.CoreClient
+import com.walletconnect.sample.common.tag
 import com.walletconnect.wcmodal.client.Modal
 import com.walletconnect.wcmodal.client.WalletConnectModal
-import com.walletconnect.sample.common.tag
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -12,10 +14,13 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
-object DappDelegate : WalletConnectModal.ModalDelegate {
+object DappDelegate : WalletConnectModal.ModalDelegate, CoreClient.CoreDelegate {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val _wcEventModels: MutableSharedFlow<Modal.Model?> = MutableSharedFlow()
-    val wcEventModels: SharedFlow<Modal.Model?> =  _wcEventModels.asSharedFlow()
+    val wcEventModels: SharedFlow<Modal.Model?> = _wcEventModels.asSharedFlow()
+
+    private val _coreEvents: MutableSharedFlow<Core.Model> = MutableSharedFlow()
+    val coreEvents: SharedFlow<Core.Model> = _coreEvents.asSharedFlow()
 
     var selectedSessionTopic: String? = null
         private set
@@ -85,6 +90,17 @@ object DappDelegate : WalletConnectModal.ModalDelegate {
         Timber.d(tag(this), error.throwable.stackTraceToString())
         scope.launch {
             _wcEventModels.emit(error)
+        }
+    }
+
+    override fun onPairingDelete(deletedPairing: Core.Model.DeletedPairing) {
+        Timber.d(tag(this), "Pairing deleted: ${deletedPairing.topic}")
+    }
+
+    override fun onPairingExpired(expiredPairing: Core.Model.ExpiredPairing) {
+        println("kobe: Pairing expired: ${expiredPairing.topic}")
+        scope.launch {
+            _coreEvents.emit(expiredPairing)
         }
     }
 }

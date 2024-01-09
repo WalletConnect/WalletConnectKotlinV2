@@ -29,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -63,11 +64,14 @@ import com.walletconnect.sample.dapp.ui.routes.bottom_routes.pairingSelectionRes
 import com.walletconnect.wcmodal.client.WalletConnectModal
 import com.walletconnect.wcmodal.ui.openWalletConnectModal
 import com.walletconnect.wcmodal.ui.state.rememberModalState
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 @Composable
 fun ChainSelectionRoute(navController: NavController) {
     val context = LocalContext.current
+    val composableScope = rememberCoroutineScope()
     val viewModel: ChainSelectionViewModel = viewModel()
     val chainsState by viewModel.uiState.collectAsState()
     val isModalState = rememberModalState(navController = navController)
@@ -76,9 +80,7 @@ fun ChainSelectionRoute(navController: NavController) {
 
     LaunchedEffect(Unit) {
         navController.currentBackStackEntryFlow.collectLatest { event ->
-            event.savedStateHandle.get<PairingSelectionResult>(
-                pairingSelectionResultKey
-            )?.let {
+            event.savedStateHandle.get<PairingSelectionResult>(pairingSelectionResultKey)?.let {
                 navController.currentBackStackEntry?.savedStateHandle?.remove<PairingSelectionResult>(pairingSelectionResultKey)
                 when (it) {
                     PairingSelectionResult.NewPairing -> {
@@ -87,7 +89,13 @@ fun ChainSelectionRoute(navController: NavController) {
                     }
 
                     PairingSelectionResult.None -> Unit
-                    is PairingSelectionResult.SelectedPairing -> viewModel.connectToWallet(it.position)
+                    is PairingSelectionResult.SelectedPairing -> {
+                        viewModel.connectToWallet(it.position) { error ->
+                            composableScope.launch(Dispatchers.Main) {
+                                Toast.makeText(context, "Error while connecting: $error", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -104,6 +112,19 @@ fun ChainSelectionRoute(navController: NavController) {
                 DappSampleEvents.SessionRejected -> {
                     viewModel.awaitingProposalResponse(false)
                     Toast.makeText(context, "Session has been rejected", Toast.LENGTH_SHORT).show()
+                }
+
+                else -> Unit
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.coreEvents.collect { event ->
+            when (event) {
+                DappSampleEvents.PairingExpired -> {
+                    viewModel.awaitingProposalResponse(false)
+                    Toast.makeText(context, "Pairing has been expired", Toast.LENGTH_SHORT).show()
                 }
 
                 else -> Unit
@@ -132,7 +153,6 @@ fun ChainSelectionRoute(navController: NavController) {
         }
     ) {
         if (viewModel.isAnyChainSelected) {
-            viewModel.awaitingProposalResponse(true)
             viewModel.connectToWallet(
                 onSuccess = { uri ->
                     val intent = Intent(Intent.ACTION_VIEW).apply {
@@ -146,8 +166,9 @@ fun ChainSelectionRoute(navController: NavController) {
                     context.startActivity(intent)
                 },
                 onError = { error ->
-                    viewModel.awaitingProposalResponse(false)
-                    Toast.makeText(context, "Error while connecting: $error", Toast.LENGTH_SHORT).show()
+                    composableScope.launch(Dispatchers.Main) {
+                        Toast.makeText(context, "Error while connecting: $error", Toast.LENGTH_SHORT).show()
+                    }
                 })
         } else {
             Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()

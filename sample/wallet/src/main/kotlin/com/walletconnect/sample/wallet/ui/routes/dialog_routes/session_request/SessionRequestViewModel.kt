@@ -28,29 +28,36 @@ class SessionRequestViewModel : ViewModel() {
     }
 
     fun reject(onSuccess: (Uri?) -> Unit = {}, onError: (String) -> Unit = {}) {
-        val sessionRequest = sessionRequest as? SessionRequestUI.Content
-        if (sessionRequest != null) {
-            val result = Wallet.Params.SessionRequestResponse(
-                sessionTopic = sessionRequest.topic,
-                jsonRpcResponse = Wallet.Model.JsonRpcResponse.JsonRpcError(
-                    id = sessionRequest.requestId,
-                    code = 500,
-                    message = "Kotlin Wallet Error"
+        try {
+            val sessionRequest = sessionRequest as? SessionRequestUI.Content
+            if (sessionRequest != null) {
+                val result = Wallet.Params.SessionRequestResponse(
+                    sessionTopic = sessionRequest.topic,
+                    jsonRpcResponse = Wallet.Model.JsonRpcResponse.JsonRpcError(
+                        id = sessionRequest.requestId,
+                        code = 500,
+                        message = "Kotlin Wallet Error"
+                    )
                 )
-            )
-            val redirect = Web3Wallet.getActiveSessionByTopic(sessionRequest.topic)?.redirect?.toUri()
-            Web3Wallet.respondSessionRequest(result,
-                onSuccess = {
-                    WCDelegate.sessionRequestEvent = null
-                    clearSessionRequest()
-                    onSuccess(redirect)
-                },
-                onError = { error ->
-                    WCDelegate.sessionRequestEvent = null
-                    Firebase.crashlytics.recordException(error.throwable)
-                    clearSessionRequest()
-                    onError(error.throwable.message ?: "Undefined error, please check your Internet connection")
-                })
+                val redirect = Web3Wallet.getActiveSessionByTopic(sessionRequest.topic)?.redirect?.toUri()
+                Web3Wallet.respondSessionRequest(result,
+                    onSuccess = {
+                        WCDelegate.sessionRequestEvent = null
+                        clearSessionRequest()
+                        onSuccess(redirect)
+                    },
+                    onError = { error ->
+                        WCDelegate.sessionRequestEvent = null
+                        Firebase.crashlytics.recordException(error.throwable)
+                        clearSessionRequest()
+                        onError(error.throwable.message ?: "Undefined error, please check your Internet connection")
+                    })
+            }
+        } catch (e: Exception) {
+            WCDelegate.sessionRequestEvent = null
+            Firebase.crashlytics.recordException(e)
+            clearSessionRequest()
+            onError(e.message ?: "Undefined error, please check your Internet connection")
         }
     }
 
@@ -64,49 +71,55 @@ class SessionRequestViewModel : ViewModel() {
     }
 
     fun approve(onSuccess: (Uri?) -> Unit = {}, onError: (String) -> Unit = {}) {
-        val sessionRequest = sessionRequest as? SessionRequestUI.Content
-        if (sessionRequest != null) {
-            val result: String = when {
-                sessionRequest.method == PERSONAL_SIGN_METHOD -> CacaoSigner.sign(
-                    sessionRequest.param,
-                    EthAccountDelegate.privateKey.hexToBytes(),
-                    SignatureType.EIP191
-                ).s
+        try {
+            val sessionRequest = sessionRequest as? SessionRequestUI.Content
+            if (sessionRequest != null) {
+                val result: String = when {
+                    sessionRequest.method == PERSONAL_SIGN_METHOD -> CacaoSigner.sign(
+                        sessionRequest.param,
+                        EthAccountDelegate.privateKey.hexToBytes(),
+                        SignatureType.EIP191
+                    ).s
 
-                sessionRequest.chain?.contains(
-                    Chains.Info.Eth.chain,
-                    true
-                ) == true -> """0xa3f20717a250c2b0b729b7e5becbff67fdaef7e0699da4de7ca5895b02a170a12d887fd3b17bfdce3481f10bea41f45ba9f709d39ce8325427b57afcfc994cee1b"""
+                    sessionRequest.chain?.contains(
+                        Chains.Info.Eth.chain,
+                        true
+                    ) == true -> """0xa3f20717a250c2b0b729b7e5becbff67fdaef7e0699da4de7ca5895b02a170a12d887fd3b17bfdce3481f10bea41f45ba9f709d39ce8325427b57afcfc994cee1b"""
 
-                sessionRequest.chain?.contains(
-                    Chains.Info.Cosmos.chain,
-                    true
-                ) == true -> """{"signature":"pBvp1bMiX6GiWmfYmkFmfcZdekJc19GbZQanqaGa\/kLPWjoYjaJWYttvm17WoDMyn4oROas4JLu5oKQVRIj911==","pub_key":{"value":"psclI0DNfWq6cOlGrKD9wNXPxbUsng6Fei77XjwdkPSt","type":"tendermint\/PubKeySecp256k1"}}"""
+                    sessionRequest.chain?.contains(
+                        Chains.Info.Cosmos.chain,
+                        true
+                    ) == true -> """{"signature":"pBvp1bMiX6GiWmfYmkFmfcZdekJc19GbZQanqaGa\/kLPWjoYjaJWYttvm17WoDMyn4oROas4JLu5oKQVRIj911==","pub_key":{"value":"psclI0DNfWq6cOlGrKD9wNXPxbUsng6Fei77XjwdkPSt","type":"tendermint\/PubKeySecp256k1"}}"""
 
-                else -> throw Exception("Unsupported Chain")
-            }
-            val response = Wallet.Params.SessionRequestResponse(
-                sessionTopic = sessionRequest.topic,
-                jsonRpcResponse = Wallet.Model.JsonRpcResponse.JsonRpcResult(
-                    sessionRequest.requestId,
-                    result
+                    else -> throw Exception("Unsupported Chain")
+                }
+                val response = Wallet.Params.SessionRequestResponse(
+                    sessionTopic = sessionRequest.topic,
+                    jsonRpcResponse = Wallet.Model.JsonRpcResponse.JsonRpcResult(
+                        sessionRequest.requestId,
+                        result
+                    )
                 )
-            )
 
-            val redirect = Web3Wallet.getActiveSessionByTopic(sessionRequest.topic)?.redirect?.toUri()
-            Web3Wallet.respondSessionRequest(response,
-                onSuccess = {
-                    WCDelegate.sessionRequestEvent = null
-                    clearSessionRequest()
-                    println("kobe: redirect: $redirect")
-                    onSuccess(redirect)
-                },
-                onError = { error ->
-                    WCDelegate.sessionRequestEvent = null
-                    Firebase.crashlytics.recordException(error.throwable)
-                    clearSessionRequest()
-                    onError(error.throwable.message ?: "Undefined error, please check your Internet connection")
-                })
+                val redirect = Web3Wallet.getActiveSessionByTopic(sessionRequest.topic)?.redirect?.toUri()
+                Web3Wallet.respondSessionRequest(response,
+                    onSuccess = {
+                        WCDelegate.sessionRequestEvent = null
+                        clearSessionRequest()
+                        onSuccess(redirect)
+                    },
+                    onError = { error ->
+                        WCDelegate.sessionRequestEvent = null
+                        Firebase.crashlytics.recordException(error.throwable)
+                        clearSessionRequest()
+                        onError(error.throwable.message ?: "Undefined error, please check your Internet connection")
+                    })
+            }
+        } catch (e: Exception) {
+            WCDelegate.sessionRequestEvent = null
+            Firebase.crashlytics.recordException(e)
+            clearSessionRequest()
+            onError(e.message ?: "Undefined error, please check your Internet connection")
         }
     }
 

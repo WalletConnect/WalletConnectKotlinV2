@@ -29,4 +29,6 @@ sealed class DappSampleEvents {
 
     object SessionExtend : DappSampleEvents()
     data class ConnectionEvent(val isAvailable: Boolean) : DappSampleEvents()
+
+    object PairingExpired : DappSampleEvents()
 }

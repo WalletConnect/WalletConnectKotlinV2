@@ -165,27 +165,33 @@ fun ConnectionDetailsRoute(navController: NavController, connectionId: Int?, con
                 onDelete = {
                     when (uiConnection.type) {
                         is ConnectionType.Sign -> {
-                            isDeleteLoading = true
-                            Web3Wallet.disconnectSession(Wallet.Params.SessionDisconnect(uiConnection.type.topic)) { error ->
-                                Firebase.crashlytics.recordException(error.throwable)
+                            try {
+                                isDeleteLoading = true
+                                Web3Wallet.disconnectSession(Wallet.Params.SessionDisconnect(uiConnection.type.topic),
+                                    onSuccess = {
+                                        isDeleteLoading = false
+                                        connectionsViewModel.refreshConnections()
+                                        composableScope.launch(Dispatchers.Main) {
+                                            navController.popBackStack()
+                                            navController.showSnackbar("Session disconnected")
+                                        }
+                                    },
+                                    onError = { error ->
+                                        Firebase.crashlytics.recordException(error.throwable)
+                                        isDeleteLoading = false
+                                        connectionsViewModel.refreshConnections()
+                                        composableScope.launch(Dispatchers.Main) {
+                                            navController.showSnackbar("Session disconnection error: ${error.throwable.message ?: "Unknown error please contact support"}")
+                                        }
+                                    })
+                            } catch (e: Exception) {
+                                Firebase.crashlytics.recordException(e)
+                                isDeleteLoading = false
+                                connectionsViewModel.refreshConnections()
+                                composableScope.launch(Dispatchers.Main) {
+                                    navController.showSnackbar("Session disconnection error: ${e.message ?: "Unknown error please contact support"}")
+                                }
                             }
-                            Web3Wallet.disconnectSession(Wallet.Params.SessionDisconnect(uiConnection.type.topic),
-                                onSuccess = {
-                                    isDeleteLoading = false
-                                    connectionsViewModel.refreshConnections()
-                                    composableScope.launch(Dispatchers.Main) {
-                                        navController.popBackStack()
-                                        navController.showSnackbar("Session disconnected")
-                                    }
-                                },
-                                onError = { error ->
-                                    Firebase.crashlytics.recordException(error.throwable)
-                                    isDeleteLoading = false
-                                    connectionsViewModel.refreshConnections()
-                                    composableScope.launch(Dispatchers.Main) {
-                                        navController.showSnackbar("Session disconnection error: ${error.throwable.message ?: "Unknown error please contact support"}")
-                                    }
-                                })
                         }
                     }
                 })
@@ -256,7 +262,7 @@ fun ChainPermissions(account: String, accountsToSessions: Map<String, Wallet.Mod
     val chainId = account.dropLast(account.lastIndex - lastDelimiterIndex + 1)
     println("kobe: chainid: $chainId")
     Content(title = chainId.uppercase()) {
-        Accounts(session.accounts.filter { "${it.split(":")[0]}:${it.split(":")[1]}" == chainId})
+        Accounts(session.accounts.filter { "${it.split(":")[0]}:${it.split(":")[1]}" == chainId })
         val sections = mapOf("Methods" to getAllMethodsByChainId(session, account), "Events" to getAllEventsByChainId(session, account))
         sections.forEach { (title, values) -> BlueLabelTexts(title, values, title != "Events") }
     }
