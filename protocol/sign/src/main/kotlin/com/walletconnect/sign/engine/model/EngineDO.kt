@@ -47,6 +47,8 @@ internal sealed class EngineDO {
         val relayData: String?,
     ) : EngineDO(), EngineEvent
 
+    data class ExpiredProposal(val pairingTopic: String, val proposerPublicKey: String) : EngineDO(), EngineEvent
+
     data class VerifyContext(
         val id: Long,
         val origin: String,

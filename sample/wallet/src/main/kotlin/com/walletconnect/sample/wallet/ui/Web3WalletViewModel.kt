@@ -44,6 +44,12 @@ class Web3WalletViewModel : ViewModel() {
         Log.d("Web3Wallet", "VM: $wcEvent")
 
         when (wcEvent) {
+            is Wallet.Model.ExpiredProposal -> {
+                viewModelScope.launch {
+                    _pairingSharedFlow.emit(PairingState.Error("Proposal expired, please pair again"))
+                }
+
+            }
             is Wallet.Model.SessionRequest -> {
                 val topic = wcEvent.topic
                 val icon = wcEvent.peerMetaData?.icons?.firstOrNull()

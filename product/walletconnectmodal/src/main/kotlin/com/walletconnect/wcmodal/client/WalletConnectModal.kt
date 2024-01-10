@@ -2,11 +2,11 @@ package com.walletconnect.wcmodal.client
 
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.wcmodal.domain.WalletConnectModalDelegate
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import com.walletconnect.sign.common.exceptions.SignClientAlreadyInitializedException
 import com.walletconnect.wcmodal.di.walletConnectModalModule
+import com.walletconnect.wcmodal.domain.WalletConnectModalDelegate
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
@@ -31,6 +31,7 @@ object WalletConnectModal {
         fun onSessionRequestResponse(response: Modal.Model.SessionRequestResponse)
 
         // Utils
+        fun onProposalExpired(proposal: Modal.Model.ExpiredProposal)
         fun onConnectionStateChange(state: Modal.Model.ConnectionState)
         fun onError(error: Modal.Model.Error)
     }
@@ -72,7 +73,7 @@ object WalletConnectModal {
     @Throws(IllegalStateException::class)
     fun setDelegate(delegate: ModalDelegate) {
         WalletConnectModalDelegate.wcEventModels.onEach { event ->
-            when(event) {
+            when (event) {
                 is Modal.Model.ApprovedSession -> delegate.onSessionApproved(event)
                 is Modal.Model.ConnectionState -> delegate.onConnectionStateChange(event)
                 is Modal.Model.DeletedSession.Success -> delegate.onSessionDelete(event)
@@ -116,6 +117,10 @@ object WalletConnectModal {
 
             override fun onSessionRequestResponse(response: Sign.Model.SessionRequestResponse) {
                 delegate.onSessionRequestResponse(response.toModal())
+            }
+
+            override fun onProposalExpired(proposal: Sign.Model.ExpiredProposal) {
+                delegate.onProposalExpired(proposal.toModal())
             }
 
             override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {

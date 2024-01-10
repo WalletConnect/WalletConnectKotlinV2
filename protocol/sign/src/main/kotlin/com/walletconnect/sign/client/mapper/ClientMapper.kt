@@ -236,6 +236,10 @@ internal fun ConnectionState.toClientConnectionState(): Sign.Model.ConnectionSta
     Sign.Model.ConnectionState(isAvailable)
 
 @JvmSynthetic
+internal fun EngineDO.ExpiredProposal.toClient(): Sign.Model.ExpiredProposal =
+    Sign.Model.ExpiredProposal(pairingTopic, proposerPublicKey)
+
+@JvmSynthetic
 internal fun SDKError.toClientError(): Sign.Model.Error =
     Sign.Model.Error(this.exception)
 

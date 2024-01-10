@@ -107,6 +107,7 @@ object Modal {
             val isAvailable: Boolean,
         ) : Model()
 
+        data class ExpiredProposal(val pairingTopic: String, val proposerPublicKey: String) : Model()
 
         sealed class JsonRpcResponse : Model() {
             abstract val id: Long

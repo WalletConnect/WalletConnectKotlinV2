@@ -191,6 +191,9 @@ internal fun ProposalVO.toEngineDO(): EngineDO.SessionProposal =
         properties = properties
     )
 
+@JvmSynthetic
+internal fun ProposalVO.toExpiredProposal(): EngineDO.ExpiredProposal = EngineDO.ExpiredProposal(pairingTopic.value, proposerPublicKey)
+
 private fun convertToURI(it: String) = try {
     URI(it)
 } catch (e: Exception) {

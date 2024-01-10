@@ -13,6 +13,7 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.CoreValidator
+import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.android.verify.data.model.VerifyContext
@@ -20,6 +21,7 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toEngineDO
+import com.walletconnect.sign.engine.model.mapper.toExpiredProposal
 import com.walletconnect.sign.engine.model.mapper.toSessionRequest
 import com.walletconnect.sign.engine.sessionRequestEventsQueue
 import com.walletconnect.sign.engine.use_case.calls.ApproveSessionUseCaseInterface
@@ -60,10 +62,12 @@ import com.walletconnect.utils.Empty
 import com.walletconnect.utils.isSequenceValid
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
@@ -150,7 +154,8 @@ internal class SignEngine(
         )
         setupSequenceExpiration()
         propagatePendingSessionRequestsQueue()
-        emitReceivedSessionProposals()
+        emitReceivedSessionProposalsWhilePairingTwice()
+        sessionProposalExpiryWatcher()
     }
 
     fun setup() {
@@ -291,14 +296,38 @@ internal class SignEngine(
             }
     }
 
-    private fun emitReceivedSessionProposals() {
+    private fun sessionProposalExpiryWatcher() {
+        flow {
+            while (true) {
+                emit(Unit)
+                delay(2000)
+            }
+        }.onEach {
+            proposalStorageRepository
+                .getProposals()
+                .onEach { proposal ->
+                    if (proposal.expiry.isExpired()) {
+                        proposalStorageRepository.deleteProposal(proposal.proposerPublicKey)
+                        println("kobe: Emitting proposal expired: ${proposal.proposerPublicKey}")
+                        _engineEvent.emit(proposal.toExpiredProposal())
+                    }
+                }
+        }.launchIn(scope)
+    }
+
+    private fun emitReceivedSessionProposalsWhilePairingTwice() {
         pairingController.activePairingFlow
             .onEach { pairingTopic ->
                 try {
                     val proposal = proposalStorageRepository.getProposalByTopic(pairingTopic.value)
-                    val context = verifyContextStorageRepository.get(proposal.requestId) ?: VerifyContext(proposal.requestId, String.Empty, Validation.UNKNOWN, String.Empty, null)
-                    val sessionProposalEvent = EngineDO.SessionProposalEvent(proposal = proposal.toEngineDO(), context = context.toEngineDO())
-                    scope.launch { _engineEvent.emit(sessionProposalEvent) }
+                    if (proposal.expiry.isExpired()) {
+                        proposalStorageRepository.deleteProposal(proposal.proposerPublicKey)
+                        _engineEvent.emit(proposal.toExpiredProposal())
+                    } else {
+                        val context = verifyContextStorageRepository.get(proposal.requestId) ?: VerifyContext(proposal.requestId, String.Empty, Validation.UNKNOWN, String.Empty, null)
+                        val sessionProposalEvent = EngineDO.SessionProposalEvent(proposal = proposal.toEngineDO(), context = context.toEngineDO())
+                        scope.launch { _engineEvent.emit(sessionProposalEvent) }
+                    }
                 } catch (e: Exception) {
                     scope.launch { _engineEvent.emit(SDKError(Throwable("No proposal for pairing topic: $e"))) }
                 }

@@ -33,6 +33,8 @@ class SessionProposalViewModel : ViewModel() {
                 WCDelegate.sessionProposalEvent = null
                 onError(e.message ?: "Undefined error, please check your Internet connection")
             }
+        } else {
+            onError("Proposal expired")
         }
     }
 
@@ -61,6 +63,8 @@ class SessionProposalViewModel : ViewModel() {
                 WCDelegate.sessionProposalEvent = null
                 onError(e.message ?: "Undefined error, please check your Internet connection")
             }
+        } else {
+            onError("Proposal expired")
         }
     }
 

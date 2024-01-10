@@ -45,6 +45,7 @@ object Web3Modal {
         fun onSessionRequestResponse(response: Modal.Model.SessionRequestResponse)
 
         // Utils
+        fun onProposalExpired(proposal: Modal.Model.ExpiredProposal)
         fun onConnectionStateChange(state: Modal.Model.ConnectionState)
         fun onError(error: Modal.Model.Error)
     }
@@ -150,6 +151,10 @@ object Web3Modal {
 
             override fun onSessionRequestResponse(response: Sign.Model.SessionRequestResponse) {
                 delegate.onSessionRequestResponse(response.toModal())
+            }
+
+            override fun onProposalExpired(proposal: Sign.Model.ExpiredProposal) {
+                delegate.onProposalExpired(proposal.toModal())
             }
 
             override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {

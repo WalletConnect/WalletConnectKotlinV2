@@ -11,6 +11,7 @@ object Modal {
             fun onError(pingError: Model.Ping.Error)
         }
     }
+
     sealed class Params {
         data class Init(
             val core: CoreClient,
@@ -24,7 +25,7 @@ object Modal {
             val optionalNamespaces: Map<String, Model.Namespace.Proposal>? = null,
             val properties: Map<String, String>? = null,
             val pairing: Core.Model.Pairing
-        ): Params()
+        ) : Params()
 
         data class Disconnect(val sessionTopic: String) : Params()
 
@@ -103,6 +104,8 @@ object Modal {
             val method: String,
             val result: JsonRpcResponse,
         ) : Model()
+
+        data class ExpiredProposal(val pairingTopic: String, val proposerPublicKey: String) : Model()
 
         data class ConnectionState(
             val isAvailable: Boolean,

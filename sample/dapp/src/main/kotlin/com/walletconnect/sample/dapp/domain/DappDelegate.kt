@@ -76,6 +76,10 @@ object DappDelegate : WalletConnectModal.ModalDelegate, CoreClient.CoreDelegate 
         }
     }
 
+    override fun onProposalExpired(proposal: Modal.Model.ExpiredProposal) {
+        //todo emit close expiry
+    }
+
     fun deselectAccountDetails() {
         selectedSessionTopic = null
     }

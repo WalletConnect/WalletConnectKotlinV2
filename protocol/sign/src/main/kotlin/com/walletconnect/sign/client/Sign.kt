@@ -47,6 +47,8 @@ object Sign {
             val relayData: String?,
         ) : Model()
 
+        data class ExpiredProposal(val pairingTopic: String, val proposerPublicKey: String) : Model()
+
         data class VerifyContext(
             val id: Long,
             val origin: String,

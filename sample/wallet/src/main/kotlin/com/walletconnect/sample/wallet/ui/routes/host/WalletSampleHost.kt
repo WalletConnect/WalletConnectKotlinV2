@@ -28,7 +28,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,11 +69,19 @@ fun WalletSampleHost(
 ) {
     val scaffoldState: ScaffoldState = rememberScaffoldState()
     val connectionState = web3walletViewModel.connectionState.collectAsState(ConnectionState.Idle).value
-    val pairingState = web3walletViewModel.pairingSharedFlow.collectAsState(PairingState.Idle).value
     val bottomBarState = rememberBottomBarMutableState()
     val currentRoute = navController.currentBackStackEntryAsState()
-    val coroutineScope = rememberCoroutineScope()
-//    val pairingState by remember { mutableStateOf(PairingState.Idle) }
+    var isLoader by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        web3walletViewModel.pairingSharedFlow.collect {
+            if (it is PairingState.Error) {
+                isLoader = false
+                navController.popBackStack(route = Route.Connections.path, inclusive = false) //todo: always?
+                navController.showSnackbar(it.message)
+            }
+            isLoader = it is PairingState.Loading
+        }
+    }
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -97,17 +104,9 @@ fun WalletSampleHost(
                 RestoredConnectionBanner()
             }
 
-
-            when (pairingState) {
-                is PairingState.Error -> {
-                    println("kobe: Error: ${pairingState.message}")
-                    navController.showSnackbar(pairingState.message)
-                }
-
-                is PairingState.Loading -> PairingLoader()
-                else -> Unit
+            if (isLoader) {
+                PairingLoader()
             }
-
         }
     }
 }

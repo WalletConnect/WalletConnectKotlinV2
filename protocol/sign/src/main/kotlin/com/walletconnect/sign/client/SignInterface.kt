@@ -12,6 +12,7 @@ interface SignInterface {
         fun onSessionUpdateResponse(sessionUpdateResponse: Sign.Model.SessionUpdateResponse)
 
         //Utils
+        fun onProposalExpired(proposal: Sign.Model.ExpiredProposal)
         fun onConnectionStateChange(state: Sign.Model.ConnectionState)
         fun onError(error: Sign.Model.Error)
     }
@@ -28,6 +29,7 @@ interface SignInterface {
         fun onSessionRequestResponse(response: Sign.Model.SessionRequestResponse)
 
         // Utils
+        fun onProposalExpired(proposal: Sign.Model.ExpiredProposal)
         fun onConnectionStateChange(state: Sign.Model.ConnectionState)
         fun onError(error: Sign.Model.Error)
     }
