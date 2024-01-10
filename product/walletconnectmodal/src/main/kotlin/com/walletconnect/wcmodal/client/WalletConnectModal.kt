@@ -83,6 +83,7 @@ object WalletConnectModal {
                 is Modal.Model.SessionEvent -> delegate.onSessionEvent(event)
                 is Modal.Model.SessionRequestResponse -> delegate.onSessionRequestResponse(event)
                 is Modal.Model.UpdatedSession -> delegate.onSessionUpdate(event)
+                is Modal.Model.ExpiredProposal -> delegate.onProposalExpired(event)
                 else -> Unit
             }
         }.launchIn(scope)

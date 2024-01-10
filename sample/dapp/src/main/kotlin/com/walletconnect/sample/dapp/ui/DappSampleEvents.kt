@@ -31,4 +31,5 @@ sealed class DappSampleEvents {
     data class ConnectionEvent(val isAvailable: Boolean) : DappSampleEvents()
 
     object PairingExpired : DappSampleEvents()
+    object ProposalExpired : DappSampleEvents()
 }

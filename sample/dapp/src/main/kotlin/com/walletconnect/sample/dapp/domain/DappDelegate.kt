@@ -77,7 +77,9 @@ object DappDelegate : WalletConnectModal.ModalDelegate, CoreClient.CoreDelegate 
     }
 
     override fun onProposalExpired(proposal: Modal.Model.ExpiredProposal) {
-        //todo emit close expiry
+        scope.launch {
+            _wcEventModels.emit(proposal)
+        }
     }
 
     fun deselectAccountDetails() {

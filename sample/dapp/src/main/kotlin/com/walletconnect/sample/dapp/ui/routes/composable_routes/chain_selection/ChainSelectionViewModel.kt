@@ -44,6 +44,7 @@ class ChainSelectionViewModel : ViewModel() {
         when (walletEvent) {
             is Modal.Model.ApprovedSession -> DappSampleEvents.SessionApproved
             is Modal.Model.RejectedSession -> DappSampleEvents.SessionRejected
+            is Modal.Model.ExpiredProposal -> DappSampleEvents.ProposalExpired
             else -> DappSampleEvents.NoAction
         }
     }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
