@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -101,6 +102,11 @@ class Web3WalletActivity : AppCompatActivity() {
                 when (event) {
                     is SignEvent.SessionProposal -> navController.navigate(Route.SessionProposal.path)
                     is SignEvent.SessionRequest -> navController.navigate(Route.SessionRequest.path)
+                    is SignEvent.ExpiredRequest -> {
+                        navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                        Toast.makeText(baseContext, "Request expired", Toast.LENGTH_SHORT).show()
+                    }
+
                     is SignEvent.Disconnect -> {
                         connectionsViewModel.refreshConnections()
                         navController.navigate(Route.Connections.path)

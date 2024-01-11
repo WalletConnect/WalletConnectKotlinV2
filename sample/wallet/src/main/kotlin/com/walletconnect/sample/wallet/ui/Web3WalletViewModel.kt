@@ -50,6 +50,8 @@ class Web3WalletViewModel : ViewModel() {
                 }
 
             }
+
+            is Wallet.Model.ExpiredRequest -> SignEvent.ExpiredRequest
             is Wallet.Model.SessionRequest -> {
                 val topic = wcEvent.topic
                 val icon = wcEvent.peerMetaData?.icons?.firstOrNull()

@@ -48,6 +48,7 @@ internal sealed class EngineDO {
     ) : EngineDO(), EngineEvent
 
     data class ExpiredProposal(val pairingTopic: String, val proposerPublicKey: String) : EngineDO(), EngineEvent
+    data class ExpiredRequest(val topic: String, val id: Long) : EngineDO(), EngineEvent
 
     data class VerifyContext(
         val id: Long,

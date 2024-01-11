@@ -4,7 +4,9 @@ import com.walletconnect.android.internal.common.exception.Invalid
 import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.AppMetaDataType
+import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.IrnParams
+import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.WCRequest
@@ -13,11 +15,11 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.CoreValidator
+import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
 import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.sign.common.model.type.Sequences
-import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.common.validator.SignValidator
 import com.walletconnect.sign.engine.model.EngineDO
@@ -45,9 +47,17 @@ internal class OnSessionRequestUseCase(
         val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
         try {
-            if (!CoreValidator.isExpiryWithinBounds(params.request.expiry)) {
-                jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
-                return@supervisorScope
+            params.request.expiry?.let {
+                //todo: add error
+//                if (!CoreValidator.isExpiryWithinBounds(Expiry(it))) {
+//                    jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
+//                    return@supervisorScope
+//                }
+
+                if (Expiry(it).isExpired()) {
+                    jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
+                    return@supervisorScope
+                }
             }
 
             SignValidator.validateSessionRequest(params.toEngineDO(request.topic)) { error ->

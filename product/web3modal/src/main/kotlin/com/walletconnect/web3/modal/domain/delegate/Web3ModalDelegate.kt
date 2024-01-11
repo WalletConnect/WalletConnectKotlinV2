@@ -63,6 +63,12 @@ internal object Web3ModalDelegate : Web3Modal.ModalDelegate {
         }
     }
 
+    override fun onRequestExpired(request: Modal.Model.ExpiredRequest) {
+        scope.launch {
+            _wcEventModels.emit(request)
+        }
+    }
+
     override fun onConnectionStateChange(state: Modal.Model.ConnectionState) {
         scope.launch {
             _wcEventModels.emit(state)

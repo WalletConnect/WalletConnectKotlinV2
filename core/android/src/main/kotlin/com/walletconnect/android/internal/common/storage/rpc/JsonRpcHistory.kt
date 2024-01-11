@@ -48,6 +48,10 @@ class JsonRpcHistory(
         jsonRpcHistoryQueries.deleteJsonRpcHistory(topic.value)
     }
 
+    fun deleteRecordById(id: Long) {
+        jsonRpcHistoryQueries.deleteJsonRpcHistoryByRequestId(id)
+    }
+
     fun getListOfPendingRecordsByTopic(topic: Topic): List<JsonRpcHistoryRecord> =
         jsonRpcHistoryQueries.getJsonRpcRecordsByTopic(topic.value, mapper = ::toRecord)
             .executeAsList()

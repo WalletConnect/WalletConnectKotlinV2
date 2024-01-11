@@ -32,6 +32,7 @@ object WalletConnectModal {
 
         // Utils
         fun onProposalExpired(proposal: Modal.Model.ExpiredProposal)
+        fun onRequestExpired(request: Modal.Model.ExpiredRequest)
         fun onConnectionStateChange(state: Modal.Model.ConnectionState)
         fun onError(error: Modal.Model.Error)
     }
@@ -84,6 +85,7 @@ object WalletConnectModal {
                 is Modal.Model.SessionRequestResponse -> delegate.onSessionRequestResponse(event)
                 is Modal.Model.UpdatedSession -> delegate.onSessionUpdate(event)
                 is Modal.Model.ExpiredProposal -> delegate.onProposalExpired(event)
+                is Modal.Model.ExpiredRequest -> delegate.onRequestExpired(event)
                 else -> Unit
             }
         }.launchIn(scope)
@@ -122,6 +124,10 @@ object WalletConnectModal {
 
             override fun onProposalExpired(proposal: Sign.Model.ExpiredProposal) {
                 delegate.onProposalExpired(proposal.toModal())
+            }
+
+            override fun onRequestExpired(request: Sign.Model.ExpiredRequest) {
+                delegate.onRequestExpired(request.toModal())
             }
 
             override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {

@@ -82,6 +82,12 @@ object DappDelegate : WalletConnectModal.ModalDelegate, CoreClient.CoreDelegate 
         }
     }
 
+    override fun onRequestExpired(request: Modal.Model.ExpiredRequest) {
+        scope.launch {
+            _wcEventModels.emit(request)
+        }
+    }
+
     fun deselectAccountDetails() {
         selectedSessionTopic = null
     }

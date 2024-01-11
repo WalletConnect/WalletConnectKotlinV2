@@ -96,6 +96,12 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
         }
     }
 
+    override fun onRequestExpired(request: Wallet.Model.ExpiredRequest) {
+        scope.launch {
+            _walletEvents.emit(request)
+        }
+    }
+
     override fun onPairingDelete(deletedPairing: Core.Model.DeletedPairing) {
         scope.launch {
             _coreEvents.emit(deletedPairing)

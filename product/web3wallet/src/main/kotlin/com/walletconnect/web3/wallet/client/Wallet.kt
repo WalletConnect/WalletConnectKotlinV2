@@ -49,6 +49,7 @@ object Wallet {
         data class ConnectionState(val isAvailable: Boolean) : Model()
 
         data class ExpiredProposal(val pairingTopic: String, val proposerPublicKey: String) : Model()
+        data class ExpiredRequest(val topic: String, val id: Long) : Model()
 
         data class SessionProposal(
             val pairingTopic: String,
@@ -218,7 +219,7 @@ object Wallet {
             val payloadParams: PayloadParams,
         ) : Model()
 
-        sealed class Message : Model()  {
+        sealed class Message : Model() {
 
             data class Simple(
                 val title: String,

@@ -101,7 +101,7 @@ internal fun SignParams.SessionRequestParams.toEngineDO(
             method = this.request.method,
             params = this.request.params
         ),
-        this.request.expiry
+        if (this.request.expiry != null) Expiry(this.request.expiry) else null
     )
 
 @JvmSynthetic
@@ -193,6 +193,9 @@ internal fun ProposalVO.toEngineDO(): EngineDO.SessionProposal =
 
 @JvmSynthetic
 internal fun ProposalVO.toExpiredProposal(): EngineDO.ExpiredProposal = EngineDO.ExpiredProposal(pairingTopic.value, proposerPublicKey)
+
+@JvmSynthetic
+internal fun PendingRequest<String>.toExpiredSessionRequest() = EngineDO.ExpiredRequest(topic.value, id)
 
 private fun convertToURI(it: String) = try {
     URI(it)

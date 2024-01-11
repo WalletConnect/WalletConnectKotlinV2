@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 
 class AccountViewModel(
     savedStateHandle: SavedStateHandle
@@ -65,6 +66,11 @@ class AccountViewModel(
                         _events.emit(request)
                     }
 
+                    is Modal.Model.ExpiredRequest -> {
+                        _awaitResponse.value = false
+                        _events.emit(DappSampleEvents.RequestError("Request expired"))
+                    }
+
                     is Modal.Model.DeletedSession -> {
                         _events.emit(DappSampleEvents.Disconnect)
                     }
@@ -92,7 +98,8 @@ class AccountViewModel(
                     sessionTopic = requireNotNull(DappDelegate.selectedSessionTopic),
                     method = method,
                     params = params, // stringified JSON
-                    chainId = "$parentChain:$chainId"
+                    chainId = "$parentChain:$chainId",
+                    expiry = System.currentTimeMillis() / 1000 + TimeUnit.SECONDS.convert(30, TimeUnit.SECONDS)
                 )
 
                 WalletConnectModal.request(requestParams,

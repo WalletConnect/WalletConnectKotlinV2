@@ -30,8 +30,10 @@ internal fun Sign.Model.JsonRpcResponse.toModal() = when (this) {
 }
 
 @JvmSynthetic
-internal fun Sign.Model.ExpiredProposal.toModal(): Modal.Model.ExpiredProposal =
-    Modal.Model.ExpiredProposal(pairingTopic, proposerPublicKey)
+internal fun Sign.Model.ExpiredProposal.toModal(): Modal.Model.ExpiredProposal = Modal.Model.ExpiredProposal(pairingTopic, proposerPublicKey)
+
+@JvmSynthetic
+internal fun Sign.Model.ExpiredRequest.toModal(): Modal.Model.ExpiredRequest = Modal.Model.ExpiredRequest(topic, id)
 
 internal fun Sign.Model.ConnectionState.toModal() = Modal.Model.ConnectionState(isAvailable)
 

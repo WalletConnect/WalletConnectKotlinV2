@@ -42,6 +42,7 @@ import com.walletconnect.sample.wallet.ui.common.blue.BlueLabelRow
 import com.walletconnect.sample.wallet.ui.common.peer.Peer
 import com.walletconnect.sample.wallet.ui.common.peer.PeerUI
 import com.walletconnect.sample.wallet.ui.common.peer.getColor
+import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -86,7 +87,7 @@ fun SessionRequestRoute(navController: NavHostController, sessionRequestViewMode
                                         context.sendResponseDeepLink(uri)
                                     }
                                     composableScope.launch(Dispatchers.Main) {
-                                        navController.popBackStack()
+                                        navController.popBackStack(route = Route.Connections.path, inclusive = false)
                                     }
                                 },
                                 onError = { error ->
@@ -108,7 +109,7 @@ fun SessionRequestRoute(navController: NavHostController, sessionRequestViewMode
                                         context.sendResponseDeepLink(uri)
                                     }
                                     composableScope.launch(Dispatchers.Main) {
-                                        navController.popBackStack()
+                                        navController.popBackStack(route = Route.Connections.path, inclusive = false)
                                     }
                                 },
                                 onError = { error ->

@@ -240,6 +240,10 @@ internal fun EngineDO.ExpiredProposal.toClient(): Sign.Model.ExpiredProposal =
     Sign.Model.ExpiredProposal(pairingTopic, proposerPublicKey)
 
 @JvmSynthetic
+internal fun EngineDO.ExpiredRequest.toClient(): Sign.Model.ExpiredRequest =
+    Sign.Model.ExpiredRequest(topic, id)
+
+@JvmSynthetic
 internal fun SDKError.toClientError(): Sign.Model.Error =
     Sign.Model.Error(this.exception)
 

@@ -29,6 +29,7 @@ object Web3Wallet {
 
         //Utils
         fun onProposalExpired(proposal: Wallet.Model.ExpiredProposal)
+        fun onRequestExpired(request: Wallet.Model.ExpiredRequest)
         fun onConnectionStateChange(state: Wallet.Model.ConnectionState)
         fun onError(error: Wallet.Model.Error)
     }
@@ -63,6 +64,10 @@ object Web3Wallet {
 
             override fun onProposalExpired(proposal: Sign.Model.ExpiredProposal) {
                 delegate.onProposalExpired(proposal.toWallet())
+            }
+
+            override fun onRequestExpired(request: Sign.Model.ExpiredRequest) {
+                delegate.onRequestExpired(request.toWallet())
             }
 
             override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {

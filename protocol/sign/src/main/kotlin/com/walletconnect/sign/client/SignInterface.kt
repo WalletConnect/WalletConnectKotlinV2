@@ -13,6 +13,7 @@ interface SignInterface {
 
         //Utils
         fun onProposalExpired(proposal: Sign.Model.ExpiredProposal)
+        fun onRequestExpired(request: Sign.Model.ExpiredRequest)
         fun onConnectionStateChange(state: Sign.Model.ConnectionState)
         fun onError(error: Sign.Model.Error)
     }
@@ -30,6 +31,7 @@ interface SignInterface {
 
         // Utils
         fun onProposalExpired(proposal: Sign.Model.ExpiredProposal)
+        fun onRequestExpired(request: Sign.Model.ExpiredRequest)
         fun onConnectionStateChange(state: Sign.Model.ConnectionState)
         fun onError(error: Sign.Model.Error)
     }

@@ -66,6 +66,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
                 is EngineDO.SessionUpdateNamespacesResponse -> delegate.onSessionUpdateResponse(event.toClientUpdateSessionNamespacesResponse())
                 //Utils
                 is EngineDO.ExpiredProposal -> delegate.onProposalExpired(event.toClient())
+                is EngineDO.ExpiredRequest -> delegate.onRequestExpired(event.toClient())
                 is ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
                 is SDKError -> delegate.onError(event.toClientError())
             }
@@ -88,6 +89,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
                 is EngineDO.SessionPayloadResponse -> delegate.onSessionRequestResponse(event.toClientSessionPayloadResponse())
                 //Utils
                 is EngineDO.ExpiredProposal -> delegate.onProposalExpired(event.toClient())
+                is EngineDO.ExpiredRequest -> delegate.onRequestExpired(event.toClient())
                 is ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
                 is SDKError -> delegate.onError(event.toClientError())
             }

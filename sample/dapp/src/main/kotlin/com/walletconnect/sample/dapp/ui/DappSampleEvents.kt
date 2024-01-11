@@ -5,6 +5,7 @@ sealed class DappSampleEvents {
     object SessionApproved : DappSampleEvents()
 
     object SessionRejected : DappSampleEvents()
+    object RequestExpired : DappSampleEvents()
 
     data class PingSuccess(val topic: String) : DappSampleEvents()
 

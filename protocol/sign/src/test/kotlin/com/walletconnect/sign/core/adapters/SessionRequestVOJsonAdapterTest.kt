@@ -36,7 +36,8 @@ internal class SessionRequestVOJsonAdapterTest {
             "params": {
               "request": {
                 "method":"personal_sign",
-                "params": $params
+                "params": $params,
+                "expiry":1659532494915
               },
               "chainId":"eip155:1"
             }
@@ -354,6 +355,20 @@ internal class SessionRequestVOJsonAdapterTest {
         val params =
             "[\"0x8e0E30e296961f476E01184274Ce85ae60184CB0\", \"$secondArg\"]"
         val request = SessionRequestVO(method = "eth_signTypedData", params = params)
+        val requestParams = SignParams.SessionRequestParams(chainId = "eip:155", request = request)
+        val sessionRequest = SignRpc.SessionRequest(params = requestParams)
+        val json = adapter.toJson(sessionRequest)
+
+        assertTrue(json.isNotEmpty())
+    }
+
+    @Test
+    fun testSeralizationOfEthSignTypedDataWithExpiry() {
+        val secondArg =
+            """{\"types\":{\"EIP712Domain\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"version\",\"type\":\"string\"},{\"name\":\"chainId\",\"type\":\"uint256\"},{\"name\":\"verifyingContract\",\"type\":\"address\"}],\"Person\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"wallet\",\"type\":\"address\"}],\"Mail\":[{\"name\":\"from\",\"type\":\"Person\"},{\"name\": \"to\",\"type\":\"Person\"},{\"name\":\"contents\",\"type\":\"string\"}]},\"primaryType\":\"Mail\",\"domain\":{\"name\":\"Ether Mail\",\"version\":\"1\",\"chainId\":1,\"verifyingContract\":\"0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC\"},\"message\":{\"from\": {\"name\":\"Cow\",\"wallet\":\"0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826\"},\"to\":{\"name\":\"Bob\",\"wallet\":\"0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB\"},\"contents\":\"Hello, Bob!\"}}"""
+        val params =
+            "[\"0x8e0E30e296961f476E01184274Ce85ae60184CB0\", \"$secondArg\"]"
+        val request = SessionRequestVO(method = "eth_signTypedData", params = params, expiry = 1659532494915)
         val requestParams = SignParams.SessionRequestParams(chainId = "eip:155", request = request)
         val sessionRequest = SignRpc.SessionRequest(params = requestParams)
         val json = adapter.toJson(sessionRequest)

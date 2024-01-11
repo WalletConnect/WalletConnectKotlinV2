@@ -46,6 +46,7 @@ object Web3Modal {
 
         // Utils
         fun onProposalExpired(proposal: Modal.Model.ExpiredProposal)
+        fun onRequestExpired(request: Modal.Model.ExpiredRequest)
         fun onConnectionStateChange(state: Modal.Model.ConnectionState)
         fun onError(error: Modal.Model.Error)
     }
@@ -106,7 +107,7 @@ object Web3Modal {
     @Throws(IllegalStateException::class)
     fun setDelegate(delegate: ModalDelegate) {
         Web3ModalDelegate.wcEventModels.onEach { event ->
-            when(event) {
+            when (event) {
                 is Modal.Model.ApprovedSession -> delegate.onSessionApproved(event)
                 is Modal.Model.ConnectionState -> delegate.onConnectionStateChange(event)
                 is Modal.Model.DeletedSession.Success -> delegate.onSessionDelete(event)
@@ -116,6 +117,8 @@ object Web3Modal {
                 is Modal.Model.SessionEvent -> delegate.onSessionEvent(event)
                 is Modal.Model.SessionRequestResponse -> delegate.onSessionRequestResponse(event)
                 is Modal.Model.UpdatedSession -> delegate.onSessionUpdate(event)
+                is Modal.Model.ExpiredRequest -> delegate.onRequestExpired(event)
+                is Modal.Model.ExpiredProposal -> delegate.onProposalExpired(event)
                 else -> Unit
             }
         }.launchIn(scope)
@@ -155,6 +158,10 @@ object Web3Modal {
 
             override fun onProposalExpired(proposal: Sign.Model.ExpiredProposal) {
                 delegate.onProposalExpired(proposal.toModal())
+            }
+
+            override fun onRequestExpired(request: Sign.Model.ExpiredRequest) {
+                delegate.onRequestExpired(request.toModal())
             }
 
             override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {

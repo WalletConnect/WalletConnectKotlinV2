@@ -3,6 +3,7 @@
 package com.walletconnect.sign.json_rpc.model
 
 import com.walletconnect.android.internal.common.json_rpc.model.JsonRpcHistoryRecord
+import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpc
@@ -16,7 +17,7 @@ internal fun SignRpc.SessionRequest.toPendingRequest(entry: JsonRpcHistoryRecord
         params.request.method,
         params.chainId,
         params.request.params,
-        params.request.expiry
+        if (params.request.expiry != null) Expiry(params.request.expiry) else null,
     )
 
 @JvmSynthetic

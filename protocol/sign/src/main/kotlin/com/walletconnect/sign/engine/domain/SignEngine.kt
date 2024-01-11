@@ -22,6 +22,7 @@ import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignPara
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toEngineDO
 import com.walletconnect.sign.engine.model.mapper.toExpiredProposal
+import com.walletconnect.sign.engine.model.mapper.toExpiredSessionRequest
 import com.walletconnect.sign.engine.model.mapper.toSessionRequest
 import com.walletconnect.sign.engine.sessionRequestEventsQueue
 import com.walletconnect.sign.engine.use_case.calls.ApproveSessionUseCaseInterface
@@ -52,6 +53,7 @@ import com.walletconnect.sign.engine.use_case.responses.OnSessionProposalRespons
 import com.walletconnect.sign.engine.use_case.responses.OnSessionRequestResponseUseCase
 import com.walletconnect.sign.engine.use_case.responses.OnSessionSettleResponseUseCase
 import com.walletconnect.sign.engine.use_case.responses.OnSessionUpdateResponseUseCase
+import com.walletconnect.sign.json_rpc.domain.DeleteRequestByIdUseCase
 import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCaseByTopicInterface
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequestByTopicUseCaseInterface
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequests
@@ -79,6 +81,7 @@ internal class SignEngine(
     private val getPendingRequestsByTopicUseCase: GetPendingRequestsUseCaseByTopicInterface,
     private val getPendingSessionRequestByTopicUseCase: GetPendingSessionRequestByTopicUseCaseInterface,
     private val getPendingSessionRequests: GetPendingSessionRequests,
+    private val deleteRequestByIdUseCase: DeleteRequestByIdUseCase,
     private val crypto: KeyManagementRepository,
     private val proposalStorageRepository: ProposalStorageRepository,
     private val sessionStorageRepository: SessionStorageRepository,
@@ -156,6 +159,7 @@ internal class SignEngine(
         propagatePendingSessionRequestsQueue()
         emitReceivedSessionProposalsWhilePairingTwice()
         sessionProposalExpiryWatcher()
+        sessionRequestsExpiryWatcher()
     }
 
     fun setup() {
@@ -282,7 +286,7 @@ internal class SignEngine(
     private fun propagatePendingSessionRequestsQueue() = scope.launch {
         getPendingSessionRequests()
             .map { pendingRequest -> pendingRequest.toSessionRequest(metadataStorageRepository.getByTopicAndType(pendingRequest.topic, AppMetaDataType.PEER)) }
-            .filter { sessionRequest -> CoreValidator.isExpiryWithinBounds(sessionRequest.expiry) }
+            .filter { sessionRequest -> CoreValidator.isExpiryWithinBounds(sessionRequest.expiry) && sessionRequest.expiry?.isExpired() == false }
             .filter { sessionRequest -> getSessionsUseCase.getListOfSettledSessions().find { session -> session.topic.value == sessionRequest.topic } != null }
             .onEach { sessionRequest ->
                 scope.launch {
@@ -297,22 +301,32 @@ internal class SignEngine(
     }
 
     private fun sessionProposalExpiryWatcher() {
-        flow {
-            while (true) {
-                emit(Unit)
-                delay(2000)
-            }
-        }.onEach {
-            proposalStorageRepository
-                .getProposals()
-                .onEach { proposal ->
-                    if (proposal.expiry.isExpired()) {
-                        proposalStorageRepository.deleteProposal(proposal.proposerPublicKey)
-                        println("kobe: Emitting proposal expired: ${proposal.proposerPublicKey}")
-                        _engineEvent.emit(proposal.toExpiredProposal())
+        watcher()
+            .onEach {
+                proposalStorageRepository
+                    .getProposals()
+                    .onEach { proposal ->
+                        if (proposal.expiry.isExpired()) {
+                            proposalStorageRepository.deleteProposal(proposal.proposerPublicKey)
+                            println("kobe: Emitting proposal expired: ${proposal.proposerPublicKey}")
+                            _engineEvent.emit(proposal.toExpiredProposal())
+                        }
                     }
-                }
-        }.launchIn(scope)
+            }.launchIn(scope)
+    }
+
+    private fun sessionRequestsExpiryWatcher() {
+        watcher()
+            .onEach {
+                getPendingSessionRequests()
+                    .onEach { pendingRequest ->
+                        if (pendingRequest.expiry?.isExpired() == true) {
+                            println("kobe: Emitting expired request: ${pendingRequest.id}")
+                            deleteRequestByIdUseCase(pendingRequest.id)
+                            _engineEvent.emit(pendingRequest.toExpiredSessionRequest())
+                        }
+                    }
+            }.launchIn(scope)
     }
 
     private fun emitReceivedSessionProposalsWhilePairingTwice() {
@@ -322,7 +336,7 @@ internal class SignEngine(
                     val proposal = proposalStorageRepository.getProposalByTopic(pairingTopic.value)
                     if (proposal.expiry.isExpired()) {
                         proposalStorageRepository.deleteProposal(proposal.proposerPublicKey)
-                        _engineEvent.emit(proposal.toExpiredProposal())
+                        scope.launch { _engineEvent.emit(proposal.toExpiredProposal()) }
                     } else {
                         val context = verifyContextStorageRepository.get(proposal.requestId) ?: VerifyContext(proposal.requestId, String.Empty, Validation.UNKNOWN, String.Empty, null)
                         val sessionProposalEvent = EngineDO.SessionProposalEvent(proposal = proposal.toEngineDO(), context = context.toEngineDO())
@@ -332,5 +346,16 @@ internal class SignEngine(
                     scope.launch { _engineEvent.emit(SDKError(Throwable("No proposal for pairing topic: $e"))) }
                 }
             }.launchIn(scope)
+    }
+
+    private fun watcher() = flow {
+        while (true) {
+            emit(Unit)
+            delay(WATCHER_INTERVAL)
+        }
+    }
+
+    companion object {
+        private const val WATCHER_INTERVAL = 2000L
     }
 }
