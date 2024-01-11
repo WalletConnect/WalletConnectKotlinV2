@@ -68,30 +68,30 @@ fun Web3WalletNavGraph(
         NavHost(
             navController = navController,
             startDestination = startDestination,
-            enterTransition = {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Companion.Left,
-                    animationSpec = tween(700)
-                )
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Companion.Left,
-                    animationSpec = tween(700)
-                )
-            },
-            popEnterTransition = {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Companion.Right,
-                    animationSpec = tween(700)
-                )
-            },
-            popExitTransition = {
-                slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Companion.Right,
-                    animationSpec = tween(700)
-                )
-            }
+//            enterTransition = {
+//                slideIntoContainer(
+//                    towards = AnimatedContentTransitionScope.SlideDirection.Companion.Left,
+//                    animationSpec = tween(700)
+//                )
+//            },
+//            exitTransition = {
+//                slideOutOfContainer(
+//                    towards = AnimatedContentTransitionScope.SlideDirection.Companion.Left,
+//                    animationSpec = tween(700)
+//                )
+//            },
+//            popEnterTransition = {
+//                slideIntoContainer(
+//                    towards = AnimatedContentTransitionScope.SlideDirection.Companion.Right,
+//                    animationSpec = tween(700)
+//                )
+//            },
+//            popExitTransition = {
+//                slideOutOfContainer(
+//                    towards = AnimatedContentTransitionScope.SlideDirection.Companion.Right,
+//                    animationSpec = tween(700)
+//                )
+//            }
 
         ) {
             composable(Route.GetStarted.path) {

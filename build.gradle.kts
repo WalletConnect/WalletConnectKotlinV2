@@ -42,7 +42,7 @@ allprojects {
 
     configurations.configureEach {
         resolutionStrategy.eachDependency {
-            if (requested.group == "androidx.navigation") {
+            if (requested.group == "androidx.navigation" && requested.name == "navigation-compose") {
                 useVersion(composeNavigationVersion)
             }
         }
