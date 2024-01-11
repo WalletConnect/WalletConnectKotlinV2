@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalAnimationApi::class)
+
 package com.walletconnect.web3.modal.ui
 
 import android.content.Context
@@ -7,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.ComponentDialog
 import androidx.activity.OnBackPressedCallback
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
@@ -17,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.res.use
 import androidx.core.content.res.getColorOrThrow
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
+import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.walletconnect.modal.utils.theme.toComposeColor
 import com.walletconnect.web3.modal.R
@@ -59,7 +62,7 @@ class Web3ModalSheet : BottomSheetDialogFragment() {
     private fun Web3ModalComposeView(
         shouldOpenChooseNetwork: Boolean
     ) {
-        val navController = rememberNavController()
+        val navController = rememberAnimatedNavController()
         (dialog as? ComponentDialog)?.onBackPressedDispatcher?.addCallback(
             this@Web3ModalSheet,
             onBackPressedCallback(navController)
