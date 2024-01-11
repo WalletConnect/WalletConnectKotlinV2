@@ -38,6 +38,14 @@ allprojects {
             jvmTarget = jvmVersion.toString()
         }
     }
+
+    configurations.configureEach {
+        resolutionStrategy.eachDependency {
+            if (requested.group == "androidx.navigation") {
+                useVersion("2.5.3")
+            }
+        }
+    }
 }
 
 subprojects {
