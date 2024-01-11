@@ -1,8 +1,5 @@
 package com.walletconnect.wcmodal.ui.navigation
 
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -31,10 +28,6 @@ internal fun ModalNavGraph(
         navController = navController,
         startDestination = Route.ConnectYourWallet.path,
         modifier = modifier,
-        enterTransition = { fadeIn(tween()) },
-        popExitTransition = { fadeOut(tween()) },
-        exitTransition = { fadeOut(tween()) },
-        popEnterTransition = { fadeIn(tween()) }
     ) {
         composable(route = Route.ConnectYourWallet.path) {
             ConnectYourWalletRoute(navController = navController, wallets = state.wallets)
