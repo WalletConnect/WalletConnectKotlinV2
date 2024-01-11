@@ -109,8 +109,9 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
     }
 
     override fun onPairingExpired(expiredPairing: Core.Model.ExpiredPairing) {
-        scope.launch {
-            _coreEvents.emit(expiredPairing)
-        }
+        //todo:??
+//        scope.launch {
+//            _coreEvents.emit(expiredPairing)
+//        }
     }
 }

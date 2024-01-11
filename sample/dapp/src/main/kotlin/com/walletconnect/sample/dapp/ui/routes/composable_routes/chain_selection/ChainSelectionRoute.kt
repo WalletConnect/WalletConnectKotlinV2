@@ -74,9 +74,16 @@ fun ChainSelectionRoute(navController: NavController) {
     val composableScope = rememberCoroutineScope()
     val viewModel: ChainSelectionViewModel = viewModel()
     val chainsState by viewModel.uiState.collectAsState()
-    val isModalState = rememberModalState(navController = navController)
-    val isOpen by isModalState.isOpenFlow.collectAsState(initial = isModalState.isOpen)
+    rememberModalState(navController = navController)
     val awaitingProposalResponse = viewModel.awaitingSharedFlow.collectAsState(false).value
+
+    println("kobe: checking proposals on init")
+    if (WalletConnectModal.getListOfProposals().isNotEmpty()) {
+        println("kobe: existsa")
+        viewModel.awaitingProposalResponse(true)
+    } else {
+        viewModel.awaitingProposalResponse(false)
+    }
 
     LaunchedEffect(Unit) {
         navController.currentBackStackEntryFlow.collectLatest { event ->
@@ -168,6 +175,7 @@ fun ChainSelectionRoute(navController: NavController) {
                             else -> SAMPLE_WALLET_RELEASE_PACKAGE
                         }
                     }
+                    viewModel.awaitingProposalResponse(false)
                     context.startActivity(intent)
                 },
                 onError = { error ->

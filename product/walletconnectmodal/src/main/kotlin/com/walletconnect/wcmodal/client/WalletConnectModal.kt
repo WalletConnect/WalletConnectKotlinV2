@@ -190,6 +190,12 @@ object WalletConnectModal {
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
+    fun getListOfProposals() = SignClient.getSessionProposals().map { it.toModal() }
+
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
     fun getActiveSessionByTopic(topic: String) = SignClient.getActiveSessionByTopic(topic)?.toModal()
 
 }

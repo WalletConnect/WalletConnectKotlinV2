@@ -88,7 +88,12 @@ internal class JsonRpcInteractor(
             return onFailure(e)
         }
 
-        val requestJson = serializer.serialize(payload) ?: return onFailure(IllegalStateException("JsonRpcInteractor: Unknown result params"))
+        val requestJson = try {
+            serializer.serialize(payload) ?: return onFailure(IllegalStateException("JsonRpcInteractor: Unknown result params"))
+        } catch (e: Exception) {
+            return onFailure(e)
+        }
+
 
         println("kobe; Request: $requestJson")
 
@@ -119,16 +124,21 @@ internal class JsonRpcInteractor(
             return onFailure(e)
         }
 
-        val responseJson = serializer.serialize(response) ?: return onFailure(IllegalStateException("JsonRpcInteractor: Unknown result params"))
-        val encryptedResponse = chaChaPolyCodec.encrypt(topic, responseJson, envelopeType, participants)
-        relay.publish(topic.value, encryptedResponse, params.toRelay()) { result ->
-            result.fold(
-                onSuccess = {
-                    jsonRpcHistory.updateRequestWithResponse(response.id, responseJson)
-                    onSuccess()
-                },
-                onFailure = { error -> onFailure(error) }
-            )
+        try {
+            val responseJson = serializer.serialize(response) ?: return onFailure(IllegalStateException("JsonRpcInteractor: Unknown result params"))
+            val encryptedResponse = chaChaPolyCodec.encrypt(topic, responseJson, envelopeType, participants)
+
+            relay.publish(topic.value, encryptedResponse, params.toRelay()) { result ->
+                result.fold(
+                    onSuccess = {
+                        jsonRpcHistory.updateRequestWithResponse(response.id, responseJson)
+                        onSuccess()
+                    },
+                    onFailure = { error -> onFailure(error) }
+                )
+            }
+        } catch (e: Exception) {
+            return onFailure(e)
         }
     }
 

@@ -123,39 +123,45 @@ class ChainSelectionViewModel : ViewModel() {
             _awaitingProposalSharedFlow.emit(true)
         }
         try {
-            val pairing: Core.Model.Pairing = if (pairingTopicPosition > -1) {
+            val pairing: Core.Model.Pairing? = if (pairingTopicPosition > -1) {
                 CoreClient.Pairing.getPairings()[pairingTopicPosition]
             } else {
                 CoreClient.Pairing.create { error ->
-                    onError("Creating Pairing failed: ${error.throwable.stackTraceToString()}")
-                }!!
-            }
-
-            val connectParams =
-                Modal.Params.Connect(
-                    namespaces = getNamespaces(),
-                    optionalNamespaces = getOptionalNamespaces(),
-                    properties = getProperties(),
-                    pairing = pairing
-                )
-
-            WalletConnectModal.connect(connectParams,
-                onSuccess = {
-                    onSuccess(pairing.uri)
-                },
-                onError = { error ->
                     viewModelScope.launch {
                         _awaitingProposalSharedFlow.emit(false)
                     }
-                    Timber.tag(tag(this)).e(error.throwable.stackTraceToString())
-                    Firebase.crashlytics.recordException(error.throwable)
-                    onError(error.throwable.message ?: "Unknown error, please contact support")
+                    onError("Creating Pairing failed: ${error.throwable.stackTraceToString()}")
                 }
-            )
+            }
+
+            if (pairing != null) {
+                val connectParams =
+                    Modal.Params.Connect(
+                        namespaces = getNamespaces(),
+                        optionalNamespaces = getOptionalNamespaces(),
+                        properties = getProperties(),
+                        pairing = pairing
+                    )
+
+                WalletConnectModal.connect(connectParams,
+                    onSuccess = {
+                        onSuccess(pairing.uri)
+                    },
+                    onError = { error ->
+                        viewModelScope.launch {
+                            _awaitingProposalSharedFlow.emit(false)
+                        }
+                        Timber.tag(tag(this)).e(error.throwable.stackTraceToString())
+                        Firebase.crashlytics.recordException(error.throwable)
+                        onError(error.throwable.message ?: "sdasdUnknown error, please contact support")
+                    }
+                )
+            }
+
         } catch (e: Exception) {
             Firebase.crashlytics.recordException(e)
             Timber.tag(tag(this)).e(e)
-            onError(e.message ?: "Unknown error, please contact support")
+            onError(e.message ?: "aaaUnknown error, please contact support")
         }
     }
 }
