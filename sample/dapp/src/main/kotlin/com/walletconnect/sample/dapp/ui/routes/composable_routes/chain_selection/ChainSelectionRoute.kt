@@ -77,13 +77,13 @@ fun ChainSelectionRoute(navController: NavController) {
     rememberModalState(navController = navController)
     val awaitingProposalResponse = viewModel.awaitingSharedFlow.collectAsState(false).value
 
-    println("kobe: checking proposals on init")
-    if (WalletConnectModal.getListOfProposals().isNotEmpty()) {
-        println("kobe: existsa")
-        viewModel.awaitingProposalResponse(true)
-    } else {
-        viewModel.awaitingProposalResponse(false)
-    }
+//    SideEffect {
+//        if (WalletConnectModal.getListOfProposals().isNotEmpty()) {
+//            viewModel.awaitingProposalResponse(true)
+//        } else {
+//            viewModel.awaitingProposalResponse(false)
+//        }
+//    }
 
     LaunchedEffect(Unit) {
         navController.currentBackStackEntryFlow.collectLatest { event ->

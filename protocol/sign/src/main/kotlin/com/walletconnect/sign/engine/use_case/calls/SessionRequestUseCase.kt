@@ -2,12 +2,14 @@ package com.walletconnect.sign.engine.use_case.calls
 
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
+import com.walletconnect.android.internal.common.exception.InvalidExpiryException
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -47,10 +49,9 @@ internal class SessionRequestUseCase(
         }
 
         val nowInSeconds = TimeUnit.SECONDS.convert(Date().time, TimeUnit.SECONDS)
-        //todo: uncomment
-//        if (!CoreValidator.isExpiryWithinBounds(request.expiry)) {
-//            return@supervisorScope onFailure(InvalidExpiryException())
-//        }
+        if (!CoreValidator.isExpiryWithinBounds(request.expiry)) {
+            return@supervisorScope onFailure(InvalidExpiryException())
+        }
 
         SignValidator.validateSessionRequest(request) { error ->
             return@supervisorScope onFailure(InvalidRequestException(error.message))

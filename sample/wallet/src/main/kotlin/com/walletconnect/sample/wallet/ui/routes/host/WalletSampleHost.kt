@@ -76,7 +76,7 @@ fun WalletSampleHost(
         web3walletViewModel.pairingSharedFlow.collect {
             if (it is PairingState.Error) {
                 isLoader = false
-                navController.popBackStack(route = Route.Connections.path, inclusive = false) //todo: always?
+//                navController.popBackStack(route = Route.Connections.path, inclusive = false) //todo: always?
                 navController.showSnackbar(it.message)
             }
             isLoader = it is PairingState.Loading

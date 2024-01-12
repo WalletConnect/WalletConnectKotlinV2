@@ -99,7 +99,7 @@ class AccountViewModel(
                     method = method,
                     params = params, // stringified JSON
                     chainId = "$parentChain:$chainId",
-                    expiry = System.currentTimeMillis() / 1000 + TimeUnit.SECONDS.convert(30, TimeUnit.SECONDS)
+                    expiry = System.currentTimeMillis() / 1000 + TimeUnit.SECONDS.convert(5, TimeUnit.MINUTES)
                 )
 
                 WalletConnectModal.request(requestParams,

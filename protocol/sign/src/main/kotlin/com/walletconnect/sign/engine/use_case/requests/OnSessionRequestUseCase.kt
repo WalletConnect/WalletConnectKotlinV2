@@ -48,20 +48,22 @@ internal class OnSessionRequestUseCase(
 
         try {
             params.request.expiry?.let {
-                //todo: add error
-//                if (!CoreValidator.isExpiryWithinBounds(Expiry(it))) {
-//                    jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
-//                    return@supervisorScope
-//                }
+                if (!CoreValidator.isExpiryWithinBounds(Expiry(it))) {
+                    jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
+                    _events.emit(SDKError(Throwable("Invalid expiry, id: ${request.id}",)))
+                    return@supervisorScope
+                }
 
                 if (Expiry(it).isExpired()) {
                     jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
+                    _events.emit(SDKError(Throwable("This request has expired, id: ${request.id}",)))
                     return@supervisorScope
                 }
             }
 
             SignValidator.validateSessionRequest(params.toEngineDO(request.topic)) { error ->
                 jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
+                _events.emit(SDKError(Throwable("Request validation error, id: ${request.id}",)))
                 return@supervisorScope
             }
 
