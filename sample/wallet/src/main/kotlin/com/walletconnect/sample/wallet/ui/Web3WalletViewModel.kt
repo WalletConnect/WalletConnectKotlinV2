@@ -35,7 +35,8 @@ class Web3WalletViewModel : ViewModel() {
     init {
         WCDelegate.coreEvents.onEach { coreEvent ->
             if (coreEvent is Core.Model.ExpiredPairing) {
-                _pairingSharedFlow.emit(PairingState.Error("Pairing expired, please pair again"))
+                val pairingType = if (coreEvent.pairing.isActive) "Active" else "Inactive"
+                _pairingSharedFlow.emit(PairingState.Expired("$pairingType pairing expired"))
             }
         }.launchIn(viewModelScope)
     }
@@ -46,7 +47,7 @@ class Web3WalletViewModel : ViewModel() {
         when (wcEvent) {
             is Wallet.Model.ExpiredProposal -> {
                 viewModelScope.launch {
-                    _pairingSharedFlow.emit(PairingState.Error("Proposal expired, please pair again"))
+                    _pairingSharedFlow.emit(PairingState.ProposalExpired("Proposal expired, please pair again"))
                 }
 
             }

@@ -35,7 +35,7 @@ import com.walletconnect.android.pairing.engine.model.EngineDO
 import com.walletconnect.android.pairing.model.PairingJsonRpcMethod
 import com.walletconnect.android.pairing.model.PairingParams
 import com.walletconnect.android.pairing.model.PairingRpc
-import com.walletconnect.android.pairing.model.mapper.toSign
+import com.walletconnect.android.pairing.model.mapper.toCore
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
@@ -76,11 +76,12 @@ internal class PairingEngine(
     private val setOfRegisteredMethods: MutableSet<String> = mutableSetOf()
     private val registeredMethods: String get() = setOfRegisteredMethods.joinToString(",") { it }
 
-    private val _topicExpiredFlow: MutableSharedFlow<Topic> = MutableSharedFlow()
-    val topicExpiredFlow: SharedFlow<Topic> = _topicExpiredFlow.asSharedFlow()
+    private val _expiredPairingFlow: MutableSharedFlow<Pairing> = MutableSharedFlow()
+    val expiredPairingFlow: SharedFlow<Pairing> = _expiredPairingFlow.asSharedFlow()
 
     private val _engineEvent: MutableSharedFlow<EngineDO> = MutableSharedFlow()
-    val engineEvent: SharedFlow<EngineDO> = merge(_engineEvent.asSharedFlow(), _topicExpiredFlow.asSharedFlow().map { EngineDO.PairingExpire(it.value) }).shareIn(scope, SharingStarted.Lazily, 1)
+    val engineEvent: SharedFlow<EngineDO> = merge(_engineEvent.asSharedFlow(), _expiredPairingFlow.asSharedFlow()
+        .map { pairing -> EngineDO.PairingExpire(pairing) }).shareIn(scope, SharingStarted.Lazily, 1)//todo: 1 or 0?
 
     private val _activePairingTopicFlow: MutableSharedFlow<Topic> = MutableSharedFlow()
     val activePairingTopicFlow: SharedFlow<Topic> = _activePairingTopicFlow.asSharedFlow()
@@ -89,21 +90,7 @@ internal class PairingEngine(
 
     init {
         setOfRegisteredMethods.addAll(listOf(PairingJsonRpcMethod.WC_PAIRING_DELETE, PairingJsonRpcMethod.WC_PAIRING_PING))
-
-        jsonRpcInteractor.isConnectionAvailable
-            .filter { isAvailable: Boolean -> isAvailable }
-            .onEach {
-                supervisorScope {
-                    launch(Dispatchers.IO) {
-                        resubscribeToPairingFlow()
-                    }
-                }
-
-                if (jsonRpcRequestsJob == null) {
-                    jsonRpcRequestsJob = collectJsonRpcRequestsFlow()
-                }
-            }.launchIn(scope)
-
+        resubscribeToPairingTopics()
         pairingExpiryWatcher()
     }
 
@@ -130,7 +117,7 @@ internal class PairingEngine(
             metadataRepository.upsertPeerMetadata(this.topic, selfMetaData, AppMetaDataType.SELF)
             jsonRpcInteractor.subscribe(this.topic) { error -> return@subscribe onFailure(error) }
 
-            this.toSign()
+            this.toCore()
         }.onFailure { throwable ->
             crypto.removeKeys(pairingTopic.value)
             pairingRepository.deletePairing(pairingTopic)
@@ -229,6 +216,22 @@ internal class PairingEngine(
 
     fun updateMetadata(topic: String, metadata: AppMetaData, metaDataType: AppMetaDataType) {
         metadataRepository.upsertPeerMetadata(Topic(topic), metadata, metaDataType)
+    }
+
+    private fun resubscribeToPairingTopics() {
+        jsonRpcInteractor.isConnectionAvailable
+            .filter { isAvailable: Boolean -> isAvailable }
+            .onEach {
+                supervisorScope {
+                    launch(Dispatchers.IO) {
+                        resubscribeToPairingFlow()
+                    }
+                }
+
+                if (jsonRpcRequestsJob == null) {
+                    jsonRpcRequestsJob = collectJsonRpcRequestsFlow()
+                }
+            }.launchIn(scope)
     }
 
     private fun pairingExpiryWatcher() {
@@ -339,9 +342,9 @@ internal class PairingEngine(
                     pairingRepository.deletePairing(this@isNotExpired.topic)
                     metadataRepository.deleteMetaData(this@isNotExpired.topic)
                     crypto.removeKeys(this@isNotExpired.topic.value)
-                    _topicExpiredFlow.emit(this@isNotExpired.topic)
+                    _expiredPairingFlow.emit(this@isNotExpired)
                 } catch (e: Exception) {
-                    _topicExpiredFlow.emit(this@isNotExpired.topic)
+                    _expiredPairingFlow.emit(this@isNotExpired)
                 }
             }
         }

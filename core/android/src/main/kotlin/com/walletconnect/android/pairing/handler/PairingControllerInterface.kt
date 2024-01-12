@@ -1,13 +1,14 @@
 package com.walletconnect.android.pairing.handler
 
 import com.walletconnect.android.Core
+import com.walletconnect.android.internal.common.model.Pairing
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.foundation.common.model.Topic
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 
 interface PairingControllerInterface {
-    val topicExpiredFlow: SharedFlow<Topic>
+    val expiredPairingFlow: SharedFlow<Pairing>
     val findWrongMethodsFlow: Flow<SDKError>
     val activePairingFlow: SharedFlow<Topic>
 

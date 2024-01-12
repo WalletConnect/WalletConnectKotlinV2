@@ -40,5 +40,5 @@ interface PairingInterface {
         fun onPairingExpired(expiredPairing: Core.Model.ExpiredPairing)
     }
 
-    fun setDelegate(delegate: PairingInterface.Delegate)
+    fun setDelegate(delegate: Delegate)
 }

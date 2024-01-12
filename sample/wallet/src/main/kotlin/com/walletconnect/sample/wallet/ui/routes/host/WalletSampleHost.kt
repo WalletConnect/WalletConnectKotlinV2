@@ -74,11 +74,24 @@ fun WalletSampleHost(
     var isLoader by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         web3walletViewModel.pairingSharedFlow.collect {
-            if (it is PairingState.Error) {
-                isLoader = false
-//                navController.popBackStack(route = Route.Connections.path, inclusive = false) //todo: always?
-                navController.showSnackbar(it.message)
+            when (it) {
+                is PairingState.Error -> {
+                    isLoader = false
+                    navController.popBackStack(route = Route.Connections.path, inclusive = false) //todo: always?
+                    navController.showSnackbar(it.message)
+                }
+
+                is PairingState.Expired -> {
+                    navController.showSnackbar(it.message)
+                }
+
+                is PairingState.ProposalExpired -> {
+                    navController.showSnackbar(it.message)
+                }
+
+                else -> Unit
             }
+
             isLoader = it is PairingState.Loading
         }
     }

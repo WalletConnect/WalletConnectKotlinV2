@@ -130,13 +130,9 @@ fun ChainSelectionRoute(navController: NavController) {
 
     LaunchedEffect(Unit) {
         viewModel.coreEvents.collect { event ->
-            when (event) {
-                DappSampleEvents.PairingExpired -> {
-                    viewModel.awaitingProposalResponse(false)
-                    Toast.makeText(context, "Pairing has been expired", Toast.LENGTH_SHORT).show()
-                }
-
-                else -> Unit
+            if (event is DappSampleEvents.PairingExpired) {
+                val pairingType = if (event.pairing.isActive) "Active" else "Inactive"
+                Toast.makeText(context, "$pairingType pairing has been expired", Toast.LENGTH_SHORT).show()
             }
         }
     }

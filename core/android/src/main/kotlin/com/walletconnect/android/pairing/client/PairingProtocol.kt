@@ -7,7 +7,7 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.pairing.engine.domain.PairingEngine
 import com.walletconnect.android.pairing.engine.model.EngineDO
-import com.walletconnect.android.pairing.model.mapper.toSign
+import com.walletconnect.android.pairing.model.mapper.toCore
 import com.walletconnect.android.relay.RelayConnectionInterface
 import com.walletconnect.foundation.util.Logger
 import kotlinx.coroutines.Dispatchers
@@ -31,8 +31,8 @@ internal class PairingProtocol(private val koinApp: KoinApplication = wcKoinApp)
 
         pairingEngine.engineEvent.onEach { event ->
             when (event) {
-                is EngineDO.PairingDelete -> delegate.onPairingDelete(event.toSign())
-                is EngineDO.PairingExpire -> delegate.onPairingExpired(Core.Model.ExpiredPairing(event.topic))
+                is EngineDO.PairingDelete -> delegate.onPairingDelete(event.toCore())
+                is EngineDO.PairingExpire -> delegate.onPairingExpired(Core.Model.ExpiredPairing(event.pairing.toCore()))
             }
         }.launchIn(scope)
     }
@@ -116,7 +116,7 @@ internal class PairingProtocol(private val koinApp: KoinApplication = wcKoinApp)
     override fun getPairings(): List<Core.Model.Pairing> {
         checkEngineInitialization()
 
-        return pairingEngine.getPairings().map { pairing -> pairing.toSign() }
+        return pairingEngine.getPairings().map { pairing -> pairing.toCore() }
     }
 
     private suspend fun awaitConnection(onConnection: () -> Unit, errorLambda: (Throwable) -> Unit = {}) {

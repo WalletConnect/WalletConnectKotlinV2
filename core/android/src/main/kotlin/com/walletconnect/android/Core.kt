@@ -23,7 +23,7 @@ object Core {
         data class AppMetaData(val name: String, val description: String, val url: String, val icons: List<String>, val redirect: String?, val verifyUrl: String? = null) : Model()
 
         data class DeletedPairing(val topic: String, val reason: String) : Model()
-        data class ExpiredPairing(val topic: String) : Model()
+        data class ExpiredPairing(val pairing: Pairing) : Model()
 
         data class Pairing(
             val topic: String,

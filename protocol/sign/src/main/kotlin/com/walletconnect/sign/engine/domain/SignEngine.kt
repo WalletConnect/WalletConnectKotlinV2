@@ -156,7 +156,7 @@ internal class SignEngine(
         )
         setupSequenceExpiration()
         propagatePendingSessionRequestsQueue()
-        emitReceivedSessionProposalsWhilePairingTwice()
+        emitReceivedSessionProposalsWhilePairingOnTheSameURL()
         sessionProposalExpiryWatcher()
         sessionRequestsExpiryWatcher()
     }
@@ -269,8 +269,8 @@ internal class SignEngine(
                 })
             }
 
-            pairingController.topicExpiredFlow.onEach { topic ->
-                sessionStorageRepository.getAllSessionTopicsByPairingTopic(topic).onEach { sessionTopic ->
+            pairingController.expiredPairingFlow.onEach { pairing ->
+                sessionStorageRepository.getAllSessionTopicsByPairingTopic(pairing.topic).onEach { sessionTopic ->
                     jsonRpcInteractor.unsubscribe(Topic(sessionTopic), onSuccess = {
                         sessionStorageRepository.deleteSession(Topic(sessionTopic))
                         crypto.removeKeys(sessionTopic)
@@ -308,7 +308,6 @@ internal class SignEngine(
                         proposal.expiry?.let {
                             if (it.isExpired()) {
                                 proposalStorageRepository.deleteProposal(proposal.proposerPublicKey)
-                                println("kobe: Emitting proposal expired: ${proposal.proposerPublicKey}")
                                 _engineEvent.emit(proposal.toExpiredProposal())
                             }
                         }
@@ -323,7 +322,6 @@ internal class SignEngine(
                     .onEach { pendingRequest ->
                         pendingRequest.expiry?.let {
                             if (it.isExpired()) {
-                                println("kobe: Emitting expired request: ${pendingRequest.id}")
                                 deleteRequestByIdUseCase(pendingRequest.id)
                                 _engineEvent.emit(pendingRequest.toExpiredSessionRequest())
                             }
@@ -332,7 +330,7 @@ internal class SignEngine(
             }.launchIn(scope)
     }
 
-    private fun emitReceivedSessionProposalsWhilePairingTwice() {
+    private fun emitReceivedSessionProposalsWhilePairingOnTheSameURL() {
         pairingController.activePairingFlow
             .onEach { pairingTopic ->
                 try {

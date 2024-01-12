@@ -51,7 +51,7 @@ class ChainSelectionViewModel : ViewModel() {
 
     val coreEvents = DappDelegate.coreEvents.map { walletEvent: Core.Model ->
         when (walletEvent) {
-            is Core.Model.ExpiredPairing -> DappSampleEvents.PairingExpired
+            is Core.Model.ExpiredPairing -> DappSampleEvents.PairingExpired(walletEvent.pairing)
             else -> DappSampleEvents.NoAction
         }
     }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())

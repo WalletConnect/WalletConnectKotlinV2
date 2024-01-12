@@ -1,6 +1,7 @@
 package com.walletconnect.android.pairing.handler
 
 import com.walletconnect.android.Core
+import com.walletconnect.android.internal.common.model.Pairing
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.pairing.engine.domain.PairingEngine
@@ -13,7 +14,7 @@ import org.koin.core.KoinApplication
 
 internal class PairingController(private val koinApp: KoinApplication = wcKoinApp) : PairingControllerInterface {
     private lateinit var pairingEngine: PairingEngine
-    override val topicExpiredFlow: SharedFlow<Topic> by lazy { pairingEngine.topicExpiredFlow }
+    override val expiredPairingFlow: SharedFlow<Pairing> by lazy { pairingEngine.expiredPairingFlow }
     override val findWrongMethodsFlow: Flow<SDKError> by lazy { merge(pairingEngine.internalErrorFlow, pairingEngine.jsonRpcErrorFlow) }
     override val activePairingFlow: SharedFlow<Topic> by lazy { pairingEngine.activePairingTopicFlow }
 
