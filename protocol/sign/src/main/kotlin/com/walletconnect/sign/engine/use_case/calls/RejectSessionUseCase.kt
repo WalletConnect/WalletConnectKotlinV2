@@ -23,8 +23,10 @@ internal class RejectSessionUseCase(
 
     override suspend fun reject(proposerPublicKey: String, reason: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         val proposal = proposalStorageRepository.getProposalByKey(proposerPublicKey)
-        if (proposal.expiry.isExpired()) {
-            throw SessionProposalExpiredException("Session proposal expired")
+        proposal.expiry?.let {
+            if (it.isExpired()) {
+                throw SessionProposalExpiredException("Session proposal expired")
+            }
         }
 
         jsonRpcInteractor.respondWithError(

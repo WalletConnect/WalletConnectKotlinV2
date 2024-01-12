@@ -14,7 +14,7 @@ CREATE TABLE ProposalDao (
    proposer_key TEXT NOT NULL,
    properties TEXT AS Map<String, String>,
    redirect TEXT NOT NULL DEFAULT "",
-   expiry INTEGER NOT NULL
+   expiry INTEGER
 );
 
 insertOrAbortSession:

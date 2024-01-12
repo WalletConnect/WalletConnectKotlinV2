@@ -3,7 +3,6 @@ package com.walletconnect.sign.engine.use_case.calls
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
 import com.walletconnect.android.internal.common.exception.Invalid
-import com.walletconnect.android.internal.common.exception.InvalidExpiryException
 import com.walletconnect.android.internal.common.exception.RequestExpiredException
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.IrnParams
@@ -14,7 +13,6 @@ import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
-import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
 import com.walletconnect.foundation.common.model.Topic
@@ -60,10 +58,6 @@ internal class RespondSessionRequestUseCase(
 
         val expiry = getPendingJsonRpcHistoryEntryByIdUseCase(jsonRpcResponse.id)?.params?.request?.expiry
         expiry?.let {
-            if (!CoreValidator.isExpiryWithinBounds(Expiry(it))) {
-                sendExpiryError(topic, jsonRpcResponse)
-                throw InvalidExpiryException()
-            }
             checkExpiry(Expiry(it), topic, jsonRpcResponse)
         }
 
@@ -110,7 +104,7 @@ internal class RespondSessionRequestUseCase(
             sessionRequestEventsQueue.remove(event)
         }
         if (sessionRequestEventsQueue.isNotEmpty()) {
-            sessionRequestEventsQueue.find { event -> CoreValidator.isExpiryWithinBounds(event.request.expiry) }?.let { event ->
+            sessionRequestEventsQueue.find { event -> if (event.request.expiry != null) !event.request.expiry.isExpired() else true }?.let { event ->
                 _events.emit(event)
             }
         }

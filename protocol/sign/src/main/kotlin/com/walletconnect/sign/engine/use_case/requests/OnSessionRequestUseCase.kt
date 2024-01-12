@@ -14,7 +14,6 @@ import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
-import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
 import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
@@ -48,22 +47,16 @@ internal class OnSessionRequestUseCase(
 
         try {
             params.request.expiry?.let {
-                if (!CoreValidator.isExpiryWithinBounds(Expiry(it))) {
-                    jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
-                    _events.emit(SDKError(Throwable("Invalid expiry, id: ${request.id}",)))
-                    return@supervisorScope
-                }
-
                 if (Expiry(it).isExpired()) {
                     jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
-                    _events.emit(SDKError(Throwable("This request has expired, id: ${request.id}",)))
+                    _events.emit(SDKError(Throwable("This request has expired, id: ${request.id}")))
                     return@supervisorScope
                 }
             }
 
             SignValidator.validateSessionRequest(params.toEngineDO(request.topic)) { error ->
                 jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
-                _events.emit(SDKError(Throwable("Request validation error, id: ${request.id}",)))
+                _events.emit(SDKError(Throwable("Request validation error, id: ${request.id}")))
                 return@supervisorScope
             }
 
@@ -94,7 +87,7 @@ internal class OnSessionRequestUseCase(
                 val event = if (sessionRequestEventsQueue.isEmpty()) {
                     sessionRequestEvent
                 } else {
-                    sessionRequestEventsQueue.find { event -> CoreValidator.isExpiryWithinBounds(event.request.expiry) } ?: sessionRequestEvent
+                    sessionRequestEventsQueue.find { event -> if (event.request.expiry != null) !event.request.expiry.isExpired() else true } ?: sessionRequestEvent
                 }
 
                 sessionRequestEventsQueue.add(sessionRequestEvent)

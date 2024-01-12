@@ -64,7 +64,6 @@ internal class SessionRequestUseCase(
         }
 
         val params = SignParams.SessionRequestParams(SessionRequestVO(request.method, request.params, request.expiry?.seconds), request.chainId)
-        println("kobe: request params: $params")
         val sessionPayload = SignRpc.SessionRequest(params = params)
         val irnParamsTtl = request.expiry?.run {
             val defaultTtl = FIVE_MINUTES_IN_SECONDS
@@ -76,7 +75,6 @@ internal class SessionRequestUseCase(
         val irnParams = IrnParams(Tags.SESSION_REQUEST, irnParamsTtl, true)
         val requestTtlInSeconds = request.expiry?.run { seconds - nowInSeconds } ?: FIVE_MINUTES_IN_SECONDS
 
-        println("kobe: request payload: $sessionPayload")
         jsonRpcInteractor.publishJsonRpcRequest(Topic(request.topic), irnParams, sessionPayload,
             onSuccess = {
                 logger.log("Session request sent successfully")

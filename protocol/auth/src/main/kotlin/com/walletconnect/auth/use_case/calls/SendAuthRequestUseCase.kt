@@ -45,7 +45,7 @@ internal class SendAuthRequestUseCase(
 
     override suspend fun request(payloadParams: PayloadParams, expiry: Expiry?, topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         val nowInSeconds = TimeUnit.SECONDS.convert(Date().time, TimeUnit.SECONDS)
-        if (!CoreValidator.isExpiryWithinBounds(expiry ?: Expiry(300))) {
+        if (!CoreValidator.isExpiryWithinBounds(expiry)) {
             return@supervisorScope onFailure(InvalidExpiryException())
         }
 

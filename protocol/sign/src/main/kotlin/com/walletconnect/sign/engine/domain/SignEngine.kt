@@ -12,7 +12,6 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
-import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
@@ -286,7 +285,7 @@ internal class SignEngine(
     private fun propagatePendingSessionRequestsQueue() = scope.launch {
         getPendingSessionRequests()
             .map { pendingRequest -> pendingRequest.toSessionRequest(metadataStorageRepository.getByTopicAndType(pendingRequest.topic, AppMetaDataType.PEER)) }
-            .filter { sessionRequest -> CoreValidator.isExpiryWithinBounds(sessionRequest.expiry) && sessionRequest.expiry?.isExpired() == false }
+            .filter { sessionRequest -> sessionRequest.expiry?.isExpired() == false }
             .filter { sessionRequest -> getSessionsUseCase.getListOfSettledSessions().find { session -> session.topic.value == sessionRequest.topic } != null }
             .onEach { sessionRequest ->
                 scope.launch {
@@ -306,10 +305,12 @@ internal class SignEngine(
                 proposalStorageRepository
                     .getProposals()
                     .onEach { proposal ->
-                        if (proposal.expiry.isExpired()) {
-                            proposalStorageRepository.deleteProposal(proposal.proposerPublicKey)
-                            println("kobe: Emitting proposal expired: ${proposal.proposerPublicKey}")
-                            _engineEvent.emit(proposal.toExpiredProposal())
+                        proposal.expiry?.let {
+                            if (it.isExpired()) {
+                                proposalStorageRepository.deleteProposal(proposal.proposerPublicKey)
+                                println("kobe: Emitting proposal expired: ${proposal.proposerPublicKey}")
+                                _engineEvent.emit(proposal.toExpiredProposal())
+                            }
                         }
                     }
             }.launchIn(scope)
@@ -320,10 +321,12 @@ internal class SignEngine(
             .onEach {
                 getPendingSessionRequests()
                     .onEach { pendingRequest ->
-                        if (pendingRequest.expiry?.isExpired() == true) {
-                            println("kobe: Emitting expired request: ${pendingRequest.id}")
-                            deleteRequestByIdUseCase(pendingRequest.id)
-                            _engineEvent.emit(pendingRequest.toExpiredSessionRequest())
+                        pendingRequest.expiry?.let {
+                            if (it.isExpired()) {
+                                println("kobe: Emitting expired request: ${pendingRequest.id}")
+                                deleteRequestByIdUseCase(pendingRequest.id)
+                                _engineEvent.emit(pendingRequest.toExpiredSessionRequest())
+                            }
                         }
                     }
             }.launchIn(scope)
@@ -334,7 +337,7 @@ internal class SignEngine(
             .onEach { pairingTopic ->
                 try {
                     val proposal = proposalStorageRepository.getProposalByTopic(pairingTopic.value)
-                    if (proposal.expiry.isExpired()) {
+                    if (proposal.expiry?.isExpired() == true) {
                         proposalStorageRepository.deleteProposal(proposal.proposerPublicKey)
                         scope.launch { _engineEvent.emit(proposal.toExpiredProposal()) }
                     } else {

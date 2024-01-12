@@ -9,7 +9,7 @@ import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.utils.CoreValidator
+import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
@@ -33,9 +33,11 @@ internal class OnAuthRequestUseCase(
     suspend operator fun invoke(wcRequest: WCRequest, authParams: AuthParams.RequestParams) = supervisorScope {
         val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
         try {
-            if (!CoreValidator.isExpiryWithinBounds(authParams.expiry)) {
-                jsonRpcInteractor.respondWithError(wcRequest, Invalid.RequestExpired, irnParams)
-                return@supervisorScope
+            authParams.expiry?.let {
+                if (it.isExpired()) {
+                    jsonRpcInteractor.respondWithError(wcRequest, Invalid.RequestExpired, irnParams)
+                    return@supervisorScope
+                }
             }
 
             val url = authParams.requester.metadata.url

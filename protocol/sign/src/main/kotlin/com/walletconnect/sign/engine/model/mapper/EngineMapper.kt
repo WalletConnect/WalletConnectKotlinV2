@@ -10,7 +10,6 @@ import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SessionProposer
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
-import com.walletconnect.android.internal.utils.PROPOSAL_EXPIRY
 import com.walletconnect.android.verify.data.model.VerifyContext
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
@@ -71,7 +70,7 @@ internal fun SignParams.SessionProposeParams.toVO(topic: Topic, requestId: Long)
         proposerPublicKey = proposer.publicKey,
         relayProtocol = relays.first().protocol,
         relayData = relays.first().data,
-        expiry = Expiry(PROPOSAL_EXPIRY)
+        expiry = if (expiry != null) Expiry(expiry) else null
     )
 
 @JvmSynthetic
@@ -83,7 +82,7 @@ internal fun ProposalVO.toSessionProposeRequest(): WCRequest =
         params = SignParams.SessionProposeParams(
             relays = listOf(RelayProtocolOptions(protocol = relayProtocol, data = relayData)),
             proposer = SessionProposer(proposerPublicKey, AppMetaData(name = name, description = description, url = url, icons = icons)),
-            requiredNamespaces = requiredNamespaces, optionalNamespaces = optionalNamespaces, properties = properties
+            requiredNamespaces = requiredNamespaces, optionalNamespaces = optionalNamespaces, properties = properties, expiry = expiry?.seconds
         )
     )
 
@@ -155,7 +154,8 @@ internal fun ProposalVO.toSessionSettleParams(
         relay = RelayProtocolOptions(relayProtocol, relayData),
         controller = selfParticipant,
         namespaces = namespaces.toMapOfNamespacesVOSession(),
-        expiry = sessionExpiry
+        expiry = sessionExpiry,
+        properties = properties
     )
 
 @JvmSynthetic
@@ -166,12 +166,14 @@ internal fun toSessionProposeParams(
     properties: Map<String, String>?,
     selfPublicKey: PublicKey,
     appMetaData: AppMetaData,
+    expiry: Expiry
 ) = SignParams.SessionProposeParams(
     relays = relays ?: listOf(RelayProtocolOptions()),
     proposer = SessionProposer(selfPublicKey.keyAsHex, appMetaData),
     requiredNamespaces = requiredNamespaces.toNamespacesVORequired(),
     optionalNamespaces = optionalNamespaces.toNamespacesVOOptional(),
-    properties = properties
+    properties = properties,
+    expiry = expiry.seconds
 )
 
 @JvmSynthetic

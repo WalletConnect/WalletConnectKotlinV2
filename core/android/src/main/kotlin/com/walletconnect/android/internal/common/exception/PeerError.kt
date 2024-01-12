@@ -26,6 +26,11 @@ sealed class Invalid : Error {
         override val message: String = "Request expired"
         override val code: Int = 8000
     }
+
+    object ProposalExpired: Invalid() {
+        override val message: String = "Proposal expired"
+        override val code: Int = 8001
+    }
 }
 
 sealed class Reason : Error {

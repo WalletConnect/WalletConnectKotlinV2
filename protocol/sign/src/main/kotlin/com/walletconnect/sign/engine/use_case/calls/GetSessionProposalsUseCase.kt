@@ -9,7 +9,9 @@ import kotlinx.coroutines.supervisorScope
 
 internal class GetSessionProposalsUseCase(private val proposalStorageRepository: ProposalStorageRepository) : GetSessionProposalsUseCaseInterface {
     override suspend fun getSessionProposals(): List<EngineDO.SessionProposal> =
-        supervisorScope { proposalStorageRepository.getProposals().filter { proposal -> !proposal.expiry.isExpired() }.map(ProposalVO::toEngineDO) }
+        supervisorScope {
+            proposalStorageRepository.getProposals().filter { proposal -> proposal.expiry?.let { !it.isExpired() } ?: true }.map(ProposalVO::toEngineDO)
+        }
 }
 
 internal interface GetSessionProposalsUseCaseInterface {

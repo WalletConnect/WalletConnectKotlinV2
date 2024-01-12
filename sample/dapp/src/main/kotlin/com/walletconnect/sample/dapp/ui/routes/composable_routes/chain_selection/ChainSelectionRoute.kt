@@ -77,14 +77,6 @@ fun ChainSelectionRoute(navController: NavController) {
     rememberModalState(navController = navController)
     val awaitingProposalResponse = viewModel.awaitingSharedFlow.collectAsState(false).value
 
-//    SideEffect {
-//        if (WalletConnectModal.getListOfProposals().isNotEmpty()) {
-//            viewModel.awaitingProposalResponse(true)
-//        } else {
-//            viewModel.awaitingProposalResponse(false)
-//        }
-//    }
-
     LaunchedEffect(Unit) {
         navController.currentBackStackEntryFlow.collectLatest { event ->
             event.savedStateHandle.get<PairingSelectionResult>(pairingSelectionResultKey)?.let {
@@ -97,11 +89,16 @@ fun ChainSelectionRoute(navController: NavController) {
 
                     PairingSelectionResult.None -> Unit
                     is PairingSelectionResult.SelectedPairing -> {
-                        viewModel.connectToWallet(it.position) { error ->
-                            composableScope.launch(Dispatchers.Main) {
-                                Toast.makeText(context, "Error while connecting: $error", Toast.LENGTH_SHORT).show()
-                            }
-                        }
+                        viewModel.connectToWallet(it.position,
+                            onSuccess = {
+                                //todo log to MixPanel
+                                println("Proposal sent successfully")
+                            },
+                            onError = { error ->
+                                composableScope.launch(Dispatchers.Main) {
+                                    Toast.makeText(context, "Error while connecting: $error", Toast.LENGTH_SHORT).show()
+                                }
+                            })
                     }
                 }
             }
@@ -175,7 +172,6 @@ fun ChainSelectionRoute(navController: NavController) {
                             else -> SAMPLE_WALLET_RELEASE_PACKAGE
                         }
                     }
-                    viewModel.awaitingProposalResponse(false)
                     context.startActivity(intent)
                 },
                 onError = { error ->

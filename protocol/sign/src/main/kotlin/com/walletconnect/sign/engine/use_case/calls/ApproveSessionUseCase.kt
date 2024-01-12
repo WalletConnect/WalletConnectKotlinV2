@@ -90,8 +90,10 @@ internal class ApproveSessionUseCase(
 
         val proposal = proposalStorageRepository.getProposalByKey(proposerPublicKey)
         val request = proposal.toSessionProposeRequest()
-        if (proposal.expiry.isExpired()) {
-            throw SessionProposalExpiredException("Session proposal expired")
+        proposal.expiry?.let {
+            if (it.isExpired()) {
+                throw SessionProposalExpiredException("Session proposal expired")
+            }
         }
 
         SignValidator.validateSessionNamespace(sessionNamespaces.toMapOfNamespacesVOSession(), proposal.requiredNamespaces) { error ->

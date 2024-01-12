@@ -60,6 +60,7 @@ internal class WalletConnectModalViewModel : ViewModel() {
                 sessionParams.properties,
                 pairing
             )
+
             WalletConnectModal.connect(
                 connect = connectParams,
                 onSuccess = { viewModelScope.launch { onSuccess(pairing.uri) } },

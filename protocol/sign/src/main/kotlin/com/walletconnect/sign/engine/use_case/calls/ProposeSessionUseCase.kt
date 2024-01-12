@@ -2,12 +2,14 @@ package com.walletconnect.sign.engine.use_case.calls
 
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.model.AppMetaData
+import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Pairing
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
+import com.walletconnect.android.internal.utils.PROPOSAL_EXPIRY
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
@@ -44,9 +46,15 @@ internal class ProposeSessionUseCase(
 
         runCatching { validate(requiredNamespaces, optionalNamespaces, properties) }.fold(
             onSuccess = {
+                val expiry = Expiry(PROPOSAL_EXPIRY)
                 val selfPublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
                 val sessionProposal: SignParams.SessionProposeParams =
-                    toSessionProposeParams(listOf(relay), requiredNamespaces ?: emptyMap(), optionalNamespaces ?: emptyMap(), properties, selfPublicKey, selfAppMetaData)
+                    toSessionProposeParams(
+                        listOf(relay),
+                        requiredNamespaces ?: emptyMap(),
+                        optionalNamespaces ?: emptyMap(),
+                        properties, selfPublicKey, selfAppMetaData, expiry
+                    )
                 val request = SignRpc.SessionPropose(params = sessionProposal)
                 proposalStorageRepository.insertProposal(sessionProposal.toVO(pairing.topic, request.id))
                 val irnParams = IrnParams(Tags.SESSION_PROPOSE, Ttl(FIVE_MINUTES_IN_SECONDS), true)
