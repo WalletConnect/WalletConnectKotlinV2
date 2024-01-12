@@ -65,9 +65,9 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
     override fun onSessionProposal(sessionProposal: Wallet.Model.SessionProposal, verifyContext: Wallet.Model.VerifyContext) {
         sessionProposalEvent = Pair(sessionProposal, verifyContext)
 
-        scope.launch {
-            _walletEvents.emit(sessionProposal)
-        }
+//        scope.launch {
+//            _walletEvents.emit(sessionProposal)
+//        }
     }
 
     override fun onSessionRequest(sessionRequest: Wallet.Model.SessionRequest, verifyContext: Wallet.Model.VerifyContext) {
@@ -116,8 +116,8 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
 
     override fun onPairingState(pairingState: Core.Model.PairingState) {
         println("kobe: wallet pairing state: ${pairingState.isPairingState}")
-//        scope.launch {
-//            _coreEvents.emit(pairingState)
-//        }
+        scope.launch {
+            _coreEvents.emit(pairingState)
+        }
     }
 }

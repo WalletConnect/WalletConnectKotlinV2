@@ -258,19 +258,18 @@ internal class PairingEngine(
         flow {
             while (true) {
                 emit(Unit)
-                delay(2000)
+                delay(5000)
             }
         }.onEach {
-            pairingRepository
+            val inactivePairings = pairingRepository
                 .getListOfPairings()
-                .find { pairing -> !pairing.isActive }
-                .let {
-                    if (it != null) {
-                        _isPairingStateFlow.compareAndSet(expect = false, update = true)
-                    } else {
-                        _isPairingStateFlow.compareAndSet(expect = true, update = false)
-                    }
-                }
+                .filter { pairing -> !pairing.isActive }
+
+            if (inactivePairings.isNotEmpty()) {
+                _isPairingStateFlow.compareAndSet(expect = false, update = true)
+            } else {
+                _isPairingStateFlow.compareAndSet(expect = true, update = false)
+            }
         }.launchIn(scope)
     }
 

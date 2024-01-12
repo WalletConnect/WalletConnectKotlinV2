@@ -38,6 +38,7 @@ class Web3WalletViewModel : ViewModel() {
                 val pairingType = if (coreEvent.pairing.isActive) "Active" else "Inactive"
                 _pairingSharedFlow.emit(PairingState.Expired("$pairingType pairing expired"))
             } else if (coreEvent is Core.Model.PairingState) {
+                println("kobe: checking emit pairing loading")
                 if (coreEvent.isPairingState) {
                     println("kobe: emit pairing loading")
                     _pairingSharedFlow.emit(PairingState.Loading)

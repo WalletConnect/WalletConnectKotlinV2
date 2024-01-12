@@ -72,10 +72,12 @@ fun WalletSampleHost(
     val bottomBarState = rememberBottomBarMutableState()
     val currentRoute = navController.currentBackStackEntryAsState()
     var isLoader by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
         web3walletViewModel.pairingSharedFlow.collect {
             when (it) {
                 is PairingState.Error -> {
+                    println("kobe: error")
                     isLoader = false
                     navController.popBackStack(route = Route.Connections.path, inclusive = false) //todo: always?
                     navController.showSnackbar(it.message)
@@ -94,7 +96,10 @@ fun WalletSampleHost(
                     isLoader = true
                 }
 
-                is PairingState.Success -> isLoader = false
+                is PairingState.Success -> {
+                    println("kobe: success")
+                    isLoader = false
+                }
 
                 else -> Unit
             }
@@ -116,12 +121,13 @@ fun WalletSampleHost(
                 connectionsViewModel = connectionsViewModel,
             )
 
-            if (connectionState is ConnectionState.Error) {
-                ErrorBanner(connectionState.message)
-            } else if (connectionState is ConnectionState.Ok) {
-                RestoredConnectionBanner()
-            }
+//            if (connectionState is ConnectionState.Error) {
+//                ErrorBanner(connectionState.message)
+//            } else if (connectionState is ConnectionState.Ok) {
+//                RestoredConnectionBanner()
+//            }
 
+            println("kobe: isLoader: $isLoader")
             if (isLoader) {
                 PairingLoader()
             }

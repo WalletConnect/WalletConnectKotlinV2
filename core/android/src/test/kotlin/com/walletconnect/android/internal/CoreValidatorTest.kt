@@ -1,6 +1,7 @@
 package com.walletconnect.android.internal
 
 import com.walletconnect.android.internal.common.model.Expiry
+import com.walletconnect.android.internal.utils.CURRENT_TIME_IN_SECONDS
 import com.walletconnect.android.internal.utils.CoreValidator
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
@@ -42,12 +43,12 @@ class CoreValidatorTest {
 
     @Test
     fun `is expiry in bounds test`() {
-        assertTrue(CoreValidator.isExpiryWithinBounds(Expiry(300)))
-        assertTrue(CoreValidator.isExpiryWithinBounds(Expiry(1500)))
-        assertTrue(CoreValidator.isExpiryWithinBounds(Expiry(30000)))
-        assertTrue(CoreValidator.isExpiryWithinBounds(Expiry(604800)))
-        assertFalse(CoreValidator.isExpiryWithinBounds(Expiry(605000)))
-        assertFalse(CoreValidator.isExpiryWithinBounds(Expiry(1)))
-        assertFalse(CoreValidator.isExpiryWithinBounds(Expiry(299)))
+        assertTrue(CoreValidator.isExpiryWithinBounds(Expiry(CURRENT_TIME_IN_SECONDS + 300)))
+        assertTrue(CoreValidator.isExpiryWithinBounds(Expiry(CURRENT_TIME_IN_SECONDS + 1500)))
+        assertTrue(CoreValidator.isExpiryWithinBounds(Expiry(CURRENT_TIME_IN_SECONDS + 30000)))
+        assertTrue(CoreValidator.isExpiryWithinBounds(Expiry(CURRENT_TIME_IN_SECONDS + 604800)))
+        assertFalse(CoreValidator.isExpiryWithinBounds(Expiry(CURRENT_TIME_IN_SECONDS + 605000)))
+        assertFalse(CoreValidator.isExpiryWithinBounds(Expiry(CURRENT_TIME_IN_SECONDS + 1)))
+        assertFalse(CoreValidator.isExpiryWithinBounds(Expiry(CURRENT_TIME_IN_SECONDS + 299)))
     }
 }
