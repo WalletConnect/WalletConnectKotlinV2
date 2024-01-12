@@ -4,9 +4,9 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.model.AppMetaData
+import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SessionProposer
-import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpc
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import junit.framework.TestCase.assertEquals
@@ -70,12 +70,13 @@ class AttestationIdGenerationTest {
                     )
                 ),
                 properties = mapOf("expiry" to "2022-12-24T17:07:31+00:00", "caip154-mandatory" to "true"),
+                expiry = 123456789
             )
 
         val sessionPropose = SignRpc.SessionPropose(id = 1681757953038968, params = params)
         val json = moshi.adapter(SignRpc.SessionPropose::class.java).toJson(sessionPropose)
         val result = sha256(json.toByteArray())
-        assertEquals("340dc6e0547d4290ad11d8e348177810b0e73ad8f6fc62b97bcc907fe1b7b50c", result)
+        assertEquals("3948c03c15d5881118e0f3ace865199163c18cc23b0cf1e72812536c2e76de92", result)
     }
 
     @Test
@@ -100,12 +101,13 @@ class AttestationIdGenerationTest {
                         icons = listOf("https://avatars.githubusercontent.com/u/37784886")
                     )
                 ),
-                properties = null
+                properties = null,
+                expiry = 123456789
             )
 
         val sessionPropose = SignRpc.SessionPropose(id = 1681824460577019, params = params)
         val json = moshi.adapter(SignRpc.SessionPropose::class.java).toJson(sessionPropose)
         val result = sha256(json.toByteArray())
-        assertEquals("a981b39a3cd01a43c8e049e8470b011ccb29a32160c2929790690d6a1fbe0be8", result)
+        assertEquals("cad66bf51d3cb0de784b916503212389de272109bbe29e6efe78d989f38171ae", result)
     }
 }
