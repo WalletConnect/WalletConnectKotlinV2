@@ -58,6 +58,7 @@ internal class OnSessionProposalUseCase(
             }
 
             proposalStorageRepository.insertProposal(payloadParams.toVO(request.topic, request.id))
+            pairingController.activate(Core.Params.Activate(request.topic.value))
             pairingController.updateMetadata(Core.Params.UpdateMetadata(request.topic.value, payloadParams.proposer.metadata.toClient(), AppMetaDataType.PEER))
             val url = payloadParams.proposer.metadata.url
             resolveAttestationIdUseCase(request.id, request.message, url) { verifyContext ->

@@ -13,7 +13,7 @@ val hybridClientConnect = { pairing: Core.Model.Pairing ->
     val connectParams = Sign.Params.Connect(namespaces = proposalNamespaces, optionalNamespaces = null, properties = null, pairing = pairing)
     HybridSignClient.connect(
         connectParams,
-        onSuccess = { Timber.d("HybridDappClient: connect onSuccess") },
+        onSuccess = { url -> Timber.d("HybridDappClient: connect onSuccess, url: $url") },
         onError = ::globalOnError
     )
 }
