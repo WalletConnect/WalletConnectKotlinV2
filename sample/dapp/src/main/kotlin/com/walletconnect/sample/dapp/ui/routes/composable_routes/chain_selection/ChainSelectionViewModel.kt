@@ -144,13 +144,13 @@ class ChainSelectionViewModel : ViewModel() {
                     )
 
                 WalletConnectModal.connect(connectParams,
-                    onSuccess = {
+                    onSuccess = { url ->
                         if (pairingTopicPosition == -1) {
                             viewModelScope.launch {
                                 _awaitingProposalSharedFlow.emit(false)
                             }
                         }
-                        onSuccess(pairing.uri)
+                        onSuccess(url)
                     },
                     onError = { error ->
                         viewModelScope.launch {

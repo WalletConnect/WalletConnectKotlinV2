@@ -14,4 +14,8 @@ internal sealed class EngineDO {
     data class PairingExpire(
         val pairing: Pairing
     ) : EngineDO()
+
+    data class PairingState(
+        val isPairingState: Boolean
+    ) : EngineDO()
 }

@@ -308,6 +308,7 @@ internal class SignEngine(
                         proposal.expiry?.let {
                             if (it.isExpired()) {
                                 proposalStorageRepository.deleteProposal(proposal.proposerPublicKey)
+                                deleteRequestByIdUseCase(proposal.requestId)
                                 _engineEvent.emit(proposal.toExpiredProposal())
                             }
                         }

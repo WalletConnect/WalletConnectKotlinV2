@@ -175,6 +175,7 @@ object Web3Modal {
         SignClient.setDappDelegate(signDelegate)
     }
 
+    //todo: add deprecate and new connect
     internal fun connect(
         connect: Modal.Params.Connect,
         onSuccess: () -> Unit,

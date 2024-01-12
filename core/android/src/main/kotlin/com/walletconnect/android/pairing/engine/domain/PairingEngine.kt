@@ -48,6 +48,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
@@ -76,12 +77,17 @@ internal class PairingEngine(
     private val setOfRegisteredMethods: MutableSet<String> = mutableSetOf()
     private val registeredMethods: String get() = setOfRegisteredMethods.joinToString(",") { it }
 
+    private val _isPairingStateFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
+
     private val _expiredPairingFlow: MutableSharedFlow<Pairing> = MutableSharedFlow()
     val expiredPairingFlow: SharedFlow<Pairing> = _expiredPairingFlow.asSharedFlow()
 
     private val _engineEvent: MutableSharedFlow<EngineDO> = MutableSharedFlow()
-    val engineEvent: SharedFlow<EngineDO> = merge(_engineEvent.asSharedFlow(), _expiredPairingFlow.asSharedFlow()
-        .map { pairing -> EngineDO.PairingExpire(pairing) }).shareIn(scope, SharingStarted.Lazily, 1)//todo: 1 or 0?
+    val engineEvent: SharedFlow<EngineDO> = merge(
+        _engineEvent.asSharedFlow(),
+        _expiredPairingFlow.asSharedFlow().map { pairing -> EngineDO.PairingExpire(pairing) },
+        _isPairingStateFlow.map { EngineDO.PairingState(it) })
+        .shareIn(scope, SharingStarted.Lazily, 1)//todo: 1 or 0?
 
     private val _activePairingTopicFlow: MutableSharedFlow<Topic> = MutableSharedFlow()
     val activePairingTopicFlow: SharedFlow<Topic> = _activePairingTopicFlow.asSharedFlow()
@@ -92,6 +98,7 @@ internal class PairingEngine(
         setOfRegisteredMethods.addAll(listOf(PairingJsonRpcMethod.WC_PAIRING_DELETE, PairingJsonRpcMethod.WC_PAIRING_PING))
         resubscribeToPairingTopics()
         pairingExpiryWatcher()
+        isPairingStateWatcher()
     }
 
     val jsonRpcErrorFlow: Flow<SDKError> by lazy {
@@ -244,6 +251,26 @@ internal class PairingEngine(
             pairingRepository
                 .getListOfPairings()
                 .onEach { pairing -> pairing.isNotExpired() }
+        }.launchIn(scope)
+    }
+
+    private fun isPairingStateWatcher() {
+        flow {
+            while (true) {
+                emit(Unit)
+                delay(2000)
+            }
+        }.onEach {
+            pairingRepository
+                .getListOfPairings()
+                .find { pairing -> !pairing.isActive }
+                .let {
+                    if (it != null) {
+                        _isPairingStateFlow.compareAndSet(expect = false, update = true)
+                    } else {
+                        _isPairingStateFlow.compareAndSet(expect = true, update = false)
+                    }
+                }
         }.launchIn(scope)
     }
 

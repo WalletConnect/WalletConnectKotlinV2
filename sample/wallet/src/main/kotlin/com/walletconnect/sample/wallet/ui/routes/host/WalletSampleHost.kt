@@ -89,10 +89,15 @@ fun WalletSampleHost(
                     navController.showSnackbar(it.message)
                 }
 
+                is PairingState.Loading -> {
+                    println("kobe: show pairing laoder")
+                    isLoader = true
+                }
+
+                is PairingState.Success -> isLoader = false
+
                 else -> Unit
             }
-
-            isLoader = it is PairingState.Loading
         }
     }
 

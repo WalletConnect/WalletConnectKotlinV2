@@ -115,4 +115,8 @@ object DappDelegate : WalletConnectModal.ModalDelegate, CoreClient.CoreDelegate 
             _coreEvents.emit(expiredPairing)
         }
     }
+
+    override fun onPairingState(pairingState: Core.Model.PairingState) {
+        Timber.d(tag(this), "Dapp pairing state: ${pairingState.isPairingState}")
+    }
 }

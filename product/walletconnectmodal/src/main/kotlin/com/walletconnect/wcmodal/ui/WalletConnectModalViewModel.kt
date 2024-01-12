@@ -63,7 +63,7 @@ internal class WalletConnectModalViewModel : ViewModel() {
 
             WalletConnectModal.connect(
                 connect = connectParams,
-                onSuccess = { viewModelScope.launch { onSuccess(pairing.uri) } },
+                onSuccess = { url -> viewModelScope.launch { onSuccess(url) } },
                 onError = { handleError(it.throwable) }
             )
         } catch (e: Exception) {

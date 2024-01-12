@@ -25,6 +25,8 @@ object Core {
         data class DeletedPairing(val topic: String, val reason: String) : Model()
         data class ExpiredPairing(val pairing: Pairing) : Model()
 
+        data class PairingState(val isPairingState: Boolean) : Model()
+
         data class Pairing(
             val topic: String,
             val expiry: Long,

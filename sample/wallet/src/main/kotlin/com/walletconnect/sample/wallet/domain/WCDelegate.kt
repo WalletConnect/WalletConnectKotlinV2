@@ -113,4 +113,11 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
             _coreEvents.emit(expiredPairing)
         }
     }
+
+    override fun onPairingState(pairingState: Core.Model.PairingState) {
+        println("dupa: wallet pairing state: ${pairingState.isPairingState}")
+        scope.launch {
+            _coreEvents.emit(pairingState)
+        }
+    }
 }

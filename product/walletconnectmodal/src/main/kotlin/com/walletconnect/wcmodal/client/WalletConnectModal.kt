@@ -145,6 +145,10 @@ object WalletConnectModal {
         _sessionParams = sessionParams
     }
 
+    @Deprecated(
+        message = "Replaced with the same name method but onSuccess callback returns a Pairing URL",
+        replaceWith = ReplaceWith(expression = "fun connect(connect: Sign.Params.Connect, onSuccess: (String) -> Unit, onError: (Sign.Model.Error) -> Unit)")
+    )
     fun connect(
         connect: Modal.Params.Connect,
         onSuccess: () -> Unit,
@@ -153,6 +157,18 @@ object WalletConnectModal {
         SignClient.connect(
             connect = connect.toSign(),
             onSuccess = onSuccess,
+            onError = { onError(it.toModal()) }
+        )
+    }
+
+    fun connect(
+        connect: Modal.Params.Connect,
+        onSuccess: (String) -> Unit,
+        onError: (Modal.Model.Error) -> Unit
+    ) {
+        SignClient.connect(
+            connect = connect.toSign(),
+            onSuccess = { url -> onSuccess(url) },
             onError = { onError(it.toModal()) }
         )
     }
