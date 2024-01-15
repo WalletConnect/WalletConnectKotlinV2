@@ -212,6 +212,11 @@ internal class PairingEngine(
         getPairing(topic, onFailure) { pairing -> pairingRepository.activatePairing(pairing.topic) }
     }
 
+    fun setProposalReceived(topic: String, onFailure: (Throwable) -> Unit) {
+        getPairing(topic, onFailure) { pairing -> pairingRepository.setProposalReceived(pairing.topic) }
+    }
+
+
     fun updateExpiry(topic: String, expiry: Expiry, onFailure: (Throwable) -> Unit) {
         val pairing: Pairing = pairingRepository.getPairingOrNullByTopic(Topic(topic))?.run {
             this.takeIf { pairing -> pairing.isNotExpired() } ?: return onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic"))
@@ -245,7 +250,7 @@ internal class PairingEngine(
         flow {
             while (true) {
                 emit(Unit)
-                delay(2000)
+                delay(WATCHER_INTERVAL)
             }
         }.onEach {
             pairingRepository
@@ -258,12 +263,14 @@ internal class PairingEngine(
         flow {
             while (true) {
                 emit(Unit)
-                delay(5000)
+                delay(WATCHER_INTERVAL)
             }
         }.onEach {
             val inactivePairings = pairingRepository
                 .getListOfPairings()
-                .filter { pairing -> !pairing.isActive }
+                .filter { pairing ->
+                    !pairing.isActive && !pairing.isProposalReceived
+                }
 
             if (inactivePairings.isNotEmpty()) {
                 _isPairingStateFlow.compareAndSet(expect = false, update = true)
@@ -378,4 +385,8 @@ internal class PairingEngine(
 
     private fun isPairingValid(topic: String): Boolean =
         pairingRepository.getPairingOrNullByTopic(Topic(topic))?.let { pairing -> return@let pairing.isNotExpired() } ?: false
+
+    companion object {
+        private const val WATCHER_INTERVAL = 3000L
+    }
 }

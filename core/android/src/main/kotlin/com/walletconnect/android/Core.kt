@@ -2,7 +2,6 @@ package com.walletconnect.android
 
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.Expiry
-import com.walletconnect.android.internal.common.model.Namespace
 
 object Core {
     sealed interface Listeners {
@@ -133,6 +132,8 @@ object Core {
         data class Disconnect(val topic: String) : Params()
 
         data class Activate(val topic: String) : Params()
+
+        data class ProposalReceived(val topic: String) : Params()
 
         data class UpdateExpiry(val topic: String, val expiry: Expiry) : Params()
 

@@ -13,7 +13,8 @@ data class Pairing(
     val relayProtocol: String,
     val relayData: String?,
     val uri: String,
-    val registeredMethods: String
+    val registeredMethods: String,
+    val isProposalReceived: Boolean = false,
 ) : Sequence {
     val isActive: Boolean
         get() = (expiry.seconds - CURRENT_TIME_IN_SECONDS) > FIVE_MINUTES_IN_SECONDS
