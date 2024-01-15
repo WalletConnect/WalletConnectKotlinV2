@@ -117,10 +117,25 @@ fun WalletSampleHost(
                 PairingLoader()
             }
 
-            //Timer composable
-            //stateFlow inside composable to update only timer
+            Timer(web3walletViewModel)
         }
     }
+}
+
+@Composable
+private fun BoxScope.Timer(web3walletViewModel: Web3WalletViewModel) {
+    val timer by web3walletViewModel.timerFlow.collectAsState()
+    Text(
+        modifier = Modifier
+            .align(Alignment.BottomStart),
+        text = timer,
+        maxLines = 1,
+        style = TextStyle(
+            fontWeight = FontWeight.Medium,
+            fontSize = 12.sp,
+            color = themedColor(Color(0xFFb9b3b5), Color(0xFF484648))
+        ),
+    )
 }
 
 @Composable

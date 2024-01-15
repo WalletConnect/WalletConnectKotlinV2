@@ -13,11 +13,13 @@ import com.walletconnect.sample.wallet.ui.state.PairingEvent
 import com.walletconnect.sample.wallet.ui.state.connectionStateFlow
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
@@ -35,6 +37,9 @@ class Web3WalletViewModel : ViewModel() {
     private val _isLoadingFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isLoadingFlow = _isLoadingFlow.asSharedFlow()
 
+    private val _timerFlow: MutableStateFlow<String> = MutableStateFlow("0")
+    val timerFlow = _timerFlow.asStateFlow()
+
     init {
         WCDelegate.coreEvents.onEach { coreEvent ->
             _isLoadingFlow.value = (coreEvent as? Core.Model.PairingState)?.isPairingState ?: false
@@ -43,6 +48,16 @@ class Web3WalletViewModel : ViewModel() {
                 val pairingType = if (coreEvent.pairing.isActive) "Active" else "Inactive"
                 _eventsSharedFlow.emit(PairingEvent.Expired("$pairingType pairing expired"))
             }
+        }.launchIn(viewModelScope)
+
+        flow {
+            while (true) {
+                emit(Unit)
+                delay(1000)
+            }
+        }.onEach {
+            val timestamp = System.currentTimeMillis() / 1000
+            _timerFlow.value = timestamp.toString()
         }.launchIn(viewModelScope)
     }
 
