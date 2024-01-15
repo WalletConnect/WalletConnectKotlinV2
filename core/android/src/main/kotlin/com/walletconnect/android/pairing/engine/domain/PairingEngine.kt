@@ -79,15 +79,13 @@ internal class PairingEngine(
 
     private val _isPairingStateFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
-    private val _expiredPairingFlow: MutableSharedFlow<Pairing> = MutableSharedFlow()
-    val expiredPairingFlow: SharedFlow<Pairing> = _expiredPairingFlow.asSharedFlow()
+    private val _deletedPairingFlow: MutableSharedFlow<Pairing> = MutableSharedFlow()
+    val deletedPairingFlow: SharedFlow<Pairing> = _deletedPairingFlow.asSharedFlow()
 
     private val _engineEvent: MutableSharedFlow<EngineDO> = MutableSharedFlow()
-    val engineEvent: SharedFlow<EngineDO> = merge(
-        _engineEvent.asSharedFlow(),
-        _expiredPairingFlow.asSharedFlow().map { pairing -> EngineDO.PairingExpire(pairing) },
-        _isPairingStateFlow.map { EngineDO.PairingState(it) })
-        .shareIn(scope, SharingStarted.Lazily, 1)//todo: 1 or 0?
+    val engineEvent: SharedFlow<EngineDO> =
+        merge(_engineEvent.asSharedFlow(), _deletedPairingFlow.asSharedFlow().map { pairing -> EngineDO.PairingExpire(pairing) }, _isPairingStateFlow.map { EngineDO.PairingState(it) })
+            .shareIn(scope, SharingStarted.Lazily, 1)//todo: 1 or 0?
 
     private val _activePairingTopicFlow: MutableSharedFlow<Topic> = MutableSharedFlow()
     val activePairingTopicFlow: SharedFlow<Topic> = _activePairingTopicFlow.asSharedFlow()
@@ -172,16 +170,22 @@ internal class PairingEngine(
             return onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic"))
         }
 
-        pairingRepository.deletePairing(Topic(topic))
-        metadataRepository.deleteMetaData(Topic(topic))
-        jsonRpcInteractor.unsubscribe(Topic(topic))
-
+        val pairing = pairingRepository.getPairingOrNullByTopic(Topic(topic))
         val deleteParams = PairingParams.DeleteParams(6000, "User disconnected")
         val pairingDelete = PairingRpc.PairingDelete(params = deleteParams)
         val irnParams = IrnParams(Tags.PAIRING_DELETE, Ttl(DAY_IN_SECONDS))
-
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, pairingDelete,
-            onSuccess = { logger.log("Disconnect sent successfully") },
+            onSuccess = {
+                scope.launch {
+                    supervisorScope {
+                        logger.log("Disconnect sent successfully")
+                        pairingRepository.deletePairing(Topic(topic))
+                        metadataRepository.deleteMetaData(Topic(topic))
+                        jsonRpcInteractor.unsubscribe(Topic(topic))
+                        _deletedPairingFlow.emit(pairing!!)
+                    }
+                }
+            },
             onFailure = { error ->
                 logger.error("Sending session disconnect error: $error")
                 onFailure(error)
@@ -268,10 +272,7 @@ internal class PairingEngine(
         }.onEach {
             val inactivePairings = pairingRepository
                 .getListOfPairings()
-                .filter { pairing ->
-                    !pairing.isActive && !pairing.isProposalReceived
-                }
-
+                .filter { pairing -> !pairing.isActive && !pairing.isProposalReceived }
             if (inactivePairings.isNotEmpty()) {
                 _isPairingStateFlow.compareAndSet(expect = false, update = true)
             } else {
@@ -302,6 +303,7 @@ internal class PairingEngine(
     private suspend fun onPairingDelete(request: WCRequest, params: PairingParams.DeleteParams) {
         val irnParams = IrnParams(Tags.PAIRING_DELETE_RESPONSE, Ttl(DAY_IN_SECONDS))
         try {
+            val pairing = pairingRepository.getPairingOrNullByTopic(request.topic)
             if (!isPairingValid(request.topic.value)) {
                 jsonRpcInteractor.respondWithError(request, Uncategorized.NoMatchingTopic("Pairing", request.topic.value), irnParams)
                 return
@@ -312,6 +314,7 @@ internal class PairingEngine(
             pairingRepository.deletePairing(request.topic)
             metadataRepository.deleteMetaData(request.topic)
 
+            _deletedPairingFlow.emit(pairing!!)
             _engineEvent.emit(EngineDO.PairingDelete(request.topic.value, params.message))
         } catch (e: Exception) {
             jsonRpcInteractor.respondWithError(request, Uncategorized.GenericError("Cannot delete pairing: ${e.message}"), irnParams)
@@ -375,9 +378,9 @@ internal class PairingEngine(
                     pairingRepository.deletePairing(this@isNotExpired.topic)
                     metadataRepository.deleteMetaData(this@isNotExpired.topic)
                     crypto.removeKeys(this@isNotExpired.topic.value)
-                    _expiredPairingFlow.emit(this@isNotExpired)
+                    _deletedPairingFlow.emit(this@isNotExpired)
                 } catch (e: Exception) {
-                    _expiredPairingFlow.emit(this@isNotExpired)
+                    _deletedPairingFlow.emit(this@isNotExpired)
                 }
             }
         }

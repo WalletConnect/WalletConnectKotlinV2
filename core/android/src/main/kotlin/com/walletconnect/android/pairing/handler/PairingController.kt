@@ -14,7 +14,7 @@ import org.koin.core.KoinApplication
 
 internal class PairingController(private val koinApp: KoinApplication = wcKoinApp) : PairingControllerInterface {
     private lateinit var pairingEngine: PairingEngine
-    override val expiredPairingFlow: SharedFlow<Pairing> by lazy { pairingEngine.expiredPairingFlow }
+    override val expiredPairingFlow: SharedFlow<Pairing> by lazy { pairingEngine.deletedPairingFlow }
     override val findWrongMethodsFlow: Flow<SDKError> by lazy { merge(pairingEngine.internalErrorFlow, pairingEngine.jsonRpcErrorFlow) }
     override val activePairingFlow: SharedFlow<Topic> by lazy { pairingEngine.activePairingTopicFlow }
 
