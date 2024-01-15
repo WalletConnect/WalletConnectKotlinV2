@@ -26,12 +26,12 @@ internal class SessionRepository(
     val sessionTopic: StateFlow<String?> = context.sessionStore.data
         .map { preferences ->
             preferences[SESSION_TOPIC]
-        }.stateIn(scope, started = SharingStarted.Lazily, null)
+        }.stateIn(scope, started = SharingStarted.Eagerly, null)
 
     val selectedChain: StateFlow<String?> = context.sessionStore.data
         .map { preferences ->
             preferences[SELECTED_CHAIN]
-        }.stateIn(scope, started = SharingStarted.Lazily, null)
+        }.stateIn(scope, started = SharingStarted.Eagerly, null)
 
     fun getSelectedChain(): String? = selectedChain.value
 
