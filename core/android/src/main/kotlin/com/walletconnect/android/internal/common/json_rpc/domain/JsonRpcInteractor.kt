@@ -94,9 +94,6 @@ internal class JsonRpcInteractor(
             return onFailure(e)
         }
 
-
-        println("kobe; Request: $requestJson")
-
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
             val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, envelopeType, participants)
 
@@ -333,7 +330,6 @@ internal class JsonRpcInteractor(
             }.collect { (decryptedMessage, topic, publishedAt) ->
                 if (decryptedMessage.isNotEmpty()) {
                     try {
-                        println("kobe; Message: $decryptedMessage")
                         manageSubscriptions(decryptedMessage, topic, publishedAt)
                     } catch (e: Exception) {
                         handleError("ManSub: ${e.stackTraceToString()}")

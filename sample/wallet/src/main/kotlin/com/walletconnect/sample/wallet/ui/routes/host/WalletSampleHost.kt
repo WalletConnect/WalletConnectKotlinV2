@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -145,6 +146,13 @@ private fun BeagleDrawer() {
 
 @Composable
 private fun BoxScope.PairingLoader() {
+    var shouldChangeText by remember { mutableStateOf(false) }
+
+    LaunchedEffect(key1 = Unit) {
+        delay(15000)
+        shouldChangeText = true
+    }
+
     Column(
         modifier = Modifier
             .align(Alignment.Center)
@@ -161,8 +169,9 @@ private fun BoxScope.PairingLoader() {
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = "WalletConnect is pairing...",
-            maxLines = 1,
+            textAlign = TextAlign.Center,
+            text = if (shouldChangeText) "Pairing is taking longer than usual, please try again..." else "WalletConnect is pairing...",
+            maxLines = 2,
             style = TextStyle(
                 fontWeight = FontWeight.Medium,
                 fontSize = 22.sp,
