@@ -26,6 +26,8 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class Web3WalletViewModel : ViewModel() {
     private val connectivityStateFlow: MutableStateFlow<ConnectionState> = MutableStateFlow(ConnectionState.Idle)
@@ -56,8 +58,9 @@ class Web3WalletViewModel : ViewModel() {
                 delay(1000)
             }
         }.onEach {
-            val timestamp = System.currentTimeMillis() / 1000
-            _timerFlow.value = timestamp.toString()
+            val timestamp = System.currentTimeMillis()
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale("en", "US"))
+            _timerFlow.value = dateFormat.format(timestamp)
         }.launchIn(viewModelScope)
     }
 
