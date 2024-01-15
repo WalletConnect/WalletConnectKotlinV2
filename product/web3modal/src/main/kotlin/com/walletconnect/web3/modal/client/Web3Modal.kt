@@ -7,6 +7,7 @@ import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import com.walletconnect.sign.common.exceptions.SignClientAlreadyInitializedException
 import com.walletconnect.util.Empty
+import com.walletconnect.web3.modal.client.models.Web3ModelClientAlreadyInitializedException
 import com.walletconnect.web3.modal.client.models.request.Request
 import com.walletconnect.web3.modal.client.models.request.SentRequestResult
 import com.walletconnect.web3.modal.di.web3ModalModule
@@ -86,13 +87,17 @@ object Web3Modal {
         onSuccess: () -> Unit = {},
         onError: (Modal.Model.Error) -> Unit
     ) {
-        runCatching {
-            wcKoinApp.modules(web3ModalModule())
-            web3ModalEngine = wcKoinApp.koin.get()
-            web3ModalEngine.setup(init)
-            web3ModalEngine.setInternalDelegate(Web3ModalDelegate)
-        }.onFailure { error -> return@onInitializedClient onError(Modal.Model.Error(error)) }
-        onSuccess()
+        if (!::web3ModalEngine.isInitialized) {
+            runCatching {
+                wcKoinApp.modules(web3ModalModule())
+                web3ModalEngine = wcKoinApp.koin.get()
+                web3ModalEngine.setup(init, onError)
+                web3ModalEngine.setInternalDelegate(Web3ModalDelegate)
+            }.onFailure { error -> return@onInitializedClient onError(Modal.Model.Error(error)) }
+            onSuccess()
+        } else {
+            onError(Modal.Model.Error(Web3ModelClientAlreadyInitializedException()))
+        }
     }
 
     fun setChains(chains: List<Modal.Model.Chain>) {
@@ -146,8 +151,8 @@ object Web3Modal {
     ) = web3ModalEngine.request(request, onSuccess, onError)
 
     private fun SentRequestResult.sentRequestToModal() = when (this) {
-        is SentRequestResult.Cb -> Modal.Model.SentRequest(Long.MIN_VALUE, String.Empty, method, params, chainId)
-        is SentRequestResult.WC -> Modal.Model.SentRequest(requestId, sessionTopic, method, params, chainId)
+        is SentRequestResult.Coinbase -> Modal.Model.SentRequest(Long.MIN_VALUE, String.Empty, method, params, chainId)
+        is SentRequestResult.WalletConnect -> Modal.Model.SentRequest(requestId, sessionTopic, method, params, chainId)
     }
 
     fun request(

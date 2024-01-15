@@ -120,7 +120,7 @@ internal class AccountViewModel : ViewModel(), Navigator by NavigatorImpl() {
         onReject: () -> Unit
     ) {
         when (this) {
-            is SentRequestResult.Cb -> this.results.firstOrNull()?.let {
+            is SentRequestResult.Coinbase -> this.results.firstOrNull()?.let {
                 when (it) {
                     is CoinbaseResult.Error -> {
                         onError(it.message)
@@ -135,7 +135,7 @@ internal class AccountViewModel : ViewModel(), Navigator by NavigatorImpl() {
                 }
             }
 
-            is SentRequestResult.WC -> logger.log("Successful request: ${this.requestId}")
+            is SentRequestResult.WalletConnect -> logger.log("Successful request: ${this.requestId}")
         }
     }
 

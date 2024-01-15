@@ -15,6 +15,7 @@ import com.walletconnect.web3.modal.engine.coinbase.CoinbaseClient
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.client.models.Account
+import com.walletconnect.web3.modal.client.models.CoinbaseClientAlreadyInitializedException
 import com.walletconnect.web3.modal.client.models.request.Request
 import com.walletconnect.web3.modal.client.models.request.SentRequestResult
 import com.walletconnect.web3.modal.client.models.request.toSentRequest
@@ -43,16 +44,21 @@ internal class Web3ModalEngine(
     private lateinit var coinbaseClient: CoinbaseClient
 
     fun setup(
-        init: Modal.Params.Init
+        init: Modal.Params.Init,
+        onError: (Modal.Model.Error) -> Unit
     ) {
         excludedWalletsIds.addAll(init.excludedWalletIds)
         recommendedWalletsIds.addAll(init.recommendedWalletsIds)
-        setupCoinbase(init)
+        setupCoinbase(init, onError)
     }
 
-    private fun setupCoinbase(init: Modal.Params.Init) {
+    private fun setupCoinbase(init: Modal.Params.Init, onError: (Modal.Model.Error) -> Unit) {
         if (init.coinbaseEnabled) {
-            coinbaseClient = CoinbaseClient(context = wcKoinApp.koin.get(), appMetaData = wcKoinApp.koin.get())
+            if (!::coinbaseClient.isInitialized) {
+                coinbaseClient = CoinbaseClient(context = wcKoinApp.koin.get(), appMetaData = wcKoinApp.koin.get())
+            } else {
+                onError(Modal.Model.Error(CoinbaseClientAlreadyInitializedException()))
+            }
         } else {
             excludedWalletsIds.add(COINBASE_WALLET_ID)
         }
@@ -101,7 +107,7 @@ internal class Web3ModalEngine(
         }
 
         when (session) {
-            is Session.Coinbase -> coinbaseClient.request(request, { onSuccess(SentRequestResult.Cb(request.method, request.params, selectedChain.id, it)) }, onError)
+            is Session.Coinbase -> coinbaseClient.request(request, { onSuccess(SentRequestResult.Coinbase(request.method, request.params, selectedChain.id, it)) }, onError)
             is Session.WalletConnect -> SignClient.request(
                 request.toSign(session.topic, selectedChain.id),
                 {

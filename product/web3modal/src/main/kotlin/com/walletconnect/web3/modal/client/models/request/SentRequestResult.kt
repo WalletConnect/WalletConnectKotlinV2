@@ -7,7 +7,7 @@ sealed class SentRequestResult(
     open val method: String, open val params: String, open val chainId: String
 ) {
 
-    data class WC(
+    data class WalletConnect(
         override val method: String,
         override val params: String,
         override val chainId: String,
@@ -15,7 +15,7 @@ sealed class SentRequestResult(
         val sessionTopic: String
     ) : SentRequestResult(method, params, chainId)
 
-    data class Cb(
+    data class Coinbase(
         override val method: String,
         override val params: String,
         override val chainId: String,
@@ -23,4 +23,4 @@ sealed class SentRequestResult(
     ) : SentRequestResult(method, params, chainId)
 }
 
-internal fun Sign.Model.SentRequest.toSentRequest() = SentRequestResult.WC(method, params, chainId, requestId, sessionTopic)
+internal fun Sign.Model.SentRequest.toSentRequest() = SentRequestResult.WalletConnect(method, params, chainId, requestId, sessionTopic)
