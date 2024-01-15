@@ -40,8 +40,6 @@ import com.walletconnect.sample.wallet.ui.routes.dialog_routes.paste_uri.PasteUr
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.session_proposal.SessionProposalRoute
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.session_request.SessionRequestRoute
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.snackbar_message.SnackbarMessageRoute
-import com.walletconnect.sample.wallet.ui.routes.host.BottomBarState
-import timber.log.Timber
 
 @ExperimentalMaterialNavigationApi
 @Composable
@@ -125,6 +123,7 @@ fun Web3WalletNavGraph(
                 SettingsRoute(navController)
             }
             bottomSheet(Route.ScanUri.path) {
+                web3walletViewModel.showLoader(false)
                 scrimColor = Color.Unspecified
                 ScanUriRoute(navController, sheetState, onScanSuccess = { web3walletViewModel.pair(it) })
             }

@@ -1,6 +1,7 @@
 package com.walletconnect.sign.engine.use_case.calls
 
 import android.database.sqlite.SQLiteException
+import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.AppMetaDataType
@@ -72,6 +73,9 @@ internal class ApproveSessionUseCase(
                         onSuccess()
                         scope.launch {
                             supervisorScope {
+
+                                pairingController.activate(Core.Params.Activate(pairingTopic.value))
+
                                 proposalStorageRepository.deleteProposal(proposerPublicKey)
                                 verifyContextStorageRepository.delete(proposal.requestId)
                             }

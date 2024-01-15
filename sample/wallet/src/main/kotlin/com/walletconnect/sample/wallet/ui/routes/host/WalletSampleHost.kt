@@ -55,7 +55,7 @@ import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
 import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import com.walletconnect.sample.wallet.ui.state.ConnectionState
-import com.walletconnect.sample.wallet.ui.state.PairingState
+import com.walletconnect.sample.wallet.ui.state.PairingEvent
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterialNavigationApi::class)
@@ -71,37 +71,23 @@ fun WalletSampleHost(
     val connectionState = web3walletViewModel.connectionState.collectAsState(ConnectionState.Idle).value
     val bottomBarState = rememberBottomBarMutableState()
     val currentRoute = navController.currentBackStackEntryAsState()
-    var isLoader by remember { mutableStateOf(false) }
+    val isLoader by web3walletViewModel.isLoadingFlow.collectAsState(false)
 
     LaunchedEffect(Unit) {
-        web3walletViewModel.pairingSharedFlow.collect {
+        web3walletViewModel.eventsSharedFlow.collect {
             when (it) {
-                is PairingState.Error -> {
-                    println("kobe: error")
-                    isLoader = false
-                    navController.popBackStack(route = Route.Connections.path, inclusive = false) //todo: always?
+                is PairingEvent.Error -> {
+                    navController.popBackStack(route = Route.Connections.path, inclusive = false)
                     navController.showSnackbar(it.message)
                 }
 
-                is PairingState.Expired -> {
+                is PairingEvent.Expired -> {
                     navController.showSnackbar(it.message)
                 }
 
-                is PairingState.ProposalExpired -> {
+                is PairingEvent.ProposalExpired -> {
                     navController.showSnackbar(it.message)
                 }
-
-                is PairingState.Loading -> {
-                    println("kobe: show pairing laoder")
-                    isLoader = true
-                }
-
-                is PairingState.Success -> {
-                    println("kobe: success")
-                    isLoader = false
-                }
-
-                else -> Unit
             }
         }
     }
@@ -121,16 +107,18 @@ fun WalletSampleHost(
                 connectionsViewModel = connectionsViewModel,
             )
 
-//            if (connectionState is ConnectionState.Error) {
-//                ErrorBanner(connectionState.message)
-//            } else if (connectionState is ConnectionState.Ok) {
-//                RestoredConnectionBanner()
-//            }
+            if (connectionState is ConnectionState.Error) {
+                ErrorBanner(connectionState.message)
+            } else if (connectionState is ConnectionState.Ok) {
+                RestoredConnectionBanner()
+            }
 
-            println("kobe: isLoader: $isLoader")
             if (isLoader) {
                 PairingLoader()
             }
+
+            //Timer composable
+            //stateFlow inside composable to update only timer
         }
     }
 }

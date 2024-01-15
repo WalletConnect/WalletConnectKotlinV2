@@ -9,7 +9,7 @@ import com.walletconnect.android.Core
 import com.walletconnect.sample.wallet.domain.ISSUER
 import com.walletconnect.sample.wallet.domain.WCDelegate
 import com.walletconnect.sample.wallet.ui.state.ConnectionState
-import com.walletconnect.sample.wallet.ui.state.PairingState
+import com.walletconnect.sample.wallet.ui.state.PairingEvent
 import com.walletconnect.sample.wallet.ui.state.connectionStateFlow
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
@@ -29,20 +29,19 @@ class Web3WalletViewModel : ViewModel() {
     private val connectivityStateFlow: MutableStateFlow<ConnectionState> = MutableStateFlow(ConnectionState.Idle)
     val connectionState = merge(connectivityStateFlow.asStateFlow(), connectionStateFlow.asStateFlow())
 
-    private val _pairingSharedFlow: MutableSharedFlow<PairingState> = MutableSharedFlow()
-    val pairingSharedFlow = _pairingSharedFlow.asSharedFlow()
+    private val _eventsSharedFlow: MutableSharedFlow<PairingEvent> = MutableSharedFlow()
+    val eventsSharedFlow = _eventsSharedFlow.asSharedFlow()
+
+    private val _isLoadingFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isLoadingFlow = _isLoadingFlow.asSharedFlow()
 
     init {
         WCDelegate.coreEvents.onEach { coreEvent ->
+            _isLoadingFlow.value = (coreEvent as? Core.Model.PairingState)?.isPairingState ?: false
+
             if (coreEvent is Core.Model.ExpiredPairing) {
                 val pairingType = if (coreEvent.pairing.isActive) "Active" else "Inactive"
-                _pairingSharedFlow.emit(PairingState.Expired("$pairingType pairing expired"))
-            } else if (coreEvent is Core.Model.PairingState) {
-                println("kobe: checking emit pairing loading")
-                if (coreEvent.isPairingState) {
-                    println("kobe: emit pairing loading")
-                    _pairingSharedFlow.emit(PairingState.Loading)
-                }
+                _eventsSharedFlow.emit(PairingEvent.Expired("$pairingType pairing expired"))
             }
         }.launchIn(viewModelScope)
     }
@@ -53,7 +52,7 @@ class Web3WalletViewModel : ViewModel() {
         when (wcEvent) {
             is Wallet.Model.ExpiredProposal -> {
                 viewModelScope.launch {
-                    _pairingSharedFlow.emit(PairingState.ProposalExpired("Proposal expired, please pair again"))
+                    _eventsSharedFlow.emit(PairingEvent.ProposalExpired("Proposal expired, please pair again"))
                 }
 
             }
@@ -73,9 +72,7 @@ class Web3WalletViewModel : ViewModel() {
             }
 
             is Wallet.Model.AuthRequest -> {
-                viewModelScope.launch {
-                    _pairingSharedFlow.emit(PairingState.Success)
-                }
+                _isLoadingFlow.value = false
                 val message = Web3Wallet.formatMessage(Wallet.Params.FormatMessage(wcEvent.payloadParams, ISSUER))
                     ?: throw Exception("Error formatting message")
                 AuthEvent.OnRequest(wcEvent.id, message)
@@ -83,9 +80,7 @@ class Web3WalletViewModel : ViewModel() {
 
             is Wallet.Model.SessionDelete -> SignEvent.Disconnect
             is Wallet.Model.SessionProposal -> {
-                viewModelScope.launch {
-                    _pairingSharedFlow.emit(PairingState.Success)
-                }
+                _isLoadingFlow.value = false
                 SignEvent.SessionProposal
             }
 
@@ -102,23 +97,27 @@ class Web3WalletViewModel : ViewModel() {
         }
     }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
+    fun showLoader(isLoading: Boolean) {
+        _isLoadingFlow.value = isLoading
+    }
+
     fun pair(pairingUri: String) {
-        viewModelScope.launch {
-            _pairingSharedFlow.emit(PairingState.Loading)
-        }
+        _isLoadingFlow.value = true
 
         try {
             val pairingParams = Wallet.Params.Pair(pairingUri)
             Web3Wallet.pair(pairingParams) { error ->
                 Firebase.crashlytics.recordException(error.throwable)
                 viewModelScope.launch {
-                    _pairingSharedFlow.emit(PairingState.Error(error.throwable.message ?: "Unexpected error happened, please contact support"))
+                    _isLoadingFlow.value = false
+                    _eventsSharedFlow.emit(PairingEvent.Error(error.throwable.message ?: "Unexpected error happened, please contact support"))
                 }
             }
         } catch (e: Exception) {
             Firebase.crashlytics.recordException(e)
             viewModelScope.launch {
-                _pairingSharedFlow.emit(PairingState.Error(e.message ?: "Unexpected error happened, please contact support"))
+                _isLoadingFlow.value = false
+                _eventsSharedFlow.emit(PairingEvent.Error(e.message ?: "Unexpected error happened, please contact support"))
             }
         }
     }
