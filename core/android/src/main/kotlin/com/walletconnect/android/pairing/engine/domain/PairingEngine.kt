@@ -118,9 +118,15 @@ internal class PairingEngine(
         val inactivePairing = Pairing(pairingTopic, relay, symmetricKey, registeredMethods)
 
         return inactivePairing.runCatching {
+            logger.log("Pairing created successfully")
             pairingRepository.insertPairing(this)
             metadataRepository.upsertPeerMetadata(this.topic, selfMetaData, AppMetaDataType.SELF)
-            jsonRpcInteractor.subscribe(this.topic) { error -> return@subscribe onFailure(error) }
+            jsonRpcInteractor.subscribe(this.topic,
+                onSuccess = { logger.log("Pairing - subscribed on pairing topic: $pairingTopic") },
+                onFailure = { error ->
+                    logger.error("Pairing - subscribed failure on pairing topic: $pairingTopic, error: $error")
+                    return@subscribe onFailure(error)
+                })
 
             this.toCore()
         }.onFailure { throwable ->
@@ -128,6 +134,7 @@ internal class PairingEngine(
             pairingRepository.deletePairing(pairingTopic)
             metadataRepository.deleteMetaData(pairingTopic)
             jsonRpcInteractor.unsubscribe(pairingTopic)
+            logger.error("Pairing - subscribed failure on pairing topic: $pairingTopic, error: $throwable")
             onFailure(throwable)
         }.getOrNull()
     }
@@ -138,14 +145,18 @@ internal class PairingEngine(
         val symmetricKey = walletConnectUri.symKey
 
         try {
+            logger.log("Pairing started: ${inactivePairing.topic}")
             if (pairingRepository.getPairingOrNullByTopic(inactivePairing.topic) != null) {
                 val pairing = pairingRepository.getPairingOrNullByTopic(inactivePairing.topic)
                 if (!pairing!!.isNotExpired()) {
+                    logger.error("Pairing expired: ${inactivePairing.topic}")
                     return onFailure(ExpiredPairingException("Pairing expired: ${pairing.topic}"))
                 }
                 if (pairing.isActive) {
+                    logger.error("Pairing already exists error: ${inactivePairing.topic}")
                     return onFailure(PairWithExistingPairingIsNotAllowed(PAIRING_NOT_ALLOWED_MESSAGE))
                 } else {
+                    logger.log("Emitting activate pairing: ${inactivePairing.topic}")
                     scope.launch {
                         supervisorScope {
                             _activePairingTopicFlow.emit(inactivePairing.topic)
@@ -157,8 +168,16 @@ internal class PairingEngine(
                 pairingRepository.insertPairing(inactivePairing)
             }
 
-            jsonRpcInteractor.subscribe(topic = inactivePairing.topic, onSuccess = { onSuccess() }, onFailure = { error -> return@subscribe onFailure(error) })
+            jsonRpcInteractor.subscribe(topic = inactivePairing.topic,
+                onSuccess = {
+                    logger.log("Subscribe pairing topic success: ${inactivePairing.topic}")
+                    onSuccess()
+                }, onFailure = { error ->
+                    logger.error("Subscribe pairing topic error: ${inactivePairing.topic}, error: $error")
+                    return@subscribe onFailure(error)
+                })
         } catch (e: Exception) {
+            logger.error("Subscribe pairing topic error: ${inactivePairing.topic}, error: $e")
             crypto.removeKeys(walletConnectUri.topic.value)
             jsonRpcInteractor.unsubscribe(inactivePairing.topic)
             onFailure(e)

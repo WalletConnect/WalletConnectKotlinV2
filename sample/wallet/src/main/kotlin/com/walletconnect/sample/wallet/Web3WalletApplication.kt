@@ -118,7 +118,6 @@ class Web3WalletApplication : Application() {
         // For testing purposes only
         FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
             addFirebaseBeagleModules = {
-
                 Web3Wallet.registerDeviceToken(firebaseAccessToken = token, enableEncrypted = true,
                     onSuccess = {
                         Timber.tag(tag(this)).e("Successfully registered firebase token for Web3Wallet")
@@ -179,10 +178,7 @@ class Web3WalletApplication : Application() {
                         ),
                         onSuccess = {
                             logger.log("Unregister Success")
-
                             EthAccountDelegate.privateKey = text
-
-
                             registerAccount()
                         },
                         onError = { logger.error(it.throwable.stackTraceToString()) }
