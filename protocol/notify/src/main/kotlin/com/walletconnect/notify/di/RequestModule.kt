@@ -2,7 +2,6 @@
 
 package com.walletconnect.notify.di
 
-import com.walletconnect.notify.engine.requests.OnNotifyDeleteUseCase
 import com.walletconnect.notify.engine.requests.OnNotifyMessageUseCase
 import com.walletconnect.notify.engine.requests.OnSubscriptionsChangedUseCase
 import org.koin.dsl.module
@@ -17,12 +16,6 @@ internal fun requestModule() = module {
             subscriptionRepository = get(),
             fetchDidJwtInteractor = get(),
             metadataStorageRepository = get(),
-        )
-    }
-
-    single {
-        OnNotifyDeleteUseCase(
-            logger = get()
         )
     }
 

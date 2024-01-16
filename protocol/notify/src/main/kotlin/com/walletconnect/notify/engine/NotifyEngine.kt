@@ -16,20 +16,17 @@ import com.walletconnect.notify.engine.calls.DeleteSubscriptionUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetListOfActiveSubscriptionsUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetListOfNotificationsUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetNotificationTypesUseCaseInterface
-import com.walletconnect.notify.engine.calls.IsRegisteredUseCase
 import com.walletconnect.notify.engine.calls.IsRegisteredUseCaseInterface
 import com.walletconnect.notify.engine.calls.LegacyRegisterUseCaseInterface
-import com.walletconnect.notify.engine.calls.PrepareRegistrationUseCase
 import com.walletconnect.notify.engine.calls.PrepareRegistrationUseCaseInterface
-import com.walletconnect.notify.engine.calls.RegisterUseCase
 import com.walletconnect.notify.engine.calls.RegisterUseCaseInterface
 import com.walletconnect.notify.engine.calls.SubscribeToDappUseCaseInterface
 import com.walletconnect.notify.engine.calls.UnregisterUseCaseInterface
 import com.walletconnect.notify.engine.calls.UpdateSubscriptionRequestUseCaseInterface
 import com.walletconnect.notify.engine.domain.WatchSubscriptionsForEveryRegisteredAccountUseCase
-import com.walletconnect.notify.engine.requests.OnNotifyDeleteUseCase
 import com.walletconnect.notify.engine.requests.OnNotifyMessageUseCase
 import com.walletconnect.notify.engine.requests.OnSubscriptionsChangedUseCase
+import com.walletconnect.notify.engine.responses.OnNotifyDeleteResponseUseCase
 import com.walletconnect.notify.engine.responses.OnNotifySubscribeResponseUseCase
 import com.walletconnect.notify.engine.responses.OnNotifyUpdateResponseUseCase
 import com.walletconnect.notify.engine.responses.OnWatchSubscriptionsResponseUseCase
@@ -59,10 +56,10 @@ internal class NotifyEngine(
     private val getListOfActiveSubscriptionsUseCase: GetListOfActiveSubscriptionsUseCaseInterface,
     private val getListOfMessages: GetListOfNotificationsUseCaseInterface,
     private val onNotifyMessageUseCase: OnNotifyMessageUseCase,
-    private val onNotifyDeleteUseCase: OnNotifyDeleteUseCase,
     private val onSubscriptionsChangedUseCase: OnSubscriptionsChangedUseCase,
     private val onNotifySubscribeResponseUseCase: OnNotifySubscribeResponseUseCase,
     private val onNotifyUpdateResponseUseCase: OnNotifyUpdateResponseUseCase,
+    private val onNotifyDeleteResponseUseCase: OnNotifyDeleteResponseUseCase,
     private val onWatchSubscriptionsResponseUseCase: OnWatchSubscriptionsResponseUseCase,
     private val watchSubscriptionsForEveryRegisteredAccountUseCase: WatchSubscriptionsForEveryRegisteredAccountUseCase,
     private val isRegisteredUseCase: IsRegisteredUseCaseInterface,
@@ -125,7 +122,6 @@ internal class NotifyEngine(
             .onEach { request ->
                 when (val requestParams = request.params) {
                     is CoreNotifyParams.MessageParams -> onNotifyMessageUseCase(request, requestParams)
-                    is CoreNotifyParams.DeleteParams -> onNotifyDeleteUseCase(request, requestParams)
                     is CoreNotifyParams.SubscriptionsChangedParams -> onSubscriptionsChangedUseCase(request, requestParams)
                 }
             }.launchIn(scope)
@@ -138,6 +134,7 @@ internal class NotifyEngine(
                     is CoreNotifyParams.SubscribeParams -> onNotifySubscribeResponseUseCase(response, params)
                     is CoreNotifyParams.UpdateParams -> onNotifyUpdateResponseUseCase(response, params)
                     is CoreNotifyParams.WatchSubscriptionsParams -> onWatchSubscriptionsResponseUseCase(response, params)
+                    is CoreNotifyParams.DeleteParams -> onNotifyDeleteResponseUseCase(response, params)
                 }
             }.launchIn(scope)
 
@@ -147,7 +144,7 @@ internal class NotifyEngine(
             .launchIn(scope)
 
     private fun collectNotifyEvents(): Job = merge(
-        onNotifySubscribeResponseUseCase.events, onNotifyMessageUseCase.events, onNotifyUpdateResponseUseCase.events, onNotifyDeleteUseCase.events,
+        onNotifySubscribeResponseUseCase.events, onNotifyMessageUseCase.events, onNotifyUpdateResponseUseCase.events, onNotifyDeleteResponseUseCase.events,
         onWatchSubscriptionsResponseUseCase.events, onSubscriptionsChangedUseCase.events
     )
         .onEach { event -> _engineEvent.emit(event) }

@@ -35,7 +35,6 @@ internal class OnWatchSubscriptionsResponseUseCase(
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
     suspend operator fun invoke(wcResponse: WCResponse, watchSubscriptionsParams: CoreNotifyParams.WatchSubscriptionsParams) = supervisorScope {
-
         val resultEvent = try {
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcResult -> {

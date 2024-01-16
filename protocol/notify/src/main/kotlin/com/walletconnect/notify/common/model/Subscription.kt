@@ -6,7 +6,6 @@ import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
-import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 
@@ -24,5 +23,5 @@ internal sealed class Subscription {
         val dappMetaData: AppMetaData? = null,
         val requestedSubscriptionId: Long? = null,
         val relay: RelayProtocolOptions = RelayProtocolOptions(),
-    ) : Subscription(), EngineEvent
+    ) : Subscription()
 }

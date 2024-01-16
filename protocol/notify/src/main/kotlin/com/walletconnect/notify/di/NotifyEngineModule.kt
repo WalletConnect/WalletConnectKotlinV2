@@ -8,6 +8,7 @@ import com.walletconnect.notify.engine.NotifyEngine
 import com.walletconnect.notify.engine.domain.ExtractMetadataFromConfigUseCase
 import com.walletconnect.notify.engine.domain.ExtractPublicKeysFromDidJsonUseCase
 import com.walletconnect.notify.engine.domain.FetchDidJwtInteractor
+import com.walletconnect.notify.engine.domain.FindRequestedSubscriptionUseCase
 import com.walletconnect.notify.engine.domain.GenerateAppropriateUriUseCase
 import com.walletconnect.notify.engine.domain.GetSelfKeyForWatchSubscriptionUseCase
 import com.walletconnect.notify.engine.domain.RegisterIdentityUseCase
@@ -96,6 +97,12 @@ internal fun engineModule() = module {
     }
 
     single {
+        FindRequestedSubscriptionUseCase(
+            metadataStorageRepository = get()
+        )
+    }
+
+    single {
         RegisterIdentityUseCase(
             identitiesInteractor = get(),
             identityServerUrl = get(named(AndroidCommonDITags.KEYSERVER_URL))
@@ -117,9 +124,9 @@ internal fun engineModule() = module {
             getListOfActiveSubscriptionsUseCase = get(),
             getListOfMessages = get(),
             onNotifyMessageUseCase = get(),
-            onNotifyDeleteUseCase = get(),
             onNotifySubscribeResponseUseCase = get(),
             onNotifyUpdateResponseUseCase = get(),
+            onNotifyDeleteResponseUseCase = get(),
             onWatchSubscriptionsResponseUseCase = get(),
             watchSubscriptionsForEveryRegisteredAccountUseCase = get(),
             onSubscriptionsChangedUseCase = get(),

@@ -5,17 +5,14 @@ import com.walletconnect.android.internal.common.di.DatabaseConfig
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
+import com.walletconnect.notify.common.model.CreateSubscription
 import com.walletconnect.notify.common.model.DeleteSubscription
-import com.walletconnect.notify.common.model.Error
 import com.walletconnect.notify.common.model.NotifyRecord
-import com.walletconnect.notify.common.model.Subscription
 import com.walletconnect.notify.common.model.SubscriptionChanged
 import com.walletconnect.notify.common.model.UpdateSubscription
 import com.walletconnect.notify.common.model.toClient
 import com.walletconnect.notify.common.model.toCommon
-import com.walletconnect.notify.common.model.toEvent
-import com.walletconnect.notify.common.model.toModel
-import com.walletconnect.notify.common.model.toWalletClient
+import com.walletconnect.notify.common.model.toLegacyClient
 import com.walletconnect.notify.di.engineModule
 import com.walletconnect.notify.di.notifyJsonRpcModule
 import com.walletconnect.notify.di.notifyStorageModule
@@ -54,18 +51,15 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
 
         notifyEngine.engineEvent.onEach { event ->
             when (event) {
-                is Subscription.Active -> delegate.onNotifySubscription(event.toEvent())
-                is Error -> delegate.onNotifySubscription(event.toWalletClient())
+                is CreateSubscription -> delegate.onNotifySubscription(event.toClient())
+                is UpdateSubscription -> delegate.onNotifyUpdate(event.toClient())
+                is DeleteSubscription -> delegate.onNotifyDelete(event.toClient())
+                is SubscriptionChanged -> delegate.onSubscriptionsChanged(event.toClient())
+                is SDKError -> delegate.onError(event.toClient())
                 is NotifyRecord -> {
-                    delegate.onNotifyMessage(Notify.Event.Message(event.toWalletClient()))
+                    delegate.onNotifyMessage(Notify.Event.Message(event.toLegacyClient()))
                     delegate.onNotifyNotification(Notify.Event.Notification(event.toClient()))
                 }
-
-                is UpdateSubscription.Result -> delegate.onNotifyUpdate(event.toWalletClient())
-                is UpdateSubscription.Error -> delegate.onNotifyUpdate(event.toWalletClient())
-                is DeleteSubscription -> delegate.onNotifyDelete(event.toWalletClient())
-                is SDKError -> delegate.onError(event.toClient())
-                is SubscriptionChanged -> delegate.onSubscriptionsChanged(event.toWalletClient())
             }
         }.launchIn(scope)
     }
@@ -106,7 +100,7 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
 
         return runBlocking {
             notifyEngine.getNotificationTypes(params.appDomain).mapValues { (_, notificationType) ->
-                notificationType.toWalletClient()
+                notificationType.toClient()
             }
         }
     }
@@ -117,7 +111,7 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
 
         return runBlocking {
             notifyEngine.getListOfActiveSubscriptions().mapValues { (_, subscriptionWMetadata) ->
-                subscriptionWMetadata.toModel()
+                subscriptionWMetadata.toClient()
             }
         }
     }
@@ -127,7 +121,7 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
         checkEngineInitialization()
 
         return runBlocking {
-            notifyEngine.getListOfNotifications(params.topic).mapValues { (_, messageRecord) -> messageRecord.toWalletClient() }
+            notifyEngine.getListOfNotifications(params.topic).mapValues { (_, messageRecord) -> messageRecord.toLegacyClient() }
         }
     }
 
@@ -185,7 +179,7 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
         scope.launch {
             notifyEngine.decryptNotification(params.topic, params.encryptedMessage,
                 onSuccess = { notifyMessage ->
-                    (notifyMessage as? Core.Model.Message.Notify)?.run { onSuccess(notifyMessage.toWalletClient(params.topic)) }
+                    (notifyMessage as? Core.Model.Message.Notify)?.run { onSuccess(notifyMessage.toLegacyClient(params.topic)) }
                 },
                 onFailure = { error -> onError(Notify.Model.Error(error)) }
             )
@@ -212,7 +206,7 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
                 params.account,
                 params.isLimited,
                 params.domain,
-                params.onSign.toWalletClient(),
+                params.onSign.toClient(),
                 onSuccess = onSuccess,
                 onFailure = { error -> onError(Notify.Model.Error(error)) }
             )

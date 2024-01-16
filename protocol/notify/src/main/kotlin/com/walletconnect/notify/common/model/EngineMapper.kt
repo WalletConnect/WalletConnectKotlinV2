@@ -10,7 +10,7 @@ import com.walletconnect.android.utils.toClient
 import com.walletconnect.notify.client.Notify
 
 @JvmSynthetic
-internal fun Core.Model.Message.Notify.toWalletClient(topic: String): Notify.Model.Message.Decrypted {
+internal fun Core.Model.Message.Notify.toLegacyClient(topic: String): Notify.Model.Message.Decrypted {
     return Notify.Model.Message.Decrypted(title, body, icon, url, type, topic)
 }
 
@@ -22,12 +22,7 @@ internal fun Core.Model.Message.Notify.toClient(topic: String): Notify.Model.Not
 
 
 @JvmSynthetic
-internal fun NotifyMessage.toClient(topic: String): Notify.Model.Notification.Decrypted {
-    return Notify.Model.Notification.Decrypted(title, body, icon, url, type, topic)
-}
-
-@JvmSynthetic
-internal fun NotifyRecord.toWalletClient(): Notify.Model.MessageRecord {
+internal fun NotifyRecord.toLegacyClient(): Notify.Model.MessageRecord {
     return Notify.Model.MessageRecord(
         id = this.id.toString(),
         topic = this.topic,
@@ -65,7 +60,7 @@ internal fun NotifyRecord.toClient(): Notify.Model.NotificationRecord {
 
 
 @JvmSynthetic
-internal fun NotificationType.toWalletClient(): Notify.Model.NotificationType {
+internal fun NotificationType.toClient(): Notify.Model.NotificationType {
     return Notify.Model.NotificationType(id, name, description)
 }
 
@@ -94,7 +89,7 @@ internal fun Notify.Model.Cacao.Payload.toCommon(): Cacao.Payload {
 }
 
 @JvmSynthetic
-internal fun ((String) -> Notify.Model.Cacao.Signature?).toWalletClient(): (String) -> Cacao.Signature? = { message ->
+internal fun ((String) -> Notify.Model.Cacao.Signature?).toClient(): (String) -> Cacao.Signature? = { message ->
     this(message)?.let { publicCacaoSignature: Notify.Model.Cacao.Signature ->
         Cacao.Signature(publicCacaoSignature.t, publicCacaoSignature.s, publicCacaoSignature.m)
     }
@@ -106,34 +101,22 @@ internal fun Notify.Model.Cacao.Signature.toCommon(): Cacao.Signature = Cacao.Si
 
 
 @JvmSynthetic
-internal fun DeleteSubscription.toWalletClient(): Notify.Event.Delete {
+internal fun DeleteSubscription.toClient(): Notify.Event.Delete {
     return Notify.Event.Delete(topic)
 }
 
 @JvmSynthetic
-internal fun SubscriptionChanged.toWalletClient(): Notify.Event.SubscriptionsChanged =
-    Notify.Event.SubscriptionsChanged(subscriptions.map { it.toWalletClient() })
-
-
-@JvmSynthetic
-internal fun Subscription.Active.toWalletClient(): Notify.Model.Subscription =
-    Notify.Model.Subscription(
-        topic = notifyTopic.value,
-        account = account.value,
-        relay = relay.toClient(),
-        metadata = dappMetaData.toClient(),
-        scope = mapOfNotificationScope.toClient(),
-        expiry = expiry.seconds,
-    )
-
+internal fun SubscriptionChanged.toClient(): Notify.Event.SubscriptionsChanged =
+    Notify.Event.SubscriptionsChanged(subscriptions.map { it.toClient() })
 
 @JvmSynthetic
-internal fun Subscription.Active.toEvent(): Notify.Event.Subscription.Result =
-    Notify.Event.Subscription.Result(toWalletClient())
-
+internal fun CreateSubscription.toClient(): Notify.Event.Subscription = when (this) {
+    is CreateSubscription.Result -> Notify.Event.Subscription.Result(subscription.toClient())
+    is CreateSubscription.Error -> Notify.Event.Subscription.Error(requestId, rejectionReason)
+}
 
 @JvmSynthetic
-internal fun Subscription.Active.toModel(): Notify.Model.Subscription {
+internal fun Subscription.Active.toClient(): Notify.Model.Subscription {
     return Notify.Model.Subscription(
         topic = notifyTopic.value,
         account = account.value,
@@ -145,27 +128,9 @@ internal fun Subscription.Active.toModel(): Notify.Model.Subscription {
 }
 
 @JvmSynthetic
-internal fun Error.toWalletClient(): Notify.Event.Subscription.Error {
-    return Notify.Event.Subscription.Error(requestId, rejectionReason)
-}
-
-@JvmSynthetic
-internal fun UpdateSubscription.Result.toWalletClient(): Notify.Event.Update.Result {
-    return Notify.Event.Update.Result(
-        Notify.Model.Subscription(
-            topic = notifyTopic.value,
-            account = account.value,
-            relay = relay.toClient(),
-            metadata = dappMetaData.toClient(),
-            scope = mapOfNotificationScope.toClient(),
-            expiry = expiry.seconds,
-        )
-    )
-}
-
-@JvmSynthetic
-internal fun UpdateSubscription.Error.toWalletClient(): Notify.Event.Update.Error {
-    return Notify.Event.Update.Error(requestId, rejectionReason)
+internal fun UpdateSubscription.toClient(): Notify.Event.Update = when (this) {
+    is UpdateSubscription.Result -> Notify.Event.Update.Result(subscription.toClient())
+    is UpdateSubscription.Error -> Notify.Event.Update.Error(requestId, rejectionReason)
 }
 
 @JvmSynthetic
@@ -183,9 +148,4 @@ internal fun Map<String, NotificationScope.Cached>.toClient(): Map<Notify.Model.
 @JvmSynthetic
 internal fun SDKError.toClient(): Notify.Model.Error {
     return Notify.Model.Error(exception)
-}
-
-@JvmSynthetic
-internal fun Map<String, NotificationScope.Cached>.toDb(): Map<String, Triple<String, String, Boolean>> {
-    return mapValues { (_, value) -> Triple(value.name, value.description, value.isSelected) }
 }

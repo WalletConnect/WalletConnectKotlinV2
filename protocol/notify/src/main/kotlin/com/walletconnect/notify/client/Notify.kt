@@ -94,7 +94,7 @@ object Notify {
         @Deprecated("We renamed data class to Notification for consistency")
         data class Message(val message: Model.MessageRecord) : Event()
 
-        data class Notification(val notification: Model.NotificationRecord) : Event()
+        data class Notification (val notification: Model.NotificationRecord) : Event()
 
         data class Delete(val topic: String) : Event()
 

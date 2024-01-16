@@ -24,5 +24,4 @@ internal data class SubscriptionRequestJwtClaim(
 }
 
 private const val ACTION_CLAIM_VALUE = "notify_subscription"
-
 private const val VERSION = "1"

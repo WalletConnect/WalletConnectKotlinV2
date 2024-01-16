@@ -2,6 +2,7 @@
 
 package com.walletconnect.notify.di
 
+import com.walletconnect.notify.engine.responses.OnNotifyDeleteResponseUseCase
 import com.walletconnect.notify.engine.responses.OnNotifySubscribeResponseUseCase
 import com.walletconnect.notify.engine.responses.OnNotifyUpdateResponseUseCase
 import com.walletconnect.notify.engine.responses.OnWatchSubscriptionsResponseUseCase
@@ -11,15 +12,25 @@ import org.koin.dsl.module
 internal fun responseModule() = module {
 
     single {
-        OnNotifySubscribeResponseUseCase()
+        OnNotifySubscribeResponseUseCase(
+            setActiveSubscriptionsUseCase = get(),
+            findRequestedSubscriptionUseCase = get()
+        )
     }
 
     single {
         OnNotifyUpdateResponseUseCase(
-            subscriptionRepository = get(),
+            setActiveSubscriptionsUseCase = get(),
+            findRequestedSubscriptionUseCase = get()
         )
     }
 
+    single {
+        OnNotifyDeleteResponseUseCase(
+            setActiveSubscriptionsUseCase = get(),
+            findRequestedSubscriptionUseCase = get()
+        )
+    }
 
     single {
         OnWatchSubscriptionsResponseUseCase(
