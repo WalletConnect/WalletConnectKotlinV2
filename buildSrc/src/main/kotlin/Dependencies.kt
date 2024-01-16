@@ -230,5 +230,5 @@ fun DependencyHandlerScope.dataStore() {
 }
 
 fun DependencyHandlerScope.coinbase() {
-    "implementation"("com.coinbase:coinbase-wallet-sdk:1.0.3")
+    "implementation"("com.coinbase:coinbase-wallet-sdk:$coinbaseVersion")
 }

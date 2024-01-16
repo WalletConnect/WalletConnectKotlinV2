@@ -1,6 +1,7 @@
 package com.walletconnect.web3.modal.domain
 
 import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.squareup.moshi.Moshi
@@ -15,7 +16,7 @@ import kotlinx.coroutines.flow.stateIn
 private val SESSION = stringPreferencesKey("session_key")
 
 internal class SessionRepository(
-    private val sessionStore: DataStore<androidx.datastore.preferences.core.Preferences>,
+    private val sessionStore: DataStore<Preferences>,
     moshi: Moshi
 ) {
     private val adapter = moshi.adapter(Session::class.java)

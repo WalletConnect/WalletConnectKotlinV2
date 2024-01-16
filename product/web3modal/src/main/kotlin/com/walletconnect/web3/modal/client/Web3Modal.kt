@@ -7,6 +7,7 @@ import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import com.walletconnect.sign.common.exceptions.SignClientAlreadyInitializedException
 import com.walletconnect.util.Empty
+import com.walletconnect.web3.modal.client.models.Account
 import com.walletconnect.web3.modal.client.models.Web3ModelClientAlreadyInitializedException
 import com.walletconnect.web3.modal.client.models.request.Request
 import com.walletconnect.web3.modal.client.models.request.SentRequestResult
@@ -74,12 +75,21 @@ object Web3Modal {
 
     @Experimental
     fun register(activity: ComponentActivity) {
+        checkEngineInitialization()
         web3ModalEngine.registerCoinbaseLauncher(activity)
     }
 
     @Experimental
     fun unregister() {
+        checkEngineInitialization()
         web3ModalEngine.unregisterCoinbase()
+    }
+
+    @Throws(IllegalStateException::class)
+    private fun checkEngineInitialization() {
+        check(::web3ModalEngine.isInitialized) {
+            "Web3Modal needs to be initialized first using the initialize function"
+        }
     }
 
     private fun onInitializedClient(
@@ -137,6 +147,7 @@ object Web3Modal {
         onSuccess: (Modal.Model.SentRequest) -> Unit = {},
         onError: (Modal.Model.Error) -> Unit
     ) {
+        checkEngineInitialization()
         web3ModalEngine.request(
             request = Request(request.method, request.params, request.expiry),
             onSuccess = { onSuccess(it.sentRequestToModal()) },
@@ -148,7 +159,10 @@ object Web3Modal {
         request: Request,
         onSuccess: (SentRequestResult) -> Unit = {},
         onError: (Throwable) -> Unit
-    ) = web3ModalEngine.request(request, onSuccess, onError)
+    ) {
+        checkEngineInitialization()
+        web3ModalEngine.request(request, onSuccess, onError)
+    }
 
     private fun SentRequestResult.sentRequestToModal() = when (this) {
         is SentRequestResult.Coinbase -> Modal.Model.SentRequest(Long.MIN_VALUE, String.Empty, method, params, chainId)
@@ -159,7 +173,10 @@ object Web3Modal {
         request: Request,
         onSuccess: () -> Unit,
         onError: (Throwable) -> Unit
-    ) = web3ModalEngine.request(request, { onSuccess() }, onError)
+    ) {
+        checkEngineInitialization()
+        web3ModalEngine.request(request, { onSuccess() }, onError)
+    }
 
     fun ping(sessionPing: Modal.Listeners.SessionPing? = null) = web3ModalEngine.ping(sessionPing)
 
@@ -171,6 +188,7 @@ object Web3Modal {
         onSuccess: (Modal.Params.Disconnect) -> Unit = {},
         onError: (Modal.Model.Error) -> Unit
     ) {
+        checkEngineInitialization()
         val topic = when (val session = web3ModalEngine.getActiveSession()) {
             is Session.WalletConnect -> session.topic
             else -> String.Empty
@@ -185,12 +203,20 @@ object Web3Modal {
     fun disconnect(
         onSuccess: () -> Unit,
         onError: (Throwable) -> Unit
-    ) = web3ModalEngine.disconnect(onSuccess, onError)
+    ) {
+        checkEngineInitialization()
+        web3ModalEngine.disconnect(onSuccess, onError)
+    }
 
     /**
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
+    @Deprecated(
+        message = "Getting active session is replaced with getAccount()",
+        replaceWith = ReplaceWith("com.walletconnect.web3.modal.client.Web3Modal.getAccount()"),
+        level = DeprecationLevel.WARNING
+    )
     internal fun getActiveSessionByTopic(topic: String) = SignClient.getActiveSessionByTopic(topic)?.toModal()
 
     /**
@@ -202,17 +228,26 @@ object Web3Modal {
         replaceWith = ReplaceWith("com.walletconnect.web3.modal.client.Web3Modal.getAccount()"),
         level = DeprecationLevel.WARNING
     )
-    fun getActiveSession() = (web3ModalEngine.getActiveSession() as? Session.WalletConnect)?.topic?.let { SignClient.getActiveSessionByTopic(it)?.toModal() }
+    fun getActiveSession(): Modal.Model.Session? {
+        checkEngineInitialization()
+        return (web3ModalEngine.getActiveSession() as? Session.WalletConnect)?.topic?.let { SignClient.getActiveSessionByTopic(it)?.toModal() }
+    }
 
     /**
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
-    fun getAccount() = web3ModalEngine.getAccount()
+    fun getAccount(): Account? {
+        checkEngineInitialization()
+        return web3ModalEngine.getAccount()
+    }
 
     /**
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
-    fun getConnectorType() = web3ModalEngine.getConnectorType()
+    fun getConnectorType(): Modal.ConnectorType? {
+        checkEngineInitialization()
+        return web3ModalEngine.getConnectorType()
+    }
 }

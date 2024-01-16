@@ -56,7 +56,6 @@ fun Web3ModalComponent(
             .collect()
     }
 
-
     ComposableLifecycleEffect(
         onEvent = { _, event ->
             coroutineScope.launch { event.toComponentEvent() }
