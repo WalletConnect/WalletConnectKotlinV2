@@ -18,6 +18,7 @@ import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
 import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
 import com.walletconnect.foundation.common.model.Ttl
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.model.type.Sequences
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.common.validator.SignValidator
@@ -38,29 +39,32 @@ internal class OnSessionRequestUseCase(
     private val sessionStorageRepository: SessionStorageRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val resolveAttestationIdUseCase: ResolveAttestationIdUseCase,
+    private val logger: Logger
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
     suspend operator fun invoke(request: WCRequest, params: SignParams.SessionRequestParams) = supervisorScope {
         val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
+        logger.log("Session request received on topic: ${request.topic}")
 
         try {
             params.request.expiry?.let {
                 if (Expiry(it).isExpired()) {
+                    logger.error("Session request received failure on topic: ${request.topic} - request expired")
                     jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
-                    _events.emit(SDKError(Throwable("This request has expired, id: ${request.id}")))
                     return@supervisorScope
                 }
             }
 
             SignValidator.validateSessionRequest(params.toEngineDO(request.topic)) { error ->
+                logger.error("Session request received failure on topic: ${request.topic} - invalid request")
                 jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
-                _events.emit(SDKError(Throwable("Request validation error, id: ${request.id}")))
                 return@supervisorScope
             }
 
             if (!sessionStorageRepository.isSessionValid(request.topic)) {
+                logger.error("Session request received failure on topic: ${request.topic} - invalid session")
                 jsonRpcInteractor.respondWithError(
                     request,
                     Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value),
@@ -91,9 +95,11 @@ internal class OnSessionRequestUseCase(
                 }
 
                 sessionRequestEventsQueue.add(sessionRequestEvent)
+                logger.log("Session request received on topic: ${request.topic} - emitting")
                 scope.launch { _events.emit(event) }
             }
         } catch (e: Exception) {
+            logger.error("Session request received failure on topic: ${request.topic} - ${e.message}")
             jsonRpcInteractor.respondWithError(
                 request,
                 Uncategorized.GenericError("Cannot handle a session request: ${e.message}, topic: ${request.topic}"),

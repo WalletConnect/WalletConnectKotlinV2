@@ -18,6 +18,7 @@ import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.exceptions.InvalidNamespaceException
 import com.walletconnect.sign.common.exceptions.SessionProposalExpiredException
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
@@ -43,7 +44,8 @@ internal class ApproveSessionUseCase(
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val verifyContextStorageRepository: VerifyContextStorageRepository,
     private val selfAppMetaData: AppMetaData,
-    private val pairingController: PairingControllerInterface
+    private val pairingController: PairingControllerInterface,
+    private val logger: Logger
 ) : ApproveSessionUseCaseInterface {
 
     override suspend fun approve(
@@ -66,6 +68,7 @@ internal class ApproveSessionUseCase(
                 val sessionSettle = SignRpc.SessionSettle(params = params)
                 val irnParams = IrnParams(Tags.SESSION_SETTLE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
+                logger.log("Sending session settle on topic: $sessionTopic")
                 jsonRpcInteractor.publishJsonRpcRequest(
                     topic = sessionTopic,
                     params = irnParams, sessionSettle,
@@ -73,18 +76,21 @@ internal class ApproveSessionUseCase(
                         onSuccess()
                         scope.launch {
                             supervisorScope {
-
                                 pairingController.activate(Core.Params.Activate(pairingTopic.value))
-
                                 proposalStorageRepository.deleteProposal(proposerPublicKey)
                                 verifyContextStorageRepository.delete(proposal.requestId)
+                                logger.log("Session settle sent successfully on topic: $sessionTopic")
                             }
                         }
                     },
-                    onFailure = { error -> onFailure(error) }
+                    onFailure = { error ->
+                        logger.error("Session settle failure on topic: $sessionTopic, error: $error")
+                        onFailure(error)
+                    }
                 )
             } catch (e: SQLiteException) {
                 sessionStorageRepository.deleteSession(sessionTopic)
+                logger.error("Session settle failure, error: $e")
                 // todo: missing metadata deletion. Also check other try catches
                 onFailure(e)
             }
@@ -94,11 +100,13 @@ internal class ApproveSessionUseCase(
         val request = proposal.toSessionProposeRequest()
         proposal.expiry?.let {
             if (it.isExpired()) {
+                logger.error("Proposal expired on approve, topic: ${proposal.pairingTopic.value}, id: ${proposal.requestId}")
                 throw SessionProposalExpiredException("Session proposal expired")
             }
         }
 
         SignValidator.validateSessionNamespace(sessionNamespaces.toMapOfNamespacesVOSession(), proposal.requiredNamespaces) { error ->
+            logger.log("Session approve failure - invalid namespaces, error: $error")
             throw InvalidNamespaceException(error.message)
         }
 
@@ -106,8 +114,24 @@ internal class ApproveSessionUseCase(
         val sessionTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, PublicKey(proposerPublicKey))
         val approvalParams = proposal.toSessionApproveParams(selfPublicKey)
         val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
-        jsonRpcInteractor.subscribe(sessionTopic) { error -> throw error }
-        jsonRpcInteractor.respondWithParams(request, approvalParams, irnParams) { error -> throw error }
+        logger.log("Subscribing to session topic: $sessionTopic")
+        jsonRpcInteractor.subscribe(sessionTopic,
+            onSuccess = {
+                logger.log("Successfully subscribed to session topic: $sessionTopic")
+            },
+            onFailure = { error ->
+                logger.error("Subscribe to session topic failure: $error")
+                throw error
+            })
+        logger.log("Sending session approve, topic: $sessionTopic")
+        jsonRpcInteractor.respondWithParams(request, approvalParams, irnParams,
+            onSuccess = {
+                logger.log("Session approve sent successfully, topic: $sessionTopic")
+            },
+            onFailure = { error ->
+                logger.log("Session approve failure, topic: $sessionTopic")
+                throw error
+            })
 
         sessionSettle(request.id, proposal, sessionTopic, request.topic)
     }

@@ -50,16 +50,19 @@ internal class SessionRequestUseCase(
 
         val nowInSeconds = TimeUnit.SECONDS.convert(Date().time, TimeUnit.SECONDS)
         if (!CoreValidator.isExpiryWithinBounds(request.expiry)) {
+            logger.error("Sending session request error: expiry not within bounds")
             return@supervisorScope onFailure(InvalidExpiryException())
         }
 
         SignValidator.validateSessionRequest(request) { error ->
+            logger.error("Sending session request error: invalid session request, ${error.message}")
             return@supervisorScope onFailure(InvalidRequestException(error.message))
         }
 
         val namespaces: Map<String, Namespace.Session> =
             sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic(request.topic)).sessionNamespaces
         SignValidator.validateChainIdWithMethodAuthorisation(request.chainId, request.method, namespaces) { error ->
+            logger.error("Sending session request error: unauthorized method, ${error.message}")
             return@supervisorScope onFailure(UnauthorizedMethodException(error.message))
         }
 
@@ -75,9 +78,10 @@ internal class SessionRequestUseCase(
         val irnParams = IrnParams(Tags.SESSION_REQUEST, irnParamsTtl, true)
         val requestTtlInSeconds = request.expiry?.run { seconds - nowInSeconds } ?: FIVE_MINUTES_IN_SECONDS
 
+        logger.log("Sending session request on topic: ${request.topic}}")
         jsonRpcInteractor.publishJsonRpcRequest(Topic(request.topic), irnParams, sessionPayload,
             onSuccess = {
-                logger.log("Session request sent successfully")
+                logger.log("Session request sent successfully on topic: ${request.topic}")
                 onSuccess(sessionPayload.id)
                 scope.launch {
                     try {

@@ -22,6 +22,7 @@ internal class DisconnectSessionUseCase(
 ) : DisconnectSessionUseCaseInterface {
     override suspend fun disconnect(topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
+            logger.error("Sending session disconnect error: invalid session $topic")
             return@supervisorScope onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic"))
         }
 
@@ -29,15 +30,16 @@ internal class DisconnectSessionUseCase(
         val sessionDelete = SignRpc.SessionDelete(params = deleteParams)
         val irnParams = IrnParams(Tags.SESSION_DELETE, Ttl(DAY_IN_SECONDS))
 
+        logger.log("Sending session disconnect on topic: $topic")
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionDelete,
             onSuccess = {
-                logger.log("Disconnect sent successfully")
+                logger.log("Disconnect sent successfully on topic: $topic")
                 sessionStorageRepository.deleteSession(Topic(topic))
                 jsonRpcInteractor.unsubscribe(Topic(topic))
                 onSuccess()
             },
             onFailure = { error ->
-                logger.error("Sending session disconnect error: $error")
+                logger.error("Sending session disconnect error: $error on topic: $topic")
                 onFailure(error)
             }
         )

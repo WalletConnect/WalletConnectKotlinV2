@@ -48,11 +48,13 @@ internal class RespondSessionRequestUseCase(
         val topicWrapper = Topic(topic)
 
         if (!sessionStorageRepository.isSessionValid(topicWrapper)) {
+            logger.error("Request response -  invalid session: $topic, id: ${jsonRpcResponse.id}")
             return@supervisorScope onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic"))
         }
 
         if (getPendingJsonRpcHistoryEntryByIdUseCase(jsonRpcResponse.id) == null) {
             sendExpiryError(topic, jsonRpcResponse)
+            logger.error("Request doesn't exist: $topic, id: ${jsonRpcResponse.id}")
             throw RequestExpiredException("This request has expired, id: ${jsonRpcResponse.id}")
         }
 
@@ -62,9 +64,10 @@ internal class RespondSessionRequestUseCase(
         }
 
         val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
+        logger.log("Sending session request response on topic: $topic, id: ${jsonRpcResponse.id}")
         jsonRpcInteractor.publishJsonRpcResponse(topic = Topic(topic), params = irnParams, response = jsonRpcResponse,
             onSuccess = {
-                logger.log("Session request payload sent successfully")
+                logger.log("Session request response sent successfully on topic: $topic, id: ${jsonRpcResponse.id}")
                 scope.launch {
                     supervisorScope {
                         removePendingSessionRequestAndEmit(jsonRpcResponse.id)
@@ -73,7 +76,7 @@ internal class RespondSessionRequestUseCase(
                 onSuccess()
             },
             onFailure = { error ->
-                logger.error("Sending session payload response error: $error")
+                logger.error("Sending session response error: $error, id: ${jsonRpcResponse.id}")
                 onFailure(error)
             }
         )
@@ -82,6 +85,7 @@ internal class RespondSessionRequestUseCase(
     private fun checkExpiry(expiry: Expiry, topic: String, jsonRpcResponse: JsonRpcResponse) {
         if (expiry.isExpired()) {
             sendExpiryError(topic, jsonRpcResponse)
+            logger.error("Request Expired: $topic, id: ${jsonRpcResponse.id}")
             throw RequestExpiredException("This request has expired, id: ${jsonRpcResponse.id}")
         }
     }

@@ -23,16 +23,18 @@ internal class OnSessionUpdateResponseUseCase(
 
     suspend operator fun invoke(wcResponse: WCResponse) = supervisorScope {
         try {
+            logger.log("Session update namespaces response received on topic: ${wcResponse.topic}")
             val sessionTopic = wcResponse.topic
             if (!sessionStorageRepository.isSessionValid(sessionTopic)) return@supervisorScope
             val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(sessionTopic)
             if (!sessionStorageRepository.isUpdatedNamespaceResponseValid(session.topic.value, wcResponse.response.id.extractTimestamp())) {
+                logger.error("Session update namespaces response error: invalid namespaces")
                 return@supervisorScope
             }
 
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcResult -> {
-                    logger.log("Session update namespaces response received")
+                    logger.log("Session update namespaces response received on topic: ${wcResponse.topic}")
                     val responseId = wcResponse.response.id
                     val namespaces = sessionStorageRepository.getTempNamespaces(responseId)
                     sessionStorageRepository.deleteNamespaceAndInsertNewNamespace(session.topic.value, namespaces, responseId)
@@ -41,11 +43,12 @@ internal class OnSessionUpdateResponseUseCase(
                 }
 
                 is JsonRpcResponse.JsonRpcError -> {
-                    logger.error("Peer failed to update session namespaces: ${response.error}")
+                    logger.error("Peer failed to update session namespaces: ${response.error} on topic: ${wcResponse.topic}")
                     _events.emit(EngineDO.SessionUpdateNamespacesResponse.Error(response.errorMessage))
                 }
             }
         } catch (e: Exception) {
+            logger.error("Peer failed to update session namespaces: $e")
             _events.emit(SDKError(e))
         }
     }

@@ -82,6 +82,11 @@ class Web3WalletApplication : Application() {
             }
         }
 
+        mixPanel = MixpanelAPI.getInstance(this, CommonBuildConfig.MIX_PANEL, true).apply {
+            identify(CoreClient.Push.clientId)
+            people.set("\$name", with(EthAccountDelegate) { account.toEthAddress() })
+        }
+
         logger = wcKoinApp.koin.get(named(AndroidCommonDITags.LOGGER))
         logger.log("Account: ${EthAccountDelegate.account}")
 
@@ -98,19 +103,17 @@ class Web3WalletApplication : Application() {
         }
 
         registerAccount()
-
         initializeBeagle()
 
-        mixPanel = MixpanelAPI.getInstance(this, CommonBuildConfig.MIX_PANEL, true).apply {
-            identify(CoreClient.Push.clientId)
-            people.set("\$name", with(EthAccountDelegate) { account.toEthAddress() })
-        }
+
 
         wcKoinApp.koin.get<Timber.Forest>().plant(object : Timber.Tree() {
             override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
+                println("kobe: Message: $message; Throwable: $t")
                 mixPanel.track(message)
             }
         })
+
 
         // For testing purposes only
         FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->

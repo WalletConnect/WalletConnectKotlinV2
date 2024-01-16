@@ -48,18 +48,22 @@ fun coreCommonModule() = module {
     single<Logger>(named(AndroidCommonDITags.LOGGER)) {
         object : Logger {
             override fun log(logMsg: String?) {
+                println("kobe: log1: $logMsg")
                 get<Timber.Forest>().d(logMsg)
             }
 
             override fun log(throwable: Throwable?) {
+                println("kobe: log2: $throwable")
                 get<Timber.Forest>().d(throwable)
             }
 
             override fun error(errorMsg: String?) {
+                println("kobe: error1: $errorMsg")
                 get<Timber.Forest>().e(errorMsg)
             }
 
             override fun error(throwable: Throwable?) {
+                println("kobe: error2: $throwable")
                 get<Timber.Forest>().e(throwable)
             }
         }

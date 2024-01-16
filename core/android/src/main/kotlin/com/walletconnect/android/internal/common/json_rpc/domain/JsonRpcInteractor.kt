@@ -146,6 +146,7 @@ internal class JsonRpcInteractor(
         envelopeType: EnvelopeType,
         participants: Participants?,
         onFailure: (Throwable) -> Unit,
+        onSuccess: () -> Unit
     ) {
         val result = JsonRpcResponse.JsonRpcResult(id = request.id, result = clientParams)
 
@@ -153,7 +154,8 @@ internal class JsonRpcInteractor(
             onFailure = { error ->
                 logger.error("Cannot send the response, error: $error")
                 onFailure(error)
-            }
+            },
+            onSuccess = { onSuccess() }
         )
     }
 
@@ -165,6 +167,7 @@ internal class JsonRpcInteractor(
         envelopeType: EnvelopeType,
         participants: Participants?,
         onFailure: (Throwable) -> Unit,
+        onSuccess: () -> Unit
     ) {
         val result = JsonRpcResponse.JsonRpcResult(id = requestId, result = clientParams)
 

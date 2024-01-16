@@ -60,9 +60,10 @@ internal class ProposeSessionUseCase(
                 val irnParams = IrnParams(Tags.SESSION_PROPOSE, Ttl(FIVE_MINUTES_IN_SECONDS), true)
                 jsonRpcInteractor.subscribe(pairing.topic) { error -> return@subscribe onFailure(error) }
 
+                logger.log("Sending proposal on topic: ${pairing.topic}")
                 jsonRpcInteractor.publishJsonRpcRequest(pairing.topic, irnParams, request,
                     onSuccess = {
-                        logger.log("Session proposal sent successfully")
+                        logger.log("Session proposal sent successfully, topic: ${pairing.topic}")
                         onSuccess()
                     },
                     onFailure = { error ->
@@ -85,18 +86,21 @@ internal class ProposeSessionUseCase(
     ) {
         requiredNamespaces?.let { namespaces ->
             SignValidator.validateProposalNamespaces(namespaces.toNamespacesVORequired()) { error ->
+                logger.error("Failed to send a session proposal - required namespaces error: $error")
                 throw InvalidNamespaceException(error.message)
             }
         }
 
         optionalNamespaces?.let { namespaces ->
             SignValidator.validateProposalNamespaces(namespaces.toNamespacesVOOptional()) { error ->
+                logger.error("Failed to send a session proposal - optional namespaces error: $error")
                 throw InvalidNamespaceException(error.message)
             }
         }
 
         properties?.let {
             SignValidator.validateProperties(properties) { error ->
+                logger.error("Failed to send a session proposal - session properties error: $error")
                 throw InvalidPropertiesException(error.message)
             }
         }

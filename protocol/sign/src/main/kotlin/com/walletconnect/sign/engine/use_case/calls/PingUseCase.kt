@@ -37,13 +37,14 @@ internal class PingUseCase(
             val pingPayload = SignRpc.SessionPing(params = SignParams.PingParams())
             val irnParams = IrnParams(Tags.SESSION_PING, Ttl(THIRTY_SECONDS))
 
+            logger.log("Sending ping... topic: $topic")
             jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, pingPayload,
                 onSuccess = {
-                    logger.log("Ping sent successfully")
+                    logger.log("Ping sent successfully, topic: $topic")
                     onPingSuccess(timeout, pingPayload, onSuccess, topic, onFailure)
                 },
                 onFailure = { error ->
-                    logger.log("Ping sent error: $error")
+                    logger.error("Ping sent error: $error, topic: $topic")
                     onFailure(error)
                 })
         } else {
@@ -77,7 +78,7 @@ internal class PingUseCase(
                                 onSuccess(topic)
                             },
                             onFailure = { error ->
-                                logger.log("Ping peer response error: $error")
+                                logger.error("Ping peer response error: $error")
                                 onFailure(error)
                             })
                     }

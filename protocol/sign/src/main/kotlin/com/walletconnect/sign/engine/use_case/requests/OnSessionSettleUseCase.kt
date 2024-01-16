@@ -16,6 +16,7 @@ import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.utils.toClient
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Ttl
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.exceptions.PeerError
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
@@ -37,17 +38,20 @@ internal class OnSessionSettleUseCase(
     private val sessionStorageRepository: SessionStorageRepository,
     private val pairingController: PairingControllerInterface,
     private val selfAppMetaData: AppMetaData,
-    private val metadataStorageRepository: MetadataStorageRepositoryInterface
+    private val metadataStorageRepository: MetadataStorageRepositoryInterface,
+    private val logger: Logger
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
     suspend operator fun invoke(request: WCRequest, settleParams: SignParams.SessionSettleParams) = supervisorScope {
+        logger.log("Session settle received on topic: ${request.topic}")
         val sessionTopic = request.topic
         val irnParams = IrnParams(Tags.SESSION_SETTLE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
         val selfPublicKey: PublicKey = try {
             crypto.getSelfPublicFromKeyAgreement(sessionTopic)
         } catch (e: Exception) {
+            logger.error("Session settle received failure: ${request.topic}, error: $e")
             jsonRpcInteractor.respondWithError(request, PeerError.Failure.SessionSettlementFailed(e.message ?: String.Empty), irnParams)
             return@supervisorScope
         }
@@ -56,19 +60,14 @@ internal class OnSessionSettleUseCase(
         val proposal = try {
             proposalStorageRepository.getProposalByKey(selfPublicKey.keyAsHex).also { proposalStorageRepository.deleteProposal(selfPublicKey.keyAsHex) }
         } catch (e: Exception) {
+            logger.error("Session settle received failure: ${request.topic}, error: $e")
             jsonRpcInteractor.respondWithError(request, PeerError.Failure.SessionSettlementFailed(e.message ?: String.Empty), irnParams)
             return@supervisorScope
         }
 
-//        proposal.expiry.let { expiry ->
-//            if (expiry.isExpired()) {
-//                jsonRpcInteractor.respondWithError(request, PeerError.Failure.SessionSettlementFailed("Session proposal expired"), irnParams)
-//                return@supervisorScope
-//            }
-//        }
-
         val (requiredNamespaces, optionalNamespaces, properties) = proposal.run { Triple(requiredNamespaces, optionalNamespaces, properties) }
         SignValidator.validateSessionNamespace(settleParams.namespaces, requiredNamespaces) { error ->
+            logger.error("Session settle received failure - namespace validation: ${request.topic}, error: $error")
             jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
             return@supervisorScope
         }
@@ -89,8 +88,10 @@ internal class OnSessionSettleUseCase(
             pairingController.updateMetadata(Core.Params.UpdateMetadata(proposal.pairingTopic.value, peerMetadata.toClient(), AppMetaDataType.PEER))
             metadataStorageRepository.insertOrAbortMetadata(sessionTopic, peerMetadata, AppMetaDataType.PEER)
             jsonRpcInteractor.respondWithSuccess(request, irnParams)
+            logger.log("Session settle received on topic: ${request.topic} - emitting")
             _events.emit(session.toSessionApproved())
         } catch (e: Exception) {
+            logger.error("Session settle received failure: ${request.topic}, error: $e")
             proposalStorageRepository.insertProposal(proposal)
             sessionStorageRepository.deleteSession(sessionTopic)
             jsonRpcInteractor.respondWithError(request, PeerError.Failure.SessionSettlementFailed(e.message ?: String.Empty), irnParams)

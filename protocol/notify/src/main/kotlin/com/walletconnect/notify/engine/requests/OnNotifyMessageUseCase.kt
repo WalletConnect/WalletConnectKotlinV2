@@ -91,7 +91,7 @@ internal class OnNotifyMessageUseCase(
             val messageResponseParams = ChatNotifyResponseAuthParams.ResponseAuth(responseAuth = messageResponseJwt.value)
             val irnParams = IrnParams(Tags.NOTIFY_MESSAGE_RESPONSE, Ttl(MONTH_IN_SECONDS))
 
-            jsonRpcInteractor.respondWithParams(request.id, request.topic, messageResponseParams, irnParams) { throw it }
+            jsonRpcInteractor.respondWithParams(request.id, request.topic, messageResponseParams, irnParams, onFailure = { throw it })
         }.getOrElse { error ->
             _events.emit(SDKError(error))
             jsonRpcInteractor.respondWithError(

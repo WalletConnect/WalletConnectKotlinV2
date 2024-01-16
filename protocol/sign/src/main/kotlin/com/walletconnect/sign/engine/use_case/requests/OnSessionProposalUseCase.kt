@@ -15,6 +15,7 @@ import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.utils.toClient
 import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
 import com.walletconnect.foundation.common.model.Ttl
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.common.validator.SignValidator
 import com.walletconnect.sign.engine.model.EngineDO
@@ -33,6 +34,7 @@ internal class OnSessionProposalUseCase(
     private val proposalStorageRepository: ProposalStorageRepository,
     private val resolveAttestationIdUseCase: ResolveAttestationIdUseCase,
     private val pairingController: PairingControllerInterface,
+    private val logger: Logger
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
@@ -40,18 +42,22 @@ internal class OnSessionProposalUseCase(
     suspend operator fun invoke(request: WCRequest, payloadParams: SignParams.SessionProposeParams) = supervisorScope {
         val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
         try {
+            logger.log("Session proposal received: ${request.topic}")
             SignValidator.validateProposalNamespaces(payloadParams.requiredNamespaces) { error ->
+                logger.error("Session proposal received error: required namespace validation: ${error.message}")
                 jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
                 return@supervisorScope
             }
 
             SignValidator.validateProposalNamespaces(payloadParams.optionalNamespaces ?: emptyMap()) { error ->
+                logger.error("Session proposal received error: optional namespace validation: ${error.message}")
                 jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
                 return@supervisorScope
             }
 
             payloadParams.properties?.let {
                 SignValidator.validateProperties(payloadParams.properties) { error ->
+                    logger.error("Session proposal received error: session properties validation: ${error.message}")
                     jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
                     return@supervisorScope
                 }
@@ -63,9 +69,11 @@ internal class OnSessionProposalUseCase(
             val url = payloadParams.proposer.metadata.url
             resolveAttestationIdUseCase(request.id, request.message, url) { verifyContext ->
                 val sessionProposalEvent = EngineDO.SessionProposalEvent(proposal = payloadParams.toEngineDO(request.topic), context = verifyContext.toEngineDO())
+                logger.log("Session proposal received on topic: ${request.topic} - emitting")
                 scope.launch { _events.emit(sessionProposalEvent) }
             }
         } catch (e: Exception) {
+            logger.error("Session proposal received error: $e")
             jsonRpcInteractor.respondWithError(
                 request,
                 Uncategorized.GenericError("Cannot handle a session proposal: ${e.message}, topic: ${request.topic}"),

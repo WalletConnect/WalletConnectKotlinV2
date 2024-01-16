@@ -60,7 +60,7 @@ internal class OnSubscriptionsChangedUseCase(
         val responseParams = ChatNotifyResponseAuthParams.ResponseAuth(didJwt.value)
         val irnParams = IrnParams(Tags.NOTIFY_SUBSCRIPTIONS_CHANGED_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
-        jsonRpcInteractor.respondWithParams(request.id, request.topic, responseParams, irnParams) { error -> logger.error(error) }
+        jsonRpcInteractor.respondWithParams(request.id, request.topic, responseParams, irnParams, onFailure = { error -> logger.error(error) })
 
         _events.emit(SubscriptionChanged(subscriptions))
     }
