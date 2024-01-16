@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -61,21 +60,31 @@ class UpdateSubscriptionViewModel(val topic: String) : ViewModel() {
     }
 
     fun updateSubscription(onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
-        val beforeSubscription = _activeSubscriptions.value
         _state.value = UpdateSubscriptionState.Updating
 
-        NotifyClient.update(
-            Notify.Params.Update(topic, _notificationTypes.value.filter { (_, value) -> value.third }.map { (name, _) -> name }),
-            onSuccess = {
-                viewModelScope.launch {
-                    _activeSubscriptions.collect { afterSubscription ->
-                        if (beforeSubscription != afterSubscription) {
+        viewModelScope.launch {
+            NotifyDelegate.notifyEvents.filterIsInstance<Notify.Event.Update>().collect { event ->
+                when (event) {
+                    is Notify.Event.Update.Result -> {
+                        if (event.subscription.topic == topic) {
                             onSuccess()
                             _state.value = UpdateSubscriptionState.Displaying
                             this.cancel()
                         }
                     }
+
+                    is Notify.Event.Update.Error -> {
+                        _state.value = UpdateSubscriptionState.Displaying
+                        onFailure(Throwable(event.reason))
+                    }
                 }
+            }
+        }
+
+        NotifyClient.update(
+            Notify.Params.Update(topic, _notificationTypes.value.filter { (_, value) -> value.third }.map { (name, _) -> name }),
+            onSuccess = {
+
             },
             onError = { error ->
                 onFailure(error.throwable)

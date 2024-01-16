@@ -14,6 +14,7 @@ import com.walletconnect.sample.wallet.domain.EthAccountDelegate
 import com.walletconnect.sample.wallet.domain.NotifyDelegate
 import com.walletconnect.sample.wallet.domain.toEthAddress
 import com.walletconnect.sample.wallet.ui.common.ImageUrl
+import com.walletconnect.sample.wallet.ui.common.subscriptions.ActiveSubscriptionsUI
 import com.walletconnect.sample.wallet.ui.common.subscriptions.toUI
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.discover.ExplorerApp
 import kotlinx.coroutines.FlowPreview
@@ -22,6 +23,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
@@ -29,10 +31,12 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import com.walletconnect.android.internal.common.explorer.data.model.ImageUrl as WCImageUrl
 
 class InboxViewModel(application: Application) : AndroidViewModel(application) {
@@ -43,11 +47,20 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
     private val _searchText = MutableStateFlow("")
     val searchText = _searchText.asStateFlow()
 
-    private val _activeSubscriptions = NotifyDelegate.notifyEvents
+    private val subscriptionStateChangesEvents: StateFlow<List<Notify.Model.Subscription>> = NotifyDelegate.notifyEvents
         .filterIsInstance<Notify.Event.SubscriptionsChanged>()
         .debounce(500L)
-        .map { event -> event.subscriptions.toUI() }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), NotifyClient.getActiveSubscriptions().values.toList().toUI())
+        .map { event -> event.subscriptions }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), NotifyClient.getActiveSubscriptions().values.toList())
+
+
+    private var _activeSubscriptions = emptyList<ActiveSubscriptionsUI>()
+    private val getActiveSubscriptionTrigger = MutableSharedFlow<Unit>(replay = 1)
+
+    private val _activeSubscriptionsFlow = merge(
+        subscriptionStateChangesEvents.onEach { _activeSubscriptions = it.toUI() },
+        getActiveSubscriptionTrigger.onEach { _activeSubscriptions = NotifyClient.getActiveSubscriptions().values.toList().toUI() }
+    ).map { _activeSubscriptions }
 
     private val _activeSubscriptionsTrigger = MutableSharedFlow<Unit>(replay = 1)
 
@@ -55,7 +68,7 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
         .debounce(500L)
         .filter { _subscriptionsState.value !is SubscriptionsState.Failure }
         .onEach { _subscriptionsState.update { SubscriptionsState.Searching } }
-        .combine(_activeSubscriptions) { _, activeSubscriptions ->
+        .combine(_activeSubscriptionsFlow) { _, activeSubscriptions ->
             val text = searchText.value
             if (text.isBlank()) {
                 activeSubscriptions
@@ -66,7 +79,7 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
                 else _subscriptionsState.update { SubscriptionsState.Success }
             }
         }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _activeSubscriptions.value)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _activeSubscriptions)
 
     fun onSearchTextChange(text: String) {
         _searchText.value = text
@@ -93,7 +106,7 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
                 projects.filter { it.doesMatchSearchQuery(text) }
             }
         }
-        .combine(_activeSubscriptions) { projects, activeSubscriptions ->
+        .combine(_activeSubscriptionsFlow) { projects, activeSubscriptions ->
             projects.map { explorerApp ->
                 activeSubscriptions.find { it.appDomain == explorerApp.dappUrl }?.let {
                     explorerApp.copy(isSubscribed = true, topic = it.topic)
@@ -109,17 +122,15 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
             _activeSubscriptionsTrigger.emit(Unit)
         }.launchIn(viewModelScope)
 
-        _activeSubscriptions.onEach {
-            _activeSubscriptionsTrigger.emit(Unit)
-        }.launchIn(viewModelScope)
+        _activeSubscriptionsFlow
+            .onEach { _activeSubscriptionsTrigger.emit(Unit) }
+            .launchIn(viewModelScope)
 
-        _explorerApps.onEach {
-            _explorerAppsTrigger.emit(Unit)
-        }.launchIn(viewModelScope)
+        _explorerApps
+            .onEach { _explorerAppsTrigger.emit(Unit) }
+            .launchIn(viewModelScope)
 
-        viewModelScope.launch {
-            fetchExplorerApps()
-        }
+        viewModelScope.launch { fetchExplorerApps() }
     }
 
     private suspend fun fetchExplorerApps() {
@@ -132,6 +143,10 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
                 },
                 onSuccess = { it.toUI() }
             )
+    }
+
+    private suspend fun fetchActiveSubscriptions() {
+        getActiveSubscriptionTrigger.emit(Unit)
     }
 
     private fun List<Project>.toUI(): List<ExplorerApp> = map { project ->
@@ -151,25 +166,45 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
     fun subscribeToDapp(explorerApp: ExplorerApp, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         viewModelScope.launch {
             _discoverState.update { DiscoverState.Subscribing(explorerApp) }
-            val beforeSubscription = _activeSubscriptions.value
 
-            Notify.Params.Subscribe(explorerApp.dappUrl.toUri(), with(EthAccountDelegate) { account.toEthAddress() }).let { subscribeParams ->
-                NotifyClient.subscribe(
-                    params = subscribeParams,
-                    onSuccess = {
-                        _activeSubscriptions.onEach { afterSubscription ->
-                            if (beforeSubscription != afterSubscription) {
+            viewModelScope.launch {
+                NotifyDelegate.notifyEvents.onEach {
+                    Timber.d("subscribe - onSuccess $it")
+                }.filterIsInstance<Notify.Event.Subscription>().collect { event ->
+                    when (event) {
+                        is Notify.Event.Subscription.Result -> {
+                            Timber.d("subscribe - onSuccess Result ${event.subscription.metadata.url} == ${explorerApp.dappUrl}")
+
+                            if (event.subscription.metadata.url == explorerApp.dappUrl) {
                                 onSuccess()
                                 _discoverState.update { DiscoverState.Fetched }
-                                cancel()
+                                fetchActiveSubscriptions()
+                                this.cancel()
                             }
-                        }.launchIn(viewModelScope)
-                    },
-                    onError = {
-                        _discoverState.update { DiscoverState.Fetched }
-                        onFailure(it.throwable)
+                        }
+
+                        is Notify.Event.Subscription.Error -> {
+                            Timber.d("subscribe - onSuccess Error")
+                            _discoverState.update { DiscoverState.Fetched }
+                            onFailure(Throwable(event.reason))
+                        }
                     }
-                )
+                }
+
+                Notify.Params.Subscribe(explorerApp.dappUrl.toUri(), with(EthAccountDelegate) { account.toEthAddress() }).let { subscribeParams ->
+                    NotifyClient.subscribe(
+                        params = subscribeParams,
+                        onSuccess = {
+                            Timber.d("subscribe - onSuccess")
+
+                        },
+                        onError = {
+                            Timber.d("subscribe - onError")
+                            _discoverState.update { DiscoverState.Fetched }
+                            onFailure(it.throwable)
+                        }
+                    )
+                }
             }
         }
     }
@@ -182,23 +217,31 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             _discoverState.update { DiscoverState.Unsubscribing(explorerApp) }
-            val beforeSubscription = _activeSubscriptions.value
+
+
+            viewModelScope.launch {
+                NotifyDelegate.notifyEvents.onEach {
+                    Timber.d(" - onSuccess $it")
+                }.filterIsInstance<Notify.Event.Delete>().collect { event ->
+                    Timber.d("unsubscribe - onSuccess Result ${event.topic} == ${explorerApp.topic}")
+                    if (event.topic == explorerApp.topic) {
+                        onSuccess()
+                        _discoverState.update { DiscoverState.Fetched }
+                        fetchActiveSubscriptions()
+                        this.cancel()
+                    }
+                }
+            }
 
             Notify.Params.DeleteSubscription(explorerApp.topic).let { params ->
                 NotifyClient.deleteSubscription(
                     params = params,
                     onSuccess = {
-                        viewModelScope.launch {
-                            _activeSubscriptions.collect { afterSubscription ->
-                                if (beforeSubscription != afterSubscription) {
-                                    onSuccess()
-                                    _discoverState.update { DiscoverState.Fetched }
-                                    this.cancel()
-                                }
-                            }
-                        }
+                        Timber.d("unsubscribe - onSuccess")
                     },
                     onError = {
+                        Timber.d("unsubscribe - onError")
+
                         _discoverState.update { DiscoverState.Fetched }
                         onFailure(it.throwable)
                     }
@@ -207,6 +250,7 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 }
+
 
 sealed interface SubscriptionsState {
 
