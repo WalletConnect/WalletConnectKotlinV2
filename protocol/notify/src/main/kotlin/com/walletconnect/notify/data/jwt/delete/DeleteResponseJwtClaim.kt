@@ -15,8 +15,11 @@ internal data class DeleteResponseJwtClaim(
     @Json(name = "exp") override val expiration: Long,
     @Json(name = "app") val app: String,
     @Json(name = "act") override val action: String = ACTION_CLAIM_VALUE,
-) : NotifyJwtBase {
+    @Json(name = "mjv") override val version: String = VERSION,
+    ) : NotifyJwtBase {
     override val requiredActionValue: String = ACTION_CLAIM_VALUE
+    override val requiredVersionValue: String = VERSION
 }
 
 private const val ACTION_CLAIM_VALUE = "notify_delete_response"
+private const val VERSION = "1"

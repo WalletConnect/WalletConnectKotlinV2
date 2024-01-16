@@ -17,10 +17,12 @@ internal data class SubscriptionRequestJwtClaim(
     @Json(name = "scp") val scope: String,
     @Json(name = "app") val app: String,
     @Json(name = "act") override val action: String = ACTION_CLAIM_VALUE,
+    @Json(name = "mjv") override val version: String = VERSION,
 ) : NotifyJwtBase {
     override val requiredActionValue: String = ACTION_CLAIM_VALUE
+    override val requiredVersionValue: String = VERSION
 }
 
 private const val ACTION_CLAIM_VALUE = "notify_subscription"
 
-
+private const val VERSION = "1"

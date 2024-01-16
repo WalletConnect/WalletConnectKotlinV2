@@ -15,8 +15,10 @@ internal data class MessageRequestJwtClaim(
     @Json(name = "app") val app: String,
     @Json(name = "msg") val message: Message,
     @Json(name = "act") override val action: String = ACTION_CLAIM_VALUE,
-) : NotifyJwtBase {
+    @Json(name = "mjv") override val version: String = VERSION,
+    ) : NotifyJwtBase {
     override val requiredActionValue: String = ACTION_CLAIM_VALUE
+    override val requiredVersionValue: String = VERSION
 
     @JsonClass(generateAdapter = true)
     data class Message(
@@ -30,4 +32,4 @@ internal data class MessageRequestJwtClaim(
 }
 
 private const val ACTION_CLAIM_VALUE = "notify_message"
-
+private const val VERSION = "1"
