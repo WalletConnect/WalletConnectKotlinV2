@@ -69,7 +69,7 @@ class Web3ModalSheet : BottomSheetDialogFragment() {
     private fun Web3ModalComposeView(
         shouldOpenChooseNetwork: Boolean
     ) {
-        val navController = rememberNavController()
+        val navController = rememberAnimatedNavController()
         dialog?.setupDialog(navController)
 
         Surface(

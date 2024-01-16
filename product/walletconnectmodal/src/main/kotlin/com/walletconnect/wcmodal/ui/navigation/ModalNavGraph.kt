@@ -1,12 +1,13 @@
 package com.walletconnect.wcmodal.ui.navigation
 
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.google.accompanist.navigation.animation.AnimatedNavHost
+import com.google.accompanist.navigation.animation.composable
 import com.walletconnect.util.Empty
 import com.walletconnect.wcmodal.ui.WalletConnectModalState
 import com.walletconnect.wcmodal.ui.routes.all_wallets.AllWalletsRoute
@@ -16,6 +17,7 @@ import com.walletconnect.wcmodal.ui.routes.help.HelpRoute
 import com.walletconnect.wcmodal.ui.routes.on_hold.RedirectOnHoldScreen
 import com.walletconnect.wcmodal.ui.routes.scan_code.ScanQRCodeRoute
 
+@ExperimentalAnimationApi
 @Composable
 internal fun ModalNavGraph(
     navController: NavHostController,
@@ -24,7 +26,7 @@ internal fun ModalNavGraph(
     updateRecentWalletId: (String) -> Unit,
     retry: (() -> Unit) -> Unit
 ) {
-    NavHost(
+    AnimatedNavHost(
         navController = navController,
         startDestination = Route.ConnectYourWallet.path,
         modifier = modifier,
