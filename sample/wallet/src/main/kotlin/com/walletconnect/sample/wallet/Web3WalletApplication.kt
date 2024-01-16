@@ -90,10 +90,14 @@ class Web3WalletApplication : Application() {
         logger = wcKoinApp.koin.get(named(AndroidCommonDITags.LOGGER))
         logger.log("Account: ${EthAccountDelegate.account}")
 
-        Web3Wallet.initialize(Wallet.Params.Init(core = CoreClient)) { error ->
-            Firebase.crashlytics.recordException(error.throwable)
-            logger.error(error.throwable.stackTraceToString())
-        }
+        Web3Wallet.initialize(Wallet.Params.Init(core = CoreClient),
+            onSuccess = {
+                logger.log("Web3Wallet initialized")
+            },
+            onError = { error ->
+                Firebase.crashlytics.recordException(error.throwable)
+                logger.error(error.throwable.stackTraceToString())
+            })
 
         NotifyClient.initialize(
             init = Notify.Params.Init(CoreClient)
@@ -109,8 +113,11 @@ class Web3WalletApplication : Application() {
 
         wcKoinApp.koin.get<Timber.Forest>().plant(object : Timber.Tree() {
             override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
-                println("kobe: Message: $message; Throwable: $t")
-                mixPanel.track(message)
+                if (t != null) {
+                    mixPanel.track("error: $t, message: $message")
+                } else {
+                    mixPanel.track(message)
+                }
             }
         })
 
