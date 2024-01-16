@@ -42,6 +42,7 @@ import kotlinx.coroutines.flow.onEach
 @Composable
 internal fun Web3ModalRoot(
     navController: NavHostController,
+    modifier: Modifier = Modifier,
     closeModal: () -> Unit,
     content: @Composable () -> Unit
 ) {
@@ -60,7 +61,10 @@ internal fun Web3ModalRoot(
             .collect()
     }
 
-    Column(verticalArrangement = Arrangement.Bottom) {
+    Column(
+        verticalArrangement = Arrangement.Bottom,
+        modifier = modifier
+    ) {
         ProvideWeb3ModalThemeComposition {
             Web3ModalRoot(rootState, snackBarState, title, closeModal, content)
         }

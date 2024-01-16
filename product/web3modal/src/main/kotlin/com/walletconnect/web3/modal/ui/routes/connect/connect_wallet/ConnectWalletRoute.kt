@@ -12,6 +12,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import com.walletconnect.android.internal.common.modal.data.model.Wallet
 import com.walletconnect.web3.modal.ui.components.internal.ErrorModalState
+import com.walletconnect.web3.modal.ui.components.internal.commons.InstalledWalletIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.ListSelectRow
 import com.walletconnect.web3.modal.ui.components.internal.commons.RecentLabel
 import com.walletconnect.web3.modal.ui.components.internal.commons.WalletImage
@@ -92,13 +93,18 @@ private fun WalletListSelect(item: Wallet, onWalletItemClick: (Wallet) -> Unit) 
 
     ListSelectRow(
         startIcon = {
-            WalletImage(
-                url = item.imageUrl,
-                modifier = Modifier
-                    .size(40.dp)
-                    .border(width = 1.dp, color = Web3ModalTheme.colors.grayGlass10, shape = RoundedCornerShape(12.dp))
-                    .clip(RoundedCornerShape(12.dp))
-            )
+            Box {
+                WalletImage(
+                    url = item.imageUrl,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .border(width = 1.dp, color = Web3ModalTheme.colors.grayGlass10, shape = RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(12.dp))
+                )
+                if (item.isWalletInstalled) {
+                    InstalledWalletIcon()
+                }
+            }
         },
         text = item.name,
         onClick = { onWalletItemClick(item) },
