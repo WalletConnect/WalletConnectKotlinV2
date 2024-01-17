@@ -73,7 +73,7 @@ internal class OnMessageRequestUseCase(
                 val receiptParams = CoreChatParams.ReceiptParams(receiptAuth = didJwt.value)
                 val irnParams = IrnParams(Tags.CHAT_MESSAGE_RESPONSE, Ttl(MONTH_IN_SECONDS))
 
-                jsonRpcInteractor.respondWithParams(wcRequest, receiptParams, irnParams, EnvelopeType.ZERO) { error -> logger.error(error) }
+                jsonRpcInteractor.respondWithParams(wcRequest, receiptParams, irnParams, EnvelopeType.ZERO, onFailure = { error -> logger.error(error) })
             }
         }
     }
