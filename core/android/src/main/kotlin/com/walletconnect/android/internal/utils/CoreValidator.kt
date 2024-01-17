@@ -34,7 +34,7 @@ object CoreValidator {
     @JvmSynthetic
     fun isExpiryWithinBounds(userExpiry: Expiry?): Boolean =
         userExpiry?.seconds?.run {
-            (FIVE_MINUTES_IN_SECONDS..WEEK_IN_SECONDS).contains(this - CURRENT_TIME_IN_SECONDS)
+            (TEN_MINUTES_IN_SECONDS..WEEK_IN_SECONDS).contains(this - CURRENT_TIME_IN_SECONDS)
         } ?: true
 
     @JvmSynthetic
