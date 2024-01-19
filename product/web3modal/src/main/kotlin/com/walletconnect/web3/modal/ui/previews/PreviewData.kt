@@ -6,9 +6,9 @@ import com.walletconnect.web3.modal.domain.model.AccountData
 import com.walletconnect.web3.modal.client.Modal
 
 private val metaMask: Wallet
-    get() = Wallet(id = "1", name = "MetaMask", homePage = "", order = "", imageUrl = "", mobileLink = "metamask://", webAppLink = "", playStore = "")
+    get() = Wallet(id = "1", name = "MetaMask", homePage = "", order = "", imageUrl = "", mobileLink = "metamask://", webAppLink = "", playStore = "").apply { isRecent = true }
 private val trustWallet: Wallet
-    get() = Wallet(id = "2", name = "Trust Wallet", homePage = "", order = "", imageUrl = "", mobileLink = "trustwallet://", webAppLink = "",playStore = "")
+    get() = Wallet(id = "2", name = "Trust Wallet", homePage = "", order = "", imageUrl = "", mobileLink = "trustwallet://", webAppLink = "",playStore = "").apply { isWalletInstalled = true }
 private val safe: Wallet
     get() = Wallet(id = "3", name = "Safe", homePage = "", order = "", imageUrl = "", mobileLink = "safe://", webAppLink = "", playStore = "")
 private val rainbow: Wallet
