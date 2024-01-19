@@ -28,13 +28,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.walletconnect.android.internal.common.modal.data.model.Wallet
-import com.walletconnect.modal.utils.openMobileLink
+import com.walletconnect.modal.utils.openNativeWallet
 import com.walletconnect.modal.utils.openPlayStore
 import com.walletconnect.modal.utils.openWebAppLink
 import com.walletconnect.util.Empty
@@ -69,6 +70,7 @@ internal fun RedirectWalletRoute(
     wallet: Wallet
 ) {
     val uriHandler = LocalUriHandler.current
+    val context = LocalContext.current
     val snackBar = LocalSnackBarHandler.current
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
     var redirectState by remember { mutableStateOf<RedirectState>(RedirectState.Loading) }
@@ -85,9 +87,10 @@ internal fun RedirectWalletRoute(
 
     LaunchedEffect(Unit) {
         connectState.connect { uri ->
-            uriHandler.openMobileLink(
+            context.openNativeWallet(
                 uri = uri,
                 mobileLink = wallet.mobileLink,
+                appPackage = wallet.appPackage,
                 onError = { redirectState = RedirectState.NotDetected }
             )
         }
@@ -105,9 +108,10 @@ internal fun RedirectWalletRoute(
         onMobileRetry = {
             connectState.connect { uri ->
                 redirectState = RedirectState.Loading
-                uriHandler.openMobileLink(
+                context.openNativeWallet(
                     uri = uri,
                     mobileLink = wallet.mobileLink,
+                    appPackage = wallet.appPackage,
                     onError = { redirectState = RedirectState.NotDetected }
                 )
             }

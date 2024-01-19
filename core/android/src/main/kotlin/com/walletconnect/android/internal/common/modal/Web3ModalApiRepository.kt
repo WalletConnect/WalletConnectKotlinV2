@@ -66,4 +66,67 @@ internal class Web3ModalApiRepository(
             isInstalled = context.packageManager.isWalletInstalled(data.appId)
         )
     }
+
+    private fun WalletListing.addSampleWalletsIfNeeded(addSamples: Boolean): WalletListing {
+        if (!addSamples) {
+            return this
+        }
+        val samples = listOf(SampleDebugWallet, SampleWallet, SampleWalletInternal)
+        samples.forEach { wallet ->
+            wallet.apply {
+                isWalletInstalled = context.packageManager.isWalletInstalled(appPackage)
+            }
+        }
+        val installedSamples = samples.filter { it.isWalletInstalled }
+        return this.copy(
+            totalCount = this.totalCount + installedSamples.size,
+            wallets = installedSamples + this.wallets
+        )
+    }
 }
+
+private val SampleDebugWallet = Wallet(
+    id = "AndroidSampleWalletDebug${generateId()}",
+    name = "Android Sample Debug",
+    homePage = "https://walletconnect.com",
+    imageUrl = "https://github.com/WalletConnect/walletconnect-assets/blob/master/Icon/Gradient/Icon.png",
+    order = "1",
+    mobileLink = "wc://",
+    playStore = null,
+    webAppLink = null,
+    true
+).apply {
+    appPackage = "com.walletconnect.sample.wallet.debug"
+}
+
+private val SampleWallet = Wallet(
+    id = "AndroidSampleWallet${generateId()}",
+    name = "Android Sample",
+    homePage = "https://walletconnect.com",
+    imageUrl = "https://github.com/WalletConnect/walletconnect-assets/blob/master/Icon/Gradient/Icon.png",
+    order = "1",
+    mobileLink = "wc://",
+    playStore = null,
+    webAppLink = null,
+    true
+).apply {
+    appPackage = "com.walletconnect.sample.wallet"
+}
+
+private val SampleWalletInternal = Wallet(
+    id = "AndroidSampleWalletDebugInternal${generateId()}",
+    name = "Android Sample Internal",
+    homePage = "https://walletconnect.com",
+    imageUrl = "https://github.com/WalletConnect/walletconnect-assets/blob/master/Icon/Gradient/Icon.png",
+    order = "1",
+    mobileLink = "wc://",
+    playStore = null,
+    webAppLink = null,
+    true
+).apply {
+    appPackage = "com.walletconnect.sample.wallet.internal"
+}
+
+//<package android:name="com.walletconnect.sample.wallet" />
+//<package android:name="com.walletconnect.sample.wallet.debug" />
+//<package android:name="com.walletconnect.sample.wallet.internal" />

@@ -58,6 +58,7 @@ internal class WalletDataSource(
         try {
             fetchWalletsAppData()
             val installedWallets = fetchInstalledAndRecommendedWallets()
+//            val samples = getAndroidSampleWallet()
             val walletsListing = getWalletsUseCase(sdkType = W3M_SDK, page = 1, excludeIds = getPriorityWallets() + Web3Modal.excludedWalletsIds)
             walletsListingData = ListingData(page = 1, totalCount = walletsListing.totalCount, wallets = (installedWallets.wallets + walletsListing.wallets).mapRecentWallet(getRecentWalletUseCase()))
             walletState.value = WalletsData.submit(walletsListingData.wallets)
@@ -79,7 +80,8 @@ internal class WalletDataSource(
         sdkType = W3M_SDK,
         page = 1,
         includes = getPriorityWallets(),
-        excludeIds = Web3Modal.excludedWalletsIds
+        excludeIds = Web3Modal.excludedWalletsIds,
+        addSamples = true
     )
 
     suspend fun fetchMoreWallets() {
