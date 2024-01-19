@@ -14,6 +14,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -32,6 +33,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun Web3ModalComponent(
+    modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
     shouldOpenChooseNetwork: Boolean,
     closeModal: () -> Unit
@@ -63,6 +65,7 @@ fun Web3ModalComponent(
     )
 
     Web3ModalRoot(
+        modifier = modifier,
         navController = navController,
         closeModal = closeModal
     ) {
