@@ -79,6 +79,7 @@ internal class Web3ModalEngine(
         onSuccess: () -> Unit,
         onError: (Throwable) -> Unit
     ) {
+        checkEngineInitialization()
         coinbaseClient.connect(
             onSuccess = {
                 Web3ModalDelegate.emit(it)
@@ -107,7 +108,10 @@ internal class Web3ModalEngine(
         }
 
         when (session) {
-            is Session.Coinbase -> coinbaseClient.request(request, { onSuccess(SentRequestResult.Coinbase(request.method, request.params, selectedChain.id, it)) }, onError)
+            is Session.Coinbase -> {
+                checkEngineInitialization()
+                coinbaseClient.request(request, { onSuccess(SentRequestResult.Coinbase(request.method, request.params, selectedChain.id, it)) }, onError)
+            }
             is Session.WalletConnect -> SignClient.request(
                 request.toSign(session.topic, selectedChain.id),
                 {
@@ -149,6 +153,7 @@ internal class Web3ModalEngine(
         scope.launch { deleteSessionDataUseCase() }
         when (session) {
             is Session.Coinbase -> {
+                checkEngineInitialization()
                 coinbaseClient.disconnect()
                 onSuccess()
             }
@@ -218,4 +223,11 @@ internal class Web3ModalEngine(
     }
 
     fun coinbaseIsEnabled() = ::coinbaseClient.isInitialized && coinbaseClient.isInstalled() && coinbaseClient.isLauncherSet()
+
+    @Throws(IllegalStateException::class)
+    private fun checkEngineInitialization() {
+        check(::coinbaseClient.isInitialized) {
+            "Coinbase Client needs to be initialized first using the initialize function"
+        }
+    }
 }
