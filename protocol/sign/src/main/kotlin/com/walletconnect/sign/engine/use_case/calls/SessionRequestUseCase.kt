@@ -50,7 +50,6 @@ internal class SessionRequestUseCase(
         }
 
         val nowInSeconds = TimeUnit.SECONDS.convert(Date().time, TimeUnit.SECONDS)
-        println("kobe: Sending expiry: ${request.expiry}")
         if (!CoreValidator.isExpiryWithinBounds(request.expiry)) {
             logger.error("Sending session request error: expiry not within bounds")
             return@supervisorScope onFailure(InvalidExpiryException())

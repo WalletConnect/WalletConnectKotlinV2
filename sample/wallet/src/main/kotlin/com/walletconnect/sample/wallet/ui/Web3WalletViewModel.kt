@@ -42,6 +42,9 @@ class Web3WalletViewModel : ViewModel() {
     private val _timerFlow: MutableStateFlow<String> = MutableStateFlow("0")
     val timerFlow = _timerFlow.asStateFlow()
 
+    private val _sessionRequestStateFlow: MutableSharedFlow<SignEvent.SessionRequest> = MutableSharedFlow()
+    val sessionRequestStateFlow = _sessionRequestStateFlow.asSharedFlow()
+
     init {
         WCDelegate.coreEvents.onEach { coreEvent ->
             _isLoadingFlow.value = (coreEvent as? Core.Model.PairingState)?.isPairingState ?: false
@@ -85,10 +88,11 @@ class Web3WalletViewModel : ViewModel() {
                 val chain = wcEvent.chainId
                 val method = wcEvent.request.method
                 val arrayOfArgs: ArrayList<String?> = arrayListOf(topic, icon, peerName, requestId, params, chain, method)
-
-                println("kobe: wallet request: ${wcEvent.request.id}")
-
-                SignEvent.SessionRequest(arrayOfArgs, arrayOfArgs.size)
+                if (WCDelegate.currentId != WCDelegate.sessionRequestEvent?.first?.request?.id) {
+                    _sessionRequestStateFlow.emit(SignEvent.SessionRequest(arrayOfArgs, arrayOfArgs.size))
+                } else {
+                    println("wallet request already there: ${wcEvent.request.id}")
+                }
             }
 
             is Wallet.Model.AuthRequest -> {

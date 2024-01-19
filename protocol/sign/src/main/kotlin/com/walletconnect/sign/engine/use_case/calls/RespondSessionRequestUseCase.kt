@@ -67,13 +67,13 @@ internal class RespondSessionRequestUseCase(
         logger.log("Sending session request response on topic: $topic, id: ${jsonRpcResponse.id}")
         jsonRpcInteractor.publishJsonRpcResponse(topic = Topic(topic), params = irnParams, response = jsonRpcResponse,
             onSuccess = {
+                onSuccess()
                 logger.log("Session request response sent successfully on topic: $topic, id: ${jsonRpcResponse.id}")
                 scope.launch {
                     supervisorScope {
                         removePendingSessionRequestAndEmit(jsonRpcResponse.id)
                     }
                 }
-                onSuccess()
             },
             onFailure = { error ->
                 logger.error("Sending session response error: $error, id: ${jsonRpcResponse.id}")

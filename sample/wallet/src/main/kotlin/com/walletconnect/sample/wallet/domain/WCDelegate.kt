@@ -24,6 +24,7 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
     var authRequestEvent: Pair<Wallet.Model.AuthRequest, Wallet.Model.VerifyContext>? = null
     var sessionProposalEvent: Pair<Wallet.Model.SessionProposal, Wallet.Model.VerifyContext>? = null
     var sessionRequestEvent: Pair<Wallet.Model.SessionRequest, Wallet.Model.VerifyContext>? = null
+    var currentId: Long? = null
 
     init {
         CoreClient.setDelegate(this)
@@ -71,13 +72,12 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
     }
 
     override fun onSessionRequest(sessionRequest: Wallet.Model.SessionRequest, verifyContext: Wallet.Model.VerifyContext) {
+        if (currentId != sessionRequest.request.id) {
+            sessionRequestEvent = Pair(sessionRequest, verifyContext)
 
-        println("kobe: YES onSessionRequest: ${sessionRequest.request.id}")
-
-        sessionRequestEvent = Pair(sessionRequest, verifyContext)
-
-        scope.launch {
-            _walletEvents.emit(sessionRequest)
+            scope.launch {
+                _walletEvents.emit(sessionRequest)
+            }
         }
     }
 

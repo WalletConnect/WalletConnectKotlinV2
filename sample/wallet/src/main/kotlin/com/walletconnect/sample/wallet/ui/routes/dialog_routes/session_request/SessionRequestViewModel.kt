@@ -24,10 +24,10 @@ class SessionRequestViewModel : ViewModel() {
 
     private fun clearSessionRequest() {
         WCDelegate.sessionRequestEvent = null
-        sessionRequest = SessionRequestUI.Nothing
+        sessionRequest = SessionRequestUI.Initial
     }
 
-    fun reject(onSuccess: (Uri?) -> Unit = {}, onError: (String) -> Unit = {}) { //callback z popem?
+    fun reject(onSuccess: (Uri?) -> Unit = {}, onError: (String) -> Unit = {}) {
         try {
             val sessionRequest = sessionRequest as? SessionRequestUI.Content
             if (sessionRequest != null) {
