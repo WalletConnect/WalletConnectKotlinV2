@@ -27,8 +27,8 @@ internal sealed class SignParams : CoreSignParams() {
         val proposer: SessionProposer,
         @Json(name = "sessionProperties")
         val properties: Map<String, String>?,
-        @Json(name = "expiry")
-        val expiry: Long?,
+        @Json(name = "expiryTimestamp")
+        val expiryTimestamp: Long?,
     ) : SignParams()
 
     @JsonClass(generateAdapter = true)

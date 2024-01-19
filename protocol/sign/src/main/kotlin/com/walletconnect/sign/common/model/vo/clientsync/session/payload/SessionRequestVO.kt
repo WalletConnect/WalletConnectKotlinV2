@@ -11,6 +11,6 @@ internal data class SessionRequestVO(
     val method: String,
     @Json(name = "params")
     val params: String,
-    @Json(name = "expiry")
-    val expiry: Long? = null
+    @Json(name = "expiryTimestamp")
+    val expiryTimestamp: Long? = null
 )

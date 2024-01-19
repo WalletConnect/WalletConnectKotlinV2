@@ -42,7 +42,6 @@ import com.walletconnect.sample.wallet.ui.common.blue.BlueLabelRow
 import com.walletconnect.sample.wallet.ui.common.peer.Peer
 import com.walletconnect.sample.wallet.ui.common.peer.PeerUI
 import com.walletconnect.sample.wallet.ui.common.peer.getColor
-import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -69,6 +68,9 @@ fun SessionRequestRoute(navController: NavHostController, sessionRequestViewMode
     when (sessionRequestUI) {
         is SessionRequestUI.Content -> {
             val allowButtonColor = getColor(sessionRequestUI.peerContextUI)
+            //pop init dialog
+            //get one before current and pop?
+            println("kobe: session request content")
             SemiTransparentDialog {
                 Spacer(modifier = Modifier.height(24.dp))
                 Peer(peerUI = sessionRequestUI.peerUI, "sends a request", sessionRequestUI.peerContextUI)
@@ -87,7 +89,9 @@ fun SessionRequestRoute(navController: NavHostController, sessionRequestViewMode
                                         context.sendResponseDeepLink(uri)
                                     }
                                     composableScope.launch(Dispatchers.Main) {
-                                        navController.popBackStack(route = Route.Connections.path, inclusive = false)
+//                                        navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                                        //if size == 1 -> navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                                        navController.popBackStack()
                                     }
                                 },
                                 onError = { error ->
@@ -109,7 +113,8 @@ fun SessionRequestRoute(navController: NavHostController, sessionRequestViewMode
                                         context.sendResponseDeepLink(uri)
                                     }
                                     composableScope.launch(Dispatchers.Main) {
-                                        navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                                        println("kobe: popping")
+                                        navController.popBackStack()
                                     }
                                 },
                                 onError = { error ->
@@ -128,6 +133,7 @@ fun SessionRequestRoute(navController: NavHostController, sessionRequestViewMode
         }
 
         SessionRequestUI.Initial -> {
+            println("kobe: session request initial")
             SemiTransparentDialog {
                 Spacer(modifier = Modifier.height(24.dp))
                 Peer(peerUI = PeerUI.Empty, null)
@@ -146,6 +152,10 @@ fun SessionRequestRoute(navController: NavHostController, sessionRequestViewMode
                     isLoadingCancel = isCancelLoading
                 )
             }
+        }
+
+        SessionRequestUI.Nothing -> {
+
         }
     }
 

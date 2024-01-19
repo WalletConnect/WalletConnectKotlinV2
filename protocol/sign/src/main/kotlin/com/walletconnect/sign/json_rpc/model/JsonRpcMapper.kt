@@ -17,7 +17,7 @@ internal fun SignRpc.SessionRequest.toPendingRequest(entry: JsonRpcHistoryRecord
         params.request.method,
         params.chainId,
         params.request.params,
-        if (params.request.expiry != null) Expiry(params.request.expiry) else null,
+        if (params.request.expiryTimestamp != null) Expiry(params.request.expiryTimestamp) else null,
     )
 
 @JvmSynthetic

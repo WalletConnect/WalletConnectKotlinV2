@@ -101,7 +101,10 @@ class Web3WalletActivity : AppCompatActivity() {
             .onEach { event ->
                 when (event) {
                     is SignEvent.SessionProposal -> navController.navigate(Route.SessionProposal.path)
-                    is SignEvent.SessionRequest -> navController.navigate(Route.SessionRequest.path)
+                    is SignEvent.SessionRequest -> {
+                        println("kobe: navigate to session request")
+                        navController.navigate(Route.SessionRequest.path)
+                    }
                     is SignEvent.ExpiredRequest -> {
                         navController.popBackStack(route = Route.Connections.path, inclusive = false)
                         Toast.makeText(baseContext, "Request expired", Toast.LENGTH_SHORT).show()

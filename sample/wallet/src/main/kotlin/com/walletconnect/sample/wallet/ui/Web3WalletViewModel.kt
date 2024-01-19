@@ -86,6 +86,8 @@ class Web3WalletViewModel : ViewModel() {
                 val method = wcEvent.request.method
                 val arrayOfArgs: ArrayList<String?> = arrayListOf(topic, icon, peerName, requestId, params, chain, method)
 
+                println("kobe: wallet request: ${wcEvent.request.id}")
+
                 SignEvent.SessionRequest(arrayOfArgs, arrayOfArgs.size)
             }
 

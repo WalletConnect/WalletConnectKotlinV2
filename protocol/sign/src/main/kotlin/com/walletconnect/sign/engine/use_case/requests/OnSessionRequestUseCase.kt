@@ -49,7 +49,8 @@ internal class OnSessionRequestUseCase(
         logger.log("Session request received on topic: ${request.topic}")
 
         try {
-            params.request.expiry?.let {
+            println("kobe: Request expiry: ${params.request.expiryTimestamp}")
+            params.request.expiryTimestamp?.let {
                 if (Expiry(it).isExpired()) {
                     logger.error("Session request received failure on topic: ${request.topic} - request expired")
                     jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)

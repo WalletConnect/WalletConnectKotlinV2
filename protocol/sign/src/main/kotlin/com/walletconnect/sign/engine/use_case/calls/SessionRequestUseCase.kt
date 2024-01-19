@@ -9,6 +9,7 @@ import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.internal.utils.CURRENT_TIME_IN_SECONDS
 import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
 import com.walletconnect.foundation.common.model.Topic
@@ -49,6 +50,7 @@ internal class SessionRequestUseCase(
         }
 
         val nowInSeconds = TimeUnit.SECONDS.convert(Date().time, TimeUnit.SECONDS)
+        println("kobe: Sending expiry: ${request.expiry}")
         if (!CoreValidator.isExpiryWithinBounds(request.expiry)) {
             logger.error("Sending session request error: expiry not within bounds")
             return@supervisorScope onFailure(InvalidExpiryException())
@@ -66,7 +68,7 @@ internal class SessionRequestUseCase(
             return@supervisorScope onFailure(UnauthorizedMethodException(error.message))
         }
 
-        val params = SignParams.SessionRequestParams(SessionRequestVO(request.method, request.params, request.expiry?.seconds), request.chainId)
+        val params = SignParams.SessionRequestParams(SessionRequestVO(request.method, request.params, request.expiry?.seconds ?: (CURRENT_TIME_IN_SECONDS + FIVE_MINUTES_IN_SECONDS)), request.chainId)
         val sessionPayload = SignRpc.SessionRequest(params = params)
         val irnParamsTtl = request.expiry?.run {
             val defaultTtl = FIVE_MINUTES_IN_SECONDS

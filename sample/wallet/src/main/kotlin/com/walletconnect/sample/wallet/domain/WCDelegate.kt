@@ -71,6 +71,9 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
     }
 
     override fun onSessionRequest(sessionRequest: Wallet.Model.SessionRequest, verifyContext: Wallet.Model.VerifyContext) {
+
+        println("kobe: YES onSessionRequest: ${sessionRequest.request.id}")
+
         sessionRequestEvent = Pair(sessionRequest, verifyContext)
 
         scope.launch {

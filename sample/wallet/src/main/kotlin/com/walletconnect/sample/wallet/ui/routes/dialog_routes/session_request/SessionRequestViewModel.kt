@@ -23,11 +23,11 @@ class SessionRequestViewModel : ViewModel() {
     var sessionRequest: SessionRequestUI = generateSessionRequestUI()
 
     private fun clearSessionRequest() {
-        WCDelegate.sessionProposalEvent = null
-        sessionRequest = SessionRequestUI.Initial
+        WCDelegate.sessionRequestEvent = null
+        sessionRequest = SessionRequestUI.Nothing
     }
 
-    fun reject(onSuccess: (Uri?) -> Unit = {}, onError: (String) -> Unit = {}) {
+    fun reject(onSuccess: (Uri?) -> Unit = {}, onError: (String) -> Unit = {}) { //callback z popem?
         try {
             val sessionRequest = sessionRequest as? SessionRequestUI.Content
             if (sessionRequest != null) {
@@ -42,19 +42,16 @@ class SessionRequestViewModel : ViewModel() {
                 val redirect = Web3Wallet.getActiveSessionByTopic(sessionRequest.topic)?.redirect?.toUri()
                 Web3Wallet.respondSessionRequest(result,
                     onSuccess = {
-                        WCDelegate.sessionRequestEvent = null
                         clearSessionRequest()
                         onSuccess(redirect)
                     },
                     onError = { error ->
-                        WCDelegate.sessionRequestEvent = null
                         Firebase.crashlytics.recordException(error.throwable)
                         clearSessionRequest()
                         onError(error.throwable.message ?: "Undefined error, please check your Internet connection")
                     })
             }
         } catch (e: Exception) {
-            WCDelegate.sessionRequestEvent = null
             Firebase.crashlytics.recordException(e)
             clearSessionRequest()
             onError(e.message ?: "Undefined error, please check your Internet connection")
@@ -104,19 +101,16 @@ class SessionRequestViewModel : ViewModel() {
                 val redirect = Web3Wallet.getActiveSessionByTopic(sessionRequest.topic)?.redirect?.toUri()
                 Web3Wallet.respondSessionRequest(response,
                     onSuccess = {
-                        WCDelegate.sessionRequestEvent = null
                         clearSessionRequest()
                         onSuccess(redirect)
                     },
                     onError = { error ->
-                        WCDelegate.sessionRequestEvent = null
                         Firebase.crashlytics.recordException(error.throwable)
                         clearSessionRequest()
                         onError(error.throwable.message ?: "Undefined error, please check your Internet connection")
                     })
             }
         } catch (e: Exception) {
-            WCDelegate.sessionRequestEvent = null
             Firebase.crashlytics.recordException(e)
             clearSessionRequest()
             onError(e.message ?: "Undefined error, please check your Internet connection")

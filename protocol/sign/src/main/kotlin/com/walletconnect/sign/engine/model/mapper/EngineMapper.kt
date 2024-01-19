@@ -70,7 +70,7 @@ internal fun SignParams.SessionProposeParams.toVO(topic: Topic, requestId: Long)
         proposerPublicKey = proposer.publicKey,
         relayProtocol = relays.first().protocol,
         relayData = relays.first().data,
-        expiry = if (expiry != null) Expiry(expiry) else null
+        expiry = if (expiryTimestamp != null) Expiry(expiryTimestamp) else null
     )
 
 @JvmSynthetic
@@ -82,7 +82,7 @@ internal fun ProposalVO.toSessionProposeRequest(): WCRequest =
         params = SignParams.SessionProposeParams(
             relays = listOf(RelayProtocolOptions(protocol = relayProtocol, data = relayData)),
             proposer = SessionProposer(proposerPublicKey, AppMetaData(name = name, description = description, url = url, icons = icons)),
-            requiredNamespaces = requiredNamespaces, optionalNamespaces = optionalNamespaces, properties = properties, expiry = expiry?.seconds
+            requiredNamespaces = requiredNamespaces, optionalNamespaces = optionalNamespaces, properties = properties, expiryTimestamp = expiry?.seconds
         )
     )
 
@@ -100,7 +100,7 @@ internal fun SignParams.SessionRequestParams.toEngineDO(
             method = this.request.method,
             params = this.request.params
         ),
-        if (this.request.expiry != null) Expiry(this.request.expiry) else null
+        if (this.request.expiryTimestamp != null) Expiry(this.request.expiryTimestamp) else null
     )
 
 @JvmSynthetic
@@ -173,7 +173,7 @@ internal fun toSessionProposeParams(
     requiredNamespaces = requiredNamespaces.toNamespacesVORequired(),
     optionalNamespaces = optionalNamespaces.toNamespacesVOOptional(),
     properties = properties,
-    expiry = expiry.seconds
+    expiryTimestamp = expiry.seconds
 )
 
 @JvmSynthetic

@@ -58,7 +58,7 @@ internal class RespondSessionRequestUseCase(
             throw RequestExpiredException("This request has expired, id: ${jsonRpcResponse.id}")
         }
 
-        val expiry = getPendingJsonRpcHistoryEntryByIdUseCase(jsonRpcResponse.id)?.params?.request?.expiry
+        val expiry = getPendingJsonRpcHistoryEntryByIdUseCase(jsonRpcResponse.id)?.params?.request?.expiryTimestamp
         expiry?.let {
             checkExpiry(Expiry(it), topic, jsonRpcResponse)
         }
