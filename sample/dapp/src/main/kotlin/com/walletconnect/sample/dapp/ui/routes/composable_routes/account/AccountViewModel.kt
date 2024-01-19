@@ -25,7 +25,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import java.util.concurrent.TimeUnit
 
 class AccountViewModel(
     savedStateHandle: SavedStateHandle
@@ -98,8 +97,7 @@ class AccountViewModel(
                     sessionTopic = requireNotNull(DappDelegate.selectedSessionTopic),
                     method = method,
                     params = params, // stringified JSON
-                    chainId = "$parentChain:$chainId",
-                    expiry = (System.currentTimeMillis() / 1000) + TimeUnit.SECONDS.convert(10, TimeUnit.MINUTES)
+                    chainId = "$parentChain:$chainId"
                 )
 
                 WalletConnectModal.request(requestParams,
