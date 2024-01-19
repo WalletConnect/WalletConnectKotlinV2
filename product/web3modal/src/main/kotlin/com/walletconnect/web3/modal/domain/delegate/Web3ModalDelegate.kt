@@ -1,7 +1,12 @@
 package com.walletconnect.web3.modal.domain.delegate
 
+import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
+import com.walletconnect.web3.modal.domain.usecase.GetSelectedChainUseCase
+import com.walletconnect.web3.modal.domain.usecase.SaveChainSelectionUseCase
+import com.walletconnect.web3.modal.domain.usecase.SaveSessionTopicUseCase
+import com.walletconnect.web3.modal.utils.getSelectedChain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -15,8 +20,15 @@ internal object Web3ModalDelegate : Web3Modal.ModalDelegate {
     private val _wcEventModels: MutableSharedFlow<Modal.Model?> = MutableSharedFlow()
     val wcEventModels: SharedFlow<Modal.Model?> =  _wcEventModels.asSharedFlow()
 
+    private val saveSessionTopicUseCase: SaveSessionTopicUseCase by lazy { wcKoinApp.koin.get() }
+    private val saveChainSelectionUseCase: SaveChainSelectionUseCase by lazy { wcKoinApp.koin.get() }
+    private val getSelectedChainUseCase: GetSelectedChainUseCase by lazy { wcKoinApp.koin.get() }
+
     override fun onSessionApproved(approvedSession: Modal.Model.ApprovedSession) {
+        //TODO That will be removed after coinbase integration to Web3ModalEngine
         scope.launch {
+            saveSessionTopicUseCase(approvedSession.topic)
+            saveChainSelectionUseCase(Web3Modal.chains.getSelectedChain(getSelectedChainUseCase()).id)
             _wcEventModels.emit(approvedSession)
         }
     }
