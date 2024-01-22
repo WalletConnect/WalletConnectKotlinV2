@@ -1,5 +1,6 @@
 package com.walletconnect.android.internal
 
+import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.internal.common.model.WalletConnectUri
@@ -23,7 +24,7 @@ internal class ValidatorTest {
             assertEquals("irn", this!!.relay.protocol)
             assertEquals("587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303", this.symKey.keyAsHex)
             assertEquals("2", this.version)
-            assertEquals(1705667684L, expiry)
+            assertEquals(Expiry(1705667684L), expiry)
         }
 
         val noTopicInvalidUri =
@@ -74,7 +75,7 @@ internal class ValidatorTest {
             Topic("11112222244444"),
             SymmetricKey("0x12321321312312312321"),
             RelayProtocolOptions("irn"),
-            expiry = 1705667684
+            expiry = Expiry(1705667684)
         )
 
         assertEquals(uri2.toAbsoluteString(), "wc:11112222244444@2?relay-protocol=irn&expiryTimestamp=1705667684&symKey=0x12321321312312312321")

@@ -46,9 +46,9 @@ class CoreValidatorTest {
         assertTrue(CoreValidator.isExpiryWithinBounds(Expiry(CURRENT_TIME_IN_SECONDS + 1500)))
         assertTrue(CoreValidator.isExpiryWithinBounds(Expiry(CURRENT_TIME_IN_SECONDS + 30000)))
         assertTrue(CoreValidator.isExpiryWithinBounds(Expiry(CURRENT_TIME_IN_SECONDS + 604800)))
+        assertTrue(CoreValidator.isExpiryWithinBounds(Expiry(CURRENT_TIME_IN_SECONDS + 300)))
         assertFalse(CoreValidator.isExpiryWithinBounds(Expiry(CURRENT_TIME_IN_SECONDS + 605000)))
         assertFalse(CoreValidator.isExpiryWithinBounds(Expiry(CURRENT_TIME_IN_SECONDS + 1)))
         assertFalse(CoreValidator.isExpiryWithinBounds(Expiry(CURRENT_TIME_IN_SECONDS + 299)))
-        assertFalse(CoreValidator.isExpiryWithinBounds(Expiry(CURRENT_TIME_IN_SECONDS + 300)))
     }
 }
