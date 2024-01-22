@@ -2,6 +2,7 @@
 
 package com.walletconnect.android.internal
 
+import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.internal.common.model.WalletConnectUri
@@ -39,6 +40,8 @@ internal object Validator {
 
         val relayData: String? = mapOfQueryParameters["relay-data"]
 
+        val expiry: String? = mapOfQueryParameters["expiryTimestamp"]
+
         var symKey = ""
         mapOfQueryParameters["symKey"]?.let { symKey = it } ?: return null
         if (symKey.isEmpty()) return null
@@ -47,6 +50,7 @@ internal object Validator {
             topic = Topic(pairUri.userInfo),
             relay = RelayProtocolOptions(protocol = relayProtocol, data = relayData),
             symKey = SymmetricKey(symKey),
+            expiry = if (expiry != null) Expiry(expiry.toLong()) else null
             /*registeredMethods = mapOfQueryParameters["methods"]!!*/ //TODO: Will add back later after discussion about how we want to handle registered methods
         )
     }

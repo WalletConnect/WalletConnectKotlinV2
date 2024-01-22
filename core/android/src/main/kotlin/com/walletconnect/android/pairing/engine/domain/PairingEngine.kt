@@ -29,9 +29,11 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.pairing.PairingStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.CURRENT_TIME_IN_SECONDS
+import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
 import com.walletconnect.android.internal.utils.THIRTY_SECONDS
 import com.walletconnect.android.pairing.engine.model.EngineDO
+import com.walletconnect.android.pairing.model.INACTIVE_PAIRING
 import com.walletconnect.android.pairing.model.PairingJsonRpcMethod
 import com.walletconnect.android.pairing.model.PairingParams
 import com.walletconnect.android.pairing.model.PairingRpc
@@ -115,7 +117,7 @@ internal class PairingEngine(
         val symmetricKey: SymmetricKey = crypto.generateAndStoreSymmetricKey(pairingTopic)
         val relay = RelayProtocolOptions()
         val registeredMethods = setOfRegisteredMethods.joinToString(",") { it }
-        val inactivePairing = Pairing(pairingTopic, relay, symmetricKey, registeredMethods)
+        val inactivePairing = Pairing(pairingTopic, relay, symmetricKey, registeredMethods, Expiry(INACTIVE_PAIRING))
 
         return inactivePairing.runCatching {
             logger.log("Pairing created successfully")
@@ -146,17 +148,21 @@ internal class PairingEngine(
 
         try {
             logger.log("Pairing started: ${inactivePairing.topic}")
+            if (walletConnectUri.expiry?.isExpired() == true) {
+                logger.error("Pairing expired: ${inactivePairing.topic.value}")
+                return onFailure(ExpiredPairingException("Pairing expired: ${walletConnectUri.topic.value}"))
+            }
             if (pairingRepository.getPairingOrNullByTopic(inactivePairing.topic) != null) {
                 val pairing = pairingRepository.getPairingOrNullByTopic(inactivePairing.topic)
                 if (!pairing!!.isNotExpired()) {
-                    logger.error("Pairing expired: ${inactivePairing.topic}")
-                    return onFailure(ExpiredPairingException("Pairing expired: ${pairing.topic}"))
+                    logger.error("Pairing expired: ${inactivePairing.topic.value}")
+                    return onFailure(ExpiredPairingException("Pairing expired: ${pairing.topic.value}"))
                 }
                 if (pairing.isActive) {
-                    logger.error("Pairing already exists error: ${inactivePairing.topic}")
+                    logger.error("Pairing already exists error: ${inactivePairing.topic.value}")
                     return onFailure(PairWithExistingPairingIsNotAllowed(PAIRING_NOT_ALLOWED_MESSAGE))
                 } else {
-                    logger.log("Emitting activate pairing: ${inactivePairing.topic}")
+                    logger.log("Emitting activate pairing: ${inactivePairing.topic.value}")
                     scope.launch {
                         supervisorScope {
                             _activePairingTopicFlow.emit(inactivePairing.topic)
@@ -168,16 +174,17 @@ internal class PairingEngine(
                 pairingRepository.insertPairing(inactivePairing)
             }
 
+            logger.log("Subscribing pairing topic: ${inactivePairing.topic.value}")
             jsonRpcInteractor.subscribe(topic = inactivePairing.topic,
                 onSuccess = {
-                    logger.log("Subscribe pairing topic success: ${inactivePairing.topic}")
+                    logger.log("Subscribe pairing topic success: ${inactivePairing.topic.value}")
                     onSuccess()
                 }, onFailure = { error ->
-                    logger.error("Subscribe pairing topic error: ${inactivePairing.topic}, error: $error")
+                    logger.error("Subscribe pairing topic error: ${inactivePairing.topic.value}, error: $error")
                     return@subscribe onFailure(error)
                 })
         } catch (e: Exception) {
-            logger.error("Subscribe pairing topic error: ${inactivePairing.topic}, error: $e")
+            logger.error("Subscribe pairing topic error: ${inactivePairing.topic.value}, error: $e")
             crypto.removeKeys(walletConnectUri.topic.value)
             jsonRpcInteractor.unsubscribe(inactivePairing.topic)
             onFailure(e)

@@ -91,7 +91,6 @@ fun ChainSelectionRoute(navController: NavController) {
                     is PairingSelectionResult.SelectedPairing -> {
                         viewModel.connectToWallet(it.position,
                             onSuccess = {
-
                                 println("Proposal sent successfully")
                             },
                             onError = { error ->

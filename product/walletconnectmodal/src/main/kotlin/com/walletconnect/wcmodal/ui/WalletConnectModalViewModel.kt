@@ -82,6 +82,7 @@ internal class WalletConnectModalViewModel : ViewModel() {
     fun saveRecentWallet(wallet: Wallet) {
         walletsDataStore.updateRecentWallet(wallet.id)
     }
+
     fun clearSearch() = walletsDataStore.clearSearch()
 
     fun getWallet(walletId: String?) = walletsDataStore.getWallet(walletId)
