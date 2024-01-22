@@ -11,13 +11,11 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.notify.common.JsonRpcMethod
-import com.walletconnect.notify.engine.calls.DeleteNotificationUseCaseInterface
 import com.walletconnect.notify.engine.calls.DeleteSubscriptionUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetListOfActiveSubscriptionsUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetListOfNotificationsUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetNotificationTypesUseCaseInterface
 import com.walletconnect.notify.engine.calls.IsRegisteredUseCaseInterface
-import com.walletconnect.notify.engine.calls.LegacyRegisterUseCaseInterface
 import com.walletconnect.notify.engine.calls.PrepareRegistrationUseCaseInterface
 import com.walletconnect.notify.engine.calls.RegisterUseCaseInterface
 import com.walletconnect.notify.engine.calls.SubscribeToDappUseCaseInterface
@@ -48,9 +46,7 @@ internal class NotifyEngine(
     private val subscribeToDappUseCase: SubscribeToDappUseCaseInterface,
     private val updateUseCase: UpdateSubscriptionRequestUseCaseInterface,
     private val deleteSubscriptionUseCase: DeleteSubscriptionUseCaseInterface,
-    private val deleteMessageUseCase: DeleteNotificationUseCaseInterface,
     private val decryptMessageUseCase: DecryptMessageUseCaseInterface,
-    private val legacyRegisterUseCase: LegacyRegisterUseCaseInterface,
     private val unregisterUseCase: UnregisterUseCaseInterface,
     private val getNotificationTypesUseCase: GetNotificationTypesUseCaseInterface,
     private val getListOfActiveSubscriptionsUseCase: GetListOfActiveSubscriptionsUseCaseInterface,
@@ -68,9 +64,7 @@ internal class NotifyEngine(
 ) : SubscribeToDappUseCaseInterface by subscribeToDappUseCase,
     UpdateSubscriptionRequestUseCaseInterface by updateUseCase,
     DeleteSubscriptionUseCaseInterface by deleteSubscriptionUseCase,
-    DeleteNotificationUseCaseInterface by deleteMessageUseCase,
     DecryptMessageUseCaseInterface by decryptMessageUseCase,
-    LegacyRegisterUseCaseInterface by legacyRegisterUseCase,
     RegisterUseCaseInterface by registerUseCase,
     UnregisterUseCaseInterface by unregisterUseCase,
     GetNotificationTypesUseCaseInterface by getNotificationTypesUseCase,
@@ -138,15 +132,11 @@ internal class NotifyEngine(
                 }
             }.launchIn(scope)
 
-    private fun collectInternalErrors(): Job =
-        merge(jsonRpcInteractor.internalErrors, pairingHandler.findWrongMethodsFlow)
-            .onEach { exception -> _engineEvent.emit(exception) }
-            .launchIn(scope)
+    private fun collectInternalErrors(): Job = merge(jsonRpcInteractor.internalErrors, pairingHandler.findWrongMethodsFlow)
+        .onEach { exception -> _engineEvent.emit(exception) }
+        .launchIn(scope)
 
-    private fun collectNotifyEvents(): Job = merge(
-        onNotifySubscribeResponseUseCase.events, onNotifyMessageUseCase.events, onNotifyUpdateResponseUseCase.events, onNotifyDeleteResponseUseCase.events,
-        onWatchSubscriptionsResponseUseCase.events, onSubscriptionsChangedUseCase.events
-    )
+    private fun collectNotifyEvents(): Job = merge(onNotifyMessageUseCase.events, onWatchSubscriptionsResponseUseCase.events, onSubscriptionsChangedUseCase.events)
         .onEach { event -> _engineEvent.emit(event) }
         .launchIn(scope)
 

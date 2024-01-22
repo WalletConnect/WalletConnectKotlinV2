@@ -8,7 +8,8 @@ import com.walletconnect.notify.client.NotifyClient
 import com.walletconnect.sample.wallet.domain.NotifyDelegate
 import com.walletconnect.sample.wallet.ui.common.subscriptions.ActiveSubscriptionsUI
 import com.walletconnect.sample.wallet.ui.common.subscriptions.toUI
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,6 +28,7 @@ class UpdateSubscriptionViewModelFactory(private val topic: String) : ViewModelP
     }
 }
 
+@OptIn(FlowPreview::class)
 class UpdateSubscriptionViewModel(val topic: String) : ViewModel() {
     private val _activeSubscriptions = NotifyDelegate.notifyEvents
         .filterIsInstance<Notify.Event.SubscriptionsChanged>()
@@ -60,36 +62,18 @@ class UpdateSubscriptionViewModel(val topic: String) : ViewModel() {
     }
 
     fun updateSubscription(onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
-        _state.value = UpdateSubscriptionState.Updating
-
-        viewModelScope.launch {
-            NotifyDelegate.notifyEvents.filterIsInstance<Notify.Event.Update>().collect { event ->
-                when (event) {
-                    is Notify.Event.Update.Result -> {
-                        if (event.subscription.topic == topic) {
-                            onSuccess()
-                            _state.value = UpdateSubscriptionState.Displaying
-                            this.cancel()
-                        }
-                    }
-
-                    is Notify.Event.Update.Error -> {
-                        _state.value = UpdateSubscriptionState.Displaying
-                        onFailure(Throwable(event.reason))
-                    }
+        viewModelScope.launch(Dispatchers.IO) {
+            _state.value = UpdateSubscriptionState.Updating
+            NotifyClient.updateSubscription(Notify.Params.UpdateSubscription(
+                topic, _notificationTypes.value.filter { (_, value) -> value.third }.map { (name, _) -> name })
+            ).let { result ->
+                when (result) {
+                    is Notify.Result.UpdateSubscription.Success -> onSuccess()
+                    is Notify.Result.UpdateSubscription.Error -> onFailure(result.error.throwable)
                 }
+                _state.value = UpdateSubscriptionState.Displaying
             }
         }
-
-        NotifyClient.update(
-            Notify.Params.Update(topic, _notificationTypes.value.filter { (_, value) -> value.third }.map { (name, _) -> name }),
-            onSuccess = {
-
-            },
-            onError = { error ->
-                onFailure(error.throwable)
-            }
-        )
     }
 }
 

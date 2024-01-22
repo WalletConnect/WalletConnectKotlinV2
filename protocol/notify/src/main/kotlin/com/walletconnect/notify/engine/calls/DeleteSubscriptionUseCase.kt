@@ -7,49 +7,74 @@ import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
+import com.walletconnect.android.internal.utils.THIRTY_SECONDS
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
+import com.walletconnect.notify.common.model.DeleteSubscription
 import com.walletconnect.notify.common.model.NotifyRpc
 import com.walletconnect.notify.common.model.Subscription
-import com.walletconnect.notify.data.storage.NotificationsRepository
 import com.walletconnect.notify.data.storage.SubscriptionRepository
 import com.walletconnect.notify.engine.domain.FetchDidJwtInteractor
+import com.walletconnect.notify.engine.responses.OnNotifyDeleteResponseUseCase
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.withTimeout
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 internal class DeleteSubscriptionUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val subscriptionRepository: SubscriptionRepository,
-    private val notificationsRepository: NotificationsRepository,
     private val fetchDidJwtInteractor: FetchDidJwtInteractor,
+    private val onNotifyDeleteResponseUseCase: OnNotifyDeleteResponseUseCase,
 ) : DeleteSubscriptionUseCaseInterface {
 
-    override suspend fun deleteSubscription(notifyTopic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
-        val activeSubscription: Subscription.Active = subscriptionRepository.getActiveSubscriptionByNotifyTopic(notifyTopic)
-            ?: return@supervisorScope onFailure(IllegalStateException("Subscription does not exists for $notifyTopic"))
+    override suspend fun deleteSubscription(notifyTopic: String): DeleteSubscription = supervisorScope {
+        try {
+            val result = MutableStateFlow<DeleteSubscription>(DeleteSubscription.Processing)
 
-        val dappMetaData = metadataStorageRepository.getByTopicAndType(activeSubscription.notifyTopic, AppMetaDataType.PEER)
-            ?: return@supervisorScope onFailure(IllegalStateException("Dapp metadata does not exists for $notifyTopic"))
+            val activeSubscription: Subscription.Active = subscriptionRepository.getActiveSubscriptionByNotifyTopic(notifyTopic)
+                ?: throw IllegalStateException("Subscription does not exists for $notifyTopic")
+            val dappMetaData = metadataStorageRepository.getByTopicAndType(activeSubscription.notifyTopic, AppMetaDataType.PEER)
+                ?: throw IllegalStateException("Dapp metadata does not exists for $notifyTopic")
 
-        val deleteJwt = fetchDidJwtInteractor.deleteRequest(activeSubscription.account, dappMetaData.url, activeSubscription.authenticationPublicKey)
-            .getOrElse { return@supervisorScope onFailure(it) }
+            val deleteJwt = fetchDidJwtInteractor.deleteRequest(activeSubscription.account, dappMetaData.url, activeSubscription.authenticationPublicKey).getOrThrow()
 
-        val request = NotifyRpc.NotifyDelete(params = CoreNotifyParams.DeleteParams(deleteJwt.value))
-        val irnParams = IrnParams(Tags.NOTIFY_DELETE, Ttl(MONTH_IN_SECONDS))
+            val params = CoreNotifyParams.DeleteParams(deleteJwt.value)
+            val request = NotifyRpc.NotifyDelete(params = params)
+            val irnParams = IrnParams(Tags.NOTIFY_DELETE, Ttl(MONTH_IN_SECONDS))
 
-        runCatching {
-            subscriptionRepository.deleteSubscriptionByNotifyTopic(notifyTopic)
-            notificationsRepository.deleteNotificationsByTopic(notifyTopic)
-        }.onFailure {  return@supervisorScope onFailure(it) }
+            onNotifyDeleteResponseUseCase.events
+                .filter { it.first == params }
+                .map { it.second }
+                .filter { it is DeleteSubscription.Success || it is DeleteSubscription.Error }
+                .onEach { result.emit(it as DeleteSubscription) }
+                .launchIn(scope)
 
-        jsonRpcInteractor.unsubscribe(Topic(notifyTopic), onFailure = onFailure, onSuccess = {
-            jsonRpcInteractor.publishJsonRpcRequest(Topic(notifyTopic), irnParams, request, onFailure = onFailure, onSuccess = onSuccess)
-        })
+            jsonRpcInteractor.publishJsonRpcRequest(Topic(notifyTopic), irnParams, request, onFailure = { error -> result.value = DeleteSubscription.Error(error) })
+
+            withTimeout((2 * THIRTY_SECONDS).toDuration(DurationUnit.SECONDS)) {
+                while (result.value == DeleteSubscription.Processing) {
+                    delay(10)
+                }
+            }
+
+            return@supervisorScope result.value
+        } catch (e: Exception) {
+            return@supervisorScope DeleteSubscription.Error(e)
+        }
     }
 }
 
 internal interface DeleteSubscriptionUseCaseInterface {
-    suspend fun deleteSubscription(notifyTopic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit)
+    suspend fun deleteSubscription(notifyTopic: String): DeleteSubscription
 }

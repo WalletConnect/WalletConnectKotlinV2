@@ -53,13 +53,15 @@ internal class SetActiveSubscriptionsUseCase(
 
                     metadataRepository.upsertPeerMetadata(topic, metadata, AppMetaDataType.PEER)
                     keyStore.setKey(topic.value, symmetricKey)
-                    jsonRpcInteractor.subscribe(topic) { error -> launch { _events.emit(SDKError(error)); cancel() } }
 
                     Subscription.Active(AccountId(account), selectedScopes, Expiry(expiry), decodeEd25519DidKey(appAuthenticationKey), topic, metadata, null)
                 }
             }
 
             subscriptionRepository.setActiveSubscriptions(account, activeSubscriptions)
+
+            val subscriptionTopic = activeSubscriptions.map { it.notifyTopic.value }
+            jsonRpcInteractor.batchSubscribe(subscriptionTopic) { error -> launch { _events.emit(SDKError(error)); cancel() } }
 
             return@supervisorScope Result.success(activeSubscriptions)
         }

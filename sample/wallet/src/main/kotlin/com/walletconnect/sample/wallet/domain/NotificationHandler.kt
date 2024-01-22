@@ -121,7 +121,7 @@ object NotificationHandler {
                 val appDomain = URI(appMetadata.url).host
                     ?: throw IllegalStateException("Unable to parse domain from $appMetadata.url")
 
-                val typeName = NotifyClient.getNotificationTypes(Notify.Params.NotificationTypes(appDomain))[channelId]?.name
+                val typeName = NotifyClient.getNotificationTypes(Notify.Params.GetNotificationTypes(appDomain))[channelId]?.name
                     ?: throw IllegalStateException("No notification type for topic:${topic} and type: $channelId")
 
                 (appMetadata.name + ": " + typeName) to appMetadata.icons.firstOrNull()

@@ -24,13 +24,14 @@ internal class OnNotifyUpdateResponseUseCase(
     private val setActiveSubscriptionsUseCase: SetActiveSubscriptionsUseCase,
     private val findRequestedSubscriptionUseCase: FindRequestedSubscriptionUseCase,
 ) {
-    private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
-    val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
+    private val _events: MutableSharedFlow<Pair<CoreNotifyParams.UpdateParams, EngineEvent>> = MutableSharedFlow()
+    val events: SharedFlow<Pair<CoreNotifyParams.UpdateParams, EngineEvent>> = _events.asSharedFlow()
 
     suspend operator fun invoke(wcResponse: WCResponse, params: CoreNotifyParams.UpdateParams) = supervisorScope {
         val resultEvent = try {
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcResult -> {
+
                     val responseAuth = (response.result as ChatNotifyResponseAuthParams.ResponseAuth).responseAuth
                     val responseJwtClaim = extractVerifiedDidJwtClaims<UpdateResponseJwtClaim>(responseAuth).getOrThrow()
                     responseJwtClaim.throwIfBaseIsInvalid()
@@ -39,15 +40,15 @@ internal class OnNotifyUpdateResponseUseCase(
                     val requestJwtClaim = extractVerifiedDidJwtClaims<UpdateRequestJwtClaim>(params.updateAuth).getOrThrow()
                     val subscription = findRequestedSubscriptionUseCase(requestJwtClaim.audience, subscriptions)
 
-                    UpdateSubscription.Result(subscription)
+                    UpdateSubscription.Success(subscription)
                 }
 
-                is JsonRpcResponse.JsonRpcError -> UpdateSubscription.Error(wcResponse.response.id, response.error.message)
+                is JsonRpcResponse.JsonRpcError -> UpdateSubscription.Error(Throwable(response.error.message))
             }
         } catch (exception: Exception) {
             SDKError(exception)
         }
 
-        _events.emit(resultEvent)
+        _events.emit(params to resultEvent)
     }
 }

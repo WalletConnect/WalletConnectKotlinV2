@@ -14,7 +14,9 @@ internal fun responseModule() = module {
     single {
         OnNotifySubscribeResponseUseCase(
             setActiveSubscriptionsUseCase = get(),
-            findRequestedSubscriptionUseCase = get()
+            findRequestedSubscriptionUseCase = get(),
+            subscriptionRepository = get(),
+            logger = get()
         )
     }
 
@@ -28,7 +30,8 @@ internal fun responseModule() = module {
     single {
         OnNotifyDeleteResponseUseCase(
             setActiveSubscriptionsUseCase = get(),
-            findRequestedSubscriptionUseCase = get()
+            jsonRpcInteractor = get(),
+            notificationsRepository = get()
         )
     }
 

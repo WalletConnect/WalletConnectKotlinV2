@@ -9,10 +9,13 @@ import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.params.ChatNotifyResponseAuthParams
 import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
+import com.walletconnect.foundation.common.model.Topic
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.foundation.util.jwt.decodeDidPkh
 import com.walletconnect.notify.common.model.CreateSubscription
 import com.walletconnect.notify.data.jwt.subscription.SubscriptionRequestJwtClaim
 import com.walletconnect.notify.data.jwt.subscription.SubscriptionResponseJwtClaim
+import com.walletconnect.notify.data.storage.SubscriptionRepository
 import com.walletconnect.notify.engine.domain.FindRequestedSubscriptionUseCase
 import com.walletconnect.notify.engine.domain.SetActiveSubscriptionsUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -23,9 +26,11 @@ import kotlinx.coroutines.supervisorScope
 internal class OnNotifySubscribeResponseUseCase(
     private val setActiveSubscriptionsUseCase: SetActiveSubscriptionsUseCase,
     private val findRequestedSubscriptionUseCase: FindRequestedSubscriptionUseCase,
+    private val subscriptionRepository: SubscriptionRepository,
+    private val logger: Logger,
 ) {
-    private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
-    val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
+    private val _events: MutableSharedFlow<Pair<CoreNotifyParams.SubscribeParams, EngineEvent>> = MutableSharedFlow()
+    val events: SharedFlow<Pair<CoreNotifyParams.SubscribeParams, EngineEvent>> = _events.asSharedFlow()
 
     suspend operator fun invoke(wcResponse: WCResponse, params: CoreNotifyParams.SubscribeParams) = supervisorScope {
         val resultEvent = try {
@@ -39,16 +44,25 @@ internal class OnNotifySubscribeResponseUseCase(
                     val requestJwtClaim = extractVerifiedDidJwtClaims<SubscriptionRequestJwtClaim>(params.subscriptionAuth).getOrThrow()
                     val subscription = findRequestedSubscriptionUseCase(requestJwtClaim.audience, subscriptions)
 
-                    CreateSubscription.Result(subscription)
+                    CreateSubscription.Success(subscription)
                 }
 
-                is JsonRpcResponse.JsonRpcError -> CreateSubscription.Error(wcResponse.response.id, response.error.message)
+                is JsonRpcResponse.JsonRpcError -> {
+                    removeOptimisticallyAddedSubscription(wcResponse.topic)
+                    CreateSubscription.Error(Throwable(response.error.message))
+                }
 
             }
         } catch (exception: Exception) {
+            removeOptimisticallyAddedSubscription(wcResponse.topic)
+            logger.error(exception)
             SDKError(exception)
         }
 
-        _events.emit(resultEvent)
+        _events.emit(params to resultEvent)
     }
+
+
+    private suspend fun removeOptimisticallyAddedSubscription(topic: Topic) =
+        runCatching { subscriptionRepository.deleteSubscriptionByNotifyTopic(topic.value) }.getOrElse { logger.error("OnSubscribeResponse - Error - No subscription found for removal") }
 }

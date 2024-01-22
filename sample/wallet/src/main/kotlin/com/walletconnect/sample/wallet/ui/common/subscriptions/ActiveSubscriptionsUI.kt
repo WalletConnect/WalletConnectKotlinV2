@@ -17,7 +17,8 @@ data class ActiveSubscriptionsUI(
     val isVerified: Boolean,
 ) {
     fun doesMatchSearchQuery(query: String): Boolean {
-        return name.contains(query)
+        val matchingCombinations = listOf(name, appDomain)
+        return matchingCombinations.any { it.contains(query, ignoreCase = true) }
     }
 }
 
@@ -25,7 +26,7 @@ fun Notify.Model.Subscription.toUI(): ActiveSubscriptionsUI = ActiveSubscription
     topic = topic,
     imageUrl = metadata.icons.toImageUrl(),
     name = metadata.name,
-    messageCount = NotifyClient.getNotificationHistory(params = Notify.Params.NotificationHistory(topic)).size,
+    messageCount = NotifyClient.getNotificationHistory(params = Notify.Params.GetNotificationHistory(topic)).size,
     appDomain = metadata.url,
     description = metadata.description,
 

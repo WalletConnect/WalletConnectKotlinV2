@@ -2,8 +2,10 @@
 
 package com.walletconnect.notify.di
 
+import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.notify.engine.requests.OnNotifyMessageUseCase
 import com.walletconnect.notify.engine.requests.OnSubscriptionsChangedUseCase
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 @JvmSynthetic
@@ -16,6 +18,7 @@ internal fun requestModule() = module {
             subscriptionRepository = get(),
             fetchDidJwtInteractor = get(),
             metadataStorageRepository = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER)),
         )
     }
 
@@ -25,7 +28,7 @@ internal fun requestModule() = module {
             fetchDidJwtInteractor = get(),
             extractPublicKeysFromDidJsonUseCase = get(),
             jsonRpcInteractor = get(),
-            logger = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER)),
             notifyServerUrl = get(),
             registeredAccountsRepository = get(),
             watchSubscriptionsForEveryRegisteredAccountUseCase = get(),

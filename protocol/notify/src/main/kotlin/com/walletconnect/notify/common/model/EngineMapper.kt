@@ -10,34 +10,9 @@ import com.walletconnect.android.utils.toClient
 import com.walletconnect.notify.client.Notify
 
 @JvmSynthetic
-internal fun Core.Model.Message.Notify.toLegacyClient(topic: String): Notify.Model.Message.Decrypted {
-    return Notify.Model.Message.Decrypted(title, body, icon, url, type, topic)
-}
-
-
-@JvmSynthetic
 internal fun Core.Model.Message.Notify.toClient(topic: String): Notify.Model.Notification.Decrypted {
     return Notify.Model.Notification.Decrypted(title, body, icon, url, type, topic)
 }
-
-
-@JvmSynthetic
-internal fun NotifyRecord.toLegacyClient(): Notify.Model.MessageRecord {
-    return Notify.Model.MessageRecord(
-        id = this.id.toString(),
-        topic = this.topic,
-        publishedAt = this.publishedAt,
-        message = Notify.Model.Message.Decrypted(
-            title = this.notifyMessage.title,
-            body = this.notifyMessage.body,
-            icon = this.notifyMessage.icon,
-            url = this.notifyMessage.url,
-            type = this.notifyMessage.type,
-            topic = this.topic
-        )
-    )
-}
-
 
 @JvmSynthetic
 @Throws(IllegalArgumentException::class)
@@ -88,21 +63,16 @@ internal fun Notify.Model.Cacao.Payload.toCommon(): Cacao.Payload {
     return Cacao.Payload(iss, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
 }
 
-@JvmSynthetic
-internal fun ((String) -> Notify.Model.Cacao.Signature?).toClient(): (String) -> Cacao.Signature? = { message ->
-    this(message)?.let { publicCacaoSignature: Notify.Model.Cacao.Signature ->
-        Cacao.Signature(publicCacaoSignature.t, publicCacaoSignature.s, publicCacaoSignature.m)
-    }
-}
-
 
 @JvmSynthetic
 internal fun Notify.Model.Cacao.Signature.toCommon(): Cacao.Signature = Cacao.Signature(t, s, m)
 
 
 @JvmSynthetic
-internal fun DeleteSubscription.toClient(): Notify.Event.Delete {
-    return Notify.Event.Delete(topic)
+internal fun DeleteSubscription.toClient(): Notify.Result.DeleteSubscription = when (this) {
+    is DeleteSubscription.Success -> Notify.Result.DeleteSubscription.Success(topic)
+    is DeleteSubscription.Error -> Notify.Result.DeleteSubscription.Error(Notify.Model.Error(throwable))
+    DeleteSubscription.Processing -> Notify.Result.DeleteSubscription.Error(Notify.Model.Error(IllegalStateException()))
 }
 
 @JvmSynthetic
@@ -110,9 +80,10 @@ internal fun SubscriptionChanged.toClient(): Notify.Event.SubscriptionsChanged =
     Notify.Event.SubscriptionsChanged(subscriptions.map { it.toClient() })
 
 @JvmSynthetic
-internal fun CreateSubscription.toClient(): Notify.Event.Subscription = when (this) {
-    is CreateSubscription.Result -> Notify.Event.Subscription.Result(subscription.toClient())
-    is CreateSubscription.Error -> Notify.Event.Subscription.Error(requestId, rejectionReason)
+internal fun CreateSubscription.toClient(): Notify.Result.Subscribe = when (this) {
+    is CreateSubscription.Success -> Notify.Result.Subscribe.Success(subscription.toClient())
+    is CreateSubscription.Error -> Notify.Result.Subscribe.Error(Notify.Model.Error(throwable))
+    CreateSubscription.Processing -> Notify.Result.Subscribe.Error(Notify.Model.Error(IllegalStateException()))
 }
 
 @JvmSynthetic
@@ -128,9 +99,11 @@ internal fun Subscription.Active.toClient(): Notify.Model.Subscription {
 }
 
 @JvmSynthetic
-internal fun UpdateSubscription.toClient(): Notify.Event.Update = when (this) {
-    is UpdateSubscription.Result -> Notify.Event.Update.Result(subscription.toClient())
-    is UpdateSubscription.Error -> Notify.Event.Update.Error(requestId, rejectionReason)
+internal fun UpdateSubscription.toClient(): Notify.Result.UpdateSubscription = when (this) {
+    is UpdateSubscription.Success -> Notify.Result.UpdateSubscription.Success(subscription.toClient())
+    is UpdateSubscription.Error -> Notify.Result.UpdateSubscription.Error(Notify.Model.Error(IllegalStateException()))
+    UpdateSubscription.Processing -> Notify.Result.UpdateSubscription.Error(Notify.Model.Error(IllegalStateException()))
+
 }
 
 @JvmSynthetic

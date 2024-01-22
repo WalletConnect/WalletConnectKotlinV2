@@ -2,10 +2,7 @@ package com.walletconnect.sample.wallet.ui.routes.composable_routes.notification
 
 import android.content.Intent
 import android.net.Uri
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -18,18 +15,9 @@ import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Divider
-import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedButton
 import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.DismissDirection
-import androidx.compose.material3.DismissState
-import androidx.compose.material3.DismissValue
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.SwipeToDismiss
-import androidx.compose.material3.rememberDismissState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -37,7 +25,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -66,18 +53,18 @@ import com.walletconnect.sample.common.ui.theme.PreviewTheme
 import com.walletconnect.sample.common.ui.theme.UiModePreview
 import com.walletconnect.sample.common.ui.theme.blue_accent
 import com.walletconnect.sample.wallet.domain.model.NotificationUI
+import com.walletconnect.sample.wallet.ui.common.ImageUrl
 import com.walletconnect.sample.wallet.ui.common.subscriptions.ActiveSubscriptionsUI
 import com.walletconnect.sample.wallet.ui.routes.Route
-import com.walletconnect.sample.wallet.ui.common.ImageUrl
+import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.InboxViewModel
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.LazyColumnSurroundedWithFogVertically
 import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-fun NotificationsScreenRoute(navController: NavHostController, subscriptionTopic: String) {
+fun NotificationsScreenRoute(navController: NavHostController, subscriptionTopic: String, inboxViewModel: InboxViewModel) {
     val viewModel: NotificationsViewModel = runCatching {
         viewModel<NotificationsViewModel>(
             key = subscriptionTopic,
@@ -97,7 +84,6 @@ fun NotificationsScreenRoute(navController: NavHostController, subscriptionTopic
         currentSubscription = currentSubscription,
         state = state,
         notifications = notifications,
-        onNotificationItemDelete = viewModel::deleteNotification,
         onBackClick = { navController.popBackStack() },
         onNotificationSettings = {
             navController.navigate("${Route.UpdateSubscription.path}/$subscriptionTopic")
@@ -105,6 +91,7 @@ fun NotificationsScreenRoute(navController: NavHostController, subscriptionTopic
         onUnsubscribe = {
             viewModel.unsubscribe(onSuccess = {
                 scope.launch {
+                    inboxViewModel.fetchActiveSubscriptions()
                     navController.popBackStack()
                 }
             }, onFailure = {
@@ -129,7 +116,6 @@ private fun NotificationScreen(
     currentSubscription: ActiveSubscriptionsUI,
     state: NotificationsState,
     notifications: List<NotificationUI>,
-    onNotificationItemDelete: (NotificationUI) -> Unit,
     onBackClick: () -> Unit,
     onNotificationSettings: () -> Unit,
     onUnsubscribe: () -> Unit,
@@ -167,7 +153,7 @@ private fun NotificationScreen(
 
                     LazyColumnSurroundedWithFogVertically(lazyListState = lazyListState, indexByWhichShouldDisplayBottomFog = notifications.lastIndex - 5) {
                         itemsIndexed(notifications, key = { _, it -> it.id }) { index, notificationUI ->
-                            DismissibleNotificationItem(notificationUI, onNotificationItemDelete)
+                            NotificationItem(notificationUI)
                             if (index != notifications.lastIndex) Divider()
                         }
                     }
@@ -231,74 +217,6 @@ private fun EmptyOrLoadingOrFailureState(text: String, content: @Composable Colu
             Text(text = text)
             content()
         }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DismissibleNotificationItem(
-    notification: NotificationUI,
-    onRemove: (NotificationUI) -> Unit,
-) {
-    val context = LocalContext.current
-    var show by remember { mutableStateOf(true) }
-    val currentItem by rememberUpdatedState(notification)
-    val dismissState = rememberDismissState(
-        confirmValueChange = {
-            if (it == DismissValue.DismissedToStart || it == DismissValue.DismissedToEnd) {
-                show = false
-                true
-            } else false
-        }, positionalThreshold = { 150.dp.toPx() }
-    )
-    AnimatedVisibility(
-        show, exit = fadeOut(spring())
-    ) {
-        SwipeToDismiss(
-            state = dismissState,
-            modifier = Modifier,
-            background = {
-                DismissBackground(dismissState)
-            },
-            dismissContent = {
-                NotificationItem(notification)
-            }, directions = setOf(DismissDirection.StartToEnd)
-
-        )
-    }
-
-    LaunchedEffect(show) {
-        if (!show) {
-            delay(800)
-            onRemove(currentItem)
-            Toast.makeText(context, "Item removed", Toast.LENGTH_SHORT).show()
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DismissBackground(dismissState: DismissState) {
-    val color = when (dismissState.dismissDirection) {
-        DismissDirection.StartToEnd -> Color(0xFFFA5959)
-        DismissDirection.EndToStart -> Color.Transparent
-        null -> Color.Transparent
-    }
-    val direction = dismissState.dismissDirection
-
-    Row(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(color)
-            .padding(12.dp, 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        if (direction == DismissDirection.StartToEnd) Icon(
-            Icons.Default.Delete,
-            contentDescription = "delete"
-        )
-        Spacer(modifier = Modifier)
     }
 }
 
@@ -435,7 +353,6 @@ private fun NotificationsScreenPreview(
                 NotificationUI("3", "topic3", "31-01-2023", "Title 3", "Body 3", null, null, true),
                 NotificationUI("4", "topic4", "02-07-2022", "Title 4", "Body 4", null, null, false),
             ),
-            onNotificationItemDelete = {},
             onBackClick = {},
             onNotificationSettings = {},
             onUnsubscribe = {},
