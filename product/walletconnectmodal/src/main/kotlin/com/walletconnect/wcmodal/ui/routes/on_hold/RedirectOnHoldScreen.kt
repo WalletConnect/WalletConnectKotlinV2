@@ -41,7 +41,6 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathMeasure
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -53,7 +52,7 @@ import com.walletconnect.android.internal.common.modal.data.model.Wallet
 import com.walletconnect.modal.ui.components.common.HorizontalSpacer
 import com.walletconnect.modal.ui.components.common.VerticalSpacer
 import com.walletconnect.modal.ui.components.common.WeightSpacer
-import com.walletconnect.modal.utils.openNativeWallet
+import com.walletconnect.modal.utils.goToNativeWallet
 import com.walletconnect.modal.utils.openWebAppLink
 import com.walletconnect.modal.utils.openPlayStore
 import com.walletconnect.wcmodal.R
@@ -73,7 +72,6 @@ internal fun RedirectOnHoldScreen(
     viewModel: WalletConnectModalViewModel
 ) {
     val uriHandler = LocalUriHandler.current
-    val context = LocalContext.current
     val redirectState = remember { mutableStateOf<RedirectState>(RedirectState.Loading) }
 
     LaunchedEffect(Unit) {
@@ -94,7 +92,7 @@ internal fun RedirectOnHoldScreen(
         onRetry = {
             viewModel.connect { uri ->
                 redirectState.value = RedirectState.Loading
-                context.openNativeWallet(uri, wallet.appPackage, wallet.mobileLink) {}
+                uriHandler.goToNativeWallet(uri, wallet.mobileLink)
             }
         },
         onOpenWebLink = {
@@ -107,7 +105,7 @@ internal fun RedirectOnHoldScreen(
 
     LaunchedEffect(Unit) {
         viewModel.connect { uri ->
-            context.openNativeWallet(uri, wallet.appPackage, wallet.mobileLink) {}
+            uriHandler.goToNativeWallet(uri, wallet.mobileLink)
         }
     }
 }

@@ -1,8 +1,5 @@
 package com.walletconnect.modal.utils
 
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.ui.platform.UriHandler
 import timber.log.Timber
 import java.net.URLEncoder
@@ -17,28 +14,37 @@ fun UriHandler.openUri(uri: String, onError: (e: Throwable) -> Unit) {
     }
 }
 
-fun Context.openNativeWallet(
+fun UriHandler.openMobileLink(
     uri: String,
-    appPackage: String?,
     mobileLink: String?,
     onError: () -> Unit
 ) {
     try {
-        mobileLink?.let { link ->
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                data = Uri.parse(formatNativeDeeplink(link, uri))
-                `package` = appPackage
-            }
-            startActivity(intent)
-        }
+        mobileLink?.let { link -> openUri(formatNativeDeeplink(link, uri)) } ?: onError()
     } catch (e: Exception) {
         onError()
+    }
+}
+
+fun UriHandler.goToNativeWallet(uri: String, nativeLink: String?) {
+    try {
+        nativeLink?.let { openUri(formatNativeDeeplink(it, uri)) } ?: Timber.e("Invalid native link")
+    } catch (e: Exception) {
+        Timber.e(e)
     }
 }
 
 fun UriHandler.openWebAppLink(uri: String, universalLink: String?) {
     try {
         universalLink?.let { openUri(formatUniversalLink(it, uri)) } ?: Timber.e("Invalid universal link")
+    } catch (e: Exception) {
+        Timber.e(e)
+    }
+}
+
+fun UriHandler.goToPlayStore(playStoreLink: String) {
+    try {
+        openUri(playStoreLink)
     } catch (e: Exception) {
         Timber.e(e)
     }
