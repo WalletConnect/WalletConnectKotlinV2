@@ -13,7 +13,7 @@ data class Wallet(
     val webAppLink: String?,
     val isRecommended: Boolean = false
 ) {
-    var appPackage: String? = playStore?.extractPackage()
+    val appPackage: String? = playStore?.extractPackage()
     var isRecent: Boolean = false
     var isWalletInstalled: Boolean = false
 
