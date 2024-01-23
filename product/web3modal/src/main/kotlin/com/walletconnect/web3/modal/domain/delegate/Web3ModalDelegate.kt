@@ -19,6 +19,7 @@ internal object Web3ModalDelegate : Web3Modal.ModalDelegate {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val _wcEventModels: MutableSharedFlow<Modal.Model?> = MutableSharedFlow()
     val wcEventModels: SharedFlow<Modal.Model?> =  _wcEventModels.asSharedFlow()
+    var sessionTopic: String? = null
 
     private val saveSessionTopicUseCase: SaveSessionTopicUseCase by lazy { wcKoinApp.koin.get() }
     private val saveChainSelectionUseCase: SaveChainSelectionUseCase by lazy { wcKoinApp.koin.get() }
