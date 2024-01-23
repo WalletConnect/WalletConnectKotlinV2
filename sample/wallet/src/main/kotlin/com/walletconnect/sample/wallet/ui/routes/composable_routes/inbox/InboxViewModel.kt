@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import com.walletconnect.android.internal.common.explorer.data.model.ImageUrl as WCImageUrl
 
 class InboxViewModel(application: Application) : AndroidViewModel(application) {
@@ -44,9 +45,7 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
     private val _subscriptionsState = MutableStateFlow<SubscriptionsState>(SubscriptionsState.Searching)
     val subscriptionsState = _subscriptionsState.asStateFlow()
 
-    //    private val _searchText = MutableStateFlow("")
-    // todo change back
-    private val _searchText = MutableStateFlow("Snapshot")
+    private val _searchText = MutableStateFlow("")
     val searchText = _searchText.asStateFlow()
 
     private val subscriptionStateChangesEvents: StateFlow<List<Notify.Model.Subscription>> = NotifyDelegate.notifyEvents
@@ -143,6 +142,7 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
         _explorerApps.value = getExplorerProjects()
             .fold(
                 onFailure = { error ->
+                    Timber.e(error)
                     _discoverState.update { DiscoverState.Failure(error) }
                     emptyList()
                 },
@@ -181,6 +181,7 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
                         }
 
                         is Notify.Result.Subscribe.Error -> {
+                            Timber.e(result.error.throwable)
                             onFailure(result.error.throwable)
                         }
                     }
@@ -193,8 +194,9 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
     fun unsubscribeFromDapp(explorerApp: ExplorerApp, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             if (explorerApp.topic == null) {
-                onFailure(Throwable("Cannot unsubscribe from a dapp. Missing topic"))
-                return@launch
+                val error = Throwable("Cannot unsubscribe from a dapp. Missing topic")
+                Timber.e(error)
+                return@launch onFailure(error)
             }
 
             _discoverState.update { DiscoverState.Unsubscribing(explorerApp) }
@@ -210,6 +212,7 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
 
                         is Notify.Result.DeleteSubscription.Error -> {
                             _discoverState.update { DiscoverState.Fetched }
+                            Timber.e(result.error.throwable)
                             onFailure(result.error.throwable)
                         }
                     }

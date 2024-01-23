@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.text.DateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -77,6 +78,7 @@ class NotificationsViewModel(topic: String) : ViewModel() {
         _notifications.value = runCatching { getActiveSubscriptionNotifications() }
             .fold(
                 onFailure = { error ->
+                    Timber.e(error)
                     _state.update { NotificationsState.Failure(error) }
                     emptyList()
                 },
@@ -110,6 +112,7 @@ class NotificationsViewModel(topic: String) : ViewModel() {
 
 
                     is Notify.Result.DeleteSubscription.Error -> {
+                        Timber.e(result.error.throwable)
                         onFailure(result.error.throwable)
                         _state.update { NotificationsState.Failure(result.error.throwable) }
                     }

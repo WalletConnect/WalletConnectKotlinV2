@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @Suppress("UNCHECKED_CAST")
 class UpdateSubscriptionViewModelFactory(private val topic: String) : ViewModelProvider.Factory {
@@ -69,7 +70,10 @@ class UpdateSubscriptionViewModel(val topic: String) : ViewModel() {
             ).let { result ->
                 when (result) {
                     is Notify.Result.UpdateSubscription.Success -> onSuccess()
-                    is Notify.Result.UpdateSubscription.Error -> onFailure(result.error.throwable)
+                    is Notify.Result.UpdateSubscription.Error -> {
+                        Timber.e(result.error.throwable)
+                        onFailure(result.error.throwable)
+                    }
                 }
                 _state.value = UpdateSubscriptionState.Displaying
             }
