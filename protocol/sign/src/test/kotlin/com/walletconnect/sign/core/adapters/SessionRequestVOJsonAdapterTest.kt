@@ -49,6 +49,47 @@ internal class SessionRequestVOJsonAdapterTest {
     private val serializedParams by lazy { requireNotNull(deserializedJson?.params?.request?.params) }
 
     @Test
+    fun testParsingTronSignTransaction() {
+        params = """
+                {
+                  "raw_data": {
+                    "ref_block_bytes": "c8d3",
+                    "ref_block_hash": "4a2c1daa05f7f055",
+                    "expiration": 1704822203601,
+                    "contract": [
+                      {
+                        "type": "TriggerSmartContract",
+                        "parameter": {
+                          "type_url": "type.googleapis.com/protocol.TriggerSmartContract",
+                          "value": {
+                            "owner_address": "41f8c3736f15e64299365b82c18299a626839dd920",
+                            "contract_address": "41a614f803b6f d780986a42c78ec9c7f77e6ded13c",
+                            "data": "095ea7b3000000000000000000000000f8c3736f15e64299365b82c18299a626839dd92000000000000000000000000000000000000000000 000000000000000"
+                          }
+                        }
+                      }
+                    ],
+                    "timestamp": 1704786203601,
+                    "fee_limit": 100000000
+                  },
+                  "txID": "14ac8d0d22af0a12dab8bad8bcc2d464e9b17d479238c2009764a04acf0891ec",
+                  "signature": [
+                    "dcacdd73330b633633a0cd4b6fdb8350c5bf39cf0407e30142d43b8cf935f52c09c2f529c884f323f86cd27653cd70ea28014dfd8b172145772c2f390537faa300"
+                  ],
+                  "visible": false
+                }
+        """.trimIndent()
+
+        val expectedParamsJsonObj = JSONObject(params)
+        val actualParamsJsonObj = JSONObject(serializedParams)
+
+        assertEquals(expectedParamsJsonObj.length(), actualParamsJsonObj.length())
+        assertEquals(actualParamsJsonObj.getJSONArray("signature").get(0), expectedParamsJsonObj.getJSONArray("signature").get(0))
+
+        iterateJsonObjects(expectedParamsJsonObj, actualParamsJsonObj)
+    }
+
+    @Test
     fun deserializeToNamedJsonArray() {
         params = """
             {

@@ -88,15 +88,14 @@ object Web3Modal {
         runCatching {
             wcKoinApp.modules(web3ModalModule())
             setInternalDelegate(Web3ModalDelegate)
-        }.onFailure { error -> return@onInitializedClient onError(Modal.Model.Error(error)) }
-        onSuccess()
+        }
+            .onFailure { error -> return@onInitializedClient onError(Modal.Model.Error(error)) }
+            .onSuccess { onSuccess() }
     }
 
     fun setChains(chains: List<Modal.Model.Chain>) {
         this.chains = chains
     }
-
-    fun getSelectedChain() = getSelectedChainUseCase()?.toChain()
 
     internal fun getSelectedChainOrFirst() = getSelectedChain() ?: chains.first()
 
@@ -233,6 +232,12 @@ object Web3Modal {
             { onError(it.toModal()) }
         )
     }
+
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+    fun getSelectedChain() = getSelectedChainUseCase()?.toChain()
 
     /**
      * Caution: This function is blocking and runs on the current thread.
