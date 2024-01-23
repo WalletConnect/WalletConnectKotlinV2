@@ -121,6 +121,7 @@ object Web3Modal {
 
     @Throws(IllegalStateException::class)
     private fun setInternalDelegate(delegate: ModalDelegate) {
+        Web3ModalDelegate.sessionTopic = getSessionTopicUseCase()
         val signDelegate = object : SignClient.DappDelegate {
             override fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession) {
                 delegate.onSessionApproved(approvedSession.toModal())
