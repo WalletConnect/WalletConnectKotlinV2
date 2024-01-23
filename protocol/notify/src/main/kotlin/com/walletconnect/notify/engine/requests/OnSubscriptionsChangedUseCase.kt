@@ -44,25 +44,26 @@ internal class OnSubscriptionsChangedUseCase(
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
     suspend operator fun invoke(request: WCRequest, params: CoreNotifyParams.SubscriptionsChangedParams) = supervisorScope {
-        val jwtClaims = extractVerifiedDidJwtClaims<SubscriptionsChangedRequestJwtClaim>(params.subscriptionsChangedAuth).getOrElse { error -> return@supervisorScope logger.error(error) }
+        try {
+            val jwtClaims = extractVerifiedDidJwtClaims<SubscriptionsChangedRequestJwtClaim>(params.subscriptionsChangedAuth).getOrThrow()
+            val authenticationPublicKey = registeredAccountsRepository.getAccountByIdentityKey(decodeEd25519DidKey(jwtClaims.audience).keyAsHex).notifyServerAuthenticationKey
+                ?: throw IllegalStateException("Cached authentication public key is null")
 
-        val authenticationPublicKey = runCatching { registeredAccountsRepository.getAccountByIdentityKey(decodeEd25519DidKey(jwtClaims.audience).keyAsHex).notifyServerAuthenticationKey }
-            .getOrElse { error -> return@supervisorScope _events.emit(SDKError(error)) }
-            ?: return@supervisorScope _events.emit(SDKError(IllegalStateException("Cached authentication public key is null")))
+            jwtClaims.throwIfIsInvalid(authenticationPublicKey.keyAsHex)
 
-        runCatching { jwtClaims.throwIfIsInvalid(authenticationPublicKey.keyAsHex) }.getOrElse { error -> return@supervisorScope _events.emit(SDKError(error)) }
+            val account = decodeDidPkh(jwtClaims.subject)
+            val subscriptions = setActiveSubscriptionsUseCase(account, jwtClaims.subscriptions).getOrThrow()
+            val didJwt = fetchDidJwtInteractor.subscriptionsChangedResponse(AccountId(account), authenticationPublicKey).getOrThrow()
+            val responseParams = ChatNotifyResponseAuthParams.ResponseAuth(didJwt.value)
+            val irnParams = IrnParams(Tags.NOTIFY_SUBSCRIPTIONS_CHANGED_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
 
-        val account = decodeDidPkh(jwtClaims.subject)
-        val subscriptions = setActiveSubscriptionsUseCase(account, jwtClaims.subscriptions).getOrElse { error -> return@supervisorScope _events.emit(SDKError(error)) }
+            jsonRpcInteractor.respondWithParams(request.id, request.topic, responseParams, irnParams) { error -> logger.error(error) }
 
-        val didJwt = fetchDidJwtInteractor.subscriptionsChangedResponse(AccountId(account), authenticationPublicKey).getOrElse { error -> return@supervisorScope logger.error(error) }
-
-        val responseParams = ChatNotifyResponseAuthParams.ResponseAuth(didJwt.value)
-        val irnParams = IrnParams(Tags.NOTIFY_SUBSCRIPTIONS_CHANGED_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
-
-        jsonRpcInteractor.respondWithParams(request.id, request.topic, responseParams, irnParams) { error -> logger.error(error) }
-
-        _events.emit(SubscriptionChanged(subscriptions))
+            _events.emit(SubscriptionChanged(subscriptions))
+        } catch (error: Throwable) {
+            logger.error(error)
+            _events.emit(SDKError(error))
+        }
     }
 
 
