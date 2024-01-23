@@ -35,6 +35,19 @@ internal fun NotifyRecord.toClient(): Notify.Model.NotificationRecord {
 
 
 @JvmSynthetic
+internal fun NotifyRecord.toCore(): Core.Model.Message.Notify {
+    return Core.Model.Message.Notify(
+        title = this.notifyMessage.title,
+        body = this.notifyMessage.body,
+        icon = this.notifyMessage.icon,
+        url = this.notifyMessage.url,
+        type = this.notifyMessage.type,
+        topic = this.topic
+    )
+}
+
+
+@JvmSynthetic
 internal fun NotificationType.toClient(): Notify.Model.NotificationType {
     return Notify.Model.NotificationType(id, name, description)
 }

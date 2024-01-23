@@ -38,70 +38,59 @@ internal class OnNotifyMessageUseCase(
     private val subscriptionRepository: SubscriptionRepository,
     private val fetchDidJwtInteractor: FetchDidJwtInteractor,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
-    private val logger: Logger
+    private val logger: Logger,
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
     suspend operator fun invoke(request: WCRequest, params: CoreNotifyParams.MessageParams) = supervisorScope {
         try {
-            val activeSubscription = subscriptionRepository.getActiveSubscriptionByNotifyTopic(request.topic.value)
-                ?: throw IllegalStateException("No active subscription for topic: ${request.topic.value}")
+            val activeSubscription =
+                subscriptionRepository.getActiveSubscriptionByNotifyTopic(request.topic.value) ?: throw IllegalStateException("No active subscription for topic: ${request.topic.value}")
 
             val metadata: AppMetaData = metadataStorageRepository.getByTopicAndType(activeSubscription.notifyTopic, AppMetaDataType.PEER)
-                ?: throw Exception("No metadata found for topic ${activeSubscription.notifyTopic}")
+                ?: throw IllegalStateException("No metadata found for topic ${activeSubscription.notifyTopic}")
 
-            extractVerifiedDidJwtClaims<MessageRequestJwtClaim>(params.messageAuth).onSuccess { messageJwt ->
-                messageJwt.throwIfIsInvalid(URI(metadata.url).host, activeSubscription.authenticationPublicKey.keyAsHex)
+            extractVerifiedDidJwtClaims<MessageRequestJwtClaim>(params.messageAuth)
+                .onSuccess { messageJwt ->
+                    messageJwt.throwIfIsInvalid(URI(metadata.url).host, activeSubscription.authenticationPublicKey.keyAsHex)
 
-                if (notificationsRepository.doesNotificationsExistsByRequestId(request.id)) {
-                    notificationsRepository.updateNotificationWithPublishedAtByRequestId(request.publishedAt, request.id)
-                } else {
-                    notificationsRepository.insertNotification(
-                        requestId = request.id,
-                        topic = request.topic.value,
-                        publishedAt = request.publishedAt,
-                        title = messageJwt.message.title,
-                        body = messageJwt.message.body,
-                        icon = messageJwt.message.icon,
-                        url = messageJwt.message.url,
-                        type = messageJwt.message.type
+                    if (notificationsRepository.doesNotificationsExistsByRequestId(request.id)) {
+                        notificationsRepository.updateNotificationWithPublishedAtByRequestId(request.publishedAt, request.id)
+                    } else {
+                        val notifyRecord = NotifyRecord(
+                            id = request.id, topic = request.topic.value, publishedAt = request.publishedAt, metadata = metadata,
+                            notifyMessage = NotifyMessage(
+                                title = messageJwt.message.title,
+                                body = messageJwt.message.body,
+                                icon = messageJwt.message.icon,
+                                url = messageJwt.message.url,
+                                type = messageJwt.message.type,
+                            ),
+                        )
+
+                        notificationsRepository.insertNotification(notifyRecord)
+                        _events.emit(notifyRecord)
+                    }
+                }.runCatching {
+                    val messageResponseJwt = fetchDidJwtInteractor.messageResponse(
+                        account = activeSubscription.account,
+                        app = metadata.url,
+                        authenticationKey = activeSubscription.authenticationPublicKey,
+                    ).getOrThrow()
+
+                    val messageResponseParams = ChatNotifyResponseAuthParams.ResponseAuth(responseAuth = messageResponseJwt.value)
+                    val irnParams = IrnParams(Tags.NOTIFY_MESSAGE_RESPONSE, Ttl(MONTH_IN_SECONDS))
+
+                    jsonRpcInteractor.respondWithParams(request.id, request.topic, messageResponseParams, irnParams) { throw it }
+                }.getOrElse { error ->
+                    _events.emit(SDKError(error))
+                    jsonRpcInteractor.respondWithError(
+                        request,
+                        Uncategorized.GenericError("Cannot handle the notify message: ${error.message}, topic: ${request.topic}"),
+                        IrnParams(Tags.NOTIFY_MESSAGE_RESPONSE, Ttl(MONTH_IN_SECONDS))
                     )
-
-                    val notifyRecord = NotifyRecord(
-                        id = request.id,
-                        topic = request.topic.value,
-                        publishedAt = request.publishedAt,
-                        notifyMessage = NotifyMessage(
-                            title = messageJwt.message.title,
-                            body = messageJwt.message.body,
-                            icon = messageJwt.message.icon,
-                            url = messageJwt.message.url,
-                            type = messageJwt.message.type,
-                        ),
-                        metadata = metadata
-                    )
-                    _events.emit(notifyRecord)
                 }
-            }.runCatching {
-                val messageResponseJwt = fetchDidJwtInteractor.messageResponse(
-                    account = activeSubscription.account,
-                    app = metadata.url,
-                    authenticationKey = activeSubscription.authenticationPublicKey,
-                ).getOrThrow()
-
-                val messageResponseParams = ChatNotifyResponseAuthParams.ResponseAuth(responseAuth = messageResponseJwt.value)
-                val irnParams = IrnParams(Tags.NOTIFY_MESSAGE_RESPONSE, Ttl(MONTH_IN_SECONDS))
-
-                jsonRpcInteractor.respondWithParams(request.id, request.topic, messageResponseParams, irnParams) { throw it }
-            }.getOrElse { error ->
-                _events.emit(SDKError(error))
-                jsonRpcInteractor.respondWithError(
-                    request,
-                    Uncategorized.GenericError("Cannot handle the notify message: ${error.message}, topic: ${request.topic}"),
-                    IrnParams(Tags.NOTIFY_MESSAGE_RESPONSE, Ttl(MONTH_IN_SECONDS))
-                )
-            }
         } catch (e: Exception) {
             logger.error(e)
             _events.emit(SDKError(e))
