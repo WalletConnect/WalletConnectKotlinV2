@@ -26,6 +26,8 @@ import com.walletconnect.notify.common.model.NotificationScope
 import com.walletconnect.notify.common.model.NotifyRpc
 import com.walletconnect.notify.common.model.Subscription
 import com.walletconnect.notify.data.storage.SubscriptionRepository
+import com.walletconnect.notify.engine.BLOCKING_CALLS_DELAY_INTERVAL
+import com.walletconnect.notify.engine.BLOCKING_CALLS_TIMEOUT
 import com.walletconnect.notify.engine.domain.ExtractMetadataFromConfigUseCase
 import com.walletconnect.notify.engine.domain.ExtractPublicKeysFromDidJsonUseCase
 import com.walletconnect.notify.engine.domain.FetchDidJwtInteractor
@@ -38,8 +40,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withTimeout
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 typealias DidJsonPublicKeyPair = Pair<PublicKey, PublicKey>
 
@@ -99,9 +99,9 @@ internal class SubscribeToDappUseCase(
                 onFailure = { error -> result.value = CreateSubscription.Error(error) },
             )
 
-            withTimeout((2 * THIRTY_SECONDS).toDuration(DurationUnit.SECONDS)) {
+            withTimeout(BLOCKING_CALLS_TIMEOUT) {
                 while (result.value == CreateSubscription.Processing) {
-                    delay(50)
+                    delay(BLOCKING_CALLS_DELAY_INTERVAL)
                 }
             }
 

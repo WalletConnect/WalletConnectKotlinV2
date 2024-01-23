@@ -39,6 +39,8 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 internal class NotifyEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -150,3 +152,6 @@ internal class NotifyEngine(
         jsonRpcInteractor.batchSubscribe(subscriptionTopics) { error -> scope.launch { _engineEvent.emit(SDKError(error)) } }
     }
 }
+
+internal val BLOCKING_CALLS_TIMEOUT = 60.seconds
+internal val BLOCKING_CALLS_DELAY_INTERVAL = 10.milliseconds

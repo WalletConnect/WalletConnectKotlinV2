@@ -10,13 +10,14 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
-import com.walletconnect.android.internal.utils.THIRTY_SECONDS
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.notify.common.model.DeleteSubscription
 import com.walletconnect.notify.common.model.NotifyRpc
 import com.walletconnect.notify.common.model.Subscription
 import com.walletconnect.notify.data.storage.SubscriptionRepository
+import com.walletconnect.notify.engine.BLOCKING_CALLS_DELAY_INTERVAL
+import com.walletconnect.notify.engine.BLOCKING_CALLS_TIMEOUT
 import com.walletconnect.notify.engine.domain.FetchDidJwtInteractor
 import com.walletconnect.notify.engine.responses.OnNotifyDeleteResponseUseCase
 import kotlinx.coroutines.delay
@@ -27,8 +28,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withTimeout
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 internal class DeleteSubscriptionUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -62,9 +61,9 @@ internal class DeleteSubscriptionUseCase(
 
             jsonRpcInteractor.publishJsonRpcRequest(Topic(notifyTopic), irnParams, request, onFailure = { error -> result.value = DeleteSubscription.Error(error) })
 
-            withTimeout((2 * THIRTY_SECONDS).toDuration(DurationUnit.SECONDS)) {
+            withTimeout(BLOCKING_CALLS_TIMEOUT) {
                 while (result.value == DeleteSubscription.Processing) {
-                    delay(10)
+                    delay(BLOCKING_CALLS_DELAY_INTERVAL)
                 }
             }
 

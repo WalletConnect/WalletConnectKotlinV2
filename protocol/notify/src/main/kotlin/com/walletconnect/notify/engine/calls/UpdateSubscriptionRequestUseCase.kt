@@ -16,6 +16,8 @@ import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.notify.common.model.NotifyRpc
 import com.walletconnect.notify.common.model.UpdateSubscription
 import com.walletconnect.notify.data.storage.SubscriptionRepository
+import com.walletconnect.notify.engine.BLOCKING_CALLS_DELAY_INTERVAL
+import com.walletconnect.notify.engine.BLOCKING_CALLS_TIMEOUT
 import com.walletconnect.notify.engine.domain.FetchDidJwtInteractor
 import com.walletconnect.notify.engine.responses.OnNotifyUpdateResponseUseCase
 import kotlinx.coroutines.delay
@@ -26,8 +28,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withTimeout
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 internal class UpdateSubscriptionRequestUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -60,9 +60,9 @@ internal class UpdateSubscriptionRequestUseCase(
                 .onEach { result.emit(it as UpdateSubscription) }
                 .launchIn(scope)
 
-            withTimeout(( 2 * THIRTY_SECONDS).toDuration(DurationUnit.SECONDS)) {
+            withTimeout(BLOCKING_CALLS_TIMEOUT) {
                 while (result.value == UpdateSubscription.Processing) {
-                    delay(10)
+                    delay(BLOCKING_CALLS_DELAY_INTERVAL)
                 }
             }
 
