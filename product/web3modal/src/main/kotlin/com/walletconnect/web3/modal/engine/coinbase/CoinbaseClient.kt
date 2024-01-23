@@ -117,6 +117,11 @@ internal class CoinbaseClient(
         else -> throw Throwable("Unhandled method")
     }
 
+    fun getAccount() {
+        coinbaseWalletSDK.isConnected
+        coinbaseWalletSDK
+    }
+
     fun isInstalled() = coinbaseWalletSDK.isCoinbaseWalletInstalled
 
     fun isLauncherSet() = activityLauncher.launcher != null

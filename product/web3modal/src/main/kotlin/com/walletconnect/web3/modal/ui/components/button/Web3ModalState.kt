@@ -55,6 +55,7 @@ class Web3ModalState(
 
     val isConnected = sessionTopicFlow
         .map { it != null && getSessionUseCase() != null }
+        .map { Web3Modal.getAccount() != null }
         .stateIn(coroutineScope, started = SharingStarted.Lazily, initialValue = false)
 
     internal val selectedChain = observeSelectedChainUseCase().map { savedChainId ->

@@ -1,10 +1,12 @@
 package com.walletconnect.web3.modal.utils
 
 import com.walletconnect.android.internal.utils.CoreValidator
+import com.walletconnect.sign.client.Sign
 import com.walletconnect.util.Empty
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.client.models.Account
+import com.walletconnect.web3.modal.client.toModal
 import com.walletconnect.web3.modal.domain.model.Session
 
 internal fun String.toVisibleAddress() = "${take(4)}...${takeLast(4)}"
@@ -52,6 +54,12 @@ internal fun Session.getChains() = when(this) {
 }
 
 internal fun Session.toAccount() = Account(address, getChain(chain))
+
+internal fun Sign.Model.Session.toAccount(session: Session.WalletConnect) = toModal().let {
+    val chain = session.chain.toChain() ?: return@let null
+    val address = it.getAddress(chain)
+    Account(address, chain)
+}
 
 internal fun getChain(chainId: String) = Web3Modal.chains.find { it.id == chainId } ?: Web3Modal.chains.first()
 

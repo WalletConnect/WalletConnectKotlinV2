@@ -165,7 +165,23 @@ internal class Web3ModalEngine(
         scope.launch { deleteSessionDataUseCase() }
     }
 
-    fun getAccount(): Account? = getSessionUseCase()?.toAccount()
+    fun getAccount(): Account? = getSessionUseCase()?.let { session ->
+        when(session) {
+            is Session.Coinbase -> coinbaseClient.getAccount().let { session.toAccount() }
+            is Session.WalletConnect -> SignClient.getActiveSessionByTopic(session.topic)?.toAccount(session)
+        }
+    }
+
+    fun Session.validateSession() {
+
+    }
+
+    private fun Session.isActive() {
+        when (this) {
+            is Session.Coinbase -> coinbaseClient.getAccount() != null
+            is Session.WalletConnect -> SignClient.getActiveSessionByTopic(topic) != null
+        }
+    }
 
     @Throws(IllegalStateException::class)
     fun setInternalDelegate(delegate: Web3ModalDelegate) {

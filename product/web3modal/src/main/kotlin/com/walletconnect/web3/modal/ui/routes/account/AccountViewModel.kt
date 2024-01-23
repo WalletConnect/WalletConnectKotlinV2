@@ -6,6 +6,7 @@ import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.modal.ui.model.UiState
 import com.walletconnect.web3.modal.client.Modal
+import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.client.models.request.Request
 import com.walletconnect.web3.modal.client.models.request.SentRequestResult
 import com.walletconnect.web3.modal.domain.model.AccountData
@@ -48,7 +49,11 @@ internal class AccountViewModel : ViewModel(), Navigator by NavigatorImpl() {
 
     private val activeSessionFlow = observeSessionUseCase()
 
-    private val accountDataFlow = activeSessionFlow.map { activeSession ->
+    private val accountDataFlow = activeSessionFlow
+        .map {
+            if (web3ModalEngine.getAccount() != null) { it } else { null }
+        }
+        .map { activeSession ->
         if (activeSession != null) {
             val chains = activeSession.getChains()
             val identity = getIdentityUseCase(activeSession.address, activeSession.chain)
