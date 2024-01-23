@@ -7,8 +7,7 @@ import com.walletconnect.notify.common.model.NotificationType
 
 internal class GetNotificationTypesUseCase(
     private val getNotifyConfigUseCase: GetNotifyConfigUseCase,
-
-    ) : GetNotificationTypesUseCaseInterface {
+) : GetNotificationTypesUseCaseInterface {
 
     @Throws(IllegalStateException::class)
     override suspend fun getNotificationTypes(domain: String): Map<String, NotificationType> {
