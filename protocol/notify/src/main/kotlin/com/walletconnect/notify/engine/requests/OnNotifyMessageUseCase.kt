@@ -82,13 +82,13 @@ internal class OnNotifyMessageUseCase(
                     val messageResponseParams = ChatNotifyResponseAuthParams.ResponseAuth(responseAuth = messageResponseJwt.value)
                     val irnParams = IrnParams(Tags.NOTIFY_MESSAGE_RESPONSE, Ttl(MONTH_IN_SECONDS))
 
-                    jsonRpcInteractor.respondWithParams(request.id, request.topic, messageResponseParams, irnParams) { throw it }
+                    jsonRpcInteractor.respondWithParams(request.id, request.topic, messageResponseParams, irnParams) { error -> logger.error(error) }
                 }.getOrElse { error ->
+                    logger.error(error)
                     _events.emit(SDKError(error))
                     jsonRpcInteractor.respondWithError(
-                        request,
-                        Uncategorized.GenericError("Cannot handle the notify message: ${error.message}, topic: ${request.topic}"),
-                        IrnParams(Tags.NOTIFY_MESSAGE_RESPONSE, Ttl(MONTH_IN_SECONDS))
+                        irnParams = IrnParams(Tags.NOTIFY_MESSAGE_RESPONSE, Ttl(MONTH_IN_SECONDS)), request = request,
+                        error = Uncategorized.GenericError("Cannot handle the notify message: ${error.message}, topic: ${request.topic}"),
                     )
                 }
         } catch (e: Exception) {
