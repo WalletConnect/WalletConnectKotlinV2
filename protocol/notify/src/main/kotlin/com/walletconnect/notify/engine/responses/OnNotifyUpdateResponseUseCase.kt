@@ -9,6 +9,7 @@ import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.params.ChatNotifyResponseAuthParams
 import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.foundation.util.jwt.decodeDidPkh
 import com.walletconnect.notify.common.model.UpdateSubscription
 import com.walletconnect.notify.data.jwt.update.UpdateRequestJwtClaim
@@ -23,6 +24,7 @@ import kotlinx.coroutines.supervisorScope
 internal class OnNotifyUpdateResponseUseCase(
     private val setActiveSubscriptionsUseCase: SetActiveSubscriptionsUseCase,
     private val findRequestedSubscriptionUseCase: FindRequestedSubscriptionUseCase,
+    private val logger: Logger
 ) {
     private val _events: MutableSharedFlow<Pair<CoreNotifyParams.UpdateParams, EngineEvent>> = MutableSharedFlow()
     val events: SharedFlow<Pair<CoreNotifyParams.UpdateParams, EngineEvent>> = _events.asSharedFlow()
@@ -45,8 +47,9 @@ internal class OnNotifyUpdateResponseUseCase(
 
                 is JsonRpcResponse.JsonRpcError -> UpdateSubscription.Error(Throwable(response.error.message))
             }
-        } catch (exception: Exception) {
-            SDKError(exception)
+        } catch (e: Exception) {
+            logger.error(e)
+            SDKError(e)
         }
 
         _events.emit(params to resultEvent)

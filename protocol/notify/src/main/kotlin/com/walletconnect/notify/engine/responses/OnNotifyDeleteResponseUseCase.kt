@@ -9,6 +9,7 @@ import com.walletconnect.android.internal.common.model.params.ChatNotifyResponse
 import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.foundation.util.jwt.decodeDidPkh
 import com.walletconnect.notify.common.model.DeleteSubscription
 import com.walletconnect.notify.data.jwt.delete.DeleteResponseJwtClaim
@@ -18,12 +19,12 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.supervisorScope
-import timber.log.Timber
 
 internal class OnNotifyDeleteResponseUseCase(
     private val setActiveSubscriptionsUseCase: SetActiveSubscriptionsUseCase,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val notificationsRepository: NotificationsRepository,
+    private val logger: Logger,
 ) {
     private val _events: MutableSharedFlow<Pair<CoreNotifyParams.DeleteParams, EngineEvent>> = MutableSharedFlow()
     val events: SharedFlow<Pair<CoreNotifyParams.DeleteParams, EngineEvent>> = _events.asSharedFlow()
@@ -32,8 +33,6 @@ internal class OnNotifyDeleteResponseUseCase(
         val resultEvent = try {
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcResult -> {
-                    Timber.d("OnNotifyDeleteResponseUseCase")
-
                     val responseAuth = (response.result as ChatNotifyResponseAuthParams.ResponseAuth).responseAuth
                     val responseJwtClaim = extractVerifiedDidJwtClaims<DeleteResponseJwtClaim>(responseAuth).getOrThrow()
                     responseJwtClaim.throwIfBaseIsInvalid()
@@ -49,6 +48,7 @@ internal class OnNotifyDeleteResponseUseCase(
                 is JsonRpcResponse.JsonRpcError -> DeleteSubscription.Error(Throwable(response.error.message))
             }
         } catch (e: Exception) {
+            logger.error(e)
             DeleteSubscription.Error(e)
         }
 

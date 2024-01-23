@@ -9,6 +9,7 @@ import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.params.ChatNotifyResponseAuthParams
 import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.foundation.util.jwt.decodeDidPkh
 import com.walletconnect.foundation.util.jwt.decodeEd25519DidKey
 import com.walletconnect.notify.common.NotifyServerUrl
@@ -29,8 +30,8 @@ internal class OnWatchSubscriptionsResponseUseCase(
     private val watchSubscriptionsForEveryRegisteredAccountUseCase: WatchSubscriptionsForEveryRegisteredAccountUseCase,
     private val accountsRepository: RegisteredAccountsRepository,
     private val notifyServerUrl: NotifyServerUrl,
-
-    ) {
+    private val logger: Logger,
+) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
@@ -51,8 +52,9 @@ internal class OnWatchSubscriptionsResponseUseCase(
                     SDKError(Exception(response.errorMessage))
                 }
             }
-        } catch (exception: Exception) {
-            SDKError(exception)
+        } catch (e: Exception) {
+            logger.error(e)
+            SDKError(e)
         }
 
         _events.emit(resultEvent)

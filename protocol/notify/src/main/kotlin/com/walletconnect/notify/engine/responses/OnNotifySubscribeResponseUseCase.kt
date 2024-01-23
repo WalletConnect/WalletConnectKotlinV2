@@ -53,10 +53,10 @@ internal class OnNotifySubscribeResponseUseCase(
                 }
 
             }
-        } catch (exception: Exception) {
+        } catch (e: Exception) {
             removeOptimisticallyAddedSubscription(wcResponse.topic)
-            logger.error(exception)
-            SDKError(exception)
+            logger.error(e)
+            SDKError(e)
         }
 
         _events.emit(params to resultEvent)
