@@ -17,7 +17,6 @@ import com.walletconnect.notify.common.model.NotificationScope
 import com.walletconnect.notify.common.model.ServerSubscription
 import com.walletconnect.notify.common.model.Subscription
 import com.walletconnect.notify.data.storage.SubscriptionRepository
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -61,7 +60,7 @@ internal class SetActiveSubscriptionsUseCase(
             subscriptionRepository.setActiveSubscriptions(account, activeSubscriptions)
 
             val subscriptionTopic = activeSubscriptions.map { it.notifyTopic.value }
-            jsonRpcInteractor.batchSubscribe(subscriptionTopic) { error -> launch { _events.emit(SDKError(error)); cancel() } }
+            jsonRpcInteractor.batchSubscribe(subscriptionTopic, onFailure = { error -> launch { _events.emit(SDKError(error)) } })
 
             return@supervisorScope Result.success(activeSubscriptions)
         }
