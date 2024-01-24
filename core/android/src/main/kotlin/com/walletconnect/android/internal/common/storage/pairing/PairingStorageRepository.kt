@@ -5,7 +5,7 @@ import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.Pairing
 import com.walletconnect.android.internal.common.model.Redirect
-import com.walletconnect.android.pairing.model.ACTIVE_PAIRING
+import com.walletconnect.android.pairing.model.activePairing
 import com.walletconnect.android.sdk.storage.data.dao.PairingQueries
 import com.walletconnect.foundation.common.model.Topic
 
@@ -38,7 +38,7 @@ class PairingStorageRepository(private val pairingQueries: PairingQueries) : Pai
     override fun getListOfPairings(): List<Pairing> = pairingQueries.getListOfPairing(mapper = this::toPairing).executeAsList()
 
     @Throws(SQLiteException::class)
-    override fun activatePairing(topic: Topic) = pairingQueries.activatePairing(expiry = ACTIVE_PAIRING, is_active = true, topic = topic.value)
+    override fun activatePairing(topic: Topic) = pairingQueries.activatePairing(expiry = activePairing, is_active = true, topic = topic.value)
 
     @Throws(SQLiteException::class)
     override fun setProposalReceived(topic: Topic) {

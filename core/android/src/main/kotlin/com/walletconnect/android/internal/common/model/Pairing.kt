@@ -3,7 +3,7 @@ package com.walletconnect.android.internal.common.model
 import com.walletconnect.android.internal.common.model.type.Sequence
 import com.walletconnect.android.internal.utils.currentTimeInSeconds
 import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
-import com.walletconnect.android.pairing.model.INACTIVE_PAIRING
+import com.walletconnect.android.pairing.model.inactivePairing
 import com.walletconnect.foundation.common.model.Topic
 
 data class Pairing(
@@ -30,7 +30,7 @@ data class Pairing(
 
     constructor(uri: WalletConnectUri, registeredMethods: String) : this(
         topic = uri.topic,
-        expiry = uri.expiry ?: Expiry(INACTIVE_PAIRING),
+        expiry = uri.expiry ?: Expiry(inactivePairing),
         relayProtocol = uri.relay.protocol,
         relayData = uri.relay.data,
         uri = uri.toAbsoluteString(),

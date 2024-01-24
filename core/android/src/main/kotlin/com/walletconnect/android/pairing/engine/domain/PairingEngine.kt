@@ -33,7 +33,7 @@ import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.dayInSeconds
 import com.walletconnect.android.internal.utils.thirtySeconds
 import com.walletconnect.android.pairing.engine.model.EngineDO
-import com.walletconnect.android.pairing.model.INACTIVE_PAIRING
+import com.walletconnect.android.pairing.model.inactivePairing
 import com.walletconnect.android.pairing.model.PairingJsonRpcMethod
 import com.walletconnect.android.pairing.model.PairingParams
 import com.walletconnect.android.pairing.model.PairingRpc
@@ -117,7 +117,7 @@ internal class PairingEngine(
         val symmetricKey: SymmetricKey = crypto.generateAndStoreSymmetricKey(pairingTopic)
         val relay = RelayProtocolOptions()
         val registeredMethods = setOfRegisteredMethods.joinToString(",") { it }
-        val inactivePairing = Pairing(pairingTopic, relay, symmetricKey, registeredMethods, Expiry(INACTIVE_PAIRING))
+        val inactivePairing = Pairing(pairingTopic, relay, symmetricKey, registeredMethods, Expiry(inactivePairing))
 
         return inactivePairing.runCatching {
             logger.log("Pairing created successfully")
