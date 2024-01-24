@@ -48,7 +48,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.walletconnect.android.internal.common.explorer.data.model.Wallet
+import com.walletconnect.android.internal.common.modal.data.model.Wallet
 import com.walletconnect.modal.ui.components.common.HorizontalSpacer
 import com.walletconnect.modal.ui.components.common.VerticalSpacer
 import com.walletconnect.modal.ui.components.common.WeightSpacer
@@ -58,6 +58,7 @@ import com.walletconnect.modal.utils.openPlayStore
 import com.walletconnect.wcmodal.R
 import com.walletconnect.wcmodal.client.Modal
 import com.walletconnect.wcmodal.domain.WalletConnectModalDelegate
+import com.walletconnect.wcmodal.ui.WalletConnectModalViewModel
 import com.walletconnect.wcmodal.ui.components.ModalTopBar
 import com.walletconnect.wcmodal.ui.components.RoundedMainButton
 import com.walletconnect.wcmodal.ui.components.WalletImage
@@ -67,9 +68,8 @@ import com.walletconnect.wcmodal.ui.theme.ModalTheme
 @Composable
 internal fun RedirectOnHoldScreen(
     navController: NavController,
-    uri: String,
     wallet: Wallet,
-    retry: (() -> Unit) -> Unit
+    viewModel: WalletConnectModalViewModel
 ) {
     val uriHandler = LocalUriHandler.current
     val redirectState = remember { mutableStateOf<RedirectState>(RedirectState.Loading) }
@@ -90,21 +90,23 @@ internal fun RedirectOnHoldScreen(
         state = redirectState.value,
         onBackPressed = navController::popBackStack,
         onRetry = {
-            retry {
+            viewModel.connect { uri ->
                 redirectState.value = RedirectState.Loading
-                uriHandler.goToNativeWallet(uri, wallet.nativeLink)
+                uriHandler.goToNativeWallet(uri, wallet.mobileLink)
             }
         },
-        onOpenUniversalLink = { uriHandler.openWebAppLink(uri, wallet.universalLink) },
-        onOpenPlayStore = { uriHandler.openPlayStore(wallet.playStoreLink) }
+        onOpenWebLink = {
+            viewModel.connect { uri ->
+                uriHandler.openWebAppLink(uri, wallet.webAppLink)
+            }
+        },
+        onOpenPlayStore = { uriHandler.openPlayStore(wallet.playStore) }
     )
 
     LaunchedEffect(Unit) {
-        when {
-            wallet.nativeLink != null -> uriHandler.goToNativeWallet(uri, wallet.nativeLink)
-            wallet.universalLink != null -> uriHandler.goToNativeWallet(uri, wallet.universalLink)
+        viewModel.connect { uri ->
+            uriHandler.goToNativeWallet(uri, wallet.mobileLink)
         }
-
     }
 }
 
@@ -114,7 +116,7 @@ private fun RedirectOnHoldScreen(
     state: RedirectState,
     onBackPressed: () -> Unit,
     onRetry: () -> Unit,
-    onOpenUniversalLink: () -> Unit,
+    onOpenWebLink: () -> Unit,
     onOpenPlayStore: () -> Unit
 ) {
     Column(
@@ -132,7 +134,7 @@ private fun RedirectOnHoldScreen(
             RedirectStateContent(state = state, wallet = wallet)
             VerticalSpacer(height = 20.dp)
         }
-        BottomSection(wallet, onRetry, onOpenUniversalLink, onOpenPlayStore)
+        BottomSection(wallet, onRetry, onOpenWebLink, onOpenPlayStore)
     }
 }
 
@@ -233,7 +235,7 @@ private fun BottomSection(
             }
         )
         VerticalSpacer(height = 10.dp)
-        if (wallet.universalLink != null) {
+        if (wallet.webAppLink != null) {
             Row(Modifier.padding(horizontal = 20.dp, vertical = 6.dp)) {
                 Text(text = "Still doesn't work?", color = ModalTheme.colors.secondaryTextColor)
                 HorizontalSpacer(width = 2.dp)
@@ -278,12 +280,12 @@ private fun OnHoldScreenPreview(
     @PreviewParameter(RedirectStateProvider::class) state: RedirectState
 ) {
     ModalPreview {
-        val wallet = Wallet("Id", "Kotlin Wallet", "url", "", "", "")
-        RedirectOnHoldScreen(wallet = wallet, state = state, onBackPressed = { }, onRetry = { }, onOpenUniversalLink = { }, onOpenPlayStore = {})
+        val wallet = Wallet("Id", "Kotlin Wallet", "url", "", "", "", null, "", false)
+        RedirectOnHoldScreen(wallet = wallet, state = state, onBackPressed = { }, onRetry = { }, onOpenWebLink = { }, onOpenPlayStore = {})
     }
 }
 
-private class RedirectStateProvider: PreviewParameterProvider<RedirectState> {
+private class RedirectStateProvider : PreviewParameterProvider<RedirectState> {
     override val values: Sequence<RedirectState>
         get() = sequenceOf(RedirectState.Loading, RedirectState.Reject)
 }

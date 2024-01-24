@@ -14,7 +14,7 @@ import com.walletconnect.web3.modal.domain.usecase.ObserveSelectedChainUseCase
 import com.walletconnect.web3.modal.domain.usecase.ObserveSessionTopicUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveChainSelectionUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveSessionTopicUseCase
-import com.walletconnect.web3.modal.ui.model.UiState
+import com.walletconnect.modal.ui.model.UiState
 import com.walletconnect.web3.modal.ui.navigation.Navigator
 import com.walletconnect.web3.modal.ui.navigation.NavigatorImpl
 import com.walletconnect.web3.modal.ui.navigation.Route

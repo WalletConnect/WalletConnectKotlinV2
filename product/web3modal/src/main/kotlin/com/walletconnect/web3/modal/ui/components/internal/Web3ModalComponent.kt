@@ -34,7 +34,6 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun Web3ModalComponent(
-    modifier: Modifier = Modifier,
     shouldOpenChooseNetwork: Boolean,
     closeModal: () -> Unit
 ) {

@@ -8,19 +8,10 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import com.walletconnect.modal.ui.model.UiState
 import com.walletconnect.web3.modal.ui.components.internal.ErrorModalState
 import com.walletconnect.web3.modal.ui.components.internal.LoadingModalState
 import kotlinx.coroutines.flow.StateFlow
-
-internal sealed class UiState<T> {
-    data class Success<T>(val data: T) : UiState<T>()
-    data class Loading<T>(val data: T? = null, val loadingState: LoadingState = LoadingState.REFRESH) : UiState<T>()
-    data class Error<T>(val error: Throwable) : UiState<T>()
-}
-
-internal enum class LoadingState {
-    REFRESH, APPEND
-}
 
 @Composable
 internal fun <T> UiStateBuilder(

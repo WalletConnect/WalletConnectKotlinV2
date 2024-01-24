@@ -6,6 +6,7 @@ The communications protocol for web3, WalletConnect brings the ecosystem togethe
 WalletConnect v2 protocols for Android applications.
 
 ####
+
 ## SDK Chart
 
 | BOM                                                                                     | [Core SDK](core/android) | [Sign SDK](protocol/sign) | [Auth SDK](protocol/auth) | [Chat SDK](protocol/chat) | [Notify SDK](protocol/notify) | [web3wallet](product/web3wallet) | [web3modal](product/web3modal) | [WalletConnectModal](product/walletconnectmodal) |

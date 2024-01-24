@@ -9,21 +9,28 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.walletconnect.modal.ui.components.common.ClickableImage
 import com.walletconnect.modal.ui.components.common.HorizontalSpacer
 import com.walletconnect.modal.ui.components.common.VerticalSpacer
+import com.walletconnect.modal.ui.model.search.SearchState
 import com.walletconnect.wcmodal.R
 import com.walletconnect.wcmodal.ui.preview.ComponentPreview
 import com.walletconnect.wcmodal.ui.theme.ModalTheme
@@ -67,10 +74,12 @@ internal fun ModalTopBar(
 
 @Composable
 internal fun ModalSearchTopBar(
-    searchValue: String,
-    onSearchValueChange: (String) -> Unit,
+    searchState: SearchState,
     onBackPressed: (() -> Unit)
 ) {
+    val focusManager = LocalFocusManager.current
+    val state by searchState.state.collectAsState()
+
     Box(
         modifier = Modifier
             .height(60.dp)
@@ -85,8 +94,8 @@ internal fun ModalSearchTopBar(
             onClick = onBackPressed
         )
         BasicTextField(
-            value = searchValue,
-            onValueChange = onSearchValueChange,
+            value = state.searchValue,
+            onValueChange = searchState::onSearchValueChange,
             textStyle = TextStyle(color = ModalTheme.colors.onBackgroundColor),
             cursorBrush = SolidColor(ModalTheme.colors.main),
             singleLine = true,
@@ -97,6 +106,11 @@ internal fun ModalSearchTopBar(
                 .background(ModalTheme.colors.background)
                 .border(width = 1.dp, color = ModalTheme.colors.main, shape = RoundedCornerShape(16.dp))
                 .padding(2.dp),
+            keyboardActions = KeyboardActions(onSearch = {
+                searchState.onSearchSubmit()
+                focusManager.clearFocus(true) }
+            ),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             decorationBox = { innerTextField ->
                 Row(
                     modifier = Modifier.padding(4.dp),
@@ -110,7 +124,7 @@ internal fun ModalSearchTopBar(
                     )
                     HorizontalSpacer(width = 8.dp)
                     Box {
-                        if (searchValue.isBlank()) {
+                        if (searchState.searchValue.isBlank()) {
                             Text(text = "Search wallets", style = TextStyle(color = ModalTheme.colors.secondaryTextColor))
                         }
                         innerTextField()
@@ -145,13 +159,11 @@ private fun PreviewWeb3TopBar() {
             onBackPressed = {}
         )
         ModalSearchTopBar(
-            searchValue = "",
-            onSearchValueChange = {},
+            searchState = SearchState(searchPhrase = "", onSearchSubmit = {}, onClearInput = {}),
             onBackPressed = {}
         )
         ModalSearchTopBar(
-            searchValue = "Metamask",
-            onSearchValueChange = {},
+            searchState = SearchState(searchPhrase = "Metamask", onSearchSubmit = {}, onClearInput = {}),
             onBackPressed = {}
         )
     }

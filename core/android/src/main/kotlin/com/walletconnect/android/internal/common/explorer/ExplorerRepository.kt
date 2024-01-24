@@ -1,8 +1,6 @@
 package com.walletconnect.android.internal.common.explorer
 
-import android.content.Context
 import androidx.core.net.toUri
-import com.walletconnect.android.BuildConfig
 import com.walletconnect.android.internal.common.explorer.data.model.App
 import com.walletconnect.android.internal.common.explorer.data.model.Colors
 import com.walletconnect.android.internal.common.explorer.data.model.DappListings
@@ -17,8 +15,6 @@ import com.walletconnect.android.internal.common.explorer.data.model.NotifyConfi
 import com.walletconnect.android.internal.common.explorer.data.model.Project
 import com.walletconnect.android.internal.common.explorer.data.model.ProjectListing
 import com.walletconnect.android.internal.common.explorer.data.model.SupportedStandard
-import com.walletconnect.android.internal.common.explorer.data.model.Wallet
-import com.walletconnect.android.internal.common.explorer.data.model.WalletListing
 import com.walletconnect.android.internal.common.explorer.data.network.ExplorerService
 import com.walletconnect.android.internal.common.explorer.data.network.model.AppDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.ColorsDTO
@@ -34,17 +30,12 @@ import com.walletconnect.android.internal.common.explorer.data.network.model.Not
 import com.walletconnect.android.internal.common.explorer.data.network.model.ProjectDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.ProjectListingDTO
 import com.walletconnect.android.internal.common.explorer.data.network.model.SupportedStandardDTO
-import com.walletconnect.android.internal.common.explorer.data.network.model.WalletDTO
-import com.walletconnect.android.internal.common.explorer.data.network.model.WalletListingDTO
 import com.walletconnect.android.internal.common.model.ProjectId
-import com.walletconnect.android.utils.isWalletInstalled
 
 //discuss: Repository could be inside domain
 class ExplorerRepository(
-    private val context: Context,
     private val explorerService: ExplorerService,
     private val projectId: ProjectId,
-    private val explorerApiUrl: String,
 ) {
 
     suspend fun getAllDapps(): DappListings {
@@ -81,41 +72,6 @@ class ExplorerRepository(
                 throw Throwable(errorBody()?.string())
             }
         }
-    }
-
-    suspend fun getMobileWallets(
-        sdkType: String,
-        chains: String?,
-        excludedIds: String? = null,
-        recommendedIds: String? = null,
-    ): WalletListing {
-        return with(
-            explorerService.getAndroidWallets(
-                projectId = projectId.value, chains = chains, sdkType = sdkType, sdkVersion = BuildConfig.SDK_VERSION, excludedIds = excludedIds, recommendedIds = recommendedIds
-            )
-        ) {
-            if (isSuccessful && body() != null) {
-                body()!!.toWalletListing()
-            } else {
-                throw Throwable(errorBody()?.string())
-            }
-        }
-    }
-
-    private fun WalletListingDTO.toWalletListing(): WalletListing {
-        return WalletListing(
-            listing = listings.values.map { it.toWallet() }, count = count, total = total
-        )
-    }
-
-    private fun WalletDTO.toWallet(): Wallet {
-        return Wallet(
-            id = id, name = name, imageUrl = imageId.buildWalletImageUrl(), nativeLink = mobile.native, universalLink = mobile.universal, playStoreLink = app.android
-        ).apply { isWalletInstalled = context.packageManager.isWalletInstalled(appPackage) }
-    }
-
-    private fun String.buildWalletImageUrl(): String {
-        return "$explorerApiUrl/w3m/v1/getWalletImage/$this?projectId=${projectId.value}"
     }
 
     private fun NotifyConfigDTO.toNotifyConfig(): NotifyConfig {
