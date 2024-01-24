@@ -190,14 +190,16 @@ private val themeColorsAttributesMap = mapOf(
     23 to R.attr.modalError,
 )
 
-internal fun Context.getColorMap() =
-    obtainStyledAttributes(themeColorsAttributesMap.values.toIntArray()).use {
-        themeColorsAttributesMap.keys.map { id ->
-            themeColorsAttributesMap[id]!! to try { it.getColorOrThrow(id).toComposeColor() } catch (e: Exception) { null }
+internal fun Context.getColorMap() = obtainStyledAttributes(themeColorsAttributesMap.values.toIntArray()).use {
+    themeColorsAttributesMap.keys.map { id ->
+        themeColorsAttributesMap[id]!! to try {
+            it.getColorOrThrow(id).toComposeColor()
+        } catch (e: Exception) {
+            null
         }
-    }.toMap()
+    }
+}.toMap()
 
-internal fun Context.getThemeMode() = obtainStyledAttributes(intArrayOf(R.attr.modalMode))
-    .use { it.getInt(0, 0) }.toThemeMode()
+internal fun Context.getThemeMode() = obtainStyledAttributes(intArrayOf(R.attr.modalMode)).use { it.getInt(0, 0) }.toThemeMode()
 
 private fun Bundle?.getShouldOpenChooseNetworkArg() = this?.getBoolean(CHOOSE_NETWORK_KEY) ?: false
