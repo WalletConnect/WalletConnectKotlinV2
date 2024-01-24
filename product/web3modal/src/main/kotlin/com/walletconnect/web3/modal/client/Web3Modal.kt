@@ -86,15 +86,14 @@ object Web3Modal {
         runCatching {
             wcKoinApp.modules(web3ModalModule())
             setInternalDelegate(Web3ModalDelegate)
-        }.onFailure { error -> return@onInitializedClient onError(Modal.Model.Error(error)) }
-        onSuccess()
+        }
+            .onFailure { error -> return@onInitializedClient onError(Modal.Model.Error(error)) }
+            .onSuccess { onSuccess() }
     }
 
     fun setChains(chains: List<Modal.Model.Chain>) {
         this.chains = chains
     }
-
-    fun getSelectedChain() = getSelectedChainUseCase()?.toChain()
 
     internal fun getSelectedChainOrFirst() = getSelectedChain() ?: chains.first()
 
@@ -105,7 +104,7 @@ object Web3Modal {
     @Throws(IllegalStateException::class)
     fun setDelegate(delegate: ModalDelegate) {
         Web3ModalDelegate.wcEventModels.onEach { event ->
-            when(event) {
+            when (event) {
                 is Modal.Model.ApprovedSession -> delegate.onSessionApproved(event)
                 is Modal.Model.ConnectionState -> delegate.onConnectionStateChange(event)
                 is Modal.Model.DeletedSession.Success -> delegate.onSessionDelete(event)
@@ -122,6 +121,7 @@ object Web3Modal {
 
     @Throws(IllegalStateException::class)
     private fun setInternalDelegate(delegate: ModalDelegate) {
+        Web3ModalDelegate.sessionTopic = getSessionTopicUseCase()
         val signDelegate = object : SignClient.DappDelegate {
             override fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession) {
                 delegate.onSessionApproved(approvedSession.toModal())
@@ -144,7 +144,6 @@ object Web3Modal {
             }
 
             override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {
-                scope.launch { deleteSessionDataUseCase() }
                 delegate.onSessionDelete(deletedSession.toModal())
             }
 
@@ -220,6 +219,12 @@ object Web3Modal {
             { onError(it.toModal()) }
         )
     }
+
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+    fun getSelectedChain() = getSelectedChainUseCase()?.toChain()
 
     /**
      * Caution: This function is blocking and runs on the current thread.

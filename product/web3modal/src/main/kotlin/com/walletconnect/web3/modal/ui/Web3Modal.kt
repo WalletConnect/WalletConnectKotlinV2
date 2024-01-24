@@ -21,7 +21,7 @@ private const val CHOOSE_NETWORK_ARG = "{chooseNetwork}"
 private val web3ModalPath = Route.WEB3MODAL.path + "/" + CHOOSE_NETWORK_ARG
 
 fun NavGraphBuilder.web3Modal() {
-    dialog<Web3ModalSheet>(web3ModalPath)
+    dialog<Web3ModalSheet>(web3ModalPath) { argument(CHOOSE_NETWORK_KEY) { type = NavType.BoolType } }
 }
 
 fun NavController.openWeb3Modal(
