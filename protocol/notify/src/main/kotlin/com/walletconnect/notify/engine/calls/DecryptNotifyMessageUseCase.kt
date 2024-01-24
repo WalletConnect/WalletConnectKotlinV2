@@ -41,7 +41,7 @@ internal class DecryptNotifyMessageUseCase(
                     return@supervisorScope onFailure(IllegalArgumentException("The decrypted message does not match WalletConnect Notify Message format"))
                 }
 
-                with(messageRequestJwt.message) {
+                with(messageRequestJwt.serverNotification) {
 
                     val notification = Notification(
                         id = id, topic = topic, sentAt = sentAt, metadata = null, notificationMessage = NotificationMessage(title = title, body = body, icon = icon, url = url, type = type)

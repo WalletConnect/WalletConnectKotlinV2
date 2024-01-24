@@ -14,7 +14,7 @@ internal data class MessageRequestJwtClaim(
     @Json(name = "iat") override val issuedAt: Long,
     @Json(name = "exp") override val expiration: Long,
     @Json(name = "app") val app: String,
-    @Json(name = "msg") val message: ServerNotification,
+    @Json(name = "msg") val serverNotification: ServerNotification,
     @Json(name = "act") override val action: String = ACTION_CLAIM_VALUE,
     @Json(name = "mjv") override val version: String = VERSION,
     ) : NotifyJwtBase {
