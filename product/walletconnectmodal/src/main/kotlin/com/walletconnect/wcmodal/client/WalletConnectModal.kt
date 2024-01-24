@@ -147,7 +147,7 @@ object WalletConnectModal {
 
     @Deprecated(
         message = "Replaced with the same name method but onSuccess callback returns a Pairing URL",
-        replaceWith = ReplaceWith(expression = "fun connect(connect: Sign.Params.Connect, onSuccess: (String) -> Unit, onError: (Sign.Model.Error) -> Unit)")
+        replaceWith = ReplaceWith(expression = "fun connect(connect: Modal.Params.Connect, onSuccess: (String) -> Unit, onError: (Modal.Model.Error) -> Unit)")
     )
     fun connect(
         connect: Modal.Params.Connect,

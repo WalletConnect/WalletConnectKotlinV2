@@ -269,7 +269,7 @@ internal class SignEngine(
                 })
             }
 
-            pairingController.expiredPairingFlow.onEach { pairing ->
+            pairingController.deletedPairingFlow.onEach { pairing ->
                 sessionStorageRepository.getAllSessionTopicsByPairingTopic(pairing.topic).onEach { sessionTopic ->
                     jsonRpcInteractor.unsubscribe(Topic(sessionTopic), onSuccess = {
                         sessionStorageRepository.deleteSession(Topic(sessionTopic))
@@ -300,7 +300,7 @@ internal class SignEngine(
     }
 
     private fun sessionProposalExpiryWatcher() {
-        watcher()
+        repeatableFlow()
             .onEach {
                 proposalStorageRepository
                     .getProposals()
@@ -317,7 +317,7 @@ internal class SignEngine(
     }
 
     private fun sessionRequestsExpiryWatcher() {
-        watcher()
+        repeatableFlow()
             .onEach {
                 getPendingSessionRequests()
                     .onEach { pendingRequest ->
@@ -350,7 +350,7 @@ internal class SignEngine(
             }.launchIn(scope)
     }
 
-    private fun watcher() = flow {
+    private fun repeatableFlow() = flow {
         while (true) {
             emit(Unit)
             delay(WATCHER_INTERVAL)

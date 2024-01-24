@@ -28,15 +28,15 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.pairing.PairingStorageRepositoryInterface
-import com.walletconnect.android.internal.utils.currentTimeInSeconds
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
+import com.walletconnect.android.internal.utils.currentTimeInSeconds
 import com.walletconnect.android.internal.utils.dayInSeconds
 import com.walletconnect.android.internal.utils.thirtySeconds
 import com.walletconnect.android.pairing.engine.model.EngineDO
-import com.walletconnect.android.pairing.model.inactivePairing
 import com.walletconnect.android.pairing.model.PairingJsonRpcMethod
 import com.walletconnect.android.pairing.model.PairingParams
 import com.walletconnect.android.pairing.model.PairingRpc
+import com.walletconnect.android.pairing.model.inactivePairing
 import com.walletconnect.android.pairing.model.mapper.toCore
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -86,8 +86,8 @@ internal class PairingEngine(
 
     private val _engineEvent: MutableSharedFlow<EngineDO> = MutableSharedFlow()
     val engineEvent: SharedFlow<EngineDO> =
-        merge(_engineEvent.asSharedFlow(), _deletedPairingFlow.asSharedFlow().map { pairing -> EngineDO.PairingExpire(pairing) }, _isPairingStateFlow.map { EngineDO.PairingState(it) })
-            .shareIn(scope, SharingStarted.Lazily, 1)//todo: 1 or 0?
+        merge(_engineEvent, _deletedPairingFlow.map { pairing -> EngineDO.PairingExpire(pairing) }, _isPairingStateFlow.map { EngineDO.PairingState(it) })
+            .shareIn(scope, SharingStarted.Lazily, 0)
 
     private val _activePairingTopicFlow: MutableSharedFlow<Topic> = MutableSharedFlow()
     val activePairingTopicFlow: SharedFlow<Topic> = _activePairingTopicFlow.asSharedFlow()

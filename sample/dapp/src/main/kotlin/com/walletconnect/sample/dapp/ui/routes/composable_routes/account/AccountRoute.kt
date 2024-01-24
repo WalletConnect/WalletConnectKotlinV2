@@ -43,7 +43,7 @@ import timber.log.Timber
 fun AccountRoute(navController: NavController) {
     val viewModel: AccountViewModel = viewModel()
     val state by viewModel.uiState.collectAsState()
-    val awaitResponse = viewModel.awaitResponse.collectAsState(false).value
+    val awaitResponse by viewModel.awaitResponse.collectAsState(false)
 
     LaunchedEffect(Unit) {
         viewModel.fetchAccountDetails()
@@ -71,7 +71,7 @@ fun AccountRoute(navController: NavController) {
     AccountScreen(
         state = state,
         onMethodClick = viewModel::requestMethod,
-        awaitResponse
+        awaitResponse = awaitResponse
     )
 }
 

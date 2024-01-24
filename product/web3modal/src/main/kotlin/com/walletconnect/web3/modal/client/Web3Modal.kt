@@ -174,7 +174,10 @@ object Web3Modal {
         SignClient.setDappDelegate(signDelegate)
     }
 
-    //todo: add deprecate and new connect
+    @Deprecated(
+        message = "Replaced with the same name method but onSuccess callback returns a Pairing URL",
+        replaceWith = ReplaceWith(expression = "fun connect(connect: Modal.Params.Connect, onSuccess: (String) -> Unit, onError: (Modal.Model.Error) -> Unit)")
+    )
     internal fun connect(
         connect: Modal.Params.Connect,
         onSuccess: () -> Unit,
@@ -184,6 +187,18 @@ object Web3Modal {
             connect.toSign(),
             onSuccess,
             { onError(it.toModal()) }
+        )
+    }
+
+    fun connect(
+        connect: Modal.Params.Connect,
+        onSuccess: (String) -> Unit,
+        onError: (Modal.Model.Error) -> Unit
+    ) {
+        SignClient.connect(
+            connect = connect.toSign(),
+            onSuccess = { url -> onSuccess(url) },
+            onError = { onError(it.toModal()) }
         )
     }
 

@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 
 interface PairingControllerInterface {
-    val expiredPairingFlow: SharedFlow<Pairing>
+    val deletedPairingFlow: SharedFlow<Pairing>
     val findWrongMethodsFlow: Flow<SDKError>
     val activePairingFlow: SharedFlow<Topic>
 

@@ -83,7 +83,7 @@ class AccountViewModel(
     fun requestMethod(method: String, sendSessionRequestDeepLink: (Uri) -> Unit) {
         (uiState.value as? AccountUi.AccountData)?.let { currentState ->
             try {
-                viewModelScope.launch { _awaitResponse.value = true }
+                _awaitResponse.value = true
 
                 val (parentChain, chainId, account) = currentState.selectedAccount.split(":")
                 val params: String = when {

@@ -175,7 +175,8 @@ internal class JsonRpcInteractor(
             onFailure = { error ->
                 logger.error("Cannot send the response, error: $error")
                 onFailure(error)
-            }
+            },
+            onSuccess = { onSuccess() }
         )
     }
 
