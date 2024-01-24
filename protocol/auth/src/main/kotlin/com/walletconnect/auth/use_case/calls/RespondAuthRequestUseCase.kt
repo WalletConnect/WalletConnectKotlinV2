@@ -21,7 +21,7 @@ import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
 import com.walletconnect.android.internal.common.signing.cacao.Issuer
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
-import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
+import com.walletconnect.android.internal.utils.dayInSeconds
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.auth.client.mapper.toCommon
 import com.walletconnect.auth.common.exceptions.InvalidCacaoException
@@ -69,7 +69,7 @@ internal class RespondAuthRequestUseCase(
         }
 
         crypto.setKey(symmetricKey, responseTopic.value)
-        val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS), false)
+        val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(dayInSeconds), false)
         jsonRpcInteractor.publishJsonRpcResponse(
             responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
             onSuccess = {
@@ -96,7 +96,7 @@ internal class RespondAuthRequestUseCase(
 
     private fun checkExpiry(expiry: Expiry, responseTopic: Topic, respond: Respond, authParams: AuthParams.RequestParams): Boolean {
         if (expiry.isExpired()) {
-                val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(DAY_IN_SECONDS))
+                val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(dayInSeconds))
                 val wcRequest = WCRequest(responseTopic, respond.id, JsonRpcMethod.WC_AUTH_REQUEST, authParams)
                 jsonRpcInteractor.respondWithError(wcRequest, Invalid.RequestExpired, irnParams)
                 return true

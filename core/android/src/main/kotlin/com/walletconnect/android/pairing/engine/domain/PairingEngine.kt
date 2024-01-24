@@ -28,10 +28,10 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.pairing.PairingStorageRepositoryInterface
-import com.walletconnect.android.internal.utils.CURRENT_TIME_IN_SECONDS
+import com.walletconnect.android.internal.utils.currentTimeInSeconds
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
-import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
-import com.walletconnect.android.internal.utils.THIRTY_SECONDS
+import com.walletconnect.android.internal.utils.dayInSeconds
+import com.walletconnect.android.internal.utils.thirtySeconds
 import com.walletconnect.android.pairing.engine.model.EngineDO
 import com.walletconnect.android.pairing.model.INACTIVE_PAIRING
 import com.walletconnect.android.pairing.model.PairingJsonRpcMethod
@@ -105,7 +105,7 @@ internal class PairingEngine(
         jsonRpcInteractor.clientSyncJsonRpc
             .filter { request -> request.method !in setOfRegisteredMethods }
             .onEach { request ->
-                val irnParams = IrnParams(Tags.UNSUPPORTED_METHOD, Ttl(DAY_IN_SECONDS))
+                val irnParams = IrnParams(Tags.UNSUPPORTED_METHOD, Ttl(dayInSeconds))
                 jsonRpcInteractor.respondWithError(request, Invalid.MethodUnsupported(request.method), irnParams)
             }.map { request ->
                 SDKError(Exception(Invalid.MethodUnsupported(request.method).message))
@@ -199,7 +199,7 @@ internal class PairingEngine(
         val pairing = pairingRepository.getPairingOrNullByTopic(Topic(topic))
         val deleteParams = PairingParams.DeleteParams(6000, "User disconnected")
         val pairingDelete = PairingRpc.PairingDelete(params = deleteParams)
-        val irnParams = IrnParams(Tags.PAIRING_DELETE, Ttl(DAY_IN_SECONDS))
+        val irnParams = IrnParams(Tags.PAIRING_DELETE, Ttl(dayInSeconds))
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, pairingDelete,
             onSuccess = {
                 scope.launch {
@@ -222,7 +222,7 @@ internal class PairingEngine(
     fun ping(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
         if (isPairingValid(topic)) {
             val pingPayload = PairingRpc.PairingPing(params = PairingParams.PingParams())
-            val irnParams = IrnParams(Tags.PAIRING_PING, Ttl(THIRTY_SECONDS))
+            val irnParams = IrnParams(Tags.PAIRING_PING, Ttl(thirtySeconds))
 
             jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, pingPayload,
                 onSuccess = { onPingSuccess(pingPayload, onSuccess, topic, onFailure) },
@@ -327,7 +327,7 @@ internal class PairingEngine(
     }
 
     private suspend fun onPairingDelete(request: WCRequest, params: PairingParams.DeleteParams) {
-        val irnParams = IrnParams(Tags.PAIRING_DELETE_RESPONSE, Ttl(DAY_IN_SECONDS))
+        val irnParams = IrnParams(Tags.PAIRING_DELETE_RESPONSE, Ttl(dayInSeconds))
         try {
             val pairing = pairingRepository.getPairingOrNullByTopic(request.topic)
             if (!isPairingValid(request.topic.value)) {
@@ -349,7 +349,7 @@ internal class PairingEngine(
     }
 
     private fun onPing(request: WCRequest) {
-        val irnParams = IrnParams(Tags.PAIRING_PING, Ttl(THIRTY_SECONDS))
+        val irnParams = IrnParams(Tags.PAIRING_PING, Ttl(thirtySeconds))
         jsonRpcInteractor.respondWithSuccess(request, irnParams)
     }
 
@@ -361,7 +361,7 @@ internal class PairingEngine(
     ) {
         scope.launch {
             try {
-                withTimeout(TimeUnit.SECONDS.toMillis(THIRTY_SECONDS)) {
+                withTimeout(TimeUnit.SECONDS.toMillis(thirtySeconds)) {
                     jsonRpcInteractor.peerResponse
                         .filter { response -> response.response.id == pingPayload.id }
                         .collect { response ->
@@ -396,7 +396,7 @@ internal class PairingEngine(
         } ?: onFailure(IllegalStateException("Pairing for topic $topic does not exist"))
     }
 
-    private fun Pairing.isNotExpired(): Boolean = (expiry.seconds > CURRENT_TIME_IN_SECONDS).also { isValid ->
+    private fun Pairing.isNotExpired(): Boolean = (expiry.seconds > currentTimeInSeconds).also { isValid ->
         if (!isValid) {
             scope.launch {
                 try {

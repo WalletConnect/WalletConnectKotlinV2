@@ -12,7 +12,7 @@ import com.walletconnect.android.internal.common.model.params.CoreChatParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
+import com.walletconnect.android.internal.utils.monthInSeconds
 import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
 import com.walletconnect.chat.common.exceptions.InvalidActClaims
 import com.walletconnect.chat.common.json_rpc.ChatParams
@@ -71,7 +71,7 @@ internal class OnMessageRequestUseCase(
                 ).getOrElse() { error -> return@launch logger.error(error) }
 
                 val receiptParams = CoreChatParams.ReceiptParams(receiptAuth = didJwt.value)
-                val irnParams = IrnParams(Tags.CHAT_MESSAGE_RESPONSE, Ttl(MONTH_IN_SECONDS))
+                val irnParams = IrnParams(Tags.CHAT_MESSAGE_RESPONSE, Ttl(monthInSeconds))
 
                 jsonRpcInteractor.respondWithParams(wcRequest, receiptParams, irnParams, EnvelopeType.ZERO, onFailure = { error -> logger.error(error) })
             }

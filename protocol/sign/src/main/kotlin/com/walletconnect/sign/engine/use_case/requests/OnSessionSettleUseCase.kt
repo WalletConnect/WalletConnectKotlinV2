@@ -11,7 +11,7 @@ import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
-import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
+import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.utils.toClient
 import com.walletconnect.foundation.common.model.PublicKey
@@ -47,7 +47,7 @@ internal class OnSessionSettleUseCase(
     suspend operator fun invoke(request: WCRequest, settleParams: SignParams.SessionSettleParams) = supervisorScope {
         logger.log("Session settle received on topic: ${request.topic}")
         val sessionTopic = request.topic
-        val irnParams = IrnParams(Tags.SESSION_SETTLE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
+        val irnParams = IrnParams(Tags.SESSION_SETTLE_RESPONSE, Ttl(fiveMinutesInSeconds))
         val selfPublicKey: PublicKey = try {
             crypto.getSelfPublicFromKeyAgreement(sessionTopic)
         } catch (e: Exception) {

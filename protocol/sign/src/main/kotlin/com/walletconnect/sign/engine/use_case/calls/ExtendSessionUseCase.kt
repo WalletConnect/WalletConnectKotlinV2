@@ -4,8 +4,8 @@ import com.walletconnect.android.internal.common.exception.CannotFindSequenceFor
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
-import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
-import com.walletconnect.android.internal.utils.WEEK_IN_SECONDS
+import com.walletconnect.android.internal.utils.dayInSeconds
+import com.walletconnect.android.internal.utils.weekInSeconds
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
@@ -34,10 +34,10 @@ internal class ExtendSessionUseCase(
             return@supervisorScope onFailure(NotSettledSessionException("$SESSION_IS_NOT_ACKNOWLEDGED_MESSAGE$topic"))
         }
 
-        val newExpiration = session.expiry.seconds + WEEK_IN_SECONDS
+        val newExpiration = session.expiry.seconds + weekInSeconds
         sessionStorageRepository.extendSession(Topic(topic), newExpiration)
         val sessionExtend = SignRpc.SessionExtend(params = SignParams.ExtendParams(newExpiration))
-        val irnParams = IrnParams(Tags.SESSION_EXTEND, Ttl(DAY_IN_SECONDS))
+        val irnParams = IrnParams(Tags.SESSION_EXTEND, Ttl(dayInSeconds))
 
         logger.log("Sending session extend on topic: $topic")
         jsonRpcInteractor.publishJsonRpcRequest(

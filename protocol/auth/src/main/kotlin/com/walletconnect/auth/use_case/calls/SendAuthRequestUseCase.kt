@@ -11,7 +11,7 @@ import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.utils.CoreValidator
-import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
+import com.walletconnect.android.internal.utils.dayInSeconds
 import com.walletconnect.android.internal.utils.getParticipantTag
 import com.walletconnect.auth.common.json_rpc.AuthParams
 import com.walletconnect.auth.common.json_rpc.AuthRpc
@@ -56,7 +56,7 @@ internal class SendAuthRequestUseCase(
         val irnParamsTtl = getIrnParamsTtl(expiry, nowInSeconds)
         val irnParams = IrnParams(Tags.AUTH_REQUEST, irnParamsTtl, true)
         val pairingTopic = Topic(topic)
-        val requestTtlInSeconds = expiry?.run { seconds - nowInSeconds } ?: DAY_IN_SECONDS
+        val requestTtlInSeconds = expiry?.run { seconds - nowInSeconds } ?: dayInSeconds
         crypto.setKey(responsePublicKey, responseTopic.getParticipantTag())
 
         jsonRpcInteractor.publishJsonRpcRequest(pairingTopic, irnParams, authRequest,
@@ -79,11 +79,11 @@ internal class SendAuthRequestUseCase(
     }
 
     private fun getIrnParamsTtl(expiry: Expiry?, nowInSeconds: Long) = expiry?.run {
-        val defaultTtl = DAY_IN_SECONDS
+        val defaultTtl = dayInSeconds
         val extractedTtl = seconds - nowInSeconds
         val newTtl = extractedTtl.takeIf { extractedTtl >= defaultTtl } ?: defaultTtl
         Ttl(newTtl)
-    } ?: Ttl(DAY_IN_SECONDS)
+    } ?: Ttl(dayInSeconds)
 
     private fun collectPeerResponse(requestTtlInSeconds: Long, authRequest: AuthRpc.AuthRequest) {
         scope.launch {

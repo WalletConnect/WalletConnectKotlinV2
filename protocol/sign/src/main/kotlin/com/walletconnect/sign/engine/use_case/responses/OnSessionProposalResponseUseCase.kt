@@ -10,7 +10,7 @@ import com.walletconnect.android.internal.common.model.params.CoreSignParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
+import com.walletconnect.android.internal.utils.monthInSeconds
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.foundation.common.model.PublicKey
@@ -75,7 +75,7 @@ internal class OnSessionProposalResponseUseCase(
     }
 
     private fun updatePairing(pairingTopic: Topic) = with(pairingController) {
-        updateExpiry(Core.Params.UpdateExpiry(pairingTopic.value, Expiry(MONTH_IN_SECONDS)))
+        updateExpiry(Core.Params.UpdateExpiry(pairingTopic.value, Expiry(monthInSeconds)))
         activate(Core.Params.Activate(pairingTopic.value))
     }
 }

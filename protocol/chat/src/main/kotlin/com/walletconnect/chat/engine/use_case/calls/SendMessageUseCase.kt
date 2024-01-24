@@ -6,7 +6,7 @@ import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
+import com.walletconnect.android.internal.utils.monthInSeconds
 import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
 import com.walletconnect.chat.common.exceptions.ChatMessageTooLongException
 import com.walletconnect.chat.common.exceptions.MediaDataTooLongException
@@ -58,7 +58,7 @@ internal class SendMessageUseCase(
 
             val messageParams = ChatParams.MessageParams(messageAuth = didJwt.value)
             val payload = ChatRpc.ChatMessage(id = messageId, params = messageParams)
-            val irnParams = IrnParams(Tags.CHAT_MESSAGE, Ttl(MONTH_IN_SECONDS), true)
+            val irnParams = IrnParams(Tags.CHAT_MESSAGE, Ttl(monthInSeconds), true)
 
             messageRepository.insertMessage(Message(messageId, Topic(topic), message.message, authorAccountId, messageTimestampInMs, message.media))
             jsonRpcInteractor.publishJsonRpcRequest(

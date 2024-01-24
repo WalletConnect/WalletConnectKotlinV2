@@ -6,7 +6,7 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
-import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
+import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.exceptions.PeerError
@@ -36,7 +36,7 @@ internal class RejectSessionUseCase(
         jsonRpcInteractor.respondWithError(
             proposal.toSessionProposeRequest(),
             PeerError.EIP1193.UserRejectedRequest(reason),
-            IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS)),
+            IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(fiveMinutesInSeconds)),
             onSuccess = {
                 logger.log("Session rejection sent successfully, topic: ${proposal.pairingTopic.value}")
                 scope.launch {

@@ -7,7 +7,7 @@ import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
-import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
+import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.exceptions.PeerError
@@ -33,7 +33,7 @@ internal class OnSessionEventUseCase(
 
     suspend operator fun invoke(request: WCRequest, params: SignParams.EventParams) = supervisorScope {
         logger.log("Session event received on topic: ${request.topic}")
-        val irnParams = IrnParams(Tags.SESSION_EVENT_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
+        val irnParams = IrnParams(Tags.SESSION_EVENT_RESPONSE, Ttl(fiveMinutesInSeconds))
         try {
             SignValidator.validateEvent(params.toEngineDOEvent()) { error ->
                 logger.error("Session event received failure on topic: ${request.topic} - $error")

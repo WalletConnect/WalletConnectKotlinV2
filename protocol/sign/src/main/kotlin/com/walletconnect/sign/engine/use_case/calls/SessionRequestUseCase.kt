@@ -9,9 +9,9 @@ import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.utils.CURRENT_TIME_IN_SECONDS
+import com.walletconnect.android.internal.utils.currentTimeInSeconds
 import com.walletconnect.android.internal.utils.CoreValidator
-import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
+import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
@@ -67,17 +67,17 @@ internal class SessionRequestUseCase(
             return@supervisorScope onFailure(UnauthorizedMethodException(error.message))
         }
 
-        val params = SignParams.SessionRequestParams(SessionRequestVO(request.method, request.params, request.expiry?.seconds ?: (CURRENT_TIME_IN_SECONDS + FIVE_MINUTES_IN_SECONDS)), request.chainId)
+        val params = SignParams.SessionRequestParams(SessionRequestVO(request.method, request.params, request.expiry?.seconds ?: (currentTimeInSeconds + fiveMinutesInSeconds)), request.chainId)
         val sessionPayload = SignRpc.SessionRequest(params = params)
         val irnParamsTtl = request.expiry?.run {
-            val defaultTtl = FIVE_MINUTES_IN_SECONDS
+            val defaultTtl = fiveMinutesInSeconds
             val extractedTtl = seconds - nowInSeconds
             val newTtl = extractedTtl.takeIf { extractedTtl >= defaultTtl } ?: defaultTtl
 
             Ttl(newTtl)
-        } ?: Ttl(FIVE_MINUTES_IN_SECONDS)
+        } ?: Ttl(fiveMinutesInSeconds)
         val irnParams = IrnParams(Tags.SESSION_REQUEST, irnParamsTtl, true)
-        val requestTtlInSeconds = request.expiry?.run { seconds - nowInSeconds } ?: FIVE_MINUTES_IN_SECONDS
+        val requestTtlInSeconds = request.expiry?.run { seconds - nowInSeconds } ?: fiveMinutesInSeconds
 
         logger.log("Sending session request on topic: ${request.topic}}")
         jsonRpcInteractor.publishJsonRpcRequest(Topic(request.topic), irnParams, sessionPayload,

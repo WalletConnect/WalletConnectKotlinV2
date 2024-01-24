@@ -8,7 +8,7 @@ import com.walletconnect.android.internal.common.model.Pairing
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
-import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
+import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
 import com.walletconnect.android.internal.utils.PROPOSAL_EXPIRY
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Ttl
@@ -57,7 +57,7 @@ internal class ProposeSessionUseCase(
                     )
                 val request = SignRpc.SessionPropose(params = sessionProposal)
                 proposalStorageRepository.insertProposal(sessionProposal.toVO(pairing.topic, request.id))
-                val irnParams = IrnParams(Tags.SESSION_PROPOSE, Ttl(FIVE_MINUTES_IN_SECONDS), true)
+                val irnParams = IrnParams(Tags.SESSION_PROPOSE, Ttl(fiveMinutesInSeconds), true)
                 jsonRpcInteractor.subscribe(pairing.topic) { error -> return@subscribe onFailure(error) }
 
                 logger.log("Sending proposal on topic: ${pairing.topic}")

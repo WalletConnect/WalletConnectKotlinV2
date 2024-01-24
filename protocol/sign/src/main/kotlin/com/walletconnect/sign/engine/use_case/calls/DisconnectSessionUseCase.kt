@@ -5,7 +5,7 @@ import com.walletconnect.android.internal.common.exception.Reason
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
-import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
+import com.walletconnect.android.internal.utils.dayInSeconds
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
@@ -28,7 +28,7 @@ internal class DisconnectSessionUseCase(
 
         val deleteParams = SignParams.DeleteParams(Reason.UserDisconnected.code, Reason.UserDisconnected.message)
         val sessionDelete = SignRpc.SessionDelete(params = deleteParams)
-        val irnParams = IrnParams(Tags.SESSION_DELETE, Ttl(DAY_IN_SECONDS))
+        val irnParams = IrnParams(Tags.SESSION_DELETE, Ttl(dayInSeconds))
 
         logger.log("Sending session disconnect on topic: $topic")
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionDelete,

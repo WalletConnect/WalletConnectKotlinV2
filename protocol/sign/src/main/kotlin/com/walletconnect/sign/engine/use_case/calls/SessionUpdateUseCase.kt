@@ -5,7 +5,7 @@ import com.walletconnect.android.internal.common.exception.GenericException
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
-import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
+import com.walletconnect.android.internal.utils.dayInSeconds
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
@@ -39,7 +39,7 @@ internal class SessionUpdateUseCase(
             onSuccess = {
                 val params = SignParams.UpdateNamespacesParams(namespaces.toMapOfNamespacesVOSession())
                 val sessionUpdate = SignRpc.SessionUpdate(params = params)
-                val irnParams = IrnParams(Tags.SESSION_UPDATE, Ttl(DAY_IN_SECONDS))
+                val irnParams = IrnParams(Tags.SESSION_UPDATE, Ttl(dayInSeconds))
 
                 try {
                     logger.log("Sending session update on topic: $topic")

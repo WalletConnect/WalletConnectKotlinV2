@@ -8,7 +8,7 @@ import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
-import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
+import com.walletconnect.android.internal.utils.dayInSeconds
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.model.type.Sequences
@@ -31,7 +31,7 @@ internal class OnSessionDeleteUseCase(
 
     suspend operator fun invoke(request: WCRequest, params: SignParams.DeleteParams) = supervisorScope {
         logger.log("Session delete received on topic: ${request.topic}")
-        val irnParams = IrnParams(Tags.SESSION_DELETE_RESPONSE, Ttl(DAY_IN_SECONDS))
+        val irnParams = IrnParams(Tags.SESSION_DELETE_RESPONSE, Ttl(dayInSeconds))
         try {
             if (!sessionStorageRepository.isSessionValid(request.topic)) {
                 logger.error("Session delete received failure on topic: ${request.topic} - invalid session")
