@@ -1,5 +1,6 @@
 package com.walletconnect.sign.engine.use_case.calls
 
+import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
@@ -39,7 +40,7 @@ class RespondSessionRequestUseCaseTest {
 
         respondSessionRequestUseCase.respondSessionRequest(
             topic = "topic",
-            jsonRpcResponse = mockk(),
+            jsonRpcResponse = JsonRpcResponse.JsonRpcResult(1, "2.0", "result"),
             onSuccess = {
                 Assert.fail("onSuccess should not be called since should have validation failed")
             },

@@ -140,59 +140,101 @@ private fun SessionProposalDialog(
     context: Context,
     navController: NavHostController,
 ) {
+    var isConfirmLoading by remember { mutableStateOf(false) }
+    var isCancelLoading by remember { mutableStateOf(false) }
     SemiTransparentDialog {
         Spacer(modifier = Modifier.height(24.dp))
         Peer(peerUI = sessionProposalUI.peerUI, "wants to connect", sessionProposalUI.peerContext)
         Spacer(modifier = Modifier.height(18.dp))
         Permissions(sessionProposalUI = sessionProposalUI)
         Spacer(modifier = Modifier.height(18.dp))
-        AccountAndNetwork(sessionProposalUI)
+        AccountAndNetwork(sessionProposalUI) { error ->
+            coroutineScope.launch(Dispatchers.Main) {
+                navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                navController.showSnackbar(error)
+            }
+        }
         Spacer(modifier = Modifier.height(18.dp))
-        Buttons(allowButtonColor, onDecline = {
-            coroutineScope.launch {
-                try {
-                    sessionProposalViewModel.reject(sessionProposalUI.pubKey) { redirect ->
-                        if (redirect.isNotEmpty()) {
-                            context.sendResponseDeepLink(redirect.toUri())
-                        }
-                    }
-                    navController.popBackStack(route = Route.Connections.path, inclusive = false)
-                } catch (e: Throwable) {
-                    closeAndShowError(navController, e.message)
-                }
-            }
-        }, onAllow = {
-            coroutineScope.launch {
-                try {
-                    sessionProposalViewModel.approve(sessionProposalUI.pubKey) { redirect ->
-                        if (redirect.isNotEmpty()) {
-                            context.sendResponseDeepLink(redirect.toUri())
-                        }
+        Buttons(
+            allowButtonColor,
+            onCancel = {
+                isCancelLoading = true
 
-                        coroutineScope.launch(Dispatchers.Main) {
-                            navController.popBackStack(route = Route.Connections.path, inclusive = false)
-                        }
-                    }
+                try {
+                    sessionProposalViewModel.reject(sessionProposalUI.pubKey,
+                        onSuccess = { redirect ->
+                            isCancelLoading = false
+                            coroutineScope.launch(Dispatchers.Main) {
+                                navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                            }
+
+                            if (redirect.isNotEmpty()) {
+                                context.sendResponseDeepLink(redirect.toUri())
+                            } else {
+                                coroutineScope.launch(Dispatchers.Main) {
+                                    navController.showSnackbar("Go back to your browser")
+                                }
+                            }
+
+                        },
+                        onError = { error ->
+                            isCancelLoading = false
+                            closeAndShowError(navController, error, coroutineScope)
+                        })
                 } catch (e: Throwable) {
-                    closeAndShowError(navController, e.message)
+                    closeAndShowError(navController, e.message, coroutineScope)
                 }
-            }
-        })
+            },
+            onConfirm = {
+                isConfirmLoading = true
+
+                try {
+                    sessionProposalViewModel.approve(sessionProposalUI.pubKey,
+                        onSuccess = { redirect ->
+                            isConfirmLoading = false
+                            coroutineScope.launch(Dispatchers.Main) {
+                                navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                            }
+
+                            if (redirect.isNotEmpty()) {
+                                context.sendResponseDeepLink(redirect.toUri())
+                            } else {
+                                coroutineScope.launch(Dispatchers.Main) {
+                                    navController.showSnackbar("Go back to your browser")
+                                }
+                            }
+                        },
+                        onError = { error ->
+                            isConfirmLoading = false
+                            closeAndShowError(navController, error, coroutineScope)
+                        })
+                } catch (e: Throwable) {
+                    closeAndShowError(navController, e.message, coroutineScope)
+                }
+            },
+            isLoadingConfirm = isConfirmLoading,
+            isLoadingCancel = isCancelLoading
+        )
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
-private fun closeAndShowError(navController: NavHostController, mesage: String?) {
-    navController.popBackStack(route = Route.Connections.path, inclusive = false)
-    navController.showSnackbar(mesage ?: "Session proposal error, please check your Internet connection")
+private fun closeAndShowError(navController: NavHostController, mesage: String?, coroutineScope: CoroutineScope) {
+    coroutineScope.launch(Dispatchers.Main) {
+        navController.popBackStack(route = Route.Connections.path, inclusive = false)
+        navController.showSnackbar(mesage ?: "Session proposal error, please check your Internet connection")
+    }
 }
 
 @Composable
-fun AccountAndNetwork(sessionProposalUI: SessionProposalUI) {
+fun AccountAndNetwork(sessionProposalUI: SessionProposalUI, onErrorAction: (message: String) -> Unit) {
     val requiredChains = getRequiredChains(sessionProposalUI)
     val optionalChains = getOptionalChains(sessionProposalUI)
     val chains = if (requiredChains.isEmpty()) optionalChains else requiredChains
-
+    if (chains.isEmpty()) {
+        onErrorAction("Missing chains")
+        return
+    }
     val network = Chains.values().find { chain -> chain.chainId == chains.first() }
     val account = walletMetaData.namespaces.values.first().accounts.find { account -> account.contains(chains.first()) }?.split(":")?.last()
 

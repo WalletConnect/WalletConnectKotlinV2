@@ -4,6 +4,7 @@ package com.walletconnect.sign.di
 
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.sign.engine.domain.SignEngine
+import com.walletconnect.sign.json_rpc.domain.DeleteRequestByIdUseCase
 import com.walletconnect.sign.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdUseCase
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequests
 import org.koin.core.qualifier.named
@@ -15,6 +16,8 @@ internal fun engineModule() = module {
     includes(callsModule(), requestsModule(), responsesModule())
 
     single { GetPendingSessionRequests(jsonRpcHistory = get(), serializer = get()) }
+
+    single { DeleteRequestByIdUseCase(jsonRpcHistory = get()) }
 
     single { GetPendingJsonRpcHistoryEntryByIdUseCase(jsonRpcHistory = get(), serializer = get()) }
 
@@ -59,6 +62,7 @@ internal fun engineModule() = module {
             respondSessionRequestUseCase = get(),
             sessionRequestUseCase = get(),
             sessionUpdateUseCase = get(),
+            deleteRequestByIdUseCase = get()
         )
     }
 }

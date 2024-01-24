@@ -8,39 +8,41 @@ import com.walletconnect.sample.wallet.ui.common.peer.PeerUI
 import com.walletconnect.sample.wallet.ui.common.peer.toPeerUI
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 
 class SessionProposalViewModel : ViewModel() {
     val sessionProposal: SessionProposalUI? = generateSessionProposalUI()
-
-    suspend fun approve(proposalPublicKey: String, onRedirect: (String) -> Unit = {}) {
-        return suspendCoroutine { continuation ->
-            if (Web3Wallet.getSessionProposals().isNotEmpty()) {
+    fun approve(proposalPublicKey: String, onSuccess: (String) -> Unit = {}, onError: (String) -> Unit = {}) {
+        if (Web3Wallet.getSessionProposals().isNotEmpty()) {
+            try {
                 val sessionProposal: Wallet.Model.SessionProposal = requireNotNull(Web3Wallet.getSessionProposals().find { it.proposerPublicKey == proposalPublicKey })
+
                 val sessionNamespaces = Web3Wallet.generateApprovedNamespaces(sessionProposal = sessionProposal, supportedNamespaces = walletMetaData.namespaces)
+
                 val approveProposal = Wallet.Params.SessionApprove(proposerPublicKey = sessionProposal.proposerPublicKey, namespaces = sessionNamespaces)
 
                 Web3Wallet.approveSession(approveProposal,
                     onError = { error ->
-                        continuation.resumeWithException(error.throwable)
                         Firebase.crashlytics.recordException(error.throwable)
                         WCDelegate.sessionProposalEvent = null
-                        onRedirect(sessionProposal.redirect)
+                        onError(error.throwable.message ?: "Undefined error, please check your Internet connection")
                     },
                     onSuccess = {
-                        continuation.resume(Unit)
                         WCDelegate.sessionProposalEvent = null
-                        onRedirect(sessionProposal.redirect)
+                        onSuccess(sessionProposal.redirect)
                     })
+            } catch (e: Exception) {
+                Firebase.crashlytics.recordException(e)
+                WCDelegate.sessionProposalEvent = null
+                onError(e.message ?: "Undefined error, please check your Internet connection")
             }
+        } else {
+            onError("Proposal expired")
         }
     }
 
-    suspend fun reject(proposalPublicKey: String, onRedirect: (String) -> Unit = {}) {
-        return suspendCoroutine { continuation ->
-            if (Web3Wallet.getSessionProposals().isNotEmpty()) {
+    fun reject(proposalPublicKey: String, onSuccess: (String) -> Unit = {}, onError: (String) -> Unit = {}) {
+        if (Web3Wallet.getSessionProposals().isNotEmpty()) {
+            try {
                 val sessionProposal: Wallet.Model.SessionProposal = requireNotNull(Web3Wallet.getSessionProposals().find { it.proposerPublicKey == proposalPublicKey })
                 val rejectionReason = "Reject Session"
                 val reject = Wallet.Params.SessionReject(
@@ -50,17 +52,21 @@ class SessionProposalViewModel : ViewModel() {
 
                 Web3Wallet.rejectSession(reject,
                     onSuccess = {
-                        continuation.resume(Unit)
                         WCDelegate.sessionProposalEvent = null
-                        onRedirect(sessionProposal.redirect)
+                        onSuccess(sessionProposal.redirect)
                     },
                     onError = { error ->
-                        continuation.resumeWithException(error.throwable)
                         Firebase.crashlytics.recordException(error.throwable)
                         WCDelegate.sessionProposalEvent = null
-                        onRedirect(sessionProposal.redirect)
+                        onError(error.throwable.message ?: "Undefined error, please check your Internet connection")
                     })
+            } catch (e: Exception) {
+                Firebase.crashlytics.recordException(e)
+                WCDelegate.sessionProposalEvent = null
+                onError(e.message ?: "Undefined error, please check your Internet connection")
             }
+        } else {
+            onError("Proposal expired")
         }
     }
 

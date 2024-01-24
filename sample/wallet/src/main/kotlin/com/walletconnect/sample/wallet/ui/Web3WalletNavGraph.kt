@@ -128,6 +128,7 @@ fun Web3WalletNavGraph(
                 SettingsRoute(navController)
             }
             bottomSheet(Route.ScanUri.path) {
+                web3walletViewModel.showLoader(false)
                 scrimColor = Color.Unspecified
                 ScanUriRoute(navController, sheetState, onScanSuccess = { web3walletViewModel.pair(it) })
             }

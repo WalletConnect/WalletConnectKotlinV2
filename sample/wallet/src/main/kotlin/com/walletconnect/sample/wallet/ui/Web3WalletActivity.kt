@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -14,11 +15,11 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
@@ -97,12 +98,25 @@ class Web3WalletActivity : AppCompatActivity() {
         web3walletViewModel: Web3WalletViewModel,
         connectionsViewModel: ConnectionsViewModel,
     ) {
+        web3walletViewModel.sessionRequestStateFlow
+            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .onEach {
+                if (it.arrayOfArgs.isNotEmpty()) {
+                    navController.navigate(Route.SessionRequest.path)
+                }
+            }
+            .launchIn(lifecycleScope)
+
         web3walletViewModel.walletEvents
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
             .onEach { event ->
                 when (event) {
                     is SignEvent.SessionProposal -> navController.navigate(Route.SessionProposal.path)
-                    is SignEvent.SessionRequest -> navController.navigate(Route.SessionRequest.path)
+                    is SignEvent.ExpiredRequest -> {
+                        navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                        Toast.makeText(baseContext, "Request expired", Toast.LENGTH_SHORT).show()
+                    }
+
                     is SignEvent.Disconnect -> {
                         connectionsViewModel.refreshConnections()
                         navController.navigate(Route.Connections.path)
@@ -118,6 +132,10 @@ class Web3WalletActivity : AppCompatActivity() {
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
+        if (intent?.dataString?.contains("wc:") == true) {
+            val uri = intent.dataString?.replace("wc:", "wc://")
+            intent.setData(uri?.toUri())
+        }
         navController.handleDeepLink(intent)
     }
 

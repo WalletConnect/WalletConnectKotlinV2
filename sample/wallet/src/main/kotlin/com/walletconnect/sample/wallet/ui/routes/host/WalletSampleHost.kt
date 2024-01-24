@@ -23,7 +23,12 @@ import androidx.compose.material.ScaffoldState
 import androidx.compose.material.Text
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,6 +38,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -50,7 +56,8 @@ import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
 import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import com.walletconnect.sample.wallet.ui.state.ConnectionState
-import com.walletconnect.sample.wallet.ui.state.PairingState
+import com.walletconnect.sample.wallet.ui.state.PairingEvent
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterialNavigationApi::class)
 @Composable
@@ -63,9 +70,28 @@ fun WalletSampleHost(
 ) {
     val scaffoldState: ScaffoldState = rememberScaffoldState()
     val connectionState = web3walletViewModel.connectionState.collectAsState(ConnectionState.Idle).value
-    val pairingState = web3walletViewModel.pairingStateSharedFlow.collectAsState(PairingState.Idle).value
     val bottomBarState = rememberBottomBarMutableState()
     val currentRoute = navController.currentBackStackEntryAsState()
+    val isLoader by web3walletViewModel.isLoadingFlow.collectAsState(false)
+
+    LaunchedEffect(Unit) {
+        web3walletViewModel.eventsSharedFlow.collect {
+            when (it) {
+                is PairingEvent.Error -> {
+                    navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                    navController.showSnackbar(it.message)
+                }
+
+                is PairingEvent.Expired -> {
+                    navController.showSnackbar(it.message)
+                }
+
+                is PairingEvent.ProposalExpired -> {
+                    navController.showSnackbar(it.message)
+                }
+            }
+        }
+    }
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -84,15 +110,33 @@ fun WalletSampleHost(
 
             if (connectionState is ConnectionState.Error) {
                 ErrorBanner(connectionState.message)
+            } else if (connectionState is ConnectionState.Ok) {
+                RestoredConnectionBanner()
             }
 
-            when (pairingState) {
-                is PairingState.Error -> navController.showSnackbar(pairingState.message)
-                is PairingState.Loading -> PairingLoader()
-                else -> Unit
+            if (isLoader) {
+                PairingLoader()
             }
+
+            Timer(web3walletViewModel)
         }
     }
+}
+
+@Composable
+private fun BoxScope.Timer(web3walletViewModel: Web3WalletViewModel) {
+    val timer by web3walletViewModel.timerFlow.collectAsState()
+    Text(
+        modifier = Modifier
+            .align(Alignment.BottomStart),
+        text = timer,
+        maxLines = 1,
+        style = TextStyle(
+            fontWeight = FontWeight.Medium,
+            fontSize = 12.sp,
+            color = themedColor(Color(0xFFb9b3b5), Color(0xFF484648))
+        ),
+    )
 }
 
 @Composable
@@ -102,6 +146,13 @@ private fun BeagleDrawer() {
 
 @Composable
 private fun BoxScope.PairingLoader() {
+    var shouldChangeText by remember { mutableStateOf(false) }
+
+    LaunchedEffect(key1 = Unit) {
+        delay(15000)
+        shouldChangeText = true
+    }
+
     Column(
         modifier = Modifier
             .align(Alignment.Center)
@@ -118,8 +169,9 @@ private fun BoxScope.PairingLoader() {
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = "WalletConnect is pairing...",
-            maxLines = 1,
+            textAlign = TextAlign.Center,
+            text = if (shouldChangeText) "Pairing is taking longer than usual, please try again..." else "WalletConnect is pairing...",
+            maxLines = 2,
             style = TextStyle(
                 fontWeight = FontWeight.Medium,
                 fontSize = 22.sp,
@@ -146,6 +198,34 @@ private fun ErrorBanner(message: String) {
         )
         Spacer(modifier = Modifier.width(4.dp))
         Text(text = message, color = Color.White)
+    }
+}
+
+@Composable
+private fun RestoredConnectionBanner() {
+    var shouldShow by remember { mutableStateOf(true) }
+
+    LaunchedEffect(key1 = Unit) {
+        delay(2000)
+        shouldShow = false
+    }
+    if (shouldShow) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFF93c47d))
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Image(
+                imageVector = ImageVector.vectorResource(id = R.drawable.ic_check_white),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                colorFilter = ColorFilter.tint(color = Color.White)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(text = "Network connection is OK", color = Color.White)
+        }
     }
 }
 

@@ -9,6 +9,7 @@ data class WalletConnectUri(
     val symKey: SymmetricKey,
     val relay: RelayProtocolOptions,
     val version: String = "2",
+    val expiry: Expiry?
 //    val registeredMethods: String, // TODO: We'll review later how we want to handle registered methods
 ) {
     fun toAbsoluteString(): String =
@@ -18,6 +19,9 @@ data class WalletConnectUri(
         var query = "relay-protocol=${relay.protocol}"
         if (relay.data != null) {
             query = "$query&relay-data=${relay.data}"
+        }
+        if (expiry != null) {
+            query = "$query&expiryTimestamp=${expiry.seconds}"
         }
         return query
     }

@@ -193,7 +193,7 @@ internal class RelayerInteractorTest {
         val result = JsonRpcResponse.JsonRpcResult(request.id, result = params)
         val irnParams = IrnParams(Tags.SESSION_PING, Ttl(300))
         mockRelayPublishSuccess()
-        sut.respondWithParams(request, params, irnParams) {}
+        sut.respondWithParams(request, params, irnParams, onSuccess = {}, onFailure = {})
         verify { sut.publishJsonRpcResponse(topic = topicVO, response = result, params = irnParams, onSuccess = any(), onFailure = any()) }
     }
 
@@ -234,21 +234,6 @@ internal class RelayerInteractorTest {
         sut.subscribe(topicVO, onFailure = onFailure)
         verify { onFailure(any()) }
     }
-
-//    @Test
-//    fun `InitializationErrorsFlow emits value only on OnConnectionFailed`() = runBlocking {
-//        every { relay.wsConnectionFailedFlow } returns flowOf(
-//            object : WalletConnectException("Test") {}
-//        )
-//
-//        val job = sut.wsConnectionFailedFlow.onEach { walletConnectException ->
-//            onError(walletConnectException)
-//        }.launchIn(this)
-//
-//        verify(exactly = 1) { onError(any()) }
-//
-//        job.cancelAndJoin()
-//    }
 
     @Test
     fun `IsConnectionOpened initial value is false`() = runBlocking {

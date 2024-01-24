@@ -12,7 +12,7 @@ import com.walletconnect.android.internal.common.model.params.ChatNotifyResponse
 import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
-import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
+import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.foundation.util.jwt.decodeDidPkh
@@ -58,9 +58,9 @@ internal class OnSubscriptionsChangedUseCase(
         val didJwt = fetchDidJwtInteractor.subscriptionsChangedResponse(AccountId(account), authenticationPublicKey).getOrElse { error -> return@supervisorScope logger.error(error) }
 
         val responseParams = ChatNotifyResponseAuthParams.ResponseAuth(didJwt.value)
-        val irnParams = IrnParams(Tags.NOTIFY_SUBSCRIPTIONS_CHANGED_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
+        val irnParams = IrnParams(Tags.NOTIFY_SUBSCRIPTIONS_CHANGED_RESPONSE, Ttl(fiveMinutesInSeconds))
 
-        jsonRpcInteractor.respondWithParams(request.id, request.topic, responseParams, irnParams) { error -> logger.error(error) }
+        jsonRpcInteractor.respondWithParams(request.id, request.topic, responseParams, irnParams, onFailure = { error -> logger.error(error) })
 
         _events.emit(SubscriptionChanged(subscriptions))
     }

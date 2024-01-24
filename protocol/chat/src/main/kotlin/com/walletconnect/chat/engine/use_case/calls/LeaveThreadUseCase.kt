@@ -5,7 +5,7 @@ import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
+import com.walletconnect.android.internal.utils.monthInSeconds
 import com.walletconnect.chat.common.json_rpc.ChatParams
 import com.walletconnect.chat.common.json_rpc.ChatRpc
 import com.walletconnect.chat.storage.ThreadsStorageRepository
@@ -22,7 +22,7 @@ internal class LeaveThreadUseCase(
 ) : LeaveThreadUseCaseInterface {
     override fun leave(topic: String, onError: (Throwable) -> Unit) {
         val payload = ChatRpc.ChatLeave(params = ChatParams.LeaveParams())
-        val irnParams = IrnParams(Tags.CHAT_LEAVE, Ttl(MONTH_IN_SECONDS), true)
+        val irnParams = IrnParams(Tags.CHAT_LEAVE, Ttl(monthInSeconds), true)
 
         jsonRpcInteractor.publishJsonRpcRequest(
             Topic(topic), irnParams, payload, EnvelopeType.ZERO,

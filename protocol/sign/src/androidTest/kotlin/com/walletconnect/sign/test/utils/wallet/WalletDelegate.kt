@@ -14,6 +14,12 @@ open class WalletDelegate : SignClient.WalletDelegate {
 
     override fun onSessionSettleResponse(settleSessionResponse: Sign.Model.SettledSessionResponse) {}
     override fun onSessionUpdateResponse(sessionUpdateResponse: Sign.Model.SessionUpdateResponse) {}
+    override fun onProposalExpired(proposal: Sign.Model.ExpiredProposal) {
+    }
+
+    override fun onRequestExpired(request: Sign.Model.ExpiredRequest) {
+    }
+
     override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {
         Timber.d("Wallet: onConnectionStateChange: $state")
     }
