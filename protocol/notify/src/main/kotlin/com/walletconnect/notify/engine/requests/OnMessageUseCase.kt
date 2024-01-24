@@ -20,8 +20,8 @@ import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.foundation.util.jwt.decodeDidWeb
 import com.walletconnect.foundation.util.jwt.decodeEd25519DidKey
-import com.walletconnect.notify.common.model.NotifyMessage
-import com.walletconnect.notify.common.model.NotifyRecord
+import com.walletconnect.notify.common.model.Notification
+import com.walletconnect.notify.common.model.NotificationMessage
 import com.walletconnect.notify.data.jwt.message.MessageRequestJwtClaim
 import com.walletconnect.notify.data.storage.NotificationsRepository
 import com.walletconnect.notify.data.storage.SubscriptionRepository
@@ -32,7 +32,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.supervisorScope
 import java.net.URI
 
-internal class OnNotifyMessageUseCase(
+internal class OnMessageUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val notificationsRepository: NotificationsRepository,
     private val subscriptionRepository: SubscriptionRepository,
@@ -55,28 +55,27 @@ internal class OnNotifyMessageUseCase(
                 .onSuccess { messageJwt ->
                     messageJwt.throwIfIsInvalid(URI(metadata.url).host, activeSubscription.authenticationPublicKey.keyAsHex)
 
-                    if (notificationsRepository.doesNotificationsExistsByRequestId(request.id)) {
-                        notificationsRepository.updateNotificationWithPublishedAtByRequestId(request.publishedAt, request.id)
-                    } else {
-                        val notifyRecord = NotifyRecord(
-                            id = request.id, topic = request.topic.value, publishedAt = request.publishedAt, metadata = metadata,
-                            notifyMessage = NotifyMessage(
-                                title = messageJwt.message.title,
-                                body = messageJwt.message.body,
-                                icon = messageJwt.message.icon,
-                                url = messageJwt.message.url,
-                                type = messageJwt.message.type,
-                            ),
-                        )
 
-                        notificationsRepository.insertNotification(notifyRecord)
-                        _events.emit(notifyRecord)
+                    with(messageJwt.message) {
+                        logger.log("OnMessageUseCase: $this")
+                        if (!notificationsRepository.doesNotificationsExistsByNotificationId(id)) {
+                            logger.log("OnMessageUseCase: $this true")
+
+                            val notification = Notification(
+                                id = id, topic = request.topic.value, sentAt = sentAt, metadata = metadata,
+                                notificationMessage = NotificationMessage(title = title, body = body, icon = icon, url = url, type = type),
+                            )
+
+                            notificationsRepository.insertOrReplaceNotification(notification)
+                            _events.emit(notification)
+                        } else {
+                            logger.log("OnMessageUseCase: $this false")
+
+                        }
                     }
                 }.runCatching {
                     val messageResponseJwt = fetchDidJwtInteractor.messageResponse(
-                        account = activeSubscription.account,
-                        app = metadata.url,
-                        authenticationKey = activeSubscription.authenticationPublicKey,
+                        account = activeSubscription.account, app = metadata.url, authenticationKey = activeSubscription.authenticationPublicKey,
                     ).getOrThrow()
 
                     val messageResponseParams = ChatNotifyResponseAuthParams.ResponseAuth(responseAuth = messageResponseJwt.value)

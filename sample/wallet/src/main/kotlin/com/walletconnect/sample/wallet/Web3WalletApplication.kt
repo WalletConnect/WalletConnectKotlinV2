@@ -202,7 +202,7 @@ class Web3WalletApplication : Application() {
 
         val notifyEventsJob = NotifyDelegate.notifyEvents
             .filterIsInstance<Notify.Event.Notification>()
-            .onEach { notification -> NotificationHandler.addNotification(notification.notification.message) }
+            .onEach { notification -> NotificationHandler.addNotification(notification.notification) }
             .launchIn(scope)
 
 

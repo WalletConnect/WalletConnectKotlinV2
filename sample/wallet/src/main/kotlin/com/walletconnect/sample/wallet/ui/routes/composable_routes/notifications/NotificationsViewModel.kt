@@ -73,20 +73,22 @@ class NotificationsViewModel(topic: String) : ViewModel() {
             .launchIn(viewModelScope)
     }
 
-    suspend fun fetchAllNotifications() {
+    suspend fun fetchAllNotifications() = viewModelScope.launch(Dispatchers.IO) {
         _state.update { NotificationsState.Fetching }
-        _notifications.value = runCatching { getActiveSubscriptionNotifications() }
-            .fold(
-                onFailure = { error ->
-                    Timber.e(error)
-                    _state.update { NotificationsState.Failure(error) }
-                    emptyList()
-                },
-                onSuccess = {
+        NotifyClient.getNotificationHistory(params = Notify.Params.GetNotificationHistory(currentSubscription.value.topic)).let { result ->
+            _notifications.value = when (result) {
+                is Notify.Result.GetNotificationHistory.Success -> {
                     _state.update { NotificationsState.Success }
-                    it
+                    result.notifications.map { messageRecord -> messageRecord.toNotifyNotification() }
                 }
-            )
+
+                is Notify.Result.GetNotificationHistory.Error -> {
+                    Timber.e(result.error.throwable)
+                    _state.update { NotificationsState.Failure(result.error.throwable) }
+                    emptyList()
+                }
+            }
+        }
         _notificationsTrigger.emit(Unit)
     }
 
@@ -95,12 +97,6 @@ class NotificationsViewModel(topic: String) : ViewModel() {
             fetchAllNotifications()
         }
     }
-
-    private fun getActiveSubscriptionNotifications(): List<NotificationUI> =
-        NotifyClient.getNotificationHistory(params = Notify.Params.GetNotificationHistory(currentSubscription.value.topic))
-            .values.sortedByDescending { it.publishedAt }
-            .map { messageRecord -> messageRecord.toNotifyNotification() }
-
 
     fun unsubscribe(onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -130,10 +126,10 @@ class NotificationsViewModel(topic: String) : ViewModel() {
             id = id,
             topic = topic,
             date = getHumanReadableTime(publishedAt),
-            title = message.title,
-            body = message.body,
-            url = (message as? Notify.Model.Notification.Decrypted)?.url,
-            icon = (message as? Notify.Model.Notification.Decrypted)?.icon,
+            title = notification.title,
+            body = notification.body,
+            url = (notification as? Notify.Model.Notification.Decrypted)?.url,
+            icon = (notification as? Notify.Model.Notification.Decrypted)?.icon,
             isUnread = false,
         )
 

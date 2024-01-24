@@ -13,7 +13,7 @@ import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterfa
 import com.walletconnect.notify.common.JsonRpcMethod
 import com.walletconnect.notify.engine.calls.DeleteSubscriptionUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetListOfActiveSubscriptionsUseCaseInterface
-import com.walletconnect.notify.engine.calls.GetListOfNotificationsUseCaseInterface
+import com.walletconnect.notify.engine.calls.GetNotificationHistoryUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetNotificationTypesUseCaseInterface
 import com.walletconnect.notify.engine.calls.IsRegisteredUseCaseInterface
 import com.walletconnect.notify.engine.calls.PrepareRegistrationUseCaseInterface
@@ -22,11 +22,12 @@ import com.walletconnect.notify.engine.calls.SubscribeToDappUseCaseInterface
 import com.walletconnect.notify.engine.calls.UnregisterUseCaseInterface
 import com.walletconnect.notify.engine.calls.UpdateSubscriptionRequestUseCaseInterface
 import com.walletconnect.notify.engine.domain.WatchSubscriptionsForEveryRegisteredAccountUseCase
-import com.walletconnect.notify.engine.requests.OnNotifyMessageUseCase
+import com.walletconnect.notify.engine.requests.OnMessageUseCase
 import com.walletconnect.notify.engine.requests.OnSubscriptionsChangedUseCase
-import com.walletconnect.notify.engine.responses.OnNotifyDeleteResponseUseCase
-import com.walletconnect.notify.engine.responses.OnNotifySubscribeResponseUseCase
-import com.walletconnect.notify.engine.responses.OnNotifyUpdateResponseUseCase
+import com.walletconnect.notify.engine.responses.OnDeleteResponseUseCase
+import com.walletconnect.notify.engine.responses.OnGetNotificationsResponseUseCase
+import com.walletconnect.notify.engine.responses.OnSubscribeResponseUseCase
+import com.walletconnect.notify.engine.responses.OnUpdateResponseUseCase
 import com.walletconnect.notify.engine.responses.OnWatchSubscriptionsResponseUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -52,13 +53,14 @@ internal class NotifyEngine(
     private val unregisterUseCase: UnregisterUseCaseInterface,
     private val getNotificationTypesUseCase: GetNotificationTypesUseCaseInterface,
     private val getListOfActiveSubscriptionsUseCase: GetListOfActiveSubscriptionsUseCaseInterface,
-    private val getListOfMessages: GetListOfNotificationsUseCaseInterface,
-    private val onNotifyMessageUseCase: OnNotifyMessageUseCase,
+    private val getNotificationHistoryUseCase: GetNotificationHistoryUseCaseInterface,
+    private val onMessageUseCase: OnMessageUseCase,
     private val onSubscriptionsChangedUseCase: OnSubscriptionsChangedUseCase,
-    private val onNotifySubscribeResponseUseCase: OnNotifySubscribeResponseUseCase,
-    private val onNotifyUpdateResponseUseCase: OnNotifyUpdateResponseUseCase,
-    private val onNotifyDeleteResponseUseCase: OnNotifyDeleteResponseUseCase,
+    private val onSubscribeResponseUseCase: OnSubscribeResponseUseCase,
+    private val onUpdateResponseUseCase: OnUpdateResponseUseCase,
+    private val onDeleteResponseUseCase: OnDeleteResponseUseCase,
     private val onWatchSubscriptionsResponseUseCase: OnWatchSubscriptionsResponseUseCase,
+    private val onGetNotificationsResponseUseCase: OnGetNotificationsResponseUseCase,
     private val watchSubscriptionsForEveryRegisteredAccountUseCase: WatchSubscriptionsForEveryRegisteredAccountUseCase,
     private val isRegisteredUseCase: IsRegisteredUseCaseInterface,
     private val prepareRegistrationUseCase: PrepareRegistrationUseCaseInterface,
@@ -71,7 +73,7 @@ internal class NotifyEngine(
     UnregisterUseCaseInterface by unregisterUseCase,
     GetNotificationTypesUseCaseInterface by getNotificationTypesUseCase,
     GetListOfActiveSubscriptionsUseCaseInterface by getListOfActiveSubscriptionsUseCase,
-    GetListOfNotificationsUseCaseInterface by getListOfMessages,
+    GetNotificationHistoryUseCaseInterface by getNotificationHistoryUseCase,
     IsRegisteredUseCaseInterface by isRegisteredUseCase,
     PrepareRegistrationUseCaseInterface by prepareRegistrationUseCase {
     private var jsonRpcRequestsJob: Job? = null
@@ -89,6 +91,7 @@ internal class NotifyEngine(
             JsonRpcMethod.WC_NOTIFY_DELETE,
             JsonRpcMethod.WC_NOTIFY_WATCH_SUBSCRIPTIONS,
             JsonRpcMethod.WC_NOTIFY_SUBSCRIPTIONS_CHANGED,
+            JsonRpcMethod.WC_NOTIFY_GET_NOTIFICATIONS,
         )
     }
 
@@ -117,7 +120,7 @@ internal class NotifyEngine(
             .filter { request -> request.params is CoreNotifyParams }
             .onEach { request ->
                 when (val requestParams = request.params) {
-                    is CoreNotifyParams.MessageParams -> onNotifyMessageUseCase(request, requestParams)
+                    is CoreNotifyParams.MessageParams -> onMessageUseCase(request, requestParams)
                     is CoreNotifyParams.SubscriptionsChangedParams -> onSubscriptionsChangedUseCase(request, requestParams)
                 }
             }.launchIn(scope)
@@ -127,10 +130,11 @@ internal class NotifyEngine(
             .filter { response -> response.params is CoreNotifyParams }
             .onEach { response ->
                 when (val params = response.params) {
-                    is CoreNotifyParams.SubscribeParams -> onNotifySubscribeResponseUseCase(response, params)
-                    is CoreNotifyParams.UpdateParams -> onNotifyUpdateResponseUseCase(response, params)
+                    is CoreNotifyParams.SubscribeParams -> onSubscribeResponseUseCase(response, params)
+                    is CoreNotifyParams.UpdateParams -> onUpdateResponseUseCase(response, params)
                     is CoreNotifyParams.WatchSubscriptionsParams -> onWatchSubscriptionsResponseUseCase(response, params)
-                    is CoreNotifyParams.DeleteParams -> onNotifyDeleteResponseUseCase(response, params)
+                    is CoreNotifyParams.DeleteParams -> onDeleteResponseUseCase(response, params)
+                    is CoreNotifyParams.GetNotificationsParams -> onGetNotificationsResponseUseCase(response, params)
                 }
             }.launchIn(scope)
 
@@ -138,7 +142,7 @@ internal class NotifyEngine(
         .onEach { exception -> _engineEvent.emit(exception) }
         .launchIn(scope)
 
-    private fun collectNotifyEvents(): Job = merge(onNotifyMessageUseCase.events, onWatchSubscriptionsResponseUseCase.events, onSubscriptionsChangedUseCase.events)
+    private fun collectNotifyEvents(): Job = merge(onMessageUseCase.events, onWatchSubscriptionsResponseUseCase.events, onSubscriptionsChangedUseCase.events)
         .onEach { event -> _engineEvent.emit(event) }
         .launchIn(scope)
 

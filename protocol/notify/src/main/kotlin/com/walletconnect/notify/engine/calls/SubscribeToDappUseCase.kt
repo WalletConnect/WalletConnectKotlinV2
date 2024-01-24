@@ -22,7 +22,7 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.notify.common.model.CreateSubscription
-import com.walletconnect.notify.common.model.NotificationScope
+import com.walletconnect.notify.common.model.Scope
 import com.walletconnect.notify.common.model.NotifyRpc
 import com.walletconnect.notify.common.model.Subscription
 import com.walletconnect.notify.data.storage.SubscriptionRepository
@@ -31,7 +31,7 @@ import com.walletconnect.notify.engine.BLOCKING_CALLS_TIMEOUT
 import com.walletconnect.notify.engine.domain.ExtractMetadataFromConfigUseCase
 import com.walletconnect.notify.engine.domain.ExtractPublicKeysFromDidJsonUseCase
 import com.walletconnect.notify.engine.domain.FetchDidJwtInteractor
-import com.walletconnect.notify.engine.responses.OnNotifySubscribeResponseUseCase
+import com.walletconnect.notify.engine.responses.OnSubscribeResponseUseCase
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
@@ -50,7 +50,7 @@ internal class SubscribeToDappUseCase(
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val fetchDidJwtInteractor: FetchDidJwtInteractor,
     private val extractPublicKeysFromDidJson: ExtractPublicKeysFromDidJsonUseCase,
-    private val onNotifySubscribeResponseUseCase: OnNotifySubscribeResponseUseCase,
+    private val onSubscribeResponseUseCase: OnSubscribeResponseUseCase,
     private val subscriptionRepository: SubscriptionRepository,
 ) : SubscribeToDappUseCaseInterface {
 
@@ -74,7 +74,7 @@ internal class SubscribeToDappUseCase(
             val request = NotifyRpc.NotifySubscribe(params = params)
             val irnParams = IrnParams(Tags.NOTIFY_SUBSCRIBE, Ttl(thirtySeconds))
 
-            onNotifySubscribeResponseUseCase.events
+            onSubscribeResponseUseCase.events
                 .filter { it.first == params }
                 .map { it.second }
                 .filter { it is CreateSubscription.Success || it is CreateSubscription.Error }
@@ -82,7 +82,7 @@ internal class SubscribeToDappUseCase(
                 .launchIn(scope)
 
             val selectedScopes = dappScopes
-                .associate { remote -> remote.id to NotificationScope.Cached(name = remote.name, description = remote.description, id = remote.id, isSelected = true) }
+                .associate { remote -> remote.id to Scope.Cached(name = remote.name, description = remote.description, id = remote.id, isSelected = true) }
 
             // optimistically add active subscription which will be updated on response with the correct expiry
             // necessary for welcoming messages that could be sent before the subscription response is received

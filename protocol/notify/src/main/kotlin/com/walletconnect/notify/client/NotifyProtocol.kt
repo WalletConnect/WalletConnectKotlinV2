@@ -5,7 +5,7 @@ import com.walletconnect.android.internal.common.di.DatabaseConfig
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.notify.common.model.NotifyRecord
+import com.walletconnect.notify.common.model.Notification
 import com.walletconnect.notify.common.model.SubscriptionChanged
 import com.walletconnect.notify.common.model.toClient
 import com.walletconnect.notify.common.model.toCommon
@@ -46,7 +46,7 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
 
         notifyEngine.engineEvent.onEach { event ->
             when (event) {
-                is NotifyRecord -> delegate.onNotifyNotification(Notify.Event.Notification(event.toClient()))
+                is Notification -> delegate.onNotifyNotification(Notify.Event.Notification(event.toClient()))
                 is SubscriptionChanged -> delegate.onSubscriptionsChanged(event.toClient())
                 is SDKError -> delegate.onError(event.toClient())
             }
@@ -98,10 +98,16 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
         }
     }
 
-    override fun getNotificationHistory(params: Notify.Params.GetNotificationHistory): Map<Long, Notify.Model.NotificationRecord> {
+    override fun getNotificationHistory(params: Notify.Params.GetNotificationHistory): Notify.Result.GetNotificationHistory {
         checkEngineInitialization()
 
-        return runBlocking { notifyEngine.getListOfNotifications(params.topic).mapValues { (_, notifyRecord) -> notifyRecord.toClient() } }
+        return runBlocking {
+            try {
+                notifyEngine.getNotificationHistory(params.topic, params.limit, params.startingAfter).toClient()
+            } catch (e: Exception) {
+                Notify.Result.GetNotificationHistory.Error(Notify.Model.Error(e))
+            }
+        }
     }
 
     override fun deleteSubscription(params: Notify.Params.DeleteSubscription): Notify.Result.DeleteSubscription {

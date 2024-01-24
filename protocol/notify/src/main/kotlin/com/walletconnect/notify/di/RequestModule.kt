@@ -3,7 +3,7 @@
 package com.walletconnect.notify.di
 
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
-import com.walletconnect.notify.engine.requests.OnNotifyMessageUseCase
+import com.walletconnect.notify.engine.requests.OnMessageUseCase
 import com.walletconnect.notify.engine.requests.OnSubscriptionsChangedUseCase
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -12,7 +12,7 @@ import org.koin.dsl.module
 internal fun requestModule() = module {
 
     single {
-        OnNotifyMessageUseCase(
+        OnMessageUseCase(
             jsonRpcInteractor = get(),
             notificationsRepository = get(),
             subscriptionRepository = get(),

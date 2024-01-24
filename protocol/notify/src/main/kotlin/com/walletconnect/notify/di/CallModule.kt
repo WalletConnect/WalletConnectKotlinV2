@@ -10,8 +10,8 @@ import com.walletconnect.notify.engine.calls.DeleteSubscriptionUseCase
 import com.walletconnect.notify.engine.calls.DeleteSubscriptionUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetListOfActiveSubscriptionsUseCase
 import com.walletconnect.notify.engine.calls.GetListOfActiveSubscriptionsUseCaseInterface
-import com.walletconnect.notify.engine.calls.GetListOfNotificationsUseCase
-import com.walletconnect.notify.engine.calls.GetListOfNotificationsUseCaseInterface
+import com.walletconnect.notify.engine.calls.GetNotificationHistoryUseCase
+import com.walletconnect.notify.engine.calls.GetNotificationHistoryUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetNotificationTypesUseCase
 import com.walletconnect.notify.engine.calls.GetNotificationTypesUseCaseInterface
 import com.walletconnect.notify.engine.calls.IsRegisteredUseCase
@@ -40,7 +40,7 @@ internal fun callModule() = module {
             metadataStorageRepository = get(),
             fetchDidJwtInteractor = get(),
             extractPublicKeysFromDidJson = get(),
-            onNotifySubscribeResponseUseCase = get(),
+            onSubscribeResponseUseCase = get(),
             subscriptionRepository = get()
         )
     }
@@ -51,7 +51,7 @@ internal fun callModule() = module {
             subscriptionRepository = get(),
             metadataStorageRepository = get(),
             fetchDidJwtInteractor = get(),
-            onNotifyUpdateResponseUseCase = get()
+            onUpdateResponseUseCase = get()
         )
     }
 
@@ -61,7 +61,7 @@ internal fun callModule() = module {
             metadataStorageRepository = get(),
             subscriptionRepository = get(),
             fetchDidJwtInteractor = get(),
-            onNotifyDeleteResponseUseCase = get()
+            onDeleteResponseUseCase = get()
         )
     }
 
@@ -128,10 +128,13 @@ internal fun callModule() = module {
         )
     }
 
-    single<GetListOfNotificationsUseCaseInterface> {
-        GetListOfNotificationsUseCase(
-            notificationsRepository = get(),
-            metadataStorageRepository = get()
+    single<GetNotificationHistoryUseCaseInterface> {
+        GetNotificationHistoryUseCase(
+            jsonRpcInteractor = get(),
+            subscriptionRepository = get(),
+            metadataStorageRepository = get(),
+            fetchDidJwtInteractor = get(),
+            onGetNotificationsResponseUseCase = get()
         )
     }
 }

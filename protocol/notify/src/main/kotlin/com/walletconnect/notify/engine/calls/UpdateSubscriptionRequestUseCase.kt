@@ -19,7 +19,7 @@ import com.walletconnect.notify.data.storage.SubscriptionRepository
 import com.walletconnect.notify.engine.BLOCKING_CALLS_DELAY_INTERVAL
 import com.walletconnect.notify.engine.BLOCKING_CALLS_TIMEOUT
 import com.walletconnect.notify.engine.domain.FetchDidJwtInteractor
-import com.walletconnect.notify.engine.responses.OnNotifyUpdateResponseUseCase
+import com.walletconnect.notify.engine.responses.OnUpdateResponseUseCase
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
@@ -34,7 +34,7 @@ internal class UpdateSubscriptionRequestUseCase(
     private val subscriptionRepository: SubscriptionRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val fetchDidJwtInteractor: FetchDidJwtInteractor,
-    private val onNotifyUpdateResponseUseCase: OnNotifyUpdateResponseUseCase,
+    private val onUpdateResponseUseCase: OnUpdateResponseUseCase,
 ) : UpdateSubscriptionRequestUseCaseInterface {
 
     override suspend fun update(notifyTopic: String, scopes: List<String>): UpdateSubscription = supervisorScope {
@@ -53,7 +53,7 @@ internal class UpdateSubscriptionRequestUseCase(
 
             jsonRpcInteractor.publishJsonRpcRequest(Topic(notifyTopic), irnParams, request, onFailure = { error -> result.value = UpdateSubscription.Error(error) })
 
-            onNotifyUpdateResponseUseCase.events
+            onUpdateResponseUseCase.events
                 .filter { it.first == params }
                 .map { it.second }
                 .filter { it is UpdateSubscription.Success || it is UpdateSubscription.Error }

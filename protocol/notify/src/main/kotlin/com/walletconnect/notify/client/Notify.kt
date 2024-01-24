@@ -29,7 +29,7 @@ object Notify {
             ) : Notification()
         }
 
-        data class NotificationRecord(val id: String, val topic: String, val publishedAt: Long, val message: Notification, val metadata: Core.Model.AppMetaData) : Model()
+        data class NotificationRecord(val id: String, val topic: String, val publishedAt: Long, val notification: Notification, val metadata: Core.Model.AppMetaData) : Model()
 
         data class Subscription(
             val topic: String,
@@ -66,12 +66,11 @@ object Notify {
     }
 
     sealed class Event {
-        data class Notification (val notification: Model.NotificationRecord) : Event()
+        data class Notification(val notification: Model.NotificationRecord) : Event()
 
         data class SubscriptionsChanged(val subscriptions: List<Model.Subscription>) : Event()
     }
 
-    // todo: move to model
     sealed interface Result {
         sealed interface Subscribe {
             data class Success(val subscription: Model.Subscription) : Subscribe
@@ -87,6 +86,11 @@ object Notify {
             data class Success(val topic: String) : DeleteSubscription
             data class Error(val error: Model.Error) : DeleteSubscription
         }
+
+        sealed interface GetNotificationHistory {
+            data class Success(val notifications: List<Model.NotificationRecord>, val hasMore: Boolean) : GetNotificationHistory
+            data class Error(val error: Model.Error) : GetNotificationHistory
+        }
     }
 
     sealed class Params {
@@ -99,7 +103,7 @@ object Notify {
 
         data class GetNotificationTypes(val appDomain: String) : Params()
 
-        data class GetNotificationHistory(val topic: String) : Params()
+        data class GetNotificationHistory(val topic: String, val limit: Int? = null, val startingAfter: String? = null) : Params()
 
         data class DeleteSubscription(val topic: String) : Params()
 
@@ -111,6 +115,6 @@ object Notify {
 
         data class IsRegistered(val account: String, val domain: String, val allApps: Boolean = true) : Params()
 
-        data class Unregister (val account: String) : Params()
+        data class Unregister(val account: String) : Params()
     }
 }

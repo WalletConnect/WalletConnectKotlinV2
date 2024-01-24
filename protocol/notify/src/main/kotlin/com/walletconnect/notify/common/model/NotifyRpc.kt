@@ -82,4 +82,16 @@ internal sealed class NotifyRpc : JsonRpcClientSync<CoreNotifyParams> {
         @Json(name = "params")
         override val params: CoreNotifyParams.SubscriptionsChangedParams,
     ) : NotifyRpc()
+
+    @JsonClass(generateAdapter = true)
+    internal data class NotifyGetNotifications(
+        @Json(name = "id")
+        override val id: Long = generateId(),
+        @Json(name = "jsonrpc")
+        override val jsonrpc: String = "2.0",
+        @Json(name = "method")
+        override val method: String = JsonRpcMethod.WC_NOTIFY_GET_NOTIFICATIONS,
+        @Json(name = "params")
+        override val params: CoreNotifyParams.GetNotificationsParams,
+    ) : NotifyRpc()
 }

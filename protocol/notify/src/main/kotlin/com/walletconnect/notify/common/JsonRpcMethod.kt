@@ -21,4 +21,7 @@ internal object JsonRpcMethod {
 
     @get:JvmSynthetic
     const val WC_NOTIFY_SUBSCRIPTIONS_CHANGED: String = "wc_notifySubscriptionsChanged"
+
+    @get:JvmSynthetic
+    const val WC_NOTIFY_GET_NOTIFICATIONS: String = "wc_notifyGetNotifications"
 }

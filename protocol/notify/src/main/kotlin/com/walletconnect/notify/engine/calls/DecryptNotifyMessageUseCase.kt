@@ -12,8 +12,8 @@ import com.walletconnect.android.internal.common.model.sync.ClientJsonRpc
 import com.walletconnect.android.internal.common.storage.rpc.JsonRpcHistory
 import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.notify.common.model.NotifyMessage
-import com.walletconnect.notify.common.model.NotifyRecord
+import com.walletconnect.notify.common.model.NotificationMessage
+import com.walletconnect.notify.common.model.Notification
 import com.walletconnect.notify.common.model.toCore
 import com.walletconnect.notify.data.jwt.message.MessageRequestJwtClaim
 import com.walletconnect.notify.data.storage.NotificationsRepository
@@ -41,20 +41,16 @@ internal class DecryptNotifyMessageUseCase(
                     return@supervisorScope onFailure(IllegalArgumentException("The decrypted message does not match WalletConnect Notify Message format"))
                 }
 
+                with(messageRequestJwt.message) {
 
-                val notifyRecord = NotifyRecord(
-                    id = clientJsonRpc.id, topic = topic, publishedAt = clientJsonRpc.id, metadata = null,
-                    notifyMessage = NotifyMessage(
-                        title = messageRequestJwt.message.title,
-                        body = messageRequestJwt.message.body,
-                        icon = messageRequestJwt.message.icon,
-                        url = messageRequestJwt.message.url,
-                        type = messageRequestJwt.message.type,
-                    ),
-                )
+                    val notification = Notification(
+                        id = id, topic = topic, sentAt = sentAt, metadata = null, notificationMessage = NotificationMessage(title = title, body = body, icon = icon, url = url, type = type)
+                    )
 
-                notificationsRepository.insertNotification(notifyRecord)
-                onSuccess(notifyRecord.toCore())
+                    notificationsRepository.insertOrReplaceNotification(notification)
+                    onSuccess(notification.toCore())
+                }
+
             }
         } catch (e: Exception) {
             onFailure(e)

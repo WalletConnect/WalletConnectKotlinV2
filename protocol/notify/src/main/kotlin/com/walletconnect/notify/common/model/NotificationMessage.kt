@@ -2,7 +2,7 @@
 
 package com.walletconnect.notify.common.model
 
-internal data class NotifyMessage(
+internal data class NotificationMessage(
     val title: String,
     val body: String,
     val icon: String?,

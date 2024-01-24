@@ -16,17 +16,17 @@ internal fun Core.Model.Message.Notify.toClient(topic: String): Notify.Model.Not
 
 @JvmSynthetic
 @Throws(IllegalArgumentException::class)
-internal fun NotifyRecord.toClient(): Notify.Model.NotificationRecord {
+internal fun Notification.toClient(): Notify.Model.NotificationRecord {
     return Notify.Model.NotificationRecord(
-        id = this.id.toString(),
+        id = this.id,
         topic = this.topic,
-        publishedAt = this.publishedAt,
-        message = Notify.Model.Notification.Decrypted(
-            title = this.notifyMessage.title,
-            body = this.notifyMessage.body,
-            icon = this.notifyMessage.icon,
-            url = this.notifyMessage.url,
-            type = this.notifyMessage.type,
+        publishedAt = this.sentAt,
+        notification = Notify.Model.Notification.Decrypted(
+            title = this.notificationMessage.title,
+            body = this.notificationMessage.body,
+            icon = this.notificationMessage.icon,
+            url = this.notificationMessage.url,
+            type = this.notificationMessage.type,
             topic = this.topic
         ),
         metadata = this.metadata?.let { it.toClient() } ?: run { throw IllegalArgumentException("Metadata is null") }
@@ -35,13 +35,13 @@ internal fun NotifyRecord.toClient(): Notify.Model.NotificationRecord {
 
 
 @JvmSynthetic
-internal fun NotifyRecord.toCore(): Core.Model.Message.Notify {
+internal fun Notification.toCore(): Core.Model.Message.Notify {
     return Core.Model.Message.Notify(
-        title = this.notifyMessage.title,
-        body = this.notifyMessage.body,
-        icon = this.notifyMessage.icon,
-        url = this.notifyMessage.url,
-        type = this.notifyMessage.type,
+        title = this.notificationMessage.title,
+        body = this.notificationMessage.body,
+        icon = this.notificationMessage.icon,
+        url = this.notificationMessage.url,
+        type = this.notificationMessage.type,
         topic = this.topic
     )
 }
@@ -89,6 +89,18 @@ internal fun DeleteSubscription.toClient(): Notify.Result.DeleteSubscription = w
 }
 
 @JvmSynthetic
+internal fun GetNotificationHistory.toClient(): Notify.Result.GetNotificationHistory = when (this) {
+    is GetNotificationHistory.Success -> Notify.Result.GetNotificationHistory.Success(notifications.toClient(), hasMore)
+    is GetNotificationHistory.Error -> Notify.Result.GetNotificationHistory.Error(Notify.Model.Error(throwable))
+    GetNotificationHistory.Processing -> Notify.Result.GetNotificationHistory.Error(Notify.Model.Error(IllegalStateException()))
+}
+
+@JvmSynthetic
+internal fun List<Notification>.toClient(): List<Notify.Model.NotificationRecord> {
+    return map { it.toClient() }
+}
+
+@JvmSynthetic
 internal fun SubscriptionChanged.toClient(): Notify.Event.SubscriptionsChanged =
     Notify.Event.SubscriptionsChanged(subscriptions.map { it.toClient() })
 
@@ -106,7 +118,7 @@ internal fun Subscription.Active.toClient(): Notify.Model.Subscription {
         account = account.value,
         relay = relay.toClient(),
         metadata = dappMetaData.toClient(),
-        scope = mapOfNotificationScope.toClient(),
+        scope = mapOfScope.toClient(),
         expiry = expiry.seconds,
     )
 }
@@ -125,7 +137,7 @@ internal fun RelayProtocolOptions.toClient(): Notify.Model.Subscription.Relay {
 }
 
 @JvmSynthetic
-internal fun Map<String, NotificationScope.Cached>.toClient(): Map<Notify.Model.Subscription.ScopeId, Notify.Model.Subscription.ScopeSetting> {
+internal fun Map<String, Scope.Cached>.toClient(): Map<Notify.Model.Subscription.ScopeId, Notify.Model.Subscription.ScopeSetting> {
     return map { (key, value) ->
         Notify.Model.Subscription.ScopeId(key) to Notify.Model.Subscription.ScopeSetting(value.name, value.description, value.isSelected)
     }.toMap()

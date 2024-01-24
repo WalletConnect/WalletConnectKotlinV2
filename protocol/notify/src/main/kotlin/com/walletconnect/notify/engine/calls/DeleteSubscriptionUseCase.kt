@@ -19,7 +19,7 @@ import com.walletconnect.notify.data.storage.SubscriptionRepository
 import com.walletconnect.notify.engine.BLOCKING_CALLS_DELAY_INTERVAL
 import com.walletconnect.notify.engine.BLOCKING_CALLS_TIMEOUT
 import com.walletconnect.notify.engine.domain.FetchDidJwtInteractor
-import com.walletconnect.notify.engine.responses.OnNotifyDeleteResponseUseCase
+import com.walletconnect.notify.engine.responses.OnDeleteResponseUseCase
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
@@ -34,7 +34,7 @@ internal class DeleteSubscriptionUseCase(
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val subscriptionRepository: SubscriptionRepository,
     private val fetchDidJwtInteractor: FetchDidJwtInteractor,
-    private val onNotifyDeleteResponseUseCase: OnNotifyDeleteResponseUseCase,
+    private val onDeleteResponseUseCase: OnDeleteResponseUseCase,
 ) : DeleteSubscriptionUseCaseInterface {
 
     override suspend fun deleteSubscription(notifyTopic: String): DeleteSubscription = supervisorScope {
@@ -52,7 +52,7 @@ internal class DeleteSubscriptionUseCase(
             val request = NotifyRpc.NotifyDelete(params = params)
             val irnParams = IrnParams(Tags.NOTIFY_DELETE, Ttl(monthInSeconds))
 
-            onNotifyDeleteResponseUseCase.events
+            onDeleteResponseUseCase.events
                 .filter { it.first == params }
                 .map { it.second }
                 .filter { it is DeleteSubscription.Success || it is DeleteSubscription.Error }

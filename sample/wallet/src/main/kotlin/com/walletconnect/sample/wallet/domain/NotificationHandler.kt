@@ -54,7 +54,7 @@ object NotificationHandler {
         data class Simple(override val messageId: Int, override val channelId: String, override val title: String, override val body: String) : Notification
 
         data class Decrypted(
-            override val messageId: Int, override val channelId: String, override val title: String, override val body: String, val topic: String, val url: String?, val iconUrl: String?
+            override val messageId: Int, override val channelId: String, override val title: String, override val body: String, val topic: String, val url: String?, val iconUrl: String?,
         ) : Notification //Notify
 
         data class SessionProposal(
@@ -66,7 +66,7 @@ object NotificationHandler {
             val description: String,
             val url: String,
             val iconUrl: String?,
-            val redirect: String
+            val redirect: String,
         ) : Notification
 
         data class SessionRequest(
@@ -77,7 +77,7 @@ object NotificationHandler {
             val chainId: String?,
             val topic: String,
             val url: String?,
-            val iconUrl: String?
+            val iconUrl: String?,
         ) : Notification
 
         data class AuthRequest(
@@ -87,7 +87,7 @@ object NotificationHandler {
             override val body: String,
             val topic: String,
             val url: String?,
-            val iconUrl: String?
+            val iconUrl: String?,
         ) : Notification
     }
 
@@ -268,10 +268,15 @@ object NotificationHandler {
     }
 
 
-    suspend fun addNotification(message: Notify.Model.Notification) {
-        val notification =
-            if (message is Notify.Model.Notification.Decrypted) Notification.Decrypted(message.hashCode(), message.type, message.title, message.body, message.topic, message.url, message.url)
-            else Notification.Simple(message.hashCode(), W3W_CHANNEL_ID, message.title, message.body)
+    suspend fun addNotification(notificationRecord: Notify.Model.NotificationRecord) {
+        val notifyNotification = notificationRecord.notification
+        val id = notificationRecord.id.hashCode()
+
+        val notification = if (notifyNotification is Notify.Model.Notification.Decrypted) {
+            with(notifyNotification) { Notification.Decrypted(id, type, title, body, topic, url, url) }
+        } else {
+            with(notifyNotification) { Notification.Simple(id, W3W_CHANNEL_ID, title, body) }
+        }
 
         _notificationsFlow.emit(notification)
     }
