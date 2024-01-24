@@ -92,12 +92,12 @@ internal class AccountViewModel: ViewModel(), Navigator by NavigatorImpl() {
         .stateIn(viewModelScope, started = SharingStarted.Lazily, initialValue = null)
 
     fun disconnect() {
+        closeModal()
         Web3Modal.disconnect(
-            onSuccess = { closeModal() },
+            onSuccess = {},
             onError = {
                 showError(it.throwable.localizedMessage)
                 logger.error(it.throwable)
-                closeModal()
             }
         )
     }

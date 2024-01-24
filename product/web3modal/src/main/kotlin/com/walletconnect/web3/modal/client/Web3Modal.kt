@@ -125,6 +125,7 @@ object Web3Modal {
 
     @Throws(IllegalStateException::class)
     private fun setInternalDelegate(delegate: ModalDelegate) {
+        Web3ModalDelegate.sessionTopic = getSessionTopicUseCase()
         val signDelegate = object : SignClient.DappDelegate {
             override fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession) {
                 delegate.onSessionApproved(approvedSession.toModal())
@@ -147,7 +148,6 @@ object Web3Modal {
             }
 
             override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {
-                scope.launch { deleteSessionDataUseCase() }
                 delegate.onSessionDelete(deletedSession.toModal())
             }
 

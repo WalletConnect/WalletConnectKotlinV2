@@ -2,6 +2,7 @@ package com.walletconnect.wcmodal.domain.dataStore
 
 import com.walletconnect.android.internal.common.modal.data.model.Wallet
 import com.walletconnect.android.internal.common.modal.domain.usecase.GetInstalledWalletsIdsUseCaseInterface
+import com.walletconnect.android.internal.common.modal.domain.usecase.GetSampleWalletsUseCaseInterface
 import com.walletconnect.android.internal.common.modal.domain.usecase.GetWalletsUseCaseInterface
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.modal.ui.model.LoadingState
@@ -30,6 +31,8 @@ internal class WalletDataSource(
     private val getWalletsUseCase: GetWalletsUseCaseInterface = wcKoinApp.koin.get()
     private val getWalletsAppDataUseCase: GetInstalledWalletsIdsUseCaseInterface = wcKoinApp.koin.get()
     private val getRecentWalletUseCase: GetRecentWalletUseCase = wcKoinApp.koin.get()
+    private val getSampleWalletsUseCase: GetSampleWalletsUseCaseInterface = wcKoinApp.koin.get()
+
 
     private var installedWalletsIds: List<String> = listOf()
 
@@ -55,8 +58,13 @@ internal class WalletDataSource(
         try {
             fetchWalletsAppData()
             val installedWallets = fetchInstalledAndRecommendedWallets()
+            val samples = getSampleWalletsUseCase()
             val walletsListing = getWalletsUseCase(sdkType = WCM_SDK, page = 1, excludeIds = getPriorityWallets() + WalletConnectModal.excludedWalletsIds)
-            walletsListingData = ListingData(page = 1, totalCount = walletsListing.totalCount, wallets = (installedWallets.wallets + walletsListing.wallets).mapRecentWallet(getRecentWalletUseCase()))
+            walletsListingData = ListingData(
+                page = 1,
+                totalCount = walletsListing.totalCount + samples.size,
+                wallets = (samples + installedWallets.wallets + walletsListing.wallets).mapRecentWallet(getRecentWalletUseCase())
+            )
             walletState.value = WalletsData.submit(walletsListingData.wallets)
         } catch (exception: Exception) {
             showError(exception)

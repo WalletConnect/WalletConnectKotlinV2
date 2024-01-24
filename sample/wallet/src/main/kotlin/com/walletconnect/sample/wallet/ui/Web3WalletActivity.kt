@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterialApi::class, ExperimentalMaterialNavigationApi::class)
+@file:OptIn(ExperimentalMaterialApi::class, ExperimentalMaterialNavigationApi::class, ExperimentalAnimationApi::class)
 
 package com.walletconnect.sample.wallet.ui
 
@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.rememberModalBottomSheetState
@@ -19,6 +20,7 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.walletconnect.sample.common.ui.theme.WCSampleAppTheme
@@ -58,7 +60,7 @@ class Web3WalletActivity : AppCompatActivity() {
         setContent {
             val sheetState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden, skipHalfExpanded = true)
             val bottomSheetNavigator = BottomSheetNavigator(sheetState)
-            val navController = rememberNavController(bottomSheetNavigator)
+            val navController = rememberAnimatedNavController(bottomSheetNavigator)
             this.navController = navController
             val sharedPref = getPreferences(MODE_PRIVATE)
             val getStartedVisited = sharedPref.getBoolean("get_started_visited", false)
