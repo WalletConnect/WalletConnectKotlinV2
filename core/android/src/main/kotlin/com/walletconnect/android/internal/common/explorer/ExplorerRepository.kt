@@ -81,7 +81,7 @@ class ExplorerRepository(
                 name = name,
                 description = description,
                 imageUrl = imageUrl?.toImageUrl(),
-                homepage = homepage,
+                homepage = homepage ?: "",
                 dappUrl = dappUrl,
                 isVerified = isVerified,
             )
