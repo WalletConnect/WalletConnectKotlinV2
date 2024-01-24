@@ -4,13 +4,7 @@ package com.walletconnect.wcmodal.ui
 
 import android.content.Context
 import android.widget.Toast
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,8 +14,6 @@ import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -69,32 +61,16 @@ internal fun WalletConnectModalComponent(closeModal: () -> Unit) {
         navController = navController,
         closeModal = closeModal,
     ) {
-        AnimatedContent(
-            targetState = state,
-            contentAlignment = Alignment.BottomCenter,
-            transitionSpec = {
-                (fadeIn() + slideInVertically(animationSpec = tween(400),
-                    initialOffsetY = { fullHeight -> fullHeight })).togetherWith(fadeOut(animationSpec = tween(200)))
-            }
-        ) { state ->
-            when (state) {
-                WalletConnectModalState.Loading -> LoadingModalState()
-                is WalletConnectModalState.Connect -> ModalNavGraph(
-                    navController = navController,
-                    state = state,
-                    retry = viewModel::retry,
-                    updateRecentWalletId = viewModel::updateRecentWalletId
-                )
-                is WalletConnectModalState.Error -> ErrorModalState(closeModal)
-            }
-
-        }
+        ModalNavGraph(
+            navController = navController,
+            viewModel = viewModel
+        )
     }
 }
 
 
 @Composable
-private fun LoadingModalState() {
+internal fun LoadingModalState() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -105,7 +81,7 @@ private fun LoadingModalState() {
 }
 
 @Composable
-private fun ErrorModalState(closeModal: () -> Unit) {
+internal fun ErrorModalState(retry: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -116,8 +92,8 @@ private fun ErrorModalState(closeModal: () -> Unit) {
         Text(text = "Something went wrong", style = TextStyle(color = ModalTheme.colors.onBackgroundColor, fontSize = 18.sp))
         VerticalSpacer(height = 10.dp)
         RoundedMainButton(
-            text = "Close",
-            onClick = { closeModal() },
+            text = "Retry",
+            onClick = { retry() },
         )
     }
 }

@@ -3,6 +3,7 @@ import com.android.build.gradle.BaseExtension
 plugins {
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
     id("release-scripts")
+    id("version-bump")
 }
 
 buildscript {

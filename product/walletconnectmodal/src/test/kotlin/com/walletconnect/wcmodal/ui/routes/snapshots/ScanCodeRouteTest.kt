@@ -1,18 +1,32 @@
 package com.walletconnect.wcmodal.ui.routes.snapshots
 
 import androidx.compose.runtime.Composable
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavController
+import com.walletconnect.wcmodal.ui.MainDispatcherRule
+import com.walletconnect.wcmodal.ui.WalletConnectModalViewModel
 import com.walletconnect.wcmodal.ui.routes.scan_code.ScanQRCodeRoute
 import com.walletconnect.wcmodal.utils.ScreenShotTest
+import io.mockk.every
+import io.mockk.mockk
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
 class ScanCodeRouteTest : ScreenShotTest() {
 
-    private val uri: String = "wc://47442c19ea7c6a7a836fa3e53af1ddd375438daaeea9acdbf595e989a731b73249a10a7cc0e343ca627e536609&a123ac423123eea12cbdsc876"
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule()
+
+    private val navController: NavController = mockk()
+    private val viewModel: WalletConnectModalViewModel = mockk()
+
+    @Before
+    fun setup() {
+        every { viewModel.fetchInitialWallets() } returns Unit
+    }
 
     private  val content: @Composable () -> Unit = {
-        val navController = rememberNavController()
-        ScanQRCodeRoute(navController = navController, uri = uri)
+        ScanQRCodeRoute(navController = navController, viewModel = viewModel)
     }
 
     @Test

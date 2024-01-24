@@ -25,9 +25,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.res.getColorOrThrow
 import androidx.core.content.res.use
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.walletconnect.modal.utils.theme.toComposeColor
 import com.walletconnect.web3.modal.R
@@ -72,15 +71,12 @@ class Web3ModalSheet : BottomSheetDialogFragment() {
         val navController = rememberAnimatedNavController()
         dialog?.setupDialog(navController)
 
-        Surface(
-            shape = RoundedCornerShape(topStart = 36.dp, topEnd = 36.dp)
-        ) {
+        Surface(shape = RoundedCornerShape(topStart = 36.dp, topEnd = 36.dp)) {
             Web3ModalComponent(
                 modifier = Modifier.nestedScroll(rememberNestedScrollInteropConnection()),
                 navController = navController,
                 shouldOpenChooseNetwork = shouldOpenChooseNetwork,
-                closeModal = { this@Web3ModalSheet.dismiss() }
-            )
+                closeModal = { this@Web3ModalSheet.dismiss() })
         }
     }
 

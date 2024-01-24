@@ -43,8 +43,6 @@ import com.walletconnect.sample.wallet.ui.routes.dialog_routes.paste_uri.PasteUr
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.session_proposal.SessionProposalRoute
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.session_request.SessionRequestRoute
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.snackbar_message.SnackbarMessageRoute
-import com.walletconnect.sample.wallet.ui.routes.host.BottomBarState
-import timber.log.Timber
 
 @ExperimentalMaterialNavigationApi
 @Composable
@@ -99,7 +97,10 @@ fun Web3WalletNavGraph(
             composable(Route.GetStarted.path) {
                 GetStartedRoute(navController)
             }
-            composable(Route.Connections.path, deepLinks = listOf(NavDeepLink("wc://{topic}@2"))) {
+            composable(
+                Route.Connections.path,
+                deepLinks = listOf(NavDeepLink("kotlin-web3wallet://wc"))
+            ) {
                 ConnectionsRoute(navController, connectionsViewModel, web3walletViewModel)
             }
             composable("${Route.ConnectionDetails.path}/{connectionId}", arguments = listOf(
