@@ -56,6 +56,7 @@ dependencies {
     implementation ("io.coil-kt:coil-compose:2.3.0")
 
     compose()
+    accompanist()
 
     firebaseMessaging()
     firebaseChrashlytics()

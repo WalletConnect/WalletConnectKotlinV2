@@ -188,7 +188,7 @@ fun DependencyHandlerScope.compose() {
 }
 
 fun DependencyHandlerScope.accompanist() {
-    "api"("com.google.accompanist:accompanist-navigation-material:$accompanistVersion")
+    "implementation"("com.google.accompanist:accompanist-navigation-material:$accompanistVersion")
     "implementation"("com.google.accompanist:accompanist-drawablepainter:$accompanistVersion")
     "implementation"("com.google.accompanist:accompanist-navigation-animation:$accompanistVersion")
     "implementation"("com.google.accompanist:accompanist-systemuicontroller:$accompanistVersion")

@@ -18,15 +18,9 @@ internal class SessionRepository(
     private val context: Context
 ) {
 
-    val sessionTopic: Flow<String?> = context.sessionStore.data
-        .map { preferences ->
-            preferences[SESSION_TOPIC]
-        }
+    val sessionTopic: Flow<String?> = context.sessionStore.data.map { preferences -> preferences[SESSION_TOPIC] }
 
-    val selectedChain: Flow<String?> = context.sessionStore.data
-        .map { preferences ->
-            preferences[SELECTED_CHAIN]
-        }
+    val selectedChain: Flow<String?> = context.sessionStore.data.map { preferences -> preferences[SELECTED_CHAIN] }
 
     suspend fun getSelectedChain(): String? = selectedChain.first()
 
