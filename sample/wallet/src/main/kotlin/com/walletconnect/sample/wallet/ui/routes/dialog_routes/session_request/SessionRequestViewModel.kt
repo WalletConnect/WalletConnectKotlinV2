@@ -24,6 +24,7 @@ class SessionRequestViewModel : ViewModel() {
 
     private fun clearSessionRequest() {
         WCDelegate.sessionRequestEvent = null
+        WCDelegate.currentId = null
         sessionRequest = SessionRequestUI.Initial
     }
 

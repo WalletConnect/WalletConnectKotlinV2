@@ -24,7 +24,7 @@ fun SnackbarMessageRoute(navController: NavController, message: String?) {
     var shouldShow by remember { mutableStateOf(true) }
 
     LaunchedEffect(key1 = Unit) {
-        delay(5000)
+        delay(3000)
         shouldShow = false
     }
     if (shouldShow) {
