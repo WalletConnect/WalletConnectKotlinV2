@@ -1,7 +1,6 @@
 package com.walletconnect.sample.dapp.ui.routes.composable_routes.chain_selection
 
 import android.content.Context
-import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -43,7 +42,6 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.walletconnect.android.utils.isPackageInstalled
@@ -139,7 +137,6 @@ fun ChainSelectionRoute(navController: NavController) {
     ChainSelectionScreen(
         chains = chainsState,
         awaitingState = awaitingProposalResponse,
-        isSampleWalletInstalled = context.isSampleWalletInstalled(),
         onChainClick = viewModel::updateChainSelectState,
         onConnectClick = {
             if (viewModel.isAnyChainSelected) {
@@ -155,39 +152,15 @@ fun ChainSelectionRoute(navController: NavController) {
                 Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
             }
         }
-    ) {
-        if (viewModel.isAnyChainSelected) {
-            viewModel.connectToWallet(
-                onSuccess = { uri ->
-                    val intent = Intent(Intent.ACTION_VIEW).apply {
-                        data = uri.replace("wc:", "wc://").toUri()
-                        `package` = when (BuildConfig.BUILD_TYPE) {
-                            "debug" -> SAMPLE_WALLET_DEBUG_PACKAGE
-                            "internal" -> SAMPLE_WALLET_INTERNAL_PACKAGE
-                            else -> SAMPLE_WALLET_RELEASE_PACKAGE
-                        }
-                    }
-                    context.startActivity(intent)
-                },
-                onError = { error ->
-                    composableScope.launch(Dispatchers.Main) {
-                        Toast.makeText(context, "Error while connecting: $error", Toast.LENGTH_SHORT).show()
-                    }
-                })
-        } else {
-            Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
-        }
-    }
+    )
 }
 
 @Composable
 private fun ChainSelectionScreen(
     chains: List<ChainSelectionUi>,
     awaitingState: Boolean,
-    isSampleWalletInstalled: Boolean,
     onChainClick: (Int, Boolean) -> Unit,
     onConnectClick: () -> Unit,
-    onConnectSampleWalletClick: () -> Unit,
 ) {
 
 
@@ -210,9 +183,6 @@ private fun ChainSelectionScreen(
                     .height(50.dp)
                     .padding(horizontal = 16.dp),
             )
-            if (isSampleWalletInstalled) {
-                WalletConnectSampleButton(onConnectSampleWalletClick)
-            }
         }
         if (awaitingState) {
             Loader()
@@ -247,19 +217,6 @@ private fun BoxScope.Loader() {
             ),
         )
     }
-}
-
-@Composable
-private fun WalletConnectSampleButton(onClick: () -> Unit) {
-    BlueButton(
-        text = "Connect via Wallet Sample",
-        onClick = onClick,
-        modifier = Modifier
-            .padding(vertical = 10.dp)
-            .fillMaxWidth()
-            .height(50.dp)
-            .padding(horizontal = 16.dp)
-    )
 }
 
 @Composable
@@ -323,10 +280,9 @@ private fun ChainSelectionScreenPreview(
         ChainSelectionScreen(
             chains = chains,
             awaitingState = false,
-            isSampleWalletInstalled = false,
             onChainClick = { _, _ -> },
             onConnectClick = {}
-        ) {}
+        )
     }
 }
 

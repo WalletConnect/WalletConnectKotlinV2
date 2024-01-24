@@ -89,10 +89,13 @@ fun SessionRequestRoute(navController: NavHostController, sessionRequestViewMode
                                     composableScope.launch(Dispatchers.Main) {
                                         navController.popBackStack(route = Route.Connections.path, inclusive = false)
                                     }
-                                    if (uri != null) {
+                                    if (uri != null && uri.toString().isNotEmpty()) {
                                         context.sendResponseDeepLink(uri)
+                                    } else {
+                                        composableScope.launch(Dispatchers.Main) {
+                                            navController.showSnackbar("Go back to your browser")
+                                        }
                                     }
-
                                 },
                                 onError = { error ->
                                     isConfirmLoading = false
@@ -112,8 +115,12 @@ fun SessionRequestRoute(navController: NavHostController, sessionRequestViewMode
                                     composableScope.launch(Dispatchers.Main) {
                                         navController.popBackStack(route = Route.Connections.path, inclusive = false)
                                     }
-                                    if (uri != null) {
+                                    if (uri != null && uri.toString().isNotEmpty()) {
                                         context.sendResponseDeepLink(uri)
+                                    } else {
+                                        composableScope.launch(Dispatchers.Main) {
+                                            navController.showSnackbar("Go back to your browser")
+                                        }
                                     }
                                 },
                                 onError = { error ->

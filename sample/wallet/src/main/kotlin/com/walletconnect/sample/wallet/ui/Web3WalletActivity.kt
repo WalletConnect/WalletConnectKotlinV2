@@ -15,11 +15,11 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
@@ -101,7 +101,7 @@ class Web3WalletActivity : AppCompatActivity() {
         web3walletViewModel.sessionRequestStateFlow
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
             .onEach {
-                if (it.arrayOfArgs.isNotEmpty()){
+                if (it.arrayOfArgs.isNotEmpty()) {
                     navController.navigate(Route.SessionRequest.path)
                 }
             }
@@ -132,6 +132,10 @@ class Web3WalletActivity : AppCompatActivity() {
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
+        if (intent?.dataString?.contains("wc:") == true) {
+            val uri = intent.dataString?.replace("wc:", "wc://")
+            intent.setData(uri?.toUri())
+        }
         navController.handleDeepLink(intent)
     }
 

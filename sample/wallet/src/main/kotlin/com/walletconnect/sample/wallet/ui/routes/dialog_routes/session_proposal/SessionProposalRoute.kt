@@ -164,12 +164,18 @@ private fun SessionProposalDialog(
                     sessionProposalViewModel.reject(sessionProposalUI.pubKey,
                         onSuccess = { redirect ->
                             isCancelLoading = false
-                            if (redirect.isNotEmpty()) {
-                                context.sendResponseDeepLink(redirect.toUri())
-                            }
                             coroutineScope.launch(Dispatchers.Main) {
                                 navController.popBackStack(route = Route.Connections.path, inclusive = false)
                             }
+
+                            if (redirect.isNotEmpty()) {
+                                context.sendResponseDeepLink(redirect.toUri())
+                            } else {
+                                coroutineScope.launch(Dispatchers.Main) {
+                                    navController.showSnackbar("Go back to your browser")
+                                }
+                            }
+
                         },
                         onError = { error ->
                             isCancelLoading = false
@@ -186,12 +192,16 @@ private fun SessionProposalDialog(
                     sessionProposalViewModel.approve(sessionProposalUI.pubKey,
                         onSuccess = { redirect ->
                             isConfirmLoading = false
-                            if (redirect.isNotEmpty()) {
-                                context.sendResponseDeepLink(redirect.toUri())
-                            }
-
                             coroutineScope.launch(Dispatchers.Main) {
                                 navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                            }
+
+                            if (redirect.isNotEmpty()) {
+                                context.sendResponseDeepLink(redirect.toUri())
+                            } else {
+                                coroutineScope.launch(Dispatchers.Main) {
+                                    navController.showSnackbar("Go back to your browser")
+                                }
                             }
                         },
                         onError = { error ->
