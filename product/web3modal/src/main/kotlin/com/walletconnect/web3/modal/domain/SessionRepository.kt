@@ -5,14 +5,9 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.walletconnect.android.internal.common.scope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.runBlocking
 
 private val SESSION_TOPIC = stringPreferencesKey("session_topic_key")
 private val SELECTED_CHAIN = stringPreferencesKey("selected_chain_key")
@@ -23,19 +18,13 @@ internal class SessionRepository(
     private val context: Context
 ) {
 
-    val sessionTopic: StateFlow<String?> = context.sessionStore.data
-        .map { preferences ->
-            preferences[SESSION_TOPIC]
-        }.stateIn(scope, started = SharingStarted.Lazily, null)
+    val sessionTopic: Flow<String?> = context.sessionStore.data.map { preferences -> preferences[SESSION_TOPIC] }
 
-    val selectedChain: StateFlow<String?> = context.sessionStore.data
-        .map { preferences ->
-            preferences[SELECTED_CHAIN]
-        }.stateIn(scope, started = SharingStarted.Lazily, null)
+    val selectedChain: Flow<String?> = context.sessionStore.data.map { preferences -> preferences[SELECTED_CHAIN] }
 
-    fun getSelectedChain(): String? = selectedChain.value
+    suspend fun getSelectedChain(): String? = selectedChain.first()
 
-    fun getSessionTopic(): String? = sessionTopic.value
+    suspend fun getSessionTopic(): String? = sessionTopic.first()
 
     suspend fun saveSessionTopic(topic: String) {
         context.sessionStore.edit { store ->

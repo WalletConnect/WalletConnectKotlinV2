@@ -8,7 +8,7 @@ import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.internal.utils.CoreValidator.isAccountIdCAIP10Compliant
 import com.walletconnect.android.internal.utils.CoreValidator.isChainIdCAIP2Compliant
 import com.walletconnect.android.internal.utils.CoreValidator.isNamespaceRegexCompliant
-import com.walletconnect.android.internal.utils.WEEK_IN_SECONDS
+import com.walletconnect.android.internal.utils.weekInSeconds
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.exceptions.NAMESPACE_ACCOUNTS_CAIP_10_MESSAGE
 import com.walletconnect.sign.common.exceptions.NAMESPACE_ACCOUNTS_WRONG_NAMESPACE_MESSAGE
@@ -122,7 +122,7 @@ internal object SignValidator {
     @JvmSynthetic
     internal inline fun validateSessionExtend(newExpiry: Long, currentExpiry: Long, onError: (ValidationError) -> Unit) {
         val extendedExpiry = newExpiry - currentExpiry
-        val maxExpiry = WEEK_IN_SECONDS
+        val maxExpiry = weekInSeconds
 
         if (newExpiry <= currentExpiry || extendedExpiry > maxExpiry) {
             onError(ValidationError.InvalidExtendRequest)

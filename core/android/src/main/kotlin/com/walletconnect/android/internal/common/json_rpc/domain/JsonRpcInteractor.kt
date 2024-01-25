@@ -88,7 +88,12 @@ internal class JsonRpcInteractor(
             return onFailure(e)
         }
 
-        val requestJson = serializer.serialize(payload) ?: return onFailure(IllegalStateException("JsonRpcInteractor: Unknown result params"))
+        val requestJson = try {
+            serializer.serialize(payload) ?: return onFailure(IllegalStateException("JsonRpcInteractor: Unknown result params"))
+        } catch (e: Exception) {
+            return onFailure(e)
+        }
+
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
             val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, envelopeType, participants)
 
@@ -116,16 +121,21 @@ internal class JsonRpcInteractor(
             return onFailure(e)
         }
 
-        val responseJson = serializer.serialize(response) ?: return onFailure(IllegalStateException("JsonRpcInteractor: Unknown result params"))
-        val encryptedResponse = chaChaPolyCodec.encrypt(topic, responseJson, envelopeType, participants)
-        relay.publish(topic.value, encryptedResponse, params.toRelay()) { result ->
-            result.fold(
-                onSuccess = {
-                    jsonRpcHistory.updateRequestWithResponse(response.id, responseJson)
-                    onSuccess()
-                },
-                onFailure = { error -> onFailure(error) }
-            )
+        try {
+            val responseJson = serializer.serialize(response) ?: return onFailure(IllegalStateException("JsonRpcInteractor: Unknown result params"))
+            val encryptedResponse = chaChaPolyCodec.encrypt(topic, responseJson, envelopeType, participants)
+
+            relay.publish(topic.value, encryptedResponse, params.toRelay()) { result ->
+                result.fold(
+                    onSuccess = {
+                        jsonRpcHistory.updateRequestWithResponse(response.id, responseJson)
+                        onSuccess()
+                    },
+                    onFailure = { error -> onFailure(error) }
+                )
+            }
+        } catch (e: Exception) {
+            return onFailure(e)
         }
     }
 
@@ -136,6 +146,7 @@ internal class JsonRpcInteractor(
         envelopeType: EnvelopeType,
         participants: Participants?,
         onFailure: (Throwable) -> Unit,
+        onSuccess: () -> Unit
     ) {
         val result = JsonRpcResponse.JsonRpcResult(id = request.id, result = clientParams)
 
@@ -143,7 +154,8 @@ internal class JsonRpcInteractor(
             onFailure = { error ->
                 logger.error("Cannot send the response, error: $error")
                 onFailure(error)
-            }
+            },
+            onSuccess = { onSuccess() }
         )
     }
 
@@ -155,6 +167,7 @@ internal class JsonRpcInteractor(
         envelopeType: EnvelopeType,
         participants: Participants?,
         onFailure: (Throwable) -> Unit,
+        onSuccess: () -> Unit
     ) {
         val result = JsonRpcResponse.JsonRpcResult(id = requestId, result = clientParams)
 
@@ -162,7 +175,8 @@ internal class JsonRpcInteractor(
             onFailure = { error ->
                 logger.error("Cannot send the response, error: $error")
                 onFailure(error)
-            }
+            },
+            onSuccess = { onSuccess() }
         )
     }
 

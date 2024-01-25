@@ -36,7 +36,8 @@ internal class SessionRequestVOJsonAdapterTest {
             "params": {
               "request": {
                 "method":"personal_sign",
-                "params": $params
+                "params": $params,
+                "expiry":1659532494915
               },
               "chainId":"eip155:1"
             }
@@ -46,6 +47,47 @@ internal class SessionRequestVOJsonAdapterTest {
     private val adapter by lazy { moshi.adapter(SignRpc.SessionRequest::class.java) }
     private val deserializedJson by lazy { adapter.fromJson(stringParamsWithNamedJsonArray) }
     private val serializedParams by lazy { requireNotNull(deserializedJson?.params?.request?.params) }
+
+    @Test
+    fun testParsingTronSignTransaction() {
+        params = """
+                {
+                  "raw_data": {
+                    "ref_block_bytes": "c8d3",
+                    "ref_block_hash": "4a2c1daa05f7f055",
+                    "expiration": 1704822203601,
+                    "contract": [
+                      {
+                        "type": "TriggerSmartContract",
+                        "parameter": {
+                          "type_url": "type.googleapis.com/protocol.TriggerSmartContract",
+                          "value": {
+                            "owner_address": "41f8c3736f15e64299365b82c18299a626839dd920",
+                            "contract_address": "41a614f803b6f d780986a42c78ec9c7f77e6ded13c",
+                            "data": "095ea7b3000000000000000000000000f8c3736f15e64299365b82c18299a626839dd92000000000000000000000000000000000000000000 000000000000000"
+                          }
+                        }
+                      }
+                    ],
+                    "timestamp": 1704786203601,
+                    "fee_limit": 100000000
+                  },
+                  "txID": "14ac8d0d22af0a12dab8bad8bcc2d464e9b17d479238c2009764a04acf0891ec",
+                  "signature": [
+                    "dcacdd73330b633633a0cd4b6fdb8350c5bf39cf0407e30142d43b8cf935f52c09c2f529c884f323f86cd27653cd70ea28014dfd8b172145772c2f390537faa300"
+                  ],
+                  "visible": false
+                }
+        """.trimIndent()
+
+        val expectedParamsJsonObj = JSONObject(params)
+        val actualParamsJsonObj = JSONObject(serializedParams)
+
+        assertEquals(expectedParamsJsonObj.length(), actualParamsJsonObj.length())
+        assertEquals(actualParamsJsonObj.getJSONArray("signature").get(0), expectedParamsJsonObj.getJSONArray("signature").get(0))
+
+        iterateJsonObjects(expectedParamsJsonObj, actualParamsJsonObj)
+    }
 
     @Test
     fun deserializeToNamedJsonArray() {
@@ -354,6 +396,20 @@ internal class SessionRequestVOJsonAdapterTest {
         val params =
             "[\"0x8e0E30e296961f476E01184274Ce85ae60184CB0\", \"$secondArg\"]"
         val request = SessionRequestVO(method = "eth_signTypedData", params = params)
+        val requestParams = SignParams.SessionRequestParams(chainId = "eip:155", request = request)
+        val sessionRequest = SignRpc.SessionRequest(params = requestParams)
+        val json = adapter.toJson(sessionRequest)
+
+        assertTrue(json.isNotEmpty())
+    }
+
+    @Test
+    fun testSeralizationOfEthSignTypedDataWithExpiry() {
+        val secondArg =
+            """{\"types\":{\"EIP712Domain\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"version\",\"type\":\"string\"},{\"name\":\"chainId\",\"type\":\"uint256\"},{\"name\":\"verifyingContract\",\"type\":\"address\"}],\"Person\":[{\"name\":\"name\",\"type\":\"string\"},{\"name\":\"wallet\",\"type\":\"address\"}],\"Mail\":[{\"name\":\"from\",\"type\":\"Person\"},{\"name\": \"to\",\"type\":\"Person\"},{\"name\":\"contents\",\"type\":\"string\"}]},\"primaryType\":\"Mail\",\"domain\":{\"name\":\"Ether Mail\",\"version\":\"1\",\"chainId\":1,\"verifyingContract\":\"0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC\"},\"message\":{\"from\": {\"name\":\"Cow\",\"wallet\":\"0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826\"},\"to\":{\"name\":\"Bob\",\"wallet\":\"0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB\"},\"contents\":\"Hello, Bob!\"}}"""
+        val params =
+            "[\"0x8e0E30e296961f476E01184274Ce85ae60184CB0\", \"$secondArg\"]"
+        val request = SessionRequestVO(method = "eth_signTypedData", params = params, expiryTimestamp = 1659532494915)
         val requestParams = SignParams.SessionRequestParams(chainId = "eip:155", request = request)
         val sessionRequest = SignRpc.SessionRequest(params = requestParams)
         val json = adapter.toJson(sessionRequest)

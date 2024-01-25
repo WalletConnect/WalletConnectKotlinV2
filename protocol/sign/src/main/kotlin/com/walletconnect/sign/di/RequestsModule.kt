@@ -16,7 +16,15 @@ import org.koin.dsl.module
 @JvmSynthetic
 internal fun requestsModule() = module {
 
-    single { OnSessionProposalUseCase(pairingController = get(), jsonRpcInteractor = get(), proposalStorageRepository = get(), resolveAttestationIdUseCase = get()) }
+    single {
+        OnSessionProposalUseCase(
+            pairingController = get(),
+            jsonRpcInteractor = get(),
+            proposalStorageRepository = get(),
+            resolveAttestationIdUseCase = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER))
+        )
+    }
 
     single { OnSessionAuthenticateUseCase(jsonRpcInteractor = get(), resolveAttestationIdUseCase = get()) }
 
@@ -28,19 +36,28 @@ internal fun requestsModule() = module {
             metadataStorageRepository = get(),
             sessionStorageRepository = get(),
             crypto = get(),
-            selfAppMetaData = get()
+            selfAppMetaData = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }
 
-    single { OnSessionRequestUseCase(metadataStorageRepository = get(), sessionStorageRepository = get(), jsonRpcInteractor = get(), resolveAttestationIdUseCase = get()) }
+    single {
+        OnSessionRequestUseCase(
+            metadataStorageRepository = get(),
+            sessionStorageRepository = get(),
+            jsonRpcInteractor = get(),
+            resolveAttestationIdUseCase = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER))
+        )
+    }
 
     single { OnSessionDeleteUseCase(jsonRpcInteractor = get(), crypto = get(), sessionStorageRepository = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
 
-    single { OnSessionEventUseCase(jsonRpcInteractor = get(), sessionStorageRepository = get()) }
+    single { OnSessionEventUseCase(jsonRpcInteractor = get(), sessionStorageRepository = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
 
-    single { OnSessionUpdateUseCase(jsonRpcInteractor = get(), sessionStorageRepository = get()) }
+    single { OnSessionUpdateUseCase(jsonRpcInteractor = get(), sessionStorageRepository = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
 
-    single { OnSessionExtendUseCase(jsonRpcInteractor = get(), sessionStorageRepository = get()) }
+    single { OnSessionExtendUseCase(jsonRpcInteractor = get(), sessionStorageRepository = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
 
-    single { OnPingUseCase(jsonRpcInteractor = get()) }
+    single { OnPingUseCase(jsonRpcInteractor = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
 }

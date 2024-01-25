@@ -1,4 +1,4 @@
-import kotlin.Boolean;
+ import kotlin.Boolean;
 
 CREATE TABLE Pairing (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -8,20 +8,21 @@ CREATE TABLE Pairing (
     relay_data TEXT,
     uri TEXT NOT NULL,
     methods TEXT NOT NULL,
-    is_active INTEGER AS Boolean NOT NULL
+    is_active INTEGER AS Boolean NOT NULL,
+    is_proposal_received INTEGER AS Boolean DEFAULT 1
 );
 
 insertOrAbortPairing:
-INSERT OR ABORT INTO Pairing(topic, expiry, relay_protocol,  relay_data, uri, methods, is_active)
-VALUES (?,?,?,?,?,?, ?);
+INSERT OR ABORT INTO Pairing(topic, expiry, relay_protocol,  relay_data, uri, methods, is_active, is_proposal_received)
+VALUES (?,?,?,?,?,?, ?, ?);
 
 getListOfPairing:
-SELECT pd.topic, pd.expiry, pd.relay_protocol, pd.relay_data, pd.uri, pd.methods, pd.is_active, mdd_peer.name, mdd_peer.description, mdd_peer.url, mdd_peer.icons, mdd_peer.native
+SELECT pd.topic, pd.expiry, pd.relay_protocol, pd.relay_data, pd.uri, pd.methods, pd.is_active, pd.is_proposal_received, mdd_peer.name, mdd_peer.description, mdd_peer.url, mdd_peer.icons, mdd_peer.native
 FROM Pairing pd
     LEFT JOIN MetaData mdd_peer ON pd.topic = mdd_peer.sequence_topic AND mdd_peer.type = "PEER";
 
 getPairingByTopic:
-SELECT pd.topic, pd.expiry, pd.relay_protocol, pd.relay_data, pd.uri, pd.methods, pd.is_active, mdd_peer.name, mdd_peer.description, mdd_peer.url, mdd_peer.icons, mdd_peer.native
+SELECT pd.topic, pd.expiry, pd.relay_protocol, pd.relay_data, pd.uri, pd.methods, pd.is_active, pd.is_proposal_received, mdd_peer.name, mdd_peer.description, mdd_peer.url, mdd_peer.icons, mdd_peer.native
 FROM Pairing pd
     LEFT JOIN MetaData mdd_peer ON pd.topic = mdd_peer.sequence_topic AND mdd_peer.type = "PEER"
 WHERE ? = topic;
@@ -33,6 +34,11 @@ WHERE ? = topic;
 activatePairing:
 UPDATE OR ABORT Pairing
 SET expiry = ?, is_active = ?
+WHERE topic = ?;
+
+setProposalReceived:
+UPDATE OR ABORT Pairing
+SET is_proposal_received = ?
 WHERE topic = ?;
 
 hasTopic:

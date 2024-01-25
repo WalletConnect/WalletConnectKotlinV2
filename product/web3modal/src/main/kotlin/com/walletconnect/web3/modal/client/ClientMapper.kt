@@ -25,6 +25,11 @@ internal fun Sign.Model.DeletedSession.toModal() = when (this) {
 
 internal fun Sign.Model.SessionRequestResponse.toModal() = Modal.Model.SessionRequestResponse(topic, chainId, method, result.toModal())
 
+internal fun Sign.Model.JsonRpcResponse.toModal() = when (this) {
+    is Sign.Model.JsonRpcResponse.JsonRpcError -> Modal.Model.JsonRpcResponse.JsonRpcError(id, code, message)
+    is Sign.Model.JsonRpcResponse.JsonRpcResult -> Modal.Model.JsonRpcResponse.JsonRpcResult(id, result)
+}
+
 @JvmSynthetic
 internal fun Sign.Model.SessionAuthenticateResponse.toModal(): Modal.Model.SessionAuthenticateResponse =
     when (this) {
@@ -32,10 +37,11 @@ internal fun Sign.Model.SessionAuthenticateResponse.toModal(): Modal.Model.Sessi
         is Sign.Model.SessionAuthenticateResponse.Error -> Modal.Model.SessionAuthenticateResponse.Error(id, code, message)
     }
 
-internal fun Sign.Model.JsonRpcResponse.toModal() = when (this) {
-    is Sign.Model.JsonRpcResponse.JsonRpcError -> Modal.Model.JsonRpcResponse.JsonRpcError(id, code, message)
-    is Sign.Model.JsonRpcResponse.JsonRpcResult -> Modal.Model.JsonRpcResponse.JsonRpcResult(id, result)
-}
+@JvmSynthetic
+internal fun Sign.Model.ExpiredProposal.toModal(): Modal.Model.ExpiredProposal = Modal.Model.ExpiredProposal(pairingTopic, proposerPublicKey)
+
+@JvmSynthetic
+internal fun Sign.Model.ExpiredRequest.toModal(): Modal.Model.ExpiredRequest = Modal.Model.ExpiredRequest(topic, id)
 
 @JvmSynthetic
 internal fun List<Sign.Model.Cacao>.toClient(): List<Modal.Model.Cacao> = this.map {

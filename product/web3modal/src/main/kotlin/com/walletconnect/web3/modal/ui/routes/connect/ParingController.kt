@@ -16,7 +16,7 @@ internal interface ParingController {
     val uri: String
 }
 
-internal class PairingControllerImpl: ParingController {
+internal class PairingControllerImpl : ParingController {
 
     private var _pairing: Core.Model.Pairing? = null
 
@@ -38,7 +38,7 @@ internal class PairingControllerImpl: ParingController {
             )
             Web3Modal.connect(
                 connect = connectParams,
-                onSuccess = { onSuccess(pairing.uri) },
+                onSuccess = { url -> onSuccess(url) },
                 onError = { onError(it.throwable) }
             )
         } catch (e: Exception) {

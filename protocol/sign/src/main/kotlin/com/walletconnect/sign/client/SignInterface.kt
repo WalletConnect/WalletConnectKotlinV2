@@ -13,6 +13,8 @@ interface SignInterface {
         fun onSessionUpdateResponse(sessionUpdateResponse: Sign.Model.SessionUpdateResponse)
 
         //Utils
+        fun onProposalExpired(proposal: Sign.Model.ExpiredProposal)
+        fun onRequestExpired(request: Sign.Model.ExpiredRequest)
         fun onConnectionStateChange(state: Sign.Model.ConnectionState)
         fun onError(error: Sign.Model.Error)
     }
@@ -30,6 +32,8 @@ interface SignInterface {
         fun onSessionAuthenticateResponse(sessionAuthenticateResponse: Sign.Model.SessionAuthenticateResponse)
 
         // Utils
+        fun onProposalExpired(proposal: Sign.Model.ExpiredProposal)
+        fun onRequestExpired(request: Sign.Model.ExpiredRequest)
         fun onConnectionStateChange(state: Sign.Model.ConnectionState)
         fun onError(error: Sign.Model.Error)
     }
@@ -38,7 +42,19 @@ interface SignInterface {
     fun setWalletDelegate(delegate: WalletDelegate)
     fun setDappDelegate(delegate: DappDelegate)
 
-    fun connect(connect: Sign.Params.Connect, onSuccess: () -> Unit, onError: (Sign.Model.Error) -> Unit)
+    @Deprecated(
+        message = "Replaced with the same name method but onSuccess callback returns a Pairing URL",
+        replaceWith = ReplaceWith(expression = "fun connect(connect: Sign.Params.Connect, onSuccess: (String) -> Unit, onError: (Sign.Model.Error) -> Unit)")
+    )
+    fun connect(
+        connect: Sign.Params.Connect, onSuccess: () -> Unit,
+        onError: (Sign.Model.Error) -> Unit
+    )
+
+    fun connect(
+        connect: Sign.Params.Connect, onSuccess: (String) -> Unit,
+        onError: (Sign.Model.Error) -> Unit
+    )
 
     fun sessionAuthenticate(authenticate: Sign.Params.Authenticate, onSuccess: () -> Unit, onError: (Sign.Model.Error) -> Unit)
 

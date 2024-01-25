@@ -2,6 +2,7 @@ package com.walletconnect.sign.engine.use_case.calls
 
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.model.AppMetaData
+import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
@@ -43,7 +44,8 @@ class ProposeSessionUseCaseTest {
                 topic = Topic("topic"),
                 relay = RelayProtocolOptions(),
                 symmetricKey = SymmetricKey("symmetricKey"),
-                registeredMethods = ""
+                registeredMethods = "",
+                expiry = Expiry(12345678L)
             ),
             onSuccess = {
                 fail("onSuccess should not be called since should have validation failed")

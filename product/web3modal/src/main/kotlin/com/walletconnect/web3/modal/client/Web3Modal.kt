@@ -46,6 +46,8 @@ object Web3Modal {
         fun onSessionAuthenticateResponse(sessionUpdateResponse: Modal.Model.SessionAuthenticateResponse)
 
         // Utils
+        fun onProposalExpired(proposal: Modal.Model.ExpiredProposal)
+        fun onRequestExpired(request: Modal.Model.ExpiredRequest)
         fun onConnectionStateChange(state: Modal.Model.ConnectionState)
         fun onError(error: Modal.Model.Error)
     }
@@ -87,15 +89,14 @@ object Web3Modal {
         runCatching {
             wcKoinApp.modules(web3ModalModule())
             setInternalDelegate(Web3ModalDelegate)
-        }.onFailure { error -> return@onInitializedClient onError(Modal.Model.Error(error)) }
-        onSuccess()
+        }
+            .onFailure { error -> return@onInitializedClient onError(Modal.Model.Error(error)) }
+            .onSuccess { onSuccess() }
     }
 
     fun setChains(chains: List<Modal.Model.Chain>) {
         this.chains = chains
     }
-
-    fun getSelectedChain() = getSelectedChainUseCase()?.toChain()
 
     internal fun getSelectedChainOrFirst() = getSelectedChain() ?: chains.first()
 
@@ -116,6 +117,8 @@ object Web3Modal {
                 is Modal.Model.SessionEvent -> delegate.onSessionEvent(event)
                 is Modal.Model.SessionRequestResponse -> delegate.onSessionRequestResponse(event)
                 is Modal.Model.UpdatedSession -> delegate.onSessionUpdate(event)
+                is Modal.Model.ExpiredRequest -> delegate.onRequestExpired(event)
+                is Modal.Model.ExpiredProposal -> delegate.onProposalExpired(event)
                 is Modal.Model.SessionAuthenticateResponse -> delegate.onSessionAuthenticateResponse(event)
                 else -> Unit
             }
@@ -124,6 +127,7 @@ object Web3Modal {
 
     @Throws(IllegalStateException::class)
     private fun setInternalDelegate(delegate: ModalDelegate) {
+        Web3ModalDelegate.sessionTopic = getSessionTopicUseCase()
         val signDelegate = object : SignClient.DappDelegate {
             override fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession) {
                 delegate.onSessionApproved(approvedSession.toModal())
@@ -146,12 +150,19 @@ object Web3Modal {
             }
 
             override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {
-                scope.launch { deleteSessionDataUseCase() }
                 delegate.onSessionDelete(deletedSession.toModal())
             }
 
             override fun onSessionRequestResponse(response: Sign.Model.SessionRequestResponse) {
                 delegate.onSessionRequestResponse(response.toModal())
+            }
+
+            override fun onProposalExpired(proposal: Sign.Model.ExpiredProposal) {
+                delegate.onProposalExpired(proposal.toModal())
+            }
+
+            override fun onRequestExpired(request: Sign.Model.ExpiredRequest) {
+                delegate.onRequestExpired(request.toModal())
             }
 
             override fun onSessionAuthenticateResponse(sessionAuthenticateResponse: Sign.Model.SessionAuthenticateResponse) {
@@ -169,6 +180,10 @@ object Web3Modal {
         SignClient.setDappDelegate(signDelegate)
     }
 
+    @Deprecated(
+        message = "Replaced with the same name method but onSuccess callback returns a Pairing URL",
+        replaceWith = ReplaceWith(expression = "fun connect(connect: Modal.Params.Connect, onSuccess: (String) -> Unit, onError: (Modal.Model.Error) -> Unit)")
+    )
     internal fun connect(
         connect: Modal.Params.Connect,
         onSuccess: () -> Unit,
@@ -178,6 +193,18 @@ object Web3Modal {
             connect.toSign(),
             onSuccess
         ) { onError(it.toModal()) }
+    }
+
+    fun connect(
+        connect: Modal.Params.Connect,
+        onSuccess: (String) -> Unit,
+        onError: (Modal.Model.Error) -> Unit
+    ) {
+        SignClient.connect(
+            connect = connect.toSign(),
+            onSuccess = { url -> onSuccess(url) },
+            onError = { onError(it.toModal()) }
+        )
     }
 
     fun authenticate(
@@ -236,6 +263,12 @@ object Web3Modal {
             { onError(it.toModal()) }
         )
     }
+
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+    fun getSelectedChain() = getSelectedChainUseCase()?.toChain()
 
     /**
      * Caution: This function is blocking and runs on the current thread.

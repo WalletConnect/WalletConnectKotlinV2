@@ -66,6 +66,8 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
                 is EngineDO.SettledSessionResponse -> delegate.onSessionSettleResponse(event.toClientSettledSessionResponse())
                 is EngineDO.SessionUpdateNamespacesResponse -> delegate.onSessionUpdateResponse(event.toClientUpdateSessionNamespacesResponse())
                 //Utils
+                is EngineDO.ExpiredProposal -> delegate.onProposalExpired(event.toClient())
+                is EngineDO.ExpiredRequest -> delegate.onRequestExpired(event.toClient())
                 is ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
                 is SDKError -> delegate.onError(event.toClientError())
             }
@@ -88,12 +90,18 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
                 is EngineDO.SessionPayloadResponse -> delegate.onSessionRequestResponse(event.toClientSessionPayloadResponse())
                 is EngineDO.SessionAuthenticateResponse -> delegate.onSessionAuthenticateResponse(event.toClientSessionAuthenticateResponse())
                 //Utils
+                is EngineDO.ExpiredProposal -> delegate.onProposalExpired(event.toClient())
+                is EngineDO.ExpiredRequest -> delegate.onRequestExpired(event.toClient())
                 is ConnectionState -> delegate.onConnectionStateChange(event.toClientConnectionState())
                 is SDKError -> delegate.onError(event.toClientError())
             }
         }.launchIn(scope)
     }
 
+    @Deprecated(
+        message = "Replaced with the same name method but onSuccess callback returns a Pairing URL",
+        replaceWith = ReplaceWith(expression = "fun connect(connect: Sign.Params.Connect, onSuccess: (String) -> Unit, onError: (Sign.Model.Error) -> Unit)")
+    )
     @Throws(IllegalStateException::class)
     override fun connect(
         connect: Sign.Params.Connect,
@@ -109,6 +117,29 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
                     connect.properties,
                     connect.pairing.toPairing(), onSuccess
                 ) { error -> onError(Sign.Model.Error(error)) }
+            } catch (error: Exception) {
+                onError(Sign.Model.Error(error))
+            }
+        }
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun connect(
+        connect: Sign.Params.Connect,
+        onSuccess: (String) -> Unit,
+        onError: (Sign.Model.Error) -> Unit,
+    ) {
+        checkEngineInitialization()
+        scope.launch {
+            try {
+                signEngine.proposeSession(
+                    connect.namespaces?.toMapOfEngineNamespacesRequired(),
+                    connect.optionalNamespaces?.toMapOfEngineNamespacesOptional(),
+                    connect.properties,
+                    connect.pairing.toPairing(),
+                    onSuccess = { onSuccess(connect.pairing.uri) },
+                    onFailure = { error -> onError(Sign.Model.Error(error)) }
+                )
             } catch (error: Exception) {
                 onError(Sign.Model.Error(error))
             }

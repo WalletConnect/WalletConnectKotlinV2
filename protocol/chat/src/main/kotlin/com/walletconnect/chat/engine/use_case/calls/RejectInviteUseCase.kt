@@ -7,7 +7,7 @@ import com.walletconnect.android.internal.common.model.MissingKeyException
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
+import com.walletconnect.android.internal.utils.monthInSeconds
 import com.walletconnect.android.internal.utils.getInviteTag
 import com.walletconnect.chat.common.exceptions.InviteWasAlreadyRespondedTo
 import com.walletconnect.chat.common.exceptions.MissingInviteRequestException
@@ -45,7 +45,7 @@ internal class RejectInviteUseCase(
                 val rejectTopic = keyManagementRepository.getTopicFromKey(symmetricKey)
                 keyManagementRepository.setKey(symmetricKey, rejectTopic.value)
 
-                val irnParams = IrnParams(Tags.CHAT_INVITE_RESPONSE, Ttl(MONTH_IN_SECONDS))
+                val irnParams = IrnParams(Tags.CHAT_INVITE_RESPONSE, Ttl(monthInSeconds))
                 val peerError = PeerError.UserRejectedInvitation("Invitation rejected by a user")
                 val responseParams = JsonRpcResponse.JsonRpcError(jsonRpcHistoryEntry.id, error = JsonRpcResponse.Error(peerError.code, peerError.message))
                 jsonRpcInteractor.publishJsonRpcResponse(rejectTopic, irnParams, responseParams, {}, { error -> return@publishJsonRpcResponse onError(error) })

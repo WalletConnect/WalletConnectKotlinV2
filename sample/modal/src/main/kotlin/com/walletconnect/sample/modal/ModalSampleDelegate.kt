@@ -75,6 +75,18 @@ object ModalSampleDelegate : Web3Modal.ModalDelegate {
         TODO("Not yet implemented")
     }
 
+    override fun onProposalExpired(proposal: Modal.Model.ExpiredProposal) {
+        scope.launch {
+            _wcEventModels.emit(proposal)
+        }
+    }
+
+    override fun onRequestExpired(request: Modal.Model.ExpiredRequest) {
+        scope.launch {
+            _wcEventModels.emit(request)
+        }
+    }
+
     fun deselectAccountDetails() {
         selectedSessionTopic = null
     }

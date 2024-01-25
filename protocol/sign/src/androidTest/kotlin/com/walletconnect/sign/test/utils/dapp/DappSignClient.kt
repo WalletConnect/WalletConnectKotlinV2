@@ -17,7 +17,7 @@ val dappClientConnect = { pairing: Core.Model.Pairing ->
     val connectParams = Sign.Params.Connect(namespaces = proposalNamespaces, optionalNamespaces = null, properties = null, pairing = pairing)
     DappSignClient.connect(
         connectParams,
-        onSuccess = { Timber.d("DappClient: connect onSuccess") },
+        onSuccess = { url -> Timber.d("DappClient: connect onSuccess, url: $url") },
         onError = ::globalOnError
     )
 }

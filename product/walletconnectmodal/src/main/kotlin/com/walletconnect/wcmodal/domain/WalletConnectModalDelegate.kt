@@ -57,6 +57,18 @@ internal object WalletConnectModalDelegate : WalletConnectModal.ModalDelegate {
         }
     }
 
+    override fun onProposalExpired(proposal: Modal.Model.ExpiredProposal) {
+        scope.launch {
+            _wcEventModels.emit(proposal)
+        }
+    }
+
+    override fun onRequestExpired(request: Modal.Model.ExpiredRequest) {
+        scope.launch {
+            _wcEventModels.emit(request)
+        }
+    }
+
     override fun onSessionAuthenticateResponse(sessionUpdateResponse: Modal.Model.SessionAuthenticateResponse) {
         scope.launch {
             _wcEventModels.emit(sessionUpdateResponse)

@@ -19,3 +19,5 @@ class InvalidSignParamsType : WalletConnectException(INVALID_SIGN_PARAMS_TYPE)
 
 class MissingSessionAuthenticateRequest : WalletConnectException(MISSING_SESSION_AUTHENTICATE_REQUEST)
 class InvalidCacaoException : WalletConnectException(INVALID_CACAO_EXCEPTION)
+
+class SessionProposalExpiredException(override val message: String?) : WalletConnectException(message)

@@ -10,7 +10,7 @@ import com.walletconnect.android.internal.common.model.params.CoreAuthParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
-import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
+import com.walletconnect.android.internal.utils.monthInSeconds
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.utils.toClient
@@ -58,7 +58,7 @@ internal class OnAuthRequestResponseUseCase(
     }
 
     private fun updatePairing(topic: Topic, requestParams: AuthParams.RequestParams) = with(pairingHandler) {
-        updateExpiry(Core.Params.UpdateExpiry(topic.value, Expiry(MONTH_IN_SECONDS)))
+        updateExpiry(Core.Params.UpdateExpiry(topic.value, Expiry(monthInSeconds)))
         updateMetadata(Core.Params.UpdateMetadata(topic.value, requestParams.requester.metadata.toClient(), AppMetaDataType.PEER))
         activate(Core.Params.Activate(topic.value))
     }

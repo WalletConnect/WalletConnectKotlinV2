@@ -22,6 +22,8 @@ import com.walletconnect.sign.common.model.Request
 import com.walletconnect.sign.common.model.vo.clientsync.common.PayloadParams
 import com.walletconnect.sign.common.model.vo.clientsync.common.Requester
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipant
+import com.walletconnect.sign.common.model.PendingRequest
+import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.common.model.vo.proposal.ProposalVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
@@ -75,7 +77,8 @@ internal fun SignParams.SessionProposeParams.toVO(topic: Topic, requestId: Long)
         properties = properties,
         proposerPublicKey = proposer.publicKey,
         relayProtocol = relays.first().protocol,
-        relayData = relays.first().data
+        relayData = relays.first().data,
+        expiry = if (expiryTimestamp != null) Expiry(expiryTimestamp) else null
     )
 
 @JvmSynthetic
@@ -87,7 +90,7 @@ internal fun ProposalVO.toSessionProposeRequest(): WCRequest =
         params = SignParams.SessionProposeParams(
             relays = listOf(RelayProtocolOptions(protocol = relayProtocol, data = relayData)),
             proposer = SessionProposer(proposerPublicKey, AppMetaData(name = name, description = description, url = url, icons = icons)),
-            requiredNamespaces = requiredNamespaces, optionalNamespaces = optionalNamespaces, properties = properties
+            requiredNamespaces = requiredNamespaces, optionalNamespaces = optionalNamespaces, properties = properties, expiryTimestamp = expiry?.seconds
         )
     )
 
@@ -105,7 +108,7 @@ internal fun SignParams.SessionRequestParams.toEngineDO(
             method = this.request.method,
             params = this.request.params
         ),
-        this.request.expiry
+        if (this.request.expiryTimestamp != null) Expiry(this.request.expiryTimestamp) else null
     )
 
 @JvmSynthetic
@@ -159,7 +162,8 @@ internal fun ProposalVO.toSessionSettleParams(
         relay = RelayProtocolOptions(relayProtocol, relayData),
         controller = selfParticipant,
         namespaces = namespaces.toMapOfNamespacesVOSession(),
-        expiry = sessionExpiry
+        expiry = sessionExpiry,
+        properties = properties
     )
 
 @JvmSynthetic
@@ -170,12 +174,14 @@ internal fun toSessionProposeParams(
     properties: Map<String, String>?,
     selfPublicKey: PublicKey,
     appMetaData: AppMetaData,
+    expiry: Expiry
 ) = SignParams.SessionProposeParams(
     relays = relays ?: listOf(RelayProtocolOptions()),
     proposer = SessionProposer(selfPublicKey.keyAsHex, appMetaData),
     requiredNamespaces = requiredNamespaces.toNamespacesVORequired(),
     optionalNamespaces = optionalNamespaces.toNamespacesVOOptional(),
-    properties = properties
+    properties = properties,
+    expiryTimestamp = expiry.seconds
 )
 
 @JvmSynthetic
@@ -194,6 +200,12 @@ internal fun ProposalVO.toEngineDO(): EngineDO.SessionProposal =
         proposerPublicKey = proposerPublicKey,
         properties = properties
     )
+
+@JvmSynthetic
+internal fun ProposalVO.toExpiredProposal(): EngineDO.ExpiredProposal = EngineDO.ExpiredProposal(pairingTopic.value, proposerPublicKey)
+
+@JvmSynthetic
+internal fun PendingRequest<String>.toExpiredSessionRequest() = EngineDO.ExpiredRequest(topic.value, id)
 
 private fun convertToURI(it: String) = try {
     URI(it)
