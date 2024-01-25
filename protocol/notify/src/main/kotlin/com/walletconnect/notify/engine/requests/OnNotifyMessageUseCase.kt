@@ -15,7 +15,7 @@ import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
-import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
+import com.walletconnect.android.internal.utils.monthInSeconds
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.foundation.util.jwt.decodeDidWeb
@@ -80,14 +80,14 @@ internal class OnNotifyMessageUseCase(
                     ).getOrThrow()
 
                     val messageResponseParams = ChatNotifyResponseAuthParams.ResponseAuth(responseAuth = messageResponseJwt.value)
-                    val irnParams = IrnParams(Tags.NOTIFY_MESSAGE_RESPONSE, Ttl(MONTH_IN_SECONDS))
+                    val irnParams = IrnParams(Tags.NOTIFY_MESSAGE_RESPONSE, Ttl(monthInSeconds))
 
                     jsonRpcInteractor.respondWithParams(request.id, request.topic, messageResponseParams, irnParams) { error -> logger.error(error) }
                 }.getOrElse { error ->
                     logger.error(error)
                     _events.emit(SDKError(error))
                     jsonRpcInteractor.respondWithError(
-                        irnParams = IrnParams(Tags.NOTIFY_MESSAGE_RESPONSE, Ttl(MONTH_IN_SECONDS)), request = request,
+                        irnParams = IrnParams(Tags.NOTIFY_MESSAGE_RESPONSE, Ttl(monthInSeconds)), request = request,
                         error = Uncategorized.GenericError("Cannot handle the notify message: ${error.message}, topic: ${request.topic}"),
                     )
                 }

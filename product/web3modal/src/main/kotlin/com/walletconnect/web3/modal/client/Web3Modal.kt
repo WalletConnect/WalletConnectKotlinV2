@@ -45,6 +45,8 @@ object Web3Modal {
         fun onSessionRequestResponse(response: Modal.Model.SessionRequestResponse)
 
         // Utils
+        fun onProposalExpired(proposal: Modal.Model.ExpiredProposal)
+        fun onRequestExpired(request: Modal.Model.ExpiredRequest)
         fun onConnectionStateChange(state: Modal.Model.ConnectionState)
         fun onError(error: Modal.Model.Error)
     }
@@ -114,6 +116,8 @@ object Web3Modal {
                 is Modal.Model.SessionEvent -> delegate.onSessionEvent(event)
                 is Modal.Model.SessionRequestResponse -> delegate.onSessionRequestResponse(event)
                 is Modal.Model.UpdatedSession -> delegate.onSessionUpdate(event)
+                is Modal.Model.ExpiredRequest -> delegate.onRequestExpired(event)
+                is Modal.Model.ExpiredProposal -> delegate.onProposalExpired(event)
                 else -> Unit
             }
         }.launchIn(scope)
@@ -121,6 +125,7 @@ object Web3Modal {
 
     @Throws(IllegalStateException::class)
     private fun setInternalDelegate(delegate: ModalDelegate) {
+        Web3ModalDelegate.sessionTopic = getSessionTopicUseCase()
         val signDelegate = object : SignClient.DappDelegate {
             override fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession) {
                 delegate.onSessionApproved(approvedSession.toModal())
@@ -143,12 +148,19 @@ object Web3Modal {
             }
 
             override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {
-                scope.launch { deleteSessionDataUseCase() }
                 delegate.onSessionDelete(deletedSession.toModal())
             }
 
             override fun onSessionRequestResponse(response: Sign.Model.SessionRequestResponse) {
                 delegate.onSessionRequestResponse(response.toModal())
+            }
+
+            override fun onProposalExpired(proposal: Sign.Model.ExpiredProposal) {
+                delegate.onProposalExpired(proposal.toModal())
+            }
+
+            override fun onRequestExpired(request: Sign.Model.ExpiredRequest) {
+                delegate.onRequestExpired(request.toModal())
             }
 
             override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {
@@ -162,6 +174,10 @@ object Web3Modal {
         SignClient.setDappDelegate(signDelegate)
     }
 
+    @Deprecated(
+        message = "Replaced with the same name method but onSuccess callback returns a Pairing URL",
+        replaceWith = ReplaceWith(expression = "fun connect(connect: Modal.Params.Connect, onSuccess: (String) -> Unit, onError: (Modal.Model.Error) -> Unit)")
+    )
     internal fun connect(
         connect: Modal.Params.Connect,
         onSuccess: () -> Unit,
@@ -171,6 +187,18 @@ object Web3Modal {
             connect.toSign(),
             onSuccess,
             { onError(it.toModal()) }
+        )
+    }
+
+    fun connect(
+        connect: Modal.Params.Connect,
+        onSuccess: (String) -> Unit,
+        onError: (Modal.Model.Error) -> Unit
+    ) {
+        SignClient.connect(
+            connect = connect.toSign(),
+            onSuccess = { url -> onSuccess(url) },
+            onError = { onError(it.toModal()) }
         )
     }
 

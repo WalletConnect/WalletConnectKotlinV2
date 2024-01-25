@@ -2,7 +2,6 @@ package com.walletconnect.android
 
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.Expiry
-import com.walletconnect.android.internal.common.model.Namespace
 
 object Core {
     sealed interface Listeners {
@@ -23,6 +22,9 @@ object Core {
         data class AppMetaData(val name: String, val description: String, val url: String, val icons: List<String>, val redirect: String?, val verifyUrl: String? = null) : Model()
 
         data class DeletedPairing(val topic: String, val reason: String) : Model()
+        data class ExpiredPairing(val pairing: Pairing) : Model()
+
+        data class PairingState(val isPairingState: Boolean) : Model()
 
         data class Pairing(
             val topic: String,
@@ -130,6 +132,8 @@ object Core {
         data class Disconnect(val topic: String) : Params()
 
         data class Activate(val topic: String) : Params()
+
+        data class ProposalReceived(val topic: String) : Params()
 
         data class UpdateExpiry(val topic: String, val expiry: Expiry) : Params()
 

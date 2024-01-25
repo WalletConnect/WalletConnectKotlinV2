@@ -2,6 +2,7 @@ package com.walletconnect.wcmodal.client
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
+import java.net.URI
 
 object Modal {
 
@@ -11,6 +12,7 @@ object Modal {
             fun onError(pingError: Model.Ping.Error)
         }
     }
+
     sealed class Params {
         data class Init(
             val core: CoreClient,
@@ -24,7 +26,7 @@ object Modal {
             val optionalNamespaces: Map<String, Model.Namespace.Proposal>? = null,
             val properties: Map<String, String>? = null,
             val pairing: Core.Model.Pairing
-        ): Params()
+        ) : Params()
 
         data class Disconnect(val sessionTopic: String) : Params()
 
@@ -103,6 +105,25 @@ object Modal {
             val method: String,
             val result: JsonRpcResponse,
         ) : Model()
+
+        data class ExpiredProposal(val pairingTopic: String, val proposerPublicKey: String) : Model()
+
+        data class SessionProposal(
+            val pairingTopic: String,
+            val name: String,
+            val description: String,
+            val url: String,
+            val icons: List<URI>,
+            val redirect: String,
+            val requiredNamespaces: Map<String, Namespace.Proposal>,
+            val optionalNamespaces: Map<String, Namespace.Proposal>,
+            val properties: Map<String, String>?,
+            val proposerPublicKey: String,
+            val relayProtocol: String,
+            val relayData: String?,
+        ) : Model()
+
+        data class ExpiredRequest(val topic: String, val id: Long) : Model()
 
         data class ConnectionState(
             val isAvailable: Boolean,

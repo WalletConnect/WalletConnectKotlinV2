@@ -1,6 +1,7 @@
 package com.walletconnect.android.pairing.handler
 
 import com.walletconnect.android.Core
+import com.walletconnect.android.internal.common.model.Pairing
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.pairing.engine.domain.PairingEngine
@@ -13,7 +14,7 @@ import org.koin.core.KoinApplication
 
 internal class PairingController(private val koinApp: KoinApplication = wcKoinApp) : PairingControllerInterface {
     private lateinit var pairingEngine: PairingEngine
-    override val topicExpiredFlow: SharedFlow<Topic> by lazy { pairingEngine.topicExpiredFlow }
+    override val deletedPairingFlow: SharedFlow<Pairing> by lazy { pairingEngine.deletedPairingFlow }
     override val findWrongMethodsFlow: Flow<SDKError> by lazy { merge(pairingEngine.internalErrorFlow, pairingEngine.jsonRpcErrorFlow) }
     override val activePairingFlow: SharedFlow<Topic> by lazy { pairingEngine.activePairingTopicFlow }
 
@@ -34,6 +35,17 @@ internal class PairingController(private val koinApp: KoinApplication = wcKoinAp
 
         try {
             pairingEngine.activate(activate.topic) { error -> onError(Core.Model.Error(error)) }
+        } catch (e: Exception) {
+            onError(Core.Model.Error(e))
+        }
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun setProposalReceived(activate: Core.Params.ProposalReceived, onError: (Core.Model.Error) -> Unit) {
+        checkEngineInitialization()
+
+        try {
+            pairingEngine.setProposalReceived(activate.topic) { error -> onError(Core.Model.Error(error)) }
         } catch (e: Exception) {
             onError(Core.Model.Error(e))
         }

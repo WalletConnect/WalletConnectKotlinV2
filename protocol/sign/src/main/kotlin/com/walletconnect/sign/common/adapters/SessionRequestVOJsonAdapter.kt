@@ -13,9 +13,10 @@ import org.json.JSONObject
 import kotlin.String
 
 internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRequestVO>() {
-    private val options: JsonReader.Options = JsonReader.Options.of("method", "params")
+    private val options: JsonReader.Options = JsonReader.Options.of("method", "params", "expiryTimestamp")
     private val stringAdapter: JsonAdapter<String> = moshi.adapter(String::class.java, emptySet(), "method")
     private val anyAdapter: JsonAdapter<Any> = moshi.adapter(Any::class.java, emptySet(), "params")
+    private val longAdapter: JsonAdapter<Long> = moshi.adapter(Long::class.java, emptySet(), "expiryTimestamp")
 
     override fun toString(): String = buildString(38) {
         append("GeneratedJsonAdapter(").append("SessionRequestVO").append(')')
@@ -24,6 +25,7 @@ internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRe
     override fun fromJson(reader: JsonReader): SessionRequestVO {
         var method: String? = null
         var params: String? = null
+        var expiryTimestamp: Long? = null
 
         reader.beginObject()
 
@@ -65,6 +67,8 @@ internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRe
                     }
                 }
 
+                2 -> expiryTimestamp = longAdapter.fromJson(reader) ?: throw Util.unexpectedNull("expiryTimestamp", "expiryTimestamp", reader)
+
                 -1 -> {
                     // Unknown name, skip it.
                     reader.skipName()
@@ -76,7 +80,8 @@ internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRe
 
         return SessionRequestVO(
             method = method ?: throw Util.missingProperty("method", "method", reader),
-            params = params ?: throw Util.missingProperty("params", "params", reader)
+            params = params ?: throw Util.missingProperty("params", "params", reader),
+            expiryTimestamp = expiryTimestamp
         )
     }
 
@@ -152,6 +157,10 @@ internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRe
                     .replace("\\\\\"", "\\\"")
 
                 it.writeUtf8(encodedParams)
+            }
+            value_.expiryTimestamp?.let {
+                name("expiryTimestamp")
+                longAdapter.toJson(this, value_.expiryTimestamp)
             }
             endObject()
         }

@@ -2,10 +2,10 @@ package com.walletconnect.sign.validator
 
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SymmetricKey
-import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
-import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
-import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
-import com.walletconnect.android.internal.utils.WEEK_IN_SECONDS
+import com.walletconnect.android.internal.utils.dayInSeconds
+import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
+import com.walletconnect.android.internal.utils.monthInSeconds
+import com.walletconnect.android.internal.utils.weekInSeconds
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.exceptions.EMPTY_NAMESPACES_MESSAGE
 import com.walletconnect.sign.common.exceptions.INVALID_EVENT_MESSAGE
@@ -1116,9 +1116,9 @@ class ValidatorTest {
 
     @Test
     fun `test time periods in seconds`() {
-        FIVE_MINUTES_IN_SECONDS.apply { assertEquals(this.compareTo(300), 0) }
-        DAY_IN_SECONDS.apply { assertEquals(this.compareTo(86400), 0) }
-        WEEK_IN_SECONDS.apply { assertEquals(this.compareTo(604800), 0) }
-        MONTH_IN_SECONDS.apply { assertEquals(this.compareTo(2592000), 0) }
+        fiveMinutesInSeconds.apply { assertEquals(this.compareTo(300), 0) }
+        dayInSeconds.apply { assertEquals(this.compareTo(86400), 0) }
+        weekInSeconds.apply { assertEquals(this.compareTo(604800), 0) }
+        monthInSeconds.apply { assertEquals(this.compareTo(2592000), 0) }
     }
 }

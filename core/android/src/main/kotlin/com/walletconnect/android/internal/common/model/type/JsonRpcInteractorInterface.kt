@@ -1,7 +1,12 @@
 package com.walletconnect.android.internal.common.model.type
 
 import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.model.*
+import com.walletconnect.android.internal.common.model.EnvelopeType
+import com.walletconnect.android.internal.common.model.IrnParams
+import com.walletconnect.android.internal.common.model.Participants
+import com.walletconnect.android.internal.common.model.SDKError
+import com.walletconnect.android.internal.common.model.WCRequest
+import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.foundation.common.model.Topic
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -47,6 +52,7 @@ interface JsonRpcInteractorInterface {
         envelopeType: EnvelopeType = EnvelopeType.ZERO,
         participants: Participants? = null,
         onFailure: (Throwable) -> Unit,
+        onSuccess: () -> Unit = {}
     )
 
     fun respondWithParams(
@@ -57,6 +63,7 @@ interface JsonRpcInteractorInterface {
         envelopeType: EnvelopeType = EnvelopeType.ZERO,
         participants: Participants? = null,
         onFailure: (Throwable) -> Unit,
+        onSuccess: () -> Unit = {}
     )
 
     fun respondWithSuccess(

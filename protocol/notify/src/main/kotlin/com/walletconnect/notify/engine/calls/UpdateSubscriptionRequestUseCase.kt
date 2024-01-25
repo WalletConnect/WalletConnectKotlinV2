@@ -10,7 +10,7 @@ import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
-import com.walletconnect.android.internal.utils.THIRTY_SECONDS
+import com.walletconnect.android.internal.utils.thirtySeconds
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.notify.common.model.NotifyRpc
@@ -49,7 +49,7 @@ internal class UpdateSubscriptionRequestUseCase(
 
             val params = CoreNotifyParams.UpdateParams(didJwt.value)
             val request = NotifyRpc.NotifyUpdate(params = params)
-            val irnParams = IrnParams(Tags.NOTIFY_UPDATE, Ttl(THIRTY_SECONDS))
+            val irnParams = IrnParams(Tags.NOTIFY_UPDATE, Ttl(thirtySeconds))
 
             jsonRpcInteractor.publishJsonRpcRequest(Topic(notifyTopic), irnParams, request, onFailure = { error -> result.value = UpdateSubscription.Error(error) })
 

@@ -24,6 +24,7 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
     var authRequestEvent: Pair<Wallet.Model.AuthRequest, Wallet.Model.VerifyContext>? = null
     var sessionProposalEvent: Pair<Wallet.Model.SessionProposal, Wallet.Model.VerifyContext>? = null
     var sessionRequestEvent: Pair<Wallet.Model.SessionRequest, Wallet.Model.VerifyContext>? = null
+    var currentId: Long? = null
 
     init {
         CoreClient.setDelegate(this)
@@ -71,10 +72,12 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
     }
 
     override fun onSessionRequest(sessionRequest: Wallet.Model.SessionRequest, verifyContext: Wallet.Model.VerifyContext) {
-        sessionRequestEvent = Pair(sessionRequest, verifyContext)
+        if (currentId != sessionRequest.request.id) {
+            sessionRequestEvent = Pair(sessionRequest, verifyContext)
 
-        scope.launch {
-            _walletEvents.emit(sessionRequest)
+            scope.launch {
+                _walletEvents.emit(sessionRequest)
+            }
         }
     }
 
@@ -90,9 +93,33 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
         }
     }
 
+    override fun onProposalExpired(proposal: Wallet.Model.ExpiredProposal) {
+        scope.launch {
+            _walletEvents.emit(proposal)
+        }
+    }
+
+    override fun onRequestExpired(request: Wallet.Model.ExpiredRequest) {
+        scope.launch {
+            _walletEvents.emit(request)
+        }
+    }
+
     override fun onPairingDelete(deletedPairing: Core.Model.DeletedPairing) {
         scope.launch {
             _coreEvents.emit(deletedPairing)
+        }
+    }
+
+    override fun onPairingExpired(expiredPairing: Core.Model.ExpiredPairing) {
+        scope.launch {
+            _coreEvents.emit(expiredPairing)
+        }
+    }
+
+    override fun onPairingState(pairingState: Core.Model.PairingState) {
+        scope.launch {
+            _coreEvents.emit(pairingState)
         }
     }
 }

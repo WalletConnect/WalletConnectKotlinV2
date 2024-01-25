@@ -63,6 +63,14 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data
+                    android:scheme="kotlin-modal-wc"
+                    android:host="request" />
+            </intent-filter>
         </activity>
         <activity android:name=".compose.ComposeActivity" />
         <activity android:name=".kotlindsl.KotlinDSLActivity" />

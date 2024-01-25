@@ -9,7 +9,7 @@ import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
-import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
+import com.walletconnect.android.internal.utils.monthInSeconds
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.notify.common.model.DeleteSubscription
@@ -50,7 +50,7 @@ internal class DeleteSubscriptionUseCase(
 
             val params = CoreNotifyParams.DeleteParams(deleteJwt.value)
             val request = NotifyRpc.NotifyDelete(params = params)
-            val irnParams = IrnParams(Tags.NOTIFY_DELETE, Ttl(MONTH_IN_SECONDS))
+            val irnParams = IrnParams(Tags.NOTIFY_DELETE, Ttl(monthInSeconds))
 
             onNotifyDeleteResponseUseCase.events
                 .filter { it.first == params }

@@ -51,7 +51,9 @@ fun ConnectionsRoute(navController: NavController, connectionsViewModel: Connect
     val activity = context.findActivity()
 
     activity?.intent.takeIf { intent -> intent?.action == Intent.ACTION_VIEW && !intent.dataString.isNullOrBlank() }?.let { intent ->
-        web3WalletViewModel.pair(intent.dataString.toString())
+        if (intent.dataString?.startsWith("kotlin-web3wallet://wc?uri") == true) {
+            web3WalletViewModel.pair(intent.dataString.toString())
+        }
         intent.data = null
     }
     connectionsViewModel.refreshConnections()

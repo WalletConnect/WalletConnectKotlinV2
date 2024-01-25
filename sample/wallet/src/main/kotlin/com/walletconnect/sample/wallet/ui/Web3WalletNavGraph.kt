@@ -1,6 +1,9 @@
+@file:OptIn(ExperimentalAnimationApi::class)
+
 package com.walletconnect.sample.wallet.ui
 
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ModalBottomSheetDefaults
@@ -17,10 +20,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDeepLink
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
 import androidx.navigation.navArgument
+import com.google.accompanist.navigation.animation.AnimatedNavHost
+import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.google.accompanist.navigation.material.ModalBottomSheetLayout
@@ -65,7 +68,7 @@ fun Web3WalletNavGraph(
     ) {
         val sheetState = remember { bottomSheetNavigator.navigatorSheetState }
 
-        NavHost(
+        AnimatedNavHost(
             navController = navController,
             startDestination = startDestination,
             enterTransition = {
@@ -92,16 +95,18 @@ fun Web3WalletNavGraph(
                     animationSpec = tween(700)
                 )
             }
-
         ) {
             composable(Route.GetStarted.path) {
                 GetStartedRoute(navController)
             }
-            composable(Route.Connections.path, deepLinks = listOf(NavDeepLink("wc://{topic}@2"))) {
+            composable(
+                Route.Connections.path,
+                deepLinks = listOf(NavDeepLink("kotlin-web3wallet://wc"))
+            ) {
                 ConnectionsRoute(navController, connectionsViewModel, web3walletViewModel)
             }
             composable("${Route.ConnectionDetails.path}/{connectionId}", arguments = listOf(
-                navArgument("connectionId") { type = NavType.Companion.IntType }
+                navArgument("connectionId") { type = NavType.IntType }
             )) {
                 ConnectionDetailsRoute(navController, it.arguments?.getInt("connectionId"), connectionsViewModel)
             }
@@ -122,6 +127,7 @@ fun Web3WalletNavGraph(
                 SettingsRoute(navController)
             }
             bottomSheet(Route.ScanUri.path) {
+                web3walletViewModel.showLoader(false)
                 scrimColor = Color.Unspecified
                 ScanUriRoute(navController, sheetState, onScanSuccess = { web3walletViewModel.pair(it) })
             }
@@ -151,7 +157,7 @@ fun Web3WalletNavGraph(
                 })
             }
             bottomSheet("${Route.SnackbarMessage.path}/{message}", arguments = listOf(
-                navArgument("message") { type = NavType.Companion.StringType }
+                navArgument("message") { type = NavType.StringType }
             )) {
                 scrimColor = Color.Unspecified
                 SnackbarMessageRoute(navController, it.arguments?.getString("message"))

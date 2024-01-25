@@ -10,15 +10,15 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.utils.Empty
 
 @JvmSynthetic
-internal fun EngineDO.PairingDelete.toSign(): Core.Model.DeletedPairing =
+internal fun EngineDO.PairingDelete.toCore(): Core.Model.DeletedPairing =
     Core.Model.DeletedPairing(topic, reason)
 
 @JvmSynthetic
-internal fun Pairing.toSign(): Core.Model.Pairing =
+internal fun Pairing.toCore(): Core.Model.Pairing =
     Core.Model.Pairing(
         topic.value,
         expiry.seconds,
-        peerAppMetaData?.toSign(),
+        peerAppMetaData?.toCore(),
         relayProtocol,
         relayData,
         uri,
@@ -42,4 +42,4 @@ fun Core.Model.Pairing.toPairing(): Pairing =
 internal fun Core.Model.AppMetaData.toAppMetaData() = AppMetaData(name = name, description = description, url = url, icons = icons, redirect = Redirect(redirect))
 
 @JvmSynthetic
-internal fun AppMetaData?.toSign() = Core.Model.AppMetaData(this?.name ?: String.Empty, this?.description ?: String.Empty, this?.url ?: String.Empty, this?.icons ?: emptyList(), this?.redirect?.native)
+internal fun AppMetaData?.toCore() = Core.Model.AppMetaData(this?.name ?: String.Empty, this?.description ?: String.Empty, this?.url ?: String.Empty, this?.icons ?: emptyList(), this?.redirect?.native)

@@ -17,7 +17,7 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
-import com.walletconnect.android.internal.utils.THIRTY_SECONDS
+import com.walletconnect.android.internal.utils.thirtySeconds
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -72,7 +72,7 @@ internal class SubscribeToDappUseCase(
 
             val params = CoreNotifyParams.SubscribeParams(didJwt.value)
             val request = NotifyRpc.NotifySubscribe(params = params)
-            val irnParams = IrnParams(Tags.NOTIFY_SUBSCRIBE, Ttl(THIRTY_SECONDS))
+            val irnParams = IrnParams(Tags.NOTIFY_SUBSCRIBE, Ttl(thirtySeconds))
 
             onNotifySubscribeResponseUseCase.events
                 .filter { it.first == params }

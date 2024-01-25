@@ -1,6 +1,9 @@
+@file:OptIn(ExperimentalAnimationApi::class)
+
 package com.walletconnect.web3.modal.ui.components.internal
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -15,7 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
+import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
 import com.walletconnect.web3.modal.ui.Web3ModalState
@@ -31,8 +34,20 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun Web3ModalComponent(
+    shouldOpenChooseNetwork: Boolean,
+    closeModal: () -> Unit
+) {
+    Web3ModalComponent(
+        navController = rememberAnimatedNavController(),
+        shouldOpenChooseNetwork = shouldOpenChooseNetwork,
+        closeModal = closeModal
+    )
+}
+
+@Composable
+internal fun Web3ModalComponent(
     modifier: Modifier = Modifier,
-    navController: NavHostController = rememberNavController(),
+    navController: NavHostController = rememberAnimatedNavController(),
     shouldOpenChooseNetwork: Boolean,
     closeModal: () -> Unit
 ) {
