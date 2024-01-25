@@ -16,7 +16,7 @@ import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
-import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
+import com.walletconnect.android.internal.utils.monthInSeconds
 import com.walletconnect.android.internal.utils.thirtySeconds
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
@@ -86,7 +86,7 @@ internal class SubscribeToDappUseCase(
 
             // optimistically add active subscription which will be updated on response with the correct expiry
             // necessary for welcoming messages that could be sent before the subscription response is received
-            val activeSubscription = Subscription.Active(AccountId(account), selectedScopes, Expiry(MONTH_IN_SECONDS), authenticationPublicKey, responseTopic, dappMetaData, null)
+            val activeSubscription = Subscription.Active(AccountId(account), selectedScopes, Expiry(monthInSeconds), authenticationPublicKey, responseTopic, dappMetaData, null)
             subscriptionRepository.insertOrAbortSubscription(account, activeSubscription)
             jsonRpcInteractor.subscribe(responseTopic)
 
