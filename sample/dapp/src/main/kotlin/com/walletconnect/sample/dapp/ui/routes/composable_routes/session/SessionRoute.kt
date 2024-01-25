@@ -4,15 +4,35 @@ package com.walletconnect.sample.dapp.ui.routes.composable_routes.session
 
 import android.widget.Toast
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,7 +49,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.walletconnect.sample.common.ui.WCTopAppBarLegacy
-import com.walletconnect.sample.common.ui.commons.BlueButton
+import com.walletconnect.sample.common.ui.commons.ButtonWithLoader
 import com.walletconnect.sample.common.ui.themedColor
 import com.walletconnect.sample.dapp.R
 import com.walletconnect.sample.dapp.ui.DappSampleEvents
@@ -43,24 +63,35 @@ fun SessionRoute(
     val context = LocalContext.current
     val viewModel: SessionViewModel = viewModel()
     val state by viewModel.uiState.collectAsState()
+    var isDisconnectLoading by remember { mutableStateOf(false) }
+    var isPingLoading by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.sessionEvent.collect { event ->
             when (event) {
-                is DappSampleEvents.PingSuccess -> Toast.makeText(
-                    context,
-                    "Pinged Peer Successfully on Topic: ${event.topic}",
-                    Toast.LENGTH_SHORT
-                ).show()
-                is DappSampleEvents.PingError -> Toast.makeText(
-                    context,
-                    "Pinged Peer Unsuccessfully",
-                    Toast.LENGTH_SHORT
-                ).show()
-                is DappSampleEvents.Disconnect -> navController.popBackStack(
-                    Route.ChainSelection.path,
-                    inclusive = false
-                )
+                is DappSampleEvents.PingSuccess -> {
+                    isPingLoading = false
+                    Toast.makeText(context, "Pinged Peer Successfully on Topic: ${event.topic}", Toast.LENGTH_SHORT).show()
+                }
+
+                is DappSampleEvents.PingError -> {
+                    isPingLoading = false
+                    Toast.makeText(context, "Pinged Peer Unsuccessfully", Toast.LENGTH_SHORT).show()
+                }
+
+                is DappSampleEvents.PingLoading -> isPingLoading = true
+                is DappSampleEvents.Disconnect -> {
+                    isDisconnectLoading = false
+                    navController.popBackStack(Route.ChainSelection.path, inclusive = false)
+                    Toast.makeText(context, "Disconnected successfully", Toast.LENGTH_SHORT).show()
+                }
+
+                is DappSampleEvents.DisconnectError -> {
+                    isDisconnectLoading = false
+                    Toast.makeText(context, "Error: ${event.message}", Toast.LENGTH_SHORT).show()
+                }
+
+                is DappSampleEvents.DisconnectLoading -> isDisconnectLoading = true
                 else -> Unit
             }
         }
@@ -72,6 +103,8 @@ fun SessionRoute(
         onSessionClick = navController::navigateToAccount,
         onPingClick = viewModel::ping,
         onDisconnectClick = viewModel::disconnect,
+        isDisconnectLoading,
+        isPingLoading
     )
 }
 
@@ -82,13 +115,15 @@ private fun SessionScreen(
     onSessionClick: (String) -> Unit,
     onPingClick: () -> Unit,
     onDisconnectClick: () -> Unit,
+    isDisconnectLoading: Boolean,
+    isPingLoading: Boolean,
 ) {
     Column {
         WCTopAppBarLegacy(
             titleText = "Session Chains",
             onBackIconClick = onBackPressed,
         )
-        ChainsAction(onPingClick, onDisconnectClick)
+        ChainsAction(onPingClick, onDisconnectClick, isDisconnectLoading, isPingLoading)
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             item {
                 Text(
@@ -113,6 +148,8 @@ private fun SessionScreen(
 private fun ChainsAction(
     onPingClick: () -> Unit,
     onDisconnectClick: () -> Unit,
+    isDisconnectLoading: Boolean,
+    isPingLoading: Boolean
 ) {
     var isExpanded by remember { mutableStateOf(false) }
     Box(modifier = Modifier.fillMaxWidth()) {
@@ -133,7 +170,9 @@ private fun ChainsAction(
             if (isExpanded) {
                 SessionActions(
                     onPingClick = onPingClick,
-                    onDisconnectClick = onDisconnectClick
+                    onDisconnectClick = onDisconnectClick,
+                    isDisconnectLoading,
+                    isPingLoading
                 )
             }
         }
@@ -151,6 +190,8 @@ private fun ChainsAction(
 private fun SessionActions(
     onPingClick: () -> Unit,
     onDisconnectClick: () -> Unit,
+    isDisconnectLoading: Boolean,
+    isPingLoading: Boolean
 ) {
     Row(
         modifier = Modifier
@@ -158,9 +199,9 @@ private fun SessionActions(
             .horizontalScroll(rememberScrollState())
     ) {
         val modifier = Modifier.padding(8.dp)
-        BlueButton(text = "Ping", onClick = onPingClick, modifier = modifier)
+        ButtonWithLoader(text = "Ping", onClick = onPingClick, modifier = modifier, isPingLoading)
         Spacer(modifier = Modifier.width(4.dp))
-        BlueButton(text = "Disconnect", onClick = onDisconnectClick, modifier = modifier)
+        ButtonWithLoader(text = "Disconnect", onClick = onDisconnectClick, modifier = modifier, isDisconnectLoading)
     }
 }
 

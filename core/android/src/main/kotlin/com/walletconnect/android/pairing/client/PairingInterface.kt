@@ -36,7 +36,11 @@ interface PairingInterface {
 
     interface Delegate {
         fun onPairingDelete(deletedPairing: Core.Model.DeletedPairing)
+
+        fun onPairingExpired(expiredPairing: Core.Model.ExpiredPairing)
+
+        fun onPairingState(pairingState: Core.Model.PairingState)
     }
 
-    fun setDelegate(delegate: PairingInterface.Delegate)
+    fun setDelegate(delegate: Delegate)
 }

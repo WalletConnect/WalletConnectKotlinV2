@@ -7,31 +7,29 @@ import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
 import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.android.utils.cacao.sign
+import com.walletconnect.sample.common.Chains
 import com.walletconnect.sample.wallet.domain.EthAccountDelegate
 import com.walletconnect.sample.wallet.domain.WCDelegate
 import com.walletconnect.sample.wallet.ui.common.peer.PeerUI
 import com.walletconnect.sample.wallet.ui.common.peer.toPeerUI
-import com.walletconnect.sample.common.Chains
 import com.walletconnect.util.hexToBytes
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import com.walletconnect.web3.wallet.utils.CacaoSigner
 import org.json.JSONArray
 import org.web3j.utils.Numeric.hexStringToByteArray
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 
 class SessionRequestViewModel : ViewModel() {
     var sessionRequest: SessionRequestUI = generateSessionRequestUI()
 
     private fun clearSessionRequest() {
-        WCDelegate.sessionProposalEvent = null
+        WCDelegate.sessionRequestEvent = null
+        WCDelegate.currentId = null
         sessionRequest = SessionRequestUI.Initial
     }
 
-    suspend fun reject(sendSessionRequestResponseDeepLink: (Uri) -> Unit) {
-        return suspendCoroutine { continuation ->
+    fun reject(onSuccess: (Uri?) -> Unit = {}, onError: (String) -> Unit = {}) {
+        try {
             val sessionRequest = sessionRequest as? SessionRequestUI.Content
             if (sessionRequest != null) {
                 val result = Wallet.Params.SessionRequestResponse(
@@ -42,22 +40,22 @@ class SessionRequestViewModel : ViewModel() {
                         message = "Kotlin Wallet Error"
                     )
                 )
-
+                val redirect = Web3Wallet.getActiveSessionByTopic(sessionRequest.topic)?.redirect?.toUri()
                 Web3Wallet.respondSessionRequest(result,
                     onSuccess = {
-                        continuation.resume(Unit)
-                        WCDelegate.sessionRequestEvent = null
-                        sendResponseDeepLink(sessionRequest, sendSessionRequestResponseDeepLink)
                         clearSessionRequest()
+                        onSuccess(redirect)
                     },
                     onError = { error ->
-                        continuation.resumeWithException(error.throwable)
-                        WCDelegate.sessionRequestEvent = null
                         Firebase.crashlytics.recordException(error.throwable)
-                        sendResponseDeepLink(sessionRequest, sendSessionRequestResponseDeepLink)
                         clearSessionRequest()
+                        onError(error.throwable.message ?: "Undefined error, please check your Internet connection")
                     })
             }
+        } catch (e: Exception) {
+            Firebase.crashlytics.recordException(e)
+            clearSessionRequest()
+            onError(e.message ?: "Undefined error, please check your Internet connection")
         }
     }
 
@@ -70,8 +68,8 @@ class SessionRequestViewModel : ViewModel() {
         }
     }
 
-    suspend fun approve(sendSessionRequestResponseDeepLink: (Uri) -> Unit) {
-        return suspendCoroutine { continuation ->
+    fun approve(onSuccess: (Uri?) -> Unit = {}, onError: (String) -> Unit = {}) {
+        try {
             val sessionRequest = sessionRequest as? SessionRequestUI.Content
             if (sessionRequest != null) {
                 val result: String = when {
@@ -101,30 +99,23 @@ class SessionRequestViewModel : ViewModel() {
                     )
                 )
 
+                val redirect = Web3Wallet.getActiveSessionByTopic(sessionRequest.topic)?.redirect?.toUri()
                 Web3Wallet.respondSessionRequest(response,
                     onSuccess = {
-                        continuation.resume(Unit)
-                        WCDelegate.sessionRequestEvent = null
-                        sendResponseDeepLink(sessionRequest, sendSessionRequestResponseDeepLink)
                         clearSessionRequest()
+                        onSuccess(redirect)
                     },
                     onError = { error ->
-                        continuation.resumeWithException(error.throwable)
-                        WCDelegate.sessionRequestEvent = null
                         Firebase.crashlytics.recordException(error.throwable)
-                        sendResponseDeepLink(sessionRequest, sendSessionRequestResponseDeepLink)
                         clearSessionRequest()
+                        onError(error.throwable.message ?: "Undefined error, please check your Internet connection")
                     })
             }
+        } catch (e: Exception) {
+            Firebase.crashlytics.recordException(e)
+            clearSessionRequest()
+            onError(e.message ?: "Undefined error, please check your Internet connection")
         }
-    }
-
-    private fun sendResponseDeepLink(
-        sessionRequest: SessionRequestUI.Content,
-        sendSessionRequestResponseDeepLink: (Uri) -> Unit,
-    ) {
-        Web3Wallet.getActiveSessionByTopic(sessionRequest.topic)?.redirect?.toUri()
-            ?.let { deepLinkUri -> sendSessionRequestResponseDeepLink(deepLinkUri) }
     }
 
     private fun generateSessionRequestUI(): SessionRequestUI {

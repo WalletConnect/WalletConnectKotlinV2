@@ -10,7 +10,7 @@ import com.walletconnect.android.internal.common.model.params.CoreSignParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
+import com.walletconnect.android.internal.utils.monthInSeconds
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.foundation.common.model.PublicKey
@@ -38,35 +38,44 @@ internal class OnSessionProposalResponseUseCase(
 
     suspend operator fun invoke(wcResponse: WCResponse, params: SignParams.SessionProposeParams) = supervisorScope {
         try {
+            logger.log("Session proposal response received on topic: ${wcResponse.topic}")
             val pairingTopic = wcResponse.topic
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcResult -> {
+                    logger.log("Session proposal approval received on topic: ${wcResponse.topic}")
                     updatePairing(pairingTopic)
                     if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) {
+                        logger.error("Session proposal approval received failure on topic: ${wcResponse.topic} - invalid pairing")
                         _events.emit(SDKError(Throwable("Invalid Pairing")))
                         return@supervisorScope
                     }
-                    logger.log("Session proposal approve received")
                     val selfPublicKey = PublicKey(params.proposer.publicKey)
                     val approveParams = response.result as CoreSignParams.ApprovalParams
                     val responderPublicKey = PublicKey(approveParams.responderPublicKey)
                     val sessionTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, responderPublicKey)
-                    jsonRpcInteractor.subscribe(sessionTopic) { error -> scope.launch { _events.emit(SDKError(error)) } }
+
+                    jsonRpcInteractor.subscribe(sessionTopic,
+                        onSuccess = { logger.log("Session proposal approval subscribed on session topic: $sessionTopic") },
+                        onFailure = { error ->
+                            logger.error("Session proposal approval subscribe error on session topic: $sessionTopic - $error")
+                            scope.launch { _events.emit(SDKError(error)) }
+                        })
                 }
 
                 is JsonRpcResponse.JsonRpcError -> {
-                    logger.log("Session proposal reject received: ${response.error}")
                     proposalStorageRepository.deleteProposal(params.proposer.publicKey)
+                    logger.log("Session proposal rejection received on topic: ${wcResponse.topic}")
                     _events.emit(EngineDO.SessionRejected(pairingTopic.value, response.errorMessage))
                 }
             }
         } catch (e: Exception) {
+            logger.error("Session proposal response received failure on topic: ${wcResponse.topic}: $e")
             _events.emit(SDKError(e))
         }
     }
 
     private fun updatePairing(pairingTopic: Topic) = with(pairingController) {
-        updateExpiry(Core.Params.UpdateExpiry(pairingTopic.value, Expiry(MONTH_IN_SECONDS)))
+        updateExpiry(Core.Params.UpdateExpiry(pairingTopic.value, Expiry(monthInSeconds)))
         activate(Core.Params.Activate(pairingTopic.value))
     }
 }

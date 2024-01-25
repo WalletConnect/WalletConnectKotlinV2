@@ -5,7 +5,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
@@ -14,14 +18,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.walletconnect.sample.common.ui.themedColor
 import com.walletconnect.sample.wallet.ui.common.Buttons
 import com.walletconnect.sample.wallet.ui.common.Content
 import com.walletconnect.sample.wallet.ui.common.InnerContent
 import com.walletconnect.sample.wallet.ui.common.SemiTransparentDialog
 import com.walletconnect.sample.wallet.ui.common.peer.Peer
-import com.walletconnect.sample.wallet.ui.routes.showSnackbar
-import com.walletconnect.sample.common.ui.themedColor
 import com.walletconnect.sample.wallet.ui.common.peer.getValidationColor
+import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import kotlinx.coroutines.launch
 
 @Composable
@@ -29,13 +33,17 @@ fun AuthRequestRoute(navController: NavHostController, authRequestViewModel: Aut
     val authRequestUI = authRequestViewModel.authRequest ?: throw Exception("Missing auth request")
     val composableScope = rememberCoroutineScope()
     val allowButtonColor = getValidationColor(authRequestUI.peerContextUI.validation)
+    var isConfirmLoading by remember { mutableStateOf(false) }
+    var isCancelLoading by remember { mutableStateOf(false) }
+
     SemiTransparentDialog {
         Spacer(modifier = Modifier.height(24.dp))
         Peer(peerUI = authRequestUI.peerUI, "would like to connect", authRequestUI.peerContextUI)
         Spacer(modifier = Modifier.height(16.dp))
         Message(authRequestUI = authRequestUI)
         Spacer(modifier = Modifier.height(16.dp))
-        Buttons(allowButtonColor, onDecline = {
+        Buttons(allowButtonColor, onCancel = {
+            isCancelLoading = true
             composableScope.launch {
                 try {
                     authRequestViewModel.reject()
@@ -45,7 +53,8 @@ fun AuthRequestRoute(navController: NavHostController, authRequestViewModel: Aut
                     closeAndShowError(navController, e.message)
                 }
             }
-        }, onAllow = {
+        }, onConfirm = {
+            isConfirmLoading = true
             composableScope.launch {
                 try {
                     authRequestViewModel.approve()
@@ -55,7 +64,10 @@ fun AuthRequestRoute(navController: NavHostController, authRequestViewModel: Aut
                     closeAndShowError(navController, e.message)
                 }
             }
-        })
+        },
+            isLoadingConfirm = isConfirmLoading,
+            isLoadingCancel = isCancelLoading
+        )
         Spacer(modifier = Modifier.height(16.dp))
     }
 }

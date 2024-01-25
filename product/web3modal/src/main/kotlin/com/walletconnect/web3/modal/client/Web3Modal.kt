@@ -42,6 +42,8 @@ object Web3Modal {
         fun onSessionRequestResponse(response: Modal.Model.SessionRequestResponse)
 
         // Utils
+        fun onProposalExpired(proposal: Modal.Model.ExpiredProposal)
+        fun onRequestExpired(request: Modal.Model.ExpiredRequest)
         fun onConnectionStateChange(state: Modal.Model.ConnectionState)
         fun onError(error: Modal.Model.Error)
     }
@@ -103,8 +105,9 @@ object Web3Modal {
                 web3ModalEngine = wcKoinApp.koin.get()
                 web3ModalEngine.setup(init, onError)
                 web3ModalEngine.setInternalDelegate(Web3ModalDelegate)
-            }.onFailure { error -> return@onInitializedClient onError(Modal.Model.Error(error)) }
-            onSuccess()
+            }
+                .onFailure { error -> return@onInitializedClient onError(Modal.Model.Error(error)) }
+                .onSuccess { onSuccess() }
         } else {
             onError(Modal.Model.Error(Web3ModelClientAlreadyInitializedException()))
         }
@@ -114,7 +117,6 @@ object Web3Modal {
         this.chains = chains
     }
 
-    fun getSelectedChain() = selectedChain
 
     fun setSessionProperties(properties: Map<String, String>) {
         sessionProperties = properties
@@ -133,6 +135,8 @@ object Web3Modal {
                 is Modal.Model.SessionEvent -> delegate.onSessionEvent(event)
                 is Modal.Model.SessionRequestResponse -> delegate.onSessionRequestResponse(event)
                 is Modal.Model.UpdatedSession -> delegate.onSessionUpdate(event)
+                is Modal.Model.ExpiredRequest -> delegate.onRequestExpired(event)
+                is Modal.Model.ExpiredProposal -> delegate.onProposalExpired(event)
                 else -> Unit
             }
         }.launchIn(scope)
@@ -207,6 +211,13 @@ object Web3Modal {
         checkEngineInitialization()
         web3ModalEngine.disconnect(onSuccess, onError)
     }
+
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+    fun getSelectedChain() = selectedChain
+//    fun getSelectedChain() = getSelectedChainUseCase()?.toChain()
 
     /**
      * Caution: This function is blocking and runs on the current thread.

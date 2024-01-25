@@ -2,6 +2,7 @@ package com.walletconnect.web3.modal.ui.routes.connect
 
 import com.walletconnect.android.internal.common.modal.data.model.Wallet
 import com.walletconnect.android.internal.common.modal.domain.usecase.GetInstalledWalletsIdsUseCaseInterface
+import com.walletconnect.android.internal.common.modal.domain.usecase.GetSampleWalletsUseCaseInterface
 import com.walletconnect.android.internal.common.modal.domain.usecase.GetWalletsUseCaseInterface
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.util.Empty
@@ -31,6 +32,7 @@ internal class WalletDataSource(
     private val getWalletsUseCase: GetWalletsUseCaseInterface = wcKoinApp.koin.get()
     private val getWalletsAppDataUseCase: GetInstalledWalletsIdsUseCaseInterface = wcKoinApp.koin.get()
     private val getRecentWalletUseCase: GetRecentWalletUseCase = wcKoinApp.koin.get()
+    private val getSampleWalletsUseCase: GetSampleWalletsUseCaseInterface = wcKoinApp.koin.get()
     private val web3ModalEngine: Web3ModalEngine = wcKoinApp.koin.get()
 
     private var installedWalletsIds: List<String> = listOf()
@@ -59,11 +61,12 @@ internal class WalletDataSource(
         try {
             fetchWalletsAppData()
             val installedWallets = fetchInstalledAndRecommendedWallets()
+            val samples = getSampleWalletsUseCase()
             val walletsListing = getWalletsUseCase(sdkType = W3M_SDK, page = 1, excludeIds = getPriorityWallets() + web3ModalEngine.excludedWalletsIds)
             walletsListingData = ListingData(
                 page = 1,
-                totalCount = walletsListing.totalCount,
-                wallets = (installedWallets.wallets + walletsListing.wallets).mapRecentWallet(getRecentWalletUseCase()).toMutableList()
+                totalCount = walletsListing.totalCount + samples.size,
+                wallets = (samples + installedWallets.wallets + walletsListing.wallets).mapRecentWallet(getRecentWalletUseCase()).toMutableList()
             )
             walletState.value = WalletsData.submit(walletsListingData.wallets)
         } catch (exception: Exception) {

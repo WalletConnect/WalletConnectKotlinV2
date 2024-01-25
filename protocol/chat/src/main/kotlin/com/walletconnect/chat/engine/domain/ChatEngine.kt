@@ -9,7 +9,7 @@ import com.walletconnect.android.internal.common.model.params.ChatNotifyResponse
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.utils.THIRTY_SECONDS
+import com.walletconnect.android.internal.utils.thirtySeconds
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.chat.common.json_rpc.ChatParams
 import com.walletconnect.chat.engine.use_case.SubscribeToChatTopicsUseCase
@@ -143,7 +143,7 @@ internal class ChatEngine(
                 is ChatParams.InviteParams -> onInviteRequestUseCase(request, params)
                 is ChatParams.MessageParams -> onMessageRequestUseCase(request, params)
                 is ChatParams.LeaveParams -> onLeaveRequestUseCase(request)
-                is ChatParams.PingParams -> jsonRpcInteractor.respondWithSuccess(request, IrnParams(Tags.SESSION_PING_RESPONSE, Ttl(THIRTY_SECONDS)))
+                is ChatParams.PingParams -> jsonRpcInteractor.respondWithSuccess(request, IrnParams(Tags.SESSION_PING_RESPONSE, Ttl(thirtySeconds)))
             }
         }.launchIn(scope)
 

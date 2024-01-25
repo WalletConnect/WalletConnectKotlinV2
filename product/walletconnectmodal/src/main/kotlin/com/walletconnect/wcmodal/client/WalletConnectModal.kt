@@ -2,11 +2,11 @@ package com.walletconnect.wcmodal.client
 
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.wcmodal.domain.WalletConnectModalDelegate
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import com.walletconnect.sign.common.exceptions.SignClientAlreadyInitializedException
 import com.walletconnect.wcmodal.di.walletConnectModalModule
+import com.walletconnect.wcmodal.domain.WalletConnectModalDelegate
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
@@ -31,6 +31,8 @@ object WalletConnectModal {
         fun onSessionRequestResponse(response: Modal.Model.SessionRequestResponse)
 
         // Utils
+        fun onProposalExpired(proposal: Modal.Model.ExpiredProposal)
+        fun onRequestExpired(request: Modal.Model.ExpiredRequest)
         fun onConnectionStateChange(state: Modal.Model.ConnectionState)
         fun onError(error: Modal.Model.Error)
     }
@@ -72,7 +74,7 @@ object WalletConnectModal {
     @Throws(IllegalStateException::class)
     fun setDelegate(delegate: ModalDelegate) {
         WalletConnectModalDelegate.wcEventModels.onEach { event ->
-            when(event) {
+            when (event) {
                 is Modal.Model.ApprovedSession -> delegate.onSessionApproved(event)
                 is Modal.Model.ConnectionState -> delegate.onConnectionStateChange(event)
                 is Modal.Model.DeletedSession.Success -> delegate.onSessionDelete(event)
@@ -82,6 +84,8 @@ object WalletConnectModal {
                 is Modal.Model.SessionEvent -> delegate.onSessionEvent(event)
                 is Modal.Model.SessionRequestResponse -> delegate.onSessionRequestResponse(event)
                 is Modal.Model.UpdatedSession -> delegate.onSessionUpdate(event)
+                is Modal.Model.ExpiredProposal -> delegate.onProposalExpired(event)
+                is Modal.Model.ExpiredRequest -> delegate.onRequestExpired(event)
                 else -> Unit
             }
         }.launchIn(scope)
@@ -118,6 +122,14 @@ object WalletConnectModal {
                 delegate.onSessionRequestResponse(response.toModal())
             }
 
+            override fun onProposalExpired(proposal: Sign.Model.ExpiredProposal) {
+                delegate.onProposalExpired(proposal.toModal())
+            }
+
+            override fun onRequestExpired(request: Sign.Model.ExpiredRequest) {
+                delegate.onRequestExpired(request.toModal())
+            }
+
             override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {
                 delegate.onConnectionStateChange(state.toModal())
             }
@@ -133,6 +145,10 @@ object WalletConnectModal {
         _sessionParams = sessionParams
     }
 
+    @Deprecated(
+        message = "Replaced with the same name method but onSuccess callback returns a Pairing URL",
+        replaceWith = ReplaceWith(expression = "fun connect(connect: Modal.Params.Connect, onSuccess: (String) -> Unit, onError: (Modal.Model.Error) -> Unit)")
+    )
     fun connect(
         connect: Modal.Params.Connect,
         onSuccess: () -> Unit,
@@ -141,6 +157,18 @@ object WalletConnectModal {
         SignClient.connect(
             connect = connect.toSign(),
             onSuccess = onSuccess,
+            onError = { onError(it.toModal()) }
+        )
+    }
+
+    fun connect(
+        connect: Modal.Params.Connect,
+        onSuccess: (String) -> Unit,
+        onError: (Modal.Model.Error) -> Unit
+    ) {
+        SignClient.connect(
+            connect = connect.toSign(),
+            onSuccess = { url -> onSuccess(url) },
             onError = { onError(it.toModal()) }
         )
     }
@@ -173,6 +201,12 @@ object WalletConnectModal {
      * It is advised that this function be called from background operation
      */
     fun getListOfActiveSessions() = SignClient.getListOfActiveSessions().map { it.toModal() }
+
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+    fun getListOfProposals() = SignClient.getSessionProposals().map { it.toModal() }
 
     /**
      * Caution: This function is blocking and runs on the current thread.

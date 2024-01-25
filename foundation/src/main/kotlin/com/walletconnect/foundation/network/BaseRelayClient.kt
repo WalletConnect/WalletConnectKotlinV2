@@ -12,9 +12,24 @@ import com.walletconnect.foundation.network.model.RelayDTO
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.foundation.util.scope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.withTimeout
 import org.koin.core.KoinApplication
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -75,15 +90,30 @@ abstract class BaseRelayClient : RelayInterface {
     }
 
     private fun observePublishResult(id: Long, onResult: (Result<Relay.Model.Call.Publish.Acknowledgement>) -> Unit) {
-        resultState
-            .filterIsInstance<RelayDTO.Publish.Result>()
-            .filter { relayResult -> relayResult.id == id }
-            .onEach { publishResult ->
-                when (publishResult) {
-                    is RelayDTO.Publish.Result.Acknowledgement -> onResult(Result.success(publishResult.toRelay()))
-                    is RelayDTO.Publish.Result.JsonRpcError -> onResult(Result.failure(Throwable(publishResult.error.errorMessage)))
+        scope.launch {
+            try {
+                withTimeout(PUBLISH_TIMEOUT) {
+                    resultState
+                        .filterIsInstance<RelayDTO.Publish.Result>()
+                        .filter { relayResult -> relayResult.id == id }
+                        .collect { publishResult ->
+                            when (publishResult) {
+                                is RelayDTO.Publish.Result.Acknowledgement -> {
+                                    cancel()
+                                    onResult(Result.success(publishResult.toRelay()))
+                                }
+
+                                is RelayDTO.Publish.Result.JsonRpcError -> {
+                                    cancel()
+                                    onResult(Result.failure(Throwable(publishResult.error.errorMessage)))
+                                }
+                            }
+                        }
                 }
-            }.launchIn(scope)
+            } catch (e: TimeoutCancellationException) {
+                onResult(Result.failure(Throwable("Publish request timed out: ${e.message}")))
+            }
+        }
     }
 
     @ExperimentalCoroutinesApi
@@ -158,5 +188,6 @@ abstract class BaseRelayClient : RelayInterface {
 
     private companion object {
         const val REPLAY: Int = 1
+        const val PUBLISH_TIMEOUT: Long = 10000
     }
 }

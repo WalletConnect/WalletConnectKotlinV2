@@ -50,9 +50,7 @@ internal class AccountViewModel : ViewModel(), Navigator by NavigatorImpl() {
     private val activeSessionFlow = observeSessionUseCase()
 
     private val accountDataFlow = activeSessionFlow
-        .map {
-            if (web3ModalEngine.getAccount() != null) { it } else { null }
-        }
+        .map { if (web3ModalEngine.getAccount() != null) { it } else { null } }
         .map { activeSession ->
         if (activeSession != null) {
             val chains = activeSession.getChains()

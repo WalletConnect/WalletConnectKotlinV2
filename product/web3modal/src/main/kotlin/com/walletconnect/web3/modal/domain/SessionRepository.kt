@@ -5,13 +5,11 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.squareup.moshi.Moshi
-import com.walletconnect.android.internal.common.scope
 import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.domain.model.Session
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 
 private val SESSION = stringPreferencesKey("session_key")
 
@@ -21,18 +19,12 @@ internal class SessionRepository(
 ) {
     private val adapter = moshi.adapter(Session::class.java)
 
-    val session: StateFlow<Session?> = sessionStore.data
+    val session: Flow<Session?> = sessionStore.data
         .map { preferences ->
             preferences[SESSION]?.let { adapter.fromJson(it) }
-        }.stateIn(scope, started = SharingStarted.Lazily, null)
+        }
 
-    val selectedChain = session
-        .map { it?.chain }
-        .stateIn(scope, started = SharingStarted.Lazily, null)
-
-    fun getSelectedChain(): String? = selectedChain.value
-
-    fun getSession(): Session? = session.value
+    suspend fun getSession(): Session? = session.first()
 
     suspend fun saveSession(session: Session) {
         sessionStore.edit { store -> store[SESSION] = adapter.toJson(session) }

@@ -45,6 +45,7 @@ internal class Web3ModalViewModel : ViewModel() {
         _modalState.value = Web3ModalState.Connect
     }
 
+    //todo move it to delegate
     internal fun saveSession(event: Modal.Model.ApprovedSession) = viewModelScope.launch {
         val chain = Web3Modal.selectedChain ?: web3ModalEngine.getSelectedChainOrFirst()
         val session = event.toSession(chain)
