@@ -26,7 +26,10 @@ internal fun Modal.Model.UpdatedSession.getChains() = namespaces.values.toList()
     .mapNotNull { it.toChain() }
 
 internal fun Modal.Model.UpdatedSession.getAddress(selectedChain: Modal.Model.Chain) = namespaces.values.toList().flatMap { it.accounts }.find { it.startsWith(selectedChain.id) }?.split(":")?.last() ?: String.Empty
-internal fun Modal.Model.UpdatedSession.toSession(selectedChain: Modal.Model.Chain) = Session.WalletConnect(getAddress(selectedChain), selectedChain.id, topic)
+internal fun Modal.Model.UpdatedSession.toSession(selectedChain: Modal.Model.Chain): Session.WalletConnect {
+    val chain = getChains().firstOrNull() ?: selectedChain
+    return Session.WalletConnect(getAddress(chain), chain.id, topic)
+}
 
 internal fun String.toChain() = Web3Modal.chains.find { it.id == this }
 
@@ -66,4 +69,9 @@ internal fun getChain(chainId: String) = Web3Modal.chains.find { it.id == chainI
 internal fun Session.toConnectorType() = when(this) {
     is Session.Coinbase -> Modal.ConnectorType.WALLET_CONNECT
     is Session.WalletConnect -> Modal.ConnectorType.COINBASE
+}
+
+internal fun Modal.Model.ApprovedSession.toSession(chain: Modal.Model.Chain) = when (val approvedSession = this) {
+    is Modal.Model.ApprovedSession.WalletConnectSession -> Session.WalletConnect(chain = chain.id, topic = approvedSession.topic, address = approvedSession.getAddress(chain))
+    is Modal.Model.ApprovedSession.CoinbaseSession -> Session.Coinbase(chain = "eip155:${approvedSession.networkId}", approvedSession.address)
 }

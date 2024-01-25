@@ -29,15 +29,19 @@ import com.walletconnect.web3.modal.domain.model.Session
 import com.walletconnect.web3.modal.domain.usecase.DeleteSessionDataUseCase
 import com.walletconnect.web3.modal.domain.usecase.GetSelectedChainUseCase
 import com.walletconnect.web3.modal.domain.usecase.GetSessionUseCase
+import com.walletconnect.web3.modal.domain.usecase.SaveSessionUseCase
 import com.walletconnect.web3.modal.engine.coinbase.COINBASE_WALLET_ID
+import com.walletconnect.web3.modal.utils.getSelectedChain
 import com.walletconnect.web3.modal.utils.toAccount
 import com.walletconnect.web3.modal.utils.toChain
 import com.walletconnect.web3.modal.utils.toConnectorType
+import com.walletconnect.web3.modal.utils.toSession
 import kotlinx.coroutines.launch
 
 internal class Web3ModalEngine(
     private val getSessionUseCase: GetSessionUseCase,
     private val getSelectedChainUseCase: GetSelectedChainUseCase,
+    private val saveSessionUseCase: SaveSessionUseCase,
     private val deleteSessionDataUseCase: DeleteSessionDataUseCase,
 ) {
     internal var excludedWalletsIds: MutableList<String> = mutableListOf()
@@ -68,7 +72,7 @@ internal class Web3ModalEngine(
 
     fun connectWC(
         connect: Modal.Params.Connect,
-        onSuccess: () -> Unit,
+        onSuccess: (String) -> Unit,
         onError: (Throwable) -> Unit
     ) {
         SignClient.connect(
@@ -84,8 +88,13 @@ internal class Web3ModalEngine(
         checkEngineInitialization()
         coinbaseClient.connect(
             onSuccess = {
-                Web3ModalDelegate.emit(it)
-                onSuccess()
+                scope.launch {
+                    val chain = Web3Modal.chains.getSelectedChain(Web3Modal.selectedChain?.id)
+                    saveSessionUseCase(it.toSession(chain))
+                    Web3ModalDelegate.emit(it)
+                    onSuccess()
+                }
+
             }, onError = {
                 onError(it)
             }
@@ -218,6 +227,14 @@ internal class Web3ModalEngine(
 
             override fun onSessionRequestResponse(response: Sign.Model.SessionRequestResponse) {
                 delegate.onSessionRequestResponse(response.toModal())
+            }
+
+            override fun onProposalExpired(proposal: Sign.Model.ExpiredProposal) {
+                delegate.onProposalExpired(proposal.toModal())
+            }
+
+            override fun onRequestExpired(request: Sign.Model.ExpiredRequest) {
+                delegate.onRequestExpired(request.toModal())
             }
 
             override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {

@@ -8,12 +8,13 @@ import com.walletconnect.sign.client.SignClient
 import com.walletconnect.sign.common.exceptions.SignClientAlreadyInitializedException
 import com.walletconnect.util.Empty
 import com.walletconnect.web3.modal.client.models.Account
+import com.walletconnect.web3.modal.client.models.Session
 import com.walletconnect.web3.modal.client.models.Web3ModelClientAlreadyInitializedException
 import com.walletconnect.web3.modal.client.models.request.Request
 import com.walletconnect.web3.modal.client.models.request.SentRequestResult
 import com.walletconnect.web3.modal.di.web3ModalModule
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
-import com.walletconnect.web3.modal.domain.model.Session
+import com.walletconnect.web3.modal.domain.model.Session.WalletConnect
 import com.walletconnect.web3.modal.domain.model.toModalError
 import com.walletconnect.web3.modal.engine.Web3ModalEngine
 import kotlinx.coroutines.flow.launchIn
@@ -194,7 +195,7 @@ object Web3Modal {
     ) {
         checkEngineInitialization()
         val topic = when (val session = web3ModalEngine.getActiveSession()) {
-            is Session.WalletConnect -> session.topic
+            is WalletConnect -> session.topic
             else -> String.Empty
         }
 
@@ -241,7 +242,7 @@ object Web3Modal {
     )
     fun getActiveSession(): Modal.Model.Session? {
         checkEngineInitialization()
-        return (web3ModalEngine.getActiveSession() as? Session.WalletConnect)?.topic?.let { SignClient.getActiveSessionByTopic(it)?.toModal() }
+        return (web3ModalEngine.getActiveSession() as? WalletConnect)?.topic?.let { SignClient.getActiveSessionByTopic(it)?.toModal() }
     }
 
     /**
@@ -257,9 +258,9 @@ object Web3Modal {
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
-    fun getSession() {
+    fun getSession(): Session? {
         checkEngineInitialization()
-        web3ModalEngine.getSession()
+        return web3ModalEngine.getSession()
     }
 
     /**

@@ -6,7 +6,7 @@ import org.koin.dsl.module
 
 internal fun engineModule() = module {
 
-    single { Web3ModalEngine(getSessionUseCase = get(), getSelectedChainUseCase = get(), deleteSessionDataUseCase = get()) }
+    single { Web3ModalEngine(getSessionUseCase = get(), getSelectedChainUseCase = get(), deleteSessionDataUseCase = get(), saveSessionUseCase = get()) }
     single { CoinbaseClient(context = get(), appMetaData = get()) }
 
 }
