@@ -246,6 +246,15 @@ object Web3Modal {
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
+    fun getSession() {
+        checkEngineInitialization()
+        web3ModalEngine.getSession()
+    }
+
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
     fun getConnectorType(): Modal.ConnectorType? {
         checkEngineInitialization()
         return web3ModalEngine.getConnectorType()

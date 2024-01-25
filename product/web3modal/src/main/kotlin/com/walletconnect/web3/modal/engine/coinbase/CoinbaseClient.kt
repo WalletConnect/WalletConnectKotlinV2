@@ -24,8 +24,11 @@ import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.util.Empty
 import com.walletconnect.web3.modal.client.Modal
+import com.walletconnect.web3.modal.client.models.Account
 import com.walletconnect.web3.modal.client.models.request.Request
+import com.walletconnect.web3.modal.domain.model.Session
 import com.walletconnect.web3.modal.domain.usecase.GetSelectedChainUseCase
+import com.walletconnect.web3.modal.utils.toChain
 
 internal const val COINBASE_WALLET_ID = "fd20dc426fb37566d803205b19bbc1d4096b248ac04548e3cfb6b3a38bd033aa"
 
@@ -117,14 +120,19 @@ internal class CoinbaseClient(
         else -> throw Throwable("Unhandled method")
     }
 
-    fun getAccount() {
-        coinbaseWalletSDK.isConnected
-        coinbaseWalletSDK
-    }
+    fun isConnected() = coinbaseWalletSDK.isConnected
 
     fun isInstalled() = coinbaseWalletSDK.isCoinbaseWalletInstalled
 
     fun isLauncherSet() = activityLauncher.launcher != null
+    fun getAccount(session: Session.Coinbase): Account? {
+        val chain = session.chain.toChain()
+        return if (isConnected() && chain != null) {
+            Account(session.address, chain)
+        } else {
+            null
+        }
+    }
 
     internal class ActivityResultLauncherHolder<I> {
         var launcher: ActivityResultLauncher<I>? = null

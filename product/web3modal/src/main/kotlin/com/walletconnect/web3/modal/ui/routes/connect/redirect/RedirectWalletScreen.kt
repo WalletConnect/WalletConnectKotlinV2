@@ -74,17 +74,7 @@ internal fun RedirectWalletRoute(
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
     var redirectState by remember { mutableStateOf<RedirectState>(RedirectState.Loading) }
     var platformTab by rememberWalletPlatformTabs(wallet.toPlatform())
-
-    LaunchedEffect(Unit) {
-        Web3ModalDelegate.wcEventModels.collect {
-            redirectState = when (it) {
-                is Modal.Model.RejectedSession -> RedirectState.Reject
-                else -> RedirectState.Loading
-            }
-        }
-    }
-
-    LaunchedEffect(Unit) {
+    val connectMobile = {
         if (wallet.isCoinbaseWallet()) {
             connectState.connectCoinbase()
         } else {
@@ -98,6 +88,20 @@ internal fun RedirectWalletRoute(
         }
     }
 
+
+    LaunchedEffect(Unit) {
+        Web3ModalDelegate.wcEventModels.collect {
+            redirectState = when (it) {
+                is Modal.Model.RejectedSession -> RedirectState.Reject
+                else -> RedirectState.Loading
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        connectMobile()
+    }
+
     RedirectWalletScreen(
         redirectState = redirectState,
         platformTab = platformTab,
@@ -108,14 +112,8 @@ internal fun RedirectWalletRoute(
             clipboardManager.setText(AnnotatedString(connectState.uri))
         },
         onMobileRetry = {
-            connectState.connectWalletConnect { uri ->
-                redirectState = RedirectState.Loading
-                uriHandler.openMobileLink(
-                    uri = uri,
-                    mobileLink = wallet.mobileLink,
-                    onError = { redirectState = RedirectState.NotDetected }
-                )
-            }
+            redirectState = RedirectState.Loading
+            connectMobile()
         },
         onOpenPlayStore = { uriHandler.openPlayStore(wallet.playStore) },
         onOpenWebApp = {

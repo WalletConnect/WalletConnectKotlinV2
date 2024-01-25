@@ -1,6 +1,8 @@
 package com.walletconnect.web3.modal.client
 
 import com.walletconnect.sign.client.Sign
+import com.walletconnect.web3.modal.client.models.Account
+import com.walletconnect.web3.modal.client.models.Session
 import com.walletconnect.web3.modal.client.models.request.Request
 
 internal fun Sign.Model.ApprovedSession.toModal() = Modal.Model.ApprovedSession.WalletConnectSession(topic, metaData, namespaces.toModal(), accounts)
@@ -58,5 +60,10 @@ internal fun Modal.Listeners.SessionPing.toSign() = object : Sign.Listeners.Sess
     override fun onError(pingError: Sign.Model.Ping.Error) {
         this@toSign.onError(pingError.toModal())
     }
-
 }
+
+internal fun Sign.Model.Session.toSession() = Session.WalletConnectSession(pairingTopic, topic, expiry, namespaces.toModal(), metaData)
+
+internal fun Account.toCoinbaseSession() = Session.CoinbaseSession(chain.id, address)
+
+//internal fun Sign.Model.Session.toSession() = Session(pairingTopic, topic, expiry, namespaces.toModal(), metaData)

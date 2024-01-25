@@ -7,12 +7,14 @@ import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.modal.ui.model.LoadingState
 import com.walletconnect.modal.ui.model.UiState
+import com.walletconnect.util.Empty
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.domain.usecase.ObserveSelectedChainUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveChainSelectionUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveRecentWalletUseCase
 import com.walletconnect.web3.modal.engine.Web3ModalEngine
+import com.walletconnect.web3.modal.engine.coinbase.isCoinbaseWallet
 import com.walletconnect.web3.modal.ui.navigation.Navigator
 import com.walletconnect.web3.modal.ui.navigation.NavigatorImpl
 import com.walletconnect.web3.modal.ui.navigation.Route

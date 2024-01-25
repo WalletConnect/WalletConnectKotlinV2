@@ -19,7 +19,9 @@ import com.walletconnect.web3.modal.client.models.CoinbaseClientAlreadyInitializ
 import com.walletconnect.web3.modal.client.models.request.Request
 import com.walletconnect.web3.modal.client.models.request.SentRequestResult
 import com.walletconnect.web3.modal.client.models.request.toSentRequest
+import com.walletconnect.web3.modal.client.toCoinbaseSession
 import com.walletconnect.web3.modal.client.toModal
+import com.walletconnect.web3.modal.client.toSession
 import com.walletconnect.web3.modal.client.toSign
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
 import com.walletconnect.web3.modal.domain.model.InvalidSessionException
@@ -92,7 +94,12 @@ internal class Web3ModalEngine(
 
     fun getSelectedChain() = getSelectedChainUseCase()?.toChain()
 
-    fun getActiveSession() = getSessionUseCase()
+    fun getActiveSession() = getSessionUseCase()?.isSessionActive()
+
+    private fun Session.isSessionActive() = when (this) {
+        is Session.Coinbase -> if (coinbaseClient.isConnected()) this else null
+        is Session.WalletConnect -> SignClient.getActiveSessionByTopic(topic)?.let { this }
+    }
 
     fun getConnectorType() = getSessionUseCase()?.toConnectorType()
 
@@ -112,6 +119,7 @@ internal class Web3ModalEngine(
                 checkEngineInitialization()
                 coinbaseClient.request(request, { onSuccess(SentRequestResult.Coinbase(request.method, request.params, selectedChain.id, it)) }, onError)
             }
+
             is Session.WalletConnect -> SignClient.request(
                 request.toSign(session.topic, selectedChain.id),
                 {
@@ -157,6 +165,7 @@ internal class Web3ModalEngine(
                 coinbaseClient.disconnect()
                 onSuccess()
             }
+
             is Session.WalletConnect -> SignClient.disconnect(Sign.Params.Disconnect(session.topic), { onSuccess() }, { onError(it.throwable) })
         }
     }
@@ -165,21 +174,17 @@ internal class Web3ModalEngine(
         scope.launch { deleteSessionDataUseCase() }
     }
 
-    fun getAccount(): Account? = getSessionUseCase()?.let { session ->
-        when(session) {
-            is Session.Coinbase -> coinbaseClient.getAccount().let { session.toAccount() }
+    fun getAccount(): Account? = getActiveSession()?.let { session ->
+        when (session) {
+            is Session.Coinbase -> coinbaseClient.getAccount(session)
             is Session.WalletConnect -> SignClient.getActiveSessionByTopic(session.topic)?.toAccount(session)
         }
     }
 
-    fun Session.validateSession() {
-
-    }
-
-    private fun Session.isActive() {
-        when (this) {
-            is Session.Coinbase -> coinbaseClient.getAccount() != null
-            is Session.WalletConnect -> SignClient.getActiveSessionByTopic(topic) != null
+    fun getSession() = getSessionUseCase()?.let { session ->
+        when(session) {
+            is Session.Coinbase -> coinbaseClient.getAccount(session)?.toCoinbaseSession()
+            is Session.WalletConnect -> SignClient.getActiveSessionByTopic(session.topic)?.toSession()
         }
     }
 
