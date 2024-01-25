@@ -22,8 +22,6 @@ import com.walletconnect.sign.common.model.Request
 import com.walletconnect.sign.common.model.vo.clientsync.common.PayloadParams
 import com.walletconnect.sign.common.model.vo.clientsync.common.Requester
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipant
-import com.walletconnect.sign.common.model.PendingRequest
-import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.common.model.vo.proposal.ProposalVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
@@ -205,7 +203,7 @@ internal fun ProposalVO.toEngineDO(): EngineDO.SessionProposal =
 internal fun ProposalVO.toExpiredProposal(): EngineDO.ExpiredProposal = EngineDO.ExpiredProposal(pairingTopic.value, proposerPublicKey)
 
 @JvmSynthetic
-internal fun PendingRequest<String>.toExpiredSessionRequest() = EngineDO.ExpiredRequest(topic.value, id)
+internal fun Request<String>.toExpiredSessionRequest() = EngineDO.ExpiredRequest(topic.value, id)
 
 private fun convertToURI(it: String) = try {
     URI(it)

@@ -8,8 +8,8 @@ import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.signing.cacao.Cacao.Payload.Companion.ATT_KEY
 import com.walletconnect.android.internal.common.signing.cacao.Cacao.Payload.Companion.RECAPS_PREFIX
-import com.walletconnect.android.internal.utils.CURRENT_TIME_IN_SECONDS
-import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
+import com.walletconnect.android.internal.utils.currentTimeInSeconds
+import com.walletconnect.android.internal.utils.dayInSeconds
 import com.walletconnect.android.internal.utils.getParticipantTag
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
@@ -58,7 +58,7 @@ internal class SessionAuthenticateUseCase(
         val responseTopic: Topic = crypto.getTopicFromKey(responsePublicKey)
         val authParams: SignParams.SessionAuthenticateParams = SignParams.SessionAuthenticateParams(Requester(responsePublicKey.keyAsHex, selfAppMetaData), payloadParams.toCommon())
         val authRequest: SignRpc.SessionAuthenticate = SignRpc.SessionAuthenticate(params = authParams)
-        val irnParamsTtl = getIrnParamsTtl(null, CURRENT_TIME_IN_SECONDS)
+        val irnParamsTtl = getIrnParamsTtl(null, currentTimeInSeconds)
         val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE, irnParamsTtl, true)
         val pairingTopic = Topic(topic)
 
@@ -87,11 +87,11 @@ internal class SessionAuthenticateUseCase(
     }
 
     private fun getIrnParamsTtl(expiry: Expiry?, nowInSeconds: Long) = expiry?.run {
-        val defaultTtl = DAY_IN_SECONDS
+        val defaultTtl = dayInSeconds
         val extractedTtl = seconds - nowInSeconds
         val newTtl = extractedTtl.takeIf { extractedTtl >= defaultTtl } ?: defaultTtl
         Ttl(newTtl)
-    } ?: Ttl(DAY_IN_SECONDS)
+    } ?: Ttl(dayInSeconds)
 }
 
 internal interface SessionAuthenticateUseCaseInterface {

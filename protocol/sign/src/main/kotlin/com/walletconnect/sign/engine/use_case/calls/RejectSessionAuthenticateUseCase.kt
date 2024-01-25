@@ -9,7 +9,7 @@ import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
-import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
+import com.walletconnect.android.internal.utils.dayInSeconds
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -47,7 +47,7 @@ internal class RejectSessionAuthenticateUseCase(
         val responseTopic: Topic = crypto.getTopicFromKey(receiverPublicKey)
 
         crypto.setKey(symmetricKey, responseTopic.value)
-        val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE_RESPONSE, Ttl(DAY_IN_SECONDS), false)
+        val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE_RESPONSE, Ttl(dayInSeconds), false)
 
         jsonRpcInteractor.publishJsonRpcResponse(
             responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
