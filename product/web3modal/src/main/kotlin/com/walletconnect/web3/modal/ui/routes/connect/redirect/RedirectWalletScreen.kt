@@ -91,9 +91,10 @@ internal fun RedirectWalletRoute(
 
     LaunchedEffect(Unit) {
         Web3ModalDelegate.wcEventModels.collect {
-            redirectState = when (it) {
-                is Modal.Model.RejectedSession -> RedirectState.Reject
-                else -> RedirectState.Loading
+            when (it) {
+                is Modal.Model.RejectedSession -> { redirectState = RedirectState.Reject }
+                is Modal.Model.ExpiredProposal -> { redirectState = RedirectState.Expired }
+                else -> Unit
             }
         }
     }
@@ -242,7 +243,7 @@ private fun LandscapeRedirectContent(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         RedirectLabel(state = redirectState, wallet = wallet)
-                        if (redirectState == RedirectState.NotDetected || redirectState == RedirectState.Reject) {
+                        if (redirectState != RedirectState.Loading) {
                             VerticalSpacer(height = 20.dp)
                             TryAgainButton(onClick = onMobileRetry)
                         }
@@ -273,7 +274,7 @@ private fun WalletImageBox(
         when {
             redirectState == RedirectState.NotDetected || platformTab == PlatformTab.WEB -> RoundedWalletImage(url = wallet.imageUrl)
             redirectState == RedirectState.Loading -> WalletImageWithLoader(url = wallet.imageUrl)
-            redirectState == RedirectState.Reject -> RejectWalletImage(wallet.imageUrl)
+            redirectState == RedirectState.Reject || redirectState == RedirectState.Expired -> RejectWalletImage(wallet.imageUrl)
         }
     }
 }
@@ -291,14 +292,18 @@ private fun RedirectLabel(state: RedirectState, wallet: Wallet) {
             description = "Accept connection request in your wallet app"
             descriptionStyle = Web3ModalTheme.typo.small400.copy(color = Web3ModalTheme.colors.foreground.color200)
         }
-
         RedirectState.Reject -> {
             header = "Connection declined"
             description = "Connection can be declined if a previous request is still active"
             headerStyle = Web3ModalTheme.typo.paragraph400.copy(Web3ModalTheme.colors.error)
             descriptionStyle = Web3ModalTheme.typo.small400.copy(color = Web3ModalTheme.colors.foreground.color200)
         }
-
+        RedirectState.Expired -> {
+            header = "Connection expired"
+            description = String.Empty
+            headerStyle = Web3ModalTheme.typo.paragraph400.copy(Web3ModalTheme.colors.error)
+            descriptionStyle = Web3ModalTheme.typo.small400.copy(color = Web3ModalTheme.colors.foreground.color200)
+        }
         RedirectState.NotDetected -> {
             header = "App not installed"
             description = String.Empty
@@ -354,7 +359,7 @@ private fun RedirectMobileWalletScreen(
         ) {
             when (redirectState) {
                 RedirectState.Loading -> LoadingState(state, wallet, onRetry, onCopyLinkClick)
-                RedirectState.Reject -> RejectedState(state, wallet, onRetry)
+                RedirectState.Reject, RedirectState.Expired -> RejectedOrExpiredState(state, wallet, onRetry)
                 RedirectState.NotDetected -> NotDetectedWalletState(state, wallet, onOpenPlayStore)
             }
         }
@@ -432,7 +437,7 @@ private fun RoundedWalletImage(url: String) {
 }
 
 @Composable
-private fun RejectedState(
+private fun RejectedOrExpiredState(
     state: RedirectState,
     wallet: Wallet,
     onRetry: () -> Unit
@@ -485,6 +490,16 @@ private fun PreviewRedirectWalletScreenWithRejectedState() {
     val wallet = testWallets.first()
     Web3ModalPreview(wallet.name) {
         RedirectWalletScreen(redirectState = RedirectState.Reject, platformTab = PlatformTab.MOBILE, {}, wallet, {}, {}, {}, {})
+    }
+}
+
+@UiModePreview
+@Landscape
+@Composable
+private fun PreviewRedirectWalletScreenWithExpiredState() {
+    val wallet = testWallets.first()
+    Web3ModalPreview(wallet.name) {
+        RedirectWalletScreen(redirectState = RedirectState.Expired, platformTab = PlatformTab.MOBILE, {}, wallet, {}, {}, {}, {})
     }
 }
 
