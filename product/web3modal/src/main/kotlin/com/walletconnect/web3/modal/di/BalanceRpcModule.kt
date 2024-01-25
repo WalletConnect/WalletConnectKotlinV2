@@ -9,10 +9,9 @@ import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 
-private const val BALANCE_RPC_RETROFIT = "balanceRpcRetrofit"
 internal fun balanceRpcModule() = module {
 
-    single(named(BALANCE_RPC_RETROFIT)) {
+    single(named(Web3ModalDITags.BALANCE_RPC_RETROFIT)) {
         Retrofit.Builder()
             // Passing url to google to passing retrofit verification. The correct url to chain RPC is provided on the BalanceService::class
             .baseUrl("https://google.com/")
@@ -21,7 +20,7 @@ internal fun balanceRpcModule() = module {
             .build()
     }
 
-    single { get<Retrofit>(named(BALANCE_RPC_RETROFIT)).create(BalanceService::class.java) }
+    single { get<Retrofit>(named(Web3ModalDITags.BALANCE_RPC_RETROFIT)).create(BalanceService::class.java) }
 
     single { BalanceRpcRepository(balanceService = get(), logger = get()) }
 

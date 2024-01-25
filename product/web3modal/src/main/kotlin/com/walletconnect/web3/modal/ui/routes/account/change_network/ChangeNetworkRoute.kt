@@ -30,7 +30,7 @@ import com.walletconnect.web3.modal.utils.getChainNetworkImageUrl
 internal fun ChangeNetworkRoute(
     accountViewModel: AccountViewModel
 ) {
-    val selectedChain by accountViewModel.selectedChain.collectAsState(initial = Web3Modal.getSelectedChainOrFirst())
+    val selectedChain by accountViewModel.selectedChain.collectAsState(initial = accountViewModel.getSelectedChainOrFirst())
 
     UiStateBuilder(uiStateFlow = accountViewModel.accountState) {
         ChangeNetworkScreen(

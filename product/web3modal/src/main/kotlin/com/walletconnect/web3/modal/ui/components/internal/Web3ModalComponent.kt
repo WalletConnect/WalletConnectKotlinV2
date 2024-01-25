@@ -2,6 +2,7 @@
 
 package com.walletconnect.web3.modal.ui.components.internal
 
+import android.net.Uri
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween

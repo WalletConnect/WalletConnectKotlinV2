@@ -40,6 +40,7 @@ import com.walletconnect.modal.utils.openWebAppLink
 import com.walletconnect.util.Empty
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
+import com.walletconnect.web3.modal.engine.coinbase.isCoinbaseWallet
 import com.walletconnect.web3.modal.ui.components.internal.OrientationBox
 import com.walletconnect.web3.modal.ui.components.internal.commons.DeclinedIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.ExternalIcon
@@ -73,6 +74,20 @@ internal fun RedirectWalletRoute(
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
     var redirectState by remember { mutableStateOf<RedirectState>(RedirectState.Loading) }
     var platformTab by rememberWalletPlatformTabs(wallet.toPlatform())
+    val connectMobile = {
+        if (wallet.isCoinbaseWallet()) {
+            connectState.connectCoinbase()
+        } else {
+            connectState.connectWalletConnect { uri ->
+                uriHandler.openMobileLink(
+                    uri = uri,
+                    mobileLink = wallet.mobileLink,
+                    onError = { redirectState = RedirectState.NotDetected }
+                )
+            }
+        }
+    }
+
 
     LaunchedEffect(Unit) {
         Web3ModalDelegate.wcEventModels.collect {
@@ -84,13 +99,7 @@ internal fun RedirectWalletRoute(
     }
 
     LaunchedEffect(Unit) {
-        connectState.connect { uri ->
-            uriHandler.openMobileLink(
-                uri = uri,
-                mobileLink = wallet.mobileLink,
-                onError = { redirectState = RedirectState.NotDetected }
-            )
-        }
+        connectMobile()
     }
 
     RedirectWalletScreen(
@@ -103,18 +112,12 @@ internal fun RedirectWalletRoute(
             clipboardManager.setText(AnnotatedString(connectState.uri))
         },
         onMobileRetry = {
-            connectState.connect { uri ->
-                redirectState = RedirectState.Loading
-                uriHandler.openMobileLink(
-                    uri = uri,
-                    mobileLink = wallet.mobileLink,
-                    onError = { redirectState = RedirectState.NotDetected }
-                )
-            }
+            redirectState = RedirectState.Loading
+            connectMobile()
         },
         onOpenPlayStore = { uriHandler.openPlayStore(wallet.playStore) },
         onOpenWebApp = {
-            connectState.connect {
+            connectState.connectWalletConnect {
                 uriHandler.openWebAppLink(it, wallet.webAppLink)
             }
         }

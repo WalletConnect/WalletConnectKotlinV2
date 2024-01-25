@@ -6,6 +6,6 @@ internal class SaveChainSelectionUseCase(
     private val repository: SessionRepository
 ) {
     suspend operator fun invoke(chain: String) {
-        repository.saveChainSelection(chain)
+        repository.updateChainSelection(chain)
     }
 }
