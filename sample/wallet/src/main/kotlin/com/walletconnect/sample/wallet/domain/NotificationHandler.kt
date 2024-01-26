@@ -54,7 +54,7 @@ object NotificationHandler {
         data class Simple(override val messageId: Int, override val channelId: String, override val title: String, override val body: String) : Notification
 
         data class Decrypted(
-            override val messageId: Int, override val channelId: String, override val title: String, override val body: String, val topic: String, val url: String?
+            override val messageId: Int, override val channelId: String, override val title: String, override val body: String, val topic: String, val url: String?,
         ) : Notification //Notify
 
         data class SessionProposal(
@@ -148,8 +148,7 @@ object NotificationHandler {
                     Triple(notification.messageId, notification.title, notification.body)
                 }
 
-                val url = (notifications.first() as? Notification.Decrypted)?.url
-                val pendingIntent = buildPendingIntent(context, url)
+                val pendingIntent = buildPendingIntent(context)
 
                 showNotification(
                     context = context,
@@ -171,13 +170,8 @@ object NotificationHandler {
             }
         }
 
-    private fun buildPendingIntent(context: Context, url: String?): PendingIntent {
-        val parsedUrl = kotlin.runCatching { Uri.parse(url) }.getOrNull()
-        val intent = if (parsedUrl == null) {
-            Intent(context, Web3WalletActivity::class.java).apply { addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) }
-        } else {
-            Intent(Intent.ACTION_VIEW, parsedUrl)
-        }
+    private fun buildPendingIntent(context: Context): PendingIntent {
+        val intent = Intent(context, Web3WalletActivity::class.java).apply { addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) }
         return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
     }
 
