@@ -180,7 +180,7 @@ class Web3WalletApplication : Application() {
                 },
                 onValueChanged = { text ->
                     NotifyClient.unregister(
-                        params = Notify.Params.Unregistration(
+                        params = Notify.Params.Unregister(
                             with(EthAccountDelegate) { account.toEthAddress() },
                         ),
                         onSuccess = {

@@ -8,9 +8,9 @@ import com.walletconnect.notify.engine.NotifyEngine
 import com.walletconnect.notify.engine.domain.ExtractMetadataFromConfigUseCase
 import com.walletconnect.notify.engine.domain.ExtractPublicKeysFromDidJsonUseCase
 import com.walletconnect.notify.engine.domain.FetchDidJwtInteractor
+import com.walletconnect.notify.engine.domain.FindRequestedSubscriptionUseCase
 import com.walletconnect.notify.engine.domain.GenerateAppropriateUriUseCase
 import com.walletconnect.notify.engine.domain.GetSelfKeyForWatchSubscriptionUseCase
-import com.walletconnect.notify.engine.domain.RegisterIdentityUseCase
 import com.walletconnect.notify.engine.domain.SetActiveSubscriptionsUseCase
 import com.walletconnect.notify.engine.domain.StopWatchingSubscriptionsUseCase
 import com.walletconnect.notify.engine.domain.WatchSubscriptionsForEveryRegisteredAccountUseCase
@@ -96,9 +96,8 @@ internal fun engineModule() = module {
     }
 
     single {
-        RegisterIdentityUseCase(
-            identitiesInteractor = get(),
-            identityServerUrl = get(named(AndroidCommonDITags.KEYSERVER_URL))
+        FindRequestedSubscriptionUseCase(
+            metadataStorageRepository = get()
         )
     }
 
@@ -109,17 +108,15 @@ internal fun engineModule() = module {
             subscribeToDappUseCase = get(),
             updateUseCase = get(),
             deleteSubscriptionUseCase = get(),
-            deleteMessageUseCase = get(),
             decryptMessageUseCase = get(named(AndroidCommonDITags.DECRYPT_NOTIFY_MESSAGE)),
-            legacyRegisterUseCase = get(),
             unregisterUseCase = get(),
             getNotificationTypesUseCase = get(),
             getListOfActiveSubscriptionsUseCase = get(),
             getListOfMessages = get(),
             onNotifyMessageUseCase = get(),
-            onNotifyDeleteUseCase = get(),
             onNotifySubscribeResponseUseCase = get(),
             onNotifyUpdateResponseUseCase = get(),
+            onNotifyDeleteResponseUseCase = get(),
             onWatchSubscriptionsResponseUseCase = get(),
             watchSubscriptionsForEveryRegisteredAccountUseCase = get(),
             onSubscriptionsChangedUseCase = get(),

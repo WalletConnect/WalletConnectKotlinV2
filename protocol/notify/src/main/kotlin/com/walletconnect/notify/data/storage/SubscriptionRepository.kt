@@ -13,14 +13,9 @@ import com.walletconnect.notify.common.storage.data.dao.ActiveSubscriptionsQueri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-internal class SubscriptionRepository(
-    private val activeSubscriptionsQueries: ActiveSubscriptionsQueries,
-) {
+internal class SubscriptionRepository(private val activeSubscriptionsQueries: ActiveSubscriptionsQueries) {
 
-    suspend fun setActiveSubscriptions(
-        account: String,
-        subscriptions: List<Subscription.Active>,
-    ) {
+    suspend fun setActiveSubscriptions(account: String, subscriptions: List<Subscription.Active>) = withContext(Dispatchers.IO) {
         activeSubscriptionsQueries.transaction {
             activeSubscriptionsQueries.deleteByAccount(account)
             subscriptions.forEach { subscription ->
@@ -38,6 +33,21 @@ internal class SubscriptionRepository(
                     )
                 }
             }
+        }
+    }
+
+    suspend fun insertOrAbortSubscription(account: String, subscription: Subscription.Active) = withContext(Dispatchers.IO) {
+        with(subscription) {
+            activeSubscriptionsQueries.insertOrAbortActiveSubscribtion(
+                account,
+                authenticationPublicKey.keyAsHex,
+                expiry.seconds,
+                relay.protocol,
+                relay.data,
+                mapOfNotificationScope.mapValues { scope -> Triple(scope.value.name, scope.value.description, scope.value.isSelected) },
+                notifyTopic.value,
+                requestedSubscriptionId
+            )
         }
     }
 

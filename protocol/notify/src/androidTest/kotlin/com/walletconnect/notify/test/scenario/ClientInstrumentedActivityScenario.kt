@@ -54,13 +54,13 @@ class ClientInstrumentedActivityScenario : TestRule, ActivityScenario() {
         val isPrimaryReady = MutableStateFlow(false)
         val isSecondaryReady = MutableStateFlow(false)
 
-        TestClient.Primary.notifyClient.unregister(Notify.Params.Unregistration(TestClient.caip10account), { identityKey ->
+        TestClient.Primary.notifyClient.unregister(Notify.Params.Unregister(TestClient.caip10account), { identityKey ->
             Timber.d("Primary unregister: $identityKey")
             isPrimaryReady.value = true
         }, { error ->
             Timber.e(error.throwable)
         })
-        TestClient.Secondary.notifyClient.unregister(Notify.Params.Unregistration(TestClient.caip10account), { identityKey ->
+        TestClient.Secondary.notifyClient.unregister(Notify.Params.Unregister(TestClient.caip10account), { identityKey ->
             Timber.d("Secondary unregister: $identityKey")
             isSecondaryReady.value = true
         }, { error ->

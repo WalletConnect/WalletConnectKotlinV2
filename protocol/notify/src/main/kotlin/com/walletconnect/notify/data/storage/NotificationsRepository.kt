@@ -10,17 +10,12 @@ import kotlinx.coroutines.withContext
 
 internal class NotificationsRepository(private val notificationsQueries: NotificationsQueries) {
 
-    suspend fun insertNotification(
-        requestId: Long,
-        topic: String,
-        publishedAt: Long,
-        title: String,
-        body: String,
-        icon: String?,
-        url: String?,
-        type: String,
-    ) = withContext(Dispatchers.IO) {
-        notificationsQueries.insertNotification(requestId, topic, publishedAt, title, body, icon, url, type)
+    suspend fun insertNotification(record: NotifyRecord) = withContext(Dispatchers.IO) {
+        with(record) {
+            with(notifyMessage) {
+                notificationsQueries.insertNotification(id, topic, publishedAt, title, body, icon, url, type)
+            }
+        }
     }
 
     suspend fun getNotificationsByTopic(topic: String): List<NotifyRecord> = withContext(Dispatchers.IO) {

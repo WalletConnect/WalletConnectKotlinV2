@@ -1,64 +1,57 @@
 @file:JvmSynthetic
 
-package com.walletconnect.notify.engine.responses;
+package com.walletconnect.notify.engine.responses
 
-import android.content.res.Resources
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtClaims
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.WCResponse
+import com.walletconnect.android.internal.common.model.params.ChatNotifyResponseAuthParams
 import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
-import com.walletconnect.notify.common.calcExpiry
-import com.walletconnect.notify.common.model.NotificationScope
+import com.walletconnect.foundation.util.Logger
+import com.walletconnect.foundation.util.jwt.decodeDidPkh
 import com.walletconnect.notify.common.model.UpdateSubscription
-import com.walletconnect.notify.common.model.toDb
 import com.walletconnect.notify.data.jwt.update.UpdateRequestJwtClaim
-import com.walletconnect.notify.data.storage.SubscriptionRepository
-import com.walletconnect.notify.engine.domain.FetchDidJwtInteractor
+import com.walletconnect.notify.data.jwt.update.UpdateResponseJwtClaim
+import com.walletconnect.notify.engine.domain.FindRequestedSubscriptionUseCase
+import com.walletconnect.notify.engine.domain.SetActiveSubscriptionsUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.supervisorScope
 
 internal class OnNotifyUpdateResponseUseCase(
-    private val subscriptionRepository: SubscriptionRepository,
+    private val setActiveSubscriptionsUseCase: SetActiveSubscriptionsUseCase,
+    private val findRequestedSubscriptionUseCase: FindRequestedSubscriptionUseCase,
+    private val logger: Logger
 ) {
-    private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
-    val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
+    private val _events: MutableSharedFlow<Pair<CoreNotifyParams.UpdateParams, EngineEvent>> = MutableSharedFlow()
+    val events: SharedFlow<Pair<CoreNotifyParams.UpdateParams, EngineEvent>> = _events.asSharedFlow()
 
-    suspend operator fun invoke(wcResponse: WCResponse, updateParams: CoreNotifyParams.UpdateParams) = supervisorScope {
+    suspend operator fun invoke(wcResponse: WCResponse, params: CoreNotifyParams.UpdateParams) = supervisorScope {
         val resultEvent = try {
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcResult -> {
-                    val subscription = subscriptionRepository.getActiveSubscriptionByNotifyTopic(wcResponse.topic.value)
-                        ?: throw Resources.NotFoundException("Cannot find subscription for topic: ${wcResponse.topic.value}")
 
-                    val notifyUpdateRequestJwtClaim = extractVerifiedDidJwtClaims<UpdateRequestJwtClaim>(updateParams.updateAuth).getOrElse { error ->
-                        _events.emit(SDKError(error))
-                        return@supervisorScope
-                    }
+                    val responseAuth = (response.result as ChatNotifyResponseAuthParams.ResponseAuth).responseAuth
+                    val responseJwtClaim = extractVerifiedDidJwtClaims<UpdateResponseJwtClaim>(responseAuth).getOrThrow()
+                    responseJwtClaim.throwIfBaseIsInvalid()
 
-                    val listOfUpdateScopeNames = notifyUpdateRequestJwtClaim.scope.split(FetchDidJwtInteractor.SCOPES_DELIMITER)
-                    val updateNotificationScopeMap: Map<String, NotificationScope.Cached> = subscription.mapOfNotificationScope.entries.associate { (scopeId, scopeDescIsSelected) ->
-                        val isNewScopeTrue = listOfUpdateScopeNames.contains(scopeId)
-                        scopeId to NotificationScope.Cached(scopeDescIsSelected.name, scopeDescIsSelected.description, scopeId, isNewScopeTrue)
-                    }
-                    val newExpiry = calcExpiry()
+                    val subscriptions = setActiveSubscriptionsUseCase(decodeDidPkh(responseJwtClaim.subject), responseJwtClaim.subscriptions).getOrThrow()
+                    val requestJwtClaim = extractVerifiedDidJwtClaims<UpdateRequestJwtClaim>(params.updateAuth).getOrThrow()
+                    val subscription = findRequestedSubscriptionUseCase(requestJwtClaim.audience, subscriptions)
 
-                    subscriptionRepository.updateSubscriptionScopeAndJwtByNotifyTopic(subscription.notifyTopic.value, updateNotificationScopeMap.toDb(), newExpiry.seconds)
-
-                    with(subscription) { UpdateSubscription.Result(account, mapOfNotificationScope, newExpiry, subscription.authenticationPublicKey, notifyTopic, dappMetaData, relay) }
+                    UpdateSubscription.Success(subscription)
                 }
 
-                is JsonRpcResponse.JsonRpcError -> {
-                    UpdateSubscription.Error(wcResponse.response.id, response.error.message)
-                }
+                is JsonRpcResponse.JsonRpcError -> UpdateSubscription.Error(Throwable(response.error.message))
             }
-        } catch (exception: Exception) {
-            SDKError(exception)
+        } catch (e: Exception) {
+            logger.error(e)
+            SDKError(e)
         }
 
-        _events.emit(resultEvent)
+        _events.emit(params to resultEvent)
     }
 }

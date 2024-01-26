@@ -11,8 +11,8 @@ import com.walletconnect.sample.wallet.domain.NotifyDelegate
 import com.walletconnect.sample.wallet.domain.model.NotificationUI
 import com.walletconnect.sample.wallet.ui.common.subscriptions.ActiveSubscriptionsUI
 import com.walletconnect.sample.wallet.ui.common.subscriptions.toUI
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.text.DateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -65,10 +66,10 @@ class NotificationsViewModel(topic: String) : ViewModel() {
             .filterIsInstance<Notify.Event.Notification>()
             .filter { event -> event.notification.topic == topic }
             .onEach { event -> _notifications.addNotification(event.notification.toNotifyNotification()) }
-            .onEach { _state.update { NotificationsState.IncomingNotifications }}
+            .onEach { _state.update { NotificationsState.IncomingNotifications } }
             .debounce(500L)
             .onEach { _notificationsTrigger.emit(Unit) }
-            .onEach { _state.update { NotificationsState.Success }}
+            .onEach { _state.update { NotificationsState.Success } }
             .launchIn(viewModelScope)
     }
 
@@ -77,6 +78,7 @@ class NotificationsViewModel(topic: String) : ViewModel() {
         _notifications.value = runCatching { getActiveSubscriptionNotifications() }
             .fold(
                 onFailure = { error ->
+                    Timber.e(error)
                     _state.update { NotificationsState.Failure(error) }
                     emptyList()
                 },
@@ -94,56 +96,33 @@ class NotificationsViewModel(topic: String) : ViewModel() {
         }
     }
 
-    private suspend fun getActiveSubscriptionNotifications(): List<NotificationUI> =
-        NotifyClient.getNotificationHistory(params = Notify.Params.NotificationHistory(currentSubscription.value.topic))
+    private fun getActiveSubscriptionNotifications(): List<NotificationUI> =
+        NotifyClient.getNotificationHistory(params = Notify.Params.GetNotificationHistory(currentSubscription.value.topic))
             .values.sortedByDescending { it.publishedAt }
             .map { messageRecord -> messageRecord.toNotifyNotification() }
 
 
-    fun deleteNotification(notificationUI: NotificationUI) {
-        NotifyClient.deleteNotification(
-            Notify.Params.DeleteNotification(notificationUI.id.toLong()),
-            onSuccess = {
-                _notifications.deleteNotification(notificationUI)
-                viewModelScope.launch { _notificationsTrigger.emit(Unit) }
-            },
-            onError = {
-                //todo: onError
-            }
-        )
-    }
-
     fun unsubscribe(onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             _state.update { NotificationsState.Unsubscribing }
-            val beforeSubscription = _activeSubscriptions.value
 
-            NotifyClient.deleteSubscription(
-                Notify.Params.DeleteSubscription(
-                    currentSubscription.value.topic
-                ), onSuccess = {
-                    viewModelScope.launch {
-                        _activeSubscriptions.collect { afterSubscription ->
-                            if (beforeSubscription != afterSubscription) {
-                                onSuccess()
-                                this.cancel()
-                            }
-                        }
+            NotifyClient.deleteSubscription(Notify.Params.DeleteSubscription(currentSubscription.value.topic)).let { result ->
+                when (result) {
+                    is Notify.Result.DeleteSubscription.Success -> onSuccess()
+
+
+                    is Notify.Result.DeleteSubscription.Error -> {
+                        Timber.e(result.error.throwable)
+                        onFailure(result.error.throwable)
+                        _state.update { NotificationsState.Failure(result.error.throwable) }
                     }
-                }, onError = { error ->
-                    onFailure(error.throwable)
-                    _state.update { NotificationsState.Failure(error.throwable) }
                 }
-            )
+            }
         }
     }
 
     private fun MutableStateFlow<List<NotificationUI>>.addNotification(notificationUI: NotificationUI) {
         value = mutableListOf(notificationUI) + value
-    }
-
-    private fun MutableStateFlow<List<NotificationUI>>.deleteNotification(notificationUI: NotificationUI) {
-        value = value - notificationUI
     }
 
     private fun Notify.Model.NotificationRecord.toNotifyNotification(): NotificationUI =

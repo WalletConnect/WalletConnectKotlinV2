@@ -5,17 +5,10 @@ import com.walletconnect.android.internal.common.di.DatabaseConfig
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.notify.common.model.DeleteSubscription
-import com.walletconnect.notify.common.model.Error
 import com.walletconnect.notify.common.model.NotifyRecord
-import com.walletconnect.notify.common.model.Subscription
 import com.walletconnect.notify.common.model.SubscriptionChanged
-import com.walletconnect.notify.common.model.UpdateSubscription
 import com.walletconnect.notify.common.model.toClient
 import com.walletconnect.notify.common.model.toCommon
-import com.walletconnect.notify.common.model.toEvent
-import com.walletconnect.notify.common.model.toModel
-import com.walletconnect.notify.common.model.toWalletClient
 import com.walletconnect.notify.di.engineModule
 import com.walletconnect.notify.di.notifyJsonRpcModule
 import com.walletconnect.notify.di.notifyStorageModule
@@ -24,7 +17,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.supervisorScope
 import org.koin.core.KoinApplication
 
 class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyInterface {
@@ -54,59 +46,43 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
 
         notifyEngine.engineEvent.onEach { event ->
             when (event) {
-                is Subscription.Active -> delegate.onNotifySubscription(event.toEvent())
-                is Error -> delegate.onNotifySubscription(event.toWalletClient())
-                is NotifyRecord -> {
-                    delegate.onNotifyMessage(Notify.Event.Message(event.toWalletClient()))
-                    delegate.onNotifyNotification(Notify.Event.Notification(event.toClient()))
-                }
-
-                is UpdateSubscription.Result -> delegate.onNotifyUpdate(event.toWalletClient())
-                is UpdateSubscription.Error -> delegate.onNotifyUpdate(event.toWalletClient())
-                is DeleteSubscription -> delegate.onNotifyDelete(event.toWalletClient())
+                is NotifyRecord -> delegate.onNotifyNotification(Notify.Event.Notification(event.toClient()))
+                is SubscriptionChanged -> delegate.onSubscriptionsChanged(event.toClient())
                 is SDKError -> delegate.onError(event.toClient())
-                is SubscriptionChanged -> delegate.onSubscriptionsChanged(event.toWalletClient())
             }
         }.launchIn(scope)
     }
 
-    override fun subscribe(params: Notify.Params.Subscribe, onSuccess: () -> Unit, onError: (Notify.Model.Error) -> Unit) {
+    override fun subscribe(params: Notify.Params.Subscribe): Notify.Result.Subscribe {
         checkEngineInitialization()
 
-        scope.launch {
-            supervisorScope {
-                try {
-                    notifyEngine.subscribeToDapp(params.appDomain, params.account,
-                        onSuccess = { _, _ -> onSuccess() },
-                        onFailure = { onError(Notify.Model.Error(it)) }
-                    )
-                } catch (e: Exception) {
-                    onError(Notify.Model.Error(e))
-                }
+        return runBlocking {
+            try {
+                notifyEngine.subscribeToDapp(params.appDomain, params.account).toClient()
+            } catch (e: Exception) {
+                Notify.Result.Subscribe.Error(Notify.Model.Error(e))
             }
         }
     }
 
-    override fun update(params: Notify.Params.Update, onSuccess: () -> Unit, onError: (Notify.Model.Error) -> Unit) {
+    override fun updateSubscription(params: Notify.Params.UpdateSubscription): Notify.Result.UpdateSubscription {
         checkEngineInitialization()
 
-        scope.launch {
-            supervisorScope {
-                try {
-                    notifyEngine.update(params.topic, params.scope, onSuccess) { onError(Notify.Model.Error(it)) }
-                } catch (e: Exception) {
-                    onError(Notify.Model.Error(e))
-                }
+        return runBlocking {
+            try {
+                notifyEngine.update(params.topic, params.scope).toClient()
+            } catch (e: Exception) {
+                Notify.Result.UpdateSubscription.Error(Notify.Model.Error(e))
             }
         }
     }
 
-    override fun getNotificationTypes(params: Notify.Params.NotificationTypes): Map<String, Notify.Model.NotificationType> {
+    override fun getNotificationTypes(params: Notify.Params.GetNotificationTypes): Map<String, Notify.Model.NotificationType> {
         checkEngineInitialization()
 
         return runBlocking {
             notifyEngine.getNotificationTypes(params.appDomain).mapValues { (_, notificationType) ->
-                notificationType.toWalletClient()
+                notificationType.toClient()
             }
         }
     }
@@ -117,78 +93,26 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
 
         return runBlocking {
             notifyEngine.getListOfActiveSubscriptions().mapValues { (_, subscriptionWMetadata) ->
-                subscriptionWMetadata.toModel()
+                subscriptionWMetadata.toClient()
             }
         }
     }
 
-    @Deprecated("We renamed this function to getNotificationHistory for consistency")
-    override fun getMessageHistory(params: Notify.Params.MessageHistory): Map<Long, Notify.Model.MessageRecord> {
-        checkEngineInitialization()
-
-        return runBlocking {
-            notifyEngine.getListOfNotifications(params.topic).mapValues { (_, messageRecord) -> messageRecord.toWalletClient() }
-        }
-    }
-
-    override fun getNotificationHistory(params: Notify.Params.NotificationHistory): Map<Long, Notify.Model.NotificationRecord> {
+    override fun getNotificationHistory(params: Notify.Params.GetNotificationHistory): Map<Long, Notify.Model.NotificationRecord> {
         checkEngineInitialization()
 
         return runBlocking { notifyEngine.getListOfNotifications(params.topic).mapValues { (_, notifyRecord) -> notifyRecord.toClient() } }
     }
 
-    override fun deleteSubscription(params: Notify.Params.DeleteSubscription, onSuccess: () -> Unit, onError: (Notify.Model.Error) -> Unit) {
+    override fun deleteSubscription(params: Notify.Params.DeleteSubscription): Notify.Result.DeleteSubscription {
         checkEngineInitialization()
 
-        scope.launch {
-            supervisorScope {
-                try {
-                    notifyEngine.deleteSubscription(params.topic, onSuccess) { error -> onError(Notify.Model.Error(error)) }
-                } catch (e: Exception) {
-                    onError(Notify.Model.Error(e))
-                }
+        return runBlocking {
+            try {
+                notifyEngine.deleteSubscription(params.topic).toClient()
+            } catch (e: Exception) {
+                Notify.Result.DeleteSubscription.Error(Notify.Model.Error(e))
             }
-        }
-    }
-
-    @Deprecated("We renamed this function to deleteNotification for consistency")
-    override fun deleteNotifyMessage(params: Notify.Params.DeleteMessage, onSuccess: () -> Unit, onError: (Notify.Model.Error) -> Unit) {
-        checkEngineInitialization()
-
-        scope.launch {
-            supervisorScope {
-                try {
-                    notifyEngine.deleteNotification(params.id, onSuccess) { error -> onError(Notify.Model.Error(error)) }
-                } catch (e: Exception) {
-                    onError(Notify.Model.Error(e))
-                }
-            }
-        }
-    }
-
-    override fun deleteNotification(params: Notify.Params.DeleteNotification, onSuccess: () -> Unit, onError: (Notify.Model.Error) -> Unit) {
-        checkEngineInitialization()
-
-        scope.launch {
-            supervisorScope {
-                try {
-                    notifyEngine.deleteNotification(params.id, onSuccess) { error -> onError(Notify.Model.Error(error)) }
-                } catch (e: Exception) {
-                    onError(Notify.Model.Error(e))
-                }
-            }
-        }
-    }
-
-    @Deprecated("We renamed this function to decryptNotification for consistency")
-    override fun decryptMessage(params: Notify.Params.DecryptMessage, onSuccess: (Notify.Model.Message.Decrypted) -> Unit, onError: (Notify.Model.Error) -> Unit) {
-        scope.launch {
-            notifyEngine.decryptNotification(params.topic, params.encryptedMessage,
-                onSuccess = { notifyMessage ->
-                    (notifyMessage as? Core.Model.Message.Notify)?.run { onSuccess(notifyMessage.toWalletClient(params.topic)) }
-                },
-                onFailure = { error -> onError(Notify.Model.Error(error)) }
-            )
         }
     }
 
@@ -198,22 +122,6 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
                 onSuccess = { notification ->
                     (notification as? Core.Model.Message.Notify)?.run { onSuccess(notification.toClient(params.topic)) }
                 },
-                onFailure = { error -> onError(Notify.Model.Error(error)) }
-            )
-        }
-    }
-
-    @Deprecated("We changed the registration flow to be more secure. Please use prepareRegistration and register instead")
-    override fun register(params: Notify.Params.Registration, onSuccess: (String) -> Unit, onError: (Notify.Model.Error) -> Unit) {
-        checkEngineInitialization()
-
-        scope.launch {
-            notifyEngine.legacyRegister(
-                params.account,
-                params.isLimited,
-                params.domain,
-                params.onSign.toWalletClient(),
-                onSuccess = onSuccess,
                 onFailure = { error -> onError(Notify.Model.Error(error)) }
             )
         }
@@ -254,7 +162,7 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
         }
     }
 
-    override fun unregister(params: Notify.Params.Unregistration, onSuccess: (String) -> Unit, onError: (Notify.Model.Error) -> Unit) {
+    override fun unregister(params: Notify.Params.Unregister, onSuccess: (String) -> Unit, onError: (Notify.Model.Error) -> Unit) {
         checkEngineInitialization()
 
         scope.launch {
