@@ -88,7 +88,7 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
     private val _discoverState = MutableStateFlow<DiscoverState>(DiscoverState.Fetching)
     val discoverState = _discoverState.asStateFlow()
 
-    private suspend fun getExplorerProjects() = CoreClient.Explorer.getProjects(0, 500, false)
+    private suspend fun getExplorerProjects() = CoreClient.Explorer.getProjects(0, 500, isVerified = true, isFeatured = true)
 
     private val _explorerApps = MutableStateFlow(emptyList<ExplorerApp>())
     private val _explorerAppsTrigger = MutableSharedFlow<Unit>(replay = 1)
@@ -143,7 +143,7 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
                     _discoverState.update { DiscoverState.Failure(error) }
                     emptyList()
                 },
-                onSuccess = { it.toUI() }
+                onSuccess = { it.onEach { Timber.d(it.toString()) }. toUI() }
             )
     }
 
