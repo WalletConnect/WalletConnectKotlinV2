@@ -18,7 +18,8 @@ internal class GetNotificationTypesUseCase(
                         name = notificationType.name,
                         id = notificationType.id,
                         description = notificationType.description,
-                        isEnabled = true
+                        isEnabled = true,
+                        iconUrl = notificationType.imageUrl?.sm
                     )
                 }
             }, onFailure = {

@@ -10,16 +10,21 @@ import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
-import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
+import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.notify.common.model.GetNotificationHistory
 import com.walletconnect.notify.common.model.NotifyRpc
+import com.walletconnect.notify.common.model.TimeoutInfo
+import com.walletconnect.notify.data.storage.NotificationsRepository
 import com.walletconnect.notify.data.storage.SubscriptionRepository
-import com.walletconnect.notify.engine.BLOCKING_CALLS_DELAY_INTERVAL
-import com.walletconnect.notify.engine.BLOCKING_CALLS_TIMEOUT
+import com.walletconnect.notify.engine.blockingCallsDefaultTimeout
+import com.walletconnect.notify.engine.blockingCallsDelayInterval
 import com.walletconnect.notify.engine.domain.FetchDidJwtInteractor
 import com.walletconnect.notify.engine.responses.OnGetNotificationsResponseUseCase
+import com.walletconnect.notify.engine.validateTimeout
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
@@ -28,30 +33,54 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withTimeout
+import kotlin.time.Duration
 
 internal class GetNotificationHistoryUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val subscriptionRepository: SubscriptionRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
+    private val notificationsRepository: NotificationsRepository,
     private val fetchDidJwtInteractor: FetchDidJwtInteractor,
     private val onGetNotificationsResponseUseCase: OnGetNotificationsResponseUseCase,
+    private val logger: Logger,
 ) : GetNotificationHistoryUseCaseInterface {
 
-    override suspend fun getNotificationHistory(topic: String, limit: Int?, startingAfter: String?): GetNotificationHistory = supervisorScope {
+    override suspend fun getNotificationHistory(topic: String, limit: Int?, startingAfter: String?, timeout: Duration?): GetNotificationHistory = supervisorScope {
+        val result = MutableStateFlow<GetNotificationHistory>(GetNotificationHistory.Processing)
+        var timeoutInfo: TimeoutInfo = TimeoutInfo.Nothing
         try {
-            val result = MutableStateFlow<GetNotificationHistory>(GetNotificationHistory.Processing)
-
+            logger.log("getNotificationHistory - topic: $topic, limit: $limit, startingAfter: $startingAfter, timeout: $timeout")
+            val validTimeout = timeout.validateTimeout()
             val subscription = subscriptionRepository.getActiveSubscriptionByNotifyTopic(topic)
                 ?: throw IllegalStateException("No subscription found for topic $topic")
-            val metadata: AppMetaData = metadataStorageRepository.getByTopicAndType(subscription.notifyTopic, AppMetaDataType.PEER)
+            val metadata: AppMetaData = metadataStorageRepository.getByTopicAndType(subscription.topic, AppMetaDataType.PEER)
                 ?: throw IllegalStateException("No metadata found for topic $topic")
 
             val parsedLimit = minOf(MAX_LIMIT, limit ?: DEFAULT_LIMIT)
+
+            val sortedStoredNotifications = notificationsRepository.getNotificationsByTopic(topic).map { it.copy(metadata = metadata) }
+
+            try {
+                if (sortedStoredNotifications.size >= parsedLimit) {
+                    val indexOfAfter = startingAfter?.let { sortedStoredNotifications.indexOfFirst { it.id == startingAfter } } ?: 0
+                    val pickedNotifications = sortedStoredNotifications.subList(indexOfAfter, indexOfAfter + parsedLimit)
+
+                    if (pickedNotifications.size <= parsedLimit) {
+                        val hasMore = ((sortedStoredNotifications.size > pickedNotifications.size) || (pickedNotifications.size == parsedLimit)) && !pickedNotifications.last().isLast
+                        logger.log("getNotificationHistory local - size: $parsedLimit, hasMore: $hasMore")
+                        return@supervisorScope GetNotificationHistory.Success(pickedNotifications, hasMore)
+                    }
+                }
+            } catch (_: IndexOutOfBoundsException) {
+            }
+
+
             val didJwt = fetchDidJwtInteractor.getNotificationsRequest(subscription.account, subscription.authenticationPublicKey, metadata.url, parsedLimit, startingAfter).getOrThrow()
 
             val params = CoreNotifyParams.GetNotificationsParams(didJwt.value)
             val request = NotifyRpc.NotifyGetNotifications(params = params)
-            val irnParams = IrnParams(Tags.NOTIFY_GET_NOTIFICATIONS, Ttl(FIVE_MINUTES_IN_SECONDS))
+            val irnParams = IrnParams(Tags.NOTIFY_GET_NOTIFICATIONS, Ttl(fiveMinutesInSeconds))
+            timeoutInfo = TimeoutInfo.Data(request.id, Topic(topic))
 
             jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, request, onFailure = { error -> result.value = GetNotificationHistory.Error(error) })
 
@@ -62,13 +91,23 @@ internal class GetNotificationHistoryUseCase(
                 .onEach { result.emit(it as GetNotificationHistory) }
                 .launchIn(scope)
 
-            withTimeout(BLOCKING_CALLS_TIMEOUT) {
+            withTimeout(validTimeout) {
                 while (result.value == GetNotificationHistory.Processing) {
-                    delay(BLOCKING_CALLS_DELAY_INTERVAL)
+                    delay(blockingCallsDelayInterval)
                 }
             }
 
+            when (val localResult = result.value) {
+                is GetNotificationHistory.Success -> logger.log("getNotificationHistory remote - size: ${localResult.notifications.size}, hasMore: ${localResult.hasMore}")
+                is GetNotificationHistory.Error -> logger.log("getNotificationHistory remote error: ${localResult.throwable}")
+                is GetNotificationHistory.Processing -> logger.error("getNotificationHistory remote finished with processing state")
+            }
+
             return@supervisorScope result.value
+        } catch (e: TimeoutCancellationException) {
+            with(timeoutInfo as TimeoutInfo.Data) {
+                return@supervisorScope GetNotificationHistory.Error(Throwable("Request: $requestId timed out after ${timeout ?: blockingCallsDefaultTimeout}"))
+            }
         } catch (e: Exception) {
             return@supervisorScope GetNotificationHistory.Error(e)
         }
@@ -79,5 +118,5 @@ private const val MAX_LIMIT = 50
 private const val DEFAULT_LIMIT = 10
 
 internal interface GetNotificationHistoryUseCaseInterface {
-    suspend fun getNotificationHistory(topic: String, limit: Int?, startingAfter: String?): GetNotificationHistory
+    suspend fun getNotificationHistory(topic: String, limit: Int?, startingAfter: String?, timeout: Duration? = null): GetNotificationHistory
 }

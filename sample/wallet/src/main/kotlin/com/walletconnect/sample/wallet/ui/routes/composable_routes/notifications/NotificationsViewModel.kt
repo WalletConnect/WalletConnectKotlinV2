@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.notify.client.Notify
 import com.walletconnect.notify.client.NotifyClient
+import com.walletconnect.sample.wallet.domain.EthAccountDelegate
 import com.walletconnect.sample.wallet.domain.NotifyDelegate
 import com.walletconnect.sample.wallet.domain.model.NotificationUI
 import com.walletconnect.sample.wallet.ui.common.subscriptions.ActiveSubscriptionsUI
@@ -28,6 +29,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.net.URI
 import java.text.DateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -46,19 +48,27 @@ class NotificationsViewModel(topic: String) : ViewModel() {
         .filterIsInstance<Notify.Event.SubscriptionsChanged>()
         .debounce(500L)
         .map { event -> event.subscriptions.toUI() }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), NotifyClient.getActiveSubscriptions().values.toList().toUI())
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), NotifyClient.getActiveSubscriptions(Notify.Params.GetActiveSubscriptions(EthAccountDelegate.ethAddress)).values.toList().toUI())
 
     val currentSubscription: MutableStateFlow<ActiveSubscriptionsUI> =
         MutableStateFlow(_activeSubscriptions.value.firstOrNull { it.topic == topic } ?: throw IllegalStateException("No subscription found for topic $topic"))
 
-    private val _notifications = MutableStateFlow<List<NotificationUI>>(listOf())
+    private val notificationTypes by lazy { NotifyClient.getNotificationTypes(Notify.Params.GetNotificationTypes(URI(currentSubscription.value.appDomain).host)).values.toList() }
+
+    private val _notifications = MutableStateFlow<Set<NotificationUI>>(setOf())
     private val _notificationsTrigger = MutableSharedFlow<Unit>(replay = 1)
 
-    val notifications: StateFlow<List<NotificationUI>> = _notificationsTrigger
+    val notifications: StateFlow<Set<NotificationUI>> = _notificationsTrigger
         .map { _notifications.value }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), _notifications.value)
 
-    private val _state = MutableStateFlow<NotificationsState>(NotificationsState.Fetching)
+    private val _scrollToTopCounter = MutableStateFlow(0)
+    val scrollToTopCounter = _scrollToTopCounter.asStateFlow()
+
+    private val _hasMore = MutableStateFlow<Boolean>(false)
+    val hasMore = _hasMore.asStateFlow()
+
+    private val _state = MutableStateFlow<NotificationsState>(NotificationsState.InitialFetching)
     val state = _state.asStateFlow()
 
     init {
@@ -70,31 +80,71 @@ class NotificationsViewModel(topic: String) : ViewModel() {
             .debounce(500L)
             .onEach { _notificationsTrigger.emit(Unit) }
             .onEach { _state.update { NotificationsState.Success } }
+            .onEach { _scrollToTopCounter.update { _scrollToTopCounter.value + 1 } }
             .launchIn(viewModelScope)
     }
 
-    suspend fun fetchAllNotifications() = viewModelScope.launch(Dispatchers.IO) {
-        _state.update { NotificationsState.Fetching }
+    suspend fun fetchRecentNotifications() = viewModelScope.launch(Dispatchers.IO) {
+        _state.update { NotificationsState.InitialFetching }
         NotifyClient.getNotificationHistory(params = Notify.Params.GetNotificationHistory(currentSubscription.value.topic)).let { result ->
-            _notifications.value = when (result) {
+
+             val (notifications, state) = when (result) {
                 is Notify.Result.GetNotificationHistory.Success -> {
-                    _state.update { NotificationsState.Success }
-                    result.notifications.map { messageRecord -> messageRecord.toNotifyNotification() }
+                    Timber.d("fetchAllNotifications: ${result}")
+
+                    _hasMore.value = result.hasMore
+                    result.notifications.map { messageRecord -> messageRecord.toNotifyNotification() }.onEach { notification ->
+
+                        Timber.d("fetchAllNotifications: ${notification.id} ${notification.body}")
+                    }.toSet() to NotificationsState.Success
                 }
 
                 is Notify.Result.GetNotificationHistory.Error -> {
                     Timber.e(result.error.throwable)
-                    _state.update { NotificationsState.Failure(result.error.throwable) }
-                    emptyList()
+                    emptySet<NotificationUI>() to NotificationsState.Failure(result.error.throwable)
                 }
             }
+            _notifications.value = notifications
+            _notificationsTrigger.emit(Unit)
+            _state.update { state  }
         }
-        _notificationsTrigger.emit(Unit)
+    }
+
+    fun fetchMore() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _state.update { NotificationsState.FetchingMore }
+
+            NotifyClient.getNotificationHistory(params = Notify.Params.GetNotificationHistory(currentSubscription.value.topic, startingAfter = _notifications.value.last().id)).let { result ->
+                val (notifications, state) = when (result) {
+
+                    is Notify.Result.GetNotificationHistory.Success -> {
+                        Timber.d("fetchMore result: ${result}")
+
+                        _hasMore.value = result.hasMore
+                        val resultList = _notifications.value.toMutableList()
+                        resultList.addAll(result.notifications.map { messageRecord -> messageRecord.toNotifyNotification() }.onEach { notification ->
+                            Timber.d("fetchMore: ${notification.id} ${notification.icon}")
+                        })
+                        resultList.toSet() to NotificationsState.Success
+                    }
+
+                    is Notify.Result.GetNotificationHistory.Error -> {
+                        Timber.e(result.error.throwable)
+                        _notifications.value to NotificationsState.Failure(result.error.throwable)
+                    }
+                }
+                _notifications.value = notifications
+                _notificationsTrigger.emit(Unit)
+
+                _state.update { state  }
+            }
+
+        }
     }
 
     fun retryFetchingAllNotifications() {
-        viewModelScope.launch {
-            fetchAllNotifications()
+        viewModelScope.launch(Dispatchers.IO) {
+            fetchRecentNotifications()
         }
     }
 
@@ -117,19 +167,21 @@ class NotificationsViewModel(topic: String) : ViewModel() {
         }
     }
 
-    private fun MutableStateFlow<List<NotificationUI>>.addNotification(notificationUI: NotificationUI) {
-        value = mutableListOf(notificationUI) + value
+    private fun MutableStateFlow<Set<NotificationUI>>.addNotification(notificationUI: NotificationUI) {
+        value = mutableSetOf(notificationUI) + value
+        value = value.sortedBy { it.sentAt }.toSet()
     }
 
     private fun Notify.Model.NotificationRecord.toNotifyNotification(): NotificationUI =
         NotificationUI(
             id = id,
             topic = topic,
-            date = getHumanReadableTime(publishedAt),
+            date = getHumanReadableTime(sentAt),
+            sentAt = sentAt,
             title = notification.title,
             body = notification.body,
             url = (notification as? Notify.Model.Notification.Decrypted)?.url,
-            icon = (notification as? Notify.Model.Notification.Decrypted)?.icon,
+            icon = notificationTypes.find { it.id == (notification as? Notify.Model.Notification.Decrypted)?.type }?.iconUrl ?: metadata.icons.firstOrNull(),
             isUnread = false,
         )
 
@@ -165,10 +217,10 @@ class NotificationsViewModel(topic: String) : ViewModel() {
 }
 
 sealed interface NotificationsState {
-    object Fetching : NotificationsState
+    object InitialFetching : NotificationsState
+    object FetchingMore : NotificationsState
     object IncomingNotifications : NotificationsState
     object Success : NotificationsState
     data class Failure(val error: Throwable) : NotificationsState
-
     object Unsubscribing : NotificationsState
 }

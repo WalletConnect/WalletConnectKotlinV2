@@ -12,7 +12,8 @@ import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.notify.common.JsonRpcMethod
 import com.walletconnect.notify.engine.calls.DeleteSubscriptionUseCaseInterface
-import com.walletconnect.notify.engine.calls.GetListOfActiveSubscriptionsUseCaseInterface
+import com.walletconnect.notify.engine.calls.GetActiveSubscriptionsUseCaseInterface
+import com.walletconnect.notify.engine.calls.GetAllActiveSubscriptionsUseCase
 import com.walletconnect.notify.engine.calls.GetNotificationHistoryUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetNotificationTypesUseCaseInterface
 import com.walletconnect.notify.engine.calls.IsRegisteredUseCaseInterface
@@ -20,7 +21,7 @@ import com.walletconnect.notify.engine.calls.PrepareRegistrationUseCaseInterface
 import com.walletconnect.notify.engine.calls.RegisterUseCaseInterface
 import com.walletconnect.notify.engine.calls.SubscribeToDappUseCaseInterface
 import com.walletconnect.notify.engine.calls.UnregisterUseCaseInterface
-import com.walletconnect.notify.engine.calls.UpdateSubscriptionRequestUseCaseInterface
+import com.walletconnect.notify.engine.calls.UpdateSubscriptionUseCaseInterface
 import com.walletconnect.notify.engine.domain.WatchSubscriptionsForEveryRegisteredAccountUseCase
 import com.walletconnect.notify.engine.requests.OnMessageUseCase
 import com.walletconnect.notify.engine.requests.OnSubscriptionsChangedUseCase
@@ -40,6 +41,7 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -47,12 +49,13 @@ internal class NotifyEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val pairingHandler: PairingControllerInterface,
     private val subscribeToDappUseCase: SubscribeToDappUseCaseInterface,
-    private val updateUseCase: UpdateSubscriptionRequestUseCaseInterface,
+    private val updateUseCase: UpdateSubscriptionUseCaseInterface,
     private val deleteSubscriptionUseCase: DeleteSubscriptionUseCaseInterface,
     private val decryptMessageUseCase: DecryptMessageUseCaseInterface,
     private val unregisterUseCase: UnregisterUseCaseInterface,
     private val getNotificationTypesUseCase: GetNotificationTypesUseCaseInterface,
-    private val getListOfActiveSubscriptionsUseCase: GetListOfActiveSubscriptionsUseCaseInterface,
+    private val getActiveSubscriptionsUseCase: GetActiveSubscriptionsUseCaseInterface,
+    private val getAllActiveSubscriptionsUseCase: GetAllActiveSubscriptionsUseCase,
     private val getNotificationHistoryUseCase: GetNotificationHistoryUseCaseInterface,
     private val onMessageUseCase: OnMessageUseCase,
     private val onSubscriptionsChangedUseCase: OnSubscriptionsChangedUseCase,
@@ -66,13 +69,13 @@ internal class NotifyEngine(
     private val prepareRegistrationUseCase: PrepareRegistrationUseCaseInterface,
     private val registerUseCase: RegisterUseCaseInterface,
 ) : SubscribeToDappUseCaseInterface by subscribeToDappUseCase,
-    UpdateSubscriptionRequestUseCaseInterface by updateUseCase,
+    UpdateSubscriptionUseCaseInterface by updateUseCase,
     DeleteSubscriptionUseCaseInterface by deleteSubscriptionUseCase,
     DecryptMessageUseCaseInterface by decryptMessageUseCase,
     RegisterUseCaseInterface by registerUseCase,
     UnregisterUseCaseInterface by unregisterUseCase,
     GetNotificationTypesUseCaseInterface by getNotificationTypesUseCase,
-    GetListOfActiveSubscriptionsUseCaseInterface by getListOfActiveSubscriptionsUseCase,
+    GetActiveSubscriptionsUseCaseInterface by getActiveSubscriptionsUseCase,
     GetNotificationHistoryUseCaseInterface by getNotificationHistoryUseCase,
     IsRegisteredUseCaseInterface by isRegisteredUseCase,
     PrepareRegistrationUseCaseInterface by prepareRegistrationUseCase {
@@ -152,10 +155,19 @@ internal class NotifyEngine(
     }
 
     private suspend fun resubscribeToSubscriptions() {
-        val subscriptionTopics = getListOfActiveSubscriptions().keys.toList()
+        val subscriptionTopics = getAllActiveSubscriptionsUseCase().keys.toList()
         jsonRpcInteractor.batchSubscribe(subscriptionTopics) { error -> scope.launch { _engineEvent.emit(SDKError(error)) } }
     }
 }
 
-internal val BLOCKING_CALLS_TIMEOUT = 60.seconds
-internal val BLOCKING_CALLS_DELAY_INTERVAL = 10.milliseconds
+internal val blockingCallsMinTimeout = 5.seconds
+internal val blockingCallsMaxTimeout = 60.seconds
+internal val blockingCallsDefaultTimeout = blockingCallsMaxTimeout
+internal val blockingCallsDelayInterval = 10.milliseconds
+internal fun Duration?.validateTimeout() =
+    if (this == null) blockingCallsDefaultTimeout
+    else if (this < blockingCallsMinTimeout)
+        throw Exception("Timeout has to be longer than $blockingCallsMinTimeout")
+    else if (this > blockingCallsMaxTimeout)
+        throw Exception("Timeout has to be shorter than $blockingCallsMaxTimeout")
+    else this

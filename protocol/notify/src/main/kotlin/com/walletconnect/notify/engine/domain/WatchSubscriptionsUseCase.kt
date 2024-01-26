@@ -38,7 +38,7 @@ internal class WatchSubscriptionsUseCase(
         jsonRpcInteractor.subscribe(responseTopic) { error -> onFailure(error) }
 
         val account = registeredAccountsRepository.getAccountByAccountId(accountId.value)
-        val didJwt = fetchDidJwtInteractor.watchSubscriptionsRequest(accountId, authenticationPublicKey, if(account.allApps) account.appDomain else null)
+        val didJwt = fetchDidJwtInteractor.watchSubscriptionsRequest(accountId, authenticationPublicKey, if (account.allApps) account.appDomain else null)
             .getOrElse { error -> return@supervisorScope onFailure(error) }
 
         registeredAccountsRepository.updateNotifyServerData(accountId, responseTopic, authenticationPublicKey)

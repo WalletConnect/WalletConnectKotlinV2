@@ -28,7 +28,7 @@ internal class SubscriptionRepository(private val activeSubscriptionsQueries: Ac
                         relay.protocol,
                         relay.data,
                         mapOfScope.mapValues { scope -> Triple(scope.value.name, scope.value.description, scope.value.isSelected) },
-                        notifyTopic.value,
+                        topic.value,
                         requestedSubscriptionId
                     )
                 }
@@ -45,7 +45,7 @@ internal class SubscriptionRepository(private val activeSubscriptionsQueries: Ac
                 relay.protocol,
                 relay.data,
                 mapOfScope.mapValues { scope -> Triple(scope.value.name, scope.value.description, scope.value.isSelected) },
-                notifyTopic.value,
+                topic.value,
                 requestedSubscriptionId
             )
         }
@@ -90,7 +90,7 @@ internal class SubscriptionRepository(private val activeSubscriptionsQueries: Ac
         }.toMap(),
         expiry = Expiry(expiry),
         relay = RelayProtocolOptions(relay_protocol, relay_data),
-        notifyTopic = Topic(notify_topic),
+        topic = Topic(notify_topic),
         dappMetaData = null,
         requestedSubscriptionId = requested_subscription_id
     )

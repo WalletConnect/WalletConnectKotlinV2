@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.supervisorScope
+import java.nio.charset.Charset
 
 internal class OnGetNotificationsResponseUseCase(
     private val logger: Logger,
@@ -43,11 +44,12 @@ internal class OnGetNotificationsResponseUseCase(
                     val metadata: AppMetaData = metadataStorageRepository.getByTopicAndType(wcResponse.topic, AppMetaDataType.PEER)
                         ?: throw IllegalStateException("No metadata found for topic ${wcResponse.topic}")
 
-                    val notifications = responseJwtClaim.notifications.map {notification ->
+                    val notifications = responseJwtClaim.notifications.mapIndexed {index, notification ->
                         with(notification) {
+                            val isLast = !responseJwtClaim.hasMore && (index == responseJwtClaim.notifications.lastIndex)
                             Notification(
-                                id = id, topic = wcResponse.topic.value, sentAt = sentAt, metadata = metadata,
-                                notificationMessage = NotificationMessage(title = title, body = body, icon = icon, url = url, type = type,),
+                                id = id, topic = wcResponse.topic.value, sentAt = sentAt, metadata = metadata, isLast = isLast,
+                                notificationMessage = NotificationMessage(title = convertToUTF8(title), body = convertToUTF8(body), icon = icon, url = url, type = type,),
                             )
                         }
                     }
@@ -64,5 +66,10 @@ internal class OnGetNotificationsResponseUseCase(
         }
 
         _events.emit(params to resultEvent)
+    }
+
+    private fun convertToUTF8(input: String): String {
+        val bytes = input.toByteArray(Charset.forName("ISO-8859-1"))
+        return String(bytes, Charset.forName("UTF-8"))
     }
 }

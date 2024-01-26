@@ -1,3 +1,5 @@
+import kotlin.Boolean;
+
 CREATE TABLE Notifications (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     notification_id TEXT UNIQUE NOT NULL,
@@ -7,17 +9,19 @@ CREATE TABLE Notifications (
     body TEXT NOT NULL,
     icon TEXT,
     url TEXT,
-    type TEXT NOT NULL
+    type TEXT NOT NULL,
+    isLast INTEGER AS Boolean DEFAULT 0 NOT NULL
 );
 
 insertOrReplaceNotification:
-INSERT OR REPLACE INTO Notifications(notification_id, topic, sent_at, title, body, icon, url, type)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO Notifications(notification_id, topic, sent_at, title, body, icon, url, type, isLast)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 getNotificationsByTopic:
-SELECT notification_id, topic, sent_at, title, body, icon, url, type
+SELECT notification_id, topic, sent_at, title, body, icon, url, type, isLast
 FROM Notifications
-WHERE topic = ?;
+WHERE topic = ?
+ORDER BY sent_at DESC;
 
 doesNotificationsExistsByNotificationId:
 SELECT EXISTS(SELECT 1 FROM Notifications WHERE notification_id = ?);

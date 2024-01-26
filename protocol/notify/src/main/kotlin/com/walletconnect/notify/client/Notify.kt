@@ -6,6 +6,7 @@ import com.walletconnect.android.Core
 import com.walletconnect.android.CoreInterface
 import com.walletconnect.android.cacao.SignatureInterface
 import com.walletconnect.foundation.common.model.PrivateKey
+import kotlin.time.Duration
 
 object Notify {
 
@@ -22,14 +23,13 @@ object Notify {
             data class Decrypted(
                 override val title: String,
                 override val body: String,
-                val icon: String?,
                 val url: String?,
                 val type: String,
                 val topic: String,
             ) : Notification()
         }
 
-        data class NotificationRecord(val id: String, val topic: String, val publishedAt: Long, val notification: Notification, val metadata: Core.Model.AppMetaData) : Model()
+        data class NotificationRecord(val id: String, val topic: String, val sentAt: Long, val notification: Notification, val metadata: Core.Model.AppMetaData) : Model()
 
         data class Subscription(
             val topic: String,
@@ -58,7 +58,7 @@ object Notify {
             ) : Model()
         }
 
-        data class NotificationType(val id: String, val name: String, val description: String) : Model()
+        data class NotificationType(val id: String, val name: String, val description: String, val iconUrl: String?) : Model()
 
         data class Error(val throwable: Throwable) : Model()
 
@@ -97,15 +97,17 @@ object Notify {
 
         class Init(val core: CoreInterface) : Params()
 
-        data class Subscribe(val appDomain: Uri, val account: String) : Params()
+        data class Subscribe(val appDomain: Uri, val account: String, val timeout: Duration? = null) : Params()
 
-        data class UpdateSubscription(val topic: String, val scope: List<String>) : Params()
+        data class UpdateSubscription(val topic: String, val scope: List<String>, val timeout: Duration? = null) : Params()
 
-        data class GetNotificationTypes(val appDomain: String) : Params()
+        data class GetNotificationTypes(val appDomain: String, val timeout: Duration? = null) : Params()
 
-        data class GetNotificationHistory(val topic: String, val limit: Int? = null, val startingAfter: String? = null) : Params()
+        data class GetNotificationHistory(val topic: String, val limit: Int? = null, val startingAfter: String? = null, val timeout: Duration? = null) : Params()
 
-        data class DeleteSubscription(val topic: String) : Params()
+        data class DeleteSubscription(val topic: String, val timeout: Duration? = null) : Params()
+
+        data class GetActiveSubscriptions(val account: String, val timeout: Duration? = null) : Params()
 
         data class DecryptNotification(val topic: String, val encryptedMessage: String) : Params()
 

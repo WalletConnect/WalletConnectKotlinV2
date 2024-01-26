@@ -11,7 +11,7 @@ import com.walletconnect.notify.client.Notify
 
 @JvmSynthetic
 internal fun Core.Model.Message.Notify.toClient(topic: String): Notify.Model.Notification.Decrypted {
-    return Notify.Model.Notification.Decrypted(title, body, icon, url, type, topic)
+    return Notify.Model.Notification.Decrypted(title, body, url, type, topic)
 }
 
 @JvmSynthetic
@@ -20,11 +20,10 @@ internal fun Notification.toClient(): Notify.Model.NotificationRecord {
     return Notify.Model.NotificationRecord(
         id = this.id,
         topic = this.topic,
-        publishedAt = this.sentAt,
+        sentAt = this.sentAt,
         notification = Notify.Model.Notification.Decrypted(
             title = this.notificationMessage.title,
             body = this.notificationMessage.body,
-            icon = this.notificationMessage.icon,
             url = this.notificationMessage.url,
             type = this.notificationMessage.type,
             topic = this.topic
@@ -39,7 +38,6 @@ internal fun Notification.toCore(): Core.Model.Message.Notify {
     return Core.Model.Message.Notify(
         title = this.notificationMessage.title,
         body = this.notificationMessage.body,
-        icon = this.notificationMessage.icon,
         url = this.notificationMessage.url,
         type = this.notificationMessage.type,
         topic = this.topic
@@ -49,7 +47,7 @@ internal fun Notification.toCore(): Core.Model.Message.Notify {
 
 @JvmSynthetic
 internal fun NotificationType.toClient(): Notify.Model.NotificationType {
-    return Notify.Model.NotificationType(id, name, description)
+    return Notify.Model.NotificationType(id, name, description, iconUrl)
 }
 
 
@@ -114,7 +112,7 @@ internal fun CreateSubscription.toClient(): Notify.Result.Subscribe = when (this
 @JvmSynthetic
 internal fun Subscription.Active.toClient(): Notify.Model.Subscription {
     return Notify.Model.Subscription(
-        topic = notifyTopic.value,
+        topic = topic.value,
         account = account.value,
         relay = relay.toClient(),
         metadata = dappMetaData.toClient(),

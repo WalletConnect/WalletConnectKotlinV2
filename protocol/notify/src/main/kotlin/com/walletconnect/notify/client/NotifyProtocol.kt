@@ -17,7 +17,9 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.koin.core.KoinApplication
+import kotlin.time.Duration.Companion.seconds
 
 class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyInterface {
     private lateinit var notifyEngine: NotifyEngine
@@ -58,7 +60,7 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
 
         return runBlocking {
             try {
-                notifyEngine.subscribeToDapp(params.appDomain, params.account).toClient()
+                notifyEngine.subscribeToDapp(params.appDomain, params.account, params.timeout).toClient()
             } catch (e: Exception) {
                 Notify.Result.Subscribe.Error(Notify.Model.Error(e))
             }
@@ -88,12 +90,12 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
     }
 
 
-    override fun getActiveSubscriptions(): Map<String, Notify.Model.Subscription> {
+    override fun getActiveSubscriptions(params: Notify.Params.GetActiveSubscriptions): Map<String, Notify.Model.Subscription> {
         checkEngineInitialization()
-
         return runBlocking {
-            notifyEngine.getListOfActiveSubscriptions().mapValues { (_, subscriptionWMetadata) ->
-                subscriptionWMetadata.toClient()
+            //todo: extract timeout to some external constant
+            withTimeout(params.timeout ?: 30.seconds) {
+                notifyEngine.getActiveSubscriptions(params.account).mapValues { (_, subscriptionWMetadata) -> subscriptionWMetadata.toClient() }
             }
         }
     }

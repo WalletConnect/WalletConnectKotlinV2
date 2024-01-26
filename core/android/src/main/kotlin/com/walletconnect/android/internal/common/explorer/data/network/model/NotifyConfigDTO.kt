@@ -31,4 +31,8 @@ data class NotificationTypeDTO(
     val id: String,
     @Json(name = "description")
     val description: String,
-)
+    @Json(name = "imageUrls")
+    val imageUrl: ImageUrlDTO?,
+
+
+    )

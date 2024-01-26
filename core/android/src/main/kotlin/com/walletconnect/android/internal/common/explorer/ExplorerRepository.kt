@@ -88,7 +88,7 @@ class ExplorerRepository(
         }
     }
 
-    private fun NotificationTypeDTO.toNotificationType(): NotificationType = NotificationType(name = name, id = id, description = description)
+    private fun NotificationTypeDTO.toNotificationType(): NotificationType = NotificationType(name = name, id = id, description = description, imageUrl = imageUrl?.toImageUrl())
 
 
     private fun ProjectListingDTO.toProjectListing(): ProjectListing {

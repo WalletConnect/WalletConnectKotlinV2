@@ -59,7 +59,7 @@ internal class SetActiveSubscriptionsUseCase(
 
             subscriptionRepository.setActiveSubscriptions(account, activeSubscriptions)
 
-            val subscriptionTopic = activeSubscriptions.map { it.notifyTopic.value }
+            val subscriptionTopic = activeSubscriptions.map { it.topic.value }
             jsonRpcInteractor.batchSubscribe(subscriptionTopic, onFailure = { error -> launch { _events.emit(SDKError(error)) } })
 
             return@supervisorScope Result.success(activeSubscriptions)

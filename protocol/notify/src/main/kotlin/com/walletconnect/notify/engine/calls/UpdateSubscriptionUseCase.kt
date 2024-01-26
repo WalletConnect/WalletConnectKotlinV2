@@ -14,12 +14,15 @@ import com.walletconnect.android.internal.utils.thirtySeconds
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.notify.common.model.NotifyRpc
+import com.walletconnect.notify.common.model.TimeoutInfo
 import com.walletconnect.notify.common.model.UpdateSubscription
 import com.walletconnect.notify.data.storage.SubscriptionRepository
-import com.walletconnect.notify.engine.BLOCKING_CALLS_DELAY_INTERVAL
-import com.walletconnect.notify.engine.BLOCKING_CALLS_TIMEOUT
+import com.walletconnect.notify.engine.blockingCallsDefaultTimeout
+import com.walletconnect.notify.engine.blockingCallsDelayInterval
 import com.walletconnect.notify.engine.domain.FetchDidJwtInteractor
 import com.walletconnect.notify.engine.responses.OnUpdateResponseUseCase
+import com.walletconnect.notify.engine.validateTimeout
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
@@ -28,30 +31,34 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withTimeout
+import kotlin.time.Duration
 
-internal class UpdateSubscriptionRequestUseCase(
+internal class UpdateSubscriptionUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val subscriptionRepository: SubscriptionRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val fetchDidJwtInteractor: FetchDidJwtInteractor,
     private val onUpdateResponseUseCase: OnUpdateResponseUseCase,
-) : UpdateSubscriptionRequestUseCaseInterface {
+) : UpdateSubscriptionUseCaseInterface {
 
-    override suspend fun update(notifyTopic: String, scopes: List<String>): UpdateSubscription = supervisorScope {
+    override suspend fun update(topic: String, scopes: List<String>, timeout: Duration?): UpdateSubscription = supervisorScope {
+        val result = MutableStateFlow<UpdateSubscription>(UpdateSubscription.Processing)
+        var timeoutInfo: TimeoutInfo = TimeoutInfo.Nothing
         try {
-            val result = MutableStateFlow<UpdateSubscription>(UpdateSubscription.Processing)
+            val validTimeout = timeout.validateTimeout()
 
-            val subscription = subscriptionRepository.getActiveSubscriptionByNotifyTopic(notifyTopic)
-                ?: throw IllegalStateException("No subscription found for topic $notifyTopic")
-            val metadata: AppMetaData = metadataStorageRepository.getByTopicAndType(subscription.notifyTopic, AppMetaDataType.PEER)
-                ?: throw IllegalStateException("No metadata found for topic $notifyTopic")
+            val subscription = subscriptionRepository.getActiveSubscriptionByNotifyTopic(topic)
+                ?: throw IllegalStateException("No subscription found for topic $topic")
+            val metadata: AppMetaData = metadataStorageRepository.getByTopicAndType(subscription.topic, AppMetaDataType.PEER)
+                ?: throw IllegalStateException("No metadata found for topic $topic")
             val didJwt = fetchDidJwtInteractor.updateRequest(subscription.account, metadata.url, subscription.authenticationPublicKey, scopes).getOrThrow()
 
             val params = CoreNotifyParams.UpdateParams(didJwt.value)
             val request = NotifyRpc.NotifyUpdate(params = params)
             val irnParams = IrnParams(Tags.NOTIFY_UPDATE, Ttl(thirtySeconds))
+            timeoutInfo = TimeoutInfo.Data(request.id, Topic(topic))
 
-            jsonRpcInteractor.publishJsonRpcRequest(Topic(notifyTopic), irnParams, request, onFailure = { error -> result.value = UpdateSubscription.Error(error) })
+            jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, request, onFailure = { error -> result.value = UpdateSubscription.Error(error) })
 
             onUpdateResponseUseCase.events
                 .filter { it.first == params }
@@ -60,19 +67,23 @@ internal class UpdateSubscriptionRequestUseCase(
                 .onEach { result.emit(it as UpdateSubscription) }
                 .launchIn(scope)
 
-            withTimeout(BLOCKING_CALLS_TIMEOUT) {
+            withTimeout(validTimeout) {
                 while (result.value == UpdateSubscription.Processing) {
-                    delay(BLOCKING_CALLS_DELAY_INTERVAL)
+                    delay(blockingCallsDelayInterval)
                 }
             }
 
             return@supervisorScope result.value
+        } catch (e: TimeoutCancellationException) {
+            with(timeoutInfo as TimeoutInfo.Data) {
+                return@supervisorScope UpdateSubscription.Error(Throwable("Request: $requestId timed out after ${timeout ?: blockingCallsDefaultTimeout}"))
+            }
         } catch (e: Exception) {
             return@supervisorScope UpdateSubscription.Error(e)
         }
     }
 }
 
-internal interface UpdateSubscriptionRequestUseCaseInterface {
-    suspend fun update(notifyTopic: String, scopes: List<String>): UpdateSubscription
+internal interface UpdateSubscriptionUseCaseInterface {
+    suspend fun update(topic: String, scopes: List<String>, timeout: Duration? = null): UpdateSubscription
 }

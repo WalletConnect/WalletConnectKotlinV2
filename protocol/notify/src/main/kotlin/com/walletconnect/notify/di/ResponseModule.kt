@@ -19,6 +19,7 @@ internal fun responseModule() = module {
             setActiveSubscriptionsUseCase = get(),
             findRequestedSubscriptionUseCase = get(),
             subscriptionRepository = get(),
+            jsonRpcInteractor = get(),
             logger = get()
         )
     }

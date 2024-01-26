@@ -13,7 +13,7 @@ internal class NotificationsRepository(private val notificationsQueries: Notific
     suspend fun insertOrReplaceNotification(record: Notification) = withContext(Dispatchers.IO) {
         with(record) {
             with(notificationMessage) {
-                notificationsQueries.insertOrReplaceNotification(id, topic, sentAt, title, body, icon, url, type)
+                notificationsQueries.insertOrReplaceNotification(id, topic, sentAt, title, body, icon, url, type, isLast)
             }
         }
     }
@@ -22,10 +22,14 @@ internal class NotificationsRepository(private val notificationsQueries: Notific
         records.forEach { record ->
             with(record) {
                 with(notificationMessage) {
-                    notificationsQueries.insertOrReplaceNotification(id, topic, sentAt, title, body, icon, url, type)
+                    notificationsQueries.insertOrReplaceNotification(id, topic, sentAt, title, body, icon, url, type, isLast)
                 }
             }
         }
+    }
+
+    suspend fun getNotificationsByTopic(topic: String): List<Notification> = withContext(Dispatchers.IO) {
+        notificationsQueries.getNotificationsByTopic(topic, ::mapToNotificationRecordWithoutMetadata).executeAsList()
     }
 
     suspend fun doesNotificationsExistsByNotificationId(notificationId: String): Boolean = withContext(Dispatchers.IO) {
@@ -45,6 +49,7 @@ internal class NotificationsRepository(private val notificationsQueries: Notific
         icon: String?,
         url: String?,
         type: String,
+        isLast: Boolean,
     ): Notification = Notification(
         id = id,
         topic = topic,
@@ -56,6 +61,7 @@ internal class NotificationsRepository(private val notificationsQueries: Notific
             url = url,
             type = type
         ),
-        metadata = null
+        metadata = null,
+        isLast = isLast,
     )
 }

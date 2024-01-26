@@ -11,6 +11,7 @@ internal sealed class Scope {
         override val id: String,
         override val name: String,
         override val description: String,
+        val iconUrl: String?,
     ) : Scope()
 
     data class Cached(

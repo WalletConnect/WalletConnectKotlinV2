@@ -26,6 +26,9 @@ object EthAccountDelegate {
         sharedPreferences.edit { putString(PUBLIC_KEY_TAG, publicKey) }
     }
 
+    val ethAddress: String
+        get() = "eip155:1:$account"
+
     val account: String
         get() = if (isInitialized) sharedPreferences.getString(ACCOUNT_TAG, null)!! else storeAccount().third
 
@@ -66,6 +69,3 @@ fun generateKeys(privateKey: String? = null): Triple<String, String, String> {
 
     return Triple(newPublicKey, newPrivateKey, Keys.toChecksumAddress(Keys.getAddress(keypair)))
 }
-
-context(EthAccountDelegate)
-fun String.toEthAddress(): String = "eip155:1:$this"

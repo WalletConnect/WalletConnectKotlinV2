@@ -19,7 +19,7 @@ internal sealed class Subscription {
         override val mapOfScope: Map<String, Scope.Cached>,
         override val expiry: Expiry,
         val authenticationPublicKey: PublicKey,
-        val notifyTopic: Topic,
+        val topic: Topic,
         val dappMetaData: AppMetaData? = null,
         val requestedSubscriptionId: Long? = null,
         val relay: RelayProtocolOptions = RelayProtocolOptions(),

@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.supervisorScope
 import java.net.URI
+import java.nio.charset.Charset
 
 internal class OnMessageUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -47,8 +48,8 @@ internal class OnMessageUseCase(
             val activeSubscription =
                 subscriptionRepository.getActiveSubscriptionByNotifyTopic(request.topic.value) ?: throw IllegalStateException("No active subscription for topic: ${request.topic.value}")
 
-            val metadata: AppMetaData = metadataStorageRepository.getByTopicAndType(activeSubscription.notifyTopic, AppMetaDataType.PEER)
-                ?: throw IllegalStateException("No metadata found for topic ${activeSubscription.notifyTopic}")
+            val metadata: AppMetaData = metadataStorageRepository.getByTopicAndType(activeSubscription.topic, AppMetaDataType.PEER)
+                ?: throw IllegalStateException("No metadata found for topic ${activeSubscription.topic}")
 
             val messageJwt = extractVerifiedDidJwtClaims<MessageRequestJwtClaim>(params.messageAuth).getOrThrow()
             messageJwt.throwIfIsInvalid(URI(metadata.url).host, activeSubscription.authenticationPublicKey.keyAsHex)
@@ -58,11 +59,13 @@ internal class OnMessageUseCase(
 
                     val notification = Notification(
                         id = id, topic = request.topic.value, sentAt = sentAt, metadata = metadata,
-                        notificationMessage = NotificationMessage(title = title, body = body, icon = icon, url = url, type = type),
+                        notificationMessage = NotificationMessage(title = convertToUTF8(title), body = convertToUTF8(body), icon = icon, url = url, type = type),
                     )
 
                     notificationsRepository.insertOrReplaceNotification(notification)
                     _events.emit(notification)
+                } else {
+                    logger.log("OnMessageUseCase - notification already exists $id")
                 }
             }
 
@@ -76,6 +79,11 @@ internal class OnMessageUseCase(
             logger.error(e)
             _events.emit(SDKError(e))
         }
+    }
+
+    private fun convertToUTF8(input: String): String {
+        val bytes = input.toByteArray(Charset.forName("ISO-8859-1"))
+        return String(bytes, Charset.forName("UTF-8"))
     }
 
     private fun MessageRequestJwtClaim.throwIfIsInvalid(expectedApp: String, expectedIssuer: String) {
