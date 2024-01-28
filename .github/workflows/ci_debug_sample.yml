@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         conf: [
-          { name: wallet, command: ":sample:wallet:assembleDebug" } #:sample:wallet:appDistributionUploadDebug" }#,
+          { name: wallet, command: ":sample:wallet:assembleDebug --stacktrace" } #:sample:wallet:appDistributionUploadDebug" }#,
 #          { name: dapp, command: ":sample:dapp:assembleDebug :sample:dapp:appDistributionUploadDebug" },
 #          { name: modal, command: ":sample:modal:assembleDebug :sample:modal:appDistributionUploadDebug" }
         ]
