@@ -71,16 +71,16 @@ project.extensions.configure(BaseExtension::class.java) {
             }
         }
 
-//        getByName("debug") {
-//            applicationIdSuffix(".debug")
-//            signingConfig = signingConfigs.getByName("debug")
-//            versionNameSuffix = "${System.getenv("GITHUB_RUN_NUMBER")?.let { ".$it" } ?: ""}-debug"
-//            defaultConfig.versionCode = "$SAMPLE_VERSION_CODE${System.getenv("GITHUB_RUN_NUMBER") ?: ""}".toInt()
-//            firebaseAppDistribution {
-//                artifactType = "APK"
-//                serviceCredentialsFile = File(rootDir, "credentials.json").path
-////                groups = "design-team, javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
-//            }
-//        }
+        getByName("debug") {
+            applicationIdSuffix(".debug")
+            signingConfig = signingConfigs.getByName("debug")
+            versionNameSuffix = "${System.getenv("GITHUB_RUN_NUMBER")?.let { ".$it" } ?: ""}-debug"
+            defaultConfig.versionCode = "$SAMPLE_VERSION_CODE${System.getenv("GITHUB_RUN_NUMBER") ?: ""}".toInt()
+            firebaseAppDistribution {
+                artifactType = "APK"
+                serviceCredentialsFile = File(rootDir, "credentials.json").path
+//                groups = "design-team, javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
+            }
+        }
     }
 }
