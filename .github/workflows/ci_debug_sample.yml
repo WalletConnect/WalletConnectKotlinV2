@@ -9,9 +9,9 @@ jobs:
     strategy:
       matrix:
         conf: [
-          { name: wallet, command: ":sample:wallet:assembleDebug :sample:wallet:appDistributionUploadDebug" },
-          { name: dapp, command: ":sample:dapp:assembleDebug :sample:dapp:appDistributionUploadDebug" },
-          { name: modal, command: ":sample:modal:assembleDebug :sample:modal:appDistributionUploadDebug" }
+          { name: wallet, command: ":sample:wallet:assembleDebug :sample:wallet:appDistributionUploadDebug" }#,
+#          { name: dapp, command: ":sample:dapp:assembleDebug :sample:dapp:appDistributionUploadDebug" },
+#          { name: modal, command: ":sample:modal:assembleDebug :sample:modal:appDistributionUploadDebug" }
         ]
     name: ${{ matrix.conf.name }}
     runs-on: ubuntu-latest
@@ -35,6 +35,9 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
+
+      - name: Test
+        run: echo "test"
 
       - name: Setup Required files to build samples
         with:

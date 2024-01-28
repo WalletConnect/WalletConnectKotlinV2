@@ -2,7 +2,7 @@ name: Release Samples
 
 on:
   workflow_dispatch:
-  push: # debug
+#  push: # debug
   release:
     types: [ published ]
 
