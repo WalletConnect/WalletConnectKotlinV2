@@ -2,6 +2,7 @@ name: Release Samples - Internal
 
 on:
   workflow_dispatch:
+  push: # debug
 
 jobs:
   release_samples_internal:
