@@ -36,9 +36,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Test
-        run: echo "test"
-
       - name: Setup Required files to build samples
         with:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
