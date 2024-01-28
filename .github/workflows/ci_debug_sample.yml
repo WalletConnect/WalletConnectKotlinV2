@@ -2,16 +2,15 @@ name: Release Samples - Debug
 
 on:
   workflow_dispatch:
-  push: # debug
 
 jobs:
   release_samples_debug:
     strategy:
       matrix:
         conf: [
-          { name: wallet, command: ":sample:wallet:assembleDebug :sample:wallet:appDistributionUploadDebug" }#,
-#          { name: dapp, command: ":sample:dapp:assembleDebug :sample:dapp:appDistributionUploadDebug" },
-#          { name: modal, command: ":sample:modal:assembleDebug :sample:modal:appDistributionUploadDebug" }
+          { name: wallet, command: ":sample:wallet:assembleDebug :sample:wallet:appDistributionUploadDebug" },
+          { name: dapp, command: ":sample:dapp:assembleDebug :sample:dapp:appDistributionUploadDebug" },
+          { name: modal, command: ":sample:modal:assembleDebug :sample:modal:appDistributionUploadDebug" }
         ]
     name: ${{ matrix.conf.name }}
     runs-on: ubuntu-latest
