@@ -8,6 +8,7 @@ plugins {
 
 private val Project.secrets: Properties
     get() = rootProject.file("secrets.properties").let { secretsFile ->
+        check(secretsFile.exists()) { "Secrets file not found at path: ${secretsFile.absolutePath}" }
         Properties().apply {
             load(secretsFile.inputStream())
         }
