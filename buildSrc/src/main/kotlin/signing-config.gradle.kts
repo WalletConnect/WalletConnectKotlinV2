@@ -28,6 +28,13 @@ project.extensions.configure(BaseExtension::class.java) {
             keyAlias = secrets.getProperty("WC_KEYSTORE_ALIAS")
             keyPassword = secrets.getProperty("WC_KEY_PASSWORD_INTERNAL")
         }
+
+        getByName("debug") {
+            storeFile = File(rootDir, secrets.getProperty("WC_FILENAME_DEBUG"))
+            storePassword = secrets.getProperty("WC_STORE_PASSWORD_DEBUG")
+            keyAlias = secrets.getProperty("WC_KEYSTORE_ALIAS_DEBUG")
+            keyPassword = secrets.getProperty("WC_KEY_PASSWORD_DEBUG")
+        }
     }
 
     buildTypes {
