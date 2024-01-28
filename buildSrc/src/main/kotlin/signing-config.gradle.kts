@@ -44,7 +44,8 @@ project.extensions.configure(BaseExtension::class.java) {
             isDebuggable = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.getByName("upload")
-            defaultConfig.versionCode = SAMPLE_VERSION_CODE
+            versionNameSuffix = System.getenv("GITHUB_RUN_NUMBER")?.let { ".$it" } ?: ""
+            defaultConfig.versionCode = "$SAMPLE_VERSION_CODE${System.getenv("GITHUB_RUN_NUMBER") ?: ""}".toInt()
             firebaseAppDistribution {
                 artifactType = "AAB"
                 groups = "design-team, javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
