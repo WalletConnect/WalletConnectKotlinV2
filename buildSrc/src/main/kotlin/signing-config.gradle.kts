@@ -31,7 +31,6 @@ project.extensions.configure(BaseExtension::class.java) {
         }
 
         getByName("debug") {
-            println("DEBUG: ${secrets.getProperty("WC_FILENAME_DEBUG").isBlank()}")
             storeFile = File(rootDir, secrets.getProperty("WC_FILENAME_DEBUG"))
             storePassword = secrets.getProperty("WC_STORE_PASSWORD_DEBUG")
             keyAlias = secrets.getProperty("WC_KEYSTORE_ALIAS_DEBUG")
