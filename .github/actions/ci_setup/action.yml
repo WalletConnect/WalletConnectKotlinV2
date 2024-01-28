@@ -81,7 +81,7 @@ runs:
     - name: Decode Upload Keystore
       shell: bash
       env:
-        ENCODED_STRING_UPLOAD: ${{ inputs.WC_KOTLIN_UPLOAD_KEYSTORE }}
+        ENCODED_STRING_UPLOAD: ${{ inputs.ENCODED_STRING_UPLOAD }}
         SIGNING_KEY_STORE_PATH_UPLOAD: ${{ inputs.SIGNING_KEY_STORE_PATH_UPLOAD }}
       run: |
         echo $ENCODED_STRING_UPLOAD > keystore-b64.txt
