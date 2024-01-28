@@ -48,7 +48,8 @@ project.extensions.configure(BaseExtension::class.java) {
             defaultConfig.versionCode = "$SAMPLE_VERSION_CODE${System.getenv("GITHUB_RUN_NUMBER") ?: ""}".toInt()
             firebaseAppDistribution {
                 artifactType = "AAB"
-                groups = "design-team, javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
+                serviceCredentialsFile = File(rootDir, "credentials.json").path
+//                groups = "design-team, javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
             }
         }
 
@@ -65,7 +66,7 @@ project.extensions.configure(BaseExtension::class.java) {
             firebaseAppDistribution {
                 artifactType = "APK"
                 serviceCredentialsFile = File(rootDir, "credentials.json").path
-                groups = "design-team, javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
+//                groups = "design-team, javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
             }
         }
 
@@ -77,7 +78,7 @@ project.extensions.configure(BaseExtension::class.java) {
             firebaseAppDistribution {
                 artifactType = "APK"
                 serviceCredentialsFile = File(rootDir, "credentials.json").path
-                groups = "design-team, javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
+//                groups = "design-team, javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
             }
         }
     }
