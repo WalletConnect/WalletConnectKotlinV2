@@ -1,8 +1,6 @@
 name: Release Samples
 
 on:
-  workflow_dispatch:
-  push: # debug
   release:
     types: [ published ]
 
