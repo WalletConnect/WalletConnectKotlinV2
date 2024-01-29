@@ -12,14 +12,16 @@ CREATE TABLE ActiveSubscriptions (
     relay_data TEXT DEFAULT NULL,
     map_of_scope TEXT AS Map<String, Triple<String, String, Boolean>> NOT NULL,
     notify_topic TEXT UNIQUE NOT NULL,
-    requested_subscription_id INTEGER UNIQUE DEFAULT NULL
+    requested_subscription_id INTEGER UNIQUE DEFAULT NULL,
+    id_of_last_notification TEXT DEFAULT NULL,
+    reached_end_of_history INTEGER AS Boolean DEFAULT 0 NOT NULL
 );
 
 insertOrAbortActiveSubscribtion:
 INSERT OR ABORT INTO ActiveSubscriptions(account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, notify_topic, requested_subscription_id)
 VALUES ( ?, ?, ?, ?, ? , ?, ?, ?);
 
-updateOrAbortActiveSubscribtion:
+updateOrAbortActiveSubscription:
 UPDATE OR ABORT ActiveSubscriptions
 SET
     account = ?,
@@ -32,17 +34,27 @@ SET
     requested_subscription_id = ?
 WHERE notify_topic = ?;
 
+updateActiveSubscriptionWithIdOfLastNotification:
+UPDATE OR ABORT ActiveSubscriptions
+SET id_of_last_notification = ?
+WHERE notify_topic = ?;
+
+flagActiveSubscriptionAsReachedTheEndOfHistory:
+UPDATE OR ABORT ActiveSubscriptions
+SET reached_end_of_history = 1
+WHERE notify_topic = ?;
+
 getAllActiveSubscriptions:
-SELECT account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, notify_topic, requested_subscription_id
+SELECT account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, notify_topic, requested_subscription_id, id_of_last_notification, reached_end_of_history
 FROM ActiveSubscriptions;
 
 getActiveSubscriptionByNotifyTopic:
-SELECT account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, notify_topic, requested_subscription_id
+SELECT account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, notify_topic, requested_subscription_id, id_of_last_notification, reached_end_of_history
 FROM ActiveSubscriptions
 WHERE notify_topic = ?;
 
 getActiveSubscriptionsByAccount:
-SELECT account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, notify_topic, requested_subscription_id
+SELECT account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, notify_topic, requested_subscription_id, id_of_last_notification, reached_end_of_history
 FROM ActiveSubscriptions
 WHERE account = ?;
 

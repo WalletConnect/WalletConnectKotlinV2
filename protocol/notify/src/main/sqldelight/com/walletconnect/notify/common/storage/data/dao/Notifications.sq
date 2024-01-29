@@ -9,16 +9,15 @@ CREATE TABLE Notifications (
     body TEXT NOT NULL,
     icon TEXT,
     url TEXT,
-    type TEXT NOT NULL,
-    isLast INTEGER AS Boolean DEFAULT 0 NOT NULL
+    type TEXT NOT NULL
 );
 
 insertOrReplaceNotification:
-INSERT OR REPLACE INTO Notifications(notification_id, topic, sent_at, title, body, icon, url, type, isLast)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO Notifications(notification_id, topic, sent_at, title, body, icon, url, type)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 
 getNotificationsByTopic:
-SELECT notification_id, topic, sent_at, title, body, icon, url, type, isLast
+SELECT notification_id, topic, sent_at, title, body, icon, url, type
 FROM Notifications
 WHERE topic = ?
 ORDER BY sent_at DESC;

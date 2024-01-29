@@ -11,5 +11,4 @@ internal data class Notification(
     val sentAt: Long,
     val notificationMessage: NotificationMessage,
     val metadata: AppMetaData?,
-    val isLast: Boolean = false,
 ) : EngineEvent
