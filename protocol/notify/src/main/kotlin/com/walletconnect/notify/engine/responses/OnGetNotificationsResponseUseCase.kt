@@ -13,16 +13,16 @@ import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.foundation.util.Logger
+import com.walletconnect.notify.common.convertToUTF8
 import com.walletconnect.notify.common.model.GetNotificationHistory
-import com.walletconnect.notify.common.model.NotificationMessage
 import com.walletconnect.notify.common.model.Notification
+import com.walletconnect.notify.common.model.NotificationMessage
 import com.walletconnect.notify.data.jwt.getNotifications.GetNotificationsResponseJwtClaim
 import com.walletconnect.notify.data.storage.NotificationsRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.supervisorScope
-import java.nio.charset.Charset
 
 internal class OnGetNotificationsResponseUseCase(
     private val logger: Logger,
@@ -44,12 +44,12 @@ internal class OnGetNotificationsResponseUseCase(
                     val metadata: AppMetaData = metadataStorageRepository.getByTopicAndType(wcResponse.topic, AppMetaDataType.PEER)
                         ?: throw IllegalStateException("No metadata found for topic ${wcResponse.topic}")
 
-                    val notifications = responseJwtClaim.notifications.mapIndexed {index, notification ->
+                    val notifications = responseJwtClaim.notifications.mapIndexed { index, notification ->
                         with(notification) {
                             val isLast = !responseJwtClaim.hasMore && (index == responseJwtClaim.notifications.lastIndex)
                             Notification(
                                 id = id, topic = wcResponse.topic.value, sentAt = sentAt, metadata = metadata, isLast = isLast,
-                                notificationMessage = NotificationMessage(title = convertToUTF8(title), body = convertToUTF8(body), icon = icon, url = url, type = type,),
+                                notificationMessage = NotificationMessage(title = convertToUTF8(title), body = convertToUTF8(body), icon = icon, url = url, type = type),
                             )
                         }
                     }
@@ -66,10 +66,5 @@ internal class OnGetNotificationsResponseUseCase(
         }
 
         _events.emit(params to resultEvent)
-    }
-
-    private fun convertToUTF8(input: String): String {
-        val bytes = input.toByteArray(Charset.forName("ISO-8859-1"))
-        return String(bytes, Charset.forName("UTF-8"))
     }
 }

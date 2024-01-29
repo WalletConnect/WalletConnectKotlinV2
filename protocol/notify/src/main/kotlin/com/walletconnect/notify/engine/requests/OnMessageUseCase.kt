@@ -19,6 +19,7 @@ import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.foundation.util.jwt.decodeDidWeb
 import com.walletconnect.foundation.util.jwt.decodeEd25519DidKey
+import com.walletconnect.notify.common.convertToUTF8
 import com.walletconnect.notify.common.model.Notification
 import com.walletconnect.notify.common.model.NotificationMessage
 import com.walletconnect.notify.data.jwt.message.MessageRequestJwtClaim
@@ -79,11 +80,6 @@ internal class OnMessageUseCase(
             logger.error(e)
             _events.emit(SDKError(e))
         }
-    }
-
-    private fun convertToUTF8(input: String): String {
-        val bytes = input.toByteArray(Charset.forName("ISO-8859-1"))
-        return String(bytes, Charset.forName("UTF-8"))
     }
 
     private fun MessageRequestJwtClaim.throwIfIsInvalid(expectedApp: String, expectedIssuer: String) {
