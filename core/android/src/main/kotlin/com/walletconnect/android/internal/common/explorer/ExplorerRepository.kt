@@ -52,8 +52,9 @@ class ExplorerRepository(
         page: Int,
         entries: Int,
         isVerified: Boolean,
+        isFeatured: Boolean,
     ): ProjectListing {
-        return with(explorerService.getProjects(projectId.value, entries, page, isVerified)) {
+        return with(explorerService.getProjects(projectId.value, entries, page, isVerified, isFeatured)) {
             if (isSuccessful && body() != null) {
                 body()!!.toProjectListing()
             } else {
@@ -106,6 +107,7 @@ class ExplorerRepository(
         imageId = imageId?.takeIf { it.isNotBlank() } ?: "ImageID not provided",
         imageUrl = imageUrl?.toImageUrl() ?: ImageUrl("", "", ""),
         dappUrl = dappUrl?.takeIf { it.isNotBlank() } ?: "Dapp url not provided",
+        order = order,
     )
 
     private fun DappListingsDTO.toDappListing(): DappListings {
