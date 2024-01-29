@@ -8,6 +8,7 @@ plugins {
 
 private val Project.secrets: Properties
     get() = rootProject.file("secrets.properties").let { secretsFile ->
+        check(secretsFile.exists()) { "Secrets file not found at path: ${secretsFile.absolutePath}" }
         Properties().apply {
             load(secretsFile.inputStream())
         }
@@ -28,6 +29,13 @@ project.extensions.configure(BaseExtension::class.java) {
             keyAlias = secrets.getProperty("WC_KEYSTORE_ALIAS")
             keyPassword = secrets.getProperty("WC_KEY_PASSWORD_INTERNAL")
         }
+
+        getByName("debug") {
+            storeFile = File(rootDir, secrets.getProperty("WC_FILENAME_DEBUG"))
+            storePassword = secrets.getProperty("WC_STORE_PASSWORD_DEBUG")
+            keyAlias = secrets.getProperty("WC_KEYSTORE_ALIAS_DEBUG")
+            keyPassword = secrets.getProperty("WC_KEY_PASSWORD_DEBUG")
+        }
     }
 
     buildTypes {
@@ -37,9 +45,11 @@ project.extensions.configure(BaseExtension::class.java) {
             isDebuggable = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.getByName("upload")
-            defaultConfig.versionCode = SAMPLE_VERSION_CODE
+            versionNameSuffix = System.getenv("GITHUB_RUN_NUMBER")?.let { ".$it" } ?: ""
+            defaultConfig.versionCode = "$SAMPLE_VERSION_CODE${System.getenv("GITHUB_RUN_NUMBER") ?: ""}".toInt()
             firebaseAppDistribution {
                 artifactType = "AAB"
+                serviceCredentialsFile = File(rootDir, "credentials.json").path
                 groups = "design-team, javascript-team, kotlin-team, rust-team, swift-team, wc-testers"
             }
         }

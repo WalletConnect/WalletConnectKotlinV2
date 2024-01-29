@@ -1,6 +1,7 @@
 package com.walletconnect.sample.common.ui.commons
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -41,6 +42,7 @@ fun BlueButton(
     }
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun ButtonWithLoader(
     text: String,
