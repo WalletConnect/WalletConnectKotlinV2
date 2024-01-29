@@ -160,14 +160,17 @@ internal class NotifyEngine(
     }
 }
 
+
+//todo: Extract to Validator class and add more tests
 internal val blockingCallsMinTimeout = 5.seconds
 internal val blockingCallsMaxTimeout = 60.seconds
 internal val blockingCallsDefaultTimeout = blockingCallsMaxTimeout
 internal val blockingCallsDelayInterval = 10.milliseconds
+
 internal fun Duration?.validateTimeout() =
     if (this == null) blockingCallsDefaultTimeout
     else if (this < blockingCallsMinTimeout)
-        throw Exception("Timeout has to be longer than $blockingCallsMinTimeout")
+        throw Exception("Timeout has to be at least $blockingCallsMinTimeout")
     else if (this > blockingCallsMaxTimeout)
-        throw Exception("Timeout has to be shorter than $blockingCallsMaxTimeout")
+        throw Exception("Timeout has to be at most $blockingCallsMaxTimeout")
     else this
