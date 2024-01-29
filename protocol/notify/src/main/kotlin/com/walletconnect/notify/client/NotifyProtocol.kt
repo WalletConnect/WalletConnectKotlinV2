@@ -17,9 +17,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
 import org.koin.core.KoinApplication
-import kotlin.time.Duration.Companion.seconds
 
 class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyInterface {
     private lateinit var notifyEngine: NotifyEngine
@@ -72,7 +70,7 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
 
         return runBlocking {
             try {
-                notifyEngine.update(params.topic, params.scope).toClient()
+                notifyEngine.update(params.topic, params.scope, params.timeout).toClient()
             } catch (e: Exception) {
                 Notify.Result.UpdateSubscription.Error(Notify.Model.Error(e))
             }
@@ -83,20 +81,16 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
         checkEngineInitialization()
 
         return runBlocking {
-            notifyEngine.getNotificationTypes(params.appDomain).mapValues { (_, notificationType) ->
-                notificationType.toClient()
-            }
+            notifyEngine.getNotificationTypes(params.appDomain, params.timeout).mapValues { (_, notificationType) -> notificationType.toClient() }
         }
     }
 
 
     override fun getActiveSubscriptions(params: Notify.Params.GetActiveSubscriptions): Map<String, Notify.Model.Subscription> {
         checkEngineInitialization()
+
         return runBlocking {
-            //todo: extract timeout to some external constant
-            withTimeout(params.timeout ?: 30.seconds) {
-                notifyEngine.getActiveSubscriptions(params.account).mapValues { (_, subscriptionWMetadata) -> subscriptionWMetadata.toClient() }
-            }
+            notifyEngine.getActiveSubscriptions(params.account, params.timeout).mapValues { (_, subscriptionWMetadata) -> subscriptionWMetadata.toClient() }
         }
     }
 
@@ -105,7 +99,7 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
 
         return runBlocking {
             try {
-                notifyEngine.getNotificationHistory(params.topic, params.limit, params.startingAfter).toClient()
+                notifyEngine.getNotificationHistory(params.topic, params.limit, params.startingAfter, params.timeout).toClient()
             } catch (e: Exception) {
                 Notify.Result.GetNotificationHistory.Error(Notify.Model.Error(e))
             }
@@ -117,7 +111,7 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
 
         return runBlocking {
             try {
-                notifyEngine.deleteSubscription(params.topic).toClient()
+                notifyEngine.deleteSubscription(params.topic, params.timeout).toClient()
             } catch (e: Exception) {
                 Notify.Result.DeleteSubscription.Error(Notify.Model.Error(e))
             }
