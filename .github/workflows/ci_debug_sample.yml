@@ -1,17 +1,16 @@
-name: Release Samples
+name: Release Samples - Debug
 
 on:
-  release:
-    types: [ published ]
+  workflow_dispatch:
 
 jobs:
-  release_samples:
+  release_samples_debug:
     strategy:
       matrix:
         conf: [
-          { name: wallet, command: ":sample:wallet:assembleRelease :sample:wallet:appDistributionUploadRelease" },
-          { name: dapp, command: ":sample:dapp:assembleRelease :sample:dapp:appDistributionUploadRelease" },
-          { name: modal, command: ":sample:modal:assembleRelease :sample:modal:appDistributionUploadRelease" }
+          { name: wallet, command: ":sample:wallet:assembleDebug :sample:wallet:appDistributionUploadDebug" },
+          { name: dapp, command: ":sample:dapp:assembleDebug :sample:dapp:appDistributionUploadDebug" },
+          { name: modal, command: ":sample:modal:assembleDebug :sample:modal:appDistributionUploadDebug" }
         ]
     name: ${{ matrix.conf.name }}
     runs-on: ubuntu-latest
@@ -49,7 +48,7 @@ jobs:
           SIGNING_KEY_STORE_PATH_UPLOAD: ${{ secrets.WC_KOTLIN_UPLOAD_KEYSTORE_PATH }}
         uses: ./.github/actions/ci_setup
 
-      - name: Release sample
+      - name: Release sample - Debug
         env:
           WC_CLOUD_PROJECT_ID: ${{ secrets.WC_CLOUD_PROJECT_ID }}
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}

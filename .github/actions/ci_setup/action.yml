@@ -11,6 +11,12 @@ inputs:
   SECRETS_PROPERTIES:
     description: 'Secrets properties file'
     required: true
+  ENCODED_STRING_DEBUG:
+    description: 'Encoded string for debug keystore'
+    required: true
+  SIGNING_KEY_STORE_PATH_DEBUG:
+    description: 'Path to store debug keystore'
+    required: true
   ENCODED_STRING_INTERNAL:
     description: 'Encoded string for internal keystore'
     required: true
@@ -54,19 +60,28 @@ runs:
         SECRETS_PROPERTIES: ${{ inputs.SECRETS_PROPERTIES }}
       run: echo $SECRETS_PROPERTIES | base64 --decode > secrets.properties
 
+    - name: Decode Debug Keystore
+      shell: bash
+      env:
+        ENCODED_STRING_DEBUG: ${{ inputs.ENCODED_STRING_DEBUG }}
+        SIGNING_KEY_STORE_PATH_DEBUG: ${{ inputs.SIGNING_KEY_STORE_PATH_DEBUG }}
+      run: |
+        echo $ENCODED_STRING_DEBUG > keystore-b64-debug.txt
+        base64 -d keystore-b64-debug.txt > $SIGNING_KEY_STORE_PATH_DEBUG
+
     - name: Decode Internal Keystore
       shell: bash
       env:
         ENCODED_STRING_INTERNAL: ${{ inputs.ENCODED_STRING_INTERNAL }}
         SIGNING_KEY_STORE_PATH_INTERNAL: ${{ inputs.SIGNING_KEY_STORE_PATH_INTERNAL }}
       run: |
-        echo $ENCODED_STRING_INTERNAL > keystore-b64.txt
-        base64 -d keystore-b64.txt > $SIGNING_KEY_STORE_PATH_INTERNAL
+        echo $ENCODED_STRING_INTERNAL > keystore-b64-internal.txt
+        base64 -d keystore-b64-internal.txt > $SIGNING_KEY_STORE_PATH_INTERNAL
 
     - name: Decode Upload Keystore
       shell: bash
       env:
-        ENCODED_STRING_UPLOAD: ${{ inputs.WC_KOTLIN_UPLOAD_KEYSTORE }}
+        ENCODED_STRING_UPLOAD: ${{ inputs.ENCODED_STRING_UPLOAD }}
         SIGNING_KEY_STORE_PATH_UPLOAD: ${{ inputs.SIGNING_KEY_STORE_PATH_UPLOAD }}
       run: |
         echo $ENCODED_STRING_UPLOAD > keystore-b64.txt
