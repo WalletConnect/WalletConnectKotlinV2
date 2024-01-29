@@ -6,7 +6,6 @@ import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtClaims
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.AppMetaDataType
-import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.params.ChatNotifyResponseAuthParams
 import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
@@ -19,6 +18,7 @@ import com.walletconnect.notify.common.model.Notification
 import com.walletconnect.notify.common.model.NotificationMessage
 import com.walletconnect.notify.data.jwt.getNotifications.GetNotificationsResponseJwtClaim
 import com.walletconnect.notify.data.storage.NotificationsRepository
+import com.walletconnect.notify.data.storage.SubscriptionRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -27,9 +27,10 @@ import kotlinx.coroutines.supervisorScope
 internal class OnGetNotificationsResponseUseCase(
     private val logger: Logger,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
+    private val subscriptionRepository: SubscriptionRepository,
     private val notificationsRepository: NotificationsRepository,
+) {
 
-    ) {
     private val _events: MutableSharedFlow<Pair<CoreNotifyParams.GetNotificationsParams, EngineEvent>> = MutableSharedFlow()
     val events: SharedFlow<Pair<CoreNotifyParams.GetNotificationsParams, EngineEvent>> = _events.asSharedFlow()
 
@@ -46,15 +47,15 @@ internal class OnGetNotificationsResponseUseCase(
 
                     val notifications = responseJwtClaim.notifications.mapIndexed { index, notification ->
                         with(notification) {
-                            val isLast = !responseJwtClaim.hasMore && (index == responseJwtClaim.notifications.lastIndex)
                             Notification(
-                                id = id, topic = wcResponse.topic.value, sentAt = sentAt, metadata = metadata, isLast = isLast,
+                                id = id, topic = wcResponse.topic.value, sentAt = sentAt, metadata = metadata,
                                 notificationMessage = NotificationMessage(title = convertToUTF8(title), body = convertToUTF8(body), icon = icon, url = url, type = type),
                             )
                         }
                     }
 
                     notificationsRepository.insertOrReplaceNotifications(notifications)
+                    if (!responseJwtClaim.hasMore) subscriptionRepository.updateActiveSubscriptionWithLastNotificationId(notifications.lastOrNull()?.id, wcResponse.topic.value)
                     GetNotificationHistory.Success(notifications, responseJwtClaim.hasMore)
                 }
 
@@ -62,7 +63,7 @@ internal class OnGetNotificationsResponseUseCase(
             }
         } catch (e: Exception) {
             logger.error(e)
-            SDKError(e)
+            GetNotificationHistory.Error(e)
         }
 
         _events.emit(params to resultEvent)

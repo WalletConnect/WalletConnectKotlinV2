@@ -2,8 +2,8 @@
 
 package com.walletconnect.notify.data.storage
 
-import com.walletconnect.notify.common.model.NotificationMessage
 import com.walletconnect.notify.common.model.Notification
+import com.walletconnect.notify.common.model.NotificationMessage
 import com.walletconnect.notify.common.storage.data.dao.NotificationsQueries
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -13,7 +13,7 @@ internal class NotificationsRepository(private val notificationsQueries: Notific
     suspend fun insertOrReplaceNotification(record: Notification) = withContext(Dispatchers.IO) {
         with(record) {
             with(notificationMessage) {
-                notificationsQueries.insertOrReplaceNotification(id, topic, sentAt, title, body, icon, url, type, isLast)
+                notificationsQueries.insertOrReplaceNotification(id, topic, sentAt, title, body, icon, url, type)
             }
         }
     }
@@ -22,7 +22,7 @@ internal class NotificationsRepository(private val notificationsQueries: Notific
         records.forEach { record ->
             with(record) {
                 with(notificationMessage) {
-                    notificationsQueries.insertOrReplaceNotification(id, topic, sentAt, title, body, icon, url, type, isLast)
+                    notificationsQueries.insertOrReplaceNotification(id, topic, sentAt, title, body, icon, url, type)
                 }
             }
         }
@@ -49,7 +49,6 @@ internal class NotificationsRepository(private val notificationsQueries: Notific
         icon: String?,
         url: String?,
         type: String,
-        isLast: Boolean,
     ): Notification = Notification(
         id = id,
         topic = topic,
@@ -61,7 +60,6 @@ internal class NotificationsRepository(private val notificationsQueries: Notific
             url = url,
             type = type
         ),
-        metadata = null,
-        isLast = isLast,
+        metadata = null
     )
 }

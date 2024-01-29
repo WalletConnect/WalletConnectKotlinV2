@@ -57,6 +57,7 @@ internal fun responseModule() = module {
             logger = get(named(AndroidCommonDITags.LOGGER)),
             metadataStorageRepository = get(),
             notificationsRepository = get(),
+            subscriptionRepository = get()
         )
     }
 }

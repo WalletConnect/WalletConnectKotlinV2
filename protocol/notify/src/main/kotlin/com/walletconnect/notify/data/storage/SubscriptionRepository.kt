@@ -51,6 +51,14 @@ internal class SubscriptionRepository(private val activeSubscriptionsQueries: Ac
         }
     }
 
+
+    suspend fun updateActiveSubscriptionWithLastNotificationId(lastNotificationId: String?, topic: String) = withContext(Dispatchers.IO) {
+        activeSubscriptionsQueries.transaction {
+            activeSubscriptionsQueries.updateActiveSubscriptionWithLastNotificationId(lastNotificationId, topic)
+            activeSubscriptionsQueries.flagActiveSubscriptionAsReachedTheEndOfHistory(topic)
+        }
+    }
+
     suspend fun getActiveSubscriptionByNotifyTopic(notifyTopic: String): Subscription.Active? = withContext(Dispatchers.IO) {
         activeSubscriptionsQueries.getActiveSubscriptionByNotifyTopic(notifyTopic, ::toActiveSubscriptionWithoutMetadata).executeAsOneOrNull()
     }
@@ -77,6 +85,8 @@ internal class SubscriptionRepository(private val activeSubscriptionsQueries: Ac
         map_of_scope: Map<String, Triple<String, String, Boolean>>,
         notify_topic: String,
         requested_subscription_id: Long?,
+        last_notification_id: String?,
+        reached_end_of_history: Boolean,
     ): Subscription.Active = Subscription.Active(
         account = AccountId(account),
         authenticationPublicKey = PublicKey(authentication_public_key),
@@ -92,6 +102,8 @@ internal class SubscriptionRepository(private val activeSubscriptionsQueries: Ac
         relay = RelayProtocolOptions(relay_protocol, relay_data),
         topic = Topic(notify_topic),
         dappMetaData = null,
-        requestedSubscriptionId = requested_subscription_id
+        requestedSubscriptionId = requested_subscription_id,
+        lastNotificationId = last_notification_id,
+        reachedEndOfHistory = reached_end_of_history
     )
 }

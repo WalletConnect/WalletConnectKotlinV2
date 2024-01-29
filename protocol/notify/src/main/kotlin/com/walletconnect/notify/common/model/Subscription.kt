@@ -23,5 +23,7 @@ internal sealed class Subscription {
         val dappMetaData: AppMetaData? = null,
         val requestedSubscriptionId: Long? = null,
         val relay: RelayProtocolOptions = RelayProtocolOptions(),
+        val lastNotificationId: String? = null,
+        val reachedEndOfHistory: Boolean = false,
     ) : Subscription()
 }

@@ -49,7 +49,6 @@ internal class GetNotificationHistoryUseCase(
         val result = MutableStateFlow<GetNotificationHistory>(GetNotificationHistory.Processing)
         var timeoutInfo: TimeoutInfo = TimeoutInfo.Nothing
         try {
-            logger.log("getNotificationHistory - topic: $topic, limit: $limit, startingAfter: $startingAfter, timeout: $timeout")
             val validTimeout = timeout.validateTimeout()
             val subscription = subscriptionRepository.getActiveSubscriptionByNotifyTopic(topic)
                 ?: throw IllegalStateException("No subscription found for topic $topic")
@@ -60,23 +59,15 @@ internal class GetNotificationHistoryUseCase(
 
             val sortedStoredNotifications = notificationsRepository.getNotificationsByTopic(topic).map { it.copy(metadata = metadata) }
 
-            try {
-                if (sortedStoredNotifications.size >= parsedLimit) {
-                    val indexOfAfter = startingAfter?.let { sortedStoredNotifications.indexOfFirst { it.id == startingAfter } } ?: 0
-                    val pickedNotifications = sortedStoredNotifications.subList(indexOfAfter, indexOfAfter + parsedLimit)
+            if (sortedStoredNotifications.size >= parsedLimit || subscription.reachedEndOfHistory) {
+                val indexOfAfter = startingAfter?.let { sortedStoredNotifications.indexOfFirst { it.id == startingAfter } } ?: 0
+                val pickedNotifications = sortedStoredNotifications.subList(indexOfAfter, minOf(indexOfAfter + parsedLimit, sortedStoredNotifications.size))
 
-                    if (pickedNotifications.size <= parsedLimit) {
-                        val hasMore = ((sortedStoredNotifications.size > pickedNotifications.size) || (pickedNotifications.size == parsedLimit)) && !pickedNotifications.last().isLast
-                        logger.log("getNotificationHistory local - size: $parsedLimit, hasMore: $hasMore")
-                        return@supervisorScope GetNotificationHistory.Success(pickedNotifications, hasMore)
-                    }
+                if (pickedNotifications.size <= parsedLimit) {
+                    val hasMore = subscription.lastNotificationId != pickedNotifications.lastOrNull()?.id
+                    return@supervisorScope GetNotificationHistory.Success(pickedNotifications, hasMore)
                 }
-            } catch (_: IndexOutOfBoundsException) {
-                // ignore - this means that local storage doesn't contain all requested notifications
-                // We will fetch them from remote
-                // todo: add a flag for active subscriptions if they are synced with remote / reached hasMore == false on response
             }
-
 
             val didJwt = fetchDidJwtInteractor.getNotificationsRequest(subscription.account, subscription.authenticationPublicKey, metadata.url, parsedLimit, startingAfter).getOrThrow()
 
@@ -98,12 +89,6 @@ internal class GetNotificationHistoryUseCase(
                 while (result.value == GetNotificationHistory.Processing) {
                     delay(blockingCallsDelayInterval)
                 }
-            }
-
-            when (val localResult = result.value) {
-                is GetNotificationHistory.Success -> logger.log("getNotificationHistory remote - size: ${localResult.notifications.size}, hasMore: ${localResult.hasMore}")
-                is GetNotificationHistory.Error -> logger.log("getNotificationHistory remote error: ${localResult.throwable}")
-                is GetNotificationHistory.Processing -> logger.error("getNotificationHistory remote finished with processing state")
             }
 
             return@supervisorScope result.value

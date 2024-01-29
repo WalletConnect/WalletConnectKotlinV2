@@ -1,0 +1,22 @@
+import kotlin.Boolean;
+
+-- Dropping table as it will be recovered from the server.
+-- Removing isLast (Boolean) to Notifications.
+DROP TABLE Notifications;
+
+CREATE TABLE Notifications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    notification_id TEXT UNIQUE NOT NULL,
+    topic TEXT NOT NULL,
+    sent_at INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    body TEXT NOT NULL,
+    icon TEXT,
+    url TEXT,
+    type TEXT NOT NULL
+);
+
+-- Adding id_of_last_notification to ActiveSubscriptions.
+-- Adding reached_end_of_history to ActiveSubscriptions.
+ALTER TABLE ActiveSubscriptions ADD COLUMN last_notification_id TEXT DEFAULT NULL;
+ALTER TABLE ActiveSubscriptions ADD COLUMN reached_end_of_history INTEGER AS Boolean DEFAULT 0 NOT NULL;

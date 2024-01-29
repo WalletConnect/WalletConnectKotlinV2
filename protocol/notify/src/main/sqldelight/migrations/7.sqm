@@ -2,6 +2,7 @@ import kotlin.Boolean;
 
 -- Dropping table as it will be recovered from the server.
 -- Removing request_id (INTEGER) from Notifications and adding notification_id (TEXT).
+-- Adding isLast (Boolean) to Notifications.
 -- Renaming published_at to sent_at.
 DROP TABLE Notifications;
 
