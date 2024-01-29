@@ -37,7 +37,7 @@ internal class FetchDidJwtInteractor(
         return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
             identityPrivateKey,
             EncodeSubscriptionRequestJwtUseCase(app, account, authenticationKey, concatenatedScopes),
-            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = 5, expiryTimeUnit = TimeUnit.MINUTES)
+            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = FIVE_MINUTE_EXPIRY, expiryTimeUnit = FIVE_MINUTE_EXPIRY_TIME_UNIT)
         )
     }
 
@@ -78,7 +78,7 @@ internal class FetchDidJwtInteractor(
         return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
             identityPrivateKey,
             EncodeUpdateRequestJwtUseCase(account, metadataUrl, authenticationKey, concatenatedScopes),
-            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = 5, expiryTimeUnit = TimeUnit.MINUTES)
+            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = FIVE_MINUTE_EXPIRY, expiryTimeUnit = FIVE_MINUTE_EXPIRY_TIME_UNIT)
         )
     }
 
@@ -91,7 +91,7 @@ internal class FetchDidJwtInteractor(
         return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
             identityPrivateKey,
             EncodeWatchSubscriptionsRequestJwtUseCase(account, authenticationKey, appDomain),
-            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = 5, expiryTimeUnit = TimeUnit.MINUTES)
+            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = FIVE_MINUTE_EXPIRY, expiryTimeUnit = FIVE_MINUTE_EXPIRY_TIME_UNIT)
         )
     }
 
@@ -103,7 +103,7 @@ internal class FetchDidJwtInteractor(
         return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
             identityPrivateKey,
             EncodeSubscriptionsChangedResponseJwtUseCase(account, authenticationKey),
-            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = 5, expiryTimeUnit = TimeUnit.MINUTES)
+            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = FIVE_MINUTE_EXPIRY, expiryTimeUnit = FIVE_MINUTE_EXPIRY_TIME_UNIT)
         )
     }
 
@@ -118,7 +118,7 @@ internal class FetchDidJwtInteractor(
         return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
             identityPrivateKey,
             EncodeGetNotificationsRequestJwtUseCase(app, account, authenticationKey, limit, after),
-            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = 5, expiryTimeUnit = TimeUnit.MINUTES)
+            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = FIVE_MINUTE_EXPIRY, expiryTimeUnit = FIVE_MINUTE_EXPIRY_TIME_UNIT)
         )
     }
 
@@ -133,5 +133,7 @@ internal class FetchDidJwtInteractor(
 
     companion object {
         const val SCOPES_DELIMITER = " "
+        const val FIVE_MINUTE_EXPIRY = 5L
+        val FIVE_MINUTE_EXPIRY_TIME_UNIT = TimeUnit.MINUTES
     }
 }
