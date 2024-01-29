@@ -72,6 +72,9 @@ internal class GetNotificationHistoryUseCase(
                     }
                 }
             } catch (_: IndexOutOfBoundsException) {
+                // ignore - this means that local storage doesn't contain all requested notifications
+                // We will fetch them from remote
+                // todo: add a flag for active subscriptions if they are synced with remote / reached hasMore == false on response
             }
 
 
