@@ -171,22 +171,20 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
 
             val subscribeParams = Notify.Params.Subscribe(explorerApp.dappUrl.toUri(), EthAccountDelegate.ethAddress, 5.seconds)
 
-            for (i in 0..1) {
-                viewModelScope.launch(Dispatchers.IO) {
-                    NotifyClient.subscribe(params = subscribeParams).let { result ->
-                        when (result) {
-                            is Notify.Result.Subscribe.Success -> {
-                                fetchActiveSubscriptions()
-                                onSuccess()
-                            }
-
-                            is Notify.Result.Subscribe.Error -> {
-                                Timber.e(result.error.throwable)
-                                onFailure(result.error.throwable)
-                            }
+            viewModelScope.launch(Dispatchers.IO) {
+                NotifyClient.subscribe(params = subscribeParams).let { result ->
+                    when (result) {
+                        is Notify.Result.Subscribe.Success -> {
+                            fetchActiveSubscriptions()
+                            onSuccess()
                         }
-                        _discoverState.update { DiscoverState.Fetched }
+
+                        is Notify.Result.Subscribe.Error -> {
+                            Timber.e(result.error.throwable)
+                            onFailure(result.error.throwable)
+                        }
                     }
+                    _discoverState.update { DiscoverState.Fetched }
                 }
             }
         }
