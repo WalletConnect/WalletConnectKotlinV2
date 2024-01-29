@@ -66,6 +66,7 @@ dependencies {
     lifecycle()
     navigationComponent()
     qrCodeGenerator()
+    coinbase()
 
     jUnit4()
     mockk()

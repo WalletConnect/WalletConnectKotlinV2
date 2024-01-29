@@ -4,7 +4,7 @@ import com.walletconnect.android.BuildConfig
 import timber.log.Timber
 
 internal fun plantTimber() {
-    if (BuildConfig.DEBUG) {
+    if (BuildConfig.BUILD_TYPE == "debug" || BuildConfig.BUILD_TYPE == "internal") {
         if (Timber.treeCount == 0) {
             Timber.plant(
                 object : Timber.DebugTree() {

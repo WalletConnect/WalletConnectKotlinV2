@@ -6,7 +6,6 @@ internal class DeleteSessionDataUseCase(
     private val repository: SessionRepository
 ) {
     suspend operator fun invoke() {
-        repository.deleteSessionTopic()
-        repository.deleteChainSelection()
+        repository.deleteSession()
     }
 }
