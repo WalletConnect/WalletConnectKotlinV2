@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.CircularProgressIndicator
@@ -28,9 +27,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.AnnotatedString
@@ -47,8 +44,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.walletconnect.sample.common.ui.commons.ButtonWithLoader
 import com.walletconnect.sample.common.ui.theme.PreviewTheme
 import com.walletconnect.sample.common.ui.theme.UiModePreview
@@ -56,6 +51,7 @@ import com.walletconnect.sample.common.ui.theme.blue_accent
 import com.walletconnect.sample.wallet.domain.model.NotificationUI
 import com.walletconnect.sample.wallet.ui.common.ImageUrl
 import com.walletconnect.sample.wallet.ui.common.subscriptions.ActiveSubscriptionsUI
+import com.walletconnect.sample.wallet.ui.common.subscriptions.NotificationIcon
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.InboxViewModel
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.LazyColumnSurroundedWithFogVertically
@@ -172,7 +168,7 @@ private fun NotificationScreen(
                                         .fillMaxWidth()
                                         .padding(horizontal = 20.dp, vertical = 8.dp), horizontalArrangement = Arrangement.Center
                                 ) {
-                                    ButtonWithLoader("Fetch more 📨", onClick = {
+                                    ButtonWithLoader("Fetch more", onClick = {
                                         onFetchMore()
                                     }, isLoading = state is NotificationsState.FetchingMore)
                                 }
@@ -260,17 +256,7 @@ fun NotificationItem(notificationUI: NotificationUI) {
             .background(if (notificationUI.isUnread) unreadColor else MaterialTheme.colors.background)
             .padding(horizontal = 20.dp, vertical = 16.dp)
     ) {
-        AsyncImage(
-            modifier = Modifier
-                .size(48.dp)
-                .clip(RoundedCornerShape(10.dp)),
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(notificationUI.icon)
-                .crossfade(200)
-                .build(),
-            contentDescription = null,
-            contentScale = ContentScale.Crop
-        )
+        NotificationIcon(48.dp, notificationUI.icon)
         Spacer(modifier = Modifier.width(12.dp))
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
