@@ -14,6 +14,7 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.foundation.util.jwt.decodeDidPkh
 import com.walletconnect.notify.common.model.CreateSubscription
+import com.walletconnect.notify.common.model.DeleteSubscription
 import com.walletconnect.notify.data.jwt.subscription.SubscriptionRequestJwtClaim
 import com.walletconnect.notify.data.jwt.subscription.SubscriptionResponseJwtClaim
 import com.walletconnect.notify.data.storage.SubscriptionRepository
@@ -61,7 +62,7 @@ internal class OnSubscribeResponseUseCase(
         } catch (e: Exception) {
             removeOptimisticallyAddedSubscription(wcResponse.topic)
             logger.error(e)
-            SDKError(e)
+            CreateSubscription.Error(e)
         }
 
         _events.emit(params to resultEvent)
