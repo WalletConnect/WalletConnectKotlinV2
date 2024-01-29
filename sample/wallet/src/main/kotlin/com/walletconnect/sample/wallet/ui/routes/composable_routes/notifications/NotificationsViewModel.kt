@@ -35,6 +35,7 @@ import java.util.Calendar
 import java.util.Locale
 import java.util.TimeZone
 import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.seconds
 
 @Suppress("UNCHECKED_CAST")
 class NotificationsViewModelFactory(private val topic: String) : ViewModelProvider.Factory {
@@ -86,9 +87,9 @@ class NotificationsViewModel(topic: String) : ViewModel() {
 
     suspend fun fetchRecentNotifications() = viewModelScope.launch(Dispatchers.IO) {
         _state.update { NotificationsState.InitialFetching }
-        NotifyClient.getNotificationHistory(params = Notify.Params.GetNotificationHistory(currentSubscription.value.topic)).let { result ->
+        NotifyClient.getNotificationHistory(params = Notify.Params.GetNotificationHistory(currentSubscription.value.topic, timeout = 15.seconds)).let { result ->
 
-             val (notifications, state) = when (result) {
+            val (notifications, state) = when (result) {
                 is Notify.Result.GetNotificationHistory.Success -> {
                     Timber.d("fetchAllNotifications: ${result}")
 
@@ -106,7 +107,7 @@ class NotificationsViewModel(topic: String) : ViewModel() {
             }
             _notifications.value = notifications
             _notificationsTrigger.emit(Unit)
-            _state.update { state  }
+            _state.update { state }
         }
     }
 
@@ -114,30 +115,31 @@ class NotificationsViewModel(topic: String) : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             _state.update { NotificationsState.FetchingMore }
 
-            NotifyClient.getNotificationHistory(params = Notify.Params.GetNotificationHistory(currentSubscription.value.topic, startingAfter = _notifications.value.last().id)).let { result ->
-                val (notifications, state) = when (result) {
+            NotifyClient.getNotificationHistory(params = Notify.Params.GetNotificationHistory(currentSubscription.value.topic, startingAfter = _notifications.value.last().id, timeout = 15.seconds))
+                .let { result ->
+                    val (notifications, state) = when (result) {
 
-                    is Notify.Result.GetNotificationHistory.Success -> {
-                        Timber.d("fetchMore result: ${result}")
+                        is Notify.Result.GetNotificationHistory.Success -> {
+                            Timber.d("fetchMore result: ${result}")
 
-                        _hasMore.value = result.hasMore
-                        val resultList = _notifications.value.toMutableList()
-                        resultList.addAll(result.notifications.map { messageRecord -> messageRecord.toNotifyNotification() }.onEach { notification ->
-                            Timber.d("fetchMore: ${notification.id} ${notification.icon}")
-                        })
-                        resultList.toSet() to NotificationsState.Success
+                            _hasMore.value = result.hasMore
+                            val resultList = _notifications.value.toMutableList()
+                            resultList.addAll(result.notifications.map { messageRecord -> messageRecord.toNotifyNotification() }.onEach { notification ->
+                                Timber.d("fetchMore: ${notification.id} ${notification.icon}")
+                            })
+                            resultList.toSet() to NotificationsState.Success
+                        }
+
+                        is Notify.Result.GetNotificationHistory.Error -> {
+                            Timber.e(result.error.throwable)
+                            _notifications.value to NotificationsState.Failure(result.error.throwable)
+                        }
                     }
+                    _notifications.value = notifications
+                    _notificationsTrigger.emit(Unit)
 
-                    is Notify.Result.GetNotificationHistory.Error -> {
-                        Timber.e(result.error.throwable)
-                        _notifications.value to NotificationsState.Failure(result.error.throwable)
-                    }
+                    _state.update { state }
                 }
-                _notifications.value = notifications
-                _notificationsTrigger.emit(Unit)
-
-                _state.update { state  }
-            }
 
         }
     }
