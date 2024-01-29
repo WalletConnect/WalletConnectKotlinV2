@@ -52,9 +52,11 @@ internal class SubscriptionRepository(private val activeSubscriptionsQueries: Ac
     }
 
 
-    suspend fun updateActiveSubscriptionWithIdOfLastNotification(idOfLastNotification: String?, topic: String) = withContext(Dispatchers.IO) {
-        activeSubscriptionsQueries.updateActiveSubscriptionWithIdOfLastNotification(idOfLastNotification, topic)
-        activeSubscriptionsQueries.flagActiveSubscriptionAsReachedTheEndOfHistory(topic)
+    suspend fun updateActiveSubscriptionWithLastNotificationId(lastNotificationId: String?, topic: String) = withContext(Dispatchers.IO) {
+        activeSubscriptionsQueries.transaction {
+            activeSubscriptionsQueries.updateActiveSubscriptionWithLastNotificationId(lastNotificationId, topic)
+            activeSubscriptionsQueries.flagActiveSubscriptionAsReachedTheEndOfHistory(topic)
+        }
     }
 
     suspend fun getActiveSubscriptionByNotifyTopic(notifyTopic: String): Subscription.Active? = withContext(Dispatchers.IO) {
@@ -83,8 +85,8 @@ internal class SubscriptionRepository(private val activeSubscriptionsQueries: Ac
         map_of_scope: Map<String, Triple<String, String, Boolean>>,
         notify_topic: String,
         requested_subscription_id: Long?,
-        id_of_last_notification: String?,
-        reached_end_of_history: Boolean
+        last_notification_id: String?,
+        reached_end_of_history: Boolean,
     ): Subscription.Active = Subscription.Active(
         account = AccountId(account),
         authenticationPublicKey = PublicKey(authentication_public_key),
@@ -101,7 +103,7 @@ internal class SubscriptionRepository(private val activeSubscriptionsQueries: Ac
         topic = Topic(notify_topic),
         dappMetaData = null,
         requestedSubscriptionId = requested_subscription_id,
-        idOfLastNotification = id_of_last_notification,
+        lastNotificationId = last_notification_id,
         reachedEndOfHistory = reached_end_of_history
     )
 }

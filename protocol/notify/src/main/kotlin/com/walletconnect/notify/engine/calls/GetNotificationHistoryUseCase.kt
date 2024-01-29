@@ -64,7 +64,7 @@ internal class GetNotificationHistoryUseCase(
                 val pickedNotifications = sortedStoredNotifications.subList(indexOfAfter, minOf(indexOfAfter + parsedLimit, sortedStoredNotifications.size))
 
                 if (pickedNotifications.size <= parsedLimit) {
-                    val hasMore = subscription.idOfLastNotification != pickedNotifications.lastOrNull()?.id
+                    val hasMore = subscription.lastNotificationId != pickedNotifications.lastOrNull()?.id
                     return@supervisorScope GetNotificationHistory.Success(pickedNotifications, hasMore)
                 }
             }

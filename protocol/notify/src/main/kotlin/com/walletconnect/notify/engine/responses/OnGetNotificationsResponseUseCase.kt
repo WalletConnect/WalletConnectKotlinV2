@@ -6,7 +6,6 @@ import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtClaims
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.AppMetaDataType
-import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.params.ChatNotifyResponseAuthParams
 import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
@@ -56,7 +55,7 @@ internal class OnGetNotificationsResponseUseCase(
                     }
 
                     notificationsRepository.insertOrReplaceNotifications(notifications)
-                    if (!responseJwtClaim.hasMore) subscriptionRepository.updateActiveSubscriptionWithIdOfLastNotification(notifications.lastOrNull()?.id, wcResponse.topic.value)
+                    if (!responseJwtClaim.hasMore) subscriptionRepository.updateActiveSubscriptionWithLastNotificationId(notifications.lastOrNull()?.id, wcResponse.topic.value)
                     GetNotificationHistory.Success(notifications, responseJwtClaim.hasMore)
                 }
 

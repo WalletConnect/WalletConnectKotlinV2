@@ -13,7 +13,7 @@ CREATE TABLE ActiveSubscriptions (
     map_of_scope TEXT AS Map<String, Triple<String, String, Boolean>> NOT NULL,
     notify_topic TEXT UNIQUE NOT NULL,
     requested_subscription_id INTEGER UNIQUE DEFAULT NULL,
-    id_of_last_notification TEXT DEFAULT NULL,
+    last_notification_id TEXT DEFAULT NULL,
     reached_end_of_history INTEGER AS Boolean DEFAULT 0 NOT NULL
 );
 
@@ -34,9 +34,9 @@ SET
     requested_subscription_id = ?
 WHERE notify_topic = ?;
 
-updateActiveSubscriptionWithIdOfLastNotification:
+updateActiveSubscriptionWithLastNotificationId:
 UPDATE OR ABORT ActiveSubscriptions
-SET id_of_last_notification = ?
+SET last_notification_id = ?
 WHERE notify_topic = ?;
 
 flagActiveSubscriptionAsReachedTheEndOfHistory:
@@ -45,16 +45,16 @@ SET reached_end_of_history = 1
 WHERE notify_topic = ?;
 
 getAllActiveSubscriptions:
-SELECT account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, notify_topic, requested_subscription_id, id_of_last_notification, reached_end_of_history
+SELECT account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, notify_topic, requested_subscription_id, last_notification_id, reached_end_of_history
 FROM ActiveSubscriptions;
 
 getActiveSubscriptionByNotifyTopic:
-SELECT account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, notify_topic, requested_subscription_id, id_of_last_notification, reached_end_of_history
+SELECT account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, notify_topic, requested_subscription_id, last_notification_id, reached_end_of_history
 FROM ActiveSubscriptions
 WHERE notify_topic = ?;
 
 getActiveSubscriptionsByAccount:
-SELECT account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, notify_topic, requested_subscription_id, id_of_last_notification, reached_end_of_history
+SELECT account, authentication_public_key, expiry, relay_protocol, relay_data, map_of_scope, notify_topic, requested_subscription_id, last_notification_id, reached_end_of_history
 FROM ActiveSubscriptions
 WHERE account = ?;
 
