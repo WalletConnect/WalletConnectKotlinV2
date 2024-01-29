@@ -80,7 +80,8 @@ internal fun RedirectOnHoldScreen(
             .collect {
                 when (it) {
                     is Modal.Model.RejectedSession -> redirectState.value = RedirectState.Reject
-                    else -> redirectState.value = RedirectState.Loading
+                    is Modal.Model.ExpiredProposal -> redirectState.value = RedirectState.Expired
+                    else -> Unit
                 }
             }
     }
@@ -158,6 +159,19 @@ private fun RedirectStateContent(state: RedirectState, wallet: Wallet) {
             )
             VerticalSpacer(height = 20.dp)
             Text(text = "Connection declined", color = ModalTheme.colors.errorColor)
+        }
+
+        RedirectState.Expired -> {
+            WalletImage(
+                url = wallet.imageUrl,
+                modifier = Modifier
+                    .border(1.dp, ModalTheme.colors.errorColor, shape = RoundedCornerShape(22.dp))
+                    .size(90.dp)
+                    .padding(4.dp)
+                    .clip(RoundedCornerShape(20.dp))
+            )
+            VerticalSpacer(height = 20.dp)
+            Text(text = "Connection expired", color = ModalTheme.colors.errorColor)
         }
     }
 }
@@ -287,5 +301,5 @@ private fun OnHoldScreenPreview(
 
 private class RedirectStateProvider : PreviewParameterProvider<RedirectState> {
     override val values: Sequence<RedirectState>
-        get() = sequenceOf(RedirectState.Loading, RedirectState.Reject)
+        get() = sequenceOf(RedirectState.Loading, RedirectState.Reject, RedirectState.Expired)
 }
