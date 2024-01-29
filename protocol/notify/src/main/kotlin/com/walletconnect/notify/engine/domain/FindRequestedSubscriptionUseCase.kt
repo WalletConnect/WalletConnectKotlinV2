@@ -14,7 +14,7 @@ internal class FindRequestedSubscriptionUseCase(
         val subscription = subscriptions.firstOrNull { encodeEd25519DidKey(it.authenticationPublicKey.keyAsBytes) == encodedAuthenticationPublicKey }
             ?: throw Exception("No subscription found for audience $encodedAuthenticationPublicKey")
 
-        val metadata = metadataStorageRepository.getByTopicAndType(subscription.notifyTopic, AppMetaDataType.PEER)
+        val metadata = metadataStorageRepository.getByTopicAndType(subscription.topic, AppMetaDataType.PEER)
         return@supervisorScope subscription.copy(dappMetaData = metadata)
     }
 

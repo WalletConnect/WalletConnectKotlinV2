@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.supervisorScope
 
-internal class OnNotifyUpdateResponseUseCase(
+internal class OnUpdateResponseUseCase(
     private val setActiveSubscriptionsUseCase: SetActiveSubscriptionsUseCase,
     private val findRequestedSubscriptionUseCase: FindRequestedSubscriptionUseCase,
     private val logger: Logger
@@ -33,7 +33,6 @@ internal class OnNotifyUpdateResponseUseCase(
         val resultEvent = try {
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcResult -> {
-
                     val responseAuth = (response.result as ChatNotifyResponseAuthParams.ResponseAuth).responseAuth
                     val responseJwtClaim = extractVerifiedDidJwtClaims<UpdateResponseJwtClaim>(responseAuth).getOrThrow()
                     responseJwtClaim.throwIfBaseIsInvalid()

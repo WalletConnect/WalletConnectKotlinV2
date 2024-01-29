@@ -12,7 +12,6 @@ import com.walletconnect.notify.client.Notify
 import com.walletconnect.notify.client.NotifyClient
 import com.walletconnect.sample.wallet.domain.EthAccountDelegate
 import com.walletconnect.sample.wallet.domain.NotifyDelegate
-import com.walletconnect.sample.wallet.domain.toEthAddress
 import com.walletconnect.sample.wallet.ui.common.ImageUrl
 import com.walletconnect.sample.wallet.ui.common.subscriptions.ActiveSubscriptionsUI
 import com.walletconnect.sample.wallet.ui.common.subscriptions.toUI
@@ -38,6 +37,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import kotlin.time.Duration.Companion.seconds
 import com.walletconnect.android.internal.common.explorer.data.model.ImageUrl as WCImageUrl
 
 class InboxViewModel(application: Application) : AndroidViewModel(application) {
@@ -52,17 +52,14 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
         .filterIsInstance<Notify.Event.SubscriptionsChanged>()
         .debounce(500L)
         .map { event -> event.subscriptions }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, NotifyClient.getActiveSubscriptions().values.toList())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, NotifyClient.getActiveSubscriptions(Notify.Params.GetActiveSubscriptions(EthAccountDelegate.ethAddress)).values.toList())
 
     private var _activeSubscriptions = emptyList<ActiveSubscriptionsUI>()
     private val getActiveSubscriptionTrigger = MutableSharedFlow<Unit>()
 
     private val _activeSubscriptionsFlow: Flow<List<ActiveSubscriptionsUI>> = merge(
-        subscriptionStateChangesEvents
-            .onEach { _activeSubscriptions = it.toUI() },
-
-        getActiveSubscriptionTrigger
-            .onEach { _activeSubscriptions = NotifyClient.getActiveSubscriptions().values.toList().toUI() }
+        subscriptionStateChangesEvents.onEach { _activeSubscriptions = it.toUI() },
+        getActiveSubscriptionTrigger.onEach { _activeSubscriptions = NotifyClient.getActiveSubscriptions(Notify.Params.GetActiveSubscriptions(EthAccountDelegate.ethAddress)).values.toList().toUI() }
     ).map { _activeSubscriptions }
 
     private val _activeSubscriptionsTrigger = MutableSharedFlow<Unit>()
@@ -172,7 +169,9 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch(Dispatchers.IO) {
             _discoverState.update { DiscoverState.Subscribing(explorerApp) }
 
-            Notify.Params.Subscribe(explorerApp.dappUrl.toUri(), with(EthAccountDelegate) { account.toEthAddress() }).let { subscribeParams ->
+            val subscribeParams = Notify.Params.Subscribe(explorerApp.dappUrl.toUri(), EthAccountDelegate.ethAddress, 5.seconds)
+
+            viewModelScope.launch(Dispatchers.IO) {
                 NotifyClient.subscribe(params = subscribeParams).let { result ->
                     when (result) {
                         is Notify.Result.Subscribe.Success -> {
@@ -190,6 +189,7 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+
 
     fun unsubscribeFromDapp(explorerApp: ExplorerApp, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {

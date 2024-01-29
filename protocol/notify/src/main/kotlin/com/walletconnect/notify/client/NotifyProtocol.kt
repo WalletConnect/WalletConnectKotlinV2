@@ -5,7 +5,7 @@ import com.walletconnect.android.internal.common.di.DatabaseConfig
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.notify.common.model.NotifyRecord
+import com.walletconnect.notify.common.model.Notification
 import com.walletconnect.notify.common.model.SubscriptionChanged
 import com.walletconnect.notify.common.model.toClient
 import com.walletconnect.notify.common.model.toCommon
@@ -46,7 +46,7 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
 
         notifyEngine.engineEvent.onEach { event ->
             when (event) {
-                is NotifyRecord -> delegate.onNotifyNotification(Notify.Event.Notification(event.toClient()))
+                is Notification -> delegate.onNotifyNotification(Notify.Event.Notification(event.toClient()))
                 is SubscriptionChanged -> delegate.onSubscriptionsChanged(event.toClient())
                 is SDKError -> delegate.onError(event.toClient())
             }
@@ -58,7 +58,7 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
 
         return runBlocking {
             try {
-                notifyEngine.subscribeToDapp(params.appDomain, params.account).toClient()
+                notifyEngine.subscribeToDapp(params.appDomain, params.account, params.timeout).toClient()
             } catch (e: Exception) {
                 Notify.Result.Subscribe.Error(Notify.Model.Error(e))
             }
@@ -70,7 +70,7 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
 
         return runBlocking {
             try {
-                notifyEngine.update(params.topic, params.scope).toClient()
+                notifyEngine.update(params.topic, params.scope, params.timeout).toClient()
             } catch (e: Exception) {
                 Notify.Result.UpdateSubscription.Error(Notify.Model.Error(e))
             }
@@ -81,27 +81,29 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
         checkEngineInitialization()
 
         return runBlocking {
-            notifyEngine.getNotificationTypes(params.appDomain).mapValues { (_, notificationType) ->
-                notificationType.toClient()
-            }
+            notifyEngine.getNotificationTypes(params.appDomain, params.timeout).mapValues { (_, notificationType) -> notificationType.toClient() }
         }
     }
 
 
-    override fun getActiveSubscriptions(): Map<String, Notify.Model.Subscription> {
+    override fun getActiveSubscriptions(params: Notify.Params.GetActiveSubscriptions): Map<String, Notify.Model.Subscription> {
         checkEngineInitialization()
 
         return runBlocking {
-            notifyEngine.getListOfActiveSubscriptions().mapValues { (_, subscriptionWMetadata) ->
-                subscriptionWMetadata.toClient()
-            }
+            notifyEngine.getActiveSubscriptions(params.account, params.timeout).mapValues { (_, subscriptionWMetadata) -> subscriptionWMetadata.toClient() }
         }
     }
 
-    override fun getNotificationHistory(params: Notify.Params.GetNotificationHistory): Map<Long, Notify.Model.NotificationRecord> {
+    override fun getNotificationHistory(params: Notify.Params.GetNotificationHistory): Notify.Result.GetNotificationHistory {
         checkEngineInitialization()
 
-        return runBlocking { notifyEngine.getListOfNotifications(params.topic).mapValues { (_, notifyRecord) -> notifyRecord.toClient() } }
+        return runBlocking {
+            try {
+                notifyEngine.getNotificationHistory(params.topic, params.limit, params.startingAfter, params.timeout).toClient()
+            } catch (e: Exception) {
+                Notify.Result.GetNotificationHistory.Error(Notify.Model.Error(e))
+            }
+        }
     }
 
     override fun deleteSubscription(params: Notify.Params.DeleteSubscription): Notify.Result.DeleteSubscription {
@@ -109,7 +111,7 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
 
         return runBlocking {
             try {
-                notifyEngine.deleteSubscription(params.topic).toClient()
+                notifyEngine.deleteSubscription(params.topic, params.timeout).toClient()
             } catch (e: Exception) {
                 Notify.Result.DeleteSubscription.Error(Notify.Model.Error(e))
             }

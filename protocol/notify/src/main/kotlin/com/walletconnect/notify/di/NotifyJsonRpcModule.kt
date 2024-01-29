@@ -17,6 +17,7 @@ internal fun notifyJsonRpcModule() = module {
     addSerializerEntry(NotifyRpc.NotifyUpdate::class)
     addSerializerEntry(NotifyRpc.NotifyWatchSubscriptions::class)
     addSerializerEntry(NotifyRpc.NotifySubscriptionsChanged::class)
+    addSerializerEntry(NotifyRpc.NotifyGetNotifications::class)
 
     addDeserializerEntry(JsonRpcMethod.WC_NOTIFY_MESSAGE, NotifyRpc.NotifyMessage::class)
     addDeserializerEntry(JsonRpcMethod.WC_NOTIFY_DELETE, NotifyRpc.NotifyDelete::class)
@@ -24,4 +25,5 @@ internal fun notifyJsonRpcModule() = module {
     addDeserializerEntry(JsonRpcMethod.WC_NOTIFY_UPDATE, NotifyRpc.NotifyUpdate::class)
     addDeserializerEntry(JsonRpcMethod.WC_NOTIFY_WATCH_SUBSCRIPTIONS, NotifyRpc.NotifyWatchSubscriptions::class)
     addDeserializerEntry(JsonRpcMethod.WC_NOTIFY_SUBSCRIPTIONS_CHANGED, NotifyRpc.NotifySubscriptionsChanged::class)
+    addDeserializerEntry(JsonRpcMethod.WC_NOTIFY_GET_NOTIFICATIONS, NotifyRpc.NotifyGetNotifications::class)
 }

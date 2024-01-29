@@ -46,6 +46,7 @@ internal class OnSubscriptionsChangedUseCase(
     suspend operator fun invoke(request: WCRequest, params: CoreNotifyParams.SubscriptionsChangedParams) = supervisorScope {
         try {
             val jwtClaims = extractVerifiedDidJwtClaims<SubscriptionsChangedRequestJwtClaim>(params.subscriptionsChangedAuth).getOrThrow()
+            logger.log("SubscriptionsChangedRequestJwtClaim: ${decodeEd25519DidKey(jwtClaims.audience).keyAsHex} - $jwtClaims")
             val authenticationPublicKey = registeredAccountsRepository.getAccountByIdentityKey(decodeEd25519DidKey(jwtClaims.audience).keyAsHex).notifyServerAuthenticationKey
                 ?: throw IllegalStateException("Cached authentication public key is null")
 

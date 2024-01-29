@@ -2,7 +2,6 @@ package com.walletconnect.notify.client
 
 interface NotifyInterface {
     interface Delegate {
-        //todo: migration guide and remove all deprecations
         fun onNotifyNotification(notifyNotification: Notify.Event.Notification)
 
         fun onError(error: Notify.Model.Error)
@@ -42,13 +41,13 @@ interface NotifyInterface {
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
-    fun getActiveSubscriptions(): Map<String, Notify.Model.Subscription>
+    fun getActiveSubscriptions(params: Notify.Params.GetActiveSubscriptions): Map<String, Notify.Model.Subscription>
 
     /**
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
-    fun getNotificationHistory(params: Notify.Params.GetNotificationHistory): Map<Long, Notify.Model.NotificationRecord>
+    fun getNotificationHistory(params: Notify.Params.GetNotificationHistory): Notify.Result.GetNotificationHistory
 
 
     fun decryptNotification(params: Notify.Params.DecryptNotification, onSuccess: (Notify.Model.Notification.Decrypted) -> Unit, onError: (Notify.Model.Error) -> Unit)

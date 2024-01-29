@@ -9,6 +9,7 @@ import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.params.ChatNotifyResponseAuthParams
 import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
+import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.foundation.util.jwt.decodeDidPkh
@@ -23,16 +24,20 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.supervisorScope
 
-internal class OnNotifySubscribeResponseUseCase(
+internal class OnSubscribeResponseUseCase(
     private val setActiveSubscriptionsUseCase: SetActiveSubscriptionsUseCase,
     private val findRequestedSubscriptionUseCase: FindRequestedSubscriptionUseCase,
     private val subscriptionRepository: SubscriptionRepository,
+    private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val logger: Logger,
 ) {
     private val _events: MutableSharedFlow<Pair<CoreNotifyParams.SubscribeParams, EngineEvent>> = MutableSharedFlow()
     val events: SharedFlow<Pair<CoreNotifyParams.SubscribeParams, EngineEvent>> = _events.asSharedFlow()
 
+
     suspend operator fun invoke(wcResponse: WCResponse, params: CoreNotifyParams.SubscribeParams) = supervisorScope {
+        jsonRpcInteractor.unsubscribe(wcResponse.topic)
+
         val resultEvent = try {
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcResult -> {

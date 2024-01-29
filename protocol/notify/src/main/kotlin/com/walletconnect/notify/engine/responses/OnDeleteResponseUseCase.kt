@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.supervisorScope
 
-internal class OnNotifyDeleteResponseUseCase(
+internal class OnDeleteResponseUseCase(
     private val setActiveSubscriptionsUseCase: SetActiveSubscriptionsUseCase,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val notificationsRepository: NotificationsRepository,

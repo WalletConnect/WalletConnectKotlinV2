@@ -11,15 +11,15 @@ import com.walletconnect.foundation.common.model.Topic
 
 internal sealed class Subscription {
     abstract val account: AccountId
-    abstract val mapOfNotificationScope: Map<String, NotificationScope.Cached>
+    abstract val mapOfScope: Map<String, Scope.Cached>
     abstract val expiry: Expiry
 
     data class Active(
         override val account: AccountId,
-        override val mapOfNotificationScope: Map<String, NotificationScope.Cached>,
+        override val mapOfScope: Map<String, Scope.Cached>,
         override val expiry: Expiry,
         val authenticationPublicKey: PublicKey,
-        val notifyTopic: Topic,
+        val topic: Topic,
         val dappMetaData: AppMetaData? = null,
         val requestedSubscriptionId: Long? = null,
         val relay: RelayProtocolOptions = RelayProtocolOptions(),

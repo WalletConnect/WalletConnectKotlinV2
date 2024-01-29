@@ -7,7 +7,7 @@ import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.notify.common.model.NotificationScope
+import com.walletconnect.notify.common.model.Scope
 import com.walletconnect.notify.common.model.Subscription
 import com.walletconnect.notify.common.storage.data.dao.ActiveSubscriptionsQueries
 import kotlinx.coroutines.Dispatchers
@@ -27,8 +27,8 @@ internal class SubscriptionRepository(private val activeSubscriptionsQueries: Ac
                         expiry.seconds,
                         relay.protocol,
                         relay.data,
-                        mapOfNotificationScope.mapValues { scope -> Triple(scope.value.name, scope.value.description, scope.value.isSelected) },
-                        notifyTopic.value,
+                        mapOfScope.mapValues { scope -> Triple(scope.value.name, scope.value.description, scope.value.isSelected) },
+                        topic.value,
                         requestedSubscriptionId
                     )
                 }
@@ -44,15 +44,11 @@ internal class SubscriptionRepository(private val activeSubscriptionsQueries: Ac
                 expiry.seconds,
                 relay.protocol,
                 relay.data,
-                mapOfNotificationScope.mapValues { scope -> Triple(scope.value.name, scope.value.description, scope.value.isSelected) },
-                notifyTopic.value,
+                mapOfScope.mapValues { scope -> Triple(scope.value.name, scope.value.description, scope.value.isSelected) },
+                topic.value,
                 requestedSubscriptionId
             )
         }
-    }
-
-    suspend fun updateSubscriptionScopeAndJwtByNotifyTopic(notifyTopic: String, updateScope: Map<String, Triple<String, String, Boolean>>, newExpiry: Long) = withContext(Dispatchers.IO) {
-        activeSubscriptionsQueries.updateSubscriptionScopeAndExpiryByNotifyTopic(updateScope, newExpiry, notifyTopic)
     }
 
     suspend fun getActiveSubscriptionByNotifyTopic(notifyTopic: String): Subscription.Active? = withContext(Dispatchers.IO) {
@@ -84,8 +80,8 @@ internal class SubscriptionRepository(private val activeSubscriptionsQueries: Ac
     ): Subscription.Active = Subscription.Active(
         account = AccountId(account),
         authenticationPublicKey = PublicKey(authentication_public_key),
-        mapOfNotificationScope = map_of_scope.map { entry ->
-            entry.key to NotificationScope.Cached(
+        mapOfScope = map_of_scope.map { entry ->
+            entry.key to Scope.Cached(
                 id = entry.key,
                 name = entry.value.first,
                 description = entry.value.second,
@@ -94,7 +90,7 @@ internal class SubscriptionRepository(private val activeSubscriptionsQueries: Ac
         }.toMap(),
         expiry = Expiry(expiry),
         relay = RelayProtocolOptions(relay_protocol, relay_data),
-        notifyTopic = Topic(notify_topic),
+        topic = Topic(notify_topic),
         dappMetaData = null,
         requestedSubscriptionId = requested_subscription_id
     )

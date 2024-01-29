@@ -49,6 +49,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.walletconnect.sample.common.ui.commons.ButtonWithLoader
 import com.walletconnect.sample.common.ui.theme.PreviewTheme
 import com.walletconnect.sample.common.ui.theme.UiModePreview
 import com.walletconnect.sample.common.ui.theme.blue_accent
@@ -76,6 +77,8 @@ fun NotificationsScreenRoute(navController: NavHostController, subscriptionTopic
     }
 
     val state by viewModel.state.collectAsState()
+    val hasMore by viewModel.hasMore.collectAsState()
+    val scrollToTopCounter by viewModel.scrollToTopCounter.collectAsState()
     val currentSubscription by viewModel.currentSubscription.collectAsState()
     val notifications by viewModel.notifications.collectAsState()
     val scope = rememberCoroutineScope()
@@ -83,7 +86,7 @@ fun NotificationsScreenRoute(navController: NavHostController, subscriptionTopic
     NotificationScreen(
         currentSubscription = currentSubscription,
         state = state,
-        notifications = notifications,
+        notifications = notifications.toList(),
         onBackClick = { navController.popBackStack() },
         onNotificationSettings = {
             navController.navigate("${Route.UpdateSubscription.path}/$subscriptionTopic")
@@ -100,13 +103,16 @@ fun NotificationsScreenRoute(navController: NavHostController, subscriptionTopic
                 }
             })
         },
-        onRetry = viewModel::retryFetchingAllNotifications
+        onRetry = viewModel::retryFetchingAllNotifications,
+        onFetchMore = viewModel::fetchMore,
+        hasMore = hasMore,
+        scrollToTopCounter = scrollToTopCounter
     )
 
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-            viewModel.fetchAllNotifications()
+            viewModel.fetchRecentNotifications()
         }
     }
 }
@@ -115,11 +121,14 @@ fun NotificationsScreenRoute(navController: NavHostController, subscriptionTopic
 private fun NotificationScreen(
     currentSubscription: ActiveSubscriptionsUI,
     state: NotificationsState,
+    scrollToTopCounter: Int,
     notifications: List<NotificationUI>,
     onBackClick: () -> Unit,
     onNotificationSettings: () -> Unit,
     onUnsubscribe: () -> Unit,
     onRetry: () -> Unit,
+    onFetchMore: () -> Unit,
+    hasMore: Boolean,
 ) {
     Column(modifier = Modifier.fillMaxHeight()) {
         var isMoreExpanded by remember { mutableStateOf(false) }
@@ -133,7 +142,7 @@ private fun NotificationScreen(
         }
 
         when (state) {
-            is NotificationsState.Success, is NotificationsState.IncomingNotifications -> {
+            is NotificationsState.Success, is NotificationsState.IncomingNotifications, is NotificationsState.FetchingMore -> {
                 AnimatedVisibility(
                     visible = state is NotificationsState.IncomingNotifications,
                 ) {
@@ -156,9 +165,22 @@ private fun NotificationScreen(
                             NotificationItem(notificationUI)
                             if (index != notifications.lastIndex) Divider()
                         }
+                        if (hasMore) {
+                            item {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 20.dp, vertical = 8.dp), horizontalArrangement = Arrangement.Center
+                                ) {
+                                    ButtonWithLoader("Fetch more 📨", onClick = {
+                                        onFetchMore()
+                                    }, isLoading = state is NotificationsState.FetchingMore)
+                                }
+                            }
+                        }
                     }
 
-                    LaunchedEffect(key1 = notifications) {
+                    LaunchedEffect(key1 = scrollToTopCounter) {
                         withContext(Dispatchers.Main) {
                             lazyListState.scrollToItem(0)
                         }
@@ -188,7 +210,7 @@ private fun NotificationScreen(
 
             }
 
-            NotificationsState.Fetching -> {
+            NotificationsState.InitialFetching -> {
                 EmptyOrLoadingOrFailureState(text = "Fetching notifications...") {
                     Spacer(modifier = Modifier.height(20.dp))
                     CircularProgressIndicator(modifier = Modifier.size(80.dp), color = blue_accent)
@@ -348,16 +370,18 @@ private fun NotificationsScreenPreview(
             ),
             state = state,
             notifications = listOf(
-                NotificationUI("1", "topic1", "10-10-2023", "Title 1", "Body 1", null, null, true),
-                NotificationUI("2", "topic2", "03-02-2023", "Title 2", "Body 2", null, null, false),
-                NotificationUI("3", "topic3", "31-01-2023", "Title 3", "Body 3", null, null, true),
-                NotificationUI("4", "topic4", "02-07-2022", "Title 4", "Body 4", null, null, false),
+                NotificationUI("1", "topic1", "10-10-2023", 0L, "Title 1", "Body 1", null, null, true),
+                NotificationUI("2", "topic2", "03-02-2023", 0L, "Title 2", "Body 2", null, null, false),
+                NotificationUI("3", "topic3", "31-01-2023", 0L, "Title 3", "Body 3", null, null, true),
+                NotificationUI("4", "topic4", "02-07-2022", 0L, "Title 4", "Body 4", null, null, false),
             ),
             onBackClick = {},
             onNotificationSettings = {},
             onUnsubscribe = {},
-            onRetry = {}
-
+            onRetry = {},
+            onFetchMore = {},
+            hasMore = true,
+            scrollToTopCounter = 0
         )
     }
 }
@@ -365,7 +389,7 @@ private fun NotificationsScreenPreview(
 private class NotificationsScreenStateProvider : PreviewParameterProvider<NotificationsState> {
     override val values: Sequence<NotificationsState>
         get() = sequenceOf(
-            NotificationsState.Fetching,
+            NotificationsState.InitialFetching,
             NotificationsState.Success,
             NotificationsState.Failure(IllegalStateException("Failed to fetch notifications")),
             NotificationsState.Unsubscribing

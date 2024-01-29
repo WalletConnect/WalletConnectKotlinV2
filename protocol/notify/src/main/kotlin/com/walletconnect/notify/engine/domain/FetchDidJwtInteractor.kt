@@ -10,6 +10,7 @@ import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.notify.data.jwt.delete.EncodeDeleteRequestJwtUseCase
+import com.walletconnect.notify.data.jwt.getNotifications.EncodeGetNotificationsRequestJwtUseCase
 import com.walletconnect.notify.data.jwt.message.EncodeMessageResponseJwtUseCase
 import com.walletconnect.notify.data.jwt.subscription.EncodeSubscriptionRequestJwtUseCase
 import com.walletconnect.notify.data.jwt.subscriptionsChanged.EncodeSubscriptionsChangedResponseJwtUseCase
@@ -36,7 +37,7 @@ internal class FetchDidJwtInteractor(
         return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
             identityPrivateKey,
             EncodeSubscriptionRequestJwtUseCase(app, account, authenticationKey, concatenatedScopes),
-            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = 5, expiryTimeUnit = TimeUnit.MINUTES)
+            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = FIVE_MINUTE_EXPIRY, expiryTimeUnit = FIVE_MINUTE_EXPIRY_TIME_UNIT)
         )
     }
 
@@ -77,20 +78,20 @@ internal class FetchDidJwtInteractor(
         return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
             identityPrivateKey,
             EncodeUpdateRequestJwtUseCase(account, metadataUrl, authenticationKey, concatenatedScopes),
-            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = 5, expiryTimeUnit = TimeUnit.MINUTES)
+            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = FIVE_MINUTE_EXPIRY, expiryTimeUnit = FIVE_MINUTE_EXPIRY_TIME_UNIT)
         )
     }
 
     suspend fun watchSubscriptionsRequest(
         account: AccountId,
         authenticationKey: PublicKey,
-        appDomain: String?
+        appDomain: String?,
     ): Result<DidJwt> = registerIdentityAndReturnIdentityKeyPair(account) { (identityPublicKey, identityPrivateKey) ->
 
         return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
             identityPrivateKey,
             EncodeWatchSubscriptionsRequestJwtUseCase(account, authenticationKey, appDomain),
-            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = 5, expiryTimeUnit = TimeUnit.MINUTES)
+            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = FIVE_MINUTE_EXPIRY, expiryTimeUnit = FIVE_MINUTE_EXPIRY_TIME_UNIT)
         )
     }
 
@@ -102,7 +103,22 @@ internal class FetchDidJwtInteractor(
         return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
             identityPrivateKey,
             EncodeSubscriptionsChangedResponseJwtUseCase(account, authenticationKey),
-            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = 5, expiryTimeUnit = TimeUnit.MINUTES)
+            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = FIVE_MINUTE_EXPIRY, expiryTimeUnit = FIVE_MINUTE_EXPIRY_TIME_UNIT)
+        )
+    }
+
+    suspend fun getNotificationsRequest(
+        account: AccountId,
+        authenticationKey: PublicKey,
+        app: String,
+        limit: Int,
+        after: String?,
+    ): Result<DidJwt> = registerIdentityAndReturnIdentityKeyPair(account) { (identityPublicKey, identityPrivateKey) ->
+
+        return@registerIdentityAndReturnIdentityKeyPair encodeDidJwt(
+            identityPrivateKey,
+            EncodeGetNotificationsRequestJwtUseCase(app, account, authenticationKey, limit, after),
+            EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl, expirySourceDuration = FIVE_MINUTE_EXPIRY, expiryTimeUnit = FIVE_MINUTE_EXPIRY_TIME_UNIT)
         )
     }
 
@@ -117,5 +133,7 @@ internal class FetchDidJwtInteractor(
 
     companion object {
         const val SCOPES_DELIMITER = " "
+        const val FIVE_MINUTE_EXPIRY = 5L
+        val FIVE_MINUTE_EXPIRY_TIME_UNIT = TimeUnit.MINUTES
     }
 }
