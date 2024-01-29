@@ -19,5 +19,6 @@ data class ProjectDTO(
     val imageUrl: ImageUrlDTO?,
     @Json(name = "dapp_url")
     val dappUrl: String?,
+    @Json(name = "order")
+    val order: Long?,
 )
-//todo Add is_verified

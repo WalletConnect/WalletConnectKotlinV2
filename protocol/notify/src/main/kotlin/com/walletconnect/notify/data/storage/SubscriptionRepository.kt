@@ -7,20 +7,15 @@ import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.notify.common.model.NotificationScope
+import com.walletconnect.notify.common.model.Scope
 import com.walletconnect.notify.common.model.Subscription
 import com.walletconnect.notify.common.storage.data.dao.ActiveSubscriptionsQueries
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-internal class SubscriptionRepository(
-    private val activeSubscriptionsQueries: ActiveSubscriptionsQueries,
-) {
+internal class SubscriptionRepository(private val activeSubscriptionsQueries: ActiveSubscriptionsQueries) {
 
-    suspend fun setActiveSubscriptions(
-        account: String,
-        subscriptions: List<Subscription.Active>,
-    ) {
+    suspend fun setActiveSubscriptions(account: String, subscriptions: List<Subscription.Active>) = withContext(Dispatchers.IO) {
         activeSubscriptionsQueries.transaction {
             activeSubscriptionsQueries.deleteByAccount(account)
             subscriptions.forEach { subscription ->
@@ -32,8 +27,8 @@ internal class SubscriptionRepository(
                         expiry.seconds,
                         relay.protocol,
                         relay.data,
-                        mapOfNotificationScope.mapValues { scope -> Triple(scope.value.name, scope.value.description, scope.value.isSelected) },
-                        notifyTopic.value,
+                        mapOfScope.mapValues { scope -> Triple(scope.value.name, scope.value.description, scope.value.isSelected) },
+                        topic.value,
                         requestedSubscriptionId
                     )
                 }
@@ -41,8 +36,27 @@ internal class SubscriptionRepository(
         }
     }
 
-    suspend fun updateSubscriptionScopeAndJwtByNotifyTopic(notifyTopic: String, updateScope: Map<String, Triple<String, String, Boolean>>, newExpiry: Long) = withContext(Dispatchers.IO) {
-        activeSubscriptionsQueries.updateSubscriptionScopeAndExpiryByNotifyTopic(updateScope, newExpiry, notifyTopic)
+    suspend fun insertOrAbortSubscription(account: String, subscription: Subscription.Active) = withContext(Dispatchers.IO) {
+        with(subscription) {
+            activeSubscriptionsQueries.insertOrAbortActiveSubscribtion(
+                account,
+                authenticationPublicKey.keyAsHex,
+                expiry.seconds,
+                relay.protocol,
+                relay.data,
+                mapOfScope.mapValues { scope -> Triple(scope.value.name, scope.value.description, scope.value.isSelected) },
+                topic.value,
+                requestedSubscriptionId
+            )
+        }
+    }
+
+
+    suspend fun updateActiveSubscriptionWithLastNotificationId(lastNotificationId: String?, topic: String) = withContext(Dispatchers.IO) {
+        activeSubscriptionsQueries.transaction {
+            activeSubscriptionsQueries.updateActiveSubscriptionWithLastNotificationId(lastNotificationId, topic)
+            activeSubscriptionsQueries.flagActiveSubscriptionAsReachedTheEndOfHistory(topic)
+        }
     }
 
     suspend fun getActiveSubscriptionByNotifyTopic(notifyTopic: String): Subscription.Active? = withContext(Dispatchers.IO) {
@@ -71,11 +85,13 @@ internal class SubscriptionRepository(
         map_of_scope: Map<String, Triple<String, String, Boolean>>,
         notify_topic: String,
         requested_subscription_id: Long?,
+        last_notification_id: String?,
+        reached_end_of_history: Boolean,
     ): Subscription.Active = Subscription.Active(
         account = AccountId(account),
         authenticationPublicKey = PublicKey(authentication_public_key),
-        mapOfNotificationScope = map_of_scope.map { entry ->
-            entry.key to NotificationScope.Cached(
+        mapOfScope = map_of_scope.map { entry ->
+            entry.key to Scope.Cached(
                 id = entry.key,
                 name = entry.value.first,
                 description = entry.value.second,
@@ -84,8 +100,10 @@ internal class SubscriptionRepository(
         }.toMap(),
         expiry = Expiry(expiry),
         relay = RelayProtocolOptions(relay_protocol, relay_data),
-        notifyTopic = Topic(notify_topic),
+        topic = Topic(notify_topic),
         dappMetaData = null,
-        requestedSubscriptionId = requested_subscription_id
+        requestedSubscriptionId = requested_subscription_id,
+        lastNotificationId = last_notification_id,
+        reachedEndOfHistory = reached_end_of_history
     )
 }

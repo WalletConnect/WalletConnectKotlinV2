@@ -10,4 +10,10 @@ interface ChatNotifyResponseAuthParams {
         @Json(name = "responseAuth")
         val responseAuth: String,
     ) : ClientParams
+
+    @JsonClass(generateAdapter = true)
+    data class Auth(
+        @Json(name = "auth")
+        val auth: String,
+    ) : ClientParams
 }

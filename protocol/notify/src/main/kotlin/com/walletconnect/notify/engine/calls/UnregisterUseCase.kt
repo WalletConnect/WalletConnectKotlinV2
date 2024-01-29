@@ -37,7 +37,7 @@ internal class UnregisterUseCase(
                 }.fold(
                     onFailure = { error -> onFailure(error) },
                     onSuccess = {
-                        subscriptionRepository.getAccountActiveSubscriptions(accountId).map { it.notifyTopic.value }.map { topic ->
+                        subscriptionRepository.getAccountActiveSubscriptions(accountId).map { it.topic.value }.map { topic ->
                             jsonRpcInteractor.unsubscribe(Topic(topic)) { error -> onFailure(error) }
                             subscriptionRepository.deleteSubscriptionByNotifyTopic(topic)
                             notificationsRepository.deleteNotificationsByTopic(topic)

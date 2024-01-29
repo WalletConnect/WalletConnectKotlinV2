@@ -121,7 +121,7 @@ private fun SuccessState(apps: List<ExplorerApp>, onSubscribedClick: (app: Explo
             LazyColumnSurroundedWithFogVertically(indexByWhichShouldDisplayBottomFog = apps.lastIndex - 2) {
                 itemsIndexed(apps) { index, app ->
                     ExplorerAppItem(explorerApp = app, onSubscribedClick, onSubscribeClick, onFailure)
-                    if (index != apps.lastIndex) Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(20.dp))
                 }
             }
         } else {

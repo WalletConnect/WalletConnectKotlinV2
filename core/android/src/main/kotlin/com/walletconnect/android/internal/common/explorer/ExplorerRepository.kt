@@ -52,8 +52,9 @@ class ExplorerRepository(
         page: Int,
         entries: Int,
         isVerified: Boolean,
+        isFeatured: Boolean,
     ): ProjectListing {
-        return with(explorerService.getProjects(projectId.value, entries, page, isVerified)) {
+        return with(explorerService.getProjects(projectId.value, entries, page, isVerified, isFeatured)) {
             if (isSuccessful && body() != null) {
                 body()!!.toProjectListing()
             } else {
@@ -81,14 +82,14 @@ class ExplorerRepository(
                 name = name,
                 description = description,
                 imageUrl = imageUrl?.toImageUrl(),
-                homepage = homepage,
+                homepage = homepage ?: "",
                 dappUrl = dappUrl,
                 isVerified = isVerified,
             )
         }
     }
 
-    private fun NotificationTypeDTO.toNotificationType(): NotificationType = NotificationType(name = name, id = id, description = description)
+    private fun NotificationTypeDTO.toNotificationType(): NotificationType = NotificationType(name = name, id = id, description = description, imageUrl = imageUrl?.toImageUrl())
 
 
     private fun ProjectListingDTO.toProjectListing(): ProjectListing {
@@ -106,6 +107,7 @@ class ExplorerRepository(
         imageId = imageId?.takeIf { it.isNotBlank() } ?: "ImageID not provided",
         imageUrl = imageUrl?.toImageUrl() ?: ImageUrl("", "", ""),
         dappUrl = dappUrl?.takeIf { it.isNotBlank() } ?: "Dapp url not provided",
+        order = order,
     )
 
     private fun DappListingsDTO.toDappListing(): DappListings {

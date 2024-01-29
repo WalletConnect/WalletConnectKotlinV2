@@ -17,4 +17,5 @@ data class NotificationType(
     val name: String,
     val id: String,
     val description: String,
+    val imageUrl: ImageUrl?,
 )

@@ -16,7 +16,6 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.walletconnect.web3.modal.client.Modal
-import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.domain.model.AccountData
 import com.walletconnect.web3.modal.domain.model.Balance
 import com.walletconnect.web3.modal.ui.components.internal.commons.CloseIcon
@@ -48,7 +47,7 @@ internal fun AccountRoute(
     accountViewModel: AccountViewModel
 ) {
     val uriHandler = LocalUriHandler.current
-    val selectedChain by accountViewModel.selectedChain.collectAsState(initial = Web3Modal.getSelectedChainOrFirst())
+    val selectedChain by accountViewModel.selectedChain.collectAsState(initial = accountViewModel.getSelectedChainOrFirst())
     val balance by accountViewModel.balanceState.collectAsState()
 
     Box(modifier = Modifier.fillMaxWidth()) {

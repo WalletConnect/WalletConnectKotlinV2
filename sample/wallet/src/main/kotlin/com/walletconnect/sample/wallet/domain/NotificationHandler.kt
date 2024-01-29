@@ -54,7 +54,7 @@ object NotificationHandler {
         data class Simple(override val messageId: Int, override val channelId: String, override val title: String, override val body: String) : Notification
 
         data class Decrypted(
-            override val messageId: Int, override val channelId: String, override val title: String, override val body: String, val topic: String, val url: String?, val iconUrl: String?
+            override val messageId: Int, override val channelId: String, override val title: String, override val body: String, val topic: String, val url: String?,
         ) : Notification //Notify
 
         data class SessionProposal(
@@ -66,7 +66,7 @@ object NotificationHandler {
             val description: String,
             val url: String,
             val iconUrl: String?,
-            val redirect: String
+            val redirect: String,
         ) : Notification
 
         data class SessionRequest(
@@ -77,7 +77,7 @@ object NotificationHandler {
             val chainId: String?,
             val topic: String,
             val url: String?,
-            val iconUrl: String?
+            val iconUrl: String?,
         ) : Notification
 
         data class AuthRequest(
@@ -87,7 +87,7 @@ object NotificationHandler {
             override val body: String,
             val topic: String,
             val url: String?,
-            val iconUrl: String?
+            val iconUrl: String?,
         ) : Notification
     }
 
@@ -115,16 +115,16 @@ object NotificationHandler {
                 val topic = (notifications.first() as Notification.Decrypted).topic
 
                 // TODO discus with the team how to make it more dev friendly
-                val appMetadata = NotifyClient.getActiveSubscriptions()[topic]?.metadata
+                val appMetadata = NotifyClient.getActiveSubscriptions(Notify.Params.GetActiveSubscriptions(EthAccountDelegate.ethAddress))[topic]?.metadata
                     ?: throw IllegalStateException("No active subscription for topic: $topic")
 
                 val appDomain = URI(appMetadata.url).host
                     ?: throw IllegalStateException("Unable to parse domain from $appMetadata.url")
 
-                val typeName = NotifyClient.getNotificationTypes(Notify.Params.NotificationTypes(appDomain))[channelId]?.name
+                val notificationType = NotifyClient.getNotificationTypes(Notify.Params.GetNotificationTypes(appDomain))[channelId]
                     ?: throw IllegalStateException("No notification type for topic:${topic} and type: $channelId")
 
-                (appMetadata.name + ": " + typeName) to appMetadata.icons.firstOrNull()
+                (appMetadata.name + ": " + notificationType.name) to (notificationType.iconUrl ?: appMetadata.icons.firstOrNull())
             }.getOrElse {
                 Timber.e(it)
                 channelId to null
@@ -142,14 +142,13 @@ object NotificationHandler {
                 val (notifications, channelName, largeIconUrl) = notificationsWithChannelName
 
                 val (messageId, title, body) = if (notifications.size > 1) {
-                    Triple(notifications.hashCode(), "You have ${notifications.size} $channelName notifications!", notifications.reversed().joinToString(separator = "\n") { it.title })
+                    Triple(notifications.hashCode(), " ${notifications.size} $channelName notifications", notifications.reversed().joinToString(separator = "\n") { it.title })
                 } else {
                     val notification = notifications.first()
                     Triple(notification.messageId, notification.title, notification.body)
                 }
 
-                val url = (notifications.first() as? Notification.Decrypted)?.url
-                val pendingIntent = buildPendingIntent(context, url)
+                val pendingIntent = buildPendingIntent(context)
 
                 showNotification(
                     context = context,
@@ -171,13 +170,8 @@ object NotificationHandler {
             }
         }
 
-    private fun buildPendingIntent(context: Context, url: String?): PendingIntent {
-        val parsedUrl = kotlin.runCatching { Uri.parse(url) }.getOrNull()
-        val intent = if (parsedUrl == null) {
-            Intent(context, Web3WalletActivity::class.java).apply { addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) }
-        } else {
-            Intent(Intent.ACTION_VIEW, parsedUrl)
-        }
+    private fun buildPendingIntent(context: Context): PendingIntent {
+        val intent = Intent(context, Web3WalletActivity::class.java).apply { addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) }
         return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
     }
 
@@ -228,7 +222,7 @@ object NotificationHandler {
     suspend fun addNotification(message: Core.Model.Message) {
         val notification = when (message) {
             is Core.Model.Message.Simple -> Notification.Simple(message.hashCode(), W3W_CHANNEL_ID, message.title, message.body)
-            is Core.Model.Message.Notify -> Notification.Decrypted(message.hashCode(), message.type, message.title, message.body, message.topic, message.url, message.url)
+            is Core.Model.Message.Notify -> Notification.Decrypted(message.hashCode(), message.type, message.title, message.body, message.topic, message.url)
             is Core.Model.Message.AuthRequest -> Notification.AuthRequest(
                 message.hashCode(),
                 W3W_CHANNEL_ID,
@@ -268,10 +262,15 @@ object NotificationHandler {
     }
 
 
-    suspend fun addNotification(message: Notify.Model.Notification) {
-        val notification =
-            if (message is Notify.Model.Notification.Decrypted) Notification.Decrypted(message.hashCode(), message.type, message.title, message.body, message.topic, message.url, message.url)
-            else Notification.Simple(message.hashCode(), W3W_CHANNEL_ID, message.title, message.body)
+    suspend fun addNotification(notificationRecord: Notify.Model.NotificationRecord) {
+        val notifyNotification = notificationRecord.notification
+        val id = notificationRecord.id.hashCode()
+
+        val notification = if (notifyNotification is Notify.Model.Notification.Decrypted) {
+            with(notifyNotification) { Notification.Decrypted(id, type, title, body, topic, url) }
+        } else {
+            with(notifyNotification) { Notification.Simple(id, W3W_CHANNEL_ID, title, body) }
+        }
 
         _notificationsFlow.emit(notification)
     }

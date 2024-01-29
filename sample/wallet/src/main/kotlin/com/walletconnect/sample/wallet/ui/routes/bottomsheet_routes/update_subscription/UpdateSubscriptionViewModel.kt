@@ -5,21 +5,23 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.notify.client.Notify
 import com.walletconnect.notify.client.NotifyClient
+import com.walletconnect.sample.wallet.domain.EthAccountDelegate
 import com.walletconnect.sample.wallet.domain.NotifyDelegate
 import com.walletconnect.sample.wallet.ui.common.subscriptions.ActiveSubscriptionsUI
 import com.walletconnect.sample.wallet.ui.common.subscriptions.toUI
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @Suppress("UNCHECKED_CAST")
 class UpdateSubscriptionViewModelFactory(private val topic: String) : ViewModelProvider.Factory {
@@ -28,12 +30,13 @@ class UpdateSubscriptionViewModelFactory(private val topic: String) : ViewModelP
     }
 }
 
+@OptIn(FlowPreview::class)
 class UpdateSubscriptionViewModel(val topic: String) : ViewModel() {
     private val _activeSubscriptions = NotifyDelegate.notifyEvents
         .filterIsInstance<Notify.Event.SubscriptionsChanged>()
         .debounce(500L)
         .map { event -> event.subscriptions }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), NotifyClient.getActiveSubscriptions().values.toList())
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), NotifyClient.getActiveSubscriptions(Notify.Params.GetActiveSubscriptions(EthAccountDelegate.ethAddress)).values.toList())
 
     private val currentSubscription: Notify.Model.Subscription =
         _activeSubscriptions.value.firstOrNull { it.topic == topic } ?: throw IllegalStateException("No subscription found for topic $topic")
@@ -61,26 +64,21 @@ class UpdateSubscriptionViewModel(val topic: String) : ViewModel() {
     }
 
     fun updateSubscription(onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
-        val beforeSubscription = _activeSubscriptions.value
-        _state.value = UpdateSubscriptionState.Updating
-
-        NotifyClient.update(
-            Notify.Params.Update(topic, _notificationTypes.value.filter { (_, value) -> value.third }.map { (name, _) -> name }),
-            onSuccess = {
-                viewModelScope.launch {
-                    _activeSubscriptions.collect { afterSubscription ->
-                        if (beforeSubscription != afterSubscription) {
-                            onSuccess()
-                            _state.value = UpdateSubscriptionState.Displaying
-                            this.cancel()
-                        }
+        viewModelScope.launch(Dispatchers.IO) {
+            _state.value = UpdateSubscriptionState.Updating
+            NotifyClient.updateSubscription(Notify.Params.UpdateSubscription(
+                topic, _notificationTypes.value.filter { (_, value) -> value.third }.map { (name, _) -> name })
+            ).let { result ->
+                when (result) {
+                    is Notify.Result.UpdateSubscription.Success -> onSuccess()
+                    is Notify.Result.UpdateSubscription.Error -> {
+                        Timber.e(result.error.throwable)
+                        onFailure(result.error.throwable)
                     }
                 }
-            },
-            onError = { error ->
-                onFailure(error.throwable)
+                _state.value = UpdateSubscriptionState.Displaying
             }
-        )
+        }
     }
 }
 

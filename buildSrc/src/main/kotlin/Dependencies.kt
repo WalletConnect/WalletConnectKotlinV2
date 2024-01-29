@@ -228,3 +228,7 @@ fun DependencyHandlerScope.beagleOkHttp() {
 fun DependencyHandlerScope.dataStore() {
     "implementation"("androidx.datastore:datastore-preferences:$dataStoreVersion")
 }
+
+fun DependencyHandlerScope.coinbase() {
+    "implementation"("com.coinbase:coinbase-wallet-sdk:$coinbaseVersion")
+}
