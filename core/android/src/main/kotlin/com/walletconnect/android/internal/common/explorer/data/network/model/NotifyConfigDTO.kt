@@ -15,7 +15,7 @@ data class NotifyConfigDTO(
 @JsonClass(generateAdapter = true)
 data class NotifyConfigDataDTO(
     @Json(name = "name") val name: String,
-    @Json(name = "homepage") val homepage: String,
+    @Json(name = "homepage") val homepage: String?,
     @Json(name = "description") val description: String,
     @Json(name = "dapp_url") val dappUrl: String,
     @Json(name = "image_url") val imageUrl: ImageUrlDTO?,
@@ -31,4 +31,8 @@ data class NotificationTypeDTO(
     val id: String,
     @Json(name = "description")
     val description: String,
-)
+    @Json(name = "imageUrls")
+    val imageUrl: ImageUrlDTO?,
+
+
+    )

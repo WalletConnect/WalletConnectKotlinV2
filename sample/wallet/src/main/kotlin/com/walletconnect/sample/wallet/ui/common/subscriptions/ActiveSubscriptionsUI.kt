@@ -1,7 +1,6 @@
 package com.walletconnect.sample.wallet.ui.common.subscriptions
 
 import com.walletconnect.notify.client.Notify
-import com.walletconnect.notify.client.NotifyClient
 import com.walletconnect.sample.wallet.ui.common.ImageUrl
 import com.walletconnect.sample.wallet.ui.common.toImageUrl
 
@@ -17,7 +16,8 @@ data class ActiveSubscriptionsUI(
     val isVerified: Boolean,
 ) {
     fun doesMatchSearchQuery(query: String): Boolean {
-        return name.contains(query)
+        val matchingCombinations = listOf(name, appDomain)
+        return matchingCombinations.any { it.contains(query, ignoreCase = true) }
     }
 }
 
@@ -25,13 +25,13 @@ fun Notify.Model.Subscription.toUI(): ActiveSubscriptionsUI = ActiveSubscription
     topic = topic,
     imageUrl = metadata.icons.toImageUrl(),
     name = metadata.name,
-    messageCount = NotifyClient.getNotificationHistory(params = Notify.Params.NotificationHistory(topic)).size,
     appDomain = metadata.url,
     description = metadata.description,
 
 
     // todo: get actual values
-    hasUnreadMessages = true,
+    messageCount = 0,
+    hasUnreadMessages = false,
     lastReceived = "",
     isVerified = false
 )

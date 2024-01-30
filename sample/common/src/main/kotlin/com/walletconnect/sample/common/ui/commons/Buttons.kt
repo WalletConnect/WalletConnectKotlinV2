@@ -1,6 +1,7 @@
 package com.walletconnect.sample.common.ui.commons
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -14,13 +15,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun BlueButton(
     text: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val contentColor = Color(0xFFE5E7E7)
     Button(
@@ -38,6 +42,7 @@ fun BlueButton(
     }
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun ButtonWithLoader(
     text: String,
@@ -68,7 +73,10 @@ fun ButtonWithLoader(
                     onClick()
                 },
             ) {
-                Text(text = text, color = contentColor)
+                Text(text = text, color = contentColor, style = TextStyle(
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight(400),
+                ),)
             }
         }
     }

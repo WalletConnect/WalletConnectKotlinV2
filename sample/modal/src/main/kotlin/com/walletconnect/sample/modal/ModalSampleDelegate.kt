@@ -18,16 +18,11 @@ object ModalSampleDelegate : Web3Modal.ModalDelegate {
     private val _wcEventModels: MutableSharedFlow<Modal.Model?> = MutableSharedFlow()
     val wcEventModels: SharedFlow<Modal.Model?> =  _wcEventModels.asSharedFlow()
 
-    var selectedSessionTopic: String? = null
-        private set
-
     init {
         Web3Modal.setDelegate(this)
     }
 
     override fun onSessionApproved(approvedSession: Modal.Model.ApprovedSession) {
-        selectedSessionTopic = approvedSession.topic
-
         scope.launch {
             _wcEventModels.emit(approvedSession)
         }
@@ -52,8 +47,6 @@ object ModalSampleDelegate : Web3Modal.ModalDelegate {
     }
 
     override fun onSessionDelete(deletedSession: Modal.Model.DeletedSession) {
-        deselectAccountDetails()
-
         scope.launch {
             _wcEventModels.emit(deletedSession)
         }
@@ -85,10 +78,6 @@ object ModalSampleDelegate : Web3Modal.ModalDelegate {
         scope.launch {
             _wcEventModels.emit(request)
         }
-    }
-
-    fun deselectAccountDetails() {
-        selectedSessionTopic = null
     }
 
     override fun onConnectionStateChange(state: Modal.Model.ConnectionState) {

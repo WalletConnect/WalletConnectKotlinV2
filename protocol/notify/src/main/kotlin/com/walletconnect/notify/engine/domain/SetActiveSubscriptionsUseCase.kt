@@ -13,11 +13,10 @@ import com.walletconnect.android.internal.common.storage.key_chain.KeyStore
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.jwt.decodeEd25519DidKey
-import com.walletconnect.notify.common.model.NotificationScope
+import com.walletconnect.notify.common.model.Scope
 import com.walletconnect.notify.common.model.ServerSubscription
 import com.walletconnect.notify.common.model.Subscription
 import com.walletconnect.notify.data.storage.SubscriptionRepository
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -42,7 +41,7 @@ internal class SetActiveSubscriptionsUseCase(
 
                     val (metadata, scopes) = extractMetadataFromConfigUseCase(dappUri).getOrThrow()
                     val selectedScopes = scopes.associate { remote ->
-                        remote.id to NotificationScope.Cached(
+                        remote.id to Scope.Cached(
                             name = remote.name, description = remote.description, id = remote.id,
                             isSelected = subscription.scope.firstOrNull { serverScope -> serverScope == remote.id } != null
                         )
@@ -53,13 +52,15 @@ internal class SetActiveSubscriptionsUseCase(
 
                     metadataRepository.upsertPeerMetadata(topic, metadata, AppMetaDataType.PEER)
                     keyStore.setKey(topic.value, symmetricKey)
-                    jsonRpcInteractor.subscribe(topic) { error -> launch { _events.emit(SDKError(error)); cancel() } }
 
                     Subscription.Active(AccountId(account), selectedScopes, Expiry(expiry), decodeEd25519DidKey(appAuthenticationKey), topic, metadata, null)
                 }
             }
 
             subscriptionRepository.setActiveSubscriptions(account, activeSubscriptions)
+
+            val subscriptionTopic = activeSubscriptions.map { it.topic.value }
+            jsonRpcInteractor.batchSubscribe(subscriptionTopic, onFailure = { error -> launch { _events.emit(SDKError(error)) } })
 
             return@supervisorScope Result.success(activeSubscriptions)
         }

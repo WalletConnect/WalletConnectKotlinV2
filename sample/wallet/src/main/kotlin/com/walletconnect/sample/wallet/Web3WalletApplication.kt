@@ -32,7 +32,6 @@ import com.walletconnect.sample.wallet.domain.EthAccountDelegate
 import com.walletconnect.sample.wallet.domain.NotificationHandler
 import com.walletconnect.sample.wallet.domain.NotifyDelegate
 import com.walletconnect.sample.wallet.domain.mixPanel
-import com.walletconnect.sample.wallet.domain.toEthAddress
 import com.walletconnect.sample.wallet.ui.state.ConnectionState
 import com.walletconnect.sample.wallet.ui.state.connectionStateFlow
 import com.walletconnect.util.hexToBytes
@@ -84,7 +83,7 @@ class Web3WalletApplication : Application() {
 
         mixPanel = MixpanelAPI.getInstance(this, CommonBuildConfig.MIX_PANEL, true).apply {
             identify(CoreClient.Push.clientId)
-            people.set("\$name", with(EthAccountDelegate) { account.toEthAddress() })
+            people.set("\$name", EthAccountDelegate.ethAddress)
         }
 
         logger = wcKoinApp.koin.get(named(AndroidCommonDITags.LOGGER))
@@ -160,12 +159,12 @@ class Web3WalletApplication : Application() {
                 text = "${BuildConfig.BUILD_TYPE} v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})"
             ),
             DividerModule(),
-            TextModule(text = with(EthAccountDelegate) { account.toEthAddress() }) {
-                (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("Account", with(EthAccountDelegate) { account.toEthAddress() }))
+            TextModule(text = EthAccountDelegate.ethAddress) {
+                (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("Account", EthAccountDelegate.ethAddress))
             },
             PaddingModule(size = PaddingModule.Size.LARGE),
-            TextModule(text = with(EthAccountDelegate) { privateKey }) {
-                (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("Private Key", with(EthAccountDelegate) { privateKey }))
+            TextModule(text = EthAccountDelegate.privateKey) {
+                (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("Private Key", EthAccountDelegate.privateKey))
             },
             PaddingModule(size = PaddingModule.Size.LARGE),
             TextModule(text = CoreClient.Push.clientId, id = CoreClient.Push.clientId) {
@@ -180,8 +179,8 @@ class Web3WalletApplication : Application() {
                 },
                 onValueChanged = { text ->
                     NotifyClient.unregister(
-                        params = Notify.Params.Unregistration(
-                            with(EthAccountDelegate) { account.toEthAddress() },
+                        params = Notify.Params.Unregister(
+                            EthAccountDelegate.ethAddress,
                         ),
                         onSuccess = {
                             logger.log("Unregister Success")
@@ -202,7 +201,7 @@ class Web3WalletApplication : Application() {
 
         val notifyEventsJob = NotifyDelegate.notifyEvents
             .filterIsInstance<Notify.Event.Notification>()
-            .onEach { notification -> NotificationHandler.addNotification(notification.notification.message) }
+            .onEach { notification -> NotificationHandler.addNotification(notification.notification) }
             .launchIn(scope)
 
 
@@ -223,7 +222,7 @@ class Web3WalletApplication : Application() {
     }
 
     private fun registerAccount() {
-        val account = with(EthAccountDelegate) { account.toEthAddress() }
+        val account = EthAccountDelegate.ethAddress
         val domain = BuildConfig.APPLICATION_ID
         val allApps = true
 
@@ -233,7 +232,7 @@ class Web3WalletApplication : Application() {
             NotifyClient.prepareRegistration(
                 params = Notify.Params.PrepareRegistration(account = account, domain = domain, allApps = allApps),
                 onSuccess = { cacaoPayloadWithIdentityPrivateKey, message ->
-                    logger.log("PrepareRegistration Success")
+                    logger.log("PrepareRegistration Success: $cacaoPayloadWithIdentityPrivateKey")
 
                     val signature = CacaoSigner.sign(message, EthAccountDelegate.privateKey.hexToBytes(), SignatureType.EIP191)
 

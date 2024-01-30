@@ -20,7 +20,8 @@ interface ExplorerService {
         @Query("projectId") projectId: String,
         @Query("entries") entries: Int,
         @Query("page") page: Int,
-        @Query("is_verified") isVerified: Boolean,
+        @Query("isVerified") isVerified: Boolean,
+        @Query("isFeatured") isFeatured: Boolean,
     ): Response<ProjectListingDTO>
 
     @GET("w3i/v1/notify-config")

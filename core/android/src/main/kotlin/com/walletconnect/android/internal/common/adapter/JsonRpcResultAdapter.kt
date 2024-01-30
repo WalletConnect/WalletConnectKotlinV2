@@ -32,6 +32,8 @@ internal class JsonRpcResultAdapter(val moshi: Moshi) : JsonAdapter<JsonRpcRespo
         moshi.adapter(CoreNotifyParams.UpdateParams::class.java, emptySet(), "result")
     private val chatNotifyResponseAuthParamsAdapter: JsonAdapter<ChatNotifyResponseAuthParams.ResponseAuth> =
         moshi.adapter(ChatNotifyResponseAuthParams.ResponseAuth::class.java, emptySet(), "result")
+    private val chatNotifyAuthParamsAdapter: JsonAdapter<ChatNotifyResponseAuthParams.Auth> =
+        moshi.adapter(ChatNotifyResponseAuthParams.Auth::class.java, emptySet(), "result")
 
     @Volatile
     private var constructorRef: Constructor<JsonRpcResponse.JsonRpcResult>? = null
@@ -77,6 +79,10 @@ internal class JsonRpcResultAdapter(val moshi: Moshi) : JsonAdapter<JsonRpcRespo
 
                         runCatching { chatNotifyResponseAuthParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> {
                             chatNotifyResponseAuthParamsAdapter.fromJson(reader)
+                        }
+
+                        runCatching { chatNotifyAuthParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> {
+                            chatNotifyAuthParamsAdapter.fromJson(reader)
                         }
 
                         else -> anyAdapter.fromJson(reader)
@@ -160,6 +166,13 @@ internal class JsonRpcResultAdapter(val moshi: Moshi) : JsonAdapter<JsonRpcRespo
                 val notifySubscribeResponseParamsString = chatNotifyResponseAuthParamsAdapter.toJson(value_.result)
                 writer.valueSink().use {
                     it.writeUtf8(notifySubscribeResponseParamsString)
+                }
+            }
+
+            (value_.result as? ChatNotifyResponseAuthParams.Auth) != null -> {
+                val notifyResponseParamsString = chatNotifyAuthParamsAdapter.toJson(value_.result)
+                writer.valueSink().use {
+                    it.writeUtf8(notifyResponseParamsString)
                 }
             }
 

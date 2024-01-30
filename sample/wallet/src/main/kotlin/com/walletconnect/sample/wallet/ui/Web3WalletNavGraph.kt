@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDeepLink
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -33,9 +34,9 @@ import com.walletconnect.sample.wallet.ui.routes.bottomsheet_routes.update_subsc
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connection_details.ConnectionDetailsRoute
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsRoute
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
-import com.walletconnect.sample.wallet.ui.routes.composable_routes.explorer_dapps.ExploreDappsScreenRoute
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.get_started.GetStartedRoute
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.InboxRoute
+import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.InboxViewModel
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.notifications.NotificationsScreenRoute
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.settings.SettingsRoute
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.auth_request.AuthRequestRoute
@@ -56,6 +57,7 @@ fun Web3WalletNavGraph(
     startDestination: String = if (getStartedVisited) Route.Connections.path else Route.GetStarted.path,
 ) {
     var scrimColor by remember { mutableStateOf(Color.Unspecified) }
+    val inboxViewModel: InboxViewModel = viewModel()
 
     ModalBottomSheetLayout(
         modifier = modifier,
@@ -116,13 +118,10 @@ fun Web3WalletNavGraph(
                     },
                 )
             ) {
-                NotificationsScreenRoute(navController, it.arguments?.getString("topic")!!)
-            }
-            composable(Route.ExploreDapps.path) {
-                ExploreDappsScreenRoute(navController)
+                NotificationsScreenRoute(navController, it.arguments?.getString("topic")!!, inboxViewModel)
             }
             composable(Route.Inbox.path) {
-                InboxRoute(navController)
+                InboxRoute(navController, inboxViewModel)
             }
             composable(Route.Settings.path) {
                 SettingsRoute(navController)

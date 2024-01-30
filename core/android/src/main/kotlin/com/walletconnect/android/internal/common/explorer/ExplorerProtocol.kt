@@ -16,7 +16,7 @@ class ExplorerProtocol(
     private val getProjectsWithPaginationUseCase: GetProjectsWithPaginationUseCase by lazy { koinApp.koin.get() }
     private val logger: Logger by lazy { koinApp.koin.get(named(AndroidCommonDITags.LOGGER)) }
 
-    override suspend fun getProjects(page: Int, entries: Int, isVerified: Boolean): Result<List<Project>> = getProjectsWithPaginationUseCase(page, entries, isVerified)
+    override suspend fun getProjects(page: Int, entries: Int, isVerified: Boolean, isFeatured: Boolean): Result<List<Project>> = getProjectsWithPaginationUseCase(page, entries, isVerified, isFeatured)
 }
 
 

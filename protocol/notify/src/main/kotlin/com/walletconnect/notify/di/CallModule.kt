@@ -6,20 +6,16 @@ import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.notify.engine.calls.DecryptNotifyMessageUseCase
-import com.walletconnect.notify.engine.calls.DeleteNotificationUseCase
-import com.walletconnect.notify.engine.calls.DeleteNotificationUseCaseInterface
 import com.walletconnect.notify.engine.calls.DeleteSubscriptionUseCase
 import com.walletconnect.notify.engine.calls.DeleteSubscriptionUseCaseInterface
-import com.walletconnect.notify.engine.calls.GetListOfActiveSubscriptionsUseCase
-import com.walletconnect.notify.engine.calls.GetListOfActiveSubscriptionsUseCaseInterface
-import com.walletconnect.notify.engine.calls.GetListOfNotificationsUseCase
-import com.walletconnect.notify.engine.calls.GetListOfNotificationsUseCaseInterface
+import com.walletconnect.notify.engine.calls.GetActiveSubscriptionsUseCase
+import com.walletconnect.notify.engine.calls.GetActiveSubscriptionsUseCaseInterface
+import com.walletconnect.notify.engine.calls.GetNotificationHistoryUseCase
+import com.walletconnect.notify.engine.calls.GetNotificationHistoryUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetNotificationTypesUseCase
 import com.walletconnect.notify.engine.calls.GetNotificationTypesUseCaseInterface
 import com.walletconnect.notify.engine.calls.IsRegisteredUseCase
 import com.walletconnect.notify.engine.calls.IsRegisteredUseCaseInterface
-import com.walletconnect.notify.engine.calls.LegacyRegisterUseCase
-import com.walletconnect.notify.engine.calls.LegacyRegisterUseCaseInterface
 import com.walletconnect.notify.engine.calls.PrepareRegistrationUseCase
 import com.walletconnect.notify.engine.calls.PrepareRegistrationUseCaseInterface
 import com.walletconnect.notify.engine.calls.RegisterUseCase
@@ -28,8 +24,8 @@ import com.walletconnect.notify.engine.calls.SubscribeToDappUseCase
 import com.walletconnect.notify.engine.calls.SubscribeToDappUseCaseInterface
 import com.walletconnect.notify.engine.calls.UnregisterUseCase
 import com.walletconnect.notify.engine.calls.UnregisterUseCaseInterface
-import com.walletconnect.notify.engine.calls.UpdateSubscriptionRequestUseCase
-import com.walletconnect.notify.engine.calls.UpdateSubscriptionRequestUseCaseInterface
+import com.walletconnect.notify.engine.calls.UpdateSubscriptionUseCase
+import com.walletconnect.notify.engine.calls.UpdateSubscriptionUseCaseInterface
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
@@ -44,16 +40,19 @@ internal fun callModule() = module {
             metadataStorageRepository = get(),
             fetchDidJwtInteractor = get(),
             extractPublicKeysFromDidJson = get(),
-            logger = get()
+            onSubscribeResponseUseCase = get(),
+            subscriptionRepository = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }
 
-    single<UpdateSubscriptionRequestUseCaseInterface> {
-        UpdateSubscriptionRequestUseCase(
+    single<UpdateSubscriptionUseCaseInterface> {
+        UpdateSubscriptionUseCase(
             jsonRpcInteractor = get(),
             subscriptionRepository = get(),
             metadataStorageRepository = get(),
-            fetchDidJwtInteractor = get()
+            fetchDidJwtInteractor = get(),
+            onUpdateResponseUseCase = get()
         )
     }
 
@@ -62,14 +61,8 @@ internal fun callModule() = module {
             jsonRpcInteractor = get(),
             metadataStorageRepository = get(),
             subscriptionRepository = get(),
-            notificationsRepository = get(),
-            fetchDidJwtInteractor = get()
-        )
-    }
-
-    single<DeleteNotificationUseCaseInterface> {
-        DeleteNotificationUseCase(
-            notificationsRepository = get()
+            fetchDidJwtInteractor = get(),
+            onDeleteResponseUseCase = get()
         )
     }
 
@@ -78,19 +71,13 @@ internal fun callModule() = module {
             codec = get(),
             serializer = get(),
             jsonRpcHistory = get(),
-            notificationsRepository = get()
+            notificationsRepository = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER)),
+            metadataStorageRepository = get()
         )
 
         get<MutableMap<String, DecryptMessageUseCaseInterface>>(named(AndroidCommonDITags.DECRYPT_USE_CASES))[Tags.NOTIFY_MESSAGE.id.toString()] = useCase
         useCase
-    }
-
-    single<LegacyRegisterUseCaseInterface> {
-        LegacyRegisterUseCase(
-            registerIdentityUseCase = get(),
-            registeredAccountsRepository = get(),
-            watchSubscriptionsUseCase = get()
-        )
     }
 
     single<RegisterUseCaseInterface> {
@@ -137,17 +124,22 @@ internal fun callModule() = module {
         )
     }
 
-    single<GetListOfActiveSubscriptionsUseCaseInterface> {
-        GetListOfActiveSubscriptionsUseCase(
+    single<GetActiveSubscriptionsUseCaseInterface> {
+        GetActiveSubscriptionsUseCase(
             subscriptionRepository = get(),
             metadataStorageRepository = get()
         )
     }
 
-    single<GetListOfNotificationsUseCaseInterface> {
-        GetListOfNotificationsUseCase(
+    single<GetNotificationHistoryUseCaseInterface> {
+        GetNotificationHistoryUseCase(
+            jsonRpcInteractor = get(),
+            subscriptionRepository = get(),
+            metadataStorageRepository = get(),
             notificationsRepository = get(),
-            metadataStorageRepository = get()
+            fetchDidJwtInteractor = get(),
+            onGetNotificationsResponseUseCase = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }
 }

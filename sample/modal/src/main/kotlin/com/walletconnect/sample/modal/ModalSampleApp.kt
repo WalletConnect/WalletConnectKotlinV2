@@ -22,7 +22,7 @@ class ModalSampleApp : Application() {
         val appMetaData = Core.Model.AppMetaData(
             name = "Kotlin Modals",
             description = "Kotlin Modals Lab Sample",
-            url = "kotlin.modals.walletconnect.com",
+            url = "https://web3modal.com/",
             icons = listOf("https://gblobscdn.gitbook.com/spaces%2F-LJJeCjcLrr53DcT1Ml7%2Favatar.png?alt=media"),
             redirect = "kotlin-modal-wc://request"
         )
