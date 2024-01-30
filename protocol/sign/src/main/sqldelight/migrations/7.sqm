@@ -5,4 +5,4 @@
 -- ALTER TABLES
 ALTER TABLE ProposalDao ADD COLUMN redirect TEXT NOT NULL DEFAULT "";
 
-ALTER TABLE SessionDao ADD COLUMN is_authenticated INTEGER AS Boolean NOT NULL;
+-- ALTER TABLE SessionDao ADD COLUMN is_authenticated INTEGER AS Boolean NOT NULL;
