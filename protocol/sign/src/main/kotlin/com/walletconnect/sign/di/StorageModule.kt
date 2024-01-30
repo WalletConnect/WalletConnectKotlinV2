@@ -14,6 +14,7 @@ import com.walletconnect.sign.storage.data.dao.session.SessionDao
 import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceDao
 import com.walletconnect.sign.storage.proposal.ProposalStorageRepository
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
+import kotlinx.coroutines.launch
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
@@ -58,7 +59,11 @@ internal fun storageModule(dbName: String): Module = module {
 
     single {
         try {
-            createSignDB().also { signDatabase -> signDatabase.sessionDaoQueries.lastInsertedRow().executeAsOneOrNull() }
+            createSignDB().also { signDatabase ->
+                com.walletconnect.android.internal.common.scope.launch {
+                    signDatabase.sessionDaoQueries.lastInsertedRow().executeAsOneOrNull()
+                }
+            }
         } catch (e: Exception) {
             deleteDatabase(dbName)
             createSignDB()
