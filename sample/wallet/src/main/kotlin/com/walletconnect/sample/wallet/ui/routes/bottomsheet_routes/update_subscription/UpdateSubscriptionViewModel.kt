@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import kotlin.time.Duration.Companion.seconds
 
 @Suppress("UNCHECKED_CAST")
 class UpdateSubscriptionViewModelFactory(private val topic: String) : ViewModelProvider.Factory {
@@ -67,7 +68,8 @@ class UpdateSubscriptionViewModel(val topic: String) : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             _state.value = UpdateSubscriptionState.Updating
             NotifyClient.updateSubscription(Notify.Params.UpdateSubscription(
-                topic, _notificationTypes.value.filter { (_, value) -> value.third }.map { (name, _) -> name })
+                topic, _notificationTypes.value.filter { (_, value) -> value.third }.map { (name, _) -> name }, 15.seconds
+            )
             ).let { result ->
                 when (result) {
                     is Notify.Result.UpdateSubscription.Success -> onSuccess()

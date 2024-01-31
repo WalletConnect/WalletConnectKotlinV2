@@ -143,7 +143,7 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
                     _discoverState.update { DiscoverState.Failure(error) }
                     emptyList()
                 },
-                onSuccess = { it.onEach { Timber.d(it.toString()) }. toUI() }
+                onSuccess = { it.onEach { Timber.d(it.toString()) }.toUI() }
             )
     }
 
@@ -169,7 +169,7 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch(Dispatchers.IO) {
             _discoverState.update { DiscoverState.Subscribing(explorerApp) }
 
-            val subscribeParams = Notify.Params.Subscribe(explorerApp.dappUrl.toUri(), EthAccountDelegate.ethAddress, 5.seconds)
+            val subscribeParams = Notify.Params.Subscribe(explorerApp.dappUrl.toUri(), EthAccountDelegate.ethAddress, 15.seconds)
 
             viewModelScope.launch(Dispatchers.IO) {
                 NotifyClient.subscribe(params = subscribeParams).let { result ->
@@ -201,7 +201,7 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
 
             _discoverState.update { DiscoverState.Unsubscribing(explorerApp) }
 
-            Notify.Params.DeleteSubscription(explorerApp.topic).let { params ->
+            Notify.Params.DeleteSubscription(explorerApp.topic, 15.seconds).let { params ->
                 NotifyClient.deleteSubscription(params = params).let { result ->
                     when (result) {
                         is Notify.Result.DeleteSubscription.Success -> {

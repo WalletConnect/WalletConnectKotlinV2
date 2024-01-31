@@ -1,11 +1,8 @@
 package com.walletconnect.sample.wallet.ui.common.subscriptions
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.ButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,8 +28,7 @@ fun NotificationIcon(size: Dp, url: String?) {
             .background(
                 if (hasIcon.value) Color.Transparent
                 else Color(0xFFE2FDFF)
-            )
-            .border(1.dp, ButtonDefaults.outlinedBorder.brush, CircleShape),
+            ),
         model = ImageRequest.Builder(LocalContext.current)
             .data(url.takeIf { hasIcon.value })
             .fallback(R.drawable.ic_globe)
