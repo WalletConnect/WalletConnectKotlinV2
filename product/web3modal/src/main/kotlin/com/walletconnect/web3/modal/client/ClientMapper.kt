@@ -44,6 +44,7 @@ internal fun Sign.Model.ExpiredProposal.toModal(): Modal.Model.ExpiredProposal =
 @JvmSynthetic
 internal fun Sign.Model.ExpiredRequest.toModal(): Modal.Model.ExpiredRequest = Modal.Model.ExpiredRequest(topic, id)
 
+
 @JvmSynthetic
 internal fun List<Sign.Model.Cacao>.toClient(): List<Modal.Model.Cacao> = this.map {
     with(it) {

@@ -230,7 +230,7 @@ internal class Web3ModalEngine(
             }
 
             override fun onSessionAuthenticateResponse(sessionAuthenticateResponse: Sign.Model.SessionAuthenticateResponse) {
-                //TODO: implement me
+                delegate.onSessionAuthenticateResponse(sessionAuthenticateResponse.toModal())
             }
 
             override fun onProposalExpired(proposal: Sign.Model.ExpiredProposal) {

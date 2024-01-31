@@ -18,11 +18,6 @@ internal fun Sign.Model.SessionEvent.toModal() = Modal.Model.SessionEvent(name, 
 
 internal fun Sign.Model.Session.toModal() = Modal.Model.Session(pairingTopic, topic, expiry, namespaces.toModal(), metaData)
 
-internal fun Sign.Model.DeletedSession.toModal() = when (this) {
-    is Sign.Model.DeletedSession.Error -> Modal.Model.DeletedSession.Error(error)
-    is Sign.Model.DeletedSession.Success -> Modal.Model.DeletedSession.Success(topic, reason)
-}
-
 internal fun Sign.Model.SessionProposal.toModal() = Modal.Model.SessionProposal(
     pairingTopic,
     name,
@@ -43,6 +38,11 @@ internal fun Map<String, Sign.Model.Namespace.Proposal>.toMapOfClientNamespacesP
     mapValues { (_, namespace) ->
         Modal.Model.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
     }
+
+internal fun Sign.Model.DeletedSession.toModal() = when (this) {
+    is Sign.Model.DeletedSession.Error -> Modal.Model.DeletedSession.Error(error)
+    is Sign.Model.DeletedSession.Success -> Modal.Model.DeletedSession.Success(topic, reason)
+}
 
 internal fun Sign.Model.SessionRequestResponse.toModal() = Modal.Model.SessionRequestResponse(topic, chainId, method, result.toModal())
 
