@@ -161,11 +161,11 @@ internal fun Sign.Model.SessionProposal.toWallet(): Wallet.Model.SessionProposal
     )
 
 @JvmSynthetic
-internal fun Sign.Model.SessionAuthenticate.toWallet(): Wallet.Model.SessionAuthenticated =
-    Wallet.Model.SessionAuthenticated(id, topic, participant.toWallet(), payloadParams.toWallet())
+internal fun Sign.Model.SessionAuthenticate.toWallet(): Wallet.Model.SessionAuthenticate =
+    Wallet.Model.SessionAuthenticate(id, topic, participant.toWallet(), payloadParams.toWallet())
 
 @JvmSynthetic
-internal fun Sign.Model.Participant.toWallet(): Wallet.Model.Participant = Wallet.Model.Participant(publicKey, metadata)
+internal fun Sign.Model.SessionAuthenticate.Participant.toWallet(): Wallet.Model.SessionAuthenticate.Participant = Wallet.Model.SessionAuthenticate.Participant(publicKey, metadata)
 
 @JvmSynthetic
 internal fun Sign.Model.PayloadParams.toWallet(): Wallet.Model.PayloadAuthRequestParams =

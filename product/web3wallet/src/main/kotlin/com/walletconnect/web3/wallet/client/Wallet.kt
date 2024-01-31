@@ -72,17 +72,17 @@ object Wallet {
             val relayData: String?,
         ) : Model()
 
-        data class SessionAuthenticated(
+        data class SessionAuthenticate(
             val id: Long,
             val pairingTopic: String,
             val participant: Participant,
             val payloadParams: PayloadAuthRequestParams,
-        ) : Model()
-
-        data class Participant(
-            val publicKey: String,
-            val metadata: Core.Model.AppMetaData?,
-        ) : Model()
+        ) : Model() {
+            data class Participant(
+                val publicKey: String,
+                val metadata: Core.Model.AppMetaData?,
+            ) : Model()
+        }
 
         data class VerifyContext(
             val id: Long,
@@ -91,7 +91,7 @@ object Wallet {
             val verifyUrl: String,
             val isScam: Boolean?
         ) : Model()
-        {}
+
         enum class Validation {
             VALID, INVALID, UNKNOWN
         }

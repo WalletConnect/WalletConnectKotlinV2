@@ -238,12 +238,12 @@ object Sign {
             val topic: String,
             val participant: Participant,
             val payloadParams: PayloadParams
-        )
-
-        data class Participant(
-            val publicKey: String,
-            val metadata: Core.Model.AppMetaData?,
-        ) : Model()
+        ) {
+            data class Participant(
+                val publicKey: String,
+                val metadata: Core.Model.AppMetaData?,
+            ) : Model()
+        }
 
         data class PayloadParams(
             val chains: List<String>,

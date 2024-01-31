@@ -71,7 +71,7 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
         }
     }
 
-    override fun onSessionAuthenticated(sessionAuthenticated: Wallet.Model.SessionAuthenticated, verifyContext: Wallet.Model.VerifyContext) {
+    override fun onSessionAuthenticated(sessionAuthenticate: Wallet.Model.SessionAuthenticate, verifyContext: Wallet.Model.VerifyContext) {
         TODO("Not yet implemented")
     }
 

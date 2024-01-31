@@ -18,7 +18,7 @@ object Web3Wallet {
 
     interface WalletDelegate {
         fun onSessionProposal(sessionProposal: Wallet.Model.SessionProposal, verifyContext: Wallet.Model.VerifyContext)
-        fun onSessionAuthenticated(sessionAuthenticated: Wallet.Model.SessionAuthenticated, verifyContext: Wallet.Model.VerifyContext)
+        fun onSessionAuthenticated(sessionAuthenticate: Wallet.Model.SessionAuthenticate, verifyContext: Wallet.Model.VerifyContext)
         fun onSessionRequest(sessionRequest: Wallet.Model.SessionRequest, verifyContext: Wallet.Model.VerifyContext)
         fun onSessionDelete(sessionDelete: Wallet.Model.SessionDelete)
         fun onSessionExtend(session: Wallet.Model.Session)

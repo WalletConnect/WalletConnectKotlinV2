@@ -115,7 +115,7 @@ private fun Cacao.Payload.decodeReCaps(issuer: Issuer): MutableMap<String, Mutab
     val actions: MutableMap<String, MutableList<String>> = mutableMapOf()
 
     for (i in 0 until requests.length()) {
-        val actionString = requests.getJSONObject(i).keys().next() as String
+        val actionString = requests.getJSONObject(i).keys().next().toString()
         val actionType = actionString.split(ACTION_DELIMITER)[ACTION_TYPE_POSITION]
         val action = actionString.split(ACTION_DELIMITER)[ACTION_POSITION]
         actions[actionType]?.add(action) ?: actions.put(actionType, mutableListOf(action))

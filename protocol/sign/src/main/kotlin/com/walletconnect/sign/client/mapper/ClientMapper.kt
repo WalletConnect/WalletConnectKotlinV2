@@ -197,7 +197,7 @@ internal fun EngineDO.SessionAuthenticateEvent.toClientSessionAuthenticate(): Si
 }
 
 @JvmSynthetic
-internal fun EngineDO.Participant.toClient(): Sign.Model.Participant = Sign.Model.Participant(publicKey, metadata.toClient())
+internal fun EngineDO.Participant.toClient(): Sign.Model.SessionAuthenticate.Participant = Sign.Model.SessionAuthenticate.Participant(publicKey, metadata.toClient())
 
 @JvmSynthetic
 internal fun EngineDO.PayloadParams.toClient(): Sign.Model.PayloadParams = Sign.Model.PayloadParams(

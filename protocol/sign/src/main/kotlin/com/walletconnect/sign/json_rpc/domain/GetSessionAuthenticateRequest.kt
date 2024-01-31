@@ -8,7 +8,7 @@ import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpc
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.json_rpc.model.toRequest
 
-class GetSessionAuthenticateRequest(
+internal class GetSessionAuthenticateRequest(
     private val jsonRpcHistory: JsonRpcHistory,
     private val serializer: JsonRpcSerializer
 ) {
