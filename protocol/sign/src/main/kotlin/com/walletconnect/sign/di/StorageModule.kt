@@ -19,6 +19,7 @@ import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
+import com.walletconnect.android.internal.common.scope as wcScope
 
 @JvmSynthetic
 internal fun storageModule(dbName: String): Module = module {
@@ -60,8 +61,13 @@ internal fun storageModule(dbName: String): Module = module {
     single {
         try {
             createSignDB().also { signDatabase ->
-                com.walletconnect.android.internal.common.scope.launch {
-                    signDatabase.sessionDaoQueries.lastInsertedRow().executeAsOneOrNull()
+                wcScope.launch {
+                    try {
+                        signDatabase.sessionDaoQueries.lastInsertedRow().executeAsOneOrNull()
+                    } catch (e: Exception) {
+                        deleteDatabase(dbName)
+                        createSignDB()
+                    }
                 }
             }
         } catch (e: Exception) {

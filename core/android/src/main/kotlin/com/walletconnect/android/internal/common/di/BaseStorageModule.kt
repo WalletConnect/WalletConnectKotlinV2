@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
+import com.walletconnect.android.internal.common.scope as wcScope
 
 fun baseStorageModule(storagePrefix: String = String.Empty) = module {
 
@@ -72,9 +73,15 @@ fun baseStorageModule(storagePrefix: String = String.Empty) = module {
     single<AndroidCoreDatabase>(named(AndroidBuildVariantDITags.ANDROID_CORE_DATABASE)) {
         try {
             createCoreDB().also { database ->
-                com.walletconnect.android.internal.common.scope.launch {
-                    database.jsonRpcHistoryQueries.selectLastInsertedRowId().executeAsOneOrNull()
+                wcScope.launch {
+                    try {
+                        database.jsonRpcHistoryQueries.selectLastInsertedRowId().executeAsOneOrNull()
+                    } catch (e: Exception) {
+                        deleteDatabase(get<DatabaseConfig>().ANDROID_CORE_DB_NAME)
+                        createCoreDB()
+                    }
                 }
+
             }
         } catch (e: Exception) {
             deleteDatabase(get<DatabaseConfig>().ANDROID_CORE_DB_NAME)
