@@ -229,6 +229,10 @@ internal class Web3ModalEngine(
                 delegate.onSessionRequestResponse(response.toModal())
             }
 
+            override fun onSessionAuthenticateResponse(sessionAuthenticateResponse: Sign.Model.SessionAuthenticateResponse) {
+                delegate.onSessionAuthenticateResponse(sessionAuthenticateResponse.toModal())
+            }
+
             override fun onProposalExpired(proposal: Sign.Model.ExpiredProposal) {
                 delegate.onProposalExpired(proposal.toModal())
             }
