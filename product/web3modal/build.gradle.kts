@@ -26,7 +26,10 @@ android {
 
         buildConfigField(type = "String", name = "SDK_VERSION", value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles("consumer-rules.pro")
+
+        File("${rootDir.path}/gradle/consumer-rules").listFiles()?.let { proguardFiles ->
+            consumerProguardFiles(*proguardFiles)
+        }
     }
 
     buildTypes {
@@ -64,6 +67,7 @@ dependencies {
     compose()
     dataStore()
     lifecycle()
+    moshiKsp()
     navigationComponent()
     qrCodeGenerator()
     coinbase()

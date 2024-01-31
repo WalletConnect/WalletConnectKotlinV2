@@ -77,12 +77,26 @@ import com.walletconnect.sample.modal.view.ViewActivity
 import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.ui.Web3ModalTheme
 import com.walletconnect.web3.modal.ui.web3ModalGraph
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
+import timber.log.Timber
 
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Web3Modal.register(this)
+        var isRegistered = false
+        var counter = 10
+        while (!isRegistered && counter-- > 0) {
+            try {
+                Web3Modal.register(this)
+                isRegistered = true
+            } catch (e: Exception) {
+                Timber.e(e)
+                runBlocking { delay(100) }
+            }
+        }
+        if (counter <= 0) throw IllegalStateException("Web3Modal registration failed")
 
         setContent {
             WalletConnectTheme {
@@ -168,7 +182,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun PredefineThemes(
-    onClick: (Web3ModalTheme.Colors, Web3ModalTheme.Colors) -> Unit
+    onClick: (Web3ModalTheme.Colors, Web3ModalTheme.Colors) -> Unit,
 ) {
     LazyRow(
         modifier = Modifier
@@ -188,7 +202,7 @@ private fun PredefineThemes(
 private fun ThemeItem(
     color: Color,
     text: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -210,7 +224,7 @@ private fun ThemeItem(
 @Composable
 private fun ThemeModeIcon(
     isDarkTheme: Boolean,
-    onClick: (Boolean) -> Unit
+    onClick: (Boolean) -> Unit,
 ) {
     val res = if (isDarkTheme) R.drawable.ic_day_mode else R.drawable.ic_night_mode
     Icon(
