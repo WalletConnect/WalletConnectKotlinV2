@@ -10,7 +10,7 @@ import com.walletconnect.android.internal.common.model.Participants
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
-import com.walletconnect.android.internal.utils.THIRTY_SECONDS
+import com.walletconnect.android.internal.utils.thirtySeconds
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.notify.common.NotifyServerUrl
 import com.walletconnect.notify.common.model.NotifyRpc
@@ -38,13 +38,13 @@ internal class WatchSubscriptionsUseCase(
         jsonRpcInteractor.subscribe(responseTopic) { error -> onFailure(error) }
 
         val account = registeredAccountsRepository.getAccountByAccountId(accountId.value)
-        val didJwt = fetchDidJwtInteractor.watchSubscriptionsRequest(accountId, authenticationPublicKey, if(account.allApps) account.appDomain else null)
+        val didJwt = fetchDidJwtInteractor.watchSubscriptionsRequest(accountId, authenticationPublicKey, if (account.allApps) account.appDomain else null)
             .getOrElse { error -> return@supervisorScope onFailure(error) }
 
         registeredAccountsRepository.updateNotifyServerData(accountId, responseTopic, authenticationPublicKey)
         val watchSubscriptionsParams = CoreNotifyParams.WatchSubscriptionsParams(didJwt.value)
         val request = NotifyRpc.NotifyWatchSubscriptions(params = watchSubscriptionsParams)
-        val irnParams = IrnParams(Tags.NOTIFY_WATCH_SUBSCRIPTIONS, Ttl(THIRTY_SECONDS))
+        val irnParams = IrnParams(Tags.NOTIFY_WATCH_SUBSCRIPTIONS, Ttl(thirtySeconds))
 
         jsonRpcInteractor.publishJsonRpcRequest(
             topic = requestTopic,

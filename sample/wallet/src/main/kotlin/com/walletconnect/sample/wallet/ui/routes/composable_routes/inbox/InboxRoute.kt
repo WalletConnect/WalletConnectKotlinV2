@@ -32,7 +32,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.walletconnect.notify.client.InvalidDidJsonFileException
 import com.walletconnect.sample.common.ui.WCTopAppBar
@@ -54,8 +53,7 @@ import java.net.URISyntaxException
 
 
 @Composable
-fun InboxRoute(navController: NavHostController) {
-    val viewModel: InboxViewModel = viewModel()
+fun InboxRoute(navController: NavHostController, viewModel: InboxViewModel) {
 
     val subscriptionsState by viewModel.subscriptionsState.collectAsState(SubscriptionsState.Searching)
     val searchText by viewModel.searchText.collectAsState()
@@ -111,6 +109,7 @@ private fun InboxScreen(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TabViewWithPager(
     navController: NavHostController,
@@ -172,8 +171,8 @@ fun TabViewWithPager(
                 0 -> SubscriptionsTab(navController, subscriptionsState, activeSubscriptions) { navigate(1) }
                 1 -> DiscoverTab(
                     discoverState, apps,
-                    onSubscribedClick = { explorerApp -> onSubscribedClick(explorerApp, { navigate(0) }, onFailure) },
-                    onSubscribeClick = { explorerApp -> onSubscribeClick(explorerApp, { navigate(0) }, onFailure) },
+                    onSubscribedClick = { explorerApp -> onSubscribedClick(explorerApp, { }, onFailure) },
+                    onSubscribeClick = { explorerApp -> onSubscribeClick(explorerApp, { }, onFailure) },
                     onRetry = onRetry, onFailure = onFailure
                 )
 

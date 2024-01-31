@@ -11,27 +11,24 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.notify.common.JsonRpcMethod
-import com.walletconnect.notify.engine.calls.DeleteNotificationUseCaseInterface
 import com.walletconnect.notify.engine.calls.DeleteSubscriptionUseCaseInterface
-import com.walletconnect.notify.engine.calls.GetListOfActiveSubscriptionsUseCaseInterface
-import com.walletconnect.notify.engine.calls.GetListOfNotificationsUseCaseInterface
+import com.walletconnect.notify.engine.calls.GetActiveSubscriptionsUseCaseInterface
+import com.walletconnect.notify.engine.calls.GetAllActiveSubscriptionsUseCase
+import com.walletconnect.notify.engine.calls.GetNotificationHistoryUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetNotificationTypesUseCaseInterface
-import com.walletconnect.notify.engine.calls.IsRegisteredUseCase
 import com.walletconnect.notify.engine.calls.IsRegisteredUseCaseInterface
-import com.walletconnect.notify.engine.calls.LegacyRegisterUseCaseInterface
-import com.walletconnect.notify.engine.calls.PrepareRegistrationUseCase
 import com.walletconnect.notify.engine.calls.PrepareRegistrationUseCaseInterface
-import com.walletconnect.notify.engine.calls.RegisterUseCase
 import com.walletconnect.notify.engine.calls.RegisterUseCaseInterface
 import com.walletconnect.notify.engine.calls.SubscribeToDappUseCaseInterface
 import com.walletconnect.notify.engine.calls.UnregisterUseCaseInterface
-import com.walletconnect.notify.engine.calls.UpdateSubscriptionRequestUseCaseInterface
+import com.walletconnect.notify.engine.calls.UpdateSubscriptionUseCaseInterface
 import com.walletconnect.notify.engine.domain.WatchSubscriptionsForEveryRegisteredAccountUseCase
-import com.walletconnect.notify.engine.requests.OnNotifyDeleteUseCase
-import com.walletconnect.notify.engine.requests.OnNotifyMessageUseCase
+import com.walletconnect.notify.engine.requests.OnMessageUseCase
 import com.walletconnect.notify.engine.requests.OnSubscriptionsChangedUseCase
-import com.walletconnect.notify.engine.responses.OnNotifySubscribeResponseUseCase
-import com.walletconnect.notify.engine.responses.OnNotifyUpdateResponseUseCase
+import com.walletconnect.notify.engine.responses.OnDeleteResponseUseCase
+import com.walletconnect.notify.engine.responses.OnGetNotificationsResponseUseCase
+import com.walletconnect.notify.engine.responses.OnSubscribeResponseUseCase
+import com.walletconnect.notify.engine.responses.OnUpdateResponseUseCase
 import com.walletconnect.notify.engine.responses.OnWatchSubscriptionsResponseUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -44,41 +41,42 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 internal class NotifyEngine(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val pairingHandler: PairingControllerInterface,
     private val subscribeToDappUseCase: SubscribeToDappUseCaseInterface,
-    private val updateUseCase: UpdateSubscriptionRequestUseCaseInterface,
+    private val updateUseCase: UpdateSubscriptionUseCaseInterface,
     private val deleteSubscriptionUseCase: DeleteSubscriptionUseCaseInterface,
-    private val deleteMessageUseCase: DeleteNotificationUseCaseInterface,
     private val decryptMessageUseCase: DecryptMessageUseCaseInterface,
-    private val legacyRegisterUseCase: LegacyRegisterUseCaseInterface,
     private val unregisterUseCase: UnregisterUseCaseInterface,
     private val getNotificationTypesUseCase: GetNotificationTypesUseCaseInterface,
-    private val getListOfActiveSubscriptionsUseCase: GetListOfActiveSubscriptionsUseCaseInterface,
-    private val getListOfMessages: GetListOfNotificationsUseCaseInterface,
-    private val onNotifyMessageUseCase: OnNotifyMessageUseCase,
-    private val onNotifyDeleteUseCase: OnNotifyDeleteUseCase,
+    private val getActiveSubscriptionsUseCase: GetActiveSubscriptionsUseCaseInterface,
+    private val getAllActiveSubscriptionsUseCase: GetAllActiveSubscriptionsUseCase,
+    private val getNotificationHistoryUseCase: GetNotificationHistoryUseCaseInterface,
+    private val onMessageUseCase: OnMessageUseCase,
     private val onSubscriptionsChangedUseCase: OnSubscriptionsChangedUseCase,
-    private val onNotifySubscribeResponseUseCase: OnNotifySubscribeResponseUseCase,
-    private val onNotifyUpdateResponseUseCase: OnNotifyUpdateResponseUseCase,
+    private val onSubscribeResponseUseCase: OnSubscribeResponseUseCase,
+    private val onUpdateResponseUseCase: OnUpdateResponseUseCase,
+    private val onDeleteResponseUseCase: OnDeleteResponseUseCase,
     private val onWatchSubscriptionsResponseUseCase: OnWatchSubscriptionsResponseUseCase,
+    private val onGetNotificationsResponseUseCase: OnGetNotificationsResponseUseCase,
     private val watchSubscriptionsForEveryRegisteredAccountUseCase: WatchSubscriptionsForEveryRegisteredAccountUseCase,
     private val isRegisteredUseCase: IsRegisteredUseCaseInterface,
     private val prepareRegistrationUseCase: PrepareRegistrationUseCaseInterface,
     private val registerUseCase: RegisterUseCaseInterface,
 ) : SubscribeToDappUseCaseInterface by subscribeToDappUseCase,
-    UpdateSubscriptionRequestUseCaseInterface by updateUseCase,
+    UpdateSubscriptionUseCaseInterface by updateUseCase,
     DeleteSubscriptionUseCaseInterface by deleteSubscriptionUseCase,
-    DeleteNotificationUseCaseInterface by deleteMessageUseCase,
     DecryptMessageUseCaseInterface by decryptMessageUseCase,
-    LegacyRegisterUseCaseInterface by legacyRegisterUseCase,
     RegisterUseCaseInterface by registerUseCase,
     UnregisterUseCaseInterface by unregisterUseCase,
     GetNotificationTypesUseCaseInterface by getNotificationTypesUseCase,
-    GetListOfActiveSubscriptionsUseCaseInterface by getListOfActiveSubscriptionsUseCase,
-    GetListOfNotificationsUseCaseInterface by getListOfMessages,
+    GetActiveSubscriptionsUseCaseInterface by getActiveSubscriptionsUseCase,
+    GetNotificationHistoryUseCaseInterface by getNotificationHistoryUseCase,
     IsRegisteredUseCaseInterface by isRegisteredUseCase,
     PrepareRegistrationUseCaseInterface by prepareRegistrationUseCase {
     private var jsonRpcRequestsJob: Job? = null
@@ -96,6 +94,7 @@ internal class NotifyEngine(
             JsonRpcMethod.WC_NOTIFY_DELETE,
             JsonRpcMethod.WC_NOTIFY_WATCH_SUBSCRIPTIONS,
             JsonRpcMethod.WC_NOTIFY_SUBSCRIPTIONS_CHANGED,
+            JsonRpcMethod.WC_NOTIFY_GET_NOTIFICATIONS,
         )
     }
 
@@ -124,8 +123,7 @@ internal class NotifyEngine(
             .filter { request -> request.params is CoreNotifyParams }
             .onEach { request ->
                 when (val requestParams = request.params) {
-                    is CoreNotifyParams.MessageParams -> onNotifyMessageUseCase(request, requestParams)
-                    is CoreNotifyParams.DeleteParams -> onNotifyDeleteUseCase(request, requestParams)
+                    is CoreNotifyParams.MessageParams -> onMessageUseCase(request, requestParams)
                     is CoreNotifyParams.SubscriptionsChangedParams -> onSubscriptionsChangedUseCase(request, requestParams)
                 }
             }.launchIn(scope)
@@ -135,21 +133,19 @@ internal class NotifyEngine(
             .filter { response -> response.params is CoreNotifyParams }
             .onEach { response ->
                 when (val params = response.params) {
-                    is CoreNotifyParams.SubscribeParams -> onNotifySubscribeResponseUseCase(response, params)
-                    is CoreNotifyParams.UpdateParams -> onNotifyUpdateResponseUseCase(response, params)
+                    is CoreNotifyParams.SubscribeParams -> onSubscribeResponseUseCase(response, params)
+                    is CoreNotifyParams.UpdateParams -> onUpdateResponseUseCase(response, params)
                     is CoreNotifyParams.WatchSubscriptionsParams -> onWatchSubscriptionsResponseUseCase(response, params)
+                    is CoreNotifyParams.DeleteParams -> onDeleteResponseUseCase(response, params)
+                    is CoreNotifyParams.GetNotificationsParams -> onGetNotificationsResponseUseCase(response, params)
                 }
             }.launchIn(scope)
 
-    private fun collectInternalErrors(): Job =
-        merge(jsonRpcInteractor.internalErrors, pairingHandler.findWrongMethodsFlow)
-            .onEach { exception -> _engineEvent.emit(exception) }
-            .launchIn(scope)
+    private fun collectInternalErrors(): Job = merge(jsonRpcInteractor.internalErrors, pairingHandler.findWrongMethodsFlow)
+        .onEach { exception -> _engineEvent.emit(exception) }
+        .launchIn(scope)
 
-    private fun collectNotifyEvents(): Job = merge(
-        onNotifySubscribeResponseUseCase.events, onNotifyMessageUseCase.events, onNotifyUpdateResponseUseCase.events, onNotifyDeleteUseCase.events,
-        onWatchSubscriptionsResponseUseCase.events, onSubscriptionsChangedUseCase.events
-    )
+    private fun collectNotifyEvents(): Job = merge(onMessageUseCase.events, onWatchSubscriptionsResponseUseCase.events, onSubscriptionsChangedUseCase.events)
         .onEach { event -> _engineEvent.emit(event) }
         .launchIn(scope)
 
@@ -159,7 +155,22 @@ internal class NotifyEngine(
     }
 
     private suspend fun resubscribeToSubscriptions() {
-        val subscriptionTopics = getListOfActiveSubscriptions().keys.toList()
+        val subscriptionTopics = getAllActiveSubscriptionsUseCase().keys.toList()
         jsonRpcInteractor.batchSubscribe(subscriptionTopics) { error -> scope.launch { _engineEvent.emit(SDKError(error)) } }
     }
 }
+
+
+//todo: Extract to Validator class and add more tests
+internal val blockingCallsMinTimeout = 5.seconds
+internal val blockingCallsMaxTimeout = 60.seconds
+internal val blockingCallsDefaultTimeout = blockingCallsMaxTimeout
+internal val blockingCallsDelayInterval = 10.milliseconds
+
+internal fun Duration?.validateTimeout() =
+    if (this == null) blockingCallsDefaultTimeout
+    else if (this < blockingCallsMinTimeout)
+        throw Exception("Timeout has to be at least $blockingCallsMinTimeout")
+    else if (this > blockingCallsMaxTimeout)
+        throw Exception("Timeout has to be at most $blockingCallsMaxTimeout")
+    else this

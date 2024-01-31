@@ -26,6 +26,10 @@ android {
 
         buildConfigField(type = "String", name = "SDK_VERSION", value = "\"${requireNotNull(extra.get(KEY_PUBLISH_VERSION))}\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        File("${rootDir.path}/gradle/consumer-rules").listFiles()?.let { proguardFiles ->
+            consumerProguardFiles(*proguardFiles)
+        }
     }
 
     buildTypes {
@@ -48,6 +52,10 @@ android {
     }
     composeOptions {
         kotlinCompilerExtensionVersion = composeCompilerVersion
+    }
+
+    tasks.withType(Test::class.java) {
+        jvmArgs("-XX:+AllowRedefinitionToAddDeleteMethods")
     }
 }
 

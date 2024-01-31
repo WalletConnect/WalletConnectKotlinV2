@@ -2,6 +2,7 @@
 
 package com.walletconnect.sample.wallet.ui.routes.composable_routes.connection_details
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -15,14 +16,19 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -42,8 +48,8 @@ import com.google.accompanist.pager.rememberPagerState
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
 import com.skydoves.landscapist.glide.GlideImage
+import com.walletconnect.sample.common.ui.themedColor
 import com.walletconnect.sample.wallet.R
-import com.walletconnect.sample.wallet.domain.accounts
 import com.walletconnect.sample.wallet.ui.common.Content
 import com.walletconnect.sample.wallet.ui.common.InnerContent
 import com.walletconnect.sample.wallet.ui.common.blue.BlueLabelTexts
@@ -53,47 +59,142 @@ import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.C
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionUI
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
 import com.walletconnect.sample.wallet.ui.routes.showSnackbar
-import com.walletconnect.sample.common.ui.themedColor
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @Composable
 fun ConnectionDetailsRoute(navController: NavController, connectionId: Int?, connectionsViewModel: ConnectionsViewModel) {
     connectionsViewModel.currentConnectionId = connectionId
     val connectionUI by remember { connectionsViewModel.currentConnectionUI }
+    var isEmitLoading by remember { mutableStateOf(false) }
+    var isDeleteLoading by remember { mutableStateOf(false) }
+    var isUpdateLoading by remember { mutableStateOf(false) }
+    val composableScope = rememberCoroutineScope()
 
-    connectionUI?.let { connectionUI ->
+    connectionUI?.let { uiConnection ->
         Column(modifier = Modifier.fillMaxWidth()) {
-            TopButtons(navController, isEmitVisible = connectionUI.type is ConnectionType.Sign) {
-                when (connectionUI.type) {
-                    is ConnectionType.Sign -> {
-                        val account = connectionUI.type.namespaces.values.first().accounts.first()
-                        val lastDelimiterIndex = account.indexOfLast { it == ':' }
-                        val chainId = account.dropLast(account.lastIndex - lastDelimiterIndex + 1)
-                        val event = getAllEventsByChainId(connectionUI.type.namespaces.values.first(), account).first()
+            TopButtons(navController, isEmitAndUpdateVisible = uiConnection.type is ConnectionType.Sign, isEmitLoading = isEmitLoading, isUpdateLoading = isUpdateLoading,
+                onEmit = {
+                    when (uiConnection.type) {
+                        is ConnectionType.Sign -> {
+                            isEmitLoading = true
+                            val account = uiConnection.type.namespaces.values.first().accounts.first()
+                            val lastDelimiterIndex = account.indexOfLast { it == ':' }
+                            val chainId = account.dropLast(account.lastIndex - lastDelimiterIndex + 1)
+                            val event = getAllEventsByChainId(uiConnection.type.namespaces.values.first(), account).first()
 
-                        Web3Wallet.emitSessionEvent(Wallet.Params.SessionEmit(connectionUI.type.topic, event = Wallet.Model.SessionEvent(event, "someData"), chainId)) {
-                            Firebase.crashlytics.recordException(it.throwable)
-                            navController.showSnackbar("Event emit error. Check logs")
+                            try {
+                                Web3Wallet.emitSessionEvent(
+                                    Wallet.Params.SessionEmit(
+                                        uiConnection.type.topic,
+                                        event = Wallet.Model.SessionEvent(event, "someData"), chainId
+                                    ),
+                                    onSuccess = {
+                                        isEmitLoading = false
+                                        composableScope.launch(Dispatchers.Main) {
+                                            navController.showSnackbar("Event emitted: ${it.event.name}")
+                                        }
+                                    },
+                                    onError = { error ->
+                                        isEmitLoading = false
+                                        Firebase.crashlytics.recordException(error.throwable)
+                                        composableScope.launch(Dispatchers.Main) {
+                                            navController.showSnackbar("Event emit error. Error: ${error.throwable.message}")
+                                        }
+                                    }
+                                )
+                            } catch (e: Exception) {
+                                isEmitLoading = false
+                                Firebase.crashlytics.recordException(e)
+                                composableScope.launch(Dispatchers.Main) {
+                                    navController.showSnackbar("Event emit error. Error: ${e.message}")
+                                }
+                            }
                         }
-                        navController.showSnackbar("Event emitted")
+                    }
+                },
+                onUpdate = {
+                    when (uiConnection.type) {
+                        is ConnectionType.Sign -> {
+                            isUpdateLoading = true
+                            try {
+                                val entry = uiConnection.type.namespaces.entries.find { entry -> entry.key == "eip155" } ?: throw Exception("Cannot find eip155 namespace")
+                                val newNamespaces: Map<String, Wallet.Model.Namespace.Session> =
+                                    mapOf(
+                                        "eip155" to entry.value.copy(
+                                            accounts = entry.value.accounts.plus("eip155:1:0xd10b8732e28f1be12c31eb1a45dca63b80ed3d6e"),
+                                            chains = entry.value.chains,
+                                            methods = entry.value.methods,
+                                            events = entry.value.events,
+                                        )
+                                    ).toMutableMap()
+                                val params = Wallet.Params.SessionUpdate(uiConnection.type.topic, newNamespaces)
+                                Web3Wallet.updateSession(params,
+                                    onSuccess = {
+                                        isUpdateLoading = false
+                                        connectionsViewModel.refreshConnections()
+                                        composableScope.launch(Dispatchers.Main) {
+                                            navController.showSnackbar("Session updated")
+                                        }
+                                    },
+                                    onError = { error ->
+                                        isUpdateLoading = false
+                                        Firebase.crashlytics.recordException(error.throwable)
+                                        composableScope.launch(Dispatchers.Main) {
+                                            navController.showSnackbar("Session update error. Error: ${error.throwable.message}")
+                                        }
+                                    }
+                                )
+                            } catch (e: Exception) {
+                                isUpdateLoading = false
+                                Firebase.crashlytics.recordException(e)
+                                composableScope.launch(Dispatchers.Main) {
+                                    navController.showSnackbar("Session update error. Error: ${e.message}")
+                                }
+                            }
+                        }
                     }
                 }
-            }
+            )
             Spacer(modifier = Modifier.height(16.dp))
-            Connection(connectionUI)
+            Connection(uiConnection)
             Spacer(modifier = Modifier.height(16.dp))
-            ConnectionType(connectionUI, onDelete = {
-                when (connectionUI.type) {
-                    is ConnectionType.Sign -> {
-                        Web3Wallet.disconnectSession(Wallet.Params.SessionDisconnect(connectionUI.type.topic)) { error ->
-                            Firebase.crashlytics.recordException(error.throwable)
+            ConnectionType(uiConnection, isDeleteLoading,
+                onDelete = {
+                    when (uiConnection.type) {
+                        is ConnectionType.Sign -> {
+                            try {
+                                isDeleteLoading = true
+                                Web3Wallet.disconnectSession(Wallet.Params.SessionDisconnect(uiConnection.type.topic),
+                                    onSuccess = {
+                                        isDeleteLoading = false
+                                        connectionsViewModel.refreshConnections()
+                                        composableScope.launch(Dispatchers.Main) {
+                                            navController.popBackStack()
+                                            navController.showSnackbar("Session disconnected")
+                                        }
+                                    },
+                                    onError = { error ->
+                                        Firebase.crashlytics.recordException(error.throwable)
+                                        isDeleteLoading = false
+                                        connectionsViewModel.refreshConnections()
+                                        composableScope.launch(Dispatchers.Main) {
+                                            navController.showSnackbar("Session disconnection error: ${error.throwable.message ?: "Unknown error please contact support"}")
+                                        }
+                                    })
+                            } catch (e: Exception) {
+                                Firebase.crashlytics.recordException(e)
+                                isDeleteLoading = false
+                                connectionsViewModel.refreshConnections()
+                                composableScope.launch(Dispatchers.Main) {
+                                    navController.showSnackbar("Session disconnection error: ${e.message ?: "Unknown error please contact support"}")
+                                }
+                            }
                         }
-                        connectionsViewModel.refreshConnections()
-                        navController.popBackStack()
                     }
-                }
-            })
+                })
         }
     } ?: run {
         Text("Something went wrong :C")
@@ -101,34 +202,46 @@ fun ConnectionDetailsRoute(navController: NavController, connectionId: Int?, con
 }
 
 @Composable
-fun ConnectionType(connectionUI: ConnectionUI, onDelete: () -> Unit) {
+fun ConnectionType(connectionUI: ConnectionUI, isLoading: Boolean, onDelete: () -> Unit) {
     Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         when (val type = connectionUI.type) {
             is ConnectionType.Sign -> Namespace(type.namespaces)
         }
 
-        Text(modifier = Modifier
-            .clip(RoundedCornerShape(5.dp))
-            .clickable { onDelete() }
-            .padding(horizontal = 20.dp, vertical = 5.dp),
-            text = "Delete",
-            style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 20.sp, color = themedColor(darkColor = 0xfff25a67, lightColor = 0xfff05142)))
+        AnimatedContent(targetState = isLoading, label = "Loading") { state ->
+            if (state) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .size(64.dp)
+                        .padding(8.dp)
+                        .wrapContentWidth(align = Alignment.CenterHorizontally)
+                        .wrapContentHeight(align = Alignment.CenterVertically),
+                    color = themedColor(darkColor = 0xfff25a67, lightColor = 0xfff05142), strokeWidth = 4.dp
+                )
+            } else {
+                Text(modifier = Modifier
+                    .clip(RoundedCornerShape(5.dp))
+                    .clickable { onDelete() }
+                    .padding(horizontal = 20.dp, vertical = 5.dp),
+                    text = "Delete",
+                    style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 20.sp, color = themedColor(darkColor = 0xfff25a67, lightColor = 0xfff05142)))
+            }
+        }
     }
 }
 
 @Composable
 fun Namespace(namespaces: Map<String, Wallet.Model.Namespace.Session>) {
     val pagerState = rememberPagerState()
-    val accounts = namespaces.flatMap { (namespace, session) -> session.accounts }
+    val accounts = namespaces.flatMap { (namespace, session) -> session.accounts }.distinctBy { "${it.split(":")[0]}:${it.split(":")[1]}" }
     val accountsToSessions: Map<String, Wallet.Model.Namespace.Session> = namespaces.flatMap { (namespace, proposal) -> proposal.accounts.map { chain -> chain to proposal } }.toMap()
-
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         HorizontalPager(
             modifier = Modifier.height(450.dp),
             count = accounts.size,
             state = pagerState,
         ) { current ->
-            accounts[current].also { chain -> ChainPermissions(chain, accountsToSessions) }
+            accounts[current].also { account -> ChainPermissions(account, accountsToSessions) }
         }
 
         if (accounts.size > 1) {
@@ -148,8 +261,7 @@ fun ChainPermissions(account: String, accountsToSessions: Map<String, Wallet.Mod
     val lastDelimiterIndex = account.indexOfLast { it == ':' }
     val chainId = account.dropLast(account.lastIndex - lastDelimiterIndex + 1)
     Content(title = chainId.uppercase()) {
-        Accounts(accounts.filter { it.first.chainId == chainId }.map { (chain, address) -> "${chain.chainId}:$address" })
-
+        Accounts(session.accounts.filter { "${it.split(":")[0]}:${it.split(":")[1]}" == chainId })
         val sections = mapOf("Methods" to getAllMethodsByChainId(session, account), "Events" to getAllEventsByChainId(session, account))
         sections.forEach { (title, values) -> BlueLabelTexts(title, values, title != "Events") }
     }
@@ -206,7 +318,7 @@ fun Connection(connectionUI: ConnectionUI) {
 }
 
 @Composable
-fun TopButtons(navController: NavController, isEmitVisible: Boolean, onEmit: () -> Unit) {
+fun TopButtons(navController: NavController, isEmitAndUpdateVisible: Boolean, isEmitLoading: Boolean, isUpdateLoading: Boolean, onEmit: () -> Unit, onUpdate: () -> Unit) {
     val color = Color(0xFF3496ff)
     val style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 17.sp, color = color)
     Row(
@@ -224,14 +336,47 @@ fun TopButtons(navController: NavController, isEmitVisible: Boolean, onEmit: () 
             Spacer(modifier = Modifier.width(5.dp))
             Text(text = "Connections", style = style)
         }
-        if (isEmitVisible) {
-            Text(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(5.dp))
-                    .clickable { onEmit() }
-                    .padding(horizontal = 10.dp, vertical = 5.dp),
-                text = "Emit", style = style
-            )
+        if (isEmitAndUpdateVisible) {
+            AnimatedContent(targetState = isEmitLoading, label = "Loading") { state ->
+                if (state) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .padding(8.dp)
+                            .wrapContentWidth(align = Alignment.CenterHorizontally)
+                            .wrapContentHeight(align = Alignment.CenterVertically),
+                        color = color, strokeWidth = 4.dp
+                    )
+                } else {
+                    Text(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(5.dp))
+                            .clickable { onEmit() }
+                            .padding(horizontal = 5.dp, vertical = 5.dp),
+                        text = "Emit", style = style
+                    )
+                }
+            }
+            AnimatedContent(targetState = isUpdateLoading, label = "Loading") { state ->
+                if (state) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .padding(8.dp)
+                            .wrapContentWidth(align = Alignment.CenterHorizontally)
+                            .wrapContentHeight(align = Alignment.CenterVertically),
+                        color = color, strokeWidth = 4.dp
+                    )
+                } else {
+                    Text(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(5.dp))
+                            .clickable { onUpdate() }
+                            .padding(horizontal = 5.dp, vertical = 5.dp),
+                        text = "Update", style = style
+                    )
+                }
+            }
         }
     }
 }

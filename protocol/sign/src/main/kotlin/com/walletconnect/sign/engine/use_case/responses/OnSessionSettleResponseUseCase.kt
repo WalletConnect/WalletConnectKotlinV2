@@ -29,8 +29,12 @@ internal class OnSessionSettleResponseUseCase(
 
     suspend operator fun invoke(wcResponse: WCResponse) = supervisorScope {
         try {
+            logger.log("Session settle response received on topic: ${wcResponse.topic}")
             val sessionTopic = wcResponse.topic
-            if (!sessionStorageRepository.isSessionValid(sessionTopic)) return@supervisorScope
+            if (!sessionStorageRepository.isSessionValid(sessionTopic)) {
+                logger.error("Peer failed to settle session: invalid session")
+                return@supervisorScope
+            }
             val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(sessionTopic).run {
                 val peerAppMetaData = metadataStorageRepository.getByTopicAndType(this.topic, AppMetaDataType.PEER)
                 this.copy(selfAppMetaData = selfAppMetaData, peerAppMetaData = peerAppMetaData)
@@ -52,6 +56,7 @@ internal class OnSessionSettleResponseUseCase(
                 }
             }
         } catch (e: Exception) {
+            logger.error("Peer failed to settle session: $e")
             _events.emit(SDKError(e))
         }
     }

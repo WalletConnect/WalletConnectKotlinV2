@@ -1,0 +1,3 @@
+-- migration from 7.db to 8.db
+
+ALTER TABLE Pairing ADD COLUMN is_proposal_received INTEGER AS Boolean DEFAULT 1;

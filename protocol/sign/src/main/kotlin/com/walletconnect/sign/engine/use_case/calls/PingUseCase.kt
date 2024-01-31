@@ -6,7 +6,7 @@ import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.utils.THIRTY_SECONDS
+import com.walletconnect.android.internal.utils.thirtySeconds
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -35,15 +35,16 @@ internal class PingUseCase(
     override suspend fun ping(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit, timeout: Duration) = supervisorScope {
         if (sessionStorageRepository.isSessionValid(Topic(topic))) {
             val pingPayload = SignRpc.SessionPing(params = SignParams.PingParams())
-            val irnParams = IrnParams(Tags.SESSION_PING, Ttl(THIRTY_SECONDS))
+            val irnParams = IrnParams(Tags.SESSION_PING, Ttl(thirtySeconds))
 
+            logger.log("Sending ping... topic: $topic")
             jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, pingPayload,
                 onSuccess = {
-                    logger.log("Ping sent successfully")
+                    logger.log("Ping sent successfully, topic: $topic")
                     onPingSuccess(timeout, pingPayload, onSuccess, topic, onFailure)
                 },
                 onFailure = { error ->
-                    logger.log("Ping sent error: $error")
+                    logger.error("Ping sent error: $error, topic: $topic")
                     onFailure(error)
                 })
         } else {
@@ -77,7 +78,7 @@ internal class PingUseCase(
                                 onSuccess(topic)
                             },
                             onFailure = { error ->
-                                logger.log("Ping peer response error: $error")
+                                logger.error("Ping peer response error: $error")
                                 onFailure(error)
                             })
                     }

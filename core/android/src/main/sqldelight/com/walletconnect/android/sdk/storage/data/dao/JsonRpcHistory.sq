@@ -46,3 +46,7 @@ SELECT last_insert_rowid();
 deleteJsonRpcHistory:
 DELETE FROM JsonRpcHistoryDao
 WHERE topic = ?;
+
+deleteJsonRpcHistoryByRequestId:
+DELETE FROM JsonRpcHistoryDao
+WHERE request_id = ?;

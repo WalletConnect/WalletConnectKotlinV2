@@ -3,26 +3,25 @@ package com.walletconnect.wcmodal.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.CoreClient
-import com.walletconnect.android.internal.common.explorer.data.model.Wallet
-import com.walletconnect.android.internal.common.explorer.domain.usecase.GetWalletsUseCaseInterface
+import com.walletconnect.android.internal.common.modal.data.model.Wallet
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.foundation.util.Logger
+import com.walletconnect.modal.ui.model.LoadingState
+import com.walletconnect.modal.ui.model.UiState
 import com.walletconnect.wcmodal.client.Modal
 import com.walletconnect.wcmodal.client.WalletConnectModal
-import com.walletconnect.wcmodal.domain.usecase.GetRecentWalletUseCase
-import com.walletconnect.wcmodal.domain.usecase.SaveRecentWalletUseCase
-import kotlinx.coroutines.flow.MutableStateFlow
+import com.walletconnect.wcmodal.domain.dataStore.WalletDataSource
+import com.walletconnect.wcmodal.domain.dataStore.WalletsData
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-
-private const val WCM_SDK = "wcm"
 
 internal class WalletConnectModalViewModel : ViewModel() {
 
     private val logger: Logger = wcKoinApp.koin.get()
-    private val getWalletsUseCase: GetWalletsUseCaseInterface = wcKoinApp.koin.get()
-    private val getRecentWalletUseCase: GetRecentWalletUseCase = wcKoinApp.koin.get()
-    private val saveRecentWalletUseCase: SaveRecentWalletUseCase = wcKoinApp.koin.get()
+    private val walletsDataStore = WalletDataSource { handleError(it) }
 
     private val pairing by lazy {
         CoreClient.Pairing.create { error ->
@@ -30,18 +29,29 @@ internal class WalletConnectModalViewModel : ViewModel() {
         }!!
     }
 
-    private var wallets = emptyList<Wallet>()
+    val walletsState: StateFlow<WalletsData> = walletsDataStore.searchWalletsState.stateIn(viewModelScope, SharingStarted.Lazily, WalletsData.empty())
 
-    private val _modalState: MutableStateFlow<WalletConnectModalState> = MutableStateFlow(WalletConnectModalState.Loading)
+    val uiState: StateFlow<UiState<List<Wallet>>> = walletsDataStore.walletState.map { pagingData ->
+        when {
+            pagingData.error != null -> UiState.Error(pagingData.error)
+            pagingData.loadingState == LoadingState.REFRESH -> UiState.Loading()
+            else -> UiState.Success(pagingData.wallets)
+        }
+    }.stateIn(viewModelScope, started = SharingStarted.Lazily, initialValue = UiState.Loading())
 
-    val modalState: StateFlow<WalletConnectModalState>
-        get() = _modalState
+    val searchPhrase
+        get() = walletsDataStore.searchPhrase
+
 
     init {
-        initModalState()
+        fetchInitialWallets()
     }
 
-    private fun initModalState() {
+    fun fetchInitialWallets() {
+        viewModelScope.launch { walletsDataStore.fetchInitialWallets() }
+    }
+
+    fun connect(onSuccess: (String) -> Unit) {
         val sessionParams = WalletConnectModal.sessionParams
         try {
             val connectParams = Modal.Params.Connect(
@@ -50,10 +60,10 @@ internal class WalletConnectModalViewModel : ViewModel() {
                 sessionParams.properties,
                 pairing
             )
-            val chains = sessionParams.requiredNamespaces.values.toList().mapNotNull { it.chains?.joinToString() }.joinToString()
+
             WalletConnectModal.connect(
                 connect = connectParams,
-                onSuccess = { viewModelScope.launch { createModalState(pairing.uri, chains) } },
+                onSuccess = { url -> viewModelScope.launch { onSuccess(url) } },
                 onError = { handleError(it.throwable) }
             )
         } catch (e: Exception) {
@@ -61,55 +71,25 @@ internal class WalletConnectModalViewModel : ViewModel() {
         }
     }
 
-    internal fun retry(onSuccess: () -> Unit) {
-        (_modalState.value as? WalletConnectModalState.Connect)?.let {
-            try {
-                val sessionParams = WalletConnectModal.sessionParams ?: throw IllegalStateException("Session params missing")
-                val connectParams = Modal.Params.Connect(
-                    sessionParams.requiredNamespaces,
-                    sessionParams.optionalNamespaces,
-                    sessionParams.properties,
-                    pairing
-                )
-                WalletConnectModal.connect(
-                    connect = connectParams,
-                    onSuccess = onSuccess,
-                    onError = { logger.error(it.throwable) }
-                )
-            } catch (e: Exception) {
-                handleError(e)
-            }
-        } ?: logger.error("Invalid modal state")
+    fun fetchMoreWallets() {
+        viewModelScope.launch { walletsDataStore.fetchMoreWallets() }
     }
+
+    fun search(searchPhrase: String) {
+        viewModelScope.launch { walletsDataStore.searchWallet(searchPhrase) }
+    }
+
+    fun saveRecentWallet(wallet: Wallet) {
+        walletsDataStore.updateRecentWallet(wallet.id)
+    }
+
+    fun clearSearch() = walletsDataStore.clearSearch()
+
+    fun getWallet(walletId: String?) = walletsDataStore.getWallet(walletId)
+
+    fun getNotInstalledWallets() = walletsDataStore.wallets.filterNot { it.isWalletInstalled }
 
     private fun handleError(error: Throwable) {
         logger.error(error)
-        _modalState.value = WalletConnectModalState.Error(error)
     }
-
-    private suspend fun createModalState(uri: String, chains: String) {
-        try {
-            wallets = if (WalletConnectModal.recommendedWalletsIds.isEmpty()) {
-                getWalletsUseCase(sdkType = WCM_SDK, chains = chains, excludedIds = WalletConnectModal.excludedWalletsIds)
-            } else {
-                getWalletsUseCase(sdkType = WCM_SDK, chains = chains, excludedIds = WalletConnectModal.excludedWalletsIds, recommendedIds = WalletConnectModal.recommendedWalletsIds).union(
-                    getWalletsUseCase(sdkType = WCM_SDK, chains = chains, excludedIds = WalletConnectModal.excludedWalletsIds)
-                ).toList()
-            }
-            _modalState.value = WalletConnectModalState.Connect(uri, wallets.mapRecentWallet(getRecentWalletUseCase()))
-        } catch (e: Exception) {
-            logger.error(e)
-            _modalState.value = WalletConnectModalState.Connect(uri)
-        }
-    }
-
-    fun updateRecentWalletId(id: String) =
-        (_modalState.value as? WalletConnectModalState.Connect)?.let {
-            saveRecentWalletUseCase(id)
-            _modalState.value = it.copy(wallets = wallets.mapRecentWallet(id))
-        }
 }
-
-private fun List<Wallet>.mapRecentWallet(id: String?) = map {
-    it.apply { it.isRecent = it.id == id }
-}.sortedWith(compareByDescending<Wallet> { it.isRecent }.thenByDescending { it.isWalletInstalled })

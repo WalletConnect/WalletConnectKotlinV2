@@ -4,7 +4,9 @@ import com.walletconnect.android.internal.common.exception.Invalid
 import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.AppMetaDataType
+import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.IrnParams
+import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.WCRequest
@@ -12,12 +14,12 @@ import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
-import com.walletconnect.android.internal.utils.CoreValidator
-import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
+import com.walletconnect.android.internal.utils.CoreValidator.isExpired
+import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
 import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
 import com.walletconnect.foundation.common.model.Ttl
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.model.type.Sequences
-import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.common.validator.SignValidator
 import com.walletconnect.sign.engine.model.EngineDO
@@ -37,25 +39,32 @@ internal class OnSessionRequestUseCase(
     private val sessionStorageRepository: SessionStorageRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val resolveAttestationIdUseCase: ResolveAttestationIdUseCase,
+    private val logger: Logger
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
     suspend operator fun invoke(request: WCRequest, params: SignParams.SessionRequestParams) = supervisorScope {
-        val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(FIVE_MINUTES_IN_SECONDS))
+        val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(fiveMinutesInSeconds))
+        logger.log("Session request received on topic: ${request.topic}")
 
         try {
-            if (!CoreValidator.isExpiryWithinBounds(params.request.expiry)) {
-                jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
-                return@supervisorScope
+            params.request.expiryTimestamp?.let {
+                if (Expiry(it).isExpired()) {
+                    logger.error("Session request received failure on topic: ${request.topic} - request expired")
+                    jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
+                    return@supervisorScope
+                }
             }
 
             SignValidator.validateSessionRequest(params.toEngineDO(request.topic)) { error ->
+                logger.error("Session request received failure on topic: ${request.topic} - invalid request")
                 jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
                 return@supervisorScope
             }
 
             if (!sessionStorageRepository.isSessionValid(request.topic)) {
+                logger.error("Session request received failure on topic: ${request.topic} - invalid session")
                 jsonRpcInteractor.respondWithError(
                     request,
                     Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value),
@@ -82,13 +91,15 @@ internal class OnSessionRequestUseCase(
                 val event = if (sessionRequestEventsQueue.isEmpty()) {
                     sessionRequestEvent
                 } else {
-                    sessionRequestEventsQueue.find { event -> CoreValidator.isExpiryWithinBounds(event.request.expiry) } ?: sessionRequestEvent
+                    sessionRequestEventsQueue.find { event -> if (event.request.expiry != null) !event.request.expiry.isExpired() else true } ?: sessionRequestEvent
                 }
 
                 sessionRequestEventsQueue.add(sessionRequestEvent)
+                logger.log("Session request received on topic: ${request.topic} - emitting")
                 scope.launch { _events.emit(event) }
             }
         } catch (e: Exception) {
+            logger.error("Session request received failure on topic: ${request.topic} - ${e.message}")
             jsonRpcInteractor.respondWithError(
                 request,
                 Uncategorized.GenericError("Cannot handle a session request: ${e.message}, topic: ${request.topic}"),

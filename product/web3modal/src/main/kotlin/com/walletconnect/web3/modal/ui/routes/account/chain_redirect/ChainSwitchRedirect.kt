@@ -18,10 +18,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.walletconnect.modal.utils.openUri
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
 import com.walletconnect.web3.modal.ui.components.internal.commons.DeclinedIcon
@@ -35,6 +33,7 @@ import com.walletconnect.web3.modal.ui.previews.testChains
 import com.walletconnect.web3.modal.ui.routes.account.AccountViewModel
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 import com.walletconnect.web3.modal.utils.getImageData
+import com.walletconnect.web3.modal.utils.toSession
 import kotlinx.coroutines.launch
 
 @Composable
@@ -42,20 +41,11 @@ internal fun ChainSwitchRedirectRoute(
     accountViewModel: AccountViewModel,
     chain: Modal.Model.Chain,
 ) {
-    val uriHandler = LocalUriHandler.current
     val scope = rememberCoroutineScope()
     var chainSwitchState by remember { mutableStateOf<ChainRedirectState>(ChainRedirectState.Loading) }
 
-    val switchChain = suspend {
-        accountViewModel.switchChain(
-            to = chain,
-            openConnectedWallet = { uri ->
-                uriHandler.openUri(uri) {
-                    chainSwitchState = ChainRedirectState.Declined
-                }
-            }
-        )
-    }
+    val onReject =  { chainSwitchState = ChainRedirectState.Declined }
+    val switchChain = suspend { accountViewModel.switchChain(to = chain, onReject = onReject) }
 
     LaunchedEffect(Unit) {
         switchChain()
@@ -64,11 +54,8 @@ internal fun ChainSwitchRedirectRoute(
     LaunchedEffect(Unit) {
         Web3ModalDelegate.wcEventModels.collect {
             when (it) {
-                is Modal.Model.UpdatedSession -> accountViewModel.updatedSessionAfterChainSwitch(chain, it)
-                is Modal.Model.SessionRequestResponse -> if (it.result is Modal.Model.JsonRpcResponse.JsonRpcError) {
-                    chainSwitchState = ChainRedirectState.Declined
-                }
-
+                is Modal.Model.UpdatedSession -> accountViewModel.updatedSessionAfterChainSwitch(it.toSession(chain))
+                is Modal.Model.SessionRequestResponse -> if (it.result is Modal.Model.JsonRpcResponse.JsonRpcError) { onReject() }
                 else -> {}
             }
         }
@@ -84,7 +71,7 @@ internal fun ChainSwitchRedirectRoute(
 }
 
 @Composable
-private fun ChainSwitchRedirectScreen(
+internal fun ChainSwitchRedirectScreen(
     chain: Modal.Model.Chain,
     chainRedirectState: ChainRedirectState,
     onTryAgainClick: () -> Unit

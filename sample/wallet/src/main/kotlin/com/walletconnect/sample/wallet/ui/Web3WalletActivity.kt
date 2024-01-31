@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -14,6 +15,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -26,9 +28,9 @@ import com.walletconnect.sample.wallet.domain.NotifyDelegate
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
 import com.walletconnect.sample.wallet.ui.routes.host.WalletSampleHost
-import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import timber.log.Timber
 
 class Web3WalletActivity : AppCompatActivity() {
     private lateinit var navController: NavHostController
@@ -88,7 +90,7 @@ class Web3WalletActivity : AppCompatActivity() {
     private fun handleErrors() {
         NotifyDelegate.notifyErrors
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-            .onEach { error -> runCatching { this.navController.showSnackbar(error.throwable.message ?: error.throwable.toString()) } }
+            .onEach { error -> Timber.e(error.throwable) }
             .launchIn(lifecycleScope)
     }
 
@@ -96,12 +98,25 @@ class Web3WalletActivity : AppCompatActivity() {
         web3walletViewModel: Web3WalletViewModel,
         connectionsViewModel: ConnectionsViewModel,
     ) {
+        web3walletViewModel.sessionRequestStateFlow
+            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .onEach {
+                if (it.arrayOfArgs.isNotEmpty()) {
+                    navController.navigate(Route.SessionRequest.path)
+                }
+            }
+            .launchIn(lifecycleScope)
+
         web3walletViewModel.walletEvents
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
             .onEach { event ->
                 when (event) {
                     is SignEvent.SessionProposal -> navController.navigate(Route.SessionProposal.path)
-                    is SignEvent.SessionRequest -> navController.navigate(Route.SessionRequest.path)
+                    is SignEvent.ExpiredRequest -> {
+                        navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                        Toast.makeText(baseContext, "Request expired", Toast.LENGTH_SHORT).show()
+                    }
+
                     is SignEvent.Disconnect -> {
                         connectionsViewModel.refreshConnections()
                         navController.navigate(Route.Connections.path)
@@ -117,6 +132,10 @@ class Web3WalletActivity : AppCompatActivity() {
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
+        if (intent?.dataString?.contains("wc:") == true) {
+            val uri = intent.dataString?.replace("wc:", "wc://")
+            intent.setData(uri?.toUri())
+        }
         navController.handleDeepLink(intent)
     }
 

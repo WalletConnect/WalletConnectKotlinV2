@@ -5,7 +5,7 @@ import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.utils.THIRTY_SECONDS
+import com.walletconnect.android.internal.utils.thirtySeconds
 import com.walletconnect.chat.common.json_rpc.ChatParams
 import com.walletconnect.chat.common.json_rpc.ChatRpc
 import com.walletconnect.foundation.common.model.Topic
@@ -25,7 +25,7 @@ internal class SendPingUseCase(
 
     override fun ping(topic: String, onSuccess: (String) -> Unit, onError: (Throwable) -> Unit) {
         val pingPayload = ChatRpc.ChatPing(params = ChatParams.PingParams())
-        val irnParams = IrnParams(Tags.CHAT_PING, Ttl(THIRTY_SECONDS))
+        val irnParams = IrnParams(Tags.CHAT_PING, Ttl(thirtySeconds))
 
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, pingPayload,
             onSuccess = { pingSuccess(pingPayload, onSuccess, topic, onError) },

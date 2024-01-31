@@ -3,21 +3,21 @@ package com.walletconnect.sign.engine.use_case.calls
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
 import com.walletconnect.android.internal.common.exception.InvalidExpiryException
-import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.IrnParams
+import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.internal.utils.currentTimeInSeconds
 import com.walletconnect.android.internal.utils.CoreValidator
-import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
+import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.exceptions.InvalidRequestException
 import com.walletconnect.sign.common.exceptions.NO_SEQUENCE_FOR_TOPIC_MESSAGE
 import com.walletconnect.sign.common.exceptions.UnauthorizedMethodException
-import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpc
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionRequestVO
@@ -50,35 +50,39 @@ internal class SessionRequestUseCase(
         }
 
         val nowInSeconds = TimeUnit.SECONDS.convert(Date().time, TimeUnit.SECONDS)
-        if (!CoreValidator.isExpiryWithinBounds(request.expiry ?: Expiry(300))) {
+        if (!CoreValidator.isExpiryWithinBounds(request.expiry)) {
+            logger.error("Sending session request error: expiry not within bounds")
             return@supervisorScope onFailure(InvalidExpiryException())
         }
 
         SignValidator.validateSessionRequest(request) { error ->
+            logger.error("Sending session request error: invalid session request, ${error.message}")
             return@supervisorScope onFailure(InvalidRequestException(error.message))
         }
 
         val namespaces: Map<String, Namespace.Session> =
             sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic(request.topic)).sessionNamespaces
         SignValidator.validateChainIdWithMethodAuthorisation(request.chainId, request.method, namespaces) { error ->
+            logger.error("Sending session request error: unauthorized method, ${error.message}")
             return@supervisorScope onFailure(UnauthorizedMethodException(error.message))
         }
 
-        val params = SignParams.SessionRequestParams(SessionRequestVO(request.method, request.params), request.chainId)
+        val params = SignParams.SessionRequestParams(SessionRequestVO(request.method, request.params, request.expiry?.seconds ?: (currentTimeInSeconds + fiveMinutesInSeconds)), request.chainId)
         val sessionPayload = SignRpc.SessionRequest(params = params)
         val irnParamsTtl = request.expiry?.run {
-            val defaultTtl = FIVE_MINUTES_IN_SECONDS
+            val defaultTtl = fiveMinutesInSeconds
             val extractedTtl = seconds - nowInSeconds
             val newTtl = extractedTtl.takeIf { extractedTtl >= defaultTtl } ?: defaultTtl
 
             Ttl(newTtl)
-        } ?: Ttl(FIVE_MINUTES_IN_SECONDS)
+        } ?: Ttl(fiveMinutesInSeconds)
         val irnParams = IrnParams(Tags.SESSION_REQUEST, irnParamsTtl, true)
-        val requestTtlInSeconds = request.expiry?.run { seconds - nowInSeconds } ?: FIVE_MINUTES_IN_SECONDS
+        val requestTtlInSeconds = request.expiry?.run { seconds - nowInSeconds } ?: fiveMinutesInSeconds
 
+        logger.log("Sending session request on topic: ${request.topic}}")
         jsonRpcInteractor.publishJsonRpcRequest(Topic(request.topic), irnParams, sessionPayload,
             onSuccess = {
-                logger.log("Session request sent successfully")
+                logger.log("Session request sent successfully on topic: ${request.topic}")
                 onSuccess(sessionPayload.id)
                 scope.launch {
                     try {

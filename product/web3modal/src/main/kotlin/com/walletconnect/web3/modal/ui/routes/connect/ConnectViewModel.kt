@@ -2,18 +2,19 @@ package com.walletconnect.web3.modal.ui.routes.connect
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.walletconnect.android.CoreClient
 import com.walletconnect.android.internal.common.modal.data.model.Wallet
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.foundation.util.Logger
+import com.walletconnect.modal.ui.model.LoadingState
+import com.walletconnect.modal.ui.model.UiState
+import com.walletconnect.util.Empty
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
-import com.walletconnect.web3.modal.domain.usecase.GetSelectedChainUseCase
 import com.walletconnect.web3.modal.domain.usecase.ObserveSelectedChainUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveChainSelectionUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveRecentWalletUseCase
-import com.walletconnect.web3.modal.ui.model.LoadingState
-import com.walletconnect.web3.modal.ui.model.UiState
+import com.walletconnect.web3.modal.engine.Web3ModalEngine
+import com.walletconnect.web3.modal.engine.coinbase.isCoinbaseWallet
 import com.walletconnect.web3.modal.ui.navigation.Navigator
 import com.walletconnect.web3.modal.ui.navigation.NavigatorImpl
 import com.walletconnect.web3.modal.ui.navigation.Route
@@ -30,13 +31,13 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
     private val walletsDataStore = WalletDataSource { showError(it) }
     private val saveRecentWalletUseCase: SaveRecentWalletUseCase = wcKoinApp.koin.get()
     private val saveChainSelectionUseCase: SaveChainSelectionUseCase = wcKoinApp.koin.get()
-    private val getSelectedChainUseCase: GetSelectedChainUseCase = wcKoinApp.koin.get()
     private val observeSelectedChainUseCase: ObserveSelectedChainUseCase = wcKoinApp.koin.get()
+    private val web3ModalEngine: Web3ModalEngine = wcKoinApp.koin.get()
 
-    private var sessionParams = getSessionParamsSelectedChain(getSelectedChainUseCase())
+    private var sessionParams = getSessionParamsSelectedChain(Web3Modal.selectedChain?.id)
 
     val selectedChain = observeSelectedChainUseCase().map { savedChainId ->
-        Web3Modal.chains.find { it.id == savedChainId } ?: Web3Modal.getSelectedChainOrFirst()
+        Web3Modal.chains.find { it.id == savedChainId } ?: web3ModalEngine.getSelectedChainOrFirst()
     }
 
     val walletsState: StateFlow<WalletsData> = walletsDataStore.searchWalletsState.stateIn(viewModelScope, SharingStarted.Lazily, WalletsData.empty())
@@ -64,7 +65,7 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
         navigateTo(Route.WHAT_IS_WALLET.path)
     }
 
-    fun navigateToScanQRCode() = connect { navigateTo(Route.QR_CODE.path) }
+    fun navigateToScanQRCode() = connectWalletConnect { navigateTo(Route.QR_CODE.path) }
 
     fun navigateToRedirectRoute(wallet: Wallet) {
         saveRecentWalletUseCase(wallet.id)
@@ -83,7 +84,7 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
         navigateTo(Route.ALL_WALLETS.path)
     }
 
-    fun connect(onSuccess: (String) -> Unit) = connect(
+    fun connectWalletConnect(onSuccess: (String) -> Unit) = connect(
         sessionParams = sessionParams,
         onSuccess = onSuccess,
         onError = {
@@ -91,6 +92,16 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
             logger.error(it)
         }
     )
+
+    fun connectCoinbase(onSuccess: () -> Unit = {}) {
+        web3ModalEngine.connectCoinbase(
+            onSuccess = onSuccess,
+            onError = {
+                showError(it.localizedMessage)
+                logger.error(it)
+            }
+        )
+    }
 
     fun fetchMoreWallets() {
         viewModelScope.launch { walletsDataStore.fetchMoreWallets() }

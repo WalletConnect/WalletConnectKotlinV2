@@ -8,8 +8,7 @@ import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
-import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.utils.DAY_IN_SECONDS
+import com.walletconnect.android.internal.utils.dayInSeconds
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.model.type.Sequences
@@ -19,7 +18,6 @@ import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
 internal class OnSessionDeleteUseCase(
@@ -32,16 +30,23 @@ internal class OnSessionDeleteUseCase(
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
     suspend operator fun invoke(request: WCRequest, params: SignParams.DeleteParams) = supervisorScope {
-        val irnParams = IrnParams(Tags.SESSION_DELETE_RESPONSE, Ttl(DAY_IN_SECONDS))
+        logger.log("Session delete received on topic: ${request.topic}")
+        val irnParams = IrnParams(Tags.SESSION_DELETE_RESPONSE, Ttl(dayInSeconds))
         try {
             if (!sessionStorageRepository.isSessionValid(request.topic)) {
+                logger.error("Session delete received failure on topic: ${request.topic} - invalid session")
                 jsonRpcInteractor.respondWithError(request, Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
                 return@supervisorScope
             }
-            jsonRpcInteractor.unsubscribe(request.topic, onSuccess = { crypto.removeKeys(request.topic.value) }, onFailure = { error -> logger.error(error) })
+            jsonRpcInteractor.unsubscribe(request.topic, onSuccess = {
+                logger.log("Session delete received on topic: ${request.topic} - unsubscribe success")
+                crypto.removeKeys(request.topic.value)
+            }, onFailure = { error -> logger.error("Session delete received on topic: ${request.topic} - unsubscribe error $error") })
             sessionStorageRepository.deleteSession(request.topic)
+            logger.log("Session delete received on topic: ${request.topic} - emitting")
             _events.emit(params.toEngineDO(request.topic))
         } catch (e: Exception) {
+            logger.error("Session delete received failure on topic: ${request.topic} - $e")
             jsonRpcInteractor.respondWithError(request, Uncategorized.GenericError("Cannot delete a session: ${e.message}, topic: ${request.topic}"), irnParams)
             _events.emit(SDKError(e))
             return@supervisorScope
