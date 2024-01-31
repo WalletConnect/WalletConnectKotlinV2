@@ -6,7 +6,7 @@ import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.type.SerializableJsonRpc
-import com.walletconnect.android.internal.utils.CURRENT_TIME_IN_SECONDS
+import com.walletconnect.android.internal.utils.currentTimeInSeconds
 import org.koin.core.definition.KoinDefinition
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
@@ -26,7 +26,7 @@ val Int.Companion.DefaultId
 fun Long.extractTimestamp() = this / 1000
 
 @JvmSynthetic
-fun Expiry.isSequenceValid(): Boolean = seconds > CURRENT_TIME_IN_SECONDS
+fun Expiry.isSequenceValid(): Boolean = seconds > currentTimeInSeconds
 
 @get:JvmSynthetic
 val String.Companion.HexPrefix

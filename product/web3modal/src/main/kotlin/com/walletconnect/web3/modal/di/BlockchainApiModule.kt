@@ -9,11 +9,9 @@ import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 
-private const val BLOCKCHAIN_RETROFIT = "BlockchainRetrofit"
-
 internal fun blockchainApiModule() = module {
 
-    single(named(BLOCKCHAIN_RETROFIT)) {
+    single(named(Web3ModalDITags.BLOCKCHAIN_RETROFIT)) {
         Retrofit.Builder()
             .baseUrl("https://rpc.walletconnect.com/v1/")
             .client(get(named(AndroidCommonDITags.OK_HTTP)))
@@ -22,7 +20,7 @@ internal fun blockchainApiModule() = module {
     }
 
     single {
-        get<Retrofit>(named(BLOCKCHAIN_RETROFIT)).create(BlockchainService::class.java)
+        get<Retrofit>(named(Web3ModalDITags.BLOCKCHAIN_RETROFIT)).create(BlockchainService::class.java)
     }
 
     single {

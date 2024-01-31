@@ -4,7 +4,7 @@ import com.walletconnect.android.internal.common.exception.CannotFindSequenceFor
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
-import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
+import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
@@ -32,21 +32,22 @@ internal class EmitEventUseCase(
             onSuccess = {
                 val eventParams = SignParams.EventParams(SessionEventVO(event.name, event.data), event.chainId)
                 val sessionEvent = SignRpc.SessionEvent(params = eventParams)
-                val irnParams = IrnParams(Tags.SESSION_EVENT, Ttl(FIVE_MINUTES_IN_SECONDS), true)
+                val irnParams = IrnParams(Tags.SESSION_EVENT, Ttl(fiveMinutesInSeconds), true)
 
+                logger.log("Emitting event on topic: $topic")
                 jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, sessionEvent,
                     onSuccess = {
-                        logger.log("Event sent successfully")
+                        logger.log("Event sent successfully, on topic: $topic")
                         onSuccess()
                     },
                     onFailure = { error ->
-                        logger.error("Sending event error: $error")
+                        logger.error("Sending event error: $error, on topic: $topic")
                         onFailure(error)
                     }
                 )
             },
             onFailure = { error ->
-                logger.error("Sending event error: $error")
+                logger.error("Sending event error: $error, on topic: $topic")
                 onFailure(error)
             }
         )
@@ -54,20 +55,24 @@ internal class EmitEventUseCase(
 
     private fun validate(topic: String, event: EngineDO.Event) {
         if (!sessionStorageRepository.isSessionValid(Topic(topic))) {
+            logger.error("Emit - cannot find sequence for topic: $topic")
             throw CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic")
         }
 
         val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic(topic))
         if (!session.isSelfController) {
+            logger.error("Emit - unauthorized peer: $topic")
             throw UnauthorizedPeerException(UNAUTHORIZED_EMIT_MESSAGE)
         }
 
         SignValidator.validateEvent(event) { error ->
+            logger.error("Emit - invalid event: $topic")
             throw InvalidEventException(error.message)
         }
 
         val namespaces = session.sessionNamespaces
         SignValidator.validateChainIdWithEventAuthorisation(event.chainId, event.name, namespaces) { error ->
+            logger.error("Emit - unauthorized event: $topic")
             throw UnauthorizedEventException(error.message)
         }
     }

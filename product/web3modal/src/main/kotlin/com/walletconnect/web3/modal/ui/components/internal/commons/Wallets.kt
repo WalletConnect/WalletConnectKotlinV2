@@ -4,22 +4,28 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -96,6 +102,24 @@ internal fun WalletImage(url: String, isEnabled: Boolean = true, modifier: Modif
 }
 
 @Composable
+internal fun BoxScope.InstalledWalletIcon() {
+    Icon(
+        modifier = Modifier
+            .offset(x = 2.dp, y = 2.dp)
+            .background(Web3ModalTheme.colors.background.color125, shape = CircleShape)
+            .align(Alignment.BottomEnd)
+            .background(Web3ModalTheme.colors.grayGlass02, shape = CircleShape)
+            .padding(2.dp)
+            .size(12.dp)
+            .background(Web3ModalTheme.colors.success.copy(0.15f), shape = CircleShape)
+            .padding(2.dp),
+        imageVector = ImageVector.vectorResource(id = R.drawable.ic_check),
+        contentDescription = "WalletConnectLogo",
+        tint = Web3ModalTheme.colors.success
+    )
+}
+
+@Composable
 internal fun WalletGridItem(
     wallet: Wallet,
     onWalletItemClick: (Wallet) -> Unit
@@ -113,13 +137,18 @@ internal fun WalletGridItem(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            WalletImage(
-                url = wallet.imageUrl,
-                modifier = Modifier
-                    .size(56.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .border(width = 1.dp, color = Web3ModalTheme.colors.grayGlass10, shape = RoundedCornerShape(16.dp))
-            )
+            Box {
+                WalletImage(
+                    url = wallet.imageUrl,
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .border(width = 1.dp, color = Web3ModalTheme.colors.grayGlass10, shape = RoundedCornerShape(16.dp))
+                )
+                if (wallet.isWalletInstalled) {
+                    InstalledWalletIcon()
+                }
+            }
             VerticalSpacer(height = 8.dp)
             Text(
                 text = wallet.name,

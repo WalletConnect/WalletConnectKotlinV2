@@ -6,7 +6,7 @@ import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
+import com.walletconnect.android.internal.utils.monthInSeconds
 import com.walletconnect.chat.common.model.Events
 import com.walletconnect.chat.storage.ThreadsStorageRepository
 import com.walletconnect.foundation.common.model.Ttl
@@ -31,7 +31,7 @@ internal class OnLeaveRequestUseCase(
 
         scope.launch {
             _events.emit(Events.OnLeft(wcRequest.topic.value))
-            jsonRpcInteractor.respondWithSuccess(wcRequest, IrnParams(Tags.CHAT_LEAVE_RESPONSE, Ttl(MONTH_IN_SECONDS)))
+            jsonRpcInteractor.respondWithSuccess(wcRequest, IrnParams(Tags.CHAT_LEAVE_RESPONSE, Ttl(monthInSeconds)))
         }
     }
 }

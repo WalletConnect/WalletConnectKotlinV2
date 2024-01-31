@@ -2,6 +2,8 @@ package com.walletconnect.sample.dapp.ui.routes.composable_routes.session
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.crashlytics.ktx.crashlytics
+import com.google.firebase.ktx.Firebase
 import com.walletconnect.sample.common.Chains
 import com.walletconnect.sample.common.tag
 import com.walletconnect.sample.dapp.domain.DappDelegate
@@ -37,9 +39,11 @@ class SessionViewModel : ViewModel() {
                     is Modal.Model.UpdatedSession -> {
                         _sessionUI.value = getSessions(event.topic)
                     }
+
                     is Modal.Model.DeletedSession -> {
                         _sessionEvents.emit(DappSampleEvents.Disconnect)
                     }
+
                     else -> Unit
                 }
             }.launchIn(viewModelScope)
@@ -66,36 +70,54 @@ class SessionViewModel : ViewModel() {
 
     fun ping() {
         val pingParams = Modal.Params.Ping(topic = requireNotNull(DappDelegate.selectedSessionTopic))
+        viewModelScope.launch { _sessionEvents.emit(DappSampleEvents.PingLoading) }
 
-        WalletConnectModal.ping(pingParams, object : Modal.Listeners.SessionPing {
-            override fun onSuccess(pingSuccess: Modal.Model.Ping.Success) {
-                viewModelScope.launch {
-                    _sessionEvents.emit(DappSampleEvents.PingSuccess(pingSuccess.topic))
+        try {
+            WalletConnectModal.ping(pingParams, object : Modal.Listeners.SessionPing {
+                override fun onSuccess(pingSuccess: Modal.Model.Ping.Success) {
+                    viewModelScope.launch {
+                        _sessionEvents.emit(DappSampleEvents.PingSuccess(pingSuccess.topic))
+                    }
                 }
-            }
 
-            override fun onError(pingError: Modal.Model.Ping.Error) {
-                viewModelScope.launch {
-                    _sessionEvents.emit(DappSampleEvents.PingError)
+                override fun onError(pingError: Modal.Model.Ping.Error) {
+                    viewModelScope.launch {
+                        _sessionEvents.emit(DappSampleEvents.PingError)
+                    }
                 }
+            })
+        } catch (e: Exception) {
+            viewModelScope.launch {
+                _sessionEvents.emit(DappSampleEvents.PingError)
             }
-        })
+        }
     }
 
     fun disconnect() {
         if (DappDelegate.selectedSessionTopic != null) {
-            val disconnectParams =
-                Modal.Params.Disconnect(sessionTopic = requireNotNull(DappDelegate.selectedSessionTopic))
+            try {
+                viewModelScope.launch { _sessionEvents.emit(DappSampleEvents.DisconnectLoading) }
+                val disconnectParams = Modal.Params.Disconnect(sessionTopic = requireNotNull(DappDelegate.selectedSessionTopic))
+                WalletConnectModal.disconnect(disconnectParams,
+                    onSuccess = {
+                        DappDelegate.deselectAccountDetails()
+                        viewModelScope.launch {
+                            _sessionEvents.emit(DappSampleEvents.Disconnect)
+                        }
+                    },
+                    onError = { error ->
+                        Timber.tag(tag(this)).e(error.throwable.stackTraceToString())
+                        Firebase.crashlytics.recordException(error.throwable)
+                        viewModelScope.launch {
+                            _sessionEvents.emit(DappSampleEvents.DisconnectError(error.throwable.message ?: "Unknown error, please try again or contact support"))
+                        }
+                    })
 
-            WalletConnectModal.disconnect(disconnectParams) { error ->
-                Timber.tag(tag(this)).e(error.throwable.stackTraceToString())
+            } catch (e: Exception) {
+                viewModelScope.launch {
+                    _sessionEvents.emit(DappSampleEvents.DisconnectError(e.message ?: "Unknown error, please try again or contact support"))
+                }
             }
-            DappDelegate.deselectAccountDetails()
-        }
-
-        viewModelScope.launch {
-            _sessionEvents.emit(DappSampleEvents.Disconnect)
         }
     }
-
 }

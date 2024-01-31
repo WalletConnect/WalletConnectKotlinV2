@@ -24,29 +24,11 @@ object NotifyDelegate : NotifyClient.Delegate {
         NotifyClient.setDelegate(this)
     }
 
-    override fun onNotifySubscription(notifySubscribe: Notify.Event.Subscription) {
-    }
-
-    override fun onNotifyMessage(notifyMessage: Notify.Event.Message) {
-        scope.launch {
-            Timber.d("NotifyDelegate.onNotifyMessage - $notifyMessage")
-            _notifyEvents.emit(notifyMessage)
-        }
-    }
-
     override fun onNotifyNotification(notifyNotification: Notify.Event.Notification) {
         scope.launch {
             Timber.d("NotifyDelegate.onNotifyNotification - $notifyNotification")
             _notifyEvents.emit(notifyNotification)
         }
-    }
-
-    override fun onNotifyDelete(notifyDelete: Notify.Event.Delete) {
-
-    }
-
-    override fun onNotifyUpdate(notifyUpdate: Notify.Event.Update) {
-
     }
 
     override fun onError(error: Notify.Model.Error) {

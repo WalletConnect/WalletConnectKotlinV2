@@ -40,6 +40,7 @@ import com.walletconnect.modal.utils.openWebAppLink
 import com.walletconnect.util.Empty
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
+import com.walletconnect.web3.modal.engine.coinbase.isCoinbaseWallet
 import com.walletconnect.web3.modal.ui.components.internal.OrientationBox
 import com.walletconnect.web3.modal.ui.components.internal.commons.DeclinedIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.ExternalIcon
@@ -73,24 +74,33 @@ internal fun RedirectWalletRoute(
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
     var redirectState by remember { mutableStateOf<RedirectState>(RedirectState.Loading) }
     var platformTab by rememberWalletPlatformTabs(wallet.toPlatform())
+    val connectMobile = {
+        if (wallet.isCoinbaseWallet()) {
+            connectState.connectCoinbase()
+        } else {
+            connectState.connectWalletConnect { uri ->
+                uriHandler.openMobileLink(
+                    uri = uri,
+                    mobileLink = wallet.mobileLink,
+                    onError = { redirectState = RedirectState.NotDetected }
+                )
+            }
+        }
+    }
+
 
     LaunchedEffect(Unit) {
         Web3ModalDelegate.wcEventModels.collect {
-            redirectState = when (it) {
-                is Modal.Model.RejectedSession -> RedirectState.Reject
-                else -> RedirectState.Loading
+            when (it) {
+                is Modal.Model.RejectedSession -> { redirectState = RedirectState.Reject }
+                is Modal.Model.ExpiredProposal -> { redirectState = RedirectState.Expired }
+                else -> Unit
             }
         }
     }
 
     LaunchedEffect(Unit) {
-        connectState.connect { uri ->
-            uriHandler.openMobileLink(
-                uri = uri,
-                mobileLink = wallet.mobileLink,
-                onError = { redirectState = RedirectState.NotDetected }
-            )
-        }
+        connectMobile()
     }
 
     RedirectWalletScreen(
@@ -103,18 +113,12 @@ internal fun RedirectWalletRoute(
             clipboardManager.setText(AnnotatedString(connectState.uri))
         },
         onMobileRetry = {
-            connectState.connect { uri ->
-                redirectState = RedirectState.Loading
-                uriHandler.openMobileLink(
-                    uri = uri,
-                    mobileLink = wallet.mobileLink,
-                    onError = { redirectState = RedirectState.NotDetected }
-                )
-            }
+            redirectState = RedirectState.Loading
+            connectMobile()
         },
         onOpenPlayStore = { uriHandler.openPlayStore(wallet.playStore) },
         onOpenWebApp = {
-            connectState.connect {
+            connectState.connectWalletConnect {
                 uriHandler.openWebAppLink(it, wallet.webAppLink)
             }
         }
@@ -239,7 +243,7 @@ private fun LandscapeRedirectContent(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         RedirectLabel(state = redirectState, wallet = wallet)
-                        if (redirectState == RedirectState.NotDetected || redirectState == RedirectState.Reject) {
+                        if (redirectState != RedirectState.Loading) {
                             VerticalSpacer(height = 20.dp)
                             TryAgainButton(onClick = onMobileRetry)
                         }
@@ -270,7 +274,7 @@ private fun WalletImageBox(
         when {
             redirectState == RedirectState.NotDetected || platformTab == PlatformTab.WEB -> RoundedWalletImage(url = wallet.imageUrl)
             redirectState == RedirectState.Loading -> WalletImageWithLoader(url = wallet.imageUrl)
-            redirectState == RedirectState.Reject -> RejectWalletImage(wallet.imageUrl)
+            redirectState == RedirectState.Reject || redirectState == RedirectState.Expired -> RejectWalletImage(wallet.imageUrl)
         }
     }
 }
@@ -288,14 +292,18 @@ private fun RedirectLabel(state: RedirectState, wallet: Wallet) {
             description = "Accept connection request in your wallet app"
             descriptionStyle = Web3ModalTheme.typo.small400.copy(color = Web3ModalTheme.colors.foreground.color200)
         }
-
         RedirectState.Reject -> {
             header = "Connection declined"
             description = "Connection can be declined if a previous request is still active"
             headerStyle = Web3ModalTheme.typo.paragraph400.copy(Web3ModalTheme.colors.error)
             descriptionStyle = Web3ModalTheme.typo.small400.copy(color = Web3ModalTheme.colors.foreground.color200)
         }
-
+        RedirectState.Expired -> {
+            header = "Connection expired"
+            description = String.Empty
+            headerStyle = Web3ModalTheme.typo.paragraph400.copy(Web3ModalTheme.colors.error)
+            descriptionStyle = Web3ModalTheme.typo.small400.copy(color = Web3ModalTheme.colors.foreground.color200)
+        }
         RedirectState.NotDetected -> {
             header = "App not installed"
             description = String.Empty
@@ -351,7 +359,7 @@ private fun RedirectMobileWalletScreen(
         ) {
             when (redirectState) {
                 RedirectState.Loading -> LoadingState(state, wallet, onRetry, onCopyLinkClick)
-                RedirectState.Reject -> RejectedState(state, wallet, onRetry)
+                RedirectState.Reject, RedirectState.Expired -> RejectedOrExpiredState(state, wallet, onRetry)
                 RedirectState.NotDetected -> NotDetectedWalletState(state, wallet, onOpenPlayStore)
             }
         }
@@ -429,7 +437,7 @@ private fun RoundedWalletImage(url: String) {
 }
 
 @Composable
-private fun RejectedState(
+private fun RejectedOrExpiredState(
     state: RedirectState,
     wallet: Wallet,
     onRetry: () -> Unit
@@ -482,6 +490,16 @@ private fun PreviewRedirectWalletScreenWithRejectedState() {
     val wallet = testWallets.first()
     Web3ModalPreview(wallet.name) {
         RedirectWalletScreen(redirectState = RedirectState.Reject, platformTab = PlatformTab.MOBILE, {}, wallet, {}, {}, {}, {})
+    }
+}
+
+@UiModePreview
+@Landscape
+@Composable
+private fun PreviewRedirectWalletScreenWithExpiredState() {
+    val wallet = testWallets.first()
+    Web3ModalPreview(wallet.name) {
+        RedirectWalletScreen(redirectState = RedirectState.Expired, platformTab = PlatformTab.MOBILE, {}, wallet, {}, {}, {}, {})
     }
 }
 

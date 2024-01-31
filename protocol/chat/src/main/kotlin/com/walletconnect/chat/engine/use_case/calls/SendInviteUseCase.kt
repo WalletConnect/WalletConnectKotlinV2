@@ -9,7 +9,7 @@ import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Participants
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
-import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
+import com.walletconnect.android.internal.utils.monthInSeconds
 import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
 import com.walletconnect.chat.common.exceptions.AccountsAlreadyHaveInviteException
 import com.walletconnect.chat.common.exceptions.AccountsAlreadyHaveThreadException
@@ -98,7 +98,7 @@ internal class SendInviteUseCase(
             keyManagementRepository.setKey(symmetricKey, acceptTopic.value)
             jsonRpcInteractor.subscribe(acceptTopic) { error -> return@subscribe onError(error) }
 
-            val irnParams = IrnParams(Tags.CHAT_INVITE, Ttl(MONTH_IN_SECONDS), true)
+            val irnParams = IrnParams(Tags.CHAT_INVITE, Ttl(monthInSeconds), true)
             jsonRpcInteractor.publishJsonRpcRequest(inviteTopic, irnParams, payload, EnvelopeType.ONE, participants,
                 {
                     val sentInvite = Invite.Sent(

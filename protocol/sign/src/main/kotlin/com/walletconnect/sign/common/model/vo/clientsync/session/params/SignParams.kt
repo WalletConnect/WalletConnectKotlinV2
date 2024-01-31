@@ -11,6 +11,7 @@ import com.walletconnect.android.internal.common.model.params.CoreSignParams
 import com.walletconnect.sign.common.model.vo.clientsync.common.Caip222Request
 import com.walletconnect.sign.common.model.vo.clientsync.common.Requester
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipant
+import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionEventVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionRequestVO
 import com.walletconnect.utils.DefaultId
@@ -29,6 +30,8 @@ internal sealed class SignParams : CoreSignParams() {
         val proposer: SessionProposer,
         @Json(name = "sessionProperties")
         val properties: Map<String, String>?,
+        @Json(name = "expiryTimestamp")
+        val expiryTimestamp: Long?,
     ) : SignParams()
 
     @JsonClass(generateAdapter = true)
@@ -49,6 +52,8 @@ internal sealed class SignParams : CoreSignParams() {
         val namespaces: Map<String, Namespace.Session>,
         @Json(name = "expiry")
         val expiry: Long,
+        @Json(name = "sessionProperties")
+        val properties: Map<String, String>?,
     ) : SignParams()
 
     @JsonClass(generateAdapter = true)

@@ -1,0 +1,20 @@
+import kotlin.Boolean;
+
+-- Dropping table as it will be recovered from the server.
+-- Removing request_id (INTEGER) from Notifications and adding notification_id (TEXT).
+-- Adding isLast (Boolean) to Notifications.
+-- Renaming published_at to sent_at.
+DROP TABLE Notifications;
+
+CREATE TABLE Notifications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    notification_id TEXT UNIQUE NOT NULL,
+    topic TEXT NOT NULL,
+    sent_at INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    body TEXT NOT NULL,
+    icon TEXT,
+    url TEXT,
+    type TEXT NOT NULL,
+    isLast INTEGER AS Boolean DEFAULT 0 NOT NULL
+);

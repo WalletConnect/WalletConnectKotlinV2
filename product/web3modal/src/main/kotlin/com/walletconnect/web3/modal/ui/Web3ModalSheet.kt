@@ -1,23 +1,32 @@
+@file:OptIn(ExperimentalAnimationApi::class)
+
 package com.walletconnect.web3.modal.ui
 
+import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import androidx.activity.ComponentDialog
 import androidx.activity.OnBackPressedCallback
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.unit.dp
-import androidx.core.content.res.use
 import androidx.core.content.res.getColorOrThrow
+import androidx.core.content.res.use
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
+import com.google.accompanist.navigation.animation.rememberAnimatedNavController
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.walletconnect.modal.utils.theme.toComposeColor
 import com.walletconnect.web3.modal.R
@@ -59,31 +68,35 @@ class Web3ModalSheet : BottomSheetDialogFragment() {
     private fun Web3ModalComposeView(
         shouldOpenChooseNetwork: Boolean
     ) {
-        val navController = rememberNavController()
-        (dialog as? ComponentDialog)?.onBackPressedDispatcher?.addCallback(
-            this@Web3ModalSheet,
-            onBackPressedCallback(navController)
-        )
-        Surface(
-            shape = RoundedCornerShape(topStart = 36.dp, topEnd = 36.dp)
-        ) {
+        val navController = rememberAnimatedNavController()
+        dialog?.setupDialog(navController)
+
+        Surface(shape = RoundedCornerShape(topStart = 36.dp, topEnd = 36.dp)) {
             Web3ModalComponent(
+                modifier = Modifier.nestedScroll(rememberNestedScrollInteropConnection()),
                 navController = navController,
                 shouldOpenChooseNetwork = shouldOpenChooseNetwork,
-                closeModal = { this@Web3ModalSheet.dismiss() }
-            )
+                closeModal = { this@Web3ModalSheet.dismiss() })
         }
     }
 
+    private fun Dialog.setupDialog(navController: NavHostController) {
+        (this as? ComponentDialog)?.onBackPressedDispatcher?.addCallback(
+            this@Web3ModalSheet, onBackPressedCallback(navController)
+        )
+        findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)?.let {
+            val behavior = BottomSheetBehavior.from(it)
+            behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        }
+    }
 
-    private fun onBackPressedCallback(navController: NavHostController) =
-        object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                if (navController.popBackStack().not()) {
-                    dismiss()
-                }
+    private fun onBackPressedCallback(navController: NavHostController) = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            if (navController.popBackStack().not()) {
+                dismiss()
             }
         }
+    }
 }
 
 @Composable
@@ -177,14 +190,16 @@ private val themeColorsAttributesMap = mapOf(
     23 to R.attr.modalError,
 )
 
-internal fun Context.getColorMap() =
-    obtainStyledAttributes(themeColorsAttributesMap.values.toIntArray()).use {
-        themeColorsAttributesMap.keys.map { id ->
-            themeColorsAttributesMap[id]!! to try { it.getColorOrThrow(id).toComposeColor() } catch (e: Exception) { null }
+internal fun Context.getColorMap() = obtainStyledAttributes(themeColorsAttributesMap.values.toIntArray()).use {
+    themeColorsAttributesMap.keys.map { id ->
+        themeColorsAttributesMap[id]!! to try {
+            it.getColorOrThrow(id).toComposeColor()
+        } catch (e: Exception) {
+            null
         }
-    }.toMap()
+    }
+}.toMap()
 
-internal fun Context.getThemeMode() = obtainStyledAttributes(intArrayOf(R.attr.modalMode))
-    .use { it.getInt(0, 0) }.toThemeMode()
+internal fun Context.getThemeMode() = obtainStyledAttributes(intArrayOf(R.attr.modalMode)).use { it.getInt(0, 0) }.toThemeMode()
 
 private fun Bundle?.getShouldOpenChooseNetworkArg() = this?.getBoolean(CHOOSE_NETWORK_KEY) ?: false

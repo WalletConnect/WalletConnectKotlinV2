@@ -60,9 +60,10 @@ internal class WalletConnectModalViewModel : ViewModel() {
                 sessionParams.properties,
                 pairing
             )
+
             WalletConnectModal.connect(
                 connect = connectParams,
-                onSuccess = { viewModelScope.launch { onSuccess(pairing.uri) } },
+                onSuccess = { url -> viewModelScope.launch { onSuccess(url) } },
                 onError = { handleError(it.throwable) }
             )
         } catch (e: Exception) {
@@ -81,6 +82,7 @@ internal class WalletConnectModalViewModel : ViewModel() {
     fun saveRecentWallet(wallet: Wallet) {
         walletsDataStore.updateRecentWallet(wallet.id)
     }
+
     fun clearSearch() = walletsDataStore.clearSearch()
 
     fun getWallet(walletId: String?) = walletsDataStore.getWallet(walletId)

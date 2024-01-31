@@ -43,5 +43,5 @@ internal fun responsesModule() = module {
 
     single { OnSessionUpdateResponseUseCase(sessionStorageRepository = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
 
-    single { OnSessionRequestResponseUseCase() }
+    single { OnSessionRequestResponseUseCase(logger = get(named(AndroidCommonDITags.LOGGER))) }
 }

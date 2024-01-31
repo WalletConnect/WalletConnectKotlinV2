@@ -54,11 +54,7 @@ class WalletConnectModalSheet : BottomSheetDialogFragment() {
             this@WalletConnectModalSheet,
             onBackPressedCallback(navController)
         )
-
-        WalletConnectModalComponent(
-            navController = navController,
-            closeModal = { this@WalletConnectModalSheet.dismiss() }
-        )
+        WalletConnectModalComponent(closeModal = { this@WalletConnectModalSheet.dismiss() })
     }
 
 

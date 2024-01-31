@@ -2,9 +2,9 @@
 
 package com.walletconnect.android.pairing.model
 
-import com.walletconnect.android.internal.utils.CURRENT_TIME_IN_SECONDS
-import com.walletconnect.android.internal.utils.FIVE_MINUTES_IN_SECONDS
-import com.walletconnect.android.internal.utils.MONTH_IN_SECONDS
+import com.walletconnect.android.internal.utils.currentTimeInSeconds
+import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
+import com.walletconnect.android.internal.utils.monthInSeconds
 
-val INACTIVE_PAIRING: Long = CURRENT_TIME_IN_SECONDS + FIVE_MINUTES_IN_SECONDS
-val ACTIVE_PAIRING: Long = CURRENT_TIME_IN_SECONDS + MONTH_IN_SECONDS
+val inactivePairing: Long get() = currentTimeInSeconds + fiveMinutesInSeconds
+val activePairing: Long get() = currentTimeInSeconds + monthInSeconds

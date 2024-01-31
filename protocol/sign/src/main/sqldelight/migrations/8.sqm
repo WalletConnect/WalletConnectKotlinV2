@@ -1,0 +1,20 @@
+-- migrates 8db to 9db
+
+-- CREATE V9 SCHEMA
+
+DROP TABLE IF EXISTS ProposalDao;
+
+CREATE TABLE ProposalDao (
+   request_id INTEGER PRIMARY KEY NOT NULL,
+   pairingTopic TEXT NOT NULL,
+   name TEXT NOT NULL,
+   description TEXT NOT NULL,
+   url TEXT NOT NULL,
+   icons TEXT AS List<String> NOT NULL,
+   relay_protocol TEXT NOT NULL,
+   relay_data TEXT,
+   proposer_key TEXT NOT NULL,
+   properties TEXT AS Map<String, String>,
+   redirect TEXT NOT NULL DEFAULT "",
+   expiry INTEGER
+);

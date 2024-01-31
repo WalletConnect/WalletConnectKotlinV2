@@ -52,7 +52,7 @@ internal fun ScanQRCodeRoute(connectViewModel: ConnectViewModel) {
             .filterIsInstance<Modal.Model.RejectedSession>()
             .collect {
                 snackBarHandler.showErrorSnack("Declined")
-                connectViewModel.connect { newUri -> uri = newUri }
+                connectViewModel.connectWalletConnect { newUri -> uri = newUri }
             }
     }
 

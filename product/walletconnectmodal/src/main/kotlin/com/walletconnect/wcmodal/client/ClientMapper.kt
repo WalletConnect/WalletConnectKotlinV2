@@ -18,6 +18,27 @@ internal fun Sign.Model.SessionEvent.toModal() = Modal.Model.SessionEvent(name, 
 
 internal fun Sign.Model.Session.toModal() = Modal.Model.Session(pairingTopic, topic, expiry, namespaces.toModal(), metaData)
 
+internal fun Sign.Model.SessionProposal.toModal() = Modal.Model.SessionProposal(
+    pairingTopic,
+    name,
+    description,
+    url,
+    icons,
+    redirect,
+    requiredNamespaces.toMapOfClientNamespacesProposal(),
+    optionalNamespaces.toMapOfClientNamespacesProposal(),
+    properties,
+    proposerPublicKey,
+    relayProtocol,
+    relayData
+)
+
+@JvmSynthetic
+internal fun Map<String, Sign.Model.Namespace.Proposal>.toMapOfClientNamespacesProposal(): Map<String, Modal.Model.Namespace.Proposal> =
+    mapValues { (_, namespace) ->
+        Modal.Model.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events)
+    }
+
 internal fun Sign.Model.DeletedSession.toModal() = when (this) {
     is Sign.Model.DeletedSession.Error -> Modal.Model.DeletedSession.Error(error)
     is Sign.Model.DeletedSession.Success -> Modal.Model.DeletedSession.Success(topic, reason)
@@ -59,6 +80,12 @@ internal fun List<Sign.Model.Cacao>.toClient(): List<Modal.Model.Cacao> = this.m
         )
     }
 }
+
+@JvmSynthetic
+internal fun Sign.Model.ExpiredProposal.toModal(): Modal.Model.ExpiredProposal = Modal.Model.ExpiredProposal(pairingTopic, proposerPublicKey)
+
+@JvmSynthetic
+internal fun Sign.Model.ExpiredRequest.toModal(): Modal.Model.ExpiredRequest = Modal.Model.ExpiredRequest(topic, id)
 
 internal fun Sign.Model.ConnectionState.toModal() = Modal.Model.ConnectionState(isAvailable)
 

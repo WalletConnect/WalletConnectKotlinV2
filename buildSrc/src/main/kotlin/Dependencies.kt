@@ -188,7 +188,7 @@ fun DependencyHandlerScope.compose() {
 }
 
 fun DependencyHandlerScope.accompanist() {
-    "api"("com.google.accompanist:accompanist-navigation-material:$accompanistVersion")
+    "implementation"("com.google.accompanist:accompanist-navigation-material:$accompanistVersion")
     "implementation"("com.google.accompanist:accompanist-drawablepainter:$accompanistVersion")
     "implementation"("com.google.accompanist:accompanist-navigation-animation:$accompanistVersion")
     "implementation"("com.google.accompanist:accompanist-systemuicontroller:$accompanistVersion")
@@ -227,4 +227,8 @@ fun DependencyHandlerScope.beagleOkHttp() {
 
 fun DependencyHandlerScope.dataStore() {
     "implementation"("androidx.datastore:datastore-preferences:$dataStoreVersion")
+}
+
+fun DependencyHandlerScope.coinbase() {
+    "implementation"("com.coinbase:coinbase-wallet-sdk:$coinbaseVersion")
 }

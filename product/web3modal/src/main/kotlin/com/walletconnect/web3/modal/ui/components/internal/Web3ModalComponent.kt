@@ -1,6 +1,10 @@
+@file:OptIn(ExperimentalAnimationApi::class)
+
 package com.walletconnect.web3.modal.ui.components.internal
 
+import android.net.Uri
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -12,9 +16,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
+import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
 import com.walletconnect.web3.modal.ui.Web3ModalState
@@ -25,13 +30,25 @@ import com.walletconnect.web3.modal.ui.routes.connect.ConnectionNavGraph
 import com.walletconnect.web3.modal.ui.utils.ComposableLifecycleEffect
 import com.walletconnect.web3.modal.ui.utils.toComponentEvent
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 @Composable
 fun Web3ModalComponent(
-    navController: NavHostController = rememberNavController(),
+    shouldOpenChooseNetwork: Boolean,
+    closeModal: () -> Unit
+) {
+    Web3ModalComponent(
+        navController = rememberAnimatedNavController(),
+        shouldOpenChooseNetwork = shouldOpenChooseNetwork,
+        closeModal = closeModal
+    )
+}
+
+@Composable
+internal fun Web3ModalComponent(
+    modifier: Modifier = Modifier,
+    navController: NavHostController = rememberAnimatedNavController(),
     shouldOpenChooseNetwork: Boolean,
     closeModal: () -> Unit
 ) {
@@ -44,11 +61,7 @@ fun Web3ModalComponent(
             .wcEventModels
             .onEach { event ->
                 when(event) {
-                    is Modal.Model.ApprovedSession -> {
-                        web3ModalViewModel.saveSession(event)
-                        closeModal()
-                    }
-                    is Modal.Model.DeletedSession.Success -> { closeModal() }
+                    is Modal.Model.ApprovedSession, is Modal.Model.DeletedSession.Success  -> { closeModal() }
                     else -> Unit
                 }
             }
@@ -62,6 +75,7 @@ fun Web3ModalComponent(
     )
 
     Web3ModalRoot(
+        modifier = modifier,
         navController = navController,
         closeModal = closeModal
     ) {

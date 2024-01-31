@@ -2,10 +2,11 @@ package com.walletconnect.web3.modal.client
 
 import com.walletconnect.android.internal.common.signing.cacao.CacaoType
 import com.walletconnect.sign.client.Sign
+import com.walletconnect.web3.modal.client.models.Account
+import com.walletconnect.web3.modal.client.models.Session
+import com.walletconnect.web3.modal.client.models.request.Request
 
-// toModal()
-
-internal fun Sign.Model.ApprovedSession.toModal() = Modal.Model.ApprovedSession(topic, metaData, namespaces.toModal(), accounts)
+internal fun Sign.Model.ApprovedSession.toModal() = Modal.Model.ApprovedSession.WalletConnectSession(topic, metaData, namespaces.toModal(), accounts)
 
 internal fun Map<String, Sign.Model.Namespace.Session>.toModal() =
     mapValues { (_, namespace) -> Modal.Model.Namespace.Session(namespace.chains, namespace.accounts, namespace.methods, namespace.events) }
@@ -36,6 +37,12 @@ internal fun Sign.Model.JsonRpcResponse.toModal() = when (this) {
     is Sign.Model.JsonRpcResponse.JsonRpcError -> Modal.Model.JsonRpcResponse.JsonRpcError(id, code, message)
     is Sign.Model.JsonRpcResponse.JsonRpcResult -> Modal.Model.JsonRpcResponse.JsonRpcResult(id, result)
 }
+
+@JvmSynthetic
+internal fun Sign.Model.ExpiredProposal.toModal(): Modal.Model.ExpiredProposal = Modal.Model.ExpiredProposal(pairingTopic, proposerPublicKey)
+
+@JvmSynthetic
+internal fun Sign.Model.ExpiredRequest.toModal(): Modal.Model.ExpiredRequest = Modal.Model.ExpiredRequest(topic, id)
 
 @JvmSynthetic
 internal fun List<Sign.Model.Cacao>.toClient(): List<Modal.Model.Cacao> = this.map {
@@ -89,8 +96,7 @@ internal fun Modal.Params.Disconnect.toSign() = Sign.Params.Disconnect(sessionTo
 
 internal fun Modal.Params.Ping.toSign() = Sign.Params.Ping(topic)
 
-internal fun Modal.Params.Request.toSign(sessionTopic: String, chainId: String) = Sign.Params.Request(sessionTopic, method, params, chainId, expiry)
-
+internal fun Request.toSign(sessionTopic: String, chainId: String) = Sign.Params.Request(sessionTopic, method, params, chainId, expiry)
 
 internal fun Modal.Listeners.SessionPing.toSign() = object : Sign.Listeners.SessionPing {
     override fun onSuccess(pingSuccess: Sign.Model.Ping.Success) {
@@ -100,5 +106,10 @@ internal fun Modal.Listeners.SessionPing.toSign() = object : Sign.Listeners.Sess
     override fun onError(pingError: Sign.Model.Ping.Error) {
         this@toSign.onError(pingError.toModal())
     }
-
 }
+
+internal fun Sign.Model.Session.toSession() = Session.WalletConnectSession(pairingTopic, topic, expiry, namespaces.toModal(), metaData)
+
+internal fun Account.toCoinbaseSession() = Session.CoinbaseSession(chain.id, address)
+
+//internal fun Sign.Model.Session.toSession() = Session(pairingTopic, topic, expiry, namespaces.toModal(), metaData)

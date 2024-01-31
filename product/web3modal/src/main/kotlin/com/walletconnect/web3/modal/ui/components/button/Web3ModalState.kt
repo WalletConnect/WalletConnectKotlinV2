@@ -8,14 +8,14 @@ import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
+import com.walletconnect.web3.modal.domain.model.Session
 import com.walletconnect.web3.modal.domain.usecase.GetEthBalanceUseCase
-import com.walletconnect.web3.modal.domain.usecase.GetSelectedChainUseCase
-import com.walletconnect.web3.modal.domain.usecase.GetSessionTopicUseCase
+import com.walletconnect.web3.modal.domain.usecase.GetSessionUseCase
 import com.walletconnect.web3.modal.domain.usecase.ObserveSelectedChainUseCase
-import com.walletconnect.web3.modal.domain.usecase.ObserveSessionTopicUseCase
+import com.walletconnect.web3.modal.domain.usecase.ObserveSessionUseCase
+import com.walletconnect.web3.modal.engine.Web3ModalEngine
 import com.walletconnect.web3.modal.ui.components.ComponentDelegate
 import com.walletconnect.web3.modal.ui.openWeb3Modal
-import com.walletconnect.web3.modal.utils.getAddress
 import com.walletconnect.web3.modal.utils.getChainNetworkImageUrl
 import com.walletconnect.web3.modal.utils.getChains
 import com.walletconnect.web3.modal.utils.getSelectedChain
@@ -42,10 +42,10 @@ class Web3ModalState(
 ) {
     private val logger: Logger = wcKoinApp.koin.get()
     private val observeSelectedChainUseCase: ObserveSelectedChainUseCase = wcKoinApp.koin.get()
-    private val observeSessionTopicUseCase: ObserveSessionTopicUseCase = wcKoinApp.koin.get()
-    private val getSessionTopicUseCase: GetSessionTopicUseCase = wcKoinApp.koin.get()
-    private val getSelectedChainUseCase: GetSelectedChainUseCase = wcKoinApp.koin.get()
+    private val observeSessionTopicUseCase: ObserveSessionUseCase = wcKoinApp.koin.get()
+    private val getSessionUseCase: GetSessionUseCase = wcKoinApp.koin.get()
     private val getEthBalanceUseCase: GetEthBalanceUseCase = wcKoinApp.koin.get()
+    private val web3ModalEngine: Web3ModalEngine = wcKoinApp.koin.get()
 
     val isOpen = ComponentDelegate.modalComponentEvent
         .map { event -> event.isOpen }
@@ -54,28 +54,29 @@ class Web3ModalState(
     private val sessionTopicFlow = observeSessionTopicUseCase()
 
     val isConnected = sessionTopicFlow
-        .map { it != null && Web3Modal.getActiveSessionByTopic(it) != null }
+        .map { it != null && getSessionUseCase() != null }
+        .map { Web3Modal.getAccount() != null }
         .stateIn(coroutineScope, started = SharingStarted.Lazily, initialValue = false)
 
     internal val selectedChain = observeSelectedChainUseCase().map { savedChainId ->
         Web3Modal.chains.find { it.id == savedChainId }
     }
 
-    internal val accountNormalButtonState = sessionTopicFlow.combine(selectedChain) { topic, chain -> topic to chain}
+    internal val accountNormalButtonState = sessionTopicFlow.combine(selectedChain) { session, chain -> session to chain }
         .mapOrAccountState(AccountButtonType.NORMAL)
         .stateIn(coroutineScope, started = SharingStarted.Lazily, initialValue = AccountButtonState.Loading)
 
-    internal val accountMixedButtonState = sessionTopicFlow.combine(selectedChain) { topic, chain -> topic to chain}
+    internal val accountMixedButtonState = sessionTopicFlow.combine(selectedChain) { session, chain -> session to chain}
         .mapOrAccountState(AccountButtonType.MIXED)
         .stateIn(coroutineScope, started = SharingStarted.Lazily, initialValue = AccountButtonState.Loading)
 
-    private fun Flow<Pair<String?, Modal.Model.Chain?>>.mapOrAccountState(accountButtonType: AccountButtonType) =
-        map { topic -> topic.let { getActiveSession()?.mapToAccountButtonState(accountButtonType) } ?: AccountButtonState.Invalid }
+    private fun Flow<Pair<Session?, Modal.Model.Chain?>>.mapOrAccountState(accountButtonType: AccountButtonType) =
+        map { web3ModalEngine.getActiveSession()?.mapToAccountButtonState(accountButtonType) ?: AccountButtonState.Invalid }
 
-    private suspend fun Modal.Model.Session.mapToAccountButtonState(accountButtonType: AccountButtonType) = try {
+    private suspend fun Session.mapToAccountButtonState(accountButtonType: AccountButtonType) = try {
         val chains = getChains()
-        val selectedChain = chains.getSelectedChain(getSelectedChainUseCase())
-        val address = getAddress(selectedChain)
+        val selectedChain = chains.getSelectedChain(this.chain)
+        val address = this.address
         when (accountButtonType) {
             AccountButtonType.NORMAL -> AccountButtonState.Normal(address = address)
             AccountButtonType.MIXED -> {
@@ -94,8 +95,6 @@ class Web3ModalState(
 
     private suspend fun getBalance(selectedChain: Modal.Model.Chain, address: String) =
         selectedChain.rpcUrl?.let { url -> getEthBalanceUseCase(selectedChain.token, url, address)?.valueWithSymbol }
-
-    private suspend fun getActiveSession() = getSessionTopicUseCase()?.let { Web3Modal.getActiveSessionByTopic(it) }
 
     internal fun openWeb3Modal(shouldOpenChooseNetwork: Boolean = false) {
         navController.openWeb3Modal(

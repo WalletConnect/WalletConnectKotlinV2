@@ -1,5 +1,8 @@
 package com.walletconnect.sample.dapp.domain
 
+import com.walletconnect.android.Core
+import com.walletconnect.android.CoreClient
+import com.walletconnect.sample.common.tag
 import com.walletconnect.sample.common.tag
 import com.walletconnect.wcmodal.client.Modal
 import com.walletconnect.wcmodal.client.WalletConnectModal
@@ -12,16 +15,20 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
-object DappDelegate : WalletConnectModal.ModalDelegate {
+object DappDelegate : WalletConnectModal.ModalDelegate, CoreClient.CoreDelegate {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val _wcEventModels: MutableSharedFlow<Modal.Model?> = MutableSharedFlow()
-    val wcEventModels: SharedFlow<Modal.Model?> =  _wcEventModels.asSharedFlow()
+    val wcEventModels: SharedFlow<Modal.Model?> = _wcEventModels.asSharedFlow()
+
+    private val _coreEvents: MutableSharedFlow<Core.Model> = MutableSharedFlow()
+    val coreEvents: SharedFlow<Core.Model> = _coreEvents.asSharedFlow()
 
     var selectedSessionTopic: String? = null
         private set
 
     init {
         WalletConnectModal.setDelegate(this)
+        CoreClient.setDelegate(this)
     }
 
     override fun onSessionApproved(approvedSession: Modal.Model.ApprovedSession) {
@@ -70,6 +77,18 @@ object DappDelegate : WalletConnectModal.ModalDelegate {
         }
     }
 
+    override fun onProposalExpired(proposal: Modal.Model.ExpiredProposal) {
+        scope.launch {
+            _wcEventModels.emit(proposal)
+        }
+    }
+
+    override fun onRequestExpired(request: Modal.Model.ExpiredRequest) {
+        scope.launch {
+            _wcEventModels.emit(request)
+        }
+    }
+
     override fun onSessionAuthenticateResponse(sessionUpdateResponse: Modal.Model.SessionAuthenticateResponse) {
         TODO("Not yet implemented")
     }
@@ -90,5 +109,19 @@ object DappDelegate : WalletConnectModal.ModalDelegate {
         scope.launch {
             _wcEventModels.emit(error)
         }
+    }
+
+    override fun onPairingDelete(deletedPairing: Core.Model.DeletedPairing) {
+        Timber.d(tag(this), "Pairing deleted: ${deletedPairing.topic}")
+    }
+
+    override fun onPairingExpired(expiredPairing: Core.Model.ExpiredPairing) {
+        scope.launch {
+            _coreEvents.emit(expiredPairing)
+        }
+    }
+
+    override fun onPairingState(pairingState: Core.Model.PairingState) {
+        Timber.d(tag(this), "Dapp pairing state: ${pairingState.isPairingState}")
     }
 }

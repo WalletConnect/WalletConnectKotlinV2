@@ -32,6 +32,8 @@ object WalletConnectModal {
         fun onSessionAuthenticateResponse(sessionUpdateResponse: Modal.Model.SessionAuthenticateResponse)
 
         // Utils
+        fun onProposalExpired(proposal: Modal.Model.ExpiredProposal)
+        fun onRequestExpired(request: Modal.Model.ExpiredRequest)
         fun onConnectionStateChange(state: Modal.Model.ConnectionState)
         fun onError(error: Modal.Model.Error)
     }
@@ -83,6 +85,8 @@ object WalletConnectModal {
                 is Modal.Model.SessionEvent -> delegate.onSessionEvent(event)
                 is Modal.Model.SessionRequestResponse -> delegate.onSessionRequestResponse(event)
                 is Modal.Model.UpdatedSession -> delegate.onSessionUpdate(event)
+                is Modal.Model.ExpiredProposal -> delegate.onProposalExpired(event)
+                is Modal.Model.ExpiredRequest -> delegate.onRequestExpired(event)
                 is Modal.Model.SessionAuthenticateResponse -> delegate.onSessionAuthenticateResponse(event)
                 else -> Unit
             }
@@ -124,6 +128,14 @@ object WalletConnectModal {
                 delegate.onSessionAuthenticateResponse(sessionAuthenticateResponse.toModal())
             }
 
+            override fun onProposalExpired(proposal: Sign.Model.ExpiredProposal) {
+                delegate.onProposalExpired(proposal.toModal())
+            }
+
+            override fun onRequestExpired(request: Sign.Model.ExpiredRequest) {
+                delegate.onRequestExpired(request.toModal())
+            }
+
             override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {
                 delegate.onConnectionStateChange(state.toModal())
             }
@@ -139,6 +151,10 @@ object WalletConnectModal {
         _sessionParams = sessionParams
     }
 
+    @Deprecated(
+        message = "Replaced with the same name method but onSuccess callback returns a Pairing URL",
+        replaceWith = ReplaceWith(expression = "fun connect(connect: Modal.Params.Connect, onSuccess: (String) -> Unit, onError: (Modal.Model.Error) -> Unit)")
+    )
     fun connect(
         connect: Modal.Params.Connect,
         onSuccess: () -> Unit,
@@ -147,6 +163,18 @@ object WalletConnectModal {
         SignClient.connect(
             connect = connect.toSign(),
             onSuccess = onSuccess,
+            onError = { onError(it.toModal()) }
+        )
+    }
+
+    fun connect(
+        connect: Modal.Params.Connect,
+        onSuccess: (String) -> Unit,
+        onError: (Modal.Model.Error) -> Unit
+    ) {
+        SignClient.connect(
+            connect = connect.toSign(),
+            onSuccess = { url -> onSuccess(url) },
             onError = { onError(it.toModal()) }
         )
     }
@@ -190,6 +218,12 @@ object WalletConnectModal {
      * It is advised that this function be called from background operation
      */
     fun getListOfActiveSessions() = SignClient.getListOfActiveSessions().map { it.toModal() }
+
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+    fun getListOfProposals() = SignClient.getSessionProposals().map { it.toModal() }
 
     /**
      * Caution: This function is blocking and runs on the current thread.

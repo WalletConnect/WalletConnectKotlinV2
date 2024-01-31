@@ -3,6 +3,7 @@ package com.walletconnect.web3.modal.data.json_rpc.balance
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
+@JsonClass(generateAdapter = true)
 internal data class BalanceRpcResponse(
     @Json(name = "id")
     val id: Long,
@@ -16,6 +17,8 @@ internal data class BalanceRpcResponse(
 
 @JsonClass(generateAdapter = true)
 internal data class Error(
+    @Json(name = "code")
     val code: Int,
+    @Json(name = "message")
     val message: String,
 )

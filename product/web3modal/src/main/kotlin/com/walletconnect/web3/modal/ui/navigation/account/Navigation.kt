@@ -1,8 +1,11 @@
+@file:OptIn(ExperimentalAnimationApi::class)
+
 package com.walletconnect.web3.modal.ui.navigation.account
 
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
-import androidx.navigation.compose.composable
+import com.google.accompanist.navigation.animation.composable
 import androidx.navigation.navArgument
 import com.walletconnect.util.Empty
 import com.walletconnect.web3.modal.client.Modal

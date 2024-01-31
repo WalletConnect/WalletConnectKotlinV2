@@ -84,7 +84,8 @@ internal fun callsModule() = module {
             metadataStorageRepository = get(),
             sessionStorageRepository = get(),
             verifyContextStorageRepository = get(),
-            pairingController = get()
+            pairingController = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }
 
@@ -111,7 +112,14 @@ internal fun callsModule() = module {
         )
     }
 
-    single<RejectSessionUseCaseInterface> { RejectSessionUseCase(verifyContextStorageRepository = get(), proposalStorageRepository = get(), jsonRpcInteractor = get()) }
+    single<RejectSessionUseCaseInterface> {
+        RejectSessionUseCase(
+            verifyContextStorageRepository = get(),
+            proposalStorageRepository = get(),
+            jsonRpcInteractor = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER))
+        )
+    }
 
     single<SessionUpdateUseCaseInterface> { SessionUpdateUseCase(jsonRpcInteractor = get(), sessionStorageRepository = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
 
