@@ -31,6 +31,8 @@ import com.walletconnect.sign.engine.use_case.calls.EmitEventUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.ExtendSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.FormatAuthenticateMessageUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.GetListOfVerifyContextsUseCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.GetNamespacesFromReCapsInterface
+import com.walletconnect.sign.engine.use_case.calls.GetPairingForSessionAuthenticateInterface
 import com.walletconnect.sign.engine.use_case.calls.GetPairingsUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.GetSessionProposalsUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.GetSessionsUseCaseInterface
@@ -111,6 +113,8 @@ internal class SignEngine(
     private val decryptMessageUseCase: DecryptMessageUseCaseInterface,
     private val getSessionsUseCase: GetSessionsUseCaseInterface,
     private val getPairingsUseCase: GetPairingsUseCaseInterface,
+    private val getPairingForSessionAuthenticateInterface: GetPairingForSessionAuthenticateInterface,
+    private val getNamespacesFromReCapsInterface: GetNamespacesFromReCapsInterface,
     private val getSessionProposalsUseCase: GetSessionProposalsUseCaseInterface,
     private val getVerifyContextByIdUseCase: GetVerifyContextByIdUseCaseInterface,
     private val getListOfVerifyContextsUseCase: GetListOfVerifyContextsUseCaseInterface,
@@ -149,6 +153,8 @@ internal class SignEngine(
     GetPendingRequestsUseCaseByTopicInterface by getPendingRequestsByTopicUseCase,
     GetPendingSessionRequestByTopicUseCaseInterface by getPendingSessionRequestByTopicUseCase,
     GetSessionProposalsUseCaseInterface by getSessionProposalsUseCase,
+    GetPairingForSessionAuthenticateInterface by getPairingForSessionAuthenticateInterface,
+    GetNamespacesFromReCapsInterface by getNamespacesFromReCapsInterface,
     GetVerifyContextByIdUseCaseInterface by getVerifyContextByIdUseCase,
     GetListOfVerifyContextsUseCaseInterface by getListOfVerifyContextsUseCase {
     private var jsonRpcRequestsJob: Job? = null

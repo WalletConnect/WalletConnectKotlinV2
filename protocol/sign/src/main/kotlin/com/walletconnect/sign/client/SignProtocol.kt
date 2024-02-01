@@ -17,6 +17,7 @@ import com.walletconnect.sign.di.signJsonRpcModule
 import com.walletconnect.sign.di.storageModule
 import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.engine.model.EngineDO
+import com.walletconnect.sign.engine.model.mapper.toMapOfEngineNamespacesOptional
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -115,8 +116,10 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
                     connect.namespaces?.toMapOfEngineNamespacesRequired(),
                     connect.optionalNamespaces?.toMapOfEngineNamespacesOptional(),
                     connect.properties,
-                    connect.pairing.toPairing(), onSuccess
-                ) { error -> onError(Sign.Model.Error(error)) }
+                    connect.pairing.toPairing(),
+                    onSuccess = { onSuccess() },
+                    onFailure = { error -> onError(Sign.Model.Error(error)) }
+                )
             } catch (error: Exception) {
                 onError(Sign.Model.Error(error))
             }
@@ -131,6 +134,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     ) {
         checkEngineInitialization()
         scope.launch {
+
             try {
                 signEngine.proposeSession(
                     connect.namespaces?.toMapOfEngineNamespacesRequired(),
@@ -149,15 +153,27 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     @Throws(IllegalStateException::class)
     override fun sessionAuthenticate(
         authenticate: Sign.Params.Authenticate,
-        onSuccess: () -> Unit,
+        onSuccess: (String) -> Unit,
         onError: (Sign.Model.Error) -> Unit,
     ) {
         checkEngineInitialization()
         scope.launch {
             try {
-                signEngine.authenticate(authenticate.toPayloadParams(), authenticate.methods, authenticate.pairingTopic,
-                    onSuccess = { onSuccess() },
+                val pairing = signEngine.getPairingForSessionAuthenticate(authenticate.pairingTopic)
+                val optionalNamespaces = signEngine.getNamespacesFromReCaps(authenticate.chains, authenticate.methods ?: emptyList()).toMapOfEngineNamespacesOptional()
+
+                signEngine.authenticate(authenticate.toPayloadParams(), authenticate.methods, pairing.toPairing(),
+                    onSuccess = { url -> onSuccess(url) },
                     onFailure = { throwable -> onError(Sign.Model.Error(throwable)) })
+
+                signEngine.proposeSession(
+                    emptyMap(),
+                    optionalNamespaces,
+                    properties = null,
+                    pairing = pairing.toPairing(),
+                    onSuccess = { /*Success*/ },
+                    onFailure = { error -> onError(Sign.Model.Error(error)) }
+                )
             } catch (error: Exception) {
                 onError(Sign.Model.Error(error))
             }

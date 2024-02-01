@@ -9,8 +9,8 @@ data class WalletConnectUri(
     val symKey: SymmetricKey,
     val relay: RelayProtocolOptions,
     val version: String = "2",
-    val expiry: Expiry?
-//    val registeredMethods: String, // TODO: We'll review later how we want to handle registered methods
+    val expiry: Expiry?,
+    val methods: String?,
 ) {
     fun toAbsoluteString(): String =
         "wc:${topic.value}@$version?${getQuery()}&symKey=${symKey.keyAsHex}"
@@ -23,6 +23,11 @@ data class WalletConnectUri(
         if (expiry != null) {
             query = "$query&expiryTimestamp=${expiry.seconds}"
         }
+
+        if (!methods.isNullOrEmpty()) {
+            query = "$query&methods=$methods"
+        }
+
         return query
     }
 }

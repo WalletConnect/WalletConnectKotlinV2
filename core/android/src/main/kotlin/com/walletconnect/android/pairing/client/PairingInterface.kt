@@ -12,6 +12,12 @@ interface PairingInterface {
      */
     fun create(onError: (Core.Model.Error) -> Unit = {}): Core.Model.Pairing?
 
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+    fun create(onError: (Core.Model.Error) -> Unit = {}, method: String): Core.Model.Pairing?
+
     fun pair(
         pair: Core.Params.Pair,
         onSuccess: (Core.Params.Pair) -> Unit = {},

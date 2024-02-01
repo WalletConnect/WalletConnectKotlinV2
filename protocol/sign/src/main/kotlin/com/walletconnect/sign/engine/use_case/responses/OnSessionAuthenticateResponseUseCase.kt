@@ -59,7 +59,6 @@ internal class OnSessionAuthenticateResponseUseCase(
             }
 
             val pairingTopic = jsonRpcHistoryEntry.topic
-
             if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) return@supervisorScope //todo: emit error
 //            todo: handle pending session authenticate requests
 //            pairingTopicToResponseTopicMap.remove(pairingTopic)

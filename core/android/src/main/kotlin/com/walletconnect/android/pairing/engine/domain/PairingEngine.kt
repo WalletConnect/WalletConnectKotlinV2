@@ -112,12 +112,11 @@ internal class PairingEngine(
             }
     }
 
-    fun create(onFailure: (Throwable) -> Unit): Core.Model.Pairing? {
+    fun create(onFailure: (Throwable) -> Unit, methods: String? = null): Core.Model.Pairing? {
         val pairingTopic: Topic = generateTopic()
         val symmetricKey: SymmetricKey = crypto.generateAndStoreSymmetricKey(pairingTopic)
         val relay = RelayProtocolOptions()
-        val registeredMethods = setOfRegisteredMethods.joinToString(",") { it }
-        val inactivePairing = Pairing(pairingTopic, relay, symmetricKey, registeredMethods, Expiry(inactivePairing))
+        val inactivePairing = Pairing(pairingTopic, relay, symmetricKey, Expiry(inactivePairing), methods)
 
         return inactivePairing.runCatching {
             logger.log("Pairing created successfully")
@@ -143,7 +142,7 @@ internal class PairingEngine(
 
     fun pair(uri: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         val walletConnectUri: WalletConnectUri = Validator.validateWCUri(uri) ?: return onFailure(MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE))
-        val inactivePairing = Pairing(walletConnectUri, registeredMethods)
+        val inactivePairing = Pairing(walletConnectUri)
         val symmetricKey = walletConnectUri.symKey
 
         try {
@@ -237,6 +236,8 @@ internal class PairingEngine(
     fun register(vararg method: String) {
         setOfRegisteredMethods.addAll(method)
     }
+
+    fun getPairingByTopic(topic: Topic): Pairing? = pairingRepository.getPairingOrNullByTopic(topic)?.takeIf { pairing -> pairing.isNotExpired() }
 
     fun activate(topic: String, onFailure: (Throwable) -> Unit) {
         getPairing(topic, onFailure) { pairing -> pairingRepository.activatePairing(pairing.topic) }

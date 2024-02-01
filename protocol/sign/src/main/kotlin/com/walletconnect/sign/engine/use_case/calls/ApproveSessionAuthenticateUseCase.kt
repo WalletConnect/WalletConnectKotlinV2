@@ -54,6 +54,7 @@ internal class ApproveSessionAuthenticateUseCase(
                 return@supervisorScope
             }
             //todo: expiry check
+            //todo: check for single chain
 
             val sessionAuthenticateParams: SignParams.SessionAuthenticateParams = jsonRpcHistoryEntry.params
             val receiverPublicKey = PublicKey(sessionAuthenticateParams.requester.publicKey)
@@ -82,8 +83,8 @@ internal class ApproveSessionAuthenticateUseCase(
             val chains = cacaos.map { cacao -> Issuer(cacao.payload.iss).chainId }
             val namespace = Issuer(cacaos.first().payload.iss).namespace
             val methods = cacaos.map { cacao -> cacao.payload.methods }.flatten().distinct()
-            val sessionNamespaces: Map<String, Namespace.Session> = mapOf(namespace to Namespace.Session(accounts = accounts, events = listOf(), methods = methods, chains = chains))
             val requiredNamespace: Map<String, Namespace.Proposal> = mapOf(namespace to Namespace.Proposal(events = listOf(), methods = methods, chains = chains))
+            val sessionNamespaces: Map<String, Namespace.Session> = mapOf(namespace to Namespace.Session(accounts = accounts, events = listOf(), methods = methods, chains = chains))
             val authenticatedSession = SessionVO.createAuthenticatedSession(
                 sessionTopic = sessionTopic,
                 peerPublicKey = receiverPublicKey,

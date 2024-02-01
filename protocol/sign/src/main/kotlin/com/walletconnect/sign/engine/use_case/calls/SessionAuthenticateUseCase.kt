@@ -4,6 +4,7 @@ import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementReposit
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.IrnParams
+import com.walletconnect.android.internal.common.model.Pairing
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.signing.cacao.Cacao.Payload.Companion.ATT_KEY
@@ -31,28 +32,19 @@ internal class SessionAuthenticateUseCase(
     private val selfAppMetaData: AppMetaData,
     private val logger: Logger
 ) : SessionAuthenticateUseCaseInterface {
-    override suspend fun authenticate(payloadParams: EngineDO.PayloadParams, methods: List<String>?, topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
+    override suspend fun authenticate(payloadParams: EngineDO.PayloadParams, methods: List<String>?, pairing: Pairing, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
 //        if (!CoreValidator.isExpiryWithinBounds(expiry ?: Expiry(300))) {
 //            return@supervisorScope onFailure(InvalidExpiryException())
 //        }
-
-        //TODO: Multi namespace - throw error, chains validation
+        //TODO: Multi namespace - if other than eip155 - throw error, add chains validation
         val namespace = SignValidator.getNamespaceKeyFromChainId(payloadParams.chains.first())
         val actionsJsonArray = JSONArray()
-
         methods?.forEachIndexed { index, method -> actionsJsonArray.put(index, JSONObject().put("request/$method", JSONArray())) }
 
-        val recaps =
-            JSONObject().put(
-                ATT_KEY,
-                JSONObject().put(namespace, actionsJsonArray)
-            ).toString().replace("\\/", "/")
-
-
+        val recaps = JSONObject().put(ATT_KEY, JSONObject().put(namespace, actionsJsonArray)).toString().replace("\\/", "/")
         val base64Recaps = Base64.toBase64String(recaps.toByteArray(Charsets.UTF_8))
         val reCapsUrl = "$RECAPS_PREFIX$base64Recaps"
         if (payloadParams.resources == null) payloadParams.resources = listOf(reCapsUrl) else payloadParams.resources!!.toMutableList().add(reCapsUrl)
-
 
         val responsePublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
         val responseTopic: Topic = crypto.getTopicFromKey(responsePublicKey)
@@ -60,7 +52,7 @@ internal class SessionAuthenticateUseCase(
         val authRequest: SignRpc.SessionAuthenticate = SignRpc.SessionAuthenticate(params = authParams)
         val irnParamsTtl = getIrnParamsTtl(null, currentTimeInSeconds)
         val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE, irnParamsTtl, true)
-        val pairingTopic = Topic(topic)
+        val pairingTopic = pairing.topic
 
         //todo: use exp from payload
 //        val requestTtlInSeconds = expiry?.run { seconds - nowInSeconds } ?: DAY_IN_SECONDS
@@ -76,7 +68,7 @@ internal class SessionAuthenticateUseCase(
                 }
 
 //                pairingTopicToResponseTopicMap[pairingTopic] = responseTopic
-                onSuccess()
+                onSuccess(pairing.uri)
 //                collectPeerResponse(requestTtlInSeconds, authRequest)
             },
             onFailure = { error ->
@@ -95,5 +87,5 @@ internal class SessionAuthenticateUseCase(
 }
 
 internal interface SessionAuthenticateUseCaseInterface {
-    suspend fun authenticate(payloadParams: EngineDO.PayloadParams, methods: List<String>?, topic: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit)
+    suspend fun authenticate(payloadParams: EngineDO.PayloadParams, methods: List<String>?, pairing: Pairing, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit)
 }
