@@ -3,7 +3,6 @@ package com.walletconnect.web3.modal.ui.routes.connect
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.walletconnect.web3.modal.Web3ModalTestScreen
 import com.walletconnect.web3.modal.ui.navigation.ConsumeNavigationEventsEffect
 import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.ui.navigation.connection.redirectRoute
@@ -45,8 +44,7 @@ internal fun ConnectionNavGraph(
             ScanQRCodeRoute(connectViewModel = connectViewModel)
         }
         animatedComposable(route = Route.WHAT_IS_WALLET.path) {
-//            WhatIsWallet(navController = navController)
-            Web3ModalTestScreen()
+            WhatIsWallet(navController = navController)
         }
         animatedComposable(Route.GET_A_WALLET.path) {
             GetAWalletRoute(wallets = connectViewModel.getNotInstalledWallets())

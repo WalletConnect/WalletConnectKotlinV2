@@ -20,12 +20,14 @@ import com.walletconnect.modal.ui.components.common.HorizontalSpacer
 import com.walletconnect.modal.ui.components.common.roundedClickable
 import com.walletconnect.web3.modal.R
 import com.walletconnect.web3.modal.ui.components.internal.commons.ContentDescription
+import com.walletconnect.web3.modal.ui.components.internal.commons.LoadingSpinner
 import com.walletconnect.web3.modal.ui.components.internal.commons.inputs.BaseTextInput
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 @Composable
 internal fun EmailInput(
     emailInputState: EmailInputState,
+    isLoading: Boolean = false,
     isEnabled: Boolean = true
 ) {
     BaseTextInput(
@@ -54,20 +56,30 @@ internal fun EmailInput(
                     Text(text = "Email", style = Web3ModalTheme.typo.paragraph400.copy(color = Web3ModalTheme.colors.foreground.color275))
                 }
                 innerTextField()
-                if (inputData.text.isNotBlank()) {
-                    Icon(
-                        tint = Web3ModalTheme.colors.accent100,
-                        modifier = Modifier
-                            .size(14.dp)
-                            .align(Alignment.CenterEnd)
-                            .roundedClickable { emailInputState.submit() },
-                        imageVector = ImageVector.vectorResource(id = R.drawable.ic_chevron_right),
-                        contentDescription = ContentDescription.CHEVRON_RIGHT.description,
-                    )
-                }
             }
-            HorizontalSpacer(width = 6.dp)
+            when {
+                isLoading -> LoadingIcon()
+                inputData.text.isNotBlank() && !inputData.hasError -> ForwardIcon { emailInputState.submit(inputData.text) }
+            }
+            HorizontalSpacer(width = 10.dp)
         }
 
     }
+}
+
+@Composable
+private fun ForwardIcon(onClick: () -> Unit) {
+    Icon(
+        tint = Web3ModalTheme.colors.accent100,
+        modifier = Modifier
+            .size(14.dp)
+            .roundedClickable { onClick() },
+        imageVector = ImageVector.vectorResource(id = R.drawable.ic_chevron_right),
+        contentDescription = ContentDescription.CHEVRON_RIGHT.description,
+    )
+}
+
+@Composable
+private fun LoadingIcon() {
+    LoadingSpinner(size = 14.dp)
 }

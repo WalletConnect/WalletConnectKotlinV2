@@ -1,5 +1,6 @@
 package com.walletconnect.web3.modal.ui.components.internal.commons.inputs
 
+import androidx.compose.ui.focus.FocusManager
 import com.walletconnect.util.Empty
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,7 +12,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 
 internal abstract class InputState(
-    private val coroutineScope: CoroutineScope
+    protected val coroutineScope: CoroutineScope,
+    protected val focusManager: FocusManager
 ) {
 
     protected val mutableState: MutableStateFlow<InputData> = MutableStateFlow(InputData())
@@ -23,15 +25,20 @@ internal abstract class InputState(
         get() = state.map { it.hasError }.stateIn(coroutineScope, SharingStarted.Lazily, false)
 
 
-    fun onTextChange(value: String) {
-        mutableState.update { it.copy(text = value) }
+    open fun onTextChange(value: String) {
+        mutableState.update { it.copy(text = value, hasError = false) }
     }
 
-    fun onFocusChange(isFocused: Boolean) {
+    open fun onFocusChange(isFocused: Boolean) {
         mutableState.update { it.copy(isFocused = isFocused) }
     }
 
-    abstract fun submit()
+    fun clearFocus() {
+        mutableState.update { it.copy(isFocused = false) }
+        focusManager.clearFocus(true)
+    }
+
+    abstract fun submit(text: String)
 }
 
 internal data class InputData(
