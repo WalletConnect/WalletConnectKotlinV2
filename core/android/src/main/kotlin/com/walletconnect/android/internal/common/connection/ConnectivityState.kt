@@ -10,6 +10,7 @@ import android.net.NetworkRequest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import timber.log.Timber
 
 internal class ConnectivityState(context: Context) {
     private val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -48,14 +49,19 @@ internal class ConnectivityState(context: Context) {
     }
 
     init {
-        connectivityManager.registerNetworkCallback(
-            NetworkRequest.Builder()
-                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-                .addCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-                .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
-                .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
-                .build(),
-            callback
-        )
+        try {
+            connectivityManager.registerNetworkCallback(
+                NetworkRequest.Builder()
+                    .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                    .addCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+                    .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
+                    .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
+                    .build(),
+                callback
+            )
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to register network callback")
+            _isAvailable.value = true
+        }
     }
 }
