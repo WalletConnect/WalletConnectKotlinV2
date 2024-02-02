@@ -58,11 +58,19 @@ internal class SessionAuthenticateUseCase(
 //        val requestTtlInSeconds = expiry?.run { seconds - nowInSeconds } ?: DAY_IN_SECONDS
         crypto.setKey(responsePublicKey, responseTopic.getParticipantTag())
 
+        logger.log("Sending session authenticate on topic: $pairingTopic")
         jsonRpcInteractor.publishJsonRpcRequest(pairingTopic, irnParams, authRequest,
             onSuccess = {
-                logger.error("Session authenticate sent successfully on topic: $pairingTopic")
+                logger.log("Session authenticate sent successfully on topic: $pairingTopic")
                 try {
-                    jsonRpcInteractor.subscribe(responseTopic) { error -> return@subscribe onFailure(error) }
+                    logger.log("Session authenticate subscribing on topic: $responseTopic")
+                    jsonRpcInteractor.subscribe(
+                        responseTopic,
+                        onSuccess = { logger.log("Session authenticate subscribed on topic: $responseTopic") },
+                        onFailure = { error ->
+                            logger.error("Session authenticate subscribing on topic error: $responseTopic, $error")
+                            return@subscribe onFailure(error)
+                        })
                 } catch (e: Exception) {
                     return@publishJsonRpcRequest onFailure(e)
                 }

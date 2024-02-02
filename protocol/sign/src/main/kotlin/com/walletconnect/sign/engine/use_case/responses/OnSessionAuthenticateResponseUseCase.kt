@@ -22,7 +22,6 @@ import com.walletconnect.android.utils.toClient
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
-import com.walletconnect.sign.common.exceptions.MissingSessionAuthenticateRequest
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
 import com.walletconnect.sign.engine.model.EngineDO
@@ -51,9 +50,10 @@ internal class OnSessionAuthenticateResponseUseCase(
     suspend operator fun invoke(wcResponse: WCResponse, params: SignParams.SessionAuthenticateParams) = supervisorScope {
         try {
             val jsonRpcHistoryEntry = getSessionAuthenticateRequest(wcResponse.response.id)
+            logger.log("Received session authenticate response: ${wcResponse.topic}")
 
             if (jsonRpcHistoryEntry == null) {
-                logger.error(MissingSessionAuthenticateRequest().message)
+                logger.error("Received session authenticate response - rpc entry doesn't exist: ${wcResponse.topic}")
                 //todo: emit error
                 return@supervisorScope
             }
@@ -64,7 +64,10 @@ internal class OnSessionAuthenticateResponseUseCase(
 //            pairingTopicToResponseTopicMap.remove(pairingTopic)
 
             when (val response = wcResponse.response) {
-                is JsonRpcResponse.JsonRpcError -> _events.emit(EngineDO.SessionAuthenticateResponse.Error(response.id, response.error.code, response.error.message))
+                is JsonRpcResponse.JsonRpcError -> {
+                    logger.error("Received session authenticate response - emitting rpc error: ${wcResponse.topic}")
+                    _events.emit(EngineDO.SessionAuthenticateResponse.Error(response.id, response.error.code, response.error.message))
+                }
 
                 is JsonRpcResponse.JsonRpcResult -> {
                     updatePairing(pairingTopic, params)
@@ -100,11 +103,13 @@ internal class OnSessionAuthenticateResponseUseCase(
                         )
                         sessionStorageRepository.insertSession(authenticatedSession, response.id)
                         jsonRpcInteractor.subscribe(sessionTopic) { error -> scope.launch { _events.emit(SDKError(error)) } }
+                        logger.log("Received session authenticate response - emitting rpc result: ${wcResponse.topic}")
                         _events.emit(EngineDO.SessionAuthenticateResponse.Result(response.id, approveParams.cacaos, authenticatedSession.toEngineDO())) //todo: add Participant?
                     }
                 }
             }
         } catch (e: Exception) {
+            logger.error("Received session authenticate response - exception:$e")
             _events.emit(SDKError(e))
         }
     }

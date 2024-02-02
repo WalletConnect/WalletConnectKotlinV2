@@ -26,7 +26,7 @@ internal fun requestsModule() = module {
         )
     }
 
-    single { OnSessionAuthenticateUseCase(jsonRpcInteractor = get(), resolveAttestationIdUseCase = get()) }
+    single { OnSessionAuthenticateUseCase(jsonRpcInteractor = get(), resolveAttestationIdUseCase = get(), logger = get()) }
 
     single {
         OnSessionSettleUseCase(
