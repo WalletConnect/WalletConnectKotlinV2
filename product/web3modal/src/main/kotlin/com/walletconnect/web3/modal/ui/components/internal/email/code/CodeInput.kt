@@ -1,5 +1,13 @@
 package com.walletconnect.web3.modal.ui.components.internal.email.code
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -107,12 +115,20 @@ private fun CodeDigitText(
             contentAlignment = Alignment.Center
         ) {
             if (isFocused) {
-                //todo add blinking effect
-                Box(
-                    modifier = Modifier
-                        .size(2.dp, 20.dp)
-                        .background(Web3ModalTheme.colors.accent100)
+                val infiniteTransition = rememberInfiniteTransition(label = "Indicator animation")
+                val blinkAnimation by infiniteTransition.animateFloat(
+                    initialValue = 0f,
+                    targetValue = 1f,
+                    label = "Indicator",
+                    animationSpec = infiniteRepeatable(animation = tween(500), repeatMode = RepeatMode.Reverse),
                 )
+                AnimatedVisibility(visible = blinkAnimation > .5f, enter = fadeIn(), exit = fadeOut()) {
+                    Box(
+                        modifier = Modifier
+                            .size(2.dp, 20.dp)
+                            .background(Web3ModalTheme.colors.accent100)
+                    )
+                }
             } else {
                 Text(
                     text = value,

@@ -11,14 +11,16 @@ import kotlinx.coroutines.CoroutineScope
 @Composable
 internal fun rememberCodeInputState(
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
-    focusManager: FocusManager = LocalFocusManager.current
+    focusManager: FocusManager = LocalFocusManager.current,
+    onSubmit: (String) -> Unit
 ) = remember(coroutineScope, focusManager) {
-    CodeInputState(coroutineScope, focusManager)
+    CodeInputState(coroutineScope, focusManager, onSubmit)
 }
 
 internal class CodeInputState(
     coroutineScope: CoroutineScope,
-    focusManager: FocusManager
+    focusManager: FocusManager,
+    private val onSubmit: (String) -> Unit
 ) : InputState(coroutineScope, focusManager) {
 
     override fun onTextChange(value: String) {
@@ -32,6 +34,6 @@ internal class CodeInputState(
     }
 
     override fun submit(text: String) {
-
+        onSubmit(text)
     }
 }
