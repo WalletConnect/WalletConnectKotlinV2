@@ -32,7 +32,7 @@ object Modal {
         ) : Params()
 
         data class Authenticate(
-            val pairingTopic: String,
+            val pairingTopic: String? = null,
             val chains: List<String>,
             val domain: String,
             val nonce: String,

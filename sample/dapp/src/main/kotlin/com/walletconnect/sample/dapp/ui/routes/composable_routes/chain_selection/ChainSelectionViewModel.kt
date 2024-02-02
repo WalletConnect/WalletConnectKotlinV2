@@ -10,6 +10,8 @@ import com.walletconnect.sample.common.Chains
 import com.walletconnect.sample.common.tag
 import com.walletconnect.sample.dapp.domain.DappDelegate
 import com.walletconnect.sample.dapp.ui.DappSampleEvents
+import com.walletconnect.util.bytesToHex
+import com.walletconnect.util.randomBytes
 import com.walletconnect.wcmodal.client.Modal
 import com.walletconnect.wcmodal.client.WalletConnectModal
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -118,6 +120,40 @@ class ChainSelectionViewModel : ViewModel() {
         properties = getProperties()
     )
 
+    fun authenticate(onAuthenticateSuccess: (String) -> Unit, onError: (String) -> Unit = {}) {
+        viewModelScope.launch {
+            _awaitingProposalSharedFlow.emit(true)
+        }
+        val authenticateParams = Modal.Params.Authenticate(
+            type = "caip222",
+            chains = listOf("eip155:1", "eip155:37"),
+            domain = "sample.kotlin.dapp",
+            aud = "https://react-auth-dapp.vercel.app/",
+            nonce = randomBytes(12).bytesToHex(),
+            exp = null,
+            nbf = null,
+            statement = "Sign in with wallet.",
+            requestId = null,
+            resources = null,
+            methods = listOf("personal_sign", "eth_signTypedData_v4", "eth_sign"),
+        )
+        WalletConnectModal.authenticate(authenticateParams,
+            onSuccess = { url ->
+                viewModelScope.launch {
+                    _awaitingProposalSharedFlow.emit(false)
+                }
+                onAuthenticateSuccess(url)
+            },
+            onError = { error ->
+                viewModelScope.launch {
+                    _awaitingProposalSharedFlow.emit(false)
+                }
+                Timber.tag(tag(this)).e(error.throwable.stackTraceToString())
+                Firebase.crashlytics.recordException(error.throwable)
+                onError(error.throwable.message ?: "sdasdUnknown error, please contact support")
+            })
+    }
+
     fun connectToWallet(pairingTopicPosition: Int = -1, onSuccess: (String) -> Unit = {}, onError: (String) -> Unit = {}) {
         viewModelScope.launch {
             _awaitingProposalSharedFlow.emit(true)
@@ -158,7 +194,7 @@ class ChainSelectionViewModel : ViewModel() {
                         }
                         Timber.tag(tag(this)).e(error.throwable.stackTraceToString())
                         Firebase.crashlytics.recordException(error.throwable)
-                        onError(error.throwable.message ?: "sdasdUnknown error, please contact support")
+                        onError(error.throwable.message ?: "Unknown error, please contact support")
                     }
                 )
             }

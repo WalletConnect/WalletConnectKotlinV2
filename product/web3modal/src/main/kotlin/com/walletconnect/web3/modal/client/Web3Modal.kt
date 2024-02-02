@@ -174,12 +174,12 @@ object Web3Modal {
 
     fun authenticate(
         authenticate: Modal.Params.Authenticate,
-        onSuccess: () -> Unit,
+        onSuccess: (String) -> Unit,
         onError: (Modal.Model.Error) -> Unit,
     ) {
 
         SignClient.sessionAuthenticate(authenticate.toSign(),
-            onSuccess = { onSuccess() },
+            onSuccess = { url -> onSuccess(url) },
             onError = { onError(it.toModal()) })
     }
 
