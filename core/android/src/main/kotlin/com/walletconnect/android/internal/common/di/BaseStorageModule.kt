@@ -18,9 +18,11 @@ import com.walletconnect.android.sdk.core.AndroidCoreDatabase
 import com.walletconnect.android.sdk.storage.data.dao.MetaData
 import com.walletconnect.android.sdk.storage.data.dao.VerifyContext
 import com.walletconnect.utils.Empty
+import kotlinx.coroutines.launch
 import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
+import com.walletconnect.android.internal.common.scope as wcScope
 
 fun baseStorageModule(storagePrefix: String = String.Empty) = module {
 
@@ -68,10 +70,19 @@ fun baseStorageModule(storagePrefix: String = String.Empty) = module {
 
     single<ColumnAdapter<Validation, String>>(named(AndroidCommonDITags.COLUMN_ADAPTER_VALIDATION)) { EnumColumnAdapter() }
 
-    @Suppress("RemoveExplicitTypeArguments")
     single<AndroidCoreDatabase>(named(AndroidBuildVariantDITags.ANDROID_CORE_DATABASE)) {
         try {
-            createCoreDB().also { database -> database.jsonRpcHistoryQueries.selectLastInsertedRowId().executeAsOneOrNull() }
+            createCoreDB().also { database ->
+                wcScope.launch {
+                    try {
+                        database.jsonRpcHistoryQueries.selectLastInsertedRowId().executeAsOneOrNull()
+                    } catch (e: Exception) {
+                        deleteDatabase(get<DatabaseConfig>().ANDROID_CORE_DB_NAME)
+                        createCoreDB()
+                    }
+                }
+
+            }
         } catch (e: Exception) {
             deleteDatabase(get<DatabaseConfig>().ANDROID_CORE_DB_NAME)
             createCoreDB()

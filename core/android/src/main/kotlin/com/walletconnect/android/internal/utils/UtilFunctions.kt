@@ -39,7 +39,9 @@ fun Module.addDeserializerEntry(key: String, value: KClass<*>): KoinDefinition<P
     single(qualifier = named("${key}_${value.getFullName()}")) { key to value }
 
 // Had to add JsonAdapterEntry because Koin would fetch the wrong values when using Pair instead
-data class JsonAdapterEntry<T>(val type: Class<T>, val adapter: (Moshi) -> JsonAdapter<T>)
+data class JsonAdapterEntry<T>(val type: Class<T>, val adapter: (Moshi) -> JsonAdapter<T>) {
+    override fun toString(): String = "JsonAdapterEntry(type=${type.name})"
+}
 
 fun <T> Module.addJsonAdapter(type: Class<T>, adapter: (Moshi) -> JsonAdapter<T>): KoinDefinition<JsonAdapterEntry<T>> {
     val jsonAdapterEntry = JsonAdapterEntry(type, adapter)

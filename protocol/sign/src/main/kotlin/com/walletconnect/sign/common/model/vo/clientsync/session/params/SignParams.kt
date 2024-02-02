@@ -63,6 +63,7 @@ internal sealed class SignParams : CoreSignParams() {
         val chainId: String,
     ) : SignParams()
 
+    @JsonClass(generateAdapter = true)
     internal data class EventParams(
         @Json(name = "event")
         val event: SessionEventVO,
@@ -70,11 +71,13 @@ internal sealed class SignParams : CoreSignParams() {
         val chainId: String,
     ) : SignParams()
 
+    @JsonClass(generateAdapter = true)
     internal class UpdateNamespacesParams(
         @Json(name = "namespaces")
         val namespaces: Map<String, Namespace.Session>,
     ) : SignParams()
 
+    @JsonClass(generateAdapter = true)
     internal data class ExtendParams(
         @Json(name = "expiry")
         val expiry: Long,
