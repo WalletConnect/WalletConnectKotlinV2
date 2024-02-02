@@ -4,9 +4,9 @@ package com.walletconnect.sign.storage.sequence
 
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android.internal.common.model.Expiry
+import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
 import com.walletconnect.sign.engine.sessionRequestEventsQueue
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceDaoQueries
@@ -77,6 +77,7 @@ internal class SessionStorageRepository(
                 peer_participant = peerPublicKey?.keyAsHex,
                 relay_data = relayData,
                 is_acknowledged = isAcknowledged,
+                is_authenticated = isAuthenticated,
                 properties = properties
             )
         }
@@ -213,6 +214,7 @@ internal class SessionStorageRepository(
         self_participant: String,
         peer_participant: String?,
         is_acknowledged: Boolean,
+        is_authenticated: Boolean,
         pairingTopic: String,
         properties: Map<String, String>?
     ): SessionVO {
@@ -234,6 +236,7 @@ internal class SessionStorageRepository(
             requiredNamespaces = requiredNamespaces,
             optionalNamespaces = optionalNamespaces,
             isAcknowledged = is_acknowledged,
+            isAuthenticated = is_authenticated,
             properties = properties,
             pairingTopic = pairingTopic
         )

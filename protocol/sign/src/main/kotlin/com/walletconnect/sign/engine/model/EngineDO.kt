@@ -11,7 +11,7 @@ import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.Sequence
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.foundation.common.model.Topic
-import com.walletconnect.sign.common.model.vo.clientsync.common.Caip222Request
+import com.walletconnect.sign.common.model.vo.clientsync.common.PayloadParams
 import java.net.URI
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions as CoreRelayProtocolOptions
 
@@ -34,7 +34,26 @@ internal sealed class EngineDO {
         val context: VerifyContext
     ) : EngineDO(), EngineEvent
 
-    data class SessionAuthenticateEvent(val id: Long, val pairingTopic: String, val caip222Request: Caip222Request, val verifyContext: VerifyContext) : EngineDO(), EngineEvent
+    data class SessionAuthenticateEvent(val id: Long, val pairingTopic: String, val payloadParams: PayloadParams, val participant: Participant, val verifyContext: VerifyContext) : EngineDO(), EngineEvent
+
+    data class PayloadParams(
+        val chains: List<String>,
+        val domain: String,
+        val nonce: String,
+        val aud: String,
+        val type: String?,
+        val nbf: String?,
+        val iat: String,
+        val exp: String?,
+        val statement: String?,
+        val requestId: String?,
+        var resources: List<String>?,
+        val version : String
+    ) : EngineDO()
+    data class Participant(
+        val publicKey: String,
+        val metadata: AppMetaData,
+    ) : EngineDO()
 
     data class SessionProposal(
         val pairingTopic: String,
@@ -114,7 +133,7 @@ internal sealed class EngineDO {
     ) : EngineDO(), EngineEvent
 
     sealed class SessionAuthenticateResponse : EngineDO(), EngineEvent {
-        data class Result(val id: Long, val cacaos: List<Cacao>) : SessionAuthenticateResponse()
+        data class Result(val id: Long, val cacaos: List<Cacao>, val session: Session) : SessionAuthenticateResponse()
         data class Error(val id: Long, val code: Int, val message: String) : SessionAuthenticateResponse()
     }
 

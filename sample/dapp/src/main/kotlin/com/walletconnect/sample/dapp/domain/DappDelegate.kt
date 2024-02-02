@@ -1,8 +1,8 @@
 package com.walletconnect.sample.dapp.domain
 
+import com.walletconnect.sample.common.tag
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
-import com.walletconnect.sample.common.tag
 import com.walletconnect.sample.common.tag
 import com.walletconnect.wcmodal.client.Modal
 import com.walletconnect.wcmodal.client.WalletConnectModal
@@ -77,6 +77,10 @@ object DappDelegate : WalletConnectModal.ModalDelegate, CoreClient.CoreDelegate 
         }
     }
 
+    override fun onSessionAuthenticateResponse(sessionUpdateResponse: Modal.Model.SessionAuthenticateResponse) {
+        TODO("Not yet implemented")
+    }
+
     override fun onProposalExpired(proposal: Modal.Model.ExpiredProposal) {
         scope.launch {
             _wcEventModels.emit(proposal)
@@ -87,10 +91,6 @@ object DappDelegate : WalletConnectModal.ModalDelegate, CoreClient.CoreDelegate 
         scope.launch {
             _wcEventModels.emit(request)
         }
-    }
-
-    override fun onSessionAuthenticateResponse(sessionUpdateResponse: Modal.Model.SessionAuthenticateResponse) {
-        TODO("Not yet implemented")
     }
 
     fun deselectAccountDetails() {

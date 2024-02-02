@@ -21,7 +21,7 @@ open class CoreSignParams : ClientParams {
     data class SessionAuthenticateApproveParams(
         @Json(name = "participant")
         val responder: Participant,
-        @Json(name = "caip222Response")
-        val caip222Response: List<Cacao>,
+        @Json(name = "cacaos")
+        val cacaos: List<Cacao>,
     ) : CoreSignParams()
 }

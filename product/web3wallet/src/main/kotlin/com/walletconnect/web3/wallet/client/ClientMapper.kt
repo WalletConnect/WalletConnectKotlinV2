@@ -1,5 +1,6 @@
 package com.walletconnect.web3.wallet.client
 
+import com.walletconnect.android.internal.common.signing.cacao.CacaoType
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.sign.client.Sign
 
@@ -77,18 +78,17 @@ internal fun Wallet.Model.PayloadParams.toAuth(): Auth.Model.PayloadParams =
 @JvmSynthetic
 internal fun Wallet.Model.PayloadAuthRequestParams.toSign(): Sign.Model.PayloadParams =
     Sign.Model.PayloadParams(
-        type = type,
+        type = type ?: CacaoType.CAIP222.header,
         chains = chains,
         domain = domain,
         aud = aud,
-        version = version,
         nonce = nonce,
         iat = iat,
         nbf = nbf,
         exp = exp,
         statement = statement,
         requestId = requestId,
-        resources = resources,
+        resources = resources
     )
 
 @JvmSynthetic
@@ -161,12 +161,27 @@ internal fun Sign.Model.SessionProposal.toWallet(): Wallet.Model.SessionProposal
     )
 
 @JvmSynthetic
-internal fun Sign.Model.SessionAuthenticated.toWallet(): Wallet.Model.SessionAuthenticated =
-    Wallet.Model.SessionAuthenticated(id, pairingTopic, payloadParams.toWallet())
+internal fun Sign.Model.SessionAuthenticate.toWallet(): Wallet.Model.SessionAuthenticate =
+    Wallet.Model.SessionAuthenticate(id, topic, participant.toWallet(), payloadParams.toWallet())
+
+@JvmSynthetic
+internal fun Sign.Model.SessionAuthenticate.Participant.toWallet(): Wallet.Model.SessionAuthenticate.Participant = Wallet.Model.SessionAuthenticate.Participant(publicKey, metadata)
 
 @JvmSynthetic
 internal fun Sign.Model.PayloadParams.toWallet(): Wallet.Model.PayloadAuthRequestParams =
-    Wallet.Model.PayloadAuthRequestParams(type, chains, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
+    Wallet.Model.PayloadAuthRequestParams(
+        chains = chains,
+        type = type ?: CacaoType.CAIP222.header,
+        domain = domain,
+        aud = aud,
+        nonce = nonce,
+        iat = iat,
+        nbf = nbf,
+        exp = exp,
+        statement = statement,
+        requestId = requestId,
+        resources = resources
+    )
 
 internal fun Sign.Model.VerifyContext.toWallet(): Wallet.Model.VerifyContext =
     Wallet.Model.VerifyContext(id, origin, this.validation.toWallet(), verifyUrl, isScam)

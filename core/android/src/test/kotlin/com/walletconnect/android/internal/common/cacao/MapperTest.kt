@@ -1,15 +1,13 @@
 package com.walletconnect.android.internal.common.cacao
 
-import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
-import com.walletconnect.android.internal.common.signing.cacao.toCAIP122Message
+import com.walletconnect.android.internal.common.signing.cacao.toCAIP222Message
 import junit.framework.TestCase.assertEquals
 import org.junit.Test
 
 internal class MapperTest {
     private val iss = "did:pkh:eip155:1:0x15bca56b6e2728aec2532df9d436bd1600e86688"
     private val chainName = "Ethereum"
-    private val dummyPairing = Core.Model.Pairing("", 0L, null, "", null, "", true, "")
 
     @Test
     fun `Payload required fields formatting`() {
@@ -37,7 +35,7 @@ internal class MapperTest {
                 "Nonce: 32891756\n" +
                 "Issued At: 2021-09-30T16:25:24Z"
 
-        assertEquals(message, payload.toCAIP122Message(chainName))
+        assertEquals(message, payload.toCAIP222Message(chainName))
     }
 
     @Test
@@ -51,14 +49,19 @@ internal class MapperTest {
             iat = "2021-09-30T16:25:24Z",
             nbf = null,
             exp = null,
-            statement = null,
+            statement = "Statement",
             requestId = null,
-            resources = listOf("ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/", "https://example.com/my-web2-claim.json")
+            resources = listOf(
+                "ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/",
+                "https://example.com/my-web2-claim.json",
+                "urn:recap:eyJhdHQiOnsiZWlwMTU1IjpbeyJyZXF1ZXN0L2V0aF9zaWduVHlwZWREYXRhX3Y0IjpbXX0seyJyZXF1ZXN0L3BlcnNvbmFsX3NpZ24iOltdfV19fQ=="
+            )
         )
 
         val message = "service.invalid wants you to sign in with your Ethereum account:\n" +
                 "0x15bca56b6e2728aec2532df9d436bd1600e86688\n" +
                 "\n" +
+                "Statement I further authorize the stated URI to perform the following actions on my behalf: (1) 'request': 'eth_signTypedData_v4', 'personal_sign' for 'eip155'\n" +
                 "\n" +
                 "URI: https://service.invalid/login\n" +
                 "Version: 1\n" +
@@ -67,9 +70,10 @@ internal class MapperTest {
                 "Issued At: 2021-09-30T16:25:24Z\n" +
                 "Resources:\n" +
                 "- ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/\n" +
-                "- https://example.com/my-web2-claim.json"
+                "- https://example.com/my-web2-claim.json\n" +
+                "- urn:recap:eyJhdHQiOnsiZWlwMTU1IjpbeyJyZXF1ZXN0L2V0aF9zaWduVHlwZWREYXRhX3Y0IjpbXX0seyJyZXF1ZXN0L3BlcnNvbmFsX3NpZ24iOltdfV19fQ=="
 
-        assertEquals(message, payload.toCAIP122Message(chainName))
+        assertEquals(message, payload.toCAIP222Message(chainName))
     }
 
     @Test
@@ -99,7 +103,7 @@ internal class MapperTest {
                 "Issued At: 2021-09-30T16:25:24Z\n" +
                 "Request ID: someRequestId"
 
-        assertEquals(message, payload.toCAIP122Message(chainName))
+        assertEquals(message, payload.toCAIP222Message(chainName))
     }
 
     @Test
@@ -129,7 +133,7 @@ internal class MapperTest {
                 "Nonce: 32891756\n" +
                 "Issued At: 2021-09-30T16:25:24Z"
 
-        assertEquals(message, payload.toCAIP122Message(chainName))
+        assertEquals(message, payload.toCAIP222Message(chainName))
     }
 
     @Test
@@ -159,7 +163,7 @@ internal class MapperTest {
                 "Issued At: 2021-09-30T16:25:24Z\n" +
                 "Expiration Time: 2021-09-31T16:25:24Z"
 
-        assertEquals(message, payload.toCAIP122Message(chainName))
+        assertEquals(message, payload.toCAIP222Message(chainName))
     }
 
     @Test
@@ -189,7 +193,7 @@ internal class MapperTest {
                 "Issued At: 2021-09-30T16:25:24Z\n" +
                 "Not Before: 2021-09-31T16:25:24Z"
 
-        assertEquals(message, payload.toCAIP122Message(chainName))
+        assertEquals(message, payload.toCAIP222Message(chainName))
     }
 
     @Test
@@ -225,6 +229,6 @@ internal class MapperTest {
                 "- ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/\n" +
                 "- https://example.com/my-web2-claim.json"
 
-        assertEquals(message, payload.toCAIP122Message(chainName))
+        assertEquals(message, payload.toCAIP222Message(chainName))
     }
 }

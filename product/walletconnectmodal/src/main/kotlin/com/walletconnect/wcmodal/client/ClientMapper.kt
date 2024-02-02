@@ -52,6 +52,13 @@ internal fun Sign.Model.JsonRpcResponse.toModal() = when (this) {
 }
 
 @JvmSynthetic
+internal fun Sign.Model.ExpiredProposal.toModal(): Modal.Model.ExpiredProposal = Modal.Model.ExpiredProposal(pairingTopic, proposerPublicKey)
+
+@JvmSynthetic
+internal fun Sign.Model.ExpiredRequest.toModal(): Modal.Model.ExpiredRequest = Modal.Model.ExpiredRequest(topic, id)
+
+
+@JvmSynthetic
 internal fun Sign.Model.SessionAuthenticateResponse.toModal(): Modal.Model.SessionAuthenticateResponse =
     when (this) {
         is Sign.Model.SessionAuthenticateResponse.Result -> Modal.Model.SessionAuthenticateResponse.Result(id, cacaos.toClient())
@@ -60,7 +67,7 @@ internal fun Sign.Model.SessionAuthenticateResponse.toModal(): Modal.Model.Sessi
 
 @JvmSynthetic
 internal fun List<Sign.Model.Cacao>.toClient(): List<Modal.Model.Cacao> = this.map {
-    with(it){
+    with(it) {
         Modal.Model.Cacao(
             Modal.Model.Cacao.Header(header.t),
             Modal.Model.Cacao.Payload(
@@ -81,12 +88,6 @@ internal fun List<Sign.Model.Cacao>.toClient(): List<Modal.Model.Cacao> = this.m
     }
 }
 
-@JvmSynthetic
-internal fun Sign.Model.ExpiredProposal.toModal(): Modal.Model.ExpiredProposal = Modal.Model.ExpiredProposal(pairingTopic, proposerPublicKey)
-
-@JvmSynthetic
-internal fun Sign.Model.ExpiredRequest.toModal(): Modal.Model.ExpiredRequest = Modal.Model.ExpiredRequest(topic, id)
-
 internal fun Sign.Model.ConnectionState.toModal() = Modal.Model.ConnectionState(isAvailable)
 
 internal fun Sign.Model.Error.toModal() = Modal.Model.Error(throwable)
@@ -103,11 +104,36 @@ internal fun Sign.Model.Ping.Error.toModal() = Modal.Model.Ping.Error(error)
 internal fun Modal.Params.Connect.toSign() = Sign.Params.Connect(namespaces?.toSign(), optionalNamespaces?.toSign(), properties, pairing)
 
 internal fun Modal.Params.Authenticate.toSign(): Sign.Params.Authenticate = with(this) {
-    Sign.Params.Authenticate(pairingTopic, payloadParams.toSign())
+    Sign.Params.Authenticate(
+        pairingTopic,
+        chains = chains,
+        type = type ?: CacaoType.CAIP222.header,
+        domain = domain,
+        aud = aud,
+        nonce = nonce,
+        nbf = nbf,
+        exp = exp,
+        statement = statement,
+        requestId = requestId,
+        resources = resources,
+        methods = methods
+    )
 }
 
 internal fun Modal.Model.PayloadParams.toSign(): Sign.Model.PayloadParams = with(this) {
-    Sign.Model.PayloadParams(CacaoType.CAIP222.header, chains, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
+    Sign.Model.PayloadParams(
+        chains = chains,
+        type = type ?: CacaoType.CAIP222.header,
+        domain = domain,
+        aud = aud,
+        nonce = nonce,
+        iat = iat,
+        nbf = nbf,
+        exp = exp,
+        statement = statement,
+        requestId = requestId,
+        resources = resources,
+    )
 }
 
 internal fun Map<String, Modal.Model.Namespace.Proposal>.toSign() = mapValues { (_, namespace) -> Sign.Model.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events) }

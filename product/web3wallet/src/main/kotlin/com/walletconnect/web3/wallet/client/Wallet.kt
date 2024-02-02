@@ -72,11 +72,17 @@ object Wallet {
             val relayData: String?,
         ) : Model()
 
-        data class SessionAuthenticated(
+        data class SessionAuthenticate(
             val id: Long,
             val pairingTopic: String,
+            val participant: Participant,
             val payloadParams: PayloadAuthRequestParams,
-        ) : Model()
+        ) : Model() {
+            data class Participant(
+                val publicKey: String,
+                val metadata: Core.Model.AppMetaData?,
+            ) : Model()
+        }
 
         data class VerifyContext(
             val id: Long,
@@ -174,18 +180,17 @@ object Wallet {
         ) : Model()
 
         data class PayloadAuthRequestParams(
-            val type: String,
             val chains: List<String>,
             val domain: String,
-            val aud: String,
-            val version: String,
             val nonce: String,
-            val iat: String,
+            val aud: String,
+            val type: String?,
             val nbf: String?,
+            val iat: String,
             val exp: String?,
             val statement: String?,
             val requestId: String?,
-            val resources: List<String>?,
+            val resources: List<String>?
         ) : Model()
 
 

@@ -17,7 +17,7 @@ class SignClientAlreadyInitializedException : WalletConnectException(CLIENT_ALRE
 
 class InvalidSignParamsType : WalletConnectException(INVALID_SIGN_PARAMS_TYPE)
 
-class SessionProposalExpiredException(override val message: String?) : WalletConnectException(message)
-
 class MissingSessionAuthenticateRequest : WalletConnectException(MISSING_SESSION_AUTHENTICATE_REQUEST)
 class InvalidCacaoException : WalletConnectException(INVALID_CACAO_EXCEPTION)
+
+class SessionProposalExpiredException(override val message: String?) : WalletConnectException(message)

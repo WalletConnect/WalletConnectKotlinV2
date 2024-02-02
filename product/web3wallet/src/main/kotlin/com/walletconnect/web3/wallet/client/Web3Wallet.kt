@@ -18,7 +18,7 @@ object Web3Wallet {
 
     interface WalletDelegate {
         fun onSessionProposal(sessionProposal: Wallet.Model.SessionProposal, verifyContext: Wallet.Model.VerifyContext)
-        fun onSessionAuthenticated(sessionAuthenticated: Wallet.Model.SessionAuthenticated, verifyContext: Wallet.Model.VerifyContext)
+        fun onSessionAuthenticated(sessionAuthenticate: Wallet.Model.SessionAuthenticate, verifyContext: Wallet.Model.VerifyContext)
         fun onSessionRequest(sessionRequest: Wallet.Model.SessionRequest, verifyContext: Wallet.Model.VerifyContext)
         fun onSessionDelete(sessionDelete: Wallet.Model.SessionDelete)
         fun onSessionExtend(session: Wallet.Model.Session)
@@ -43,8 +43,8 @@ object Web3Wallet {
                 delegate.onSessionProposal(sessionProposal.toWallet(), verifyContext.toWallet())
             }
 
-            override fun onSessionAuthenticated(sessionAuthenticated: Sign.Model.SessionAuthenticated, verifyContext: Sign.Model.VerifyContext) {
-                delegate.onSessionAuthenticated(sessionAuthenticated.toWallet(), verifyContext.toWallet())
+            override fun onSessionAuthenticate(sessionAuthenticate: Sign.Model.SessionAuthenticate, verifyContext: Sign.Model.VerifyContext) {
+                delegate.onSessionAuthenticated(sessionAuthenticate.toWallet(), verifyContext.toWallet())
             }
 
             override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest, verifyContext: Sign.Model.VerifyContext) {
@@ -191,7 +191,7 @@ object Web3Wallet {
         onError: (Wallet.Model.Error) -> Unit,
     ) {
         val signParams = Sign.Params.ApproveSessionAuthenticate(params.id, params.cacaos.toSign())
-        SignClient.approveSessionAuthenticate(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
+        SignClient.approveSessionAuthenticated(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
     @Throws(IllegalStateException::class)
@@ -201,7 +201,7 @@ object Web3Wallet {
         onError: (Wallet.Model.Error) -> Unit,
     ) {
         val signParams = Sign.Params.RejectSessionAuthenticate(params.id, params.reason)
-        SignClient.rejectSessionAuthenticate(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
+        SignClient.rejectSessionAuthenticated(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
     @Throws(Exception::class)

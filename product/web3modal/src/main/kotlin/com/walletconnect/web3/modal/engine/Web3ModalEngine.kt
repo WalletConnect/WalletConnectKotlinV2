@@ -11,7 +11,6 @@ import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import com.walletconnect.util.Empty
-import com.walletconnect.web3.modal.engine.coinbase.CoinbaseClient
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.client.models.Account
@@ -31,6 +30,7 @@ import com.walletconnect.web3.modal.domain.usecase.GetSelectedChainUseCase
 import com.walletconnect.web3.modal.domain.usecase.GetSessionUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveSessionUseCase
 import com.walletconnect.web3.modal.engine.coinbase.COINBASE_WALLET_ID
+import com.walletconnect.web3.modal.engine.coinbase.CoinbaseClient
 import com.walletconnect.web3.modal.utils.getSelectedChain
 import com.walletconnect.web3.modal.utils.toAccount
 import com.walletconnect.web3.modal.utils.toChain

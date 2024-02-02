@@ -4,6 +4,7 @@ import androidx.annotation.Keep
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreInterface
 import com.walletconnect.android.cacao.SignatureInterface
+import com.walletconnect.android.internal.common.model.Participant
 import com.walletconnect.android.internal.common.signing.cacao.Issuer
 import java.net.URI
 import kotlin.time.Duration
@@ -120,7 +121,7 @@ object Sign {
         }
 
         sealed class SessionAuthenticateResponse : Model() {
-            data class Result(val id: Long, val cacaos: List<Cacao>) : SessionAuthenticateResponse()
+            data class Result(val id: Long, val cacaos: List<Cacao>, val session: Session) : SessionAuthenticateResponse()
             data class Error(val id: Long, val code: Int, val message: String) : SessionAuthenticateResponse()
         }
 
@@ -232,25 +233,30 @@ object Sign {
             }
         }
 
-        data class SessionAuthenticated(
+        data class SessionAuthenticate(
             val id: Long,
-            val pairingTopic: String,
-            val payloadParams: PayloadParams,
-        )
+            val topic: String,
+            val participant: Participant,
+            val payloadParams: PayloadParams
+        ) {
+            data class Participant(
+                val publicKey: String,
+                val metadata: Core.Model.AppMetaData?,
+            ) : Model()
+        }
 
         data class PayloadParams(
-            val type: String,
             val chains: List<String>,
             val domain: String,
-            val aud: String,
-            val version: String,
             val nonce: String,
-            val iat: String,
+            val aud: String,
+            val type: String?,
             val nbf: String?,
+            val iat: String,
             val exp: String?,
             val statement: String?,
             val requestId: String?,
-            val resources: List<String>?,
+            var resources: List<String>?,
         ) : Model()
 
         data class Cacao(
@@ -294,7 +300,17 @@ object Sign {
 
         data class Authenticate(
             val pairingTopic: String,
-            val payloadParams: Model.PayloadParams
+            val chains: List<String>,
+            val domain: String,
+            val nonce: String,
+            val aud: String,
+            val type: String?,
+            val nbf: String?,
+            val exp: String?,
+            val statement: String?,
+            val requestId: String?,
+            val resources: List<String>?,
+            val methods: List<String>?
         ) : Params()
 
         data class FormatMessage(val payloadParams: Model.PayloadParams, val iss: String) : Params()

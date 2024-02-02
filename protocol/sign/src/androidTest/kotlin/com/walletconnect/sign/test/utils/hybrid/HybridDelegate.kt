@@ -7,10 +7,12 @@ import timber.log.Timber
 
 open class HybridAppWalletDelegate : SignClient.WalletDelegate {
     override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal, verifyContext: Sign.Model.VerifyContext) {}
-    override fun onSessionAuthenticated(sessionAuthenticated: Sign.Model.SessionAuthenticated, verifyContext: Sign.Model.VerifyContext) {}
+    override fun onSessionAuthenticate(sessionAuthenticate: Sign.Model.SessionAuthenticate, verifyContext: Sign.Model.VerifyContext) {}
+
     override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest, verifyContext: Sign.Model.VerifyContext) {}
     override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {}
     override fun onSessionExtend(session: Sign.Model.Session) {}
+
     override fun onSessionSettleResponse(settleSessionResponse: Sign.Model.SettledSessionResponse) {}
     override fun onSessionUpdateResponse(sessionUpdateResponse: Sign.Model.SessionUpdateResponse) {}
     override fun onProposalExpired(proposal: Sign.Model.ExpiredProposal) {}

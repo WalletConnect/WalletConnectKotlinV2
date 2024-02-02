@@ -146,6 +146,44 @@ object Web3Modal {
     }
 
     @Deprecated(
+        message = "Replaced with the same name method but onSuccess callback returns a Pairing URL",
+        replaceWith = ReplaceWith(expression = "fun connect(connect: Modal.Params.Connect, onSuccess: (String) -> Unit, onError: (Modal.Model.Error) -> Unit)")
+    )
+    internal fun connect(
+        connect: Modal.Params.Connect,
+        onSuccess: () -> Unit,
+        onError: (Modal.Model.Error) -> Unit
+    ) {
+        SignClient.connect(
+            connect.toSign(),
+            onSuccess
+        ) { onError(it.toModal()) }
+    }
+
+    fun connect(
+        connect: Modal.Params.Connect,
+        onSuccess: (String) -> Unit,
+        onError: (Modal.Model.Error) -> Unit
+    ) {
+        SignClient.connect(
+            connect = connect.toSign(),
+            onSuccess = { url -> onSuccess(url) },
+            onError = { onError(it.toModal()) }
+        )
+    }
+
+    fun authenticate(
+        authenticate: Modal.Params.Authenticate,
+        onSuccess: () -> Unit,
+        onError: (Modal.Model.Error) -> Unit,
+    ) {
+
+        SignClient.sessionAuthenticate(authenticate.toSign(),
+            onSuccess = { onSuccess() },
+            onError = { onError(it.toModal()) })
+    }
+
+    @Deprecated(
         message = "Modal.Params.Request is deprecated",
         replaceWith = ReplaceWith("com.walletconnect.web3.modal.client.models.Request")
     )

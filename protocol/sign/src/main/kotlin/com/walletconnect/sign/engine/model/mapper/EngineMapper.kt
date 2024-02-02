@@ -11,14 +11,16 @@ import com.walletconnect.android.internal.common.model.SessionProposer
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
+import com.walletconnect.android.internal.common.signing.cacao.CacaoType
 import com.walletconnect.android.internal.common.signing.cacao.Issuer
-import com.walletconnect.android.internal.common.signing.cacao.toCAIP122Message
+import com.walletconnect.android.internal.common.signing.cacao.toCAIP222Message
 import com.walletconnect.android.verify.data.model.VerifyContext
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.exceptions.PeerError
-import com.walletconnect.sign.common.model.PendingRequest
-import com.walletconnect.sign.common.model.vo.clientsync.common.Caip222Request
+import com.walletconnect.sign.common.model.Request
+import com.walletconnect.sign.common.model.vo.clientsync.common.PayloadParams
+import com.walletconnect.sign.common.model.vo.clientsync.common.Requester
 import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipant
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.common.model.vo.proposal.ProposalVO
@@ -201,7 +203,7 @@ internal fun ProposalVO.toEngineDO(): EngineDO.SessionProposal =
 internal fun ProposalVO.toExpiredProposal(): EngineDO.ExpiredProposal = EngineDO.ExpiredProposal(pairingTopic.value, proposerPublicKey)
 
 @JvmSynthetic
-internal fun PendingRequest<String>.toExpiredSessionRequest() = EngineDO.ExpiredRequest(topic.value, id)
+internal fun Request<String>.toExpiredSessionRequest() = EngineDO.ExpiredRequest(topic.value, id)
 
 private fun convertToURI(it: String) = try {
     URI(it)
@@ -269,7 +271,7 @@ internal fun SignParams.EventParams.toEngineDOEvent(): EngineDO.Event =
     EngineDO.Event(event.name, event.data.toString(), chainId)
 
 @JvmSynthetic
-internal fun PendingRequest<String>.toSessionRequest(peerAppMetaData: AppMetaData?): EngineDO.SessionRequest =
+internal fun Request<String>.toSessionRequest(peerAppMetaData: AppMetaData?): EngineDO.SessionRequest =
     EngineDO.SessionRequest(topic.value, chainId, peerAppMetaData, EngineDO.SessionRequest.JSONRPCRequest(id, method, params), expiry)
 
 
@@ -295,7 +297,45 @@ internal fun VerifyContext.toEngineDO(): EngineDO.VerifyContext =
     EngineDO.VerifyContext(id, origin, validation, verifyUrl, isScam)
 
 @JvmSynthetic
-internal fun Caip222Request.toCacaoPayload(iss: Issuer): Cacao.Payload = Cacao.Payload(
+internal fun Requester.toEngineDO(): EngineDO.Participant =
+    EngineDO.Participant(publicKey, metadata)
+
+@JvmSynthetic
+internal fun EngineDO.PayloadParams.toCommon(): PayloadParams =
+    PayloadParams(
+        domain = domain,
+        aud = aud,
+        version = version,
+        nonce = nonce,
+        iat = iat,
+        nbf = nbf,
+        exp = exp,
+        statement = statement,
+        requestId = requestId,
+        resources = resources,
+        chains = chains,
+        type = type ?: CacaoType.CAIP222.header
+    )
+
+@JvmSynthetic
+internal fun PayloadParams.toEngineDO(): EngineDO.PayloadParams =
+    EngineDO.PayloadParams(
+        domain = domain,
+        aud = aud,
+        version = version,
+        nonce = nonce,
+        iat = iat,
+        nbf = nbf,
+        exp = exp,
+        statement = statement,
+        requestId = requestId,
+        resources = resources,
+        chains = chains,
+        type = type
+    )
+
+@JvmSynthetic
+internal fun PayloadParams.toCacaoPayload(iss: Issuer): Cacao.Payload = Cacao.Payload(
     iss.value,
     domain = domain,
     aud = aud,
@@ -310,5 +350,5 @@ internal fun Caip222Request.toCacaoPayload(iss: Issuer): Cacao.Payload = Cacao.P
 )
 
 @JvmSynthetic
-internal fun Caip222Request.toCAIP122Message(iss: Issuer, chainName: String = "Ethereum"): String =//todo: Figure out dynamic chain name
-    this.toCacaoPayload(iss).toCAIP122Message(chainName)
+internal fun PayloadParams.toCAIP222Message(iss: Issuer, chainName: String): String =
+    this.toCacaoPayload(iss).toCAIP222Message(chainName)

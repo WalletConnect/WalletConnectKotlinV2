@@ -13,9 +13,11 @@ import com.walletconnect.sign.test.utils.TestClient
 import com.walletconnect.sign.test.utils.dapp.DappDelegate
 import com.walletconnect.sign.test.utils.dapp.DappSignClient
 import com.walletconnect.sign.test.utils.dapp.dappClientAuthenticate
+import com.walletconnect.sign.test.utils.dapp.dappClientSendRequest
 import com.walletconnect.sign.test.utils.globalOnError
 import com.walletconnect.sign.test.utils.wallet.WalletDelegate
 import com.walletconnect.sign.test.utils.wallet.WalletSignClient
+import com.walletconnect.sign.test.utils.wallet.walletClientRespondToRequest
 import com.walletconnect.util.hexToBytes
 import junit.framework.TestCase
 import org.junit.Rule
@@ -44,35 +46,91 @@ class SessionAuthenticateInstrumentedAndroidTest {
         val (privateKey, address) = Pair("fc38e74680851b8d0c2dc69ccd367d4c0d963a4065dff56a87f450eef33336c4", "0xF983704E5A9eF14C32e8fe751b34E61702437aBF")
 
         val walletDelegate = object : WalletDelegate() {
-            override fun onSessionAuthenticated(sessionAuthenticated: Sign.Model.SessionAuthenticated, verifyContext: Sign.Model.VerifyContext) {
-                val messages = mutableListOf<Pair<String, String>>()
+            override fun onSessionAuthenticate(sessionAuthenticate: Sign.Model.SessionAuthenticate, verifyContext: Sign.Model.VerifyContext) {
+                val issuerToMessages = mutableListOf<Pair<String, String>>()
                 val cacaos = mutableListOf<Sign.Model.Cacao>()
 
-                sessionAuthenticated.payloadParams.chains.forEach { chain ->
+                sessionAuthenticate.payloadParams.chains.forEach { chain ->
                     val issuer = "did:pkh:$chain:$address"
-                    val message = WalletSignClient.formatAuthMessage(Sign.Params.FormatMessage(sessionAuthenticated.payloadParams, issuer)) ?: throw Exception("Invalid message")
-                    messages.add(issuer to message)
+                    val message = WalletSignClient.formatAuthMessage(Sign.Params.FormatMessage(sessionAuthenticate.payloadParams, issuer)) ?: throw Exception("Invalid message")
+                    issuerToMessages.add(issuer to message)
                 }
 
-                messages.forEach { message ->
-                    val messageToSign = Numeric.toHexString(message.second.toByteArray())
+                issuerToMessages.forEach { issuerToMessage ->
+                    val messageToSign = Numeric.toHexString(issuerToMessage.second.toByteArray())
                     val signature = CacaoSigner.signHex(messageToSign, privateKey.hexToBytes(), SignatureType.EIP191)
-                    val cacao = generateCACAO(sessionAuthenticated.payloadParams, message.first, signature)
+                    val cacao = generateCACAO(sessionAuthenticate.payloadParams, issuerToMessage.first, signature)
                     cacaos.add(cacao)
                 }
 
-                val params = Sign.Params.ApproveSessionAuthenticate(sessionAuthenticated.id, cacaos)
-                WalletSignClient.approveSessionAuthenticate(params, onSuccess = {}, onError = ::globalOnError)
+                val params = Sign.Params.ApproveSessionAuthenticate(sessionAuthenticate.id, cacaos)
+                WalletSignClient.approveSessionAuthenticated(params, onSuccess = {}, onError = ::globalOnError)
             }
         }
 
         val dappDelegate = object : DappDelegate() {
             override fun onSessionAuthenticateResponse(sessionAuthenticateResponse: Sign.Model.SessionAuthenticateResponse) {
                 if (sessionAuthenticateResponse is Sign.Model.SessionAuthenticateResponse.Result) {
-                    scenarioExtension.closeAsSuccess().also { Timber.d("receiveApproveSessionAuthenticate: finish") }
+                    scenarioExtension.closeAsSuccess().also {
+                        Timber.d("receiveApproveSessionAuthenticate: finish; session: ${sessionAuthenticateResponse.session}")
+                    }
                 }
             }
         }
+        launch(walletDelegate, dappDelegate)
+    }
+
+    @Test
+    fun sendSessionRequestOverAuthenticatedSession() {
+        Timber.d("sendSessionRequestOverAuthenticatedSession: start")
+
+        val (privateKey, address) = Pair("fc38e74680851b8d0c2dc69ccd367d4c0d963a4065dff56a87f450eef33336c4", "0xF983704E5A9eF14C32e8fe751b34E61702437aBF")
+
+        val walletDelegate = object : WalletDelegate() {
+            override fun onSessionAuthenticate(sessionAuthenticate: Sign.Model.SessionAuthenticate, verifyContext: Sign.Model.VerifyContext) {
+                val issuerToMessages = mutableListOf<Pair<String, String>>()
+                val cacaos = mutableListOf<Sign.Model.Cacao>()
+
+                sessionAuthenticate.payloadParams.chains.forEach { chain ->
+                    val issuer = "did:pkh:$chain:$address"
+                    val message = WalletSignClient.formatAuthMessage(Sign.Params.FormatMessage(sessionAuthenticate.payloadParams, issuer)) ?: throw Exception("Invalid message")
+                    issuerToMessages.add(issuer to message)
+                }
+
+                issuerToMessages.forEach { issuerToMessage ->
+                    val messageToSign = Numeric.toHexString(issuerToMessage.second.toByteArray())
+                    val signature = CacaoSigner.signHex(messageToSign, privateKey.hexToBytes(), SignatureType.EIP191)
+                    val cacao = generateCACAO(sessionAuthenticate.payloadParams, issuerToMessage.first, signature)
+                    cacaos.add(cacao)
+                }
+
+                val params = Sign.Params.ApproveSessionAuthenticate(sessionAuthenticate.id, cacaos)
+                WalletSignClient.approveSessionAuthenticated(params, onSuccess = {}, onError = ::globalOnError)
+            }
+
+            override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest, verifyContext: Sign.Model.VerifyContext) {
+                Timber.d("Wallet receives session request: ${sessionRequest.request}")
+                walletClientRespondToRequest(sessionRequest.topic, Sign.Model.JsonRpcResponse.JsonRpcResult(sessionRequest.request.id, "dummy"))
+            }
+        }
+
+        val dappDelegate = object : DappDelegate() {
+            override fun onSessionAuthenticateResponse(sessionAuthenticateResponse: Sign.Model.SessionAuthenticateResponse) {
+                if (sessionAuthenticateResponse is Sign.Model.SessionAuthenticateResponse.Result) {
+                    Timber.d("Dapp is sending session request")
+                    dappClientSendRequest(sessionAuthenticateResponse.session.topic)
+                }
+            }
+
+            override fun onSessionRequestResponse(response: Sign.Model.SessionRequestResponse) {
+                if (response.result is Sign.Model.JsonRpcResponse.JsonRpcResult) {
+                    scenarioExtension.closeAsSuccess().also {
+                        Timber.d("receiveSessionRequestResponse: finish, ${response}")
+                    }
+                }
+            }
+        }
+
         launch(walletDelegate, dappDelegate)
     }
 
@@ -81,26 +139,25 @@ class SessionAuthenticateInstrumentedAndroidTest {
         Timber.d("approveSessionAuthenticatedWithInvalidCACAOs: start")
 
         val (privateKey, address) = Pair("fc38e74680851b8d0c2dc69ccd367d4c0d963a4065dff56a87f450eef33336c4", "0xF983704E5A9eF14C32e8fe751b34E61702437aBF")
-
         val walletDelegate = object : WalletDelegate() {
-            override fun onSessionAuthenticated(sessionAuthenticated: Sign.Model.SessionAuthenticated, verifyContext: Sign.Model.VerifyContext) {
+            override fun onSessionAuthenticate(sessionAuthenticate: Sign.Model.SessionAuthenticate, verifyContext: Sign.Model.VerifyContext) {
                 val messages = mutableListOf<Pair<String, String>>()
                 val cacaos = mutableListOf<Sign.Model.Cacao>()
 
-                sessionAuthenticated.payloadParams.chains.forEach { chain ->
+                sessionAuthenticate.payloadParams.chains.forEach { chain ->
                     val issuer = "did:pkh:$chain:$address"
-                    val message = WalletSignClient.formatAuthMessage(Sign.Params.FormatMessage(sessionAuthenticated.payloadParams, issuer)) ?: throw Exception("Invalid message")
+                    val message = WalletSignClient.formatAuthMessage(Sign.Params.FormatMessage(sessionAuthenticate.payloadParams, issuer)) ?: throw Exception("Invalid message")
                     messages.add(issuer to message)
                 }
 
                 messages.forEach { message ->
                     val signature = CacaoSigner.signHex("messageToSign", privateKey.hexToBytes(), SignatureType.EIP191)
-                    val cacao = generateCACAO(sessionAuthenticated.payloadParams, message.first, signature)
+                    val cacao = generateCACAO(sessionAuthenticate.payloadParams, message.first, signature)
                     cacaos.add(cacao)
                 }
 
-                val params = Sign.Params.ApproveSessionAuthenticate(sessionAuthenticated.id, cacaos)
-                WalletSignClient.approveSessionAuthenticate(params, onSuccess = {}, onError = {
+                val params = Sign.Params.ApproveSessionAuthenticate(sessionAuthenticate.id, cacaos)
+                WalletSignClient.approveSessionAuthenticated(params, onSuccess = {}, onError = {
                     Timber.d("approveSessionAuthenticated: onError: $it")
                 })
             }
@@ -124,9 +181,9 @@ class SessionAuthenticateInstrumentedAndroidTest {
         Timber.d("rejectSessionAuthenticated: start")
 
         val walletDelegate = object : WalletDelegate() {
-            override fun onSessionAuthenticated(sessionAuthenticated: Sign.Model.SessionAuthenticated, verifyContext: Sign.Model.VerifyContext) {
-                val params = Sign.Params.RejectSessionAuthenticate(sessionAuthenticated.id, "User rejections")
-                WalletSignClient.rejectSessionAuthenticate(params, onSuccess = {}, onError = ::globalOnError)
+            override fun onSessionAuthenticate(sessionAuthenticate: Sign.Model.SessionAuthenticate, verifyContext: Sign.Model.VerifyContext) {
+                val params = Sign.Params.RejectSessionAuthenticate(sessionAuthenticate.id, "User rejections")
+                WalletSignClient.rejectSessionAuthenticated(params, onSuccess = {}, onError = ::globalOnError)
             }
         }
 

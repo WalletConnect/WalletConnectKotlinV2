@@ -18,7 +18,7 @@ import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.signing.cacao.CacaoType
 import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
 import com.walletconnect.android.internal.common.signing.cacao.Issuer
-import com.walletconnect.android.internal.common.signing.cacao.toCAIP122Message
+import com.walletconnect.android.internal.common.signing.cacao.toCAIP222Message
 import com.walletconnect.android.internal.common.storage.identity.IdentitiesStorageRepository
 import com.walletconnect.android.internal.utils.getIdentityTag
 import com.walletconnect.android.keyserver.domain.use_case.RegisterIdentityUseCase
@@ -154,7 +154,7 @@ class IdentitiesInteractor(
 
     private fun generateAndSignCacao(accountId: AccountId, identityKey: PublicKey, statement: String, domain: String, resources: List<String>, onSign: (String) -> Cacao.Signature?): Result<Cacao> {
         val payload = generatePayload(accountId, identityKey, statement, domain, resources).getOrThrow()
-        val message = payload.toCAIP122Message()
+        val message = payload.toCAIP222Message()
         val signature = onSign(message) ?: throw UserRejectedSigning()
         return Result.success(Cacao(CacaoType.EIP4361.toHeader(), payload, signature))
     }

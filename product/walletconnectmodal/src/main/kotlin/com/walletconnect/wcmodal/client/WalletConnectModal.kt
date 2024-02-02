@@ -124,16 +124,16 @@ object WalletConnectModal {
                 delegate.onSessionRequestResponse(response.toModal())
             }
 
-            override fun onSessionAuthenticateResponse(sessionAuthenticateResponse: Sign.Model.SessionAuthenticateResponse) {
-                delegate.onSessionAuthenticateResponse(sessionAuthenticateResponse.toModal())
-            }
-
             override fun onProposalExpired(proposal: Sign.Model.ExpiredProposal) {
                 delegate.onProposalExpired(proposal.toModal())
             }
 
             override fun onRequestExpired(request: Sign.Model.ExpiredRequest) {
                 delegate.onRequestExpired(request.toModal())
+            }
+
+            override fun onSessionAuthenticateResponse(sessionAuthenticateResponse: Sign.Model.SessionAuthenticateResponse) {
+                delegate.onSessionAuthenticateResponse(sessionAuthenticateResponse.toModal())
             }
 
             override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {
@@ -185,7 +185,7 @@ object WalletConnectModal {
         onError: (Modal.Model.Error) -> Unit,
     ) {
 
-        SignClient.authenticate(authenticate.toSign(),
+        SignClient.sessionAuthenticate(authenticate.toSign(),
             onSuccess = { onSuccess() },
             onError = { onError(it.toModal()) })
     }
