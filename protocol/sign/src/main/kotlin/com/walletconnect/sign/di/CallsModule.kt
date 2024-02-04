@@ -104,7 +104,8 @@ internal fun callsModule() = module {
             pairingController = get(),
             getPendingSessionAuthenticateRequest = get(),
             selfAppMetaData = get(),
-            sessionStorageRepository = get()
+            sessionStorageRepository = get(),
+            metadataStorageRepository = get()
         )
     }
 

@@ -43,7 +43,8 @@ internal fun responsesModule() = module {
             jsonRpcInteractor = get(),
             authenticateResponseTopicRepository = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
-            getSessionAuthenticateRequest = get()
+            getSessionAuthenticateRequest = get(),
+            metadataStorageRepository = get()
         )
     }
 

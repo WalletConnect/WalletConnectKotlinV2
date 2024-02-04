@@ -53,7 +53,7 @@ internal class RejectSessionAuthenticateUseCase(
         jsonRpcInteractor.publishJsonRpcResponse(
             responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
             onSuccess = {
-                logger.log("kobe: Wallet - Session Authenticate Reject Responded on topic: $responseTopic")
+                logger.log("Session Authenticate Reject Responded on topic: $responseTopic")
                 scope.launch {
                     supervisorScope {
                         verifyContextStorageRepository.delete(id)

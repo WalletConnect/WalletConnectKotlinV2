@@ -15,6 +15,7 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
 import com.walletconnect.android.internal.common.signing.cacao.Issuer
+import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.monthInSeconds
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
@@ -42,6 +43,7 @@ internal class OnSessionAuthenticateResponseUseCase(
     private val sessionStorageRepository: SessionStorageRepository,
     private val crypto: KeyManagementRepository,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val authenticateResponseTopicRepository: AuthenticateResponseTopicRepository,
     private val logger: Logger,
     private val getSessionAuthenticateRequest: GetSessionAuthenticateRequest,
@@ -51,7 +53,6 @@ internal class OnSessionAuthenticateResponseUseCase(
 
     suspend operator fun invoke(wcResponse: WCResponse, params: SignParams.SessionAuthenticateParams) = supervisorScope {
         try {
-            println("kobe: DUPA")
             val jsonRpcHistoryEntry = getSessionAuthenticateRequest(wcResponse.response.id)
             logger.log("Received session authenticate response: ${wcResponse.topic}")
 
@@ -103,6 +104,8 @@ internal class OnSessionAuthenticateResponseUseCase(
                             sessionNamespaces = sessionNamespaces,
                             pairingTopic = pairingTopic.value
                         )
+                        metadataStorageRepository.insertOrAbortMetadata(sessionTopic, params.requester.metadata, AppMetaDataType.SELF)
+                        metadataStorageRepository.insertOrAbortMetadata(sessionTopic, approveParams.responder.metadata, AppMetaDataType.PEER)
                         sessionStorageRepository.insertSession(authenticatedSession, response.id)
                         jsonRpcInteractor.subscribe(sessionTopic) { error -> scope.launch { _events.emit(SDKError(error)) } }
                         logger.log("Received session authenticate response - emitting rpc result: ${wcResponse.topic}")

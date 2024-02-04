@@ -134,7 +134,7 @@ class ChainSelectionViewModel : ViewModel() {
         }
         val authenticateParams = Modal.Params.Authenticate(
             type = "caip222",
-            chains = listOf("eip155:1", "eip155:37"),
+            chains = listOf("eip155:1", "eip155:137"),
             domain = "sample.kotlin.dapp",
             aud = "https://react-auth-dapp.vercel.app/",
             nonce = randomBytes(12).bytesToHex(),
@@ -158,7 +158,7 @@ class ChainSelectionViewModel : ViewModel() {
                 }
                 Timber.tag(tag(this)).e(error.throwable.stackTraceToString())
                 Firebase.crashlytics.recordException(error.throwable)
-                onError(error.throwable.message ?: "sdasdUnknown error, please contact support")
+                onError(error.throwable.message ?: "Unknown error, please contact support")
             })
     }
 

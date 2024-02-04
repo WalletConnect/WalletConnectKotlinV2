@@ -69,7 +69,7 @@ internal class SessionAuthenticateUseCase(
                     jsonRpcInteractor.subscribe(
                         responseTopic,
                         onSuccess = {
-                            logger.log("kobe; Dapp - Session authenticate subscribed on topic: $responseTopic")
+                            logger.log("Session authenticate subscribed on topic: $responseTopic")
                             scope.launch {
                                 authenticateResponseTopicRepository.insertOrAbort(pairing.topic.value, responseTopic.value)
                             }

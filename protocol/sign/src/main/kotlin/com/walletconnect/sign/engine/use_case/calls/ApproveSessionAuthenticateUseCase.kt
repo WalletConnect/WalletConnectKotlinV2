@@ -4,6 +4,7 @@ import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.model.AppMetaData
+import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Namespace
@@ -17,6 +18,7 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
 import com.walletconnect.android.internal.common.signing.cacao.Issuer
+import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.dayInSeconds
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
@@ -41,6 +43,7 @@ internal class ApproveSessionAuthenticateUseCase(
     private val verifyContextStorageRepository: VerifyContextStorageRepository,
     private val logger: Logger,
     private val pairingController: PairingControllerInterface,
+    private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val selfAppMetaData: AppMetaData,
     private val sessionStorageRepository: SessionStorageRepository
 ) : ApproveSessionAuthenticateUseCaseInterface {
@@ -96,6 +99,8 @@ internal class ApproveSessionAuthenticateUseCase(
                 sessionNamespaces = sessionNamespaces,
                 pairingTopic = jsonRpcHistoryEntry.topic.value
             )
+            metadataStorageRepository.insertOrAbortMetadata(sessionTopic, selfAppMetaData, AppMetaDataType.SELF)
+            metadataStorageRepository.insertOrAbortMetadata(sessionTopic, receiverMetadata, AppMetaDataType.PEER)
             sessionStorageRepository.insertSession(authenticatedSession, id)
 
             val responseParams = CoreSignParams.SessionAuthenticateApproveParams(responder = Participant(publicKey = senderPublicKey.keyAsHex, metadata = selfAppMetaData), cacaos = cacaos)
