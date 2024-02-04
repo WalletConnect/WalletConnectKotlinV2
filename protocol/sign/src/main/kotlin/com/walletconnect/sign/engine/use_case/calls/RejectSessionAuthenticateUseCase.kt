@@ -8,6 +8,7 @@ import com.walletconnect.android.internal.common.model.Participants
 import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.dayInSeconds
 import com.walletconnect.foundation.common.model.PublicKey
@@ -17,6 +18,7 @@ import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.exceptions.MissingSessionAuthenticateRequest
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionAuthenticateRequest
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
 internal class RejectSessionAuthenticateUseCase(
@@ -36,10 +38,8 @@ internal class RejectSessionAuthenticateUseCase(
             return@supervisorScope
         }
 
-
         //todo: handle error codes
         val response = JsonRpcResponse.JsonRpcError(id, error = JsonRpcResponse.Error(12001, reason))
-
         val sessionAuthenticateParams: SignParams.SessionAuthenticateParams = jsonRpcHistoryEntry.params
         val receiverPublicKey = PublicKey(sessionAuthenticateParams.requester.publicKey)
         val senderPublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
@@ -49,25 +49,25 @@ internal class RejectSessionAuthenticateUseCase(
         crypto.setKey(symmetricKey, responseTopic.value)
         val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE_RESPONSE, Ttl(dayInSeconds), false)
 
+        logger.log("Sending Session Authenticate Reject on topic: $responseTopic")
         jsonRpcInteractor.publishJsonRpcResponse(
             responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
             onSuccess = {
-                logger.log("Success Responded on topic: $responseTopic")
-//                scope.launch {
-//                    supervisorScope {
-//                        pairingController.activate(Core.Params.Activate(jsonRpcHistoryEntry.topic.value))
-//                        verifyContextStorageRepository.delete(id)
-//                    }
-//                }
+                logger.log("kobe: Wallet - Session Authenticate Reject Responded on topic: $responseTopic")
+                scope.launch {
+                    supervisorScope {
+                        verifyContextStorageRepository.delete(id)
+                    }
+                }
                 onSuccess()
             },
             onFailure = { error ->
-                logger.error("Error Responded on topic: $responseTopic")
-//                scope.launch {
-//                    supervisorScope {
-//                        verifyContextStorageRepository.delete(respond.id)
-//                    }
-//                }
+                logger.error("Session Authenticate Error Responded on topic: $responseTopic")
+                scope.launch {
+                    supervisorScope {
+                        verifyContextStorageRepository.delete(id)
+                    }
+                }
                 onFailure(error)
             }
         )

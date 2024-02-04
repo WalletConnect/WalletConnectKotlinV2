@@ -46,6 +46,14 @@ class ChainSelectionViewModel : ViewModel() {
         when (walletEvent) {
             is Modal.Model.ApprovedSession -> DappSampleEvents.SessionApproved
             is Modal.Model.RejectedSession -> DappSampleEvents.SessionRejected
+            is Modal.Model.SessionAuthenticateResponse -> {
+                if (walletEvent is Modal.Model.SessionAuthenticateResponse.Result) {
+                    DappSampleEvents.SessionAuthenticateApproved
+                } else {
+                    DappSampleEvents.SessionAuthenticateRejected
+                }
+            }
+
             is Modal.Model.ExpiredProposal -> DappSampleEvents.ProposalExpired
             else -> DappSampleEvents.NoAction
         }

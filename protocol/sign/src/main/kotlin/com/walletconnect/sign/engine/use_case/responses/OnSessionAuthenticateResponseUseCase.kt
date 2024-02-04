@@ -27,6 +27,7 @@ import com.walletconnect.sign.common.model.vo.sequence.SessionVO
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toEngineDO
 import com.walletconnect.sign.json_rpc.domain.GetSessionAuthenticateRequest
+import com.walletconnect.sign.storage.authenticate.AuthenticateResponseTopicRepository
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -41,6 +42,7 @@ internal class OnSessionAuthenticateResponseUseCase(
     private val sessionStorageRepository: SessionStorageRepository,
     private val crypto: KeyManagementRepository,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val authenticateResponseTopicRepository: AuthenticateResponseTopicRepository,
     private val logger: Logger,
     private val getSessionAuthenticateRequest: GetSessionAuthenticateRequest,
 ) {
@@ -49,6 +51,7 @@ internal class OnSessionAuthenticateResponseUseCase(
 
     suspend operator fun invoke(wcResponse: WCResponse, params: SignParams.SessionAuthenticateParams) = supervisorScope {
         try {
+            println("kobe: DUPA")
             val jsonRpcHistoryEntry = getSessionAuthenticateRequest(wcResponse.response.id)
             logger.log("Received session authenticate response: ${wcResponse.topic}")
 
@@ -60,8 +63,7 @@ internal class OnSessionAuthenticateResponseUseCase(
 
             val pairingTopic = jsonRpcHistoryEntry.topic
             if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) return@supervisorScope //todo: emit error
-//            todo: handle pending session authenticate requests
-//            pairingTopicToResponseTopicMap.remove(pairingTopic)
+            scope.launch { authenticateResponseTopicRepository.delete(pairingTopic.value) }
 
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcError -> {

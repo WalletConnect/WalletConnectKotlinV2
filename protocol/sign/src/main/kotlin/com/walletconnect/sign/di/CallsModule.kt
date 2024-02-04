@@ -73,6 +73,7 @@ internal fun callsModule() = module {
             jsonRpcInteractor = get(),
             crypto = get(),
             selfAppMetaData = get(),
+            authenticateResponseTopicRepository = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
         )
     }

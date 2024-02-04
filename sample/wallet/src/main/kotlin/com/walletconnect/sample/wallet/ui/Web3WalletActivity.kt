@@ -123,6 +123,7 @@ class Web3WalletActivity : AppCompatActivity() {
                     }
 
                     is AuthEvent.OnRequest -> navController.navigate(Route.AuthRequest.path)
+                    is SignEvent.SessionAuthenticate -> navController.navigate(Route.SessionAuthenticate.path)
 
                     else -> Unit
                 }

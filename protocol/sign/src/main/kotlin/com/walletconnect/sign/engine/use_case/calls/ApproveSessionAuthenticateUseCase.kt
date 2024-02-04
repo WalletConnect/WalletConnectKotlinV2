@@ -66,7 +66,7 @@ internal class ApproveSessionAuthenticateUseCase(
             val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE_RESPONSE, Ttl(dayInSeconds))
 
             if (cacaos.find { cacao -> !cacaoVerifier.verify(cacao) } != null) {
-                logger.error("Invalid Cacao")
+                logger.error("Invalid Cacao for Session Authenticate")
                 //todo: handle error codes
                 jsonRpcInteractor.respondWithError(id,
                     responseTopic,
@@ -101,8 +101,15 @@ internal class ApproveSessionAuthenticateUseCase(
             val responseParams = CoreSignParams.SessionAuthenticateApproveParams(responder = Participant(publicKey = senderPublicKey.keyAsHex, metadata = selfAppMetaData), cacaos = cacaos)
             val response: JsonRpcResponse = JsonRpcResponse.JsonRpcResult(id, result = responseParams)
             crypto.setKey(symmetricKey, sessionTopic.value)
-            jsonRpcInteractor.subscribe(sessionTopic) { error -> onFailure(error) }
+            logger.log("Subscribing Session Authenticate on topic: $responseTopic")
+            jsonRpcInteractor.subscribe(sessionTopic, onSuccess = {
+                logger.log("Subscribed Session Authenticate on topic: $responseTopic")
+            }, { error ->
+                logger.log("Subscribing Session Authenticate error on topic: $responseTopic, $error")
+                onFailure(error)
+            })
 
+            logger.log("Sending Session Authenticate Approve on topic: $responseTopic")
             jsonRpcInteractor.publishJsonRpcResponse(responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
                 onSuccess = {
                     logger.log("Session Authenticate Approve Responded on topic: $responseTopic")

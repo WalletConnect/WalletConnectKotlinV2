@@ -41,6 +41,7 @@ internal fun responsesModule() = module {
             sessionStorageRepository = get(),
             crypto = get(),
             jsonRpcInteractor = get(),
+            authenticateResponseTopicRepository = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
             getSessionAuthenticateRequest = get()
         )
