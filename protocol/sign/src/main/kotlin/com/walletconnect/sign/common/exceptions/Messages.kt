@@ -32,5 +32,5 @@ internal const val INVALID_SESSION_PROPERTIES: String = "Invalid Session Propert
 internal const val CLIENT_ALREADY_INITIALIZED: String = "SignClient already initialized"
 internal const val INVALID_SIGN_PARAMS_TYPE: String = "Invalid Sign params type"
 
-internal const val MISSING_SESSION_AUTHENTICATE_REQUEST: String = "Missing session authenticate use case"
+internal const val MISSING_SESSION_AUTHENTICATE_REQUEST: String = "Missing session authenticate request, expired"
 internal const val INVALID_CACAO_EXCEPTION: String = "Invalid Cacao exception"

@@ -29,9 +29,7 @@ internal class RejectSessionAuthenticateUseCase(
     private val logger: Logger
 ) : RejectSessionAuthenticateUseCaseInterface {
     override suspend fun rejectSessionAuthenticate(id: Long, reason: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
-
         val jsonRpcHistoryEntry = getPendingSessionAuthenticateRequest(id)
-
         if (jsonRpcHistoryEntry == null) {
             logger.error(MissingSessionAuthenticateRequest().message)
             onFailure(MissingSessionAuthenticateRequest())

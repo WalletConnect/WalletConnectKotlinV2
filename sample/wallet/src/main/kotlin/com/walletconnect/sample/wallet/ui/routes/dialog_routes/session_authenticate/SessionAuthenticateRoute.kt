@@ -11,6 +11,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -20,6 +23,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -36,8 +40,6 @@ import com.walletconnect.sample.common.ui.theme.mismatch_color
 import com.walletconnect.sample.common.ui.themedColor
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.wallet.ui.common.Buttons
-import com.walletconnect.sample.wallet.ui.common.Content
-import com.walletconnect.sample.wallet.ui.common.InnerContent
 import com.walletconnect.sample.wallet.ui.common.SemiTransparentDialog
 import com.walletconnect.sample.wallet.ui.common.generated.CancelButton
 import com.walletconnect.sample.wallet.ui.common.peer.Peer
@@ -127,7 +129,7 @@ private fun SessionAuthenticateDialog(
         Spacer(modifier = Modifier.height(24.dp))
         Peer(peerUI = authenticateRequestUI.peerUI, "would like to connect", authenticateRequestUI.peerContextUI)
         Spacer(modifier = Modifier.height(16.dp))
-        Message(authRequestUI = authenticateRequestUI)
+        Messages(authRequestUI = authenticateRequestUI)
         Spacer(modifier = Modifier.height(16.dp))
         Buttons(
             allowButtonColor,
@@ -201,13 +203,20 @@ private fun closeAndShowError(navController: NavHostController, mesage: String?,
 }
 
 @Composable
-fun Message(authRequestUI: SessionAuthenticateUI) {
-    Content(title = "Message") {
-        InnerContent {
-            //todo: List of messages
+fun Messages(authRequestUI: SessionAuthenticateUI) {
+    LazyColumn(
+        modifier = Modifier
+            .padding(20.dp)
+            .clip(shape = RoundedCornerShape(25.dp))
+            .fillMaxWidth()
+            .height(300.dp)
+            .background(themedColor(darkColor = Color(0xFFE4E4E7).copy(alpha = .12f), lightColor = Color(0xFF505059).copy(.1f)))
+    ) {
+        itemsIndexed(authRequestUI.messages) { _, item ->
+            Spacer(modifier = Modifier.height(12.dp))
             Text(
+                text = item.second,
                 modifier = Modifier.padding(vertical = 10.dp, horizontal = 13.dp),
-                text = authRequestUI.messages.first().second,
                 style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 13.sp, color = themedColor(darkColor = Color(0xFF9ea9a9), lightColor = Color(0xFF788686)))
             )
         }
