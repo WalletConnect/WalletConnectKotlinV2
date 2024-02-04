@@ -29,7 +29,7 @@ internal class Web3ModalRootState(
         get() = navController.currentBackStackEntryFlow
 
     val canPopUp: Boolean
-        get() = !topLevelDestinations.any { it.path == navController.currentDestination?.route } || navController.backQueue.size > 2
+        get() = !topLevelDestinations.any { it.path == navController.currentDestination?.route } || navController.previousBackStackEntry != null
 
     val title: Flow<String?> = currentDestinationFlow
         .map { it.getTitleArg() ?: it.destination.toTitle() }
