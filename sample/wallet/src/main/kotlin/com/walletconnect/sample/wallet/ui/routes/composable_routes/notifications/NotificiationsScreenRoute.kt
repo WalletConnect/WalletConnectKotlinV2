@@ -62,6 +62,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 @Composable
 fun NotificationsScreenRoute(navController: NavHostController, subscriptionTopic: String, inboxViewModel: InboxViewModel) {
@@ -93,7 +94,9 @@ fun NotificationsScreenRoute(navController: NavHostController, subscriptionTopic
             }
         }, onFailure = {
             scope.launch {
-                navController.showSnackbar("Unable to unsubscribe. Reason: ${it.message}")
+                val message = "Unable to unsubscribe. Reason: ${it.message}"
+                Timber.e(message)
+                navController.showSnackbar(message)
             }
         })
     }, onRetry = viewModel::retryFetchingAllNotifications, onFetchMore = viewModel::fetchMore, hasMore = hasMore, scrollToTopCounter = scrollToTopCounter
