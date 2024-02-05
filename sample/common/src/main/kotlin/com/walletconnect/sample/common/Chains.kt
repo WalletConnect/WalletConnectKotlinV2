@@ -136,7 +136,7 @@ enum class Chains(
     SOLANA(
         chainName = "Solana Mainnet",
         chainNamespace = Info.Solana.chain,
-        chainReference = "solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ",
+        chainReference = "4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ",
         icon = R.drawable.ic_solana,
         color = "#F3BA2F",
         methods = Info.Solana.defaultMethods,
@@ -157,13 +157,13 @@ enum class Chains(
 
         object Cosmos : Info() {
             override val chain = "cosmos"
-            override val defaultEvents: List<String> = listOf("chainChanged", "accountsChanged")
+            override val defaultEvents: List<String> = listOf()
             override val defaultMethods: List<String> = listOf("cosmos_signDirect", "cosmos_signAmino")
         }
 
         object Solana : Info() {
             override val chain = "solana"
-            override val defaultEvents: List<String> = listOf("chainChanged", "accountsChanged")
+            override val defaultEvents: List<String> = listOf()
             override val defaultMethods: List<String> = listOf("solana_signMessage", "solana_signTransaction")
         }
     }
