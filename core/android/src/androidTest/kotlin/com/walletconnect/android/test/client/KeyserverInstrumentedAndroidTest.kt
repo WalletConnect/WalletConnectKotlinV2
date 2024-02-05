@@ -64,7 +64,7 @@ class KeyserverInstrumentedAndroidTest {
     fun failingRegisterIdentityForSolanaByPrimaryClient() {
         Timber.d("registerIdentityByPrimaryClient: start")
         scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) {
-            Timber.d("kobe: ${SolanaAccount.caip10}")
+            Timber.d("${SolanaAccount.caip10}")
             TestClient.Primary.identitiesInteractor.registerIdentity(
                 AccountId(SolanaAccount.caip10),
                 statement, domain, emptyList(), TestClient.Primary.keyserverUrl

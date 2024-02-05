@@ -46,7 +46,7 @@ val walletMetaData = WalletMetaData(
         ),
         "cosmos" to Wallet.Model.Namespace.Session(
             chains = listOf("cosmos:cosmoshub-4", "cosmos:cosmoshub-1"),
-            methods = listOf("accountsChanged", "personal_sign"),
+            methods = listOf("cosmos_signDirect", "cosmos_signAmino"),
             events = listOf(),
             accounts = listOf("cosmos:cosmoshub-4:cosmos1w605a5ejjlhp04eahjqxhjhmg8mj6nqhp8v6xc", "cosmos:cosmoshub-1:cosmos1w605a5ejjlhp04eahjqxhjhmg8mj6nqhp8v6xc")
         ),
