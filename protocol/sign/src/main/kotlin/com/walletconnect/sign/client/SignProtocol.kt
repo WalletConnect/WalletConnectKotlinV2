@@ -162,12 +162,8 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
                 val pairing = signEngine.getPairingForSessionAuthenticate(authenticate.pairingTopic)
                 val optionalNamespaces = signEngine.getNamespacesFromReCaps(authenticate.chains, authenticate.methods ?: emptyList()).toMapOfEngineNamespacesOptional()
 
-
                 signEngine.authenticate(authenticate.toPayloadParams(), authenticate.methods, pairing.toPairing(),
-                    onSuccess = { url ->
-                        println("kobe: Auth Success")
-                        onSuccess(url)
-                    },
+                    onSuccess = { url -> onSuccess(url) },
                     onFailure = { throwable -> onError(Sign.Model.Error(throwable)) })
 
                 signEngine.proposeSession(
@@ -175,10 +171,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
                     optionalNamespaces,
                     properties = null,
                     pairing = pairing.toPairing(),
-                    onSuccess = {
-                        println("kobe: Proposal Success")
-                        /*Success*/
-                    },
+                    onSuccess = {/*Success*/ },
                     onFailure = { error -> onError(Sign.Model.Error(error)) }
                 )
             } catch (error: Exception) {

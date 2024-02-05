@@ -51,11 +51,11 @@ internal class PairingProtocol(private val koinApp: KoinApplication = wcKoinApp)
     }
 
     @Throws(IllegalStateException::class)
-    override fun create(onError: (Core.Model.Error) -> Unit, method: String): Core.Model.Pairing? {
+    override fun create(onError: (Core.Model.Error) -> Unit, methods: String): Core.Model.Pairing? {
         checkEngineInitialization()
 
         return try {
-            pairingEngine.create({ error -> onError(Core.Model.Error(error)) }, method)
+            pairingEngine.create({ error -> onError(Core.Model.Error(error)) }, methods)
         } catch (e: Exception) {
             onError(Core.Model.Error(e))
             null
