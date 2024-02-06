@@ -2,6 +2,7 @@ package com.walletconnect.sample.dapp.ui.routes.composable_routes.account
 
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,7 +36,6 @@ import com.walletconnect.sample.common.ui.commons.BlueButton
 import com.walletconnect.sample.common.ui.commons.FullScreenLoader
 import com.walletconnect.sample.common.ui.commons.Loader
 import com.walletconnect.sample.dapp.ui.DappSampleEvents
-import com.walletconnect.sample.dapp.ui.openMessageDialog
 import com.walletconnect.sample.dapp.ui.routes.Route
 import timber.log.Timber
 
@@ -44,6 +44,7 @@ fun AccountRoute(navController: NavController) {
     val viewModel: AccountViewModel = viewModel()
     val state by viewModel.uiState.collectAsState()
     val awaitResponse by viewModel.awaitResponse.collectAsState(false)
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.fetchAccountDetails()
@@ -51,15 +52,15 @@ fun AccountRoute(navController: NavController) {
         viewModel.events.collect { event ->
             when (event) {
                 is DappSampleEvents.RequestSuccess -> {
-                    navController.openMessageDialog(event.result)
+                    Toast.makeText(context, "Result: ${event.result}", Toast.LENGTH_LONG).show()
                 }
 
                 is DappSampleEvents.RequestPeerError -> {
-                    navController.openMessageDialog(event.errorMsg)
+                    Toast.makeText(context, "Error: ${event.errorMsg}", Toast.LENGTH_LONG).show()
                 }
 
                 is DappSampleEvents.RequestError -> {
-                    navController.openMessageDialog(event.exceptionMsg)
+                    Toast.makeText(context, "Error: ${event.exceptionMsg}", Toast.LENGTH_LONG).show()
                 }
 
                 is DappSampleEvents.Disconnect -> navController.popBackStack(Route.ChainSelection.path, false)
