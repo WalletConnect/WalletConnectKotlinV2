@@ -23,9 +23,9 @@ import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignPara
 import com.walletconnect.sign.common.validator.SignValidator
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toCommon
+import com.walletconnect.sign.engine.model.mapper.toMapOfEngineNamespacesOptional
 import com.walletconnect.sign.storage.authenticate.AuthenticateResponseTopicRepository
 import kotlinx.coroutines.launch
-import com.walletconnect.sign.engine.model.mapper.toMapOfEngineNamespacesOptional
 import org.bouncycastle.util.encoders.Base64
 import org.json.JSONArray
 import org.json.JSONObject
@@ -77,7 +77,7 @@ internal class SessionAuthenticateUseCase(
                         onSuccess = {
                             logger.log("Session authenticate subscribed on topic: $responseTopic")
                             scope.launch {
-                                authenticateResponseTopicRepository.insertOrAbort(pairing.topic.value, responseTopic.value)
+                                authenticateResponseTopicRepository.insertOrAbort(pairing.topic, responseTopic.value)
                             }
                             onSuccess(pairing.uri)
                         },
