@@ -94,8 +94,6 @@ internal class JsonRpcInteractor(
             return onFailure(e)
         }
 
-        println("kobe: Request: $requestJson")
-
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
             val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, envelopeType, participants)
 
@@ -125,7 +123,6 @@ internal class JsonRpcInteractor(
 
         try {
             val responseJson = serializer.serialize(response) ?: return onFailure(IllegalStateException("JsonRpcInteractor: Unknown result params"))
-            println("kobe: Response: $responseJson")
             val encryptedResponse = chaChaPolyCodec.encrypt(topic, responseJson, envelopeType, participants)
 
             relay.publish(topic.value, encryptedResponse, params.toRelay()) { result ->
@@ -337,7 +334,6 @@ internal class JsonRpcInteractor(
             }.collect { (decryptedMessage, topic, publishedAt) ->
                 if (decryptedMessage.isNotEmpty()) {
                     try {
-                        println("kobe: Message: $decryptedMessage")
                         manageSubscriptions(decryptedMessage, topic, publishedAt)
                     } catch (e: Exception) {
                         handleError("ManSub: ${e.stackTraceToString()}")

@@ -31,7 +31,7 @@ class SessionAuthenticateViewModel : ViewModel() {
                     val cacao = generateCACAO(sessionAuthenticate.payloadParams, issuerToMessage.first, signature)
                     cacaos.add(cacao)
                 }
-                val approveProposal = Wallet.Params.ApproveSessionAuthenticate(id = sessionAuthenticate.id, cacaos = cacaos)
+                val approveProposal = Wallet.Params.ApproveSessionAuthenticate(id = sessionAuthenticate.id, auths = cacaos)
 
                 Web3Wallet.approveSessionAuthenticate(approveProposal,
                     onError = { error ->

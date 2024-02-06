@@ -3,6 +3,7 @@ package com.walletconnect.sample.dapp.ui.routes.composable_routes.chain_selectio
 import android.content.Context
 import android.widget.Toast
 import android.content.Intent
+import java.net.URLEncoder
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.core.net.toUri
@@ -170,13 +171,13 @@ fun ChainSelectionRoute(navController: NavController) {
                 viewModel.authenticate(
                     onAuthenticateSuccess = { uri ->
                         val intent = Intent(Intent.ACTION_VIEW).apply {
-                            data = "trust://wc?uri=$uri".toUri()
-//                            data = "kotlin-web3wallet://wc?uri=$uri".toUri()
-//                            `package` = when (BuildConfig.BUILD_TYPE) {
-//                                "debug" -> SAMPLE_WALLET_DEBUG_PACKAGE
-//                                "internal" -> SAMPLE_WALLET_INTERNAL_PACKAGE
-//                                else -> SAMPLE_WALLET_RELEASE_PACKAGE
-//                            }
+                            val encoded = URLEncoder.encode(uri, "UTF-8")
+                            data = "kotlin-web3wallet://wc?uri=$encoded".toUri()
+                            `package` = when (BuildConfig.BUILD_TYPE) {
+                                "debug" -> SAMPLE_WALLET_DEBUG_PACKAGE
+                                "internal" -> SAMPLE_WALLET_INTERNAL_PACKAGE
+                                else -> SAMPLE_WALLET_RELEASE_PACKAGE
+                            }
                         }
                         context.startActivity(intent)
                     },

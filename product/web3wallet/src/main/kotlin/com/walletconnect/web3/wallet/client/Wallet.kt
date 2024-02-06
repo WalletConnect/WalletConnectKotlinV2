@@ -19,7 +19,7 @@ object Wallet {
             val relayProtocol: String? = null,
         ) : Params()
 
-        data class ApproveSessionAuthenticate(val id: Long, val cacaos: List<Model.Cacao>) : Params()
+        data class ApproveSessionAuthenticate(val id: Long, val auths: List<Model.Cacao>) : Params()
 
         data class RejectSessionAuthenticate(val id: Long, val reason: String) : Params()
 
