@@ -6,14 +6,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
 import androidx.navigation.NavDeepLink
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.dialog
 import androidx.navigation.navArgument
 import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
@@ -24,8 +22,6 @@ import com.walletconnect.sample.dapp.ui.routes.bottom_routes.PairingSelectionRou
 import com.walletconnect.sample.dapp.ui.routes.composable_routes.account.AccountRoute
 import com.walletconnect.sample.dapp.ui.routes.composable_routes.chain_selection.ChainSelectionRoute
 import com.walletconnect.sample.dapp.ui.routes.composable_routes.session.SessionRoute
-import com.walletconnect.sample.dapp.ui.routes.dialog_routes.MessageDialogRoute
-import com.walletconnect.sample.dapp.ui.routes.host.DappSampleViewModel
 import com.walletconnect.wcmodal.ui.walletConnectModalGraph
 
 @Composable
@@ -60,27 +56,12 @@ fun DappSampleNavGraph(
             bottomSheet(Route.ParingSelection.path) {
                 PairingSelectionRoute(navController)
             }
-            dialog(
-                route = Route.MessageDialog.path + "/{$messageArg}",
-                arguments = listOf(navArgument(messageArg) { type = NavType.Companion.StringType }),
-                dialogProperties = DialogProperties(usePlatformDefaultWidth = false)
-            ) {
-                MessageDialogRoute(
-                    navController = navController,
-                    message = checkNotNull(it.arguments?.getString(messageArg))
-                )
-            }
             walletConnectModalGraph(navController)
         }
     }
 }
 
 const val accountArg= "accountArg"
-const val messageArg = "messageArg"
-fun NavController.openMessageDialog(message: String) {
-    navigate(Route.MessageDialog.path + "/$message")
-}
-
 fun NavController.navigateToAccount(selectedAccount: String) {
     navigate(Route.Account.path + "/$selectedAccount")
 }
