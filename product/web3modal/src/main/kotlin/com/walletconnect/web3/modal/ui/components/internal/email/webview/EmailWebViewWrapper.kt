@@ -10,22 +10,26 @@ import android.os.Handler
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.webkit.ConsoleMessage
+import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import androidx.webkit.WebViewClientCompat
 import com.walletconnect.foundation.util.Logger
+import timber.log.Timber
 import java.lang.IllegalStateException
+
+const val SECURE_WEBSITE_URL = "https://secure.walletconnect.com"
 
 internal class EmailWebViewWrapper(
     context: Context,
-    logger: Logger
+    private val logger: Logger
 ) {
-    val url: String = ""
     val mutableContext = MutableContextWrapper(context)
 
-    private val webView = WebView(context)
+    private val webView = WebView(mutableContext)
     private var webViewDialog: WebViewDialog? = null
 
     init {
@@ -49,9 +53,10 @@ internal class EmailWebViewWrapper(
             LinearLayout.LayoutParams.MATCH_PARENT,
             LinearLayout.LayoutParams.MATCH_PARENT
         )
+        webView.webChromeClient = EmailChromeClient(logger)
         webView.webViewClient = EmailWebView()
         webView.addJavascriptInterface(this, "FortmaticAndroid")
-        webView.loadUrl(url)
+        webView.loadUrl(SECURE_WEBSITE_URL)
     }
 
     fun newActivityContext(context: Context) {
@@ -66,7 +71,6 @@ internal class EmailWebViewWrapper(
             if (it is Activity) {
                 webView.visibility = View.VISIBLE
                 webViewDialog = WebViewDialog(it, webView)
-
                 webViewDialog?.show()
             } else {
 
@@ -104,7 +108,18 @@ internal class EmailWebViewWrapper(
     }
 }
 
-private class EmailWebView: WebViewClientCompat() {
+private class EmailChromeClient(
+    private val logger: Logger
+) : WebChromeClient() {
+
+    override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
+        logger.log(consoleMessage?.message())
+        return super.onConsoleMessage(consoleMessage)
+    }
+
+}
+
+private class EmailWebView : WebViewClientCompat() {
 
     override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
         //TODO
@@ -112,7 +127,7 @@ private class EmailWebView: WebViewClientCompat() {
     }
 }
 
-private class WebViewDialog(context: Context, val webView: WebView): Dialog(context) {
+private class WebViewDialog(context: Context, val webView: WebView) : Dialog(context) {
 
     init {
         setContentView(createContentView())

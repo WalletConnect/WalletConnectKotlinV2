@@ -1,8 +1,10 @@
 package com.walletconnect.web3.modal.client
 
+import android.content.Context
 import androidx.activity.ComponentActivity
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import com.walletconnect.sign.common.exceptions.SignClientAlreadyInitializedException
@@ -17,6 +19,7 @@ import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
 import com.walletconnect.web3.modal.domain.model.Session.WalletConnect
 import com.walletconnect.web3.modal.domain.model.toModalError
 import com.walletconnect.web3.modal.engine.Web3ModalEngine
+import com.walletconnect.web3.modal.ui.components.internal.email.webview.EmailProvider
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.jetbrains.annotations.ApiStatus.Experimental
@@ -270,5 +273,14 @@ object Web3Modal {
     fun getConnectorType(): Modal.ConnectorType? {
         checkEngineInitialization()
         return web3ModalEngine.getConnectorType()
+    }
+
+    // TODO TEMPORARY INIT
+    fun initEmail(context: Context) {
+        val logger: Logger = wcKoinApp.koin.get()
+        EmailProvider(
+            context = context,
+            logger = logger
+        )
     }
 }

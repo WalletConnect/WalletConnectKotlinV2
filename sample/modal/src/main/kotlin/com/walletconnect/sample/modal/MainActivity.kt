@@ -91,6 +91,8 @@ class MainActivity : ComponentActivity() {
             try {
                 Web3Modal.register(this)
                 isRegistered = true
+
+                Web3Modal.initEmail()
             } catch (e: Exception) {
                 Timber.e(e)
                 runBlocking { delay(100) }
