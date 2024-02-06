@@ -19,9 +19,7 @@ import com.walletconnect.sign.engine.use_case.calls.FormatAuthenticateMessageUse
 import com.walletconnect.sign.engine.use_case.calls.GetListOfVerifyContextsUseCase
 import com.walletconnect.sign.engine.use_case.calls.GetListOfVerifyContextsUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.GetNamespacesFromReCaps
-import com.walletconnect.sign.engine.use_case.calls.GetNamespacesFromReCapsInterface
-import com.walletconnect.sign.engine.use_case.calls.GetPairingForSessionAuthenticate
-import com.walletconnect.sign.engine.use_case.calls.GetPairingForSessionAuthenticateInterface
+import com.walletconnect.sign.engine.use_case.calls.GetPairingForSessionAuthenticateUseCase
 import com.walletconnect.sign.engine.use_case.calls.GetPairingsUseCase
 import com.walletconnect.sign.engine.use_case.calls.GetPairingsUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.GetSessionProposalsUseCase
@@ -74,7 +72,10 @@ internal fun callsModule() = module {
             crypto = get(),
             selfAppMetaData = get(),
             authenticateResponseTopicRepository = get(),
-            logger = get(named(AndroidCommonDITags.LOGGER)),
+            proposeSessionUseCase = get(),
+            getPairingForSessionAuthenticate = get(),
+            getNamespacesFromReCaps = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }
 
@@ -166,9 +167,9 @@ internal fun callsModule() = module {
 
     single<GetPairingsUseCaseInterface> { GetPairingsUseCase(pairingInterface = get()) }
 
-    single<GetPairingForSessionAuthenticateInterface> { GetPairingForSessionAuthenticate(pairingProtocol = get()) }
+    single { GetPairingForSessionAuthenticateUseCase(pairingProtocol = get()) }
 
-    single<GetNamespacesFromReCapsInterface> { GetNamespacesFromReCaps() }
+    single { GetNamespacesFromReCaps() }
 
     single<GetPendingRequestsUseCaseByTopicInterface> { GetPendingRequestsUseCaseByTopic(serializer = get(), jsonRpcHistory = get()) }
 

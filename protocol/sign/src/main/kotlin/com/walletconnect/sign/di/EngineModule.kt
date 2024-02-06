@@ -78,9 +78,7 @@ internal fun engineModule() = module {
             approveSessionAuthenticateUseCase = get(),
             rejectSessionAuthenticateUseCase = get(),
             formatAuthenticateMessageUseCase = get(),
-            deleteRequestByIdUseCase = get(),
-            getPairingForSessionAuthenticateInterface = get(),
-            getNamespacesFromReCapsInterface = get(),
+            deleteRequestByIdUseCase = get()
         )
     }
 }

@@ -6,7 +6,8 @@ import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
 import com.walletconnect.android.pairing.model.inactivePairing
 import com.walletconnect.foundation.common.model.Topic
 
-data class Pairing(
+data class
+Pairing(
     override val topic: Topic,
     override val expiry: Expiry,
     val peerAppMetaData: AppMetaData? = null,
