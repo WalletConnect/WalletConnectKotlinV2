@@ -161,7 +161,12 @@ object Wallet {
             val resources: List<String>?,
         ) : Model()
 
-        data class SessionEvent(val name: String, val data: String) : Model()
+        data class SessionEvent(
+            val topic: String,
+            val name: String,
+            val data: String,
+            val chainId: String?,
+        ) : Model()
 
         data class Cacao(
             val header: Header,

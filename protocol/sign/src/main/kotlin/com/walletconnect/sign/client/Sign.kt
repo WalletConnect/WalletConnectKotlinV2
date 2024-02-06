@@ -153,8 +153,10 @@ object Sign {
         }
 
         data class SessionEvent(
+            val topic: String,
             val name: String,
             val data: String,
+            val chainId: String?,
         ) : Model()
 
         data class SessionRequestResponse(

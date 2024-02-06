@@ -100,7 +100,7 @@ internal fun EngineDO.SessionDelete.toClientDeletedSession(): Sign.Model.Deleted
 
 @JvmSynthetic
 internal fun EngineDO.SessionEvent.toClientSessionEvent(): Sign.Model.SessionEvent =
-    Sign.Model.SessionEvent(name, data)
+    Sign.Model.SessionEvent(topic, name, data, chainId)
 
 @JvmSynthetic
 internal fun EngineDO.Session.toClientActiveSession(): Sign.Model.Session =

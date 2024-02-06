@@ -89,7 +89,7 @@ fun ConnectionDetailsRoute(navController: NavController, connectionId: Int?, con
                                 Web3Wallet.emitSessionEvent(
                                     Wallet.Params.SessionEmit(
                                         uiConnection.type.topic,
-                                        event = Wallet.Model.SessionEvent(event, "someData"), chainId
+                                        event = Wallet.Model.SessionEvent(uiConnection.type.topic, event, "someData", chainId), chainId
                                     ),
                                     onSuccess = {
                                         isEmitLoading = false
