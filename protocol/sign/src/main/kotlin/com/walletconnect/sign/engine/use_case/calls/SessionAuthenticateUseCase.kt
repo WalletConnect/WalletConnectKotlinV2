@@ -12,6 +12,7 @@ import com.walletconnect.android.internal.common.signing.cacao.Cacao.Payload.Com
 import com.walletconnect.android.internal.utils.currentTimeInSeconds
 import com.walletconnect.android.internal.utils.dayInSeconds
 import com.walletconnect.android.internal.utils.getParticipantTag
+import com.walletconnect.android.pairing.model.mapper.toPairing
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -65,28 +66,25 @@ internal class SessionAuthenticateUseCase(
 //        val requestTtlInSeconds = expiry?.run { seconds - nowInSeconds } ?: DAY_IN_SECONDS
         crypto.setKey(requesterPublicKey, responseTopic.getParticipantTag())
 
+        logger.log("Session authenticate subscribing on topic: $responseTopic")
+        jsonRpcInteractor.subscribe(
+            responseTopic,
+            onSuccess = {
+                logger.log("Session authenticate subscribed on topic: $responseTopic")
+                scope.launch {
+                    authenticateResponseTopicRepository.insertOrAbort(pairing.topic, responseTopic.value)
+                }
+            },
+            onFailure = { error ->
+                logger.error("Session authenticate subscribing on topic error: $responseTopic, $error")
+                return@subscribe onFailure(error)
+            })
+
         logger.log("Sending session authenticate on topic: ${pairing.topic}")
         jsonRpcInteractor.publishJsonRpcRequest(Topic(pairing.topic), irnParams, authRequest,
             onSuccess = {
                 logger.log("Session authenticate sent successfully on topic: ${pairing.topic}")
-                try {
-                    logger.log("Session authenticate subscribing on topic: $responseTopic")
-                    jsonRpcInteractor.subscribe(
-                        responseTopic,
-                        onSuccess = {
-                            logger.log("Session authenticate subscribed on topic: $responseTopic")
-                            scope.launch {
-                                authenticateResponseTopicRepository.insertOrAbort(pairing.topic, responseTopic.value)
-                            }
-                            onSuccess(pairing.uri)
-                        },
-                        onFailure = { error ->
-                            logger.error("Session authenticate subscribing on topic error: $responseTopic, $error")
-                            return@subscribe onFailure(error)
-                        })
-                } catch (e: Exception) {
-                    return@publishJsonRpcRequest onFailure(e)
-                }
+                onSuccess(pairing.uri)
             },
             onFailure = { error ->
                 logger.error("Failed to send a auth request: $error")
@@ -94,14 +92,14 @@ internal class SessionAuthenticateUseCase(
             }
         )
 
-//        proposeSessionUseCase.proposeSession(
-//            emptyMap(),
-//            optionalNamespaces,
-//            properties = null,
-//            pairing = pairing.toPairing(),
-//            onSuccess = {/*Success*/ },
-//            onFailure = { error -> onFailure(error) }
-//        )
+        proposeSessionUseCase.proposeSession(
+            emptyMap(),
+            optionalNamespaces,
+            properties = null,
+            pairing = pairing.toPairing(),
+            onSuccess = {/*Success*/ },
+            onFailure = { error -> onFailure(error) }
+        )
     }
 
     private fun getIrnParamsTtl(expiry: Expiry?, nowInSeconds: Long) = expiry?.run {
