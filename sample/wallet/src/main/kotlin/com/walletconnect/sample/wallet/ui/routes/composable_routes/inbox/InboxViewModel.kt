@@ -109,11 +109,11 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
             projects.map { explorerApp ->
                 activeSubscriptions.find { it.appDomain == explorerApp.dappUrl }?.let {
                     explorerApp.copy(isSubscribed = true, topic = it.topic)
-                } ?: explorerApp
+                } ?: explorerApp.copy(isSubscribed = false, topic = null)
             }
         }
         .onEach { _discoverState.update { DiscoverState.Fetched } }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _explorerApps.value)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, _explorerApps.value)
 
     init {
         searchText
