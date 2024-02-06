@@ -177,7 +177,7 @@ fun ChainSelectionRoute(navController: NavController) {
                                 else -> SAMPLE_WALLET_RELEASE_PACKAGE
                             }
                         }
-                        context.startActivity(intent)
+                        context.startActivity(intent) //                        data = "trust://wc?uri=$uri".toUri()
                     },
                     onError = { error ->
                         composableScope.launch(Dispatchers.Main) {
