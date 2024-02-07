@@ -91,13 +91,8 @@ class NotificationsViewModel(topic: String) : ViewModel() {
 
             val (notifications, state) = when (result) {
                 is Notify.Result.GetNotificationHistory.Success -> {
-                    Timber.d("fetchAllNotifications: ${result}")
-
                     _hasMore.value = result.hasMore
-                    result.notifications.map { messageRecord -> messageRecord.toNotifyNotification() }.onEach { notification ->
-
-                        Timber.d("fetchAllNotifications: ${notification.id} ${notification.body}")
-                    }.toSet() to NotificationsState.Success
+                    result.notifications.map { messageRecord -> messageRecord.toNotifyNotification() }.onEach { notification -> }.toSet() to NotificationsState.Success
                 }
 
                 is Notify.Result.GetNotificationHistory.Error -> {
@@ -107,7 +102,7 @@ class NotificationsViewModel(topic: String) : ViewModel() {
             }
             _notifications.value = notifications
             _notificationsTrigger.emit(Unit)
-            _state.update { state }
+            if (_state.value != NotificationsState.Unsubscribing) _state.update { state }
         }
     }
 
@@ -120,13 +115,10 @@ class NotificationsViewModel(topic: String) : ViewModel() {
                     val (notifications, state) = when (result) {
 
                         is Notify.Result.GetNotificationHistory.Success -> {
-                            Timber.d("fetchMore result: ${result}")
 
                             _hasMore.value = result.hasMore
                             val resultList = _notifications.value.toMutableList()
-                            resultList.addAll(result.notifications.map { messageRecord -> messageRecord.toNotifyNotification() }.onEach { notification ->
-                                Timber.d("fetchMore: ${notification.id} ${notification.icon}")
-                            })
+                            resultList.addAll(result.notifications.map { messageRecord -> messageRecord.toNotifyNotification() })
                             resultList.toSet() to NotificationsState.Success
                         }
 

@@ -15,9 +15,7 @@ class SessionProposalViewModel : ViewModel() {
         if (Web3Wallet.getSessionProposals().isNotEmpty()) {
             try {
                 val sessionProposal: Wallet.Model.SessionProposal = requireNotNull(Web3Wallet.getSessionProposals().find { it.proposerPublicKey == proposalPublicKey })
-
                 val sessionNamespaces = Web3Wallet.generateApprovedNamespaces(sessionProposal = sessionProposal, supportedNamespaces = walletMetaData.namespaces)
-
                 val approveProposal = Wallet.Params.SessionApprove(proposerPublicKey = sessionProposal.proposerPublicKey, namespaces = sessionNamespaces)
 
                 Web3Wallet.approveSession(approveProposal,
