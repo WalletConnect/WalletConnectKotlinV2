@@ -49,11 +49,15 @@ internal class SessionAuthenticateUseCase(
         val optionalNamespaces = getNamespacesFromReCaps(payloadParams.chains, methods ?: emptyList()).toMapOfEngineNamespacesOptional()
 
         val namespace = SignValidator.getNamespaceKeyFromChainId(payloadParams.chains.first())
+
+        //TODO: BUILDING RECAPS JSON
         val actionsJsonArray = JSONArray()
         methods?.forEachIndexed { index, method -> actionsJsonArray.put(index, JSONObject().put("request/$method", JSONArray())) }
         val recaps = JSONObject().put(ATT_KEY, JSONObject().put(namespace, actionsJsonArray)).toString().replace("\\/", "/")
         val base64Recaps = Base64.toBase64String(recaps.toByteArray(Charsets.UTF_8))
         val reCapsUrl = "$RECAPS_PREFIX$base64Recaps"
+
+
         if (payloadParams.resources == null) payloadParams.resources = listOf(reCapsUrl) else payloadParams.resources!!.toMutableList().add(reCapsUrl)
         val requesterPublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
         val responseTopic: Topic = crypto.getTopicFromKey(requesterPublicKey)

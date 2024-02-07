@@ -58,7 +58,6 @@ internal class OnSessionAuthenticateResponseUseCase(
 
             if (jsonRpcHistoryEntry == null) {
                 logger.error("Received session authenticate response - rpc entry doesn't exist: ${wcResponse.topic}")
-                //todo: emit error
                 return@supervisorScope
             }
 
