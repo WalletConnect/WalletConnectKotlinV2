@@ -35,7 +35,13 @@ object Web3Modal {
         fun onSessionApproved(approvedSession: Modal.Model.ApprovedSession)
         fun onSessionRejected(rejectedSession: Modal.Model.RejectedSession)
         fun onSessionUpdate(updatedSession: Modal.Model.UpdatedSession)
+
+        @Deprecated(
+            message = "onSessionEvent is deprecated. Use onEvent instead. Using both will result in duplicate events.",
+            replaceWith = ReplaceWith(expression = "onEvent(event)")
+        )
         fun onSessionEvent(sessionEvent: Modal.Model.SessionEvent)
+        fun onEvent(event: Modal.Model.Event) {}
         fun onSessionExtend(session: Modal.Model.Session)
         fun onSessionDelete(deletedSession: Modal.Model.DeletedSession)
 
@@ -59,7 +65,7 @@ object Web3Modal {
     fun initialize(
         init: Modal.Params.Init,
         onSuccess: () -> Unit = {},
-        onError: (Modal.Model.Error) -> Unit
+        onError: (Modal.Model.Error) -> Unit,
     ) {
         SignClient.initialize(
             init = Sign.Params.Init(init.core),
@@ -98,7 +104,7 @@ object Web3Modal {
     private fun onInitializedClient(
         init: Modal.Params.Init,
         onSuccess: () -> Unit = {},
-        onError: (Modal.Model.Error) -> Unit
+        onError: (Modal.Model.Error) -> Unit,
     ) {
         if (!::web3ModalEngine.isInitialized) {
             runCatching {
@@ -133,7 +139,9 @@ object Web3Modal {
                 is Modal.Model.Error -> delegate.onError(event)
                 is Modal.Model.RejectedSession -> delegate.onSessionRejected(event)
                 is Modal.Model.Session -> delegate.onSessionExtend(event)
+                //todo: how to notify developer to not us both at the same time
                 is Modal.Model.SessionEvent -> delegate.onSessionEvent(event)
+                is Modal.Model.Event -> delegate.onEvent(event)
                 is Modal.Model.SessionRequestResponse -> delegate.onSessionRequestResponse(event)
                 is Modal.Model.UpdatedSession -> delegate.onSessionUpdate(event)
                 is Modal.Model.ExpiredRequest -> delegate.onRequestExpired(event)
@@ -150,7 +158,7 @@ object Web3Modal {
     fun request(
         request: Modal.Params.Request,
         onSuccess: (Modal.Model.SentRequest) -> Unit = {},
-        onError: (Modal.Model.Error) -> Unit
+        onError: (Modal.Model.Error) -> Unit,
     ) {
         checkEngineInitialization()
         web3ModalEngine.request(
@@ -163,7 +171,7 @@ object Web3Modal {
     fun request(
         request: Request,
         onSuccess: (SentRequestResult) -> Unit = {},
-        onError: (Throwable) -> Unit
+        onError: (Throwable) -> Unit,
     ) {
         checkEngineInitialization()
         web3ModalEngine.request(request, onSuccess, onError)
@@ -177,7 +185,7 @@ object Web3Modal {
     fun request(
         request: Request,
         onSuccess: () -> Unit,
-        onError: (Throwable) -> Unit
+        onError: (Throwable) -> Unit,
     ) {
         checkEngineInitialization()
         web3ModalEngine.request(request, { onSuccess() }, onError)
@@ -191,7 +199,7 @@ object Web3Modal {
     )
     fun disconnect(
         onSuccess: (Modal.Params.Disconnect) -> Unit = {},
-        onError: (Modal.Model.Error) -> Unit
+        onError: (Modal.Model.Error) -> Unit,
     ) {
         checkEngineInitialization()
         val topic = when (val session = web3ModalEngine.getActiveSession()) {
@@ -207,7 +215,7 @@ object Web3Modal {
 
     fun disconnect(
         onSuccess: () -> Unit,
-        onError: (Throwable) -> Unit
+        onError: (Throwable) -> Unit,
     ) {
         checkEngineInitialization()
         web3ModalEngine.disconnect(onSuccess, onError)

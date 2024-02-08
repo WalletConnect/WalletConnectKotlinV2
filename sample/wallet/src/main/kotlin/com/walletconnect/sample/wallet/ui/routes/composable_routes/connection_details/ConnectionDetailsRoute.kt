@@ -60,6 +60,7 @@ import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.C
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
 import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import com.walletconnect.web3.wallet.client.Wallet
+import com.walletconnect.web3.wallet.client.Wallet.Params.SessionEventEmit
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -87,10 +88,7 @@ fun ConnectionDetailsRoute(navController: NavController, connectionId: Int?, con
 
                             try {
                                 Web3Wallet.emitSessionEvent(
-                                    Wallet.Params.SessionEmit(
-                                        uiConnection.type.topic,
-                                        event = Wallet.Model.SessionEvent(event, "someData"), chainId
-                                    ),
+                                    SessionEventEmit(Wallet.Model.Event(uiConnection.type.topic, event, "someData", chainId)),
                                     onSuccess = {
                                         isEmitLoading = false
                                         composableScope.launch(Dispatchers.Main) {

@@ -25,7 +25,16 @@ object Wallet {
 
         data class SessionExtend(val topic: String) : Params()
 
+        @Deprecated(
+            message = "SessionEmit is deprecated. Use SessionEventEmit instead.",
+            replaceWith = ReplaceWith(
+                expression = "SessionEventEmit(event)",
+                imports = ["com.walletconnect.web3.wallet.client.Sign.Model.Event"]
+            )
+        )
         data class SessionEmit(val topic: String, val event: Model.SessionEvent, val chainId: String) : Params()
+
+        data class SessionEventEmit(val event: Model.Event) : Params()
 
         data class SessionRequestResponse(val sessionTopic: String, val jsonRpcResponse: Model.JsonRpcResponse) : Params()
 
@@ -71,7 +80,7 @@ object Wallet {
             val origin: String,
             val validation: Validation,
             val verifyUrl: String,
-            val isScam: Boolean?
+            val isScam: Boolean?,
         ) : Model()
 
         enum class Validation {
@@ -161,7 +170,25 @@ object Wallet {
             val resources: List<String>?,
         ) : Model()
 
-        data class SessionEvent(val name: String, val data: String) : Model()
+        @Deprecated(
+            message = "SessionEvent is deprecated. Use Event instead.",
+            replaceWith = ReplaceWith(
+                expression = "Event",
+                imports = ["com.walletconnect.web3.wallet.client.Wallet.Model.Event"]
+            )
+        )
+        data class SessionEvent(
+            val name: String,
+            val data: String,
+        ) : Model()
+
+
+        data class Event(
+            val topic: String,
+            val name: String,
+            val data: String,
+            val chainId: String,
+        ) : Model()
 
         data class Cacao(
             val header: Header,
@@ -223,7 +250,7 @@ object Wallet {
 
             data class Simple(
                 val title: String,
-                val body: String
+                val body: String,
             ) : Message()
 
             data class SessionProposal(

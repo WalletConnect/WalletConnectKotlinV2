@@ -216,6 +216,10 @@ internal class Web3ModalEngine(
                 delegate.onSessionEvent(sessionEvent.toModal())
             }
 
+            override fun onEvent(event: Sign.Model.Event) {
+                delegate.onEvent(event.toModal())
+            }
+
             override fun onSessionExtend(session: Sign.Model.Session) {
                 delegate.onSessionExtend(session.toModal())
             }

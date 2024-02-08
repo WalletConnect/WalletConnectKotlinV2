@@ -152,9 +152,24 @@ object Sign {
             val redirect: String? = metaData?.redirect
         }
 
+        @Deprecated(
+            message = "SessionEvent is deprecated. Use Event instead.",
+            replaceWith = ReplaceWith(
+                expression = "Event",
+                imports = ["com.walletconnect.sign.client.Sign.Model.Event"]
+            )
+        )
         data class SessionEvent(
             val name: String,
             val data: String,
+        ) : Model()
+
+
+        data class Event(
+            val topic: String,
+            val name: String,
+            val data: String,
+            val chainId: String,
         ) : Model()
 
         data class SessionRequestResponse(
@@ -266,8 +281,9 @@ object Sign {
 
         data class Ping(val topic: String, val timeout: Duration = 30.seconds) : Params()
 
-        data class Emit(val topic: String, val event: Model.SessionEvent, val chainId: String) :
-            Params()
+        data class Emit(val topic: String, val event: Model.SessionEvent, val chainId: String) : Params()
+
+        data class EventEmit(val event: Model.Event) : Params()
 
         data class Extend(val topic: String) : Params()
 

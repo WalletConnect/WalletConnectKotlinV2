@@ -83,7 +83,10 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
                 is EngineDO.SessionApproved -> delegate.onSessionApproved(event.toClientSessionApproved())
                 is EngineDO.SessionUpdateNamespaces -> delegate.onSessionUpdate(event.toClientSessionsNamespaces())
                 is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
-                is EngineDO.SessionEvent -> delegate.onSessionEvent(event.toClientSessionEvent())
+                is EngineDO.SessionEvent ->{
+                    delegate.onSessionEvent(event.toClientSessionEvent())
+                    delegate.onEvent(event.toClientEvent())
+                }
                 is EngineDO.SessionExtend -> delegate.onSessionExtend(event.toClientActiveSession())
                 //Responses
                 is EngineDO.SessionPayloadResponse -> delegate.onSessionRequestResponse(event.toClientSessionPayloadResponse())
@@ -295,6 +298,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
         }
     }
 
+    @Deprecated("emit with params: Sign.Params.Emit is deprecated. Use emit with params: Sign.Params.EventEmit instead.")
     @Throws(IllegalStateException::class)
     override fun emit(emit: Sign.Params.Emit, onSuccess: (Sign.Params.Emit) -> Unit, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
@@ -304,6 +308,24 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
                 signEngine.emit(
                     topic = emit.topic,
                     event = emit.event.toEngineEvent(emit.chainId),
+                    onSuccess = { onSuccess(emit) },
+                    onFailure = { error -> onError(Sign.Model.Error(error)) }
+                )
+            } catch (error: Exception) {
+                onError(Sign.Model.Error(error))
+            }
+        }
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun emit(emit: Sign.Params.EventEmit, onSuccess: (Sign.Params.EventEmit) -> Unit, onError: (Sign.Model.Error) -> Unit) {
+        checkEngineInitialization()
+
+        scope.launch {
+            try {
+                signEngine.emit(
+                    topic = emit.event.topic,
+                    event = emit.event.toEngineEvent(),
                     onSuccess = { onSuccess(emit) },
                     onFailure = { error -> onError(Sign.Model.Error(error)) }
                 )

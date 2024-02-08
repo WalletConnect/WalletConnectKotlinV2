@@ -46,6 +46,12 @@ object ModalSampleDelegate : Web3Modal.ModalDelegate {
         }
     }
 
+    override fun onEvent(event: Modal.Model.Event) {
+        scope.launch {
+            _wcEventModels.emit(event)
+        }
+    }
+
     override fun onSessionDelete(deletedSession: Modal.Model.DeletedSession) {
         scope.launch {
             _wcEventModels.emit(deletedSession)

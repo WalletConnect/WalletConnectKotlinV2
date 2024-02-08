@@ -55,6 +55,9 @@ internal fun Wallet.Model.Cacao.Signature.toAuth(): Auth.Model.Cacao.Signature =
 internal fun Wallet.Model.SessionEvent.toSign(): Sign.Model.SessionEvent = Sign.Model.SessionEvent(name, data)
 
 @JvmSynthetic
+internal fun Wallet.Model.Event.toSign(): Sign.Model.Event = Sign.Model.Event(topic, name, data, chainId)
+
+@JvmSynthetic
 internal fun Wallet.Model.PayloadParams.toSign(): Auth.Model.PayloadParams =
     Auth.Model.PayloadParams(
         type = type,

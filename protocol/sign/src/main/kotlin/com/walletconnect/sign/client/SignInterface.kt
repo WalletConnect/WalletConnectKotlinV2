@@ -22,7 +22,13 @@ interface SignInterface {
         fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession)
         fun onSessionRejected(rejectedSession: Sign.Model.RejectedSession)
         fun onSessionUpdate(updatedSession: Sign.Model.UpdatedSession)
+
+        @Deprecated(
+            message = "onSessionEvent is deprecated. Use onEvent instead. Using both will result in duplicate events.",
+            replaceWith = ReplaceWith(expression = "onEvent(event)")
+        )
         fun onSessionEvent(sessionEvent: Sign.Model.SessionEvent)
+        fun onEvent(event: Sign.Model.Event) {}
         fun onSessionExtend(session: Sign.Model.Session)
         fun onSessionDelete(deletedSession: Sign.Model.DeletedSession)
 
@@ -46,12 +52,12 @@ interface SignInterface {
     )
     fun connect(
         connect: Sign.Params.Connect, onSuccess: () -> Unit,
-        onError: (Sign.Model.Error) -> Unit
+        onError: (Sign.Model.Error) -> Unit,
     )
 
     fun connect(
         connect: Sign.Params.Connect, onSuccess: (String) -> Unit,
-        onError: (Sign.Model.Error) -> Unit
+        onError: (Sign.Model.Error) -> Unit,
     )
 
     @Deprecated(
@@ -70,14 +76,17 @@ interface SignInterface {
         request: Sign.Params.Request,
         onSuccess: (Sign.Params.Request) -> Unit = {},
         onSuccessWithSentRequest: (Sign.Model.SentRequest) -> Unit = { it: Sign.Model.SentRequest -> Unit },
-        onError: (Sign.Model.Error) -> Unit
+        onError: (Sign.Model.Error) -> Unit,
     )
 
     fun request(request: Sign.Params.Request, onSuccess: (Sign.Model.SentRequest) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun respond(response: Sign.Params.Response, onSuccess: (Sign.Params.Response) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun update(update: Sign.Params.Update, onSuccess: (Sign.Params.Update) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun extend(extend: Sign.Params.Extend, onSuccess: (Sign.Params.Extend) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
+
+    @Deprecated(message = "emit with params: Sign.Params.Emit is deprecated. Use emit with params: Sign.Params.EventEmit instead.")
     fun emit(emit: Sign.Params.Emit, onSuccess: (Sign.Params.Emit) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
+    fun emit(emit: Sign.Params.EventEmit, onSuccess: (Sign.Params.EventEmit) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun ping(ping: Sign.Params.Ping, sessionPing: Sign.Listeners.SessionPing? = null)
     fun disconnect(disconnect: Sign.Params.Disconnect, onSuccess: (Sign.Params.Disconnect) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun decryptMessage(params: Sign.Params.DecryptMessage, onSuccess: (Sign.Model.Message) -> Unit, onError: (Sign.Model.Error) -> Unit)

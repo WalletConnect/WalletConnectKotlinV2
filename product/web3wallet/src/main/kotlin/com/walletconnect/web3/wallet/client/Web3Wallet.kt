@@ -209,6 +209,8 @@ object Web3Wallet {
         SignClient.respond(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
+
+    @Deprecated(message = "emitSessionEvent with params: Wallet.Params.SessionEmit is deprecated. Use emitSessionEvent with params: Wallet.Params.SessionEventEmit instead.")
     @Throws(IllegalStateException::class)
     fun emitSessionEvent(
         params: Wallet.Params.SessionEmit,
@@ -216,6 +218,16 @@ object Web3Wallet {
         onError: (Wallet.Model.Error) -> Unit,
     ) {
         val signParams = Sign.Params.Emit(params.topic, params.event.toSign(), params.chainId)
+        SignClient.emit(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
+    }
+
+    @Throws(IllegalStateException::class)
+    fun emitSessionEvent(
+        params: Wallet.Params.SessionEventEmit,
+        onSuccess: (Wallet.Params.SessionEventEmit) -> Unit = {},
+        onError: (Wallet.Model.Error) -> Unit,
+    ) {
+        val signParams = Sign.Params.EventEmit(params.event.toSign())
         SignClient.emit(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 

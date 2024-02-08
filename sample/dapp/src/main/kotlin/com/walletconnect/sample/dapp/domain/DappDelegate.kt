@@ -56,6 +56,12 @@ object DappDelegate : WalletConnectModal.ModalDelegate, CoreClient.CoreDelegate 
         }
     }
 
+    override fun onEvent(event: Modal.Model.Event) {
+        scope.launch {
+            _wcEventModels.emit(event)
+        }
+    }
+
     override fun onSessionDelete(deletedSession: Modal.Model.DeletedSession) {
         deselectAccountDetails()
 

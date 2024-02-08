@@ -94,11 +94,24 @@ object Modal {
             val namespaces: Map<String, Namespace.Session>,
         ) : Model()
 
+        @Deprecated(
+            message = "SessionEvent is deprecated. Use Event instead.",
+            replaceWith = ReplaceWith(
+                expression = "Event",
+                imports = ["com.walletconnect.web3.modal.client.Modal.Model.Event"]
+            )
+        )
         data class SessionEvent(
             val name: String,
             val data: String,
         ) : Model()
 
+        data class Event(
+            val topic: String,
+            val name: String,
+            val data: String,
+            val chainId: String,
+        ) : Model()
         sealed class DeletedSession : Model() {
             data class Success(val topic: String, val reason: String) : DeletedSession()
             data class Error(val error: Throwable) : DeletedSession()
