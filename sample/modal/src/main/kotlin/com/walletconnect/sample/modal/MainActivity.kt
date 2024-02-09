@@ -91,14 +91,14 @@ class MainActivity : ComponentActivity() {
             try {
                 Web3Modal.register(this)
                 isRegistered = true
-
-                Web3Modal.initEmail()
             } catch (e: Exception) {
                 Timber.e(e)
                 runBlocking { delay(100) }
             }
         }
         if (counter <= 0) throw IllegalStateException("Web3Modal registration failed")
+
+        Web3Modal.initEmail(this)
 
         setContent {
             WalletConnectTheme {
