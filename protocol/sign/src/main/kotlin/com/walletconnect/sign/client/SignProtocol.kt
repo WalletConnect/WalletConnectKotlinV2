@@ -115,8 +115,10 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
                     connect.namespaces?.toMapOfEngineNamespacesRequired(),
                     connect.optionalNamespaces?.toMapOfEngineNamespacesOptional(),
                     connect.properties,
-                    connect.pairing.toPairing(), onSuccess
-                ) { error -> onError(Sign.Model.Error(error)) }
+                    connect.pairing.toPairing(),
+                    onSuccess = { onSuccess() },
+                    onFailure = { error -> onError(Sign.Model.Error(error)) }
+                )
             } catch (error: Exception) {
                 onError(Sign.Model.Error(error))
             }
@@ -131,6 +133,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     ) {
         checkEngineInitialization()
         scope.launch {
+
             try {
                 signEngine.proposeSession(
                     connect.namespaces?.toMapOfEngineNamespacesRequired(),
@@ -149,14 +152,14 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     @Throws(IllegalStateException::class)
     override fun sessionAuthenticate(
         authenticate: Sign.Params.Authenticate,
-        onSuccess: () -> Unit,
+        onSuccess: (String) -> Unit,
         onError: (Sign.Model.Error) -> Unit,
     ) {
         checkEngineInitialization()
         scope.launch {
             try {
                 signEngine.authenticate(authenticate.toPayloadParams(), authenticate.methods, authenticate.pairingTopic,
-                    onSuccess = { onSuccess() },
+                    onSuccess = { url -> onSuccess(url) },
                     onFailure = { throwable -> onError(Sign.Model.Error(throwable)) })
             } catch (error: Exception) {
                 onError(Sign.Model.Error(error))

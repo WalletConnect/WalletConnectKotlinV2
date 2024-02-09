@@ -30,6 +30,17 @@ internal class PairingController(private val koinApp: KoinApplication = wcKoinAp
     }
 
     @Throws(IllegalStateException::class)
+    override fun getPairingByTopic(topic: Topic): Pairing? {
+        checkEngineInitialization()
+
+        return try {
+            pairingEngine.getPairingByTopic(topic)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    @Throws(IllegalStateException::class)
     override fun activate(activate: Core.Params.Activate, onError: (Core.Model.Error) -> Unit) {
         checkEngineInitialization()
 

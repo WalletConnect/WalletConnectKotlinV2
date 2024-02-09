@@ -22,6 +22,7 @@ import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toEngineDO
 import com.walletconnect.sign.engine.model.mapper.toPeerError
 import com.walletconnect.sign.engine.model.mapper.toVO
+import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
 import com.walletconnect.sign.storage.proposal.ProposalStorageRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -42,6 +43,10 @@ internal class OnSessionProposalUseCase(
     suspend operator fun invoke(request: WCRequest, payloadParams: SignParams.SessionProposeParams) = supervisorScope {
         val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(fiveMinutesInSeconds))
         try {
+            if (pairingController.getPairingByTopic(request.topic)?.methods?.contains(JsonRpcMethod.WC_SESSION_AUTHENTICATE) == true) {
+                logger.error("Session proposal received error: pairing supports authenticated sessions")
+                return@supervisorScope
+            }
             logger.log("Session proposal received: ${request.topic}")
             SignValidator.validateProposalNamespaces(payloadParams.requiredNamespaces) { error ->
                 logger.error("Session proposal received error: required namespace validation: ${error.message}")

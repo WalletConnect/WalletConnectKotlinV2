@@ -44,7 +44,7 @@ class ProposeSessionUseCaseTest {
                 topic = Topic("topic"),
                 relay = RelayProtocolOptions(),
                 symmetricKey = SymmetricKey("symmetricKey"),
-                registeredMethods = "",
+                methods = "",
                 expiry = Expiry(12345678L)
             ),
             onSuccess = {

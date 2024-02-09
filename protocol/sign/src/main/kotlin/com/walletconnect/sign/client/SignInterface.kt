@@ -56,7 +56,7 @@ interface SignInterface {
         onError: (Sign.Model.Error) -> Unit
     )
 
-    fun sessionAuthenticate(authenticate: Sign.Params.Authenticate, onSuccess: () -> Unit, onError: (Sign.Model.Error) -> Unit)
+    fun sessionAuthenticate(authenticate: Sign.Params.Authenticate, onSuccess: (String) -> Unit, onError: (Sign.Model.Error) -> Unit)
 
     @Deprecated(
         message = "Creating a pairing will be moved to CoreClient to make pairing SDK agnostic",

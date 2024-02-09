@@ -19,7 +19,6 @@ import com.walletconnect.sign.test.utils.wallet.WalletDelegate
 import com.walletconnect.sign.test.utils.wallet.WalletSignClient
 import com.walletconnect.sign.test.utils.wallet.walletClientRespondToRequest
 import com.walletconnect.util.hexToBytes
-import junit.framework.TestCase
 import org.junit.Rule
 import org.junit.Test
 import org.web3j.utils.Numeric
@@ -197,26 +196,11 @@ class SessionAuthenticateInstrumentedAndroidTest {
         launch(walletDelegate, dappDelegate)
     }
 
-    private fun pairDappAndWallet(onPairSuccess: (pairing: Core.Model.Pairing) -> Unit) {
-        TestClient.Dapp.Pairing.getPairings().let { pairings ->
-            if (pairings.isEmpty()) {
-                Timber.d("pairings.isEmpty() == true")
-
-                val pairing: Core.Model.Pairing = (TestClient.Dapp.Pairing.create(onError = ::globalOnError) ?: TestCase.fail("Unable to create a Pairing")) as Core.Model.Pairing
-                Timber.d("DappClient.pairing.create: $pairing")
-
-                TestClient.Wallet.Pairing.pair(Core.Params.Pair(pairing.uri), onError = ::globalOnError, onSuccess = {
-                    Timber.d("WalletClient.pairing.pair: $pairing")
-                    onPairSuccess(pairing)
-                })
-            } else {
-                Timber.d("pairings.isEmpty() == false")
-                TestCase.fail("Pairing already exists. Storage must be cleared in between runs")
-            }
-        }
-    }
-
     private fun pairAndConnect() {
-        pairDappAndWallet { pairing -> dappClientAuthenticate(pairing) }
+        dappClientAuthenticate { pairingUrl ->
+            TestClient.Wallet.Pairing.pair(Core.Params.Pair(pairingUrl), onError = ::globalOnError, onSuccess = {
+                Timber.d("WalletClient.pairing.pair: $pairingUrl")
+            })
+        }
     }
 }

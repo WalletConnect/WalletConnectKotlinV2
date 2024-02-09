@@ -22,7 +22,7 @@ val dappClientConnect = { pairing: Core.Model.Pairing ->
     )
 }
 
-val dappClientAuthenticate = { pairing: Core.Model.Pairing ->
+fun dappClientAuthenticate(onPairing: (String) -> Unit) {
     val authenticateParams = Sign.Params.Authenticate(
         type = "caip222",
         chains = listOf("eip155:1", "eip155:37"),
@@ -34,12 +34,14 @@ val dappClientAuthenticate = { pairing: Core.Model.Pairing ->
         statement = "Sign in with wallet.",
         requestId = null,
         resources = null,
-        pairingTopic = pairing.topic,
         methods = listOf("personal_sign", "eth_signTypedData_v4", "eth_sign"),
     )
     DappSignClient.sessionAuthenticate(
         authenticateParams,
-        onSuccess = { Timber.d("DappClient: on sent authenticate success") },
+        onSuccess = { pairingUrl ->
+            Timber.d("DappClient: on sent authenticate success: $pairingUrl")
+            onPairing(pairingUrl)
+        },
         onError = ::globalOnError
     )
 }

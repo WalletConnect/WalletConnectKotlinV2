@@ -23,4 +23,6 @@ interface PairingControllerInterface {
     fun updateMetadata(updateMetadata: Core.Params.UpdateMetadata, onError: (Core.Model.Error) -> Unit = {})
 
     fun register(vararg method: String)
+
+    fun getPairingByTopic(topic: Topic): Pairing?
 }
