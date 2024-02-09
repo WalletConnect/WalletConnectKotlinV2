@@ -46,16 +46,15 @@ internal object UpdateEmail : MagicRequest(MagicTypeRequest.UPDATE_EMAIL)
 
 internal data class SyncDappData(val metaData: AppMetaData, val sdkVersion: String, val projectId: String) : MagicRequest(MagicTypeRequest.SYNC_DAPP_DATA) {
     override fun toString(): String {
-        val v = "verified: true"
-        val p1 = "projectId:'$projectId'"
-        val p2 = "sdkVersion:'$sdkVersion'"
-        val m1 = "name:'${metaData.name}'"
-        val m2 = "description:'${metaData.description}'"
-        val m3 = "url:'${metaData.url}'"
-        val m4 = "icons:['${metaData.icons.first()}']"
-        val p3 = "metadata:{$m1,$m2,$m3,$m4}"
-        val p = "payload:{$v,$p1,$p2,$p3}"
-        return "{type:'${super.type}',$p}"
+        val verified = "verified: true"
+        val projectID = "projectId:'$projectId'"
+        val sdkVersion = "sdkVersion:'$sdkVersion'"
+        val name = "name:'${metaData.name}'"
+        val description = "description:'${metaData.description}'"
+        val url = "url:'${metaData.url}'"
+        val icons = "icons:['${metaData.icons.first()}']"
+        val metadata = "metadata:{$name,$description,$url,$icons}"
+        return "{type:'${super.type}',payload:{$verified,$projectID,$sdkVersion,$metadata}"
     }
 }
 
