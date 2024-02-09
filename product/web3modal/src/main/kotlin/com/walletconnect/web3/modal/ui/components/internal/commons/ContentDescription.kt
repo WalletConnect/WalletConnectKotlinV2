@@ -21,5 +21,6 @@ enum class ContentDescription(val description: String) {
     SWAP("Swap"),
     SELECT_NETWORK("Select Network"),
     MOBILE("mobile"),
-    WEB("web")
+    WEB("web"),
+    EMAIL("email"),
 }
