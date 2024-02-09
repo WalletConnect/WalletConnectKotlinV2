@@ -78,7 +78,7 @@ internal class CacaoTest {
         )
 
         val signatureString = "0xb518b65724f224f8b12dedeeb06f8b278eb7d3b42524959bed5d0dfa49801bd776c7ee05de396eadc38ee693c917a04d93b20981d68c4a950cbc42ea7f4264bc1c"
-        val signature: Cacao.Signature = Cacao.Signature(SignatureType.EIP1271.header, signatureString, payload.toCAIP122Message())
+        val signature: Cacao.Signature = Cacao.Signature(SignatureType.EIP1271.header, signatureString, payload.toCAIP222Message())
         val cacao = Cacao(CacaoType.EIP4361.toHeader(), payload, signature)
         val result: Boolean = cacaoVerifier.verify(cacao)
         Assert.assertTrue(result)
