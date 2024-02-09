@@ -64,7 +64,10 @@ internal class OnSessionAuthenticateResponseUseCase(
 
             val pairingTopic = jsonRpcHistoryEntry.topic
             if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) return@supervisorScope //todo: emit error
-            scope.launch { authenticateResponseTopicRepository.delete(pairingTopic.value) }
+            runCatching { authenticateResponseTopicRepository.delete(pairingTopic.value) }.onFailure {
+                logger.error("Received session authenticate response - failed to delete authenticate response topic: ${wcResponse.topic}")
+                _events.emit(SDKError(it))
+            }
 
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcError -> {
