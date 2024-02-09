@@ -96,9 +96,6 @@ internal fun Sign.Model.JsonRpcResponse.JsonRpcError.toRpcError(): JsonRpcRespon
 internal fun Sign.Model.SessionEvent.toEngineEvent(chainId: String): EngineDO.Event = EngineDO.Event(name, data, chainId)
 
 @JvmSynthetic
-internal fun Sign.Model.Event.toEngineEvent(): EngineDO.Event = EngineDO.Event(name, data, chainId ?: String.Empty)
-
-@JvmSynthetic
 internal fun EngineDO.SessionDelete.toClientDeletedSession(): Sign.Model.DeletedSession =
     Sign.Model.DeletedSession.Success(topic, reason)
 

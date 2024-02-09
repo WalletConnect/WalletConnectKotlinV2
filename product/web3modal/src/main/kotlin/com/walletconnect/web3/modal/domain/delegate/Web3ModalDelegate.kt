@@ -62,10 +62,10 @@ internal object Web3ModalDelegate : Web3Modal.ModalDelegate {
         }
     }
 
-    override fun onEvent(event: Modal.Model.Event) {
+    override fun onSessionEvent(sessionEvent: Modal.Model.Event) {
         scope.launch {
-            consumeEvent(event)
-            _wcEventModels.emit(event)
+            consumeEvent(sessionEvent)
+            _wcEventModels.emit(sessionEvent)
         }
     }
 

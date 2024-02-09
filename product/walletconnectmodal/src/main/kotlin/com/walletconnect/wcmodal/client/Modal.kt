@@ -79,13 +79,6 @@ object Modal {
             val namespaces: Map<String, Namespace.Session>,
         ) : Model()
 
-        @Deprecated(
-            message = "SessionEvent is deprecated. Use Event instead.",
-            replaceWith = ReplaceWith(
-                expression = "Event",
-                imports = ["com.walletconnect.wcmodal.client.Modal.Model.Event"]
-            )
-        )
         data class SessionEvent(
             val name: String,
             val data: String,

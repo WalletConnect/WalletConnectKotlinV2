@@ -31,7 +31,7 @@ val walletClientUpdateSession = { topic: String ->
 
 val walletClientEmitEvent = { topic: String ->
     WalletSignClient.emit(
-        Sign.Params.EventEmit(Sign.Model.Event(topic, sessionEvents.first(), "dummy",  sessionChains.first())),
+        Sign.Params.Emit(topic, Sign.Model.SessionEvent(sessionEvents.first(), "dummy"), sessionChains.first()),
         onSuccess = { Timber.d("Wallet: emitOnSuccess") },
         onError = ::globalOnError
     )

@@ -226,9 +226,9 @@ class SignClientInstrumentedAndroidTest {
         }
 
         val dappDelegate = object : AutoApproveDappDelegate(onSessionApprovedSuccess) {
-            override fun onEvent(event: Sign.Model.Event) {
-                assert(event.name == sessionEvents.first())
-                assert(event.data == "dummy")
+            override fun onSessionEvent(sessionEvent: Sign.Model.Event) {
+                assert(sessionEvent.name == sessionEvents.first())
+                assert(sessionEvent.data == "dummy")
                 scenarioExtension.closeAsSuccess().also { Timber.d("receiveEvent: finish") }
             }
         }
@@ -250,9 +250,9 @@ class SignClientInstrumentedAndroidTest {
         var isOnSessionEventReceived = false
 
         val dappDelegate = object : AutoApproveDappDelegate(onSessionApprovedSuccess) {
-            override fun onEvent(event: Sign.Model.Event) {
-                assert(event.name == sessionEvents.first())
-                assert(event.data == "dummy")
+            override fun onSessionEvent(sessionEvent: Sign.Model.Event) {
+                assert(sessionEvent.name == sessionEvents.first())
+                assert(sessionEvent.data == "dummy")
                 Timber.d("receiveEventAndSessionEvent: onEvent")
                 isOnEventReceived = true
                 if (isOnSessionEventReceived) {

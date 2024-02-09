@@ -24,11 +24,11 @@ object WalletConnectModal {
         fun onSessionRejected(rejectedSession: Modal.Model.RejectedSession)
         fun onSessionUpdate(updatedSession: Modal.Model.UpdatedSession)
         @Deprecated(
-            message = "onSessionEvent is deprecated. Use onEvent instead. Using both will result in duplicate events.",
-            replaceWith = ReplaceWith(expression = "onEvent(event)")
+            message = "Use onSessionEvent(Modal.Model.Event) instead. Using both will result in duplicate events.",
+            replaceWith = ReplaceWith(expression = "onSessionEvent(sessionEvent)")
         )
         fun onSessionEvent(sessionEvent: Modal.Model.SessionEvent)
-        fun onEvent(event: Modal.Model.Event) {}
+        fun onSessionEvent(sessionEvent: Modal.Model.Event) {}
         fun onSessionExtend(session: Modal.Model.Session)
         fun onSessionDelete(deletedSession: Modal.Model.DeletedSession)
 
@@ -88,7 +88,7 @@ object WalletConnectModal {
                 is Modal.Model.Session -> delegate.onSessionExtend(event)
                 //todo: how to notify developer to not us both at the same time
                 is Modal.Model.SessionEvent -> delegate.onSessionEvent(event)
-                is Modal.Model.Event -> delegate.onEvent(event)
+                is Modal.Model.Event -> delegate.onSessionEvent(event)
                 is Modal.Model.SessionRequestResponse -> delegate.onSessionRequestResponse(event)
                 is Modal.Model.UpdatedSession -> delegate.onSessionUpdate(event)
                 is Modal.Model.ExpiredProposal -> delegate.onProposalExpired(event)
@@ -117,8 +117,8 @@ object WalletConnectModal {
                 delegate.onSessionEvent(sessionEvent.toModal())
             }
 
-            override fun onEvent(event: Sign.Model.Event) {
-                delegate.onEvent(event.toModal())
+            override fun onSessionEvent(sessionEvent: Sign.Model.Event) {
+                delegate.onSessionEvent(sessionEvent.toModal())
             }
 
             override fun onSessionExtend(session: Sign.Model.Session) {

@@ -39,9 +39,9 @@ internal object WalletConnectModalDelegate : WalletConnectModal.ModalDelegate {
         }
     }
 
-    override fun onEvent(event: Modal.Model.Event) {
+    override fun onSessionEvent(sessionEvent: Modal.Model.Event) {
         scope.launch {
-            _wcEventModels.emit(event)
+            _wcEventModels.emit(sessionEvent)
         }
     }
 
