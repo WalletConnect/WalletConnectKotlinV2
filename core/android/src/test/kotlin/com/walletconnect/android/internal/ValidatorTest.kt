@@ -16,7 +16,6 @@ internal class ValidatorTest {
     fun `validate with encoded uri query parameter`() {
         val validUri =
             "deeplink://wc?uri=wc%3A7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9%402%3Frelay-protocol%3Dirn%26symKey%3D587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
-            //"kotlin-web3wallet://wc?uri=5521cc5969ab1fdc242648d69230534769b74dd770f5379284f67452e16c870a@2?relay-protocol=irn&expiryTimestamp=1706870519&methods=wc_sessionAuthenticate&symKey=e7a471121c212cc370c1a96f1f429b1dd57664f91e504837a19064a4989ec82f"
 
         Validator.validateWCUri("").apply { assertEquals(null, this) }
         Validator.validateWCUri(validUri).apply {
