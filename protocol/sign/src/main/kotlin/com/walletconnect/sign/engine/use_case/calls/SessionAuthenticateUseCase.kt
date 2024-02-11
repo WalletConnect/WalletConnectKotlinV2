@@ -50,10 +50,24 @@ internal class SessionAuthenticateUseCase(
 
         val namespace = SignValidator.getNamespaceKeyFromChainId(payloadParams.chains.first())
 
+//        val signReCapsJson =
+//            JSONObject().put(
+//                "att",
+//                JSONObject().put(
+//                    "eip155",
+//                    JSONObject()
+//                        .put("request/eth_signTypedData_v4", JSONArray().put(0, JSONObject()))
+//                        .put("request/personal_sign", JSONArray().put(0, JSONObject()))
+//                )
+//            )
+
         //TODO: BUILDING RECAPS JSON
-        val actionsJsonArray = JSONArray()
-        methods?.forEachIndexed { index, method -> actionsJsonArray.put(index, JSONObject().put("request/$method", JSONArray())) }
-        val recaps = JSONObject().put(ATT_KEY, JSONObject().put(namespace, actionsJsonArray)).toString().replace("\\/", "/")
+        val actionsJsonObject = JSONObject()
+        methods?.forEach { method -> JSONObject().put("request/$method", JSONArray().put(0, JSONObject())) }
+        val recaps = JSONObject().put(ATT_KEY, JSONObject().put(namespace, actionsJsonObject)).toString().replace("\\/", "/")
+
+        println("kobe: Sending ReCaps: $recaps")
+
         val base64Recaps = Base64.toBase64String(recaps.toByteArray(Charsets.UTF_8))
         val reCapsUrl = "$RECAPS_PREFIX$base64Recaps"
 
