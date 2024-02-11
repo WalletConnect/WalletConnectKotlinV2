@@ -92,7 +92,7 @@ fun encodeDidWeb(appDomain: String): String {
 
 // todo: What about https:// ?
 fun decodeDidWeb(didWeb: String): String =
-    didWeb.removePrefix(listOf(DID_PREFIX, DID_METHOD_WEB).joinToString(DID_DELIMITER))
+    didWeb.removePrefix(listOf(DID_PREFIX, DID_METHOD_WEB).joinToString(separator = DID_DELIMITER, postfix = DID_DELIMITER))
 
 
 inline fun <reified C : JwtClaims> decodeJwt(jwt: String): Result<Triple<JwtHeader, C, String>> = runCatching {
