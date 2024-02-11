@@ -134,8 +134,8 @@ internal class MapperTest {
             resources = listOf(
                 "ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/",
                 "https://example.com/my-web2-claim.json",
-                encodedSignRecaps,
-                encodedNotifyRecaps
+                encodedNotifyRecaps,
+                encodedSignRecaps
             )
         )
 
@@ -152,8 +152,8 @@ internal class MapperTest {
                 "Resources:\n" +
                 "- ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/\n" +
                 "- https://example.com/my-web2-claim.json\n" +
-                "- $encodedSignRecaps\n" +
-                "- $encodedNotifyRecaps"
+                "- $encodedNotifyRecaps\n" +
+                "- $encodedSignRecaps"
 
         assertEquals(message, payload.toCAIP222Message(chainName))
     }

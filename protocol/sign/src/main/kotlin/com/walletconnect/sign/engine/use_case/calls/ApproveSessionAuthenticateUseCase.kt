@@ -57,8 +57,7 @@ internal class ApproveSessionAuthenticateUseCase(
                 return@supervisorScope
             }
             //todo: expiry check
-            //todo: check for single chain
-
+            //todo: check for single chain - if not eip155 throw
             val sessionAuthenticateParams: SignParams.SessionAuthenticateParams = jsonRpcHistoryEntry.params
             val receiverPublicKey = PublicKey(sessionAuthenticateParams.requester.publicKey)
             val receiverMetadata = sessionAuthenticateParams.requester.metadata
@@ -84,7 +83,7 @@ internal class ApproveSessionAuthenticateUseCase(
 
             val accounts = cacaos.map { cacao -> Issuer(cacao.payload.iss).accountId }
             val chains = cacaos.map { cacao -> Issuer(cacao.payload.iss).chainId }
-            val namespace = Issuer(cacaos.first().payload.iss).namespace
+            val namespace = Issuer(cacaos.first().payload.iss).namespace //TODO: should always get iss from the first cacao?
             val methods = cacaos.map { cacao -> cacao.payload.methods }.flatten().distinct()
             val requiredNamespace: Map<String, Namespace.Proposal> = mapOf(namespace to Namespace.Proposal(events = listOf(), methods = methods, chains = chains))
             val sessionNamespaces: Map<String, Namespace.Session> = mapOf(namespace to Namespace.Session(accounts = accounts, events = listOf(), methods = methods, chains = chains))

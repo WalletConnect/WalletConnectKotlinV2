@@ -68,9 +68,6 @@ data class Cacao(
             const val ISO_8601_PATTERN = "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
             const val RECAPS_PREFIX = "urn:recap:"
             const val ATT_KEY = "att"
-            const val ACTION_TYPE_POSITION = 0
-            const val ACTION_POSITION = 1
-            const val ACTION_DELIMITER = "/"
         }
     }
 }
@@ -100,7 +97,7 @@ fun Cacao.Payload.toCAIP222Message(chainName: String = "Ethereum"): String {
 
 private fun Cacao.Payload.getActionsString(): String {
     val map = decodeReCaps()
-    if (map.isEmpty()) return "The map is empty."
+    if (map.isEmpty()) throw Exception("Decoded ReCaps map is empty")
     var result = ""
     var index = 1
 
@@ -120,7 +117,7 @@ private fun Cacao.Payload.getActionsString(): String {
 }
 
 private fun Cacao.Payload.getActions(): List<String> {
-    return decodeReCaps().values.flatten()
+    return decodeReCaps().values.flatten().map { action -> action.substringAfter('/') }
 }
 
 private fun Cacao.Payload.decodeReCaps(): MutableMap<String, MutableList<String>> {
@@ -145,5 +142,5 @@ private fun Cacao.Payload.decodeReCaps(): MutableMap<String, MutableList<String>
         }
     }
     reCapsMap.forEach { entry -> entry.value.sort() }
-    return reCapsMap
+    return reCapsMap.toSortedMap()
 }

@@ -9,7 +9,6 @@ import kotlinx.coroutines.supervisorScope
 internal class FormatAuthenticateMessageUseCase : FormatAuthenticateMessageUseCaseInterface {
     override suspend fun formatMessage(payloadParams: PayloadParams, iss: String): String = supervisorScope {
         val issuer = Issuer(iss)
-
         //todo: add validation for one type of namespaces in payload chains and namespace MUST be in issuer
         if (!payloadParams.chains.contains(issuer.chainId)) throw Exception("Issuer chainId does not match with PayloadParams")
         payloadParams.chains.forEach { chainId -> if (!CoreValidator.isChainIdCAIP2Compliant(chainId)) throw Exception("Chains must be CAIP-2 compliant") }
