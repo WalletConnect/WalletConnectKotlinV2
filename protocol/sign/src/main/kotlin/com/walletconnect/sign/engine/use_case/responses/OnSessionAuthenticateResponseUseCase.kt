@@ -15,6 +15,7 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
 import com.walletconnect.android.internal.common.signing.cacao.Issuer
+import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.monthInSeconds
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
@@ -27,6 +28,7 @@ import com.walletconnect.sign.common.model.vo.sequence.SessionVO
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toEngineDO
 import com.walletconnect.sign.json_rpc.domain.GetSessionAuthenticateRequest
+import com.walletconnect.sign.storage.authenticate.AuthenticateResponseTopicRepository
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -41,6 +43,8 @@ internal class OnSessionAuthenticateResponseUseCase(
     private val sessionStorageRepository: SessionStorageRepository,
     private val crypto: KeyManagementRepository,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val metadataStorageRepository: MetadataStorageRepositoryInterface,
+    private val authenticateResponseTopicRepository: AuthenticateResponseTopicRepository,
     private val logger: Logger,
     private val getSessionAuthenticateRequest: GetSessionAuthenticateRequest,
 ) {
@@ -60,8 +64,10 @@ internal class OnSessionAuthenticateResponseUseCase(
 
             val pairingTopic = jsonRpcHistoryEntry.topic
             if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) return@supervisorScope //todo: emit error
-//            todo: handle pending session authenticate requests
-//            pairingTopicToResponseTopicMap.remove(pairingTopic)
+            runCatching { authenticateResponseTopicRepository.delete(pairingTopic.value) }.onFailure {
+                logger.error("Received session authenticate response - failed to delete authenticate response topic: ${wcResponse.topic}")
+                _events.emit(SDKError(it))
+            }
 
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcError -> {
@@ -101,6 +107,8 @@ internal class OnSessionAuthenticateResponseUseCase(
                             sessionNamespaces = sessionNamespaces,
                             pairingTopic = pairingTopic.value
                         )
+                        metadataStorageRepository.insertOrAbortMetadata(sessionTopic, params.requester.metadata, AppMetaDataType.SELF)
+                        metadataStorageRepository.insertOrAbortMetadata(sessionTopic, approveParams.responder.metadata, AppMetaDataType.PEER)
                         sessionStorageRepository.insertSession(authenticatedSession, response.id)
                         jsonRpcInteractor.subscribe(sessionTopic) { error -> scope.launch { _events.emit(SDKError(error)) } }
                         logger.log("Received session authenticate response - emitting rpc result: ${wcResponse.topic}")

@@ -71,10 +71,11 @@ internal fun callsModule() = module {
             jsonRpcInteractor = get(),
             crypto = get(),
             selfAppMetaData = get(),
+            authenticateResponseTopicRepository = get(),
             proposeSessionUseCase = get(),
             getPairingForSessionAuthenticate = get(),
             getNamespacesFromReCaps = get(),
-            logger = get(named(AndroidCommonDITags.LOGGER)),
+            logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }
 
@@ -104,7 +105,8 @@ internal fun callsModule() = module {
             pairingController = get(),
             getPendingSessionAuthenticateRequest = get(),
             selfAppMetaData = get(),
-            sessionStorageRepository = get()
+            sessionStorageRepository = get(),
+            metadataStorageRepository = get()
         )
     }
 

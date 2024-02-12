@@ -25,7 +25,7 @@ val dappClientConnect = { pairing: Core.Model.Pairing ->
 fun dappClientAuthenticate(onPairing: (String) -> Unit) {
     val authenticateParams = Sign.Params.Authenticate(
         type = "caip222",
-        chains = listOf("eip155:1", "eip155:37"),
+        chains = listOf("eip155:1", "eip155:137"),
         domain = "sample.dapp",
         aud = "https://react-auth-dapp.vercel.app/",
         nonce = randomBytes(12).bytesToHex(),

@@ -190,7 +190,7 @@ object Web3Wallet {
         onSuccess: (Wallet.Params.ApproveSessionAuthenticate) -> Unit = {},
         onError: (Wallet.Model.Error) -> Unit,
     ) {
-        val signParams = Sign.Params.ApproveSessionAuthenticate(params.id, params.cacaos.toSign())
+        val signParams = Sign.Params.ApproveSessionAuthenticate(params.id, params.auths.toSign())
         SignClient.approveSessionAuthenticated(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 

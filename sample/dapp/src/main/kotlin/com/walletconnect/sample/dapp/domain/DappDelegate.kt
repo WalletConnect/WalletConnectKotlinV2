@@ -1,6 +1,5 @@
 package com.walletconnect.sample.dapp.domain
 
-import com.walletconnect.sample.common.tag
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.sample.common.tag
@@ -78,7 +77,12 @@ object DappDelegate : WalletConnectModal.ModalDelegate, CoreClient.CoreDelegate 
     }
 
     override fun onSessionAuthenticateResponse(sessionUpdateResponse: Modal.Model.SessionAuthenticateResponse) {
-        TODO("Not yet implemented")
+        if (sessionUpdateResponse is Modal.Model.SessionAuthenticateResponse.Result) {
+            selectedSessionTopic = sessionUpdateResponse.topic
+        }
+        scope.launch {
+            _wcEventModels.emit(sessionUpdateResponse)
+        }
     }
 
     override fun onProposalExpired(proposal: Modal.Model.ExpiredProposal) {

@@ -2,8 +2,11 @@ package com.walletconnect.sample.dapp.ui.routes.composable_routes.chain_selectio
 
 import android.content.Context
 import android.widget.Toast
+import android.content.Intent
+import java.net.URLEncoder
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.core.net.toUri
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -120,6 +123,16 @@ fun ChainSelectionRoute(navController: NavController) {
                     Toast.makeText(context, "Proposal has been expired", Toast.LENGTH_SHORT).show()
                 }
 
+                DappSampleEvents.SessionAuthenticateApproved -> {
+                    viewModel.awaitingProposalResponse(false)
+                    navController.navigate(Route.Session.path)
+                }
+
+                DappSampleEvents.SessionAuthenticateRejected -> {
+                    viewModel.awaitingProposalResponse(false)
+                    Toast.makeText(context, "Session authenticate has been rejected", Toast.LENGTH_SHORT).show()
+                }
+
                 else -> Unit
             }
         }
@@ -137,6 +150,7 @@ fun ChainSelectionRoute(navController: NavController) {
     ChainSelectionScreen(
         chains = chainsState,
         awaitingState = awaitingProposalResponse,
+        isSampleWalletInstalled = context.isSampleWalletInstalled(),
         onChainClick = viewModel::updateChainSelectState,
         onConnectClick = {
             if (viewModel.isAnyChainSelected) {
@@ -151,6 +165,30 @@ fun ChainSelectionRoute(navController: NavController) {
             } else {
                 Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
             }
+        },
+        onAuthenticateClick = {
+            if (viewModel.isAnyChainSelected) {
+                viewModel.authenticate(
+                    onAuthenticateSuccess = { uri ->
+                        val intent = Intent(Intent.ACTION_VIEW).apply {
+                            val encoded = URLEncoder.encode(uri, "UTF-8")
+                            data = "kotlin-web3wallet://wc?uri=$encoded".toUri()
+                            `package` = when (BuildConfig.BUILD_TYPE) {
+                                "debug" -> SAMPLE_WALLET_DEBUG_PACKAGE
+                                "internal" -> SAMPLE_WALLET_INTERNAL_PACKAGE
+                                else -> SAMPLE_WALLET_RELEASE_PACKAGE
+                            }
+                        }
+                        context.startActivity(intent)
+                    },
+                    onError = { error ->
+                        composableScope.launch(Dispatchers.Main) {
+                            Toast.makeText(context, "Authenticate error: $error", Toast.LENGTH_SHORT).show()
+                        }
+                    })
+            } else {
+                Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
+            }
         }
     )
 }
@@ -158,9 +196,11 @@ fun ChainSelectionRoute(navController: NavController) {
 @Composable
 private fun ChainSelectionScreen(
     chains: List<ChainSelectionUi>,
+    isSampleWalletInstalled: Boolean,
     awaitingState: Boolean,
     onChainClick: (Int, Boolean) -> Unit,
     onConnectClick: () -> Unit,
+    onAuthenticateClick: () -> Unit
 ) {
 
 
@@ -183,6 +223,17 @@ private fun ChainSelectionScreen(
                     .height(50.dp)
                     .padding(horizontal = 16.dp),
             )
+            if (isSampleWalletInstalled) {
+                BlueButton(
+                    text = "Authenticate",
+                    onClick = onAuthenticateClick,
+                    modifier = Modifier
+                        .padding(vertical = 10.dp)
+                        .fillMaxWidth()
+                        .height(50.dp)
+                        .padding(horizontal = 16.dp)
+                )
+            }
         }
         if (awaitingState) {
             Loader()
@@ -281,7 +332,9 @@ private fun ChainSelectionScreenPreview(
             chains = chains,
             awaitingState = false,
             onChainClick = { _, _ -> },
-            onConnectClick = {}
+            onConnectClick = {},
+            onAuthenticateClick = {},
+            isSampleWalletInstalled = false
         )
     }
 }

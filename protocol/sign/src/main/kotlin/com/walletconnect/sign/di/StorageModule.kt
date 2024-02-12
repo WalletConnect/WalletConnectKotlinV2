@@ -6,6 +6,7 @@ import com.walletconnect.android.di.sdkBaseStorageModule
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.di.deleteDatabase
 import com.walletconnect.sign.SignDatabase
+import com.walletconnect.sign.storage.authenticate.AuthenticateResponseTopicRepository
 import com.walletconnect.sign.storage.data.dao.namespace.NamespaceDao
 import com.walletconnect.sign.storage.data.dao.optionalnamespaces.OptionalNamespaceDao
 import com.walletconnect.sign.storage.data.dao.proposal.ProposalDao
@@ -101,10 +102,18 @@ internal fun storageModule(dbName: String): Module = module {
     }
 
     single {
+        get<SignDatabase>().authenticateResponseTopicDaoQueries
+    }
+
+    single {
         SessionStorageRepository(get(), get(), get(), get(), get())
     }
 
     single {
         ProposalStorageRepository(get(), get(), get())
+    }
+
+    single {
+        AuthenticateResponseTopicRepository(get())
     }
 }

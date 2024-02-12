@@ -63,6 +63,7 @@ import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCaseByTopicIn
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequestByTopicUseCaseInterface
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequests
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
+import com.walletconnect.sign.storage.authenticate.AuthenticateResponseTopicRepository
 import com.walletconnect.sign.storage.proposal.ProposalStorageRepository
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import com.walletconnect.utils.Empty
@@ -88,6 +89,7 @@ internal class SignEngine(
     private val getPendingSessionRequests: GetPendingSessionRequests,
     private val deleteRequestByIdUseCase: DeleteRequestByIdUseCase,
     private val crypto: KeyManagementRepository,
+    private val authenticateResponseTopicRepository: AuthenticateResponseTopicRepository,
     private val proposalStorageRepository: ProposalStorageRepository,
     private val sessionStorageRepository: SessionStorageRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
@@ -186,6 +188,7 @@ internal class SignEngine(
                 supervisorScope {
                     launch(Dispatchers.IO) {
                         resubscribeToSession()
+                        resubscribeToPendingAuthenticateTopics()
                     }
                 }
 
@@ -280,6 +283,18 @@ internal class SignEngine(
             scope.launch { _engineEvent.emit(SDKError(e)) }
         }
     }
+
+    private fun resubscribeToPendingAuthenticateTopics() {
+        scope.launch {
+            try {
+                val responseTopics = authenticateResponseTopicRepository.getResponseTopics().map { responseTopic -> responseTopic }
+                jsonRpcInteractor.batchSubscribe(responseTopics) { error -> scope.launch { _engineEvent.emit(SDKError(error)) } }
+            } catch (e: Exception) {
+                scope.launch { _engineEvent.emit(SDKError(e)) }
+            }
+        }
+    }
+
 
     private fun setupSequenceExpiration() {
         try {
