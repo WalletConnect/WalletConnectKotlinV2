@@ -1,28 +1,5 @@
 package com.walletconnect.notify.test.utils
 
-import android.app.Application
-import androidx.test.core.app.ApplicationProvider
-import com.walletconnect.android.Core
-import com.walletconnect.android.CoreClient
-import com.walletconnect.android.CoreProtocol
-import com.walletconnect.android.cacao.signature.SignatureType
-import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
-import com.walletconnect.android.relay.ConnectionType
-import com.walletconnect.android.relay.RelayClient
-import com.walletconnect.android.utils.cacao.sign
-import com.walletconnect.foundation.common.model.PrivateKey
-import com.walletconnect.notify.BuildConfig
-import com.walletconnect.notify.client.Notify
-import com.walletconnect.notify.client.NotifyClient
-import com.walletconnect.notify.client.NotifyProtocol
-import com.walletconnect.notify.client.cacao.CacaoSigner
-import com.walletconnect.notify.di.overrideModule
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import org.koin.core.KoinApplication
-import timber.log.Timber
-
 //internal object TestClient {
 //    const val RELAY_URL = "wss://relay.walletconnect.com?projectId=${BuildConfig.PROJECT_ID}"
 //    private val app = ApplicationProvider.getApplicationContext<Application>()
