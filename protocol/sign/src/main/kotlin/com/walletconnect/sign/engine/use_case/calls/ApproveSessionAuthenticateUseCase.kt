@@ -56,7 +56,7 @@ internal class ApproveSessionAuthenticateUseCase(
                 onFailure(MissingSessionAuthenticateRequest())
                 return@supervisorScope
             }
-            //todo: expiry check
+            //todo: expiry check, add chains validation - all caip-2
             //todo: check for single chain - if not eip155 throw
             val sessionAuthenticateParams: SignParams.SessionAuthenticateParams = jsonRpcHistoryEntry.params
             val receiverPublicKey = PublicKey(sessionAuthenticateParams.requester.publicKey)
@@ -81,8 +81,25 @@ internal class ApproveSessionAuthenticateUseCase(
                 return@supervisorScope
             }
 
-            val accounts = cacaos.map { cacao -> Issuer(cacao.payload.iss).accountId }
-            val chains = cacaos.map { cacao -> Issuer(cacao.payload.iss).chainId }
+
+            //todo: if recaps has NO additional chains -> pass chains from payload. If they have -> pass chains from recaps
+            //todo: if chains in reCaps - we take chains from first CACAO
+            val chains = sessionAuthenticateParams.authPayload.chains //[eip155:1, eip155:137]
+
+            println("kobe: approved chains: $chains")
+
+            val addresses = cacaos.map { cacao -> Issuer(cacao.payload.iss).address } //[eip155:1:AAA, eip155:1:BBB]
+            println("kobe: approved addresses: $addresses")
+
+            val accounts = mutableListOf<String>()
+            chains.forEach { chainId ->
+                addresses.forEach { address ->
+                    accounts.add("$chainId:$address")
+                }
+            }
+
+            println("kobe: approved accounts: $accounts")
+
             val namespace = Issuer(cacaos.first().payload.iss).namespace //TODO: should always get iss from the first cacao?
             val methods = cacaos.map { cacao -> cacao.payload.methods }.flatten().distinct()
             val requiredNamespace: Map<String, Namespace.Proposal> = mapOf(namespace to Namespace.Proposal(events = listOf(), methods = methods, chains = chains))

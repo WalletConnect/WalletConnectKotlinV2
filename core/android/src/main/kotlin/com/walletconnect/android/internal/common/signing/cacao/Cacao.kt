@@ -96,7 +96,7 @@ fun Cacao.Payload.toCAIP222Message(chainName: String = "Ethereum"): String {
 }
 
 private fun Cacao.Payload.getActionsString(): String {
-    val map = decodeReCaps()
+    val map = resources.decodeReCaps()
     if (map.isEmpty()) throw Exception("Decoded ReCaps map is empty")
     var result = ""
     var index = 1
@@ -116,12 +116,12 @@ private fun Cacao.Payload.getActionsString(): String {
     return result
 }
 
-private fun Cacao.Payload.getActions(): List<String> {
-    return decodeReCaps().values.flatten().map { action -> action.substringAfter('/') }
+fun Cacao.Payload.getActions(): List<String> {
+    return resources.decodeReCaps().values.flatten().map { action -> action.substringAfter('/') }
 }
 
-private fun Cacao.Payload.decodeReCaps(): MutableMap<String, MutableList<String>> {
-    val reCapsList: List<String>? = resources
+ fun List<String>?.decodeReCaps(): MutableMap<String, MutableList<String>> {
+    val reCapsList: List<String>? = this
         ?.filter { resource -> resource.startsWith(RECAPS_PREFIX) }
         ?.map { urn -> urn.removePrefix(RECAPS_PREFIX) }
         ?.map { encodedReCaps -> Base64.decode(encodedReCaps).toString(Charsets.UTF_8) }

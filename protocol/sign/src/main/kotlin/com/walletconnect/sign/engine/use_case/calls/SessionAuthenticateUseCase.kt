@@ -44,16 +44,20 @@ internal class SessionAuthenticateUseCase(
 //        if (!CoreValidator.isExpiryWithinBounds(expiry ?: Expiry(300))) {
 //            return@supervisorScope onFailure(InvalidExpiryException())
 //        }
-        //TODO: Multi namespace - if other than eip155 - throw error, add chains validation
+        //TODO: Multi namespace - if other than eip155 - throw error, add chains validation caip-2
         val pairing = getPairingForSessionAuthenticate(pairingTopic)
         val optionalNamespaces = getNamespacesFromReCaps(payloadParams.chains, methods ?: emptyList()).toMapOfEngineNamespacesOptional()
+
+        //todo: namespace from first chain in the list?
         val namespace = SignValidator.getNamespaceKeyFromChainId(payloadParams.chains.first())
 
         val actionsJsonObject = JSONObject()
         methods?.forEach { method -> actionsJsonObject.put("request/$method", JSONArray().put(0, JSONObject())) }
         val recaps = JSONObject().put(ATT_KEY, JSONObject().put(namespace, actionsJsonObject)).toString().replace("\\/", "/")
+
         val base64Recaps = Base64.toBase64String(recaps.toByteArray(Charsets.UTF_8))
         val reCapsUrl = "$RECAPS_PREFIX$base64Recaps"
+
         if (payloadParams.resources == null) payloadParams.resources = listOf(reCapsUrl) else payloadParams.resources!!.toMutableList().add(reCapsUrl)
         val requesterPublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
         val responseTopic: Topic = crypto.getTopicFromKey(requesterPublicKey)

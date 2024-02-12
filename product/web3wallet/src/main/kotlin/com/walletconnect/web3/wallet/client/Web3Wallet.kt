@@ -139,7 +139,8 @@ object Web3Wallet {
                     when (message) {
                         is Sign.Model.Message.SessionRequest -> onSuccess(message.toWallet())
                         is Sign.Model.Message.SessionProposal -> onSuccess(message.toWallet())
-                        else -> { /*Ignore*/ }
+                        else -> { /*Ignore*/
+                        }
                     }
                 },
                 onError = { signError ->
@@ -205,8 +206,13 @@ object Web3Wallet {
     }
 
     @Throws(Exception::class)
-    fun generateCACAO(payloadParams: Wallet.Model.PayloadAuthRequestParams, issuer: String, signature: Wallet.Model.Cacao.Signature): Wallet.Model.Cacao {
-        return com.walletconnect.sign.client.utils.generateCACAO(payloadParams.toSign(), issuer, signature.toSign()).toWallet()
+    fun generateAuthObject(payloadParams: Wallet.Model.PayloadAuthRequestParams, issuer: String, signature: Wallet.Model.Cacao.Signature): Wallet.Model.Cacao {
+        return com.walletconnect.sign.client.utils.generateAuthObject(payloadParams.toSign(), issuer, signature.toSign()).toWallet()
+    }
+
+    @Throws(Exception::class)
+    fun generateAuthPayloadParams(payloadParams: Wallet.Model.PayloadAuthRequestParams, supportedChains: List<String>, supportedMethods: List<String>): Wallet.Model.PayloadAuthRequestParams {
+        return com.walletconnect.sign.client.utils.generateAuthPayloadParams(payloadParams.toSign(), supportedChains, supportedMethods).toWallet()
     }
 
 
