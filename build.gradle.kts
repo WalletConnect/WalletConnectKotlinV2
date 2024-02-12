@@ -54,6 +54,7 @@ sonar {
     properties {
         property("sonar.projectKey", "walletconnect_kotlin")
         property("sonar.organization", "walletconnect")
+        property("sonar.projectName", "walletconnect_kotlin")
         property("sonar.host.url", "https://sonarcloud.io")
     }
 }

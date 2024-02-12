@@ -118,7 +118,9 @@ internal class RelayerInteractorTest {
     private fun mockRelayPublishFailure() {
         every { relay.publish(any(), any(), any(), any()) } answers {
             lastArg<(Result<Relay.Model.Call.Publish.JsonRpcError>) -> Unit>().invoke(
-                Result.failure(mockk())
+                Result.failure(mockk<Throwable>() {
+                    every { stackTraceToString() } returns "mockkStackTraceToString"
+                })
             )
         }
     }
