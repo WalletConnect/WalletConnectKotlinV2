@@ -1,3 +1,4 @@
+/*
 package com.walletconnect.notify.test.utils.secondary
 
 import com.walletconnect.notify.client.Notify
@@ -27,4 +28,4 @@ open class SecondaryNotifyDelegate : NotifyInterface.Delegate {
     override fun onError(error: Notify.Model.Error) {
         globalOnError(error)
     }
-}
+}*/

@@ -10,7 +10,7 @@ import com.walletconnect.web3.modal.domain.model.AccountData
 import com.walletconnect.web3.modal.domain.model.Balance
 import com.walletconnect.web3.modal.domain.usecase.GetSelectedChainUseCase
 import com.walletconnect.web3.modal.presets.Web3ModalChainsPresets
-import com.walletconnect.web3.modal.ui.model.UiState
+import com.walletconnect.modal.ui.model.UiState
 import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.ui.routes.account.account.AccountRoute
 import com.walletconnect.web3.modal.utils.ScreenShotTest
@@ -29,7 +29,7 @@ internal class AccountRouteTest: ScreenShotTest("account/${Route.ACCOUNT.path}")
     private val selectedChain: StateFlow<Modal.Model.Chain> = mockk()
     private val balance: StateFlow<Balance> = mockk()
     private val getSelectedChainUseCase: GetSelectedChainUseCase = mockk()
-    private val accountData = AccountData("0x2765d421FB91182490D602E671a", "", Web3ModalChainsPresets.ethChains.values.toList())
+    private val accountData = AccountData(address = "0x2765d421FB91182490D602E671a", chains = Web3ModalChainsPresets.ethChains.values.toList())
 
     @Before
     fun setup() {
