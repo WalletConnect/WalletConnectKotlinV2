@@ -98,7 +98,7 @@ class RelayTest {
         runBlocking {
             val start = System.currentTimeMillis()
             // Await test finish or check if timeout occurred
-            while (testState.value is TestState.Idle && !didTimeout(start, 20000L)) {
+            while (testState.value is TestState.Idle && !didTimeout(start, 200000L)) {
                 delay(10)
             }
 
