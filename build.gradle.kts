@@ -4,6 +4,7 @@ plugins {
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
     id("release-scripts")
     id("version-bump")
+    id("org.sonarqube") version "4.4.1.3373"
 }
 
 buildscript {
@@ -46,6 +47,14 @@ allprojects {
                 useVersion(composeNavigationVersion)
             }
         }
+    }
+}
+
+sonar {
+    properties {
+        property("sonar.projectKey", "walletconnect_kotlin")
+        property("sonar.organization", "walletconnect")
+        property("sonar.host.url", "https://sonarcloud.io")
     }
 }
 
