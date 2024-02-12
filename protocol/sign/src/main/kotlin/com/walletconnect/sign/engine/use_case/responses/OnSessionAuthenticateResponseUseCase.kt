@@ -85,6 +85,8 @@ internal class OnSessionAuthenticateResponseUseCase(
 
                     with(approveParams) {
                         val accounts = cacaos.map { cacao -> Issuer(cacao.payload.iss).accountId }
+
+                        //todo: if recaps has NO additional chains -> pass chains from payload. If they have -> pass chains from recaps
                         val chains = cacaos.map { cacao -> Issuer(cacao.payload.iss).chainId }
                         val namespace = Issuer(cacaos.first().payload.iss).namespace
                         val methods = cacaos.map { cacao -> cacao.payload.methods }.flatten().distinct()
