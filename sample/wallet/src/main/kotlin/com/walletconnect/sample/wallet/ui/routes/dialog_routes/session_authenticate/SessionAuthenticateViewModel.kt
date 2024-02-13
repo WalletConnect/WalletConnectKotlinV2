@@ -30,7 +30,7 @@ class SessionAuthenticateViewModel : ViewModel() {
                 sessionAuthenticateUI?.messages?.forEach { issuerToMessage ->
                     val messageToSign = Numeric.toHexString(issuerToMessage.second.toByteArray())
                     val signature = CacaoSigner.signHex(messageToSign, privateKey.hexToBytes(), SignatureType.EIP191)
-                    val authPayloadParams = generateAuthPayloadParams(sessionAuthenticate.payloadParams, supportedChains = listOf("eip155:1"), supportedMethods = listOf("eth_sign"))
+                    val authPayloadParams = generateAuthPayloadParams(sessionAuthenticate.payloadParams, supportedChains = listOf("eip155:1"), supportedMethods = listOf("personal_sign"))
                     val auth = generateAuthObject(authPayloadParams, issuerToMessage.first, signature)
                     auths.add(auth)
                 }

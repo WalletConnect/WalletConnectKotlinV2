@@ -44,7 +44,6 @@ internal class OnSessionAuthenticateUseCase(
             }
 
             //TODO: add eip155 validation
-            println("kobe: received chains: ${authenticateSessionParams.authPayload.chains}")
             val url = authenticateSessionParams.requester.metadata.url
             resolveAttestationIdUseCase(request.id, request.message, url) { verifyContext ->
                 scope.launch {

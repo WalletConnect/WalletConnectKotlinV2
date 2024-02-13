@@ -4,8 +4,10 @@ package com.walletconnect.sign.client.utils
 
 import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
+import com.walletconnect.android.internal.common.signing.cacao.Cacao.Payload.Companion.RECAPS_PREFIX
 import com.walletconnect.android.internal.common.signing.cacao.CacaoType
 import com.walletconnect.android.internal.common.signing.cacao.decodeReCaps
+import com.walletconnect.android.internal.common.signing.cacao.parseReCaps
 import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.mapper.toCacaoPayload
@@ -91,11 +93,10 @@ fun generateAuthObject(payload: Sign.Model.PayloadParams, issuer: String, signat
 
 fun generateAuthPayloadParams(payloadParams: Sign.Model.PayloadParams, supportedChains: List<String>, supportedMethods: List<String>): Sign.Model.PayloadParams {
     //TODO: add chains caip-2 validation
-    val sessionReCaps = payloadParams.resources.decodeReCaps()["eip155"] ?: throw Exception("Invalid ReCaps - eip155 is missing")
+    val reCapsList: List<String>? = payloadParams.resources.decodeReCaps()?.filter { decoded -> decoded.contains("eip155") }
+    val sessionReCaps = reCapsList.parseReCaps()["eip155"] ?: throw Exception("Invalid ReCaps - eip155 is missing")
 
-    println("kobe; Session ReCaps: $sessionReCaps")
-
-    val requestedMethods = sessionReCaps.map { action -> action.substringAfter('/') }
+    val requestedMethods = sessionReCaps.keys.map { key -> key.substringAfter('/') }
     val requestedChains = payloadParams.chains
 
     val sessionChains = requestedChains.intersect(supportedChains.toSet()).toList()
@@ -104,15 +105,20 @@ fun generateAuthPayloadParams(payloadParams: Sign.Model.PayloadParams, supported
     val actionsJsonObject = JSONObject()
     val chainsJsonArray = JSONArray()
     sessionChains.forEach { chain -> chainsJsonArray.put(chain) }
-
     sessionMethods.forEach { method -> actionsJsonObject.put("request/$method", JSONArray().put(0, JSONObject().put("chains", chainsJsonArray))) }
     val recaps = JSONObject().put(Cacao.Payload.ATT_KEY, JSONObject().put("eip155", actionsJsonObject)).toString().replace("\\/", "/")
 
-    println("kobe; New ReCaps: $recaps")
-
     val base64Recaps = Base64.toBase64String(recaps.toByteArray(Charsets.UTF_8))
-    val reCapsUrl = "${Cacao.Payload.RECAPS_PREFIX}$base64Recaps"
-    if (payloadParams.resources == null) payloadParams.resources = listOf(reCapsUrl) else payloadParams.resources!!.toMutableList().add(reCapsUrl)
+    val newReCapsUrl = "${RECAPS_PREFIX}$base64Recaps"
+    if (payloadParams.resources == null) {
+        payloadParams.resources = listOf(newReCapsUrl)
+    } else {
+        val newResourcesList = reCapsList
+            ?.filter { decoded -> !decoded.contains("eip155") }
+            ?.map { reCaps -> Base64.toBase64String(reCaps.toByteArray(Charsets.UTF_8)) }
+            ?.plus(newReCapsUrl)
+        payloadParams.resources = newResourcesList
+    }
 
     return with(payloadParams) {
         Sign.Model.PayloadParams(sessionChains, domain, nonce, aud, type, nbf, iat, exp, statement, requestId, resources)
