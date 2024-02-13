@@ -99,8 +99,8 @@ fun generateAuthPayloadParams(payloadParams: Sign.Model.PayloadParams, supported
     val requestedMethods = sessionReCaps.keys.map { key -> key.substringAfter('/') }
     val requestedChains = payloadParams.chains
 
-    val sessionChains = requestedChains.intersect(supportedChains.toSet()).toList()
-    val sessionMethods = requestedMethods.intersect(supportedMethods.toSet()).toList()
+    val sessionChains = requestedChains.intersect(supportedChains.toSet()).toList().distinct()
+    val sessionMethods = requestedMethods.intersect(supportedMethods.toSet()).toList().distinct()
 
     val actionsJsonObject = JSONObject()
     val chainsJsonArray = JSONArray()

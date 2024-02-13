@@ -51,3 +51,13 @@ fun List<String>?.decodeReCaps(): List<String>? {
         ?.map { urn -> urn.removePrefix(Cacao.Payload.RECAPS_PREFIX) }
         ?.map { encodedReCaps -> Base64.decode(encodedReCaps).toString(Charsets.UTF_8) }
 }
+
+@JvmSynthetic
+fun List<String>?.getActions(): List<String> {
+    return this.decodeReCaps().parseReCaps().values.map { actionToListMap -> actionToListMap.keys.map { action -> action.substringAfter('/') } }.flatten().distinct()
+}
+
+@JvmSynthetic
+fun List<String>?.getChains(): List<String> {
+    return this.decodeReCaps().parseReCaps()["eip155"]?.values?.flatten()?.distinct() ?: emptyList()
+}

@@ -61,7 +61,7 @@ data class Cacao(
         @get:Throws(Exception::class)
         val actionsString get() = getActionsString()
         @get:Throws(Exception::class)
-        val methods get() = getActions()
+        val methods get() = resources.getActions()
 
         companion object {
             const val CURRENT_VERSION = "1"
@@ -114,8 +114,4 @@ private fun Cacao.Payload.getActionsString(): String {
     }
 
     return result
-}
-
-fun Cacao.Payload.getActions(): List<String> {
-    return resources.decodeReCaps().parseReCaps().values.map { actionToListMap -> actionToListMap.keys.map { action -> action.substringAfter('/') } }.flatten()
 }

@@ -89,11 +89,7 @@ class SessionAuthenticateViewModel : ViewModel() {
     private fun generateAuthRequestUI(): SessionAuthenticateUI? {
         return if (WCDelegate.sessionAuthenticateEvent != null) {
             val (sessionAuthenticate, authContext) = WCDelegate.sessionAuthenticateEvent!!
-
             val issuerToMessages = mutableListOf<Pair<String, String>>()
-
-//            sessionAuthenticate.payloadParams.chains.forEach { chain ->
-
             val issuer = "did:pkh:$ethAddress"
             val authPayloadParams = generateAuthPayloadParams(sessionAuthenticate.payloadParams, supportedChains = listOf("eip155:1"), supportedMethods = listOf("personal_sign"))
             val message = Web3Wallet.formatAuthMessage(Wallet.Params.FormatAuthMessage(authPayloadParams, issuer)) ?: throw Exception("Invalid message")

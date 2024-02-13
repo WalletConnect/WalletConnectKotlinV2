@@ -15,8 +15,7 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
 import com.walletconnect.android.internal.common.signing.cacao.Issuer
-import com.walletconnect.android.internal.common.signing.cacao.decodeReCaps
-import com.walletconnect.android.internal.common.signing.cacao.parseReCaps
+import com.walletconnect.android.internal.common.signing.cacao.getChains
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.monthInSeconds
 import com.walletconnect.android.pairing.client.PairingInterface
@@ -88,9 +87,8 @@ internal class OnSessionAuthenticateResponseUseCase(
                     with(approveParams) {
                         //todo: if recaps has NO additional chains -> pass chains from payload. If they have -> pass chains from recaps
                         //todo: if chains in reCaps - we take chains from first CACAO
-                        val sessionReCaps = cacaos.first().payload.resources.decodeReCaps().parseReCaps()["eip155"] ?: throw Exception("Invalid ReCaps - eip155 is missing")
-                        val chains = sessionReCaps.values.flatten().ifEmpty { params.authPayload.chains }
-                        val addresses = cacaos.map { cacao -> Issuer(cacao.payload.iss).address } //[eip155:1:AAA, eip155:1:BBB]
+                        val chains = cacaos.first().payload.resources.getChains().ifEmpty { params.authPayload.chains }
+                        val addresses = cacaos.map { cacao -> Issuer(cacao.payload.iss).address }
                         val accounts = mutableListOf<String>()
                         chains.forEach { chainId ->
                             addresses.forEach { address ->
@@ -99,7 +97,7 @@ internal class OnSessionAuthenticateResponseUseCase(
                         }
 
                         val namespace = Issuer(cacaos.first().payload.iss).namespace
-                        val methods = cacaos.map { cacao -> cacao.payload.methods }.flatten().distinct()
+                        val methods = cacaos.map { cacao -> cacao.payload.methods }.flatten()
                         val sessionNamespaces: Map<String, Namespace.Session> = mapOf(namespace to Namespace.Session(accounts = accounts, events = listOf(), methods = methods, chains = chains))
                         val requiredNamespace: Map<String, Namespace.Proposal> = mapOf(namespace to Namespace.Proposal(events = listOf(), methods = methods, chains = chains))
                         val selfPublicKey = PublicKey(params.requester.publicKey)
