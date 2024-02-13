@@ -47,11 +47,11 @@ internal class SessionAuthenticateUseCase(
         //TODO: Multi namespace - if other than eip155 - throw error, add chains validation
         val pairing = getPairingForSessionAuthenticate(pairingTopic)
         val optionalNamespaces = getNamespacesFromReCaps(payloadParams.chains, methods ?: emptyList()).toMapOfEngineNamespacesOptional()
-
         val namespace = SignValidator.getNamespaceKeyFromChainId(payloadParams.chains.first())
-        val actionsJsonArray = JSONArray()
-        methods?.forEachIndexed { index, method -> actionsJsonArray.put(index, JSONObject().put("request/$method", JSONArray())) }
-        val recaps = JSONObject().put(ATT_KEY, JSONObject().put(namespace, actionsJsonArray)).toString().replace("\\/", "/")
+
+        val actionsJsonObject = JSONObject()
+        methods?.forEach { method -> actionsJsonObject.put("request/$method", JSONArray().put(0, JSONObject())) }
+        val recaps = JSONObject().put(ATT_KEY, JSONObject().put(namespace, actionsJsonObject)).toString().replace("\\/", "/")
         val base64Recaps = Base64.toBase64String(recaps.toByteArray(Charsets.UTF_8))
         val reCapsUrl = "$RECAPS_PREFIX$base64Recaps"
         if (payloadParams.resources == null) payloadParams.resources = listOf(reCapsUrl) else payloadParams.resources!!.toMutableList().add(reCapsUrl)

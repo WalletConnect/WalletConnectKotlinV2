@@ -106,14 +106,24 @@ internal fun storageModule(dbName: String): Module = module {
     }
 
     single {
-        SessionStorageRepository(get(), get(), get(), get(), get())
+        SessionStorageRepository(
+            sessionDaoQueries = get(),
+            namespaceDaoQueries = get(),
+            requiredNamespaceDaoQueries = get(),
+            optionalNamespaceDaoQueries = get(),
+            tempNamespaceDaoQueries = get()
+        )
     }
 
     single {
-        ProposalStorageRepository(get(), get(), get())
+        ProposalStorageRepository(
+            proposalDaoQueries = get(),
+            requiredNamespaceDaoQueries = get(),
+            optionalNamespaceDaoQueries = get()
+        )
     }
 
     single {
-        AuthenticateResponseTopicRepository(get())
+        AuthenticateResponseTopicRepository(authenticateResponseTopicDaoQueries = get())
     }
 }

@@ -7,15 +7,14 @@ import com.walletconnect.sign.engine.model.mapper.toCAIP222Message
 import kotlinx.coroutines.supervisorScope
 
 internal class FormatAuthenticateMessageUseCase : FormatAuthenticateMessageUseCaseInterface {
+    @Throws(Exception::class)
     override suspend fun formatMessage(payloadParams: PayloadParams, iss: String): String = supervisorScope {
-        val issuer = Issuer(iss) //todo add iss validation
-
+        val issuer = Issuer(iss)
         //todo: add validation for one type of namespaces in payload chains and namespace MUST be in issuer
-
-        if (!payloadParams.chains.contains(issuer.chainId)) throw Exception()//InvalidParamsException("Issuer chainId does not match with PayloadParams")
-        payloadParams.chains.forEach { chainId -> if (!CoreValidator.isChainIdCAIP2Compliant(chainId)) throw Exception() }
-        if (!CoreValidator.isChainIdCAIP2Compliant(issuer.chainId)) throw Exception() //throw InvalidParamsException("Issuer chainId is not CAIP-2 compliant")
-        if (!CoreValidator.isAccountIdCAIP10Compliant(issuer.accountId)) throw Exception()// throw InvalidParamsException("Issuer address is not CAIP-10 compliant")
+        if (!payloadParams.chains.contains(issuer.chainId)) throw Exception("Issuer chainId does not match with PayloadParams")
+        payloadParams.chains.forEach { chainId -> if (!CoreValidator.isChainIdCAIP2Compliant(chainId)) throw Exception("Chains must be CAIP-2 compliant") }
+        if (!CoreValidator.isChainIdCAIP2Compliant(issuer.chainId)) throw Exception("Issuer chainId is not CAIP-2 compliant")
+        if (!CoreValidator.isAccountIdCAIP10Compliant(issuer.accountId)) throw Exception("Issuer address is not CAIP-10 compliant")
 
         //todo: Figure out dynamic chain name
         return@supervisorScope payloadParams.toCAIP222Message(issuer, "Ethereum")
@@ -23,5 +22,6 @@ internal class FormatAuthenticateMessageUseCase : FormatAuthenticateMessageUseCa
 }
 
 internal interface FormatAuthenticateMessageUseCaseInterface {
+    @Throws(Exception::class)
     suspend fun formatMessage(payloadParams: PayloadParams, iss: String): String
 }

@@ -6,44 +6,118 @@ import org.json.JSONObject
 import org.junit.Test
 
 class ReCapsTest {
-
-    private val encodedRecaps = "urn:recap:eyJhdHQiOnsiZWlwMTU1IjpbeyJyZXF1ZXN0L2V0aF9zaWduVHlwZWREYXRhX3Y0IjpbXX0seyJyZXF1ZXN0L3BlcnNvbmFsX3NpZ24iOltdfV19fQ=="
+    private val encodedSignRecaps = "urn:recap:eyJhdHQiOnsiZWlwMTU1Ijp7InJlcXVlc3QvcGVyc29uYWxfc2lnbiI6W3t9XSwicmVxdWVzdC9ldGhfc2lnblR5cGVkRGF0YV92NCI6W3t9XX19fQ=="
+    private val encodedNotifyRecaps = "urn:recap:eyJhdHQiOnsiaHR0cHM6Ly9ub3RpZnkud2FsbGV0Y29ubmVjdC5jb20vYWxsLWFwcHMiOnsiY3J1ZC9zdWJzY3JpcHRpb25zIjpbe31dLCJjcnVkL25vdGlmaWNhdGlvbnMiOlt7fV19fX0="
+    private val encodedNotifyAndSignRecaps =
+        "urn:recap:eyJhdHQiOnsiZWlwMTU1Ijp7InJlcXVlc3QvcGVyc29uYWxfc2lnbiI6W3t9XSwicmVxdWVzdC9ldGhfc2lnblR5cGVkRGF0YV92NCI6W3t9XX0sImh0dHBzOi8vbm90aWZ5LndhbGxldGNvbm5lY3QuY29tL2FsbC1hcHBzIjp7ImNydWQvc3Vic2NyaXB0aW9ucyI6W3t9XSwiY3J1ZC9ub3RpZmljYXRpb25zIjpbe31dfX19"
 
     @Test
-    fun encodeReCapsBase64() {
-        val recaps =
+    fun encodeSignReCapsBase64() {
+        val signReCapsJson =
             JSONObject().put(
                 "att",
                 JSONObject().put(
                     "eip155",
-                    JSONArray()
-                        .put(
-                            0,
-                            JSONObject().put("request/eth_signTypedData_v4", JSONArray())
-                        )
-                        .put(
-                            1,
-                            JSONObject().put("request/personal_sign", JSONArray())
-                        )
+                    JSONObject()
+                        .put("request/eth_signTypedData_v4", JSONArray().put(0, JSONObject()))
+                        .put("request/personal_sign", JSONArray().put(0, JSONObject()))
                 )
             )
-        println(recaps.toString())
-        val base64Recaps = Base64.toBase64String(recaps.toString().toByteArray(Charsets.UTF_8))
+
+        println(signReCapsJson.toString())
+        val base64Recaps = Base64.toBase64String(signReCapsJson.toString().toByteArray(Charsets.UTF_8))
         val reCapsUrl = "urn:recap:$base64Recaps"
 
-        assert(reCapsUrl == encodedRecaps)
+        assert(reCapsUrl == encodedSignRecaps)
     }
 
     @Test
-    fun decodeReCapsBase64() {
-        val withoutPrefix = encodedRecaps.removePrefix("urn:recap:")
-
+    fun decodeSignReCapsBase64() {
+        val withoutPrefix = encodedSignRecaps.removePrefix("urn:recap:")
         val reCaps = Base64.decode(withoutPrefix).toString(Charsets.UTF_8)
-        print(reCaps)
-        val requests = (JSONObject(reCaps).get("att") as JSONObject).getJSONArray("eip155")
+        val attKeys = JSONObject(reCaps).getJSONObject("att").keys().asSequence().toList()
+        val listOfAtts = mutableListOf<JSONObject>()
+        attKeys.forEach { key -> listOfAtts.add((JSONObject(reCaps).getJSONObject("att") as JSONObject).getJSONObject(key)) }
 
-        assert((requests.getJSONObject(0).keys().next() as String).split("/")[1] == "eth_signTypedData_v4")
-        assert((requests.getJSONObject(1).keys().next() as String).split("/")[1] == "personal_sign")
+        listOfAtts.forEach { att ->
+            val actions = att.keys().asSequence().toList()
+            assert((actions[0]).split("/")[1] == "personal_sign")
+            assert((actions[1]).split("/")[1] == "eth_signTypedData_v4")
+        }
+    }
+
+    @Test
+    fun encodeNotifyReCapsBase64() {
+        val notifyReCapsJson =
+            JSONObject().put(
+                "att",
+                JSONObject().put(
+                    "https://notify.walletconnect.com/all-apps",
+                    JSONObject()
+                        .put("crud/notifications", JSONArray().put(0, JSONObject()))
+                        .put("crud/subscriptions", JSONArray().put(0, JSONObject()))
+                )
+            )
+        val base64Recaps = Base64.toBase64String(notifyReCapsJson.toString().toByteArray(Charsets.UTF_8))
+        val reCapsUrl = "urn:recap:$base64Recaps"
+
+        assert(reCapsUrl == encodedNotifyRecaps)
+    }
+
+    @Test
+    fun decodeNotifyReCapsBase64() {
+        val withoutPrefix = encodedNotifyRecaps.removePrefix("urn:recap:")
+        val reCaps = Base64.decode(withoutPrefix).toString(Charsets.UTF_8)
+        val attKeys = JSONObject(reCaps).getJSONObject("att").keys().asSequence().toList()
+        val listOfAtts = mutableListOf<JSONObject>()
+        attKeys.forEach { key -> listOfAtts.add((JSONObject(reCaps).getJSONObject("att") as JSONObject).getJSONObject(key)) }
+
+        listOfAtts.forEach { att ->
+            val actions = att.keys().asSequence().toList()
+            assert((actions[0]).split("/")[1] == "subscriptions")
+            assert((actions[1]).split("/")[1] == "notifications")
+        }
+    }
+
+    @Test
+    fun encodeNotifyAndSignReCapsBase64() {
+        val notifyReCapsJson =
+            JSONObject().put(
+                "att",
+                JSONObject()
+                    .put(
+                        "https://notify.walletconnect.com/all-apps",
+                        JSONObject()
+                            .put("crud/notifications", JSONArray().put(0, JSONObject()))
+                            .put("crud/subscriptions", JSONArray().put(0, JSONObject()))
+                    )
+                    .put(
+                        "eip155",
+                        JSONObject()
+                            .put("request/eth_signTypedData_v4", JSONArray().put(0, JSONObject()))
+                            .put("request/personal_sign", JSONArray().put(0, JSONObject()))
+                    ),
+            )
+        println(notifyReCapsJson.toString())
+        val base64Recaps = Base64.toBase64String(notifyReCapsJson.toString().toByteArray(Charsets.UTF_8))
+        val reCapsUrl = "urn:recap:$base64Recaps"
+
+        assert(reCapsUrl == encodedNotifyAndSignRecaps)
+    }
+
+    @Test
+    fun decodeNotifyAndSignReCapsBase64() {
+        val withoutPrefix = encodedNotifyAndSignRecaps.removePrefix("urn:recap:")
+        val reCaps = Base64.decode(withoutPrefix).toString(Charsets.UTF_8)
+        val attKeys = JSONObject(reCaps).getJSONObject("att").keys().asSequence().toList()
+        val listOfAtts = mutableListOf<JSONObject>()
+        attKeys.forEach { key -> listOfAtts.add((JSONObject(reCaps).getJSONObject("att") as JSONObject).getJSONObject(key)) }
+
+        assert((listOfAtts[0].keys().asSequence().toList()[0]).split("/")[1] == "personal_sign")
+        assert((listOfAtts[0].keys().asSequence().toList()[1]).split("/")[1] == "eth_signTypedData_v4")
+
+        assert((listOfAtts[1].keys().asSequence().toList()[0]).split("/")[1] == "subscriptions")
+        assert((listOfAtts[1].keys().asSequence().toList()[1]).split("/")[1] == "notifications")
     }
 }
 
