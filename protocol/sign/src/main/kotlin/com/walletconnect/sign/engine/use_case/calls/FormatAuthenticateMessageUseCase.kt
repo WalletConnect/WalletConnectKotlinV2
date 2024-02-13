@@ -7,6 +7,7 @@ import com.walletconnect.sign.engine.model.mapper.toCAIP222Message
 import kotlinx.coroutines.supervisorScope
 
 internal class FormatAuthenticateMessageUseCase : FormatAuthenticateMessageUseCaseInterface {
+    @Throws(Exception::class)
     override suspend fun formatMessage(payloadParams: PayloadParams, iss: String): String = supervisorScope {
         val issuer = Issuer(iss)
         //todo: add validation for one type of namespaces in payload chains and namespace MUST be in issuer
@@ -21,5 +22,6 @@ internal class FormatAuthenticateMessageUseCase : FormatAuthenticateMessageUseCa
 }
 
 internal interface FormatAuthenticateMessageUseCaseInterface {
+    @Throws(Exception::class)
     suspend fun formatMessage(payloadParams: PayloadParams, iss: String): String
 }
