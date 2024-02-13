@@ -58,7 +58,9 @@ data class Cacao(
         @Json(name = "resources")
         val resources: List<String>?,
     ) {
+        @get:Throws(Exception::class)
         val actionsString get() = getActionsString()
+        @get:Throws(Exception::class)
         val methods get() = getActions()
 
         companion object {
