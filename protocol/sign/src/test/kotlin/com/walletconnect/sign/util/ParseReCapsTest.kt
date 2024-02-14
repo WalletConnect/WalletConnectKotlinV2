@@ -35,4 +35,16 @@ class ParseReCapsTest {
         assert(chains == listOf("eip155:1", "eip155:137"))
         assert(actions == listOf("personal_sign", "eth_sign", "different_action", "yet_another_action"))
     }
+
+    @Test
+    fun parseReCapsFromIOSTest() {
+        val urn1 =
+            Base64.toBase64String("""{"att":{"eip155":{"request\/personal_sign":[{"chains":["eip155:1","eip155:137"]}]}}}""".toByteArray(Charsets.UTF_8))
+        val jsonList = mutableListOf("urn:recap:$urn1")
+        val chains = jsonList.getChains()
+        val actions = jsonList.getActions()
+
+        assert(chains == listOf("eip155:1", "eip155:137"))
+        assert(actions == listOf("personal_sign"))
+    }
 }

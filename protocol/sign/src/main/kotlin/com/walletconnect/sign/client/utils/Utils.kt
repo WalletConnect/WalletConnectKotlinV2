@@ -94,7 +94,10 @@ fun generateAuthObject(payload: Sign.Model.PayloadParams, issuer: String, signat
 fun generateAuthPayloadParams(payloadParams: Sign.Model.PayloadParams, supportedChains: List<String>, supportedMethods: List<String>): Sign.Model.PayloadParams {
     //TODO: add chains caip-2 validation
     val reCapsList: List<String>? = payloadParams.resources.decodeReCaps()?.filter { decoded -> decoded.contains("eip155") }
-    val sessionReCaps = reCapsList.parseReCaps()["eip155"] ?: throw Exception("Invalid ReCaps - eip155 is missing")
+
+    println("kobe: OLD: $reCapsList")
+
+    val sessionReCaps = reCapsList.parseReCaps()["eip155"] ?: throw Exception("Invalid ReCaps - eip155 is missing") //todo: return payload params
 
     val requestedMethods = sessionReCaps.keys.map { key -> key.substringAfter('/') }
     val requestedChains = payloadParams.chains
@@ -107,6 +110,8 @@ fun generateAuthPayloadParams(payloadParams: Sign.Model.PayloadParams, supported
     sessionChains.forEach { chain -> chainsJsonArray.put(chain) }
     sessionMethods.forEach { method -> actionsJsonObject.put("request/$method", JSONArray().put(0, JSONObject().put("chains", chainsJsonArray))) }
     val recaps = JSONObject().put(Cacao.Payload.ATT_KEY, JSONObject().put("eip155", actionsJsonObject)).toString().replace("\\/", "/")
+
+    println("kobe: NEW: $reCapsList")
 
     val base64Recaps = Base64.toBase64String(recaps.toByteArray(Charsets.UTF_8))
     val newReCapsUrl = "${RECAPS_PREFIX}$base64Recaps"

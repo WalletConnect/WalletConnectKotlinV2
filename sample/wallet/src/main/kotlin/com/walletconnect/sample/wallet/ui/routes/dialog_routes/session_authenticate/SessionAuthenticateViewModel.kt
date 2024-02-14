@@ -5,6 +5,7 @@ import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
 import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.android.utils.cacao.signHex
+import com.walletconnect.sample.wallet.domain.EthAccountDelegate.account
 import com.walletconnect.sample.wallet.domain.EthAccountDelegate.ethAddress
 import com.walletconnect.sample.wallet.domain.EthAccountDelegate.privateKey
 import com.walletconnect.sample.wallet.domain.WCDelegate
@@ -90,10 +91,13 @@ class SessionAuthenticateViewModel : ViewModel() {
         return if (WCDelegate.sessionAuthenticateEvent != null) {
             val (sessionAuthenticate, authContext) = WCDelegate.sessionAuthenticateEvent!!
             val issuerToMessages = mutableListOf<Pair<String, String>>()
-            val issuer = "did:pkh:$ethAddress"
-            val authPayloadParams = generateAuthPayloadParams(sessionAuthenticate.payloadParams, supportedChains = listOf("eip155:1"), supportedMethods = listOf("personal_sign"))
-            val message = Web3Wallet.formatAuthMessage(Wallet.Params.FormatAuthMessage(authPayloadParams, issuer)) ?: throw Exception("Invalid message")
-            issuerToMessages.add(issuer to message)
+            sessionAuthenticate.payloadParams.chains.forEach {chain ->
+                val issuer = "did:pkh:$chain$account"
+                val authPayloadParams = generateAuthPayloadParams(sessionAuthenticate.payloadParams, supportedChains = listOf("eip155:1"), supportedMethods = listOf("personal_sign"))
+                val message = Web3Wallet.formatAuthMessage(Wallet.Params.FormatAuthMessage(authPayloadParams, issuer)) ?: throw Exception("Invalid message")
+                println("kobe: message: $message")
+                issuerToMessages.add(issuer to message)
+            }
 
             SessionAuthenticateUI(
                 peerUI = PeerUI(

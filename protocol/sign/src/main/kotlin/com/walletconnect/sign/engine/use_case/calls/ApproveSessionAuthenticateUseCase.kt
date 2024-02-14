@@ -81,11 +81,8 @@ internal class ApproveSessionAuthenticateUseCase(
                     onFailure = { logger.error("Error sending invalid CACAO error on topic: $responseTopic") })
                 return@supervisorScope
             }
-
-            //todo: if recaps has NO additional chains -> pass chains from payload. If they have -> pass chains from recaps
-            //todo: if chains in reCaps - we take chains from first CACAO
             val chains = cacaos.first().payload.resources.getChains().ifEmpty { sessionAuthenticateParams.authPayload.chains }
-            val addresses = cacaos.map { cacao -> Issuer(cacao.payload.iss).address }
+            val addresses = cacaos.map { cacao -> Issuer(cacao.payload.iss).address }.distinct()
             val accounts = mutableListOf<String>()
             chains.forEach { chainId ->
                 addresses.forEach { address ->
@@ -94,7 +91,7 @@ internal class ApproveSessionAuthenticateUseCase(
             }
 
             val namespace = Issuer(cacaos.first().payload.iss).namespace //TODO: should always get iss from the first cacao?
-            val methods = cacaos.map { cacao -> cacao.payload.methods }.flatten()
+            val methods = cacaos.first().payload.methods
             val requiredNamespace: Map<String, Namespace.Proposal> = mapOf(namespace to Namespace.Proposal(events = listOf(), methods = methods, chains = chains))
             val sessionNamespaces: Map<String, Namespace.Session> = mapOf(namespace to Namespace.Session(accounts = accounts, events = listOf(), methods = methods, chains = chains))
             val authenticatedSession = SessionVO.createAuthenticatedSession(

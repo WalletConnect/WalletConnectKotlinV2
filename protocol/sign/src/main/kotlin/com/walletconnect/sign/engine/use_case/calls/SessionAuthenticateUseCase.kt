@@ -11,6 +11,7 @@ import com.walletconnect.android.internal.common.signing.cacao.Cacao.Payload.Com
 import com.walletconnect.android.internal.common.signing.cacao.Cacao.Payload.Companion.RECAPS_PREFIX
 import com.walletconnect.android.internal.utils.currentTimeInSeconds
 import com.walletconnect.android.internal.utils.dayInSeconds
+import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
 import com.walletconnect.android.internal.utils.getParticipantTag
 import com.walletconnect.android.pairing.model.mapper.toPairing
 import com.walletconnect.foundation.common.model.PublicKey
@@ -60,7 +61,7 @@ internal class SessionAuthenticateUseCase(
 
         val requesterPublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
         val responseTopic: Topic = crypto.getTopicFromKey(requesterPublicKey)
-        val authParams: SignParams.SessionAuthenticateParams = SignParams.SessionAuthenticateParams(Requester(requesterPublicKey.keyAsHex, selfAppMetaData), payloadParams.toCommon())
+        val authParams: SignParams.SessionAuthenticateParams = SignParams.SessionAuthenticateParams(Requester(requesterPublicKey.keyAsHex, selfAppMetaData), payloadParams.toCommon(), expiryTimestamp = currentTimeInSeconds + fiveMinutesInSeconds)
         val authRequest: SignRpc.SessionAuthenticate = SignRpc.SessionAuthenticate(params = authParams)
         val irnParamsTtl = getIrnParamsTtl(null, currentTimeInSeconds)
         val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE, irnParamsTtl, true)

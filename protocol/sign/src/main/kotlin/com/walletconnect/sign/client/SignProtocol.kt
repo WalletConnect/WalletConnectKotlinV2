@@ -159,7 +159,10 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
         scope.launch {
             try {
                 signEngine.authenticate(authenticate.toPayloadParams(), authenticate.methods, authenticate.pairingTopic,
-                    onSuccess = { url -> onSuccess(url) },
+                    onSuccess = { url ->
+                        println("kobe: URL: $url")
+                        onSuccess(url)
+                    },
                     onFailure = { throwable -> onError(Sign.Model.Error(throwable)) })
             } catch (error: Exception) {
                 onError(Sign.Model.Error(error))

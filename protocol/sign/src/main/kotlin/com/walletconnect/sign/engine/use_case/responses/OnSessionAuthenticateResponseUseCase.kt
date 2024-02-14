@@ -71,7 +71,7 @@ internal class OnSessionAuthenticateResponseUseCase(
 
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcError -> {
-                    logger.error("Received session authenticate response - emitting rpc error: ${wcResponse.topic}")
+                    logger.error("Received session authenticate response - emitting rpc error: ${wcResponse.topic}, ${response.error}")
                     _events.emit(EngineDO.SessionAuthenticateResponse.Error(response.id, response.error.code, response.error.message))
                 }
 
@@ -85,19 +85,16 @@ internal class OnSessionAuthenticateResponseUseCase(
                     }
 
                     with(approveParams) {
-                        //todo: if recaps has NO additional chains -> pass chains from payload. If they have -> pass chains from recaps
-                        //todo: if chains in reCaps - we take chains from first CACAO
                         val chains = cacaos.first().payload.resources.getChains().ifEmpty { params.authPayload.chains }
-                        val addresses = cacaos.map { cacao -> Issuer(cacao.payload.iss).address }
+                        val addresses = cacaos.map { cacao -> Issuer(cacao.payload.iss).address }.distinct()
                         val accounts = mutableListOf<String>()
                         chains.forEach { chainId ->
                             addresses.forEach { address ->
                                 accounts.add("$chainId:$address")
                             }
                         }
-
                         val namespace = Issuer(cacaos.first().payload.iss).namespace
-                        val methods = cacaos.map { cacao -> cacao.payload.methods }.flatten()
+                        val methods = cacaos.first().payload.methods
                         val sessionNamespaces: Map<String, Namespace.Session> = mapOf(namespace to Namespace.Session(accounts = accounts, events = listOf(), methods = methods, chains = chains))
                         val requiredNamespace: Map<String, Namespace.Proposal> = mapOf(namespace to Namespace.Proposal(events = listOf(), methods = methods, chains = chains))
                         val selfPublicKey = PublicKey(params.requester.publicKey)
