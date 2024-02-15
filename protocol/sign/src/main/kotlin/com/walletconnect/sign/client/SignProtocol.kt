@@ -508,7 +508,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     }
 
     @Throws(IllegalStateException::class)
-    override fun getPendingAuthenticate(): List<Sign.Model.SessionAuthenticate> {
+    override fun getPendingAuthenticateRequests(): List<Sign.Model.SessionAuthenticate> {
         checkEngineInitialization()
         return runBlocking { signEngine.getPendingAuthenticateRequests().map { request -> request.toClient() } }
     }
