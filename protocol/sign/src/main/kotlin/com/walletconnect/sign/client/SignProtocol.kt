@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.koin.core.KoinApplication
+import timber.log.Timber
 
 class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInterface {
     private lateinit var signEngine: SignEngine
@@ -160,10 +161,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
         scope.launch {
             try {
                 signEngine.authenticate(authenticate.toPayloadParams(), authenticate.methods, authenticate.pairingTopic, if (authenticate.expiry == null) null else Expiry(authenticate.expiry),
-                    onSuccess = { url ->
-                        println("kobe: URL: $url")
-                        onSuccess(url)
-                    },
+                    onSuccess = { url -> onSuccess(url) },
                     onFailure = { throwable -> onError(Sign.Model.Error(throwable)) })
             } catch (error: Exception) {
                 onError(Sign.Model.Error(error))
@@ -178,7 +176,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
         return try {
             runBlocking { signEngine.formatMessage(formatMessage.payloadParams.toCaip222Request(), formatMessage.iss) }
         } catch (error: Exception) {
-            println("kobe: error: $error")
+            Timber.e("FormatAuthMessage error: $error")
             null
         }
     }

@@ -63,10 +63,13 @@ internal class OnSessionAuthenticateResponseUseCase(
             }
 
             val pairingTopic = jsonRpcHistoryEntry.topic
-            if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) return@supervisorScope //todo: emit error
+            if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) {
+                _events.emit(SDKError(Throwable("Received session authenticate response - pairing doesn't exist topic: ${wcResponse.topic}")))
+                return@supervisorScope
+            }
             runCatching { authenticateResponseTopicRepository.delete(pairingTopic.value) }.onFailure {
                 logger.error("Received session authenticate response - failed to delete authenticate response topic: ${wcResponse.topic}")
-                _events.emit(SDKError(it))
+
             }
 
             when (val response = wcResponse.response) {
@@ -97,7 +100,6 @@ internal class OnSessionAuthenticateResponseUseCase(
                         chains.forEach { chainId -> addresses.forEach { address -> accounts.add("$chainId:$address") } }
                         val namespace = Issuer(cacaos.first().payload.iss).namespace
                         val methods = cacaos.first().payload.methods
-                        println("kobe: wallet methods: $methods")
                         var authenticatedSession: SessionVO? = null
                         if (methods.isNotEmpty()) {
                             val sessionNamespaces: Map<String, Namespace.Session> = mapOf(namespace to Namespace.Session(accounts = accounts, events = listOf(), methods = methods, chains = chains))

@@ -143,7 +143,7 @@ class ChainSelectionViewModel : ViewModel() {
             statement = "Sign in with wallet.",
             requestId = null,
             resources = null,
-            methods = null,//listOf("personal_sign", "eth_signTypedData"),
+            methods = listOf("personal_sign", "eth_signTypedData"),
             expiry = null
         )
         WalletConnectModal.authenticate(authenticateParams,

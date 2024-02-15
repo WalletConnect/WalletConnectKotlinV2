@@ -39,11 +39,10 @@ internal class OnSessionAuthenticateUseCase(
             if (Expiry(authenticateSessionParams.expiryTimestamp).isExpired()) {
                 logger.log("Received session authenticate - expiry error: ${request.topic}")
                 jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
+                _events.emit(SDKError(Throwable("Received session authenticate - expiry error: ${request.topic}")))
                 return@supervisorScope
             }
 
-
-            //TODO: add eip155 validation
             val url = authenticateSessionParams.requester.metadata.url
             resolveAttestationIdUseCase(request.id, request.message, url) { verifyContext ->
                 scope.launch {

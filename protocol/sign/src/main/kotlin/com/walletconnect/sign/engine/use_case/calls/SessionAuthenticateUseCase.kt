@@ -56,12 +56,8 @@ internal class SessionAuthenticateUseCase(
             return onFailure(InvalidExpiryException())
         }
         val requestExpiry = expiry ?: Expiry(currentTimeInSeconds + oneHourInSeconds)
-
-        //TODO: Multi namespace - if other than eip155 - throw error, add chains validation caip-2
         val pairing = getPairingForSessionAuthenticate(pairingTopic)
         val optionalNamespaces = getNamespacesFromReCaps(payloadParams.chains, methods ?: emptyList()).toMapOfEngineNamespacesOptional()
-        //todo: namespace from first chain in the list?
-
         if (!methods.isNullOrEmpty()) {
             val namespace = SignValidator.getNamespaceKeyFromChainId(payloadParams.chains.first())
             val actionsJsonObject = JSONObject()

@@ -65,6 +65,7 @@ import com.walletconnect.sample.dapp.ui.routes.bottom_routes.pairingSelectionRes
 import com.walletconnect.wcmodal.client.WalletConnectModal
 import com.walletconnect.wcmodal.ui.openWalletConnectModal
 import com.walletconnect.wcmodal.ui.state.rememberModalState
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -77,34 +78,55 @@ fun ChainSelectionRoute(navController: NavController) {
     val chainsState by viewModel.uiState.collectAsState()
     rememberModalState(navController = navController)
     val awaitingProposalResponse = viewModel.awaitingSharedFlow.collectAsState(false).value
-
+    handlePairingEvents(navController, viewModel, composableScope, context)
+    handleSignEvents(viewModel, navController, context)
     LaunchedEffect(Unit) {
-        navController.currentBackStackEntryFlow.collectLatest { event ->
-            event.savedStateHandle.get<PairingSelectionResult>(pairingSelectionResultKey)?.let {
-                navController.currentBackStackEntry?.savedStateHandle?.remove<PairingSelectionResult>(pairingSelectionResultKey)
-                when (it) {
-                    PairingSelectionResult.NewPairing -> {
-                        WalletConnectModal.setSessionParams(viewModel.getSessionParams())
-                        navController.openWalletConnectModal()
-                    }
-
-                    PairingSelectionResult.None -> Unit
-                    is PairingSelectionResult.SelectedPairing -> {
-                        viewModel.connectToWallet(it.position,
-                            onSuccess = {
-                                println("Proposal sent successfully")
-                            },
-                            onError = { error ->
-                                composableScope.launch(Dispatchers.Main) {
-                                    Toast.makeText(context, "Error while connecting: $error", Toast.LENGTH_SHORT).show()
-                                }
-                            })
-                    }
-                }
+        viewModel.coreEvents.collect { event ->
+            if (event is DappSampleEvents.PairingExpired) {
+                val pairingType = if (event.pairing.isActive) "Active" else "Inactive"
+                Toast.makeText(context, "$pairingType pairing has been expired", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
+    ChainSelectionScreen(
+        chains = chainsState,
+        awaitingState = awaitingProposalResponse,
+        isSampleWalletInstalled = context.isSampleWalletInstalled(),
+        onChainClick = viewModel::updateChainSelectState,
+        onConnectClick = { onConnectClick(viewModel, navController, context) },
+        onAuthenticateClick = {
+            authenticate(viewModel, context, composableScope) { uri ->
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    val encoded = URLEncoder.encode(uri, "UTF-8")
+                    data = "kotlin-web3wallet://wc?uri=$encoded".toUri()
+                    `package` = when (BuildConfig.BUILD_TYPE) {
+                        "debug" -> SAMPLE_WALLET_DEBUG_PACKAGE
+                        "internal" -> SAMPLE_WALLET_INTERNAL_PACKAGE
+                        else -> SAMPLE_WALLET_RELEASE_PACKAGE
+                    }
+                }
+                context.startActivity(intent)
+            }
+        },
+        onDynamicSwitcher = {
+            authenticate(viewModel, context, composableScope) { uri ->
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    val encoded = URLEncoder.encode(uri, "UTF-8")
+                    data = "trust://wc?uri=$encoded".toUri()
+                }
+                context.startActivity(intent)
+            }
+        }
+    )
+}
+
+@Composable
+private fun handleSignEvents(
+    viewModel: ChainSelectionViewModel,
+    navController: NavController,
+    context: Context
+) {
     LaunchedEffect(Unit) {
         viewModel.walletEvents.collect { event ->
             when (event) {
@@ -141,60 +163,79 @@ fun ChainSelectionRoute(navController: NavController) {
             }
         }
     }
+}
 
+@Composable
+private fun handlePairingEvents(
+    navController: NavController,
+    viewModel: ChainSelectionViewModel,
+    composableScope: CoroutineScope,
+    context: Context
+) {
     LaunchedEffect(Unit) {
-        viewModel.coreEvents.collect { event ->
-            if (event is DappSampleEvents.PairingExpired) {
-                val pairingType = if (event.pairing.isActive) "Active" else "Inactive"
-                Toast.makeText(context, "$pairingType pairing has been expired", Toast.LENGTH_SHORT).show()
+        navController.currentBackStackEntryFlow.collectLatest { event ->
+            event.savedStateHandle.get<PairingSelectionResult>(pairingSelectionResultKey)?.let {
+                navController.currentBackStackEntry?.savedStateHandle?.remove<PairingSelectionResult>(pairingSelectionResultKey)
+                when (it) {
+                    PairingSelectionResult.NewPairing -> {
+                        WalletConnectModal.setSessionParams(viewModel.getSessionParams())
+                        navController.openWalletConnectModal()
+                    }
+
+                    PairingSelectionResult.None -> Unit
+                    is PairingSelectionResult.SelectedPairing -> {
+                        viewModel.connectToWallet(it.position,
+                            onSuccess = {
+                                println("Proposal sent successfully")
+                            },
+                            onError = { error ->
+                                composableScope.launch(Dispatchers.Main) {
+                                    Toast.makeText(context, "Error while connecting: $error", Toast.LENGTH_SHORT).show()
+                                }
+                            })
+                    }
+                }
             }
         }
     }
+}
 
-    ChainSelectionScreen(
-        chains = chainsState,
-        awaitingState = awaitingProposalResponse,
-        isSampleWalletInstalled = context.isSampleWalletInstalled(),
-        onChainClick = viewModel::updateChainSelectState,
-        onConnectClick = {
-            if (viewModel.isAnyChainSelected) {
-                if (viewModel.isAnySettledParingExist) {
-                    navController.navigate(Route.ParingSelection.path) {
-                        popUpTo(Route.ChainSelection.path)
-                    }
-                } else {
-                    WalletConnectModal.setSessionParams(viewModel.getSessionParams())
-                    navController.openWalletConnectModal()
+private fun authenticate(
+    viewModel: ChainSelectionViewModel,
+    context: Context,
+    composableScope: CoroutineScope,
+    onDeepLink: (String) -> Unit
+) {
+    if (viewModel.isAnyChainSelected) {
+        viewModel.authenticate(
+            onAuthenticateSuccess = { uri -> onDeepLink(uri) },
+            onError = { error ->
+                composableScope.launch(Dispatchers.Main) {
+                    Toast.makeText(context, "Authenticate error: $error", Toast.LENGTH_SHORT).show()
                 }
-            } else {
-                Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
+            })
+    } else {
+        Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
+    }
+}
+
+private fun onConnectClick(
+    viewModel: ChainSelectionViewModel,
+    navController: NavController,
+    context: Context
+) {
+    if (viewModel.isAnyChainSelected) {
+        if (viewModel.isAnySettledParingExist) {
+            navController.navigate(Route.ParingSelection.path) {
+                popUpTo(Route.ChainSelection.path)
             }
-        },
-        onAuthenticateClick = {
-            if (viewModel.isAnyChainSelected) {
-                viewModel.authenticate(
-                    onAuthenticateSuccess = { uri ->
-                        val intent = Intent(Intent.ACTION_VIEW).apply {
-                            val encoded = URLEncoder.encode(uri, "UTF-8")
-                            data = "kotlin-web3wallet://wc?uri=$encoded".toUri()
-                            `package` = when (BuildConfig.BUILD_TYPE) {
-                                "debug" -> SAMPLE_WALLET_DEBUG_PACKAGE
-                                "internal" -> SAMPLE_WALLET_INTERNAL_PACKAGE
-                                else -> SAMPLE_WALLET_RELEASE_PACKAGE
-                            }
-                        }
-                        context.startActivity(intent)
-                    },
-                    onError = { error ->
-                        composableScope.launch(Dispatchers.Main) {
-                            Toast.makeText(context, "Authenticate error: $error", Toast.LENGTH_SHORT).show()
-                        }
-                    })
-            } else {
-                Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
-            }
+        } else {
+            WalletConnectModal.setSessionParams(viewModel.getSessionParams())
+            navController.openWalletConnectModal()
         }
-    )
+    } else {
+        Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
+    }
 }
 
 @Composable
@@ -204,7 +245,8 @@ private fun ChainSelectionScreen(
     awaitingState: Boolean,
     onChainClick: (Int, Boolean) -> Unit,
     onConnectClick: () -> Unit,
-    onAuthenticateClick: () -> Unit
+    onAuthenticateClick: () -> Unit,
+    onDynamicSwitcher: () -> Unit
 ) {
 
 
@@ -231,6 +273,16 @@ private fun ChainSelectionScreen(
                 BlueButton(
                     text = "Authenticate",
                     onClick = onAuthenticateClick,
+                    modifier = Modifier
+                        .padding(vertical = 10.dp)
+                        .fillMaxWidth()
+                        .height(50.dp)
+                        .padding(horizontal = 16.dp)
+                )
+
+                BlueButton(
+                    text = "Dynamic Switcher (TrustWallet)",
+                    onClick = onDynamicSwitcher,
                     modifier = Modifier
                         .padding(vertical = 10.dp)
                         .fillMaxWidth()
@@ -338,6 +390,7 @@ private fun ChainSelectionScreenPreview(
             onChainClick = { _, _ -> },
             onConnectClick = {},
             onAuthenticateClick = {},
+            onDynamicSwitcher = {},
             isSampleWalletInstalled = false
         )
     }

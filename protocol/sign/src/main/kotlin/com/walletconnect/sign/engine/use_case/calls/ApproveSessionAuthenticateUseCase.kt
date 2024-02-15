@@ -25,6 +25,7 @@ import com.walletconnect.android.internal.common.signing.cacao.Issuer
 import com.walletconnect.android.internal.common.signing.cacao.getChains
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
+import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.dayInSeconds
 import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
@@ -36,6 +37,7 @@ import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.exceptions.MissingSessionAuthenticateRequest
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
+import com.walletconnect.sign.common.validator.SignValidator
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionAuthenticateRequest
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
@@ -73,9 +75,12 @@ internal class ApproveSessionAuthenticateUseCase(
                     throw RequestExpiredException("This request has expired, id: ${jsonRpcHistoryEntry.id}")
                 }
             }
-            //todo: expiry check, add chains validation - all caip-2
-            //todo: check for single chain - if not eip155 throw
+
             val sessionAuthenticateParams: SignParams.SessionAuthenticateParams = jsonRpcHistoryEntry.params
+            val chains = cacaos.first().payload.resources.getChains().ifEmpty { sessionAuthenticateParams.authPayload.chains }
+            if (!chains.all { chain -> CoreValidator.isChainIdCAIP2Compliant(chain) }) throw Exception("Chains are not CAIP-2 compliant")
+            if (!chains.any { chain -> SignValidator.getNamespaceKeyFromChainId(chain) == "eip155" }) throw Exception("Only eip155 is supported")
+
             val receiverPublicKey = PublicKey(sessionAuthenticateParams.requester.publicKey)
             val receiverMetadata = sessionAuthenticateParams.requester.metadata
             val senderPublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
@@ -89,13 +94,11 @@ internal class ApproveSessionAuthenticateUseCase(
                 return@supervisorScope onFailure(Throwable("Signature verification failed Session Authenticate, please try again"))
             }
 
-            val chains = cacaos.first().payload.resources.getChains().ifEmpty { sessionAuthenticateParams.authPayload.chains }
             val addresses = cacaos.map { cacao -> Issuer(cacao.payload.iss).address }.distinct()
             val accounts = mutableListOf<String>()
             chains.forEach { chainId -> addresses.forEach { address -> accounts.add("$chainId:$address") } }
-            val namespace = Issuer(cacaos.first().payload.iss).namespace //TODO: should always get iss from the first cacao?
+            val namespace = Issuer(cacaos.first().payload.iss).namespace
             val methods = cacaos.first().payload.methods
-            println("kobe: wallet methods: $methods")
             if (methods.isNotEmpty()) {
                 val requiredNamespace: Map<String, Namespace.Proposal> = mapOf(namespace to Namespace.Proposal(events = listOf(), methods = methods, chains = chains))
                 val sessionNamespaces: Map<String, Namespace.Session> = mapOf(namespace to Namespace.Session(accounts = accounts, events = listOf(), methods = methods, chains = chains))
@@ -118,6 +121,7 @@ internal class ApproveSessionAuthenticateUseCase(
             val responseParams = CoreSignParams.SessionAuthenticateApproveParams(responder = Participant(publicKey = senderPublicKey.keyAsHex, metadata = selfAppMetaData), cacaos = cacaos)
             val response: JsonRpcResponse = JsonRpcResponse.JsonRpcResult(id, result = responseParams)
             crypto.setKey(symmetricKey, sessionTopic.value)
+
             logger.log("Subscribing Session Authenticate on topic: $responseTopic")
             jsonRpcInteractor.subscribe(sessionTopic, onSuccess = {
                 logger.log("Subscribed Session Authenticate on topic: $responseTopic")

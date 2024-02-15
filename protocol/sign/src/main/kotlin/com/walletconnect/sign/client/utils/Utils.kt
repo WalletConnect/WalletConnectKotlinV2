@@ -92,13 +92,9 @@ fun generateAuthObject(payload: Sign.Model.PayloadParams, issuer: String, signat
 }
 
 fun generateAuthPayloadParams(payloadParams: Sign.Model.PayloadParams, supportedChains: List<String>, supportedMethods: List<String>): Sign.Model.PayloadParams {
-    //TODO: add chains caip-2 validation
     val reCapsList: List<String>? = payloadParams.resources.decodeReCaps()?.filter { decoded -> decoded.contains("eip155") }
 
     if (reCapsList.isNullOrEmpty()) return payloadParams
-
-    println("kobe: OLD: $reCapsList")
-
     val sessionReCaps = reCapsList.parseReCaps()["eip155"]
 
     val requestedMethods = sessionReCaps!!.keys.map { key -> key.substringAfter('/') }
@@ -107,13 +103,14 @@ fun generateAuthPayloadParams(payloadParams: Sign.Model.PayloadParams, supported
     val sessionChains = requestedChains.intersect(supportedChains.toSet()).toList().distinct()
     val sessionMethods = requestedMethods.intersect(supportedMethods.toSet()).toList().distinct()
 
+    if (!sessionChains.all { chain -> CoreValidator.isChainIdCAIP2Compliant(chain) }) throw Exception("Chains are not CAIP-2 compliant")
+    if (!sessionChains.any { chain -> SignValidator.getNamespaceKeyFromChainId(chain) == "eip155" }) throw Exception("Only eip155 is supported")
+
     val actionsJsonObject = JSONObject()
     val chainsJsonArray = JSONArray()
     sessionChains.forEach { chain -> chainsJsonArray.put(chain) }
     sessionMethods.forEach { method -> actionsJsonObject.put("request/$method", JSONArray().put(0, JSONObject().put("chains", chainsJsonArray))) }
     val recaps = JSONObject().put(Cacao.Payload.ATT_KEY, JSONObject().put("eip155", actionsJsonObject)).toString().replace("\\/", "/")
-
-    println("kobe: NEW: $reCapsList")
 
     val base64Recaps = Base64.toBase64String(recaps.toByteArray(Charsets.UTF_8))
     val newReCapsUrl = "${RECAPS_PREFIX}$base64Recaps"
