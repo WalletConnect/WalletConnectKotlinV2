@@ -80,7 +80,7 @@ internal class OnSessionAuthenticateResponseUseCase(
 
                     val approveParams = (response.result as CoreSignParams.SessionAuthenticateApproveParams)
                     if (approveParams.cacaos.find { cacao -> !cacaoVerifier.verify(cacao) } != null) {
-                        _events.emit(EngineDO.SessionAuthenticateResponse.Error(response.id, 1111, "Message")) //todo: handle errors
+                        _events.emit(SDKError(Throwable("Signature verification failed Session Authenticate")))
                         return@supervisorScope
                     }
 

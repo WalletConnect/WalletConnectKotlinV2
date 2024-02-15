@@ -77,7 +77,6 @@ internal class SessionStorageRepository(
                 peer_participant = peerPublicKey?.keyAsHex,
                 relay_data = relayData,
                 is_acknowledged = isAcknowledged,
-                is_authenticated = isAuthenticated,
                 properties = properties
             )
         }
@@ -214,7 +213,6 @@ internal class SessionStorageRepository(
         self_participant: String,
         peer_participant: String?,
         is_acknowledged: Boolean,
-        is_authenticated: Boolean,
         pairingTopic: String,
         properties: Map<String, String>?
     ): SessionVO {
@@ -236,7 +234,6 @@ internal class SessionStorageRepository(
             requiredNamespaces = requiredNamespaces,
             optionalNamespaces = optionalNamespaces,
             isAcknowledged = is_acknowledged,
-            isAuthenticated = is_authenticated,
             properties = properties,
             pairingTopic = pairingTopic
         )

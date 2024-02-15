@@ -102,6 +102,7 @@ internal class SessionAuthenticateUseCase(
                 onSuccess(pairing.uri)
             },
             onFailure = { error ->
+                jsonRpcInteractor.unsubscribe(responseTopic)
                 logger.error("Failed to send a auth request: $error")
                 onFailure(error)
             }

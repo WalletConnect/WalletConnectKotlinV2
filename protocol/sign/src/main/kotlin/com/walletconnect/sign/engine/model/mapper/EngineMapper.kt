@@ -314,7 +314,7 @@ internal fun EngineDO.PayloadParams.toCommon(): PayloadParams =
         requestId = requestId,
         resources = resources,
         chains = chains,
-        type = type ?: CacaoType.CAIP222.header
+        type = type ?: CacaoType.EIP4361.header
     )
 
 @JvmSynthetic

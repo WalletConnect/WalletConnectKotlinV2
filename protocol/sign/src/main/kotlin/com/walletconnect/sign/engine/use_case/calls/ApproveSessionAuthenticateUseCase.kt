@@ -34,7 +34,6 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.exceptions.MissingSessionAuthenticateRequest
-import com.walletconnect.sign.common.exceptions.PeerError
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionAuthenticateRequest
@@ -87,16 +86,7 @@ internal class ApproveSessionAuthenticateUseCase(
 
             if (cacaos.find { cacao -> !cacaoVerifier.verify(cacao) } != null) {
                 logger.error("Invalid Cacao for Session Authenticate")
-                //todo: handle error codes
-                jsonRpcInteractor.respondWithError(id,
-                    responseTopic,
-                    PeerError.EIP1193.UserRejectedRequest("Invalid CACAO"),
-                    irnParams,
-                    EnvelopeType.ONE,
-                    Participants(senderPublicKey, receiverPublicKey),
-                    onSuccess = { return@respondWithError onFailure(Throwable("Invalid CACAO error successfully sent on topic: $responseTopic")) },
-                    onFailure = { logger.error("Error sending invalid CACAO error on topic: $responseTopic") })
-                return@supervisorScope
+                return@supervisorScope onFailure(Throwable("Signature verification failed Session Authenticate, please try again"))
             }
             val chains = cacaos.first().payload.resources.getChains().ifEmpty { sessionAuthenticateParams.authPayload.chains }
             val addresses = cacaos.map { cacao -> Issuer(cacao.payload.iss).address }.distinct()

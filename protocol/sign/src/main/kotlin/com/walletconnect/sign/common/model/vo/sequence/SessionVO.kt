@@ -30,7 +30,6 @@ internal data class SessionVO(
     val optionalNamespaces: Map<String, Namespace.Proposal>?,
     val properties: Map<String, String>? = null,
     val isAcknowledged: Boolean,
-    val isAuthenticated: Boolean = false,
     val pairingTopic: String
 ) : Sequence {
     val isPeerController: Boolean = peerPublicKey?.keyAsHex == controllerKey?.keyAsHex
@@ -122,7 +121,6 @@ internal data class SessionVO(
                 requiredNamespaces = requiredNamespaces,
                 optionalNamespaces = null,
                 isAcknowledged = true,
-                isAuthenticated = true,
                 pairingTopic = pairingTopic
             )
         }
