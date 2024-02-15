@@ -237,7 +237,8 @@ object Sign {
             val id: Long,
             val topic: String,
             val participant: Participant,
-            val payloadParams: PayloadParams
+            val payloadParams: PayloadParams,
+            val expiry: Long
         ) {
             data class Participant(
                 val publicKey: String,

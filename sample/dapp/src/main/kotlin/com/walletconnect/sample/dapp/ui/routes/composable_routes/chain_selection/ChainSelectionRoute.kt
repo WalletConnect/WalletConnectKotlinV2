@@ -170,17 +170,16 @@ fun ChainSelectionRoute(navController: NavController) {
             if (viewModel.isAnyChainSelected) {
                 viewModel.authenticate(
                     onAuthenticateSuccess = { uri ->
-
-//                        val intent = Intent(Intent.ACTION_VIEW).apply {
-//                            val encoded = URLEncoder.encode(uri, "UTF-8")
-//                            data = "kotlin-web3wallet://wc?uri=$encoded".toUri()
-//                            `package` = when (BuildConfig.BUILD_TYPE) {
-//                                "debug" -> SAMPLE_WALLET_DEBUG_PACKAGE
-//                                "internal" -> SAMPLE_WALLET_INTERNAL_PACKAGE
-//                                else -> SAMPLE_WALLET_RELEASE_PACKAGE
-//                            }
-//                        }
-//                        context.startActivity(intent)
+                        val intent = Intent(Intent.ACTION_VIEW).apply {
+                            val encoded = URLEncoder.encode(uri, "UTF-8")
+                            data = "kotlin-web3wallet://wc?uri=$encoded".toUri()
+                            `package` = when (BuildConfig.BUILD_TYPE) {
+                                "debug" -> SAMPLE_WALLET_DEBUG_PACKAGE
+                                "internal" -> SAMPLE_WALLET_INTERNAL_PACKAGE
+                                else -> SAMPLE_WALLET_RELEASE_PACKAGE
+                            }
+                        }
+                        context.startActivity(intent)
                     },
                     onError = { error ->
                         composableScope.launch(Dispatchers.Main) {

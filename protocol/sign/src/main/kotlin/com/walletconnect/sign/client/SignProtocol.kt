@@ -178,6 +178,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
         return try {
             runBlocking { signEngine.formatMessage(formatMessage.payloadParams.toCaip222Request(), formatMessage.iss) }
         } catch (error: Exception) {
+            println("kobe: error: $error")
             null
         }
     }
@@ -506,6 +507,12 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     override fun getSessionProposals(): List<Sign.Model.SessionProposal> {
         checkEngineInitialization()
         return runBlocking { signEngine.getSessionProposals().map(EngineDO.SessionProposal::toClientSessionProposal) }
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun getPendingAuthenticate(): List<Sign.Model.SessionAuthenticate> {
+        checkEngineInitialization()
+        return runBlocking { signEngine.getPendingAuthenticateRequests().map { request -> request.toClient() } }
     }
 
     @Throws(IllegalStateException::class)

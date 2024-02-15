@@ -15,6 +15,7 @@ import com.walletconnect.android.utils.toClient
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.common.model.Request
 import com.walletconnect.sign.common.model.vo.clientsync.common.PayloadParams
+import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.engine.model.EngineDO
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -192,7 +193,8 @@ internal fun EngineDO.SessionAuthenticateEvent.toClientSessionAuthenticate(): Si
         id,
         pairingTopic,
         participant.toClient(),
-        payloadParams.toClient()
+        payloadParams.toClient(),
+        expiryTimestamp
     )
 }
 
@@ -290,6 +292,33 @@ internal fun List<Request<String>>.mapToPendingRequests(): List<Sign.Model.Pendi
 @JvmSynthetic
 internal fun List<EngineDO.SessionRequest>.mapToPendingSessionRequests(): List<Sign.Model.SessionRequest> =
     map { request -> request.toClientSessionRequest() }
+
+@JvmSynthetic
+internal fun Request<SignParams.SessionAuthenticateParams>.toClient(): Sign.Model.SessionAuthenticate =
+    Sign.Model.SessionAuthenticate(
+        id = id,
+        topic = topic.value,
+        participant = Sign.Model.SessionAuthenticate.Participant(params.requester.publicKey, params.requester.metadata.toClient()),
+        payloadParams = params.toClient(),
+        expiry = params.expiryTimestamp
+    )
+
+@JvmSynthetic
+internal fun SignParams.SessionAuthenticateParams.toClient(): Sign.Model.PayloadParams = with(this.authPayload) {
+    Sign.Model.PayloadParams(
+        type = type,
+        chains = chains,
+        domain = domain,
+        aud = aud,
+        nonce = nonce,
+        iat = iat,
+        nbf = nbf,
+        exp = exp,
+        statement = statement,
+        requestId = requestId,
+        resources = resources
+    )
+}
 
 @JvmSynthetic
 internal fun EngineDO.SessionPayloadResponse.toClientSessionPayloadResponse(): Sign.Model.SessionRequestResponse =

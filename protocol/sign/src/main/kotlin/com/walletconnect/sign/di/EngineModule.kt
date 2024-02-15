@@ -5,6 +5,8 @@ package com.walletconnect.sign.di
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
 import com.walletconnect.sign.engine.domain.SignEngine
+import com.walletconnect.sign.engine.use_case.calls.GetPendingAuthenticateRequestUseCase
+import com.walletconnect.sign.engine.use_case.calls.GetPendingAuthenticateRequestUseCaseInterface
 import com.walletconnect.sign.json_rpc.domain.DeleteRequestByIdUseCase
 import com.walletconnect.sign.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdUseCase
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionAuthenticateRequest
@@ -19,6 +21,8 @@ internal fun engineModule() = module {
     includes(callsModule(), requestsModule(), responsesModule())
 
     single { GetPendingSessionRequests(jsonRpcHistory = get(), serializer = get()) }
+
+    single<GetPendingAuthenticateRequestUseCaseInterface> { GetPendingAuthenticateRequestUseCase(jsonRpcHistory = get(), serializer = get()) }
 
     single { DeleteRequestByIdUseCase(jsonRpcHistory = get()) }
 
@@ -78,7 +82,8 @@ internal fun engineModule() = module {
             approveSessionAuthenticateUseCase = get(),
             rejectSessionAuthenticateUseCase = get(),
             formatAuthenticateMessageUseCase = get(),
-            deleteRequestByIdUseCase = get()
+            deleteRequestByIdUseCase = get(),
+            getPendingAuthenticateRequestUseCase = get()
         )
     }
 }

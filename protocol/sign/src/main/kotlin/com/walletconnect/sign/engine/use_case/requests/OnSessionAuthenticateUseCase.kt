@@ -36,13 +36,12 @@ internal class OnSessionAuthenticateUseCase(
         val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE_RESPONSE, Ttl(dayInSeconds))
         logger.log("Received session authenticate: ${request.topic}")
         try {
-            authenticateSessionParams.expiryTimestamp?.let {
-                if (Expiry(it).isExpired()) {
-                    logger.log("Received session authenticate - expiry error: ${request.topic}")
-                    jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
-                    return@supervisorScope
-                }
+            if (Expiry(authenticateSessionParams.expiryTimestamp).isExpired()) {
+                logger.log("Received session authenticate - expiry error: ${request.topic}")
+                jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
+                return@supervisorScope
             }
+
 
             //TODO: add eip155 validation
             val url = authenticateSessionParams.requester.metadata.url
@@ -55,6 +54,7 @@ internal class OnSessionAuthenticateUseCase(
                             request.topic.value,
                             authenticateSessionParams.authPayload.toEngineDO(),
                             authenticateSessionParams.requester.toEngineDO(),
+                            authenticateSessionParams.expiryTimestamp,
                             verifyContext.toEngineDO()
                         )
                     )
