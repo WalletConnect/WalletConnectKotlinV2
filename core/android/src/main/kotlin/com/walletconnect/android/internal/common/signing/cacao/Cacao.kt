@@ -6,8 +6,6 @@ import com.squareup.moshi.JsonClass
 import com.walletconnect.android.cacao.SignatureInterface
 import com.walletconnect.android.internal.common.signing.cacao.Cacao.Payload.Companion.RECAPS_PREFIX
 import com.walletconnect.android.internal.common.signing.signature.Signature
-import org.bouncycastle.util.encoders.Base64
-import org.json.JSONObject
 
 @JsonClass(generateAdapter = true)
 data class Cacao(
@@ -63,7 +61,7 @@ data class Cacao(
         @get:Throws(Exception::class)
         val actionsString get() = getActionsString()
         @get:Throws(Exception::class)
-        val methods get() = getActions()
+        val methods get() = resources.getActions()
 
         companion object {
             const val CURRENT_VERSION = "1"
@@ -98,14 +96,14 @@ fun Cacao.Payload.toCAIP222Message(chainName: String = "Ethereum"): String {
 }
 
 private fun Cacao.Payload.getActionsString(): String {
-    val map = decodeReCaps()
+    val map = resources.decodeReCaps().parseReCaps()
     if (map.isEmpty()) throw Exception("Decoded ReCaps map is empty")
     var result = ""
     var index = 1
 
     map.forEach { (key, values) ->
-        val prefix = values.firstOrNull()?.substringBefore('/') ?: ""
-        val itemsFormatted = values.joinToString(", ") { "'${it.substringAfter('/')}'" }
+        val prefix = values.keys.firstOrNull()?.substringBefore('/') ?: ""
+        val itemsFormatted = values.keys.sorted().joinToString(", ") { "'${it.substringAfter('/')}'" }
 
         result += if (index == map.size) {
             "($index) '$prefix': $itemsFormatted for '$key'"
@@ -116,33 +114,4 @@ private fun Cacao.Payload.getActionsString(): String {
     }
 
     return result
-}
-
-private fun Cacao.Payload.getActions(): List<String> {
-    return decodeReCaps().values.flatten().map { action -> action.substringAfter('/') }
-}
-
-private fun Cacao.Payload.decodeReCaps(): MutableMap<String, MutableList<String>> {
-    val reCapsList: List<String>? = resources
-        ?.filter { resource -> resource.startsWith(RECAPS_PREFIX) }
-        ?.map { urn -> urn.removePrefix(RECAPS_PREFIX) }
-        ?.map { encodedReCaps -> Base64.decode(encodedReCaps).toString(Charsets.UTF_8) }
-    if (reCapsList.isNullOrEmpty()) throw Exception("Cannot find ReCaps URN in resources")
-    val reCapsMap: MutableMap<String, MutableList<String>> = mutableMapOf()
-
-    reCapsList.forEach { jsonString ->
-        val jsonObject = JSONObject(jsonString)
-        val attObject = jsonObject.getJSONObject("att")
-
-        attObject.keys().forEach { key ->
-            val requests = attObject.getJSONObject(key).keys().asSequence().toList()
-            if (reCapsMap.containsKey(key)) {
-                reCapsMap[key]?.addAll(requests)
-            } else {
-                reCapsMap[key] = requests.toMutableList()
-            }
-        }
-    }
-    reCapsMap.forEach { entry -> entry.value.sort() }
-    return reCapsMap.toSortedMap()
 }

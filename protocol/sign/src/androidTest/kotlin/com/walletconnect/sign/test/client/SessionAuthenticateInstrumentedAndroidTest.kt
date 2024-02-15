@@ -7,7 +7,7 @@ import com.walletconnect.sign.BuildConfig
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import com.walletconnect.sign.client.utils.CacaoSigner
-import com.walletconnect.sign.client.utils.generateCACAO
+import com.walletconnect.sign.client.utils.generateAuthObject
 import com.walletconnect.sign.test.scenario.SignClientInstrumentedActivityScenario
 import com.walletconnect.sign.test.utils.TestClient
 import com.walletconnect.sign.test.utils.dapp.DappDelegate
@@ -58,7 +58,7 @@ class SessionAuthenticateInstrumentedAndroidTest {
                 issuerToMessages.forEach { issuerToMessage ->
                     val messageToSign = Numeric.toHexString(issuerToMessage.second.toByteArray())
                     val signature = CacaoSigner.signHex(messageToSign, privateKey.hexToBytes(), SignatureType.EIP191)
-                    val cacao = generateCACAO(sessionAuthenticate.payloadParams, issuerToMessage.first, signature)
+                    val cacao = generateAuthObject(sessionAuthenticate.payloadParams, issuerToMessage.first, signature)
                     cacaos.add(cacao)
                 }
 
@@ -99,7 +99,7 @@ class SessionAuthenticateInstrumentedAndroidTest {
                 issuerToMessages.forEach { issuerToMessage ->
                     val messageToSign = Numeric.toHexString(issuerToMessage.second.toByteArray())
                     val signature = CacaoSigner.signHex(messageToSign, privateKey.hexToBytes(), SignatureType.EIP191)
-                    val cacao = generateCACAO(sessionAuthenticate.payloadParams, issuerToMessage.first, signature)
+                    val cacao = generateAuthObject(sessionAuthenticate.payloadParams, issuerToMessage.first, signature)
                     cacaos.add(cacao)
                 }
 
@@ -151,7 +151,7 @@ class SessionAuthenticateInstrumentedAndroidTest {
 
                 messages.forEach { message ->
                     val signature = CacaoSigner.signHex("messageToSign", privateKey.hexToBytes(), SignatureType.EIP191)
-                    val cacao = generateCACAO(sessionAuthenticate.payloadParams, message.first, signature)
+                    val cacao = generateAuthObject(sessionAuthenticate.payloadParams, message.first, signature)
                     cacaos.add(cacao)
                 }
 

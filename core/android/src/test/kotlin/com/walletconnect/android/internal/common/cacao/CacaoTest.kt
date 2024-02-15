@@ -34,7 +34,7 @@ internal class CacaoTest {
         resources = listOf(
             "ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/",
             "https://example.com/my-web2-claim.json",
-            "urn:recap:eyJhdHQiOnsiZWlwMTU1IjpbeyJyZXF1ZXN0L2V0aF9zaWduVHlwZWREYXRhX3Y0IjpbXX0seyJyZXF1ZXN0L3BlcnNvbmFsX3NpZ24iOltdfV19fQ=="
+            "urn:recap:eyJhdHQiOnsiZWlwMTU1Ijp7InJlcXVlc3QvcGVyc29uYWxfc2lnbiI6W3siY2hhaW5zIjpbImVpcDE1NToxIl19XSwicmVxdWVzdC9ldGhfc2lnblR5cGVkRGF0YV92NCI6W3siY2hhaW5zIjpbImVpcDE1NToxIl19XX19fQ=="
         )
     )
 

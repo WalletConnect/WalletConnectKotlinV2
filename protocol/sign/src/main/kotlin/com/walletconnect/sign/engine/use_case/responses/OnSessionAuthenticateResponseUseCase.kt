@@ -15,6 +15,7 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
 import com.walletconnect.android.internal.common.signing.cacao.Issuer
+import com.walletconnect.android.internal.common.signing.cacao.getChains
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.monthInSeconds
 import com.walletconnect.android.pairing.client.PairingInterface
@@ -84,12 +85,19 @@ internal class OnSessionAuthenticateResponseUseCase(
                     }
 
                     with(approveParams) {
-                        val accounts = cacaos.map { cacao -> Issuer(cacao.payload.iss).accountId }
-
                         //todo: if recaps has NO additional chains -> pass chains from payload. If they have -> pass chains from recaps
-                        val chains = cacaos.map { cacao -> Issuer(cacao.payload.iss).chainId }
+                        //todo: if chains in reCaps - we take chains from first CACAO
+                        val chains = cacaos.first().payload.resources.getChains().ifEmpty { params.authPayload.chains }
+                        val addresses = cacaos.map { cacao -> Issuer(cacao.payload.iss).address }
+                        val accounts = mutableListOf<String>()
+                        chains.forEach { chainId ->
+                            addresses.forEach { address ->
+                                accounts.add("$chainId:$address")
+                            }
+                        }
+
                         val namespace = Issuer(cacaos.first().payload.iss).namespace
-                        val methods = cacaos.map { cacao -> cacao.payload.methods }.flatten().distinct()
+                        val methods = cacaos.map { cacao -> cacao.payload.methods }.flatten()
                         val sessionNamespaces: Map<String, Namespace.Session> = mapOf(namespace to Namespace.Session(accounts = accounts, events = listOf(), methods = methods, chains = chains))
                         val requiredNamespace: Map<String, Namespace.Proposal> = mapOf(namespace to Namespace.Proposal(events = listOf(), methods = methods, chains = chains))
                         val selfPublicKey = PublicKey(params.requester.publicKey)

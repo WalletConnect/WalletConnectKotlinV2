@@ -3,7 +3,11 @@
 package com.walletconnect.sign.client.utils
 
 import com.walletconnect.android.internal.common.model.Namespace
+import com.walletconnect.android.internal.common.signing.cacao.Cacao
+import com.walletconnect.android.internal.common.signing.cacao.Cacao.Payload.Companion.RECAPS_PREFIX
 import com.walletconnect.android.internal.common.signing.cacao.CacaoType
+import com.walletconnect.android.internal.common.signing.cacao.decodeReCaps
+import com.walletconnect.android.internal.common.signing.cacao.parseReCaps
 import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.mapper.toCacaoPayload
@@ -11,6 +15,9 @@ import com.walletconnect.sign.client.mapper.toCore
 import com.walletconnect.sign.client.mapper.toProposalNamespacesVO
 import com.walletconnect.sign.client.mapper.toSessionNamespacesVO
 import com.walletconnect.sign.common.validator.SignValidator
+import org.bouncycastle.util.encoders.Base64
+import org.json.JSONArray
+import org.json.JSONObject
 
 fun generateApprovedNamespaces(
     proposal: Sign.Model.SessionProposal,
@@ -76,10 +83,44 @@ private fun MutableMap<String, Namespace.Proposal>.getChains(normalizedKey: Stri
 private fun MutableMap<String, Namespace.Proposal>.getMethods(normalizedKey: String) = (this[normalizedKey]?.methods ?: emptyList())
 private fun MutableMap<String, Namespace.Proposal>.getEvents(normalizedKey: String) = (this[normalizedKey]?.events ?: emptyList())
 
-fun generateCACAO(payload: Sign.Model.PayloadParams, issuer: String, signature: Sign.Model.Cacao.Signature): Sign.Model.Cacao {
+fun generateAuthObject(payload: Sign.Model.PayloadParams, issuer: String, signature: Sign.Model.Cacao.Signature): Sign.Model.Cacao {
     return Sign.Model.Cacao(
         header = Sign.Model.Cacao.Header(t = CacaoType.CAIP222.header),
         payload = payload.toCacaoPayload(issuer),
         signature = signature
     )
+}
+
+fun generateAuthPayloadParams(payloadParams: Sign.Model.PayloadParams, supportedChains: List<String>, supportedMethods: List<String>): Sign.Model.PayloadParams {
+    //TODO: add chains caip-2 validation
+    val reCapsList: List<String>? = payloadParams.resources.decodeReCaps()?.filter { decoded -> decoded.contains("eip155") }
+    val sessionReCaps = reCapsList.parseReCaps()["eip155"] ?: throw Exception("Invalid ReCaps - eip155 is missing")
+
+    val requestedMethods = sessionReCaps.keys.map { key -> key.substringAfter('/') }
+    val requestedChains = payloadParams.chains
+
+    val sessionChains = requestedChains.intersect(supportedChains.toSet()).toList().distinct()
+    val sessionMethods = requestedMethods.intersect(supportedMethods.toSet()).toList().distinct()
+
+    val actionsJsonObject = JSONObject()
+    val chainsJsonArray = JSONArray()
+    sessionChains.forEach { chain -> chainsJsonArray.put(chain) }
+    sessionMethods.forEach { method -> actionsJsonObject.put("request/$method", JSONArray().put(0, JSONObject().put("chains", chainsJsonArray))) }
+    val recaps = JSONObject().put(Cacao.Payload.ATT_KEY, JSONObject().put("eip155", actionsJsonObject)).toString().replace("\\/", "/")
+
+    val base64Recaps = Base64.toBase64String(recaps.toByteArray(Charsets.UTF_8))
+    val newReCapsUrl = "${RECAPS_PREFIX}$base64Recaps"
+    if (payloadParams.resources == null) {
+        payloadParams.resources = listOf(newReCapsUrl)
+    } else {
+        val newResourcesList = reCapsList
+            ?.filter { decoded -> !decoded.contains("eip155") }
+            ?.map { reCaps -> Base64.toBase64String(reCaps.toByteArray(Charsets.UTF_8)) }
+            ?.plus(newReCapsUrl)
+        payloadParams.resources = newResourcesList
+    }
+
+    return with(payloadParams) {
+        Sign.Model.PayloadParams(sessionChains, domain, nonce, aud, type, nbf, iat, exp, statement, requestId, resources)
+    }
 }

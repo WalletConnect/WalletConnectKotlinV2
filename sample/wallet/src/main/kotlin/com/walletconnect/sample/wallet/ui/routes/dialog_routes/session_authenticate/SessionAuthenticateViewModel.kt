@@ -5,7 +5,7 @@ import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
 import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.android.utils.cacao.signHex
-import com.walletconnect.sample.wallet.domain.ACCOUNTS_1_EIP155_ADDRESS
+import com.walletconnect.sample.wallet.domain.EthAccountDelegate.ethAddress
 import com.walletconnect.sample.wallet.domain.EthAccountDelegate.privateKey
 import com.walletconnect.sample.wallet.domain.WCDelegate
 import com.walletconnect.sample.wallet.ui.common.peer.PeerUI
@@ -13,7 +13,8 @@ import com.walletconnect.sample.wallet.ui.common.peer.toPeerUI
 import com.walletconnect.util.hexToBytes
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
-import com.walletconnect.web3.wallet.client.Web3Wallet.generateCACAO
+import com.walletconnect.web3.wallet.client.Web3Wallet.generateAuthObject
+import com.walletconnect.web3.wallet.client.Web3Wallet.generateAuthPayloadParams
 import com.walletconnect.web3.wallet.utils.CacaoSigner
 import org.web3j.utils.Numeric
 
@@ -24,14 +25,16 @@ class SessionAuthenticateViewModel : ViewModel() {
         if (WCDelegate.sessionAuthenticateEvent != null) { //todo: get from the pending requests list
             try {
                 val sessionAuthenticate = WCDelegate.sessionAuthenticateEvent!!.first
-                val cacaos = mutableListOf<Wallet.Model.Cacao>()
+                val auths = mutableListOf<Wallet.Model.Cacao>()
+
                 sessionAuthenticateUI?.messages?.forEach { issuerToMessage ->
                     val messageToSign = Numeric.toHexString(issuerToMessage.second.toByteArray())
                     val signature = CacaoSigner.signHex(messageToSign, privateKey.hexToBytes(), SignatureType.EIP191)
-                    val cacao = generateCACAO(sessionAuthenticate.payloadParams, issuerToMessage.first, signature)
-                    cacaos.add(cacao)
+                    val authPayloadParams = generateAuthPayloadParams(sessionAuthenticate.payloadParams, supportedChains = listOf("eip155:1"), supportedMethods = listOf("personal_sign"))
+                    val auth = generateAuthObject(authPayloadParams, issuerToMessage.first, signature)
+                    auths.add(auth)
                 }
-                val approveProposal = Wallet.Params.ApproveSessionAuthenticate(id = sessionAuthenticate.id, auths = cacaos)
+                val approveProposal = Wallet.Params.ApproveSessionAuthenticate(id = sessionAuthenticate.id, auths = auths)
 
                 Web3Wallet.approveSessionAuthenticate(approveProposal,
                     onError = { error ->
@@ -87,11 +90,11 @@ class SessionAuthenticateViewModel : ViewModel() {
         return if (WCDelegate.sessionAuthenticateEvent != null) {
             val (sessionAuthenticate, authContext) = WCDelegate.sessionAuthenticateEvent!!
             val issuerToMessages = mutableListOf<Pair<String, String>>()
-            sessionAuthenticate.payloadParams.chains.forEach { chain ->
-                val issuer = "did:pkh:$chain:$ACCOUNTS_1_EIP155_ADDRESS"
-                val message = Web3Wallet.formatAuthMessage(Wallet.Params.FormatAuthMessage(sessionAuthenticate.payloadParams, issuer)) ?: throw Exception("Invalid message")
-                issuerToMessages.add(issuer to message)
-            }
+            val issuer = "did:pkh:$ethAddress"
+            val authPayloadParams = generateAuthPayloadParams(sessionAuthenticate.payloadParams, supportedChains = listOf("eip155:1"), supportedMethods = listOf("personal_sign"))
+            val message = Web3Wallet.formatAuthMessage(Wallet.Params.FormatAuthMessage(authPayloadParams, issuer)) ?: throw Exception("Invalid message")
+            issuerToMessages.add(issuer to message)
+
             SessionAuthenticateUI(
                 peerUI = PeerUI(
                     peerIcon = "https://raw.githubusercontent.com/WalletConnect/walletconnect-assets/master/Icon/Gradient/Icon.png",
