@@ -9,7 +9,7 @@ sealed class DappSampleEvents {
     object SessionRejected : DappSampleEvents()
     object RequestExpired : DappSampleEvents()
 
-    object SessionAuthenticateApproved : DappSampleEvents()
+    data class SessionAuthenticateApproved(val message: String?) : DappSampleEvents()
     object SessionAuthenticateRejected : DappSampleEvents()
 
     data class PingSuccess(val topic: String) : DappSampleEvents()

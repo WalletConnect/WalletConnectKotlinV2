@@ -34,7 +34,7 @@ internal fun Sign.Model.JsonRpcResponse.toModal() = when (this) {
 @JvmSynthetic
 internal fun Sign.Model.SessionAuthenticateResponse.toModal(): Modal.Model.SessionAuthenticateResponse =
     when (this) {
-        is Sign.Model.SessionAuthenticateResponse.Result -> Modal.Model.SessionAuthenticateResponse.Result(id, cacaos.toClient())
+        is Sign.Model.SessionAuthenticateResponse.Result -> Modal.Model.SessionAuthenticateResponse.Result(id, cacaos.toClient(), session?.toModal())
         is Sign.Model.SessionAuthenticateResponse.Error -> Modal.Model.SessionAuthenticateResponse.Error(id, code, message)
     }
 

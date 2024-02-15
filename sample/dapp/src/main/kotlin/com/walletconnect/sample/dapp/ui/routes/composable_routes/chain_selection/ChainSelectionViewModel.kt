@@ -48,7 +48,7 @@ class ChainSelectionViewModel : ViewModel() {
             is Modal.Model.RejectedSession -> DappSampleEvents.SessionRejected
             is Modal.Model.SessionAuthenticateResponse -> {
                 if (walletEvent is Modal.Model.SessionAuthenticateResponse.Result) {
-                    DappSampleEvents.SessionAuthenticateApproved
+                    DappSampleEvents.SessionAuthenticateApproved(if (walletEvent.session == null) "Authenticated successfully!" else null)
                 } else {
                     DappSampleEvents.SessionAuthenticateRejected
                 }
@@ -143,7 +143,7 @@ class ChainSelectionViewModel : ViewModel() {
             statement = "Sign in with wallet.",
             requestId = null,
             resources = null,
-            methods = listOf("personal_sign", "eth_signTypedData"),
+            methods = null,//listOf("personal_sign", "eth_signTypedData"),
             expiry = null
         )
         WalletConnectModal.authenticate(authenticateParams,

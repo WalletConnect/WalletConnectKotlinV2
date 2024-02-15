@@ -85,40 +85,42 @@ internal class OnSessionAuthenticateResponseUseCase(
                     }
 
                     with(approveParams) {
-                        val chains = cacaos.first().payload.resources.getChains().ifEmpty { params.authPayload.chains }
-                        val addresses = cacaos.map { cacao -> Issuer(cacao.payload.iss).address }.distinct()
-                        val accounts = mutableListOf<String>()
-                        chains.forEach { chainId ->
-                            addresses.forEach { address ->
-                                accounts.add("$chainId:$address")
-                            }
-                        }
-                        val namespace = Issuer(cacaos.first().payload.iss).namespace
-                        val methods = cacaos.first().payload.methods
-                        val sessionNamespaces: Map<String, Namespace.Session> = mapOf(namespace to Namespace.Session(accounts = accounts, events = listOf(), methods = methods, chains = chains))
-                        val requiredNamespace: Map<String, Namespace.Proposal> = mapOf(namespace to Namespace.Proposal(events = listOf(), methods = methods, chains = chains))
                         val selfPublicKey = PublicKey(params.requester.publicKey)
                         val peerPublicKey = PublicKey(approveParams.responder.publicKey)
                         val symmetricKey: SymmetricKey = crypto.generateSymmetricKeyFromKeyAgreement(selfPublicKey, peerPublicKey)
                         val sessionTopic: Topic = crypto.getTopicFromKey(symmetricKey)
                         crypto.setKey(symmetricKey, sessionTopic.value)
-                        val authenticatedSession = SessionVO.createAuthenticatedSession(
-                            sessionTopic = sessionTopic,
-                            peerPublicKey = PublicKey(approveParams.responder.publicKey),
-                            peerMetadata = approveParams.responder.metadata,
-                            selfPublicKey = PublicKey(params.requester.publicKey),
-                            selfMetadata = params.requester.metadata,
-                            controllerKey = PublicKey(approveParams.responder.publicKey),
-                            requiredNamespaces = requiredNamespace,
-                            sessionNamespaces = sessionNamespaces,
-                            pairingTopic = pairingTopic.value
-                        )
-                        metadataStorageRepository.insertOrAbortMetadata(sessionTopic, params.requester.metadata, AppMetaDataType.SELF)
-                        metadataStorageRepository.insertOrAbortMetadata(sessionTopic, approveParams.responder.metadata, AppMetaDataType.PEER)
-                        sessionStorageRepository.insertSession(authenticatedSession, response.id)
+
+                        val chains = cacaos.first().payload.resources.getChains().ifEmpty { params.authPayload.chains }
+                        val addresses = cacaos.map { cacao -> Issuer(cacao.payload.iss).address }.distinct()
+                        val accounts = mutableListOf<String>()
+                        chains.forEach { chainId -> addresses.forEach { address -> accounts.add("$chainId:$address") } }
+                        val namespace = Issuer(cacaos.first().payload.iss).namespace
+                        val methods = cacaos.first().payload.methods
+                        println("kobe: wallet methods: $methods")
+                        var authenticatedSession: SessionVO? = null
+                        if (methods.isNotEmpty()) {
+                            val sessionNamespaces: Map<String, Namespace.Session> = mapOf(namespace to Namespace.Session(accounts = accounts, events = listOf(), methods = methods, chains = chains))
+                            val requiredNamespace: Map<String, Namespace.Proposal> = mapOf(namespace to Namespace.Proposal(events = listOf(), methods = methods, chains = chains))
+                            authenticatedSession = SessionVO.createAuthenticatedSession(
+                                sessionTopic = sessionTopic,
+                                peerPublicKey = PublicKey(approveParams.responder.publicKey),
+                                peerMetadata = approveParams.responder.metadata,
+                                selfPublicKey = PublicKey(params.requester.publicKey),
+                                selfMetadata = params.requester.metadata,
+                                controllerKey = PublicKey(approveParams.responder.publicKey),
+                                requiredNamespaces = requiredNamespace,
+                                sessionNamespaces = sessionNamespaces,
+                                pairingTopic = pairingTopic.value
+                            )
+                            metadataStorageRepository.insertOrAbortMetadata(sessionTopic, params.requester.metadata, AppMetaDataType.SELF)
+                            metadataStorageRepository.insertOrAbortMetadata(sessionTopic, approveParams.responder.metadata, AppMetaDataType.PEER)
+                            sessionStorageRepository.insertSession(authenticatedSession, response.id)
+                        }
+
                         jsonRpcInteractor.subscribe(sessionTopic) { error -> scope.launch { _events.emit(SDKError(error)) } }
                         logger.log("Received session authenticate response - emitting rpc result: ${wcResponse.topic}")
-                        _events.emit(EngineDO.SessionAuthenticateResponse.Result(response.id, approveParams.cacaos, authenticatedSession.toEngineDO())) //todo: add Participant?
+                        _events.emit(EngineDO.SessionAuthenticateResponse.Result(response.id, approveParams.cacaos, authenticatedSession?.toEngineDO())) //todo: add Participant?
                     }
                 }
             }

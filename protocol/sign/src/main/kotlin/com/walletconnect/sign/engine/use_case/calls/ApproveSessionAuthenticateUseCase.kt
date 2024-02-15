@@ -88,33 +88,32 @@ internal class ApproveSessionAuthenticateUseCase(
                 logger.error("Invalid Cacao for Session Authenticate")
                 return@supervisorScope onFailure(Throwable("Signature verification failed Session Authenticate, please try again"))
             }
+
             val chains = cacaos.first().payload.resources.getChains().ifEmpty { sessionAuthenticateParams.authPayload.chains }
             val addresses = cacaos.map { cacao -> Issuer(cacao.payload.iss).address }.distinct()
             val accounts = mutableListOf<String>()
-            chains.forEach { chainId ->
-                addresses.forEach { address ->
-                    accounts.add("$chainId:$address")
-                }
-            }
-
+            chains.forEach { chainId -> addresses.forEach { address -> accounts.add("$chainId:$address") } }
             val namespace = Issuer(cacaos.first().payload.iss).namespace //TODO: should always get iss from the first cacao?
             val methods = cacaos.first().payload.methods
-            val requiredNamespace: Map<String, Namespace.Proposal> = mapOf(namespace to Namespace.Proposal(events = listOf(), methods = methods, chains = chains))
-            val sessionNamespaces: Map<String, Namespace.Session> = mapOf(namespace to Namespace.Session(accounts = accounts, events = listOf(), methods = methods, chains = chains))
-            val authenticatedSession = SessionVO.createAuthenticatedSession(
-                sessionTopic = sessionTopic,
-                peerPublicKey = receiverPublicKey,
-                peerMetadata = receiverMetadata,
-                selfPublicKey = senderPublicKey,
-                selfMetadata = selfAppMetaData,
-                controllerKey = senderPublicKey,
-                requiredNamespaces = requiredNamespace,
-                sessionNamespaces = sessionNamespaces,
-                pairingTopic = jsonRpcHistoryEntry.topic.value
-            )
-            metadataStorageRepository.insertOrAbortMetadata(sessionTopic, selfAppMetaData, AppMetaDataType.SELF)
-            metadataStorageRepository.insertOrAbortMetadata(sessionTopic, receiverMetadata, AppMetaDataType.PEER)
-            sessionStorageRepository.insertSession(authenticatedSession, id)
+            println("kobe: wallet methods: $methods")
+            if (methods.isNotEmpty()) {
+                val requiredNamespace: Map<String, Namespace.Proposal> = mapOf(namespace to Namespace.Proposal(events = listOf(), methods = methods, chains = chains))
+                val sessionNamespaces: Map<String, Namespace.Session> = mapOf(namespace to Namespace.Session(accounts = accounts, events = listOf(), methods = methods, chains = chains))
+                val authenticatedSession = SessionVO.createAuthenticatedSession(
+                    sessionTopic = sessionTopic,
+                    peerPublicKey = receiverPublicKey,
+                    peerMetadata = receiverMetadata,
+                    selfPublicKey = senderPublicKey,
+                    selfMetadata = selfAppMetaData,
+                    controllerKey = senderPublicKey,
+                    requiredNamespaces = requiredNamespace,
+                    sessionNamespaces = sessionNamespaces,
+                    pairingTopic = jsonRpcHistoryEntry.topic.value
+                )
+                metadataStorageRepository.insertOrAbortMetadata(sessionTopic, selfAppMetaData, AppMetaDataType.SELF)
+                metadataStorageRepository.insertOrAbortMetadata(sessionTopic, receiverMetadata, AppMetaDataType.PEER)
+                sessionStorageRepository.insertSession(authenticatedSession, id)
+            }
 
             val responseParams = CoreSignParams.SessionAuthenticateApproveParams(responder = Participant(publicKey = senderPublicKey.keyAsHex, metadata = selfAppMetaData), cacaos = cacaos)
             val response: JsonRpcResponse = JsonRpcResponse.JsonRpcResult(id, result = responseParams)

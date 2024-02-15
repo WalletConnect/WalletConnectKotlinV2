@@ -123,9 +123,13 @@ fun ChainSelectionRoute(navController: NavController) {
                     Toast.makeText(context, "Proposal has been expired", Toast.LENGTH_SHORT).show()
                 }
 
-                DappSampleEvents.SessionAuthenticateApproved -> {
+                is DappSampleEvents.SessionAuthenticateApproved -> {
                     viewModel.awaitingProposalResponse(false)
-                    navController.navigate(Route.Session.path)
+                    if (event.message != null) {
+                        Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
+                    } else {
+                        navController.navigate(Route.Session.path)
+                    }
                 }
 
                 DappSampleEvents.SessionAuthenticateRejected -> {

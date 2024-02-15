@@ -180,7 +180,7 @@ object Modal {
         }
 
         sealed class SessionAuthenticateResponse : Model() {
-            data class Result(val id: Long, val cacaos: List<Cacao>, val topic: String) : SessionAuthenticateResponse()
+            data class Result(val id: Long, val cacaos: List<Cacao>, val session: Session?) : SessionAuthenticateResponse()
             data class Error(val id: Long, val code: Int, val message: String) : SessionAuthenticateResponse()
         }
 

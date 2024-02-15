@@ -95,11 +95,13 @@ fun generateAuthPayloadParams(payloadParams: Sign.Model.PayloadParams, supported
     //TODO: add chains caip-2 validation
     val reCapsList: List<String>? = payloadParams.resources.decodeReCaps()?.filter { decoded -> decoded.contains("eip155") }
 
+    if (reCapsList.isNullOrEmpty()) return payloadParams
+
     println("kobe: OLD: $reCapsList")
 
-    val sessionReCaps = reCapsList.parseReCaps()["eip155"] ?: throw Exception("Invalid ReCaps - eip155 is missing") //todo: return payload params
+    val sessionReCaps = reCapsList.parseReCaps()["eip155"]
 
-    val requestedMethods = sessionReCaps.keys.map { key -> key.substringAfter('/') }
+    val requestedMethods = sessionReCaps!!.keys.map { key -> key.substringAfter('/') }
     val requestedChains = payloadParams.chains
 
     val sessionChains = requestedChains.intersect(supportedChains.toSet()).toList().distinct()
@@ -119,9 +121,9 @@ fun generateAuthPayloadParams(payloadParams: Sign.Model.PayloadParams, supported
         payloadParams.resources = listOf(newReCapsUrl)
     } else {
         val newResourcesList = reCapsList
-            ?.filter { decoded -> !decoded.contains("eip155") }
-            ?.map { reCaps -> Base64.toBase64String(reCaps.toByteArray(Charsets.UTF_8)) }
-            ?.plus(newReCapsUrl)
+            .filter { decoded -> !decoded.contains("eip155") }
+            .map { reCaps -> Base64.toBase64String(reCaps.toByteArray(Charsets.UTF_8)) }
+            .plus(newReCapsUrl)
         payloadParams.resources = newResourcesList
     }
 

@@ -9,7 +9,7 @@ internal fun String.guaranteeNoHexPrefix(): String = removePrefix(String.HexPref
 
 @JvmSynthetic
 fun List<String>?.parseReCaps(): MutableMap<String, MutableMap<String, MutableList<String>>> {
-    if (this.isNullOrEmpty()) throw Exception("Cannot find ReCaps URN in resources")
+    if (this.isNullOrEmpty()) return emptyMap<String, MutableMap<String, MutableList<String>>>().toMutableMap()
     val reCapsMap: MutableMap<String, MutableMap<String, MutableList<String>>> = mutableMapOf()
     this.forEach { jsonString ->
         val jsonObject = JSONObject(jsonString)

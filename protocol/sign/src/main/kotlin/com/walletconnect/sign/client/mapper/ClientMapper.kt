@@ -37,7 +37,7 @@ internal fun EngineDO.SettledSessionResponse.toClientSettledSessionResponse(): S
 @JvmSynthetic
 internal fun EngineDO.SessionAuthenticateResponse.toClientSessionAuthenticateResponse(): Sign.Model.SessionAuthenticateResponse =
     when (this) {
-        is EngineDO.SessionAuthenticateResponse.Result -> Sign.Model.SessionAuthenticateResponse.Result(id, cacaos.toClient(), session.toClientActiveSession())
+        is EngineDO.SessionAuthenticateResponse.Result -> Sign.Model.SessionAuthenticateResponse.Result(id, cacaos.toClient(), session?.toClientActiveSession())
         is EngineDO.SessionAuthenticateResponse.Error -> Sign.Model.SessionAuthenticateResponse.Error(id, code, message)
     }
 
