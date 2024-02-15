@@ -116,7 +116,8 @@ internal fun Modal.Params.Authenticate.toSign(): Sign.Params.Authenticate = with
         statement = statement,
         requestId = requestId,
         resources = resources,
-        methods = methods
+        methods = methods,
+        expiry = expiry
     )
 }
 

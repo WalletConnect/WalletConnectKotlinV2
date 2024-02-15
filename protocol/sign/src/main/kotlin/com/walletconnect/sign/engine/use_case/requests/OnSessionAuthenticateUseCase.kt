@@ -10,7 +10,7 @@ import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.utils.CoreValidator
+import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.dayInSeconds
 import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
 import com.walletconnect.foundation.common.model.Ttl
@@ -36,11 +36,12 @@ internal class OnSessionAuthenticateUseCase(
         val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE_RESPONSE, Ttl(dayInSeconds))
         logger.log("Received session authenticate: ${request.topic}")
         try {
-            val expiry = authenticateSessionParams.authPayload.exp?.toLong()?.let { Expiry(it) }
-            if (!CoreValidator.isExpiryWithinBounds(expiry)) {
-                logger.log("Received session authenticate - expiry error: ${request.topic}")
-                jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
-                return@supervisorScope
+            authenticateSessionParams.expiryTimestamp?.let {
+                if (Expiry(it).isExpired()) {
+                    logger.log("Received session authenticate - expiry error: ${request.topic}")
+                    jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
+                    return@supervisorScope
+                }
             }
 
             //TODO: add eip155 validation

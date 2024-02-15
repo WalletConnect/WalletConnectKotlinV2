@@ -43,7 +43,8 @@ object Modal {
             val statement: String?,
             val requestId: String?,
             val resources: List<String>?,
-            val methods: List<String>?
+            val methods: List<String>?,
+            val expiry: Long
         ) : Params()
 
         @Deprecated(

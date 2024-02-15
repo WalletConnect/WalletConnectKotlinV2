@@ -144,6 +144,7 @@ class ChainSelectionViewModel : ViewModel() {
             requestId = null,
             resources = null,
             methods = listOf("personal_sign", "eth_signTypedData"),
+            expiry = null
         )
         WalletConnectModal.authenticate(authenticateParams,
             onSuccess = { url ->

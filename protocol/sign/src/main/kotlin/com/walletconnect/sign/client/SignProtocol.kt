@@ -5,6 +5,7 @@ package com.walletconnect.sign.client
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.di.DatabaseConfig
 import com.walletconnect.android.internal.common.model.ConnectionState
+import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
@@ -158,7 +159,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
         checkEngineInitialization()
         scope.launch {
             try {
-                signEngine.authenticate(authenticate.toPayloadParams(), authenticate.methods, authenticate.pairingTopic,
+                signEngine.authenticate(authenticate.toPayloadParams(), authenticate.methods, authenticate.pairingTopic, if (authenticate.expiry == null) null else Expiry(authenticate.expiry),
                     onSuccess = { url ->
                         println("kobe: URL: $url")
                         onSuccess(url)

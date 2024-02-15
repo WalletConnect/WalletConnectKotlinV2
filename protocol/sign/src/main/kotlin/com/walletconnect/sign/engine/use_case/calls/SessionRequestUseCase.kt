@@ -3,14 +3,15 @@ package com.walletconnect.sign.engine.use_case.calls
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
 import com.walletconnect.android.internal.common.exception.InvalidExpiryException
+import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.utils.currentTimeInSeconds
 import com.walletconnect.android.internal.utils.CoreValidator
+import com.walletconnect.android.internal.utils.currentTimeInSeconds
 import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -54,6 +55,7 @@ internal class SessionRequestUseCase(
             logger.error("Sending session request error: expiry not within bounds")
             return@supervisorScope onFailure(InvalidExpiryException())
         }
+        val expiry = request.expiry ?: Expiry(currentTimeInSeconds + fiveMinutesInSeconds)
 
         SignValidator.validateSessionRequest(request) { error ->
             logger.error("Sending session request error: invalid session request, ${error.message}")
@@ -67,17 +69,17 @@ internal class SessionRequestUseCase(
             return@supervisorScope onFailure(UnauthorizedMethodException(error.message))
         }
 
-        val params = SignParams.SessionRequestParams(SessionRequestVO(request.method, request.params, request.expiry?.seconds ?: (currentTimeInSeconds + fiveMinutesInSeconds)), request.chainId)
+        val params = SignParams.SessionRequestParams(SessionRequestVO(request.method, request.params, expiry.seconds), request.chainId)
         val sessionPayload = SignRpc.SessionRequest(params = params)
-        val irnParamsTtl = request.expiry?.run {
+        val irnParamsTtl = expiry.run {
             val defaultTtl = fiveMinutesInSeconds
             val extractedTtl = seconds - nowInSeconds
             val newTtl = extractedTtl.takeIf { extractedTtl >= defaultTtl } ?: defaultTtl
 
             Ttl(newTtl)
-        } ?: Ttl(fiveMinutesInSeconds)
+        }
         val irnParams = IrnParams(Tags.SESSION_REQUEST, irnParamsTtl, true)
-        val requestTtlInSeconds = request.expiry?.run { seconds - nowInSeconds } ?: fiveMinutesInSeconds
+        val requestTtlInSeconds = expiry.run { seconds - nowInSeconds }
 
         logger.log("Sending session request on topic: ${request.topic}}")
         jsonRpcInteractor.publishJsonRpcRequest(Topic(request.topic), irnParams, sessionPayload,

@@ -310,7 +310,8 @@ object Sign {
             val statement: String?,
             val requestId: String?,
             val resources: List<String>?,
-            val methods: List<String>?
+            val methods: List<String>?,
+            val expiry: Long?
         ) : Params()
 
         data class FormatMessage(val payloadParams: Model.PayloadParams, val iss: String) : Params()
