@@ -65,19 +65,12 @@ internal class SessionAuthenticateUseCase(
         }
         val requestExpiry = expiry ?: Expiry(currentTimeInSeconds + oneHourInSeconds)
         val pairing = getPairingForSessionAuthenticate(pairingTopic)
-
-        println("kobe: chains: ${payloadParams.chains}, methods: $methods")
-
         val optionalNamespaces = getNamespacesFromReCaps(payloadParams.chains, methods ?: emptyList()).toMapOfEngineNamespacesOptional()
-
-        println("kobe: ONM: $optionalNamespaces")
-
         if (!methods.isNullOrEmpty()) {
             val namespace = SignValidator.getNamespaceKeyFromChainId(payloadParams.chains.first())
             val actionsJsonObject = JSONObject()
             methods.forEach { method -> actionsJsonObject.put("request/$method", JSONArray().put(0, JSONObject())) }
             val recaps = JSONObject().put(ATT_KEY, JSONObject().put(namespace, actionsJsonObject)).toString().replace("\\/", "/")
-            println("kobe: Recaps: $recaps")
             val base64Recaps = Base64.toBase64String(recaps.toByteArray(Charsets.UTF_8))
             val reCapsUrl = "$RECAPS_PREFIX$base64Recaps"
             if (payloadParams.resources == null) payloadParams.resources = listOf(reCapsUrl) else payloadParams.resources = payloadParams.resources!! + reCapsUrl

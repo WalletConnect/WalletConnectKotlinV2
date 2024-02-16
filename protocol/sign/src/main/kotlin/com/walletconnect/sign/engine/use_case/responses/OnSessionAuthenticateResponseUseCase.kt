@@ -17,6 +17,7 @@ import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
 import com.walletconnect.android.internal.common.signing.cacao.Issuer
 import com.walletconnect.android.internal.common.signing.cacao.getChains
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
+import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.android.internal.utils.monthInSeconds
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
@@ -26,6 +27,7 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
+import com.walletconnect.sign.common.validator.SignValidator
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toEngineDO
 import com.walletconnect.sign.json_rpc.domain.GetSessionAuthenticateRequest
@@ -98,6 +100,10 @@ internal class OnSessionAuthenticateResponseUseCase(
                         val addresses = cacaos.map { cacao -> Issuer(cacao.payload.iss).address }.distinct()
                         val accounts = mutableListOf<String>()
                         chains.forEach { chainId -> addresses.forEach { address -> accounts.add("$chainId:$address") } }
+                        if (!areEVMAndCAIP2Chains(chains)) {
+                            _events.emit(SDKError(Exception("Chains are not CAIP-2 compliant or are not EVM chains")))
+                            return@supervisorScope
+                        }
                         val namespace = Issuer(cacaos.first().payload.iss).namespace
                         val methods = cacaos.first().payload.methods
                         var authenticatedSession: SessionVO? = null
@@ -131,6 +137,8 @@ internal class OnSessionAuthenticateResponseUseCase(
             _events.emit(SDKError(e))
         }
     }
+
+    private fun areEVMAndCAIP2Chains(chains: List<String>) = chains.all { chain -> CoreValidator.isChainIdCAIP2Compliant(chain) && SignValidator.getNamespaceKeyFromChainId(chain) == "eip155" }
 
     private fun updatePairing(topic: Topic, requestParams: SignParams.SessionAuthenticateParams) = with(pairingController) {
         updateExpiry(Core.Params.UpdateExpiry(topic.value, Expiry(monthInSeconds)))

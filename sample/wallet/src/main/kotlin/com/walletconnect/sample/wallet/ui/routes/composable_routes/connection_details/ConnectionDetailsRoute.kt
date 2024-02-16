@@ -124,7 +124,7 @@ fun ConnectionDetailsRoute(navController: NavController, connectionId: Int?, con
                                 val newNamespaces: Map<String, Wallet.Model.Namespace.Session> =
                                     mapOf(
                                         "eip155" to entry.value.copy(
-                                            accounts = entry.value.accounts.plus("eip155:1:0xd10b8732e28f1be12c31eb1a45dca63b80ed3d6e"),
+                                            accounts = entry.value.accounts.plus("${entry.value.chains?.first()}:0xd10b8732e28f1be12c31eb1a45dca63b80ed3d6e"),
                                             chains = entry.value.chains,
                                             methods = entry.value.methods,
                                             events = entry.value.events,
