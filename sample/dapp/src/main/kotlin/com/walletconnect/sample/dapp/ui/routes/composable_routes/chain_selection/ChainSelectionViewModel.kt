@@ -136,13 +136,13 @@ class ChainSelectionViewModel : ViewModel() {
             type = "caip222",
             chains = uiState.value.filter { it.isSelected }.map { it.chainId },
             domain = "sample.kotlin.dapp",
-            aud = "https://react-auth-dapp.vercel.app/",
+            aud = "https://web3inbox.com/all-apps",
             nonce = randomBytes(12).bytesToHex(),
             exp = null,
             nbf = null,
             statement = "Sign in with wallet.",
             requestId = null,
-            resources = null,
+            resources = listOf("urn:recap:eyJhdHQiOnsiaHR0cHM6Ly9ub3RpZnkud2FsbGV0Y29ubmVjdC5jb20vYWxsLWFwcHMiOnsiY3J1ZC9zdWJzY3JpcHRpb25zIjpbe31dLCJjcnVkL25vdGlmaWNhdGlvbnMiOlt7fV19fX0="),//notify
             methods = listOf("personal_sign", "eth_signTypedData"),
             expiry = null
         )

@@ -22,7 +22,7 @@ class SessionAuthenticateViewModel : ViewModel() {
     val sessionAuthenticateUI: SessionAuthenticateUI? get() = generateAuthRequestUI()
 
     fun approve(onSuccess: (String) -> Unit = {}, onError: (String) -> Unit = {}) {
-        if (WCDelegate.sessionAuthenticateEvent != null) { //todo: get from the pending requests list
+        if (WCDelegate.sessionAuthenticateEvent != null) {
             try {
                 val sessionAuthenticate = WCDelegate.sessionAuthenticateEvent!!.first
                 val auths = mutableListOf<Wallet.Model.Cacao>()
@@ -35,8 +35,8 @@ class SessionAuthenticateViewModel : ViewModel() {
                     val auth = generateAuthObject(authPayloadParams, issuerToMessage.first, signature)
                     auths.add(auth)
                 }
-                val approveProposal = Wallet.Params.ApproveSessionAuthenticate(id = sessionAuthenticate.id, auths = auths)
 
+                val approveProposal = Wallet.Params.ApproveSessionAuthenticate(id = sessionAuthenticate.id, auths = auths)
                 Web3Wallet.approveSessionAuthenticate(approveProposal,
                     onError = { error ->
                         Firebase.crashlytics.recordException(error.throwable)
@@ -91,7 +91,6 @@ class SessionAuthenticateViewModel : ViewModel() {
         return if (WCDelegate.sessionAuthenticateEvent != null) {
             val (sessionAuthenticate, authContext) = WCDelegate.sessionAuthenticateEvent!!
             val issuerToMessages = mutableListOf<Pair<String, String>>()
-
             sessionAuthenticate.payloadParams.chains
                 .filter { chain -> chain == "eip155:1" || chain == "eip155:137" || chain == "eip155:56" }
                 .forEach { chain ->

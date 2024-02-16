@@ -1,7 +1,7 @@
 package com.walletconnect.sign.util
 
-import com.walletconnect.android.internal.common.signing.cacao.getActions
 import com.walletconnect.android.internal.common.signing.cacao.getChains
+import com.walletconnect.android.internal.common.signing.cacao.getMethods
 import org.bouncycastle.util.encoders.Base64
 import org.junit.Test
 
@@ -16,10 +16,10 @@ class ParseReCapsTest {
             )
 
         val chains = resources.getChains()
-        val actions = resources.getActions()
+        val actions = resources.getMethods()
 
         assert(chains == listOf("eip155:1"))
-        assert(actions == listOf("personal_sign", "eth_signTypedData_v4", "subscriptions", "notifications"))
+        assert(actions == listOf("personal_sign", "eth_signTypedData_v4"))
     }
 
     @Test
@@ -30,10 +30,10 @@ class ParseReCapsTest {
             Base64.toBase64String("""{"att":{"test":{"different_action":[{"diff_chains": ["eip155:1"]}],"yet_another_action":[{"yet_another_chains": ["eip155:1"]}]}}}""".toByteArray(Charsets.UTF_8))
         val jsonList = mutableListOf("urn:recap:$urn1", "urn:recap:$urn2")
         val chains = jsonList.getChains()
-        val actions = jsonList.getActions()
+        val actions = jsonList.getMethods()
 
         assert(chains == listOf("eip155:1", "eip155:137"))
-        assert(actions == listOf("personal_sign", "eth_sign", "different_action", "yet_another_action"))
+        assert(actions == listOf("personal_sign", "eth_sign"))
     }
 
     @Test
@@ -42,7 +42,7 @@ class ParseReCapsTest {
             Base64.toBase64String("""{"att":{"eip155":{"request\/personal_sign":[{"chains":["eip155:1","eip155:137"]}]}}}""".toByteArray(Charsets.UTF_8))
         val jsonList = mutableListOf("urn:recap:$urn1")
         val chains = jsonList.getChains()
-        val actions = jsonList.getActions()
+        val actions = jsonList.getMethods()
 
         assert(chains == listOf("eip155:1", "eip155:137"))
         assert(actions == listOf("personal_sign"))

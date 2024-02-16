@@ -120,9 +120,10 @@ fun generateAuthPayloadParams(payloadParams: Sign.Model.PayloadParams, supported
     if (payloadParams.resources == null) {
         payloadParams.resources = listOf(newReCapsUrl)
     } else {
-        val newResourcesList = reCapsList
+        val newResourcesList = payloadParams.resources!!
+            .decodeReCaps()!!
             .filter { decoded -> !decoded.contains("eip155") }
-            .map { reCaps -> Base64.toBase64String(reCaps.toByteArray(Charsets.UTF_8)) }
+            .map { reCaps -> "$RECAPS_PREFIX${Base64.toBase64String(reCaps.toByteArray(Charsets.UTF_8))}" }
             .plus(newReCapsUrl)
         payloadParams.resources = newResourcesList
     }

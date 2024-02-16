@@ -61,7 +61,7 @@ data class Cacao(
         @get:Throws(Exception::class)
         val actionsString get() = getActionsString()
         @get:Throws(Exception::class)
-        val methods get() = resources.getActions()
+        val methods get() = resources.getMethods()
 
         companion object {
             const val CURRENT_VERSION = "1"
