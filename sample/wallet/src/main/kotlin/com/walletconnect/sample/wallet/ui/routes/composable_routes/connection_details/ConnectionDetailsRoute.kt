@@ -80,12 +80,12 @@ fun ConnectionDetailsRoute(navController: NavController, connectionId: Int?, con
                     when (uiConnection.type) {
                         is ConnectionType.Sign -> {
                             isEmitLoading = true
-                            val account = uiConnection.type.namespaces.values.first().accounts.first()
-                            val lastDelimiterIndex = account.indexOfLast { it == ':' }
-                            val chainId = account.dropLast(account.lastIndex - lastDelimiterIndex + 1)
-                            val event = getAllEventsByChainId(uiConnection.type.namespaces.values.first(), account).first()
 
                             try {
+                                val account = uiConnection.type.namespaces.values.first().accounts.first()
+                                val lastDelimiterIndex = account.indexOfLast { it == ':' }
+                                val chainId = account.dropLast(account.lastIndex - lastDelimiterIndex + 1)
+                                val event = getAllEventsByChainId(uiConnection.type.namespaces.values.first(), account).first()
                                 Web3Wallet.emitSessionEvent(
                                     Wallet.Params.SessionEmit(
                                         uiConnection.type.topic,
