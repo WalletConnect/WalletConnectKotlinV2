@@ -1,5 +1,6 @@
 package com.walletconnect.sign.engine.use_case.calls
 
+import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.InvalidExpiryException
 import com.walletconnect.android.internal.common.model.AppMetaData
@@ -28,6 +29,8 @@ import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toCommon
 import com.walletconnect.sign.engine.model.mapper.toMapOfEngineNamespacesOptional
 import com.walletconnect.sign.storage.authenticate.AuthenticateResponseTopicRepository
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import org.bouncycastle.util.encoders.Base64
 import org.json.JSONArray
@@ -77,8 +80,6 @@ internal class SessionAuthenticateUseCase(
                 expiryTimestamp = requestExpiry.seconds
             )
         val authRequest: SignRpc.SessionAuthenticate = SignRpc.SessionAuthenticate(params = authParams)
-        val irnParamsTtl = getIrnParamsTtl(requestExpiry, currentTimeInSeconds)
-        val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE, irnParamsTtl, true)
         crypto.setKey(requesterPublicKey, responseTopic.getParticipantTag())
 
         logger.log("Session authenticate subscribing on topic: $responseTopic")
@@ -95,27 +96,69 @@ internal class SessionAuthenticateUseCase(
                 return@subscribe onFailure(error)
             })
 
+        scope.launch {
+            val sessionAuthenticateDeferred = publishSessionAuthenticateDeferred(pairing, authRequest, responseTopic, requestExpiry)
+            val sessionProposeDeferred = publishSessionProposeDeferred(pairing, optionalNamespaces, responseTopic)
+
+            val sessionAuthenticateResult = async { sessionAuthenticateDeferred }.await()
+            val sessionProposeResult = async { sessionProposeDeferred }.await()
+
+            when {
+                sessionAuthenticateResult.isSuccess && sessionProposeResult.isSuccess -> onSuccess(pairing.uri)
+                sessionAuthenticateResult.isFailure -> onFailure(sessionAuthenticateResult.exceptionOrNull() ?: Throwable("Session authenticate failed"))
+                sessionProposeResult.isFailure -> onFailure(sessionProposeResult.exceptionOrNull() ?: Throwable("Session proposal as a fallback failed"))
+                else -> onFailure(Throwable("Session authenticate failed, please try again"))
+            }
+        }
+    }
+
+    private suspend fun publishSessionAuthenticateDeferred(
+        pairing: Core.Model.Pairing,
+        authRequest: SignRpc.SessionAuthenticate,
+        responseTopic: Topic,
+        requestExpiry: Expiry
+    ): Result<Unit> {
         logger.log("Sending session authenticate on topic: ${pairing.topic}")
+        val irnParamsTtl = getIrnParamsTtl(requestExpiry, currentTimeInSeconds)
+        val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE, irnParamsTtl, true)
+        val sessionAuthenticateDeferred = CompletableDeferred<Result<Unit>>()
         jsonRpcInteractor.publishJsonRpcRequest(Topic(pairing.topic), irnParams, authRequest,
             onSuccess = {
                 logger.log("Session authenticate sent successfully on topic: ${pairing.topic}")
-                onSuccess(pairing.uri)
+                sessionAuthenticateDeferred.complete(Result.success(Unit))
             },
             onFailure = { error ->
                 jsonRpcInteractor.unsubscribe(responseTopic)
                 logger.error("Failed to send a auth request: $error")
-                onFailure(error)
+                sessionAuthenticateDeferred.complete(Result.failure(error))
             }
         )
+        return sessionAuthenticateDeferred.await()
+    }
 
+    private suspend fun publishSessionProposeDeferred(
+        pairing: Core.Model.Pairing,
+        optionalNamespaces: Map<String, EngineDO.Namespace.Proposal>,
+        responseTopic: Topic
+    ): Result<Unit> {
+        logger.log("Sending session proposal as a fallback on topic: ${pairing.topic}")
+        val sessionProposeDeferred = CompletableDeferred<Result<Unit>>()
         proposeSessionUseCase.proposeSession(
             emptyMap(),
             optionalNamespaces,
             properties = null,
             pairing = pairing.toPairing(),
-            onSuccess = {/*Success*/ },
-            onFailure = { error -> onFailure(error) }
+            onSuccess = {
+                logger.log("Session proposal as a fallback sent successfully on topic: ${pairing.topic}")
+                sessionProposeDeferred.complete(Result.success(Unit))
+            },
+            onFailure = { error ->
+                jsonRpcInteractor.unsubscribe(responseTopic)
+                logger.error("Failed to send a session proposal as a fallback: $error")
+                sessionProposeDeferred.complete(Result.failure(error))
+            }
         )
+        return sessionProposeDeferred.await()
     }
 
     private fun getIrnParamsTtl(expiry: Expiry?, nowInSeconds: Long) = expiry?.run {

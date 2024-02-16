@@ -122,7 +122,7 @@ internal class OnSessionAuthenticateResponseUseCase(
 
                         jsonRpcInteractor.subscribe(sessionTopic) { error -> scope.launch { _events.emit(SDKError(error)) } }
                         logger.log("Received session authenticate response - emitting rpc result: ${wcResponse.topic}")
-                        _events.emit(EngineDO.SessionAuthenticateResponse.Result(response.id, approveParams.cacaos, authenticatedSession?.toEngineDO())) //todo: add Participant?
+                        _events.emit(EngineDO.SessionAuthenticateResponse.Result(response.id, approveParams.cacaos, authenticatedSession?.toEngineDO()))
                     }
                 }
             }

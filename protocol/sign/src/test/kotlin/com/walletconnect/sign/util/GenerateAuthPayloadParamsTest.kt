@@ -37,6 +37,29 @@ class GenerateAuthPayloadParamsTest {
     }
 
     @Test
+    fun test() {
+        val requestedPayload = Sign.Model.PayloadParams(
+            chains = listOf("eip155:1"),
+            domain = "domain",
+            nonce = "nonce",
+            aud = "aud",
+            type = null,
+            nbf = null,
+            exp = null,
+            iat = "iat",
+            statement = null,
+            requestId = null,
+            resources = listOf("test_resource", encodedSignRecaps)
+        )
+        val result = generateAuthPayloadParams(requestedPayload, listOf("eip155:333"), listOf("not_supported"))
+        val sessionChains = result.resources.getChains().ifEmpty { requestedPayload.chains }
+        val sessionMethods = result.resources.getActions()
+
+        assert(sessionMethods == listOf("personal_sign", "eth_signTypedData_v4"))
+        assert(sessionChains == listOf("eip155:1"))
+    }
+
+    @Test
     fun testHandlingAddingMoreThatRequestedChainsAndMethodsInReCaps() {
         val requestedPayload = Sign.Model.PayloadParams(
             chains = listOf("eip155:1"),
