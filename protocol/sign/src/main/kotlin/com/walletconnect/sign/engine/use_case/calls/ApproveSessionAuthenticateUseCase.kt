@@ -79,7 +79,7 @@ internal class ApproveSessionAuthenticateUseCase(
             val sessionAuthenticateParams: SignParams.SessionAuthenticateParams = jsonRpcHistoryEntry.params
             val chains = cacaos.first().payload.resources.getChains().ifEmpty { sessionAuthenticateParams.authPayload.chains }
             if (!chains.all { chain -> CoreValidator.isChainIdCAIP2Compliant(chain) }) throw Exception("Chains are not CAIP-2 compliant")
-            if (!chains.any { chain -> SignValidator.getNamespaceKeyFromChainId(chain) == "eip155" }) throw Exception("Only eip155 is supported")
+            if (!chains.all { chain -> SignValidator.getNamespaceKeyFromChainId(chain) == "eip155" }) throw Exception("Only eip155 (EVM) is supported")
 
             val receiverPublicKey = PublicKey(sessionAuthenticateParams.requester.publicKey)
             val receiverMetadata = sessionAuthenticateParams.requester.metadata

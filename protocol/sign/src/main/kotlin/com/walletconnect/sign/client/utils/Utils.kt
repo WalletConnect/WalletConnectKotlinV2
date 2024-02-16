@@ -104,7 +104,7 @@ fun generateAuthPayloadParams(payloadParams: Sign.Model.PayloadParams, supported
     val sessionMethods = requestedMethods.intersect(supportedMethods.toSet()).toList().distinct()
 
     if (!sessionChains.all { chain -> CoreValidator.isChainIdCAIP2Compliant(chain) }) throw Exception("Chains are not CAIP-2 compliant")
-    if (!sessionChains.any { chain -> SignValidator.getNamespaceKeyFromChainId(chain) == "eip155" }) throw Exception("Only eip155 is supported")
+    if (!sessionChains.all { chain -> SignValidator.getNamespaceKeyFromChainId(chain) == "eip155" }) throw Exception("Only eip155(EVM) is supported")
 
     val actionsJsonObject = JSONObject()
     val chainsJsonArray = JSONArray()

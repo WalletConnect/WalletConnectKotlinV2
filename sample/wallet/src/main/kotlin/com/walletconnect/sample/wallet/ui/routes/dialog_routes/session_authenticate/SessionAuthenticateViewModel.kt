@@ -30,7 +30,8 @@ class SessionAuthenticateViewModel : ViewModel() {
                 sessionAuthenticateUI?.messages?.forEach { issuerToMessage ->
                     val messageToSign = Numeric.toHexString(issuerToMessage.second.toByteArray())
                     val signature = CacaoSigner.signHex(messageToSign, privateKey.hexToBytes(), SignatureType.EIP191)
-                    val authPayloadParams = generateAuthPayloadParams(sessionAuthenticate.payloadParams, supportedChains = listOf("eip155:1", "eip155:137"), supportedMethods = listOf("personal_sign"))
+                    val authPayloadParams =
+                        generateAuthPayloadParams(sessionAuthenticate.payloadParams, supportedChains = listOf("eip155:1", "eip155:137", "eip155:56"), supportedMethods = listOf("personal_sign"))
                     val auth = generateAuthObject(authPayloadParams, issuerToMessage.first, signature)
                     auths.add(auth)
                 }
@@ -57,7 +58,7 @@ class SessionAuthenticateViewModel : ViewModel() {
     }
 
     fun reject(onSuccess: (String) -> Unit = {}, onError: (String) -> Unit = {}) {
-        if (WCDelegate.sessionAuthenticateEvent != null) { //todo: get from the pending requests list
+        if (WCDelegate.sessionAuthenticateEvent != null) {
             try {
                 val sessionAuthenticate = WCDelegate.sessionAuthenticateEvent!!.first
                 val rejectionReason = "Reject Session Authenticate"
@@ -92,10 +93,11 @@ class SessionAuthenticateViewModel : ViewModel() {
             val issuerToMessages = mutableListOf<Pair<String, String>>()
 
             sessionAuthenticate.payloadParams.chains
-                .filter { chain -> chain == "eip155:1" || chain == "eip155:137" }//todo:add bnb
+                .filter { chain -> chain == "eip155:1" || chain == "eip155:137" || chain == "eip155:56" }
                 .forEach { chain ->
                     val issuer = "did:pkh:$chain:$ACCOUNTS_1_EIP155_ADDRESS"
-                    val authPayloadParams = generateAuthPayloadParams(sessionAuthenticate.payloadParams, supportedChains = listOf("eip155:1", "eip155:137"), supportedMethods = listOf("personal_sign"))
+                    val authPayloadParams =
+                        generateAuthPayloadParams(sessionAuthenticate.payloadParams, supportedChains = listOf("eip155:1", "eip155:137", "eip155:56"), supportedMethods = listOf("personal_sign"))
                     val message = Web3Wallet.formatAuthMessage(Wallet.Params.FormatAuthMessage(authPayloadParams, issuer)) ?: throw Exception("Invalid message")
                     issuerToMessages.add(issuer to message)
                 }

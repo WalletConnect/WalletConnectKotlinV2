@@ -134,7 +134,7 @@ class ChainSelectionViewModel : ViewModel() {
         }
         val authenticateParams = Modal.Params.Authenticate(
             type = "caip222",
-            chains = listOf("eip155:1", "eip155:137"),
+            chains = uiState.value.filter { it.isSelected }.map { it.chainId },
             domain = "sample.kotlin.dapp",
             aud = "https://react-auth-dapp.vercel.app/",
             nonce = randomBytes(12).bytesToHex(),
