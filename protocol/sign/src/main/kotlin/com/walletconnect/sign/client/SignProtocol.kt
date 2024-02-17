@@ -428,6 +428,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
                         when (message) {
                             is Core.Model.Message.SessionRequest -> onSuccess(message.toSign())
                             is Core.Model.Message.SessionProposal -> onSuccess(message.toSign())
+                            is Core.Model.Message.SessionAuthenticate -> onSuccess(message.toSign())
                             else -> {
                                 //Ignore
                             }

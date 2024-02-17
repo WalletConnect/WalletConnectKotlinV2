@@ -231,6 +231,14 @@ object Sign {
                     val params: String,
                 ) : Message()
             }
+
+            data class SessionAuthenticate(
+                val id: Long,
+                val topic: String,
+                val metadata: Core.Model.AppMetaData,
+                val payloadParams: PayloadParams,
+                val expiry: Long
+            ) : Message()
         }
 
         data class SessionAuthenticate(

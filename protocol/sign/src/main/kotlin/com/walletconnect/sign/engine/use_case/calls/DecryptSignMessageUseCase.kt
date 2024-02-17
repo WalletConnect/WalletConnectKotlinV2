@@ -15,6 +15,7 @@ import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterfa
 import com.walletconnect.android.utils.toClient
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.exceptions.InvalidSignParamsType
+import com.walletconnect.sign.common.model.vo.clientsync.common.PayloadParams
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 
 internal class DecryptSignMessageUseCase(
@@ -34,6 +35,7 @@ internal class DecryptSignMessageUseCase(
                 when (params) {
                     is SignParams.SessionProposeParams -> onSuccess(params.toCore(clientJsonRpc.id, topic))
                     is SignParams.SessionRequestParams -> onSuccess(params.toCore(clientJsonRpc.id, topic, metadata))
+                    is SignParams.SessionAuthenticateParams -> onSuccess(params.toCore(clientJsonRpc.id, topic, metadata))
                     else -> onFailure(InvalidSignParamsType())
                 }
             }
@@ -67,6 +69,21 @@ internal class DecryptSignMessageUseCase(
                 metaData.toClient(),
                 Core.Model.Message.SessionRequest.JSONRPCRequest(id, request.method, request.params)
             )
+
+        fun SignParams.SessionAuthenticateParams.toCore(id: Long, topic: String, metaData: AppMetaData): Core.Model.Message.SessionAuthenticate =
+            Core.Model.Message.SessionAuthenticate(
+                id,
+                topic,
+                metaData.toClient(),
+                authPayload.toClient(),
+                expiryTimestamp
+            )
+
+        fun PayloadParams.toClient(): Core.Model.Message.SessionAuthenticate.PayloadParams {
+            return with(this) {
+                Core.Model.Message.SessionAuthenticate.PayloadParams(chains, domain, nonce, aud, type, nbf, iat, exp, statement, requestId, resources)
+            }
+        }
 
         fun Map<String, Namespace.Proposal>.toCore(): Map<String, Core.Model.Namespace.Proposal> =
             mapValues { (_, namespace) -> Core.Model.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events) }

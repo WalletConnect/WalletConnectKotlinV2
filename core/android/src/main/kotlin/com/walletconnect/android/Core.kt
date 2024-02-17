@@ -98,6 +98,30 @@ object Core {
                 )
             }
 
+            data class SessionAuthenticate(
+                val id: Long,
+                val topic: String,
+                val metadata: AppMetaData,
+                val payloadParams: PayloadParams,
+                val expiry: Long
+            ) : Message() {
+
+                data class PayloadParams(
+                    val chains: List<String>,
+                    val domain: String,
+                    val nonce: String,
+                    val aud: String,
+                    val type: String?,
+                    val nbf: String?,
+                    val iat: String,
+                    val exp: String?,
+                    val statement: String?,
+                    val requestId: String?,
+                    var resources: List<String>?,
+                ) : Model()
+            }
+
+            @Deprecated("Use SessionAuthenticate instead")
             data class AuthRequest(
                 val id: Long,
                 val pairingTopic: String,

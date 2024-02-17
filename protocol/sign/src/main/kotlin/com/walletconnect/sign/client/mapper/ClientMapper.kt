@@ -407,6 +407,18 @@ internal fun Core.Model.Message.SessionProposal.toSign(): Sign.Model.Message.Ses
     )
 
 @JvmSynthetic
+internal fun Core.Model.Message.SessionAuthenticate.toSign(): Sign.Model.Message.SessionAuthenticate =
+    Sign.Model.Message.SessionAuthenticate(
+        id, topic, metadata, payloadParams.toClient(), expiry
+    )
+
+private fun Core.Model.Message.SessionAuthenticate.PayloadParams.toClient(): Sign.Model.PayloadParams {
+    return with(this) {
+        Sign.Model.PayloadParams(chains, domain, nonce, aud, type, nbf, iat, exp, statement, requestId, resources)
+    }
+}
+
+@JvmSynthetic
 internal fun Core.Model.Message.SessionRequest.toSign(): Sign.Model.Message.SessionRequest =
     Sign.Model.Message.SessionRequest(
         topic,
