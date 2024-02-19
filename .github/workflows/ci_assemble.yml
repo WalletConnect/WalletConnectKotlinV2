@@ -1,10 +1,12 @@
 name: Assemble Debug Project
 
 on:
+  push:
+    branches:
+      - develop
   pull_request:
-    types:
-      - opened
-      - edited
+    branches:
+      - develop
 
 concurrency:
   # Support push/pr as event types with different behaviors each:
