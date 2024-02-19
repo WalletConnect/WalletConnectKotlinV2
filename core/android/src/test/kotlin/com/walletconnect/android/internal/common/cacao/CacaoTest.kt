@@ -41,7 +41,6 @@ internal class CacaoTest {
 
     @Test
     fun signAndVerifyWithEIP191Test() {
-        print(payload.toCAIP222Message(chainName))
         val message = payload.toCAIP222Message(chainName)
         val signature: Cacao.Signature = cacaoSigner.sign(message, privateKey, SignatureType.EIP191)
         val cacao = Cacao(CacaoType.CAIP222.toHeader(), payload, signature)
@@ -51,10 +50,8 @@ internal class CacaoTest {
 
     @Test
     fun signHexAndVerifyWithEIP191Test() {
-        println(payload.toCAIP222Message(chainName))
         val message = payload.toCAIP222Message(chainName)
         val signature: Cacao.Signature = cacaoSigner.sign(Numeric.toHexString(message.toByteArray()), privateKey, SignatureType.EIP191)
-        println("Signature: $signature")
         val cacao = Cacao(CacaoType.CAIP222.toHeader(), payload, signature)
         val result: Boolean = cacaoVerifier.verify(cacao)
         assert(result)
