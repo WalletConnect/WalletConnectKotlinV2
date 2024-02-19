@@ -3,7 +3,6 @@ package com.walletconnect.android.internal.common.signing.cacao
 import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.android.internal.common.signing.signature.verify
-import com.walletconnect.android.internal.common.signing.signature.verifyHexMessage
 import org.web3j.utils.Numeric
 
 class CacaoVerifier(private val projectId: ProjectId) {
@@ -17,7 +16,7 @@ class CacaoVerifier(private val projectId: ProjectId) {
             if (cacao.signature.toSignature().verify(plainMessage, address, cacao.signature.t, projectId)) {
                 true
             } else {
-                cacao.signature.toSignature().verifyHexMessage(hexMessage, address, cacao.signature.t, projectId)
+                cacao.signature.toSignature().verify(hexMessage, address, cacao.signature.t, projectId)
             }
         }
 

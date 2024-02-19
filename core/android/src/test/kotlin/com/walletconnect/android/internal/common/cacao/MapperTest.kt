@@ -65,7 +65,7 @@ internal class MapperTest {
         val message = "service.invalid wants you to sign in with your Ethereum account:\n" +
                 "0x15bca56b6e2728aec2532df9d436bd1600e86688\n" +
                 "\n" +
-                "Statement I further authorize the stated URI to perform the following actions on my behalf: (1) 'request': 'eth_signTypedData_v4', 'personal_sign' for 'eip155'\n" +
+                "Statement I further authorize the stated URI to perform the following actions on my behalf: (1) 'request': 'eth_signTypedData_v4', 'personal_sign' for 'eip155'.\n" +
                 "\n" +
                 "URI: https://service.invalid/login\n" +
                 "Version: 1\n" +
@@ -93,17 +93,13 @@ internal class MapperTest {
             exp = null,
             statement = "Statement",
             requestId = null,
-            resources = listOf(
-                "ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/",
-                "https://example.com/my-web2-claim.json",
-                encodedNotifyRecaps
-            )
+            resources = listOf("ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/", "https://example.com/my-web2-claim.json", encodedNotifyRecaps)
         )
 
         val message = "service.invalid wants you to sign in with your Ethereum account:\n" +
                 "0x15bca56b6e2728aec2532df9d436bd1600e86688\n" +
                 "\n" +
-                "Statement I further authorize the stated URI to perform the following actions on my behalf: (1) 'crud': 'notifications', 'subscriptions' for 'https://notify.walletconnect.com/all-apps'\n" +
+                "Statement I further authorize the stated URI to perform the following actions on my behalf: (1) 'crud': 'notifications', 'subscriptions' for 'https://notify.walletconnect.com/all-apps'.\n" +
                 "\n" +
                 "URI: https://service.invalid/login\n" +
                 "Version: 1\n" +
@@ -115,6 +111,7 @@ internal class MapperTest {
                 "- https://example.com/my-web2-claim.json\n" +
                 "- $encodedNotifyRecaps"
 
+        println(payload.toCAIP222Message(chainName))
         assertEquals(message, payload.toCAIP222Message(chainName))
     }
 
@@ -142,7 +139,7 @@ internal class MapperTest {
         val message = "service.invalid wants you to sign in with your Ethereum account:\n" +
                 "0x15bca56b6e2728aec2532df9d436bd1600e86688\n" +
                 "\n" +
-                "Statement I further authorize the stated URI to perform the following actions on my behalf: (1) 'request': 'eth_signTypedData_v4', 'personal_sign' for 'eip155', (2) 'crud': 'notifications', 'subscriptions' for 'https://notify.walletconnect.com/all-apps'\n" +
+                "Statement I further authorize the stated URI to perform the following actions on my behalf: (1) 'request': 'eth_signTypedData_v4', 'personal_sign' for 'eip155', (2) 'crud': 'notifications', 'subscriptions' for 'https://notify.walletconnect.com/all-apps'.\n" +
                 "\n" +
                 "URI: https://service.invalid/login\n" +
                 "Version: 1\n" +
@@ -181,7 +178,7 @@ internal class MapperTest {
         val message = "service.invalid wants you to sign in with your Ethereum account:\n" +
                 "0x15bca56b6e2728aec2532df9d436bd1600e86688\n" +
                 "\n" +
-                "Statement I further authorize the stated URI to perform the following actions on my behalf: (1) 'request': 'eth_signTypedData_v4', 'personal_sign' for 'eip155', (2) 'crud': 'notifications', 'subscriptions' for 'https://notify.walletconnect.com/all-apps'\n" +
+                "Statement I further authorize the stated URI to perform the following actions on my behalf: (1) 'request': 'eth_signTypedData_v4', 'personal_sign' for 'eip155', (2) 'crud': 'notifications', 'subscriptions' for 'https://notify.walletconnect.com/all-apps'.\n" +
                 "\n" +
                 "URI: https://service.invalid/login\n" +
                 "Version: 1\n" +
@@ -219,7 +216,7 @@ internal class MapperTest {
         val message = "service.invalid wants you to sign in with your Ethereum account:\n" +
                 "0x15bca56b6e2728aec2532df9d436bd1600e86688\n" +
                 "\n" +
-                "Statement I further authorize the stated URI to perform the following actions on my behalf: (1) 'request': 'eth_signTypedData_v4', 'personal_sign' for 'eip155'\n" +
+                "Statement I further authorize the stated URI to perform the following actions on my behalf: (1) 'request': 'eth_signTypedData_v4', 'personal_sign' for 'eip155'.\n" +
                 "\n" +
                 "URI: https://service.invalid/login\n" +
                 "Version: 1\n" +
