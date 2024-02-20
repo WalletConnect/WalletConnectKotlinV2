@@ -1,10 +1,11 @@
 import com.android.build.gradle.BaseExtension
+import org.sonarqube.gradle.SonarExtension
 
 plugins {
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
     id("release-scripts")
     id("version-bump")
-    id("org.sonarqube") version "4.4.1.3373"
+    alias(libs.plugins.sonarqube)
 }
 
 buildscript {
@@ -52,14 +53,37 @@ allprojects {
 
 sonar {
     properties {
-        property("sonar.projectKey", "walletconnect_kotlin")
-        property("sonar.organization", "walletconnect")
-        property("sonar.projectName", "Kotlin")
-        property("sonar.host.url", "https://sonarcloud.io")
+        properties(
+            mapOf(
+                "sonar.projectKey" to "walletconnect_kotlin",
+                "sonar.organization" to "walletconnect",
+                "sonar.projectName" to "Kotlin",
+                "sonar.host.url" to "https://sonarcloud.io",
+                "sonar.gradle.skipCompile" to true
+            )
+        )
     }
 }
 
 subprojects {
+    apply(plugin = rootProject.libs.plugins.sonarqube.get().pluginId)
+
+    extensions.configure<SonarExtension> {
+        setAndroidVariant("debug")
+
+        isSkipProject = name == "bom"
+        properties {
+            properties(
+                mapOf(
+                    "sonar.gradle.skipCompile" to true,
+                    "sonar.sources" to "${projectDir}/src/main/kotlin",
+                    "sonar.java.binaries" to buildDir,
+                    "sonar.coverage.jacoco.xmlReportPaths" to "${buildDir}/reports/jacoco/xml/jacoco.xml"
+                )
+            )
+        }
+    }
+
     afterEvaluate {
         if (hasProperty("android")) {
             extensions.configure(BaseExtension::class.java) {
