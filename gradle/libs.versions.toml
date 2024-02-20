@@ -14,3 +14,4 @@ sqlDelightTest = ["sqlDelight-test", "sqlite-jdbc"]
 
 [plugins]
 sqlDelight = { id = "app.cash.sqldelight", version.ref = "sqlDelight" }
+sonarqube = { id = "org.sonarqube", version = "4.4.1.3373" }
