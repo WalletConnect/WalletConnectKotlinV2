@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withTimeout
+import java.util.concurrent.TimeUnit
 
 internal class SessionRequestUseCase(
     private val sessionStorageRepository: SessionStorageRepository,
@@ -86,7 +87,7 @@ internal class SessionRequestUseCase(
                 onSuccess(sessionPayload.id)
                 scope.launch {
                     try {
-                        withTimeout(requestTtlInSeconds) {
+                        withTimeout(TimeUnit.SECONDS.toMillis(requestTtlInSeconds)) {
                             collectResponse(sessionPayload.id) { cancel() }
                         }
                     } catch (e: TimeoutCancellationException) {

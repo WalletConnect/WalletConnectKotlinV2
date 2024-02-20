@@ -109,6 +109,7 @@ internal class OnSessionAuthenticateResponseUseCase(
                         val methods = cacaos.first().payload.methods
                         var authenticatedSession: SessionVO? = null
                         if (methods.isNotEmpty()) {
+                            logger.log("Creating authenticated session")
                             val sessionNamespaces: Map<String, Namespace.Session> = mapOf(namespace to Namespace.Session(accounts = accounts, events = listOf(), methods = methods, chains = chains))
                             val requiredNamespace: Map<String, Namespace.Proposal> = mapOf(namespace to Namespace.Proposal(events = listOf(), methods = methods, chains = chains))
                             authenticatedSession = SessionVO.createAuthenticatedSession(

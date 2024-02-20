@@ -100,6 +100,7 @@ internal class ApproveSessionAuthenticateUseCase(
             val namespace = Issuer(cacaos.first().payload.iss).namespace
             val methods = cacaos.first().payload.methods
             if (methods.isNotEmpty()) {
+                logger.log("Creating authenticated session")
                 val requiredNamespace: Map<String, Namespace.Proposal> = mapOf(namespace to Namespace.Proposal(events = listOf(), methods = methods, chains = chains))
                 val sessionNamespaces: Map<String, Namespace.Session> = mapOf(namespace to Namespace.Session(accounts = accounts, events = listOf(), methods = methods, chains = chains))
                 val authenticatedSession = SessionVO.createAuthenticatedSession(
