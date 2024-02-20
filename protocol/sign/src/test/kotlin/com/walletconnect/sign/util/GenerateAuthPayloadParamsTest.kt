@@ -33,7 +33,7 @@ class GenerateAuthPayloadParamsTest {
         val sessionChains = result.resources.getChains().ifEmpty { requestedPayload.chains }
         val sessionMethods = result.resources.getMethods()
 
-        assert(sessionMethods == listOf("personal_sign", "eth_signTypedData_v4"))
+        assert(sessionMethods == listOf("eth_signTypedData_v4", "personal_sign"))
         assert(sessionChains == listOf("eip155:1"))
         assert(result.resources == listOf("test_resource", encodedSignRecaps))
     }
@@ -58,7 +58,7 @@ class GenerateAuthPayloadParamsTest {
         val sessionChains = result.resources.getChains().ifEmpty { requestedPayload.chains }
         val sessionMethods = result.resources.getMethods()
 
-        assert(sessionMethods == listOf("personal_sign", "eth_signTypedData_v4"))
+        assert(sessionMethods == listOf("eth_signTypedData_v4", "personal_sign"))
         assert(sessionChains == listOf("eip155:1"))
         assert(result.resources == listOf("test_resource", encodedSignRecaps))
     }
@@ -109,7 +109,7 @@ class GenerateAuthPayloadParamsTest {
         val sessionChains = result.resources.getChains().ifEmpty { requestedPayload.chains }
         val sessionMethods = result.resources.getMethods()
 
-        assert(sessionMethods == listOf("personal_sign", "eth_signTypedData_v4"))
+        assert(sessionMethods == listOf("eth_signTypedData_v4", "personal_sign"))
         assert(sessionChains == listOf("eip155:137", "eip155:56"))
         assert(result.resources == listOf("test_resource", "urn:recap:eyJhdHQiOnsiZWlwMTU1Ijp7InJlcXVlc3QvcGVyc29uYWxfc2lnbiI6W3siY2hhaW5zIjpbImVpcDE1NToxMzciLCJlaXAxNTU6NTYiXX1dLCJyZXF1ZXN0L2V0aF9zaWduVHlwZWREYXRhX3Y0IjpbeyJjaGFpbnMiOlsiZWlwMTU1OjEzNyIsImVpcDE1NTo1NiJdfV19fX0="))
     }
