@@ -73,32 +73,6 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
         HttpLoggingInterceptor().apply { setLevel(HttpLoggingInterceptor.Level.BODY) }
     }
 
-    single(named(AndroidCommonDITags.FAIL_OVER_INTERCEPTOR)) {
-        Interceptor { chain ->
-            val request = chain.request()
-            try {
-                val host = request.url.host
-                when {
-                    shouldFallbackRelay(host) -> chain.proceed(request.newBuilder().url(get<String>(named(AndroidCommonDITags.RELAY_URL))).build())
-                    shouldFallbackPush(host) -> chain.proceed(request.newBuilder().url(getFallbackPushUrl(request.url.toString())).build())
-                    shouldFallbackVerify(host) -> chain.proceed(request.newBuilder().url(getFallbackVerifyUrl(request.url.toString())).build())
-                    else -> chain.proceed(request)
-                }
-            } catch (e: Exception) {
-                if (isFailOverException(e)) {
-                    when (request.url.host) {
-                        DEFAULT_RELAY_URL.host -> fallbackRelay(request, chain)
-                        DEFAULT_PUSH_URL.host -> fallbackPush(request, chain)
-                        DEFAULT_VERIFY_URL.host -> fallbackVerify(request, chain)
-                        else -> chain.proceed(request)
-                    }
-                } else {
-                    chain.proceed(request)
-                }
-            }
-        }
-    }
-
     single(named(AndroidCommonDITags.AUTHENTICATOR)) {
         Authenticator { _, response ->
             response.request.run {
@@ -114,7 +88,6 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
     single(named(AndroidCommonDITags.OK_HTTP)) {
         val builder = OkHttpClient.Builder()
             .addInterceptor(get<Interceptor>(named(AndroidCommonDITags.SHARED_INTERCEPTOR)))
-            .addInterceptor(get<Interceptor>(named(AndroidCommonDITags.FAIL_OVER_INTERCEPTOR)))
             .authenticator((get(named(AndroidCommonDITags.AUTHENTICATOR))))
             .writeTimeout(networkClientTimeout.timeout, networkClientTimeout.timeUnit)
             .readTimeout(networkClientTimeout.timeout, networkClientTimeout.timeUnit)
