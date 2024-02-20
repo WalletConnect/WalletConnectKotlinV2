@@ -16,7 +16,7 @@ interface PairingControllerInterface {
 
     fun activate(activate: Core.Params.Activate, onError: (Core.Model.Error) -> Unit = {})
 
-    fun setProposalReceived(activate: Core.Params.ProposalReceived, onError: (Core.Model.Error) -> Unit = {})
+    fun setRequestReceived(activate: Core.Params.RequestReceived, onError: (Core.Model.Error) -> Unit = {})
 
     fun updateExpiry(updateExpiry: Core.Params.UpdateExpiry, onError: (Core.Model.Error) -> Unit = {})
 

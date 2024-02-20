@@ -36,7 +36,7 @@ UPDATE OR ABORT Pairing
 SET expiry = ?, is_active = ?
 WHERE topic = ?;
 
-setProposalReceived:
+setRequestReceived:
 UPDATE OR ABORT Pairing
 SET is_proposal_received = ?
 WHERE topic = ?;

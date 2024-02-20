@@ -106,7 +106,6 @@ class SessionAuthenticateViewModel : ViewModel() {
                             supportedMethods = listOf("personal_sign", "eth_signTypedData", "eth_sign")
                         )
                     val message = Web3Wallet.formatAuthMessage(Wallet.Params.FormatAuthMessage(authPayloadParams, issuer)) ?: throw Exception("Invalid message")
-                    println("kobe: Message: $message")
                     issuerToMessages.add(issuer to message)
                 }
 

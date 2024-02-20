@@ -243,8 +243,8 @@ internal class PairingEngine(
         getPairing(topic, onFailure) { pairing -> pairingRepository.activatePairing(pairing.topic) }
     }
 
-    fun setProposalReceived(topic: String, onFailure: (Throwable) -> Unit) {
-        getPairing(topic, onFailure) { pairing -> pairingRepository.setProposalReceived(pairing.topic) }
+    fun setRequestReceived(topic: String, onFailure: (Throwable) -> Unit) {
+        getPairing(topic, onFailure) { pairing -> pairingRepository.setRequestReceived(pairing.topic) }
     }
 
 

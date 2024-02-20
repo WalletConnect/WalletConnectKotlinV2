@@ -134,13 +134,13 @@ internal class ApproveSessionAuthenticateUseCase(
             jsonRpcInteractor.publishJsonRpcResponse(responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
                 onSuccess = {
                     logger.log("Session Authenticate Approve Responded on topic: $responseTopic")
+                    onSuccess()
                     scope.launch {
                         supervisorScope {
                             pairingController.activate(Core.Params.Activate(jsonRpcHistoryEntry.topic.value))
                             verifyContextStorageRepository.delete(id)
                         }
                     }
-                    onSuccess()
                 },
                 onFailure = { error ->
                     crypto.removeKeys(sessionTopic.value)

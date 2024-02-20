@@ -1,5 +1,6 @@
 package com.walletconnect.sign.engine.use_case.requests
 
+import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.exception.Invalid
 import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.model.Expiry
@@ -12,6 +13,7 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.dayInSeconds
+import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
@@ -27,6 +29,7 @@ import kotlinx.coroutines.supervisorScope
 internal class OnSessionAuthenticateUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val resolveAttestationIdUseCase: ResolveAttestationIdUseCase,
+    private val pairingController: PairingControllerInterface,
     private val logger: Logger
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
@@ -44,6 +47,7 @@ internal class OnSessionAuthenticateUseCase(
             }
 
             val url = authenticateSessionParams.requester.metadata.url
+            pairingController.setRequestReceived(Core.Params.RequestReceived(request.topic.value))
             resolveAttestationIdUseCase(request.id, request.message, url) { verifyContext ->
                 scope.launch {
                     logger.log("Received session authenticate - emitting: ${request.topic}")

@@ -156,7 +156,7 @@ object Core {
 
         data class Activate(val topic: String) : Params()
 
-        data class ProposalReceived(val topic: String) : Params()
+        data class RequestReceived(val topic: String) : Params()
 
         data class UpdateExpiry(val topic: String, val expiry: Expiry) : Params()
 
