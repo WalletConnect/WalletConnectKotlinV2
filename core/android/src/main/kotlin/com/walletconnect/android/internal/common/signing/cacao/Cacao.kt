@@ -79,7 +79,8 @@ fun Cacao.Payload.toCAIP222Message(chainName: String = "Ethereum"): String {
     var message = "$domain wants you to sign in with your $chainName account:\n${Issuer(iss).address}\n\n"
     if (statement != null) message += "$statement"
     if (resources?.find { r -> r.startsWith(RECAPS_PREFIX) } != null) {
-        message += " I further authorize the stated URI to perform the following actions on my behalf: $actionsString.\n"
+        message += if (statement != null) " " else ""
+        message += "I further authorize the stated URI to perform the following actions on my behalf: $actionsString.\n"
     } else if (statement != null) {
         message += "\n"
     }
@@ -108,7 +109,7 @@ private fun Cacao.Payload.getActionsString(): String {
         result += if (index == map.size) {
             "($index) '$prefix': $itemsFormatted for '$key'"
         } else {
-            "($index) '$prefix': $itemsFormatted for '$key', "
+            "($index) '$prefix': $itemsFormatted for '$key'. "
         }
         index++
     }

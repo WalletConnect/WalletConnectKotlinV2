@@ -124,7 +124,9 @@ fun generateAuthPayloadParams(payloadParams: Sign.Model.PayloadParams, supported
             .decodeReCaps()!!
             .filter { decoded -> !decoded.contains("eip155") }
             .map { reCaps -> "$RECAPS_PREFIX${Base64.toBase64String(reCaps.toByteArray(Charsets.UTF_8))}" }
+            .plus(payloadParams.resources!!.filter { resource -> !resource.startsWith(RECAPS_PREFIX) })
             .plus(newReCapsUrl)
+
         payloadParams.resources = newResourcesList
     }
 

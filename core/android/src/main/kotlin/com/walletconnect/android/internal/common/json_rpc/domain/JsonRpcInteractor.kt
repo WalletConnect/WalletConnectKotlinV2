@@ -94,6 +94,8 @@ internal class JsonRpcInteractor(
             return onFailure(e)
         }
 
+        println("kobe: Request: $requestJson")
+
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
             val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, envelopeType, participants)
 

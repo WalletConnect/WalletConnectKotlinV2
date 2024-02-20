@@ -31,7 +31,11 @@ class SessionAuthenticateViewModel : ViewModel() {
                     val messageToSign = Numeric.toHexString(issuerToMessage.second.toByteArray())
                     val signature = CacaoSigner.signHex(messageToSign, privateKey.hexToBytes(), SignatureType.EIP191)
                     val authPayloadParams =
-                        generateAuthPayloadParams(sessionAuthenticate.payloadParams, supportedChains = listOf("eip155:1", "eip155:137", "eip155:56"), supportedMethods = listOf("personal_sign"))
+                        generateAuthPayloadParams(
+                            sessionAuthenticate.payloadParams,
+                            supportedChains = listOf("eip155:1", "eip155:137", "eip155:56"),
+                            supportedMethods = listOf("personal_sign", "eth_signTypedData", "eth_sign")
+                        )
                     val auth = generateAuthObject(authPayloadParams, issuerToMessage.first, signature)
                     auths.add(auth)
                 }
@@ -96,8 +100,13 @@ class SessionAuthenticateViewModel : ViewModel() {
                 .forEach { chain ->
                     val issuer = "did:pkh:$chain:$ACCOUNTS_1_EIP155_ADDRESS"
                     val authPayloadParams =
-                        generateAuthPayloadParams(sessionAuthenticate.payloadParams, supportedChains = listOf("eip155:1", "eip155:137", "eip155:56"), supportedMethods = listOf("personal_sign"))
+                        generateAuthPayloadParams(
+                            sessionAuthenticate.payloadParams,
+                            supportedChains = listOf("eip155:1", "eip155:137", "eip155:56"),
+                            supportedMethods = listOf("personal_sign", "eth_signTypedData", "eth_sign")
+                        )
                     val message = Web3Wallet.formatAuthMessage(Wallet.Params.FormatAuthMessage(authPayloadParams, issuer)) ?: throw Exception("Invalid message")
+                    println("kobe: Message: $message")
                     issuerToMessages.add(issuer to message)
                 }
 

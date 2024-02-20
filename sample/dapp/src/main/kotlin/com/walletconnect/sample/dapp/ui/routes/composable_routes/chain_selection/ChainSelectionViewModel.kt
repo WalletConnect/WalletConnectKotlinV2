@@ -140,9 +140,12 @@ class ChainSelectionViewModel : ViewModel() {
             nonce = randomBytes(12).bytesToHex(),
             exp = null,
             nbf = null,
-            statement = "Sign in with wallet.",
+            statement = null,//"Sign in with wallet.",
             requestId = null,
-            resources = listOf("urn:recap:eyJhdHQiOnsiaHR0cHM6Ly9ub3RpZnkud2FsbGV0Y29ubmVjdC5jb20vYWxsLWFwcHMiOnsiY3J1ZC9zdWJzY3JpcHRpb25zIjpbe31dLCJjcnVkL25vdGlmaWNhdGlvbnMiOlt7fV19fX0="),//notify
+            resources = listOf(
+//                "urn:recap:eyJhdHQiOnsiaHR0cHM6Ly9ub3RpZnkud2FsbGV0Y29ubmVjdC5jb20vYWxsLWFwcHMiOnsiY3J1ZC9zdWJzY3JpcHRpb25zIjpbe31dLCJjcnVkL25vdGlmaWNhdGlvbnMiOlt7fV19fX0=",
+                "ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/"
+            ),
             methods = listOf("personal_sign", "eth_signTypedData"),
             expiry = null
         )
@@ -211,7 +214,7 @@ class ChainSelectionViewModel : ViewModel() {
         } catch (e: Exception) {
             Firebase.crashlytics.recordException(e)
             Timber.tag(tag(this)).e(e)
-            onError(e.message ?: "aaaUnknown error, please contact support")
+            onError(e.message ?: "Unknown error, please contact support")
         }
     }
 }

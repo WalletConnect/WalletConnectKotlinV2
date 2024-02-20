@@ -35,6 +35,7 @@ class GenerateAuthPayloadParamsTest {
 
         assert(sessionMethods == listOf("personal_sign", "eth_signTypedData_v4"))
         assert(sessionChains == listOf("eip155:1"))
+        assert(result.resources == listOf("test_resource", encodedSignRecaps))
     }
 
     @Test
@@ -59,6 +60,7 @@ class GenerateAuthPayloadParamsTest {
 
         assert(sessionMethods == listOf("personal_sign", "eth_signTypedData_v4"))
         assert(sessionChains == listOf("eip155:1"))
+        assert(result.resources == listOf("test_resource", encodedSignRecaps))
     }
 
     @Test
@@ -83,6 +85,8 @@ class GenerateAuthPayloadParamsTest {
 
         assert(sessionMethods == listOf("personal_sign"))
         assert(sessionChains == listOf("eip155:137", "eip155:56"))
+        println(result.resources)
+        assert(result.resources == listOf("test_resource", "urn:recap:eyJhdHQiOnsiZWlwMTU1Ijp7InJlcXVlc3QvcGVyc29uYWxfc2lnbiI6W3siY2hhaW5zIjpbImVpcDE1NToxMzciLCJlaXAxNTU6NTYiXX1dfX19"))
     }
 
     @Test
@@ -107,6 +111,7 @@ class GenerateAuthPayloadParamsTest {
 
         assert(sessionMethods == listOf("personal_sign", "eth_signTypedData_v4"))
         assert(sessionChains == listOf("eip155:137", "eip155:56"))
+        assert(result.resources == listOf("test_resource", "urn:recap:eyJhdHQiOnsiZWlwMTU1Ijp7InJlcXVlc3QvcGVyc29uYWxfc2lnbiI6W3siY2hhaW5zIjpbImVpcDE1NToxMzciLCJlaXAxNTU6NTYiXX1dLCJyZXF1ZXN0L2V0aF9zaWduVHlwZWREYXRhX3Y0IjpbeyJjaGFpbnMiOlsiZWlwMTU1OjEzNyIsImVpcDE1NTo1NiJdfV19fX0="))
     }
 
     @Test
@@ -124,6 +129,7 @@ class GenerateAuthPayloadParamsTest {
             requestId = null,
             resources = listOf("test_resource", encodedNotifyAndSignRecaps, encodedSignRecaps)
         )
+        requestedPayload.resources
         val result =
             generateAuthPayloadParams(requestedPayload, supportedChains = listOf("eip155:137"), supportedMethods = listOf("personal_sign"))
         val sessionChains = result.resources.getChains().ifEmpty { requestedPayload.chains }
@@ -131,6 +137,8 @@ class GenerateAuthPayloadParamsTest {
 
         assert(sessionMethods == listOf("personal_sign"))
         assert(sessionChains == listOf("eip155:137"))
+        println(result.resources)
+        assert(result.resources == listOf("test_resource", "urn:recap:eyJhdHQiOnsiZWlwMTU1Ijp7InJlcXVlc3QvcGVyc29uYWxfc2lnbiI6W3siY2hhaW5zIjpbImVpcDE1NToxMzciXX1dfX19"))
     }
 
     @Test
@@ -156,5 +164,7 @@ class GenerateAuthPayloadParamsTest {
 
         assert(sessionMethods == listOf("personal_sign"))
         assert(sessionChains == listOf("eip155:137"))
+        println(result.resources)
+        assert(result.resources == listOf(encodedNotifyRecaps, "test_resource", "urn:recap:eyJhdHQiOnsiZWlwMTU1Ijp7InJlcXVlc3QvcGVyc29uYWxfc2lnbiI6W3siY2hhaW5zIjpbImVpcDE1NToxMzciXX1dfX19"))
     }
 }

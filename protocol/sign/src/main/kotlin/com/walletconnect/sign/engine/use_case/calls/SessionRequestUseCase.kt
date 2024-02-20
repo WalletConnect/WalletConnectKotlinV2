@@ -34,8 +34,6 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withTimeout
-import java.util.Date
-import java.util.concurrent.TimeUnit
 
 internal class SessionRequestUseCase(
     private val sessionStorageRepository: SessionStorageRepository,
@@ -50,7 +48,7 @@ internal class SessionRequestUseCase(
             return@supervisorScope onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE${request.topic}"))
         }
 
-        val nowInSeconds = TimeUnit.SECONDS.convert(Date().time, TimeUnit.SECONDS)
+        val nowInSeconds = currentTimeInSeconds
         if (!CoreValidator.isExpiryWithinBounds(request.expiry)) {
             logger.error("Sending session request error: expiry not within bounds")
             return@supervisorScope onFailure(InvalidExpiryException())
@@ -88,7 +86,7 @@ internal class SessionRequestUseCase(
                 onSuccess(sessionPayload.id)
                 scope.launch {
                     try {
-                        withTimeout(TimeUnit.SECONDS.toMillis(requestTtlInSeconds)) {
+                        withTimeout(requestTtlInSeconds) {
                             collectResponse(sessionPayload.id) { cancel() }
                         }
                     } catch (e: TimeoutCancellationException) {

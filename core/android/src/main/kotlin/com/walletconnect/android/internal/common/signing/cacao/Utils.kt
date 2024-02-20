@@ -42,7 +42,7 @@ fun List<String>?.parseReCaps(): MutableMap<String, MutableMap<String, MutableLi
         }
     }
 
-    return reCapsMap.mapValues { entry -> entry.value.toMutableMap() }.toMutableMap().toSortedMap()
+    return reCapsMap.mapValues { entry -> entry.value.toMutableMap() }.toMutableMap()
 }
 
 @JvmSynthetic
@@ -55,7 +55,7 @@ fun List<String>?.decodeReCaps(): List<String>? {
 
 @JvmSynthetic
 fun List<String>?.getMethods(): List<String> {
-    return this.decodeReCaps().parseReCaps()["eip155"]?.keys?.map { key -> key.substringAfter('/') } ?: emptyList()
+    return this.decodeReCaps().parseReCaps()["eip155"]?.keys?.sorted()?.map { key -> key.substringAfter('/') } ?: emptyList()
 }
 
 @JvmSynthetic
