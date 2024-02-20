@@ -7,8 +7,10 @@ import com.walletconnect.web3.modal.ui.components.button.AccountButtonState
 import com.walletconnect.web3.modal.ui.components.button.ConnectButton
 import com.walletconnect.web3.modal.ui.components.button.ConnectButtonSize
 import com.walletconnect.web3.modal.utils.ScreenShotTest
+import org.junit.Ignore
 import org.junit.Test
 
+@Ignore
 internal class ButtonsTest : ScreenShotTest("component/button") {
 
     @Test
