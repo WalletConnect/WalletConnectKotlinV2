@@ -5,6 +5,7 @@ enum class AndroidCommonDITags {
     SHARED_INTERCEPTOR,
     LOGGING_INTERCEPTOR,
     AUTHENTICATOR,
+    FAILOVER_DNS,
     OK_HTTP,
     RELAY_SERVICE,
     SCARLET,

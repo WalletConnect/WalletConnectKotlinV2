@@ -20,6 +20,7 @@ import com.walletconnect.foundation.network.data.ConnectionController
 import com.walletconnect.foundation.network.data.adapter.FlowStreamAdapter
 import com.walletconnect.foundation.network.data.service.RelayService
 import okhttp3.Authenticator
+import okhttp3.Dns
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -27,22 +28,19 @@ import org.koin.android.ext.koin.androidApplication
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
-import java.util.*
+import java.net.InetAddress
+import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
-
-
-var SERVER_URL: String = ""
 
 @Suppress("LocalVariableName")
 @JvmSynthetic
 fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, sdkVersion: String, timeout: NetworkClientTimeout? = null) = module {
     val DEFAULT_BACKOFF_SECONDS = 5L
     val networkClientTimeout = timeout ?: NetworkClientTimeout.getDefaultTimeout()
-    SERVER_URL = serverUrl
 
     factory(named(AndroidCommonDITags.RELAY_URL)) {
-        val jwt = get<GenerateJwtStoreClientIdUseCase>().invoke(SERVER_URL)
-        Uri.parse(SERVER_URL)
+        val jwt = get<GenerateJwtStoreClientIdUseCase>().invoke(serverUrl)
+        Uri.parse(serverUrl)
             .buildUpon()
             .appendQueryParameter("auth", jwt)
             .appendQueryParameter("ua", get(named(AndroidCommonDITags.USER_AGENT)))
@@ -76,10 +74,23 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
     single(named(AndroidCommonDITags.AUTHENTICATOR)) {
         Authenticator { _, response ->
             response.request.run {
-                if (Uri.parse(SERVER_URL).host == this.url.host) {
+                if (Uri.parse(serverUrl).host == this.url.host) {
                     this.newBuilder().url(get<String>(named(AndroidCommonDITags.RELAY_URL))).build()
                 } else {
                     null
+                }
+            }
+        }
+    }
+
+    single<Dns>(named(AndroidCommonDITags.FAILOVER_DNS)) {
+        object : Dns {
+
+            override fun lookup(hostname: String): List<InetAddress> {
+                return try {
+                    Dns.SYSTEM.lookup(hostname)
+                } catch (e: UnknownHostException) {
+                    Dns.SYSTEM.lookup(hostname.replace(".com", ".org"))
                 }
             }
         }
@@ -93,6 +104,7 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
             .readTimeout(networkClientTimeout.timeout, networkClientTimeout.timeUnit)
             .callTimeout(networkClientTimeout.timeout, networkClientTimeout.timeUnit)
             .connectTimeout(networkClientTimeout.timeout, networkClientTimeout.timeUnit)
+            .dns(get<Dns>(named(AndroidCommonDITags.FAILOVER_DNS)))
 
         if (BuildConfig.DEBUG) {
             val loggingInterceptor = get<Interceptor>(named(AndroidCommonDITags.LOGGING_INTERCEPTOR))
