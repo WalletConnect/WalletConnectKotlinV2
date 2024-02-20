@@ -15,7 +15,7 @@ interface AuthInterface {
     interface RequesterDelegate : AuthDelegate {
         @Deprecated(
             "AuthSDK has been deprecated. Please use updated Web3Wallet and Sign SDKs instead.",
-            replaceWith = ReplaceWith("fun onSessionAuthenticateResponse(sessionAuthenticateResponse: Sign.Model.SessionAuthenticateResponse) in Sign SDK")
+            replaceWith = ReplaceWith("fun onSessionAuthenticateResponse(sessionAuthenticateResponse: Sign.Model.SessionAuthenticateResponse)")
         )
         fun onAuthResponse(authResponse: Auth.Event.AuthResponse)
     }
@@ -39,19 +39,19 @@ interface AuthInterface {
 
     @Deprecated(
         "AuthSDK has been deprecated. Please use updated Web3Wallet and Sign SDKs instead.",
-        replaceWith = ReplaceWith("fun sessionAuthenticate(authenticate: Sign.Params.Authenticate, onSuccess: (String) -> Unit, onError: (Sign.Model.Error) -> Unit) in Sign SDK")
+        replaceWith = ReplaceWith("fun sessionAuthenticate(authenticate: Sign.Params.Authenticate, onSuccess: (String) -> Unit, onError: (Sign.Model.Error) -> Unit)")
     )
     fun request(params: Auth.Params.Request, onSuccess: () -> Unit, onError: (Auth.Model.Error) -> Unit)
 
     @Deprecated(
         "AuthSDK has been deprecated. Please use updated Web3Wallet and Sign SDKs instead.",
-        replaceWith = ReplaceWith("fun approveSessionAuthenticated(approve: Sign.Params.ApproveSessionAuthenticate, onSuccess: (Sign.Params.ApproveSessionAuthenticate) -> Unit, onError: (Sign.Model.Error) -> Unit) or fun rejectSessionAuthenticated(reject: Sign.Params.RejectSessionAuthenticate, onSuccess: (Sign.Params.RejectSessionAuthenticate) -> Unit, onError: (Sign.Model.Error) -> Unit) in Web3Wallet SDK")
+        replaceWith = ReplaceWith("fun approveSessionAuthenticated(approve: Sign.Params.ApproveSessionAuthenticate, onSuccess: (Sign.Params.ApproveSessionAuthenticate) -> Unit, onError: (Sign.Model.Error) -> Unit)"),
     )
     fun respond(params: Auth.Params.Respond, onSuccess: (Auth.Params.Respond) -> Unit = {}, onError: (Auth.Model.Error) -> Unit)
 
     @Deprecated(
         "AuthSDK has been deprecated. Please use updated Web3Wallet and Sign SDKs instead.",
-        replaceWith = ReplaceWith("fun decryptMessage(params: Sign.Params.DecryptMessage, onSuccess: (Sign.Model.Message) -> Unit, onError: (Sign.Model.Error) -> Unit) in Web3Wallet SDK")
+        replaceWith = ReplaceWith("fun decryptMessage(params: Sign.Params.DecryptMessage, onSuccess: (Sign.Model.Message) -> Unit, onError: (Sign.Model.Error) -> Unit)")
     )
     fun decryptMessage(params: Auth.Params.DecryptMessage, onSuccess: (Auth.Model.Message.AuthRequest) -> Unit, onError: (Auth.Model.Error) -> Unit)
 
@@ -61,7 +61,7 @@ interface AuthInterface {
      */
     @Deprecated(
         "AuthSDK has been deprecated. Please use updated Web3Wallet and Sign SDKs instead.",
-        replaceWith = ReplaceWith("fun formatAuthMessage(formatMessage: Sign.Params.FormatMessage): String? in Web3Wallet SDK")
+        replaceWith = ReplaceWith("fun formatAuthMessage(formatMessage: Sign.Params.FormatMessage): String?")
     )
     fun formatMessage(params: Auth.Params.FormatMessage): String?
 
@@ -71,7 +71,7 @@ interface AuthInterface {
      */
     @Deprecated(
         "AuthSDK has been deprecated. Please use updated Web3Wallet and Sign SDKs instead.",
-        replaceWith = ReplaceWith("fun getPendingAuthenticateRequests(): List<Sign.Model.SessionAuthenticate> in Web3Wallet SDK")
+        replaceWith = ReplaceWith("fun getPendingAuthenticateRequests(): List<Sign.Model.SessionAuthenticate>")
     )
     fun getPendingRequest(): List<Auth.Model.PendingRequest>
 
@@ -81,7 +81,7 @@ interface AuthInterface {
      */
     @Deprecated(
         "AuthSDK has been deprecated. Please use updated Web3Wallet and Sign SDKs instead.",
-        replaceWith = ReplaceWith("override fun getVerifyContext(id: Long): Sign.Model.VerifyContext? in Web3Wallet SDK")
+        replaceWith = ReplaceWith("override fun getVerifyContext(id: Long): Sign.Model.VerifyContext?")
     )
     fun getVerifyContext(id: Long): Auth.Model.VerifyContext?
 
@@ -91,7 +91,7 @@ interface AuthInterface {
      */
     @Deprecated(
         "AuthSDK has been deprecated. Please use updated Web3Wallet and Sign SDKs instead.",
-        replaceWith = ReplaceWith("override fun getListOfVerifyContexts(): List<Sign.Model.VerifyContext> in Web3Wallet SDK")
+        replaceWith = ReplaceWith("override fun getListOfVerifyContexts(): List<Sign.Model.VerifyContext>")
     )
     fun getListOfVerifyContexts(): List<Auth.Model.VerifyContext>
 }
