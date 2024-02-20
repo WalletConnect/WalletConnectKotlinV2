@@ -53,7 +53,7 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
     }
 
     single {
-        GenerateJwtStoreClientIdUseCase(get(), get())
+        GenerateJwtStoreClientIdUseCase(clientIdJwtRepository = get(), sharedPreferences = get())
     }
 
     single(named(AndroidCommonDITags.SHARED_INTERCEPTOR)) {
