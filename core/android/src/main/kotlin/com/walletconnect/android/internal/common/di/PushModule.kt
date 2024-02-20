@@ -9,6 +9,8 @@ import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 
+private var PUSH_URL: String = "https://echo.walletconnect.com/"
+
 @JvmSynthetic
 internal fun pushModule() = module {
 
