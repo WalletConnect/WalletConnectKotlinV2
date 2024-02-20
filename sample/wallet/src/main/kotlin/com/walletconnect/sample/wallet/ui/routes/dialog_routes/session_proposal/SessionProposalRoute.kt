@@ -2,6 +2,7 @@ package com.walletconnect.sample.wallet.ui.routes.dialog_routes.session_proposal
 
 import android.content.Context
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -58,7 +59,6 @@ import com.walletconnect.sample.wallet.ui.common.peer.getDescriptionContent
 import com.walletconnect.sample.wallet.ui.common.peer.getDescriptionTitle
 import com.walletconnect.sample.wallet.ui.common.peer.getValidationIcon
 import com.walletconnect.sample.wallet.ui.routes.Route
-import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -151,7 +151,7 @@ private fun SessionProposalDialog(
         AccountAndNetwork(sessionProposalUI) { error ->
             coroutineScope.launch(Dispatchers.Main) {
                 navController.popBackStack(route = Route.Connections.path, inclusive = false)
-                navController.showSnackbar(error)
+                Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
             }
         }
         Spacer(modifier = Modifier.height(18.dp))
@@ -172,17 +172,17 @@ private fun SessionProposalDialog(
                                 context.sendResponseDeepLink(redirect.toUri())
                             } else {
                                 coroutineScope.launch(Dispatchers.Main) {
-                                    navController.showSnackbar("Go back to your browser")
+                                    Toast.makeText(context, "Go back to your browser", Toast.LENGTH_SHORT).show()
                                 }
                             }
 
                         },
                         onError = { error ->
                             isCancelLoading = false
-                            closeAndShowError(navController, error, coroutineScope)
+                            closeAndShowError(navController, error, coroutineScope, context)
                         })
                 } catch (e: Throwable) {
-                    closeAndShowError(navController, e.message, coroutineScope)
+                    closeAndShowError(navController, e.message, coroutineScope, context)
                 }
             },
             onConfirm = {
@@ -200,16 +200,16 @@ private fun SessionProposalDialog(
                                 context.sendResponseDeepLink(redirect.toUri())
                             } else {
                                 coroutineScope.launch(Dispatchers.Main) {
-                                    navController.showSnackbar("Go back to your browser")
+                                    Toast.makeText(context, "Go back to your browser", Toast.LENGTH_SHORT).show()
                                 }
                             }
                         },
                         onError = { error ->
                             isConfirmLoading = false
-                            closeAndShowError(navController, error, coroutineScope)
+                            closeAndShowError(navController, error, coroutineScope, context)
                         })
                 } catch (e: Throwable) {
-                    closeAndShowError(navController, e.message, coroutineScope)
+                    closeAndShowError(navController, e.message, coroutineScope, context)
                 }
             },
             isLoadingConfirm = isConfirmLoading,
@@ -219,10 +219,10 @@ private fun SessionProposalDialog(
     }
 }
 
-private fun closeAndShowError(navController: NavHostController, mesage: String?, coroutineScope: CoroutineScope) {
+private fun closeAndShowError(navController: NavHostController, mesage: String?, coroutineScope: CoroutineScope, context: Context) {
     coroutineScope.launch(Dispatchers.Main) {
         navController.popBackStack(route = Route.Connections.path, inclusive = false)
-        navController.showSnackbar(mesage ?: "Session proposal error, please check your Internet connection")
+        Toast.makeText(context, mesage ?: "Session proposal error, please check your Internet connection", Toast.LENGTH_SHORT).show()
     }
 }
 

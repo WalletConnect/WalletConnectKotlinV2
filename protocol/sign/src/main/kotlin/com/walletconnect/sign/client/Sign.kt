@@ -121,7 +121,7 @@ object Sign {
         }
 
         sealed class SessionAuthenticateResponse : Model() {
-            data class Result(val id: Long, val cacaos: List<Cacao>, val session: Session) : SessionAuthenticateResponse()
+            data class Result(val id: Long, val cacaos: List<Cacao>, val session: Session?) : SessionAuthenticateResponse()
             data class Error(val id: Long, val code: Int, val message: String) : SessionAuthenticateResponse()
         }
 
@@ -231,13 +231,22 @@ object Sign {
                     val params: String,
                 ) : Message()
             }
+
+            data class SessionAuthenticate(
+                val id: Long,
+                val topic: String,
+                val metadata: Core.Model.AppMetaData,
+                val payloadParams: PayloadParams,
+                val expiry: Long
+            ) : Message()
         }
 
         data class SessionAuthenticate(
             val id: Long,
             val topic: String,
             val participant: Participant,
-            val payloadParams: PayloadParams
+            val payloadParams: PayloadParams,
+            val expiry: Long
         ) {
             data class Participant(
                 val publicKey: String,
@@ -310,7 +319,8 @@ object Sign {
             val statement: String?,
             val requestId: String?,
             val resources: List<String>?,
-            val methods: List<String>?
+            val methods: List<String>?,
+            val expiry: Long?
         ) : Params()
 
         data class FormatMessage(val payloadParams: Model.PayloadParams, val iss: String) : Params()

@@ -3,6 +3,8 @@ package com.walletconnect.sign.engine.use_case.calls
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
+import com.walletconnect.android.internal.common.exception.Invalid
+import com.walletconnect.android.internal.common.exception.RequestExpiredException
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.EnvelopeType
@@ -12,7 +14,9 @@ import com.walletconnect.android.internal.common.model.Participant
 import com.walletconnect.android.internal.common.model.Participants
 import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.internal.common.model.Tags
+import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
+import com.walletconnect.android.internal.common.model.type.ClientParams
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
@@ -21,17 +25,21 @@ import com.walletconnect.android.internal.common.signing.cacao.Issuer
 import com.walletconnect.android.internal.common.signing.cacao.getChains
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
+import com.walletconnect.android.internal.utils.CoreValidator
+import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.dayInSeconds
+import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.exceptions.MissingSessionAuthenticateRequest
-import com.walletconnect.sign.common.exceptions.PeerError
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
+import com.walletconnect.sign.common.validator.SignValidator
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionAuthenticateRequest
+import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
@@ -57,9 +65,22 @@ internal class ApproveSessionAuthenticateUseCase(
                 onFailure(MissingSessionAuthenticateRequest())
                 return@supervisorScope
             }
-            //todo: expiry check, add chains validation - all caip-2
-            //todo: check for single chain - if not eip155 throw
+
+            jsonRpcHistoryEntry.expiry?.let {
+                if (it.isExpired()) {
+                    val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(fiveMinutesInSeconds))
+                    val request = WCRequest(jsonRpcHistoryEntry.topic, jsonRpcHistoryEntry.id, JsonRpcMethod.WC_SESSION_AUTHENTICATE, object : ClientParams {})
+                    jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
+                    logger.error("Session Authenticate Request Expired: ${jsonRpcHistoryEntry.topic}, id: ${jsonRpcHistoryEntry.id}")
+                    throw RequestExpiredException("This request has expired, id: ${jsonRpcHistoryEntry.id}")
+                }
+            }
+
             val sessionAuthenticateParams: SignParams.SessionAuthenticateParams = jsonRpcHistoryEntry.params
+            val chains = cacaos.first().payload.resources.getChains().ifEmpty { sessionAuthenticateParams.authPayload.chains }
+            if (!chains.all { chain -> CoreValidator.isChainIdCAIP2Compliant(chain) }) throw Exception("Chains are not CAIP-2 compliant")
+            if (!chains.all { chain -> SignValidator.getNamespaceKeyFromChainId(chain) == "eip155" }) throw Exception("Only eip155 (EVM) is supported")
+
             val receiverPublicKey = PublicKey(sessionAuthenticateParams.requester.publicKey)
             val receiverMetadata = sessionAuthenticateParams.requester.metadata
             val senderPublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
@@ -70,51 +91,38 @@ internal class ApproveSessionAuthenticateUseCase(
 
             if (cacaos.find { cacao -> !cacaoVerifier.verify(cacao) } != null) {
                 logger.error("Invalid Cacao for Session Authenticate")
-                //todo: handle error codes
-                jsonRpcInteractor.respondWithError(id,
-                    responseTopic,
-                    PeerError.EIP1193.UserRejectedRequest("Invalid CACAO"),
-                    irnParams,
-                    EnvelopeType.ONE,
-                    Participants(senderPublicKey, receiverPublicKey),
-                    onSuccess = { return@respondWithError onFailure(Throwable("Invalid CACAO error successfully sent on topic: $responseTopic")) },
-                    onFailure = { logger.error("Error sending invalid CACAO error on topic: $responseTopic") })
-                return@supervisorScope
+                return@supervisorScope onFailure(Throwable("Signature verification failed Session Authenticate, please try again"))
             }
 
-            //todo: if recaps has NO additional chains -> pass chains from payload. If they have -> pass chains from recaps
-            //todo: if chains in reCaps - we take chains from first CACAO
-            val chains = cacaos.first().payload.resources.getChains().ifEmpty { sessionAuthenticateParams.authPayload.chains }
-            val addresses = cacaos.map { cacao -> Issuer(cacao.payload.iss).address }
+            val addresses = cacaos.map { cacao -> Issuer(cacao.payload.iss).address }.distinct()
             val accounts = mutableListOf<String>()
-            chains.forEach { chainId ->
-                addresses.forEach { address ->
-                    accounts.add("$chainId:$address")
-                }
+            chains.forEach { chainId -> addresses.forEach { address -> accounts.add("$chainId:$address") } }
+            val namespace = Issuer(cacaos.first().payload.iss).namespace
+            val methods = cacaos.first().payload.methods
+            if (methods.isNotEmpty()) {
+                logger.log("Creating authenticated session")
+                val requiredNamespace: Map<String, Namespace.Proposal> = mapOf(namespace to Namespace.Proposal(events = listOf(), methods = methods, chains = chains))
+                val sessionNamespaces: Map<String, Namespace.Session> = mapOf(namespace to Namespace.Session(accounts = accounts, events = listOf(), methods = methods, chains = chains))
+                val authenticatedSession = SessionVO.createAuthenticatedSession(
+                    sessionTopic = sessionTopic,
+                    peerPublicKey = receiverPublicKey,
+                    peerMetadata = receiverMetadata,
+                    selfPublicKey = senderPublicKey,
+                    selfMetadata = selfAppMetaData,
+                    controllerKey = senderPublicKey,
+                    requiredNamespaces = requiredNamespace,
+                    sessionNamespaces = sessionNamespaces,
+                    pairingTopic = jsonRpcHistoryEntry.topic.value
+                )
+                metadataStorageRepository.insertOrAbortMetadata(sessionTopic, selfAppMetaData, AppMetaDataType.SELF)
+                metadataStorageRepository.insertOrAbortMetadata(sessionTopic, receiverMetadata, AppMetaDataType.PEER)
+                sessionStorageRepository.insertSession(authenticatedSession, id)
             }
-
-            val namespace = Issuer(cacaos.first().payload.iss).namespace //TODO: should always get iss from the first cacao?
-            val methods = cacaos.map { cacao -> cacao.payload.methods }.flatten()
-            val requiredNamespace: Map<String, Namespace.Proposal> = mapOf(namespace to Namespace.Proposal(events = listOf(), methods = methods, chains = chains))
-            val sessionNamespaces: Map<String, Namespace.Session> = mapOf(namespace to Namespace.Session(accounts = accounts, events = listOf(), methods = methods, chains = chains))
-            val authenticatedSession = SessionVO.createAuthenticatedSession(
-                sessionTopic = sessionTopic,
-                peerPublicKey = receiverPublicKey,
-                peerMetadata = receiverMetadata,
-                selfPublicKey = senderPublicKey,
-                selfMetadata = selfAppMetaData,
-                controllerKey = senderPublicKey,
-                requiredNamespaces = requiredNamespace,
-                sessionNamespaces = sessionNamespaces,
-                pairingTopic = jsonRpcHistoryEntry.topic.value
-            )
-            metadataStorageRepository.insertOrAbortMetadata(sessionTopic, selfAppMetaData, AppMetaDataType.SELF)
-            metadataStorageRepository.insertOrAbortMetadata(sessionTopic, receiverMetadata, AppMetaDataType.PEER)
-            sessionStorageRepository.insertSession(authenticatedSession, id)
 
             val responseParams = CoreSignParams.SessionAuthenticateApproveParams(responder = Participant(publicKey = senderPublicKey.keyAsHex, metadata = selfAppMetaData), cacaos = cacaos)
             val response: JsonRpcResponse = JsonRpcResponse.JsonRpcResult(id, result = responseParams)
             crypto.setKey(symmetricKey, sessionTopic.value)
+
             logger.log("Subscribing Session Authenticate on topic: $responseTopic")
             jsonRpcInteractor.subscribe(sessionTopic, onSuccess = {
                 logger.log("Subscribed Session Authenticate on topic: $responseTopic")
@@ -127,22 +135,23 @@ internal class ApproveSessionAuthenticateUseCase(
             jsonRpcInteractor.publishJsonRpcResponse(responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
                 onSuccess = {
                     logger.log("Session Authenticate Approve Responded on topic: $responseTopic")
+                    onSuccess()
                     scope.launch {
                         supervisorScope {
                             pairingController.activate(Core.Params.Activate(jsonRpcHistoryEntry.topic.value))
                             verifyContextStorageRepository.delete(id)
                         }
                     }
-                    onSuccess()
                 },
                 onFailure = { error ->
-                    //todo remove session and keys
+                    crypto.removeKeys(sessionTopic.value)
+                    sessionStorageRepository.deleteSession(sessionTopic)
                     logger.error("Error Responding Session Authenticate on topic: $responseTopic, error: $error")
                     onFailure(error)
                 }
             )
         } catch (e: Exception) {
-            //todo remove session and keys
+            logger.error("Error Responding Session Authenticate, error: $e")
             onFailure(e)
         }
     }

@@ -38,4 +38,16 @@ internal fun JsonRpcHistoryRecord.toRequest(params: SignParams.SessionAuthentica
         method,
         null,
         params,
+        Expiry(params.expiryTimestamp)
+    )
+
+@JvmSynthetic
+internal fun SignRpc.SessionAuthenticate.toRequest(entry: JsonRpcHistoryRecord): Request<SignParams.SessionAuthenticateParams> =
+    Request(
+        entry.id,
+        Topic(entry.topic),
+        entry.method,
+        null,
+        params,
+        Expiry(params.expiryTimestamp)
     )

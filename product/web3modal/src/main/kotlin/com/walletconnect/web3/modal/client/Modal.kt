@@ -43,7 +43,8 @@ object Modal {
             val statement: String?,
             val requestId: String?,
             val resources: List<String>?,
-            val methods: List<String>?
+            val methods: List<String>?,
+            val expiry: Long
         ) : Params()
 
         @Deprecated(
@@ -190,7 +191,7 @@ object Modal {
         ) : Model()
 
         sealed class SessionAuthenticateResponse : Model() {
-            data class Result(val id: Long, val cacaos: List<Cacao>) : SessionAuthenticateResponse()
+            data class Result(val id: Long, val cacaos: List<Cacao>, val session: Session?) : SessionAuthenticateResponse()
             data class Error(val id: Long, val code: Int, val message: String) : SessionAuthenticateResponse()
         }
 

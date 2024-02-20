@@ -1,5 +1,6 @@
 package com.walletconnect.android.internal.common.signing.cacao
 
+import com.walletconnect.android.internal.common.signing.cacao.Cacao.Payload.Companion.RECAPS_PREFIX
 import com.walletconnect.utils.HexPrefix
 import org.bouncycastle.util.encoders.Base64
 import org.json.JSONObject
@@ -9,7 +10,7 @@ internal fun String.guaranteeNoHexPrefix(): String = removePrefix(String.HexPref
 
 @JvmSynthetic
 fun List<String>?.parseReCaps(): MutableMap<String, MutableMap<String, MutableList<String>>> {
-    if (this.isNullOrEmpty()) throw Exception("Cannot find ReCaps URN in resources")
+    if (this.isNullOrEmpty()) return emptyMap<String, MutableMap<String, MutableList<String>>>().toMutableMap()
     val reCapsMap: MutableMap<String, MutableMap<String, MutableList<String>>> = mutableMapOf()
     this.forEach { jsonString ->
         val jsonObject = JSONObject(jsonString)
@@ -41,20 +42,20 @@ fun List<String>?.parseReCaps(): MutableMap<String, MutableMap<String, MutableLi
         }
     }
 
-    return reCapsMap.mapValues { entry -> entry.value.toMutableMap() }.toMutableMap().toSortedMap()
+    return reCapsMap.mapValues { entry -> entry.value.toMutableMap() }.toMutableMap()
 }
 
 @JvmSynthetic
 fun List<String>?.decodeReCaps(): List<String>? {
     return this
-        ?.filter { resource -> resource.startsWith(Cacao.Payload.RECAPS_PREFIX) }
-        ?.map { urn -> urn.removePrefix(Cacao.Payload.RECAPS_PREFIX) }
+        ?.filter { resource -> resource.startsWith(RECAPS_PREFIX) }
+        ?.map { urn -> urn.removePrefix(RECAPS_PREFIX) }
         ?.map { encodedReCaps -> Base64.decode(encodedReCaps).toString(Charsets.UTF_8) }
 }
 
 @JvmSynthetic
-fun List<String>?.getActions(): List<String> {
-    return this.decodeReCaps().parseReCaps().values.map { actionToListMap -> actionToListMap.keys.map { action -> action.substringAfter('/') } }.flatten().distinct()
+fun List<String>?.getMethods(): List<String> {
+    return this.decodeReCaps().parseReCaps()["eip155"]?.keys?.sorted()?.map { key -> key.substringAfter('/') } ?: emptyList()
 }
 
 @JvmSynthetic

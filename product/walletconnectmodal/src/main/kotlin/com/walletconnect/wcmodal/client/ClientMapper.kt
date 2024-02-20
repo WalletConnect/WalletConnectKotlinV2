@@ -61,7 +61,7 @@ internal fun Sign.Model.ExpiredRequest.toModal(): Modal.Model.ExpiredRequest = M
 @JvmSynthetic
 internal fun Sign.Model.SessionAuthenticateResponse.toModal(): Modal.Model.SessionAuthenticateResponse =
     when (this) {
-        is Sign.Model.SessionAuthenticateResponse.Result -> Modal.Model.SessionAuthenticateResponse.Result(id, cacaos.toClient(), session.topic)
+        is Sign.Model.SessionAuthenticateResponse.Result -> Modal.Model.SessionAuthenticateResponse.Result(id, cacaos.toClient(), session?.toModal())
         is Sign.Model.SessionAuthenticateResponse.Error -> Modal.Model.SessionAuthenticateResponse.Error(id, code, message)
     }
 
@@ -116,7 +116,8 @@ internal fun Modal.Params.Authenticate.toSign(): Sign.Params.Authenticate = with
         statement = statement,
         requestId = requestId,
         resources = resources,
-        methods = methods
+        methods = methods,
+        expiry = expiry
     )
 }
 

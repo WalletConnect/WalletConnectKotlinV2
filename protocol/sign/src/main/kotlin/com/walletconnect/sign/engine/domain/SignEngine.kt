@@ -32,6 +32,7 @@ import com.walletconnect.sign.engine.use_case.calls.ExtendSessionUseCaseInterfac
 import com.walletconnect.sign.engine.use_case.calls.FormatAuthenticateMessageUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.GetListOfVerifyContextsUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.GetPairingsUseCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.GetPendingAuthenticateRequestUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.GetSessionProposalsUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.GetSessionsUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.GetVerifyContextByIdUseCaseInterface
@@ -87,6 +88,7 @@ internal class SignEngine(
     private val getPendingRequestsByTopicUseCase: GetPendingRequestsUseCaseByTopicInterface,
     private val getPendingSessionRequestByTopicUseCase: GetPendingSessionRequestByTopicUseCaseInterface,
     private val getPendingSessionRequests: GetPendingSessionRequests,
+    private val getPendingAuthenticateRequestUseCase: GetPendingAuthenticateRequestUseCaseInterface,
     private val deleteRequestByIdUseCase: DeleteRequestByIdUseCase,
     private val crypto: KeyManagementRepository,
     private val authenticateResponseTopicRepository: AuthenticateResponseTopicRepository,
@@ -149,6 +151,7 @@ internal class SignEngine(
     GetSessionsUseCaseInterface by getSessionsUseCase,
     GetPairingsUseCaseInterface by getPairingsUseCase,
     GetPendingRequestsUseCaseByTopicInterface by getPendingRequestsByTopicUseCase,
+    GetPendingAuthenticateRequestUseCaseInterface by getPendingAuthenticateRequestUseCase,
     GetPendingSessionRequestByTopicUseCaseInterface by getPendingSessionRequestByTopicUseCase,
     GetSessionProposalsUseCaseInterface by getSessionProposalsUseCase,
     GetVerifyContextByIdUseCaseInterface by getVerifyContextByIdUseCase,

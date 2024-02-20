@@ -1,9 +1,0 @@
--- migrates 10db to 11db
-
--- CREATE V11 SCHEMA
-
-CREATE TABLE AuthenticateResponseTopicDao (
-   id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-   pairingTopic TEXT NOT NULL,
-   responseTopic TEXT NOT NULL
-);

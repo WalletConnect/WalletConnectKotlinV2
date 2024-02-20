@@ -2,6 +2,7 @@ package com.walletconnect.sample.wallet.ui.routes.dialog_routes.session_authenti
 
 import android.content.Context
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -45,13 +46,13 @@ import com.walletconnect.sample.wallet.ui.common.generated.CancelButton
 import com.walletconnect.sample.wallet.ui.common.peer.Peer
 import com.walletconnect.sample.wallet.ui.common.peer.getValidationColor
 import com.walletconnect.sample.wallet.ui.routes.Route
-import com.walletconnect.sample.wallet.ui.routes.showSnackbar
+import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
-fun SessionAuthenticateRoute(navController: NavHostController, sessionAuthenticateViewModel: SessionAuthenticateViewModel = viewModel()) {
+fun SessionAuthenticateRoute(navController: NavHostController, connectionsViewModel: ConnectionsViewModel, sessionAuthenticateViewModel: SessionAuthenticateViewModel = viewModel()) {
     val authenticateRequestUI = sessionAuthenticateViewModel.sessionAuthenticateUI ?: throw Exception("Missing authenticate request")
     val composableScope = rememberCoroutineScope()
     val allowButtonColor = getValidationColor(authenticateRequestUI.peerContextUI.validation)
@@ -59,16 +60,16 @@ fun SessionAuthenticateRoute(navController: NavHostController, sessionAuthentica
 
     var shouldOpenProposalDialog by remember { mutableStateOf(false) }
     if (shouldOpenProposalDialog) {
-        SessionAuthenticateDialog(authenticateRequestUI, allowButtonColor, composableScope, sessionAuthenticateViewModel, navController, context)
+        SessionAuthenticateDialog(authenticateRequestUI, allowButtonColor, composableScope, sessionAuthenticateViewModel, connectionsViewModel, navController, context)
     }
 
     if (authenticateRequestUI.peerContextUI.isScam == true && !shouldOpenProposalDialog) {
         ScammerScreen(authenticateRequestUI, navController) { shouldOpenProposalDialog = true }
     } else {
-        SessionAuthenticateDialog(authenticateRequestUI, allowButtonColor, composableScope, sessionAuthenticateViewModel, navController, context)
+        SessionAuthenticateDialog(authenticateRequestUI, allowButtonColor, composableScope, sessionAuthenticateViewModel, connectionsViewModel, navController, context)
     }
 
-    SessionAuthenticateDialog(authenticateRequestUI, allowButtonColor, composableScope, sessionAuthenticateViewModel, navController, context)
+    SessionAuthenticateDialog(authenticateRequestUI, allowButtonColor, composableScope, sessionAuthenticateViewModel, connectionsViewModel, navController, context)
 }
 
 @Composable
@@ -120,6 +121,7 @@ private fun SessionAuthenticateDialog(
     allowButtonColor: Color,
     composableScope: CoroutineScope,
     sessionAuthenticateViewModel: SessionAuthenticateViewModel,
+    connectionsViewModel: ConnectionsViewModel,
     navController: NavHostController,
     context: Context,
 ) {
@@ -135,57 +137,56 @@ private fun SessionAuthenticateDialog(
             allowButtonColor,
             onCancel = {
                 isCancelLoading = true
-                composableScope.launch {
-                    try {
-                        sessionAuthenticateViewModel.reject(
-                            onSuccess = { redirect ->
-                                isCancelLoading = false
-                                composableScope.launch(Dispatchers.Main) {
-                                    navController.popBackStack(route = Route.Connections.path, inclusive = false)
-                                }
 
-                                if (redirect.isNotEmpty()) {
-                                    context.sendResponseDeepLink(redirect.toUri())
-                                } else {
-                                    composableScope.launch(Dispatchers.Main) {
-                                        navController.showSnackbar("Go back to your browser")
-                                    }
+                try {
+                    sessionAuthenticateViewModel.reject(
+                        onSuccess = { redirect ->
+                            isCancelLoading = false
+                            composableScope.launch(Dispatchers.Main) {
+                                navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                            }
+
+                            if (redirect.isNotEmpty()) {
+                                context.sendResponseDeepLink(redirect.toUri())
+                            } else {
+                                composableScope.launch(Dispatchers.Main) {
+                                    Toast.makeText(context, "Go back to your browser", Toast.LENGTH_SHORT).show()
                                 }
-                            },
-                            onError = { error ->
-                                isCancelLoading = false
-                                closeAndShowError(navController, error, composableScope)
-                            })
-                    } catch (e: Throwable) {
-                        closeAndShowError(navController, e.message, composableScope)
-                    }
+                            }
+                        },
+                        onError = { error ->
+                            isCancelLoading = false
+                            closeAndShowError(navController, error, composableScope, context)
+                        })
+                } catch (e: Throwable) {
+                    closeAndShowError(navController, e.message, composableScope, context)
                 }
             }, onConfirm = {
                 isConfirmLoading = true
-                composableScope.launch {
-                    try {
-                        sessionAuthenticateViewModel.approve(
-                            onSuccess = { redirect ->
-                                isConfirmLoading = false
-                                composableScope.launch(Dispatchers.Main) {
-                                    navController.popBackStack(route = Route.Connections.path, inclusive = false)
-                                }
 
-                                if (redirect.isNotEmpty()) {
-                                    context.sendResponseDeepLink(redirect.toUri())
-                                } else {
-                                    composableScope.launch(Dispatchers.Main) {
-                                        navController.showSnackbar("Go back to your browser")
-                                    }
+                try {
+                    sessionAuthenticateViewModel.approve(
+                        onSuccess = { redirect ->
+                            isConfirmLoading = false
+                            composableScope.launch(Dispatchers.Main) {
+                                navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                                connectionsViewModel.refreshConnections()
+                            }
+
+                            if (redirect.isNotEmpty()) {
+                                context.sendResponseDeepLink(redirect.toUri())
+                            } else {
+                                composableScope.launch(Dispatchers.Main) {
+                                    Toast.makeText(context, "Go back to your browser", Toast.LENGTH_SHORT).show()
                                 }
-                            },
-                            onError = { error ->
-                                isConfirmLoading = false
-                                closeAndShowError(navController, error, composableScope)
-                            })
-                    } catch (e: Exception) {
-                        closeAndShowError(navController, e.message, composableScope)
-                    }
+                            }
+                        },
+                        onError = { error ->
+                            isConfirmLoading = false
+                            closeAndShowError(navController, error, composableScope, context)
+                        })
+                } catch (e: Exception) {
+                    closeAndShowError(navController, e.message, composableScope, context)
                 }
             },
             isLoadingConfirm = isConfirmLoading,
@@ -195,10 +196,10 @@ private fun SessionAuthenticateDialog(
     }
 }
 
-private fun closeAndShowError(navController: NavHostController, mesage: String?, coroutineScope: CoroutineScope) {
+private fun closeAndShowError(navController: NavHostController, mesage: String?, coroutineScope: CoroutineScope, context: Context) {
     coroutineScope.launch(Dispatchers.Main) {
         navController.popBackStack(route = Route.Connections.path, inclusive = false)
-        navController.showSnackbar(mesage ?: "Session authenticate error, please check your Internet connection")
+        Toast.makeText(context, mesage ?: "Session authenticate error, please check your Internet connection", Toast.LENGTH_SHORT).show()
     }
 }
 

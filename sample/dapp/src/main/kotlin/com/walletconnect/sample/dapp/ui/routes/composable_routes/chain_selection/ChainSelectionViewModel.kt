@@ -48,7 +48,7 @@ class ChainSelectionViewModel : ViewModel() {
             is Modal.Model.RejectedSession -> DappSampleEvents.SessionRejected
             is Modal.Model.SessionAuthenticateResponse -> {
                 if (walletEvent is Modal.Model.SessionAuthenticateResponse.Result) {
-                    DappSampleEvents.SessionAuthenticateApproved
+                    DappSampleEvents.SessionAuthenticateApproved(if (walletEvent.session == null) "Authenticated successfully!" else null)
                 } else {
                     DappSampleEvents.SessionAuthenticateRejected
                 }
@@ -134,16 +134,20 @@ class ChainSelectionViewModel : ViewModel() {
         }
         val authenticateParams = Modal.Params.Authenticate(
             type = "caip222",
-            chains = listOf("eip155:1", "eip155:137"),
+            chains = uiState.value.filter { it.isSelected }.map { it.chainId },
             domain = "sample.kotlin.dapp",
-            aud = "https://react-auth-dapp.vercel.app/",
+            aud = "https://web3inbox.com/all-apps",
             nonce = randomBytes(12).bytesToHex(),
             exp = null,
             nbf = null,
-            statement = "Sign in with wallet.",
+            statement = null,//"Sign in with wallet.",
             requestId = null,
-            resources = null,
+            resources = listOf(
+//                "urn:recap:eyJhdHQiOnsiaHR0cHM6Ly9ub3RpZnkud2FsbGV0Y29ubmVjdC5jb20vYWxsLWFwcHMiOnsiY3J1ZC9zdWJzY3JpcHRpb25zIjpbe31dLCJjcnVkL25vdGlmaWNhdGlvbnMiOlt7fV19fX0=",
+                "ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/"
+            ),
             methods = listOf("personal_sign", "eth_signTypedData"),
+            expiry = null
         )
         WalletConnectModal.authenticate(authenticateParams,
             onSuccess = { url ->
@@ -210,7 +214,7 @@ class ChainSelectionViewModel : ViewModel() {
         } catch (e: Exception) {
             Firebase.crashlytics.recordException(e)
             Timber.tag(tag(this)).e(e)
-            onError(e.message ?: "aaaUnknown error, please contact support")
+            onError(e.message ?: "Unknown error, please contact support")
         }
     }
 }

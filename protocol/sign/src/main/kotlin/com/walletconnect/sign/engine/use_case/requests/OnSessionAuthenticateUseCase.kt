@@ -1,5 +1,6 @@
 package com.walletconnect.sign.engine.use_case.requests
 
+import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.exception.Invalid
 import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.model.Expiry
@@ -10,8 +11,9 @@ import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.utils.CoreValidator
+import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.dayInSeconds
+import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
@@ -27,6 +29,7 @@ import kotlinx.coroutines.supervisorScope
 internal class OnSessionAuthenticateUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val resolveAttestationIdUseCase: ResolveAttestationIdUseCase,
+    private val pairingController: PairingControllerInterface,
     private val logger: Logger
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
@@ -36,15 +39,15 @@ internal class OnSessionAuthenticateUseCase(
         val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE_RESPONSE, Ttl(dayInSeconds))
         logger.log("Received session authenticate: ${request.topic}")
         try {
-            val expiry = authenticateSessionParams.authPayload.exp?.toLong()?.let { Expiry(it) }
-            if (!CoreValidator.isExpiryWithinBounds(expiry)) {
+            if (Expiry(authenticateSessionParams.expiryTimestamp).isExpired()) {
                 logger.log("Received session authenticate - expiry error: ${request.topic}")
                 jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
+                _events.emit(SDKError(Throwable("Received session authenticate - expiry error: ${request.topic}")))
                 return@supervisorScope
             }
 
-            //TODO: add eip155 validation
             val url = authenticateSessionParams.requester.metadata.url
+            pairingController.setRequestReceived(Core.Params.RequestReceived(request.topic.value))
             resolveAttestationIdUseCase(request.id, request.message, url) { verifyContext ->
                 scope.launch {
                     logger.log("Received session authenticate - emitting: ${request.topic}")
@@ -54,6 +57,7 @@ internal class OnSessionAuthenticateUseCase(
                             request.topic.value,
                             authenticateSessionParams.authPayload.toEngineDO(),
                             authenticateSessionParams.requester.toEngineDO(),
+                            authenticateSessionParams.expiryTimestamp,
                             verifyContext.toEngineDO()
                         )
                     )

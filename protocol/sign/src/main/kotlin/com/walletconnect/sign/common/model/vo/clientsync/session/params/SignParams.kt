@@ -38,7 +38,9 @@ internal sealed class SignParams : CoreSignParams() {
         @Json(name = "requester")
         val requester: Requester,
         @Json(name = "authPayload")
-        val authPayload: PayloadParams
+        val authPayload: PayloadParams,
+        @Json(name = "expiryTimestamp")
+        val expiryTimestamp: Long
     ) : SignParams()
 
     @JsonClass(generateAdapter = true)

@@ -92,15 +92,22 @@ fun generateAuthObject(payload: Sign.Model.PayloadParams, issuer: String, signat
 }
 
 fun generateAuthPayloadParams(payloadParams: Sign.Model.PayloadParams, supportedChains: List<String>, supportedMethods: List<String>): Sign.Model.PayloadParams {
-    //TODO: add chains caip-2 validation
     val reCapsList: List<String>? = payloadParams.resources.decodeReCaps()?.filter { decoded -> decoded.contains("eip155") }
-    val sessionReCaps = reCapsList.parseReCaps()["eip155"] ?: throw Exception("Invalid ReCaps - eip155 is missing")
 
-    val requestedMethods = sessionReCaps.keys.map { key -> key.substringAfter('/') }
+    if (reCapsList.isNullOrEmpty()) return payloadParams
+    val sessionReCaps = reCapsList.parseReCaps()["eip155"]
+
+    val requestedMethods = sessionReCaps!!.keys.map { key -> key.substringAfter('/') }
     val requestedChains = payloadParams.chains
 
     val sessionChains = requestedChains.intersect(supportedChains.toSet()).toList().distinct()
     val sessionMethods = requestedMethods.intersect(supportedMethods.toSet()).toList().distinct()
+
+    if (sessionChains.isEmpty()) throw Exception("No supported chains")
+    if (sessionMethods.isEmpty()) throw Exception("No supported methods")
+
+    if (!sessionChains.all { chain -> CoreValidator.isChainIdCAIP2Compliant(chain) }) throw Exception("Chains are not CAIP-2 compliant")
+    if (!sessionChains.all { chain -> SignValidator.getNamespaceKeyFromChainId(chain) == "eip155" }) throw Exception("Only eip155(EVM) is supported")
 
     val actionsJsonObject = JSONObject()
     val chainsJsonArray = JSONArray()
@@ -113,10 +120,13 @@ fun generateAuthPayloadParams(payloadParams: Sign.Model.PayloadParams, supported
     if (payloadParams.resources == null) {
         payloadParams.resources = listOf(newReCapsUrl)
     } else {
-        val newResourcesList = reCapsList
-            ?.filter { decoded -> !decoded.contains("eip155") }
-            ?.map { reCaps -> Base64.toBase64String(reCaps.toByteArray(Charsets.UTF_8)) }
-            ?.plus(newReCapsUrl)
+        val newResourcesList = payloadParams.resources!!
+            .decodeReCaps()!!
+            .filter { decoded -> !decoded.contains("eip155") }
+            .map { reCaps -> "$RECAPS_PREFIX${Base64.toBase64String(reCaps.toByteArray(Charsets.UTF_8))}" }
+            .plus(payloadParams.resources!!.filter { resource -> !resource.startsWith(RECAPS_PREFIX) })
+            .plus(newReCapsUrl)
+
         payloadParams.resources = newResourcesList
     }
 

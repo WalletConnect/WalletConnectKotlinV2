@@ -2,15 +2,21 @@ package com.walletconnect.sign.engine.use_case.calls
 
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
+import com.walletconnect.android.internal.common.exception.Invalid
+import com.walletconnect.android.internal.common.exception.RequestExpiredException
 import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Participants
 import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.internal.common.model.Tags
+import com.walletconnect.android.internal.common.model.WCRequest
+import com.walletconnect.android.internal.common.model.type.ClientParams
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
+import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.dayInSeconds
+import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -18,6 +24,7 @@ import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.exceptions.MissingSessionAuthenticateRequest
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionAuthenticateRequest
+import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
@@ -34,6 +41,16 @@ internal class RejectSessionAuthenticateUseCase(
             logger.error(MissingSessionAuthenticateRequest().message)
             onFailure(MissingSessionAuthenticateRequest())
             return@supervisorScope
+        }
+
+        jsonRpcHistoryEntry.expiry?.let {
+            if (it.isExpired()) {
+                val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(fiveMinutesInSeconds))
+                val request = WCRequest(jsonRpcHistoryEntry.topic, jsonRpcHistoryEntry.id, JsonRpcMethod.WC_SESSION_AUTHENTICATE, object : ClientParams {})
+                jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
+                logger.error("Session Authenticate Request Expired: ${jsonRpcHistoryEntry.topic}, id: ${jsonRpcHistoryEntry.id}")
+                throw RequestExpiredException("This request has expired, id: ${jsonRpcHistoryEntry.id}")
+            }
         }
 
         //todo: handle error codes

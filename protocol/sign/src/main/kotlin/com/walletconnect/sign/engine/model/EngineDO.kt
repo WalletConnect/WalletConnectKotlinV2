@@ -34,7 +34,14 @@ internal sealed class EngineDO {
         val context: VerifyContext
     ) : EngineDO(), EngineEvent
 
-    data class SessionAuthenticateEvent(val id: Long, val pairingTopic: String, val payloadParams: PayloadParams, val participant: Participant, val verifyContext: VerifyContext) : EngineDO(), EngineEvent
+    data class SessionAuthenticateEvent(
+        val id: Long,
+        val pairingTopic: String,
+        val payloadParams: PayloadParams,
+        val participant: Participant,
+        val expiryTimestamp: Long,
+        val verifyContext: VerifyContext
+    ) : EngineDO(), EngineEvent
 
     data class PayloadParams(
         val chains: List<String>,
@@ -48,8 +55,9 @@ internal sealed class EngineDO {
         val statement: String?,
         val requestId: String?,
         var resources: List<String>?,
-        val version : String
+        val version: String
     ) : EngineDO()
+
     data class Participant(
         val publicKey: String,
         val metadata: AppMetaData,
@@ -133,7 +141,7 @@ internal sealed class EngineDO {
     ) : EngineDO(), EngineEvent
 
     sealed class SessionAuthenticateResponse : EngineDO(), EngineEvent {
-        data class Result(val id: Long, val cacaos: List<Cacao>, val session: Session) : SessionAuthenticateResponse()
+        data class Result(val id: Long, val cacaos: List<Cacao>, val session: Session?) : SessionAuthenticateResponse()
         data class Error(val id: Long, val code: Int, val message: String) : SessionAuthenticateResponse()
     }
 

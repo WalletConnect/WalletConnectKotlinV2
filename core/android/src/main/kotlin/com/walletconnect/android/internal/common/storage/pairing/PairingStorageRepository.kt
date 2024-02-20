@@ -42,8 +42,8 @@ class PairingStorageRepository(private val pairingQueries: PairingQueries) : Pai
     override fun activatePairing(topic: Topic) = pairingQueries.activatePairing(expiry = activePairing, is_active = true, topic = topic.value)
 
     @Throws(SQLiteException::class)
-    override fun setProposalReceived(topic: Topic) {
-        pairingQueries.setProposalReceived(is_proposal_received = true, topic = topic.value)
+    override fun setRequestReceived(topic: Topic) {
+        pairingQueries.setRequestReceived(is_proposal_received = true, topic = topic.value)
     }
 
     @Throws(SQLiteException::class)

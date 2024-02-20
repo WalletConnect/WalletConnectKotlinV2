@@ -8,7 +8,6 @@ import com.walletconnect.auth.client.AuthClient
 import com.walletconnect.auth.common.exceptions.AuthClientAlreadyInitializedException
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
-import com.walletconnect.sign.common.exceptions.InvalidSignParamsType
 import com.walletconnect.sign.common.exceptions.SignClientAlreadyInitializedException
 import kotlinx.coroutines.*
 import java.util.*
@@ -22,6 +21,11 @@ object Web3Wallet {
         fun onSessionRequest(sessionRequest: Wallet.Model.SessionRequest, verifyContext: Wallet.Model.VerifyContext)
         fun onSessionDelete(sessionDelete: Wallet.Model.SessionDelete)
         fun onSessionExtend(session: Wallet.Model.Session)
+
+        @Deprecated(
+            "AuthSDK has been deprecated. Please use updated Web3Wallet and Sign SDKs instead.",
+            replaceWith = ReplaceWith("fun onSessionAuthenticated(sessionAuthenticate: Wallet.Model.SessionAuthenticate, verifyContext: Wallet.Model.VerifyContext)")
+        )
         fun onAuthRequest(authRequest: Wallet.Model.AuthRequest, verifyContext: Wallet.Model.VerifyContext)
 
         //Responses
@@ -99,6 +103,7 @@ object Web3Wallet {
         }
 
         SignClient.setWalletDelegate(signWalletDelegate)
+        //TODO: Remove AuthClient setting responder delegate in the future
         AuthClient.setResponderDelegate(authWalletDelegate)
     }
 
@@ -115,6 +120,7 @@ object Web3Wallet {
                 onError(Wallet.Model.Error(error.throwable))
             }
         }
+        //TODO: Remove AuthClient initialization in the future
         AuthClient.initialize(Auth.Params.Init(params.core), onSuccess = onSuccessfulInitialization) { error ->
             if (error.throwable is AuthClientAlreadyInitializedException) {
                 onSuccessfulInitialization()
@@ -143,15 +149,7 @@ object Web3Wallet {
                         }
                     }
                 },
-                onError = { signError ->
-                    if (signError.throwable is InvalidSignParamsType) {
-                        AuthClient.decryptMessage(Auth.Params.DecryptMessage(params.topic, params.encryptedMessage),
-                            onSuccess = { message -> (message as? Auth.Model.Message.AuthRequest)?.run { onSuccess(message.toWallet()) } },
-                            onError = { error -> onError(Wallet.Model.Error(error.throwable)) })
-                    } else {
-                        onError(Wallet.Model.Error(signError.throwable))
-                    }
-                })
+                onError = { signError -> onError(Wallet.Model.Error(signError.throwable)) })
         }
     }
 
@@ -280,12 +278,20 @@ object Web3Wallet {
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
+    @Deprecated(
+        "AuthSDK has been deprecated. Please use updated Web3Wallet and Sign SDKs instead.",
+        replaceWith = ReplaceWith("fun formatAuthMessage(formatMessage: Sign.Params.FormatMessage): String? in Web3Wallet SDK")
+    )
     @Throws(IllegalStateException::class)
     fun formatMessage(params: Wallet.Params.FormatMessage): String? {
         val authParams = Auth.Params.FormatMessage(params.payloadParams.toAuth(), params.issuer)
         return AuthClient.formatMessage(authParams)
     }
 
+    @Deprecated(
+        "AuthSDK has been deprecated. Please use updated Web3Wallet and Sign SDKs instead.",
+        replaceWith = ReplaceWith("fun approveSessionAuthenticated(approve: Sign.Params.ApproveSessionAuthenticate, onSuccess: (Sign.Params.ApproveSessionAuthenticate) -> Unit, onError: (Sign.Model.Error) -> Unit) or fun rejectSessionAuthenticated(reject: Sign.Params.RejectSessionAuthenticate, onSuccess: (Sign.Params.RejectSessionAuthenticate) -> Unit, onError: (Sign.Model.Error) -> Unit) in Web3Wallet SDK")
+    )
     @Throws(IllegalStateException::class)
     fun respondAuthRequest(
         params: Wallet.Params.AuthRequestResponse,
@@ -352,6 +358,10 @@ object Web3Wallet {
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
+    @Deprecated(
+        "AuthSDK has been deprecated. Please use updated Web3Wallet and Sign SDKs instead.",
+        replaceWith = ReplaceWith("fun getPendingAuthenticateRequests(): List<Sign.Model.SessionAuthenticate> in Web3Wallet SDK")
+    )
     @Throws(IllegalStateException::class)
     fun getPendingAuthRequests(): List<Wallet.Model.PendingAuthRequest> {
         return AuthClient.getPendingRequest().toWallet()
@@ -363,7 +373,7 @@ object Web3Wallet {
      */
     @Throws(IllegalStateException::class)
     fun getVerifyContext(id: Long): Wallet.Model.VerifyContext? {
-        return SignClient.getVerifyContext(id)?.toWallet() ?: AuthClient.getVerifyContext(id)?.toWallet()
+        return SignClient.getVerifyContext(id)?.toWallet()
     }
 
     /**
@@ -372,7 +382,7 @@ object Web3Wallet {
      */
     @Throws(IllegalStateException::class)
     fun getListOfVerifyContexts(): List<Wallet.Model.VerifyContext> {
-        return SignClient.getListOfVerifyContexts().map { verifyContext -> verifyContext.toWallet() }.plus(AuthClient.getListOfVerifyContexts().map { verifyContext -> verifyContext.toWallet() })
+        return SignClient.getListOfVerifyContexts().map { verifyContext -> verifyContext.toWallet() }
     }
 
     private fun validateInitializationCount(clientInitCounter: Int, onSuccess: () -> Unit, onError: (Wallet.Model.Error) -> Unit) {
