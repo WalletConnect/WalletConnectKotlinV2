@@ -96,22 +96,27 @@ fun ChainSelectionRoute(navController: NavController) {
         onChainClick = viewModel::updateChainSelectState,
         onConnectClick = { onConnectClick(viewModel, navController, context) },
         onAuthenticateClick = {
-            authenticate(viewModel, context, composableScope) { uri ->
-                try {
-                    val intent = Intent(Intent.ACTION_VIEW).apply {
-                        val encoded = URLEncoder.encode(uri, "UTF-8")
-                        data = "kotlin-web3wallet://wc?uri=$encoded".toUri()
-                        `package` = when (BuildConfig.BUILD_TYPE) {
-                            "debug" -> SAMPLE_WALLET_DEBUG_PACKAGE
-                            "internal" -> SAMPLE_WALLET_INTERNAL_PACKAGE
-                            else -> SAMPLE_WALLET_RELEASE_PACKAGE
+            if (context.isSampleWalletInstalled()) {
+                authenticate(viewModel, context, composableScope) { uri ->
+                    try {
+                        val intent = Intent(Intent.ACTION_VIEW).apply {
+                            val encoded = URLEncoder.encode(uri, "UTF-8")
+                            data = "kotlin-web3wallet://wc?uri=$encoded".toUri()
+                            `package` = when (BuildConfig.BUILD_TYPE) {
+                                "debug" -> SAMPLE_WALLET_DEBUG_PACKAGE
+                                "internal" -> SAMPLE_WALLET_INTERNAL_PACKAGE
+                                else -> SAMPLE_WALLET_RELEASE_PACKAGE
+                            }
                         }
+                        context.startActivity(intent)
+                    } catch (e: Exception) {
+                        Toast.makeText(context, "SampleWallet is not installed: $e", Toast.LENGTH_SHORT).show()
                     }
-                    context.startActivity(intent)
-                } catch (e: Exception) {
-                    Toast.makeText(context, "SampleWallet is not installed: $e", Toast.LENGTH_SHORT).show()
                 }
+            } else {
+                Toast.makeText(context, "Please install Kotlin Sample Wallet", Toast.LENGTH_SHORT).show()
             }
+
         },
         onDynamicSwitcher = {
             authenticate(viewModel, context, composableScope) { uri ->
@@ -277,27 +282,24 @@ private fun ChainSelectionScreen(
                     .height(50.dp)
                     .padding(horizontal = 16.dp),
             )
-            if (isSampleWalletInstalled) {
-                BlueButton(
-                    text = "Authenticate",
-                    onClick = onAuthenticateClick,
-                    modifier = Modifier
-                        .padding(vertical = 10.dp)
-                        .fillMaxWidth()
-                        .height(50.dp)
-                        .padding(horizontal = 16.dp)
-                )
-
-                BlueButton(
-                    text = "Dynamic Switcher (TrustWallet)",
-                    onClick = onDynamicSwitcher,
-                    modifier = Modifier
-                        .padding(vertical = 10.dp)
-                        .fillMaxWidth()
-                        .height(50.dp)
-                        .padding(horizontal = 16.dp)
-                )
-            }
+            BlueButton(
+                text = "Authenticate",
+                onClick = onAuthenticateClick,
+                modifier = Modifier
+                    .padding(vertical = 10.dp)
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .padding(horizontal = 16.dp)
+            )
+            BlueButton(
+                text = "Dynamic Switcher (TrustWallet)",
+                onClick = onDynamicSwitcher,
+                modifier = Modifier
+                    .padding(vertical = 10.dp)
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .padding(horizontal = 16.dp)
+            )
         }
         if (awaitingState) {
             Loader()
