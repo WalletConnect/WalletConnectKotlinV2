@@ -1,12 +1,5 @@
 import org.gradle.kotlin.dsl.DependencyHandlerScope
 
-fun DependencyHandlerScope.scanner() {
-    "implementation"("com.google.mlkit:barcode-scanning:$mlKitBarcode")
-    "implementation"("androidx.camera:camera-camera2:$camera2Version")
-    "implementation"("androidx.camera:camera-lifecycle:$camera2Version")
-    "implementation"("androidx.camera:camera-view:1.0.0-alpha21")
-}
-
 fun DependencyHandlerScope.lifecycle() {
     "implementation"("androidx.lifecycle:lifecycle-livedata-ktx:$lifecycleVersion")
     "implementation"("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion")
@@ -63,13 +56,7 @@ fun DependencyHandlerScope.okhttp() {
 }
 
 fun DependencyHandlerScope.bouncyCastle() {
-    "api"("org.bouncycastle:bcprov-jdk15on:$bouncyCastleVersion")
-}
-
-fun DependencyHandlerScope.sqlDelightAndroid() {
-    "api"("com.squareup.sqldelight:android-driver:$sqlDelightVersion")
-    "api"("com.squareup.sqldelight:coroutines-extensions-jvm:$sqlDelightVersion")
-
+    "api"("org.bouncycastle:bcprov-jdk18on:$bouncyCastleVersion")
 }
 
 fun DependencyHandlerScope.sqlCipher() {
@@ -91,15 +78,6 @@ fun DependencyHandlerScope.koinJvm() {
 
 fun DependencyHandlerScope.koinAndroid() {
     "api"("io.insert-koin:koin-android:$koinVersion")
-}
-
-fun DependencyHandlerScope.koinTest() {
-    "testImplementation"("io.insert-koin:koin-test-junit5:$koinVersion")
-}
-
-fun DependencyHandlerScope.glide_N_kapt() {
-    "implementation"("com.github.bumptech.glide:glide:4.12.0")
-    "kapt"("com.github.bumptech.glide:compiler:4.12.0")
 }
 
 fun DependencyHandlerScope.multibaseJava() {
