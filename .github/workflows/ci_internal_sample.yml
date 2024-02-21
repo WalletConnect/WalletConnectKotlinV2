@@ -1,6 +1,7 @@
 name: Release Samples - Internal
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - develop
