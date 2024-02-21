@@ -1,16 +1,16 @@
 name: Release Samples - Internal
 
 on:
+  push:
+    branches:
+      - develop
+    paths:
+      - 'foundation/**'
+      - 'core/**'
+      - 'protocol/**'
+      - 'product/**'
+      - 'sample/**'
   workflow_dispatch:
-#  push:
-#    branches:
-#      - develop
-#    paths:
-#      - 'foundation/**'
-#      - 'core/**'
-#      - 'protocol/**'
-#      - 'product/**'
-#      - 'sample/**'
 
 jobs:
   release_samples_internal:
