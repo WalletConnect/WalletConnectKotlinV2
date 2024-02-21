@@ -35,6 +35,7 @@ fun dappClientAuthenticate(onPairing: (String) -> Unit) {
         requestId = null,
         resources = null,
         methods = listOf("personal_sign", "eth_signTypedData_v4", "eth_sign"),
+        expiry = null
     )
     DappSignClient.sessionAuthenticate(
         authenticateParams,

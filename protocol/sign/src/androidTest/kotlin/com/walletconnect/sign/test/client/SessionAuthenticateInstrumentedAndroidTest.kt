@@ -117,7 +117,7 @@ class SessionAuthenticateInstrumentedAndroidTest {
             override fun onSessionAuthenticateResponse(sessionAuthenticateResponse: Sign.Model.SessionAuthenticateResponse) {
                 if (sessionAuthenticateResponse is Sign.Model.SessionAuthenticateResponse.Result) {
                     Timber.d("Dapp is sending session request")
-                    dappClientSendRequest(sessionAuthenticateResponse.session.topic)
+                    dappClientSendRequest(sessionAuthenticateResponse.session?.topic ?: "")
                 }
             }
 
@@ -156,23 +156,17 @@ class SessionAuthenticateInstrumentedAndroidTest {
                 }
 
                 val params = Sign.Params.ApproveSessionAuthenticate(sessionAuthenticate.id, cacaos)
-                WalletSignClient.approveSessionAuthenticated(params, onSuccess = {}, onError = {
-                    Timber.d("approveSessionAuthenticated: onError: $it")
+                WalletSignClient.approveSessionAuthenticated(params, onSuccess = {}, onError = { error ->
+                    Timber.d("approveSessionAuthenticated: onError: $error")
+                    (error.throwable.message == "Invalid Cacao for Session Authenticate").also {
+                        Timber.d("receiveApproveSessionAuthenticate: ${error.throwable.message}: finish")
+                        scenarioExtension.closeAsSuccess()
+                    }
                 })
             }
         }
 
-        val dappDelegate = object : DappDelegate() {
-            override fun onSessionAuthenticateResponse(sessionAuthenticateResponse: Sign.Model.SessionAuthenticateResponse) {
-                if (sessionAuthenticateResponse is Sign.Model.SessionAuthenticateResponse.Error) {
-                    (sessionAuthenticateResponse.message == "Invalid CACAO").also {
-                        Timber.d("receiveApproveSessionAuthenticate: ${sessionAuthenticateResponse.message}: finish")
-                        scenarioExtension.closeAsSuccess()
-                    }
-                }
-            }
-        }
-        launch(walletDelegate, dappDelegate)
+        launch(walletDelegate, DappDelegate())
     }
 
     @Test

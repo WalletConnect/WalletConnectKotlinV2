@@ -19,7 +19,7 @@ class ParseReCapsTest {
         val actions = resources.getMethods()
 
         assert(chains == listOf("eip155:1"))
-        assert(actions == listOf("personal_sign", "eth_signTypedData_v4"))
+        assert(actions == listOf("eth_signTypedData_v4", "personal_sign"))
     }
 
     @Test
@@ -33,7 +33,7 @@ class ParseReCapsTest {
         val actions = jsonList.getMethods()
 
         assert(chains == listOf("eip155:1", "eip155:137"))
-        assert(actions == listOf("personal_sign", "eth_sign"))
+        assert(actions == listOf("eth_sign", "personal_sign"))
     }
 
     @Test
