@@ -30,6 +30,8 @@ import com.walletconnect.sign.engine.model.ValidationError
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
 import com.walletconnect.util.Empty
 import java.net.URI
+import java.text.SimpleDateFormat
+import java.util.Calendar
 
 @JvmSynthetic
 internal fun EngineDO.WalletConnectUri.toAbsoluteString(): String =
@@ -307,9 +309,9 @@ internal fun EngineDO.PayloadParams.toCommon(): PayloadParams =
         aud = aud,
         version = version,
         nonce = nonce,
-        iat = iat,
         nbf = nbf,
         exp = exp,
+        iat = SimpleDateFormat(Cacao.Payload.ISO_8601_PATTERN).format(Calendar.getInstance().time),
         statement = statement,
         requestId = requestId,
         resources = resources,
@@ -324,7 +326,6 @@ internal fun PayloadParams.toEngineDO(): EngineDO.PayloadParams =
         aud = aud,
         version = version,
         nonce = nonce,
-        iat = iat,
         nbf = nbf,
         exp = exp,
         statement = statement,
@@ -335,19 +336,20 @@ internal fun PayloadParams.toEngineDO(): EngineDO.PayloadParams =
     )
 
 @JvmSynthetic
-internal fun PayloadParams.toCacaoPayload(iss: Issuer): Cacao.Payload = Cacao.Payload(
-    iss.value,
-    domain = domain,
-    aud = aud,
-    version = version,
-    nonce = nonce,
-    iat = iat,
-    nbf = nbf,
-    exp = exp,
-    statement = statement,
-    requestId = requestId,
-    resources = resources
-)
+internal fun PayloadParams.toCacaoPayload(iss: Issuer): Cacao.Payload =
+    Cacao.Payload(
+        iss.value,
+        domain = domain,
+        aud = aud,
+        version = version,
+        nonce = nonce,
+        nbf = nbf,
+        exp = exp,
+        iat = SimpleDateFormat(Cacao.Payload.ISO_8601_PATTERN).format(Calendar.getInstance().time),
+        statement = statement,
+        requestId = requestId,
+        resources = resources
+    )
 
 @JvmSynthetic
 internal fun PayloadParams.toCAIP222Message(iss: Issuer, chainName: String): String =

@@ -24,7 +24,6 @@ class GenerateAuthPayloadParamsTest {
             type = null,
             nbf = null,
             exp = null,
-            iat = "iat",
             statement = null,
             requestId = null,
             resources = listOf("test_resource", encodedSignRecaps)
@@ -48,7 +47,6 @@ class GenerateAuthPayloadParamsTest {
             type = null,
             nbf = null,
             exp = null,
-            iat = "iat",
             statement = null,
             requestId = null,
             resources = listOf("test_resource", encodedSignRecaps)
@@ -73,7 +71,6 @@ class GenerateAuthPayloadParamsTest {
             type = null,
             nbf = null,
             exp = null,
-            iat = "iat",
             statement = null,
             requestId = null,
             resources = listOf("test_resource", encodedSignRecaps)
@@ -99,7 +96,6 @@ class GenerateAuthPayloadParamsTest {
             type = null,
             nbf = null,
             exp = null,
-            iat = "iat",
             statement = null,
             requestId = null,
             resources = listOf("test_resource", encodedNotifyAndSignRecaps)
@@ -124,7 +120,6 @@ class GenerateAuthPayloadParamsTest {
             type = null,
             nbf = null,
             exp = null,
-            iat = "iat",
             statement = null,
             requestId = null,
             resources = listOf("test_resource", encodedNotifyAndSignRecaps, encodedSignRecaps)
@@ -151,7 +146,6 @@ class GenerateAuthPayloadParamsTest {
             type = null,
             nbf = null,
             exp = null,
-            iat = "iat",
             statement = null,
             requestId = null,
             resources = listOf("test_resource", encodedNotifyRecaps, encodedSignRecaps)

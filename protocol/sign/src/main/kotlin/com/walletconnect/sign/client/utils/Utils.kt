@@ -131,6 +131,6 @@ fun generateAuthPayloadParams(payloadParams: Sign.Model.PayloadParams, supported
     }
 
     return with(payloadParams) {
-        Sign.Model.PayloadParams(sessionChains, domain, nonce, aud, type, nbf, iat, exp, statement, requestId, resources)
+        Sign.Model.PayloadParams(sessionChains, domain, nonce, aud, type, nbf, exp, statement, requestId, resources)
     }
 }

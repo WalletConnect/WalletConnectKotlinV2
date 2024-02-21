@@ -26,7 +26,7 @@ internal class MapperTest {
             exp = null,
             statement = null,
             requestId = null,
-            resources = null
+            resources = emptyList()
         )
 
         val message = "service.invalid wants you to sign in with your Ethereum account:\n" +
@@ -37,7 +37,8 @@ internal class MapperTest {
                 "Version: 1\n" +
                 "Chain ID: 1\n" +
                 "Nonce: 32891756\n" +
-                "Issued At: 2021-09-30T16:25:24Z"
+                "Issued At: 2021-09-30T16:25:24Z\n" +
+                "Resources:"
 
         assertEquals(message, payload.toCAIP222Message(chainName))
     }

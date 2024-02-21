@@ -98,7 +98,20 @@ internal fun EngineDO.SessionRequest.toClientSessionRequest(): Sign.Model.Sessio
 
 @JvmSynthetic
 internal fun Sign.Model.PayloadParams.toCaip222Request(): PayloadParams = with(this) {
-    PayloadParams(CacaoType.CAIP222.header, chains, domain, aud, "1", nonce, iat, nbf, exp, statement, requestId, resources)
+    PayloadParams(
+        CacaoType.CAIP222.header,
+        chains,
+        domain,
+        aud,
+        "1",
+        nonce,
+        SimpleDateFormat(Cacao.Payload.ISO_8601_PATTERN).format(Calendar.getInstance().time),
+        nbf,
+        exp,
+        statement,
+        requestId,
+        resources
+    )
 }
 
 @JvmSynthetic
@@ -110,7 +123,6 @@ internal fun Sign.Params.Authenticate.toPayloadParams(): EngineDO.PayloadParams 
         aud = aud,
         version = "1",
         nonce = nonce,
-        iat = SimpleDateFormat(Cacao.Payload.ISO_8601_PATTERN).format(Calendar.getInstance().time),
         nbf = nbf,
         exp = exp,
         statement = statement,
@@ -121,7 +133,7 @@ internal fun Sign.Params.Authenticate.toPayloadParams(): EngineDO.PayloadParams 
 
 @JvmSynthetic
 internal fun Sign.Model.PayloadParams.toCacaoPayload(issuer: String): Sign.Model.Cacao.Payload = with(this) {
-    Sign.Model.Cacao.Payload(issuer, domain, aud, "1", nonce, iat, nbf, exp, statement, requestId, resources)
+    Sign.Model.Cacao.Payload(issuer, domain, aud, "1", nonce, iat = SimpleDateFormat(Cacao.Payload.ISO_8601_PATTERN).format(Calendar.getInstance().time), nbf, exp, statement, requestId, resources)
 }
 
 @JvmSynthetic
@@ -208,7 +220,6 @@ internal fun EngineDO.PayloadParams.toClient(): Sign.Model.PayloadParams = Sign.
     domain = domain,
     aud = aud,
     nonce = nonce,
-    iat = iat,
     nbf = nbf,
     exp = exp,
     statement = statement,
@@ -311,7 +322,6 @@ internal fun SignParams.SessionAuthenticateParams.toClient(): Sign.Model.Payload
         domain = domain,
         aud = aud,
         nonce = nonce,
-        iat = iat,
         nbf = nbf,
         exp = exp,
         statement = statement,
@@ -414,7 +424,7 @@ internal fun Core.Model.Message.SessionAuthenticate.toSign(): Sign.Model.Message
 
 private fun Core.Model.Message.SessionAuthenticate.PayloadParams.toClient(): Sign.Model.PayloadParams {
     return with(this) {
-        Sign.Model.PayloadParams(chains, domain, nonce, aud, type, nbf, iat, exp, statement, requestId, resources)
+        Sign.Model.PayloadParams(chains, domain, nonce, aud, type, nbf, exp, statement, requestId, resources)
     }
 }
 

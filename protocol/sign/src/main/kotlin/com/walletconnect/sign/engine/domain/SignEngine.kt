@@ -17,6 +17,7 @@ import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.android.verify.data.model.VerifyContext
 import com.walletconnect.foundation.common.model.Topic
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toEngineDO
@@ -132,6 +133,7 @@ internal class SignEngine(
     private val onSessionSettleResponseUseCase: OnSessionSettleResponseUseCase,
     private val onSessionUpdateResponseUseCase: OnSessionUpdateResponseUseCase,
     private val onSessionRequestResponseUseCase: OnSessionRequestResponseUseCase,
+    private val logger: Logger
 ) : ProposeSessionUseCaseInterface by proposeSessionUseCase,
     SessionAuthenticateUseCaseInterface by authenticateSessionUseCase,
     PairUseCaseInterface by pairUseCase,
@@ -178,7 +180,7 @@ internal class SignEngine(
         )
         setupSequenceExpiration()
         propagatePendingSessionRequestsQueue()
-        emitReceivedSessionProposalsWhilePairingOnTheSameURL()
+        emitReceivedPendingRequestsWhilePairingOnTheSameURL()
         sessionProposalExpiryWatcher()
         sessionRequestsExpiryWatcher()
     }
@@ -370,21 +372,40 @@ internal class SignEngine(
             }.launchIn(scope)
     }
 
-    private fun emitReceivedSessionProposalsWhilePairingOnTheSameURL() {
+    private fun emitReceivedPendingRequestsWhilePairingOnTheSameURL() {
         pairingController.activePairingFlow
             .onEach { pairingTopic ->
                 try {
-                    val proposal = proposalStorageRepository.getProposalByTopic(pairingTopic.value)
-                    if (proposal.expiry?.isExpired() == true) {
-                        proposalStorageRepository.deleteProposal(proposal.proposerPublicKey)
-                        scope.launch { _engineEvent.emit(proposal.toExpiredProposal()) }
+                    val pendingAuthenticateRequests = getPendingAuthenticateRequestUseCase.getPendingAuthenticateRequests().filter { request -> request.topic == pairingTopic }
+                    if (pendingAuthenticateRequests.isNotEmpty()) {
+                        pendingAuthenticateRequests.forEach { request ->
+                            val context = verifyContextStorageRepository.get(request.id) ?: VerifyContext(request.id, String.Empty, Validation.UNKNOWN, String.Empty, null)
+                            val sessionAuthenticateEvent = EngineDO.SessionAuthenticateEvent(
+                                request.id,
+                                request.topic.value,
+                                request.params.authPayload.toEngineDO(),
+                                request.params.requester.toEngineDO(),
+                                request.params.expiryTimestamp,
+                                context.toEngineDO()
+                            )
+                            logger.log("Emitting pending authenticate request from active pairing: $sessionAuthenticateEvent")
+                            scope.launch { _engineEvent.emit(sessionAuthenticateEvent) }
+                        }
                     } else {
-                        val context = verifyContextStorageRepository.get(proposal.requestId) ?: VerifyContext(proposal.requestId, String.Empty, Validation.UNKNOWN, String.Empty, null)
-                        val sessionProposalEvent = EngineDO.SessionProposalEvent(proposal = proposal.toEngineDO(), context = context.toEngineDO())
-                        scope.launch { _engineEvent.emit(sessionProposalEvent) }
+                        val proposal = proposalStorageRepository.getProposalByTopic(pairingTopic.value)
+                        if (proposal.expiry?.isExpired() == true) {
+                            proposalStorageRepository.deleteProposal(proposal.proposerPublicKey)
+                            scope.launch { _engineEvent.emit(proposal.toExpiredProposal()) }
+                        } else {
+                            val context = verifyContextStorageRepository.get(proposal.requestId) ?: VerifyContext(proposal.requestId, String.Empty, Validation.UNKNOWN, String.Empty, null)
+                            val sessionProposalEvent = EngineDO.SessionProposalEvent(proposal = proposal.toEngineDO(), context = context.toEngineDO())
+                            logger.log("Emitting session proposal from active pairing: $sessionProposalEvent")
+                            scope.launch { _engineEvent.emit(sessionProposalEvent) }
+                        }
                     }
                 } catch (e: Exception) {
-                    scope.launch { _engineEvent.emit(SDKError(Throwable("No proposal for pairing topic: $e"))) }
+                    logger.log("No proposal or pending session authenticate request for pairing topic: $e")
+                    scope.launch { _engineEvent.emit(SDKError(Throwable("No proposal or pending session authenticate request for pairing topic: $e"))) }
                 }
             }.launchIn(scope)
     }

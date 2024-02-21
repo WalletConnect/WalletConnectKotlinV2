@@ -60,6 +60,7 @@ data class Cacao(
     ) {
         @get:Throws(Exception::class)
         val actionsString get() = getActionsString()
+
         @get:Throws(Exception::class)
         val methods get() = resources.getMethods()
 
@@ -88,7 +89,7 @@ fun Cacao.Payload.toCAIP222Message(chainName: String = "Ethereum"): String {
     if (exp != null) message += "\nExpiration Time: $exp"
     if (nbf != null) message += "\nNot Before: $nbf"
     if (requestId != null) message += "\nRequest ID: $requestId"
-    if (!resources.isNullOrEmpty()) {
+    if (resources != null) {
         message += "\nResources:"
         resources.forEach { resource -> message += "\n- $resource" }
     }

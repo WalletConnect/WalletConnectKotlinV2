@@ -261,7 +261,6 @@ object Sign {
             val aud: String,
             val type: String?,
             val nbf: String?,
-            val iat: String,
             val exp: String?,
             val statement: String?,
             val requestId: String?,

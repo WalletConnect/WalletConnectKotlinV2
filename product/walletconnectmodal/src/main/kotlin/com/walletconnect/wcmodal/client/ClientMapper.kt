@@ -128,7 +128,6 @@ internal fun Modal.Model.PayloadParams.toSign(): Sign.Model.PayloadParams = with
         domain = domain,
         aud = aud,
         nonce = nonce,
-        iat = iat,
         nbf = nbf,
         exp = exp,
         statement = statement,

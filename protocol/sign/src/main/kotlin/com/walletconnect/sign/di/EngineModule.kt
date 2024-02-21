@@ -83,7 +83,8 @@ internal fun engineModule() = module {
             rejectSessionAuthenticateUseCase = get(),
             formatAuthenticateMessageUseCase = get(),
             deleteRequestByIdUseCase = get(),
-            getPendingAuthenticateRequestUseCase = get()
+            getPendingAuthenticateRequestUseCase = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }
 }
