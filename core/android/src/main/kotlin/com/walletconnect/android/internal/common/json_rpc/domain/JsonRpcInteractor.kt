@@ -94,15 +94,23 @@ internal class JsonRpcInteractor(
             return onFailure(e)
         }
 
-        if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
-            val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, envelopeType, participants)
+        try {
+            if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
+                val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, envelopeType, participants)
 
-            relay.publish(topic.value, encryptedRequest, params.toRelay()) { result ->
-                result.fold(
-                    onSuccess = { onSuccess() },
-                    onFailure = { error -> onFailure(error) }
-                )
+                relay.publish(topic.value, encryptedRequest, params.toRelay()) { result ->
+                    result.fold(
+                        onSuccess = { onSuccess() },
+                        onFailure = { error ->
+                            logger.error("JsonRpcInteractor: Cannot send the request, error: $error")
+                            onFailure(error)
+                        }
+                    )
+                }
             }
+        } catch (e: Exception) {
+            logger.error("JsonRpcInteractor: Cannot send the request, exception: $e")
+            return onFailure(e)
         }
     }
 
@@ -131,10 +139,14 @@ internal class JsonRpcInteractor(
                         jsonRpcHistory.updateRequestWithResponse(response.id, responseJson)
                         onSuccess()
                     },
-                    onFailure = { error -> onFailure(error) }
+                    onFailure = { error ->
+                        logger.error("JsonRpcInteractor: Cannot send the response, error: $error")
+                        onFailure(error)
+                    }
                 )
             }
         } catch (e: Exception) {
+            logger.error("JsonRpcInteractor: Cannot send the response, exception: $e")
             return onFailure(e)
         }
     }
@@ -151,10 +163,7 @@ internal class JsonRpcInteractor(
         val result = JsonRpcResponse.JsonRpcResult(id = request.id, result = clientParams)
 
         publishJsonRpcResponse(request.topic, irnParams, result, envelopeType = envelopeType, participants = participants,
-            onFailure = { error ->
-                logger.error("Cannot send the response, error: $error")
-                onFailure(error)
-            },
+            onFailure = { error -> onFailure(error) },
             onSuccess = { onSuccess() }
         )
     }
@@ -172,10 +181,7 @@ internal class JsonRpcInteractor(
         val result = JsonRpcResponse.JsonRpcResult(id = requestId, result = clientParams)
 
         publishJsonRpcResponse(topic, irnParams, result, envelopeType = envelopeType, participants = participants,
-            onFailure = { error ->
-                logger.error("Cannot send the response, error: $error")
-                onFailure(error)
-            },
+            onFailure = { error -> onFailure(error) },
             onSuccess = { onSuccess() }
         )
     }

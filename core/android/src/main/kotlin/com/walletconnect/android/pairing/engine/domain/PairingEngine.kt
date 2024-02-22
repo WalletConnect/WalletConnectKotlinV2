@@ -120,7 +120,7 @@ internal class PairingEngine(
         val inactivePairing = Pairing(pairingTopic, relay, symmetricKey, registeredMethods, Expiry(inactivePairing))
 
         return inactivePairing.runCatching {
-            logger.log("Pairing created successfully")
+            logger.log("Creating Pairing")
             pairingRepository.insertPairing(this)
             metadataRepository.upsertPeerMetadata(this.topic, selfMetaData, AppMetaDataType.SELF)
             jsonRpcInteractor.subscribe(this.topic,
