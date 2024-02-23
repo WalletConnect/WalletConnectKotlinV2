@@ -133,17 +133,17 @@ class ChainSelectionViewModel : ViewModel() {
             _awaitingProposalSharedFlow.emit(true)
         }
         val authenticateParams = Modal.Params.Authenticate(
-            type = "caip222",
+            type = "eip4361",
             chains = uiState.value.filter { it.isSelected }.map { it.chainId },
             domain = "sample.kotlin.dapp",
             aud = "https://web3inbox.com/all-apps",
             nonce = randomBytes(12).bytesToHex(),
             exp = null,
             nbf = null,
-            statement = null,//"Sign in with wallet.",
+            statement = "Sign in with wallet.",
             requestId = null,
             resources = listOf(
-//                "urn:recap:eyJhdHQiOnsiaHR0cHM6Ly9ub3RpZnkud2FsbGV0Y29ubmVjdC5jb20vYWxsLWFwcHMiOnsiY3J1ZC9zdWJzY3JpcHRpb25zIjpbe31dLCJjcnVkL25vdGlmaWNhdGlvbnMiOlt7fV19fX0=",
+                "urn:recap:eyJhdHQiOnsiaHR0cHM6Ly9ub3RpZnkud2FsbGV0Y29ubmVjdC5jb20vYWxsLWFwcHMiOnsiY3J1ZC9zdWJzY3JpcHRpb25zIjpbe31dLCJjcnVkL25vdGlmaWNhdGlvbnMiOlt7fV19fX0=",
                 "ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/"
             ),
             methods = listOf("personal_sign", "eth_signTypedData"),

@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
 import com.walletconnect.android.cacao.signature.SignatureType
-import com.walletconnect.android.utils.cacao.signHex
+import com.walletconnect.android.utils.cacao.sign
 import com.walletconnect.sample.wallet.domain.ACCOUNTS_1_EIP155_ADDRESS
 import com.walletconnect.sample.wallet.domain.EthAccountDelegate.privateKey
 import com.walletconnect.sample.wallet.domain.WCDelegate
@@ -16,7 +16,6 @@ import com.walletconnect.web3.wallet.client.Web3Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet.generateAuthObject
 import com.walletconnect.web3.wallet.client.Web3Wallet.generateAuthPayloadParams
 import com.walletconnect.web3.wallet.utils.CacaoSigner
-import org.web3j.utils.Numeric
 
 class SessionAuthenticateViewModel : ViewModel() {
     val sessionAuthenticateUI: SessionAuthenticateUI? get() = generateAuthRequestUI()
@@ -28,8 +27,7 @@ class SessionAuthenticateViewModel : ViewModel() {
                 val auths = mutableListOf<Wallet.Model.Cacao>()
 
                 sessionAuthenticateUI?.messages?.forEach { issuerToMessage ->
-                    val messageToSign = Numeric.toHexString(issuerToMessage.second.toByteArray())
-                    val signature = CacaoSigner.signHex(messageToSign, privateKey.hexToBytes(), SignatureType.EIP191)
+                    val signature = CacaoSigner.sign(issuerToMessage.second, privateKey.hexToBytes(), SignatureType.EIP191)
                     val authPayloadParams =
                         generateAuthPayloadParams(
                             sessionAuthenticate.payloadParams,
