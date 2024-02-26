@@ -55,9 +55,8 @@ sonar {
     properties {
         properties(
             mapOf(
-                "sonar.projectKey" to "walletconnect_kotlin",
+                "sonar.projectKey" to "WalletConnect_WalletConnectKotlinV2",
                 "sonar.organization" to "walletconnect",
-                "sonar.projectName" to "Kotlin",
                 "sonar.host.url" to "https://sonarcloud.io",
                 "sonar.gradle.skipCompile" to true
             )
