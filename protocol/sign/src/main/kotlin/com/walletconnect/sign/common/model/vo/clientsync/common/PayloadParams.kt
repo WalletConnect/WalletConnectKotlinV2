@@ -1,7 +1,9 @@
 package com.walletconnect.sign.common.model.vo.clientsync.common
 
 import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
+@JsonClass(generateAdapter = true)
 internal data class PayloadParams(
     @Json(name = "type")
     val type: String,
