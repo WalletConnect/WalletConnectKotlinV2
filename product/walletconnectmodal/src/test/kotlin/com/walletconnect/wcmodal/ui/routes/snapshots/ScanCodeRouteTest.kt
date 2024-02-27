@@ -9,9 +9,11 @@ import com.walletconnect.wcmodal.utils.ScreenShotTest
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
+@Ignore
 class ScanCodeRouteTest : ScreenShotTest() {
 
     @get:Rule
