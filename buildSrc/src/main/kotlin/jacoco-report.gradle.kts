@@ -42,7 +42,7 @@ tasks {
         group = "Reporting"
         description = "Code coverage report for both Android and Unit tests."
 
-        dependsOn("testDebugUnitTest"/*, "createDebugUnitTestCoverageReport"*//*, "createDebugCoverageReport"*/)
+        dependsOn("testDebugUnitTest")
         reports {
             xml.required.set(true)
             html.required.set(true)
@@ -53,38 +53,9 @@ tasks {
         classDirectories.setFrom(files(classDirectoriesTree))
         executionData.setFrom(executionDataTree)
     }
-
-//    register<JacocoCoverageVerification>("jacocoAndroidCoverageVerification") {
-//        group = "Verification"
-//        description = "Code coverage verification for Android both Android and Unit tests."
-//
-////        if (project.tasks.contains(task("compileDebugLibraryResources"))) {
-////            dependsOn("compileDebugLibraryResources")
-////        }
-//
-//        dependsOn("testDebugUnitTest", "jacocoAndroidTestReport"/*, "createDebugUnitTestCoverageReport"*/)
-//
-//        violationRules {
-//            rule {
-//                element = "CLASS"
-//                excludes = listOf(
-//                    "**.FactorFacade.Builder",
-//                    "**.ServiceFacade.Builder",
-//                    "**.ChallengeFacade.Builder",
-//                    "**.Task"
-//                )
-//                limit {
-//                    minimum = "0.0".toBigDecimal()
-//                }
-//            }
-//        }
-//        sourceDirectories.setFrom(sourceDirectoriesTree)
-//        classDirectories.setFrom(classDirectoriesTree)
-//        executionData.setFrom(executionDataTree)
-//    }
 }
 
 afterEvaluate {
     project.tasks.getByName("testDebugUnitTest")
-        .finalizedBy("jacocoDebugTestReport"/*, "jacocoAndroidCoverageVerification"*/)
+        .finalizedBy("jacocoDebugTestReport")
 }
