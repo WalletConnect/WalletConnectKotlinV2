@@ -303,15 +303,13 @@ internal fun Requester.toEngineDO(): EngineDO.Participant =
     EngineDO.Participant(publicKey, metadata)
 
 @JvmSynthetic
-internal fun EngineDO.PayloadParams.toCommon(): PayloadParams =
+internal fun EngineDO.Authenticate.toCommon(): PayloadParams =
     PayloadParams(
         domain = domain,
         aud = aud,
-        version = version,
         nonce = nonce,
         nbf = nbf,
         exp = exp,
-        iat = SimpleDateFormat(Cacao.Payload.ISO_8601_PATTERN).format(Calendar.getInstance().time),
         statement = statement,
         requestId = requestId,
         resources = resources,
@@ -324,7 +322,7 @@ internal fun PayloadParams.toEngineDO(): EngineDO.PayloadParams =
     EngineDO.PayloadParams(
         domain = domain,
         aud = aud,
-        version = version,
+        version = "1",
         nonce = nonce,
         nbf = nbf,
         exp = exp,
@@ -332,11 +330,12 @@ internal fun PayloadParams.toEngineDO(): EngineDO.PayloadParams =
         requestId = requestId,
         resources = resources,
         chains = chains,
-        type = type
+        type = type,
+        iat = SimpleDateFormat(Cacao.Payload.ISO_8601_PATTERN).format(Calendar.getInstance().time)
     )
 
 @JvmSynthetic
-internal fun PayloadParams.toCacaoPayload(iss: Issuer): Cacao.Payload =
+internal fun EngineDO.PayloadParams.toCacaoPayload(iss: Issuer): Cacao.Payload =
     Cacao.Payload(
         iss.value,
         domain = domain,
@@ -345,12 +344,12 @@ internal fun PayloadParams.toCacaoPayload(iss: Issuer): Cacao.Payload =
         nonce = nonce,
         nbf = nbf,
         exp = exp,
-        iat = SimpleDateFormat(Cacao.Payload.ISO_8601_PATTERN).format(Calendar.getInstance().time),
+        iat = iat,
         statement = statement,
         requestId = requestId,
         resources = resources
     )
 
 @JvmSynthetic
-internal fun PayloadParams.toCAIP222Message(iss: Issuer, chainName: String): String =
+internal fun EngineDO.PayloadParams.toCAIP222Message(iss: Issuer, chainName: String): String =
     this.toCacaoPayload(iss).toCAIP222Message(chainName)

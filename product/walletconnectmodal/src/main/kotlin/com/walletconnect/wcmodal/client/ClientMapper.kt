@@ -133,6 +133,7 @@ internal fun Modal.Model.PayloadParams.toSign(): Sign.Model.PayloadParams = with
         statement = statement,
         requestId = requestId,
         resources = resources,
+        iat = iat
     )
 }
 

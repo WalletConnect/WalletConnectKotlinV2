@@ -49,12 +49,29 @@ internal sealed class EngineDO {
         val nonce: String,
         val aud: String,
         val type: String?,
+        val iat: String,
         val nbf: String?,
         val exp: String?,
         val statement: String?,
         val requestId: String?,
         var resources: List<String>?,
         val version: String
+    ) : EngineDO()
+
+    data class Authenticate(
+        val pairingTopic: String? = null,
+        val chains: List<String>,
+        val domain: String,
+        val nonce: String,
+        val aud: String,
+        val type: String?,
+        val nbf: String?,
+        val exp: String?,
+        val statement: String?,
+        val requestId: String?,
+        var resources: List<String>?,
+        val methods: List<String>?,
+        val expiry: Long?
     ) : EngineDO()
 
     data class Participant(

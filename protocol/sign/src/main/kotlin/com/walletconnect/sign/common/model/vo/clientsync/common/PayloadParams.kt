@@ -13,12 +13,8 @@ internal data class PayloadParams(
     val domain: String,
     @Json(name = "aud")
     val aud: String,
-    @Json(name = "version")
-    val version: String,
     @Json(name = "nonce")
     val nonce: String,
-    @Json(name = "iat")
-    val iat: String,
     @Json(name = "nbf")
     val nbf: String?,
     @Json(name = "exp")

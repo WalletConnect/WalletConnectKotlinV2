@@ -25,7 +25,6 @@ class SessionAuthenticateViewModel : ViewModel() {
             try {
                 val sessionAuthenticate = WCDelegate.sessionAuthenticateEvent!!.first
                 val auths = mutableListOf<Wallet.Model.Cacao>()
-
                 sessionAuthenticateUI?.messages?.forEach { issuerToMessage ->
                     val signature = CacaoSigner.sign(issuerToMessage.second, privateKey.hexToBytes(), SignatureType.EIP191)
                     val authPayloadParams =
@@ -103,6 +102,7 @@ class SessionAuthenticateViewModel : ViewModel() {
                             supportedChains = listOf("eip155:1", "eip155:137", "eip155:56"),
                             supportedMethods = listOf("personal_sign", "eth_signTypedData", "eth_sign")
                         )
+
                     val message = Web3Wallet.formatAuthMessage(Wallet.Params.FormatAuthMessage(authPayloadParams, issuer)) ?: throw Exception("Invalid message")
                     issuerToMessages.add(issuer to message)
                 }

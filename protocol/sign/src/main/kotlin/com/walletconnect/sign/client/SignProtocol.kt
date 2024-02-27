@@ -152,7 +152,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     }
 
     @Throws(IllegalStateException::class)
-    override fun sessionAuthenticate(
+    override fun authenticate(
         authenticate: Sign.Params.Authenticate,
         onSuccess: (String) -> Unit,
         onError: (Sign.Model.Error) -> Unit,
@@ -160,7 +160,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
         checkEngineInitialization()
         scope.launch {
             try {
-                signEngine.authenticate(authenticate.toPayloadParams(), authenticate.methods, authenticate.pairingTopic, if (authenticate.expiry == null) null else Expiry(authenticate.expiry),
+                signEngine.authenticate(authenticate.toAuthenticate(), authenticate.methods, authenticate.pairingTopic, if (authenticate.expiry == null) null else Expiry(authenticate.expiry),
                     onSuccess = { url -> onSuccess(url) },
                     onFailure = { throwable -> onError(Sign.Model.Error(throwable)) })
             } catch (error: Exception) {
@@ -174,7 +174,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
         checkEngineInitialization()
 
         return try {
-            runBlocking { signEngine.formatMessage(formatMessage.payloadParams.toCaip222Request(), formatMessage.iss) }
+            runBlocking { signEngine.formatMessage(formatMessage.payloadParams.toEngine(), formatMessage.iss) }
         } catch (error: Exception) {
             Timber.e("FormatAuthMessage error: $error")
             null

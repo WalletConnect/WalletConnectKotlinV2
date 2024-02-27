@@ -62,6 +62,7 @@ import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.sample.dapp.ui.routes.Route
 import com.walletconnect.sample.dapp.ui.routes.bottom_routes.PairingSelectionResult
 import com.walletconnect.sample.dapp.ui.routes.bottom_routes.pairingSelectionResultKey
+import com.walletconnect.wcmodal.client.Modal
 import com.walletconnect.wcmodal.client.WalletConnectModal
 import com.walletconnect.wcmodal.ui.openWalletConnectModal
 import com.walletconnect.wcmodal.ui.state.rememberModalState
@@ -92,34 +93,13 @@ fun ChainSelectionRoute(navController: NavController) {
     ChainSelectionScreen(
         chains = chainsState,
         awaitingState = awaitingProposalResponse,
-        isSampleWalletInstalled = context.isSampleWalletInstalled(),
+//        isSampleWalletInstalled = context.isSampleWalletInstalled(),
         onChainClick = viewModel::updateChainSelectState,
         onConnectClick = { onConnectClick(viewModel, navController, context) },
-        onAuthenticateClick = {
-            if (context.isSampleWalletInstalled()) {
-                authenticate(viewModel, context, composableScope) { uri ->
-                    try {
-                        val intent = Intent(Intent.ACTION_VIEW).apply {
-                            val encoded = URLEncoder.encode(uri, "UTF-8")
-                            data = "kotlin-web3wallet://wc?uri=$encoded".toUri()
-                            `package` = when (BuildConfig.BUILD_TYPE) {
-                                "debug" -> SAMPLE_WALLET_DEBUG_PACKAGE
-                                "internal" -> SAMPLE_WALLET_INTERNAL_PACKAGE
-                                else -> SAMPLE_WALLET_RELEASE_PACKAGE
-                            }
-                        }
-                        context.startActivity(intent)
-                    } catch (e: Exception) {
-                        Toast.makeText(context, "SampleWallet is not installed: $e", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            } else {
-                Toast.makeText(context, "Please install Kotlin Sample Wallet", Toast.LENGTH_SHORT).show()
-            }
-
-        },
+        onAuthenticateClick = { handleAuthenticate(context, viewModel, viewModel.authenticateParams, composableScope) },
+        onAuthenticateSIWEClick = { handleAuthenticate(context, viewModel, viewModel.siweParams, composableScope) },
         onDynamicSwitcher = {
-            authenticate(viewModel, context, composableScope) { uri ->
+            authenticate(viewModel, context, viewModel.authenticateParams, composableScope) { uri ->
                 try {
                     val intent = Intent(Intent.ACTION_VIEW).apply {
                         val encoded = URLEncoder.encode(uri, "UTF-8")
@@ -132,6 +112,34 @@ fun ChainSelectionRoute(navController: NavController) {
             }
         }
     )
+}
+
+private fun handleAuthenticate(
+    context: Context,
+    viewModel: ChainSelectionViewModel,
+    params: Modal.Params.Authenticate,
+    composableScope: CoroutineScope
+) {
+    if (context.isSampleWalletInstalled()) {
+        authenticate(viewModel, context, params, composableScope) { uri ->
+            try {
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    val encoded = URLEncoder.encode(uri, "UTF-8")
+                    data = "kotlin-web3wallet://wc?uri=$encoded".toUri()
+                    `package` = when (BuildConfig.BUILD_TYPE) {
+                        "debug" -> SAMPLE_WALLET_DEBUG_PACKAGE
+                        "internal" -> SAMPLE_WALLET_INTERNAL_PACKAGE
+                        else -> SAMPLE_WALLET_RELEASE_PACKAGE
+                    }
+                }
+                context.startActivity(intent)
+            } catch (e: Exception) {
+                Toast.makeText(context, "SampleWallet is not installed: $e", Toast.LENGTH_SHORT).show()
+            }
+        }
+    } else {
+        Toast.makeText(context, "Please install Kotlin Sample Wallet", Toast.LENGTH_SHORT).show()
+    }
 }
 
 @Composable
@@ -216,11 +224,13 @@ private fun handlePairingEvents(
 private fun authenticate(
     viewModel: ChainSelectionViewModel,
     context: Context,
+    params: Modal.Params.Authenticate,
     composableScope: CoroutineScope,
     onDeepLink: (String) -> Unit
 ) {
     if (viewModel.isAnyChainSelected) {
         viewModel.authenticate(
+            params,
             onAuthenticateSuccess = { uri -> onDeepLink(uri) },
             onError = { error ->
                 composableScope.launch(Dispatchers.Main) {
@@ -254,15 +264,13 @@ private fun onConnectClick(
 @Composable
 private fun ChainSelectionScreen(
     chains: List<ChainSelectionUi>,
-    isSampleWalletInstalled: Boolean,
     awaitingState: Boolean,
     onChainClick: (Int, Boolean) -> Unit,
     onConnectClick: () -> Unit,
     onAuthenticateClick: () -> Unit,
+    onAuthenticateSIWEClick: () -> Unit,
     onDynamicSwitcher: () -> Unit
 ) {
-
-
     Box {
         Column(modifier = Modifier.fillMaxSize()) {
             WCTopAppBarLegacy(titleText = "Chain selection")
@@ -283,8 +291,17 @@ private fun ChainSelectionScreen(
                     .padding(horizontal = 16.dp),
             )
             BlueButton(
-                text = "Authenticate",
+                text = "Authenticate (ReCaps)",
                 onClick = onAuthenticateClick,
+                modifier = Modifier
+                    .padding(vertical = 10.dp)
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .padding(horizontal = 16.dp)
+            )
+            BlueButton(
+                text = "Authenticate (SIWE)",
+                onClick = onAuthenticateSIWEClick,
                 modifier = Modifier
                     .padding(vertical = 10.dp)
                     .fillMaxWidth()
@@ -401,7 +418,7 @@ private fun ChainSelectionScreenPreview(
             onConnectClick = {},
             onAuthenticateClick = {},
             onDynamicSwitcher = {},
-            isSampleWalletInstalled = false
+            onAuthenticateSIWEClick = {},
         )
     }
 }

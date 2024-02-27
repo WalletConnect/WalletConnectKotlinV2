@@ -185,6 +185,7 @@ object Wallet {
             val nonce: String,
             val aud: String,
             val type: String?,
+            val iat: String,
             val nbf: String?,
             val exp: String?,
             val statement: String?,

@@ -262,6 +262,7 @@ object Sign {
             val type: String?,
             val nbf: String?,
             val exp: String?,
+            val iat: String,
             val statement: String?,
             val requestId: String?,
             var resources: List<String>?,

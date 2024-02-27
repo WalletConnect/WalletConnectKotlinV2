@@ -87,7 +87,8 @@ internal fun Wallet.Model.PayloadAuthRequestParams.toSign(): Sign.Model.PayloadP
         exp = exp,
         statement = statement,
         requestId = requestId,
-        resources = resources
+        resources = resources,
+        iat = iat
     )
 
 @JvmSynthetic
@@ -178,7 +179,8 @@ internal fun Sign.Model.PayloadParams.toWallet(): Wallet.Model.PayloadAuthReques
         exp = exp,
         statement = statement,
         requestId = requestId,
-        resources = resources
+        resources = resources,
+        iat = iat
     )
 
 internal fun Sign.Model.VerifyContext.toWallet(): Wallet.Model.VerifyContext =

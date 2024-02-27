@@ -37,7 +37,7 @@ fun dappClientAuthenticate(onPairing: (String) -> Unit) {
         methods = listOf("personal_sign", "eth_signTypedData_v4", "eth_sign"),
         expiry = null
     )
-    DappSignClient.sessionAuthenticate(
+    DappSignClient.authenticate(
         authenticateParams,
         onSuccess = { pairingUrl ->
             Timber.d("DappClient: on sent authenticate success: $pairingUrl")
