@@ -17,6 +17,7 @@ import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.android.verify.data.model.VerifyContext
 import com.walletconnect.foundation.common.model.Topic
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toEngineDO
@@ -116,6 +117,7 @@ internal class SignEngine(
     private val onSessionSettleResponseUseCase: OnSessionSettleResponseUseCase,
     private val onSessionUpdateResponseUseCase: OnSessionUpdateResponseUseCase,
     private val onSessionRequestResponseUseCase: OnSessionRequestResponseUseCase,
+    private val logger: Logger
 ) : ProposeSessionUseCaseInterface by proposeSessionUseCase,
     PairUseCaseInterface by pairUseCase,
     RejectSessionUseCaseInterface by rejectSessionUseCase,
@@ -302,32 +304,40 @@ internal class SignEngine(
     private fun sessionProposalExpiryWatcher() {
         repeatableFlow()
             .onEach {
-                proposalStorageRepository
-                    .getProposals()
-                    .onEach { proposal ->
-                        proposal.expiry?.let {
-                            if (it.isExpired()) {
-                                proposalStorageRepository.deleteProposal(proposal.proposerPublicKey)
-                                deleteRequestByIdUseCase(proposal.requestId)
-                                _engineEvent.emit(proposal.toExpiredProposal())
+                try {
+                    proposalStorageRepository
+                        .getProposals()
+                        .onEach { proposal ->
+                            proposal.expiry?.let {
+                                if (it.isExpired()) {
+                                    proposalStorageRepository.deleteProposal(proposal.proposerPublicKey)
+                                    deleteRequestByIdUseCase(proposal.requestId)
+                                    _engineEvent.emit(proposal.toExpiredProposal())
+                                }
                             }
                         }
-                    }
+                } catch (e: Exception) {
+                    logger.error(e)
+                }
             }.launchIn(scope)
     }
 
     private fun sessionRequestsExpiryWatcher() {
         repeatableFlow()
             .onEach {
-                getPendingSessionRequests()
-                    .onEach { pendingRequest ->
-                        pendingRequest.expiry?.let {
-                            if (it.isExpired()) {
-                                deleteRequestByIdUseCase(pendingRequest.id)
-                                _engineEvent.emit(pendingRequest.toExpiredSessionRequest())
+                try {
+                    getPendingSessionRequests()
+                        .onEach { pendingRequest ->
+                            pendingRequest.expiry?.let {
+                                if (it.isExpired()) {
+                                    deleteRequestByIdUseCase(pendingRequest.id)
+                                    _engineEvent.emit(pendingRequest.toExpiredSessionRequest())
+                                }
                             }
                         }
-                    }
+                } catch (e: Exception) {
+                    logger.error(e)
+                }
             }.launchIn(scope)
     }
 
@@ -358,6 +368,6 @@ internal class SignEngine(
     }
 
     companion object {
-        private const val WATCHER_INTERVAL = 3000L
+        private const val WATCHER_INTERVAL = 5000L
     }
 }

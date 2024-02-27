@@ -61,6 +61,7 @@ fun DependencyHandlerScope.bouncyCastle() {
 
 fun DependencyHandlerScope.sqlCipher() {
     "api"("net.zetetic:android-database-sqlcipher:$sqlCipherVersion")
+    "api"("app.cash.sqldelight:async-extensions:2.0.0")
 }
 
 fun DependencyHandlerScope.reLinker() {

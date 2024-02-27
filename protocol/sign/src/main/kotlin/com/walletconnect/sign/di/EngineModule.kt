@@ -62,7 +62,8 @@ internal fun engineModule() = module {
             respondSessionRequestUseCase = get(),
             sessionRequestUseCase = get(),
             sessionUpdateUseCase = get(),
-            deleteRequestByIdUseCase = get()
+            deleteRequestByIdUseCase = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }
 }
