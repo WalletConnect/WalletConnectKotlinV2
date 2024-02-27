@@ -8,6 +8,7 @@ on:
 
 jobs:
   build:
+    if: ${{ github.event_name == 'push' || github.event.pull_request.base.ref == 'develop' }}
     name: Build and analyze
     runs-on: ubuntu-latest
     steps:
