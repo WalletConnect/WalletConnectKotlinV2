@@ -311,7 +311,7 @@ object Sign {
             val chains: List<String>,
             val domain: String,
             val nonce: String,
-            val aud: String,
+            val uri: String,
             val type: String?,
             val nbf: String?,
             val exp: String?,

@@ -27,7 +27,7 @@ fun dappClientAuthenticate(onPairing: (String) -> Unit) {
         type = "caip222",
         chains = listOf("eip155:1", "eip155:137"),
         domain = "sample.dapp",
-        aud = "https://react-auth-dapp.vercel.app/",
+        uri = "https://react-auth-dapp.vercel.app/",
         nonce = randomBytes(12).bytesToHex(),
         exp = null,
         nbf = null,
