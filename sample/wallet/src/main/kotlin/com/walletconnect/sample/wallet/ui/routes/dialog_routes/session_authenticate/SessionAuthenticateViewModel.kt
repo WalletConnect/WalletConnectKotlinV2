@@ -94,17 +94,9 @@ class SessionAuthenticateViewModel : ViewModel() {
             val issuerToMessages = mutableListOf<Pair<String, String>>()
 
             sessionAuthenticate.payloadParams.chains
-                .filter { chain -> chain == "eip155:1" || chain == "eip155:137" || chain == "eip155:56" }
                 .forEach { chain ->
                     val issuer = "did:pkh:$chain:$ACCOUNTS_1_EIP155_ADDRESS"
-                    val authPayloadParams =
-                        generateAuthPayloadParams(
-                            sessionAuthenticate.payloadParams,
-                            supportedChains = listOf("eip155:1", "eip155:137", "eip155:56"),
-                            supportedMethods = listOf("personal_sign", "eth_signTypedData", "eth_sign")
-                        )
-
-                    val message = Web3Wallet.formatAuthMessage(Wallet.Params.FormatAuthMessage(authPayloadParams, issuer)) ?: throw Exception("Invalid message")
+                    val message = Web3Wallet.formatAuthMessage(Wallet.Params.FormatAuthMessage(sessionAuthenticate.payloadParams, issuer)) ?: throw Exception("Invalid message")
                     issuerToMessages.add(issuer to message)
                 }
 
