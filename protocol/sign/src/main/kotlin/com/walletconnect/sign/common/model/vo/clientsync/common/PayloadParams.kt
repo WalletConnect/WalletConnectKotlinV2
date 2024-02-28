@@ -15,6 +15,8 @@ internal data class PayloadParams(
     val aud: String,
     @Json(name = "nonce")
     val nonce: String,
+    @Json(name = "version")
+    val version: String,
     @Json(name = "iat")
     val iat: String,
     @Json(name = "nbf")

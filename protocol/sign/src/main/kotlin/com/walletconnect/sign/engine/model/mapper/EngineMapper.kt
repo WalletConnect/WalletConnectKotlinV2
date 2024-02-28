@@ -315,6 +315,7 @@ internal fun EngineDO.Authenticate.toCommon(): PayloadParams =
         resources = resources,
         chains = chains,
         type = type ?: CacaoType.EIP4361.header,
+        version = "1",
         iat = SimpleDateFormat(Cacao.Payload.ISO_8601_PATTERN).format(Calendar.getInstance().time)
     )
 
