@@ -237,7 +237,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     }
 
     @Throws(IllegalStateException::class)
-    override fun approveSessionAuthenticated(approve: Sign.Params.ApproveSessionAuthenticate, onSuccess: (Sign.Params.ApproveSessionAuthenticate) -> Unit, onError: (Sign.Model.Error) -> Unit) {
+    override fun approveAuthenticate(approve: Sign.Params.ApproveAuthenticate, onSuccess: (Sign.Params.ApproveAuthenticate) -> Unit, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
 
         scope.launch {
@@ -255,7 +255,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     }
 
     @Throws(IllegalStateException::class)
-    override fun rejectSessionAuthenticated(reject: Sign.Params.RejectSessionAuthenticate, onSuccess: (Sign.Params.RejectSessionAuthenticate) -> Unit, onError: (Sign.Model.Error) -> Unit) {
+    override fun rejectAuthenticate(reject: Sign.Params.RejectAuthenticate, onSuccess: (Sign.Params.RejectAuthenticate) -> Unit, onError: (Sign.Model.Error) -> Unit) {
         checkEngineInitialization()
 
         scope.launch {

@@ -189,8 +189,8 @@ object Web3Wallet {
         onSuccess: (Wallet.Params.ApproveSessionAuthenticate) -> Unit = {},
         onError: (Wallet.Model.Error) -> Unit,
     ) {
-        val signParams = Sign.Params.ApproveSessionAuthenticate(params.id, params.auths.toSign())
-        SignClient.approveSessionAuthenticated(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
+        val signParams = Sign.Params.ApproveAuthenticate(params.id, params.auths.toSign())
+        SignClient.approveAuthenticate(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
     @Throws(IllegalStateException::class)
@@ -199,8 +199,8 @@ object Web3Wallet {
         onSuccess: (Wallet.Params.RejectSessionAuthenticate) -> Unit = {},
         onError: (Wallet.Model.Error) -> Unit,
     ) {
-        val signParams = Sign.Params.RejectSessionAuthenticate(params.id, params.reason)
-        SignClient.rejectSessionAuthenticated(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
+        val signParams = Sign.Params.RejectAuthenticate(params.id, params.reason)
+        SignClient.rejectAuthenticate(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
     @Throws(Exception::class)
