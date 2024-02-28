@@ -121,7 +121,7 @@ internal class ApproveSessionUseCase(
             },
             onFailure = { error ->
                 logger.error("Subscribe to session topic failure: $error")
-                throw error
+                onFailure(error)
             })
         logger.log("Sending session approve, topic: $sessionTopic")
         jsonRpcInteractor.respondWithParams(request, approvalParams, irnParams,
@@ -129,8 +129,8 @@ internal class ApproveSessionUseCase(
                 logger.log("Session approve sent successfully, topic: $sessionTopic")
             },
             onFailure = { error ->
-                logger.log("Session approve failure, topic: $sessionTopic")
-                throw error
+                logger.error("Session approve failure, topic: $sessionTopic: $error")
+                onFailure(error)
             })
 
         sessionSettle(request.id, proposal, sessionTopic, request.topic)
