@@ -16,6 +16,7 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
+import com.walletconnect.android.verify.data.model.VerifyContext
 import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
@@ -39,7 +40,8 @@ internal class OnSessionRequestUseCase(
     private val sessionStorageRepository: SessionStorageRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val resolveAttestationIdUseCase: ResolveAttestationIdUseCase,
-    private val logger: Logger
+    private val logger: Logger,
+    private val enableRequestsQueue: Boolean
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
@@ -87,16 +89,7 @@ internal class OnSessionRequestUseCase(
 
             val url = sessionPeerAppMetaData?.url ?: String.Empty
             resolveAttestationIdUseCase(request.id, request.message, url) { verifyContext ->
-                val sessionRequestEvent = EngineDO.SessionRequestEvent(params.toEngineDO(request, sessionPeerAppMetaData), verifyContext.toEngineDO())
-                val event = if (sessionRequestEventsQueue.isEmpty()) {
-                    sessionRequestEvent
-                } else {
-                    sessionRequestEventsQueue.find { event -> if (event.request.expiry != null) !event.request.expiry.isExpired() else true } ?: sessionRequestEvent
-                }
-
-                sessionRequestEventsQueue.add(sessionRequestEvent)
-                logger.log("Session request received on topic: ${request.topic} - emitting")
-                scope.launch { _events.emit(event) }
+                emitRequestEvent(params, request, sessionPeerAppMetaData, verifyContext)
             }
         } catch (e: Exception) {
             logger.error("Session request received failure on topic: ${request.topic} - ${e.message}")
@@ -107,6 +100,30 @@ internal class OnSessionRequestUseCase(
             )
             _events.emit(SDKError(e))
             return@supervisorScope
+        }
+    }
+
+    private fun emitRequestEvent(
+        params: SignParams.SessionRequestParams,
+        request: WCRequest,
+        sessionPeerAppMetaData: AppMetaData?,
+        verifyContext: VerifyContext
+    ) {
+        val sessionRequestEvent = EngineDO.SessionRequestEvent(params.toEngineDO(request, sessionPeerAppMetaData), verifyContext.toEngineDO())
+
+        if (enableRequestsQueue) {
+            val event = if (sessionRequestEventsQueue.isEmpty()) {
+                sessionRequestEvent
+            } else {
+                sessionRequestEventsQueue.find { event -> if (event.request.expiry != null) !event.request.expiry.isExpired() else true } ?: sessionRequestEvent
+            }
+
+            sessionRequestEventsQueue.add(sessionRequestEvent)
+            logger.log("Session request received on topic: ${request.topic} - emitting")
+            scope.launch { _events.emit(event) }
+        } else {
+            logger.log("Session request received on topic: ${request.topic} - emitting")
+            scope.launch { _events.emit(sessionRequestEvent) }
         }
     }
 }

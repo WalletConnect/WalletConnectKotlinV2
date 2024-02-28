@@ -62,7 +62,8 @@ internal fun engineModule() = module {
             respondSessionRequestUseCase = get(),
             sessionRequestUseCase = get(),
             sessionUpdateUseCase = get(),
-            deleteRequestByIdUseCase = get()
+            deleteRequestByIdUseCase = get(),
+            enableRequestsQueue = get(named(SignDITags.ENABLE_REQUESTS_QUEUE))
         )
     }
 }

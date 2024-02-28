@@ -12,6 +12,7 @@ import com.walletconnect.android.pairing.model.mapper.toPairing
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.client.mapper.*
 import com.walletconnect.sign.common.exceptions.SignClientAlreadyInitializedException
+import com.walletconnect.sign.di.SignDITags
 import com.walletconnect.sign.di.engineModule
 import com.walletconnect.sign.di.signJsonRpcModule
 import com.walletconnect.sign.di.storageModule
@@ -22,6 +23,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.koin.core.KoinApplication
+import org.koin.core.qualifier.named
+import org.koin.dsl.module
 
 class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInterface {
     private lateinit var signEngine: SignEngine
@@ -35,6 +38,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
         if (!::signEngine.isInitialized) {
             try {
                 koinApp.modules(
+                    module { single(named(SignDITags.ENABLE_REQUESTS_QUEUE)) { init.enableRequestsQueue } },
                     signJsonRpcModule(),
                     storageModule(koinApp.koin.get<DatabaseConfig>().SIGN_SDK_DB_NAME),
                     engineModule()

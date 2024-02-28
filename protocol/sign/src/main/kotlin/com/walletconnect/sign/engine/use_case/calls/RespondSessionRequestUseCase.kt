@@ -35,6 +35,7 @@ internal class RespondSessionRequestUseCase(
     private val getPendingJsonRpcHistoryEntryByIdUseCase: GetPendingJsonRpcHistoryEntryByIdUseCase,
     private val logger: Logger,
     private val verifyContextStorageRepository: VerifyContextStorageRepository,
+    private val enableRequestsQueue: Boolean
 ) : RespondSessionRequestUseCaseInterface {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     override val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
@@ -94,9 +95,11 @@ internal class RespondSessionRequestUseCase(
         val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(fiveMinutesInSeconds))
         val request = WCRequest(Topic(topic), jsonRpcResponse.id, JsonRpcMethod.WC_SESSION_REQUEST, object : ClientParams {})
         jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams, onSuccess = {
-            scope.launch {
-                supervisorScope {
-                    removePendingSessionRequestAndEmit(jsonRpcResponse.id)
+            if (enableRequestsQueue) {
+                scope.launch {
+                    supervisorScope {
+                        removePendingSessionRequestAndEmit(jsonRpcResponse.id)
+                    }
                 }
             }
         })
