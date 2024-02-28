@@ -92,6 +92,7 @@ class SessionAuthenticateViewModel : ViewModel() {
         return if (WCDelegate.sessionAuthenticateEvent != null) {
             val (sessionAuthenticate, authContext) = WCDelegate.sessionAuthenticateEvent!!
             val issuerToMessages = mutableListOf<Pair<String, String>>()
+
             sessionAuthenticate.payloadParams.chains
                 .filter { chain -> chain == "eip155:1" || chain == "eip155:137" || chain == "eip155:56" }
                 .forEach { chain ->

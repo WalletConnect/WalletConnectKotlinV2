@@ -314,7 +314,8 @@ internal fun EngineDO.Authenticate.toCommon(): PayloadParams =
         requestId = requestId,
         resources = resources,
         chains = chains,
-        type = type ?: CacaoType.EIP4361.header
+        type = type ?: CacaoType.EIP4361.header,
+        iat = SimpleDateFormat(Cacao.Payload.ISO_8601_PATTERN).format(Calendar.getInstance().time)
     )
 
 @JvmSynthetic
@@ -331,7 +332,7 @@ internal fun PayloadParams.toEngineDO(): EngineDO.PayloadParams =
         resources = resources,
         chains = chains,
         type = type,
-        iat = SimpleDateFormat(Cacao.Payload.ISO_8601_PATTERN).format(Calendar.getInstance().time)
+        iat = iat
     )
 
 @JvmSynthetic

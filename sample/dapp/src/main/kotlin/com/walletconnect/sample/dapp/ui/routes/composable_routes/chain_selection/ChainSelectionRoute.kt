@@ -3,6 +3,9 @@ package com.walletconnect.sample.dapp.ui.routes.composable_routes.chain_selectio
 import android.content.Context
 import android.widget.Toast
 import android.content.Intent
+import android.graphics.Bitmap
+import androidmads.library.qrgenearator.QRGContents
+import androidmads.library.qrgenearator.QRGEncoder
 import java.net.URLEncoder
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -24,6 +27,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -31,20 +35,29 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.ClipboardManager
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.walletconnect.android.utils.isPackageInstalled
@@ -79,8 +92,10 @@ fun ChainSelectionRoute(navController: NavController) {
     val chainsState by viewModel.uiState.collectAsState()
     rememberModalState(navController = navController)
     val awaitingProposalResponse = viewModel.awaitingSharedFlow.collectAsState(false).value
+    var pairingUri by remember { mutableStateOf(PairingUri(uri = "", isReCaps = false)) }
+
     handlePairingEvents(navController, viewModel, composableScope, context)
-    handleSignEvents(viewModel, navController, context)
+    handleSignEvents(viewModel, navController, context) { pairingUri = PairingUri(uri = "", isReCaps = false) }
     LaunchedEffect(Unit) {
         viewModel.coreEvents.collect { event ->
             if (event is DappSampleEvents.PairingExpired) {
@@ -93,52 +108,195 @@ fun ChainSelectionRoute(navController: NavController) {
     ChainSelectionScreen(
         chains = chainsState,
         awaitingState = awaitingProposalResponse,
-//        isSampleWalletInstalled = context.isSampleWalletInstalled(),
+        pairingUri = pairingUri,
+        context,
+        onDialogDismiss = { pairingUri = PairingUri(uri = "", isReCaps = false) },
         onChainClick = viewModel::updateChainSelectState,
         onConnectClick = { onConnectClick(viewModel, navController, context) },
-        onAuthenticateClick = { handleAuthenticate(context, viewModel, viewModel.authenticateParams, composableScope) },
-        onAuthenticateSIWEClick = { handleAuthenticate(context, viewModel, viewModel.siweParams, composableScope) },
-        onDynamicSwitcher = {
-            authenticate(viewModel, context, viewModel.authenticateParams, composableScope) { uri ->
-                try {
-                    val intent = Intent(Intent.ACTION_VIEW).apply {
-                        val encoded = URLEncoder.encode(uri, "UTF-8")
-                        data = "trust://wc?uri=$encoded".toUri()
-                    }
-                    context.startActivity(intent)
-                } catch (e: Exception) {
-                    Toast.makeText(context, "TrustWallet is not installed: $e", Toast.LENGTH_SHORT).show()
-                }
+        onAuthenticateClick = {
+            if (viewModel.isAnyChainSelected) {
+                viewModel.authenticate(
+                    viewModel.authenticateParams,
+                    onAuthenticateSuccess = { uri -> pairingUri = PairingUri(uri, true) },
+                    onError = { error ->
+                        composableScope.launch(Dispatchers.Main) {
+                            Toast.makeText(context, "Authenticate error: $error", Toast.LENGTH_SHORT).show()
+                        }
+                    })
+            } else {
+                Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
+            }
+        },
+        onAuthenticateSIWEClick = {
+            if (viewModel.isAnyChainSelected) {
+                viewModel.authenticate(
+                    viewModel.siweParams,
+                    onAuthenticateSuccess = { uri -> pairingUri = PairingUri(uri, false) },
+                    onError = { error ->
+                        composableScope.launch(Dispatchers.Main) {
+                            Toast.makeText(context, "Authenticate error: $error", Toast.LENGTH_SHORT).show()
+                        }
+                    })
+            } else {
+                Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
             }
         }
     )
 }
 
-private fun handleAuthenticate(
+@Composable
+private fun ChainSelectionScreen(
+    chains: List<ChainSelectionUi>,
+    awaitingState: Boolean,
+    pairingUri: PairingUri,
     context: Context,
-    viewModel: ChainSelectionViewModel,
-    params: Modal.Params.Authenticate,
-    composableScope: CoroutineScope
+    onDialogDismiss: () -> Unit,
+    onChainClick: (Int, Boolean) -> Unit,
+    onConnectClick: () -> Unit,
+    onAuthenticateClick: () -> Unit,
+    onAuthenticateSIWEClick: () -> Unit
 ) {
-    if (context.isSampleWalletInstalled()) {
-        authenticate(viewModel, context, params, composableScope) { uri ->
-            try {
-                val intent = Intent(Intent.ACTION_VIEW).apply {
-                    val encoded = URLEncoder.encode(uri, "UTF-8")
-                    data = "kotlin-web3wallet://wc?uri=$encoded".toUri()
-                    `package` = when (BuildConfig.BUILD_TYPE) {
-                        "debug" -> SAMPLE_WALLET_DEBUG_PACKAGE
-                        "internal" -> SAMPLE_WALLET_INTERNAL_PACKAGE
-                        else -> SAMPLE_WALLET_RELEASE_PACKAGE
+    Box {
+        Column(modifier = Modifier.fillMaxSize()) {
+            WCTopAppBarLegacy(titleText = "Chain selection")
+            ChainsList(
+                chains = chains,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 16.dp),
+                onChainClick,
+            )
+            BlueButton(
+                text = "Connect via WalletConnect Modal",
+                onClick = onConnectClick,
+                modifier = Modifier
+                    .padding(vertical = 10.dp)
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .padding(horizontal = 16.dp),
+            )
+            BlueButton(
+                text = "Authenticate (ReCaps)",
+                onClick = onAuthenticateClick,
+                modifier = Modifier
+                    .padding(vertical = 10.dp)
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .padding(horizontal = 16.dp)
+            )
+            BlueButton(
+                text = "Authenticate (SIWE)",
+                onClick = onAuthenticateSIWEClick,
+                modifier = Modifier
+                    .padding(vertical = 10.dp)
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .padding(horizontal = 16.dp)
+            )
+        }
+        if (awaitingState) {
+            Loader()
+        }
+
+        if (pairingUri.uri.isNotEmpty()) {
+            QRDialog(pairingUri, onDismissRequest = { onDialogDismiss() }, context)
+        }
+    }
+}
+
+@Composable
+private fun QRDialog(pairingUri: PairingUri, onDismissRequest: () -> Unit, context: Context) {
+    val qrBitmap = generateQRCode(pairingUri.uri)
+    val clipboardManager: ClipboardManager = LocalClipboardManager.current
+
+    Dialog(onDismissRequest = { onDismissRequest() }) {
+        Box(
+            modifier = Modifier
+                .size(600.dp)
+                .background(color = themedColor(Color(0xFF242425), Color(0xFFFFFFFF)), shape = MaterialTheme.shapes.medium)
+                .padding(8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                qrBitmap?.let {
+                    Image(
+                        bitmap = it.asImageBitmap(),
+                        contentDescription = "QR Code",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .padding(16.dp)
+                    )
+                } ?: Text("Error while generating QR code", modifier = Modifier.padding(16.dp))
+                Button(
+                    onClick = {
+                        onDismissRequest()
+                        try {
+                            val intent = Intent(Intent.ACTION_VIEW).apply {
+                                val encoded = URLEncoder.encode(pairingUri.uri, "UTF-8")
+                                data = "kotlin-web3wallet://wc?uri=$encoded".toUri()
+                                `package` = when (BuildConfig.BUILD_TYPE) {
+                                    "debug" -> SAMPLE_WALLET_DEBUG_PACKAGE
+                                    "internal" -> SAMPLE_WALLET_INTERNAL_PACKAGE
+                                    else -> SAMPLE_WALLET_RELEASE_PACKAGE
+                                }
+                            }
+                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                            Toast.makeText(context, "Please install Kotlin Sample Wallet", Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    modifier = Modifier.padding(top = 16.dp)
+                ) {
+                    Text("Deep link")
+                }
+                if (pairingUri.isReCaps) {
+                    Button(
+                        onClick = {
+                            onDismissRequest()
+                            try {
+                                val intent = Intent(Intent.ACTION_VIEW).apply {
+                                    val encoded = URLEncoder.encode(pairingUri.uri, "UTF-8")
+                                    data = "trust://wc?uri=$encoded".toUri()
+                                }
+                                context.startActivity(intent)
+                            } catch (e: Exception) {
+                                Toast.makeText(context, "Please install TrustWallet", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        modifier = Modifier.padding(top = 16.dp)
+                    ) {
+                        Text("Dynamic Switcher Deeplink (TrustWallet)", textAlign = TextAlign.Center)
                     }
                 }
-                context.startActivity(intent)
-            } catch (e: Exception) {
-                Toast.makeText(context, "SampleWallet is not installed: $e", Toast.LENGTH_SHORT).show()
+                Button(
+                    onClick = {
+                        Toast.makeText(context, "URI copied to clipboard", Toast.LENGTH_SHORT).show()
+                        clipboardManager.setText(AnnotatedString(pairingUri.uri))
+                        onDismissRequest()
+                    },
+                    modifier = Modifier.padding(top = 16.dp)
+                ) {
+                    Text("Copy URI to clipboard")
+                }
+                Button(
+                    onClick = { onDismissRequest() },
+                    modifier = Modifier.padding(top = 16.dp)
+                ) {
+                    Text("Close")
+                }
             }
         }
-    } else {
-        Toast.makeText(context, "Please install Kotlin Sample Wallet", Toast.LENGTH_SHORT).show()
+    }
+}
+
+fun generateQRCode(content: String): Bitmap? {
+    val qrgEncoder = QRGEncoder(content, null, QRGContents.Type.TEXT, 400)
+    return try {
+        qrgEncoder.bitmap
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
     }
 }
 
@@ -146,7 +304,8 @@ private fun handleAuthenticate(
 private fun handleSignEvents(
     viewModel: ChainSelectionViewModel,
     navController: NavController,
-    context: Context
+    context: Context,
+    onAuthenticateReject: () -> Unit,
 ) {
     LaunchedEffect(Unit) {
         viewModel.walletEvents.collect { event ->
@@ -177,6 +336,7 @@ private fun handleSignEvents(
 
                 DappSampleEvents.SessionAuthenticateRejected -> {
                     viewModel.awaitingProposalResponse(false)
+                    onAuthenticateReject()
                     Toast.makeText(context, "Session authenticate has been rejected", Toast.LENGTH_SHORT).show()
                 }
 
@@ -231,7 +391,9 @@ private fun authenticate(
     if (viewModel.isAnyChainSelected) {
         viewModel.authenticate(
             params,
-            onAuthenticateSuccess = { uri -> onDeepLink(uri) },
+            onAuthenticateSuccess = { uri ->
+                onDeepLink(uri)
+            },
             onError = { error ->
                 composableScope.launch(Dispatchers.Main) {
                     Toast.makeText(context, "Authenticate error: $error", Toast.LENGTH_SHORT).show()
@@ -258,69 +420,6 @@ private fun onConnectClick(
         }
     } else {
         Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
-    }
-}
-
-@Composable
-private fun ChainSelectionScreen(
-    chains: List<ChainSelectionUi>,
-    awaitingState: Boolean,
-    onChainClick: (Int, Boolean) -> Unit,
-    onConnectClick: () -> Unit,
-    onAuthenticateClick: () -> Unit,
-    onAuthenticateSIWEClick: () -> Unit,
-    onDynamicSwitcher: () -> Unit
-) {
-    Box {
-        Column(modifier = Modifier.fillMaxSize()) {
-            WCTopAppBarLegacy(titleText = "Chain selection")
-            ChainsList(
-                chains = chains,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 16.dp),
-                onChainClick,
-            )
-            BlueButton(
-                text = "Connect via WalletConnect Modal",
-                onClick = onConnectClick,
-                modifier = Modifier
-                    .padding(vertical = 10.dp)
-                    .fillMaxWidth()
-                    .height(50.dp)
-                    .padding(horizontal = 16.dp),
-            )
-            BlueButton(
-                text = "Authenticate (ReCaps)",
-                onClick = onAuthenticateClick,
-                modifier = Modifier
-                    .padding(vertical = 10.dp)
-                    .fillMaxWidth()
-                    .height(50.dp)
-                    .padding(horizontal = 16.dp)
-            )
-            BlueButton(
-                text = "Authenticate (SIWE)",
-                onClick = onAuthenticateSIWEClick,
-                modifier = Modifier
-                    .padding(vertical = 10.dp)
-                    .fillMaxWidth()
-                    .height(50.dp)
-                    .padding(horizontal = 16.dp)
-            )
-            BlueButton(
-                text = "Dynamic Switcher (TrustWallet)",
-                onClick = onDynamicSwitcher,
-                modifier = Modifier
-                    .padding(vertical = 10.dp)
-                    .fillMaxWidth()
-                    .height(50.dp)
-                    .padding(horizontal = 16.dp)
-            )
-        }
-        if (awaitingState) {
-            Loader()
-        }
     }
 }
 
@@ -414,10 +513,12 @@ private fun ChainSelectionScreenPreview(
         ChainSelectionScreen(
             chains = chains,
             awaitingState = false,
+            pairingUri = PairingUri(uri = "", isReCaps = false),
+            context = LocalContext.current,
+            onDialogDismiss = {},
             onChainClick = { _, _ -> },
             onConnectClick = {},
             onAuthenticateClick = {},
-            onDynamicSwitcher = {},
             onAuthenticateSIWEClick = {},
         )
     }
@@ -437,3 +538,8 @@ private fun Context.isSampleWalletInstalled() =
     (BuildConfig.BUILD_TYPE == "debug" && packageManager.isPackageInstalled(SAMPLE_WALLET_DEBUG_PACKAGE)) ||
             (BuildConfig.BUILD_TYPE == "release" && packageManager.isPackageInstalled(SAMPLE_WALLET_RELEASE_PACKAGE)) ||
             (BuildConfig.BUILD_TYPE == "internal" && packageManager.isPackageInstalled(SAMPLE_WALLET_INTERNAL_PACKAGE))
+
+data class PairingUri(
+    val uri: String,
+    val isReCaps: Boolean
+)
