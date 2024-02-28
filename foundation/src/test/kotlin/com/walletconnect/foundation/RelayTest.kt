@@ -52,7 +52,7 @@ class RelayTest {
 
     @ExperimentalTime
     @Test
-    @Ignore("This test is not working")
+    @Ignore("Test failing in pipeline")
     fun `One client sends unencrypted message, second one receives it`() {
         val testState = MutableStateFlow<TestState>(TestState.Idle)
         val testTopic = Random.nextBytes(32).bytesToHex()
