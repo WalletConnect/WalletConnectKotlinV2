@@ -269,7 +269,7 @@ internal class PairingEngine(
             .onEach {
                 supervisorScope {
                     launch(Dispatchers.IO) {
-                        resubscribeToPairing()
+                        sendBatchSubcrbeForPairings()
                     }
                 }
 
@@ -277,6 +277,15 @@ internal class PairingEngine(
                     jsonRpcRequestsJob = collectJsonRpcRequestsFlow()
                 }
             }.launchIn(scope)
+    }
+
+    private suspend fun sendBatchSubcrbeForPairings() {
+        try {
+            val pairingTopics = pairingRepository.getListOfPairings().filter { pairing -> pairing.isNotExpired() }.map { pairing -> pairing.topic.value }
+            jsonRpcInteractor.batchSubscribe(pairingTopics) { error -> scope.launch { internalErrorFlow.emit(SDKError(error)) } }
+        } catch (e: Exception) {
+            scope.launch { internalErrorFlow.emit(SDKError(e)) }
+        }
     }
 
     private fun inactivePairingsExpiryWatcher() {
@@ -298,9 +307,7 @@ internal class PairingEngine(
             .onEach {
                 try {
                     pairingRepository.getListOfActivePairings()
-                        .onEach { pairing ->
-                            pairing.isNotExpired()
-                        }
+                        .onEach { pairing -> pairing.isNotExpired() }
                 } catch (e: Exception) {
                     logger.error(e)
                 }
@@ -340,15 +347,6 @@ internal class PairingEngine(
                     is PairingParams.PingParams -> onPing(request)
                 }
             }.launchIn(scope)
-
-    private fun resubscribeToPairing() {
-        try {
-            val pairingTopics = runBlocking { pairingRepository.getListOfPairings().filter { pairing -> pairing.isNotExpired() }.map { pairing -> pairing.topic.value } }
-            jsonRpcInteractor.batchSubscribe(pairingTopics) { error -> scope.launch { internalErrorFlow.emit(SDKError(error)) } }
-        } catch (e: Exception) {
-            scope.launch { internalErrorFlow.emit(SDKError(e)) }
-        }
-    }
 
     private suspend fun onPairingDelete(request: WCRequest, params: PairingParams.DeleteParams) {
         val irnParams = IrnParams(Tags.PAIRING_DELETE_RESPONSE, Ttl(dayInSeconds))
@@ -440,7 +438,7 @@ internal class PairingEngine(
         pairingRepository.getPairingOrNullByTopic(Topic(topic))?.let { pairing -> return@let pairing.isNotExpired() } ?: false
 
     companion object {
-        private const val WATCHER_INTERVAL = 5000L
+        private const val WATCHER_INTERVAL = 30000L //30s
         private const val ACTIVE_PAIRINGS_WATCHER_INTERVAL = 600000L //10mins
     }
 }

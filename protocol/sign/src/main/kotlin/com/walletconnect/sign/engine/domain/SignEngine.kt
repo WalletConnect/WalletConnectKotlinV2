@@ -368,6 +368,6 @@ internal class SignEngine(
     }
 
     companion object {
-        private const val WATCHER_INTERVAL = 5000L
+        private const val WATCHER_INTERVAL = 30000L //30s
     }
 }
