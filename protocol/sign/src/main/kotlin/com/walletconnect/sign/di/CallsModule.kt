@@ -91,7 +91,8 @@ internal fun callsModule() = module {
             verifyContextStorageRepository = get(),
             sessionStorageRepository = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
-            getPendingJsonRpcHistoryEntryByIdUseCase = get()
+            getPendingJsonRpcHistoryEntryByIdUseCase = get(),
+            enableRequestsQueue = get(named(SignDITags.ENABLE_REQUESTS_QUEUE))
         )
     }
 

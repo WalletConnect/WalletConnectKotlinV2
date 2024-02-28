@@ -228,6 +228,7 @@ object Sign {
 
         data class Init constructor(
             val core: CoreInterface,
+            val enableRequestsQueue: Boolean = true,
         ) : Params()
 
         data class Connect(

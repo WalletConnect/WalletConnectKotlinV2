@@ -103,7 +103,7 @@ object Web3Wallet {
         var clientInitCounter = 0
         val onSuccessfulInitialization: () -> Unit = { clientInitCounter++ }
 
-        SignClient.initialize(Sign.Params.Init(params.core), onSuccess = onSuccessfulInitialization) { error ->
+        SignClient.initialize(Sign.Params.Init(params.core, params.enableRequestsQueue), onSuccess = onSuccessfulInitialization) { error ->
             if (error.throwable is SignClientAlreadyInitializedException) {
                 onSuccessfulInitialization()
             } else {
@@ -134,7 +134,8 @@ object Web3Wallet {
                     when (message) {
                         is Sign.Model.Message.SessionRequest -> onSuccess(message.toWallet())
                         is Sign.Model.Message.SessionProposal -> onSuccess(message.toWallet())
-                        else -> { /*Ignore*/ }
+                        else -> { /*Ignore*/
+                        }
                     }
                 },
                 onError = { signError ->

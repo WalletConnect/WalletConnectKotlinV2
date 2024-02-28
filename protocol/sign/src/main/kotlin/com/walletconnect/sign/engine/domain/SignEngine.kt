@@ -116,6 +116,7 @@ internal class SignEngine(
     private val onSessionSettleResponseUseCase: OnSessionSettleResponseUseCase,
     private val onSessionUpdateResponseUseCase: OnSessionUpdateResponseUseCase,
     private val onSessionRequestResponseUseCase: OnSessionRequestResponseUseCase,
+    private val enableRequestsQueue: Boolean
 ) : ProposeSessionUseCaseInterface by proposeSessionUseCase,
     PairUseCaseInterface by pairUseCase,
     RejectSessionUseCaseInterface by rejectSessionUseCase,
@@ -155,13 +156,15 @@ internal class SignEngine(
             JsonRpcMethod.WC_SESSION_UPDATE
         )
         setupSequenceExpiration()
-        propagatePendingSessionRequestsQueue()
         emitReceivedSessionProposalsWhilePairingOnTheSameURL()
         sessionProposalExpiryWatcher()
         sessionRequestsExpiryWatcher()
     }
 
     fun setup() {
+        if (enableRequestsQueue) {
+            propagatePendingSessionRequestsQueue()
+        }
         jsonRpcInteractor.isConnectionAvailable
             .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
             .filter { isAvailable: Boolean -> isAvailable }

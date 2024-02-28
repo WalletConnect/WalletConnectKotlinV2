@@ -44,7 +44,8 @@ internal fun requestsModule() = module {
             sessionStorageRepository = get(),
             jsonRpcInteractor = get(),
             resolveAttestationIdUseCase = get(),
-            logger = get(named(AndroidCommonDITags.LOGGER))
+            logger = get(named(AndroidCommonDITags.LOGGER)),
+            enableRequestsQueue = get(named(SignDITags.ENABLE_REQUESTS_QUEUE))
         )
     }
 
