@@ -52,7 +52,6 @@ class RelayTest {
 
     @ExperimentalTime
     @Test
-    @Ignore("Test failing in pipeline")
     fun `One client sends unencrypted message, second one receives it`() {
         val testState = MutableStateFlow<TestState>(TestState.Idle)
         val testTopic = Random.nextBytes(32).bytesToHex()
@@ -100,7 +99,7 @@ class RelayTest {
         runBlocking {
             val start = System.currentTimeMillis()
             // Await test finish or check if timeout occurred
-            while (testState.value is TestState.Idle && !didTimeout(start, 200000L)) {
+            while (testState.value is TestState.Idle && !didTimeout(start, 20000L)) {
                 delay(10)
             }
 
