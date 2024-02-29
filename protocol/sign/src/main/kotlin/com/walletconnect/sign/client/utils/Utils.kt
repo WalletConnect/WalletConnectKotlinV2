@@ -103,8 +103,8 @@ fun generateAuthPayloadParams(payloadParams: Sign.Model.PayloadParams, supported
     val sessionChains = requestedChains.intersect(supportedChains.toSet()).toList().distinct()
     val sessionMethods = requestedMethods.intersect(supportedMethods.toSet()).toList().distinct()
 
-    if (sessionChains.isEmpty()) throw Exception("No supported chains")
-    if (sessionMethods.isEmpty()) throw Exception("No supported methods")
+    if (sessionChains.isEmpty()) throw Exception("Unsupported chains")
+    if (sessionMethods.isEmpty()) throw Exception("Unsupported methods")
 
     if (!sessionChains.all { chain -> CoreValidator.isChainIdCAIP2Compliant(chain) }) throw Exception("Chains are not CAIP-2 compliant")
     if (!sessionChains.all { chain -> SignValidator.getNamespaceKeyFromChainId(chain) == "eip155" }) throw Exception("Only eip155(EVM) is supported")
@@ -131,6 +131,18 @@ fun generateAuthPayloadParams(payloadParams: Sign.Model.PayloadParams, supported
     }
 
     return with(payloadParams) {
-        Sign.Model.PayloadParams(sessionChains, domain, nonce, aud, type, nbf, exp, statement, requestId, resources)
+        Sign.Model.PayloadParams(
+            chains = sessionChains,
+            domain = domain,
+            nonce = nonce,
+            aud = aud,
+            type = type,
+            nbf = nbf,
+            exp = exp,
+            iat = iat,
+            statement = statement,
+            resources = resources,
+            requestId = requestId
+        )
     }
 }

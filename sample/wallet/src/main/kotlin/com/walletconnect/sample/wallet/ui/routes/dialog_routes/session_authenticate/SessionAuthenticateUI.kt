@@ -7,7 +7,7 @@ import com.walletconnect.web3.wallet.client.Wallet
 
 data class SessionAuthenticateUI(
     val peerUI: PeerUI,
-    val messages: MutableList<Pair<String, String>>,
+    val messages: MutableList<String>,
     val peerContextUI: PeerContextUI,
 )
 

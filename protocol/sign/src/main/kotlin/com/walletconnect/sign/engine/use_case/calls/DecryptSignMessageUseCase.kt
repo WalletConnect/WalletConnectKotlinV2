@@ -81,7 +81,7 @@ internal class DecryptSignMessageUseCase(
 
         fun PayloadParams.toClient(): Core.Model.Message.SessionAuthenticate.PayloadParams {
             return with(this) {
-                Core.Model.Message.SessionAuthenticate.PayloadParams(chains, domain, nonce, aud, type, nbf, exp, statement, requestId, resources)
+                Core.Model.Message.SessionAuthenticate.PayloadParams(chains, domain, nonce, aud, type, nbf, exp, statement, requestId, resources, iat)
             }
         }
 

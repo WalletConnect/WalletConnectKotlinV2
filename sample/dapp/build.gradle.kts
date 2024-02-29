@@ -54,6 +54,7 @@ dependencies {
 
     implementation("io.insert-koin:koin-androidx-compose:3.4.3")
     implementation("io.coil-kt:coil-compose:2.3.0")
+    implementation("androidmads.library.qrgenearator:QRGenearator:1.0.4")
 
     compose()
     accompanist()

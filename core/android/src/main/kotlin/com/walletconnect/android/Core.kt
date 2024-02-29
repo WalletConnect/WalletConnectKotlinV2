@@ -117,6 +117,7 @@ object Core {
                     val statement: String?,
                     val requestId: String?,
                     var resources: List<String>?,
+                    val iat: String
                 ) : Model()
             }
 

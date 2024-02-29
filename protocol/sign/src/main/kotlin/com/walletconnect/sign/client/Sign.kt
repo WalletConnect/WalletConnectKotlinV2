@@ -4,7 +4,6 @@ import androidx.annotation.Keep
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreInterface
 import com.walletconnect.android.cacao.SignatureInterface
-import com.walletconnect.android.internal.common.model.Participant
 import com.walletconnect.android.internal.common.signing.cacao.Issuer
 import java.net.URI
 import kotlin.time.Duration
@@ -262,6 +261,7 @@ object Sign {
             val type: String?,
             val nbf: String?,
             val exp: String?,
+            val iat: String,
             val statement: String?,
             val requestId: String?,
             var resources: List<String>?,
@@ -311,7 +311,7 @@ object Sign {
             val chains: List<String>,
             val domain: String,
             val nonce: String,
-            val aud: String,
+            val uri: String,
             val type: String?,
             val nbf: String?,
             val exp: String?,
@@ -334,8 +334,8 @@ object Sign {
 
         data class Reject(val proposerPublicKey: String, val reason: String) : Params()
 
-        data class ApproveSessionAuthenticate(val id: Long, val cacaos: List<Model.Cacao>) : Params()
-        data class RejectSessionAuthenticate(val id: Long, val reason: String) : Params()
+        data class ApproveAuthenticate(val id: Long, val cacaos: List<Model.Cacao>) : Params()
+        data class RejectAuthenticate(val id: Long, val reason: String) : Params()
 
         data class Disconnect(val sessionTopic: String) : Params()
 

@@ -62,8 +62,8 @@ class SessionAuthenticateInstrumentedAndroidTest {
                     cacaos.add(cacao)
                 }
 
-                val params = Sign.Params.ApproveSessionAuthenticate(sessionAuthenticate.id, cacaos)
-                WalletSignClient.approveSessionAuthenticated(params, onSuccess = {}, onError = ::globalOnError)
+                val params = Sign.Params.ApproveAuthenticate(sessionAuthenticate.id, cacaos)
+                WalletSignClient.approveAuthenticate(params, onSuccess = {}, onError = ::globalOnError)
             }
         }
 
@@ -103,8 +103,8 @@ class SessionAuthenticateInstrumentedAndroidTest {
                     cacaos.add(cacao)
                 }
 
-                val params = Sign.Params.ApproveSessionAuthenticate(sessionAuthenticate.id, cacaos)
-                WalletSignClient.approveSessionAuthenticated(params, onSuccess = {}, onError = ::globalOnError)
+                val params = Sign.Params.ApproveAuthenticate(sessionAuthenticate.id, cacaos)
+                WalletSignClient.approveAuthenticate(params, onSuccess = {}, onError = ::globalOnError)
             }
 
             override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest, verifyContext: Sign.Model.VerifyContext) {
@@ -155,8 +155,8 @@ class SessionAuthenticateInstrumentedAndroidTest {
                     cacaos.add(cacao)
                 }
 
-                val params = Sign.Params.ApproveSessionAuthenticate(sessionAuthenticate.id, cacaos)
-                WalletSignClient.approveSessionAuthenticated(params, onSuccess = {}, onError = { error ->
+                val params = Sign.Params.ApproveAuthenticate(sessionAuthenticate.id, cacaos)
+                WalletSignClient.approveAuthenticate(params, onSuccess = {}, onError = { error ->
                     Timber.d("approveSessionAuthenticated: onError: $error")
                     (error.throwable.message == "Invalid Cacao for Session Authenticate").also {
                         Timber.d("receiveApproveSessionAuthenticate: ${error.throwable.message}: finish")
@@ -175,8 +175,8 @@ class SessionAuthenticateInstrumentedAndroidTest {
 
         val walletDelegate = object : WalletDelegate() {
             override fun onSessionAuthenticate(sessionAuthenticate: Sign.Model.SessionAuthenticate, verifyContext: Sign.Model.VerifyContext) {
-                val params = Sign.Params.RejectSessionAuthenticate(sessionAuthenticate.id, "User rejections")
-                WalletSignClient.rejectSessionAuthenticated(params, onSuccess = {}, onError = ::globalOnError)
+                val params = Sign.Params.RejectAuthenticate(sessionAuthenticate.id, "User rejections")
+                WalletSignClient.rejectAuthenticate(params, onSuccess = {}, onError = ::globalOnError)
             }
         }
 

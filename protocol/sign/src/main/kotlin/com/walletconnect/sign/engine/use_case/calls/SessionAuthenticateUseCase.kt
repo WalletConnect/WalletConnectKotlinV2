@@ -47,14 +47,14 @@ internal class SessionAuthenticateUseCase(
     private val logger: Logger
 ) : SessionAuthenticateUseCaseInterface {
     override suspend fun authenticate(
-        payloadParams: EngineDO.PayloadParams,
+        authenticate: EngineDO.Authenticate,
         methods: List<String>?,
         pairingTopic: String?,
         expiry: Expiry?,
         onSuccess: (String) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
-        if (payloadParams.chains.isEmpty()) {
+        if (authenticate.chains.isEmpty()) {
             logger.error("Sending session authenticate request error: chains are empty")
             return onFailure(IllegalArgumentException("Chains are empty"))
         }
@@ -65,15 +65,15 @@ internal class SessionAuthenticateUseCase(
         }
         val requestExpiry = expiry ?: Expiry(currentTimeInSeconds + oneHourInSeconds)
         val pairing = getPairingForSessionAuthenticate(pairingTopic)
-        val optionalNamespaces = getNamespacesFromReCaps(payloadParams.chains, methods ?: emptyList()).toMapOfEngineNamespacesOptional()
+        val optionalNamespaces = getNamespacesFromReCaps(authenticate.chains, methods ?: emptyList()).toMapOfEngineNamespacesOptional()
         if (!methods.isNullOrEmpty()) {
-            val namespace = SignValidator.getNamespaceKeyFromChainId(payloadParams.chains.first())
+            val namespace = SignValidator.getNamespaceKeyFromChainId(authenticate.chains.first())
             val actionsJsonObject = JSONObject()
             methods.forEach { method -> actionsJsonObject.put("request/$method", JSONArray().put(0, JSONObject())) }
             val recaps = JSONObject().put(ATT_KEY, JSONObject().put(namespace, actionsJsonObject)).toString().replace("\\/", "/")
             val base64Recaps = Base64.toBase64String(recaps.toByteArray(Charsets.UTF_8))
             val reCapsUrl = "$RECAPS_PREFIX$base64Recaps"
-            if (payloadParams.resources == null) payloadParams.resources = listOf(reCapsUrl) else payloadParams.resources = payloadParams.resources!! + reCapsUrl
+            if (authenticate.resources == null) authenticate.resources = listOf(reCapsUrl) else authenticate.resources = authenticate.resources!! + reCapsUrl
         }
 
         val requesterPublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
@@ -81,7 +81,7 @@ internal class SessionAuthenticateUseCase(
         val authParams: SignParams.SessionAuthenticateParams =
             SignParams.SessionAuthenticateParams(
                 Requester(requesterPublicKey.keyAsHex, selfAppMetaData),
-                payloadParams.toCommon(),
+                authenticate.toCommon(),
                 expiryTimestamp = requestExpiry.seconds
             )
         val authRequest: SignRpc.SessionAuthenticate = SignRpc.SessionAuthenticate(params = authParams)
@@ -175,5 +175,5 @@ internal class SessionAuthenticateUseCase(
 }
 
 internal interface SessionAuthenticateUseCaseInterface {
-    suspend fun authenticate(payloadParams: EngineDO.PayloadParams, methods: List<String>?, pairingTopic: String?, expiry: Expiry?, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit)
+    suspend fun authenticate(authenticate: EngineDO.Authenticate, methods: List<String>?, pairingTopic: String?, expiry: Expiry?, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit)
 }

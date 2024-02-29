@@ -128,27 +128,11 @@ class ChainSelectionViewModel : ViewModel() {
         properties = getProperties()
     )
 
-    fun authenticate(onAuthenticateSuccess: (String) -> Unit, onError: (String) -> Unit = {}) {
+    fun authenticate(authenticateParams: Modal.Params.Authenticate, onAuthenticateSuccess: (String) -> Unit, onError: (String) -> Unit = {}) {
         viewModelScope.launch {
             _awaitingProposalSharedFlow.emit(true)
         }
-        val authenticateParams = Modal.Params.Authenticate(
-            type = "eip4361",
-            chains = uiState.value.filter { it.isSelected }.map { it.chainId },
-            domain = "sample.kotlin.dapp",
-            aud = "https://web3inbox.com/all-apps",
-            nonce = randomBytes(12).bytesToHex(),
-            exp = null,
-            nbf = null,
-            statement = "Sign in with wallet.",
-            requestId = null,
-            resources = listOf(
-                "urn:recap:eyJhdHQiOnsiaHR0cHM6Ly9ub3RpZnkud2FsbGV0Y29ubmVjdC5jb20vYWxsLWFwcHMiOnsiY3J1ZC9zdWJzY3JpcHRpb25zIjpbe31dLCJjcnVkL25vdGlmaWNhdGlvbnMiOlt7fV19fX0=",
-                "ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/"
-            ),
-            methods = listOf("personal_sign", "eth_signTypedData"),
-            expiry = null
-        )
+
         WalletConnectModal.authenticate(authenticateParams,
             onSuccess = { url ->
                 viewModelScope.launch {
@@ -217,4 +201,40 @@ class ChainSelectionViewModel : ViewModel() {
             onError(e.message ?: "Unknown error, please contact support")
         }
     }
+
+
+    val authenticateParams
+        get() = Modal.Params.Authenticate(
+            type = "eip4361",
+            chains = uiState.value.filter { it.isSelected }.map { it.chainId },
+            domain = "sample.kotlin.dapp",
+            aud = "https://web3inbox.com/all-apps",
+            nonce = randomBytes(12).bytesToHex(),
+            exp = null,
+            nbf = null,
+            statement = "Sign in with wallet.",
+            requestId = null,
+            resources = listOf(
+                "urn:recap:eyJhdHQiOnsiaHR0cHM6Ly9ub3RpZnkud2FsbGV0Y29ubmVjdC5jb20vYWxsLWFwcHMiOnsiY3J1ZC9zdWJzY3JpcHRpb25zIjpbe31dLCJjcnVkL25vdGlmaWNhdGlvbnMiOlt7fV19fX0=",
+                "ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/"
+            ),
+            methods = listOf("personal_sign", "eth_signTypedData"),
+            expiry = null
+        )
+
+    val siweParams
+        get() = Modal.Params.Authenticate(
+            type = "eip4361",
+            chains = uiState.value.filter { it.isSelected }.map { it.chainId },
+            domain = "sample.kotlin.dapp",
+            aud = "https://web3inbox.com/all-apps",
+            nonce = randomBytes(12).bytesToHex(),
+            exp = null,
+            nbf = null,
+            statement = "Sign in with wallet.",
+            requestId = null,
+            resources = null,
+            methods = null,
+            expiry = null
+        )
 }

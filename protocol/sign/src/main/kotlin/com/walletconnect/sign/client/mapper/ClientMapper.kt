@@ -14,11 +14,8 @@ import com.walletconnect.android.internal.common.signing.cacao.CacaoType
 import com.walletconnect.android.utils.toClient
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.common.model.Request
-import com.walletconnect.sign.common.model.vo.clientsync.common.PayloadParams
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.engine.model.EngineDO
-import java.text.SimpleDateFormat
-import java.util.Calendar
 
 @JvmSynthetic
 internal fun Sign.Model.JsonRpcResponse.toJsonRpcResponse(): JsonRpcResponse =
@@ -97,43 +94,44 @@ internal fun EngineDO.SessionRequest.toClientSessionRequest(): Sign.Model.Sessio
     )
 
 @JvmSynthetic
-internal fun Sign.Model.PayloadParams.toCaip222Request(): PayloadParams = with(this) {
-    PayloadParams(
-        CacaoType.CAIP222.header,
-        chains,
-        domain,
-        aud,
-        "1",
-        nonce,
-        SimpleDateFormat(Cacao.Payload.ISO_8601_PATTERN).format(Calendar.getInstance().time),
-        nbf,
-        exp,
-        statement,
-        requestId,
-        resources
-    )
-}
-
-@JvmSynthetic
-internal fun Sign.Params.Authenticate.toPayloadParams(): EngineDO.PayloadParams = with(this) {
+internal fun Sign.Model.PayloadParams.toEngine(): EngineDO.PayloadParams = with(this) {
     EngineDO.PayloadParams(
         type = CacaoType.CAIP222.header,
         chains = chains,
         domain = domain,
         aud = aud,
-        version = "1",
         nonce = nonce,
         nbf = nbf,
         exp = exp,
         statement = statement,
         requestId = requestId,
-        resources = resources
+        resources = resources,
+        iat = iat,
+        version = "1"
+    )
+}
+
+@JvmSynthetic
+internal fun Sign.Params.Authenticate.toAuthenticate(): EngineDO.Authenticate = with(this) {
+    EngineDO.Authenticate(
+        type = CacaoType.CAIP222.header,
+        chains = chains,
+        domain = domain,
+        aud = uri,
+        nonce = nonce,
+        nbf = nbf,
+        exp = exp,
+        statement = statement,
+        requestId = requestId,
+        resources = resources,
+        methods = methods,
+        expiry = expiry
     )
 }
 
 @JvmSynthetic
 internal fun Sign.Model.PayloadParams.toCacaoPayload(issuer: String): Sign.Model.Cacao.Payload = with(this) {
-    Sign.Model.Cacao.Payload(issuer, domain, aud, "1", nonce, iat = SimpleDateFormat(Cacao.Payload.ISO_8601_PATTERN).format(Calendar.getInstance().time), nbf, exp, statement, requestId, resources)
+    Sign.Model.Cacao.Payload(issuer, domain, aud, "1", nonce, iat = iat, nbf, exp, statement, requestId, resources)
 }
 
 @JvmSynthetic
@@ -224,7 +222,8 @@ internal fun EngineDO.PayloadParams.toClient(): Sign.Model.PayloadParams = Sign.
     exp = exp,
     statement = statement,
     requestId = requestId,
-    resources = resources
+    resources = resources,
+    iat = iat
 )
 
 @JvmSynthetic
@@ -326,7 +325,8 @@ internal fun SignParams.SessionAuthenticateParams.toClient(): Sign.Model.Payload
         exp = exp,
         statement = statement,
         requestId = requestId,
-        resources = resources
+        resources = resources,
+        iat = iat
     )
 }
 
@@ -424,7 +424,19 @@ internal fun Core.Model.Message.SessionAuthenticate.toSign(): Sign.Model.Message
 
 private fun Core.Model.Message.SessionAuthenticate.PayloadParams.toClient(): Sign.Model.PayloadParams {
     return with(this) {
-        Sign.Model.PayloadParams(chains, domain, nonce, aud, type, nbf, exp, statement, requestId, resources)
+        Sign.Model.PayloadParams(
+            chains = chains,
+            domain = domain,
+            nonce = nonce,
+            aud = aud,
+            type = type,
+            nbf = nbf,
+            exp = exp,
+            iat = iat,
+            statement = requestId,
+            resources = resources,
+            requestId = requestId,
+        )
     }
 }
 

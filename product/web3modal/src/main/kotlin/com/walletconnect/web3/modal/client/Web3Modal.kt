@@ -178,7 +178,7 @@ object Web3Modal {
         onError: (Modal.Model.Error) -> Unit,
     ) {
 
-        SignClient.sessionAuthenticate(authenticate.toSign(),
+        SignClient.authenticate(authenticate.toSign(),
             onSuccess = { url -> onSuccess(url) },
             onError = { onError(it.toModal()) })
     }
