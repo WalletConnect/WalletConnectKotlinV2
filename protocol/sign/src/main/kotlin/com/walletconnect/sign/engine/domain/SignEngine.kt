@@ -343,32 +343,40 @@ internal class SignEngine(
     private fun sessionProposalExpiryWatcher() {
         repeatableFlow()
             .onEach {
-                proposalStorageRepository
-                    .getProposals()
-                    .onEach { proposal ->
-                        proposal.expiry?.let {
-                            if (it.isExpired()) {
-                                proposalStorageRepository.deleteProposal(proposal.proposerPublicKey)
-                                deleteRequestByIdUseCase(proposal.requestId)
-                                _engineEvent.emit(proposal.toExpiredProposal())
+                try {
+                    proposalStorageRepository
+                        .getProposals()
+                        .onEach { proposal ->
+                            proposal.expiry?.let {
+                                if (it.isExpired()) {
+                                    proposalStorageRepository.deleteProposal(proposal.proposerPublicKey)
+                                    deleteRequestByIdUseCase(proposal.requestId)
+                                    _engineEvent.emit(proposal.toExpiredProposal())
+                                }
                             }
                         }
-                    }
+                } catch (e: Exception) {
+                    logger.error(e)
+                }
             }.launchIn(scope)
     }
 
     private fun sessionRequestsExpiryWatcher() {
         repeatableFlow()
             .onEach {
-                getPendingSessionRequests()
-                    .onEach { pendingRequest ->
-                        pendingRequest.expiry?.let {
-                            if (it.isExpired()) {
-                                deleteRequestByIdUseCase(pendingRequest.id)
-                                _engineEvent.emit(pendingRequest.toExpiredSessionRequest())
+                try {
+                    getPendingSessionRequests()
+                        .onEach { pendingRequest ->
+                            pendingRequest.expiry?.let {
+                                if (it.isExpired()) {
+                                    deleteRequestByIdUseCase(pendingRequest.id)
+                                    _engineEvent.emit(pendingRequest.toExpiredSessionRequest())
+                                }
                             }
                         }
-                    }
+                } catch (e: Exception) {
+                    logger.error(e)
+                }
             }.launchIn(scope)
     }
 
@@ -418,6 +426,6 @@ internal class SignEngine(
     }
 
     companion object {
-        private const val WATCHER_INTERVAL = 3000L
+        private const val WATCHER_INTERVAL = 30000L //30s
     }
 }

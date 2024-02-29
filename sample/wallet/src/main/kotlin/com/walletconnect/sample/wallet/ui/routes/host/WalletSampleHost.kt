@@ -2,6 +2,7 @@
 
 package com.walletconnect.sample.wallet.ui.routes.host
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -54,7 +55,6 @@ import com.walletconnect.sample.wallet.ui.Web3WalletNavGraph
 import com.walletconnect.sample.wallet.ui.Web3WalletViewModel
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
-import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import com.walletconnect.sample.wallet.ui.state.ConnectionState
 import com.walletconnect.sample.wallet.ui.state.PairingEvent
 import kotlinx.coroutines.delay
@@ -79,15 +79,15 @@ fun WalletSampleHost(
             when (it) {
                 is PairingEvent.Error -> {
                     navController.popBackStack(route = Route.Connections.path, inclusive = false)
-                    navController.showSnackbar(it.message)
+                    Toast.makeText(navController.context, it.message, Toast.LENGTH_SHORT).show()
                 }
 
                 is PairingEvent.Expired -> {
-                    navController.showSnackbar(it.message)
+                    Toast.makeText(navController.context, it.message, Toast.LENGTH_SHORT).show()
                 }
 
                 is PairingEvent.ProposalExpired -> {
-                    navController.showSnackbar(it.message)
+                    Toast.makeText(navController.context, it.message, Toast.LENGTH_SHORT).show()
                 }
             }
         }
