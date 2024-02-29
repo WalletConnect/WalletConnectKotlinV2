@@ -67,7 +67,7 @@ interface SignInterface {
     fun rejectSession(reject: Sign.Params.Reject, onSuccess: (Sign.Params.Reject) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun approveAuthenticate(approve: Sign.Params.ApproveAuthenticate, onSuccess: (Sign.Params.ApproveAuthenticate) -> Unit, onError: (Sign.Model.Error) -> Unit)
     fun rejectAuthenticate(reject: Sign.Params.RejectAuthenticate, onSuccess: (Sign.Params.RejectAuthenticate) -> Unit, onError: (Sign.Model.Error) -> Unit)
-    fun formatAuthMessage(formatMessage: Sign.Params.FormatMessage): String?
+    fun formatAuthMessage(formatMessage: Sign.Params.FormatMessage): String
 
     @Deprecated(
         message = "The onSuccess callback has been replaced with a new callback that returns Sign.Model.SentRequest",

@@ -216,7 +216,7 @@ fun Messages(authRequestUI: SessionAuthenticateUI) {
         itemsIndexed(authRequestUI.messages) { _, item ->
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = item.second,
+                text = item,
                 modifier = Modifier.padding(vertical = 10.dp, horizontal = 13.dp),
                 style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 13.sp, color = themedColor(darkColor = Color(0xFF9ea9a9), lightColor = Color(0xFF788686)))
             )

@@ -269,7 +269,7 @@ object Web3Wallet {
      * It is advised that this function be called from background operation
      */
     @Throws(IllegalStateException::class)
-    fun formatAuthMessage(params: Wallet.Params.FormatAuthMessage): String? {
+    fun formatAuthMessage(params: Wallet.Params.FormatAuthMessage): String {
         val signParams = Sign.Params.FormatMessage(params.payloadParams.toSign(), params.issuer)
         return SignClient.formatAuthMessage(signParams)
     }

@@ -23,7 +23,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.koin.core.KoinApplication
-import timber.log.Timber
 
 class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInterface {
     private lateinit var signEngine: SignEngine
@@ -170,15 +169,10 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     }
 
     @Throws(IllegalStateException::class)
-    override fun formatAuthMessage(formatMessage: Sign.Params.FormatMessage): String? {
+    override fun formatAuthMessage(formatMessage: Sign.Params.FormatMessage): String {
         checkEngineInitialization()
 
-        return try {
-            runBlocking { signEngine.formatMessage(formatMessage.payloadParams.toEngine(), formatMessage.iss) }
-        } catch (error: Exception) {
-            Timber.e("FormatAuthMessage error: $error")
-            null
-        }
+        return runBlocking { signEngine.formatMessage(formatMessage.payloadParams.toEngine(), formatMessage.iss) }
     }
 
     @Throws(IllegalStateException::class)
