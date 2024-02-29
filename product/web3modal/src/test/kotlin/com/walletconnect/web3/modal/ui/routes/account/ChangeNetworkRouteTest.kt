@@ -34,6 +34,7 @@ internal class ChangeNetworkRouteTest: ScreenShotTest("account/${Route.CHANGE_NE
         every { viewModel.selectedChain } returns selectedChain
         every { selectedChain.value } returns Web3ModalChainsPresets.ethChains["1"]!!
         every { getSelectedChainUseCase() } returns "1"
+        every { viewModel.getSelectedChainOrFirst() } returns Web3ModalChainsPresets.ethChains.getOrElse("1") { throw IllegalStateException("Chain not found") }
         wcKoinApp.koin.loadModules(modules = listOf(module { single { getSelectedChainUseCase } }))
 
     }
