@@ -94,7 +94,6 @@ class WalletConnectModalViewModelTest {
         val viewModel = WalletConnectModalViewModel()
         viewModel.uiState.test {
             val state = awaitItem()
-            println(state)
             Assert.assertTrue(state is UiState.Success)
         }
     }
