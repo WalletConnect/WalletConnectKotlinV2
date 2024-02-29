@@ -1,7 +1,6 @@
 package com.walletconnect.web3.modal.client
 
 import androidx.activity.ComponentActivity
-import com.walletconnect.android.internal.common.di.pulseModule
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.sign.client.Sign
@@ -62,10 +61,6 @@ object Web3Modal {
         onSuccess: () -> Unit = {},
         onError: (Modal.Model.Error) -> Unit
     ) {
-        //todo: if analytics enabled -> load pulse module
-
-        pulseModule()
-
         SignClient.initialize(
             init = Sign.Params.Init(init.core),
             onSuccess = {
