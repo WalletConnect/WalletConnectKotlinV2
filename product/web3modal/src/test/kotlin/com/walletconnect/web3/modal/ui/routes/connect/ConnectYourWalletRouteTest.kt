@@ -12,11 +12,9 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.StateFlow
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
-@Ignore
 internal class ConnectYourWalletRouteTest : ScreenShotTest("connect/${Route.CONNECT_YOUR_WALLET.path}") {
 
     @get:Rule
