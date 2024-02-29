@@ -27,7 +27,6 @@ import org.koin.android.ext.koin.androidApplication
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
-import java.util.*
 import java.util.concurrent.TimeUnit
 
 
@@ -73,6 +72,7 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
         HttpLoggingInterceptor().apply { setLevel(HttpLoggingInterceptor.Level.BODY) }
     }
 
+    //TODO: make this more scalable
     single(named(AndroidCommonDITags.FAIL_OVER_INTERCEPTOR)) {
         Interceptor { chain ->
             val request = chain.request()
@@ -82,6 +82,7 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
                     shouldFallbackRelay(host) -> chain.proceed(request.newBuilder().url(get<String>(named(AndroidCommonDITags.RELAY_URL))).build())
                     shouldFallbackPush(host) -> chain.proceed(request.newBuilder().url(getFallbackPushUrl(request.url.toString())).build())
                     shouldFallbackVerify(host) -> chain.proceed(request.newBuilder().url(getFallbackVerifyUrl(request.url.toString())).build())
+                    shouldFallbackPulse(host) -> chain.proceed(request.newBuilder().url(getFallbackPulseUrl(request.url.toString())).build())
                     else -> chain.proceed(request)
                 }
             } catch (e: Exception) {
@@ -90,6 +91,7 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
                         DEFAULT_RELAY_URL.host -> fallbackRelay(request, chain)
                         DEFAULT_PUSH_URL.host -> fallbackPush(request, chain)
                         DEFAULT_VERIFY_URL.host -> fallbackVerify(request, chain)
+                        DEFAULT_PULSE_URL.host -> fallbackPulse(request, chain)
                         else -> chain.proceed(request)
                     }
                 } else {

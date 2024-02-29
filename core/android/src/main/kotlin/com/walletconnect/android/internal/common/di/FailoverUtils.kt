@@ -20,19 +20,27 @@ internal var VERIFY_URL: String = "https://verify.walletconnect.com/"
 internal const val DEFAULT_VERIFY_URL: String = "https://verify.walletconnect.com/"
 internal const val FAIL_OVER_VERIFY_URL: String = "https://verify.walletconnect.org"
 
+internal var PULSE_URL: String = "https://pulse.walletconnect.com"
+internal const val DEFAULT_PULSE_URL: String = "https://pulse.walletconnect.com"
+internal const val FAIL_OVER_PULSE_URL: String = "https://pulse.walletconnect.org"
+
 internal var wasRelayFailOvered = false
 internal var wasEchoFailOvered = false
 internal var wasVerifyFailOvered = false
+internal var wasPulseFailOvered = false
 
 internal fun shouldFallbackRelay(host: String): Boolean = wasRelayFailOvered && host == DEFAULT_RELAY_URL.host
 internal fun shouldFallbackPush(host: String): Boolean = wasEchoFailOvered && host == DEFAULT_PUSH_URL.host
 internal fun shouldFallbackVerify(host: String): Boolean = wasVerifyFailOvered && host == DEFAULT_VERIFY_URL.host
+internal fun shouldFallbackPulse(host: String): Boolean = wasPulseFailOvered && host == DEFAULT_PULSE_URL.host
 internal fun getFallbackPushUrl(url: String): String = with(Uri.parse(url)) {
     val (path, query) = Pair(this.path, this.query)
     return@with "$FAIL_OVER_PUSH_URL$path?$query}"
 }
 
 internal fun getFallbackVerifyUrl(url: String): String = "$FAIL_OVER_VERIFY_URL/attestation/${Uri.parse(url).lastPathSegment}"
+
+internal fun getFallbackPulseUrl(url: String): String = FAIL_OVER_PULSE_URL
 
 internal fun isFailOverException(e: Exception) = (e is SocketException || e is IOException)
 internal val String.host: String? get() = Uri.parse(this).host
@@ -53,4 +61,10 @@ internal fun Scope.fallbackRelay(request: Request, chain: Interceptor.Chain): Re
     SERVER_URL = "$FAIL_OVER_RELAY_URL?projectId=${Uri.parse(SERVER_URL).getQueryParameter("projectId")}"
     wasRelayFailOvered = true
     return chain.proceed(request.newBuilder().url(get<String>(named(AndroidCommonDITags.RELAY_URL))).build())
+}
+
+internal fun fallbackPulse(request: Request, chain: Interceptor.Chain): Response {
+    PULSE_URL = FAIL_OVER_PULSE_URL
+    wasPulseFailOvered = true
+    return chain.proceed(request.newBuilder().url(getFallbackPulseUrl(request.url.toString())).build())
 }
