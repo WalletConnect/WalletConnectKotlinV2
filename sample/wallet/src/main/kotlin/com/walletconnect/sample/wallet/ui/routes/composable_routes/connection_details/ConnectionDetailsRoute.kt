@@ -2,6 +2,7 @@
 
 package com.walletconnect.sample.wallet.ui.routes.composable_routes.connection_details
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -35,6 +36,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -58,7 +60,6 @@ import com.walletconnect.sample.wallet.ui.common.getAllMethodsByChainId
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionType
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionUI
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
-import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import kotlinx.coroutines.Dispatchers
@@ -72,6 +73,7 @@ fun ConnectionDetailsRoute(navController: NavController, connectionId: Int?, con
     var isDeleteLoading by remember { mutableStateOf(false) }
     var isUpdateLoading by remember { mutableStateOf(false) }
     val composableScope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     connectionUI?.let { uiConnection ->
         Column(modifier = Modifier.fillMaxWidth()) {
@@ -94,14 +96,14 @@ fun ConnectionDetailsRoute(navController: NavController, connectionId: Int?, con
                                     onSuccess = {
                                         isEmitLoading = false
                                         composableScope.launch(Dispatchers.Main) {
-                                            navController.showSnackbar("Event emitted: ${it.event.name}")
+                                            Toast.makeText(context, "Event emitted: ${it.event.name}", Toast.LENGTH_SHORT).show()
                                         }
                                     },
                                     onError = { error ->
                                         isEmitLoading = false
                                         Firebase.crashlytics.recordException(error.throwable)
                                         composableScope.launch(Dispatchers.Main) {
-                                            navController.showSnackbar("Event emit error. Error: ${error.throwable.message}")
+                                            Toast.makeText(context, "Event emit error. Error: ${error.throwable.message}", Toast.LENGTH_SHORT).show()
                                         }
                                     }
                                 )
@@ -109,7 +111,7 @@ fun ConnectionDetailsRoute(navController: NavController, connectionId: Int?, con
                                 isEmitLoading = false
                                 Firebase.crashlytics.recordException(e)
                                 composableScope.launch(Dispatchers.Main) {
-                                    navController.showSnackbar("Event emit error. Error: ${e.message}")
+                                    Toast.makeText(context, "Event emit error. Error:  ${e.message}", Toast.LENGTH_SHORT).show()
                                 }
                             }
                         }
@@ -136,14 +138,14 @@ fun ConnectionDetailsRoute(navController: NavController, connectionId: Int?, con
                                         isUpdateLoading = false
                                         connectionsViewModel.refreshConnections()
                                         composableScope.launch(Dispatchers.Main) {
-                                            navController.showSnackbar("Session updated")
+                                            Toast.makeText(context, "Session updated", Toast.LENGTH_SHORT).show()
                                         }
                                     },
                                     onError = { error ->
                                         isUpdateLoading = false
                                         Firebase.crashlytics.recordException(error.throwable)
                                         composableScope.launch(Dispatchers.Main) {
-                                            navController.showSnackbar("Session update error. Error: ${error.throwable.message}")
+                                            Toast.makeText(context, "Session update error. Error: ${error.throwable.message}", Toast.LENGTH_SHORT).show()
                                         }
                                     }
                                 )
@@ -151,7 +153,7 @@ fun ConnectionDetailsRoute(navController: NavController, connectionId: Int?, con
                                 isUpdateLoading = false
                                 Firebase.crashlytics.recordException(e)
                                 composableScope.launch(Dispatchers.Main) {
-                                    navController.showSnackbar("Session update error. Error: ${e.message}")
+                                    Toast.makeText(context, "Session update error. Error: ${e.message}", Toast.LENGTH_SHORT).show()
                                 }
                             }
                         }
@@ -173,7 +175,7 @@ fun ConnectionDetailsRoute(navController: NavController, connectionId: Int?, con
                                         connectionsViewModel.refreshConnections()
                                         composableScope.launch(Dispatchers.Main) {
                                             navController.popBackStack()
-                                            navController.showSnackbar("Session disconnected")
+                                            Toast.makeText(context, "Session disconnected", Toast.LENGTH_SHORT).show()
                                         }
                                     },
                                     onError = { error ->
@@ -181,7 +183,7 @@ fun ConnectionDetailsRoute(navController: NavController, connectionId: Int?, con
                                         isDeleteLoading = false
                                         connectionsViewModel.refreshConnections()
                                         composableScope.launch(Dispatchers.Main) {
-                                            navController.showSnackbar("Session disconnection error: ${error.throwable.message ?: "Unknown error please contact support"}")
+                                            Toast.makeText(context, "Session disconnection error: ${error.throwable.message ?: "Unknown error please contact support"}", Toast.LENGTH_SHORT).show()
                                         }
                                     })
                             } catch (e: Exception) {
@@ -189,7 +191,7 @@ fun ConnectionDetailsRoute(navController: NavController, connectionId: Int?, con
                                 isDeleteLoading = false
                                 connectionsViewModel.refreshConnections()
                                 composableScope.launch(Dispatchers.Main) {
-                                    navController.showSnackbar("Session disconnection error: ${e.message ?: "Unknown error please contact support"}")
+                                    Toast.makeText(context, "Session disconnection error: ${e.message ?: "Unknown error please contact support"}", Toast.LENGTH_SHORT).show()
                                 }
                             }
                         }

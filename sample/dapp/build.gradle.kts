@@ -52,8 +52,8 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.6.1")
     implementation("androidx.palette:palette:1.0.0")
 
-    implementation ("io.insert-koin:koin-androidx-compose:3.4.3")
-    implementation ("io.coil-kt:coil-compose:2.3.0")
+    implementation("io.insert-koin:koin-androidx-compose:3.4.3")
+    implementation("io.coil-kt:coil-compose:2.3.0")
 
     compose()
     accompanist()

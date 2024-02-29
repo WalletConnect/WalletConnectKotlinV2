@@ -38,10 +38,16 @@ internal class OnSessionDeleteUseCase(
                 jsonRpcInteractor.respondWithError(request, Uncategorized.NoMatchingTopic(Sequences.SESSION.name, request.topic.value), irnParams)
                 return@supervisorScope
             }
-            jsonRpcInteractor.unsubscribe(request.topic, onSuccess = {
-                logger.log("Session delete received on topic: ${request.topic} - unsubscribe success")
-                crypto.removeKeys(request.topic.value)
-            }, onFailure = { error -> logger.error("Session delete received on topic: ${request.topic} - unsubscribe error $error") })
+            jsonRpcInteractor.unsubscribe(request.topic,
+                onSuccess = {
+                    logger.log("Session delete received on topic: ${request.topic} - unsubscribe success")
+                    try {
+                        crypto.removeKeys(request.topic.value)
+                    } catch (e: Exception) {
+                        logger.error("Remove keys exception:$e")
+                    }
+                },
+                onFailure = { error -> logger.error("Session delete received on topic: ${request.topic} - unsubscribe error $error") })
             sessionStorageRepository.deleteSession(request.topic)
             logger.log("Session delete received on topic: ${request.topic} - emitting")
             _events.emit(params.toEngineDO(request.topic))

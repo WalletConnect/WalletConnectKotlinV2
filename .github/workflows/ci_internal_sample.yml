@@ -10,6 +10,7 @@ on:
       - 'protocol/**'
       - 'product/**'
       - 'sample/**'
+  workflow_dispatch:
 
 jobs:
   release_samples_internal:

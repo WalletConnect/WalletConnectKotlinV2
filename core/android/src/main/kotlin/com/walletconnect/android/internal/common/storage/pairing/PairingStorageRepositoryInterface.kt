@@ -12,7 +12,13 @@ interface PairingStorageRepositoryInterface {
 
     fun hasTopic(topic: Topic): Boolean
 
-    fun getListOfPairings(): List<Pairing>
+    suspend fun getListOfPairings(): List<Pairing>
+
+    suspend fun getListOfInactivePairings(): List<Pairing>
+
+    suspend fun getListOfActivePairings(): List<Pairing>
+
+    suspend fun getListOfInactivePairingsWithoutRequestReceived(): List<Pairing>
 
     fun activatePairing(topic: Topic)
 
