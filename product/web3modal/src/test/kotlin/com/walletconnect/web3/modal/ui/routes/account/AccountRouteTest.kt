@@ -43,6 +43,7 @@ internal class AccountRouteTest: ScreenShotTest("account/${Route.ACCOUNT.path}")
         every { selectedChain.value } returns Web3ModalChainsPresets.ethChains["1"]!!
         every { balance.value } returns Balance(Web3ModalChainsPresets.ethToken, "0x0")
         every { getSelectedChainUseCase() } returns "1"
+        every { viewModel.getSelectedChainOrFirst() } returns Web3ModalChainsPresets.ethChains.getOrElse("1") { throw IllegalStateException("Chain not found") }
 
         val modules = listOf(
             module { single { getSelectedChainUseCase } }
