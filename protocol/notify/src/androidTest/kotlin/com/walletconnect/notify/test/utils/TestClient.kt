@@ -55,13 +55,13 @@ internal object TestClient {
         internal val notifyClient = NotifyClient.apply {
             initialize(initParams, onError = { Timber.e(it.throwable) })
         }.also { notifyClient ->
-            notifyClient.register(Notify.Params.Registration(caip10account, metadata.url, { message -> CacaoSigner.sign(message, privateKey.keyAsBytes, SignatureType.EIP191) }), { identityKey ->
-                Timber.d("Primary CP finish: $identityKey")
-                _isInitialized.tryEmit(true)
-            }, { error ->
-                Timber.e(error.throwable)
-                throw error.throwable
-            })
+//            notifyClient.register(Notify.Params.Registration(caip10account, metadata.url, { message -> CacaoSigner.sign(message, privateKey.keyAsBytes, SignatureType.EIP191) }), { identityKey ->
+//                Timber.d("Primary CP finish: $identityKey")
+//                _isInitialized.tryEmit(true)
+//            }, { error ->
+//                Timber.e(error.throwable)
+//                throw error.throwable
+//            })
         }
 
         internal val Relay get() = coreProtocol.Relay

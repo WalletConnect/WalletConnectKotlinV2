@@ -27,7 +27,7 @@ import org.junit.Rule
 import org.junit.Test
 import timber.log.Timber
 
-@Ignore
+@Ignore("PrimaryNotifyClient and parent TestClient need to be updated to match latest Notify changes")
 class NotifyClientInstrumentedAndroidTest {
     @get:Rule
     val scenarioExtension = ClientInstrumentedActivityScenario()
@@ -118,24 +118,24 @@ class NotifyClientInstrumentedAndroidTest {
                     }
 
 
-                    if (subscriptionsChanged.subscriptions.isEmpty()) {
-                        Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - subscribe start")
-
-                        PrimaryNotifyClient.subscribe(Notify.Params.Subscribe("https://wc-notify-swift-integration-tests-prod.pages.dev".toUri(), TestClient.caip10account), {
-                            Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - subscribe success")
-                        }, {
-                            Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - subscribe failure: ${it.throwable}")
-                        })
-                    } else if (countPrimaryReceivedResponses < 2) {
-                        Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - deleteSubscribe start")
-
-                        runBlocking { delay(1000) }
-                        PrimaryNotifyClient.deleteSubscription(Notify.Params.DeleteSubscription(subscriptionsChanged.subscriptions.first().topic), onSuccess = {
-                            scenarioExtension.closeAsSuccess()
-                        }, onError = {
-                            Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - deleteSubscribe failure: ${it.throwable}")
-                        })
-                    }
+//                    if (subscriptionsChanged.subscriptions.isEmpty()) {
+//                        Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - subscribe start")
+//
+//                        PrimaryNotifyClient.subscribe(Notify.Params.Subscribe("https://wc-notify-swift-integration-tests-prod.pages.dev".toUri(), TestClient.caip10account), {
+//                            Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - subscribe success")
+//                        }, {
+//                            Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - subscribe failure: ${it.throwable}")
+//                        })
+//                    } else if (countPrimaryReceivedResponses < 2) {
+//                        Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - deleteSubscribe start")
+//
+//                        runBlocking { delay(1000) }
+//                        PrimaryNotifyClient.deleteSubscription(Notify.Params.DeleteSubscription(subscriptionsChanged.subscriptions.first().topic), onSuccess = {
+//                            scenarioExtension.closeAsSuccess()
+//                        }, onError = {
+//                            Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - deleteSubscribe failure: ${it.throwable}")
+//                        })
+//                    }
                 }
             }, object : SecondaryNotifyDelegate() {
 
