@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.internal.common.modal.data.model.WalletListing
 import com.walletconnect.android.internal.common.modal.domain.usecase.GetInstalledWalletsIdsUseCaseInterface
+import com.walletconnect.android.internal.common.modal.domain.usecase.GetSampleWalletsUseCaseInterface
 import com.walletconnect.android.internal.common.modal.domain.usecase.GetWalletsUseCaseInterface
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.foundation.util.Logger
@@ -22,7 +23,6 @@ import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.koin.core.Koin
@@ -33,13 +33,14 @@ class WalletConnectModalViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    val koinApp: KoinApplication = mockk()
-    val koin: Koin = mockk()
-    val getWalletsUseCase: GetWalletsUseCaseInterface = mockk()
-    val getRecentWalletUseCase: GetRecentWalletUseCase = mockk()
-    val saveRecentWalletUseCase: SaveRecentWalletUseCase = mockk()
-    val getWalletsAppDataUseCase: GetInstalledWalletsIdsUseCaseInterface = mockk()
-    val logger: Logger = mockk()
+    private val koinApp: KoinApplication = mockk()
+    private val koin: Koin = mockk()
+    private val getWalletsUseCase: GetWalletsUseCaseInterface = mockk()
+    private val getRecentWalletUseCase: GetRecentWalletUseCase = mockk()
+    private val saveRecentWalletUseCase: SaveRecentWalletUseCase = mockk()
+    private val getWalletsAppDataUseCase: GetInstalledWalletsIdsUseCaseInterface = mockk()
+    private val getSampleWalletsUseCaseInterface: GetSampleWalletsUseCaseInterface = mockk()
+    private val logger: Logger = mockk()
 
     private val sessionParams = Modal.Params.SessionParams(
         mapOf(
@@ -58,6 +59,7 @@ class WalletConnectModalViewModelTest {
         every { koin.get<GetRecentWalletUseCase>() } returns getRecentWalletUseCase
         every { koin.get<SaveRecentWalletUseCase>() } returns saveRecentWalletUseCase
         every { koin.get<GetInstalledWalletsIdsUseCaseInterface>() } returns getWalletsAppDataUseCase
+        every { koin.get<GetSampleWalletsUseCaseInterface>() } returns getSampleWalletsUseCaseInterface
         every { koin.get<Logger>() } returns logger
         every { getRecentWalletUseCase() } returns null
 
@@ -72,10 +74,10 @@ class WalletConnectModalViewModelTest {
     }
 
     @Test
-    @Ignore("Mockk throwing no answer found exception")
     fun `should emit Error state when fetch initial wallets fails`() = runTest {
         every { logger.error(any<String>()) } answers {}
         every { logger.error(any<Throwable>()) } answers {}
+
         val viewModel = WalletConnectModalViewModel()
         viewModel.uiState.test {
             val state = awaitItem()
@@ -84,14 +86,15 @@ class WalletConnectModalViewModelTest {
     }
 
     @Test
-    @Ignore("Mockk throwing no answer found exception")
     fun `should emit Success state when fetch initial wallets with success`() = runTest {
         val response = WalletListing(1, testWallets.size, testWallets)
         coEvery { getWalletsUseCase(any(), any(), any(), any(), any()) } returns response
+        coEvery { getSampleWalletsUseCaseInterface() } returns listOf()
 
         val viewModel = WalletConnectModalViewModel()
         viewModel.uiState.test {
             val state = awaitItem()
+            println(state)
             Assert.assertTrue(state is UiState.Success)
         }
     }
