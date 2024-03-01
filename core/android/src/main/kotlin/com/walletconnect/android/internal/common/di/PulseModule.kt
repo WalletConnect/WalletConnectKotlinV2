@@ -7,7 +7,15 @@ import com.walletconnect.android.pulse.domain.SendClickNetworkHelpUseCase
 import com.walletconnect.android.pulse.domain.SendClickNetworksUseCase
 import com.walletconnect.android.pulse.domain.SendClickWalletHelpUseCase
 import com.walletconnect.android.pulse.domain.SendConnectErrorUseCase
+import com.walletconnect.android.pulse.domain.SendConnectSuccessUseCase
+import com.walletconnect.android.pulse.domain.SendDisconnectErrorUseCase
+import com.walletconnect.android.pulse.domain.SendDisconnectSuccessUseCase
+import com.walletconnect.android.pulse.domain.SendModalCloseUseCase
 import com.walletconnect.android.pulse.domain.SendModalCreatedUseCase
+import com.walletconnect.android.pulse.domain.SendModalLoadedUseCase
+import com.walletconnect.android.pulse.domain.SendModalOpenUseCase
+import com.walletconnect.android.pulse.domain.SendSelectWalletUseCase
+import com.walletconnect.android.pulse.domain.SendSwitchNetworkUseCase
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import retrofit2.Retrofit
@@ -77,6 +85,70 @@ fun pulseModule() = module {
 
     single {
         SendConnectErrorUseCase(
+            pulseService = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER)),
+            bundleId = get(named(AndroidCommonDITags.BUNDLE_ID))
+        )
+    }
+
+    single {
+        SendConnectSuccessUseCase(
+            pulseService = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER)),
+            bundleId = get(named(AndroidCommonDITags.BUNDLE_ID))
+        )
+    }
+
+    single {
+        SendDisconnectErrorUseCase(
+            pulseService = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER)),
+            bundleId = get(named(AndroidCommonDITags.BUNDLE_ID))
+        )
+    }
+
+    single {
+        SendDisconnectSuccessUseCase(
+            pulseService = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER)),
+            bundleId = get(named(AndroidCommonDITags.BUNDLE_ID))
+        )
+    }
+
+    single {
+        SendModalCloseUseCase(
+            pulseService = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER)),
+            bundleId = get(named(AndroidCommonDITags.BUNDLE_ID))
+        )
+    }
+
+    single {
+        SendModalLoadedUseCase(
+            pulseService = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER)),
+            bundleId = get(named(AndroidCommonDITags.BUNDLE_ID))
+        )
+    }
+
+    single {
+        SendModalOpenUseCase(
+            pulseService = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER)),
+            bundleId = get(named(AndroidCommonDITags.BUNDLE_ID))
+        )
+    }
+
+    single {
+        SendSelectWalletUseCase(
+            pulseService = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER)),
+            bundleId = get(named(AndroidCommonDITags.BUNDLE_ID))
+        )
+    }
+
+    single {
+        SendSwitchNetworkUseCase(
             pulseService = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
             bundleId = get(named(AndroidCommonDITags.BUNDLE_ID))
