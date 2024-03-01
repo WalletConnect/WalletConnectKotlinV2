@@ -1,6 +1,7 @@
 package com.walletconnect.android.internal.common.di
 
-import com.walletconnect.android.pulse.PulseService
+import com.walletconnect.android.pulse.data.PulseService
+import com.walletconnect.android.pulse.domain.SendModalCreatedUseCase
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import retrofit2.Retrofit
@@ -19,4 +20,12 @@ fun pulseModule() = module {
     }
 
     single { get<Retrofit>(named(AndroidCommonDITags.PULSE_RETROFIT)).create(PulseService::class.java) }
+
+    single {
+        SendModalCreatedUseCase(
+            pulseService = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER)),
+            bundleId = get(named(AndroidCommonDITags.BUNDLE_ID))
+        )
+    }
 }

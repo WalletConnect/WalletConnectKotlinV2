@@ -53,6 +53,8 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
         """wc-2/kotlin-${sdkVersion}/android-${Build.VERSION.RELEASE}"""
     }
 
+    single(named(AndroidCommonDITags.BUNDLE_ID)) { androidContext().packageName }
+
     single {
         GenerateJwtStoreClientIdUseCase(get(), get())
     }
@@ -61,7 +63,7 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
         Interceptor { chain ->
             val updatedRequest = chain.request().newBuilder()
                 .addHeader("User-Agent", get(named(AndroidCommonDITags.USER_AGENT)))
-                .addHeader("Origin", androidContext().packageName)
+                .addHeader("Origin", get(named(AndroidCommonDITags.BUNDLE_ID)))
                 .build()
 
             chain.proceed(updatedRequest)

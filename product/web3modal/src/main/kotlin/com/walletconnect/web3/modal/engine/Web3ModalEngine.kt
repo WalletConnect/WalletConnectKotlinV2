@@ -8,10 +8,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
+import com.walletconnect.android.pulse.domain.SendModalCreatedUseCase
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import com.walletconnect.util.Empty
-import com.walletconnect.web3.modal.engine.coinbase.CoinbaseClient
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.client.models.Account
@@ -31,6 +31,7 @@ import com.walletconnect.web3.modal.domain.usecase.GetSelectedChainUseCase
 import com.walletconnect.web3.modal.domain.usecase.GetSessionUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveSessionUseCase
 import com.walletconnect.web3.modal.engine.coinbase.COINBASE_WALLET_ID
+import com.walletconnect.web3.modal.engine.coinbase.CoinbaseClient
 import com.walletconnect.web3.modal.utils.getSelectedChain
 import com.walletconnect.web3.modal.utils.toAccount
 import com.walletconnect.web3.modal.utils.toChain
@@ -43,6 +44,7 @@ internal class Web3ModalEngine(
     private val getSelectedChainUseCase: GetSelectedChainUseCase,
     private val saveSessionUseCase: SaveSessionUseCase,
     private val deleteSessionDataUseCase: DeleteSessionDataUseCase,
+    private val sendModalCreatedUseCase: SendModalCreatedUseCase
 ) {
     internal var excludedWalletsIds: MutableList<String> = mutableListOf()
     internal var recommendedWalletsIds: MutableList<String> = mutableListOf()
@@ -56,6 +58,9 @@ internal class Web3ModalEngine(
         excludedWalletsIds.addAll(init.excludedWalletIds)
         recommendedWalletsIds.addAll(init.recommendedWalletsIds)
         setupCoinbase(init, onError)
+
+
+        sendModalCreatedUseCase()
     }
 
     private fun setupCoinbase(init: Modal.Params.Init, onError: (Modal.Model.Error) -> Unit) {

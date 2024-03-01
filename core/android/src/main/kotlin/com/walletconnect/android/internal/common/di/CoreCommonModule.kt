@@ -9,6 +9,7 @@ import com.walletconnect.android.internal.common.adapter.JsonRpcResultAdapter
 import com.walletconnect.android.internal.common.adapter.TagsAdapter
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.Tags
+import com.walletconnect.android.pulse.model.properties.Props
 import com.walletconnect.foundation.di.FoundationDITags
 import com.walletconnect.foundation.di.foundationCommonModule
 import com.walletconnect.foundation.util.Logger
@@ -27,6 +28,13 @@ fun coreCommonModule() = module {
             .withSubtype(JsonRpcResponse.JsonRpcError::class.java, "error")
     }
 
+    single<PolymorphicJsonAdapterFactory<Props>> {
+        PolymorphicJsonAdapterFactory.of(Props::class.java, "type")
+            .withSubtype(Props.ModalCreated::class.java, "modal_created")
+            .withSubtype(Props.ModalLoaded::class.java, "modal_loaded")
+            .withSubtype(Props.ModalOpen::class.java, "modal_open")
+    }
+
     single<Moshi.Builder>(named(AndroidCommonDITags.MOSHI)) {
         get<Moshi>(named(FoundationDITags.MOSHI))
             .newBuilder()
@@ -39,6 +47,7 @@ fun coreCommonModule() = module {
                 }
             }
             .add(get<PolymorphicJsonAdapterFactory<JsonRpcResponse>>())
+            .add(get<PolymorphicJsonAdapterFactory<Props>>())
     }
 
     single {
