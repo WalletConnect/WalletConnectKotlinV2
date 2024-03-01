@@ -7,7 +7,7 @@ import com.walletconnect.android.pulse.model.properties.Props
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.util.generateId
 
-class SendModalCreatedUseCase(
+internal class SendModalCreatedUseCase(
     pulseService: PulseService,
     logger: Logger,
     bundleId: String

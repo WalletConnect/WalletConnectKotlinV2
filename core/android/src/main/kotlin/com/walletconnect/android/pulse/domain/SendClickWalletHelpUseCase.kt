@@ -7,7 +7,7 @@ import com.walletconnect.android.pulse.model.properties.Props
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.util.generateId
 
-internal class SendClickAllWalletsUseCase(
+internal class SendClickWalletHelpUseCase(
     pulseService: PulseService,
     logger: Logger,
     bundleId: String
@@ -18,7 +18,7 @@ internal class SendClickAllWalletsUseCase(
                 eventId = generateId(),
                 bundleId = bundleId,
                 timestamp = currentTimeInSeconds,
-                props = Props.ClickAllWallets()
+                props = Props.ClickWalletHelp()
             )
         )
     }

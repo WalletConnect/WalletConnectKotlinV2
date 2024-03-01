@@ -1,6 +1,12 @@
 package com.walletconnect.android.internal.common.di
 
 import com.walletconnect.android.pulse.data.PulseService
+import com.walletconnect.android.pulse.domain.SendClickAllWalletsUseCase
+import com.walletconnect.android.pulse.domain.SendClickGetWalletUseCase
+import com.walletconnect.android.pulse.domain.SendClickNetworkHelpUseCase
+import com.walletconnect.android.pulse.domain.SendClickNetworksUseCase
+import com.walletconnect.android.pulse.domain.SendClickWalletHelpUseCase
+import com.walletconnect.android.pulse.domain.SendConnectErrorUseCase
 import com.walletconnect.android.pulse.domain.SendModalCreatedUseCase
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -23,6 +29,54 @@ fun pulseModule() = module {
 
     single {
         SendModalCreatedUseCase(
+            pulseService = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER)),
+            bundleId = get(named(AndroidCommonDITags.BUNDLE_ID))
+        )
+    }
+
+    single {
+        SendClickAllWalletsUseCase(
+            pulseService = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER)),
+            bundleId = get(named(AndroidCommonDITags.BUNDLE_ID))
+        )
+    }
+
+    single {
+        SendClickGetWalletUseCase(
+            pulseService = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER)),
+            bundleId = get(named(AndroidCommonDITags.BUNDLE_ID))
+        )
+    }
+
+    single {
+        SendClickWalletHelpUseCase(
+            pulseService = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER)),
+            bundleId = get(named(AndroidCommonDITags.BUNDLE_ID))
+        )
+    }
+
+    single {
+        SendClickNetworkHelpUseCase(
+            pulseService = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER)),
+            bundleId = get(named(AndroidCommonDITags.BUNDLE_ID))
+        )
+    }
+
+    single {
+        SendClickNetworksUseCase(
+            pulseService = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER)),
+            bundleId = get(named(AndroidCommonDITags.BUNDLE_ID))
+        )
+    }
+
+    single {
+        SendConnectErrorUseCase(
             pulseService = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
             bundleId = get(named(AndroidCommonDITags.BUNDLE_ID))

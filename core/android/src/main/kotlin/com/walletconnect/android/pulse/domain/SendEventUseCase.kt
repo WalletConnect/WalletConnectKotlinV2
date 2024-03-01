@@ -7,7 +7,7 @@ import com.walletconnect.foundation.util.Logger
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
-abstract class SendEventUseCase(
+internal abstract class SendEventUseCase(
     private val pulseService: PulseService,
     private val logger: Logger,
     internal val bundleId: String
