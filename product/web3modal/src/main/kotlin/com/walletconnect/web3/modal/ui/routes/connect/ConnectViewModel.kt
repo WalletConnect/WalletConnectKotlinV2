@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.internal.common.modal.data.model.Wallet
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.pulse.domain.SendClickAllWalletsUseCase
+import com.walletconnect.android.pulse.domain.SendClickNetworkHelpUseCase
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.modal.ui.model.LoadingState
 import com.walletconnect.modal.ui.model.UiState
@@ -33,6 +34,7 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
     private val observeSelectedChainUseCase: ObserveSelectedChainUseCase = wcKoinApp.koin.get()
     private val sendClickAllWalletsEvent: SendClickAllWalletsUseCase = wcKoinApp.koin.get()
     private val web3ModalEngine: Web3ModalEngine = wcKoinApp.koin.get()
+    private val sendClickNetworkHelpUseCase: SendClickNetworkHelpUseCase = wcKoinApp.koin.get()
 
     private var sessionParams = getSessionParamsSelectedChain(Web3Modal.selectedChain?.id)
 
@@ -62,6 +64,7 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
     }
 
     fun navigateToHelp() {
+        sendClickNetworkHelpUseCase()
         navigateTo(Route.WHAT_IS_WALLET.path)
     }
 

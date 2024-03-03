@@ -10,6 +10,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.walletconnect.android.internal.common.wcKoinApp
+import com.walletconnect.android.pulse.domain.SendClickGetWalletUseCase
 import com.walletconnect.web3.modal.R
 import com.walletconnect.web3.modal.ui.components.internal.commons.HelpSection
 import com.walletconnect.web3.modal.ui.components.internal.commons.VerticalSpacer
@@ -26,7 +28,11 @@ import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 internal fun WhatIsWallet(
     navController: NavController
 ) {
-    WhatIsWallet { navController.navigate(Route.GET_A_WALLET.path) }
+    val sendClickGetWalletEvent: SendClickGetWalletUseCase = wcKoinApp.koin.get()
+    WhatIsWallet {
+        sendClickGetWalletEvent()
+        navController.navigate(Route.GET_A_WALLET.path)
+    }
 }
 
 @Composable
