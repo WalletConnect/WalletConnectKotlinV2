@@ -108,7 +108,10 @@ object Web3Modal {
                 web3ModalEngine.setInternalDelegate(Web3ModalDelegate)
             }
                 .onFailure { error -> return@onInitializedClient onError(Modal.Model.Error(error)) }
-                .onSuccess { onSuccess() }
+                .onSuccess {
+                    onSuccess()
+                    web3ModalEngine.sendModalLoadedEvent()
+                }
         } else {
             onError(Modal.Model.Error(Web3ModelClientAlreadyInitializedException()))
         }

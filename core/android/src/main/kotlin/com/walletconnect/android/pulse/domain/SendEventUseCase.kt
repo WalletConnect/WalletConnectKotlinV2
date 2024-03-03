@@ -7,7 +7,7 @@ import com.walletconnect.foundation.util.Logger
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
-internal abstract class SendEventUseCase(
+abstract class SendEventUseCase(
     private val pulseService: PulseService,
     private val logger: Logger,
     internal val bundleId: String
@@ -16,6 +16,7 @@ internal abstract class SendEventUseCase(
         scope.launch {
             supervisorScope {
                 try {
+                    logger.log("kobe: Sending event: ${event.props.type}")
                     val response = pulseService.sendEvent(body = event)
                     if (!response.isSuccessful) {
                         logger.error("kobe: Failed to send event: ${event.props.type}")

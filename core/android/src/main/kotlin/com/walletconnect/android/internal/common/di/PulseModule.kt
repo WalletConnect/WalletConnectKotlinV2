@@ -13,6 +13,7 @@ import com.walletconnect.android.pulse.domain.SendDisconnectSuccessUseCase
 import com.walletconnect.android.pulse.domain.SendModalCloseUseCase
 import com.walletconnect.android.pulse.domain.SendModalCreatedUseCase
 import com.walletconnect.android.pulse.domain.SendModalLoadedUseCase
+import com.walletconnect.android.pulse.domain.SendModalLoadedUseCaseInterface
 import com.walletconnect.android.pulse.domain.SendModalOpenUseCase
 import com.walletconnect.android.pulse.domain.SendSelectWalletUseCase
 import com.walletconnect.android.pulse.domain.SendSwitchNetworkUseCase
@@ -123,7 +124,7 @@ fun pulseModule() = module {
         )
     }
 
-    single {
+    single<SendModalLoadedUseCaseInterface> {
         SendModalLoadedUseCase(
             pulseService = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),

@@ -4,17 +4,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.internal.common.modal.data.model.Wallet
 import com.walletconnect.android.internal.common.wcKoinApp
+import com.walletconnect.android.pulse.domain.SendClickAllWalletsUseCase
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.modal.ui.model.LoadingState
 import com.walletconnect.modal.ui.model.UiState
-import com.walletconnect.util.Empty
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.domain.usecase.ObserveSelectedChainUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveChainSelectionUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveRecentWalletUseCase
 import com.walletconnect.web3.modal.engine.Web3ModalEngine
-import com.walletconnect.web3.modal.engine.coinbase.isCoinbaseWallet
 import com.walletconnect.web3.modal.ui.navigation.Navigator
 import com.walletconnect.web3.modal.ui.navigation.NavigatorImpl
 import com.walletconnect.web3.modal.ui.navigation.Route
@@ -32,6 +31,7 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
     private val saveRecentWalletUseCase: SaveRecentWalletUseCase = wcKoinApp.koin.get()
     private val saveChainSelectionUseCase: SaveChainSelectionUseCase = wcKoinApp.koin.get()
     private val observeSelectedChainUseCase: ObserveSelectedChainUseCase = wcKoinApp.koin.get()
+    private val sendClickAllWalletsEvent: SendClickAllWalletsUseCase = wcKoinApp.koin.get()
     private val web3ModalEngine: Web3ModalEngine = wcKoinApp.koin.get()
 
     private var sessionParams = getSessionParamsSelectedChain(Web3Modal.selectedChain?.id)
@@ -80,6 +80,7 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
     }
 
     fun navigateToAllWallets() {
+        sendClickAllWalletsEvent()
         clearSearch()
         navigateTo(Route.ALL_WALLETS.path)
     }

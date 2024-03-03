@@ -8,7 +8,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.android.pulse.domain.SendModalCreatedUseCase
+import com.walletconnect.android.pulse.domain.SendDisconnectErrorUseCase
+import com.walletconnect.android.pulse.domain.SendDisconnectSuccessUseCase
+import com.walletconnect.android.pulse.domain.SendModalLoadedUseCaseInterface
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import com.walletconnect.util.Empty
@@ -44,8 +46,10 @@ internal class Web3ModalEngine(
     private val getSelectedChainUseCase: GetSelectedChainUseCase,
     private val saveSessionUseCase: SaveSessionUseCase,
     private val deleteSessionDataUseCase: DeleteSessionDataUseCase,
-    private val sendModalCreatedUseCase: SendModalCreatedUseCase
-) {
+    private val sendModalLoadedUseCase: SendModalLoadedUseCaseInterface,
+    private val sendDisconnectSuccessUseCase: SendDisconnectSuccessUseCase,
+    private val sendDisconnectErrorUseCase: SendDisconnectErrorUseCase
+) : SendModalLoadedUseCaseInterface by sendModalLoadedUseCase {
     internal var excludedWalletsIds: MutableList<String> = mutableListOf()
     internal var recommendedWalletsIds: MutableList<String> = mutableListOf()
 
@@ -58,9 +62,6 @@ internal class Web3ModalEngine(
         excludedWalletsIds.addAll(init.excludedWalletIds)
         recommendedWalletsIds.addAll(init.recommendedWalletsIds)
         setupCoinbase(init, onError)
-
-
-        sendModalCreatedUseCase()
     }
 
     private fun setupCoinbase(init: Modal.Params.Init, onError: (Modal.Model.Error) -> Unit) {
@@ -180,7 +181,17 @@ internal class Web3ModalEngine(
                 onSuccess()
             }
 
-            is Session.WalletConnect -> SignClient.disconnect(Sign.Params.Disconnect(session.topic), { onSuccess() }, { onError(it.throwable) })
+            is Session.WalletConnect -> {
+                SignClient.disconnect(Sign.Params.Disconnect(session.topic),
+                    onSuccess = {
+                        sendDisconnectSuccessUseCase()
+                        onSuccess()
+                    },
+                    onError = {
+                        sendDisconnectErrorUseCase()
+                        onError(it.throwable)
+                    })
+            }
         }
     }
 
@@ -196,7 +207,7 @@ internal class Web3ModalEngine(
     }
 
     fun getSession() = getSessionUseCase()?.let { session ->
-        when(session) {
+        when (session) {
             is Session.Coinbase -> coinbaseClient.getAccount(session)?.toCoinbaseSession()
             is Session.WalletConnect -> SignClient.getActiveSessionByTopic(session.topic)?.toSession()
         }
