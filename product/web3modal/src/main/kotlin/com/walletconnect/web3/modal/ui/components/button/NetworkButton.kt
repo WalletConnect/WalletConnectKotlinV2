@@ -26,7 +26,7 @@ fun NetworkButton(
         text = selectedChain?.chainName ?: "Select Network",
         image = image,
         isEnabled = true,
-        onClick = { state.openWeb3Modal(true) }
+        onClick = { state.openWeb3Modal(true, selectedChain != null) }
     )
 }
 

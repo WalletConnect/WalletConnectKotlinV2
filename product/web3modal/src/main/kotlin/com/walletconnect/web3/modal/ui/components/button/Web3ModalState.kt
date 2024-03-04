@@ -5,6 +5,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavController
 import com.walletconnect.android.internal.common.wcKoinApp
+import com.walletconnect.android.pulse.domain.SendClickNetworksUseCase
 import com.walletconnect.android.pulse.domain.SendModalCloseUseCase
 import com.walletconnect.android.pulse.domain.SendModalOpenUseCase
 import com.walletconnect.foundation.util.Logger
@@ -51,6 +52,7 @@ class Web3ModalState(
     private val web3ModalEngine: Web3ModalEngine = wcKoinApp.koin.get()
     private val sendModalOpenEvent: SendModalOpenUseCase = wcKoinApp.koin.get()
     private val sendModalCloseEvent: SendModalCloseUseCase = wcKoinApp.koin.get()
+    private val sendClickNetworksEvent: SendClickNetworksUseCase = wcKoinApp.koin.get()
     private val sessionTopicFlow = observeSessionTopicUseCase()
 
     val isOpen = ComponentDelegate.modalComponentEvent
@@ -112,7 +114,11 @@ class Web3ModalState(
     private suspend fun getBalance(selectedChain: Modal.Model.Chain, address: String) =
         selectedChain.rpcUrl?.let { url -> getEthBalanceUseCase(selectedChain.token, url, address)?.valueWithSymbol }
 
-    internal fun openWeb3Modal(shouldOpenChooseNetwork: Boolean = false) {
+    internal fun openWeb3Modal(shouldOpenChooseNetwork: Boolean = false, isActiveNetwork: Boolean = false) {
+        if (shouldOpenChooseNetwork && isActiveNetwork) {
+            sendClickNetworksEvent()
+        }
+
         navController.openWeb3Modal(
             shouldOpenChooseNetwork = shouldOpenChooseNetwork,
             onError = { logger.error(it) }
