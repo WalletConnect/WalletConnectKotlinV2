@@ -6,8 +6,9 @@ import com.walletconnect.android.internal.common.modal.data.model.Wallet
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.pulse.domain.SendClickAllWalletsUseCase
 import com.walletconnect.android.pulse.domain.SendClickNetworkHelpUseCase
+import com.walletconnect.android.pulse.domain.SendConnectErrorUseCase
 import com.walletconnect.android.pulse.domain.SendSelectWalletUseCase
-import com.walletconnect.android.pulse.model.ConnectionType
+import com.walletconnect.android.pulse.model.ConnectionMethod
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.modal.ui.model.LoadingState
 import com.walletconnect.modal.ui.model.UiState
@@ -38,6 +39,7 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
     private val web3ModalEngine: Web3ModalEngine = wcKoinApp.koin.get()
     private val sendClickNetworkHelpUseCase: SendClickNetworkHelpUseCase = wcKoinApp.koin.get()
     private val sendSelectWalletEvent: SendSelectWalletUseCase = wcKoinApp.koin.get()
+    private val sendConnectErrorUseCase: SendConnectErrorUseCase = wcKoinApp.koin.get()
 
     private var sessionParams = getSessionParamsSelectedChain(Web3Modal.selectedChain?.id)
 
@@ -72,8 +74,8 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
     }
 
     fun navigateToScanQRCode() {
-        sendSelectWalletEvent(name = "WalletConnect", platform = ConnectionType.QR_CODE)
-        connectWalletConnect { navigateTo(Route.QR_CODE.path) }
+        sendSelectWalletEvent(name = "WalletConnect", platform = ConnectionMethod.QR_CODE)
+        connectWalletConnect(name = "WalletConnect", method = ConnectionMethod.QR_CODE) { navigateTo(Route.QR_CODE.path) }
     }
 
     fun navigateToRedirectRoute(wallet: Wallet) {
@@ -95,14 +97,17 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
         navigateTo(Route.ALL_WALLETS.path)
     }
 
-    fun connectWalletConnect(onSuccess: (String) -> Unit) = connect(
-        sessionParams = sessionParams,
-        onSuccess = onSuccess,
-        onError = {
-            showError(it.localizedMessage)
-            logger.error(it)
-        }
-    )
+    fun connectWalletConnect(name: String, method: String, onSuccess: (String) -> Unit) =
+        connect(
+            name, method,
+            sessionParams = sessionParams,
+            onSuccess = onSuccess,
+            onError = {
+                sendConnectErrorUseCase(message = it.message ?: "Relay error while connecting")
+                showError(it.localizedMessage)
+                logger.error(it)
+            }
+        )
 
     fun connectCoinbase(onSuccess: () -> Unit = {}) {
         web3ModalEngine.connectCoinbase(
@@ -131,13 +136,13 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
     fun getWalletsTotalCount() = walletsDataStore.totalWalletsCount
 
     private fun Wallet.toConnectionType(): String {
-        if (isWalletInstalled) ConnectionType.MOBILE
+        if (isWalletInstalled) ConnectionMethod.MOBILE
 
         return when {
-            hasMobileWallet && hasWebApp -> ConnectionType.UNDEFINED
-            hasMobileWallet -> ConnectionType.MOBILE
-            hasWebApp -> ConnectionType.WEB
-            else -> ConnectionType.UNDEFINED
+            hasMobileWallet && hasWebApp -> ConnectionMethod.UNDEFINED
+            hasMobileWallet -> ConnectionMethod.MOBILE
+            hasWebApp -> ConnectionMethod.WEB
+            else -> ConnectionMethod.UNDEFINED
         }
     }
 

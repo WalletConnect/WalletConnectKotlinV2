@@ -15,6 +15,8 @@ internal fun engineModule() = module {
             sendModalLoadedUseCase = get(),
             sendDisconnectErrorUseCase = get(),
             sendDisconnectSuccessUseCase = get(),
+            sendConnectErrorUseCase = get(),
+            sendConnectSuccessUseCase = get()
         )
     }
     single {

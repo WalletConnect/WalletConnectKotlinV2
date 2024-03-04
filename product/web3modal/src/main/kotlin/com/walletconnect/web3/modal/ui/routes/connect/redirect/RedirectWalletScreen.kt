@@ -34,6 +34,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.walletconnect.android.internal.common.modal.data.model.Wallet
+import com.walletconnect.android.pulse.model.ConnectionMethod
 import com.walletconnect.modal.utils.openMobileLink
 import com.walletconnect.modal.utils.openPlayStore
 import com.walletconnect.modal.utils.openWebAppLink
@@ -79,7 +80,7 @@ internal fun RedirectWalletRoute(
         if (wallet.isCoinbaseWallet()) {
             connectState.connectCoinbase()
         } else {
-            connectState.connectWalletConnect { uri ->
+            connectState.connectWalletConnect(name = wallet.name, method = ConnectionMethod.MOBILE) { uri ->
                 uriHandler.openMobileLink(
                     uri = uri,
                     mobileLink = wallet.mobileLink,
@@ -127,7 +128,7 @@ internal fun RedirectWalletRoute(
             uriHandler.openPlayStore(wallet.playStore)
         },
         onOpenWebApp = {
-            connectState.connectWalletConnect {
+            connectState.connectWalletConnect(name = wallet.name, method = ConnectionMethod.WEB) {
                 uriHandler.openWebAppLink(it, wallet.webAppLink)
             }
         }

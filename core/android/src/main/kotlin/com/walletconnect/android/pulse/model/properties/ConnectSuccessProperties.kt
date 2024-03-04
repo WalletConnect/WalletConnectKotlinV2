@@ -7,6 +7,6 @@ import com.squareup.moshi.JsonClass
 data class ConnectSuccessProperties(
     @Json(name = "name")
     val name: String,
-    @Json(name = "platform")
-    val platform: String
+    @Json(name = "method")
+    val method: String
 )
