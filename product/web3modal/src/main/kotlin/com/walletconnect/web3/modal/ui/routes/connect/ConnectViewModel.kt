@@ -77,6 +77,7 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
     }
 
     fun navigateToRedirectRoute(wallet: Wallet) {
+        sendSelectWalletEvent(name = wallet.name, platform = wallet.toConnectionType())
         saveRecentWalletUseCase(wallet.id)
         walletsDataStore.updateRecentWallet(wallet.id)
         navigateTo(wallet.toRedirectPath())
@@ -128,6 +129,17 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
     fun getNotInstalledWallets() = walletsDataStore.wallets.filterNot { it.isWalletInstalled }
 
     fun getWalletsTotalCount() = walletsDataStore.totalWalletsCount
+
+    private fun Wallet.toConnectionType(): String {
+        if (isWalletInstalled) ConnectionType.MOBILE
+
+        return when {
+            hasMobileWallet && hasWebApp -> ConnectionType.UNDEFINED
+            hasMobileWallet -> ConnectionType.MOBILE
+            hasWebApp -> ConnectionType.WEB
+            else -> ConnectionType.UNDEFINED
+        }
+    }
 
     private fun getSessionParamsSelectedChain(chainId: String?) = with(Web3Modal.chains) {
         val selectedChain = getSelectedChain(chainId)
