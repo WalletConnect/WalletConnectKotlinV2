@@ -84,7 +84,7 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
                     shouldFallbackRelay(host) -> chain.proceed(request.newBuilder().url(get<String>(named(AndroidCommonDITags.RELAY_URL))).build())
                     shouldFallbackPush(host) -> chain.proceed(request.newBuilder().url(getFallbackPushUrl(request.url.toString())).build())
                     shouldFallbackVerify(host) -> chain.proceed(request.newBuilder().url(getFallbackVerifyUrl(request.url.toString())).build())
-                    shouldFallbackPulse(host) -> chain.proceed(request.newBuilder().url(getFallbackPulseUrl(request.url.toString())).build())
+                    shouldFallbackPulse(host) -> chain.proceed(request.newBuilder().url(getFallbackPulseUrl()).build())
                     else -> chain.proceed(request)
                 }
             } catch (e: Exception) {

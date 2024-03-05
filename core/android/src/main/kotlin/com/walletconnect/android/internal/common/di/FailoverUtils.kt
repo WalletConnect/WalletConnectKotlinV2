@@ -40,7 +40,7 @@ internal fun getFallbackPushUrl(url: String): String = with(Uri.parse(url)) {
 
 internal fun getFallbackVerifyUrl(url: String): String = "$FAIL_OVER_VERIFY_URL/attestation/${Uri.parse(url).lastPathSegment}"
 
-internal fun getFallbackPulseUrl(url: String): String = FAIL_OVER_PULSE_URL
+internal fun getFallbackPulseUrl(): String = "$FAIL_OVER_PULSE_URL/e"
 
 internal fun isFailOverException(e: Exception) = (e is SocketException || e is IOException)
 internal val String.host: String? get() = Uri.parse(this).host
@@ -66,5 +66,5 @@ internal fun Scope.fallbackRelay(request: Request, chain: Interceptor.Chain): Re
 internal fun fallbackPulse(request: Request, chain: Interceptor.Chain): Response {
     PULSE_URL = FAIL_OVER_PULSE_URL
     wasPulseFailOvered = true
-    return chain.proceed(request.newBuilder().url(getFallbackPulseUrl(request.url.toString())).build())
+    return chain.proceed(request.newBuilder().url(getFallbackPulseUrl()).build())
 }
