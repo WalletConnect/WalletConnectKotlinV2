@@ -18,7 +18,8 @@ object Modal {
             val core: CoreInterface,
             val excludedWalletIds: List<String> = listOf(),
             val recommendedWalletsIds: List<String> = listOf(),
-            val coinbaseEnabled: Boolean = true
+            val coinbaseEnabled: Boolean = true,
+            val enableAnalytics: Boolean? = true
         ) : Params()
 
         data class Connect(
@@ -78,13 +79,13 @@ object Modal {
                 val metaData: Core.Model.AppMetaData?,
                 val namespaces: Map<String, Namespace.Session>,
                 val accounts: List<String>,
-            ): ApprovedSession()
+            ) : ApprovedSession()
 
             data class CoinbaseSession(
                 val chain: String,
                 val networkId: String,
                 val address: String
-            ): ApprovedSession()
+            ) : ApprovedSession()
         }
 
         data class RejectedSession(val topic: String, val reason: String) : Model()

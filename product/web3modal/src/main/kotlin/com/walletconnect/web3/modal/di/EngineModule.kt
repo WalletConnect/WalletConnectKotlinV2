@@ -27,6 +27,7 @@ internal fun engineModule() = module {
             sendConnectErrorUseCase = get(),
             sendConnectSuccessUseCase = get(),
             connectionEventRepository = get(),
+            enableAnalyticsUseCase = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
         )
     }

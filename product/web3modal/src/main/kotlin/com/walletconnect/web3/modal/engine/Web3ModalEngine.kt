@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
+import com.walletconnect.android.internal.common.modal.domain.usecase.EnableAnalyticsUseCaseInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.pulse.domain.SendConnectErrorUseCase
@@ -55,8 +56,10 @@ internal class Web3ModalEngine(
     private val sendConnectErrorUseCase: SendConnectErrorUseCase,
     private val sendConnectSuccessUseCase: SendConnectSuccessUseCase,
     private val connectionEventRepository: ConnectionEventRepository,
+    private val enableAnalyticsUseCase: EnableAnalyticsUseCaseInterface,
     private val logger: Logger
-) : SendModalLoadedUseCaseInterface by sendModalLoadedUseCase {
+) : SendModalLoadedUseCaseInterface by sendModalLoadedUseCase,
+    EnableAnalyticsUseCaseInterface by enableAnalyticsUseCase {
     internal var excludedWalletsIds: MutableList<String> = mutableListOf()
     internal var recommendedWalletsIds: MutableList<String> = mutableListOf()
 
