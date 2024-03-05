@@ -141,8 +141,8 @@ internal class Web3ModalEngine(
                 coinbaseClient.request(request, { onSuccess(SentRequestResult.Coinbase(request.method, request.params, selectedChain.id, it)) }, onError)
             }
 
-            is Session.WalletConnect -> SignClient.request(
-                request.toSign(session.topic, selectedChain.id),
+            is Session.WalletConnect ->
+                SignClient.request(request.toSign(session.topic, selectedChain.id),
                 {
                     onSuccess(it.toSentRequest())
                     openWalletApp(session.topic, onError)
