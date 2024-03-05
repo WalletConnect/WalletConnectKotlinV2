@@ -107,11 +107,12 @@ internal class OnSessionAuthenticateResponseUseCase(
                         }
                         val namespace = Issuer(cacaos.first().payload.iss).namespace
                         val methods = cacaos.first().payload.methods
+                        val events = listOf("chainChanged", "accountsChanged")
                         var authenticatedSession: SessionVO? = null
                         if (methods.isNotEmpty()) {
                             logger.log("Creating authenticated session")
-                            val sessionNamespaces: Map<String, Namespace.Session> = mapOf(namespace to Namespace.Session(accounts = accounts, events = listOf(), methods = methods, chains = chains))
-                            val requiredNamespace: Map<String, Namespace.Proposal> = mapOf(namespace to Namespace.Proposal(events = listOf(), methods = methods, chains = chains))
+                            val sessionNamespaces: Map<String, Namespace.Session> = mapOf(namespace to Namespace.Session(accounts = accounts, events = events, methods = methods, chains = chains))
+                            val requiredNamespace: Map<String, Namespace.Proposal> = mapOf(namespace to Namespace.Proposal(events = listOf(), methods = events, chains = chains))
                             authenticatedSession = SessionVO.createAuthenticatedSession(
                                 sessionTopic = sessionTopic,
                                 peerPublicKey = PublicKey(approveParams.responder.publicKey),
