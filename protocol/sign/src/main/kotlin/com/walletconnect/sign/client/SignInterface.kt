@@ -3,7 +3,7 @@ package com.walletconnect.sign.client
 interface SignInterface {
     interface WalletDelegate {
         fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal, verifyContext: Sign.Model.VerifyContext)
-        fun onSessionAuthenticate(sessionAuthenticate: Sign.Model.SessionAuthenticate, verifyContext: Sign.Model.VerifyContext)
+        fun onSessionAuthenticate(sessionAuthenticate: Sign.Model.SessionAuthenticate, verifyContext: Sign.Model.VerifyContext) {}
         fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest, verifyContext: Sign.Model.VerifyContext)
         fun onSessionDelete(deletedSession: Sign.Model.DeletedSession)
         fun onSessionExtend(session: Sign.Model.Session)
@@ -29,7 +29,7 @@ interface SignInterface {
 
         //Responses
         fun onSessionRequestResponse(response: Sign.Model.SessionRequestResponse)
-        fun onSessionAuthenticateResponse(sessionAuthenticateResponse: Sign.Model.SessionAuthenticateResponse)
+        fun onSessionAuthenticateResponse(sessionAuthenticateResponse: Sign.Model.SessionAuthenticateResponse) {}
 
         // Utils
         fun onProposalExpired(proposal: Sign.Model.ExpiredProposal)

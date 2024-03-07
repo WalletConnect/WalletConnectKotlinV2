@@ -72,7 +72,7 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
         }
     }
 
-    override fun onSessionAuthenticated(sessionAuthenticate: Wallet.Model.SessionAuthenticate, verifyContext: Wallet.Model.VerifyContext) {
+    override fun onSessionAuthenticate(sessionAuthenticate: Wallet.Model.SessionAuthenticate, verifyContext: Wallet.Model.VerifyContext) {
         sessionAuthenticateEvent = Pair(sessionAuthenticate, verifyContext)
 
         scope.launch {
