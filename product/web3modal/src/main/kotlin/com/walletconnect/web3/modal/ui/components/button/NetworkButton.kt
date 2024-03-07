@@ -14,7 +14,7 @@ import com.walletconnect.web3.modal.utils.getImageData
 
 @Composable
 fun NetworkButton(
-    state: Web3ModalState,
+    state: Web3ModalState
 ) {
     val selectedChain by state.selectedChain.collectAsState(initial = null)
     val image: @Composable () -> Unit = selectedChain?.let { chain ->
@@ -26,7 +26,7 @@ fun NetworkButton(
         text = selectedChain?.chainName ?: "Select Network",
         image = image,
         isEnabled = true,
-        onClick = { state.openWeb3Modal(true) }
+        onClick = { state.openWeb3Modal(true, selectedChain != null) }
     )
 }
 

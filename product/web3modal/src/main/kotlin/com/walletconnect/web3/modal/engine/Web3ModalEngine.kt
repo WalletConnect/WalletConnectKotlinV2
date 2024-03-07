@@ -1,13 +1,19 @@
 package com.walletconnect.web3.modal.engine
 
-
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
+import com.walletconnect.android.internal.common.modal.domain.usecase.EnableAnalyticsUseCaseInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
+import com.walletconnect.android.pulse.domain.SendConnectErrorUseCase
+import com.walletconnect.android.pulse.domain.SendConnectSuccessUseCase
+import com.walletconnect.android.pulse.domain.SendDisconnectErrorUseCase
+import com.walletconnect.android.pulse.domain.SendDisconnectSuccessUseCase
+import com.walletconnect.android.pulse.domain.SendModalLoadedUseCaseInterface
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import com.walletconnect.util.Empty
@@ -25,6 +31,7 @@ import com.walletconnect.web3.modal.client.toSign
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
 import com.walletconnect.web3.modal.domain.model.InvalidSessionException
 import com.walletconnect.web3.modal.domain.model.Session
+import com.walletconnect.web3.modal.domain.usecase.ConnectionEventRepository
 import com.walletconnect.web3.modal.domain.usecase.DeleteSessionDataUseCase
 import com.walletconnect.web3.modal.domain.usecase.GetSelectedChainUseCase
 import com.walletconnect.web3.modal.domain.usecase.GetSessionUseCase
@@ -43,7 +50,16 @@ internal class Web3ModalEngine(
     private val getSelectedChainUseCase: GetSelectedChainUseCase,
     private val saveSessionUseCase: SaveSessionUseCase,
     private val deleteSessionDataUseCase: DeleteSessionDataUseCase,
-) {
+    private val sendModalLoadedUseCase: SendModalLoadedUseCaseInterface,
+    private val sendDisconnectSuccessUseCase: SendDisconnectSuccessUseCase,
+    private val sendDisconnectErrorUseCase: SendDisconnectErrorUseCase,
+    private val sendConnectErrorUseCase: SendConnectErrorUseCase,
+    private val sendConnectSuccessUseCase: SendConnectSuccessUseCase,
+    private val connectionEventRepository: ConnectionEventRepository,
+    private val enableAnalyticsUseCase: EnableAnalyticsUseCaseInterface,
+    private val logger: Logger
+) : SendModalLoadedUseCaseInterface by sendModalLoadedUseCase,
+    EnableAnalyticsUseCaseInterface by enableAnalyticsUseCase {
     internal var excludedWalletsIds: MutableList<String> = mutableListOf()
     internal var recommendedWalletsIds: MutableList<String> = mutableListOf()
 
@@ -71,14 +87,13 @@ internal class Web3ModalEngine(
     }
 
     fun connectWC(
+        name: String, method: String,
         connect: Modal.Params.Connect,
         onSuccess: (String) -> Unit,
         onError: (Throwable) -> Unit
     ) {
-        SignClient.connect(
-            connect.toSign(),
-            onSuccess
-        ) { onError(it.throwable) }
+        connectionEventRepository.saveEvent(name, method)
+        SignClient.connect(connect.toSign(), onSuccess) { onError(it.throwable) }
     }
 
     fun connectCoinbase(
@@ -129,8 +144,8 @@ internal class Web3ModalEngine(
                 coinbaseClient.request(request, { onSuccess(SentRequestResult.Coinbase(request.method, request.params, selectedChain.id, it)) }, onError)
             }
 
-            is Session.WalletConnect -> SignClient.request(
-                request.toSign(session.topic, selectedChain.id),
+            is Session.WalletConnect ->
+                SignClient.request(request.toSign(session.topic, selectedChain.id),
                 {
                     onSuccess(it.toSentRequest())
                     openWalletApp(session.topic, onError)
@@ -175,7 +190,17 @@ internal class Web3ModalEngine(
                 onSuccess()
             }
 
-            is Session.WalletConnect -> SignClient.disconnect(Sign.Params.Disconnect(session.topic), { onSuccess() }, { onError(it.throwable) })
+            is Session.WalletConnect -> {
+                SignClient.disconnect(Sign.Params.Disconnect(session.topic),
+                    onSuccess = {
+                        sendDisconnectSuccessUseCase()
+                        onSuccess()
+                    },
+                    onError = {
+                        sendDisconnectErrorUseCase()
+                        onError(it.throwable)
+                    })
+            }
         }
     }
 
@@ -191,7 +216,7 @@ internal class Web3ModalEngine(
     }
 
     fun getSession() = getSessionUseCase()?.let { session ->
-        when(session) {
+        when (session) {
             is Session.Coinbase -> coinbaseClient.getAccount(session)?.toCoinbaseSession()
             is Session.WalletConnect -> SignClient.getActiveSessionByTopic(session.topic)?.toSession()
         }
@@ -201,10 +226,24 @@ internal class Web3ModalEngine(
     fun setInternalDelegate(delegate: Web3ModalDelegate) {
         val signDelegate = object : SignClient.DappDelegate {
             override fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession) {
+                try {
+                    val (name, method) = connectionEventRepository.getEvent()
+                    sendConnectSuccessUseCase(name = name, method = method)
+                    connectionEventRepository.deleteEvent()
+                } catch (e: Exception) {
+                    logger.error(e)
+                }
+
                 delegate.onSessionApproved(approvedSession.toModal())
             }
 
             override fun onSessionRejected(rejectedSession: Sign.Model.RejectedSession) {
+                try {
+                    connectionEventRepository.deleteEvent()
+                } catch (e: Exception) {
+                    logger.error(e)
+                }
+                sendConnectErrorUseCase(message = rejectedSession.reason)
                 delegate.onSessionRejected(rejectedSession.toModal())
             }
 
