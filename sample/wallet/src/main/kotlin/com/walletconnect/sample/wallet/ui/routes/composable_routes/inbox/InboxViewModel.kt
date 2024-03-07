@@ -201,7 +201,8 @@ class InboxViewModel(application: Application) : AndroidViewModel(application) {
 
             _discoverState.update { DiscoverState.Unsubscribing(explorerApp) }
 
-            Notify.Params.DeleteSubscription(explorerApp.topic, 15.seconds).let { params ->
+            Notify.Params.
+            (explorerApp.topic, 15.seconds).let { params ->
                 NotifyClient.deleteSubscription(params = params).let { result ->
                     when (result) {
                         is Notify.Result.DeleteSubscription.Success -> {

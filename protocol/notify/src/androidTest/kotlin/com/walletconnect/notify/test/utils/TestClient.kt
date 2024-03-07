@@ -55,14 +55,43 @@ internal object TestClient {
         internal val notifyClient = NotifyClient.apply {
             initialize(initParams, onError = { Timber.e(it.throwable) })
         }.also { notifyClient ->
+            val isRegistered = notifyClient.isRegistered(params = Notify.Params.IsRegistered(caip10account, metadata.url, true))
+
+
+            if (!isRegistered) {
+                notifyClient.prepareRegistration(Notify.Params.PrepareRegistration(caip10account, metadata.url, true),
+                    onSuccess = { cacaoPayloadWithIdentityPrivateKey, message ->
+                        Timber.d("PrepareRegistration Success")
+
+                        val signature = CacaoSigner.sign(message, privateKey.keyAsBytes, SignatureType.EIP191)
+
+                        notifyClient.register(
+                            params = Notify.Params.Register(cacaoPayloadWithIdentityPrivateKey = cacaoPayloadWithIdentityPrivateKey, signature = signature),
+                            onSuccess = { identityKey ->
+                                Timber.d("Primary CP finish: $identityKey")
+                                _isInitialized.tryEmit(true)
+                            },
+                            onError = { Timber.e(it.throwable.stackTraceToString()) }
+                        )
+
+                    },
+                    onError = { error ->
+                        Timber.e(error.throwable)
+                        throw error.throwable
+                    })
+            }
+        }
+
+
+
+//            .also { notifyClient ->
 //            notifyClient.register(Notify.Params.Registration(caip10account, metadata.url, { message -> CacaoSigner.sign(message, privateKey.keyAsBytes, SignatureType.EIP191) }), { identityKey ->
-//                Timber.d("Primary CP finish: $identityKey")
-//                _isInitialized.tryEmit(true)
+
 //            }, { error ->
 //                Timber.e(error.throwable)
 //                throw error.throwable
 //            })
-        }
+//        }
 
         internal val Relay get() = coreProtocol.Relay
         internal val Pairing = coreProtocol.Pairing
