@@ -1,6 +1,7 @@
 package com.walletconnect.web3.modal.client
 
 import androidx.activity.ComponentActivity
+import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.sign.client.Sign
@@ -20,6 +21,8 @@ import com.walletconnect.web3.modal.engine.Web3ModalEngine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.jetbrains.annotations.ApiStatus.Experimental
+import org.koin.core.qualifier.named
+import org.koin.dsl.module
 
 object Web3Modal {
 
@@ -106,9 +109,15 @@ object Web3Modal {
                 web3ModalEngine = wcKoinApp.koin.get()
                 web3ModalEngine.setup(init, onError)
                 web3ModalEngine.setInternalDelegate(Web3ModalDelegate)
+                wcKoinApp.modules(
+                    module { single(named(AndroidCommonDITags.ENABLE_ANALYTICS)) { init.enableAnalytics ?: web3ModalEngine.fetchAnalyticsConfig() } }
+                )
             }
                 .onFailure { error -> return@onInitializedClient onError(Modal.Model.Error(error)) }
-                .onSuccess { onSuccess() }
+                .onSuccess {
+                    onSuccess()
+                    web3ModalEngine.sendModalLoadedEvent()
+                }
         } else {
             onError(Modal.Model.Error(Web3ModelClientAlreadyInitializedException()))
         }

@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.walletconnect.android.pulse.model.ConnectionMethod
 import com.walletconnect.modal.ui.components.qr.QrCodeType
 import com.walletconnect.modal.ui.components.qr.WalletConnectQRCode
 import com.walletconnect.web3.modal.client.Modal
@@ -52,7 +53,7 @@ internal fun ScanQRCodeRoute(connectViewModel: ConnectViewModel) {
             .filterIsInstance<Modal.Model.RejectedSession>()
             .collect {
                 snackBarHandler.showErrorSnack("Declined")
-                connectViewModel.connectWalletConnect { newUri -> uri = newUri }
+                connectViewModel.connectWalletConnect(name = "WalletConnect", method = ConnectionMethod.QR_CODE) { newUri -> uri = newUri }
             }
     }
 
