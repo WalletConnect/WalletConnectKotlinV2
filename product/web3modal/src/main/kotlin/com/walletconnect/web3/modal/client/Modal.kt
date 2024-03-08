@@ -37,15 +37,14 @@ object Modal {
             val chains: List<String>,
             val domain: String,
             val nonce: String,
-            val aud: String,
-            val type: String?,
-            val nbf: String?,
-            val exp: String?,
-            val statement: String?,
-            val requestId: String?,
-            val resources: List<String>?,
-            val methods: List<String>?,
-            val expiry: Long
+            val uri: String,
+            val nbf: String? = null,
+            val exp: String? = null,
+            val statement: String? = null,
+            val requestId: String? = null,
+            val resources: List<String>? = null,
+            val methods: List<String>? = null,
+            val expiry: Long? = null
         ) : Params()
 
         @Deprecated(

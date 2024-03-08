@@ -107,9 +107,8 @@ internal fun Modal.Params.Authenticate.toSign(): Sign.Params.Authenticate = with
     Sign.Params.Authenticate(
         pairingTopic,
         chains = chains,
-        type = type ?: CacaoType.CAIP222.header,
         domain = domain,
-        uri = aud,
+        uri = uri,
         nonce = nonce,
         nbf = nbf,
         exp = exp,

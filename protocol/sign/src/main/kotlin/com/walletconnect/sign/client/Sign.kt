@@ -312,14 +312,13 @@ object Sign {
             val domain: String,
             val nonce: String,
             val uri: String,
-            val type: String?,
-            val nbf: String?,
-            val exp: String?,
-            val statement: String?,
-            val requestId: String?,
-            val resources: List<String>?,
-            val methods: List<String>?,
-            val expiry: Long?
+            val nbf: String? = null,
+            val exp: String? = null,
+            val statement: String? = null,
+            val requestId: String? = null,
+            val resources: List<String>? = null,
+            val methods: List<String>? = null,
+            val expiry: Long? = null
         ) : Params()
 
         data class FormatMessage(val payloadParams: Model.PayloadParams, val iss: String) : Params()

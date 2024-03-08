@@ -8,6 +8,7 @@ import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import com.walletconnect.sign.client.utils.CacaoSigner
 import com.walletconnect.sign.client.utils.generateAuthObject
+import com.walletconnect.sign.client.utils.generateAuthPayloadParams
 import com.walletconnect.sign.test.scenario.SignClientInstrumentedActivityScenario
 import com.walletconnect.sign.test.utils.TestClient
 import com.walletconnect.sign.test.utils.dapp.DappDelegate
@@ -49,16 +50,23 @@ class SessionAuthenticateInstrumentedAndroidTest {
                 val issuerToMessages = mutableListOf<Pair<String, String>>()
                 val cacaos = mutableListOf<Sign.Model.Cacao>()
 
-                sessionAuthenticate.payloadParams.chains.forEach { chain ->
+                val authPayloadParams =
+                    generateAuthPayloadParams(
+                        sessionAuthenticate.payloadParams,
+                        supportedChains = listOf("eip155:1", "eip155:137", "eip155:56"),
+                        supportedMethods = listOf("personal_sign", "eth_signTypedData", "eth_sign")
+                    )
+
+                authPayloadParams.chains.forEach { chain ->
                     val issuer = "did:pkh:$chain:$address"
-                    val message = WalletSignClient.formatAuthMessage(Sign.Params.FormatMessage(sessionAuthenticate.payloadParams, issuer)) ?: throw Exception("Invalid message")
+                    val message = WalletSignClient.formatAuthMessage(Sign.Params.FormatMessage(authPayloadParams, issuer)) ?: throw Exception("Invalid message")
                     issuerToMessages.add(issuer to message)
                 }
 
                 issuerToMessages.forEach { issuerToMessage ->
                     val messageToSign = Numeric.toHexString(issuerToMessage.second.toByteArray())
                     val signature = CacaoSigner.signHex(messageToSign, privateKey.hexToBytes(), SignatureType.EIP191)
-                    val cacao = generateAuthObject(sessionAuthenticate.payloadParams, issuerToMessage.first, signature)
+                    val cacao = generateAuthObject(authPayloadParams, issuerToMessage.first, signature)
                     cacaos.add(cacao)
                 }
 
@@ -90,16 +98,23 @@ class SessionAuthenticateInstrumentedAndroidTest {
                 val issuerToMessages = mutableListOf<Pair<String, String>>()
                 val cacaos = mutableListOf<Sign.Model.Cacao>()
 
-                sessionAuthenticate.payloadParams.chains.forEach { chain ->
+                val authPayloadParams =
+                    generateAuthPayloadParams(
+                        sessionAuthenticate.payloadParams,
+                        supportedChains = listOf("eip155:1", "eip155:137", "eip155:56"),
+                        supportedMethods = listOf("personal_sign", "eth_signTypedData", "eth_sign")
+                    )
+
+                authPayloadParams.chains.forEach { chain ->
                     val issuer = "did:pkh:$chain:$address"
-                    val message = WalletSignClient.formatAuthMessage(Sign.Params.FormatMessage(sessionAuthenticate.payloadParams, issuer)) ?: throw Exception("Invalid message")
+                    val message = WalletSignClient.formatAuthMessage(Sign.Params.FormatMessage(authPayloadParams, issuer)) ?: throw Exception("Invalid message")
                     issuerToMessages.add(issuer to message)
                 }
 
                 issuerToMessages.forEach { issuerToMessage ->
                     val messageToSign = Numeric.toHexString(issuerToMessage.second.toByteArray())
                     val signature = CacaoSigner.signHex(messageToSign, privateKey.hexToBytes(), SignatureType.EIP191)
-                    val cacao = generateAuthObject(sessionAuthenticate.payloadParams, issuerToMessage.first, signature)
+                    val cacao = generateAuthObject(authPayloadParams, issuerToMessage.first, signature)
                     cacaos.add(cacao)
                 }
 
@@ -143,15 +158,22 @@ class SessionAuthenticateInstrumentedAndroidTest {
                 val messages = mutableListOf<Pair<String, String>>()
                 val cacaos = mutableListOf<Sign.Model.Cacao>()
 
-                sessionAuthenticate.payloadParams.chains.forEach { chain ->
+                val authPayloadParams =
+                    generateAuthPayloadParams(
+                        sessionAuthenticate.payloadParams,
+                        supportedChains = listOf("eip155:1", "eip155:137", "eip155:56"),
+                        supportedMethods = listOf("personal_sign", "eth_signTypedData", "eth_sign")
+                    )
+
+                authPayloadParams.chains.forEach { chain ->
                     val issuer = "did:pkh:$chain:$address"
-                    val message = WalletSignClient.formatAuthMessage(Sign.Params.FormatMessage(sessionAuthenticate.payloadParams, issuer)) ?: throw Exception("Invalid message")
+                    val message = WalletSignClient.formatAuthMessage(Sign.Params.FormatMessage(authPayloadParams, issuer)) ?: throw Exception("Invalid message")
                     messages.add(issuer to message)
                 }
 
                 messages.forEach { message ->
                     val signature = CacaoSigner.signHex("messageToSign", privateKey.hexToBytes(), SignatureType.EIP191)
-                    val cacao = generateAuthObject(sessionAuthenticate.payloadParams, message.first, signature)
+                    val cacao = generateAuthObject(authPayloadParams, message.first, signature)
                     cacaos.add(cacao)
                 }
 

@@ -88,7 +88,7 @@ internal fun Modal.Params.Authenticate.toSign(): Sign.Params.Authenticate = with
         pairingTopic,
         chains = chains,
         domain = domain,
-        uri = aud,
+        uri = uri,
         nonce = nonce,
         nbf = nbf,
         exp = exp,
@@ -96,7 +96,6 @@ internal fun Modal.Params.Authenticate.toSign(): Sign.Params.Authenticate = with
         requestId = requestId,
         resources = resources,
         methods = methods,
-        type = type ?: CacaoType.CAIP222.header,
         expiry = expiry
     )
 }

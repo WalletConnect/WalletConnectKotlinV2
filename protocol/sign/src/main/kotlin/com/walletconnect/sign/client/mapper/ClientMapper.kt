@@ -114,7 +114,7 @@ internal fun Sign.Model.PayloadParams.toEngine(): EngineDO.PayloadParams = with(
 @JvmSynthetic
 internal fun Sign.Params.Authenticate.toAuthenticate(): EngineDO.Authenticate = with(this) {
     EngineDO.Authenticate(
-        type = CacaoType.CAIP222.header,
+        type = CacaoType.EIP4361.header,
         chains = chains,
         domain = domain,
         aud = uri,

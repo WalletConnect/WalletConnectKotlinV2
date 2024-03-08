@@ -44,7 +44,7 @@ object Web3Modal {
 
         //Responses
         fun onSessionRequestResponse(response: Modal.Model.SessionRequestResponse)
-        fun onSessionAuthenticateResponse(sessionUpdateResponse: Modal.Model.SessionAuthenticateResponse)
+        fun onSessionAuthenticateResponse(sessionUpdateResponse: Modal.Model.SessionAuthenticateResponse) {}
 
         // Utils
         fun onProposalExpired(proposal: Modal.Model.ExpiredProposal)

@@ -23,6 +23,7 @@ class SessionAuthenticateViewModel : ViewModel() {
             try {
                 val sessionAuthenticate = WCDelegate.sessionAuthenticateEvent!!.first
                 val auths = mutableListOf<Wallet.Model.Cacao>()
+
                 val authPayloadParams =
                     Web3Wallet.generateAuthPayloadParams(
                         sessionAuthenticate.payloadParams,
