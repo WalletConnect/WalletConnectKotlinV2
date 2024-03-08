@@ -31,8 +31,7 @@ concurrency:
 jobs:
   sdk_tests:
     name: Run Instrumented Tests
-    runs-on:
-      group: apple-silicon
+    runs-on: macos-latest-xlarge
     steps:
       - uses: actions/checkout@v3
         with:
