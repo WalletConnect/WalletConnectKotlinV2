@@ -81,8 +81,7 @@ runs:
         ENCODED_STRING_DEBUG: ${{ inputs.ENCODED_STRING_DEBUG }}
         SIGNING_KEY_STORE_PATH_DEBUG: ${{ inputs.SIGNING_KEY_STORE_PATH_DEBUG }}
       run: |
-        echo $ENCODED_STRING_DEBUG > keystore-b64-debug.txt
-        base64 -d keystore-b64-debug.txt > $SIGNING_KEY_STORE_PATH_DEBUG
+        echo $ENCODED_STRING_DEBUG | base64 --decode > $SIGNING_KEY_STORE_PATH_DEBUG
 
     - name: Decode Internal Keystore
       shell: bash
