@@ -5,7 +5,9 @@ package com.walletconnect.sign.client.utils
 import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.signing.cacao.Cacao.Payload.Companion.RECAPS_PREFIX
 import com.walletconnect.android.internal.common.signing.cacao.CacaoType
+import com.walletconnect.android.internal.common.signing.cacao.RECAPS_STATEMENT
 import com.walletconnect.android.internal.common.signing.cacao.decodeReCaps
+import com.walletconnect.android.internal.common.signing.cacao.getStatement
 import com.walletconnect.android.internal.common.signing.cacao.parseReCaps
 import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.sign.client.Sign
@@ -134,9 +136,17 @@ fun generateAuthPayloadParams(payloadParams: Sign.Model.PayloadParams, supported
             nbf = nbf,
             exp = exp,
             iat = iat,
-            statement = statement,
+            statement = getStatement(),
             resources = resources,
             requestId = requestId
         )
     }
 }
+
+private fun Sign.Model.PayloadParams.getStatement() =
+    if (statement?.contains(RECAPS_STATEMENT) == true) {
+        statement
+    } else {
+        Pair(statement, resources).getStatement()
+    }
+

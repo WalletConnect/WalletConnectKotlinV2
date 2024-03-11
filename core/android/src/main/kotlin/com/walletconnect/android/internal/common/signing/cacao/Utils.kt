@@ -99,7 +99,7 @@ fun mergeReCaps(json1: JSONObject, json2: JSONObject): String {
             }
         }
     }
-    return result.toString().replace("\\\"", "\"").replace("\"{", "{").replace("}\"", "}")//.replace("\\/", "/")
+    return result.toString().replace("\\\"", "\"").replace("\"{", "{").replace("}\"", "}")
 }
 
 private fun concatenateJsonArrays(arr1: JSONArray, arr2: JSONArray): JSONArray {

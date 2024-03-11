@@ -76,7 +76,7 @@ internal class SessionAuthenticateUseCase(
             externalReCapsJson.isNotEmpty() && signReCapsJson.isNotEmpty() -> mergeReCaps(JSONObject(signReCapsJson), JSONObject(externalReCapsJson))
             signReCapsJson.isNotEmpty() -> signReCapsJson
             else -> externalReCapsJson
-        }
+        }.replace("\\\\/", "/")
 
         if (reCaps.isNotEmpty()) {
             val base64Recaps = Base64.getEncoder().withoutPadding().encodeToString(reCaps.toByteArray(Charsets.UTF_8))
