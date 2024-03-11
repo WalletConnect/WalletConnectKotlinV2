@@ -1,14 +1,11 @@
 name: DB Migration Verification
 
 on:
-  push:
-    branches:
-      - develop
-      - master
   pull_request:
-    branches:
-      - develop
-      - master
+    types:
+      - opened
+      - synchronize
+      - edited
 
 concurrency:
   # Support push/pr as event types with different behaviors each:
