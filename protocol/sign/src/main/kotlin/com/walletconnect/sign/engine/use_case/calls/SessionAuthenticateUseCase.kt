@@ -11,6 +11,7 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.signing.cacao.Cacao.Payload.Companion.ATT_KEY
 import com.walletconnect.android.internal.common.signing.cacao.Cacao.Payload.Companion.RECAPS_PREFIX
+import com.walletconnect.android.internal.common.signing.cacao.mergeReCaps
 import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.android.internal.utils.currentTimeInSeconds
 import com.walletconnect.android.internal.utils.dayInSeconds
@@ -68,22 +69,11 @@ internal class SessionAuthenticateUseCase(
         val requestExpiry = expiry ?: Expiry(currentTimeInSeconds + oneHourInSeconds)
         val pairing = getPairingForSessionAuthenticate(pairingTopic)
         val optionalNamespaces = getNamespacesFromReCaps(authenticate.chains, methods ?: emptyList()).toMapOfEngineNamespacesOptional()
-
         val externalReCapsJson: String = getExternalReCapsJson(authenticate)
         val signReCapsJson = getSignReCapsJson(methods, authenticate)
 
         val reCaps = when {
-            externalReCapsJson.isNotEmpty() && signReCapsJson.isNotEmpty() -> {
-                val signReCapsObject = JSONObject(signReCapsJson)
-                val externalReCapsObject = JSONObject(externalReCapsJson)
-
-                val signAtt = signReCapsObject.getJSONObject("att")
-                val externalAtt = externalReCapsObject.getJSONObject("att")
-
-                externalAtt.keys().forEach { key -> signAtt.put(key, externalAtt.getJSONObject(key)) }
-                JSONObject().put("att", signAtt).toString().replace("\\/", "/")
-            }
-
+            externalReCapsJson.isNotEmpty() && signReCapsJson.isNotEmpty() -> mergeReCaps(JSONObject(signReCapsJson), JSONObject(externalReCapsJson))
             signReCapsJson.isNotEmpty() -> signReCapsJson
             else -> externalReCapsJson
         }
