@@ -2,7 +2,6 @@ package com.walletconnect.android.internal.common.signing.cacao
 
 import com.walletconnect.android.internal.common.signing.cacao.Cacao.Payload.Companion.RECAPS_PREFIX
 import com.walletconnect.utils.HexPrefix
-import org.bouncycastle.util.encoders.Base64
 import org.json.JSONObject
 
 @JvmSynthetic
@@ -50,7 +49,7 @@ fun List<String>?.decodeReCaps(): List<String>? {
     return this
         ?.filter { resource -> resource.startsWith(RECAPS_PREFIX) }
         ?.map { urn -> urn.removePrefix(RECAPS_PREFIX) }
-        ?.map { encodedReCaps -> Base64.decode(encodedReCaps).toString(Charsets.UTF_8) }
+        ?.map { encodedReCaps -> java.util.Base64.getDecoder().decode(encodedReCaps).toString(Charsets.UTF_8) }
 }
 
 @JvmSynthetic

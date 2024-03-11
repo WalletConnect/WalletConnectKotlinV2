@@ -32,7 +32,6 @@ import com.walletconnect.sign.storage.authenticate.AuthenticateResponseTopicRepo
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import org.bouncycastle.util.encoders.Base64
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -71,7 +70,7 @@ internal class SessionAuthenticateUseCase(
             val actionsJsonObject = JSONObject()
             methods.forEach { method -> actionsJsonObject.put("request/$method", JSONArray().put(0, JSONObject())) }
             val recaps = JSONObject().put(ATT_KEY, JSONObject().put(namespace, actionsJsonObject)).toString().replace("\\/", "/")
-            val base64Recaps = Base64.toBase64String(recaps.toByteArray(Charsets.UTF_8))
+            val base64Recaps = java.util.Base64.getEncoder().withoutPadding().encodeToString(recaps.toByteArray(Charsets.UTF_8))
             val reCapsUrl = "$RECAPS_PREFIX$base64Recaps"
             if (authenticate.resources == null) authenticate.resources = listOf(reCapsUrl) else authenticate.resources = authenticate.resources!! + reCapsUrl
         }

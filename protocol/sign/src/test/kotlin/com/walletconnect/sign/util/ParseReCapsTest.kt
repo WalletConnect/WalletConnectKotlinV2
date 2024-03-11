@@ -2,7 +2,6 @@ package com.walletconnect.sign.util
 
 import com.walletconnect.android.internal.common.signing.cacao.getChains
 import com.walletconnect.android.internal.common.signing.cacao.getMethods
-import org.bouncycastle.util.encoders.Base64
 import org.junit.Test
 
 class ParseReCapsTest {
@@ -24,10 +23,10 @@ class ParseReCapsTest {
 
     @Test
     fun parseReCapsTest() {
-        val urn1 =
-            Base64.toBase64String("""{"att":{"eip155":{"request/personal_sign":[{"chains": ["eip155:1", "eip155:137"]}],"request/eth_sign":[{"chains": ["eip155:1"]}]}}}""".toByteArray(Charsets.UTF_8))
-        val urn2 =
-            Base64.toBase64String("""{"att":{"test":{"different_action":[{"diff_chains": ["eip155:1"]}],"yet_another_action":[{"yet_another_chains": ["eip155:1"]}]}}}""".toByteArray(Charsets.UTF_8))
+        val urn1 = java.util.Base64.getEncoder().withoutPadding()
+            .encodeToString("""{"att":{"eip155":{"request/personal_sign":[{"chains": ["eip155:1", "eip155:137"]}],"request/eth_sign":[{"chains": ["eip155:1"]}]}}}""".toByteArray(Charsets.UTF_8))
+        val urn2 = java.util.Base64.getEncoder().withoutPadding()
+            .encodeToString("""{"att":{"test":{"different_action":[{"diff_chains": ["eip155:1"]}],"yet_another_action":[{"yet_another_chains": ["eip155:1"]}]}}}""".toByteArray(Charsets.UTF_8))
         val jsonList = mutableListOf("urn:recap:$urn1", "urn:recap:$urn2")
         val chains = jsonList.getChains()
         val actions = jsonList.getMethods()
@@ -38,8 +37,8 @@ class ParseReCapsTest {
 
     @Test
     fun parseReCapsFromIOSTest() {
-        val urn1 =
-            Base64.toBase64String("""{"att":{"eip155":{"request\/personal_sign":[{"chains":["eip155:1","eip155:137"]}]}}}""".toByteArray(Charsets.UTF_8))
+        val urn1 = java.util.Base64.getEncoder().withoutPadding()
+            .encodeToString("""{"att":{"eip155":{"request\/personal_sign":[{"chains":["eip155:1","eip155:137"]}]}}}""".toByteArray(Charsets.UTF_8))
         val jsonList = mutableListOf("urn:recap:$urn1")
         val chains = jsonList.getChains()
         val actions = jsonList.getMethods()

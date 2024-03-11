@@ -15,7 +15,6 @@ import com.walletconnect.sign.client.mapper.toCore
 import com.walletconnect.sign.client.mapper.toProposalNamespacesVO
 import com.walletconnect.sign.client.mapper.toSessionNamespacesVO
 import com.walletconnect.sign.common.validator.SignValidator
-import org.bouncycastle.util.encoders.Base64
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -115,7 +114,7 @@ fun generateAuthPayloadParams(payloadParams: Sign.Model.PayloadParams, supported
     sessionMethods.forEach { method -> actionsJsonObject.put("request/$method", JSONArray().put(0, JSONObject().put("chains", chainsJsonArray))) }
     val recaps = JSONObject().put(Cacao.Payload.ATT_KEY, JSONObject().put("eip155", actionsJsonObject)).toString().replace("\\/", "/")
 
-    val base64Recaps = Base64.toBase64String(recaps.toByteArray(Charsets.UTF_8))
+    val base64Recaps = java.util.Base64.getEncoder().withoutPadding().encodeToString(recaps.toByteArray(Charsets.UTF_8))
     val newReCapsUrl = "${RECAPS_PREFIX}$base64Recaps"
     if (payloadParams.resources == null) {
         payloadParams.resources = listOf(newReCapsUrl)
@@ -123,7 +122,7 @@ fun generateAuthPayloadParams(payloadParams: Sign.Model.PayloadParams, supported
         val newResourcesList = payloadParams.resources!!
             .decodeReCaps()!!
             .filter { decoded -> !decoded.contains("eip155") }
-            .map { reCaps -> "$RECAPS_PREFIX${Base64.toBase64String(reCaps.toByteArray(Charsets.UTF_8))}" }
+            .map { reCaps -> "$RECAPS_PREFIX${java.util.Base64.getEncoder().withoutPadding().encodeToString(reCaps.toByteArray(Charsets.UTF_8))}" }
             .plus(payloadParams.resources!!.filter { resource -> !resource.startsWith(RECAPS_PREFIX) })
             .plus(newReCapsUrl)
 
