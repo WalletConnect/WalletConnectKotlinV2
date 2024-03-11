@@ -89,8 +89,7 @@ runs:
         ENCODED_STRING_INTERNAL: ${{ inputs.ENCODED_STRING_INTERNAL }}
         SIGNING_KEY_STORE_PATH_INTERNAL: ${{ inputs.SIGNING_KEY_STORE_PATH_INTERNAL }}
       run: |
-        echo $ENCODED_STRING_INTERNAL > keystore-b64-internal.txt
-        base64 -d keystore-b64-internal.txt > $SIGNING_KEY_STORE_PATH_INTERNAL
+        echo $ENCODED_STRING_INTERNAL | base64 -decode > $SIGNING_KEY_STORE_PATH_INTERNAL
 
     - name: Decode Upload Keystore
       shell: bash
@@ -98,5 +97,4 @@ runs:
         ENCODED_STRING_UPLOAD: ${{ inputs.ENCODED_STRING_UPLOAD }}
         SIGNING_KEY_STORE_PATH_UPLOAD: ${{ inputs.SIGNING_KEY_STORE_PATH_UPLOAD }}
       run: |
-        echo $ENCODED_STRING_UPLOAD > keystore-b64.txt
-        base64 -d keystore-b64.txt > $SIGNING_KEY_STORE_PATH_UPLOAD
+        echo $ENCODED_STRING_UPLOAD | base64 -decode > $SIGNING_KEY_STORE_PATH_UPLOAD
