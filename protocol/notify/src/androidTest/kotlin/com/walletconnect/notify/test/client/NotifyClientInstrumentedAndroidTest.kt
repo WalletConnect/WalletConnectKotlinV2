@@ -23,12 +23,10 @@ import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import timber.log.Timber
 
-@Ignore("PrimaryNotifyClient and parent TestClient need to be updated to match latest Notify changes")
 class NotifyClientInstrumentedAndroidTest {
     @get:Rule
     val scenarioExtension = ClientInstrumentedActivityScenario()
@@ -83,12 +81,6 @@ class NotifyClientInstrumentedAndroidTest {
     @Before
     fun setup() {
         Timber.plant(Timber.DebugTree())
-        println("Testing")
-    }
-
-    @Test
-    fun testing() {
-
     }
 
     @Test
