@@ -42,6 +42,9 @@ runs:
         architecture: x86_64
         cache: 'gradle'
 
+    - name: Accept Android Licenses
+      uses: SimonMarquis/android-accept-licenses@v1
+
     - name: Create Google Services Json File - Wallet
       shell: bash
       env:
