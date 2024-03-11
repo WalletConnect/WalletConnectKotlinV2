@@ -122,7 +122,11 @@ internal class PairingProtocol(private val koinApp: KoinApplication = wcKoinApp)
     }
 
     override fun validatePairingUri(uri: String): Boolean {
-        return Validator.validateWCUri(uri) != null
+        return try {
+            Validator.validateWCUri(uri) != null
+        } catch (e: Exception) {
+            false
+        }
     }
 
     private suspend fun awaitConnection(onConnection: () -> Unit, errorLambda: (Throwable) -> Unit = {}) {
