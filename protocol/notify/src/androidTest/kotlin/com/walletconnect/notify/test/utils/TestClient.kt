@@ -82,17 +82,6 @@ internal object TestClient {
             }
         }
 
-
-
-//            .also { notifyClient ->
-//            notifyClient.register(Notify.Params.Registration(caip10account, metadata.url, { message -> CacaoSigner.sign(message, privateKey.keyAsBytes, SignatureType.EIP191) }), { identityKey ->
-
-//            }, { error ->
-//                Timber.e(error.throwable)
-//                throw error.throwable
-//            })
-//        }
-
         internal val Relay get() = coreProtocol.Relay
         internal val Pairing = coreProtocol.Pairing
         internal val identitiesInteractor: IdentitiesInteractor by lazy { wcKoinApp.koin.get() }
