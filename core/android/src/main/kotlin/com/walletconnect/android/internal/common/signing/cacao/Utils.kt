@@ -47,10 +47,12 @@ fun String?.parseReCaps(): MutableMap<String, MutableMap<String, MutableList<Str
 @JvmSynthetic
 fun List<String>?.decodeReCaps(): String? {
     return try {
-        this
-            ?.last { resource -> resource.startsWith(RECAPS_PREFIX) }
-            ?.removePrefix(RECAPS_PREFIX)
-            .run { java.util.Base64.getDecoder().decode(this).toString(Charsets.UTF_8) }
+        val last = this?.last()
+        if (last != null && last.startsWith(RECAPS_PREFIX)) {
+            java.util.Base64.getDecoder().decode(last.removePrefix(RECAPS_PREFIX)).toString(Charsets.UTF_8)
+        } else {
+            null
+        }
     } catch (e: Exception) {
         null
     }
