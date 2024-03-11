@@ -213,7 +213,7 @@ class ChainSelectionViewModel : ViewModel() {
             nbf = null,
             statement = "Sign in with wallet.",
             requestId = null,
-            resources = listOf(,
+            resources = listOf(
                 "ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/",
                 "urn:recap:eyJhdHQiOnsiaHR0cHM6Ly9ub3RpZnkud2FsbGV0Y29ubmVjdC5jb20vYWxsLWFwcHMiOnsiY3J1ZC9zdWJzY3JpcHRpb25zIjpbe31dLCJjcnVkL25vdGlmaWNhdGlvbnMiOlt7fV19fX0="
             ),

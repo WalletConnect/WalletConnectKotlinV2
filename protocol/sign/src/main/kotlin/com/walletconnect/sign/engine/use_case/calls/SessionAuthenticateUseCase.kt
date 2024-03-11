@@ -35,6 +35,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
+import java.util.Base64
 
 internal class SessionAuthenticateUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -63,37 +64,35 @@ internal class SessionAuthenticateUseCase(
             logger.error("Sending session authenticate request error: expiry not within bounds")
             return onFailure(InvalidExpiryException())
         }
+
         val requestExpiry = expiry ?: Expiry(currentTimeInSeconds + oneHourInSeconds)
         val pairing = getPairingForSessionAuthenticate(pairingTopic)
         val optionalNamespaces = getNamespacesFromReCaps(authenticate.chains, methods ?: emptyList()).toMapOfEngineNamespacesOptional()
 
-        //external ReCaps
-        val externalReCaps: String = getExternalReCaps(authenticate)
+        val externalReCapsJson: String = getExternalReCapsJson(authenticate)
+        val signReCapsJson = getSignReCapsJson(methods, authenticate)
 
-        //sign ReCaps
-        val signReCaps = if (!methods.isNullOrEmpty()) {
-            val namespace = SignValidator.getNamespaceKeyFromChainId(authenticate.chains.first())
+        val reCaps = when {
+            externalReCapsJson.isNotEmpty() && signReCapsJson.isNotEmpty() -> {
+                val signReCapsObject = JSONObject(signReCapsJson)
+                val externalReCapsObject = JSONObject(externalReCapsJson)
 
-            val actionsJsonObject = JSONObject()
-            methods.forEach { method -> actionsJsonObject.put("request/$method", JSONArray().put(0, JSONObject())) }
+                val signAtt = signReCapsObject.getJSONObject("att")
+                val externalAtt = externalReCapsObject.getJSONObject("att")
 
-            //ATT Object
-            JSONObject().put(ATT_KEY, JSONObject().put(namespace, actionsJsonObject)).toString().replace("\\/", "/")
-        } else String.Empty
+                externalAtt.keys().forEach { key -> signAtt.put(key, externalAtt.getJSONObject(key)) }
+                JSONObject().put("att", signAtt).toString().replace("\\/", "/")
+            }
 
-        val recaps = if(externalReCaps.isNotEmpty() && signReCaps.isNotEmpty()){
-            "$externalReCaps,$signReCaps"
-        } else if(externalReCaps.isNotEmpty()){
-            externalReCaps
-        } else {
-            signReCaps
+            signReCapsJson.isNotEmpty() -> signReCapsJson
+            else -> externalReCapsJson
         }
 
-        //Encoding ReCaps into Base64
-        val base64Recaps = java.util.Base64.getEncoder().withoutPadding().encodeToString(recaps.toByteArray(Charsets.UTF_8))
-        val reCapsUrl = "$RECAPS_PREFIX$base64Recaps"
-
-        if (authenticate.resources == null) authenticate.resources = listOf(reCapsUrl) else authenticate.resources = authenticate.resources!! + reCapsUrl
+        if (reCaps.isNotEmpty()) {
+            val base64Recaps = Base64.getEncoder().withoutPadding().encodeToString(reCaps.toByteArray(Charsets.UTF_8))
+            val reCapsUrl = "$RECAPS_PREFIX$base64Recaps"
+            if (authenticate.resources == null) authenticate.resources = listOf(reCapsUrl) else authenticate.resources = authenticate.resources!! + reCapsUrl
+        }
 
         val requesterPublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
         val responseTopic: Topic = crypto.getTopicFromKey(requesterPublicKey)
@@ -136,11 +135,18 @@ internal class SessionAuthenticateUseCase(
         }
     }
 
-    private fun getExternalReCaps(authenticate: EngineDO.Authenticate): String = try {
+    private fun getSignReCapsJson(methods: List<String>?, authenticate: EngineDO.Authenticate) =
+        if (!methods.isNullOrEmpty()) {
+            val namespace = SignValidator.getNamespaceKeyFromChainId(authenticate.chains.first())
+            val actionsJsonObject = JSONObject()
+            methods.forEach { method -> actionsJsonObject.put("request/$method", JSONArray().put(0, JSONObject())) }
+            JSONObject().put(ATT_KEY, JSONObject().put(namespace, actionsJsonObject)).toString().replace("\\/", "/")
+        } else String.Empty
+
+    private fun getExternalReCapsJson(authenticate: EngineDO.Authenticate): String = try {
         if (areExternalReCapsNotEmpty(authenticate)) {
-            val externalURN = authenticate.resources!!.last { resource -> resource.startsWith(RECAPS_PREFIX) }
-            //todo: decode external ReCaps
-            ""
+            val externalUrn = authenticate.resources!!.last { resource -> resource.startsWith(RECAPS_PREFIX) }
+            Base64.getDecoder().decode(externalUrn.removePrefix(RECAPS_PREFIX)).toString(Charsets.UTF_8)
         } else {
             String.Empty
         }

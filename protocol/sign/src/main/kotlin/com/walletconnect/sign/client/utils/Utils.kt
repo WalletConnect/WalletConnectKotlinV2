@@ -91,7 +91,6 @@ fun generateAuthObject(payload: Sign.Model.PayloadParams, issuer: String, signat
 
 fun generateAuthPayloadParams(payloadParams: Sign.Model.PayloadParams, supportedChains: List<String>, supportedMethods: List<String>): Sign.Model.PayloadParams {
     val reCapsJson: String? = payloadParams.resources.decodeReCaps()
-    println("kobe: Received ReCaps: $reCapsJson")
     if (reCapsJson.isNullOrEmpty()) return payloadParams
 
     val sessionReCaps = reCapsJson.parseReCaps()["eip155"]
@@ -112,14 +111,10 @@ fun generateAuthPayloadParams(payloadParams: Sign.Model.PayloadParams, supported
     sessionChains.forEach { chain -> chainsJsonArray.put(chain) }
     sessionMethods.forEach { method -> actionsJsonObject.put("request/$method", JSONArray().put(0, JSONObject().put("chains", chainsJsonArray))) }
 
-    //TODO: Check if Include external recaps
     val recaps = JSONObject(reCapsJson)
     val att = recaps.getJSONObject("att")
     att.put("eip155", actionsJsonObject)
     val stringReCaps = recaps.toString().replace("\\/", "/")
-
-    println("kobe: Final ReCaps: $stringReCaps")
-
     val base64Recaps = java.util.Base64.getEncoder().withoutPadding().encodeToString(stringReCaps.toByteArray(Charsets.UTF_8))
     val newReCapsUrl = "${RECAPS_PREFIX}$base64Recaps"
 
