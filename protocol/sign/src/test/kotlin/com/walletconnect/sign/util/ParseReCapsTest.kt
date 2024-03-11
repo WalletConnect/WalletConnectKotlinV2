@@ -27,7 +27,7 @@ class ParseReCapsTest {
             .encodeToString("""{"att":{"eip155":{"request/personal_sign":[{"chains": ["eip155:1", "eip155:137"]}],"request/eth_sign":[{"chains": ["eip155:1"]}]}}}""".toByteArray(Charsets.UTF_8))
         val urn2 = java.util.Base64.getEncoder().withoutPadding()
             .encodeToString("""{"att":{"test":{"different_action":[{"diff_chains": ["eip155:1"]}],"yet_another_action":[{"yet_another_chains": ["eip155:1"]}]}}}""".toByteArray(Charsets.UTF_8))
-        val jsonList = mutableListOf("urn:recap:$urn1", "urn:recap:$urn2")
+        val jsonList = mutableListOf("urn:recap:$urn2", "urn:recap:$urn1")
         val chains = jsonList.getChains()
         val actions = jsonList.getMethods()
 

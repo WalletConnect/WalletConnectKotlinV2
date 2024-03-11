@@ -3,7 +3,6 @@
 package com.walletconnect.sign.client.utils
 
 import com.walletconnect.android.internal.common.model.Namespace
-import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.signing.cacao.Cacao.Payload.Companion.RECAPS_PREFIX
 import com.walletconnect.android.internal.common.signing.cacao.CacaoType
 import com.walletconnect.android.internal.common.signing.cacao.decodeReCaps
@@ -91,11 +90,11 @@ fun generateAuthObject(payload: Sign.Model.PayloadParams, issuer: String, signat
 }
 
 fun generateAuthPayloadParams(payloadParams: Sign.Model.PayloadParams, supportedChains: List<String>, supportedMethods: List<String>): Sign.Model.PayloadParams {
-    val reCapsList: List<String>? = payloadParams.resources.decodeReCaps()?.filter { decoded -> decoded.contains("eip155") }
+    val reCapsJson: String? = payloadParams.resources.decodeReCaps()
+    println("kobe: Received ReCaps: $reCapsJson")
+    if (reCapsJson.isNullOrEmpty()) return payloadParams
 
-    if (reCapsList.isNullOrEmpty()) return payloadParams
-    val sessionReCaps = reCapsList.parseReCaps()["eip155"]
-
+    val sessionReCaps = reCapsJson.parseReCaps()["eip155"]
     val requestedMethods = sessionReCaps!!.keys.map { key -> key.substringAfter('/') }
     val requestedChains = payloadParams.chains
 
@@ -112,21 +111,22 @@ fun generateAuthPayloadParams(payloadParams: Sign.Model.PayloadParams, supported
     val chainsJsonArray = JSONArray()
     sessionChains.forEach { chain -> chainsJsonArray.put(chain) }
     sessionMethods.forEach { method -> actionsJsonObject.put("request/$method", JSONArray().put(0, JSONObject().put("chains", chainsJsonArray))) }
-    val recaps = JSONObject().put(Cacao.Payload.ATT_KEY, JSONObject().put("eip155", actionsJsonObject)).toString().replace("\\/", "/")
 
-    val base64Recaps = java.util.Base64.getEncoder().withoutPadding().encodeToString(recaps.toByteArray(Charsets.UTF_8))
+    //TODO: Check if Include external recaps
+    val recaps = JSONObject(reCapsJson)
+    val att = recaps.getJSONObject("att")
+    att.put("eip155", actionsJsonObject)
+    val stringReCaps = recaps.toString().replace("\\/", "/")
+
+    println("kobe: Final ReCaps: $stringReCaps")
+
+    val base64Recaps = java.util.Base64.getEncoder().withoutPadding().encodeToString(stringReCaps.toByteArray(Charsets.UTF_8))
     val newReCapsUrl = "${RECAPS_PREFIX}$base64Recaps"
+
     if (payloadParams.resources == null) {
         payloadParams.resources = listOf(newReCapsUrl)
     } else {
-        val newResourcesList = payloadParams.resources!!
-            .decodeReCaps()!!
-            .filter { decoded -> !decoded.contains("eip155") }
-            .map { reCaps -> "$RECAPS_PREFIX${java.util.Base64.getEncoder().withoutPadding().encodeToString(reCaps.toByteArray(Charsets.UTF_8))}" }
-            .plus(payloadParams.resources!!.filter { resource -> !resource.startsWith(RECAPS_PREFIX) })
-            .plus(newReCapsUrl)
-
-        payloadParams.resources = newResourcesList
+        payloadParams.resources = payloadParams.resources!!.dropLast(1).plus(newReCapsUrl)
     }
 
     return with(payloadParams) {

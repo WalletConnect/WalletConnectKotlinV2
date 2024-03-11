@@ -29,6 +29,7 @@ import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toCommon
 import com.walletconnect.sign.engine.model.mapper.toMapOfEngineNamespacesOptional
 import com.walletconnect.sign.storage.authenticate.AuthenticateResponseTopicRepository
+import com.walletconnect.utils.Empty
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -65,15 +66,34 @@ internal class SessionAuthenticateUseCase(
         val requestExpiry = expiry ?: Expiry(currentTimeInSeconds + oneHourInSeconds)
         val pairing = getPairingForSessionAuthenticate(pairingTopic)
         val optionalNamespaces = getNamespacesFromReCaps(authenticate.chains, methods ?: emptyList()).toMapOfEngineNamespacesOptional()
-        if (!methods.isNullOrEmpty()) {
+
+        //external ReCaps
+        val externalReCaps: String = getExternalReCaps(authenticate)
+
+        //sign ReCaps
+        val signReCaps = if (!methods.isNullOrEmpty()) {
             val namespace = SignValidator.getNamespaceKeyFromChainId(authenticate.chains.first())
+
             val actionsJsonObject = JSONObject()
             methods.forEach { method -> actionsJsonObject.put("request/$method", JSONArray().put(0, JSONObject())) }
-            val recaps = JSONObject().put(ATT_KEY, JSONObject().put(namespace, actionsJsonObject)).toString().replace("\\/", "/")
-            val base64Recaps = java.util.Base64.getEncoder().withoutPadding().encodeToString(recaps.toByteArray(Charsets.UTF_8))
-            val reCapsUrl = "$RECAPS_PREFIX$base64Recaps"
-            if (authenticate.resources == null) authenticate.resources = listOf(reCapsUrl) else authenticate.resources = authenticate.resources!! + reCapsUrl
+
+            //ATT Object
+            JSONObject().put(ATT_KEY, JSONObject().put(namespace, actionsJsonObject)).toString().replace("\\/", "/")
+        } else String.Empty
+
+        val recaps = if(externalReCaps.isNotEmpty() && signReCaps.isNotEmpty()){
+            "$externalReCaps,$signReCaps"
+        } else if(externalReCaps.isNotEmpty()){
+            externalReCaps
+        } else {
+            signReCaps
         }
+
+        //Encoding ReCaps into Base64
+        val base64Recaps = java.util.Base64.getEncoder().withoutPadding().encodeToString(recaps.toByteArray(Charsets.UTF_8))
+        val reCapsUrl = "$RECAPS_PREFIX$base64Recaps"
+
+        if (authenticate.resources == null) authenticate.resources = listOf(reCapsUrl) else authenticate.resources = authenticate.resources!! + reCapsUrl
 
         val requesterPublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
         val responseTopic: Topic = crypto.getTopicFromKey(requesterPublicKey)
@@ -115,6 +135,21 @@ internal class SessionAuthenticateUseCase(
             }
         }
     }
+
+    private fun getExternalReCaps(authenticate: EngineDO.Authenticate): String = try {
+        if (areExternalReCapsNotEmpty(authenticate)) {
+            val externalURN = authenticate.resources!!.last { resource -> resource.startsWith(RECAPS_PREFIX) }
+            //todo: decode external ReCaps
+            ""
+        } else {
+            String.Empty
+        }
+    } catch (e: Exception) {
+        String.Empty
+    }
+
+    private fun areExternalReCapsNotEmpty(authenticate: EngineDO.Authenticate): Boolean =
+        authenticate.resources != null && authenticate.resources!!.any { resource -> resource.startsWith(RECAPS_PREFIX) }
 
     private suspend fun publishSessionAuthenticateDeferred(
         pairing: Core.Model.Pairing,
