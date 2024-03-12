@@ -41,7 +41,7 @@ runs:
         TEST_TIMEOUT_SECONDS: ${{ inputs.testTimeoutSeconds }}
         NOTIFY_INTEGRATION_TESTS_PROJECT_ID: ${{ inputs.notifyProjectId }}
         NOTIFY_INTEGRATION_TESTS_SECRET: ${{ inputs.notifySecret }}
-      run: ./gradlew ${{ inputs.command }} -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect -Pandroid.experimental.testOptions.managedDevices.maxConcurrentDevices=1
+      run: ./gradlew ${{ inputs.command }} -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
 
     - uses: actions/upload-artifact@v3
       if: always()
