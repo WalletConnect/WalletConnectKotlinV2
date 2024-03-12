@@ -1,5 +1,6 @@
 package com.walletconnect.android.internal.common.signing.cacao
 
+import android.util.Base64
 import com.walletconnect.android.internal.common.signing.cacao.Cacao.Payload.Companion.RECAPS_PREFIX
 import com.walletconnect.utils.HexPrefix
 import org.json.JSONArray
@@ -49,7 +50,7 @@ fun List<String>?.decodeReCaps(): String? {
     return try {
         val last = this?.last()
         if (last != null && last.startsWith(RECAPS_PREFIX)) {
-            java.util.Base64.getDecoder().decode(last.removePrefix(RECAPS_PREFIX)).toString(Charsets.UTF_8)
+            Base64.decode(last.removePrefix(RECAPS_PREFIX), Base64.NO_WRAP).toString(Charsets.UTF_8)
         } else {
             null
         }

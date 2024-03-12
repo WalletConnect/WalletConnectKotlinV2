@@ -2,6 +2,7 @@
 
 package com.walletconnect.sign.client.utils
 
+import android.util.Base64
 import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.signing.cacao.Cacao.Payload.Companion.RECAPS_PREFIX
 import com.walletconnect.android.internal.common.signing.cacao.CacaoType
@@ -93,7 +94,7 @@ fun generateAuthObject(payload: Sign.Model.PayloadParams, issuer: String, signat
 
 fun generateAuthPayloadParams(payloadParams: Sign.Model.PayloadParams, supportedChains: List<String>, supportedMethods: List<String>): Sign.Model.PayloadParams {
     val reCapsJson: String? = payloadParams.resources.decodeReCaps()
-    if (reCapsJson.isNullOrEmpty()) return payloadParams
+    if (reCapsJson.isNullOrEmpty() || !reCapsJson.contains("eip155")) return payloadParams
 
     val sessionReCaps = reCapsJson.parseReCaps()["eip155"]
     val requestedMethods = sessionReCaps!!.keys.map { key -> key.substringAfter('/') }
@@ -117,7 +118,7 @@ fun generateAuthPayloadParams(payloadParams: Sign.Model.PayloadParams, supported
     val att = recaps.getJSONObject("att")
     att.put("eip155", actionsJsonObject)
     val stringReCaps = recaps.toString().replace("\\/", "/")
-    val base64Recaps = java.util.Base64.getEncoder().withoutPadding().encodeToString(stringReCaps.toByteArray(Charsets.UTF_8))
+    val base64Recaps = Base64.encodeToString(stringReCaps.toByteArray(Charsets.UTF_8), Base64.NO_WRAP or Base64.NO_PADDING)
     val newReCapsUrl = "${RECAPS_PREFIX}$base64Recaps"
 
     if (payloadParams.resources == null) {

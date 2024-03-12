@@ -24,7 +24,7 @@ class CacaoUtilsTests {
     fun `decode when ReCaps is the last element should be not empty test`() {
         val resources = listOf(
             "ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/",
-            "urn:recap:eyJhdHQiOnsiaHR0cHM6Ly9ub3RpZnkud2FsbGV0Y29ubmVjdC5jb20vYWxsLWFwcHMiOnsiY3J1ZC9zdWJzY3JpcHRpb25zIjpbe31dLCJjcnVkL25vdGlmaWNhdGlvbnMiOlt7fV19fX0=",
+            "urn:recap:eyJhdHQiOnsiZWlwMTU1Ijp7InJlcXVlc3RcL3BlcnNvbmFsX3NpZ24iOlt7fV0sInJlcXVlc3RcL2V0aF9zaWduVHlwZWREYXRhIjpbe31dfSwiaHR0cHM6XC9cL25vdGlmeS53YWxsZXRjb25uZWN0LmNvbVwvYWxsLWFwcHMiOnsiY3J1ZFwvc3Vic2NyaXB0aW9ucyI6W3t9XSwiY3J1ZFwvbm90aWZpY2F0aW9ucyI6W3t9XX19fQ",
         )
 
         resources.decodeReCaps().also {

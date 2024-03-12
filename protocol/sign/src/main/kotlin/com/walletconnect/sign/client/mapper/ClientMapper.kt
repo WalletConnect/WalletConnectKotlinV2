@@ -133,7 +133,7 @@ internal fun Sign.Params.Authenticate.toAuthenticate(): EngineDO.Authenticate = 
 
 @JvmSynthetic
 internal fun Sign.Model.PayloadParams.toCacaoPayload(issuer: String): Sign.Model.Cacao.Payload = with(this) {
-    Sign.Model.Cacao.Payload(issuer, domain, aud, "1", nonce, iat = iat, nbf, exp, getStatement().also { println("dupa: $it") }, requestId, resources)
+    Sign.Model.Cacao.Payload(issuer, domain, aud, "1", nonce, iat = iat, nbf, exp, getStatement(), requestId, resources)
 }
 
 private fun Sign.Model.PayloadParams.getStatement() =

@@ -1,5 +1,6 @@
 package com.walletconnect.sign.engine.use_case.calls
 
+import android.util.Base64
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.InvalidExpiryException
@@ -36,7 +37,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
-import java.util.Base64
 
 internal class SessionAuthenticateUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -79,7 +79,7 @@ internal class SessionAuthenticateUseCase(
         }.replace("\\\\/", "/")
 
         if (reCaps.isNotEmpty()) {
-            val base64Recaps = Base64.getEncoder().withoutPadding().encodeToString(reCaps.toByteArray(Charsets.UTF_8))
+            val base64Recaps = Base64.encodeToString(reCaps.toByteArray(Charsets.UTF_8), Base64.NO_WRAP or Base64.NO_PADDING)
             val reCapsUrl = "$RECAPS_PREFIX$base64Recaps"
             if (authenticate.resources == null) authenticate.resources = listOf(reCapsUrl) else authenticate.resources = authenticate.resources!! + reCapsUrl
         }
@@ -136,7 +136,7 @@ internal class SessionAuthenticateUseCase(
     private fun getExternalReCapsJson(authenticate: EngineDO.Authenticate): String = try {
         if (areExternalReCapsNotEmpty(authenticate)) {
             val externalUrn = authenticate.resources!!.last { resource -> resource.startsWith(RECAPS_PREFIX) }
-            Base64.getDecoder().decode(externalUrn.removePrefix(RECAPS_PREFIX)).toString(Charsets.UTF_8)
+            Base64.decode(externalUrn.removePrefix(RECAPS_PREFIX), Base64.NO_WRAP).toString(Charsets.UTF_8)
         } else {
             String.Empty
         }
