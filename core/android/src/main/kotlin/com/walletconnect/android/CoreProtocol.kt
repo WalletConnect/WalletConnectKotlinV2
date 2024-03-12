@@ -8,6 +8,7 @@ import com.walletconnect.android.internal.common.di.coreJsonRpcModule
 import com.walletconnect.android.internal.common.di.corePairingModule
 import com.walletconnect.android.internal.common.di.explorerModule
 import com.walletconnect.android.internal.common.di.keyServerModule
+import com.walletconnect.android.internal.common.di.pulseModule
 import com.walletconnect.android.internal.common.di.pushModule
 import com.walletconnect.android.internal.common.di.web3ModalModule
 import com.walletconnect.android.internal.common.explorer.ExplorerInterface
@@ -38,6 +39,7 @@ class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInter
     override val Pairing: PairingInterface = PairingProtocol(koinApp)
     override val PairingController: PairingControllerInterface = PairingController(koinApp)
     override var Relay = RelayClient(koinApp)
+
     @Deprecated(message = "Replaced with Push")
     override val Echo: PushInterface = PushClient
     override val Push: PushInterface = PushClient
@@ -83,7 +85,8 @@ class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInter
                 corePairingModule(Pairing, PairingController),
                 keyServerModule(keyServerUrl),
                 explorerModule(),
-                web3ModalModule()
+                web3ModalModule(),
+                pulseModule()
             )
         }
 

@@ -3,6 +3,7 @@
 package com.walletconnect.sign.storage.proposal
 
 import android.database.sqlite.SQLiteException
+import app.cash.sqldelight.async.coroutines.awaitAsList
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.scope
@@ -57,8 +58,8 @@ class ProposalStorageRepository(
 
     @JvmSynthetic
     @Throws(SQLiteException::class)
-    internal fun getProposals(): List<ProposalVO> {
-        return proposalDaoQueries.getListOfProposalDaos(this::mapProposalDaoToProposalVO).executeAsList()
+    internal suspend fun getProposals(): List<ProposalVO> {
+        return proposalDaoQueries.getListOfProposalDaos(this::mapProposalDaoToProposalVO).awaitAsList()
     }
 
     @JvmSynthetic

@@ -62,6 +62,7 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withTimeout
 import java.util.concurrent.TimeUnit
@@ -97,7 +98,8 @@ internal class PairingEngine(
     init {
         setOfRegisteredMethods.addAll(listOf(PairingJsonRpcMethod.WC_PAIRING_DELETE, PairingJsonRpcMethod.WC_PAIRING_PING))
         resubscribeToPairingTopics()
-        pairingExpiryWatcher()
+        inactivePairingsExpiryWatcher()
+        activePairingsExpiryWatcher()
         isPairingStateWatcher()
     }
 
@@ -120,7 +122,7 @@ internal class PairingEngine(
         val inactivePairing = Pairing(pairingTopic, relay, symmetricKey, registeredMethods, Expiry(inactivePairing))
 
         return inactivePairing.runCatching {
-            logger.log("Pairing created successfully")
+            logger.log("Creating Pairing")
             pairingRepository.insertPairing(this)
             metadataRepository.upsertPeerMetadata(this.topic, selfMetaData, AppMetaDataType.SELF)
             jsonRpcInteractor.subscribe(this.topic,
@@ -200,11 +202,12 @@ internal class PairingEngine(
         val deleteParams = PairingParams.DeleteParams(6000, "User disconnected")
         val pairingDelete = PairingRpc.PairingDelete(params = deleteParams)
         val irnParams = IrnParams(Tags.PAIRING_DELETE, Ttl(dayInSeconds))
+        logger.log("Sending Pairing disconnect")
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, pairingDelete,
             onSuccess = {
                 scope.launch {
                     supervisorScope {
-                        logger.log("Disconnect sent successfully")
+                        logger.log("Pairing disconnect sent successfully")
                         pairingRepository.deletePairing(Topic(topic))
                         metadataRepository.deleteMetaData(Topic(topic))
                         jsonRpcInteractor.unsubscribe(Topic(topic))
@@ -232,7 +235,7 @@ internal class PairingEngine(
         }
     }
 
-    fun getPairings(): List<Pairing> = pairingRepository.getListOfPairings().filter { pairing -> pairing.isNotExpired() }
+    fun getPairings(): List<Pairing> = runBlocking { pairingRepository.getListOfPairings().filter { pairing -> pairing.isNotExpired() } }
 
     fun register(vararg method: String) {
         setOfRegisteredMethods.addAll(method)
@@ -266,7 +269,7 @@ internal class PairingEngine(
             .onEach {
                 supervisorScope {
                     launch(Dispatchers.IO) {
-                        resubscribeToPairingFlow()
+                        sendBatchSubcrbeForPairings()
                     }
                 }
 
@@ -276,35 +279,63 @@ internal class PairingEngine(
             }.launchIn(scope)
     }
 
-    private fun pairingExpiryWatcher() {
-        flow {
-            while (true) {
-                emit(Unit)
-                delay(WATCHER_INTERVAL)
-            }
-        }.onEach {
-            pairingRepository
-                .getListOfPairings()
-                .onEach { pairing -> pairing.isNotExpired() }
-        }.launchIn(scope)
+    private suspend fun sendBatchSubcrbeForPairings() {
+        try {
+            val pairingTopics = pairingRepository.getListOfPairings().filter { pairing -> pairing.isNotExpired() }.map { pairing -> pairing.topic.value }
+            jsonRpcInteractor.batchSubscribe(pairingTopics) { error -> scope.launch { internalErrorFlow.emit(SDKError(error)) } }
+        } catch (e: Exception) {
+            scope.launch { internalErrorFlow.emit(SDKError(e)) }
+        }
     }
 
+    private fun inactivePairingsExpiryWatcher() {
+        repeatableFlow(WATCHER_INTERVAL)
+            .onEach {
+                try {
+                    pairingRepository.getListOfInactivePairings()
+                        .onEach { pairing ->
+                            pairing.isNotExpired()
+                        }
+                } catch (e: Exception) {
+                    logger.error(e)
+                }
+            }.launchIn(scope)
+    }
+
+    private fun activePairingsExpiryWatcher() {
+        repeatableFlow(ACTIVE_PAIRINGS_WATCHER_INTERVAL)
+            .onEach {
+                try {
+                    pairingRepository.getListOfActivePairings()
+                        .onEach { pairing -> pairing.isNotExpired() }
+                } catch (e: Exception) {
+                    logger.error(e)
+                }
+            }.launchIn(scope)
+    }
+
+
     private fun isPairingStateWatcher() {
-        flow {
-            while (true) {
-                emit(Unit)
-                delay(WATCHER_INTERVAL)
-            }
-        }.onEach {
-            val inactivePairings = pairingRepository
-                .getListOfPairings()
-                .filter { pairing -> !pairing.isActive && !pairing.isProposalReceived }
-            if (inactivePairings.isNotEmpty()) {
-                _isPairingStateFlow.compareAndSet(expect = false, update = true)
-            } else {
-                _isPairingStateFlow.compareAndSet(expect = true, update = false)
-            }
-        }.launchIn(scope)
+        repeatableFlow(WATCHER_INTERVAL)
+            .onEach {
+                try {
+                    val inactivePairings = pairingRepository.getListOfInactivePairingsWithoutRequestReceived()
+                    if (inactivePairings.isNotEmpty()) {
+                        _isPairingStateFlow.compareAndSet(expect = false, update = true)
+                    } else {
+                        _isPairingStateFlow.compareAndSet(expect = true, update = false)
+                    }
+                } catch (e: Exception) {
+                    logger.error(e)
+                }
+            }.launchIn(scope)
+    }
+
+    private fun repeatableFlow(interval: Long) = flow {
+        while (true) {
+            emit(Unit)
+            delay(interval)
+        }
     }
 
     private fun collectJsonRpcRequestsFlow(): Job =
@@ -316,15 +347,6 @@ internal class PairingEngine(
                     is PairingParams.PingParams -> onPing(request)
                 }
             }.launchIn(scope)
-
-    private fun resubscribeToPairingFlow() {
-        try {
-            val pairingTopics = pairingRepository.getListOfPairings().filter { pairing -> pairing.isNotExpired() }.map { pairing -> pairing.topic.value }
-            jsonRpcInteractor.batchSubscribe(pairingTopics) { error -> scope.launch { internalErrorFlow.emit(SDKError(error)) } }
-        } catch (e: Exception) {
-            scope.launch { internalErrorFlow.emit(SDKError(e)) }
-        }
-    }
 
     private suspend fun onPairingDelete(request: WCRequest, params: PairingParams.DeleteParams) {
         val irnParams = IrnParams(Tags.PAIRING_DELETE_RESPONSE, Ttl(dayInSeconds))
@@ -416,6 +438,7 @@ internal class PairingEngine(
         pairingRepository.getPairingOrNullByTopic(Topic(topic))?.let { pairing -> return@let pairing.isNotExpired() } ?: false
 
     companion object {
-        private const val WATCHER_INTERVAL = 3000L
+        private const val WATCHER_INTERVAL = 30000L //30s
+        private const val ACTIVE_PAIRINGS_WATCHER_INTERVAL = 600000L //10mins
     }
 }
