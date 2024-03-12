@@ -6,7 +6,7 @@ import org.gradle.kotlin.dsl.invoke
 fun TestOptions.registerManagedDevices() {
     managedDevices {
         devices {
-            val _deviceName = "Nexus 6"
+            val _deviceName = "Pixel 5"
             val _apiLevel = 32
             val _systemImageSource = "google"
             val taskSuffix = "_" + _deviceName.replace(" ", "_")
