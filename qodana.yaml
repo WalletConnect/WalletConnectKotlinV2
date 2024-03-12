@@ -1,7 +1,0 @@
-version: "1.0"
-linter: jetbrains/qodana-jvm-android:2023.2
-profile:
-  name: qodana.starter
-#projectJDK: corretto-19
-include:
-  - name: AndroidLintUseTomlInstead
