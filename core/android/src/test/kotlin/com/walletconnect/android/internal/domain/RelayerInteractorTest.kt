@@ -1,5 +1,6 @@
 package com.walletconnect.android.internal.domain
 
+import com.tinder.scarlet.testutils.any
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.exception.WalletConnectException
@@ -36,6 +37,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.runBlocking
 import org.junit.BeforeClass
 import org.junit.Test
+import java.io.PrintStream
+import java.io.PrintWriter
 
 @ExperimentalCoroutinesApi
 internal class RelayerInteractorTest {
@@ -118,7 +121,9 @@ internal class RelayerInteractorTest {
     private fun mockRelayPublishFailure() {
         every { relay.publish(any(), any(), any(), any()) } answers {
             lastArg<(Result<Relay.Model.Call.Publish.JsonRpcError>) -> Unit>().invoke(
-                Result.failure(mockk())
+                Result.failure(mockk<Throwable>() {
+                    every { printStackTrace(any<PrintWriter>()) } returns Unit
+                })
             )
         }
     }

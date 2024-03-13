@@ -12,12 +12,12 @@ import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.relay.RelayClient
 import com.walletconnect.android.utils.cacao.sign
 import com.walletconnect.foundation.common.model.PrivateKey
-import com.walletconnect.notify.BuildConfig
 import com.walletconnect.notify.client.Notify
 import com.walletconnect.notify.client.NotifyClient
 import com.walletconnect.notify.client.NotifyProtocol
 import com.walletconnect.notify.client.cacao.CacaoSigner
 import com.walletconnect.notify.di.overrideModule
+import com.walletconnect.notify.test.BuildConfig
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.koin.core.KoinApplication
@@ -55,13 +55,31 @@ internal object TestClient {
         internal val notifyClient = NotifyClient.apply {
             initialize(initParams, onError = { Timber.e(it.throwable) })
         }.also { notifyClient ->
-            notifyClient.register(Notify.Params.Registration(caip10account, metadata.url, { message -> CacaoSigner.sign(message, privateKey.keyAsBytes, SignatureType.EIP191) }), { identityKey ->
-                Timber.d("Primary CP finish: $identityKey")
-                _isInitialized.tryEmit(true)
-            }, { error ->
-                Timber.e(error.throwable)
-                throw error.throwable
-            })
+            val isRegistered = notifyClient.isRegistered(params = Notify.Params.IsRegistered(caip10account, metadata.url, true))
+
+
+            if (!isRegistered) {
+                notifyClient.prepareRegistration(Notify.Params.PrepareRegistration(caip10account, metadata.url, true),
+                    onSuccess = { cacaoPayloadWithIdentityPrivateKey, message ->
+                        Timber.d("PrepareRegistration Success")
+
+                        val signature = CacaoSigner.sign(message, privateKey.keyAsBytes, SignatureType.EIP191)
+
+                        notifyClient.register(
+                            params = Notify.Params.Register(cacaoPayloadWithIdentityPrivateKey = cacaoPayloadWithIdentityPrivateKey, signature = signature),
+                            onSuccess = { identityKey ->
+                                Timber.d("Primary CP finish: $identityKey")
+                                _isInitialized.tryEmit(true)
+                            },
+                            onError = { Timber.e(it.throwable.stackTraceToString()) }
+                        )
+
+                    },
+                    onError = { error ->
+                        Timber.e(error.throwable)
+                        throw error.throwable
+                    })
+            }
         }
 
         internal val Relay get() = coreProtocol.Relay
