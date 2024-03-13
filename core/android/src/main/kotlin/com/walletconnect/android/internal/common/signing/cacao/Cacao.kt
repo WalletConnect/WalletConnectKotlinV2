@@ -59,7 +59,7 @@ data class Cacao(
         val resources: List<String>?,
     ) {
         @get:Throws(Exception::class)
-        val actionsString get() = getActionsString()
+        val actionsString get() = resources.getActionsString()
 
         @get:Throws(Exception::class)
         val methods get() = resources.getMethods()
@@ -78,12 +78,16 @@ internal fun Cacao.Signature.toSignature(): Signature = Signature.fromString(s)
 
 fun Cacao.Payload.toCAIP222Message(chainName: String = "Ethereum"): String {
     var message = "$domain wants you to sign in with your $chainName account:\n${Issuer(iss).address}\n\n"
-    if (statement != null) message += "$statement"
-    if (resources?.find { r -> r.startsWith(RECAPS_PREFIX) } != null) {
-        message += if (statement != null) " " else ""
-        message += "I further authorize the stated URI to perform the following actions on my behalf: $actionsString.\n"
-    } else if (statement != null) {
-        message += "\n"
+    if (statement?.contains(RECAPS_STATEMENT) == true) {
+        message += "$statement\n"
+    } else {
+        if (statement != null) message += "$statement"
+        if (resources?.find { r -> r.startsWith(RECAPS_PREFIX) } != null) {
+            message += if (statement != null) " " else ""
+            message += "$RECAPS_STATEMENT: ${resources.getActionsString()}.\n"
+        } else if (statement != null) {
+            message += "\n"
+        }
     }
     message += "\nURI: $aud\nVersion: $version\nChain ID: ${Issuer(iss).chainIdReference}\nNonce: $nonce\nIssued At: $iat"
     if (exp != null) message += "\nExpiration Time: $exp"
@@ -97,8 +101,20 @@ fun Cacao.Payload.toCAIP222Message(chainName: String = "Ethereum"): String {
     return message
 }
 
-private fun Cacao.Payload.getActionsString(): String {
-    val map = resources.decodeReCaps().parseReCaps()
+fun Pair<String?, List<String>?>.getStatement(): String {
+    val (statement, resources) = this
+    var newStatement = ""
+    if (statement != null) newStatement += "$statement"
+    if (resources?.find { r -> r.startsWith(RECAPS_PREFIX) } != null) {
+        newStatement += if (statement != null) " " else ""
+        newStatement += "$RECAPS_STATEMENT: ${resources.getActionsString()}."
+    }
+
+    return newStatement
+}
+
+private fun List<String>?.getActionsString(): String {
+    val map = this.decodeReCaps().parseReCaps()
     if (map.isEmpty()) throw Exception("Decoded ReCaps map is empty")
     var result = ""
     var index = 1
@@ -117,3 +133,5 @@ private fun Cacao.Payload.getActionsString(): String {
 
     return result
 }
+
+const val RECAPS_STATEMENT: String = "I further authorize the stated URI to perform the following actions on my behalf"

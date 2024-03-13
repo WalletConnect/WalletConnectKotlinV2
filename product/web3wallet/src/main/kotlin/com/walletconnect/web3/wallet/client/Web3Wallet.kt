@@ -213,7 +213,6 @@ object Web3Wallet {
         return com.walletconnect.sign.client.utils.generateAuthPayloadParams(payloadParams.toSign(), supportedChains, supportedMethods).toWallet()
     }
 
-
     @Throws(IllegalStateException::class)
     fun updateSession(
         params: Wallet.Params.SessionUpdate,

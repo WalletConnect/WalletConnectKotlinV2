@@ -1,5 +1,6 @@
 package com.walletconnect.sign.engine.use_case.calls
 
+import android.util.Base64
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.InvalidExpiryException
@@ -11,6 +12,7 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.signing.cacao.Cacao.Payload.Companion.ATT_KEY
 import com.walletconnect.android.internal.common.signing.cacao.Cacao.Payload.Companion.RECAPS_PREFIX
+import com.walletconnect.android.internal.common.signing.cacao.mergeReCaps
 import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.android.internal.utils.currentTimeInSeconds
 import com.walletconnect.android.internal.utils.dayInSeconds
@@ -29,6 +31,7 @@ import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toCommon
 import com.walletconnect.sign.engine.model.mapper.toMapOfEngineNamespacesOptional
 import com.walletconnect.sign.storage.authenticate.AuthenticateResponseTopicRepository
+import com.walletconnect.utils.Empty
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -62,15 +65,21 @@ internal class SessionAuthenticateUseCase(
             logger.error("Sending session authenticate request error: expiry not within bounds")
             return onFailure(InvalidExpiryException())
         }
+
         val requestExpiry = expiry ?: Expiry(currentTimeInSeconds + oneHourInSeconds)
         val pairing = getPairingForSessionAuthenticate(pairingTopic)
         val optionalNamespaces = getNamespacesFromReCaps(authenticate.chains, methods ?: emptyList()).toMapOfEngineNamespacesOptional()
-        if (!methods.isNullOrEmpty()) {
-            val namespace = SignValidator.getNamespaceKeyFromChainId(authenticate.chains.first())
-            val actionsJsonObject = JSONObject()
-            methods.forEach { method -> actionsJsonObject.put("request/$method", JSONArray().put(0, JSONObject())) }
-            val recaps = JSONObject().put(ATT_KEY, JSONObject().put(namespace, actionsJsonObject)).toString().replace("\\/", "/")
-            val base64Recaps = java.util.Base64.getEncoder().withoutPadding().encodeToString(recaps.toByteArray(Charsets.UTF_8))
+        val externalReCapsJson: String = getExternalReCapsJson(authenticate)
+        val signReCapsJson = getSignReCapsJson(methods, authenticate)
+
+        val reCaps = when {
+            externalReCapsJson.isNotEmpty() && signReCapsJson.isNotEmpty() -> mergeReCaps(JSONObject(signReCapsJson), JSONObject(externalReCapsJson))
+            signReCapsJson.isNotEmpty() -> signReCapsJson
+            else -> externalReCapsJson
+        }.replace("\\\\/", "/")
+
+        if (reCaps.isNotEmpty()) {
+            val base64Recaps = Base64.encodeToString(reCaps.toByteArray(Charsets.UTF_8), Base64.NO_WRAP or Base64.NO_PADDING)
             val reCapsUrl = "$RECAPS_PREFIX$base64Recaps"
             if (authenticate.resources == null) authenticate.resources = listOf(reCapsUrl) else authenticate.resources = authenticate.resources!! + reCapsUrl
         }
@@ -115,6 +124,28 @@ internal class SessionAuthenticateUseCase(
             }
         }
     }
+
+    private fun getSignReCapsJson(methods: List<String>?, authenticate: EngineDO.Authenticate) =
+        if (!methods.isNullOrEmpty()) {
+            val namespace = SignValidator.getNamespaceKeyFromChainId(authenticate.chains.first())
+            val actionsJsonObject = JSONObject()
+            methods.forEach { method -> actionsJsonObject.put("request/$method", JSONArray().put(0, JSONObject())) }
+            JSONObject().put(ATT_KEY, JSONObject().put(namespace, actionsJsonObject)).toString().replace("\\/", "/")
+        } else String.Empty
+
+    private fun getExternalReCapsJson(authenticate: EngineDO.Authenticate): String = try {
+        if (areExternalReCapsNotEmpty(authenticate)) {
+            val externalUrn = authenticate.resources!!.last { resource -> resource.startsWith(RECAPS_PREFIX) }
+            Base64.decode(externalUrn.removePrefix(RECAPS_PREFIX), Base64.NO_WRAP).toString(Charsets.UTF_8)
+        } else {
+            String.Empty
+        }
+    } catch (e: Exception) {
+        String.Empty
+    }
+
+    private fun areExternalReCapsNotEmpty(authenticate: EngineDO.Authenticate): Boolean =
+        authenticate.resources != null && authenticate.resources!!.any { resource -> resource.startsWith(RECAPS_PREFIX) }
 
     private suspend fun publishSessionAuthenticateDeferred(
         pairing: Core.Model.Pairing,

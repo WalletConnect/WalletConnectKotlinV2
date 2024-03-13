@@ -11,6 +11,8 @@ import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Validation
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.signing.cacao.CacaoType
+import com.walletconnect.android.internal.common.signing.cacao.RECAPS_STATEMENT
+import com.walletconnect.android.internal.common.signing.cacao.getStatement
 import com.walletconnect.android.utils.toClient
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.common.model.Request
@@ -131,8 +133,15 @@ internal fun Sign.Params.Authenticate.toAuthenticate(): EngineDO.Authenticate = 
 
 @JvmSynthetic
 internal fun Sign.Model.PayloadParams.toCacaoPayload(issuer: String): Sign.Model.Cacao.Payload = with(this) {
-    Sign.Model.Cacao.Payload(issuer, domain, aud, "1", nonce, iat = iat, nbf, exp, statement, requestId, resources)
+    Sign.Model.Cacao.Payload(issuer, domain, aud, "1", nonce, iat = iat, nbf, exp, getStatement(), requestId, resources)
 }
+
+private fun Sign.Model.PayloadParams.getStatement() =
+    if (statement?.contains(RECAPS_STATEMENT) == true) {
+        statement
+    } else {
+        Pair(statement, resources).getStatement()
+    }
 
 @JvmSynthetic
 internal fun List<Sign.Model.Cacao>.toCommon(): List<Cacao> = this.map {

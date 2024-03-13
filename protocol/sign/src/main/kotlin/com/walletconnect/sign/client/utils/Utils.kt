@@ -2,11 +2,13 @@
 
 package com.walletconnect.sign.client.utils
 
+import android.util.Base64
 import com.walletconnect.android.internal.common.model.Namespace
-import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.signing.cacao.Cacao.Payload.Companion.RECAPS_PREFIX
 import com.walletconnect.android.internal.common.signing.cacao.CacaoType
+import com.walletconnect.android.internal.common.signing.cacao.RECAPS_STATEMENT
 import com.walletconnect.android.internal.common.signing.cacao.decodeReCaps
+import com.walletconnect.android.internal.common.signing.cacao.getStatement
 import com.walletconnect.android.internal.common.signing.cacao.parseReCaps
 import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.sign.client.Sign
@@ -91,11 +93,10 @@ fun generateAuthObject(payload: Sign.Model.PayloadParams, issuer: String, signat
 }
 
 fun generateAuthPayloadParams(payloadParams: Sign.Model.PayloadParams, supportedChains: List<String>, supportedMethods: List<String>): Sign.Model.PayloadParams {
-    val reCapsList: List<String>? = payloadParams.resources.decodeReCaps()?.filter { decoded -> decoded.contains("eip155") }
+    val reCapsJson: String? = payloadParams.resources.decodeReCaps()
+    if (reCapsJson.isNullOrEmpty() || !reCapsJson.contains("eip155")) return payloadParams
 
-    if (reCapsList.isNullOrEmpty()) return payloadParams
-    val sessionReCaps = reCapsList.parseReCaps()["eip155"]
-
+    val sessionReCaps = reCapsJson.parseReCaps()["eip155"]
     val requestedMethods = sessionReCaps!!.keys.map { key -> key.substringAfter('/') }
     val requestedChains = payloadParams.chains
 
@@ -112,21 +113,18 @@ fun generateAuthPayloadParams(payloadParams: Sign.Model.PayloadParams, supported
     val chainsJsonArray = JSONArray()
     sessionChains.forEach { chain -> chainsJsonArray.put(chain) }
     sessionMethods.forEach { method -> actionsJsonObject.put("request/$method", JSONArray().put(0, JSONObject().put("chains", chainsJsonArray))) }
-    val recaps = JSONObject().put(Cacao.Payload.ATT_KEY, JSONObject().put("eip155", actionsJsonObject)).toString().replace("\\/", "/")
 
-    val base64Recaps = java.util.Base64.getEncoder().withoutPadding().encodeToString(recaps.toByteArray(Charsets.UTF_8))
+    val recaps = JSONObject(reCapsJson)
+    val att = recaps.getJSONObject("att")
+    att.put("eip155", actionsJsonObject)
+    val stringReCaps = recaps.toString().replace("\\/", "/")
+    val base64Recaps = Base64.encodeToString(stringReCaps.toByteArray(Charsets.UTF_8), Base64.NO_WRAP or Base64.NO_PADDING)
     val newReCapsUrl = "${RECAPS_PREFIX}$base64Recaps"
+
     if (payloadParams.resources == null) {
         payloadParams.resources = listOf(newReCapsUrl)
     } else {
-        val newResourcesList = payloadParams.resources!!
-            .decodeReCaps()!!
-            .filter { decoded -> !decoded.contains("eip155") }
-            .map { reCaps -> "$RECAPS_PREFIX${java.util.Base64.getEncoder().withoutPadding().encodeToString(reCaps.toByteArray(Charsets.UTF_8))}" }
-            .plus(payloadParams.resources!!.filter { resource -> !resource.startsWith(RECAPS_PREFIX) })
-            .plus(newReCapsUrl)
-
-        payloadParams.resources = newResourcesList
+        payloadParams.resources = payloadParams.resources!!.dropLast(1).plus(newReCapsUrl)
     }
 
     return with(payloadParams) {
@@ -139,9 +137,17 @@ fun generateAuthPayloadParams(payloadParams: Sign.Model.PayloadParams, supported
             nbf = nbf,
             exp = exp,
             iat = iat,
-            statement = statement,
+            statement = getStatement(),
             resources = resources,
             requestId = requestId
         )
     }
 }
+
+private fun Sign.Model.PayloadParams.getStatement() =
+    if (statement?.contains(RECAPS_STATEMENT) == true) {
+        statement
+    } else {
+        Pair(statement, resources).getStatement()
+    }
+

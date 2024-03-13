@@ -1,13 +1,14 @@
 package com.walletconnect.sign
 
+import org.bouncycastle.util.encoders.Base64
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Test
 
 class ReCapsTest {
     private val encodedSignRecaps =
-        "urn:recap:eyJhdHQiOnsiZWlwMTU1Ijp7InJlcXVlc3QvcGVyc29uYWxfc2lnbiI6W3siY2hhaW5zIjpbImVpcDE1NToxIl19XSwicmVxdWVzdC9ldGhfc2lnblR5cGVkRGF0YV92NCI6W3siY2hhaW5zIjpbImVpcDE1NToxIl19XX19fQ"
-    private val encodedNotifyRecaps = "urn:recap:eyJhdHQiOnsiaHR0cHM6Ly9ub3RpZnkud2FsbGV0Y29ubmVjdC5jb20vYWxsLWFwcHMiOnsiY3J1ZC9zdWJzY3JpcHRpb25zIjpbe31dLCJjcnVkL25vdGlmaWNhdGlvbnMiOlt7fV19fX0"
+        "urn:recap:eyJhdHQiOnsiZWlwMTU1Ijp7InJlcXVlc3QvcGVyc29uYWxfc2lnbiI6W3siY2hhaW5zIjpbImVpcDE1NToxIl19XSwicmVxdWVzdC9ldGhfc2lnblR5cGVkRGF0YV92NCI6W3siY2hhaW5zIjpbImVpcDE1NToxIl19XX19fQ=="
+    private val encodedNotifyRecaps = "urn:recap:eyJhdHQiOnsiaHR0cHM6Ly9ub3RpZnkud2FsbGV0Y29ubmVjdC5jb20vYWxsLWFwcHMiOnsiY3J1ZC9zdWJzY3JpcHRpb25zIjpbe31dLCJjcnVkL25vdGlmaWNhdGlvbnMiOlt7fV19fX0="
     private val encodedNotifyAndSignRecaps =
         "urn:recap:eyJhdHQiOnsiZWlwMTU1Ijp7InJlcXVlc3QvcGVyc29uYWxfc2lnbiI6W3t9XSwicmVxdWVzdC9ldGhfc2lnblR5cGVkRGF0YV92NCI6W3siY2hhaW5zIjpbImVpcDE1NToxIl19XX0sImh0dHBzOi8vbm90aWZ5LndhbGxldGNvbm5lY3QuY29tL2FsbC1hcHBzIjp7ImNydWQvc3Vic2NyaXB0aW9ucyI6W3t9XSwiY3J1ZC9ub3RpZmljYXRpb25zIjpbe31dfX19"
 
@@ -25,8 +26,7 @@ class ReCapsTest {
             )
 
         println(signReCapsJson.toString())
-        val base64Recaps = java.util.Base64.getEncoder().withoutPadding()
-            .encodeToString(signReCapsJson.toString().toByteArray(Charsets.UTF_8))
+        val base64Recaps = Base64.toBase64String(signReCapsJson.toString().toByteArray(Charsets.UTF_8))
         val reCapsUrl = "urn:recap:$base64Recaps"
 
         assert(reCapsUrl == encodedSignRecaps)
@@ -35,7 +35,7 @@ class ReCapsTest {
     @Test
     fun decodeSignReCapsBase64() {
         val withoutPrefix = encodedSignRecaps.removePrefix("urn:recap:")
-        val reCaps = java.util.Base64.getDecoder().decode(withoutPrefix).toString(Charsets.UTF_8)
+        val reCaps = Base64.decode(withoutPrefix).toString(Charsets.UTF_8)
         val attKeys = JSONObject(reCaps).getJSONObject("att").keys().asSequence().toList()
         val listOfAtts = mutableListOf<JSONObject>()
         attKeys.forEach { key -> listOfAtts.add((JSONObject(reCaps).getJSONObject("att") as JSONObject).getJSONObject(key)) }
@@ -59,7 +59,7 @@ class ReCapsTest {
                         .put("crud/subscriptions", JSONArray().put(0, JSONObject()))
                 )
             )
-        val base64Recaps = java.util.Base64.getEncoder().withoutPadding().encodeToString(notifyReCapsJson.toString().toByteArray(Charsets.UTF_8))
+        val base64Recaps = Base64.toBase64String(notifyReCapsJson.toString().toByteArray(Charsets.UTF_8)) //java.util.Base64
         val reCapsUrl = "urn:recap:$base64Recaps"
 
         assert(reCapsUrl == encodedNotifyRecaps)
@@ -68,7 +68,7 @@ class ReCapsTest {
     @Test
     fun decodeNotifyReCapsBase64() {
         val withoutPrefix = encodedNotifyRecaps.removePrefix("urn:recap:")
-        val reCaps = java.util.Base64.getDecoder().decode(withoutPrefix).toString(Charsets.UTF_8)
+        val reCaps = Base64.decode(withoutPrefix).toString(Charsets.UTF_8)
         val attKeys = JSONObject(reCaps).getJSONObject("att").keys().asSequence().toList()
         val listOfAtts = mutableListOf<JSONObject>()
         attKeys.forEach { key -> listOfAtts.add((JSONObject(reCaps).getJSONObject("att") as JSONObject).getJSONObject(key)) }
@@ -100,8 +100,7 @@ class ReCapsTest {
                     ),
             )
         println(notifyReCapsJson.toString())
-        val base64Recaps = java.util.Base64.getEncoder().withoutPadding()
-            .encodeToString(notifyReCapsJson.toString().toByteArray(Charsets.UTF_8))
+        val base64Recaps = Base64.toBase64String(notifyReCapsJson.toString().toByteArray(Charsets.UTF_8))
         val reCapsUrl = "urn:recap:$base64Recaps"
 
         assert(reCapsUrl == encodedNotifyAndSignRecaps)
@@ -110,7 +109,7 @@ class ReCapsTest {
     @Test
     fun decodeNotifyAndSignReCapsBase64() {
         val withoutPrefix = encodedNotifyAndSignRecaps.removePrefix("urn:recap:")
-        val reCaps = java.util.Base64.getDecoder().decode(withoutPrefix).toString(Charsets.UTF_8)
+        val reCaps = Base64.decode(withoutPrefix).toString(Charsets.UTF_8)
         val attKeys = JSONObject(reCaps).getJSONObject("att").keys().asSequence().toList()
         val listOfAtts = mutableListOf<JSONObject>()
         attKeys.forEach { key -> listOfAtts.add((JSONObject(reCaps).getJSONObject("att") as JSONObject).getJSONObject(key)) }
