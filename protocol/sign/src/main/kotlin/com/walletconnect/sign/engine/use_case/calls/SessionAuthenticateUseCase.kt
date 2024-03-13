@@ -68,7 +68,7 @@ internal class SessionAuthenticateUseCase(
 
         val requestExpiry = expiry ?: Expiry(currentTimeInSeconds + oneHourInSeconds)
         val pairing = getPairingForSessionAuthenticate(pairingTopic)
-        val optionalNamespaces = getNamespacesFromReCaps(authenticate.chains, methods ?: emptyList()).toMapOfEngineNamespacesOptional()
+        val optionalNamespaces = getNamespacesFromReCaps(authenticate.chains, if (methods.isNullOrEmpty()) listOf("personal_sign") else methods).toMapOfEngineNamespacesOptional()
         val externalReCapsJson: String = getExternalReCapsJson(authenticate)
         val signReCapsJson = getSignReCapsJson(methods, authenticate)
 
@@ -87,11 +87,7 @@ internal class SessionAuthenticateUseCase(
         val requesterPublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
         val responseTopic: Topic = crypto.getTopicFromKey(requesterPublicKey)
         val authParams: SignParams.SessionAuthenticateParams =
-            SignParams.SessionAuthenticateParams(
-                Requester(requesterPublicKey.keyAsHex, selfAppMetaData),
-                authenticate.toCommon(),
-                expiryTimestamp = requestExpiry.seconds
-            )
+            SignParams.SessionAuthenticateParams(Requester(requesterPublicKey.keyAsHex, selfAppMetaData), authenticate.toCommon(), expiryTimestamp = requestExpiry.seconds)
         val authRequest: SignRpc.SessionAuthenticate = SignRpc.SessionAuthenticate(params = authParams)
         crypto.setKey(requesterPublicKey, responseTopic.getParticipantTag())
 
