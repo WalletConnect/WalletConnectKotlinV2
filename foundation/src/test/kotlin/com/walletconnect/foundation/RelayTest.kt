@@ -33,7 +33,6 @@ import kotlin.random.Random
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTime
 
-
 sealed class TestState {
     object Idle : TestState()
     object Success : TestState()
@@ -42,8 +41,8 @@ sealed class TestState {
 
 @ExperimentalCoroutinesApi
 class RelayTest {
-    private val testProjectId: String = System.getProperty("TEST_PROJECT_ID")
-    private val testRelayUrl: String = System.getProperty("TEST_RELAY_URL")
+    private val testProjectId: String = requireNotNull(System.getProperty("TEST_PROJECT_ID"))
+    private val testRelayUrl: String = requireNotNull(System.getProperty("TEST_RELAY_URL"))
     private val serverUrl = "$testRelayUrl?projectId=$testProjectId"
     private val sdkVersion: String = System.getProperty("SDK_VERSION") + "-relayTest"
     private val testJob: CompletableJob = SupervisorJob()

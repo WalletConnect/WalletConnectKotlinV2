@@ -42,11 +42,26 @@ runs:
         architecture: x86_64
         cache: 'gradle'
 
-    - name: Create Google Services Json File
+    - name: Accept Android Licenses
+      uses: SimonMarquis/android-accept-licenses@v1
+
+    - name: Create Google Services Json File - Wallet
       shell: bash
       env:
         GOOGLE_SERVICES_JSON: ${{ inputs.GOOGLE_SERVICES_JSON }}
-      run: echo $GOOGLE_SERVICES_JSON > ./sample/${{ matrix.conf.name}}/google-services.json
+      run: echo $GOOGLE_SERVICES_JSON > ./sample/wallet/google-services.json
+
+    - name: Create Google Services Json File - Dapp
+      shell: bash
+      env:
+        GOOGLE_SERVICES_JSON: ${{ inputs.GOOGLE_SERVICES_JSON }}
+      run: echo $GOOGLE_SERVICES_JSON > ./sample/dapp/google-services.json
+
+    - name: Create Google Services Json File - Modal
+      shell: bash
+      env:
+        GOOGLE_SERVICES_JSON: ${{ inputs.GOOGLE_SERVICES_JSON }}
+      run: echo $GOOGLE_SERVICES_JSON > ./sample/modal/google-services.json
 
     - name: Create Firebase Service Credentials file
       shell: bash
@@ -66,8 +81,7 @@ runs:
         ENCODED_STRING_DEBUG: ${{ inputs.ENCODED_STRING_DEBUG }}
         SIGNING_KEY_STORE_PATH_DEBUG: ${{ inputs.SIGNING_KEY_STORE_PATH_DEBUG }}
       run: |
-        echo $ENCODED_STRING_DEBUG > keystore-b64-debug.txt
-        base64 -d keystore-b64-debug.txt > $SIGNING_KEY_STORE_PATH_DEBUG
+        echo $ENCODED_STRING_DEBUG | base64 --decode > $SIGNING_KEY_STORE_PATH_DEBUG
 
     - name: Decode Internal Keystore
       shell: bash
@@ -75,8 +89,7 @@ runs:
         ENCODED_STRING_INTERNAL: ${{ inputs.ENCODED_STRING_INTERNAL }}
         SIGNING_KEY_STORE_PATH_INTERNAL: ${{ inputs.SIGNING_KEY_STORE_PATH_INTERNAL }}
       run: |
-        echo $ENCODED_STRING_INTERNAL > keystore-b64-internal.txt
-        base64 -d keystore-b64-internal.txt > $SIGNING_KEY_STORE_PATH_INTERNAL
+        echo $ENCODED_STRING_INTERNAL | base64 --decode > $SIGNING_KEY_STORE_PATH_INTERNAL
 
     - name: Decode Upload Keystore
       shell: bash
@@ -84,5 +97,4 @@ runs:
         ENCODED_STRING_UPLOAD: ${{ inputs.ENCODED_STRING_UPLOAD }}
         SIGNING_KEY_STORE_PATH_UPLOAD: ${{ inputs.SIGNING_KEY_STORE_PATH_UPLOAD }}
       run: |
-        echo $ENCODED_STRING_UPLOAD > keystore-b64.txt
-        base64 -d keystore-b64.txt > $SIGNING_KEY_STORE_PATH_UPLOAD
+        echo $ENCODED_STRING_UPLOAD | base64 --decode > $SIGNING_KEY_STORE_PATH_UPLOAD
