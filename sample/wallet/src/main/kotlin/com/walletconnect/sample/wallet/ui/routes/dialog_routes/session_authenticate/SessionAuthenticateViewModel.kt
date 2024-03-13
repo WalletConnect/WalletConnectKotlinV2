@@ -103,7 +103,6 @@ class SessionAuthenticateViewModel : ViewModel() {
                     } catch (e: Exception) {
                         "Invalid message, error: ${e.message}"
                     }
-
                     messages.add(message)
                 }
 
