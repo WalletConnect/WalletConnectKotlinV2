@@ -2,6 +2,7 @@
 
 package com.walletconnect.web3.modal.ui
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
@@ -24,6 +25,7 @@ fun NavGraphBuilder.web3Modal() {
     dialog<Web3ModalSheet>(web3ModalPath) { argument(CHOOSE_NETWORK_KEY) { type = NavType.BoolType } }
 }
 
+@SuppressLint("RestrictedApi")
 fun NavController.openWeb3Modal(
     shouldOpenChooseNetwork: Boolean = false,
     onError: (Throwable) -> Unit = {}
