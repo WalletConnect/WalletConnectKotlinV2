@@ -1,13 +1,10 @@
-@file:JvmSynthetic
-
-package com.walletconnect.sign.common.model.vo.clientsync.common
+package com.walletconnect.android.internal.common.model
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import com.walletconnect.android.internal.common.model.AppMetaData
 
 @JsonClass(generateAdapter = true)
-internal data class SessionParticipantVO(
+data class Participant(
     @Json(name = "publicKey")
     val publicKey: String,
     @Json(name = "metadata")

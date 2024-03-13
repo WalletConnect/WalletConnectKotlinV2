@@ -18,7 +18,7 @@ import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.signing.cacao.CacaoType
 import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
 import com.walletconnect.android.internal.common.signing.cacao.Issuer
-import com.walletconnect.android.internal.common.signing.cacao.toCAIP122Message
+import com.walletconnect.android.internal.common.signing.cacao.toCAIP222Message
 import com.walletconnect.android.internal.common.storage.identity.IdentitiesStorageRepository
 import com.walletconnect.android.internal.utils.getIdentityTag
 import com.walletconnect.android.keyserver.domain.use_case.RegisterIdentityUseCase
@@ -46,7 +46,7 @@ class IdentitiesInteractor(
 ) {
     fun getIdentityKeyPair(accountId: AccountId): Pair<PublicKey, PrivateKey> = keyManagementRepository.getKeyPair(getIdentityPublicKey(accountId))
 
-    suspend fun registerIdentity(accountId: AccountId, statement: String, domain: String, resources: List<String>, keyserverUrl: String, onSign: (String) -> Cacao.Signature?): Result<PublicKey> =
+    suspend fun registerIdentity(accountId: AccountId, statement: String, domain: String, resources: List<String>?, keyserverUrl: String, onSign: (String) -> Cacao.Signature?): Result<PublicKey> =
         getAlreadyRegisteredValidIdentity(accountId, statement, domain, resources)
             .recoverCatching { exception ->
                 when (exception) {
@@ -67,7 +67,7 @@ class IdentitiesInteractor(
         }
 
 
-    suspend fun getAlreadyRegisteredValidIdentity(accountId: AccountId, statement: String, domain: String, resources: List<String>): Result<PublicKey> {
+    suspend fun getAlreadyRegisteredValidIdentity(accountId: AccountId, statement: String, domain: String, resources: List<String>?): Result<PublicKey> {
         if (!accountId.isValid()) throw InvalidAccountIdException(accountId)
         return runCatching {
             val storedPublicKey = getIdentityPublicKey(accountId)
@@ -78,7 +78,7 @@ class IdentitiesInteractor(
         }
     }
 
-    private suspend fun generateAndStoreNewIdentity(accountId: AccountId, statement: String, domain: String, resources: List<String>, onSign: (String) -> Cacao.Signature?): Result<PublicKey> {
+    private suspend fun generateAndStoreNewIdentity(accountId: AccountId, statement: String, domain: String, resources: List<String>?, onSign: (String) -> Cacao.Signature?): Result<PublicKey> {
         val identityPublicKey = generateAndStoreIdentityKeyPair()
         return registerIdentityKeyInKeyserver(accountId, identityPublicKey, statement, domain, resources, onSign)
             .map { identityPublicKey }
@@ -86,7 +86,7 @@ class IdentitiesInteractor(
     }
 
     private suspend fun handleIdentitiesOutdatedStatements(
-        accountId: AccountId, statement: String, domain: String, resources: List<String>, keyserverUrl: String, onSign: (String) -> Cacao.Signature?,
+        accountId: AccountId, statement: String, domain: String, resources: List<String>?, keyserverUrl: String, onSign: (String) -> Cacao.Signature?,
     ): Result<PublicKey> {
         val storedKeyPair = getIdentityKeyPair(accountId)
         val (storedPublicKey, _) = storedKeyPair
@@ -137,7 +137,7 @@ class IdentitiesInteractor(
         identityKey: PublicKey,
         statement: String,
         domain: String,
-        resources: List<String>,
+        resources: List<String>?,
         onSign: (String) -> Cacao.Signature?,
     ): Result<Unit> {
         val cacao = generateAndSignCacao(accountId, identityKey, statement, domain, resources, onSign).getOrThrow()
@@ -152,9 +152,9 @@ class IdentitiesInteractor(
         }
     }
 
-    private fun generateAndSignCacao(accountId: AccountId, identityKey: PublicKey, statement: String, domain: String, resources: List<String>, onSign: (String) -> Cacao.Signature?): Result<Cacao> {
+    private fun generateAndSignCacao(accountId: AccountId, identityKey: PublicKey, statement: String, domain: String, resources: List<String>?, onSign: (String) -> Cacao.Signature?): Result<Cacao> {
         val payload = generatePayload(accountId, identityKey, statement, domain, resources).getOrThrow()
-        val message = payload.toCAIP122Message()
+        val message = payload.toCAIP222Message()
         val signature = onSign(message) ?: throw UserRejectedSigning()
         return Result.success(Cacao(CacaoType.EIP4361.toHeader(), payload, signature))
     }
@@ -165,7 +165,7 @@ class IdentitiesInteractor(
     }
 
 
-    fun generatePayload(accountId: AccountId, identityKey: PublicKey, statement: String, domain: String, resources: List<String>): Result<Cacao.Payload> = Result.success(
+    fun generatePayload(accountId: AccountId, identityKey: PublicKey, statement: String, domain: String, resources: List<String>?): Result<Cacao.Payload> = Result.success(
         Cacao.Payload(
             iss = encodeDidPkh(accountId.value),
             domain = domain,

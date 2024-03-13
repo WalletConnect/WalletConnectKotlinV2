@@ -46,10 +46,10 @@ class Web3WalletActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         val web3walletViewModel = Web3WalletViewModel()
         val connectionsViewModel = ConnectionsViewModel()
+        setContent(web3walletViewModel, connectionsViewModel)
         handleWeb3WalletEvents(web3walletViewModel, connectionsViewModel)
         handleCoreEvents(connectionsViewModel)
         askNotificationPermission()
-        setContent(web3walletViewModel, connectionsViewModel)
         handleErrors()
     }
 
@@ -123,6 +123,7 @@ class Web3WalletActivity : AppCompatActivity() {
                     }
 
                     is AuthEvent.OnRequest -> navController.navigate(Route.AuthRequest.path)
+                    is SignEvent.SessionAuthenticate -> navController.navigate(Route.SessionAuthenticate.path)
 
                     else -> Unit
                 }

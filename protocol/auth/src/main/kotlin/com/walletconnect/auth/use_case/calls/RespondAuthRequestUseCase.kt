@@ -59,6 +59,7 @@ internal class RespondAuthRequestUseCase(
 
         val authParams: AuthParams.RequestParams = jsonRpcHistoryEntry.params
         val response: JsonRpcResponse = handleResponse(respond, authParams)
+
         val receiverPublicKey = PublicKey(authParams.requester.publicKey)
         val senderPublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
         val symmetricKey: SymmetricKey = crypto.generateSymmetricKeyFromKeyAgreement(senderPublicKey, receiverPublicKey)

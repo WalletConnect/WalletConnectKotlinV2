@@ -2,6 +2,7 @@
 
 package com.walletconnect.sample.wallet.ui.routes.bottomsheet_routes.update_subscription
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -92,7 +93,7 @@ fun UpdateSubscriptionRoute(navController: NavController, sheetState: BottomShee
                     }
                 }, onFailure = {
                     scope.launch {
-                        navController.showSnackbar("Unable to update. Reason: ${it.message}")
+                        Toast.makeText(navController.context, "Unable to update. Reason: ${it.message}", Toast.LENGTH_SHORT).show()
                     }
                 })
             }

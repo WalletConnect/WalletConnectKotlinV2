@@ -24,6 +24,8 @@ internal class JsonRpcResultAdapter(val moshi: Moshi) : JsonAdapter<JsonRpcRespo
     private val anyAdapter: JsonAdapter<Any> = moshi.adapter(Any::class.java, emptySet(), "result")
     private val approvalParamsAdapter: JsonAdapter<CoreSignParams.ApprovalParams> =
         moshi.adapter(CoreSignParams.ApprovalParams::class.java, emptySet(), "result")
+    private val approveSessionAuthenticateParamsAdapter: JsonAdapter<CoreSignParams.SessionAuthenticateApproveParams> =
+        moshi.adapter(CoreSignParams.SessionAuthenticateApproveParams::class.java, emptySet(), "result")
     private val cacaoAdapter: JsonAdapter<CoreAuthParams.ResponseParams> =
         moshi.adapter(CoreAuthParams.ResponseParams::class.java, emptySet(), "result")
     private val notifySubscribeUpdateParamsAdapter: JsonAdapter<CoreNotifyParams.UpdateParams> =
@@ -55,11 +57,17 @@ internal class JsonRpcResultAdapter(val moshi: Moshi) : JsonAdapter<JsonRpcRespo
                     // $mask = $mask and (1 shl 1).inv()
                     mask0 = mask0 and 0xfffffffd.toInt()
                 }
+
                 2 -> {
                     result = when {
                         runCatching { approvalParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> {
                             approvalParamsAdapter.fromJson(reader)
                         }
+
+                        runCatching { approveSessionAuthenticateParamsAdapter.fromJson(reader.peekJson()) }.isSuccess -> {
+                            approveSessionAuthenticateParamsAdapter.fromJson(reader)
+                        }
+
 
                         runCatching { cacaoAdapter.fromJson(reader.peekJson()) }.isSuccess -> {
                             cacaoAdapter.fromJson(reader)
@@ -80,6 +88,7 @@ internal class JsonRpcResultAdapter(val moshi: Moshi) : JsonAdapter<JsonRpcRespo
                         else -> anyAdapter.fromJson(reader)
                     }
                 }
+
                 -1 -> {
                     // Unknown name, skip it.
                     reader.skipName()
@@ -137,6 +146,14 @@ internal class JsonRpcResultAdapter(val moshi: Moshi) : JsonAdapter<JsonRpcRespo
                 }
             }
 
+            (value_.result as? CoreSignParams.SessionAuthenticateApproveParams) != null -> {
+                val approveSessionAuthenticateParamsString =
+                    approveSessionAuthenticateParamsAdapter.toJson(value_.result)
+                writer.valueSink().use {
+                    it.writeUtf8(approveSessionAuthenticateParamsString)
+                }
+            }
+
             (value_.result as? CoreAuthParams.ResponseParams) != null -> {
                 val responseParamsString =
                     cacaoAdapter.toJson(value_.result)
@@ -177,6 +194,7 @@ internal class JsonRpcResultAdapter(val moshi: Moshi) : JsonAdapter<JsonRpcRespo
                     it.writeUtf8(JSONArray(value_.result).toString())
                 }
             }
+
             else -> anyAdapter.toJson(writer, value_.result)
         }
 

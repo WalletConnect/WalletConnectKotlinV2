@@ -188,6 +188,6 @@ abstract class BaseRelayClient : RelayInterface {
 
     private companion object {
         const val REPLAY: Int = 1
-        const val PUBLISH_TIMEOUT: Long = 10000
+        const val PUBLISH_TIMEOUT: Long = 60000
     }
 }

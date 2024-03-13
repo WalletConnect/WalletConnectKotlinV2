@@ -1,6 +1,8 @@
 package com.walletconnect.sample.wallet.ui.routes.dialog_routes.session_request
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -45,7 +47,6 @@ import com.walletconnect.sample.wallet.ui.common.peer.Peer
 import com.walletconnect.sample.wallet.ui.common.peer.PeerUI
 import com.walletconnect.sample.wallet.ui.common.peer.getColor
 import com.walletconnect.sample.wallet.ui.routes.Route
-import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -93,17 +94,17 @@ fun SessionRequestRoute(navController: NavHostController, sessionRequestViewMode
                                         context.sendResponseDeepLink(uri)
                                     } else {
                                         composableScope.launch(Dispatchers.Main) {
-                                            navController.showSnackbar("Go back to your browser")
+                                            Toast.makeText(context, "Go back to your browser", Toast.LENGTH_SHORT).show()
                                         }
                                     }
                                 },
                                 onError = { error ->
                                     isConfirmLoading = false
-                                    closeAndShowError(navController, error, composableScope)
+                                    closeAndShowError(navController, error, composableScope, context)
                                 })
 
                         } catch (e: Throwable) {
-                            closeAndShowError(navController, e.message, composableScope)
+                            closeAndShowError(navController, e.message, composableScope, context)
                         }
                     },
                     onCancel = {
@@ -119,16 +120,16 @@ fun SessionRequestRoute(navController: NavHostController, sessionRequestViewMode
                                         context.sendResponseDeepLink(uri)
                                     } else {
                                         composableScope.launch(Dispatchers.Main) {
-                                            navController.showSnackbar("Go back to your browser")
+                                            Toast.makeText(context, "Go back to your browser", Toast.LENGTH_SHORT).show()
                                         }
                                     }
                                 },
                                 onError = { error ->
                                     isCancelLoading = false
-                                    closeAndShowError(navController, error, composableScope)
+                                    closeAndShowError(navController, error, composableScope, context)
                                 })
                         } catch (e: Throwable) {
-                            closeAndShowError(navController, e.message, composableScope)
+                            closeAndShowError(navController, e.message, composableScope, context)
                         }
                     },
                     isLoadingConfirm = isConfirmLoading,
@@ -162,10 +163,10 @@ fun SessionRequestRoute(navController: NavHostController, sessionRequestViewMode
     }
 }
 
-private fun closeAndShowError(navController: NavHostController, message: String?, coroutineScope: CoroutineScope) {
+private fun closeAndShowError(navController: NavHostController, message: String?, coroutineScope: CoroutineScope, context: Context) {
     coroutineScope.launch(Dispatchers.Main) {
         navController.popBackStack()
-        navController.showSnackbar(message ?: "Session request error, please check your Internet connection")
+        Toast.makeText(context, message ?: "Session request error, please check your Internet connection", Toast.LENGTH_SHORT).show()
     }
 }
 

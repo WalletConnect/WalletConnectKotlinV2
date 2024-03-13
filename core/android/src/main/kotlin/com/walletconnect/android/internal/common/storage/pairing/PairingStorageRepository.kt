@@ -1,6 +1,7 @@
 package com.walletconnect.android.internal.common.storage.pairing
 
 import android.database.sqlite.SQLiteException
+import app.cash.sqldelight.async.coroutines.awaitAsList
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.Pairing
@@ -8,6 +9,7 @@ import com.walletconnect.android.internal.common.model.Redirect
 import com.walletconnect.android.pairing.model.activePairing
 import com.walletconnect.android.sdk.storage.data.dao.PairingQueries
 import com.walletconnect.foundation.common.model.Topic
+import com.walletconnect.utils.Empty
 
 class PairingStorageRepository(private val pairingQueries: PairingQueries) : PairingStorageRepositoryInterface {
 
@@ -20,7 +22,7 @@ class PairingStorageRepository(private val pairingQueries: PairingQueries) : Pai
                 relay_protocol = relayProtocol,
                 relay_data = relayData,
                 uri = uri,
-                methods = registeredMethods,
+                methods = methods ?: String.Empty,
                 is_active = isActive,
                 is_proposal_received = isProposalReceived
             )
@@ -35,14 +37,23 @@ class PairingStorageRepository(private val pairingQueries: PairingQueries) : Pai
     override fun hasTopic(topic: Topic): Boolean = pairingQueries.hasTopic(topic = topic.value).executeAsOneOrNull() != null
 
     @Throws(SQLiteException::class)
-    override fun getListOfPairings(): List<Pairing> = pairingQueries.getListOfPairing(mapper = this::toPairing).executeAsList()
+    override suspend fun getListOfPairings(): List<Pairing> = pairingQueries.getListOfPairing(mapper = this::toPairing).awaitAsList()
+
+    @Throws(SQLiteException::class)
+    override suspend fun getListOfInactivePairings(): List<Pairing> = pairingQueries.getListOfInactivePairings(mapper = this::toPairing).awaitAsList()
+
+    @Throws(SQLiteException::class)
+    override suspend fun getListOfActivePairings(): List<Pairing> = pairingQueries.getListOfActivePairings(mapper = this::toPairing).awaitAsList()
+
+    @Throws(SQLiteException::class)
+    override suspend fun getListOfInactivePairingsWithoutRequestReceived(): List<Pairing> = pairingQueries.getListOfInactivePairingsWithoutRequestReceived(mapper = this::toPairing).awaitAsList()
 
     @Throws(SQLiteException::class)
     override fun activatePairing(topic: Topic) = pairingQueries.activatePairing(expiry = activePairing, is_active = true, topic = topic.value)
 
     @Throws(SQLiteException::class)
-    override fun setProposalReceived(topic: Topic) {
-        pairingQueries.setProposalReceived(is_proposal_received = true, topic = topic.value)
+    override fun setRequestReceived(topic: Topic) {
+        pairingQueries.setRequestReceived(is_proposal_received = true, topic = topic.value)
     }
 
     @Throws(SQLiteException::class)
@@ -79,8 +90,8 @@ class PairingStorageRepository(private val pairingQueries: PairingQueries) : Pai
             relayProtocol = relay_protocol,
             relayData = relay_data,
             uri = uri,
-            registeredMethods = methods,
-            isProposalReceived = is_proposal_received ?: true
+            isProposalReceived = is_proposal_received ?: true,
+            methods = methods
         )
     }
 }

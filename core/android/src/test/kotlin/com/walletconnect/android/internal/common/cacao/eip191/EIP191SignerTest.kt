@@ -4,7 +4,7 @@ import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
-import com.walletconnect.android.internal.common.signing.cacao.toCAIP122Message
+import com.walletconnect.android.internal.common.signing.cacao.toCAIP222Message
 import com.walletconnect.android.internal.common.signing.cacao.toSignature
 import com.walletconnect.android.internal.common.signing.eip191.EIP191Signer
 import com.walletconnect.android.internal.common.signing.eip191.EIP191Verifier
@@ -116,7 +116,7 @@ internal class EIP191SignerTest {
         val jsonAdapter: JsonAdapter<Cacao> = moshi.adapter(Cacao::class.java)
         val cacao = jsonAdapter.fromJson(cacaoAsJson)
         println(cacao)
-        val message = cacao!!.payload.toCAIP122Message()
+        val message = cacao!!.payload.toCAIP222Message()
         val signature = cacaoSigner.sign(message, privateKey, SignatureType.EIP191)
         println(signature)
         println("Message:")

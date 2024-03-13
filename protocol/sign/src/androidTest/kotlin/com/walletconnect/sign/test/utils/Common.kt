@@ -19,7 +19,7 @@ internal fun globalOnError(error: Core.Model.Error) {
 const val sessionNamespaceKey = "eip155"
 val sessionChains = listOf("eip155:1")
 val sessionAccounts = listOf("eip155:1:0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb")
-val sessionMethods = listOf("someMethod")
+val sessionMethods = listOf("personal_sign")
 val sessionEvents = listOf("someEvent")
 
 val sessionNamespace = Sign.Model.Namespace.Session(sessionChains, sessionAccounts, sessionMethods, sessionEvents)

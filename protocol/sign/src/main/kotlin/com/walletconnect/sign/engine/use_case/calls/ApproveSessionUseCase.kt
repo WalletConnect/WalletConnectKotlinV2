@@ -21,7 +21,7 @@ import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.exceptions.InvalidNamespaceException
 import com.walletconnect.sign.common.exceptions.SessionProposalExpiredException
-import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
+import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipant
 import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpc
 import com.walletconnect.sign.common.model.vo.proposal.ProposalVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
@@ -56,7 +56,7 @@ internal class ApproveSessionUseCase(
     ) = supervisorScope {
         fun sessionSettle(requestId: Long, proposal: ProposalVO, sessionTopic: Topic, pairingTopic: Topic) {
             val selfPublicKey = crypto.getSelfPublicFromKeyAgreement(sessionTopic)
-            val selfParticipant = SessionParticipantVO(selfPublicKey.keyAsHex, selfAppMetaData)
+            val selfParticipant = SessionParticipant(selfPublicKey.keyAsHex, selfAppMetaData)
             val sessionExpiry = ACTIVE_SESSION
             val unacknowledgedSession = SessionVO.createUnacknowledgedSession(sessionTopic, proposal, selfParticipant, sessionExpiry, sessionNamespaces, pairingTopic.value)
 
@@ -121,7 +121,7 @@ internal class ApproveSessionUseCase(
             },
             onFailure = { error ->
                 logger.error("Subscribe to session topic failure: $error")
-                throw error
+                onFailure(error)
             })
         logger.log("Sending session approve, topic: $sessionTopic")
         jsonRpcInteractor.respondWithParams(request, approvalParams, irnParams,
@@ -129,8 +129,8 @@ internal class ApproveSessionUseCase(
                 logger.log("Session approve sent successfully, topic: $sessionTopic")
             },
             onFailure = { error ->
-                logger.log("Session approve failure, topic: $sessionTopic")
-                throw error
+                logger.error("Session approve failure, topic: $sessionTopic: $error")
+                onFailure(error)
             })
 
         sessionSettle(request.id, proposal, sessionTopic, request.topic)

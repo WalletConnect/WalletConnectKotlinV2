@@ -8,7 +8,9 @@ import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SessionProposer
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
-import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
+import com.walletconnect.sign.common.model.vo.clientsync.common.PayloadParams
+import com.walletconnect.sign.common.model.vo.clientsync.common.Requester
+import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipant
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionEventVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionRequestVO
 import com.walletconnect.utils.DefaultId
@@ -32,11 +34,21 @@ internal sealed class SignParams : CoreSignParams() {
     ) : SignParams()
 
     @JsonClass(generateAdapter = true)
+    internal data class SessionAuthenticateParams(
+        @Json(name = "requester")
+        val requester: Requester,
+        @Json(name = "authPayload")
+        val authPayload: PayloadParams,
+        @Json(name = "expiryTimestamp")
+        val expiryTimestamp: Long
+    ) : SignParams()
+
+    @JsonClass(generateAdapter = true)
     internal data class SessionSettleParams(
         @Json(name = "relay")
         val relay: RelayProtocolOptions,
         @Json(name = "controller")
-        val controller: SessionParticipantVO,
+        val controller: SessionParticipant,
         @Json(name = "namespaces")
         val namespaces: Map<String, Namespace.Session>,
         @Json(name = "expiry")

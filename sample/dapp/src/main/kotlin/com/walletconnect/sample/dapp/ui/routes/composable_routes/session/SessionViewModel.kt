@@ -56,16 +56,14 @@ class SessionViewModel : ViewModel() {
             } else {
                 it.topic == DappDelegate.selectedSessionTopic
             }
-        }.flatMap { settledSession ->
-            settledSession.namespaces.values.flatMap { it.accounts }
-        }.map { caip10Account ->
-            val (chainNamespace, chainReference, account) = caip10Account.split(":")
-            val chain = Chains.values().first { chain ->
-                chain.chainNamespace == chainNamespace && chain.chainReference == chainReference
+        }.flatMap { settledSession -> settledSession.namespaces.values.flatMap { it.accounts } }
+            .map { caip10Account ->
+                val (chainNamespace, chainReference, account) = caip10Account.split(":")
+                val chain = Chains.values().first { chain ->
+                    chain.chainNamespace == chainNamespace && chain.chainReference == chainReference
+                }
+                SessionUi(chain.icon, chain.name, account, chain.chainNamespace, chain.chainReference)
             }
-
-            SessionUi(chain.icon, chain.name, account, chain.chainNamespace, chain.chainReference)
-        }
     }
 
     fun ping() {
