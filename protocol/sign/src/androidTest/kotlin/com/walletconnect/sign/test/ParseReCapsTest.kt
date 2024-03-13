@@ -1,4 +1,4 @@
-package com.walletconnect.sign.util
+package com.walletconnect.sign.test
 
 import com.walletconnect.android.internal.common.signing.cacao.getChains
 import com.walletconnect.android.internal.common.signing.cacao.getMethods

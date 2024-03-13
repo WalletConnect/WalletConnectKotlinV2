@@ -7,7 +7,7 @@ import org.junit.Test
 class MergeReCapsTest {
 
     @Test
-    fun `merge two different ReCaps`() {
+    fun mergeTwoDifferentReCaps() {
         val json1 = """
         {
           "att": {
@@ -37,7 +37,7 @@ class MergeReCapsTest {
     }
 
     @Test
-    fun `merge two ReCaps with overriding fields`() {
+    fun mergeTwoReCapsWithOverridingFields() {
         val json1 = """
         {
           "att": {

@@ -1,4 +1,4 @@
-package com.walletconnect.sign.util
+package com.walletconnect.sign.test
 
 import com.walletconnect.android.internal.common.signing.cacao.decodeReCaps
 import com.walletconnect.android.internal.common.signing.cacao.getChains
@@ -9,7 +9,7 @@ import org.junit.Test
 class CacaoUtilsTests {
 
     @Test
-    fun `decode when ReCaps is not the last element should be empty test`() {
+    fun decodeWhenReCapsIsNotTheLastElementShouldBeEmptyTest() {
         val resources = listOf(
             "urn:recap:eyJhdHQiOnsiaHR0cHM6Ly9ub3RpZnkud2FsbGV0Y29ubmVjdC5jb20vYWxsLWFwcHMiOnsiY3J1ZC9zdWJzY3JpcHRpb25zIjpbe31dLCJjcnVkL25vdGlmaWNhdGlvbnMiOlt7fV19fX0=",
             "ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/"
@@ -21,7 +21,7 @@ class CacaoUtilsTests {
     }
 
     @Test
-    fun `decode when ReCaps is the last element should be not empty test`() {
+    fun decodeWhenReCapsIsTheLastElementShouldBeNotEmptyTest() {
         val resources = listOf(
             "ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/",
             "urn:recap:eyJhdHQiOnsiZWlwMTU1Ijp7InJlcXVlc3RcL3BlcnNvbmFsX3NpZ24iOlt7fV0sInJlcXVlc3RcL2V0aF9zaWduVHlwZWREYXRhIjpbe31dfSwiaHR0cHM6XC9cL25vdGlmeS53YWxsZXRjb25uZWN0LmNvbVwvYWxsLWFwcHMiOnsiY3J1ZFwvc3Vic2NyaXB0aW9ucyI6W3t9XSwiY3J1ZFwvbm90aWZpY2F0aW9ucyI6W3t9XX19fQ",
@@ -34,7 +34,7 @@ class CacaoUtilsTests {
     }
 
     @Test
-    fun `parse ReCaps from JSON to map test`() {
+    fun parseReCapsFromJSONToMapTest() {
         val resources = listOf(
             "ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/",
             "urn:recap:eyJhdHQiOnsiaHR0cHM6Ly9ub3RpZnkud2FsbGV0Y29ubmVjdC5jb20vYWxsLWFwcHMiOnsiY3J1ZC9zdWJzY3JpcHRpb25zIjpbe31dLCJjcnVkL25vdGlmaWNhdGlvbnMiOlt7fV19fX0=",
@@ -49,7 +49,7 @@ class CacaoUtilsTests {
     }
 
     @Test
-    fun `get methods from non sign ReCaps should be empty`(){
+    fun getMethodsFromNonSignReCapsShouldBeEmpty(){
         val resources = listOf(
             "ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/",
             "urn:recap:eyJhdHQiOnsiaHR0cHM6Ly9ub3RpZnkud2FsbGV0Y29ubmVjdC5jb20vYWxsLWFwcHMiOnsiY3J1ZC9zdWJzY3JpcHRpb25zIjpbe31dLCJjcnVkL25vdGlmaWNhdGlvbnMiOlt7fV19fX0=",
@@ -61,7 +61,7 @@ class CacaoUtilsTests {
     }
 
     @Test
-    fun `get methods from sign ReCaps should not be empty`(){
+    fun getMethodsFromSignReCapsShouldNotBeEmpty(){
         val resources = listOf(
             "ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/",
             "urn:recap:eyJhdHQiOnsiZWlwMTU1Ijp7InJlcXVlc3QvcGVyc29uYWxfc2lnbiI6W3siY2hhaW5zIjpbImVpcDE1NToxIl19XSwicmVxdWVzdC9ldGhfc2lnblR5cGVkRGF0YV92NCI6W3siY2hhaW5zIjpbImVpcDE1NToxIl19XX19fQ",
@@ -74,7 +74,7 @@ class CacaoUtilsTests {
     }
 
     @Test
-    fun `get chains from non sign ReCaps should be empty`(){
+    fun getChainsFromNonSignReCapsShouldBeEmpty(){
         val resources = listOf(
             "ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/",
             "urn:recap:eyJhdHQiOnsiaHR0cHM6Ly9ub3RpZnkud2FsbGV0Y29ubmVjdC5jb20vYWxsLWFwcHMiOnsiY3J1ZC9zdWJzY3JpcHRpb25zIjpbe31dLCJjcnVkL25vdGlmaWNhdGlvbnMiOlt7fV19fX0=",
@@ -86,7 +86,7 @@ class CacaoUtilsTests {
     }
 
     @Test
-    fun `get chains from sign ReCaps with chains should not be empty`(){
+    fun getChainsFromSignReCapsWithChainsShouldNotBeEmpty(){
         val resources = listOf(
             "ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/",
             "urn:recap:eyJhdHQiOnsiZWlwMTU1Ijp7InJlcXVlc3QvcGVyc29uYWxfc2lnbiI6W3siY2hhaW5zIjpbImVpcDE1NToxMzciLCJlaXAxNTU6NTYiXX1dfX19",

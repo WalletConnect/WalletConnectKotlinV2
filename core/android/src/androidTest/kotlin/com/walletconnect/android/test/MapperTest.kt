@@ -1,4 +1,4 @@
-package com.walletconnect.android.internal.common.cacao
+package com.walletconnect.android.test
 
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.signing.cacao.toCAIP222Message
@@ -14,7 +14,7 @@ internal class MapperTest {
         "urn:recap:eyJhdHQiOnsiZWlwMTU1Ijp7InJlcXVlc3QvcGVyc29uYWxfc2lnbiI6W3t9XSwicmVxdWVzdC9ldGhfc2lnblR5cGVkRGF0YV92NCI6W3t9XX0sImh0dHBzOi8vbm90aWZ5LndhbGxldGNvbm5lY3QuY29tL2FsbC1hcHBzIjp7ImNydWQvc3Vic2NyaXB0aW9ucyI6W3t9XSwiY3J1ZC9ub3RpZmljYXRpb25zIjpbe31dfX19"
 
     @Test
-    fun `Payload required fields formatting`() {
+    fun payloadRequiredFieldsFormatting() {
         val payload = Cacao.Payload(
             iss = iss,
             domain = "service.invalid",
@@ -44,7 +44,7 @@ internal class MapperTest {
     }
 
     @Test
-    fun `Test formatting CAIP-222 message with Sign ReCaps`() {
+    fun testFormattingCAIP222MessageWithSignReCaps() {
         val payload = Cacao.Payload(
             iss = iss,
             domain = "service.invalid",
@@ -82,7 +82,7 @@ internal class MapperTest {
     }
 
     @Test
-    fun `Test formatting CAIP-222 message with Sign Without statement`() {
+    fun testFormattingCAIP222MessageWithSignWithoutStatement() {
         val payload = Cacao.Payload(
             iss = iss,
             domain = "service.invalid",
@@ -120,7 +120,7 @@ internal class MapperTest {
     }
 
     @Test
-    fun `Test formatting CAIP-222 message with Notify ReCaps`() {
+    fun testFormattingCAIP222MessageWithNotifyReCaps() {
         val payload = Cacao.Payload(
             iss = iss,
             domain = "service.invalid",
@@ -155,7 +155,7 @@ internal class MapperTest {
     }
 
     @Test
-    fun `Test formatting CAIP-222 message with Notify ReCaps and Sign ReCaps`() {
+    fun testFormattingCAIP222MessageWithNotifyReCapsAndSignReCaps() {
         val payload = Cacao.Payload(
             iss = iss,
             domain = "service.invalid",
@@ -195,7 +195,7 @@ internal class MapperTest {
     }
 
     @Test
-    fun `Test formatting CAIP-222 message with Notify ReCaps and Sign ReCaps in one URN`() {
+    fun testFormattingCAIP222MessageWithNotifyReCapsAndSignReCapsInOneURN() {
         val payload = Cacao.Payload(
             iss = iss,
             domain = "service.invalid",
@@ -233,7 +233,7 @@ internal class MapperTest {
     }
 
     @Test
-    fun `Payload resources formatting`() {
+    fun payloadResourcesFormatting() {
         val payload = Cacao.Payload(
             iss = iss,
             domain = "service.invalid",
@@ -271,7 +271,7 @@ internal class MapperTest {
     }
 
     @Test
-    fun `Payload requestId formatting`() {
+    fun payloadRequestIdFormatting() {
         val payload = Cacao.Payload(
             iss = iss,
             domain = "service.invalid",
@@ -301,7 +301,7 @@ internal class MapperTest {
     }
 
     @Test
-    fun `Payload statement formatting`() {
+    fun payloadStatementFormatting() {
         val payload = Cacao.Payload(
             iss = iss,
             domain = "service.invalid",
@@ -331,7 +331,7 @@ internal class MapperTest {
     }
 
     @Test
-    fun `Payload expiry formatting`() {
+    fun payloadExpiryFormatting() {
         val payload = Cacao.Payload(
             iss = iss,
             domain = "service.invalid",
@@ -361,7 +361,7 @@ internal class MapperTest {
     }
 
     @Test
-    fun `Payload not before formatting`() {
+    fun payloadNotBeforeFormatting() {
         val payload = Cacao.Payload(
             iss = iss,
             domain = "service.invalid",
@@ -391,7 +391,7 @@ internal class MapperTest {
     }
 
     @Test
-    fun `Payload all fields formatting`() {
+    fun payloadAllFieldsFormatting() {
         val payload = Cacao.Payload(
             iss = iss,
             domain = "service.invalid",

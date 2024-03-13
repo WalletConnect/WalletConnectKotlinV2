@@ -1,6 +1,5 @@
-package com.walletconnect.android.internal.common.cacao
+package com.walletconnect.android
 
-import com.walletconnect.android.BuildConfig
 import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
