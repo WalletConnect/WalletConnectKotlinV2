@@ -71,7 +71,7 @@ object Wallet {
             val origin: String,
             val validation: Validation,
             val verifyUrl: String,
-            val isScam: Boolean?
+            val isScam: Boolean?,
         ) : Model()
 
         enum class Validation {
@@ -161,7 +161,18 @@ object Wallet {
             val resources: List<String>?,
         ) : Model()
 
-        data class SessionEvent(val name: String, val data: String) : Model()
+        data class SessionEvent(
+            val name: String,
+            val data: String,
+        ) : Model()
+
+
+        data class Event(
+            val topic: String,
+            val name: String,
+            val data: String,
+            val chainId: String,
+        ) : Model()
 
         data class Cacao(
             val header: Header,
@@ -223,7 +234,7 @@ object Wallet {
 
             data class Simple(
                 val title: String,
-                val body: String
+                val body: String,
             ) : Message()
 
             data class SessionProposal(

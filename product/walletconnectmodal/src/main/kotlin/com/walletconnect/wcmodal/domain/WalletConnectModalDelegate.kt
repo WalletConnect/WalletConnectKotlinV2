@@ -39,6 +39,12 @@ internal object WalletConnectModalDelegate : WalletConnectModal.ModalDelegate {
         }
     }
 
+    override fun onSessionEvent(sessionEvent: Modal.Model.Event) {
+        scope.launch {
+            _wcEventModels.emit(sessionEvent)
+        }
+    }
+
     override fun onSessionDelete(deletedSession: Modal.Model.DeletedSession) {
         scope.launch {
             _wcEventModels.emit(deletedSession)

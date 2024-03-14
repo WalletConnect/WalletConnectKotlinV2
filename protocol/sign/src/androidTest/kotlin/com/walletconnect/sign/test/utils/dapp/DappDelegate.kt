@@ -12,6 +12,7 @@ open class DappDelegate : SignClient.DappDelegate {
     override fun onSessionRejected(rejectedSession: Sign.Model.RejectedSession) {}
     override fun onSessionUpdate(updatedSession: Sign.Model.UpdatedSession) {}
     override fun onSessionEvent(sessionEvent: Sign.Model.SessionEvent) {}
+    override fun onSessionEvent(sessionEvent: Sign.Model.Event) {}
     override fun onSessionExtend(session: Sign.Model.Session) {}
     override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {}
     override fun onSessionRequestResponse(response: Sign.Model.SessionRequestResponse) {}

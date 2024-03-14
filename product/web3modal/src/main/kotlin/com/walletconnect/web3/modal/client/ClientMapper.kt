@@ -16,6 +16,8 @@ internal fun Sign.Model.UpdatedSession.toModal() = Modal.Model.UpdatedSession(to
 
 internal fun Sign.Model.SessionEvent.toModal() = Modal.Model.SessionEvent(name, data)
 
+internal fun Sign.Model.Event.toModal() = Modal.Model.Event(topic, name, data, chainId)
+
 internal fun Sign.Model.Session.toModal() = Modal.Model.Session(pairingTopic, topic, expiry, namespaces.toModal(), metaData)
 
 internal fun Sign.Model.DeletedSession.toModal() = when (this) {

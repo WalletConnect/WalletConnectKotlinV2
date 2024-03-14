@@ -157,6 +157,14 @@ object Sign {
             val data: String,
         ) : Model()
 
+
+        data class Event(
+            val topic: String,
+            val name: String,
+            val data: String,
+            val chainId: String,
+        ) : Model()
+
         data class SessionRequestResponse(
             val topic: String,
             val chainId: String?,
@@ -266,8 +274,7 @@ object Sign {
 
         data class Ping(val topic: String, val timeout: Duration = 30.seconds) : Params()
 
-        data class Emit(val topic: String, val event: Model.SessionEvent, val chainId: String) :
-            Params()
+        data class Emit(val topic: String, val event: Model.SessionEvent, val chainId: String) : Params()
 
         data class Extend(val topic: String) : Params()
 

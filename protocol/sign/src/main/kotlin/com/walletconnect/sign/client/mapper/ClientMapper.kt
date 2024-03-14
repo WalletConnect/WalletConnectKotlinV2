@@ -13,6 +13,7 @@ import com.walletconnect.android.utils.toClient
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.common.model.PendingRequest
 import com.walletconnect.sign.engine.model.EngineDO
+import com.walletconnect.utils.Empty
 
 @JvmSynthetic
 internal fun Sign.Model.JsonRpcResponse.toJsonRpcResponse(): JsonRpcResponse =
@@ -101,6 +102,10 @@ internal fun EngineDO.SessionDelete.toClientDeletedSession(): Sign.Model.Deleted
 @JvmSynthetic
 internal fun EngineDO.SessionEvent.toClientSessionEvent(): Sign.Model.SessionEvent =
     Sign.Model.SessionEvent(name, data)
+
+@JvmSynthetic
+internal fun EngineDO.SessionEvent.toClientEvent(): Sign.Model.Event =
+    Sign.Model.Event(topic, name, data, chainId)
 
 @JvmSynthetic
 internal fun EngineDO.Session.toClientActiveSession(): Sign.Model.Session =
