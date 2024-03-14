@@ -136,7 +136,7 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
             notifyEngine.register(
                 cacaoPayloadWithIdentityPrivateKey = params.cacaoPayloadWithIdentityPrivateKey.toCommon(),
                 signature = params.signature.toCommon(),
-                onSuccess = onSuccess,
+                onSuccess = { onSuccess(it) },
                 onFailure = { error -> onError(Notify.Model.Error(error)) },
             )
         }
