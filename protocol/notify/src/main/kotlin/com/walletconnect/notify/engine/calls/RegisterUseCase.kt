@@ -39,13 +39,12 @@ internal class RegisterUseCase(
             .getOrElse { return@supervisorScope onFailure(IllegalArgumentException("Unable to derive identity key")) }
 
         runCatching { CacaoVerifier(projectId).verify(Cacao(CacaoType.EIP4361.toHeader(), cacaoPayload, signature)) }
-            .getOrElse { error -> return@supervisorScope onFailure(IllegalArgumentException("Invalid signature")) }
+            .getOrElse { error -> return@supervisorScope onFailure(IllegalArgumentException("Invalid signature: $error")) }
 
         identitiesInteractor.registerIdentity(identityPublicKey, cacaoPayload, signature).fold(
             onFailure = { error -> onFailure(error) },
             onSuccess = {
-                println("kobe: Register success!")
-                runCatching { registeredAccountsRepository.insertOrIgnoreAccount(accountId, identityPublicKey, cacaoPayload.domain) }.fold(
+                runCatching { registeredAccountsRepository.insertOrIgnoreAccount(accountId, identityPublicKey) }.fold(
                     onFailure = { error -> onFailure(error) },
                     onSuccess = { watchSubscriptionsUseCase(accountId, onSuccess = { onSuccess(identityPublicKey.keyAsHex) }, onFailure = { error -> onFailure(error) }) }
                 )

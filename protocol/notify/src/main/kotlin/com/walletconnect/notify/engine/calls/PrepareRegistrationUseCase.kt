@@ -36,7 +36,6 @@ internal class PrepareRegistrationUseCase(
             .fold(
                 onFailure = { error -> onFailure(error) },
                 onSuccess = { cacaoPayload ->
-                    println("kobe: CACAO: $cacaoPayload")
                     onSuccess(
                         CacaoPayloadWithIdentityPrivateKey(
                             cacaoPayload,

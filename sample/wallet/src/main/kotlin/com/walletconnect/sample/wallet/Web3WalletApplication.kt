@@ -230,16 +230,13 @@ class Web3WalletApplication : Application() {
             NotifyClient.prepareRegistration(
                 params = Notify.Params.PrepareRegistration(account = account, domain = domain),
                 onSuccess = { cacaoPayloadWithIdentityPrivateKey, message ->
-
-                    println("kobe: Message: $message")
-
-                    logger.log("kobe: PrepareRegistration Success: $cacaoPayloadWithIdentityPrivateKey")
+                    logger.log("PrepareRegistration Success: $cacaoPayloadWithIdentityPrivateKey")
 
                     val signature = CacaoSigner.sign(message, EthAccountDelegate.privateKey.hexToBytes(), SignatureType.EIP191)
 
                     NotifyClient.register(
                         params = Notify.Params.Register(cacaoPayloadWithIdentityPrivateKey = cacaoPayloadWithIdentityPrivateKey, signature = signature),
-                        onSuccess = { logger.log("kobe: Register Success") },
+                        onSuccess = { logger.log("Register Success") },
                         onError = { logger.error(it.throwable.stackTraceToString()) }
                     )
 
@@ -247,7 +244,7 @@ class Web3WalletApplication : Application() {
                 onError = { logger.error(it.throwable.stackTraceToString()) }
             )
         } else {
-            logger.log("kobe: $account is already registered")
+            logger.log("$account is already registered")
         }
     }
 

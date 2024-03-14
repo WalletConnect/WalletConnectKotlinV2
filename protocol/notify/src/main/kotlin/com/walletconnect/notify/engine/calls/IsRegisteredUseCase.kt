@@ -7,7 +7,6 @@ import com.walletconnect.android.internal.common.exception.AccountHasNoCacaoPayl
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.MissingKeyException
 import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
-import com.walletconnect.notify.common.Statement
 import com.walletconnect.notify.data.storage.RegisteredAccountsRepository
 import com.walletconnect.notify.engine.domain.createAuthorizationReCaps
 
@@ -25,10 +24,9 @@ internal class IsRegisteredUseCase(
                     allApps && !registeredAccount.allApps -> false
                     !allApps && registeredAccount.allApps -> false
                     else -> identitiesInteractor.getAlreadyRegisteredValidIdentity(
-                        AccountId(account),
-                        Statement.fromBoolean(allApps).content,
-                        domain,
-                        listOf(identityServerUrl, createAuthorizationReCaps()) //todo: should be ReCaps added here?
+                        accountId = AccountId(account),
+                        domain = domain,
+                        resources = listOf(identityServerUrl, createAuthorizationReCaps())
                     )
                         .map { true }
                         .recover { exception ->

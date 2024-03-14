@@ -6,8 +6,6 @@ import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.CoreProtocol
 import com.walletconnect.android.cacao.signature.SignatureType
-import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.relay.RelayClient
 import com.walletconnect.android.utils.cacao.sign
@@ -65,16 +63,13 @@ internal object TestClient {
                     if (!isRegistered) {
                         notifyClient.prepareRegistration(Notify.Params.PrepareRegistration(caip10account, metadata.url),
                             onSuccess = { cacaoPayloadWithIdentityPrivateKey, message ->
-
-                                println("kobe: Message: $message")
-                                Timber.d("kobe: PrepareRegistration Success")
+                                Timber.d("PrepareRegistration Success")
 
                                 val signature = CacaoSigner.sign(message, privateKey.keyAsBytes, SignatureType.EIP191)
-
                                 notifyClient.register(
                                     params = Notify.Params.Register(cacaoPayloadWithIdentityPrivateKey = cacaoPayloadWithIdentityPrivateKey, signature = signature),
                                     onSuccess = { identityKey ->
-                                        Timber.d("kobe: Primary CP finish: $identityKey")
+                                        Timber.d("Primary CP finish: $identityKey")
                                         _isInitialized.tryEmit(true)
                                     },
                                     onError = { Timber.e(it.throwable.stackTraceToString()) }
@@ -89,8 +84,6 @@ internal object TestClient {
                 }
 
         internal val Relay get() = coreProtocol.Relay
-        internal val Pairing = coreProtocol.Pairing
-        internal val identitiesInteractor: IdentitiesInteractor by lazy { wcKoinApp.koin.get() }
     }
 
     object Secondary {
@@ -163,7 +156,5 @@ internal object TestClient {
         }
 
         internal val Relay get() = coreProtocol.Relay
-        internal val Pairing = coreProtocol.Pairing
-        internal val identitiesInteractor: IdentitiesInteractor by lazy { secondaryKoinApp.koin.get() }
     }
 }

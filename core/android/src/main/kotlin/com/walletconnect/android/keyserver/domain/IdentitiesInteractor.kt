@@ -67,13 +67,12 @@ class IdentitiesInteractor(
             storeIdentityPublicKey(identityPublicKey, accountId)
         }
 
-    suspend fun getAlreadyRegisteredValidIdentity(accountId: AccountId, statement: String, domain: String, resources: List<String>?): Result<PublicKey> {
+    suspend fun getAlreadyRegisteredValidIdentity(accountId: AccountId, statement: String? = null, domain: String, resources: List<String>?): Result<PublicKey> {
         if (!accountId.isValid()) throw InvalidAccountIdException(accountId)
         return runCatching {
             val storedPublicKey = getIdentityPublicKey(accountId)
             val cacaoPayload = identitiesRepository.getCacaoPayloadByIdentity(storedPublicKey.keyAsHex) ?: throw AccountHasNoCacaoPayloadStored(accountId)
             val generatedPayload = generatePayload(accountId, storedPublicKey, statement, domain, resources).getOrThrow()
-            println("kobe: cacaoPayload.statement: ${cacaoPayload.statement}; generatedPayload.statement: ${generatedPayload.statement}")
             if (cacaoPayload.statement != generatedPayload.statement) throw AccountHasDifferentStatementStored(accountId)
             storedPublicKey
         }
@@ -181,7 +180,7 @@ class IdentitiesInteractor(
         )
     )
 
-    private fun buildUri(domain: String, didKey: String): String = "bundleid://$domain/walletconnect_identity_key=$didKey"
+    private fun buildUri(domain: String, didKey: String): String = "bundleid://$domain?walletconnect_identity_key=$didKey"
 
     companion object {
         const val NONCE_SIZE = 32
