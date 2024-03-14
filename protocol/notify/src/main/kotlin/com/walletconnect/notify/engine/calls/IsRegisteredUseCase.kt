@@ -18,26 +18,21 @@ internal class IsRegisteredUseCase(
 
     override suspend fun isRegistered(account: String, domain: String, allApps: Boolean): Boolean {
         try {
-            registeredAccountsRepository.getAccountByAccountId(account).let { registeredAccount ->
-                return when {
-                    !allApps && registeredAccount.appDomain != domain -> false
-                    allApps && !registeredAccount.allApps -> false
-                    !allApps && registeredAccount.allApps -> false
-                    else -> identitiesInteractor.getAlreadyRegisteredValidIdentity(
-                        accountId = AccountId(account),
-                        domain = domain,
-                        resources = listOf(identityServerUrl, createAuthorizationReCaps())
-                    )
-                        .map { true }
-                        .recover { exception ->
-                            when (exception) {
-                                is MissingKeyException, is AccountHasNoCacaoPayloadStored, is AccountHasDifferentStatementStored -> false
-                                else -> {
-                                    false
-                                }
+            registeredAccountsRepository.getAccountByAccountId(account).let {
+                return identitiesInteractor.getAlreadyRegisteredValidIdentity(
+                    accountId = AccountId(account),
+                    domain = domain,
+                    resources = listOf(identityServerUrl, createAuthorizationReCaps())
+                )
+                    .map { true }
+                    .recover { exception ->
+                        when (exception) {
+                            is MissingKeyException, is AccountHasNoCacaoPayloadStored, is AccountHasDifferentStatementStored -> false
+                            else -> {
+                                false
                             }
-                        }.getOrElse { false }
-                }
+                        }
+                    }.getOrElse { false }
             }
         } catch (_: NullPointerException) {
             return false
