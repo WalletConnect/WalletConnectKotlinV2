@@ -150,7 +150,11 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
         }
     }
 
-    override fun prepareRegistration(params: Notify.Params.PrepareRegistration, onSuccess: (Notify.Model.CacaoPayloadWithIdentityPrivateKey, String) -> Unit, onError: (Notify.Model.Error) -> Unit) {
+    override fun prepareRegistration(
+        params: Notify.Params.PrepareRegistration,
+        onSuccess: (Notify.Model.CacaoPayloadWithIdentityPrivateKey, String) -> Unit,
+        onError: (Notify.Model.Error) -> Unit
+    ) {
         checkEngineInitialization()
 
         scope.launch {

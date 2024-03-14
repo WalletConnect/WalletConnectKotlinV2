@@ -224,21 +224,22 @@ class Web3WalletApplication : Application() {
     private fun registerAccount() {
         val account = EthAccountDelegate.ethAddress
         val domain = BuildConfig.APPLICATION_ID
-        val allApps = true
-
-        val isRegistered = NotifyClient.isRegistered(params = Notify.Params.IsRegistered(account = account, domain = domain, allApps = allApps))
+        val isRegistered = NotifyClient.isRegistered(params = Notify.Params.IsRegistered(account = account, domain = domain))
 
         if (!isRegistered) {
             NotifyClient.prepareRegistration(
-                params = Notify.Params.PrepareRegistration(account = account, domain = domain, allApps = allApps),
+                params = Notify.Params.PrepareRegistration(account = account, domain = domain),
                 onSuccess = { cacaoPayloadWithIdentityPrivateKey, message ->
-                    logger.log("PrepareRegistration Success: $cacaoPayloadWithIdentityPrivateKey")
+
+                    println("kobe: Message: $message")
+
+                    logger.log("kobe: PrepareRegistration Success: $cacaoPayloadWithIdentityPrivateKey")
 
                     val signature = CacaoSigner.sign(message, EthAccountDelegate.privateKey.hexToBytes(), SignatureType.EIP191)
 
                     NotifyClient.register(
                         params = Notify.Params.Register(cacaoPayloadWithIdentityPrivateKey = cacaoPayloadWithIdentityPrivateKey, signature = signature),
-                        onSuccess = { logger.log("Register Success") },
+                        onSuccess = { logger.log("kobe: Register Success") },
                         onError = { logger.error(it.throwable.stackTraceToString()) }
                     )
 
@@ -246,7 +247,7 @@ class Web3WalletApplication : Application() {
                 onError = { logger.error(it.throwable.stackTraceToString()) }
             )
         } else {
-            logger.log("$account is already registered")
+            logger.log("kobe: $account is already registered")
         }
     }
 

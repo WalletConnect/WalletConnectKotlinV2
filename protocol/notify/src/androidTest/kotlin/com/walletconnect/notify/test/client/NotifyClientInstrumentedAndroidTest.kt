@@ -119,20 +119,34 @@ class NotifyClientInstrumentedAndroidTest {
                     if (subscriptionsChanged.subscriptions.isEmpty()) {
                         Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - subscribe start")
 
-                        PrimaryNotifyClient.subscribe(Notify.Params.Subscribe("https://wc-notify-swift-integration-tests-prod.pages.dev".toUri(), TestClient.caip10account), {
-                            Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - subscribe success")
-                        }, {
-                            Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - subscribe failure: ${it.throwable}")
-                        })
+                        PrimaryNotifyClient.subscribe(Notify.Params.Subscribe("https://wc-notify-swift-integration-tests-prod.pages.dev".toUri(), TestClient.caip10account)).let { result ->
+                            when (result) {
+                                is Notify.Result.Subscribe.Success -> {
+                                    Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - subscribe success")
+                                }
+
+                                is Notify.Result.Subscribe.Error -> {
+                                    Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - subscribe failure: ${result.error.throwable}")
+                                }
+                            }
+                        }
+
                     } else if (countPrimaryReceivedResponses < 2) {
                         Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - deleteSubscribe start")
 
                         runBlocking { delay(1000) }
-                        PrimaryNotifyClient.deleteSubscription(Notify.Params.DeleteSubscription(subscriptionsChanged.subscriptions.first().topic), onSuccess = {
-                            scenarioExtension.closeAsSuccess()
-                        }, onError = {
-                            Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - deleteSubscribe failure: ${it.throwable}")
-                        })
+                        PrimaryNotifyClient.deleteSubscription(Notify.Params.DeleteSubscription(subscriptionsChanged.subscriptions.first().topic)).let { result ->
+                            when (result) {
+                                is Notify.Result.DeleteSubscription.Success -> {
+                                    Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - deleteSubscribe success")
+                                    scenarioExtension.closeAsSuccess()
+                                }
+
+                                is Notify.Result.DeleteSubscription.Error -> {
+                                    Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - deleteSubscribe failure: ${result.error.throwable}")
+                                }
+                            }
+                        }
                     }
                 }
             }, object : SecondaryNotifyDelegate() {

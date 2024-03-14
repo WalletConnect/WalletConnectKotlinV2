@@ -18,6 +18,7 @@ import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.signing.cacao.CacaoType
 import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
 import com.walletconnect.android.internal.common.signing.cacao.Issuer
+import com.walletconnect.android.internal.common.signing.cacao.getStatement
 import com.walletconnect.android.internal.common.signing.cacao.toCAIP222Message
 import com.walletconnect.android.internal.common.storage.identity.IdentitiesStorageRepository
 import com.walletconnect.android.internal.utils.getIdentityTag
@@ -66,13 +67,13 @@ class IdentitiesInteractor(
             storeIdentityPublicKey(identityPublicKey, accountId)
         }
 
-
     suspend fun getAlreadyRegisteredValidIdentity(accountId: AccountId, statement: String, domain: String, resources: List<String>?): Result<PublicKey> {
         if (!accountId.isValid()) throw InvalidAccountIdException(accountId)
         return runCatching {
             val storedPublicKey = getIdentityPublicKey(accountId)
             val cacaoPayload = identitiesRepository.getCacaoPayloadByIdentity(storedPublicKey.keyAsHex) ?: throw AccountHasNoCacaoPayloadStored(accountId)
             val generatedPayload = generatePayload(accountId, storedPublicKey, statement, domain, resources).getOrThrow()
+            println("kobe: cacaoPayload.statement: ${cacaoPayload.statement}; generatedPayload.statement: ${generatedPayload.statement}")
             if (cacaoPayload.statement != generatedPayload.statement) throw AccountHasDifferentStatementStored(accountId)
             storedPublicKey
         }
@@ -164,22 +165,23 @@ class IdentitiesInteractor(
         return encodeDidJwt(identityPrivateKey, EncodeIdentityKeyDidJwtPayloadUseCase(accountId), EncodeDidJwtPayloadUseCase.Params(identityPublicKey, keyserverUrl))
     }
 
-
-    fun generatePayload(accountId: AccountId, identityKey: PublicKey, statement: String, domain: String, resources: List<String>?): Result<Cacao.Payload> = Result.success(
+    fun generatePayload(accountId: AccountId, identityKey: PublicKey, statement: String?, domain: String, resources: List<String>?): Result<Cacao.Payload> = Result.success(
         Cacao.Payload(
             iss = encodeDidPkh(accountId.value),
             domain = domain,
-            aud = encodeEd25519DidKey(identityKey.keyAsBytes),
+            aud = buildUri(domain, encodeEd25519DidKey(identityKey.keyAsBytes)),
             version = Cacao.Payload.CURRENT_VERSION,
             nonce = randomBytes(NONCE_SIZE).bytesToHex(),
             iat = SimpleDateFormat(Cacao.Payload.ISO_8601_PATTERN, Locale.getDefault()).format(Calendar.getInstance().time),
             nbf = null,
             exp = null,
-            statement = statement,
+            statement = Pair(statement, resources).getStatement(),
             requestId = null,
             resources = resources
         )
     )
+
+    private fun buildUri(domain: String, didKey: String): String = "bundleid://$domain/walletconnect_identity_key=$didKey"
 
     companion object {
         const val NONCE_SIZE = 32

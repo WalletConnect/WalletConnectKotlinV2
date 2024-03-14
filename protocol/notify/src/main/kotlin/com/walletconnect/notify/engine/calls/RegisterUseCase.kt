@@ -10,8 +10,6 @@ import com.walletconnect.android.internal.common.signing.cacao.CacaoType
 import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
 import com.walletconnect.android.internal.common.signing.cacao.Issuer
 import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
-import com.walletconnect.foundation.util.jwt.encodeEd25519DidKey
-import com.walletconnect.notify.common.Statement
 import com.walletconnect.notify.common.model.CacaoPayloadWithIdentityPrivateKey
 import com.walletconnect.notify.data.storage.RegisteredAccountsRepository
 import com.walletconnect.notify.engine.domain.WatchSubscriptionsUseCase
@@ -40,19 +38,14 @@ internal class RegisterUseCase(
         val identityPublicKey = runCatching { keyManagementRepository.deriveAndStoreEd25519KeyPair(identityPrivateKey) }
             .getOrElse { return@supervisorScope onFailure(IllegalArgumentException("Unable to derive identity key")) }
 
-        val allApps = runCatching { Statement.toBoolean(cacaoPayload.statement) }
-            .getOrElse { return@supervisorScope onFailure(IllegalArgumentException("Invalid statement")) }
-
-        if (encodeEd25519DidKey(identityPublicKey.keyAsBytes) != cacaoPayload.aud)
-            return@supervisorScope onFailure(IllegalArgumentException("Invalid aud"))
-
         runCatching { CacaoVerifier(projectId).verify(Cacao(CacaoType.EIP4361.toHeader(), cacaoPayload, signature)) }
             .getOrElse { error -> return@supervisorScope onFailure(IllegalArgumentException("Invalid signature")) }
 
         identitiesInteractor.registerIdentity(identityPublicKey, cacaoPayload, signature).fold(
             onFailure = { error -> onFailure(error) },
             onSuccess = {
-                runCatching { registeredAccountsRepository.insertOrIgnoreAccount(accountId, identityPublicKey, allApps, if (!allApps) cacaoPayload.domain else null) }.fold(
+                println("kobe: Register success!")
+                runCatching { registeredAccountsRepository.insertOrIgnoreAccount(accountId, identityPublicKey, cacaoPayload.domain) }.fold(
                     onFailure = { error -> onFailure(error) },
                     onSuccess = { watchSubscriptionsUseCase(accountId, onSuccess = { onSuccess(identityPublicKey.keyAsHex) }, onFailure = { error -> onFailure(error) }) }
                 )

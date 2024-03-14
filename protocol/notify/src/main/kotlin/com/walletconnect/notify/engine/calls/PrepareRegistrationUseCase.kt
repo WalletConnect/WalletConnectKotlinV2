@@ -6,8 +6,8 @@ import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementReposit
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.signing.cacao.toCAIP222Message
 import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
-import com.walletconnect.notify.common.Statement
 import com.walletconnect.notify.common.model.CacaoPayloadWithIdentityPrivateKey
+import com.walletconnect.notify.engine.domain.createAuthorizationReCaps
 
 internal class PrepareRegistrationUseCase(
     private val identitiesInteractor: IdentitiesInteractor,
@@ -15,19 +15,46 @@ internal class PrepareRegistrationUseCase(
     private val keyManagementRepository: KeyManagementRepository,
 ) : PrepareRegistrationUseCaseInterface {
 
-    override suspend fun prepareRegistration(account: String, domain: String, onSuccess: (CacaoPayloadWithIdentityPrivateKey, String) -> Unit, onFailure: (Throwable) -> Unit, allApps: Boolean) {
+    override suspend fun prepareRegistration(
+        account: String,
+        domain: String,
+        onSuccess: (CacaoPayloadWithIdentityPrivateKey, String) -> Unit,
+        onFailure: (Throwable) -> Unit,
+        allApps: Boolean
+    ) {
         val identityPublicKey = identitiesInteractor.generateAndStoreIdentityKeyPair()
         val (_, identityPrivateKey) = keyManagementRepository.getKeyPair(identityPublicKey)
 
-        identitiesInteractor.generatePayload(AccountId(account), identityPublicKey, Statement.fromBoolean(allApps).content, domain, listOf(identityServerUrl))
+        identitiesInteractor.generatePayload(
+            AccountId(account),
+            identityPublicKey,
+            null,
+            domain,
+            listOf(identityServerUrl, createAuthorizationReCaps())
+        )
             .also { keyManagementRepository.removeKeys(identityPublicKey.keyAsHex) }
             .fold(
                 onFailure = { error -> onFailure(error) },
-                onSuccess = { cacaoPayload -> onSuccess(CacaoPayloadWithIdentityPrivateKey(cacaoPayload, identityPrivateKey), cacaoPayload.toCAIP222Message()) }
+                onSuccess = { cacaoPayload ->
+                    println("kobe: CACAO: $cacaoPayload")
+                    onSuccess(
+                        CacaoPayloadWithIdentityPrivateKey(
+                            cacaoPayload,
+                            identityPrivateKey
+                        ),
+                        cacaoPayload.toCAIP222Message()
+                    )
+                }
             )
     }
 }
 
 internal interface PrepareRegistrationUseCaseInterface {
-    suspend fun prepareRegistration(account: String, domain: String, onSuccess: (CacaoPayloadWithIdentityPrivateKey, String) -> Unit, onFailure: (Throwable) -> Unit, allApps: Boolean = false)
+    suspend fun prepareRegistration(
+        account: String,
+        domain: String,
+        onSuccess: (CacaoPayloadWithIdentityPrivateKey, String) -> Unit,
+        onFailure: (Throwable) -> Unit,
+        allApps: Boolean = false
+    )
 }
