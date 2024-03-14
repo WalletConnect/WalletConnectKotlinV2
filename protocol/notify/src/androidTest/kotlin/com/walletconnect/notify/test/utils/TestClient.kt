@@ -10,15 +10,14 @@ import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.relay.RelayClient
 import com.walletconnect.android.utils.cacao.sign
 import com.walletconnect.foundation.common.model.PrivateKey
-import com.walletconnect.notify.BuildConfig
 import com.walletconnect.notify.client.Notify
 import com.walletconnect.notify.client.NotifyClient
 import com.walletconnect.notify.client.NotifyProtocol
 import com.walletconnect.notify.client.cacao.CacaoSigner
 import com.walletconnect.notify.di.overrideModule
+import com.walletconnect.notify.test.BuildConfig
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import org.junit.Before
 import org.koin.core.KoinApplication
 import timber.log.Timber
 
@@ -95,11 +94,6 @@ internal object TestClient {
             icons = listOf(),
             redirect = null
         )
-
-        @Before
-        fun setup() {
-            Timber.plant(Timber.DebugTree())
-        }
 
         private val secondaryKoinApp = KoinApplication.createNewWCKoinApp()
 

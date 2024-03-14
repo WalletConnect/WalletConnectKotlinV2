@@ -31,7 +31,7 @@ concurrency:
 jobs:
   sdk_tests:
     name: Run Instrumented Tests
-    runs-on: macos-latest-xlarge
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
@@ -60,10 +60,24 @@ jobs:
           check_changes "protocol/sign" "SIGN_MODULE_CHANGED"
           check_changes "protocol/notify" "NOTIFY_MODULE_CHANGED"
 
-      - name: Fetch Properties File
-        env:
+      - name: Setup Required files to build SDKs
+        with:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+          FIREBASE_SERVICE_CREDENTIALS: ${{ secrets.FIREBASE_SERVICE_CREDENTIALS }}
           SECRETS_PROPERTIES: ${{ secrets.SECRETS_PROPERTIES }}
-        run: echo $SECRETS_PROPERTIES | base64 --decode > secrets.properties
+          ENCODED_STRING_DEBUG: ${{ secrets.WC_KOTLIN_DEBUG_KEYSTORE }}
+          SIGNING_KEY_STORE_PATH_DEBUG: ${{ secrets.WC_KOTLIN_DEBUG_KEYSTORE_PATH }}
+          ENCODED_STRING_INTERNAL: ${{ secrets.WC_KOTLIN_INTERNAL_KEYSTORE }}
+          SIGNING_KEY_STORE_PATH_INTERNAL: ${{ secrets.WC_KOTLIN_INTERNAL_KEYSTORE_PATH }}
+          ENCODED_STRING_UPLOAD: ${{ secrets.WC_KOTLIN_UPLOAD_KEYSTORE }}
+          SIGNING_KEY_STORE_PATH_UPLOAD: ${{ secrets.WC_KOTLIN_UPLOAD_KEYSTORE_PATH }}
+        uses: ./.github/actions/ci_setup
+
+      - name: Enable KVM group perms
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
 
       - name: Run Core instrumented tests
         if: ${{ steps.what_modules_changed.outputs.CORE_MODULE_CHANGED == 'true' || github.event_name == 'workflow_dispatch' }}

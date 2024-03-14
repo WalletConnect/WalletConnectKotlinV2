@@ -40,6 +40,8 @@ interface PairingInterface {
      */
     fun getPairings(): List<Core.Model.Pairing>
 
+    fun validatePairingUri(uri: String): Boolean
+
     interface Delegate {
         fun onPairingDelete(deletedPairing: Core.Model.DeletedPairing)
 

@@ -229,7 +229,7 @@ class ChainSelectionViewModel : ViewModel() {
             nonce = randomBytes(12).bytesToHex(),
             exp = null,
             nbf = null,
-            statement = null,
+            statement = "Sign in with wallet.",
             requestId = null,
             resources = listOf(),
             methods = null,

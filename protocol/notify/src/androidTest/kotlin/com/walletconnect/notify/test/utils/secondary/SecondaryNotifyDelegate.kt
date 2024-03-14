@@ -4,7 +4,6 @@ import com.walletconnect.notify.client.Notify
 import com.walletconnect.notify.client.NotifyInterface
 import com.walletconnect.notify.test.utils.globalOnError
 
-
 open class SecondaryNotifyDelegate : NotifyInterface.Delegate {
 
     override fun onNotifyNotification(notifyNotification: Notify.Event.Notification) {

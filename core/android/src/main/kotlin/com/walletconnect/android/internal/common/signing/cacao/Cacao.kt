@@ -101,7 +101,7 @@ fun Cacao.Payload.toCAIP222Message(chainName: String = "Ethereum"): String {
     return message
 }
 
-fun Pair<String?, List<String>?>.getStatement(): String {
+fun Pair<String?, List<String>?>.getStatement(): String? {
     val (statement, resources) = this
     var newStatement = ""
     if (statement != null) newStatement += "$statement"
@@ -110,7 +110,7 @@ fun Pair<String?, List<String>?>.getStatement(): String {
         newStatement += "$RECAPS_STATEMENT: ${resources.getActionsString()}."
     }
 
-    return newStatement
+    return if (newStatement == "") null else newStatement
 }
 
 private fun List<String>?.getActionsString(): String {

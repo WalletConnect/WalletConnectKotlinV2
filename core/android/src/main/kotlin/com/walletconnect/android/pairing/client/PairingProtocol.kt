@@ -3,6 +3,7 @@
 package com.walletconnect.android.pairing.client
 
 import com.walletconnect.android.Core
+import com.walletconnect.android.internal.Validator
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.pairing.engine.domain.PairingEngine
@@ -130,6 +131,14 @@ internal class PairingProtocol(private val koinApp: KoinApplication = wcKoinApp)
         checkEngineInitialization()
 
         return pairingEngine.getPairings().map { pairing -> pairing.toCore() }
+    }
+
+    override fun validatePairingUri(uri: String): Boolean {
+        return try {
+            Validator.validateWCUri(uri) != null
+        } catch (e: Exception) {
+            false
+        }
     }
 
     private suspend fun awaitConnection(onConnection: () -> Unit, errorLambda: (Throwable) -> Unit = {}) {

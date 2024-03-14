@@ -22,6 +22,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import timber.log.Timber
@@ -75,6 +76,11 @@ class NotifyClientInstrumentedAndroidTest {
     private fun setDelegates(primaryNotifyDelegate: NotifyInterface.Delegate, secondaryNotifyDelegate: NotifyInterface.Delegate) {
         PrimaryNotifyClient.setDelegate(primaryNotifyDelegate)
         SecondaryNotifyClient.setDelegate(secondaryNotifyDelegate)
+    }
+
+    @Before
+    fun setup() {
+        Timber.plant(Timber.DebugTree())
     }
 
     @Test
