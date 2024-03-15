@@ -3,6 +3,7 @@ package com.walletconnect.web3.wallet.client
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreInterface
 import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.auth.client.AuthClient
 import com.walletconnect.auth.common.exceptions.AuthClientAlreadyInitializedException
@@ -10,6 +11,7 @@ import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import com.walletconnect.sign.common.exceptions.SignClientAlreadyInitializedException
 import kotlinx.coroutines.*
+import org.koin.dsl.module
 import java.util.*
 
 object Web3Wallet {
@@ -17,7 +19,7 @@ object Web3Wallet {
 
     interface WalletDelegate {
         fun onSessionProposal(sessionProposal: Wallet.Model.SessionProposal, verifyContext: Wallet.Model.VerifyContext)
-        fun onSessionAuthenticate(sessionAuthenticate: Wallet.Model.SessionAuthenticate, verifyContext: Wallet.Model.VerifyContext) {}
+        val onSessionAuthenticate: ((Wallet.Model.SessionAuthenticate, Wallet.Model.VerifyContext) -> Unit)? get() = null
         fun onSessionRequest(sessionRequest: Wallet.Model.SessionRequest, verifyContext: Wallet.Model.VerifyContext)
         fun onSessionDelete(sessionDelete: Wallet.Model.SessionDelete)
         fun onSessionExtend(session: Wallet.Model.Session)
@@ -41,15 +43,21 @@ object Web3Wallet {
 
     @Throws(IllegalStateException::class)
     fun setWalletDelegate(delegate: WalletDelegate) {
+        val isSessionAuthenticateImplemented = delegate.onSessionAuthenticate != null
 
         val signWalletDelegate = object : SignClient.WalletDelegate {
             override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal, verifyContext: Sign.Model.VerifyContext) {
                 delegate.onSessionProposal(sessionProposal.toWallet(), verifyContext.toWallet())
             }
 
-            override fun onSessionAuthenticate(sessionAuthenticate: Sign.Model.SessionAuthenticate, verifyContext: Sign.Model.VerifyContext) {
-                delegate.onSessionAuthenticate(sessionAuthenticate.toWallet(), verifyContext.toWallet())
-            }
+            override val onSessionAuthenticate: ((Sign.Model.SessionAuthenticate, Sign.Model.VerifyContext) -> Unit)?
+                get() = if (isSessionAuthenticateImplemented) {
+                    { sessionAuthenticate, verifyContext ->
+                        delegate.onSessionAuthenticate?.invoke(sessionAuthenticate.toWallet(), verifyContext.toWallet())
+                    }
+                } else {
+                    null
+                }
 
             override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest, verifyContext: Sign.Model.VerifyContext) {
                 delegate.onSessionRequest(sessionRequest.toWallet(), verifyContext.toWallet())
@@ -110,6 +118,9 @@ object Web3Wallet {
     @Throws(IllegalStateException::class)
     fun initialize(params: Wallet.Params.Init, onSuccess: () -> Unit = {}, onError: (Wallet.Model.Error) -> Unit) {
         coreClient = params.core
+
+        wcKoinApp.modules(module { single { params.enableAuthenticate } })
+
         var clientInitCounter = 0
         val onSuccessfulInitialization: () -> Unit = { clientInitCounter++ }
 

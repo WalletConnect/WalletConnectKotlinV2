@@ -27,6 +27,7 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
     var sessionRequestEvent: Pair<Wallet.Model.SessionRequest, Wallet.Model.VerifyContext>? = null
     var currentId: Long? = null
 
+
     init {
         CoreClient.setDelegate(this)
         Web3Wallet.setWalletDelegate(this)
@@ -72,13 +73,15 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
         }
     }
 
-    override fun onSessionAuthenticate(sessionAuthenticate: Wallet.Model.SessionAuthenticate, verifyContext: Wallet.Model.VerifyContext) {
-        sessionAuthenticateEvent = Pair(sessionAuthenticate, verifyContext)
+    override val onSessionAuthenticate: ((Wallet.Model.SessionAuthenticate, Wallet.Model.VerifyContext) -> Unit)
+        get() = { sessionAuthenticate, verifyContext ->
 
-        scope.launch {
-            _walletEvents.emit(sessionAuthenticate)
+            sessionAuthenticateEvent = Pair(sessionAuthenticate, verifyContext)
+
+            scope.launch {
+                _walletEvents.emit(sessionAuthenticate)
+            }
         }
-    }
 
     override fun onSessionRequest(sessionRequest: Wallet.Model.SessionRequest, verifyContext: Wallet.Model.VerifyContext) {
         if (currentId != sessionRequest.request.id) {
