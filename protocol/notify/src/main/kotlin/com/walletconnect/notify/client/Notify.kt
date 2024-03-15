@@ -111,11 +111,11 @@ object Notify {
 
         data class DecryptNotification(val topic: String, val encryptedMessage: String) : Params()
 
-        data class PrepareRegistration(val account: String, val domain: String, val allApps: Boolean = true) : Params()
+        data class PrepareRegistration(val account: String, val domain: String) : Params()
 
         data class Register(val cacaoPayloadWithIdentityPrivateKey: Model.CacaoPayloadWithIdentityPrivateKey, val signature: Model.Cacao.Signature) : Params()
 
-        data class IsRegistered(val account: String, val domain: String, val allApps: Boolean = true) : Params()
+        data class IsRegistered(val account: String, val domain: String) : Params()
 
         data class Unregister(val account: String) : Params()
     }

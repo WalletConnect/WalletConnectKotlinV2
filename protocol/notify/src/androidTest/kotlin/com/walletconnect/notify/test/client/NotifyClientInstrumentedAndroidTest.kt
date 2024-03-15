@@ -130,11 +130,13 @@ class NotifyClientInstrumentedAndroidTest {
                                 is Notify.Result.Subscribe.Success -> {
                                     Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - subscribe success")
                                 }
+
                                 is Notify.Result.Subscribe.Error -> {
                                     Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - subscribe failure: ${result.error.throwable}")
                                 }
                             }
                         }
+
                     } else if (countPrimaryReceivedResponses < 2) {
                         Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - deleteSubscribe start")
 
@@ -145,6 +147,7 @@ class NotifyClientInstrumentedAndroidTest {
                                     Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - deleteSubscribe success")
                                     scenarioExtension.closeAsSuccess()
                                 }
+
                                 is Notify.Result.DeleteSubscription.Error -> {
                                     Timber.d("areTwoClientsInSyncAfterHavingSubscriptionAndReceivingMessage: primary - deleteSubscribe failure: ${result.error.throwable}")
                                 }

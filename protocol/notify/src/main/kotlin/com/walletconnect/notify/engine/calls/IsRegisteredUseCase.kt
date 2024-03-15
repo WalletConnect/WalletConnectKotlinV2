@@ -7,8 +7,8 @@ import com.walletconnect.android.internal.common.exception.AccountHasNoCacaoPayl
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.MissingKeyException
 import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
-import com.walletconnect.notify.common.Statement
 import com.walletconnect.notify.data.storage.RegisteredAccountsRepository
+import com.walletconnect.notify.engine.domain.createAuthorizationReCaps
 
 internal class IsRegisteredUseCase(
     private val registeredAccountsRepository: RegisteredAccountsRepository,
@@ -16,22 +16,21 @@ internal class IsRegisteredUseCase(
     private val identityServerUrl: String,
 ) : IsRegisteredUseCaseInterface {
 
-    override suspend fun isRegistered(account: String, domain: String, allApps: Boolean): Boolean {
+    override suspend fun isRegistered(account: String, domain: String): Boolean {
         try {
-            registeredAccountsRepository.getAccountByAccountId(account).let { registeredAccount ->
-                return when {
-                    !allApps && registeredAccount.appDomain != domain -> false
-                    allApps && !registeredAccount.allApps -> false
-                    !allApps && registeredAccount.allApps -> false
-                    else -> identitiesInteractor.getAlreadyRegisteredValidIdentity(AccountId(account), Statement.fromBoolean(allApps).content, domain, listOf(identityServerUrl))
-                        .map { true }
-                        .recover { exception ->
-                            when (exception) {
-                                is MissingKeyException, is AccountHasNoCacaoPayloadStored, is AccountHasDifferentStatementStored -> false
-                                else -> { false }
-                            }
-                        }.getOrElse { false }
-                }
+            registeredAccountsRepository.getAccountByAccountId(account).let {
+                return identitiesInteractor.getAlreadyRegisteredValidIdentity(
+                    accountId = AccountId(account),
+                    domain = domain,
+                    resources = listOf(identityServerUrl, createAuthorizationReCaps())
+                )
+                    .map { true }
+                    .recover { exception ->
+                        when (exception) {
+                            is MissingKeyException, is AccountHasNoCacaoPayloadStored, is AccountHasDifferentStatementStored -> false
+                            else -> false
+                        }
+                    }.getOrElse { false }
             }
         } catch (_: NullPointerException) {
             return false
@@ -40,5 +39,5 @@ internal class IsRegisteredUseCase(
 }
 
 internal interface IsRegisteredUseCaseInterface {
-    suspend fun isRegistered(account: String, domain: String, allApps: Boolean = false): Boolean
+    suspend fun isRegistered(account: String, domain: String): Boolean
 }

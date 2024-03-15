@@ -6,8 +6,6 @@ import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.CoreProtocol
 import com.walletconnect.android.cacao.signature.SignatureType
-import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.relay.RelayClient
 import com.walletconnect.android.utils.cacao.sign
@@ -52,39 +50,39 @@ internal object TestClient {
         private val initParams = Notify.Params.Init(coreProtocol)
         private var _isInitialized = MutableStateFlow(false)
         internal var isInitialized = _isInitialized.asStateFlow()
-        internal val notifyClient = NotifyClient.apply {
-            initialize(initParams, onError = { Timber.e(it.throwable) })
-        }.also { notifyClient ->
-            val isRegistered = notifyClient.isRegistered(params = Notify.Params.IsRegistered(caip10account, metadata.url, true))
 
+        internal val notifyClient =
+            NotifyClient
+                .apply {
+                    initialize(initParams, onError = { Timber.e(it.throwable) })
+                }.also { notifyClient ->
 
-            if (!isRegistered) {
-                notifyClient.prepareRegistration(Notify.Params.PrepareRegistration(caip10account, metadata.url, true),
-                    onSuccess = { cacaoPayloadWithIdentityPrivateKey, message ->
-                        Timber.d("PrepareRegistration Success")
+                    val isRegistered = notifyClient.isRegistered(params = Notify.Params.IsRegistered(caip10account, metadata.url))
 
-                        val signature = CacaoSigner.sign(message, privateKey.keyAsBytes, SignatureType.EIP191)
+                    if (!isRegistered) {
+                        notifyClient.prepareRegistration(Notify.Params.PrepareRegistration(caip10account, metadata.url),
+                            onSuccess = { cacaoPayloadWithIdentityPrivateKey, message ->
+                                Timber.d("PrepareRegistration Success")
 
-                        notifyClient.register(
-                            params = Notify.Params.Register(cacaoPayloadWithIdentityPrivateKey = cacaoPayloadWithIdentityPrivateKey, signature = signature),
-                            onSuccess = { identityKey ->
-                                Timber.d("Primary CP finish: $identityKey")
-                                _isInitialized.tryEmit(true)
+                                val signature = CacaoSigner.sign(message, privateKey.keyAsBytes, SignatureType.EIP191)
+                                notifyClient.register(
+                                    params = Notify.Params.Register(cacaoPayloadWithIdentityPrivateKey = cacaoPayloadWithIdentityPrivateKey, signature = signature),
+                                    onSuccess = { identityKey ->
+                                        Timber.d("Primary CP finish: $identityKey")
+                                        _isInitialized.tryEmit(true)
+                                    },
+                                    onError = { Timber.e(it.throwable.stackTraceToString()) }
+                                )
+
                             },
-                            onError = { Timber.e(it.throwable.stackTraceToString()) }
-                        )
-
-                    },
-                    onError = { error ->
-                        Timber.e(error.throwable)
-                        throw error.throwable
-                    })
-            }
-        }
+                            onError = { error ->
+                                Timber.e(error.throwable)
+                                throw error.throwable
+                            })
+                    }
+                }
 
         internal val Relay get() = coreProtocol.Relay
-        internal val Pairing = coreProtocol.Pairing
-        internal val identitiesInteractor: IdentitiesInteractor by lazy { wcKoinApp.koin.get() }
     }
 
     object Secondary {
@@ -124,11 +122,11 @@ internal object TestClient {
         internal val notifyClient = NotifyProtocol(secondaryKoinApp).apply {
             initialize(initParams, onError = { Timber.e(it.throwable) })
         }.also { notifyClient ->
-            val isRegistered = notifyClient.isRegistered(params = Notify.Params.IsRegistered(caip10account, metadata.url, true))
+            val isRegistered = notifyClient.isRegistered(params = Notify.Params.IsRegistered(caip10account, metadata.url))
 
 
             if (!isRegistered) {
-                notifyClient.prepareRegistration(Notify.Params.PrepareRegistration(caip10account, metadata.url, true),
+                notifyClient.prepareRegistration(Notify.Params.PrepareRegistration(caip10account, metadata.url),
                     onSuccess = { cacaoPayloadWithIdentityPrivateKey, message ->
                         Timber.d("PrepareRegistration Success")
 
@@ -152,7 +150,5 @@ internal object TestClient {
         }
 
         internal val Relay get() = coreProtocol.Relay
-        internal val Pairing = coreProtocol.Pairing
-        internal val identitiesInteractor: IdentitiesInteractor by lazy { secondaryKoinApp.koin.get() }
     }
 }
