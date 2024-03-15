@@ -9,7 +9,7 @@ import java.net.URI
 object Wallet {
 
     sealed class Params {
-        data class Init(val core: CoreInterface, val enableAuthenticate: Boolean = false) : Params()
+        data class Init(val core: CoreInterface) : Params()
 
         data class Pair(val uri: String) : Params()
 
