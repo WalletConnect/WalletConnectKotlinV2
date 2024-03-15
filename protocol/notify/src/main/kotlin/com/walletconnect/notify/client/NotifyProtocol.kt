@@ -146,7 +146,7 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
         checkEngineInitialization()
 
         return runBlocking {
-            notifyEngine.isRegistered(account = params.account, domain = params.domain, allApps = params.allApps)
+            notifyEngine.isRegistered(account = params.account, domain = params.domain)
         }
     }
 
@@ -161,7 +161,6 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
             notifyEngine.prepareRegistration(
                 account = params.account,
                 domain = params.domain,
-                allApps = params.allApps,
                 onSuccess = { cacaoPayloadWithIdentityPrivateKey, message -> onSuccess(cacaoPayloadWithIdentityPrivateKey.toClient(), message) },
                 onFailure = { error -> onError(Notify.Model.Error(error)) },
             )

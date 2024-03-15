@@ -19,8 +19,7 @@ internal class PrepareRegistrationUseCase(
         account: String,
         domain: String,
         onSuccess: (CacaoPayloadWithIdentityPrivateKey, String) -> Unit,
-        onFailure: (Throwable) -> Unit,
-        allApps: Boolean
+        onFailure: (Throwable) -> Unit
     ) {
         val identityPublicKey = identitiesInteractor.generateAndStoreIdentityKeyPair()
         val (_, identityPrivateKey) = keyManagementRepository.getKeyPair(identityPublicKey)
@@ -54,6 +53,5 @@ internal interface PrepareRegistrationUseCaseInterface {
         domain: String,
         onSuccess: (CacaoPayloadWithIdentityPrivateKey, String) -> Unit,
         onFailure: (Throwable) -> Unit,
-        allApps: Boolean = false
     )
 }

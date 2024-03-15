@@ -16,7 +16,7 @@ internal class IsRegisteredUseCase(
     private val identityServerUrl: String,
 ) : IsRegisteredUseCaseInterface {
 
-    override suspend fun isRegistered(account: String, domain: String, allApps: Boolean): Boolean {
+    override suspend fun isRegistered(account: String, domain: String): Boolean {
         try {
             registeredAccountsRepository.getAccountByAccountId(account).let {
                 return identitiesInteractor.getAlreadyRegisteredValidIdentity(
@@ -28,9 +28,7 @@ internal class IsRegisteredUseCase(
                     .recover { exception ->
                         when (exception) {
                             is MissingKeyException, is AccountHasNoCacaoPayloadStored, is AccountHasDifferentStatementStored -> false
-                            else -> {
-                                false
-                            }
+                            else -> false
                         }
                     }.getOrElse { false }
             }
@@ -41,5 +39,5 @@ internal class IsRegisteredUseCase(
 }
 
 internal interface IsRegisteredUseCaseInterface {
-    suspend fun isRegistered(account: String, domain: String, allApps: Boolean = false): Boolean
+    suspend fun isRegistered(account: String, domain: String): Boolean
 }

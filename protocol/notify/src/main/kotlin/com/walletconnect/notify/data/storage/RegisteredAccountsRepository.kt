@@ -12,8 +12,8 @@ import kotlinx.coroutines.withContext
 
 internal class RegisteredAccountsRepository(private val registeredAccounts: RegisteredAccountsQueries) {
 
-    suspend fun insertOrIgnoreAccount(accountId: AccountId, publicIdentityKey: PublicKey, appDomain: String? = null) = withContext(Dispatchers.IO) {
-        registeredAccounts.insertOrIgnoreAccount(accountId.value, publicIdentityKey.keyAsHex, true, appDomain)
+    suspend fun insertOrIgnoreAccount(accountId: AccountId, publicIdentityKey: PublicKey) = withContext(Dispatchers.IO) {
+        registeredAccounts.insertOrIgnoreAccount(accountId.value, publicIdentityKey.keyAsHex, true, null)
     }
 
     suspend fun updateNotifyServerData(accountId: AccountId, notifyServerWatchTopic: Topic, notifyServerAuthenticationKey: PublicKey) = withContext(Dispatchers.IO) {

@@ -57,7 +57,7 @@ internal object TestClient {
                     initialize(initParams, onError = { Timber.e(it.throwable) })
                 }.also { notifyClient ->
 
-                    val isRegistered = notifyClient.isRegistered(params = Notify.Params.IsRegistered(caip10account, metadata.url, true))
+                    val isRegistered = notifyClient.isRegistered(params = Notify.Params.IsRegistered(caip10account, metadata.url))
 
                     if (!isRegistered) {
                         notifyClient.prepareRegistration(Notify.Params.PrepareRegistration(caip10account, metadata.url),
@@ -122,11 +122,11 @@ internal object TestClient {
         internal val notifyClient = NotifyProtocol(secondaryKoinApp).apply {
             initialize(initParams, onError = { Timber.e(it.throwable) })
         }.also { notifyClient ->
-            val isRegistered = notifyClient.isRegistered(params = Notify.Params.IsRegistered(caip10account, metadata.url, true))
+            val isRegistered = notifyClient.isRegistered(params = Notify.Params.IsRegistered(caip10account, metadata.url))
 
 
             if (!isRegistered) {
-                notifyClient.prepareRegistration(Notify.Params.PrepareRegistration(caip10account, metadata.url, true),
+                notifyClient.prepareRegistration(Notify.Params.PrepareRegistration(caip10account, metadata.url),
                     onSuccess = { cacaoPayloadWithIdentityPrivateKey, message ->
                         Timber.d("PrepareRegistration Success")
 
