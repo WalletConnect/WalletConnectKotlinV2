@@ -9,7 +9,7 @@ import java.net.URI
 object Wallet {
 
     sealed class Params {
-        data class Init constructor(val core: CoreInterface) : Params()
+        data class Init(val core: CoreInterface) : Params()
 
         data class Pair(val uri: String) : Params()
 
@@ -19,7 +19,7 @@ object Wallet {
             val relayProtocol: String? = null,
         ) : Params()
 
-        data class ApproveSessionAuthenticate(val id: Long, val auths: List<Wallet.Model.Cacao>) : Params()
+        data class ApproveSessionAuthenticate(val id: Long, val auths: List<Model.Cacao>) : Params()
 
         data class RejectSessionAuthenticate(val id: Long, val reason: String) : Params()
 

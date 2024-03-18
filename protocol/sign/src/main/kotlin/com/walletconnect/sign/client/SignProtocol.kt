@@ -3,6 +3,7 @@
 package com.walletconnect.sign.client
 
 import com.walletconnect.android.Core
+import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.di.DatabaseConfig
 import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.Expiry
@@ -23,6 +24,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.koin.core.KoinApplication
+import org.koin.core.qualifier.named
+import org.koin.dsl.module
 
 class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInterface {
     private lateinit var signEngine: SignEngine
@@ -56,10 +59,11 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     override fun setWalletDelegate(delegate: SignInterface.WalletDelegate) {
         checkEngineInitialization()
 
+        wcKoinApp.modules(module { single(named(AndroidCommonDITags.ENABLE_AUTHENTICATE)) { delegate.onSessionAuthenticate != null } })
         signEngine.engineEvent.onEach { event ->
             when (event) {
                 is EngineDO.SessionProposalEvent -> delegate.onSessionProposal(event.proposal.toClientSessionProposal(), event.context.toCore())
-                is EngineDO.SessionAuthenticateEvent -> delegate.onSessionAuthenticate(event.toClientSessionAuthenticate(), event.verifyContext.toCore())
+                is EngineDO.SessionAuthenticateEvent -> delegate.onSessionAuthenticate?.invoke(event.toClientSessionAuthenticate(), event.verifyContext.toCore())
                 is EngineDO.SessionRequestEvent -> delegate.onSessionRequest(event.request.toClientSessionRequest(), event.context.toCore())
                 is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
                 is EngineDO.SessionExtend -> delegate.onSessionExtend(event.toClientActiveSession())
