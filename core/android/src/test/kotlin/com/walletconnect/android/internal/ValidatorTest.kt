@@ -14,7 +14,8 @@ internal class ValidatorTest {
 
     @Test
     fun `validate with encoded uri query parameter`() {
-        val validUri = "deeplink://wc?uri=wc%3A7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9%402%3Frelay-protocol%3Dirn%26symKey%3D587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
+        val validUri =
+            "deeplink://wc?uri=wc%3A7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9%402%3Frelay-protocol%3Dirn%26symKey%3D587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
 
         Validator.validateWCUri("").apply { assertEquals(null, this) }
         Validator.validateWCUri(validUri).apply {
@@ -28,7 +29,8 @@ internal class ValidatorTest {
 
     @Test
     fun `validate with decoded uri query parameter`() {
-        val validUri = "deeplink://wc?uri=wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=irn&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
+        val validUri =
+            "deeplink://wc?uri=wc:7f6e504bfad60b485450578e05678ed3e8e8c4751d3c6160be17160d63ec90f9@2?relay-protocol=irn&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303"
 
         Validator.validateWCUri("").apply { assertEquals(null, this) }
         Validator.validateWCUri(validUri).apply {
@@ -94,16 +96,18 @@ internal class ValidatorTest {
             Topic("11112222244444"),
             SymmetricKey("0x12321321312312312321"),
             RelayProtocolOptions("irn", "teeestData"),
-            expiry = null
+            expiry = null,
+            methods = "wc_method"
         )
 
-        assertEquals(uri.toAbsoluteString(), "wc:11112222244444@2?relay-protocol=irn&relay-data=teeestData&symKey=0x12321321312312312321")
+        assertEquals(uri.toAbsoluteString(), "wc:11112222244444@2?relay-protocol=irn&relay-data=teeestData&methods=wc_method&symKey=0x12321321312312312321")
 
         val uri2 = WalletConnectUri(
             Topic("11112222244444"),
             SymmetricKey("0x12321321312312312321"),
             RelayProtocolOptions("irn"),
-            expiry = Expiry(1705667684)
+            expiry = Expiry(1705667684),
+            methods = ""
         )
 
         assertEquals(uri2.toAbsoluteString(), "wc:11112222244444@2?relay-protocol=irn&expiryTimestamp=1705667684&symKey=0x12321321312312312321")

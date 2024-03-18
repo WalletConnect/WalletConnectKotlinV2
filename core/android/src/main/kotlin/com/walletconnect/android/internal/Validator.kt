@@ -36,15 +36,13 @@ internal object Validator {
         val mapOfQueryParameters: Map<String, String> =
             pairUri.query.split("&").associate { query -> query.substringBefore("=") to query.substringAfter("=") }
 
-//        if (!mapOfQueryParameters.containsKey("methods")) return null TODO: Will add back later after discussion about how we want to handle registered methods
-
         var relayProtocol = ""
         mapOfQueryParameters["relay-protocol"]?.let { relayProtocol = it } ?: return null
         if (relayProtocol.isEmpty()) return null
 
         val relayData: String? = mapOfQueryParameters["relay-data"]
-
         val expiry: String? = mapOfQueryParameters["expiryTimestamp"]
+        val methods: String? = mapOfQueryParameters["methods"]
 
         var symKey = ""
         mapOfQueryParameters["symKey"]?.let { symKey = it } ?: return null
@@ -54,14 +52,9 @@ internal object Validator {
             topic = Topic(pairUri.userInfo),
             relay = RelayProtocolOptions(protocol = relayProtocol, data = relayData),
             symKey = SymmetricKey(symKey),
-            expiry = if (expiry != null) Expiry(expiry.toLong()) else null
-            /*registeredMethods = mapOfQueryParameters["methods"]!!*/ //TODO: Will add back later after discussion about how we want to handle registered methods
+            expiry = if (expiry != null) Expiry(expiry.toLong()) else null,
+            methods = methods
         )
-    }
-
-    @JvmSynthetic
-    internal fun doesNotContainRegisteredMethods(uriMethods: String, registeredMethods: Set<String>): Boolean {
-        return !registeredMethods.containsAll(uriMethods.split(","))
     }
 
     private fun getWcUri(uriScheme: String): String {

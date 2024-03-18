@@ -135,7 +135,7 @@ internal class NotifyEngine(
                 when (val params = response.params) {
                     is CoreNotifyParams.SubscribeParams -> onSubscribeResponseUseCase(response, params)
                     is CoreNotifyParams.UpdateParams -> onUpdateResponseUseCase(response, params)
-                    is CoreNotifyParams.WatchSubscriptionsParams -> onWatchSubscriptionsResponseUseCase(response, params)
+                    is CoreNotifyParams.WatchSubscriptionsParams -> onWatchSubscriptionsResponseUseCase(response)
                     is CoreNotifyParams.DeleteParams -> onDeleteResponseUseCase(response, params)
                     is CoreNotifyParams.GetNotificationsParams -> onGetNotificationsResponseUseCase(response, params)
                 }

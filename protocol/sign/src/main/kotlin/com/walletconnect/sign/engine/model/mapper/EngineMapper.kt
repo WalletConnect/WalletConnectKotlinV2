@@ -10,12 +10,18 @@ import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SessionProposer
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
+import com.walletconnect.android.internal.common.signing.cacao.Cacao
+import com.walletconnect.android.internal.common.signing.cacao.CacaoType
+import com.walletconnect.android.internal.common.signing.cacao.Issuer
+import com.walletconnect.android.internal.common.signing.cacao.toCAIP222Message
 import com.walletconnect.android.verify.data.model.VerifyContext
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.exceptions.PeerError
-import com.walletconnect.sign.common.model.PendingRequest
-import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipantVO
+import com.walletconnect.sign.common.model.Request
+import com.walletconnect.sign.common.model.vo.clientsync.common.PayloadParams
+import com.walletconnect.sign.common.model.vo.clientsync.common.Requester
+import com.walletconnect.sign.common.model.vo.clientsync.common.SessionParticipant
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.common.model.vo.proposal.ProposalVO
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
@@ -24,6 +30,8 @@ import com.walletconnect.sign.engine.model.ValidationError
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
 import com.walletconnect.util.Empty
 import java.net.URI
+import java.text.SimpleDateFormat
+import java.util.Calendar
 
 @JvmSynthetic
 internal fun EngineDO.WalletConnectUri.toAbsoluteString(): String =
@@ -146,7 +154,7 @@ internal fun SessionVO.toSessionApproved(): EngineDO.SessionApproved =
 
 @JvmSynthetic
 internal fun ProposalVO.toSessionSettleParams(
-    selfParticipant: SessionParticipantVO,
+    selfParticipant: SessionParticipant,
     sessionExpiry: Long,
     namespaces: Map<String, EngineDO.Namespace.Session>,
 ): SignParams.SessionSettleParams =
@@ -197,7 +205,7 @@ internal fun ProposalVO.toEngineDO(): EngineDO.SessionProposal =
 internal fun ProposalVO.toExpiredProposal(): EngineDO.ExpiredProposal = EngineDO.ExpiredProposal(pairingTopic.value, proposerPublicKey)
 
 @JvmSynthetic
-internal fun PendingRequest<String>.toExpiredSessionRequest() = EngineDO.ExpiredRequest(topic.value, id)
+internal fun Request<String>.toExpiredSessionRequest() = EngineDO.ExpiredRequest(topic.value, id)
 
 private fun convertToURI(it: String) = try {
     URI(it)
@@ -265,7 +273,7 @@ internal fun SignParams.EventParams.toEngineDOEvent(): EngineDO.Event =
     EngineDO.Event(event.name, event.data.toString(), chainId)
 
 @JvmSynthetic
-internal fun PendingRequest<String>.toSessionRequest(peerAppMetaData: AppMetaData?): EngineDO.SessionRequest =
+internal fun Request<String>.toSessionRequest(peerAppMetaData: AppMetaData?): EngineDO.SessionRequest =
     EngineDO.SessionRequest(topic.value, chainId, peerAppMetaData, EngineDO.SessionRequest.JSONRPCRequest(id, method, params), expiry)
 
 
@@ -289,3 +297,61 @@ internal fun ValidationError.toPeerError() = when (this) {
 @JvmSynthetic
 internal fun VerifyContext.toEngineDO(): EngineDO.VerifyContext =
     EngineDO.VerifyContext(id, origin, validation, verifyUrl, isScam)
+
+@JvmSynthetic
+internal fun Requester.toEngineDO(): EngineDO.Participant =
+    EngineDO.Participant(publicKey, metadata)
+
+@JvmSynthetic
+internal fun EngineDO.Authenticate.toCommon(): PayloadParams =
+    PayloadParams(
+        domain = domain,
+        aud = aud,
+        nonce = nonce,
+        nbf = nbf,
+        exp = exp,
+        statement = statement,
+        requestId = requestId,
+        resources = resources,
+        chains = chains,
+        type = type ?: CacaoType.EIP4361.header,
+        version = "1",
+        iat = SimpleDateFormat(Cacao.Payload.ISO_8601_PATTERN).format(Calendar.getInstance().time)
+    )
+
+@JvmSynthetic
+internal fun PayloadParams.toEngineDO(): EngineDO.PayloadParams =
+    EngineDO.PayloadParams(
+        domain = domain,
+        aud = aud,
+        version = "1",
+        nonce = nonce,
+        nbf = nbf,
+        exp = exp,
+        statement = statement,
+        requestId = requestId,
+        resources = resources,
+        chains = chains,
+        type = type,
+        iat = iat
+    )
+
+@JvmSynthetic
+internal fun EngineDO.PayloadParams.toCacaoPayload(iss: Issuer): Cacao.Payload =
+    Cacao.Payload(
+        iss.value,
+        domain = domain,
+        aud = aud,
+        version = version,
+        nonce = nonce,
+        nbf = nbf,
+        exp = exp,
+        iat = iat,
+        statement = statement,
+        requestId = requestId,
+        resources = resources
+    )
+
+@JvmSynthetic
+internal fun EngineDO.PayloadParams.toCAIP222Message(iss: Issuer, chainName: String): String =
+    this.toCacaoPayload(iss).toCAIP222Message(chainName)

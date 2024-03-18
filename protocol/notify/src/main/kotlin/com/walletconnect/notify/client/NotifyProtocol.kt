@@ -136,7 +136,7 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
             notifyEngine.register(
                 cacaoPayloadWithIdentityPrivateKey = params.cacaoPayloadWithIdentityPrivateKey.toCommon(),
                 signature = params.signature.toCommon(),
-                onSuccess = onSuccess,
+                onSuccess = { onSuccess(it) },
                 onFailure = { error -> onError(Notify.Model.Error(error)) },
             )
         }
@@ -146,18 +146,21 @@ class NotifyProtocol(private val koinApp: KoinApplication = wcKoinApp) : NotifyI
         checkEngineInitialization()
 
         return runBlocking {
-            notifyEngine.isRegistered(account = params.account, domain = params.domain, allApps = params.allApps)
+            notifyEngine.isRegistered(account = params.account, domain = params.domain)
         }
     }
 
-    override fun prepareRegistration(params: Notify.Params.PrepareRegistration, onSuccess: (Notify.Model.CacaoPayloadWithIdentityPrivateKey, String) -> Unit, onError: (Notify.Model.Error) -> Unit) {
+    override fun prepareRegistration(
+        params: Notify.Params.PrepareRegistration,
+        onSuccess: (Notify.Model.CacaoPayloadWithIdentityPrivateKey, String) -> Unit,
+        onError: (Notify.Model.Error) -> Unit
+    ) {
         checkEngineInitialization()
 
         scope.launch {
             notifyEngine.prepareRegistration(
                 account = params.account,
                 domain = params.domain,
-                allApps = params.allApps,
                 onSuccess = { cacaoPayloadWithIdentityPrivateKey, message -> onSuccess(cacaoPayloadWithIdentityPrivateKey.toClient(), message) },
                 onFailure = { error -> onError(Notify.Model.Error(error)) },
             )

@@ -40,7 +40,7 @@ class CacaoTestJvmTest {
         );
 
         String chainName = "Ethereum";
-        String message = CacaoKt.toCAIP122Message(payload, chainName);
+        String message = CacaoKt.toCAIP222Message(payload, chainName);
         SignatureTest signature = CacaoSignerUtil.signHex(SignatureTest.class, Numeric.toHexString(message.getBytes(StandardCharsets.UTF_8)), privateKey, SignatureType.EIP191);
         Cacao.Signature cacaoSig = new Cacao.Signature(signature.getT(), signature.getS(), signature.getM());
         Cacao cacao = new Cacao(CacaoType.EIP4361.toHeader(), payload, cacaoSig);
@@ -72,7 +72,7 @@ class CacaoTestJvmTest {
         );
 
         String chainName = "Ethereum";
-        String message = CacaoKt.toCAIP122Message(payload, chainName);
+        String message = CacaoKt.toCAIP222Message(payload, chainName);
         SignatureTest signature = CacaoSignerUtil.sign(SignatureTest.class, message, privateKey, SignatureType.EIP191);
         Cacao.Signature cacaoSig = new Cacao.Signature(signature.getT(), signature.getS(), signature.getM());
         Cacao cacao = new Cacao(CacaoType.EIP4361.toHeader(), payload, cacaoSig);

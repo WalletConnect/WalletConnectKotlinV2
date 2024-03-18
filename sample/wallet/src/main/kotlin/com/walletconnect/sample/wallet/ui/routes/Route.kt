@@ -8,6 +8,7 @@ sealed class Route(val path: String) {
     object SessionProposal : Route("session_proposal")
     object SessionRequest : Route("session_request")
     object AuthRequest : Route("auth_request")
+    object SessionAuthenticate : Route("session_authenticate")
     object PasteUri : Route("paste_uri")
     object ScanUri : Route("scan_uri")
 
@@ -23,7 +24,6 @@ sealed class Route(val path: String) {
 fun NavController.showSnackbar(message: String) {
     navigate("${Route.SnackbarMessage.path}/$message")
 }
-
 
 
 

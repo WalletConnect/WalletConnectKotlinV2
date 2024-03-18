@@ -35,9 +35,10 @@ class KeyserverInstrumentedAndroidTest {
         Timber.d("registerIdentityByPrimaryClient: start")
         scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) {
             Timber.d(EthereumAccount.caip10)
+
             TestClient.Primary.identitiesInteractor.registerIdentity(
                 AccountId(EthereumAccount.caip10),
-                statement, domain, emptyList(), TestClient.Primary.keyserverUrl
+                statement, domain, null, TestClient.Primary.keyserverUrl
             ) { message ->
                 CacaoSigner.sign(message, PrivateKey(EthereumAccount.privKey).keyAsBytes, SignatureType.EIP191)
             }.fold(
@@ -98,7 +99,7 @@ class KeyserverInstrumentedAndroidTest {
         scenarioExtension.launch(BuildConfig.TEST_TIMEOUT_SECONDS.toLong()) {
             TestClient.Primary.identitiesInteractor.registerIdentity(
                 AccountId(BNBAccount.caip10),
-                statement, domain, emptyList(), TestClient.Primary.keyserverUrl
+                statement, domain, null, TestClient.Primary.keyserverUrl
             ) { message ->
                 CacaoSigner.sign(message, PrivateKey(BNBAccount.privKey).keyAsBytes, SignatureType.EIP191)
             }.fold(

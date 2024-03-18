@@ -9,6 +9,7 @@ import com.walletconnect.android.internal.common.model.Redirect
 import com.walletconnect.android.pairing.model.activePairing
 import com.walletconnect.android.sdk.storage.data.dao.PairingQueries
 import com.walletconnect.foundation.common.model.Topic
+import com.walletconnect.utils.Empty
 
 class PairingStorageRepository(private val pairingQueries: PairingQueries) : PairingStorageRepositoryInterface {
 
@@ -21,7 +22,7 @@ class PairingStorageRepository(private val pairingQueries: PairingQueries) : Pai
                 relay_protocol = relayProtocol,
                 relay_data = relayData,
                 uri = uri,
-                methods = registeredMethods,
+                methods = methods ?: String.Empty,
                 is_active = isActive,
                 is_proposal_received = isProposalReceived
             )
@@ -51,8 +52,8 @@ class PairingStorageRepository(private val pairingQueries: PairingQueries) : Pai
     override fun activatePairing(topic: Topic) = pairingQueries.activatePairing(expiry = activePairing, is_active = true, topic = topic.value)
 
     @Throws(SQLiteException::class)
-    override fun setProposalReceived(topic: Topic) {
-        pairingQueries.setProposalReceived(is_proposal_received = true, topic = topic.value)
+    override fun setRequestReceived(topic: Topic) {
+        pairingQueries.setRequestReceived(is_proposal_received = true, topic = topic.value)
     }
 
     @Throws(SQLiteException::class)
@@ -89,8 +90,8 @@ class PairingStorageRepository(private val pairingQueries: PairingQueries) : Pai
             relayProtocol = relay_protocol,
             relayData = relay_data,
             uri = uri,
-            registeredMethods = methods,
-            isProposalReceived = is_proposal_received ?: true
+            isProposalReceived = is_proposal_received ?: true,
+            methods = methods
         )
     }
 }

@@ -102,6 +102,11 @@ class Web3WalletViewModel : ViewModel() {
                 AuthEvent.OnRequest(wcEvent.id, message)
             }
 
+            is Wallet.Model.SessionAuthenticate -> {
+                _isLoadingFlow.value = false
+                SignEvent.SessionAuthenticate
+            }
+
             is Wallet.Model.SessionDelete -> SignEvent.Disconnect
             is Wallet.Model.SessionProposal -> {
                 _isLoadingFlow.value = false

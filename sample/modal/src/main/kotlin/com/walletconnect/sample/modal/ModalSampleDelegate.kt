@@ -64,6 +64,10 @@ object ModalSampleDelegate : Web3Modal.ModalDelegate {
         }
     }
 
+    override fun onSessionAuthenticateResponse(sessionUpdateResponse: Modal.Model.SessionAuthenticateResponse) {
+        TODO("Not yet implemented")
+    }
+
     override fun onProposalExpired(proposal: Modal.Model.ExpiredProposal) {
         scope.launch {
             _wcEventModels.emit(proposal)

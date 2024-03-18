@@ -1,5 +1,6 @@
 package com.walletconnect.web3.wallet.client
 
+import com.walletconnect.android.internal.common.signing.cacao.CacaoType
 import com.walletconnect.auth.client.Auth
 import com.walletconnect.sign.client.Sign
 
@@ -52,10 +53,13 @@ internal fun Wallet.Params.AuthRequestResponse.toAuth(): Auth.Params.Respond = w
 internal fun Wallet.Model.Cacao.Signature.toAuth(): Auth.Model.Cacao.Signature = Auth.Model.Cacao.Signature(t, s, m)
 
 @JvmSynthetic
+internal fun Wallet.Model.Cacao.Signature.toSign(): Sign.Model.Cacao.Signature = Sign.Model.Cacao.Signature(t, s, m)
+
+@JvmSynthetic
 internal fun Wallet.Model.SessionEvent.toSign(): Sign.Model.SessionEvent = Sign.Model.SessionEvent(name, data)
 
 @JvmSynthetic
-internal fun Wallet.Model.PayloadParams.toSign(): Auth.Model.PayloadParams =
+internal fun Wallet.Model.PayloadParams.toAuth(): Auth.Model.PayloadParams =
     Auth.Model.PayloadParams(
         type = type,
         chainId = chainId,
@@ -69,6 +73,22 @@ internal fun Wallet.Model.PayloadParams.toSign(): Auth.Model.PayloadParams =
         statement = statement,
         requestId = requestId,
         resources = resources,
+    )
+
+@JvmSynthetic
+internal fun Wallet.Model.PayloadAuthRequestParams.toSign(): Sign.Model.PayloadParams =
+    Sign.Model.PayloadParams(
+        type = type ?: CacaoType.CAIP222.header,
+        chains = chains,
+        domain = domain,
+        aud = aud,
+        nonce = nonce,
+        nbf = nbf,
+        exp = exp,
+        statement = statement,
+        requestId = requestId,
+        resources = resources,
+        iat = iat
     )
 
 @JvmSynthetic
@@ -138,6 +158,29 @@ internal fun Sign.Model.SessionProposal.toWallet(): Wallet.Model.SessionProposal
         proposerPublicKey,
         relayProtocol,
         relayData
+    )
+
+@JvmSynthetic
+internal fun Sign.Model.SessionAuthenticate.toWallet(): Wallet.Model.SessionAuthenticate =
+    Wallet.Model.SessionAuthenticate(id, topic, participant.toWallet(), payloadParams.toWallet())
+
+@JvmSynthetic
+internal fun Sign.Model.SessionAuthenticate.Participant.toWallet(): Wallet.Model.SessionAuthenticate.Participant = Wallet.Model.SessionAuthenticate.Participant(publicKey, metadata)
+
+@JvmSynthetic
+internal fun Sign.Model.PayloadParams.toWallet(): Wallet.Model.PayloadAuthRequestParams =
+    Wallet.Model.PayloadAuthRequestParams(
+        chains = chains,
+        type = type ?: CacaoType.CAIP222.header,
+        domain = domain,
+        aud = aud,
+        nonce = nonce,
+        nbf = nbf,
+        exp = exp,
+        statement = statement,
+        requestId = requestId,
+        resources = resources,
+        iat = iat
     )
 
 internal fun Sign.Model.VerifyContext.toWallet(): Wallet.Model.VerifyContext =
@@ -256,5 +299,53 @@ internal fun Auth.Model.Message.AuthRequest.toWallet(): Wallet.Model.Message.Aut
         pairingTopic,
         metadata,
         Wallet.Model.Message.AuthRequest.PayloadParams(type, chainId, domain, aud, version, nonce, iat, nbf, exp, statement, requestId, resources)
+    )
+}
+
+@JvmSynthetic
+internal fun List<Wallet.Model.Cacao>.toSign(): List<Sign.Model.Cacao> = mutableListOf<Sign.Model.Cacao>().apply {
+    this@toSign.forEach { cacao: Wallet.Model.Cacao ->
+        with(cacao) {
+            add(
+                Sign.Model.Cacao(
+                    Sign.Model.Cacao.Header(header.t),
+                    Sign.Model.Cacao.Payload(
+                        payload.iss,
+                        payload.domain,
+                        payload.aud,
+                        payload.version,
+                        payload.nonce,
+                        payload.iat,
+                        payload.nbf,
+                        payload.exp,
+                        payload.statement,
+                        payload.requestId,
+                        payload.resources
+                    ),
+                    Sign.Model.Cacao.Signature(signature.t, signature.s, signature.m)
+                )
+            )
+        }
+    }
+}
+
+@JvmSynthetic
+internal fun Sign.Model.Cacao.toWallet(): Wallet.Model.Cacao = with(this) {
+    Wallet.Model.Cacao(
+        Wallet.Model.Cacao.Header(header.t),
+        Wallet.Model.Cacao.Payload(
+            payload.iss,
+            payload.domain,
+            payload.aud,
+            payload.version,
+            payload.nonce,
+            payload.iat,
+            payload.nbf,
+            payload.exp,
+            payload.statement,
+            payload.requestId,
+            payload.resources
+        ),
+        Wallet.Model.Cacao.Signature(signature.t, signature.s, signature.m)
     )
 }

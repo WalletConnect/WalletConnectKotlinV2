@@ -25,23 +25,29 @@ import com.walletconnect.sign.engine.model.mapper.toExpiredProposal
 import com.walletconnect.sign.engine.model.mapper.toExpiredSessionRequest
 import com.walletconnect.sign.engine.model.mapper.toSessionRequest
 import com.walletconnect.sign.engine.sessionRequestEventsQueue
+import com.walletconnect.sign.engine.use_case.calls.ApproveSessionAuthenticateUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.ApproveSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.DisconnectSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.EmitEventUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.ExtendSessionUseCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.FormatAuthenticateMessageUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.GetListOfVerifyContextsUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.GetPairingsUseCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.GetPendingAuthenticateRequestUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.GetSessionProposalsUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.GetSessionsUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.GetVerifyContextByIdUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.PairUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.PingUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.ProposeSessionUseCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.RejectSessionAuthenticateUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.RejectSessionUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.RespondSessionRequestUseCaseInterface
+import com.walletconnect.sign.engine.use_case.calls.SessionAuthenticateUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.SessionRequestUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.SessionUpdateUseCaseInterface
 import com.walletconnect.sign.engine.use_case.requests.OnPingUseCase
+import com.walletconnect.sign.engine.use_case.requests.OnSessionAuthenticateUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionDeleteUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionEventUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionExtendUseCase
@@ -49,6 +55,7 @@ import com.walletconnect.sign.engine.use_case.requests.OnSessionProposalUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionRequestUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionSettleUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionUpdateUseCase
+import com.walletconnect.sign.engine.use_case.responses.OnSessionAuthenticateResponseUseCase
 import com.walletconnect.sign.engine.use_case.responses.OnSessionProposalResponseUseCase
 import com.walletconnect.sign.engine.use_case.responses.OnSessionRequestResponseUseCase
 import com.walletconnect.sign.engine.use_case.responses.OnSessionSettleResponseUseCase
@@ -58,6 +65,7 @@ import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCaseByTopicIn
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequestByTopicUseCaseInterface
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequests
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
+import com.walletconnect.sign.storage.authenticate.AuthenticateResponseTopicRepository
 import com.walletconnect.sign.storage.proposal.ProposalStorageRepository
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import com.walletconnect.utils.Empty
@@ -81,21 +89,27 @@ internal class SignEngine(
     private val getPendingRequestsByTopicUseCase: GetPendingRequestsUseCaseByTopicInterface,
     private val getPendingSessionRequestByTopicUseCase: GetPendingSessionRequestByTopicUseCaseInterface,
     private val getPendingSessionRequests: GetPendingSessionRequests,
+    private val getPendingAuthenticateRequestUseCase: GetPendingAuthenticateRequestUseCaseInterface,
     private val deleteRequestByIdUseCase: DeleteRequestByIdUseCase,
     private val crypto: KeyManagementRepository,
+    private val authenticateResponseTopicRepository: AuthenticateResponseTopicRepository,
     private val proposalStorageRepository: ProposalStorageRepository,
     private val sessionStorageRepository: SessionStorageRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val pairingController: PairingControllerInterface,
     private val verifyContextStorageRepository: VerifyContextStorageRepository,
     private val proposeSessionUseCase: ProposeSessionUseCaseInterface,
+    private val authenticateSessionUseCase: SessionAuthenticateUseCaseInterface,
     private val pairUseCase: PairUseCaseInterface,
     private val rejectSessionUseCase: RejectSessionUseCaseInterface,
     private val approveSessionUseCase: ApproveSessionUseCaseInterface,
+    private val approveSessionAuthenticateUseCase: ApproveSessionAuthenticateUseCaseInterface,
+    private val rejectSessionAuthenticateUseCase: RejectSessionAuthenticateUseCaseInterface,
     private val sessionUpdateUseCase: SessionUpdateUseCaseInterface,
     private val sessionRequestUseCase: SessionRequestUseCaseInterface,
     private val respondSessionRequestUseCase: RespondSessionRequestUseCaseInterface,
     private val pingUseCase: PingUseCaseInterface,
+    private val formatAuthenticateMessageUseCase: FormatAuthenticateMessageUseCaseInterface,
     private val emitEventUseCase: EmitEventUseCaseInterface,
     private val extendSessionUseCase: ExtendSessionUseCaseInterface,
     private val disconnectSessionUseCase: DisconnectSessionUseCaseInterface,
@@ -106,6 +120,7 @@ internal class SignEngine(
     private val getVerifyContextByIdUseCase: GetVerifyContextByIdUseCaseInterface,
     private val getListOfVerifyContextsUseCase: GetListOfVerifyContextsUseCaseInterface,
     private val onSessionProposeUse: OnSessionProposalUseCase,
+    private val onAuthenticateSessionUseCase: OnSessionAuthenticateUseCase,
     private val onSessionSettleUseCase: OnSessionSettleUseCase,
     private val onSessionRequestUseCase: OnSessionRequestUseCase,
     private val onSessionDeleteUseCase: OnSessionDeleteUseCase,
@@ -114,18 +129,23 @@ internal class SignEngine(
     private val onSessionExtendUseCase: OnSessionExtendUseCase,
     private val onPingUseCase: OnPingUseCase,
     private val onSessionProposalResponseUseCase: OnSessionProposalResponseUseCase,
+    private val onSessionAuthenticateResponseUseCase: OnSessionAuthenticateResponseUseCase,
     private val onSessionSettleResponseUseCase: OnSessionSettleResponseUseCase,
     private val onSessionUpdateResponseUseCase: OnSessionUpdateResponseUseCase,
     private val onSessionRequestResponseUseCase: OnSessionRequestResponseUseCase,
     private val logger: Logger
 ) : ProposeSessionUseCaseInterface by proposeSessionUseCase,
+    SessionAuthenticateUseCaseInterface by authenticateSessionUseCase,
     PairUseCaseInterface by pairUseCase,
     RejectSessionUseCaseInterface by rejectSessionUseCase,
     ApproveSessionUseCaseInterface by approveSessionUseCase,
+    ApproveSessionAuthenticateUseCaseInterface by approveSessionAuthenticateUseCase,
+    RejectSessionAuthenticateUseCaseInterface by rejectSessionAuthenticateUseCase,
     SessionUpdateUseCaseInterface by sessionUpdateUseCase,
     SessionRequestUseCaseInterface by sessionRequestUseCase,
     RespondSessionRequestUseCaseInterface by respondSessionRequestUseCase,
     PingUseCaseInterface by pingUseCase,
+    FormatAuthenticateMessageUseCaseInterface by formatAuthenticateMessageUseCase,
     EmitEventUseCaseInterface by emitEventUseCase,
     ExtendSessionUseCaseInterface by extendSessionUseCase,
     DisconnectSessionUseCaseInterface by disconnectSessionUseCase,
@@ -133,6 +153,7 @@ internal class SignEngine(
     GetSessionsUseCaseInterface by getSessionsUseCase,
     GetPairingsUseCaseInterface by getPairingsUseCase,
     GetPendingRequestsUseCaseByTopicInterface by getPendingRequestsByTopicUseCase,
+    GetPendingAuthenticateRequestUseCaseInterface by getPendingAuthenticateRequestUseCase,
     GetPendingSessionRequestByTopicUseCaseInterface by getPendingSessionRequestByTopicUseCase,
     GetSessionProposalsUseCaseInterface by getSessionProposalsUseCase,
     GetVerifyContextByIdUseCaseInterface by getVerifyContextByIdUseCase,
@@ -148,6 +169,7 @@ internal class SignEngine(
     init {
         pairingController.register(
             JsonRpcMethod.WC_SESSION_PROPOSE,
+            JsonRpcMethod.WC_SESSION_AUTHENTICATE,
             JsonRpcMethod.WC_SESSION_SETTLE,
             JsonRpcMethod.WC_SESSION_REQUEST,
             JsonRpcMethod.WC_SESSION_EVENT,
@@ -158,7 +180,7 @@ internal class SignEngine(
         )
         setupSequenceExpiration()
         propagatePendingSessionRequestsQueue()
-        emitReceivedSessionProposalsWhilePairingOnTheSameURL()
+        emitReceivedPendingRequestsWhilePairingOnTheSameURL()
         sessionProposalExpiryWatcher()
         sessionRequestsExpiryWatcher()
     }
@@ -171,6 +193,7 @@ internal class SignEngine(
                 supervisorScope {
                     launch(Dispatchers.IO) {
                         resubscribeToSession()
+                        resubscribeToPendingAuthenticateTopics()
                     }
                 }
 
@@ -198,6 +221,7 @@ internal class SignEngine(
             .onEach { request ->
                 when (val requestParams = request.params) {
                     is SignParams.SessionProposeParams -> onSessionProposeUse(request, requestParams)
+                    is SignParams.SessionAuthenticateParams -> onAuthenticateSessionUseCase(request, requestParams)
                     is SignParams.SessionSettleParams -> onSessionSettleUseCase(request, requestParams)
                     is SignParams.SessionRequestParams -> onSessionRequestUseCase(request, requestParams)
                     is SignParams.DeleteParams -> onSessionDeleteUseCase(request, requestParams)
@@ -214,6 +238,7 @@ internal class SignEngine(
             .onEach { response ->
                 when (val params = response.params) {
                     is SignParams.SessionProposeParams -> onSessionProposalResponseUseCase(response, params)
+                    is SignParams.SessionAuthenticateParams -> onSessionAuthenticateResponseUseCase(response, params)
                     is SignParams.SessionSettleParams -> onSessionSettleResponseUseCase(response)
                     is SignParams.UpdateNamespacesParams -> onSessionUpdateResponseUseCase(response)
                     is SignParams.SessionRequestParams -> onSessionRequestResponseUseCase(response, params)
@@ -231,6 +256,7 @@ internal class SignEngine(
             onSessionRequestUseCase.events,
             onSessionDeleteUseCase.events,
             onSessionProposeUse.events,
+            onAuthenticateSessionUseCase.events,
             onSessionEventUseCase.events,
             onSessionSettleUseCase.events,
             onSessionUpdateUseCase.events,
@@ -238,7 +264,8 @@ internal class SignEngine(
             onSessionProposalResponseUseCase.events,
             onSessionSettleResponseUseCase.events,
             onSessionUpdateResponseUseCase.events,
-            onSessionRequestResponseUseCase.events
+            onSessionRequestResponseUseCase.events,
+            onSessionAuthenticateResponseUseCase.events
         )
             .onEach { event -> _engineEvent.emit(event) }
             .launchIn(scope)
@@ -261,6 +288,18 @@ internal class SignEngine(
             scope.launch { _engineEvent.emit(SDKError(e)) }
         }
     }
+
+    private fun resubscribeToPendingAuthenticateTopics() {
+        scope.launch {
+            try {
+                val responseTopics = authenticateResponseTopicRepository.getResponseTopics().map { responseTopic -> responseTopic }
+                jsonRpcInteractor.batchSubscribe(responseTopics) { error -> scope.launch { _engineEvent.emit(SDKError(error)) } }
+            } catch (e: Exception) {
+                scope.launch { _engineEvent.emit(SDKError(e)) }
+            }
+        }
+    }
+
 
     private fun setupSequenceExpiration() {
         try {
@@ -341,21 +380,40 @@ internal class SignEngine(
             }.launchIn(scope)
     }
 
-    private fun emitReceivedSessionProposalsWhilePairingOnTheSameURL() {
+    private fun emitReceivedPendingRequestsWhilePairingOnTheSameURL() {
         pairingController.activePairingFlow
             .onEach { pairingTopic ->
                 try {
-                    val proposal = proposalStorageRepository.getProposalByTopic(pairingTopic.value)
-                    if (proposal.expiry?.isExpired() == true) {
-                        proposalStorageRepository.deleteProposal(proposal.proposerPublicKey)
-                        scope.launch { _engineEvent.emit(proposal.toExpiredProposal()) }
+                    val pendingAuthenticateRequests = getPendingAuthenticateRequestUseCase.getPendingAuthenticateRequests().filter { request -> request.topic == pairingTopic }
+                    if (pendingAuthenticateRequests.isNotEmpty()) {
+                        pendingAuthenticateRequests.forEach { request ->
+                            val context = verifyContextStorageRepository.get(request.id) ?: VerifyContext(request.id, String.Empty, Validation.UNKNOWN, String.Empty, null)
+                            val sessionAuthenticateEvent = EngineDO.SessionAuthenticateEvent(
+                                request.id,
+                                request.topic.value,
+                                request.params.authPayload.toEngineDO(),
+                                request.params.requester.toEngineDO(),
+                                request.params.expiryTimestamp,
+                                context.toEngineDO()
+                            )
+                            logger.log("Emitting pending authenticate request from active pairing: $sessionAuthenticateEvent")
+                            scope.launch { _engineEvent.emit(sessionAuthenticateEvent) }
+                        }
                     } else {
-                        val context = verifyContextStorageRepository.get(proposal.requestId) ?: VerifyContext(proposal.requestId, String.Empty, Validation.UNKNOWN, String.Empty, null)
-                        val sessionProposalEvent = EngineDO.SessionProposalEvent(proposal = proposal.toEngineDO(), context = context.toEngineDO())
-                        scope.launch { _engineEvent.emit(sessionProposalEvent) }
+                        val proposal = proposalStorageRepository.getProposalByTopic(pairingTopic.value)
+                        if (proposal.expiry?.isExpired() == true) {
+                            proposalStorageRepository.deleteProposal(proposal.proposerPublicKey)
+                            scope.launch { _engineEvent.emit(proposal.toExpiredProposal()) }
+                        } else {
+                            val context = verifyContextStorageRepository.get(proposal.requestId) ?: VerifyContext(proposal.requestId, String.Empty, Validation.UNKNOWN, String.Empty, null)
+                            val sessionProposalEvent = EngineDO.SessionProposalEvent(proposal = proposal.toEngineDO(), context = context.toEngineDO())
+                            logger.log("Emitting session proposal from active pairing: $sessionProposalEvent")
+                            scope.launch { _engineEvent.emit(sessionProposalEvent) }
+                        }
                     }
                 } catch (e: Exception) {
-                    scope.launch { _engineEvent.emit(SDKError(Throwable("No proposal for pairing topic: $e"))) }
+                    logger.log("No proposal or pending session authenticate request for pairing topic: $e")
+                    scope.launch { _engineEvent.emit(SDKError(Throwable("No proposal or pending session authenticate request for pairing topic: $e"))) }
                 }
             }.launchIn(scope)
     }
