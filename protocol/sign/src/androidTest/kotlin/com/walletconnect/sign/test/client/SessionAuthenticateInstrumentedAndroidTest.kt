@@ -46,33 +46,34 @@ class SessionAuthenticateInstrumentedAndroidTest {
         val (privateKey, address) = Pair("fc38e74680851b8d0c2dc69ccd367d4c0d963a4065dff56a87f450eef33336c4", "0xF983704E5A9eF14C32e8fe751b34E61702437aBF")
 
         val walletDelegate = object : WalletDelegate() {
-            override fun onSessionAuthenticate(sessionAuthenticate: Sign.Model.SessionAuthenticate, verifyContext: Sign.Model.VerifyContext) {
-                val issuerToMessages = mutableListOf<Pair<String, String>>()
-                val cacaos = mutableListOf<Sign.Model.Cacao>()
+            override val onSessionAuthenticate: ((Sign.Model.SessionAuthenticate, Sign.Model.VerifyContext) -> Unit)
+                get() = { sessionAuthenticate, _ ->
+                    val issuerToMessages = mutableListOf<Pair<String, String>>()
+                    val cacaos = mutableListOf<Sign.Model.Cacao>()
 
-                val authPayloadParams =
-                    generateAuthPayloadParams(
-                        sessionAuthenticate.payloadParams,
-                        supportedChains = listOf("eip155:1", "eip155:137", "eip155:56"),
-                        supportedMethods = listOf("personal_sign", "eth_signTypedData", "eth_sign")
-                    )
+                    val authPayloadParams =
+                        generateAuthPayloadParams(
+                            sessionAuthenticate.payloadParams,
+                            supportedChains = listOf("eip155:1", "eip155:137", "eip155:56"),
+                            supportedMethods = listOf("personal_sign", "eth_signTypedData", "eth_sign")
+                        )
 
-                authPayloadParams.chains.forEach { chain ->
-                    val issuer = "did:pkh:$chain:$address"
-                    val message = WalletSignClient.formatAuthMessage(Sign.Params.FormatMessage(authPayloadParams, issuer)) ?: throw Exception("Invalid message")
-                    issuerToMessages.add(issuer to message)
+                    authPayloadParams.chains.forEach { chain ->
+                        val issuer = "did:pkh:$chain:$address"
+                        val message = WalletSignClient.formatAuthMessage(Sign.Params.FormatMessage(authPayloadParams, issuer)) ?: throw Exception("Invalid message")
+                        issuerToMessages.add(issuer to message)
+                    }
+
+                    issuerToMessages.forEach { issuerToMessage ->
+                        val messageToSign = Numeric.toHexString(issuerToMessage.second.toByteArray())
+                        val signature = CacaoSigner.signHex(messageToSign, privateKey.hexToBytes(), SignatureType.EIP191)
+                        val cacao = generateAuthObject(authPayloadParams, issuerToMessage.first, signature)
+                        cacaos.add(cacao)
+                    }
+
+                    val params = Sign.Params.ApproveAuthenticate(sessionAuthenticate.id, cacaos)
+                    WalletSignClient.approveAuthenticate(params, onSuccess = {}, onError = ::globalOnError)
                 }
-
-                issuerToMessages.forEach { issuerToMessage ->
-                    val messageToSign = Numeric.toHexString(issuerToMessage.second.toByteArray())
-                    val signature = CacaoSigner.signHex(messageToSign, privateKey.hexToBytes(), SignatureType.EIP191)
-                    val cacao = generateAuthObject(authPayloadParams, issuerToMessage.first, signature)
-                    cacaos.add(cacao)
-                }
-
-                val params = Sign.Params.ApproveAuthenticate(sessionAuthenticate.id, cacaos)
-                WalletSignClient.approveAuthenticate(params, onSuccess = {}, onError = ::globalOnError)
-            }
         }
 
         val dappDelegate = object : DappDelegate() {
@@ -94,33 +95,34 @@ class SessionAuthenticateInstrumentedAndroidTest {
         val (privateKey, address) = Pair("fc38e74680851b8d0c2dc69ccd367d4c0d963a4065dff56a87f450eef33336c4", "0xF983704E5A9eF14C32e8fe751b34E61702437aBF")
 
         val walletDelegate = object : WalletDelegate() {
-            override fun onSessionAuthenticate(sessionAuthenticate: Sign.Model.SessionAuthenticate, verifyContext: Sign.Model.VerifyContext) {
-                val issuerToMessages = mutableListOf<Pair<String, String>>()
-                val cacaos = mutableListOf<Sign.Model.Cacao>()
+            override val onSessionAuthenticate: ((Sign.Model.SessionAuthenticate, Sign.Model.VerifyContext) -> Unit)
+                get() = { sessionAuthenticate, _ ->
+                    val issuerToMessages = mutableListOf<Pair<String, String>>()
+                    val cacaos = mutableListOf<Sign.Model.Cacao>()
 
-                val authPayloadParams =
-                    generateAuthPayloadParams(
-                        sessionAuthenticate.payloadParams,
-                        supportedChains = listOf("eip155:1", "eip155:137", "eip155:56"),
-                        supportedMethods = listOf("personal_sign", "eth_signTypedData", "eth_sign")
-                    )
+                    val authPayloadParams =
+                        generateAuthPayloadParams(
+                            sessionAuthenticate.payloadParams,
+                            supportedChains = listOf("eip155:1", "eip155:137", "eip155:56"),
+                            supportedMethods = listOf("personal_sign", "eth_signTypedData", "eth_sign")
+                        )
 
-                authPayloadParams.chains.forEach { chain ->
-                    val issuer = "did:pkh:$chain:$address"
-                    val message = WalletSignClient.formatAuthMessage(Sign.Params.FormatMessage(authPayloadParams, issuer)) ?: throw Exception("Invalid message")
-                    issuerToMessages.add(issuer to message)
+                    authPayloadParams.chains.forEach { chain ->
+                        val issuer = "did:pkh:$chain:$address"
+                        val message = WalletSignClient.formatAuthMessage(Sign.Params.FormatMessage(authPayloadParams, issuer)) ?: throw Exception("Invalid message")
+                        issuerToMessages.add(issuer to message)
+                    }
+
+                    issuerToMessages.forEach { issuerToMessage ->
+                        val messageToSign = Numeric.toHexString(issuerToMessage.second.toByteArray())
+                        val signature = CacaoSigner.signHex(messageToSign, privateKey.hexToBytes(), SignatureType.EIP191)
+                        val cacao = generateAuthObject(authPayloadParams, issuerToMessage.first, signature)
+                        cacaos.add(cacao)
+                    }
+
+                    val params = Sign.Params.ApproveAuthenticate(sessionAuthenticate.id, cacaos)
+                    WalletSignClient.approveAuthenticate(params, onSuccess = {}, onError = ::globalOnError)
                 }
-
-                issuerToMessages.forEach { issuerToMessage ->
-                    val messageToSign = Numeric.toHexString(issuerToMessage.second.toByteArray())
-                    val signature = CacaoSigner.signHex(messageToSign, privateKey.hexToBytes(), SignatureType.EIP191)
-                    val cacao = generateAuthObject(authPayloadParams, issuerToMessage.first, signature)
-                    cacaos.add(cacao)
-                }
-
-                val params = Sign.Params.ApproveAuthenticate(sessionAuthenticate.id, cacaos)
-                WalletSignClient.approveAuthenticate(params, onSuccess = {}, onError = ::globalOnError)
-            }
 
             override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest, verifyContext: Sign.Model.VerifyContext) {
                 Timber.d("Wallet receives session request: ${sessionRequest.request}")
@@ -154,38 +156,39 @@ class SessionAuthenticateInstrumentedAndroidTest {
 
         val (privateKey, address) = Pair("fc38e74680851b8d0c2dc69ccd367d4c0d963a4065dff56a87f450eef33336c4", "0xF983704E5A9eF14C32e8fe751b34E61702437aBF")
         val walletDelegate = object : WalletDelegate() {
-            override fun onSessionAuthenticate(sessionAuthenticate: Sign.Model.SessionAuthenticate, verifyContext: Sign.Model.VerifyContext) {
-                val messages = mutableListOf<Pair<String, String>>()
-                val cacaos = mutableListOf<Sign.Model.Cacao>()
+            override val onSessionAuthenticate: ((Sign.Model.SessionAuthenticate, Sign.Model.VerifyContext) -> Unit)
+                get() = { sessionAuthenticate, _ ->
+                    val messages = mutableListOf<Pair<String, String>>()
+                    val cacaos = mutableListOf<Sign.Model.Cacao>()
 
-                val authPayloadParams =
-                    generateAuthPayloadParams(
-                        sessionAuthenticate.payloadParams,
-                        supportedChains = listOf("eip155:1", "eip155:137", "eip155:56"),
-                        supportedMethods = listOf("personal_sign", "eth_signTypedData", "eth_sign")
-                    )
+                    val authPayloadParams =
+                        generateAuthPayloadParams(
+                            sessionAuthenticate.payloadParams,
+                            supportedChains = listOf("eip155:1", "eip155:137", "eip155:56"),
+                            supportedMethods = listOf("personal_sign", "eth_signTypedData", "eth_sign")
+                        )
 
-                authPayloadParams.chains.forEach { chain ->
-                    val issuer = "did:pkh:$chain:$address"
-                    val message = WalletSignClient.formatAuthMessage(Sign.Params.FormatMessage(authPayloadParams, issuer)) ?: throw Exception("Invalid message")
-                    messages.add(issuer to message)
-                }
-
-                messages.forEach { message ->
-                    val signature = CacaoSigner.signHex("messageToSign", privateKey.hexToBytes(), SignatureType.EIP191)
-                    val cacao = generateAuthObject(authPayloadParams, message.first, signature)
-                    cacaos.add(cacao)
-                }
-
-                val params = Sign.Params.ApproveAuthenticate(sessionAuthenticate.id, cacaos)
-                WalletSignClient.approveAuthenticate(params, onSuccess = {}, onError = { error ->
-                    Timber.d("approveSessionAuthenticated: onError: $error")
-                    (error.throwable.message == "Invalid Cacao for Session Authenticate").also {
-                        Timber.d("receiveApproveSessionAuthenticate: ${error.throwable.message}: finish")
-                        scenarioExtension.closeAsSuccess()
+                    authPayloadParams.chains.forEach { chain ->
+                        val issuer = "did:pkh:$chain:$address"
+                        val message = WalletSignClient.formatAuthMessage(Sign.Params.FormatMessage(authPayloadParams, issuer)) ?: throw Exception("Invalid message")
+                        messages.add(issuer to message)
                     }
-                })
-            }
+
+                    messages.forEach { message ->
+                        val signature = CacaoSigner.signHex("messageToSign", privateKey.hexToBytes(), SignatureType.EIP191)
+                        val cacao = generateAuthObject(authPayloadParams, message.first, signature)
+                        cacaos.add(cacao)
+                    }
+
+                    val params = Sign.Params.ApproveAuthenticate(sessionAuthenticate.id, cacaos)
+                    WalletSignClient.approveAuthenticate(params, onSuccess = {}, onError = { error ->
+                        Timber.d("approveSessionAuthenticated: onError: $error")
+                        (error.throwable.message == "Invalid Cacao for Session Authenticate").also {
+                            Timber.d("receiveApproveSessionAuthenticate: ${error.throwable.message}: finish")
+                            scenarioExtension.closeAsSuccess()
+                        }
+                    })
+                }
         }
 
         launch(walletDelegate, DappDelegate())
@@ -196,10 +199,11 @@ class SessionAuthenticateInstrumentedAndroidTest {
         Timber.d("rejectSessionAuthenticated: start")
 
         val walletDelegate = object : WalletDelegate() {
-            override fun onSessionAuthenticate(sessionAuthenticate: Sign.Model.SessionAuthenticate, verifyContext: Sign.Model.VerifyContext) {
-                val params = Sign.Params.RejectAuthenticate(sessionAuthenticate.id, "User rejections")
-                WalletSignClient.rejectAuthenticate(params, onSuccess = {}, onError = ::globalOnError)
-            }
+            override val onSessionAuthenticate: ((Sign.Model.SessionAuthenticate, Sign.Model.VerifyContext) -> Unit)
+                get() = { sessionAuthenticate, _ ->
+                    val params = Sign.Params.RejectAuthenticate(sessionAuthenticate.id, "User rejections")
+                    WalletSignClient.rejectAuthenticate(params, onSuccess = {}, onError = ::globalOnError)
+                }
         }
 
         val dappDelegate = object : DappDelegate() {
