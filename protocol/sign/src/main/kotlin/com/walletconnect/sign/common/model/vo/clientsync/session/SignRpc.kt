@@ -24,6 +24,18 @@ internal sealed class SignRpc : JsonRpcClientSync<SignParams> {
     ) : SignRpc()
 
     @JsonClass(generateAdapter = true)
+    internal data class SessionAuthenticate(
+        @Json(name = "id")
+        override val id: Long = generateId(),
+        @Json(name = "jsonrpc")
+        override val jsonrpc: String = "2.0",
+        @Json(name = "method")
+        override val method: String = JsonRpcMethod.WC_SESSION_AUTHENTICATE,
+        @Json(name = "params")
+        override val params: SignParams.SessionAuthenticateParams,
+    ) : SignRpc()
+
+    @JsonClass(generateAdapter = true)
     internal data class SessionSettle(
         @Json(name = "id")
         override val id: Long = generateId(),

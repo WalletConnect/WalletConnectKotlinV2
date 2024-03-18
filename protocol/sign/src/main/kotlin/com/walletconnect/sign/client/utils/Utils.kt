@@ -2,13 +2,23 @@
 
 package com.walletconnect.sign.client.utils
 
+import android.util.Base64
+import com.walletconnect.android.internal.common.model.Namespace
+import com.walletconnect.android.internal.common.signing.cacao.Cacao.Payload.Companion.RECAPS_PREFIX
+import com.walletconnect.android.internal.common.signing.cacao.CacaoType
+import com.walletconnect.android.internal.common.signing.cacao.RECAPS_STATEMENT
+import com.walletconnect.android.internal.common.signing.cacao.decodeReCaps
+import com.walletconnect.android.internal.common.signing.cacao.getStatement
+import com.walletconnect.android.internal.common.signing.cacao.parseReCaps
 import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.sign.client.Sign
+import com.walletconnect.sign.client.mapper.toCacaoPayload
 import com.walletconnect.sign.client.mapper.toCore
 import com.walletconnect.sign.client.mapper.toProposalNamespacesVO
 import com.walletconnect.sign.client.mapper.toSessionNamespacesVO
-import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.sign.common.validator.SignValidator
+import org.json.JSONArray
+import org.json.JSONObject
 
 fun generateApprovedNamespaces(
     proposal: Sign.Model.SessionProposal,
@@ -73,3 +83,71 @@ private fun normalizeKey(key: String): String = if (CoreValidator.isChainIdCAIP2
 private fun MutableMap<String, Namespace.Proposal>.getChains(normalizedKey: String) = (this[normalizedKey]?.chains ?: emptyList())
 private fun MutableMap<String, Namespace.Proposal>.getMethods(normalizedKey: String) = (this[normalizedKey]?.methods ?: emptyList())
 private fun MutableMap<String, Namespace.Proposal>.getEvents(normalizedKey: String) = (this[normalizedKey]?.events ?: emptyList())
+
+fun generateAuthObject(payload: Sign.Model.PayloadParams, issuer: String, signature: Sign.Model.Cacao.Signature): Sign.Model.Cacao {
+    return Sign.Model.Cacao(
+        header = Sign.Model.Cacao.Header(t = CacaoType.CAIP222.header),
+        payload = payload.toCacaoPayload(issuer),
+        signature = signature
+    )
+}
+
+fun generateAuthPayloadParams(payloadParams: Sign.Model.PayloadParams, supportedChains: List<String>, supportedMethods: List<String>): Sign.Model.PayloadParams {
+    val reCapsJson: String? = payloadParams.resources.decodeReCaps()
+    if (reCapsJson.isNullOrEmpty() || !reCapsJson.contains("eip155")) return payloadParams
+
+    val sessionReCaps = reCapsJson.parseReCaps()["eip155"]
+    val requestedMethods = sessionReCaps!!.keys.map { key -> key.substringAfter('/') }
+    val requestedChains = payloadParams.chains
+
+    val sessionChains = requestedChains.intersect(supportedChains.toSet()).toList().distinct()
+    val sessionMethods = requestedMethods.intersect(supportedMethods.toSet()).toList().distinct()
+
+    if (sessionChains.isEmpty()) throw Exception("Unsupported chains")
+    if (sessionMethods.isEmpty()) throw Exception("Unsupported methods")
+
+    if (!sessionChains.all { chain -> CoreValidator.isChainIdCAIP2Compliant(chain) }) throw Exception("Chains are not CAIP-2 compliant")
+    if (!sessionChains.all { chain -> SignValidator.getNamespaceKeyFromChainId(chain) == "eip155" }) throw Exception("Only eip155(EVM) is supported")
+
+    val actionsJsonObject = JSONObject()
+    val chainsJsonArray = JSONArray()
+    sessionChains.forEach { chain -> chainsJsonArray.put(chain) }
+    sessionMethods.forEach { method -> actionsJsonObject.put("request/$method", JSONArray().put(0, JSONObject().put("chains", chainsJsonArray))) }
+
+    val recaps = JSONObject(reCapsJson)
+    val att = recaps.getJSONObject("att")
+    att.put("eip155", actionsJsonObject)
+    val stringReCaps = recaps.toString().replace("\\/", "/")
+    val base64Recaps = Base64.encodeToString(stringReCaps.toByteArray(Charsets.UTF_8), Base64.NO_WRAP or Base64.NO_PADDING)
+    val newReCapsUrl = "${RECAPS_PREFIX}$base64Recaps"
+
+    if (payloadParams.resources == null) {
+        payloadParams.resources = listOf(newReCapsUrl)
+    } else {
+        payloadParams.resources = payloadParams.resources!!.dropLast(1).plus(newReCapsUrl)
+    }
+
+    return with(payloadParams) {
+        Sign.Model.PayloadParams(
+            chains = sessionChains,
+            domain = domain,
+            nonce = nonce,
+            aud = aud,
+            type = type,
+            nbf = nbf,
+            exp = exp,
+            iat = iat,
+            statement = getStatement(),
+            resources = resources,
+            requestId = requestId
+        )
+    }
+}
+
+private fun Sign.Model.PayloadParams.getStatement() =
+    if (statement?.contains(RECAPS_STATEMENT) == true) {
+        statement
+    } else {
+        Pair(statement, resources).getStatement()
+    }
+

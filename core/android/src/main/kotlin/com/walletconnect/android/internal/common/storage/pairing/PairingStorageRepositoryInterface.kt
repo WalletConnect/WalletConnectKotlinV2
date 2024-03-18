@@ -22,7 +22,7 @@ interface PairingStorageRepositoryInterface {
 
     fun activatePairing(topic: Topic)
 
-    fun setProposalReceived(topic: Topic)
+    fun setRequestReceived(topic: Topic)
 
     fun updateExpiry(topic: Topic, expiry: Expiry)
 

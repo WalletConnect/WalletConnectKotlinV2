@@ -1,6 +1,7 @@
 package com.walletconnect.web3.modal.client
 
 import androidx.activity.ComponentActivity
+import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.sign.client.Sign
@@ -20,6 +21,8 @@ import com.walletconnect.web3.modal.engine.Web3ModalEngine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.jetbrains.annotations.ApiStatus.Experimental
+import org.koin.core.qualifier.named
+import org.koin.dsl.module
 
 object Web3Modal {
 
@@ -41,6 +44,7 @@ object Web3Modal {
 
         //Responses
         fun onSessionRequestResponse(response: Modal.Model.SessionRequestResponse)
+        fun onSessionAuthenticateResponse(sessionUpdateResponse: Modal.Model.SessionAuthenticateResponse) {}
 
         // Utils
         fun onProposalExpired(proposal: Modal.Model.ExpiredProposal)
@@ -106,9 +110,15 @@ object Web3Modal {
                 web3ModalEngine = wcKoinApp.koin.get()
                 web3ModalEngine.setup(init, onError)
                 web3ModalEngine.setInternalDelegate(Web3ModalDelegate)
+                wcKoinApp.modules(
+                    module { single(named(AndroidCommonDITags.ENABLE_ANALYTICS)) { init.enableAnalytics ?: web3ModalEngine.fetchAnalyticsConfig() } }
+                )
             }
                 .onFailure { error -> return@onInitializedClient onError(Modal.Model.Error(error)) }
-                .onSuccess { onSuccess() }
+                .onSuccess {
+                    onSuccess()
+                    web3ModalEngine.sendModalLoadedEvent()
+                }
         } else {
             onError(Modal.Model.Error(Web3ModelClientAlreadyInitializedException()))
         }
@@ -138,9 +148,48 @@ object Web3Modal {
                 is Modal.Model.UpdatedSession -> delegate.onSessionUpdate(event)
                 is Modal.Model.ExpiredRequest -> delegate.onRequestExpired(event)
                 is Modal.Model.ExpiredProposal -> delegate.onProposalExpired(event)
+                is Modal.Model.SessionAuthenticateResponse -> delegate.onSessionAuthenticateResponse(event)
                 else -> Unit
             }
         }.launchIn(scope)
+    }
+
+    @Deprecated(
+        message = "Replaced with the same name method but onSuccess callback returns a Pairing URL",
+        replaceWith = ReplaceWith(expression = "fun connect(connect: Modal.Params.Connect, onSuccess: (String) -> Unit, onError: (Modal.Model.Error) -> Unit)")
+    )
+    internal fun connect(
+        connect: Modal.Params.Connect,
+        onSuccess: () -> Unit,
+        onError: (Modal.Model.Error) -> Unit
+    ) {
+        SignClient.connect(
+            connect.toSign(),
+            onSuccess
+        ) { onError(it.toModal()) }
+    }
+
+    fun connect(
+        connect: Modal.Params.Connect,
+        onSuccess: (String) -> Unit,
+        onError: (Modal.Model.Error) -> Unit
+    ) {
+        SignClient.connect(
+            connect = connect.toSign(),
+            onSuccess = { url -> onSuccess(url) },
+            onError = { onError(it.toModal()) }
+        )
+    }
+
+    fun authenticate(
+        authenticate: Modal.Params.Authenticate,
+        onSuccess: (String) -> Unit,
+        onError: (Modal.Model.Error) -> Unit,
+    ) {
+
+        SignClient.authenticate(authenticate.toSign(),
+            onSuccess = { url -> onSuccess(url) },
+            onError = { onError(it.toModal()) })
     }
 
     @Deprecated(

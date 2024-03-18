@@ -13,7 +13,7 @@ import kotlinx.coroutines.withContext
 
 class PushMessagesRepository(private val pushMessageQueries: PushMessageQueries) {
 
-    val notificationTags = listOf(Tags.SESSION_PROPOSE.id, Tags.SESSION_REQUEST.id, Tags.AUTH_REQUEST.id, Tags.NOTIFY_MESSAGE.id)
+    val notificationTags = listOf(Tags.SESSION_PROPOSE.id, Tags.SESSION_REQUEST.id, Tags.AUTH_REQUEST.id, Tags.NOTIFY_MESSAGE.id, Tags.SESSION_AUTHENTICATE.id)
 
     private val _arePushNotificationsEnabled: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val arePushNotificationsEnabled: StateFlow<Boolean> = _arePushNotificationsEnabled.asStateFlow()

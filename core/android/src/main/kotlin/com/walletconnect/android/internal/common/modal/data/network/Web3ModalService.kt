@@ -1,5 +1,6 @@
 package com.walletconnect.android.internal.common.modal.data.network
 
+import com.walletconnect.android.internal.common.modal.data.network.model.EnableAnalyticsDTO
 import com.walletconnect.android.internal.common.modal.data.network.model.GetAndroidDataDTO
 import com.walletconnect.android.internal.common.modal.data.network.model.GetWalletsDTO
 import retrofit2.Response
@@ -23,4 +24,9 @@ internal interface Web3ModalService {
     suspend fun getAndroidData(
         @Header("x-sdk-type") sdkType: String,
     ): Response<GetAndroidDataDTO>
+
+    @GET("getAnalyticsConfig")
+    suspend fun getAnalyticsConfig(
+        @Header("x-sdk-type") sdkType: String,
+    ): Response<EnableAnalyticsDTO>
 }

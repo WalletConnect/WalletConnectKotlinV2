@@ -3,10 +3,11 @@ package com.walletconnect.web3.modal.ui.routes.account
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.internal.common.wcKoinApp
+import com.walletconnect.android.pulse.domain.SendClickNetworkHelpUseCase
+import com.walletconnect.android.pulse.domain.SendSwitchNetworkUseCase
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.modal.ui.model.UiState
 import com.walletconnect.web3.modal.client.Modal
-import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.client.models.request.Request
 import com.walletconnect.web3.modal.client.models.request.SentRequestResult
 import com.walletconnect.web3.modal.domain.model.AccountData
@@ -46,27 +47,35 @@ internal class AccountViewModel : ViewModel(), Navigator by NavigatorImpl() {
     private val getIdentityUseCase: GetIdentityUseCase = wcKoinApp.koin.get()
     private val getEthBalanceUseCase: GetEthBalanceUseCase = wcKoinApp.koin.get()
     private val web3ModalEngine: Web3ModalEngine = wcKoinApp.koin.get()
+    private val sendClickNetworkHelpUseCase: SendClickNetworkHelpUseCase = wcKoinApp.koin.get()
+    private val sendSwitchNetworkUseCase: SendSwitchNetworkUseCase = wcKoinApp.koin.get()
 
     private val activeSessionFlow = observeSessionUseCase()
 
     private val accountDataFlow = activeSessionFlow
-        .map { if (web3ModalEngine.getAccount() != null) { it } else { null } }
-        .map { activeSession ->
-        if (activeSession != null) {
-            val chains = activeSession.getChains()
-            val identity = getIdentityUseCase(activeSession.address, activeSession.chain)
-            accountData = AccountData(
-                address = activeSession.address, chains = chains, identity = identity
-            )
-            UiState.Success(accountData)
-        } else {
-            UiState.Error(Throwable("Active session not found"))
+        .map {
+            if (web3ModalEngine.getAccount() != null) {
+                it
+            } else {
+                null
+            }
         }
-    }.catch {
-        showError(it.localizedMessage)
-        logger.error(it)
-        emit(UiState.Error(it))
-    }
+        .map { activeSession ->
+            if (activeSession != null) {
+                val chains = activeSession.getChains()
+                val identity = getIdentityUseCase(activeSession.address, activeSession.chain)
+                accountData = AccountData(
+                    address = activeSession.address, chains = chains, identity = identity
+                )
+                UiState.Success(accountData)
+            } else {
+                UiState.Error(Throwable("Active session not found"))
+            }
+        }.catch {
+            showError(it.localizedMessage)
+            logger.error(it)
+            emit(UiState.Error(it))
+        }
 
     lateinit var accountData: AccountData
 
@@ -92,6 +101,7 @@ internal class AccountViewModel : ViewModel(), Navigator by NavigatorImpl() {
 
     fun changeActiveChain(chain: Modal.Model.Chain) = viewModelScope.launch {
         if (accountData.chains.contains(chain)) {
+            sendSwitchNetworkUseCase(network = chain.id)
             saveChainSelectionUseCase(chain.id)
             popBackStack()
         } else {
@@ -101,6 +111,7 @@ internal class AccountViewModel : ViewModel(), Navigator by NavigatorImpl() {
 
     suspend fun updatedSessionAfterChainSwitch(updatedSession: Session) {
         if (updatedSession.getChains().any { it.id == updatedSession.chain }) {
+            sendSwitchNetworkUseCase(network = updatedSession.chain)
             saveSessionUseCase(updatedSession)
             popBackStack(path = Route.CHANGE_NETWORK.path, inclusive = true)
         }
@@ -129,6 +140,7 @@ internal class AccountViewModel : ViewModel(), Navigator by NavigatorImpl() {
                         onError(it.message)
                         onReject()
                     }
+
                     is CoinbaseResult.Result -> {
                         viewModelScope.launch {
                             updatedSessionAfterChainSwitch(Session.Coinbase(to.id, accountData.address))
@@ -165,6 +177,7 @@ internal class AccountViewModel : ViewModel(), Navigator by NavigatorImpl() {
     fun getSelectedChainOrFirst() = web3ModalEngine.getSelectedChainOrFirst()
 
     fun navigateToHelp() {
+        sendClickNetworkHelpUseCase()
         navigateTo(Route.WHAT_IS_WALLET.path)
     }
 }

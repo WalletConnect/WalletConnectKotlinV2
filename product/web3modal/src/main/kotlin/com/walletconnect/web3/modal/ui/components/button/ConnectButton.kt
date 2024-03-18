@@ -23,7 +23,7 @@ fun ConnectButton(
     buttonSize: ConnectButtonSize = ConnectButtonSize.NORMAL
 ) {
     val isLoading: Boolean by state.isOpen.collectAsState(initial = false)
-    val isConnected by state.isConnected.collectAsState(initial = false)
+    val isConnected: Boolean by state.isConnected.collectAsState(initial = false)
 
     ConnectButton(
         size = buttonSize,

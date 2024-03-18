@@ -224,13 +224,11 @@ class Web3WalletApplication : Application() {
     private fun registerAccount() {
         val account = EthAccountDelegate.ethAddress
         val domain = BuildConfig.APPLICATION_ID
-        val allApps = true
-
-        val isRegistered = NotifyClient.isRegistered(params = Notify.Params.IsRegistered(account = account, domain = domain, allApps = allApps))
+        val isRegistered = NotifyClient.isRegistered(params = Notify.Params.IsRegistered(account = account, domain = domain))
 
         if (!isRegistered) {
             NotifyClient.prepareRegistration(
-                params = Notify.Params.PrepareRegistration(account = account, domain = domain, allApps = allApps),
+                params = Notify.Params.PrepareRegistration(account = account, domain = domain),
                 onSuccess = { cacaoPayloadWithIdentityPrivateKey, message ->
                     logger.log("PrepareRegistration Success: $cacaoPayloadWithIdentityPrivateKey")
 

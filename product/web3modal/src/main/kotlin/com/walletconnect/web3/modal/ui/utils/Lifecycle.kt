@@ -25,9 +25,10 @@ internal fun ComposableLifecycleEffect(
     }
 }
 
-internal suspend fun Lifecycle.Event.toComponentEvent() {
-    when(this) {
-        Lifecycle.Event.ON_CREATE, Lifecycle.Event.ON_START -> ComponentDelegate.openModalEvent()
-        else -> ComponentDelegate.closeModalEvent()
+internal fun Lifecycle.Event.toComponentEvent() {
+    when (this) {
+        Lifecycle.Event.ON_CREATE, Lifecycle.Event.ON_START, Lifecycle.Event.ON_RESUME -> ComponentDelegate.openModalEvent()
+        Lifecycle.Event.ON_DESTROY, Lifecycle.Event.ON_STOP, Lifecycle.Event.ON_PAUSE -> ComponentDelegate.closeModalEvent()
+        else -> Unit
     }
 }

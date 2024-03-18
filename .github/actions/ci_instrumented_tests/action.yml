@@ -31,6 +31,9 @@ runs:
         chmod 777 emulator.log
         adb logcat -s "WalletConnectV2" >> emulator.log &
 
+    - name: Accept Android Licenses
+      uses: SimonMarquis/android-accept-licenses@v1
+
     - name: Run instrumented tests
       shell: bash
       env:

@@ -1,0 +1,17 @@
+CREATE TABLE AuthenticateResponseTopicDao (
+   id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+   pairingTopic TEXT NOT NULL,
+   responseTopic TEXT NOT NULL
+);
+
+insertOrAbort:
+INSERT OR ABORT INTO AuthenticateResponseTopicDao(pairingTopic, responseTopic)
+VALUES (?,?);
+
+getListOfTopics:
+SELECT ard.pairingTopic, ard.responseTopic
+FROM AuthenticateResponseTopicDao ard;
+
+deleteByPairingTopic:
+DELETE FROM AuthenticateResponseTopicDao
+WHERE pairingTopic = ?;

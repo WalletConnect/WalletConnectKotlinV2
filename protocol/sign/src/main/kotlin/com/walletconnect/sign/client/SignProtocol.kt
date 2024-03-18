@@ -3,8 +3,10 @@
 package com.walletconnect.sign.client
 
 import com.walletconnect.android.Core
+import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.di.DatabaseConfig
 import com.walletconnect.android.internal.common.model.ConnectionState
+import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
@@ -22,6 +24,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.koin.core.KoinApplication
+import org.koin.core.qualifier.named
+import org.koin.dsl.module
 
 class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInterface {
     private lateinit var signEngine: SignEngine
@@ -55,9 +59,11 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     override fun setWalletDelegate(delegate: SignInterface.WalletDelegate) {
         checkEngineInitialization()
 
+        wcKoinApp.modules(module { single(named(AndroidCommonDITags.ENABLE_AUTHENTICATE)) { delegate.onSessionAuthenticate != null } })
         signEngine.engineEvent.onEach { event ->
             when (event) {
                 is EngineDO.SessionProposalEvent -> delegate.onSessionProposal(event.proposal.toClientSessionProposal(), event.context.toCore())
+                is EngineDO.SessionAuthenticateEvent -> delegate.onSessionAuthenticate?.invoke(event.toClientSessionAuthenticate(), event.verifyContext.toCore())
                 is EngineDO.SessionRequestEvent -> delegate.onSessionRequest(event.request.toClientSessionRequest(), event.context.toCore())
                 is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
                 is EngineDO.SessionExtend -> delegate.onSessionExtend(event.toClientActiveSession())
@@ -87,6 +93,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
                 is EngineDO.SessionExtend -> delegate.onSessionExtend(event.toClientActiveSession())
                 //Responses
                 is EngineDO.SessionPayloadResponse -> delegate.onSessionRequestResponse(event.toClientSessionPayloadResponse())
+                is EngineDO.SessionAuthenticateResponse -> delegate.onSessionAuthenticateResponse(event.toClientSessionAuthenticateResponse())
                 //Utils
                 is EngineDO.ExpiredProposal -> delegate.onProposalExpired(event.toClient())
                 is EngineDO.ExpiredRequest -> delegate.onRequestExpired(event.toClient())
@@ -113,8 +120,10 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
                     connect.namespaces?.toMapOfEngineNamespacesRequired(),
                     connect.optionalNamespaces?.toMapOfEngineNamespacesOptional(),
                     connect.properties,
-                    connect.pairing.toPairing(), onSuccess
-                ) { error -> onError(Sign.Model.Error(error)) }
+                    connect.pairing.toPairing(),
+                    onSuccess = { onSuccess() },
+                    onFailure = { error -> onError(Sign.Model.Error(error)) }
+                )
             } catch (error: Exception) {
                 onError(Sign.Model.Error(error))
             }
@@ -129,6 +138,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     ) {
         checkEngineInitialization()
         scope.launch {
+
             try {
                 signEngine.proposeSession(
                     connect.namespaces?.toMapOfEngineNamespacesRequired(),
@@ -142,6 +152,31 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
                 onError(Sign.Model.Error(error))
             }
         }
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun authenticate(
+        authenticate: Sign.Params.Authenticate,
+        onSuccess: (String) -> Unit,
+        onError: (Sign.Model.Error) -> Unit,
+    ) {
+        checkEngineInitialization()
+        scope.launch {
+            try {
+                signEngine.authenticate(authenticate.toAuthenticate(), authenticate.methods, authenticate.pairingTopic, if (authenticate.expiry == null) null else Expiry(authenticate.expiry),
+                    onSuccess = { url -> onSuccess(url) },
+                    onFailure = { throwable -> onError(Sign.Model.Error(throwable)) })
+            } catch (error: Exception) {
+                onError(Sign.Model.Error(error))
+            }
+        }
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun formatAuthMessage(formatMessage: Sign.Params.FormatMessage): String {
+        checkEngineInitialization()
+
+        return runBlocking { signEngine.formatMessage(formatMessage.payloadParams.toEngine(), formatMessage.iss) }
     }
 
     @Throws(IllegalStateException::class)
@@ -193,6 +228,37 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
                 signEngine.reject(reject.proposerPublicKey, reject.reason, onSuccess = { onSuccess(reject) }) { error ->
                     onError(Sign.Model.Error(error))
                 }
+            } catch (error: Exception) {
+                onError(Sign.Model.Error(error))
+            }
+        }
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun approveAuthenticate(approve: Sign.Params.ApproveAuthenticate, onSuccess: (Sign.Params.ApproveAuthenticate) -> Unit, onError: (Sign.Model.Error) -> Unit) {
+        checkEngineInitialization()
+
+        scope.launch {
+            try {
+                signEngine.approveSessionAuthenticate(
+                    approve.id, approve.cacaos.toCommon(),
+                    onSuccess = { onSuccess(approve) },
+                    onFailure = { error -> onError(Sign.Model.Error(error)) }
+                )
+
+            } catch (error: Exception) {
+                onError(Sign.Model.Error(error))
+            }
+        }
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun rejectAuthenticate(reject: Sign.Params.RejectAuthenticate, onSuccess: (Sign.Params.RejectAuthenticate) -> Unit, onError: (Sign.Model.Error) -> Unit) {
+        checkEngineInitialization()
+
+        scope.launch {
+            try {
+                signEngine.rejectSessionAuthenticate(reject.id, reject.reason, onSuccess = { onSuccess(reject) }) { error -> onError(Sign.Model.Error(error)) }
             } catch (error: Exception) {
                 onError(Sign.Model.Error(error))
             }
@@ -360,6 +426,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
                         when (message) {
                             is Core.Model.Message.SessionRequest -> onSuccess(message.toSign())
                             is Core.Model.Message.SessionProposal -> onSuccess(message.toSign())
+                            is Core.Model.Message.SessionAuthenticate -> onSuccess(message.toSign())
                             else -> {
                                 //Ignore
                             }
@@ -437,6 +504,12 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     override fun getSessionProposals(): List<Sign.Model.SessionProposal> {
         checkEngineInitialization()
         return runBlocking { signEngine.getSessionProposals().map(EngineDO.SessionProposal::toClientSessionProposal) }
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun getPendingAuthenticateRequests(): List<Sign.Model.SessionAuthenticate> {
+        checkEngineInitialization()
+        return runBlocking { signEngine.getPendingAuthenticateRequests().map { request -> request.toClient() } }
     }
 
     @Throws(IllegalStateException::class)

@@ -9,6 +9,7 @@ import com.walletconnect.web3.modal.engine.Web3ModalEngine
 internal interface ParingController {
 
     fun connect(
+        name: String, method: String,
         sessionParams: Modal.Params.SessionParams,
         onSuccess: (uri: String) -> Unit,
         onError: (Throwable) -> Unit
@@ -27,6 +28,7 @@ internal class PairingControllerImpl : ParingController {
         get() = _pairing ?: generatePairing()
 
     override fun connect(
+        name: String, method: String,
         sessionParams: Modal.Params.SessionParams,
         onSuccess: (uri: String) -> Unit,
         onError: (Throwable) -> Unit
@@ -40,6 +42,7 @@ internal class PairingControllerImpl : ParingController {
                 pairing
             )
             web3ModalEngine.connectWC(
+                name = name, method = method,
                 connect = connectParams,
                 onSuccess = onSuccess,
                 onError = onError
@@ -52,7 +55,6 @@ internal class PairingControllerImpl : ParingController {
     override val uri: String
         get() = pairing.uri
 
-    private fun generatePairing() = CoreClient.Pairing.create { error ->
-        throw IllegalStateException("Creating Pairing failed: ${error.throwable.stackTraceToString()}")
-    }!!.also { _pairing = it }
+    private fun generatePairing(): Core.Model.Pairing =
+        CoreClient.Pairing.create { error -> throw IllegalStateException("Creating Pairing failed: ${error.throwable.stackTraceToString()}") }!!.also { _pairing = it }
 }

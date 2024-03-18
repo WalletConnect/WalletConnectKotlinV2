@@ -76,6 +76,15 @@ object DappDelegate : WalletConnectModal.ModalDelegate, CoreClient.CoreDelegate 
         }
     }
 
+    override fun onSessionAuthenticateResponse(sessionUpdateResponse: Modal.Model.SessionAuthenticateResponse) {
+        if (sessionUpdateResponse is Modal.Model.SessionAuthenticateResponse.Result) {
+            selectedSessionTopic = sessionUpdateResponse.session?.topic
+        }
+        scope.launch {
+            _wcEventModels.emit(sessionUpdateResponse)
+        }
+    }
+
     override fun onProposalExpired(proposal: Modal.Model.ExpiredProposal) {
         scope.launch {
             _wcEventModels.emit(proposal)

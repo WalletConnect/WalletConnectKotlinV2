@@ -1,6 +1,7 @@
 package com.walletconnect.sign.engine.use_case.requests
 
 import com.walletconnect.android.Core
+import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.IrnParams
@@ -10,6 +11,7 @@ import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.utils.toClient
@@ -22,12 +24,14 @@ import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toEngineDO
 import com.walletconnect.sign.engine.model.mapper.toPeerError
 import com.walletconnect.sign.engine.model.mapper.toVO
+import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
 import com.walletconnect.sign.storage.proposal.ProposalStorageRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import org.koin.core.qualifier.named
 
 internal class OnSessionProposalUseCase(
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
@@ -38,10 +42,15 @@ internal class OnSessionProposalUseCase(
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
+    private val isAuthenticateEnabled: Boolean by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.ENABLE_AUTHENTICATE)) }
 
     suspend operator fun invoke(request: WCRequest, payloadParams: SignParams.SessionProposeParams) = supervisorScope {
         val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(fiveMinutesInSeconds))
         try {
+            if (isSessionAuthenticateImplemented(request)) {
+                logger.error("Session proposal received error: pairing supports authenticated sessions")
+                return@supervisorScope
+            }
             logger.log("Session proposal received: ${request.topic}")
             SignValidator.validateProposalNamespaces(payloadParams.requiredNamespaces) { error ->
                 logger.error("Session proposal received error: required namespace validation: ${error.message}")
@@ -64,7 +73,7 @@ internal class OnSessionProposalUseCase(
             }
 
             proposalStorageRepository.insertProposal(payloadParams.toVO(request.topic, request.id))
-            pairingController.setProposalReceived(Core.Params.ProposalReceived(request.topic.value))
+            pairingController.setRequestReceived(Core.Params.RequestReceived(request.topic.value))
             pairingController.updateMetadata(Core.Params.UpdateMetadata(request.topic.value, payloadParams.proposer.metadata.toClient(), AppMetaDataType.PEER))
             val url = payloadParams.proposer.metadata.url
             resolveAttestationIdUseCase(request.id, request.message, url) { verifyContext ->
@@ -82,4 +91,7 @@ internal class OnSessionProposalUseCase(
             _events.emit(SDKError(e))
         }
     }
+
+    private fun isSessionAuthenticateImplemented(request: WCRequest): Boolean =
+        pairingController.getPairingByTopic(request.topic)?.methods?.contains(JsonRpcMethod.WC_SESSION_AUTHENTICATE) == true && isAuthenticateEnabled
 }
