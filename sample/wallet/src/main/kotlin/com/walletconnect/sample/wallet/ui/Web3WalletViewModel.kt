@@ -134,7 +134,7 @@ class Web3WalletViewModel : ViewModel() {
         _isLoadingFlow.value = true
 
         try {
-            val pairingParams = Wallet.Params.Pair(pairingUri)
+            val pairingParams = Wallet.Params.Pair(pairingUri.removePrefix("kotlin-web3wallet://wc?uri="))
             Web3Wallet.pair(pairingParams) { error ->
                 Firebase.crashlytics.recordException(error.throwable)
                 viewModelScope.launch {

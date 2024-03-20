@@ -61,7 +61,8 @@ sonar {
                 "sonar.projectKey" to "WalletConnect_WalletConnectKotlinV2",
                 "sonar.organization" to "walletconnect",
                 "sonar.host.url" to "https://sonarcloud.io",
-                "sonar.gradle.skipCompile" to true
+                "sonar.gradle.skipCompile" to true,
+                "sonar.coverage.exclusions" to "sample/**"
             )
         )
     }
