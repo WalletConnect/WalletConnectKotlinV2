@@ -33,8 +33,12 @@ object Web3Wallet {
         fun onSessionUpdateResponse(sessionUpdateResponse: Wallet.Model.SessionUpdateResponse)
 
         //Utils
-        fun onProposalExpired(proposal: Wallet.Model.ExpiredProposal) {}
-        fun onRequestExpired(request: Wallet.Model.ExpiredRequest) {}
+        fun onProposalExpired(proposal: Wallet.Model.ExpiredProposal) {
+            //override me
+        }
+        fun onRequestExpired(request: Wallet.Model.ExpiredRequest) {
+            //override me
+        }
         fun onConnectionStateChange(state: Wallet.Model.ConnectionState)
         fun onError(error: Wallet.Model.Error)
     }
