@@ -39,7 +39,8 @@ val walletMetaData = WalletMetaData(
                 "eth_sendRawTransaction",
                 "eth_sign",
                 "eth_signTransaction",
-                "eth_signTypedData"
+                "eth_signTypedData",
+                "eth_signTypedData_v4"
             ),
             events = listOf("chainChanged", "accountsChanged"),
             accounts = listOf("eip155:1:$ACCOUNTS_1_EIP155_ADDRESS", "eip155:137:$ACCOUNTS_1_EIP155_ADDRESS", "eip155:56:$ACCOUNTS_1_EIP155_ADDRESS")
