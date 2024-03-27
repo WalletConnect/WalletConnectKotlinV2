@@ -8,9 +8,10 @@ import com.squareup.moshi.JsonWriter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.internal.Util
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionRequestVO
+import kotlin.String
 import org.json.JSONArray
 import org.json.JSONObject
-import kotlin.String
+
 
 internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRequestVO>() {
     private val options: JsonReader.Options = JsonReader.Options.of("method", "params", "expiryTimestamp")
@@ -39,31 +40,7 @@ internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRe
                         upsertArray(JSONArray(), paramsAny).toString()
                     } else {
                         val paramsMap = paramsAny as Map<*, *>
-
-                        if (paramsMap.size == 1) {
-                            val paramsMapEntry: Map.Entry<*, *> = paramsAny.firstNotNullOf { it }
-                            val key = paramsMapEntry.key as String
-
-                            when (paramsMapEntry.value) {
-                                is List<*> -> {
-                                    val jsonArray = upsertArray(JSONArray(), paramsMapEntry.value as List<*>).toString()
-
-                                    "\"$key\":$jsonArray"
-                                }
-
-                                is Map<*, *> -> {
-                                    val jsonObject = upsertObject(JSONObject(), paramsMapEntry.value as Map<*, *>)
-
-                                    "\"$key\":$jsonObject"
-                                }
-
-                                else -> {
-                                    upsertObject(JSONObject(), paramsMap).toString()
-                                }
-                            }
-                        } else {
-                            upsertObject(JSONObject(), paramsMap).toString()
-                        }
+                        upsertObject(JSONObject(), paramsMap).toString()
                     }
                 }
 

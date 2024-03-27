@@ -133,7 +133,7 @@ internal class SessionRequestVOJsonAdapterTest {
         """.trimIndent()
 
         val expectedParamsJsonObj = JSONObject(params)
-        val actualParamsJsonObj = JSONObject("{$serializedParams}")
+        val actualParamsJsonObj = JSONObject(serializedParams)
 
         assertEquals(expectedParamsJsonObj.getJSONArray("transactions").length(), actualParamsJsonObj.getJSONArray("transactions").length())
 
@@ -631,6 +631,59 @@ internal class SessionRequestVOJsonAdapterTest {
             }
         """.trimIndent()
 
+        val expectedParamsJsonObj = JSONObject(params)
+        val actualParamsJsonObj = JSONObject(serializedParams)
+
+        assertEquals(expectedParamsJsonObj.length(), actualParamsJsonObj.length())
+
+        iterateJsonObjects(expectedParamsJsonObj, actualParamsJsonObj)
+    }
+
+    @Test
+    fun jsonParamsObjectWithOneArrayField() {
+        @Language("json")
+        params = """
+            {
+              "filter": ["date", "name"]
+            }
+        """.trimIndent()
+
+        val expectedParamsJsonObj = JSONObject(params)
+        val actualParamsJsonObj = JSONObject(serializedParams)
+
+        assertEquals(expectedParamsJsonObj.length(), actualParamsJsonObj.length())
+
+        iterateJsonObjects(expectedParamsJsonObj, actualParamsJsonObj)
+    }
+
+    @Test
+    fun jsonParamsObjectWithOneObjectField() {
+        @Language("json")
+        params = """
+            {
+              "filter": {
+                "timestamp" : 1111199999, 
+                "page" : 0,
+                "owner": "owner1"
+              }
+            }
+        """.trimIndent()
+        val expectedParamsJsonObj = JSONObject(params)
+        val actualParamsJsonObj = JSONObject(serializedParams)
+
+        assertEquals(expectedParamsJsonObj.length(), actualParamsJsonObj.length())
+
+        iterateJsonObjects(expectedParamsJsonObj, actualParamsJsonObj)
+    }
+
+    @Test
+    fun jsonParamsObjectWithOneStringField() {
+        @Language("json")
+        params = """
+            {
+              "filter": "id,date"
+            }
+        """.trimIndent()
         val expectedParamsJsonObj = JSONObject(params)
         val actualParamsJsonObj = JSONObject(serializedParams)
 
