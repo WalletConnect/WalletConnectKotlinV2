@@ -1,5 +1,6 @@
 package com.walletconnect.web3.modal.client
 
+import android.content.Context
 import androidx.activity.ComponentActivity
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.scope
@@ -15,6 +16,7 @@ import com.walletconnect.web3.modal.client.models.request.Request
 import com.walletconnect.web3.modal.client.models.request.SentRequestResult
 import com.walletconnect.web3.modal.di.web3ModalModule
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
+import com.walletconnect.web3.modal.domain.magic.handler.MagicController
 import com.walletconnect.web3.modal.domain.model.Session.WalletConnect
 import com.walletconnect.web3.modal.domain.model.toModalError
 import com.walletconnect.web3.modal.engine.Web3ModalEngine
@@ -319,5 +321,17 @@ object Web3Modal {
     fun getConnectorType(): Modal.ConnectorType? {
         checkEngineInitialization()
         return web3ModalEngine.getConnectorType()
+    }
+
+    // TODO TEMPORARY INIT migarate it to app context and koin later
+    fun initEmail(context: Context) {
+        MagicController(
+            context = context,
+            logger = wcKoinApp.koin.get(),
+            appMetaData = wcKoinApp.koin.get(),
+            projectId = wcKoinApp.koin.get()
+        ).apply {
+            init()
+        }
     }
 }

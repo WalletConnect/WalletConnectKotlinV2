@@ -98,6 +98,8 @@ class MainActivity : ComponentActivity() {
         }
         if (counter <= 0) throw IllegalStateException("Web3Modal registration failed")
 
+        Web3Modal.initEmail(this)
+
         setContent {
             WalletConnectTheme {
                 val scaffoldState: ScaffoldState = rememberScaffoldState()
