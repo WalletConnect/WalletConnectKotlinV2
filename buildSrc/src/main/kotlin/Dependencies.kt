@@ -211,3 +211,7 @@ fun DependencyHandlerScope.dataStore() {
 fun DependencyHandlerScope.coinbase() {
     "implementation"("com.coinbase:coinbase-wallet-sdk:$coinbaseVersion")
 }
+
+fun DependencyHandlerScope.webViewUtils() {
+    "implementation"("androidx.webkit:webkit:$webViewKitVersion")
+}

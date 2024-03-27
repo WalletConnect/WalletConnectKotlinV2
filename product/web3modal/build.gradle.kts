@@ -71,6 +71,7 @@ dependencies {
     navigationComponent()
     qrCodeGenerator()
     coinbase()
+    webViewUtils()
 
     jUnit4()
     mockk()
