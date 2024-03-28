@@ -23,11 +23,13 @@ internal class MagicEngine(
     private val projectId: ProjectId,
 ) {
 
-    internal var magicWebViewWrapper = EmailMagicWebViewWrapper(context, buildWebHeaders(), projectId, appMetaData, logger).apply {
+    private val bundleId: String = wcKoinApp.koin.get(named(AndroidCommonDITags.BUNDLE_ID))
+
+    internal var magicWebViewWrapper = EmailMagicWebViewWrapper(context, buildWebHeaders(), projectId, appMetaData, bundleId, logger).apply {
         //todo refresh webview on activity change somehow
     }
 
-    internal suspend inline fun<reified T : MagicEvent> sendMessage(message: MagicRequest): T {
+    internal suspend inline fun <reified T : MagicEvent> sendMessage(message: MagicRequest): T {
         magicWebViewWrapper.sendMessage(message)
         return subscribeToEvent<T>()
     }
@@ -38,7 +40,9 @@ internal class MagicEngine(
                 val job = launch {
                     magicWebViewWrapper.eventFlow
                         .filterIsInstance<T>()
-                        .collect { continuation.resume(it) }
+                        .collect {
+                            continuation.resume(it)
+                        }
                 }
                 continuation.invokeOnCancellation { job.cancel() }
             }
@@ -49,9 +53,10 @@ internal class MagicEngine(
     // TODO: INJECT THIS BY KOIN
     // find way to inject version of BOM instead BuildConfig.SDK_VERSION, this return W3M version
     private fun buildWebHeaders() = mapOf(
-        Pair("x-project-id", projectId.value),
-        Pair("x-sdk-version", "kotlin-1.22.1"), // replace it with Version from android core
-        Pair("x-sdk-type", "w3m"),
-        Pair("user-agent", wcKoinApp.koin.get(named(AndroidCommonDITags.USER_AGENT)))
+        Pair("referer", "https//secure-mobile.com"), //todo: metadata URL
+//        Pair("x-sdk-version", "kotlin-1.22.1"), // replace it with Version from android core
+//        Pair("x-sdk-type", "w3m"),
+        Pair("x-bundle-id", bundleId),
+//        Pair("user-agent", wcKoinApp.koin.get(named(AndroidCommonDITags.USER_AGENT)))
     )
 }

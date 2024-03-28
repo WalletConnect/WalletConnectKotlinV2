@@ -9,9 +9,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -22,6 +24,8 @@ import com.walletconnect.web3.modal.R
 import com.walletconnect.web3.modal.ui.components.internal.commons.ContentDescription
 import com.walletconnect.web3.modal.ui.components.internal.commons.LoadingSpinner
 import com.walletconnect.web3.modal.ui.components.internal.commons.inputs.BaseTextInput
+import com.walletconnect.web3.modal.ui.previews.UiModePreview
+import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 @Composable
@@ -82,4 +86,15 @@ private fun ForwardIcon(onClick: () -> Unit) {
 @Composable
 private fun LoadingIcon() {
     LoadingSpinner(size = 14.dp)
+}
+
+@UiModePreview
+@Composable
+private fun EmailInputPreview() {
+    val composableScope = rememberCoroutineScope()
+    Web3ModalPreview {
+        EmailInput(emailInputState = EmailInputState(composableScope, LocalFocusManager.current) {
+            // do nothing
+        })
+    }
 }

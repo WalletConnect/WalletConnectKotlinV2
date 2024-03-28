@@ -8,11 +8,16 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.walletconnect.web3.modal.ui.components.internal.commons.VerticalSpacer
 import com.walletconnect.web3.modal.ui.components.internal.commons.inputs.InputState
+import com.walletconnect.web3.modal.ui.components.internal.email.input.EmailInputState
+import com.walletconnect.web3.modal.ui.previews.UiModePreview
+import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 @Composable
@@ -39,3 +44,13 @@ internal fun InputValidationBox(
     }
 }
 
+@UiModePreview
+@Composable
+private fun InputValidationBoxPreview() {
+    val composableScope = rememberCoroutineScope()
+    Web3ModalPreview {
+        InputValidationBox(errorMessage = "Error", inputState = EmailInputState(composableScope, LocalFocusManager.current, {})) {
+            Text(text = "Input")
+        }
+    }
+}

@@ -10,7 +10,15 @@ import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.web3.modal.domain.magic.model.MagicEvent
-import com.walletconnect.web3.modal.domain.magic.model.MagicEvent.*
+import com.walletconnect.web3.modal.domain.magic.model.MagicEvent.ConnectEmailResult
+import com.walletconnect.web3.modal.domain.magic.model.MagicEvent.ConnectOTPResult
+import com.walletconnect.web3.modal.domain.magic.model.MagicEvent.GetUserResult
+import com.walletconnect.web3.modal.domain.magic.model.MagicEvent.RpcRequestResult
+import com.walletconnect.web3.modal.domain.magic.model.MagicEvent.SessionUpdate
+import com.walletconnect.web3.modal.domain.magic.model.MagicEvent.SignOutSuccess
+import com.walletconnect.web3.modal.domain.magic.model.MagicEvent.SwitchNetworkResult
+import com.walletconnect.web3.modal.domain.magic.model.MagicEvent.SyncDappDataSuccess
+import com.walletconnect.web3.modal.domain.magic.model.MagicEvent.SyncThemeSuccess
 import com.walletconnect.web3.modal.domain.magic.model.MagicRequest
 import com.walletconnect.web3.modal.domain.magic.model.MagicTypeResponse
 import com.walletconnect.web3.modal.ui.utils.WEB_APP_INTERFACE
@@ -21,16 +29,18 @@ import kotlinx.coroutines.flow.asSharedFlow
 import org.json.JSONObject
 
 //const val SECURE_WEBSITE_URL = "https://192.168.0.220"
-const val SECURE_WEBSITE_URL = "https://secure.walletconnect.com"
+const val SECURE_WEBSITE_URL = "https://secure-mobile.walletconnect.com"
 
+//https://secure-mobile.walletconnect.com/mobile-sdk?projectId=cad4956f31a5e40a00b62865b030c6f8&bundleId=com.web3modal.flutterExample.debu
 internal class EmailMagicWebViewWrapper(
     context: Context,
     private val headers: Map<String, String>,
     private val projectId: ProjectId,
     private val appData: AppMetaData,
+    private val bundleId: String,
     private val logger: Logger,
 ) {
-    val mutableContext = MutableContextWrapper(context)
+    private val mutableContext = MutableContextWrapper(context)
     private val webView = WebView(mutableContext)
 
     private val _eventFlow = MutableSharedFlow<MagicEvent>()
@@ -61,55 +71,72 @@ internal class EmailMagicWebViewWrapper(
             webChromeClient = EmailMagicChromeClient(logger)
             webViewClient = EmailMagicWebView(appData, projectId, logger)
 
-            loadUrl(SECURE_WEBSITE_URL + "/sdk?projectId=${projectId.value}", headers)
+            loadUrl(SECURE_WEBSITE_URL + "/mobile-sdk?projectId=${projectId.value}&bundleId=$bundleId", headers)
         }
+
     }
 
     inner class WebAppInterface {
 
         @JavascriptInterface
         fun postMessage(message: String) {
-            logger.log("XD $message")
+
+            logger.log("kobe: postMessage $message")
+
             if (message == "verify_ready") {
+                logger.log("kobe: verify_ready")
                 return
             }
             try {
                 val jsonObject = JSONObject(message)
+
+                logger.log("kobe: jsonObject $jsonObject")
+
                 if (jsonObject.has("msgType")) {
                     return
                 }
-                if (jsonObject.has("type")) {
+
+                if (jsonObject.has("data") && jsonObject.getJSONObject("data").has("type")) {
+                    logger.log("kobe: has type, parse: $jsonObject")
+
                     val event = parseMessage(jsonObject) ?: return
+
+                    logger.log("kobe: Event $event")
+
                     consumeEvent(event)
+
                     logger.log("PostMessage event: $event")
                     _eventFlow.tryEmit(event)
                     return
                 }
             } catch (e: Throwable) {
-                logger.error(e)
+                logger.error("kobe: error: $e")
             }
         }
     }
 
     private fun consumeEvent(event: MagicEvent) {
-        when(event) {
+        when (event) {
             // todo update sessions at specifics events
-//            ConnectEmailResult.ConnectEmailError -> TODO()
-//            is ConnectEmailResult.ConnectEmailSuccess -> TODO()
-//            ConnectOTPResult.ConnectOTPError -> TODO()
-//            ConnectOTPResult.ConnectOTPSuccess -> TODO()
-//            GetUserResult.GetUserError -> TODO()
-//            is GetUserResult.GetUserSuccess -> TODO()
-//            IsConnectResult.IsConnectedError -> TODO()
-//            is IsConnectResult.IsConnectedSuccess ->
-//            is RpcRequestResult.RpcRequestError -> TODO()
-//            is RpcRequestResult.RpcRequestSuccess -> TODO()
-//            is SessionUpdate -> TODO()
-//            SignOutSuccess -> TODO()
-//            SwitchNetworkResult.SwitchNetworkError -> TODO()
-//            is SwitchNetworkResult.SwitchNetworkSuccess -> TODO()
-//            SyncDappDataSuccess -> TODO()
-//            SyncThemeSuccess -> TODO()
+            is MagicEvent.IsConnectResult.IsConnectedSuccess -> {
+                println("kobe: connected success")
+            }
+
+            MagicEvent.IsConnectResult.IsConnectedError -> TODO()
+            ConnectEmailResult.ConnectEmailError -> TODO()
+            is ConnectEmailResult.ConnectEmailSuccess -> TODO()
+            is ConnectOTPResult.ConnectOTPError -> TODO()
+            ConnectOTPResult.ConnectOTPSuccess -> TODO()
+            GetUserResult.GetUserError -> TODO()
+            is GetUserResult.GetUserSuccess -> TODO()
+            is RpcRequestResult.RpcRequestError -> TODO()
+            is RpcRequestResult.RpcRequestSuccess -> TODO()
+            is SessionUpdate -> TODO()
+            SignOutSuccess -> TODO()
+            SwitchNetworkResult.SwitchNetworkError -> TODO()
+            is SwitchNetworkResult.SwitchNetworkSuccess -> TODO()
+            SyncDappDataSuccess -> TODO()
+            SyncThemeSuccess -> TODO()
             else -> Unit
         }
     }
@@ -120,19 +147,21 @@ internal class EmailMagicWebViewWrapper(
 
     // TODO: Migrate parsing to Moshi adapter later
     private fun parseMessage(jsonObject: JSONObject): MagicEvent? {
-        return when (jsonObject.getString("type")) {
+        val dataJSONObject = jsonObject.getJSONObject("data")
+        return when (dataJSONObject.getString("type")) {
+            MagicTypeResponse.IS_CONNECTED_SUCCESS.value -> MagicEvent.IsConnectResult.IsConnectedSuccess(dataJSONObject.getJSONObject("payload").getBoolean("isConnected"))
+            MagicTypeResponse.IS_CONNECTED_ERROR.value -> MagicEvent.IsConnectResult.IsConnectedError
             MagicTypeResponse.SYNC_THEME_SUCCESS.value -> SyncThemeSuccess
             MagicTypeResponse.SYNC_DAPP_DATA_SUCCESS.value -> SyncDappDataSuccess
             MagicTypeResponse.CONNECT_EMAIL_SUCCESS.value -> ConnectEmailResult.ConnectEmailSuccess(jsonObject.getJSONObject("payload").getString("action"))
             MagicTypeResponse.CONNECT_EMAIL_ERROR.value -> ConnectEmailResult.ConnectEmailError
-            MagicTypeResponse.IS_CONNECTED_SUCCESS.value -> IsConnectResult.IsConnectedSuccess(jsonObject.getJSONObject("payload").getBoolean("isConnected"))
-            MagicTypeResponse.IS_CONNECTED_ERROR.value -> IsConnectResult.IsConnectedError
             MagicTypeResponse.CONNECT_OTP_SUCCESS.value -> ConnectOTPResult.ConnectOTPSuccess
             MagicTypeResponse.CONNECT_OTP_ERROR.value -> ConnectOTPResult.ConnectOTPError
             MagicTypeResponse.GET_USER_SUCCESS.value -> {
                 val payload = jsonObject.getJSONObject("payload")
                 GetUserResult.GetUserSuccess(payload.getString("email"), payload.getString("address"), payload.getInt("chainId"))
             }
+
             MagicTypeResponse.GET_USER_ERROR.value -> GetUserResult.GetUserError
             MagicTypeResponse.SESSION_UPDATE.value -> SessionUpdate(jsonObject.getJSONObject("payload").getString("token"))
             MagicTypeResponse.SWITCH_NETWORK_SUCCESS.value -> SwitchNetworkResult.SwitchNetworkSuccess(jsonObject.getJSONObject("payload").getInt("chainId"))

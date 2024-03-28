@@ -27,7 +27,7 @@ internal class Web3ModalRootState(
     private val coroutineScope: CoroutineScope,
     private val navController: NavController
 ) {
-    private val sendClickWalletHelpUseCase: SendClickWalletHelpUseCase = wcKoinApp.koin.get()
+    private val sendClickWalletHelpUseCase: SendClickWalletHelpUseCase by lazy { wcKoinApp.koin.get() }
     val currentDestinationFlow: Flow<NavBackStackEntry>
         get() = navController.currentBackStackEntryFlow
 
