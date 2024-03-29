@@ -143,7 +143,7 @@ internal class PairingProtocol(private val koinApp: KoinApplication = wcKoinApp)
 
     private suspend fun awaitConnection(onConnection: () -> Unit, errorLambda: (Throwable) -> Unit = {}) {
         try {
-            withTimeout(5000) {
+            withTimeout(60000) {
                 while (true) {
                     if (relayClient.isConnectionAvailable.value) {
                         onConnection()
