@@ -99,7 +99,7 @@ internal class NotifyEngine(
     }
 
     suspend fun setup() {
-        jsonRpcInteractor.isConnectionAvailable
+        jsonRpcInteractor.isWSSConnectionAvailable
             .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
             .filter { isAvailable: Boolean -> isAvailable }
             .onEach {
@@ -115,6 +115,9 @@ internal class NotifyEngine(
                 if (internalErrorsJob == null) internalErrorsJob = collectInternalErrors()
                 if (notifyEventsJob == null) notifyEventsJob = collectNotifyEvents()
             }
+//            .catch {
+//                println("Subscribe to Notify topics error: $it")
+//            }
             .launchIn(scope)
     }
 

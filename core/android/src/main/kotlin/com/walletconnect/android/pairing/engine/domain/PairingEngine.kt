@@ -265,7 +265,7 @@ internal class PairingEngine(
     }
 
     private fun resubscribeToPairingTopics() {
-        jsonRpcInteractor.isConnectionAvailable
+        jsonRpcInteractor.isWSSConnectionAvailable
             .filter { isAvailable: Boolean -> isAvailable }
             .onEach {
                 supervisorScope {
@@ -277,7 +277,11 @@ internal class PairingEngine(
                 if (jsonRpcRequestsJob == null) {
                     jsonRpcRequestsJob = collectJsonRpcRequestsFlow()
                 }
-            }.launchIn(scope)
+            }
+//            .catch {
+//                println("Subscribe to pairings topics error: $it")
+//            }
+            .launchIn(scope)
     }
 
     private suspend fun sendBatchSubcrbeForPairings() {

@@ -59,7 +59,7 @@ class Web3WalletApplication : Application() {
         EthAccountDelegate.application = this
 
         val projectId = BuildConfig.PROJECT_ID
-        val serverUrl = "wss://$RELAY_URL?projectId=${projectId}"
+        val serverUrl = "wss://$RELAY_URL?projectId=$projectId"
         val appMetaData = Core.Model.AppMetaData(
             name = "Kotlin Wallet",
             description = "Kotlin Wallet Implementation",

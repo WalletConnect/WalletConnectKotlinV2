@@ -163,7 +163,7 @@ internal class SignEngine(
     private var internalErrorsJob: Job? = null
     private var signEventsJob: Job? = null
 
-    private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
+    private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow(replay = 1)
     val engineEvent: SharedFlow<EngineEvent> = _engineEvent.asSharedFlow()
 
     init {
@@ -186,7 +186,7 @@ internal class SignEngine(
     }
 
     fun setup() {
-        jsonRpcInteractor.isConnectionAvailable
+        jsonRpcInteractor.isWSSConnectionAvailable
             .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
             .filter { isAvailable: Boolean -> isAvailable }
             .onEach {
