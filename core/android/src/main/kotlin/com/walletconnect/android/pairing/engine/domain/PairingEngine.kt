@@ -277,11 +277,7 @@ internal class PairingEngine(
                 if (jsonRpcRequestsJob == null) {
                     jsonRpcRequestsJob = collectJsonRpcRequestsFlow()
                 }
-            }
-//            .catch {
-//                println("Subscribe to pairings topics error: $it")
-//            }
-            .launchIn(scope)
+            }.launchIn(scope)
     }
 
     private suspend fun sendBatchSubcrbeForPairings() {

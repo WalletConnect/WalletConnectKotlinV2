@@ -114,11 +114,7 @@ internal class NotifyEngine(
                 if (jsonRpcResponsesJob == null) jsonRpcResponsesJob = collectJsonRpcResponses()
                 if (internalErrorsJob == null) internalErrorsJob = collectInternalErrors()
                 if (notifyEventsJob == null) notifyEventsJob = collectNotifyEvents()
-            }
-//            .catch {
-//                println("Subscribe to Notify topics error: $it")
-//            }
-            .launchIn(scope)
+            }.launchIn(scope)
     }
 
     private suspend fun collectJsonRpcRequests(): Job =
