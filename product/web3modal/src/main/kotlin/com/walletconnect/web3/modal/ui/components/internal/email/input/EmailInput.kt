@@ -36,7 +36,9 @@ internal fun EmailInput(
 ) {
     BaseTextInput(
         inputState = emailInputState,
-        modifier = Modifier.height(50.dp),
+        modifier = Modifier
+            .height(56.dp)
+            .padding(horizontal = 12.dp, vertical = 8.dp),
         keyboardOptions = KeyboardOptions(
             imeAction = ImeAction.Next,
             keyboardType = KeyboardType.Email

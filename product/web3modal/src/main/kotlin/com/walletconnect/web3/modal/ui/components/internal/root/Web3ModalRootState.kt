@@ -45,6 +45,14 @@ internal class Web3ModalRootState(
         navController.navigate(Route.WHAT_IS_WALLET.path)
     }
 
+    fun navigateToRegisterDevice() {
+        navController.navigate(Route.REGISTER_DEVICE.path)
+    }
+
+    fun navigateToConfirmEmail() {
+        navController.navigate(Route.CONFIRM_EMAIL.path)
+    }
+
     fun popUp() {
         navController.popBackStack()
     }

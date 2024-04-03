@@ -14,8 +14,9 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.rememberNavController
 import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.web3.modal.ui.components.internal.root.Web3ModalRoot
 import com.walletconnect.web3.modal.ui.components.internal.commons.VerticalSpacer
+import com.walletconnect.web3.modal.ui.components.internal.email.input.rememberEmailInputState
+import com.walletconnect.web3.modal.ui.components.internal.root.Web3ModalRoot
 import com.walletconnect.web3.modal.ui.components.internal.root.rememberWeb3ModalRootState
 import com.walletconnect.web3.modal.ui.components.internal.snackbar.rememberSnackBarState
 import com.walletconnect.web3.modal.ui.theme.ProvideWeb3ModalThemeComposition
@@ -32,8 +33,9 @@ internal fun Web3ModalPreview(
         val scope = rememberCoroutineScope()
         val rootState = rememberWeb3ModalRootState(coroutineScope = scope, navController = rememberNavController())
         val snackBarState = rememberSnackBarState(coroutineScope = scope)
+        val emailInputState = rememberEmailInputState { }
 
-        Web3ModalRoot(rootState = rootState, snackBarState = snackBarState, closeModal = {}, title = title) {
+        Web3ModalRoot(rootState = rootState, emailInputState = emailInputState, snackBarState = snackBarState, closeModal = {}, title = title) {
             content()
         }
     }

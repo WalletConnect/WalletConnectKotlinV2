@@ -26,7 +26,12 @@ import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
 import com.walletconnect.web3.modal.ui.components.internal.Web3ModalTopBar
 import com.walletconnect.web3.modal.ui.components.internal.commons.BackArrowIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.FullWidthDivider
+import com.walletconnect.web3.modal.ui.components.internal.commons.FullWidthOrDivider
 import com.walletconnect.web3.modal.ui.components.internal.commons.QuestionMarkIcon
+import com.walletconnect.web3.modal.ui.components.internal.commons.VerticalSpacer
+import com.walletconnect.web3.modal.ui.components.internal.email.input.EmailInput
+import com.walletconnect.web3.modal.ui.components.internal.email.input.EmailInputState
+import com.walletconnect.web3.modal.ui.components.internal.email.input.rememberEmailInputState
 import com.walletconnect.web3.modal.ui.components.internal.snackbar.ModalSnackBarHost
 import com.walletconnect.web3.modal.ui.components.internal.snackbar.SnackBarState
 import com.walletconnect.web3.modal.ui.components.internal.snackbar.rememberSnackBarState
@@ -49,15 +54,17 @@ internal fun Web3ModalRoot(
     val scope = rememberCoroutineScope()
     val rootState = rememberWeb3ModalRootState(coroutineScope = scope, navController = navController)
     val snackBarState = rememberSnackBarState(coroutineScope = scope)
+    val emailInputState = rememberEmailInputState { input ->
+        //todo: validate input, trigger magic to send email
+        rootState.navigateToRegisterDevice()
+    }
     val title by rootState.title.collectAsState(null)
 
     LaunchedEffect(Unit) {
         Web3ModalDelegate
             .wcEventModels
             .filterIsInstance<Modal.Model.Error>()
-            .onEach { event ->
-                snackBarState.showErrorSnack(event.throwable.localizedMessage ?: "Something went wrong")
-            }
+            .onEach { event -> snackBarState.showErrorSnack(event.throwable.localizedMessage ?: "Something went wrong") }
             .collect()
     }
 
@@ -66,7 +73,7 @@ internal fun Web3ModalRoot(
         modifier = modifier
     ) {
         ProvideWeb3ModalThemeComposition {
-            Web3ModalRoot(rootState, snackBarState, title, closeModal, content)
+            Web3ModalRoot(rootState, emailInputState, snackBarState, title, closeModal, content)
         }
     }
 }
@@ -74,11 +81,13 @@ internal fun Web3ModalRoot(
 @Composable
 internal fun Web3ModalRoot(
     rootState: Web3ModalRootState,
+    emailInputState: EmailInputState,
     snackBarState: SnackBarState,
     title: String?,
     closeModal: () -> Unit,
     content: @Composable () -> Unit
 ) {
+
     ModalSnackBarHost(snackBarState) {
         Column(
             modifier = Modifier
@@ -92,6 +101,11 @@ internal fun Web3ModalRoot(
                     onCloseIconClick = closeModal
                 )
                 FullWidthDivider()
+                if (rootState.currentDestinationRoute == Route.CONNECT_YOUR_WALLET.path) {
+                    VerticalSpacer(6.dp)
+                    EmailInput(emailInputState)
+                    FullWidthOrDivider()
+                }
             }
             content()
         }
@@ -128,10 +142,11 @@ private fun PreviewWeb3ModalRoot() {
     val navController = rememberNavController()
     val rootState = rememberWeb3ModalRootState(coroutineScope = scope, navController = navController)
     val snackBarState = rememberSnackBarState(coroutineScope = scope)
+    val emailInputState = rememberEmailInputState { }
 
     MultipleComponentsPreview(
-        { Web3ModalRoot(rootState, snackBarState, null, {}, { content() }) },
-        { Web3ModalRoot(rootState, snackBarState, "Top Bar Title", {}, { content() }) }
+        { Web3ModalRoot(rootState, emailInputState, snackBarState, null, {}, { content() }) },
+        { Web3ModalRoot(rootState, emailInputState, snackBarState, "Top Bar Title", {}, { content() }) }
     )
 }
 
