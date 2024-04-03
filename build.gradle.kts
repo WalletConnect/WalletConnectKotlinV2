@@ -47,9 +47,6 @@ allprojects {
             if (requested.group == "androidx.navigation" && requested.name == "navigation-compose") {
                 useVersion(composeNavigationVersion)
             }
-            if (requested.group == "org.bouncycastle" && requested.name == "bcprov-jdk15on") {
-                useTarget("org.bouncycastle:bcprov-jdk18on:$bouncyCastleVersion")
-            }
         }
     }
 }

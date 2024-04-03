@@ -1,6 +1,7 @@
 package com.walletconnect.sample.modal
 
 import android.app.Application
+import com.google.firebase.appdistribution.FirebaseAppDistribution
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
 import com.walletconnect.android.Core
@@ -41,5 +42,7 @@ class ModalSampleApp : Application() {
         }
 
         Web3Modal.setChains(Web3ModalChainsPresets.ethChains.values.toList())
+
+        FirebaseAppDistribution.getInstance().updateIfNewReleaseAvailable()
     }
 }
