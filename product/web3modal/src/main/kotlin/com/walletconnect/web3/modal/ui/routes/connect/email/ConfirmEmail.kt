@@ -26,7 +26,8 @@ internal fun ConfirmEmailRoute() {
 private fun ConfirmEmail() {
     //TODO: Add loading state
     val codeInputState = rememberCodeInputState { code ->
-        println("kobe: code")
+        //TODO: Handle sending code
+        println("kobe: $code")
     }
 
     Column(
