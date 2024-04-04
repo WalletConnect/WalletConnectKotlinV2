@@ -38,7 +38,7 @@ private fun RegisterDevice() {
         )
         VerticalSpacer(16.dp)
         Text(
-            text = "Approve login the link we sent to",
+            text = "Approve the login link we sent to",
             style = Web3ModalTheme.typo.paragraph400,
             textAlign = TextAlign.Center,
         )
