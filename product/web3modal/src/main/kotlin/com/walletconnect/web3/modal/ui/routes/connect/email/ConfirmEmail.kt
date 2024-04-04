@@ -49,7 +49,7 @@ private fun ConfirmEmail() {
         )
         VerticalSpacer(12.dp)
         Text(
-            text = "The code expires in 10 minutes",
+            text = "The code expires in 20 minutes",
             style = Web3ModalTheme.typo.small400.copy(Web3ModalTheme.colors.foreground.color200),
             textAlign = TextAlign.Center
         )
