@@ -8,6 +8,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.walletconnect.web3.modal.ui.components.internal.commons.HorizontalSpacer
@@ -45,7 +46,8 @@ private fun ConfirmEmail() {
         Text(
             text = "jakub@walletconnect.com", //TODO: Replace with email
             style = Web3ModalTheme.typo.paragraph400,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            fontWeight = FontWeight.Bold
         )
         VerticalSpacer(12.dp)
         Text(

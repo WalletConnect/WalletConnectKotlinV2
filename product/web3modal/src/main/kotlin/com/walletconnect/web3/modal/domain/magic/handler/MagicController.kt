@@ -1,6 +1,5 @@
 package com.walletconnect.web3.modal.domain.magic.handler
 
-import android.content.Context
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.ProjectId
 import com.walletconnect.foundation.util.Logger
@@ -15,17 +14,26 @@ import com.walletconnect.web3.modal.domain.magic.model.SignOut
 import com.walletconnect.web3.modal.domain.magic.model.SwitchNetwork
 
 internal class MagicController(
-    private val context: Context,
+//    private val magicEngine: MagicEngine
+//    private val context: Context,
     private val logger: Logger,
     private val appMetaData: AppMetaData,
     private val projectId: ProjectId,
-): MagicControllerInterface {
+) : MagicControllerInterface {
 
     private lateinit var magicEngine: MagicEngine
 
+//    init {
+//        magicEngine = MagicEngine(
+//            logger = logger,
+//            appMetaData = appMetaData,
+//            projectId = projectId
+//        )
+//    }
+
     override fun init() {
+        println("kobe: init Magic Controller")
         magicEngine = MagicEngine(
-            context = context,
             logger = logger,
             appMetaData = appMetaData,
             projectId = projectId

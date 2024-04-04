@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.walletconnect.web3.modal.R
@@ -51,7 +52,8 @@ private fun RegisterDevice() {
         Text(
             text = "The link expires in 20 minutes",
             style = Web3ModalTheme.typo.small400.copy(Web3ModalTheme.colors.foreground.color200),
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            fontWeight = FontWeight.Bold
         )
         VerticalSpacer(12.dp)
         Row(

@@ -1,13 +1,16 @@
 package com.walletconnect.web3.modal.ui.components.internal.email.webview
 
 import android.annotation.SuppressLint
-import android.content.Context
+import android.app.Activity
+import android.app.Application
 import android.content.MutableContextWrapper
+import android.os.Bundle
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.widget.LinearLayout
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.ProjectId
+import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.web3.modal.domain.magic.model.MagicEvent
 import com.walletconnect.web3.modal.domain.magic.model.MagicEvent.ConnectEmailResult
@@ -32,36 +35,73 @@ import org.json.JSONObject
 const val SECURE_WEBSITE_URL = "https://secure-mobile.walletconnect.com"
 
 internal class EmailMagicWebViewWrapper(
-    context: Context,
     private val headers: Map<String, String>,
     private val projectId: ProjectId,
     private val appData: AppMetaData,
     private val bundleId: String,
     private val logger: Logger,
 ) {
-    private val mutableContext = MutableContextWrapper(context)
-    private val webView = WebView(mutableContext)
+    private var mutableContext: MutableContextWrapper? = null//MutableContextWrapper(context)
+    private var webView: WebView? = null//WebView(mutableContext)
 
     private val _eventFlow = MutableSharedFlow<MagicEvent>()
     val eventFlow: SharedFlow<MagicEvent>
         get() = _eventFlow.asSharedFlow()
 
     init {
-        WebView.setWebContentsDebuggingEnabled(true)
+        println("kobe: init wrapper")
+        wcKoinApp.koin.get<Application>().registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
+            override fun onActivityCreated(p0: Activity, p1: Bundle?) {
+                println("kobe: onActivityCreated")
 
-        //todo check context and init on specific type of context
-        initWebView()
+                if (mutableContext == null) {
+                    println("kobe: onActivityCreated - set")
+                    mutableContext = MutableContextWrapper(p0)
+                    webView = WebView(mutableContext!!)
+
+                    WebView.setWebContentsDebuggingEnabled(true)
+                    initWebView()
+                } else {
+                    println("kobe: onActivityCreated - update")
+                    mutableContext?.baseContext = p0
+                }
+            }
+
+            override fun onActivityDestroyed(p0: Activity) {
+                println("kobe: onActivityDestroyed")
+            }
+
+            override fun onActivityStarted(p0: Activity) {
+                println("kobe: onActivityStarted")
+            }
+
+            override fun onActivityResumed(p0: Activity) {
+                println("kobe: onActivityResumed")
+            }
+
+            override fun onActivityPaused(p0: Activity) {
+                println("kobe: onActivityPaused")
+            }
+
+            override fun onActivityStopped(p0: Activity) {
+                println("kobe: onActivityStopped")
+            }
+
+            override fun onActivitySaveInstanceState(p0: Activity, p1: Bundle) {
+                println("kobe: onActivitySaveInstanceState")
+            }
+        })
     }
 
     @SuppressLint("JavascriptInterface", "SetJavaScriptEnabled")
     private fun initWebView() {
         // Setup settings
-        val webSettings = webView.settings
-        webSettings.javaScriptEnabled = true
-        webSettings.domStorageEnabled = true
+        val webSettings = webView?.settings
+        webSettings?.javaScriptEnabled = true
+        webSettings?.domStorageEnabled = true
 
         // Setup webView
-        webView.apply {
+        webView?.apply {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.MATCH_PARENT
@@ -72,19 +112,14 @@ internal class EmailMagicWebViewWrapper(
 
             loadUrl(SECURE_WEBSITE_URL + "/mobile-sdk?projectId=${projectId.value}&bundleId=$bundleId", headers)
         }
-
     }
 
     inner class WebAppInterface {
 
         @JavascriptInterface
         fun postMessage(message: String) {
-            logger.log("postMessage $message")
+            logger.log("kobe: postMessage $message")
 
-            if (message == "verify_ready") {
-                logger.log("verify_ready")
-                return
-            }
             try {
                 val jsonObject = JSONObject(message)
 
@@ -93,11 +128,11 @@ internal class EmailMagicWebViewWrapper(
                 }
 
                 if (jsonObject.has("data") && jsonObject.getJSONObject("data").has("type")) {
-                    logger.log("has type, parse: $jsonObject")
+                    logger.log("kobe: has type, parse: $jsonObject")
 
                     val event = parseMessage(jsonObject) ?: return
 
-                    logger.log("Event $event")
+                    logger.log("kobe: Event $event")
 
                     consumeEvent(event)
 
@@ -138,7 +173,7 @@ internal class EmailMagicWebViewWrapper(
     }
 
     fun sendMessage(request: MagicRequest) {
-        webView.sendMethod(request)
+        webView?.sendMethod(request)
     }
 
     // TODO: Migrate parsing to Moshi adapter later

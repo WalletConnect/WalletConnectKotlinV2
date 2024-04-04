@@ -1,6 +1,5 @@
 package com.walletconnect.web3.modal.domain.magic
 
-import android.content.Context
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.ProjectId
@@ -17,15 +16,14 @@ import org.koin.core.qualifier.named
 import kotlin.coroutines.resume
 
 internal class MagicEngine(
-    context: Context,
     logger: Logger,
     appMetaData: AppMetaData,
-    private val projectId: ProjectId,
+    projectId: ProjectId,
 ) {
 
     private val bundleId: String = wcKoinApp.koin.get(named(AndroidCommonDITags.BUNDLE_ID))
 
-    internal var magicWebViewWrapper = EmailMagicWebViewWrapper(context, buildWebHeaders(), projectId, appMetaData, bundleId, logger).apply {
+    internal var magicWebViewWrapper = EmailMagicWebViewWrapper(buildWebHeaders(), projectId, appMetaData, bundleId, logger).apply {
         //todo refresh webview on activity change somehow
     }
 
