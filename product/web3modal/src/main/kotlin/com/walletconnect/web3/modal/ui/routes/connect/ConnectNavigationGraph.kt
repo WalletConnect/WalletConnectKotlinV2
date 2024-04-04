@@ -10,6 +10,8 @@ import com.walletconnect.web3.modal.ui.routes.common.WhatIsNetworkRoute
 import com.walletconnect.web3.modal.ui.routes.connect.all_wallets.AllWalletsRoute
 import com.walletconnect.web3.modal.ui.routes.connect.choose_network.ChooseNetworkRoute
 import com.walletconnect.web3.modal.ui.routes.connect.connect_wallet.ConnectWalletRoute
+import com.walletconnect.web3.modal.ui.routes.connect.email.ConfirmEmailRoute
+import com.walletconnect.web3.modal.ui.routes.connect.email.RegisterDeviceRoute
 import com.walletconnect.web3.modal.ui.routes.connect.get_wallet.GetAWalletRoute
 import com.walletconnect.web3.modal.ui.routes.connect.scan_code.ScanQRCodeRoute
 import com.walletconnect.web3.modal.ui.routes.connect.what_is_wallet.WhatIsWallet
@@ -47,10 +49,10 @@ internal fun ConnectionNavGraph(
             WhatIsWallet(navController = navController)
         }
         animatedComposable(route = Route.REGISTER_DEVICE.path) {
-
+            RegisterDeviceRoute()
         }
         animatedComposable(route = Route.CONFIRM_EMAIL.path) {
-
+            ConfirmEmailRoute()
         }
         animatedComposable(Route.GET_A_WALLET.path) {
             GetAWalletRoute(wallets = connectViewModel.getNotInstalledWallets())

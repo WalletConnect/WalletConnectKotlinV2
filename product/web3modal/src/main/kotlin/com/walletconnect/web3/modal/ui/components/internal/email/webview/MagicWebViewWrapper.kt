@@ -31,7 +31,6 @@ import org.json.JSONObject
 //const val SECURE_WEBSITE_URL = "https://192.168.0.220"
 const val SECURE_WEBSITE_URL = "https://secure-mobile.walletconnect.com"
 
-//https://secure-mobile.walletconnect.com/mobile-sdk?projectId=cad4956f31a5e40a00b62865b030c6f8&bundleId=com.web3modal.flutterExample.debu
 internal class EmailMagicWebViewWrapper(
     context: Context,
     private val headers: Map<String, String>,
@@ -80,28 +79,25 @@ internal class EmailMagicWebViewWrapper(
 
         @JavascriptInterface
         fun postMessage(message: String) {
-
-            logger.log("kobe: postMessage $message")
+            logger.log("postMessage $message")
 
             if (message == "verify_ready") {
-                logger.log("kobe: verify_ready")
+                logger.log("verify_ready")
                 return
             }
             try {
                 val jsonObject = JSONObject(message)
-
-                logger.log("kobe: jsonObject $jsonObject")
 
                 if (jsonObject.has("msgType")) {
                     return
                 }
 
                 if (jsonObject.has("data") && jsonObject.getJSONObject("data").has("type")) {
-                    logger.log("kobe: has type, parse: $jsonObject")
+                    logger.log("has type, parse: $jsonObject")
 
                     val event = parseMessage(jsonObject) ?: return
 
-                    logger.log("kobe: Event $event")
+                    logger.log("Event $event")
 
                     consumeEvent(event)
 
@@ -110,7 +106,7 @@ internal class EmailMagicWebViewWrapper(
                     return
                 }
             } catch (e: Throwable) {
-                logger.error("kobe: error: $e")
+                logger.error("error: $e")
             }
         }
     }

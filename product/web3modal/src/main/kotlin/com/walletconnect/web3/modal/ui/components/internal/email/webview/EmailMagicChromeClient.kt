@@ -10,7 +10,7 @@ internal class EmailMagicChromeClient(
 
     override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
         if (consoleMessage?.messageLevel() == ConsoleMessage.MessageLevel.ERROR) {
-            logger.error("kobe: EmailMagicChromeClient: ${consoleMessage.message()}")
+            logger.error("EmailMagicChromeClient: ${consoleMessage.message()}")
         }
         return super.onConsoleMessage(consoleMessage)
     }

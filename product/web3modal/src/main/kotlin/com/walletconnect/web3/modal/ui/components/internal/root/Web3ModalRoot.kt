@@ -56,7 +56,8 @@ internal fun Web3ModalRoot(
     val snackBarState = rememberSnackBarState(coroutineScope = scope)
     val emailInputState = rememberEmailInputState { input ->
         //todo: validate input, trigger magic to send email
-        rootState.navigateToRegisterDevice()
+//        rootState.navigateToRegisterDevice()
+        rootState.navigateToConfirmEmail()
     }
     val title by rootState.title.collectAsState(null)
 
