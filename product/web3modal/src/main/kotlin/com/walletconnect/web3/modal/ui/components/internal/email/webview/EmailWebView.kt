@@ -12,7 +12,7 @@ import com.walletconnect.web3.modal.domain.magic.model.IsConnected
 import com.walletconnect.web3.modal.ui.utils.injectSendMessageScript
 import com.walletconnect.web3.modal.ui.utils.sendMethod
 
-internal class EmailMagicWebView(
+internal class EmailMagicWebViewClient(
     private val appData: AppMetaData,
     private val projectId: ProjectId,
     private val logger: Logger

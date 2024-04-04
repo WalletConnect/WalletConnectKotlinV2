@@ -16,10 +16,11 @@ import com.walletconnect.web3.modal.ui.components.internal.commons.VerticalSpace
 import com.walletconnect.web3.modal.ui.components.internal.email.code.CodeInput
 import com.walletconnect.web3.modal.ui.components.internal.email.code.rememberCodeInputState
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
+import com.walletconnect.web3.modal.ui.routes.connect.EmailViewModel
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 @Composable
-internal fun ConfirmEmailRoute() {
+internal fun ConfirmEmailRoute(emailViewModel: EmailViewModel) {
     ConfirmEmail()
 }
 
@@ -28,7 +29,6 @@ private fun ConfirmEmail() {
     //TODO: Add loading state
     val codeInputState = rememberCodeInputState { code ->
         //TODO: Handle sending code
-        println("kobe: $code")
     }
 
     Column(

@@ -25,6 +25,7 @@ import com.walletconnect.web3.modal.ui.Web3ModalState
 import com.walletconnect.web3.modal.ui.Web3ModalViewModel
 import com.walletconnect.web3.modal.ui.components.internal.root.Web3ModalRoot
 import com.walletconnect.web3.modal.ui.routes.account.AccountNavGraph
+import com.walletconnect.web3.modal.ui.routes.connect.ConnectViewModel
 import com.walletconnect.web3.modal.ui.routes.connect.ConnectionNavGraph
 import com.walletconnect.web3.modal.ui.utils.ComposableLifecycleEffect
 import com.walletconnect.web3.modal.ui.utils.toComponentEvent
@@ -52,6 +53,7 @@ internal fun Web3ModalComponent(
     closeModal: () -> Unit
 ) {
     val web3ModalViewModel: Web3ModalViewModel = viewModel()
+    val emailViewModel = viewModel<ConnectViewModel>()
     val state by web3ModalViewModel.modalState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
 

@@ -2,15 +2,12 @@ package com.walletconnect.web3.modal.ui.components.internal.email.webview
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.app.Application
 import android.content.MutableContextWrapper
-import android.os.Bundle
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.widget.LinearLayout
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.ProjectId
-import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.web3.modal.domain.magic.model.MagicEvent
 import com.walletconnect.web3.modal.domain.magic.model.MagicEvent.ConnectEmailResult
@@ -34,63 +31,30 @@ import org.json.JSONObject
 //const val SECURE_WEBSITE_URL = "https://192.168.0.220"
 const val SECURE_WEBSITE_URL = "https://secure-mobile.walletconnect.com"
 
-internal class EmailMagicWebViewWrapper(
+internal class MagicWebViewManager(
     private val headers: Map<String, String>,
     private val projectId: ProjectId,
     private val appData: AppMetaData,
     private val bundleId: String,
     private val logger: Logger,
 ) {
-    private var mutableContext: MutableContextWrapper? = null//MutableContextWrapper(context)
-    private var webView: WebView? = null//WebView(mutableContext)
+    private var mutableContext: MutableContextWrapper? = null
+    private var webView: WebView? = null
 
     private val _eventFlow = MutableSharedFlow<MagicEvent>()
     val eventFlow: SharedFlow<MagicEvent>
         get() = _eventFlow.asSharedFlow()
 
-    init {
-        println("kobe: init wrapper")
-        wcKoinApp.koin.get<Application>().registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
-            override fun onActivityCreated(p0: Activity, p1: Bundle?) {
-                println("kobe: onActivityCreated")
+    internal fun updateWebView(activity: Activity) {
+        if (mutableContext == null) {
+            mutableContext = MutableContextWrapper(activity)
+            webView = WebView(mutableContext!!)
 
-                if (mutableContext == null) {
-                    println("kobe: onActivityCreated - set")
-                    mutableContext = MutableContextWrapper(p0)
-                    webView = WebView(mutableContext!!)
-
-                    WebView.setWebContentsDebuggingEnabled(true)
-                    initWebView()
-                } else {
-                    println("kobe: onActivityCreated - update")
-                    mutableContext?.baseContext = p0
-                }
-            }
-
-            override fun onActivityDestroyed(p0: Activity) {
-                println("kobe: onActivityDestroyed")
-            }
-
-            override fun onActivityStarted(p0: Activity) {
-                println("kobe: onActivityStarted")
-            }
-
-            override fun onActivityResumed(p0: Activity) {
-                println("kobe: onActivityResumed")
-            }
-
-            override fun onActivityPaused(p0: Activity) {
-                println("kobe: onActivityPaused")
-            }
-
-            override fun onActivityStopped(p0: Activity) {
-                println("kobe: onActivityStopped")
-            }
-
-            override fun onActivitySaveInstanceState(p0: Activity, p1: Bundle) {
-                println("kobe: onActivitySaveInstanceState")
-            }
-        })
+            WebView.setWebContentsDebuggingEnabled(true)
+            initWebView()
+        } else {
+            mutableContext?.baseContext = activity
+        }
     }
 
     @SuppressLint("JavascriptInterface", "SetJavaScriptEnabled")
@@ -108,7 +72,7 @@ internal class EmailMagicWebViewWrapper(
             )
             addJavascriptInterface(WebAppInterface(), WEB_APP_INTERFACE)
             webChromeClient = EmailMagicChromeClient(logger)
-            webViewClient = EmailMagicWebView(appData, projectId, logger)
+            webViewClient = EmailMagicWebViewClient(appData, projectId, logger)
 
             loadUrl(SECURE_WEBSITE_URL + "/mobile-sdk?projectId=${projectId.value}&bundleId=$bundleId", headers)
         }
@@ -118,22 +82,18 @@ internal class EmailMagicWebViewWrapper(
 
         @JavascriptInterface
         fun postMessage(message: String) {
-            logger.log("kobe: postMessage $message")
+            logger.log("postMessage $message")
 
             try {
                 val jsonObject = JSONObject(message)
-
                 if (jsonObject.has("msgType")) {
                     return
                 }
 
                 if (jsonObject.has("data") && jsonObject.getJSONObject("data").has("type")) {
-                    logger.log("kobe: has type, parse: $jsonObject")
-
+                    logger.log("has type, parse: $jsonObject")
                     val event = parseMessage(jsonObject) ?: return
-
-                    logger.log("kobe: Event $event")
-
+                    logger.log("Event $event")
                     consumeEvent(event)
 
                     logger.log("PostMessage event: $event")
@@ -150,7 +110,7 @@ internal class EmailMagicWebViewWrapper(
         when (event) {
             // todo update sessions at specifics events
             is MagicEvent.IsConnectResult.IsConnectedSuccess -> {
-                println("kobe: connected success")
+                println("connected success")
             }
 
             MagicEvent.IsConnectResult.IsConnectedError -> TODO()

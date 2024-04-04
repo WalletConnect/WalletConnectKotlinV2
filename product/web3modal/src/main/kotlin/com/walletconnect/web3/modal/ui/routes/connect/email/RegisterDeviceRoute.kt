@@ -17,10 +17,11 @@ import com.walletconnect.web3.modal.R
 import com.walletconnect.web3.modal.ui.components.internal.commons.HorizontalSpacer
 import com.walletconnect.web3.modal.ui.components.internal.commons.VerticalSpacer
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
+import com.walletconnect.web3.modal.ui.routes.connect.EmailViewModel
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 @Composable
-internal fun RegisterDeviceRoute() {
+internal fun RegisterDeviceRoute(emailViewModel: EmailViewModel) {
     RegisterDevice()
 }
 
