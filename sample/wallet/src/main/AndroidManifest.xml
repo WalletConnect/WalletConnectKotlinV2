@@ -24,6 +24,7 @@
             android:name="com.walletconnect.sample.wallet.ui.Web3WalletActivity"
             android:exported="true"
             android:launchMode="singleTask"
+            android:taskAffinity="com.walletconnect.sample.wallet.activity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.Wallet"
             android:windowSoftInputMode="adjustResize">

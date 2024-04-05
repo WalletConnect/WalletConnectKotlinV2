@@ -10,7 +10,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -35,10 +34,8 @@ import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.C
 import com.walletconnect.sample.wallet.ui.routes.host.WalletSampleHost
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import okio.Utf8
 import timber.log.Timber
 import java.net.URLEncoder
-import java.nio.charset.Charset
 
 class Web3WalletActivity : AppCompatActivity() {
     private lateinit var navController: NavHostController
@@ -155,12 +152,12 @@ class Web3WalletActivity : AppCompatActivity() {
         super.onNewIntent(intent)
 
         when {
-            intent?.dataString?.startsWith("kotlin-web3wallet:/wc") == true -> {
-                val uri = intent.dataString?.replace("kotlin-web3wallet:/wc", "kotlin-web3wallet://wc")
+            intent?.dataString?.startsWith("kotlin-web3wallet://wc") == true -> {
+                val uri = intent.dataString
                 intent.setData(uri?.toUri())
             }
-            intent?.dataString?.startsWith("kotlin-web3wallet:/request") == true -> {
-                val uri = intent.dataString?.replace("kotlin-web3wallet:/request", "kotlin-web3wallet://request")
+            intent?.dataString?.startsWith("kotlin-web3wallet://request") == true -> {
+                val uri = intent.dataString
                 intent.setData(uri?.toUri())
             }
             intent?.dataString?.startsWith("wc:") == true -> {

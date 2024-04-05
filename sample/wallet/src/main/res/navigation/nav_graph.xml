@@ -12,13 +12,13 @@
 
     <deepLink
         app:action="android.intent.action.VIEW"
-        app:uri="kotlin-web3wallet:/wc" />
+        app:uri="kotlin-web3wallet://wc" />
 
     <deepLink
         app:action="android.intent.action.VIEW"
-        app:uri="wc:/{topic}@2" />
+        app:uri="wc://{topic}@2" />
 
     <deepLink
         app:action="android.intent.action.VIEW"
-        app:uri="kotlin-web3wallet:/request" />
+        app:uri="kotlin-web3wallet://request" />
 </navigation>
