@@ -50,7 +50,7 @@ internal class MagicWebViewManager(
             mutableContext = MutableContextWrapper(activity)
             webView = WebView(mutableContext!!)
 
-            WebView.setWebContentsDebuggingEnabled(true)
+            WebView.setWebContentsDebuggingEnabled(true) //TODO: Remove this line in production
             initWebView()
         } else {
             mutableContext?.baseContext = activity
