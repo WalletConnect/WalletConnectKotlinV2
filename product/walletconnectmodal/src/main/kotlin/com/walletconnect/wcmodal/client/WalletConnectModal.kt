@@ -74,10 +74,11 @@ object WalletConnectModal {
 
     @Throws(IllegalStateException::class)
     fun setDelegate(delegate: ModalDelegate) {
+
+        WalletConnectModalDelegate.connectionState.onEach { event -> delegate.onConnectionStateChange(event) }.launchIn(scope)
         WalletConnectModalDelegate.wcEventModels.onEach { event ->
             when (event) {
                 is Modal.Model.ApprovedSession -> delegate.onSessionApproved(event)
-                is Modal.Model.ConnectionState -> delegate.onConnectionStateChange(event)
                 is Modal.Model.DeletedSession.Success -> delegate.onSessionDelete(event)
                 is Modal.Model.Error -> delegate.onError(event)
                 is Modal.Model.RejectedSession -> delegate.onSessionRejected(event)

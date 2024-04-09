@@ -4,7 +4,6 @@ package com.walletconnect.sign.engine.domain
 
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.model.AppMetaDataType
-import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Validation
 import com.walletconnect.android.internal.common.model.type.EngineEvent
@@ -75,6 +74,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
@@ -163,8 +163,9 @@ internal class SignEngine(
     private var internalErrorsJob: Job? = null
     private var signEventsJob: Job? = null
 
-    private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow(replay = 1)
+    private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val engineEvent: SharedFlow<EngineEvent> = _engineEvent.asSharedFlow()
+    val wssConnection: StateFlow<Boolean> = jsonRpcInteractor.isWSSConnectionAvailable
 
     init {
         pairingController.register(
@@ -187,7 +188,6 @@ internal class SignEngine(
 
     fun setup() {
         jsonRpcInteractor.isWSSConnectionAvailable
-            .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
             .filter { isAvailable: Boolean -> isAvailable }
             .onEach {
                 supervisorScope {

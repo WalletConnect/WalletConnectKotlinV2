@@ -81,7 +81,6 @@ object ModalSampleDelegate : Web3Modal.ModalDelegate {
     }
 
     override fun onConnectionStateChange(state: Modal.Model.ConnectionState) {
-        Timber.d(tag(this), "onConnectionStateChange($state)")
         scope.launch {
             _wcEventModels.emit(state)
         }
