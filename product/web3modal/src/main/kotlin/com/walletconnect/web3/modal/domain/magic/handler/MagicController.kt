@@ -1,9 +1,5 @@
 package com.walletconnect.web3.modal.domain.magic.handler
 
-import android.content.Context
-import com.walletconnect.android.internal.common.model.AppMetaData
-import com.walletconnect.android.internal.common.model.ProjectId
-import com.walletconnect.foundation.util.Logger
 import com.walletconnect.web3.modal.domain.magic.MagicEngine
 import com.walletconnect.web3.modal.domain.magic.model.ConnectEmail
 import com.walletconnect.web3.modal.domain.magic.model.ConnectOtp
@@ -13,24 +9,13 @@ import com.walletconnect.web3.modal.domain.magic.model.MagicEvent
 import com.walletconnect.web3.modal.domain.magic.model.RpcRequest
 import com.walletconnect.web3.modal.domain.magic.model.SignOut
 import com.walletconnect.web3.modal.domain.magic.model.SwitchNetwork
+import com.walletconnect.web3.modal.ui.components.internal.email.webview.MagicWebViewManager
 
-internal class MagicController(
-    private val context: Context,
-    private val logger: Logger,
-    private val appMetaData: AppMetaData,
-    private val projectId: ProjectId,
-): MagicControllerInterface {
-
+internal class MagicController(private val magicWebViewManager: MagicWebViewManager) : MagicControllerInterface {
     private lateinit var magicEngine: MagicEngine
 
     override fun init() {
-        magicEngine = MagicEngine(
-            context = context,
-            logger = logger,
-            appMetaData = appMetaData,
-            projectId = projectId
-        )
-
+        magicEngine = MagicEngine(magicWebViewManager = magicWebViewManager)
     }
 
     override suspend fun checkConnection(): Result<MagicEvent.IsConnectResult> = runCatching {

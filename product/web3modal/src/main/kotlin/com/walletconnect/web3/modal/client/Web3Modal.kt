@@ -1,6 +1,5 @@
 package com.walletconnect.web3.modal.client
 
-import android.content.Context
 import androidx.activity.ComponentActivity
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.scope
@@ -14,12 +13,14 @@ import com.walletconnect.web3.modal.client.models.Session
 import com.walletconnect.web3.modal.client.models.Web3ModelClientAlreadyInitializedException
 import com.walletconnect.web3.modal.client.models.request.Request
 import com.walletconnect.web3.modal.client.models.request.SentRequestResult
+import com.walletconnect.web3.modal.di.magicModule
 import com.walletconnect.web3.modal.di.web3ModalModule
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
 import com.walletconnect.web3.modal.domain.magic.handler.MagicController
 import com.walletconnect.web3.modal.domain.model.Session.WalletConnect
 import com.walletconnect.web3.modal.domain.model.toModalError
 import com.walletconnect.web3.modal.engine.Web3ModalEngine
+import com.walletconnect.web3.modal.ui.components.internal.email.ActivityLifeCycleWatcher
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.jetbrains.annotations.ApiStatus.Experimental
@@ -35,6 +36,8 @@ object Web3Modal {
     internal var selectedChain: Modal.Model.Chain? = null
 
     private lateinit var web3ModalEngine: Web3ModalEngine
+
+    private lateinit var activityLifeCycleWatcher: ActivityLifeCycleWatcher
 
     interface ModalDelegate {
         fun onSessionApproved(approvedSession: Modal.Model.ApprovedSession)
@@ -108,13 +111,14 @@ object Web3Modal {
     ) {
         if (!::web3ModalEngine.isInitialized) {
             runCatching {
-                wcKoinApp.modules(web3ModalModule())
-                web3ModalEngine = wcKoinApp.koin.get()
-                web3ModalEngine.setup(init, onError)
-                web3ModalEngine.setInternalDelegate(Web3ModalDelegate)
-                wcKoinApp.modules(
-                    module { single(named(AndroidCommonDITags.ENABLE_ANALYTICS)) { init.enableAnalytics ?: web3ModalEngine.fetchAnalyticsConfig() } }
-                )
+                wcKoinApp.modules(web3ModalModule(), magicModule())
+                web3ModalEngine = wcKoinApp.koin.get<Web3ModalEngine>().apply {
+                    setup(init, onError)
+                    setInternalDelegate(Web3ModalDelegate)
+                }
+                wcKoinApp.koin.get<MagicController>().apply { init() }
+                wcKoinApp.koin.get<ActivityLifeCycleWatcher>()
+                wcKoinApp.modules(module { single(named(AndroidCommonDITags.ENABLE_ANALYTICS)) { init.enableAnalytics ?: web3ModalEngine.fetchAnalyticsConfig() } })
             }
                 .onFailure { error -> return@onInitializedClient onError(Modal.Model.Error(error)) }
                 .onSuccess {
@@ -129,7 +133,6 @@ object Web3Modal {
     fun setChains(chains: List<Modal.Model.Chain>) {
         this.chains = chains
     }
-
 
     fun setSessionProperties(properties: Map<String, String>) {
         sessionProperties = properties
@@ -321,17 +324,5 @@ object Web3Modal {
     fun getConnectorType(): Modal.ConnectorType? {
         checkEngineInitialization()
         return web3ModalEngine.getConnectorType()
-    }
-
-    // TODO TEMPORARY INIT migarate it to app context and koin later
-    fun initEmail(context: Context) {
-        MagicController(
-            context = context,
-            logger = wcKoinApp.koin.get(),
-            appMetaData = wcKoinApp.koin.get(),
-            projectId = wcKoinApp.koin.get()
-        ).apply {
-            init()
-        }
     }
 }

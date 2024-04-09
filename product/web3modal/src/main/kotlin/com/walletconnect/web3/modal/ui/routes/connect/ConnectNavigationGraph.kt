@@ -24,6 +24,7 @@ internal fun ConnectionNavGraph(
     shouldOpenChooseNetwork: Boolean
 ) {
     val connectViewModel = viewModel<ConnectViewModel>()
+    val emailViewModel = viewModel<EmailViewModel>()
     val startDestination = if (shouldOpenChooseNetwork) {
         Route.CHOOSE_NETWORK.path
     } else {
@@ -49,10 +50,10 @@ internal fun ConnectionNavGraph(
             WhatIsWallet(navController = navController)
         }
         animatedComposable(route = Route.REGISTER_DEVICE.path) {
-            RegisterDeviceRoute()
+            RegisterDeviceRoute(emailViewModel = emailViewModel)
         }
         animatedComposable(route = Route.CONFIRM_EMAIL.path) {
-            ConfirmEmailRoute()
+            ConfirmEmailRoute(emailViewModel = emailViewModel)
         }
         animatedComposable(Route.GET_A_WALLET.path) {
             GetAWalletRoute(wallets = connectViewModel.getNotInstalledWallets())

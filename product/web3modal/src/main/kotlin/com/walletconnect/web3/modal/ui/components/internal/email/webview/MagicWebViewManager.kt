@@ -1,7 +1,7 @@
 package com.walletconnect.web3.modal.ui.components.internal.email.webview
 
 import android.annotation.SuppressLint
-import android.content.Context
+import android.app.Activity
 import android.content.MutableContextWrapper
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
@@ -31,48 +31,51 @@ import org.json.JSONObject
 //const val SECURE_WEBSITE_URL = "https://192.168.0.220"
 const val SECURE_WEBSITE_URL = "https://secure-mobile.walletconnect.com"
 
-internal class EmailMagicWebViewWrapper(
-    context: Context,
+internal class MagicWebViewManager(
     private val headers: Map<String, String>,
     private val projectId: ProjectId,
     private val appData: AppMetaData,
     private val bundleId: String,
     private val logger: Logger,
 ) {
-    private val mutableContext = MutableContextWrapper(context)
-    private val webView = WebView(mutableContext)
+    private var mutableContext: MutableContextWrapper? = null
+    private var webView: WebView? = null
 
     private val _eventFlow = MutableSharedFlow<MagicEvent>()
     val eventFlow: SharedFlow<MagicEvent>
         get() = _eventFlow.asSharedFlow()
 
-    init {
-        WebView.setWebContentsDebuggingEnabled(true)
+    internal fun updateWebView(activity: Activity) {
+        if (mutableContext == null) {
+            mutableContext = MutableContextWrapper(activity)
+            webView = WebView(mutableContext!!)
 
-        //todo check context and init on specific type of context
-        initWebView()
+            WebView.setWebContentsDebuggingEnabled(true) //TODO: Remove this line in production
+            initWebView()
+        } else {
+            mutableContext?.baseContext = activity
+        }
     }
 
     @SuppressLint("JavascriptInterface", "SetJavaScriptEnabled")
     private fun initWebView() {
         // Setup settings
-        val webSettings = webView.settings
-        webSettings.javaScriptEnabled = true
-        webSettings.domStorageEnabled = true
+        val webSettings = webView?.settings
+        webSettings?.javaScriptEnabled = true
+        webSettings?.domStorageEnabled = true
 
         // Setup webView
-        webView.apply {
+        webView?.apply {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.MATCH_PARENT
             )
             addJavascriptInterface(WebAppInterface(), WEB_APP_INTERFACE)
             webChromeClient = EmailMagicChromeClient(logger)
-            webViewClient = EmailMagicWebView(appData, projectId, logger)
+            webViewClient = EmailMagicWebViewClient(appData, projectId, logger)
 
             loadUrl(SECURE_WEBSITE_URL + "/mobile-sdk?projectId=${projectId.value}&bundleId=$bundleId", headers)
         }
-
     }
 
     inner class WebAppInterface {
@@ -81,24 +84,16 @@ internal class EmailMagicWebViewWrapper(
         fun postMessage(message: String) {
             logger.log("postMessage $message")
 
-            if (message == "verify_ready") {
-                logger.log("verify_ready")
-                return
-            }
             try {
                 val jsonObject = JSONObject(message)
-
                 if (jsonObject.has("msgType")) {
                     return
                 }
 
                 if (jsonObject.has("data") && jsonObject.getJSONObject("data").has("type")) {
                     logger.log("has type, parse: $jsonObject")
-
                     val event = parseMessage(jsonObject) ?: return
-
                     logger.log("Event $event")
-
                     consumeEvent(event)
 
                     logger.log("PostMessage event: $event")
@@ -115,7 +110,7 @@ internal class EmailMagicWebViewWrapper(
         when (event) {
             // todo update sessions at specifics events
             is MagicEvent.IsConnectResult.IsConnectedSuccess -> {
-                println("kobe: connected success")
+                println("connected success")
             }
 
             MagicEvent.IsConnectResult.IsConnectedError -> TODO()
@@ -138,7 +133,7 @@ internal class EmailMagicWebViewWrapper(
     }
 
     fun sendMessage(request: MagicRequest) {
-        webView.sendMethod(request)
+        webView?.sendMethod(request)
     }
 
     // TODO: Migrate parsing to Moshi adapter later

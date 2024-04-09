@@ -55,22 +55,27 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.WalletConnect">
         <activity
+            android:name=".SecondActivity"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:launchMode="singleInstance"
             android:label="@string/app_name"
+            android:launchMode="singleInstance"
             android:theme="@style/Theme.WalletConnect">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
+
                 <data
-                    android:scheme="kotlin-modal-wc"
-                    android:host="request" />
+                    android:host="request"
+                    android:scheme="kotlin-modal-wc" />
             </intent-filter>
         </activity>
         <activity android:name=".compose.ComposeActivity" />
