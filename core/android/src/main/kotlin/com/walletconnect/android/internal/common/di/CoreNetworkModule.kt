@@ -22,11 +22,14 @@ import com.walletconnect.foundation.network.data.service.RelayService
 import okhttp3.Authenticator
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.android.ext.koin.androidApplication
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import java.io.IOException
+import java.net.SocketTimeoutException
 import java.util.concurrent.TimeUnit
 
 
@@ -34,7 +37,12 @@ var SERVER_URL: String = ""
 
 @Suppress("LocalVariableName")
 @JvmSynthetic
-fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, sdkVersion: String, timeout: NetworkClientTimeout? = null) = module {
+fun coreAndroidNetworkModule(
+    serverUrl: String,
+    connectionType: ConnectionType,
+    sdkVersion: String,
+    timeout: NetworkClientTimeout? = null
+) = module {
     val DEFAULT_BACKOFF_SECONDS = 5L
     val networkClientTimeout = timeout ?: NetworkClientTimeout.getDefaultTimeout()
     SERVER_URL = serverUrl
@@ -74,32 +82,40 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
         HttpLoggingInterceptor().apply { setLevel(HttpLoggingInterceptor.Level.BODY) }
     }
 
-    //TODO: make this more scalable
     single(named(AndroidCommonDITags.FAIL_OVER_INTERCEPTOR)) {
         Interceptor { chain ->
-            val request = chain.request()
-            try {
-                val host = request.url.host
-                when {
-                    shouldFallbackRelay(host) -> chain.proceed(request.newBuilder().url(get<String>(named(AndroidCommonDITags.RELAY_URL))).build())
-                    shouldFallbackPush(host) -> chain.proceed(request.newBuilder().url(getFallbackPushUrl(request.url.toString())).build())
-                    shouldFallbackVerify(host) -> chain.proceed(request.newBuilder().url(getFallbackVerifyUrl(request.url.toString())).build())
-                    shouldFallbackPulse(host) -> chain.proceed(request.newBuilder().url(getFallbackPulseUrl()).build())
-                    else -> chain.proceed(request)
-                }
-            } catch (e: Exception) {
-                if (isFailOverException(e)) {
-                    when (request.url.host) {
-                        DEFAULT_RELAY_URL.host -> fallbackRelay(request, chain)
-                        DEFAULT_PUSH_URL.host -> fallbackPush(request, chain)
-                        DEFAULT_VERIFY_URL.host -> fallbackVerify(request, chain)
-                        DEFAULT_PULSE_URL.host -> fallbackPulse(request, chain)
-                        else -> chain.proceed(request)
+            val maxRetries = 3
+            val retryDelay: Long = 1000
+            var request = chain.request()
+            var response: Response?
+            var exception: Exception? = null
+
+            for (attempt in 0 until maxRetries) {
+                try {
+                    response = chain.proceed(request)
+                    if (!response.isSuccessful) {
+                        // Logic to handle HTTP errors based on status code
+                        response.close()
                     }
-                } else {
-                    chain.proceed(request)
+                    return@Interceptor response
+                } catch (e: SocketTimeoutException) {
+                    exception = e
+                    println("Retry because of timeout")
+                    Thread.sleep(retryDelay) // Wait before retrying
+                } catch (e: IOException) {
+                    exception = e
+                    println("Switching to failover URL due to DNS failure")
+                    val failoverUrl = request.url.host.replace(".com", ".org")
+                    val newHttpUrl = request.url.newBuilder().host(failoverUrl).build()
+
+                    request = request.newBuilder().url(newHttpUrl).build()
+                    continue
+                    // No break; continue with the modified request
                 }
             }
+
+            // If no successful response, throw the last caught exception or a new one if null
+            throw exception ?: IOException("Failed after $maxRetries retries")
         }
     }
 
@@ -126,7 +142,8 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
             .connectTimeout(networkClientTimeout.timeout, networkClientTimeout.timeUnit)
 
         if (BuildConfig.DEBUG) {
-            val loggingInterceptor = get<Interceptor>(named(AndroidCommonDITags.LOGGING_INTERCEPTOR))
+            val loggingInterceptor =
+                get<Interceptor>(named(AndroidCommonDITags.LOGGING_INTERCEPTOR))
             builder.addInterceptor(loggingInterceptor)
         }
         (BeagleOkHttpLogger.logger as Interceptor?)?.let { builder.addInterceptor(it) }
@@ -134,7 +151,13 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
         builder.build()
     }
 
-    single(named(AndroidCommonDITags.MSG_ADAPTER)) { MoshiMessageAdapter.Factory(get<Moshi.Builder>(named(AndroidCommonDITags.MOSHI)).build()) }
+    single(named(AndroidCommonDITags.MSG_ADAPTER)) {
+        MoshiMessageAdapter.Factory(
+            get<Moshi.Builder>(
+                named(AndroidCommonDITags.MOSHI)
+            ).build()
+        )
+    }
 
     single(named(AndroidCommonDITags.CONNECTION_CONTROLLER)) {
         if (connectionType == ConnectionType.MANUAL) {
@@ -146,7 +169,10 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
 
     single(named(AndroidCommonDITags.LIFECYCLE)) {
         if (connectionType == ConnectionType.MANUAL) {
-            ManualConnectionLifecycle(get(named(AndroidCommonDITags.CONNECTION_CONTROLLER)), LifecycleRegistry())
+            ManualConnectionLifecycle(
+                get(named(AndroidCommonDITags.CONNECTION_CONTROLLER)),
+                LifecycleRegistry()
+            )
         } else {
             AndroidLifecycle.ofApplicationForeground(androidApplication())
         }
@@ -159,7 +185,11 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
     single(named(AndroidCommonDITags.SCARLET)) {
         Scarlet.Builder()
             .backoffStrategy(get<LinearBackoffStrategy>())
-            .webSocketFactory(get<OkHttpClient>(named(AndroidCommonDITags.OK_HTTP)).newWebSocketFactory(get<String>(named(AndroidCommonDITags.RELAY_URL))))
+            .webSocketFactory(
+                get<OkHttpClient>(named(AndroidCommonDITags.OK_HTTP)).newWebSocketFactory(
+                    get<String>(named(AndroidCommonDITags.RELAY_URL))
+                )
+            )
             .lifecycle(get(named(AndroidCommonDITags.LIFECYCLE)))
             .addMessageAdapterFactory(get<MoshiMessageAdapter.Factory>(named(AndroidCommonDITags.MSG_ADAPTER)))
             .addStreamAdapterFactory(get<FlowStreamAdapter.Factory>())
