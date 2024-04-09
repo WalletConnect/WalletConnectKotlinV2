@@ -265,7 +265,7 @@ internal class PairingEngine(
     }
 
     private fun resubscribeToPairingTopics() {
-        jsonRpcInteractor.isConnectionAvailable
+        jsonRpcInteractor.isWSSConnectionAvailable
             .filter { isAvailable: Boolean -> isAvailable }
             .onEach {
                 supervisorScope {

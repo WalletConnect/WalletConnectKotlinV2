@@ -43,7 +43,7 @@ import kotlinx.coroutines.delay
 @Composable
 fun DappSampleHost() {
     val scaffoldState: ScaffoldState = rememberScaffoldState()
-    var isOfflineState by remember { mutableStateOf(false) }
+    var isOfflineState: Boolean? by remember { mutableStateOf(null) }
     val sheetState = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden,
         skipHalfExpanded = true
@@ -55,10 +55,10 @@ fun DappSampleHost() {
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
+                is DappSampleEvents.ConnectionEvent -> isOfflineState = !event.isAvailable
                 is DappSampleEvents.Disconnect -> navController.navigate(Route.ChainSelection.path)
                 is DappSampleEvents.RequestError -> scaffoldState.snackbarHostState.showSnackbar(event.exceptionMsg)
                 is DappSampleEvents.SessionExtend -> scaffoldState.snackbarHostState.showSnackbar("Session extended")
-                is DappSampleEvents.ConnectionEvent -> isOfflineState = !event.isAvailable
                 else -> Unit
             }
         }
@@ -74,10 +74,12 @@ fun DappSampleHost() {
                 startDestination = Route.ChainSelection.path,
             )
 
-            if (isOfflineState) {
-                NoConnectionIndicator()
-            } else {
-                RestoredConnectionIndicator()
+            if (isOfflineState != null) {
+                if (isOfflineState == true) {
+                    NoConnectionIndicator()
+                } else {
+                    RestoredConnectionIndicator()
+                }
             }
         }
     }

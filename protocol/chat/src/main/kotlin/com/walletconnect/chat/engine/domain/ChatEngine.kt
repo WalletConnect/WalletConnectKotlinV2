@@ -123,7 +123,7 @@ internal class ChatEngine(
     }
 
     fun setup() {
-        jsonRpcInteractor.isConnectionAvailable
+        jsonRpcInteractor.isWSSConnectionAvailable
             .onEach { isAvailable -> _events.emit(ConnectionState(isAvailable)) }
             .filter { isAvailable: Boolean -> isAvailable }
             .onEach {
