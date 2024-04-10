@@ -20,5 +20,5 @@
 
     <deepLink
         app:action="android.intent.action.VIEW"
-        app:uri="kotlin-web3wallet://request" />
+        app:uri="kotlin-web3wallet:/request" />
 </navigation>

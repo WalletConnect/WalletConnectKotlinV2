@@ -41,9 +41,6 @@
                 <data
                     android:scheme="kotlin-web3wallet"
                     android:host="wc" />
-                <data
-                    android:scheme="kotlin-web3wallet"
-                    android:host="request" />
             </intent-filter>
 
             <meta-data

@@ -16,10 +16,7 @@ fun UriHandler.openUri(uri: String, onError: (e: Throwable) -> Unit) {
 
 fun UriHandler.goToNativeWallet(uri: String, nativeLink: String?) {
     try {
-        nativeLink?.let {
-            println("kobe: Native link: ${formatNativeDeeplink(it, uri)}")
-            openUri(formatNativeDeeplink(it, uri))
-        } ?: Timber.e("Invalid native link")
+        nativeLink?.let { openUri(formatNativeDeeplink(it, uri)) } ?: Timber.e("Invalid native link")
     } catch (e: Exception) {
         Timber.e(e)
     }

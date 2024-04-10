@@ -140,7 +140,6 @@ class ChainSelectionViewModel : ViewModel() {
                                 _awaitingProposalSharedFlow.emit(false)
                             }
                         }
-                        println("kobe: URI: $url")
                         onSuccess(url)
                     },
                     onError = { error ->
