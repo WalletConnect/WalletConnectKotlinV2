@@ -152,12 +152,12 @@ class Web3WalletActivity : AppCompatActivity() {
         super.onNewIntent(intent)
 
         when {
-            intent?.dataString?.startsWith("kotlin-web3wallet://wc") == true -> {
-                val uri = intent.dataString
+            intent?.dataString?.startsWith("kotlin-web3wallet:/wc") == true -> {
+                val uri = intent.dataString?.replace("kotlin-web3wallet:/wc", "kotlin-web3wallet://wc")
                 intent.setData(uri?.toUri())
             }
-            intent?.dataString?.startsWith("kotlin-web3wallet://request") == true -> {
-                val uri = intent.dataString
+            intent?.dataString?.startsWith("kotlin-web3wallet:/request") == true -> {
+                val uri = intent.dataString?.replace("kotlin-web3wallet:/request", "kotlin-web3wallet://request")
                 intent.setData(uri?.toUri())
             }
             intent?.dataString?.startsWith("wc:") == true -> {
