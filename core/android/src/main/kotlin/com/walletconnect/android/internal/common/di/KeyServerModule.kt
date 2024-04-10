@@ -43,4 +43,4 @@ internal fun keyServerModule(optionalKeyServerUrl: String? = null) = module {
     ) }
 }
 
-private const val DEFAULT_KEYSERVER_URL = "https://keys.walletconnect.com"
+private const val DEFAULT_KEYSERVER_URL = "https://keys.walletconnect.org"
