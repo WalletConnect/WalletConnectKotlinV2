@@ -86,7 +86,7 @@ internal class PairingProtocol(private val koinApp: KoinApplication = wcKoinApp)
                 },
                 { throwable ->
                     logger.error(throwable)
-                    onError(Core.Model.Error(Throwable("Pairing timeout error: ${throwable.message}")))
+                    onError(Core.Model.Error(Throwable("Pairing error: ${throwable.message}")))
                 })
         }
     }
@@ -145,15 +145,22 @@ internal class PairingProtocol(private val koinApp: KoinApplication = wcKoinApp)
         try {
             withTimeout(60000) {
                 while (true) {
-                    if (relayClient.isConnectionAvailable.value) {
-                        onConnection()
-                        return@withTimeout
+                    if (relayClient.isNetworkAvailable.value != null) {
+                        if (relayClient.isNetworkAvailable.value == true) {
+                            if (relayClient.isWSSConnectionOpened.value) {
+                                onConnection()
+                                return@withTimeout
+                            }
+                        } else {
+                            errorLambda(Throwable("No internet connection"))
+                            return@withTimeout
+                        }
                     }
                     delay(100)
                 }
             }
         } catch (e: Exception) {
-            errorLambda(e)
+            errorLambda(Throwable("Failed to connect: ${e.message}"))
         }
     }
 
