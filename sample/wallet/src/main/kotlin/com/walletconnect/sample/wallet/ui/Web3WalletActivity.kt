@@ -163,7 +163,9 @@ class Web3WalletActivity : AppCompatActivity() {
             }
         }
 
-        if (intent?.dataString?.startsWith("kotlin-web3wallet://request") == false) {
+        if (intent?.dataString?.startsWith("kotlin-web3wallet://request") == false
+            && intent.dataString?.contains("requestId") == false
+        ) {
             navController.handleDeepLink(intent)
         }
     }
