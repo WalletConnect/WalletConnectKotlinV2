@@ -156,17 +156,16 @@ class Web3WalletActivity : AppCompatActivity() {
                 val uri = intent.dataString?.replace("kotlin-web3wallet:/wc", "kotlin-web3wallet://wc")
                 intent.setData(uri?.toUri())
             }
-            intent?.dataString?.startsWith("kotlin-web3wallet:/request") == true -> {
-                val uri = intent.dataString?.replace("kotlin-web3wallet:/request", "kotlin-web3wallet://request")
-                intent.setData(uri?.toUri())
-            }
+
             intent?.dataString?.startsWith("wc:") == true -> {
                 val uri = "kotlin-web3wallet://wc?uri=" + URLEncoder.encode(intent.dataString, "UTF-8")
                 intent.setData(uri.toUri())
             }
         }
 
-        navController.handleDeepLink(intent)
+        if (intent?.dataString?.startsWith("kotlin-web3wallet://request") == false) {
+            navController.handleDeepLink(intent)
+        }
     }
 
     private fun askNotificationPermission() {

@@ -24,8 +24,8 @@
             android:name="com.walletconnect.sample.wallet.ui.Web3WalletActivity"
             android:exported="true"
             android:launchMode="singleTask"
-            android:taskAffinity="com.walletconnect.sample.wallet.activity"
             android:screenOrientation="portrait"
+            android:taskAffinity="com.walletconnect.sample.wallet.activity"
             android:theme="@style/Theme.Wallet"
             android:windowSoftInputMode="adjustResize">
             <nav-graph android:value="@navigation/nav_graph" />
@@ -38,9 +38,13 @@
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
+
                 <data
-                    android:scheme="kotlin-web3wallet"
-                    android:host="wc" />
+                    android:host="wc"
+                    android:scheme="kotlin-web3wallet" />
+                <data
+                    android:host="request"
+                    android:scheme="kotlin-web3wallet" />
             </intent-filter>
 
             <meta-data
