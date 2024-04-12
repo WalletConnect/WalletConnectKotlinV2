@@ -12,7 +12,7 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 @JvmSynthetic
 internal fun pushModule() = module {
 
-    factory(named(AndroidCommonDITags.PUSH_URL)) { "https://echo.walletconnect.com/" }
+    factory(named(AndroidCommonDITags.PUSH_URL)) { "https://echo.walletconnect.org/" }
 
     single(named(AndroidCommonDITags.PUSH_RETROFIT)) {
         Retrofit.Builder()
