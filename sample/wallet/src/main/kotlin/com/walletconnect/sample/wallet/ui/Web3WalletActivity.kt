@@ -10,7 +10,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -35,10 +34,8 @@ import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.C
 import com.walletconnect.sample.wallet.ui.routes.host.WalletSampleHost
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import okio.Utf8
 import timber.log.Timber
 import java.net.URLEncoder
-import java.nio.charset.Charset
 
 class Web3WalletActivity : AppCompatActivity() {
     private lateinit var navController: NavHostController
@@ -159,17 +156,18 @@ class Web3WalletActivity : AppCompatActivity() {
                 val uri = intent.dataString?.replace("kotlin-web3wallet:/wc", "kotlin-web3wallet://wc")
                 intent.setData(uri?.toUri())
             }
-            intent?.dataString?.startsWith("kotlin-web3wallet:/request") == true -> {
-                val uri = intent.dataString?.replace("kotlin-web3wallet:/request", "kotlin-web3wallet://request")
-                intent.setData(uri?.toUri())
-            }
+
             intent?.dataString?.startsWith("wc:") == true -> {
                 val uri = "kotlin-web3wallet://wc?uri=" + URLEncoder.encode(intent.dataString, "UTF-8")
                 intent.setData(uri.toUri())
             }
         }
 
-        navController.handleDeepLink(intent)
+        if (intent?.dataString?.startsWith("kotlin-web3wallet://request") == false
+            && intent.dataString?.contains("requestId") == false
+        ) {
+            navController.handleDeepLink(intent)
+        }
     }
 
     private fun askNotificationPermission() {
