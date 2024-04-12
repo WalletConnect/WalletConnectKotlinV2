@@ -37,12 +37,7 @@ var SERVER_URL: String = ""
 
 @Suppress("LocalVariableName")
 @JvmSynthetic
-fun coreAndroidNetworkModule(
-    serverUrl: String,
-    connectionType: ConnectionType,
-    sdkVersion: String,
-    timeout: NetworkClientTimeout? = null
-) = module {
+fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, sdkVersion: String, timeout: NetworkClientTimeout? = null) = module {
     val DEFAULT_BACKOFF_SECONDS = 5L
     val networkClientTimeout = timeout ?: NetworkClientTimeout.getDefaultTimeout()
     SERVER_URL = serverUrl
@@ -145,8 +140,7 @@ fun coreAndroidNetworkModule(
             .connectTimeout(networkClientTimeout.timeout, networkClientTimeout.timeUnit)
 
         if (BuildConfig.DEBUG) {
-            val loggingInterceptor =
-                get<Interceptor>(named(AndroidCommonDITags.LOGGING_INTERCEPTOR))
+            val loggingInterceptor = get<Interceptor>(named(AndroidCommonDITags.LOGGING_INTERCEPTOR))
             builder.addInterceptor(loggingInterceptor)
         }
         (BeagleOkHttpLogger.logger as Interceptor?)?.let { builder.addInterceptor(it) }
@@ -154,13 +148,7 @@ fun coreAndroidNetworkModule(
         builder.build()
     }
 
-    single(named(AndroidCommonDITags.MSG_ADAPTER)) {
-        MoshiMessageAdapter.Factory(
-            get<Moshi.Builder>(
-                named(AndroidCommonDITags.MOSHI)
-            ).build()
-        )
-    }
+    single(named(AndroidCommonDITags.MSG_ADAPTER)) { MoshiMessageAdapter.Factory(get<Moshi.Builder>(named(AndroidCommonDITags.MOSHI)).build()) }
 
     single(named(AndroidCommonDITags.CONNECTION_CONTROLLER)) {
         if (connectionType == ConnectionType.MANUAL) {
@@ -172,10 +160,7 @@ fun coreAndroidNetworkModule(
 
     single(named(AndroidCommonDITags.LIFECYCLE)) {
         if (connectionType == ConnectionType.MANUAL) {
-            ManualConnectionLifecycle(
-                get(named(AndroidCommonDITags.CONNECTION_CONTROLLER)),
-                LifecycleRegistry()
-            )
+            ManualConnectionLifecycle(get(named(AndroidCommonDITags.CONNECTION_CONTROLLER)), LifecycleRegistry())
         } else {
             AndroidLifecycle.ofApplicationForeground(androidApplication())
         }
@@ -188,11 +173,7 @@ fun coreAndroidNetworkModule(
     single(named(AndroidCommonDITags.SCARLET)) {
         Scarlet.Builder()
             .backoffStrategy(get<LinearBackoffStrategy>())
-            .webSocketFactory(
-                get<OkHttpClient>(named(AndroidCommonDITags.OK_HTTP)).newWebSocketFactory(
-                    get<String>(named(AndroidCommonDITags.RELAY_URL))
-                )
-            )
+            .webSocketFactory(get<OkHttpClient>(named(AndroidCommonDITags.OK_HTTP)).newWebSocketFactory(get<String>(named(AndroidCommonDITags.RELAY_URL))))
             .lifecycle(get(named(AndroidCommonDITags.LIFECYCLE)))
             .addMessageAdapterFactory(get<MoshiMessageAdapter.Factory>(named(AndroidCommonDITags.MSG_ADAPTER)))
             .addStreamAdapterFactory(get<FlowStreamAdapter.Factory>())
