@@ -93,18 +93,18 @@ fun coreAndroidNetworkModule(
             for (attempt in 0 until maxRetries) {
                 try {
                     response = chain.proceed(request)
+
                     if (!response.isSuccessful) {
                         // Logic to handle HTTP errors based on status code
                         response.close()
                     }
+
                     return@Interceptor response
                 } catch (e: SocketTimeoutException) {
                     exception = e
-                    println("Retry because of timeout")
                     Thread.sleep(retryDelay) // Wait before retrying
                 } catch (e: IOException) {
                     exception = e
-                    println("Switching to failover URL due to DNS failure")
                     val failoverUrl = request.url.host.replace(".com", ".org")
                     val newHttpUrl = request.url.newBuilder().host(failoverUrl).build()
 
@@ -114,7 +114,6 @@ fun coreAndroidNetworkModule(
                 }
             }
 
-            // If no successful response, throw the last caught exception or a new one if null
             throw exception ?: IOException("Failed after $maxRetries retries")
         }
     }
