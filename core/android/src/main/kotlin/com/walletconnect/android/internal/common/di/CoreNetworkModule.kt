@@ -105,12 +105,16 @@ fun coreAndroidNetworkModule(
                     Thread.sleep(retryDelay) // Wait before retrying
                 } catch (e: IOException) {
                     exception = e
-                    val failoverUrl = request.url.host.replace(".com", ".org")
-                    val newHttpUrl = request.url.newBuilder().host(failoverUrl).build()
 
-                    request = request.newBuilder().url(newHttpUrl).build()
-                    continue
-                    // No break; continue with the modified request
+                    if (get<String>(named(AndroidCommonDITags.RELAY_URL)).contains(request.url.host)) {
+                        val failoverUrl = request.url.host.replace(".com", ".org")
+                        val newHttpUrl = request.url.newBuilder().host(failoverUrl).build()
+
+                        request = request.newBuilder().url(newHttpUrl).build()
+                        continue
+                    } else {
+                        throw e
+                    }
                 }
             }
 
