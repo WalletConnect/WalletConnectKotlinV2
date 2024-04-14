@@ -1,11 +1,13 @@
 package com.walletconnect.notify.di
 
 import com.walletconnect.android.di.coreStorageModule
+import com.walletconnect.android.internal.common.di.coreAndroidNetworkModule
 import com.walletconnect.android.internal.common.di.coreCryptoModule
 import com.walletconnect.android.internal.common.di.coreJsonRpcModule
 import com.walletconnect.android.internal.common.di.corePairingModule
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
+import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.relay.RelayConnectionInterface
 import org.koin.dsl.module
 
@@ -18,7 +20,9 @@ internal fun overrideModule(
     relay: RelayConnectionInterface,
     pairing: PairingInterface,
     pairingController: PairingControllerInterface,
-    storagePrefix: String
+    storagePrefix: String,
+    relayUrl: String,
+    connectionType: ConnectionType
 ) = module {
     val sharedPrefsFile = storagePrefix + SHARED_PREFS_FILE
     val keyStoreAlias = storagePrefix + KEY_STORE_ALIAS
@@ -29,6 +33,7 @@ internal fun overrideModule(
         coreStorageModule(storagePrefix),
         corePairingModule(pairing, pairingController),
         coreCryptoModule(sharedPrefsFile, keyStoreAlias),
-        coreJsonRpcModule()
+        coreJsonRpcModule(),
+        coreAndroidNetworkModule(relayUrl, connectionType, "test_version")
     )
 }

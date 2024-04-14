@@ -73,14 +73,15 @@ class Web3WalletApplication : Application() {
             relayServerUrl = serverUrl,
             connectionType = ConnectionType.AUTOMATIC,
             application = this,
-            metaData = appMetaData
-        ) { error ->
-            Firebase.crashlytics.recordException(error.throwable)
-            logger.error(error.throwable.stackTraceToString())
-            scope.launch {
-                connectionStateFlow.emit(ConnectionState.Error(error.throwable.message ?: ""))
+            metaData = appMetaData,
+            onError = { error ->
+                Firebase.crashlytics.recordException(error.throwable)
+                logger.error(error.throwable.stackTraceToString())
+                scope.launch {
+                    connectionStateFlow.emit(ConnectionState.Error(error.throwable.message ?: ""))
+                }
             }
-        }
+        )
 
         mixPanel = MixpanelAPI.getInstance(this, CommonBuildConfig.MIX_PANEL, true).apply {
             identify(CoreClient.Push.clientId)

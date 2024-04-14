@@ -2,6 +2,7 @@ package com.walletconnect.android
 
 import android.app.Application
 import com.walletconnect.android.di.coreStorageModule
+import com.walletconnect.android.internal.common.di.coreAndroidNetworkModule
 import com.walletconnect.android.internal.common.di.coreCommonModule
 import com.walletconnect.android.internal.common.di.coreCryptoModule
 import com.walletconnect.android.internal.common.di.coreJsonRpcModule
@@ -27,8 +28,10 @@ import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.relay.NetworkClientTimeout
 import com.walletconnect.android.relay.RelayClient
 import com.walletconnect.android.relay.RelayConnectionInterface
+import com.walletconnect.android.utils.isValidRelayServerUrl
 import com.walletconnect.android.utils.plantTimber
 import com.walletconnect.android.utils.projectId
+import com.walletconnect.android.utils.toCommonConnectionType
 import com.walletconnect.android.verify.client.VerifyClient
 import com.walletconnect.android.verify.client.VerifyInterface
 import org.koin.android.ext.koin.androidContext
@@ -66,13 +69,22 @@ class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInter
         relay: RelayConnectionInterface?,
         keyServerUrl: String?,
         networkClientTimeout: NetworkClientTimeout?,
-        onError: (Core.Model.Error) -> Unit,
+        onError: (Core.Model.Error) -> Unit
     ) {
         with(koinApp) {
             androidContext(application)
+            require(relayServerUrl.isValidRelayServerUrl()) { "Check the schema and projectId parameter of the Server Url" }
             modules(
+                coreAndroidNetworkModule(relayServerUrl, connectionType.toCommonConnectionType(), BuildConfig.SDK_VERSION, networkClientTimeout),
                 coreCommonModule(),
                 coreCryptoModule(),
+            )
+
+            if (relay == null) {
+                Relay.initialize { error -> onError(Core.Model.Error(error)) }
+            }
+
+            modules(
                 module { single { ProjectId(relayServerUrl.projectId()) } },
                 coreStorageModule(),
                 pushModule(),
@@ -88,10 +100,6 @@ class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInter
                 web3ModalModule(),
                 pulseModule()
             )
-        }
-
-        if (relay == null) {
-            Relay.initialize(relayServerUrl, connectionType, networkClientTimeout) { error -> onError(Core.Model.Error(error)) }
         }
 
         Verify.initialize()
