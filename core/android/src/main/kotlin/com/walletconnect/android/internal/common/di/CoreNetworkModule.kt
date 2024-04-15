@@ -79,41 +79,33 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
 
     single(named(AndroidCommonDITags.FAIL_OVER_INTERCEPTOR)) {
         Interceptor { chain ->
-            val maxRetries = 3
-            val retryDelay: Long = 1000
             var request = chain.request()
-            var response: Response?
-            var exception: Exception? = null
+            var response: Response? = null
 
-            for (attempt in 0 until maxRetries) {
+            if (request.url.host.contains(DEFAULT_RELAY_URL)) {
                 try {
                     response = chain.proceed(request)
 
-                    if (!response.isSuccessful) {
-                        // Logic to handle HTTP errors based on status code
-                        response.close()
-                    }
-
                     return@Interceptor response
-                } catch (e: SocketTimeoutException) {
-                    exception = e
-                    Thread.sleep(retryDelay) // Wait before retrying
-                } catch (e: IOException) {
-                    exception = e
+                } catch (e: Exception) {
+                    when (e) {
+                        is SocketTimeoutException, is IOException -> {
+                            val failoverUrl = request.url.host.replace(".com", ".org")
+                            val newHttpUrl = request.url.newBuilder().host(failoverUrl).build()
 
-                    if (get<String>(named(AndroidCommonDITags.RELAY_URL)).contains(request.url.host)) {
-                        val failoverUrl = request.url.host.replace(".com", ".org")
-                        val newHttpUrl = request.url.newBuilder().host(failoverUrl).build()
-
-                        request = request.newBuilder().url(newHttpUrl).build()
-                        continue
-                    } else {
-                        throw e
+                            request = request.newBuilder().url(newHttpUrl).build()
+                            return@Interceptor chain.proceed(request)
+                        }
+                        else -> {
+                            throw e
+                        }
                     }
+                } finally {
+                    response?.close()
                 }
+            } else {
+                return@Interceptor chain.proceed(request)
             }
-
-            throw exception ?: IOException("Failed after $maxRetries retries")
         }
     }
 
