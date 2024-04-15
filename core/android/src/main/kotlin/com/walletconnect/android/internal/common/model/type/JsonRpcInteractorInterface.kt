@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 interface JsonRpcInteractorInterface {
     val clientSyncJsonRpc: SharedFlow<WCRequest>
     val peerResponse: SharedFlow<WCResponse>
-    val isConnectionAvailable: StateFlow<Boolean>
+    val isWSSConnectionAvailable: StateFlow<Boolean>
     val internalErrors: SharedFlow<SDKError>
 
     fun checkConnectionWorking()

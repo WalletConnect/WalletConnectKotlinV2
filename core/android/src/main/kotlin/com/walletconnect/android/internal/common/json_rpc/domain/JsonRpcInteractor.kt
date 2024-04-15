@@ -3,6 +3,7 @@ package com.walletconnect.android.internal.common.json_rpc.domain
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.crypto.sha256
+import com.walletconnect.android.internal.common.exception.NoInternetConnectionException
 import com.walletconnect.android.internal.common.exception.NoRelayConnectionException
 import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
@@ -58,8 +59,7 @@ internal class JsonRpcInteractor(
 
     private val _internalErrors = MutableSharedFlow<SDKError>()
     override val internalErrors: SharedFlow<SDKError> = _internalErrors.asSharedFlow()
-
-    override val isConnectionAvailable: StateFlow<Boolean> get() = relay.isConnectionAvailable
+    override val isWSSConnectionAvailable: StateFlow<Boolean> get() = relay.isWSSConnectionOpened
 
     private val subscriptions: MutableMap<String, String> = mutableMapOf()
 
@@ -68,8 +68,12 @@ internal class JsonRpcInteractor(
     }
 
     override fun checkConnectionWorking() {
-        if (!relay.isConnectionAvailable.value) {
-            throw NoRelayConnectionException("Connection error: Please check your Internet connection")
+        if (relay.isNetworkAvailable.value != null && relay.isNetworkAvailable.value == false) {
+            throw NoInternetConnectionException("Connection error: Please check your Internet connection")
+        }
+
+        if (!relay.isWSSConnectionOpened.value) {
+            throw NoRelayConnectionException("Connection error: Failed to connect")
         }
     }
 

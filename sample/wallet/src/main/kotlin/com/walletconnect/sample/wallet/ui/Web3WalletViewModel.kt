@@ -10,7 +10,6 @@ import com.walletconnect.sample.wallet.domain.ISSUER
 import com.walletconnect.sample.wallet.domain.WCDelegate
 import com.walletconnect.sample.wallet.ui.state.ConnectionState
 import com.walletconnect.sample.wallet.ui.state.PairingEvent
-import com.walletconnect.sample.wallet.ui.state.connectionStateFlow
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import kotlinx.coroutines.delay
@@ -22,16 +21,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
+import java.util.TimeZone
 
 class Web3WalletViewModel : ViewModel() {
     private val connectivityStateFlow: MutableStateFlow<ConnectionState> = MutableStateFlow(ConnectionState.Idle)
-    val connectionState = merge(connectivityStateFlow.asStateFlow(), connectionStateFlow.asStateFlow())
+    val connectionState = connectivityStateFlow.asStateFlow()
 
     private val _eventsSharedFlow: MutableSharedFlow<PairingEvent> = MutableSharedFlow()
     val eventsSharedFlow = _eventsSharedFlow.asSharedFlow()
@@ -62,9 +61,20 @@ class Web3WalletViewModel : ViewModel() {
             }
         }.onEach {
             val timestamp = System.currentTimeMillis()
-            val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale("en", "US"))
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+            dateFormat.timeZone = TimeZone.getTimeZone("UTC")
             _timerFlow.value = dateFormat.format(timestamp)
         }.launchIn(viewModelScope)
+
+        WCDelegate.connectionState.onEach {
+            val connectionState = if (it.isAvailable) {
+                ConnectionState.Ok
+            } else {
+                ConnectionState.Error("No Internet connection, please check your internet connection and try again")
+            }
+            connectivityStateFlow.value = connectionState
+        }.launchIn(viewModelScope)
+
     }
 
     val walletEvents = WCDelegate.walletEvents.map { wcEvent ->
@@ -111,15 +121,6 @@ class Web3WalletViewModel : ViewModel() {
             is Wallet.Model.SessionProposal -> {
                 _isLoadingFlow.value = false
                 SignEvent.SessionProposal
-            }
-
-            is Wallet.Model.ConnectionState -> {
-                val connectionState = if (wcEvent.isAvailable) {
-                    ConnectionState.Ok
-                } else {
-                    ConnectionState.Error("No Internet connection, please check your internet connection and try again")
-                }
-                connectivityStateFlow.emit(connectionState)
             }
 
             else -> NoAction

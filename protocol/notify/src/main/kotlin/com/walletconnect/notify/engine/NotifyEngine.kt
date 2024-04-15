@@ -99,7 +99,7 @@ internal class NotifyEngine(
     }
 
     suspend fun setup() {
-        jsonRpcInteractor.isConnectionAvailable
+        jsonRpcInteractor.isWSSConnectionAvailable
             .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
             .filter { isAvailable: Boolean -> isAvailable }
             .onEach {
@@ -114,8 +114,7 @@ internal class NotifyEngine(
                 if (jsonRpcResponsesJob == null) jsonRpcResponsesJob = collectJsonRpcResponses()
                 if (internalErrorsJob == null) internalErrorsJob = collectInternalErrors()
                 if (notifyEventsJob == null) notifyEventsJob = collectNotifyEvents()
-            }
-            .launchIn(scope)
+            }.launchIn(scope)
     }
 
     private suspend fun collectJsonRpcRequests(): Job =

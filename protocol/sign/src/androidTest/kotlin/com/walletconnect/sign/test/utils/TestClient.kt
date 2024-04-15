@@ -70,10 +70,10 @@ internal object TestClient {
             Relay = RelayClient(dappKoinApp)
 
             // Override of storage instances and depending objects
-            dappKoinApp.modules(overrideModule(Relay, Pairing, PairingController, "test_dapp"))
+            dappKoinApp.modules(overrideModule(Relay, Pairing, PairingController, "test_dapp", RELAY_URL, ConnectionType.MANUAL))
 
             // Necessary reinit of Relay, Pairing and PairingController
-            Relay.initialize(RELAY_URL, ConnectionType.MANUAL) { Timber.e(it) }
+            Relay.initialize { Timber.e(it) }
             Pairing.initialize()
             PairingController.initialize()
 
@@ -111,10 +111,10 @@ internal object TestClient {
             Relay = RelayClient(hybridKoinApp)
 
             // Override of storage instances and depending objects
-            hybridKoinApp.modules(overrideModule(Relay, Pairing, PairingController, "test_hybrid"))
+            hybridKoinApp.modules(overrideModule(Relay, Pairing, PairingController, "test_hybrid", RELAY_URL, ConnectionType.MANUAL))
 
             // Necessary reinit of Relay, Pairing and PairingController
-            Relay.initialize(RELAY_URL, ConnectionType.MANUAL) { Timber.e(it) }
+            Relay.initialize { Timber.e(it) }
             Pairing.initialize()
             PairingController.initialize()
 

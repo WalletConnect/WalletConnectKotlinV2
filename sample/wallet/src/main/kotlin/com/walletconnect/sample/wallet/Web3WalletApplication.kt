@@ -60,27 +60,28 @@ class Web3WalletApplication : Application() {
         EthAccountDelegate.application = this
 
         val projectId = BuildConfig.PROJECT_ID
-        val serverUrl = "wss://$RELAY_URL?projectId=${projectId}"
+        val serverUrl = "wss://$RELAY_URL?projectId=$projectId"
         val appMetaData = Core.Model.AppMetaData(
             name = "Kotlin Wallet",
             description = "Kotlin Wallet Implementation",
             url = "kotlin.wallet.walletconnect.com",
             icons = listOf("https://raw.githubusercontent.com/WalletConnect/walletconnect-assets/master/Icon/Gradient/Icon.png"),
-            redirect = "kotlin-web3wallet:/request"
+            redirect = "kotlin-web3wallet://request"
         )
 
         CoreClient.initialize(
             relayServerUrl = serverUrl,
             connectionType = ConnectionType.AUTOMATIC,
             application = this,
-            metaData = appMetaData
-        ) { error ->
-            Firebase.crashlytics.recordException(error.throwable)
-            logger.error(error.throwable.stackTraceToString())
-            scope.launch {
-                connectionStateFlow.emit(ConnectionState.Error(error.throwable.message ?: ""))
+            metaData = appMetaData,
+            onError = { error ->
+                Firebase.crashlytics.recordException(error.throwable)
+                logger.error(error.throwable.stackTraceToString())
+                scope.launch {
+                    connectionStateFlow.emit(ConnectionState.Error(error.throwable.message ?: ""))
+                }
             }
-        }
+        )
 
         mixPanel = MixpanelAPI.getInstance(this, CommonBuildConfig.MIX_PANEL, true).apply {
             identify(CoreClient.Push.clientId)
