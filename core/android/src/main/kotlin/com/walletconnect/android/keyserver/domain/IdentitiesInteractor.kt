@@ -27,6 +27,7 @@ import com.walletconnect.android.keyserver.domain.use_case.ResolveIdentityUseCas
 import com.walletconnect.android.keyserver.domain.use_case.UnregisterIdentityUseCase
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.foundation.util.jwt.DID_DELIMITER
 import com.walletconnect.foundation.util.jwt.decodeDidPkh
 import com.walletconnect.foundation.util.jwt.encodeDidPkh
@@ -44,6 +45,7 @@ class IdentitiesInteractor(
     private val unregisterIdentityUseCase: UnregisterIdentityUseCase,
     private val projectId: ProjectId,
     private val keyManagementRepository: KeyManagementRepository,
+    private val logger: Logger
 ) {
     fun getIdentityKeyPair(accountId: AccountId): Pair<PublicKey, PrivateKey> = keyManagementRepository.getKeyPair(getIdentityPublicKey(accountId))
 
