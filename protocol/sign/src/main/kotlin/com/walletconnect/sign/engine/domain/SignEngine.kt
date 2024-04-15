@@ -278,7 +278,9 @@ internal class SignEngine(
             listOfExpiredSession
                 .map { session -> session.topic }
                 .onEach { sessionTopic ->
-                    crypto.removeKeys(sessionTopic.value)
+                    runCatching {
+                        crypto.removeKeys(sessionTopic.value)
+                    }.onFailure { logger.error(it) }
                     sessionStorageRepository.deleteSession(sessionTopic)
                 }
 
@@ -306,7 +308,9 @@ internal class SignEngine(
             sessionStorageRepository.onSessionExpired = { sessionTopic ->
                 jsonRpcInteractor.unsubscribe(sessionTopic, onSuccess = {
                     sessionStorageRepository.deleteSession(sessionTopic)
-                    crypto.removeKeys(sessionTopic.value)
+                    runCatching {
+                        crypto.removeKeys(sessionTopic.value)
+                    }.onFailure { logger.error(it) }
                 })
             }
 
@@ -314,7 +318,9 @@ internal class SignEngine(
                 sessionStorageRepository.getAllSessionTopicsByPairingTopic(pairing.topic).onEach { sessionTopic ->
                     jsonRpcInteractor.unsubscribe(Topic(sessionTopic), onSuccess = {
                         sessionStorageRepository.deleteSession(Topic(sessionTopic))
-                        runCatching { crypto.removeKeys(sessionTopic) }
+                        runCatching {
+                            crypto.removeKeys(sessionTopic)
+                        }.onFailure { logger.error(it) }
                     })
                 }
             }.launchIn(scope)
