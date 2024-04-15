@@ -193,7 +193,9 @@ internal class PairingEngine(
                 })
         } catch (e: Exception) {
             logger.error("Subscribe pairing topic error: ${inactivePairing.topic.value}, error: $e")
-            crypto.removeKeys(walletConnectUri.topic.value)
+            runCatching {
+                crypto.removeKeys(walletConnectUri.topic.value)
+            }.onFailure { logger.error("Remove keys error: ${inactivePairing.topic.value}, error: $it") }
             jsonRpcInteractor.unsubscribe(inactivePairing.topic)
             onFailure(e)
         }
