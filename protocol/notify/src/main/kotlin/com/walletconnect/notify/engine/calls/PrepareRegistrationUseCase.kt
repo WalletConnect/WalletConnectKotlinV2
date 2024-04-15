@@ -33,7 +33,11 @@ internal class PrepareRegistrationUseCase(
             domain,
             listOf(identityServerUrl, createAuthorizationReCaps())
         )
-            .also { keyManagementRepository.removeKeys(identityPublicKey.keyAsHex) }
+            .also {
+                runCatching {
+                    keyManagementRepository.removeKeys(identityPublicKey.keyAsHex)
+                }.onFailure { logger.error(it) }
+            }
             .fold(
                 onFailure = { error -> onFailure(error) },
                 onSuccess = { cacaoPayload ->
