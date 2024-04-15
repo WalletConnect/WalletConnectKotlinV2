@@ -122,7 +122,7 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
     }
 
     single(named(AndroidCommonDITags.OK_HTTP)) {
-        val builder = OkHttpClient.Builder()
+        OkHttpClient.Builder()
             .addInterceptor(get<Interceptor>(named(AndroidCommonDITags.SHARED_INTERCEPTOR)))
             .addInterceptor(get<Interceptor>(named(AndroidCommonDITags.FAIL_OVER_INTERCEPTOR)))
             .authenticator((get(named(AndroidCommonDITags.AUTHENTICATOR))))
@@ -130,14 +130,16 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
             .readTimeout(networkClientTimeout.timeout, networkClientTimeout.timeUnit)
             .callTimeout(networkClientTimeout.timeout, networkClientTimeout.timeUnit)
             .connectTimeout(networkClientTimeout.timeout, networkClientTimeout.timeUnit)
+            .apply {
+                if (BuildConfig.DEBUG) {
+                    val loggingInterceptor = get<Interceptor>(named(AndroidCommonDITags.LOGGING_INTERCEPTOR))
+                    addInterceptor(loggingInterceptor)
+                }
 
-        if (BuildConfig.DEBUG) {
-            val loggingInterceptor = get<Interceptor>(named(AndroidCommonDITags.LOGGING_INTERCEPTOR))
-            builder.addInterceptor(loggingInterceptor)
-        }
-        (BeagleOkHttpLogger.logger as Interceptor?)?.let { builder.addInterceptor(it) }
-
-        builder.build()
+                (BeagleOkHttpLogger.logger as Interceptor?)?.let { beagleHttpLoggerInterceptor ->
+                    addInterceptor(beagleHttpLoggerInterceptor)
+                }
+            }.build()
     }
 
     single(named(AndroidCommonDITags.MSG_ADAPTER)) { MoshiMessageAdapter.Factory(get<Moshi.Builder>(named(AndroidCommonDITags.MOSHI)).build()) }
