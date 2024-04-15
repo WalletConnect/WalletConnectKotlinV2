@@ -41,7 +41,7 @@ internal fun keyServerModule(optionalKeyServerUrl: String? = null) = module {
             unregisterIdentityUseCase = get(),
             projectId = get(),
             keyManagementRepository = get(),
-            logger = get()
+            logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }
 }
