@@ -1,4 +1,3 @@
--repackageclasses 'com.walletconnect'
 -allowaccessmodification
 -keeppackagenames doNotKeepAThing
 
