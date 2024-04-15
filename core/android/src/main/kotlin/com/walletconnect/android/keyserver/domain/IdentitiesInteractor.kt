@@ -128,8 +128,13 @@ class IdentitiesInteractor(
     }
 
     private fun removeIdentityKeyPair(publicKey: PublicKey, accountId: AccountId) {
-        keyManagementRepository.removeKeys(accountId.getIdentityTag())
-        keyManagementRepository.removeKeys(publicKey.keyAsHex)
+        runCatching {
+            keyManagementRepository.removeKeys(accountId.getIdentityTag())
+        }.onFailure { logger.error(it) }
+
+        runCatching {
+            keyManagementRepository.removeKeys(publicKey.keyAsHex)
+        }.onFailure { logger.error(it) }
     }
 
     fun generateAndStoreIdentityKeyPair(): PublicKey = keyManagementRepository.generateAndStoreEd25519KeyPair()
