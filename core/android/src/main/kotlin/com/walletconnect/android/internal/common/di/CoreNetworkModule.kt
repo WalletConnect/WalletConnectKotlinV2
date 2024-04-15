@@ -32,13 +32,13 @@ import java.io.IOException
 import java.net.SocketTimeoutException
 import java.util.concurrent.TimeUnit
 
-
-var SERVER_URL: String = ""
+private var SERVER_URL: String = ""
+private const val DEFAULT_RELAY_URL = "relay.walletconnect.com"
+private const val DEFAULT_BACKOFF_SECONDS = 5L
 
 @Suppress("LocalVariableName")
 @JvmSynthetic
 fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, sdkVersion: String, timeout: NetworkClientTimeout? = null) = module {
-    val DEFAULT_BACKOFF_SECONDS = 5L
     val networkClientTimeout = timeout ?: NetworkClientTimeout.getDefaultTimeout()
     SERVER_URL = serverUrl
 
