@@ -139,7 +139,9 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
                 (BeagleOkHttpLogger.logger as Interceptor?)?.let { beagleHttpLoggerInterceptor ->
                     addInterceptor(beagleHttpLoggerInterceptor)
                 }
-            }.build()
+            }
+            .retryOnConnectionFailure(true)
+            .build()
     }
 
     single(named(AndroidCommonDITags.MSG_ADAPTER)) { MoshiMessageAdapter.Factory(get<Moshi.Builder>(named(AndroidCommonDITags.MOSHI)).build()) }
