@@ -314,7 +314,7 @@ internal class SignEngine(
                 sessionStorageRepository.getAllSessionTopicsByPairingTopic(pairing.topic).onEach { sessionTopic ->
                     jsonRpcInteractor.unsubscribe(Topic(sessionTopic), onSuccess = {
                         sessionStorageRepository.deleteSession(Topic(sessionTopic))
-                        crypto.removeKeys(sessionTopic)
+                        runCatching { crypto.removeKeys(sessionTopic) }
                     })
                 }
             }.launchIn(scope)
