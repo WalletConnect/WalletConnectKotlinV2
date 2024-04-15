@@ -78,7 +78,6 @@ internal class PairingEngine(
 ) {
     private var jsonRpcRequestsJob: Job? = null
     private val setOfRegisteredMethods: MutableSet<String> = mutableSetOf()
-    private val registeredMethods: String get() = setOfRegisteredMethods.joinToString(",") { it }
 
     private val _isPairingStateFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
@@ -114,6 +113,7 @@ internal class PairingEngine(
             }
     }
 
+    // TODO: We should either have callbacks or return values, not both. Simplify this to do one or the other
     fun create(onFailure: (Throwable) -> Unit, methods: String? = null): Core.Model.Pairing? {
         val pairingTopic: Topic = generateTopic()
         val symmetricKey: SymmetricKey = crypto.generateAndStoreSymmetricKey(pairingTopic)
@@ -124,21 +124,28 @@ internal class PairingEngine(
             logger.log("Creating Pairing")
             pairingRepository.insertPairing(this)
             metadataRepository.upsertPeerMetadata(this.topic, selfMetaData, AppMetaDataType.SELF)
-            jsonRpcInteractor.subscribe(this.topic,
+            jsonRpcInteractor.subscribe(
+                topic = this.topic,
                 onSuccess = { logger.log("Pairing - subscribed on pairing topic: $pairingTopic") },
                 onFailure = { error ->
                     logger.error("Pairing - subscribed failure on pairing topic: $pairingTopic, error: $error")
                     return@subscribe onFailure(error)
-                })
+                }
+            )
 
             this.toCore()
         }.onFailure { throwable ->
-            crypto.removeKeys(pairingTopic.value)
-            pairingRepository.deletePairing(pairingTopic)
-            metadataRepository.deleteMetaData(pairingTopic)
-            jsonRpcInteractor.unsubscribe(pairingTopic)
-            logger.error("Pairing - subscribed failure on pairing topic: $pairingTopic, error: $throwable")
-            onFailure(throwable)
+            try {
+                crypto.removeKeys(pairingTopic.value)
+                pairingRepository.deletePairing(pairingTopic)
+                metadataRepository.deleteMetaData(pairingTopic)
+                jsonRpcInteractor.unsubscribe(pairingTopic)
+                logger.error("Pairing - subscribed failure on pairing topic: $pairingTopic, error: $throwable")
+                onFailure(throwable)
+            } catch (e: Exception) {
+                logger.error("Pairing - subscribed failure on pairing topic: $pairingTopic, error: $e")
+                onFailure(e)
+            }
         }.getOrNull()
     }
 
