@@ -115,7 +115,6 @@ class Web3WalletActivity : AppCompatActivity() {
         connectionsViewModel: ConnectionsViewModel,
     ) {
         web3walletViewModel.sessionRequestStateFlow
-                .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
                 .onEach {
                     if (it.arrayOfArgs.isNotEmpty()) {
                         web3walletViewModel.showRequestLoader(false)
