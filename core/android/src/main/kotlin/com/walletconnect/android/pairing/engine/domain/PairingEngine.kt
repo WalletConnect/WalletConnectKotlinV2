@@ -94,6 +94,7 @@ internal class PairingEngine(
 
     val internalErrorFlow = MutableSharedFlow<SDKError>()
 
+    // TODO: emission of events can be missed since they are emitted potentially before there's a subscriber and the event gets missed by protocols
     init {
         setOfRegisteredMethods.addAll(listOf(PairingJsonRpcMethod.WC_PAIRING_DELETE, PairingJsonRpcMethod.WC_PAIRING_PING))
         resubscribeToPairingTopics()
