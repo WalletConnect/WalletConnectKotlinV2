@@ -47,39 +47,39 @@ abstract class BaseRelayClient : RelayInterface {
     fun observeResults() {
         scope.launch {
             merge(
-                relayService.observePublishAcknowledgement(),
-                relayService.observePublishError(),
-                relayService.observeBatchSubscribeAcknowledgement(),
-                relayService.observeBatchSubscribeError(),
-                relayService.observeSubscribeAcknowledgement(),
-                relayService.observeSubscribeError(),
-                relayService.observeUnsubscribeAcknowledgement(),
-                relayService.observeUnsubscribeError()
+                    relayService.observePublishAcknowledgement(),
+                    relayService.observePublishError(),
+                    relayService.observeBatchSubscribeAcknowledgement(),
+                    relayService.observeBatchSubscribeError(),
+                    relayService.observeSubscribeAcknowledgement(),
+                    relayService.observeSubscribeError(),
+                    relayService.observeUnsubscribeAcknowledgement(),
+                    relayService.observeUnsubscribeError()
             )
-                .catch { exception -> logger.error(exception) }
-                .collect { result -> resultState.emit(result) }
+                    .catch { exception -> logger.error(exception) }
+                    .collect { result -> resultState.emit(result) }
         }
     }
 
     override val eventsFlow: SharedFlow<Relay.Model.Event> by lazy {
         relayService
-            .observeWebSocketEvent()
-            .map { event -> event.toRelayEvent() }
-            .shareIn(scope, SharingStarted.Lazily, REPLAY)
+                .observeWebSocketEvent()
+                .map { event -> event.toRelayEvent() }
+                .shareIn(scope, SharingStarted.Lazily, REPLAY)
     }
 
     override val subscriptionRequest: Flow<Relay.Model.Call.Subscription.Request> by lazy {
         relayService.observeSubscriptionRequest()
-            .map { request -> request.toRelay() }
-            .onEach { relayRequest -> supervisorScope { publishSubscriptionAcknowledgement(relayRequest.id) } }
+                .map { request -> request.toRelay() }
+                .onEach { relayRequest -> supervisorScope { publishSubscriptionAcknowledgement(relayRequest.id) } }
     }
 
     @ExperimentalCoroutinesApi
     override fun publish(
-        topic: String,
-        message: String,
-        params: Relay.Model.IrnParams,
-        onResult: (Result<Relay.Model.Call.Publish.Acknowledgement>) -> Unit,
+            topic: String,
+            message: String,
+            params: Relay.Model.IrnParams,
+            onResult: (Result<Relay.Model.Call.Publish.Acknowledgement>) -> Unit,
     ) {
         val (tag, ttl, prompt) = params
         val publishParams = RelayDTO.Publish.Request.Params(Topic(topic), message, Ttl(ttl), tag, prompt)
@@ -92,23 +92,23 @@ abstract class BaseRelayClient : RelayInterface {
     private fun observePublishResult(id: Long, onResult: (Result<Relay.Model.Call.Publish.Acknowledgement>) -> Unit) {
         scope.launch {
             try {
-                withTimeout(PUBLISH_TIMEOUT) {
+                withTimeout(RESULT_TIMEOUT) {
                     resultState
-                        .filterIsInstance<RelayDTO.Publish.Result>()
-                        .filter { relayResult -> relayResult.id == id }
-                        .collect { publishResult ->
-                            when (publishResult) {
-                                is RelayDTO.Publish.Result.Acknowledgement -> {
-                                    cancel()
-                                    onResult(Result.success(publishResult.toRelay()))
-                                }
+                            .filterIsInstance<RelayDTO.Publish.Result>()
+                            .filter { relayResult -> relayResult.id == id }
+                            .collect { publishResult ->
+                                when (publishResult) {
+                                    is RelayDTO.Publish.Result.Acknowledgement -> {
+                                        cancel()
+                                        onResult(Result.success(publishResult.toRelay()))
+                                    }
 
-                                is RelayDTO.Publish.Result.JsonRpcError -> {
-                                    cancel()
-                                    onResult(Result.failure(Throwable(publishResult.error.errorMessage)))
+                                    is RelayDTO.Publish.Result.JsonRpcError -> {
+                                        cancel()
+                                        onResult(Result.failure(Throwable(publishResult.error.errorMessage)))
+                                    }
                                 }
                             }
-                        }
                 }
             } catch (e: TimeoutCancellationException) {
                 onResult(Result.failure(Throwable("Publish request timed out: ${e.message}")))
@@ -125,15 +125,30 @@ abstract class BaseRelayClient : RelayInterface {
     }
 
     private fun observeSubscribeResult(id: Long, onResult: (Result<Relay.Model.Call.Subscribe.Acknowledgement>) -> Unit) {
-        resultState
-            .filterIsInstance<RelayDTO.Subscribe.Result>()
-            .filter { relayResult -> relayResult.id == id }
-            .onEach { subscribeResult ->
-                when (subscribeResult) {
-                    is RelayDTO.Subscribe.Result.Acknowledgement -> onResult(Result.success(subscribeResult.toRelay()))
-                    is RelayDTO.Subscribe.Result.JsonRpcError -> onResult(Result.failure(Throwable(subscribeResult.error.errorMessage)))
+        scope.launch {
+            try {
+                withTimeout(RESULT_TIMEOUT) {
+                    resultState
+                            .filterIsInstance<RelayDTO.Subscribe.Result>()
+                            .filter { relayResult -> relayResult.id == id }
+                            .onEach { subscribeResult ->
+                                when (subscribeResult) {
+                                    is RelayDTO.Subscribe.Result.Acknowledgement -> {
+                                        onResult(Result.success(subscribeResult.toRelay()))
+                                        cancel()
+                                    }
+
+                                    is RelayDTO.Subscribe.Result.JsonRpcError -> {
+                                        onResult(Result.failure(Throwable(subscribeResult.error.errorMessage)))
+                                        cancel()
+                                    }
+                                }
+                            }.launchIn(scope)
                 }
-            }.launchIn(scope)
+            } catch (e: TimeoutCancellationException) {
+                onResult(Result.failure(Throwable("Subscribe timed out: ${e.message}")))
+            }
+        }
     }
 
     @ExperimentalCoroutinesApi
@@ -147,21 +162,21 @@ abstract class BaseRelayClient : RelayInterface {
 
     private fun observeBatchSubscribeResult(id: Long, onResult: (Result<Relay.Model.Call.BatchSubscribe.Acknowledgement>) -> Unit) {
         resultState
-            .filterIsInstance<RelayDTO.BatchSubscribe.Result>()
-            .filter { relayResult -> relayResult.id == id }
-            .onEach { batchSubscribeResult ->
-                when (batchSubscribeResult) {
-                    is RelayDTO.BatchSubscribe.Result.Acknowledgement -> onResult(Result.success(batchSubscribeResult.toRelay()))
-                    is RelayDTO.BatchSubscribe.Result.JsonRpcError -> onResult(Result.failure(Throwable(batchSubscribeResult.error.errorMessage)))
-                }
-            }.launchIn(scope)
+                .filterIsInstance<RelayDTO.BatchSubscribe.Result>()
+                .filter { relayResult -> relayResult.id == id }
+                .onEach { batchSubscribeResult ->
+                    when (batchSubscribeResult) {
+                        is RelayDTO.BatchSubscribe.Result.Acknowledgement -> onResult(Result.success(batchSubscribeResult.toRelay()))
+                        is RelayDTO.BatchSubscribe.Result.JsonRpcError -> onResult(Result.failure(Throwable(batchSubscribeResult.error.errorMessage)))
+                    }
+                }.launchIn(scope)
     }
 
     @ExperimentalCoroutinesApi
     override fun unsubscribe(
-        topic: String,
-        subscriptionId: String,
-        onResult: (Result<Relay.Model.Call.Unsubscribe.Acknowledgement>) -> Unit,
+            topic: String,
+            subscriptionId: String,
+            onResult: (Result<Relay.Model.Call.Unsubscribe.Acknowledgement>) -> Unit,
     ) {
         val unsubscribeRequest = RelayDTO.Unsubscribe.Request(params = RelayDTO.Unsubscribe.Request.Params(Topic(topic), SubscriptionId(subscriptionId)))
 
@@ -171,14 +186,14 @@ abstract class BaseRelayClient : RelayInterface {
 
     private fun observeUnsubscribeResult(id: Long, onResult: (Result<Relay.Model.Call.Unsubscribe.Acknowledgement>) -> Unit) {
         resultState
-            .filterIsInstance<RelayDTO.Unsubscribe.Result>()
-            .filter { relayResult -> relayResult.id == id }
-            .onEach { unsubscribeResult ->
-                when (unsubscribeResult) {
-                    is RelayDTO.Unsubscribe.Result.Acknowledgement -> onResult(Result.success(unsubscribeResult.toRelay()))
-                    is RelayDTO.Unsubscribe.Result.JsonRpcError -> onResult(Result.failure(Throwable(unsubscribeResult.error.errorMessage)))
-                }
-            }.launchIn(scope)
+                .filterIsInstance<RelayDTO.Unsubscribe.Result>()
+                .filter { relayResult -> relayResult.id == id }
+                .onEach { unsubscribeResult ->
+                    when (unsubscribeResult) {
+                        is RelayDTO.Unsubscribe.Result.Acknowledgement -> onResult(Result.success(unsubscribeResult.toRelay()))
+                        is RelayDTO.Unsubscribe.Result.JsonRpcError -> onResult(Result.failure(Throwable(unsubscribeResult.error.errorMessage)))
+                    }
+                }.launchIn(scope)
     }
 
     private fun publishSubscriptionAcknowledgement(id: Long) {
@@ -188,6 +203,6 @@ abstract class BaseRelayClient : RelayInterface {
 
     private companion object {
         const val REPLAY: Int = 1
-        const val PUBLISH_TIMEOUT: Long = 60000
+        const val RESULT_TIMEOUT: Long = 60000
     }
 }

@@ -73,6 +73,7 @@ fun WalletSampleHost(
     val bottomBarState = rememberBottomBarMutableState()
     val currentRoute = navController.currentBackStackEntryAsState()
     val isLoader by web3walletViewModel.isLoadingFlow.collectAsState(false)
+    val isRequestLoader by web3walletViewModel.isRequestLoadingFlow.collectAsState(false)
 
     LaunchedEffect(Unit) {
         web3walletViewModel.eventsSharedFlow.collect {
@@ -116,6 +117,10 @@ fun WalletSampleHost(
 
             if (isLoader) {
                 PairingLoader()
+            }
+
+            if (isRequestLoader) {
+                RequestLoader()
             }
 
             Timer(web3walletViewModel)
@@ -177,6 +182,43 @@ private fun BoxScope.PairingLoader() {
                 fontSize = 22.sp,
                 color = themedColor(Color(0xFFb9b3b5), Color(0xFF484648))
             ),
+        )
+    }
+}
+
+@Composable
+private fun BoxScope.RequestLoader() {
+    var shouldChangeText by remember { mutableStateOf(false) }
+
+    LaunchedEffect(key1 = Unit) {
+        delay(15000)
+        shouldChangeText = true
+    }
+
+    Column(
+            modifier = Modifier
+                    .align(Alignment.Center)
+                    .clip(RoundedCornerShape(34.dp))
+                    .background(themedColor(Color(0xFF242425).copy(alpha = .95f), Color(0xFFF2F2F7).copy(alpha = .95f)))
+                    .padding(24.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        CircularProgressIndicator(
+                strokeWidth = 8.dp,
+                modifier = Modifier
+                        .size(75.dp), color = Color(0xFFB8F53D)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+                textAlign = TextAlign.Center,
+                text = if (shouldChangeText) "It is taking longer than usual.." else "Awaiting a request...",
+                maxLines = 2,
+                style = TextStyle(
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 22.sp,
+                        color = themedColor(Color(0xFFb9b3b5), Color(0xFF484648))
+                ),
         )
     }
 }

@@ -38,6 +38,9 @@ class Web3WalletViewModel : ViewModel() {
     private val _isLoadingFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isLoadingFlow = _isLoadingFlow.asSharedFlow()
 
+    private val _isRequestLoadingFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isRequestLoadingFlow = _isRequestLoadingFlow.asSharedFlow()
+
     private val _timerFlow: MutableStateFlow<String> = MutableStateFlow("0")
     val timerFlow = _timerFlow.asStateFlow()
 
@@ -129,6 +132,10 @@ class Web3WalletViewModel : ViewModel() {
 
     fun showLoader(isLoading: Boolean) {
         _isLoadingFlow.value = isLoading
+    }
+
+    fun showRequestLoader(isLoading: Boolean) {
+        _isRequestLoadingFlow.value = isLoading
     }
 
     fun pair(pairingUri: String) {
