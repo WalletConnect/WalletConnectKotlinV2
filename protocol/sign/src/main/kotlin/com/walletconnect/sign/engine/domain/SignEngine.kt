@@ -316,12 +316,15 @@ internal class SignEngine(
 
             pairingController.deletedPairingFlow.onEach { pairing ->
                 sessionStorageRepository.getAllSessionTopicsByPairingTopic(pairing.topic).onEach { sessionTopic ->
-                    jsonRpcInteractor.unsubscribe(Topic(sessionTopic), onSuccess = {
-                        sessionStorageRepository.deleteSession(Topic(sessionTopic))
-                        runCatching {
-                            crypto.removeKeys(sessionTopic)
-                        }.onFailure { logger.error(it) }
-                    })
+                    jsonRpcInteractor.unsubscribe(
+                        topic = Topic(sessionTopic),
+                        onSuccess = {
+                            sessionStorageRepository.deleteSession(Topic(sessionTopic))
+                            runCatching {
+                                crypto.removeKeys(sessionTopic)
+                            }.onFailure { logger.error(it) }
+                        }
+                    )
                 }
             }.launchIn(scope)
         } catch (e: Exception) {
@@ -338,7 +341,13 @@ internal class SignEngine(
                 scope.launch {
                     supervisorScope {
                         val verifyContext =
-                            verifyContextStorageRepository.get(sessionRequest.request.id) ?: VerifyContext(sessionRequest.request.id, String.Empty, Validation.UNKNOWN, String.Empty, null)
+                            verifyContextStorageRepository.get(sessionRequest.request.id) ?: VerifyContext(
+                                sessionRequest.request.id,
+                                String.Empty,
+                                Validation.UNKNOWN,
+                                String.Empty,
+                                null
+                            )
                         val sessionRequestEvent = EngineDO.SessionRequestEvent(sessionRequest, verifyContext.toEngineDO())
                         sessionRequestEventsQueue.add(sessionRequestEvent)
                     }
