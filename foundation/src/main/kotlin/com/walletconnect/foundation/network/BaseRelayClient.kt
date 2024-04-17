@@ -99,12 +99,12 @@ abstract class BaseRelayClient : RelayInterface {
                             .collect { publishResult ->
                                 when (publishResult) {
                                     is RelayDTO.Publish.Result.Acknowledgement -> {
-                                        cancel()
+                                        this@withTimeout.cancel()
                                         onResult(Result.success(publishResult.toRelay()))
                                     }
 
                                     is RelayDTO.Publish.Result.JsonRpcError -> {
-                                        cancel()
+                                        this@withTimeout.cancel()
                                         onResult(Result.failure(Throwable(publishResult.error.errorMessage)))
                                     }
                                 }
@@ -135,12 +135,12 @@ abstract class BaseRelayClient : RelayInterface {
                                 when (subscribeResult) {
                                     is RelayDTO.Subscribe.Result.Acknowledgement -> {
                                         onResult(Result.success(subscribeResult.toRelay()))
-                                        cancel()
+                                        this@withTimeout.cancel()
                                     }
 
                                     is RelayDTO.Subscribe.Result.JsonRpcError -> {
                                         onResult(Result.failure(Throwable(subscribeResult.error.errorMessage)))
-                                        cancel()
+                                        this@withTimeout.cancel()
                                     }
                                 }
                             }.launchIn(scope)
@@ -203,6 +203,6 @@ abstract class BaseRelayClient : RelayInterface {
 
     private companion object {
         const val REPLAY: Int = 1
-        const val RESULT_TIMEOUT: Long = 60000
+        const val RESULT_TIMEOUT: Long = 6//0000
     }
 }
