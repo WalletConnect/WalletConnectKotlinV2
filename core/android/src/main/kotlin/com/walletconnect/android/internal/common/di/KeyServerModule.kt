@@ -26,12 +26,12 @@ internal fun keyServerModule(optionalKeyServerUrl: String? = null) = module {
 
     single { get<Retrofit>(named(AndroidCommonDITags.KEYSERVER_RETROFIT)).create(KeyServerService::class.java) }
 
-    single { RegisterIdentityUseCase(get()) }
-    single { UnregisterIdentityUseCase(get()) }
-    single { ResolveIdentityUseCase(get()) }
-    single { RegisterInviteUseCase(get()) }
-    single { UnregisterInviteUseCase(get()) }
-    single { ResolveInviteUseCase(get()) }
+    single { RegisterIdentityUseCase(service = get()) }
+    single { UnregisterIdentityUseCase(service = get()) }
+    single { ResolveIdentityUseCase(service = get()) }
+    single { RegisterInviteUseCase(service = get()) }
+    single { UnregisterInviteUseCase(service = get()) }
+    single { ResolveInviteUseCase(service = get()) }
 
     single {
         IdentitiesInteractor(
@@ -46,4 +46,4 @@ internal fun keyServerModule(optionalKeyServerUrl: String? = null) = module {
     }
 }
 
-private const val DEFAULT_KEYSERVER_URL = "https://keys.walletconnect.com"
+private const val DEFAULT_KEYSERVER_URL = "https://keys.walletconnect.org"
