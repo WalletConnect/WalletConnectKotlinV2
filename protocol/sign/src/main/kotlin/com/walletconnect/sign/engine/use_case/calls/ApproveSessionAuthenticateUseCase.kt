@@ -145,7 +145,9 @@ internal class ApproveSessionAuthenticateUseCase(
                     }
                 },
                 onFailure = { error ->
-                    crypto.removeKeys(sessionTopic.value)
+                    runCatching {
+                        crypto.removeKeys(sessionTopic.value)
+                    }.onFailure { logger.error(it) }
                     sessionStorageRepository.deleteSession(sessionTopic)
                     logger.error("Error Responding Session Authenticate on topic: $responseTopic, error: $error")
                     onFailure(error)

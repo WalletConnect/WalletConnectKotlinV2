@@ -14,6 +14,7 @@ import com.walletconnect.android.BuildConfig
 import com.walletconnect.android.internal.common.connection.ConnectivityState
 import com.walletconnect.android.internal.common.connection.ManualConnectionLifecycle
 import com.walletconnect.android.internal.common.jwt.clientid.GenerateJwtStoreClientIdUseCase
+import com.walletconnect.android.internal.common.model.PackageName
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.relay.NetworkClientTimeout
 import com.walletconnect.foundation.network.data.ConnectionController
@@ -56,7 +57,9 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
         """wc-2/kotlin-${sdkVersion}/android-${Build.VERSION.RELEASE}"""
     }
 
-    single(named(AndroidCommonDITags.BUNDLE_ID)) { androidContext().packageName }
+    single<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)) {
+        PackageName(androidContext().packageName)
+    }
 
     single {
         GenerateJwtStoreClientIdUseCase(get(), get())
@@ -66,7 +69,7 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
         Interceptor { chain ->
             val updatedRequest = chain.request().newBuilder()
                 .addHeader("User-Agent", get(named(AndroidCommonDITags.USER_AGENT)))
-                .addHeader("Origin", get(named(AndroidCommonDITags.BUNDLE_ID)))
+                .addHeader("Origin", get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value)
                 .build()
 
             chain.proceed(updatedRequest)

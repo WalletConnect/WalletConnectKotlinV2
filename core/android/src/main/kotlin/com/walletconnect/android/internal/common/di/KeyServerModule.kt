@@ -33,14 +33,17 @@ internal fun keyServerModule(optionalKeyServerUrl: String? = null) = module {
     single { UnregisterInviteUseCase(service = get()) }
     single { ResolveInviteUseCase(service = get()) }
 
-    single { IdentitiesInteractor(
-        identitiesRepository = get(),
-        resolveIdentityUseCase = get(),
-        registerIdentityUseCase = get(),
-        unregisterIdentityUseCase = get(),
-        projectId = get(),
-        keyManagementRepository = get()
-    ) }
+    single {
+        IdentitiesInteractor(
+            identitiesRepository = get(),
+            resolveIdentityUseCase = get(),
+            registerIdentityUseCase = get(),
+            unregisterIdentityUseCase = get(),
+            projectId = get(),
+            keyManagementRepository = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER))
+        )
+    }
 }
 
 private const val DEFAULT_KEYSERVER_URL = "https://keys.walletconnect.org"
