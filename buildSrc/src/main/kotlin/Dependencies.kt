@@ -127,7 +127,7 @@ fun DependencyHandlerScope.security() {
 }
 
 fun DependencyHandlerScope.web3jCrypto() {
-    "api"("com.walletconnect.web3j:crypto:$web3jVersion")
+    "api"("org.web3j:crypto:$web3jVersion")
 }
 
 fun DependencyHandlerScope.kethereum() {
