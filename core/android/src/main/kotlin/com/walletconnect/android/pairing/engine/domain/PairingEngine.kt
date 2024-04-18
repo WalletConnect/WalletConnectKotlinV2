@@ -281,7 +281,7 @@ internal class PairingEngine(
             .onEach {
                 supervisorScope {
                     launch(Dispatchers.IO) {
-                        sendBatchSubcrbeForPairings()
+                        sendBatchSubscribeForPairings()
                     }
                 }
 
@@ -291,7 +291,7 @@ internal class PairingEngine(
             }.launchIn(scope)
     }
 
-    private suspend fun sendBatchSubcrbeForPairings() {
+    private suspend fun sendBatchSubscribeForPairings() {
         try {
             val pairingTopics = pairingRepository.getListOfPairings().filter { pairing -> pairing.isNotExpired() }.map { pairing -> pairing.topic.value }
             jsonRpcInteractor.batchSubscribe(pairingTopics) { error -> scope.launch { internalErrorFlow.emit(SDKError(error)) } }

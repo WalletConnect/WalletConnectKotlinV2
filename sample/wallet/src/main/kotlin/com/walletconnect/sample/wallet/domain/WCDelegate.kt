@@ -44,9 +44,6 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
     }
 
     override fun onConnectionStateChange(state: Wallet.Model.ConnectionState) {
-
-        println("kobe: WSS state: ${state.isAvailable}; exception: ${state.throwable}")
-
         scope.launch {
             _connectionState.emit(state)
         }

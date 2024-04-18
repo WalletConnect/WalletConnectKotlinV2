@@ -103,7 +103,7 @@ internal class NotifyEngine(
         jsonRpcInteractor.wssConnectionState
             .onEach { state ->
                 if (state is WSSConnectionState.Disconnected){
-                    _engineEvent.emit(ConnectionState(false, state.throwable))
+                    _engineEvent.emit(ConnectionState(false, state.message))
                 } else {
                     _engineEvent.emit(ConnectionState(true))
                 }

@@ -199,7 +199,7 @@ object Sign {
 
         data class ConnectionState(
             val isAvailable: Boolean,
-            val throwable: Throwable? = null
+            val message: String? = null
         ) : Model()
 
         sealed class Message : Model() {

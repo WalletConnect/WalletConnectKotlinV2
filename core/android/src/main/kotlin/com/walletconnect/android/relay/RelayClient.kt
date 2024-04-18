@@ -56,10 +56,7 @@ class RelayClient(private val koinApp: KoinApplication = wcKoinApp) : BaseRelayC
 
     private fun monitorConnectionState() {
         eventsFlow
-            .onEach { event: Relay.Model.Event ->
-                println("kobe: Relay connection event: $event")
-                setIsWSSConnectionOpened(event)
-            }
+            .onEach { event: Relay.Model.Event -> setIsWSSConnectionOpened(event) }
             .launchIn(scope)
     }
 
@@ -73,13 +70,13 @@ class RelayClient(private val koinApp: KoinApplication = wcKoinApp) : BaseRelayC
 
             is Relay.Model.Event.OnConnectionFailed -> {
                 if (_wssConnectionState.value is WSSConnectionState.Connected) {
-                    _wssConnectionState.value = WSSConnectionState.Disconnected(event.throwable)
+                    _wssConnectionState.value = WSSConnectionState.Disconnected(event.throwable.toString())
                 }
             }
 
             is Relay.Model.Event.OnConnectionClosed -> {
                 if (_wssConnectionState.value is WSSConnectionState.Connected) {
-                    _wssConnectionState.value = WSSConnectionState.Disconnected(Throwable("Connection closed: ${event.shutdownReason.reason} ${event.shutdownReason.code}"))
+                    _wssConnectionState.value = WSSConnectionState.Disconnected("Connection closed: ${event.shutdownReason.reason} ${event.shutdownReason.code}")
                 }
             }
 

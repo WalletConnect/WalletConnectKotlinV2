@@ -539,7 +539,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
                 atomicBoolean == null -> {
                     atomicBoolean = AtomicBoolean()
                     if (connectionState is WSSConnectionState.Disconnected) {
-                        onDelegate(Sign.Model.ConnectionState(false, connectionState.throwable))
+                        onDelegate(Sign.Model.ConnectionState(false, connectionState.message.toString()))
                     } else {
                         onDelegate(Sign.Model.ConnectionState(true))
                     }
@@ -547,7 +547,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
 
                 atomicBoolean?.get() == true && connectionState is WSSConnectionState.Disconnected -> {
                     atomicBoolean?.set(false)
-                    onDelegate(Sign.Model.ConnectionState(false, connectionState.throwable))
+                    onDelegate(Sign.Model.ConnectionState(false, connectionState.message.toString()))
                 }
 
                 atomicBoolean?.get() == false && connectionState is WSSConnectionState.Connected -> {
