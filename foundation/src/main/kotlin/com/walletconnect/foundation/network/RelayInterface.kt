@@ -23,6 +23,7 @@ interface RelayInterface {
     fun unsubscribe(
         topic: String,
         subscriptionId: String,
+        id: Long? = null,
         onResult: (Result<Relay.Model.Call.Unsubscribe.Acknowledgement>) -> Unit,
     )
 }
