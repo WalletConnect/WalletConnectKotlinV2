@@ -2,6 +2,7 @@ package com.walletconnect.notify.test.scenario
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.relay.WSSConnectionState
 import com.walletconnect.foundation.network.model.Relay
 import com.walletconnect.notify.client.Notify
 import com.walletconnect.notify.test.BuildConfig
@@ -126,7 +127,7 @@ class ClientInstrumentedActivityScenario : TestRule, ActivityScenario() {
             dappRelayJob.cancel()
             walletRelayJob.cancel()
             primaryReconnectJob = TestClient.Primary.Relay.wssConnectionState.onEach { isConnectionAvailable ->
-                if (!isConnectionAvailable) {
+                if (isConnectionAvailable is WSSConnectionState.Disconnected) {
                     reconnectScope.launch {
                         TestClient.Primary.Relay.connect { error: Core.Model.Error ->
                             Timber.e(error.throwable)
@@ -135,7 +136,7 @@ class ClientInstrumentedActivityScenario : TestRule, ActivityScenario() {
                 }
             }.launchIn(scope)
             secondaryReconnectJob = TestClient.Secondary.Relay.wssConnectionState.onEach { isConnectionAvailable ->
-                if (!isConnectionAvailable) {
+                if (isConnectionAvailable is WSSConnectionState.Disconnected) {
                     reconnectScope.launch {
                         TestClient.Secondary.Relay.connect { error: Core.Model.Error ->
                             Timber.e(error.throwable)
