@@ -125,7 +125,7 @@ class ClientInstrumentedActivityScenario : TestRule, ActivityScenario() {
 
             dappRelayJob.cancel()
             walletRelayJob.cancel()
-            primaryReconnectJob = TestClient.Primary.Relay.isWSSConnectionOpened.onEach { isConnectionAvailable ->
+            primaryReconnectJob = TestClient.Primary.Relay.wssConnectionState.onEach { isConnectionAvailable ->
                 if (!isConnectionAvailable) {
                     reconnectScope.launch {
                         TestClient.Primary.Relay.connect { error: Core.Model.Error ->
@@ -134,7 +134,7 @@ class ClientInstrumentedActivityScenario : TestRule, ActivityScenario() {
                     }
                 }
             }.launchIn(scope)
-            secondaryReconnectJob = TestClient.Secondary.Relay.isWSSConnectionOpened.onEach { isConnectionAvailable ->
+            secondaryReconnectJob = TestClient.Secondary.Relay.wssConnectionState.onEach { isConnectionAvailable ->
                 if (!isConnectionAvailable) {
                     reconnectScope.launch {
                         TestClient.Secondary.Relay.connect { error: Core.Model.Error ->

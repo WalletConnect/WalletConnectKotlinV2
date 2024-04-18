@@ -10,6 +10,7 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
+import com.walletconnect.android.relay.WSSConnectionState
 import com.walletconnect.notify.common.JsonRpcMethod
 import com.walletconnect.notify.engine.calls.DeleteSubscriptionUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetActiveSubscriptionsUseCaseInterface
@@ -99,9 +100,15 @@ internal class NotifyEngine(
     }
 
     suspend fun setup() {
-        jsonRpcInteractor.isWSSConnectionAvailable
-            .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
-            .filter { isAvailable: Boolean -> isAvailable }
+        jsonRpcInteractor.wssConnectionState
+            .onEach { state ->
+                if (state is WSSConnectionState.Disconnected){
+                    _engineEvent.emit(ConnectionState(false, state.throwable))
+                } else {
+                    _engineEvent.emit(ConnectionState(true))
+                }
+            }
+            .filter { state: WSSConnectionState -> state is WSSConnectionState.Connected }
             .onEach {
                 supervisorScope {
                     launch(Dispatchers.IO) {

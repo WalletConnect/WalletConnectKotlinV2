@@ -26,6 +26,7 @@ import com.walletconnect.android.internal.common.storage.push_messages.PushMessa
 import com.walletconnect.android.internal.common.storage.rpc.JsonRpcHistory
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.relay.RelayConnectionInterface
+import com.walletconnect.android.relay.WSSConnectionState
 import com.walletconnect.foundation.common.model.SubscriptionId
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.network.model.Relay
@@ -59,7 +60,7 @@ internal class JsonRpcInteractor(
 
     private val _internalErrors = MutableSharedFlow<SDKError>()
     override val internalErrors: SharedFlow<SDKError> = _internalErrors.asSharedFlow()
-    override val isWSSConnectionAvailable: StateFlow<Boolean> get() = relay.isWSSConnectionOpened
+    override val wssConnectionState: StateFlow<WSSConnectionState> get() = relay.wssConnectionState
 
     private val subscriptions: MutableMap<String, String> = mutableMapOf()
 
@@ -72,8 +73,8 @@ internal class JsonRpcInteractor(
             throw NoInternetConnectionException("Connection error: Please check your Internet connection")
         }
 
-        if (!relay.isWSSConnectionOpened.value) {
-            throw NoRelayConnectionException("Connection error: Failed to connect")
+        if (relay.wssConnectionState.value is WSSConnectionState.Disconnected) {
+            throw NoRelayConnectionException("Connection error: Failed to connect: ${(relay.wssConnectionState.value as WSSConnectionState.Disconnected).throwable?.message}")
         }
     }
 

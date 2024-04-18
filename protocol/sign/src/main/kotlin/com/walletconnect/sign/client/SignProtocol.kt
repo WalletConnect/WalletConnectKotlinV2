@@ -10,6 +10,7 @@ import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.pairing.model.mapper.toPairing
+import com.walletconnect.android.relay.WSSConnectionState
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.client.mapper.*
 import com.walletconnect.sign.common.exceptions.SignClientAlreadyInitializedException
@@ -533,15 +534,25 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
 
     private fun handleConnectionState(onDelegate: (state: Sign.Model.ConnectionState) -> Unit) {
         signEngine.wssConnection.onEach { connectionState ->
+
             when {
                 atomicBoolean == null -> {
                     atomicBoolean = AtomicBoolean()
-                    onDelegate(Sign.Model.ConnectionState(connectionState))
+                    if (connectionState is WSSConnectionState.Disconnected) {
+                        onDelegate(Sign.Model.ConnectionState(false, connectionState.throwable))
+                    } else {
+                        onDelegate(Sign.Model.ConnectionState(true))
+                    }
                 }
 
-                atomicBoolean?.get() != connectionState -> {
-                    atomicBoolean?.set(connectionState)
-                    onDelegate(Sign.Model.ConnectionState(connectionState))
+                atomicBoolean?.get() == true && connectionState is WSSConnectionState.Disconnected -> {
+                    atomicBoolean?.set(false)
+                    onDelegate(Sign.Model.ConnectionState(false, connectionState.throwable))
+                }
+
+                atomicBoolean?.get() == false && connectionState is WSSConnectionState.Connected -> {
+                    atomicBoolean?.set(true)
+                    onDelegate(Sign.Model.ConnectionState(true))
                 }
 
                 else -> Unit

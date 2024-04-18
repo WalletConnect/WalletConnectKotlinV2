@@ -14,6 +14,7 @@ import com.walletconnect.android.internal.common.storage.verify.VerifyContextSto
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
+import com.walletconnect.android.relay.WSSConnectionState
 import com.walletconnect.android.verify.data.model.VerifyContext
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
@@ -165,7 +166,7 @@ internal class SignEngine(
 
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val engineEvent: SharedFlow<EngineEvent> = _engineEvent.asSharedFlow()
-    val wssConnection: StateFlow<Boolean> = jsonRpcInteractor.isWSSConnectionAvailable
+    val wssConnection: StateFlow<WSSConnectionState> = jsonRpcInteractor.wssConnectionState
 
     init {
         pairingController.register(
@@ -187,8 +188,8 @@ internal class SignEngine(
     }
 
     fun setup() {
-        jsonRpcInteractor.isWSSConnectionAvailable
-            .filter { isAvailable: Boolean -> isAvailable }
+        jsonRpcInteractor.wssConnectionState
+            .filter { state: WSSConnectionState -> state is WSSConnectionState.Connected }
             .onEach {
                 supervisorScope {
                     launch(Dispatchers.IO) {
