@@ -103,15 +103,9 @@ abstract class BaseRelayClient : RelayInterface {
 				withTimeout(RESULT_TIMEOUT) {
 					resultState
 						.filterIsInstance<RelayDTO.Publish.Result>()
-						.filter { relayResult ->
-							println("kobe: filtering publish result: ${relayResult.id} ; $id")
-							relayResult.id == id }
+						.filter { relayResult -> relayResult.id == id }
 						.collect { publishResult ->
-
-							println("kobe: collecting publish result: $publishResult")
-
 							when (publishResult) {
-
 								is RelayDTO.Publish.Result.Acknowledgement -> {
 									this@withTimeout.cancel()
 									onResult(Result.success(publishResult.toRelay()))
@@ -131,8 +125,8 @@ abstract class BaseRelayClient : RelayInterface {
 	}
 
 	@ExperimentalCoroutinesApi
-	override fun subscribe(topic: String, onResult: (Result<Relay.Model.Call.Subscribe.Acknowledgement>) -> Unit) {
-		val subscribeRequest = RelayDTO.Subscribe.Request(params = RelayDTO.Subscribe.Request.Params(Topic(topic)))
+	override fun subscribe(topic: String, id: Long?, onResult: (Result<Relay.Model.Call.Subscribe.Acknowledgement>) -> Unit) {
+		val subscribeRequest = RelayDTO.Subscribe.Request(id = id ?: generateClientToServerId(), params = RelayDTO.Subscribe.Request.Params(Topic(topic)))
 
 		observeSubscribeResult(subscribeRequest.id, onResult)
 		relayService.subscribeRequest(subscribeRequest)
@@ -145,7 +139,7 @@ abstract class BaseRelayClient : RelayInterface {
 					resultState
 						.filterIsInstance<RelayDTO.Subscribe.Result>()
 						.filter { relayResult -> relayResult.id == id }
-						.onEach { subscribeResult ->
+						.collect { subscribeResult ->
 							when (subscribeResult) {
 								is RelayDTO.Subscribe.Result.Acknowledgement -> {
 									this@withTimeout.cancel()
@@ -157,7 +151,7 @@ abstract class BaseRelayClient : RelayInterface {
 									onResult(Result.failure(Throwable(subscribeResult.error.errorMessage)))
 								}
 							}
-						}.launchIn(scope)
+						}
 				}
 			} catch (e: TimeoutCancellationException) {
 				onResult(Result.failure(Throwable("Subscribe timed out: ${e.message}")))
@@ -166,24 +160,37 @@ abstract class BaseRelayClient : RelayInterface {
 	}
 
 	@ExperimentalCoroutinesApi
-	override fun batchSubscribe(topics: List<String>, onResult: (Result<Relay.Model.Call.BatchSubscribe.Acknowledgement>) -> Unit) {
-		val batchSubscribeRequest = RelayDTO.BatchSubscribe.Request(params = RelayDTO.BatchSubscribe.Request.Params(topics))
-
+	override fun batchSubscribe(topics: List<String>, id: Long?, onResult: (Result<Relay.Model.Call.BatchSubscribe.Acknowledgement>) -> Unit) {
+		val batchSubscribeRequest = RelayDTO.BatchSubscribe.Request(id = id ?: generateClientToServerId(), params = RelayDTO.BatchSubscribe.Request.Params(topics))
 
 		observeBatchSubscribeResult(batchSubscribeRequest.id, onResult)
 		relayService.batchSubscribeRequest(batchSubscribeRequest)
 	}
 
 	private fun observeBatchSubscribeResult(id: Long, onResult: (Result<Relay.Model.Call.BatchSubscribe.Acknowledgement>) -> Unit) {
-		resultState
-			.filterIsInstance<RelayDTO.BatchSubscribe.Result>()
-			.filter { relayResult -> relayResult.id == id }
-			.onEach { batchSubscribeResult ->
-				when (batchSubscribeResult) {
-					is RelayDTO.BatchSubscribe.Result.Acknowledgement -> onResult(Result.success(batchSubscribeResult.toRelay()))
-					is RelayDTO.BatchSubscribe.Result.JsonRpcError -> onResult(Result.failure(Throwable(batchSubscribeResult.error.errorMessage)))
+		scope.launch {
+			try {
+				withTimeout(RESULT_TIMEOUT) {
+					resultState
+							.filterIsInstance<RelayDTO.BatchSubscribe.Result>()
+							.filter { relayResult -> relayResult.id == id }
+							.collect { batchSubscribeResult ->
+								when (batchSubscribeResult) {
+									is RelayDTO.BatchSubscribe.Result.Acknowledgement -> {
+										this@withTimeout.cancel()
+										onResult(Result.success(batchSubscribeResult.toRelay()))
+									}
+									is RelayDTO.BatchSubscribe.Result.JsonRpcError -> {
+										this@withTimeout.cancel()
+										onResult(Result.failure(Throwable(batchSubscribeResult.error.errorMessage)))
+									}
+								}
+							}
 				}
-			}.launchIn(scope)
+			} catch (e: TimeoutCancellationException) {
+				onResult(Result.failure(Throwable("Batch Subscribe timed out: ${e.message}")))
+			}
+		}
 	}
 
 	@ExperimentalCoroutinesApi

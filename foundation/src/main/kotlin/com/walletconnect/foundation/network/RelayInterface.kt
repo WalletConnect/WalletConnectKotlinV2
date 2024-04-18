@@ -16,9 +16,9 @@ interface RelayInterface {
         onResult: (Result<Relay.Model.Call.Publish.Acknowledgement>) -> Unit = {},
     )
 
-    fun subscribe(topic: String, onResult: (Result<Relay.Model.Call.Subscribe.Acknowledgement>) -> Unit)
+    fun subscribe(topic: String, id: Long? = null, onResult: (Result<Relay.Model.Call.Subscribe.Acknowledgement>) -> Unit)
 
-    fun batchSubscribe(topics: List<String>, onResult: (Result<Relay.Model.Call.BatchSubscribe.Acknowledgement>) -> Unit)
+    fun batchSubscribe(topics: List<String>, id: Long? = null, onResult: (Result<Relay.Model.Call.BatchSubscribe.Acknowledgement>) -> Unit)
 
     fun unsubscribe(
         topic: String,
