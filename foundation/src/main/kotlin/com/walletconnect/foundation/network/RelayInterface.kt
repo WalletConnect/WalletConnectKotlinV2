@@ -12,6 +12,7 @@ interface RelayInterface {
         topic: String,
         message: String,
         params: Relay.Model.IrnParams,
+        id: Long? = null,
         onResult: (Result<Relay.Model.Call.Publish.Acknowledgement>) -> Unit = {},
     )
 
