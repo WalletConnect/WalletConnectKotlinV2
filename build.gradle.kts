@@ -72,6 +72,20 @@ subprojects {
                         add("META-INF/NOTICE.md")
                     }
                 }
+
+                dependencies {
+                    add("testImplementation", libs.mockk)
+                    add("testImplementation", libs.jUnit)
+                    add("testRuntimeOnly", libs.jUnit.engine)
+                }
+            }
+        }
+
+        plugins.withId(rootProject.libs.plugins.javaLibrary.get().pluginId) {
+            dependencies {
+                add("testImplementation", libs.mockk)
+                add("testImplementation", libs.jUnit)
+                add("testRuntimeOnly", libs.jUnit.engine)
             }
         }
     }
