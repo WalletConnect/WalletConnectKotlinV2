@@ -1,10 +1,10 @@
 plugins {
     id("com.android.library")
-    kotlin("android")
+    id(libs.plugins.kotlin.android.get().pluginId)
+    alias(libs.plugins.sqlDelight)
+    alias(libs.plugins.google.ksp)
     id("publish-module-android")
     id("jacoco-report")
-    alias(libs.plugins.sqlDelight)
-    id("com.google.devtools.ksp") version kspVersion
 }
 
 project.apply {
@@ -86,27 +86,34 @@ dependencies {
     debugApi(project(":foundation"))
     releaseApi("com.walletconnect:foundation:$FOUNDATION_VERSION")
 
-    coroutines()
-    scarletAndroid()
+    api(libs.coroutines)
+    implementation(libs.scarlet.android)
     implementation(libs.bundles.sqlDelight)
-    sqlCipher()
-    reLinker()
-    security()
-    koinAndroid()
-    timber()
-    moshiKsp()
-    web3jCrypto()
-    kethereum()
-    retrofit()
-    beagleOkHttp()
-    firebaseMessaging()
+    api(libs.sqlCipher) {
+        artifact {
+            type = "aar"
+        }
+    }
+    implementation(libs.relinker)
+    api(libs.androidx.security)
+    api(libs.koin.android)
+    api(libs.timber)
+    ksp(libs.moshi.ksp)
+    api(libs.web3jCrypto)
+    api(libs.bundles.kethereum)
+    api(libs.bundles.retrofit)
+    api(libs.beagle.logOkhttp)
 
-    jUnit4()
-    androidXTest()
-    robolectric()
-    mockk()
-    testJson()
-    coroutinesTest()
-    scarletTest()
-    testImplementation(libs.bundles.sqlDelightTest)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
+
+    testImplementation(libs.bundles.androidxTest)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.json)
+    testImplementation(libs.coroutines.test)
+    testImplementation(libs.bundles.scarlet.test)
+    testImplementation(libs.bundles.sqlDelight.test)
+
+    androidTestUtil(libs.androidx.testOrchestrator)
+    androidTestImplementation(libs.bundles.androidxAndroidTest)
 }
