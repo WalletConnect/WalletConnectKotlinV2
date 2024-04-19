@@ -102,7 +102,8 @@ internal fun callModule() = module {
         PrepareRegistrationUseCase(
             identitiesInteractor = get(),
             identityServerUrl = get(named(AndroidCommonDITags.KEYSERVER_URL)),
-            keyManagementRepository = get()
+            keyManagementRepository = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }
 
