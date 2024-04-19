@@ -14,6 +14,7 @@ import com.walletconnect.android.BuildConfig
 import com.walletconnect.android.internal.common.connection.ConnectivityState
 import com.walletconnect.android.internal.common.connection.ManualConnectionLifecycle
 import com.walletconnect.android.internal.common.jwt.clientid.GenerateJwtStoreClientIdUseCase
+import com.walletconnect.android.internal.common.model.PackageName
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.relay.NetworkClientTimeout
 import com.walletconnect.foundation.network.data.ConnectionController
@@ -22,20 +23,23 @@ import com.walletconnect.foundation.network.data.service.RelayService
 import okhttp3.Authenticator
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.android.ext.koin.androidApplication
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import java.io.IOException
+import java.net.SocketTimeoutException
 import java.util.concurrent.TimeUnit
 
-
-var SERVER_URL: String = ""
+private var SERVER_URL: String = ""
+private const val DEFAULT_RELAY_URL = "relay.walletconnect.com"
+private const val DEFAULT_BACKOFF_SECONDS = 5L
 
 @Suppress("LocalVariableName")
 @JvmSynthetic
 fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, sdkVersion: String, timeout: NetworkClientTimeout? = null) = module {
-    val DEFAULT_BACKOFF_SECONDS = 5L
     val networkClientTimeout = timeout ?: NetworkClientTimeout.getDefaultTimeout()
     SERVER_URL = serverUrl
 
@@ -53,7 +57,9 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
         """wc-2/kotlin-${sdkVersion}/android-${Build.VERSION.RELEASE}"""
     }
 
-    single(named(AndroidCommonDITags.BUNDLE_ID)) { androidContext().packageName }
+    single<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)) {
+        PackageName(androidContext().packageName)
+    }
 
     single {
         GenerateJwtStoreClientIdUseCase(get(), get())
@@ -63,7 +69,7 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
         Interceptor { chain ->
             val updatedRequest = chain.request().newBuilder()
                 .addHeader("User-Agent", get(named(AndroidCommonDITags.USER_AGENT)))
-                .addHeader("Origin", get(named(AndroidCommonDITags.BUNDLE_ID)))
+                .addHeader("Origin", get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value)
                 .build()
 
             chain.proceed(updatedRequest)
@@ -74,31 +80,34 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
         HttpLoggingInterceptor().apply { setLevel(HttpLoggingInterceptor.Level.BODY) }
     }
 
-    //TODO: make this more scalable
     single(named(AndroidCommonDITags.FAIL_OVER_INTERCEPTOR)) {
         Interceptor { chain ->
-            val request = chain.request()
-            try {
-                val host = request.url.host
-                when {
-                    shouldFallbackRelay(host) -> chain.proceed(request.newBuilder().url(get<String>(named(AndroidCommonDITags.RELAY_URL))).build())
-                    shouldFallbackPush(host) -> chain.proceed(request.newBuilder().url(getFallbackPushUrl(request.url.toString())).build())
-                    shouldFallbackVerify(host) -> chain.proceed(request.newBuilder().url(getFallbackVerifyUrl(request.url.toString())).build())
-                    shouldFallbackPulse(host) -> chain.proceed(request.newBuilder().url(getFallbackPulseUrl()).build())
-                    else -> chain.proceed(request)
-                }
-            } catch (e: Exception) {
-                if (isFailOverException(e)) {
-                    when (request.url.host) {
-                        DEFAULT_RELAY_URL.host -> fallbackRelay(request, chain)
-                        DEFAULT_PUSH_URL.host -> fallbackPush(request, chain)
-                        DEFAULT_VERIFY_URL.host -> fallbackVerify(request, chain)
-                        DEFAULT_PULSE_URL.host -> fallbackPulse(request, chain)
-                        else -> chain.proceed(request)
+            var request = chain.request()
+            var response: Response? = null
+
+            if (request.url.host.contains(DEFAULT_RELAY_URL)) {
+                try {
+                    response = chain.proceed(request)
+
+                    return@Interceptor response
+                } catch (e: Exception) {
+                    when (e) {
+                        is SocketTimeoutException, is IOException -> {
+                            val failoverUrl = request.url.host.replace(".com", ".org")
+                            val newHttpUrl = request.url.newBuilder().host(failoverUrl).build()
+
+                            request = request.newBuilder().url(newHttpUrl).build()
+                            return@Interceptor chain.proceed(request)
+                        }
+                        else -> {
+                            throw e
+                        }
                     }
-                } else {
-                    chain.proceed(request)
+                } finally {
+                    response?.close()
                 }
+            } else {
+                return@Interceptor chain.proceed(request)
             }
         }
     }
@@ -116,7 +125,7 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
     }
 
     single(named(AndroidCommonDITags.OK_HTTP)) {
-        val builder = OkHttpClient.Builder()
+        OkHttpClient.Builder()
             .addInterceptor(get<Interceptor>(named(AndroidCommonDITags.SHARED_INTERCEPTOR)))
             .addInterceptor(get<Interceptor>(named(AndroidCommonDITags.FAIL_OVER_INTERCEPTOR)))
             .authenticator((get(named(AndroidCommonDITags.AUTHENTICATOR))))
@@ -124,14 +133,18 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
             .readTimeout(networkClientTimeout.timeout, networkClientTimeout.timeUnit)
             .callTimeout(networkClientTimeout.timeout, networkClientTimeout.timeUnit)
             .connectTimeout(networkClientTimeout.timeout, networkClientTimeout.timeUnit)
+            .apply {
+                if (BuildConfig.DEBUG) {
+                    val loggingInterceptor = get<Interceptor>(named(AndroidCommonDITags.LOGGING_INTERCEPTOR))
+                    addInterceptor(loggingInterceptor)
+                }
 
-        if (BuildConfig.DEBUG) {
-            val loggingInterceptor = get<Interceptor>(named(AndroidCommonDITags.LOGGING_INTERCEPTOR))
-            builder.addInterceptor(loggingInterceptor)
-        }
-        (BeagleOkHttpLogger.logger as Interceptor?)?.let { builder.addInterceptor(it) }
-
-        builder.build()
+                (BeagleOkHttpLogger.logger as Interceptor?)?.let { beagleHttpLoggerInterceptor ->
+                    addInterceptor(beagleHttpLoggerInterceptor)
+                }
+            }
+            .retryOnConnectionFailure(true)
+            .build()
     }
 
     single(named(AndroidCommonDITags.MSG_ADAPTER)) { MoshiMessageAdapter.Factory(get<Moshi.Builder>(named(AndroidCommonDITags.MOSHI)).build()) }

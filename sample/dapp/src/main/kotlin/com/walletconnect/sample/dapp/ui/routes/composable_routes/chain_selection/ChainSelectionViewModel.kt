@@ -80,48 +80,6 @@ class ChainSelectionViewModel : ViewModel() {
         }
     }
 
-    private fun getNamespaces(): Map<String, Modal.Model.Namespace.Proposal> {
-        val namespaces: Map<String, Modal.Model.Namespace.Proposal> =
-            uiState.value
-                .filter { it.isSelected && it.chainId != Chains.POLYGON_MATIC.chainId && it.chainId != Chains.ETHEREUM_KOVAN.chainId }
-                .groupBy { it.chainNamespace }
-                .map { (key: String, selectedChains: List<ChainSelectionUi>) ->
-                    key to Modal.Model.Namespace.Proposal(
-                        chains = selectedChains.map { it.chainId }, //OR uncomment if chainId is an index
-                        methods = selectedChains.flatMap { it.methods }.distinct(),
-                        events = selectedChains.flatMap { it.events }.distinct()
-                    )
-                }.toMap()
-
-        val tmp = uiState.value
-            .filter { it.isSelected && it.chainId == Chains.ETHEREUM_KOVAN.chainId }
-            .groupBy { it.chainId }
-            .map { (key: String, selectedChains: List<ChainSelectionUi>) ->
-                key to Modal.Model.Namespace.Proposal(
-                    methods = selectedChains.flatMap { it.methods }.distinct(),
-                    events = selectedChains.flatMap { it.events }.distinct()
-                )
-            }.toMap()
-
-        return namespaces.toMutableMap().plus(tmp)
-    }
-
-    private fun getOptionalNamespaces() = uiState.value
-        .filter { it.isSelected && it.chainId == Chains.POLYGON_MATIC.chainId }
-        .groupBy { it.chainId }
-        .map { (key: String, selectedChains: List<ChainSelectionUi>) ->
-            key to Modal.Model.Namespace.Proposal(
-                methods = selectedChains.flatMap { it.methods }.distinct(),
-                events = selectedChains.flatMap { it.events }.distinct()
-            )
-        }.toMap()
-
-    private fun getProperties(): Map<String, String> {
-        //note: this property is not used in the SDK, only for demonstration purposes
-        val expiry = (System.currentTimeMillis() / 1000) + TimeUnit.SECONDS.convert(7, TimeUnit.DAYS)
-        return mapOf("sessionExpiry" to "$expiry")
-    }
-
     fun getSessionParams() = Modal.Params.SessionParams(
         requiredNamespaces = getNamespaces(),
         optionalNamespaces = getOptionalNamespaces(),
@@ -200,6 +158,48 @@ class ChainSelectionViewModel : ViewModel() {
             Timber.tag(tag(this)).e(e)
             onError(e.message ?: "Unknown error, please contact support")
         }
+    }
+
+    private fun getNamespaces(): Map<String, Modal.Model.Namespace.Proposal> {
+        val namespaces: Map<String, Modal.Model.Namespace.Proposal> =
+            uiState.value
+                .filter { it.isSelected && it.chainId != Chains.POLYGON_MATIC.chainId && it.chainId != Chains.ETHEREUM_KOVAN.chainId }
+                .groupBy { it.chainNamespace }
+                .map { (key: String, selectedChains: List<ChainSelectionUi>) ->
+                    key to Modal.Model.Namespace.Proposal(
+                        chains = selectedChains.map { it.chainId }, //OR uncomment if chainId is an index
+                        methods = selectedChains.flatMap { it.methods }.distinct(),
+                        events = selectedChains.flatMap { it.events }.distinct()
+                    )
+                }.toMap()
+
+        val tmp = uiState.value
+            .filter { it.isSelected && it.chainId == Chains.ETHEREUM_KOVAN.chainId }
+            .groupBy { it.chainId }
+            .map { (key: String, selectedChains: List<ChainSelectionUi>) ->
+                key to Modal.Model.Namespace.Proposal(
+                    methods = selectedChains.flatMap { it.methods }.distinct(),
+                    events = selectedChains.flatMap { it.events }.distinct()
+                )
+            }.toMap()
+
+        return namespaces.toMutableMap().plus(tmp)
+    }
+
+    private fun getOptionalNamespaces() = uiState.value
+        .filter { it.isSelected && it.chainId == Chains.POLYGON_MATIC.chainId }
+        .groupBy { it.chainId }
+        .map { (key: String, selectedChains: List<ChainSelectionUi>) ->
+            key to Modal.Model.Namespace.Proposal(
+                methods = selectedChains.flatMap { it.methods }.distinct(),
+                events = selectedChains.flatMap { it.events }.distinct()
+            )
+        }.toMap()
+
+    private fun getProperties(): Map<String, String> {
+        //note: this property is not used in the SDK, only for demonstration purposes
+        val expiry = (System.currentTimeMillis() / 1000) + TimeUnit.SECONDS.convert(7, TimeUnit.DAYS)
+        return mapOf("sessionExpiry" to "$expiry")
     }
 
 

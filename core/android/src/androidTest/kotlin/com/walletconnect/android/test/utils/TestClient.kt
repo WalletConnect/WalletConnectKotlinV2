@@ -81,7 +81,7 @@ internal object TestClient {
             secondaryKoinApp.modules(overrideModule(Relay, Pairing, PairingController, "test_secondary"))
 
             // Necessary reinit of Relay, Pairing and PairingController
-            Relay.initialize(RELAY_URL, ConnectionType.MANUAL) { Timber.e(it) }
+            Relay.initialize { Timber.e(it) }
             Pairing.initialize()
             PairingController.initialize()
 

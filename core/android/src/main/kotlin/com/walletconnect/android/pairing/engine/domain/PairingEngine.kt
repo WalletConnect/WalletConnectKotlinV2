@@ -78,7 +78,6 @@ internal class PairingEngine(
 ) {
     private var jsonRpcRequestsJob: Job? = null
     private val setOfRegisteredMethods: MutableSet<String> = mutableSetOf()
-    private val registeredMethods: String get() = setOfRegisteredMethods.joinToString(",") { it }
 
     private val _isPairingStateFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
@@ -95,6 +94,7 @@ internal class PairingEngine(
 
     val internalErrorFlow = MutableSharedFlow<SDKError>()
 
+    // TODO: emission of events can be missed since they are emitted potentially before there's a subscriber and the event gets missed by protocols
     init {
         setOfRegisteredMethods.addAll(listOf(PairingJsonRpcMethod.WC_PAIRING_DELETE, PairingJsonRpcMethod.WC_PAIRING_PING))
         resubscribeToPairingTopics()
@@ -114,6 +114,7 @@ internal class PairingEngine(
             }
     }
 
+    // TODO: We should either have callbacks or return values, not both. Simplify this to do one or the other
     fun create(onFailure: (Throwable) -> Unit, methods: String? = null): Core.Model.Pairing? {
         val pairingTopic: Topic = generateTopic()
         val symmetricKey: SymmetricKey = crypto.generateAndStoreSymmetricKey(pairingTopic)
@@ -124,21 +125,28 @@ internal class PairingEngine(
             logger.log("Creating Pairing")
             pairingRepository.insertPairing(this)
             metadataRepository.upsertPeerMetadata(this.topic, selfMetaData, AppMetaDataType.SELF)
-            jsonRpcInteractor.subscribe(this.topic,
+            jsonRpcInteractor.subscribe(
+                topic = this.topic,
                 onSuccess = { logger.log("Pairing - subscribed on pairing topic: $pairingTopic") },
                 onFailure = { error ->
                     logger.error("Pairing - subscribed failure on pairing topic: $pairingTopic, error: $error")
                     return@subscribe onFailure(error)
-                })
+                }
+            )
 
             this.toCore()
         }.onFailure { throwable ->
-            crypto.removeKeys(pairingTopic.value)
-            pairingRepository.deletePairing(pairingTopic)
-            metadataRepository.deleteMetaData(pairingTopic)
-            jsonRpcInteractor.unsubscribe(pairingTopic)
-            logger.error("Pairing - subscribed failure on pairing topic: $pairingTopic, error: $throwable")
-            onFailure(throwable)
+            try {
+                crypto.removeKeys(pairingTopic.value)
+                pairingRepository.deletePairing(pairingTopic)
+                metadataRepository.deleteMetaData(pairingTopic)
+                jsonRpcInteractor.unsubscribe(pairingTopic)
+                logger.error("Pairing - subscribed failure on pairing topic: $pairingTopic, error: $throwable")
+                onFailure(throwable)
+            } catch (e: Exception) {
+                logger.error("Pairing - subscribed failure on pairing topic: $pairingTopic, error: $e")
+                onFailure(e)
+            }
         }.getOrNull()
     }
 
@@ -186,7 +194,9 @@ internal class PairingEngine(
                 })
         } catch (e: Exception) {
             logger.error("Subscribe pairing topic error: ${inactivePairing.topic.value}, error: $e")
-            crypto.removeKeys(walletConnectUri.topic.value)
+            runCatching {
+                crypto.removeKeys(walletConnectUri.topic.value)
+            }.onFailure { logger.error("Remove keys error: ${inactivePairing.topic.value}, error: $it") }
             jsonRpcInteractor.unsubscribe(inactivePairing.topic)
             onFailure(e)
         }
@@ -265,7 +275,7 @@ internal class PairingEngine(
     }
 
     private fun resubscribeToPairingTopics() {
-        jsonRpcInteractor.isConnectionAvailable
+        jsonRpcInteractor.isWSSConnectionAvailable
             .filter { isAvailable: Boolean -> isAvailable }
             .onEach {
                 supervisorScope {

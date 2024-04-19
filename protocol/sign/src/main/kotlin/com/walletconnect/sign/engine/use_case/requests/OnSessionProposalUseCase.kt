@@ -76,7 +76,10 @@ internal class OnSessionProposalUseCase(
             pairingController.setRequestReceived(Core.Params.RequestReceived(request.topic.value))
             pairingController.updateMetadata(Core.Params.UpdateMetadata(request.topic.value, payloadParams.proposer.metadata.toClient(), AppMetaDataType.PEER))
             val url = payloadParams.proposer.metadata.url
+
+            logger.log("Resolving session proposal attestation: ${System.currentTimeMillis()}")
             resolveAttestationIdUseCase(request.id, request.message, url) { verifyContext ->
+                logger.log("Session proposal attestation resolved: ${System.currentTimeMillis()}")
                 val sessionProposalEvent = EngineDO.SessionProposalEvent(proposal = payloadParams.toEngineDO(request.topic), context = verifyContext.toEngineDO())
                 logger.log("Session proposal received on topic: ${request.topic} - emitting")
                 scope.launch { _events.emit(sessionProposalEvent) }

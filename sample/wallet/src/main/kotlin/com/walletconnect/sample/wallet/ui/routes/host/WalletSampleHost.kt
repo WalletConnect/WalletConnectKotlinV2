@@ -69,7 +69,7 @@ fun WalletSampleHost(
     getStartedVisited: Boolean,
 ) {
     val scaffoldState: ScaffoldState = rememberScaffoldState()
-    val connectionState = web3walletViewModel.connectionState.collectAsState(ConnectionState.Idle).value
+    val connectionState by web3walletViewModel.connectionState.collectAsState()
     val bottomBarState = rememberBottomBarMutableState()
     val currentRoute = navController.currentBackStackEntryAsState()
     val isLoader by web3walletViewModel.isLoadingFlow.collectAsState(false)
@@ -109,7 +109,7 @@ fun WalletSampleHost(
             )
 
             if (connectionState is ConnectionState.Error) {
-                ErrorBanner(connectionState.message)
+                ErrorBanner()
             } else if (connectionState is ConnectionState.Ok) {
                 RestoredConnectionBanner()
             }
@@ -182,22 +182,31 @@ private fun BoxScope.PairingLoader() {
 }
 
 @Composable
-private fun ErrorBanner(message: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color(0xFFDC143C))
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Image(
-            imageVector = ImageVector.vectorResource(id = R.drawable.invalid_domain),
-            contentDescription = null,
-            modifier = Modifier.size(24.dp),
-            colorFilter = ColorFilter.tint(color = Color.White)
-        )
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(text = message, color = Color.White)
+private fun ErrorBanner() {
+    var shouldShow by remember { mutableStateOf(true) }
+
+    LaunchedEffect(key1 = Unit) {
+        delay(2000)
+        shouldShow = false
+    }
+
+    if (shouldShow) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFFDC143C))
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Image(
+                imageVector = ImageVector.vectorResource(id = R.drawable.invalid_domain),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                colorFilter = ColorFilter.tint(color = Color.White)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(text = "Network connection lost", color = Color.White)
+        }
     }
 }
 

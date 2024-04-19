@@ -7,16 +7,16 @@ import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.wcmodal.client.Modal
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.shareIn
 
 class DappSampleViewModel : ViewModel() {
-    val events = DappDelegate
-        .wcEventModels
+    val events = merge(DappDelegate.wcEventModels, DappDelegate.connectionState)
         .map { event ->
             when (event) {
+                is Modal.Model.ConnectionState -> DappSampleEvents.ConnectionEvent(event.isAvailable)
                 is Modal.Model.DeletedSession -> DappSampleEvents.Disconnect
                 is Modal.Model.Session -> DappSampleEvents.SessionExtend
-                is Modal.Model.ConnectionState -> DappSampleEvents.ConnectionEvent(event.isAvailable)
                 is Modal.Model.Error -> DappSampleEvents.RequestError(event.throwable.localizedMessage ?: "Something goes wrong")
                 else -> DappSampleEvents.NoAction
             }

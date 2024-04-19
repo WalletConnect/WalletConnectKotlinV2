@@ -86,3 +86,7 @@ project.extensions.configure(BaseExtension::class.java) {
         }
     }
 }
+
+dependencies {
+    add("implementation", "com.google.firebase:firebase-appdistribution:16.0.0-beta12")
+}

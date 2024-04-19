@@ -4,7 +4,6 @@ package com.walletconnect.sign.engine.domain
 
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.model.AppMetaDataType
-import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Validation
 import com.walletconnect.android.internal.common.model.type.EngineEvent
@@ -75,6 +74,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
@@ -165,6 +165,7 @@ internal class SignEngine(
 
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val engineEvent: SharedFlow<EngineEvent> = _engineEvent.asSharedFlow()
+    val wssConnection: StateFlow<Boolean> = jsonRpcInteractor.isWSSConnectionAvailable
 
     init {
         pairingController.register(
@@ -186,8 +187,7 @@ internal class SignEngine(
     }
 
     fun setup() {
-        jsonRpcInteractor.isConnectionAvailable
-            .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
+        jsonRpcInteractor.isWSSConnectionAvailable
             .filter { isAvailable: Boolean -> isAvailable }
             .onEach {
                 supervisorScope {
@@ -278,7 +278,9 @@ internal class SignEngine(
             listOfExpiredSession
                 .map { session -> session.topic }
                 .onEach { sessionTopic ->
-                    crypto.removeKeys(sessionTopic.value)
+                    runCatching {
+                        crypto.removeKeys(sessionTopic.value)
+                    }.onFailure { logger.error(it) }
                     sessionStorageRepository.deleteSession(sessionTopic)
                 }
 
@@ -306,16 +308,23 @@ internal class SignEngine(
             sessionStorageRepository.onSessionExpired = { sessionTopic ->
                 jsonRpcInteractor.unsubscribe(sessionTopic, onSuccess = {
                     sessionStorageRepository.deleteSession(sessionTopic)
-                    crypto.removeKeys(sessionTopic.value)
+                    runCatching {
+                        crypto.removeKeys(sessionTopic.value)
+                    }.onFailure { logger.error(it) }
                 })
             }
 
             pairingController.deletedPairingFlow.onEach { pairing ->
                 sessionStorageRepository.getAllSessionTopicsByPairingTopic(pairing.topic).onEach { sessionTopic ->
-                    jsonRpcInteractor.unsubscribe(Topic(sessionTopic), onSuccess = {
-                        sessionStorageRepository.deleteSession(Topic(sessionTopic))
-                        crypto.removeKeys(sessionTopic)
-                    })
+                    jsonRpcInteractor.unsubscribe(
+                        topic = Topic(sessionTopic),
+                        onSuccess = {
+                            sessionStorageRepository.deleteSession(Topic(sessionTopic))
+                            runCatching {
+                                crypto.removeKeys(sessionTopic)
+                            }.onFailure { logger.error(it) }
+                        }
+                    )
                 }
             }.launchIn(scope)
         } catch (e: Exception) {
@@ -332,7 +341,13 @@ internal class SignEngine(
                 scope.launch {
                     supervisorScope {
                         val verifyContext =
-                            verifyContextStorageRepository.get(sessionRequest.request.id) ?: VerifyContext(sessionRequest.request.id, String.Empty, Validation.UNKNOWN, String.Empty, null)
+                            verifyContextStorageRepository.get(sessionRequest.request.id) ?: VerifyContext(
+                                sessionRequest.request.id,
+                                String.Empty,
+                                Validation.UNKNOWN,
+                                String.Empty,
+                                null
+                            )
                         val sessionRequestEvent = EngineDO.SessionRequestEvent(sessionRequest, verifyContext.toEngineDO())
                         sessionRequestEventsQueue.add(sessionRequestEvent)
                     }

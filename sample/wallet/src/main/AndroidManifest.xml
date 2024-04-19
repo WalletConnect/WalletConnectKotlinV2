@@ -25,6 +25,7 @@
             android:exported="true"
             android:launchMode="singleTask"
             android:screenOrientation="portrait"
+            android:taskAffinity="com.walletconnect.sample.wallet.activity"
             android:theme="@style/Theme.Wallet"
             android:windowSoftInputMode="adjustResize">
             <nav-graph android:value="@navigation/nav_graph" />
@@ -32,6 +33,18 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data
+                    android:host="wc"
+                    android:scheme="kotlin-web3wallet" />
+                <data
+                    android:host="request"
+                    android:scheme="kotlin-web3wallet" />
             </intent-filter>
 
             <meta-data
