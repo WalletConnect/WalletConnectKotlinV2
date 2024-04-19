@@ -237,6 +237,6 @@ abstract class BaseRelayClient : RelayInterface {
 
     private companion object {
         const val REPLAY: Int = 1
-        const val RESULT_TIMEOUT: Long = 60000
+        const val RESULT_TIMEOUT: Long = 6//0000
     }
 }

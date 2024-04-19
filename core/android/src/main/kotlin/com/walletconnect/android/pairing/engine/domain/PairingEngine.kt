@@ -78,6 +78,7 @@ internal class PairingEngine(
 ) {
     private var jsonRpcRequestsJob: Job? = null
     private val setOfRegisteredMethods: MutableSet<String> = mutableSetOf()
+    private val registeredMethods: String get() = setOfRegisteredMethods.joinToString(",") { it }
 
     private val _isPairingStateFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
@@ -130,7 +131,7 @@ internal class PairingEngine(
                 onSuccess = { logger.log("Pairing - subscribed on pairing topic: $pairingTopic") },
                 onFailure = { error ->
                     logger.error("Pairing - subscribed failure on pairing topic: $pairingTopic, error: $error")
-                    return@subscribe onFailure(error)
+                    onFailure(error)
                 }
             )
 

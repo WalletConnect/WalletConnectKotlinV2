@@ -23,12 +23,6 @@ internal class WalletConnectModalViewModel : ViewModel() {
     private val logger: Logger = wcKoinApp.koin.get()
     private val walletsDataStore = WalletDataSource { handleError(it) }
 
-    private val pairing by lazy {
-        CoreClient.Pairing.create { error ->
-            throw IllegalStateException("Creating Pairing failed: ${error.throwable.stackTraceToString()}")
-        }!!
-    }
-
     val walletsState: StateFlow<WalletsData> = walletsDataStore.searchWalletsState.stateIn(viewModelScope, SharingStarted.Lazily, WalletsData.empty())
 
     val uiState: StateFlow<UiState<List<Wallet>>> = walletsDataStore.walletState.map { pagingData ->
@@ -52,8 +46,13 @@ internal class WalletConnectModalViewModel : ViewModel() {
     }
 
     fun connect(onSuccess: (String) -> Unit) {
-        val sessionParams = WalletConnectModal.sessionParams
         try {
+            val pairing =
+                CoreClient.Pairing.create { error ->
+                    handleError(IllegalStateException("Creating Pairing failed: ${error.throwable.stackTraceToString()}"))
+                }!!
+
+            val sessionParams = WalletConnectModal.sessionParams
             val connectParams = Modal.Params.Connect(
                 sessionParams.requiredNamespaces,
                 sessionParams.optionalNamespaces,
