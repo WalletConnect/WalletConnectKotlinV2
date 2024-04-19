@@ -78,8 +78,6 @@ internal class PairingEngine(
 ) {
     private var jsonRpcRequestsJob: Job? = null
     private val setOfRegisteredMethods: MutableSet<String> = mutableSetOf()
-    private val registeredMethods: String get() = setOfRegisteredMethods.joinToString(",") { it }
-
     private val _isPairingStateFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     private val _deletedPairingFlow: MutableSharedFlow<Pairing> = MutableSharedFlow()
