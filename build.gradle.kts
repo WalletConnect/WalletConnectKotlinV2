@@ -3,10 +3,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.sonarqube.gradle.SonarExtension
 
 plugins {
-    id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
+    alias(libs.plugins.nexusPublish)
+    alias(libs.plugins.sonarqube)
     id("release-scripts")
     id("version-bump")
-    alias(libs.plugins.sonarqube)
 }
 
 allprojects {
@@ -19,10 +19,10 @@ allprojects {
     configurations.configureEach {
         resolutionStrategy.eachDependency {
             if (requested.group == "androidx.navigation" && requested.name == "navigation-compose") {
-                useVersion(composeNavigationVersion)
+                useVersion(libs.versions.composeCompiler.get())
             }
             if (requested.group == "org.bouncycastle" && requested.name == "bcprov-jdk15on") {
-                useTarget("org.bouncycastle:bcprov-jdk18on:$bouncyCastleVersion")
+                useTarget(libs.bouncyCastle)
             }
         }
     }
