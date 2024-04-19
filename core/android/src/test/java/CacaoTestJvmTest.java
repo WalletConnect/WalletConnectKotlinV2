@@ -10,10 +10,11 @@ import com.walletconnect.util.UtilFunctionsKt;
 import org.junit.Assert;
 import org.junit.Test;
 import org.web3j.utils.Numeric;
+
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
-class CacaoTestJvmTest {
+public class CacaoTestJvmTest {
     ArrayList<String> resources = new ArrayList<>();
     byte[] privateKey = UtilFunctionsKt.hexToBytes("305c6cde3846927892cd32762f6120539f3ec74c9e3a16b9b798b1e85351ae2a");
 
