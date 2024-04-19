@@ -56,6 +56,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -277,7 +278,7 @@ internal class PairingEngine(
 
     private fun resubscribeToPairingTopics() {
         jsonRpcInteractor.wssConnectionState
-            .filter { state: WSSConnectionState -> state is WSSConnectionState.Connected }
+            .filterIsInstance<WSSConnectionState.Connected>()
             .onEach {
                 supervisorScope {
                     launch(Dispatchers.IO) {

@@ -78,6 +78,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.merge
@@ -189,7 +190,7 @@ internal class SignEngine(
 
     fun setup() {
         jsonRpcInteractor.wssConnectionState
-            .filter { state: WSSConnectionState -> state is WSSConnectionState.Connected }
+            .filterIsInstance<WSSConnectionState.Connected>()
             .onEach {
                 supervisorScope {
                     launch(Dispatchers.IO) {
