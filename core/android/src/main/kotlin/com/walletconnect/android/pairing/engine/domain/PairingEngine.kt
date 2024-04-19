@@ -129,10 +129,7 @@ internal class PairingEngine(
             jsonRpcInteractor.subscribe(
                 topic = this.topic,
                 onSuccess = { logger.log("Pairing - subscribed on pairing topic: $pairingTopic") },
-                onFailure = { error ->
-                    logger.error("Pairing - subscribed failure on pairing topic: $pairingTopic, error: $error")
-                    onFailure(error)
-                }
+                onFailure = { error -> logger.error("Pairing - subscribed failure on pairing topic: $pairingTopic, error: $error") }
             )
 
             this.toCore()
@@ -191,7 +188,7 @@ internal class PairingEngine(
                     onSuccess()
                 }, onFailure = { error ->
                     logger.error("Subscribe pairing topic error: ${inactivePairing.topic.value}, error: $error")
-                    return@subscribe onFailure(error)
+                    onFailure(error)
                 })
         } catch (e: Exception) {
             logger.error("Subscribe pairing topic error: ${inactivePairing.topic.value}, error: $e")
