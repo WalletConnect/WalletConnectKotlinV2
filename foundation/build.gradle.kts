@@ -43,5 +43,4 @@ dependencies {
     jUnit4()
     mockk()
     testImplementation(libs.kotlinx.coroutines.test)
-//    testImplementation("org.slf4j:slf4j-simple:1.7.30")
 }
