@@ -16,7 +16,6 @@ dependencies {
         api(project(":core:modal"))
         api(project(":protocol:sign"))
         api(project(":protocol:auth"))
-        api(project(":protocol:chat"))
         api(project(":protocol:notify"))
         api(project(":product:walletconnectmodal"))
         api(project(":product:web3modal"))
