@@ -53,8 +53,8 @@ subprojects {
                 mapOf(
                     "sonar.gradle.skipCompile" to true,
                     "sonar.sources" to "${projectDir}/src/main/kotlin",
-                    "sonar.java.binaries" to buildDir,
-                    "sonar.coverage.jacoco.xmlReportPaths" to "${buildDir}/reports/jacoco/xml/jacoco.xml"
+                    "sonar.java.binaries" to layout.buildDirectory,
+                    "sonar.coverage.jacoco.xmlReportPaths" to "${layout.buildDirectory}/reports/jacoco/xml/jacoco.xml"
                 )
             )
         }
@@ -81,7 +81,7 @@ subprojects {
 }
 
 task<Delete>("clean") {
-    delete(rootProject.buildDir)
+    delete(rootProject.layout.buildDirectory)
 }
 
 nexusPublishing {
