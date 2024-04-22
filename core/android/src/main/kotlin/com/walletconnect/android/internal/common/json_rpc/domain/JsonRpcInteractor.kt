@@ -75,7 +75,15 @@ internal class JsonRpcInteractor(
 		}
 
 		if (relay.wssConnectionState.value is WSSConnectionState.Disconnected) {
-			throw NoRelayConnectionException("Connection error: No Relay connection: ${(relay.wssConnectionState.value as? WSSConnectionState.Disconnected)?.message}")
+			val message = when (relay.wssConnectionState.value) {
+				is WSSConnectionState.Disconnected.ConnectionClosed ->
+					(relay.wssConnectionState.value as WSSConnectionState.Disconnected.ConnectionClosed).message ?: "WSS connection closed"
+
+				is WSSConnectionState.Disconnected.ConnectionFailed -> (relay.wssConnectionState.value as WSSConnectionState.Disconnected.ConnectionFailed).throwable.message
+
+				else -> "WSS connection closed"
+			}
+			throw NoRelayConnectionException("Connection error: No Relay connection: $message")
 		}
 	}
 

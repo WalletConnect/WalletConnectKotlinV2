@@ -239,6 +239,7 @@ internal fun Sign.Model.ExpiredProposal.toWallet(): Wallet.Model.ExpiredProposal
 
 @JvmSynthetic
 internal fun Sign.Model.ExpiredRequest.toWallet(): Wallet.Model.ExpiredRequest = Wallet.Model.ExpiredRequest(topic, id)
+
 @JvmSynthetic
 internal fun Auth.Event.AuthRequest.toWallet(): Wallet.Model.AuthRequest = Wallet.Model.AuthRequest(id, pairingTopic, payloadParams.toWallet())
 
@@ -348,4 +349,10 @@ internal fun Sign.Model.Cacao.toWallet(): Wallet.Model.Cacao = with(this) {
         ),
         Wallet.Model.Cacao.Signature(signature.t, signature.s, signature.m)
     )
+}
+
+@JvmSynthetic
+internal fun Sign.Model.ConnectionState.Reason.toWallet(): Wallet.Model.ConnectionState.Reason = when (this) {
+	is Sign.Model.ConnectionState.Reason.ConnectionClosed -> Wallet.Model.ConnectionState.Reason.ConnectionClosed(this.message)
+	is Sign.Model.ConnectionState.Reason.ConnectionFailed -> Wallet.Model.ConnectionState.Reason.ConnectionFailed(this.throwable)
 }

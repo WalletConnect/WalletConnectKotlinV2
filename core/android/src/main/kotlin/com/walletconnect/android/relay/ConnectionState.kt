@@ -4,5 +4,9 @@ package com.walletconnect.android.relay
 
 sealed class WSSConnectionState {
 	object Connected : WSSConnectionState()
-	data class Disconnected(val message: String? = null) : WSSConnectionState()
+
+	sealed class Disconnected : WSSConnectionState() {
+		data class ConnectionFailed(val throwable: Throwable) : Disconnected()
+		data class ConnectionClosed(val message: String? = null) : Disconnected()
+	}
 }

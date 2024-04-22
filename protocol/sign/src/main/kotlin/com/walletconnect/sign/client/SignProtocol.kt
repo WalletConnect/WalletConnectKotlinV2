@@ -532,33 +532,41 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
 //        wcKoinApp.close()
 //    }
 
-    private fun handleConnectionState(onDelegate: (state: Sign.Model.ConnectionState) -> Unit) {
-        signEngine.wssConnection.onEach { connectionState ->
+	private fun handleConnectionState(onDelegate: (state: Sign.Model.ConnectionState) -> Unit) {
+		signEngine.wssConnection.onEach { connectionState ->
+			when {
+				atomicBoolean == null -> {
+					atomicBoolean = AtomicBoolean()
+					when (connectionState) {
+						is WSSConnectionState.Disconnected.ConnectionFailed ->
+							onDelegate(Sign.Model.ConnectionState(false, Sign.Model.ConnectionState.Reason.ConnectionFailed(connectionState.throwable)))
 
-            when {
-                atomicBoolean == null -> {
-                    atomicBoolean = AtomicBoolean()
-                    if (connectionState is WSSConnectionState.Disconnected) {
-                        onDelegate(Sign.Model.ConnectionState(false, connectionState.message.toString()))
-                    } else {
-                        onDelegate(Sign.Model.ConnectionState(true))
-                    }
-                }
+						is WSSConnectionState.Disconnected.ConnectionClosed ->
+							onDelegate(Sign.Model.ConnectionState(false, Sign.Model.ConnectionState.Reason.ConnectionClosed(connectionState.message ?: "Connection closed")))
 
-                atomicBoolean?.get() == true && connectionState is WSSConnectionState.Disconnected -> {
-                    atomicBoolean?.set(false)
-                    onDelegate(Sign.Model.ConnectionState(false, connectionState.message.toString()))
-                }
+						else -> onDelegate(Sign.Model.ConnectionState(true))
+					}
+				}
 
-                atomicBoolean?.get() == false && connectionState is WSSConnectionState.Connected -> {
-                    atomicBoolean?.set(true)
-                    onDelegate(Sign.Model.ConnectionState(true))
-                }
+				atomicBoolean?.get() == true && connectionState is WSSConnectionState.Disconnected.ConnectionFailed -> {
+					atomicBoolean?.set(false)
+					onDelegate(Sign.Model.ConnectionState(false, Sign.Model.ConnectionState.Reason.ConnectionFailed(connectionState.throwable)))
+				}
 
-                else -> Unit
-            }
-        }.launchIn(scope)
-    }
+				atomicBoolean?.get() == true && connectionState is WSSConnectionState.Disconnected.ConnectionClosed -> {
+					atomicBoolean?.set(false)
+					onDelegate(Sign.Model.ConnectionState(false, Sign.Model.ConnectionState.Reason.ConnectionClosed(connectionState.message ?: "Connection closed")))
+				}
+
+				atomicBoolean?.get() == false && connectionState is WSSConnectionState.Connected -> {
+					atomicBoolean?.set(true)
+					onDelegate(Sign.Model.ConnectionState(true))
+				}
+
+				else -> Unit
+			}
+		}.launchIn(scope)
+	}
 
     @Throws(IllegalStateException::class)
     private fun checkEngineInitialization() {

@@ -92,7 +92,7 @@ object Web3Wallet {
             }
 
             override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {
-                delegate.onConnectionStateChange(Wallet.Model.ConnectionState(state.isAvailable, state.message))
+                delegate.onConnectionStateChange(Wallet.Model.ConnectionState(state.isAvailable, state.reason?.toWallet()))
             }
 
             override fun onError(error: Sign.Model.Error) {

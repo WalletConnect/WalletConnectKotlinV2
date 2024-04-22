@@ -102,13 +102,7 @@ internal class NotifyEngine(
 
     suspend fun setup() {
         jsonRpcInteractor.wssConnectionState
-            .onEach { state ->
-                if (state is WSSConnectionState.Disconnected){
-                    _engineEvent.emit(ConnectionState(false, state.message))
-                } else {
-                    _engineEvent.emit(ConnectionState(true))
-                }
-            }
+            .onEach { state -> handleWSSState(state) }
             .filterIsInstance<WSSConnectionState.Connected>()
             .onEach {
                 supervisorScope {
@@ -124,6 +118,18 @@ internal class NotifyEngine(
                 if (notifyEventsJob == null) notifyEventsJob = collectNotifyEvents()
             }.launchIn(scope)
     }
+
+	private suspend fun handleWSSState(state: WSSConnectionState) {
+		when (state) {
+			is WSSConnectionState.Disconnected.ConnectionFailed ->
+				_engineEvent.emit(ConnectionState(false, ConnectionState.Reason.ConnectionFailed(state.throwable)))
+
+			is WSSConnectionState.Disconnected.ConnectionClosed ->
+				_engineEvent.emit(ConnectionState(false, ConnectionState.Reason.ConnectionClosed(state.message ?: "Connection closed")))
+
+			else -> _engineEvent.emit(ConnectionState(true))
+		}
+	}
 
     private suspend fun collectJsonRpcRequests(): Job =
         jsonRpcInteractor.clientSyncJsonRpc

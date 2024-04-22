@@ -101,7 +101,7 @@ class RelayClientTests {
 
 		wssConnectionState
 			.test {
-				assertEquals(WSSConnectionState.Disconnected(), awaitItem())
+				assertEquals(WSSConnectionState.Disconnected.ConnectionClosed(), awaitItem())
 				assertEquals(WSSConnectionState.Connected, awaitItem())
 				cancelAndIgnoreRemainingEvents()
 			}

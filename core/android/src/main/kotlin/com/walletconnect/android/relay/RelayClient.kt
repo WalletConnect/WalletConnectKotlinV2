@@ -27,7 +27,7 @@ class RelayClient(private val koinApp: KoinApplication = wcKoinApp) : BaseRelayC
 	private val connectionController: ConnectionController by lazy { koinApp.koin.get(named(AndroidCommonDITags.CONNECTION_CONTROLLER)) }
 	private val networkState: ConnectivityState by lazy { koinApp.koin.get(named(AndroidCommonDITags.CONNECTIVITY_STATE)) }
 	override val isNetworkAvailable: StateFlow<Boolean?> by lazy { networkState.isAvailable }
-	private val _wssConnectionState: MutableStateFlow<WSSConnectionState> = MutableStateFlow(WSSConnectionState.Disconnected())
+	private val _wssConnectionState: MutableStateFlow<WSSConnectionState> = MutableStateFlow(WSSConnectionState.Disconnected.ConnectionClosed())
 	override val wssConnectionState: StateFlow<WSSConnectionState> = _wssConnectionState
 
 	@JvmSynthetic
@@ -66,10 +66,10 @@ class RelayClient(private val koinApp: KoinApplication = wcKoinApp) : BaseRelayC
 				_wssConnectionState.value = WSSConnectionState.Connected
 
 			event is Relay.Model.Event.OnConnectionFailed && _wssConnectionState.value is WSSConnectionState.Connected ->
-				_wssConnectionState.value = WSSConnectionState.Disconnected(event.throwable.toString())
+				_wssConnectionState.value = WSSConnectionState.Disconnected.ConnectionFailed(event.throwable)
 
 			event is Relay.Model.Event.OnConnectionClosed && _wssConnectionState.value is WSSConnectionState.Connected ->
-				_wssConnectionState.value = WSSConnectionState.Disconnected("Connection closed: ${event.shutdownReason.reason} ${event.shutdownReason.code}")
+				_wssConnectionState.value = WSSConnectionState.Disconnected.ConnectionClosed("Connection closed: ${event.shutdownReason.reason} ${event.shutdownReason.code}")
 		}
 	}
 
