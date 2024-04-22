@@ -19,7 +19,7 @@ allprojects {
     configurations.configureEach {
         resolutionStrategy.eachDependency {
             if (requested.group == "androidx.navigation" && requested.name == "navigation-compose") {
-                useVersion(libs.versions.composeCompiler.get())
+                useVersion(libs.versions.androidxNavigation.get())
             }
             if (requested.group == "org.bouncycastle" && requested.name == "bcprov-jdk15on") {
                 useTarget(libs.bouncyCastle)
