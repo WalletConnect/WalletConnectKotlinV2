@@ -3,7 +3,6 @@ package com.walletconnect.web3.modal.ui.routes.connect
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.foundation.util.Logger
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.engine.Web3ModalEngine
 
@@ -22,8 +21,6 @@ internal interface ParingController {
 internal class PairingControllerImpl : ParingController {
 
     private val web3ModalEngine: Web3ModalEngine = wcKoinApp.koin.get()
-    private val logger: Logger = wcKoinApp.koin.get()
-
     private var _pairing: Core.Model.Pairing? = null
 
     private val pairing: Core.Model.Pairing
@@ -36,9 +33,7 @@ internal class PairingControllerImpl : ParingController {
         onError: (Throwable) -> Unit
     ) {
         try {
-            CoreClient.Pairing
-                .create { error -> onError(IllegalStateException("Creating Pairing failed: ${error.throwable.message}")) }!!
-                .also { _pairing = it }
+            generatePairing()
             val connectParams = Modal.Params.Connect(
                 sessionParams.requiredNamespaces,
                 sessionParams.optionalNamespaces,
@@ -60,7 +55,5 @@ internal class PairingControllerImpl : ParingController {
         get() = pairing.uri
 
     private fun generatePairing(): Core.Model.Pairing =
-        CoreClient.Pairing
-            .create { error -> logger.error(IllegalStateException("Creating Pairing failed: ${error.throwable.message}")) }!!
-            .also { _pairing = it }
+        CoreClient.Pairing.create { error -> throw IllegalStateException("Creating Pairing failed: ${error.throwable.stackTraceToString()}") }!!.also { _pairing = it }
 }

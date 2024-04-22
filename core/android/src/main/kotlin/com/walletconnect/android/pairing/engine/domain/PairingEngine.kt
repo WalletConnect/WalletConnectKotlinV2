@@ -113,7 +113,7 @@ internal class PairingEngine(
             }
     }
 
-    // TODO: We should either have callbacks or return values, not both. Simplify this to do one or the other
+    // TODO: We should either have callbacks or return values, not both. Simplify this to do one or the other. Pairing should be returned if subscription is successful
     fun create(onFailure: (Throwable) -> Unit, methods: String? = null): Core.Model.Pairing? {
         val pairingTopic: Topic = generateTopic()
         val symmetricKey: SymmetricKey = crypto.generateAndStoreSymmetricKey(pairingTopic)
