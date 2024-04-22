@@ -43,7 +43,6 @@ androidxCore = "1.10.1"
 androidxAppCompat = "1.6.1"
 andoridxMaterial = "1.9.0"
 androidxLifecycle = "2.6.1"
-composeNav = "2.5.3"
 androidxTest = "1.5.0"
 androidxTestOrchestration = "1.4.2"
 androidxSecurity = "1.1.0-alpha06"
@@ -79,6 +78,17 @@ androidx-testCore = { module = "androidx.test:core-ktx", version.ref = "androidx
 androidx-testOrchestrator = { module = "androidx.test:orchestrator", version.ref = "androidxTestOrchestration" }
 androidx-testRunner = { module = "androidx.test:runner", version = "1.5.2" }
 androidx-testRules = { module = "androidx.test:rules", version.ref = "androidxTest" }
+#-------------------------- Compose --------------------------
+androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBOM" }
+androidx-compose-ui = { module = "androidx.compose.ui:ui" }
+androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+androidx-compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
+androidx-compose-ui-test-junit = { module = "androidx.compose.ui:ui-test-junit4", version = "1.5.1" }
+androidx-compose-navigation = { module = "androidx.navigation:navigation-compose", version.ref = "androidxNavigation" }
+androidx-compose-navigation-testing = { module = "androidx.navigation:navigation-testing", version.ref = "androidxNavigation" }
+androidx-compose-lifecycle = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "composeViewModel" }
+androidx-compose-material = { module = "androidx.compose.material:material", version = "1.5.0-alpha04" }
 
 coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
@@ -130,17 +140,6 @@ firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "fir
 firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics-ktx" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics-ktx" }
-
-androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBOM" }
-androidx-compose-ui = { module = "androidx.compose.ui:ui" }
-androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
-androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
-androidx-compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
-androidx-compose-ui-test-junit = { module = "androidx.compose.ui:ui-test-junit4", version = "1.5.1" }
-androidx-compose-navigation = { module = "androidx.navigation:navigation-compose", version.ref = "composeNav" }
-androidx-compose-navigation-testing = { module = "androidx.navigation:navigation-testing", version.ref = "composeNav" }
-androidx-compose-lifecycle = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "composeViewModel" }
-androidx-compose-material = { module = "androidx.compose.material:material", version = "1.5.0-alpha04" }
 
 bouncyCastle = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncyCastle" }
 sqlCipher = { module = "net.zetetic:android-database-sqlcipher", version.ref = "sqlCipher" }
