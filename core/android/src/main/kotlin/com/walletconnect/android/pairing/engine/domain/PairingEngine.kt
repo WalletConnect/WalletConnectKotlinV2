@@ -80,7 +80,6 @@ internal class PairingEngine(
 ) {
     private var jsonRpcRequestsJob: Job? = null
     private val setOfRegisteredMethods: MutableSet<String> = mutableSetOf()
-
     private val _isPairingStateFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     private val _deletedPairingFlow: MutableSharedFlow<Pairing> = MutableSharedFlow()
@@ -116,7 +115,7 @@ internal class PairingEngine(
             }
     }
 
-    // TODO: We should either have callbacks or return values, not both. Simplify this to do one or the other
+    // TODO: We should either have callbacks or return values, not both. Simplify this to do one or the other. Pairing should be returned if subscription is successful
     fun create(onFailure: (Throwable) -> Unit, methods: String? = null): Core.Model.Pairing? {
         val pairingTopic: Topic = generateTopic()
         val symmetricKey: SymmetricKey = crypto.generateAndStoreSymmetricKey(pairingTopic)
@@ -130,10 +129,7 @@ internal class PairingEngine(
             jsonRpcInteractor.subscribe(
                 topic = this.topic,
                 onSuccess = { logger.log("Pairing - subscribed on pairing topic: $pairingTopic") },
-                onFailure = { error ->
-                    logger.error("Pairing - subscribed failure on pairing topic: $pairingTopic, error: $error")
-                    return@subscribe onFailure(error)
-                }
+                onFailure = { error -> logger.error("Pairing - subscribed failure on pairing topic: $pairingTopic, error: $error") }
             )
 
             this.toCore()
@@ -192,7 +188,7 @@ internal class PairingEngine(
                     onSuccess()
                 }, onFailure = { error ->
                     logger.error("Subscribe pairing topic error: ${inactivePairing.topic.value}, error: $error")
-                    return@subscribe onFailure(error)
+                    onFailure(error)
                 })
         } catch (e: Exception) {
             logger.error("Subscribe pairing topic error: ${inactivePairing.topic.value}, error: $e")

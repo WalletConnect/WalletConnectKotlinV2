@@ -309,8 +309,8 @@ internal class SignEngine(
         try {
             sessionStorageRepository.onSessionExpired = { sessionTopic ->
                 jsonRpcInteractor.unsubscribe(sessionTopic, onSuccess = {
-                    sessionStorageRepository.deleteSession(sessionTopic)
                     runCatching {
+                        sessionStorageRepository.deleteSession(sessionTopic)
                         crypto.removeKeys(sessionTopic.value)
                     }.onFailure { logger.error(it) }
                 })
@@ -321,8 +321,8 @@ internal class SignEngine(
                     jsonRpcInteractor.unsubscribe(
                         topic = Topic(sessionTopic),
                         onSuccess = {
-                            sessionStorageRepository.deleteSession(Topic(sessionTopic))
                             runCatching {
+                                sessionStorageRepository.deleteSession(Topic(sessionTopic))
                                 crypto.removeKeys(sessionTopic)
                             }.onFailure { logger.error(it) }
                         }
