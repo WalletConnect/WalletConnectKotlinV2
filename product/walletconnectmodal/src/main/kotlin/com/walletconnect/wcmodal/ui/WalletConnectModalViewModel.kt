@@ -49,7 +49,7 @@ internal class WalletConnectModalViewModel : ViewModel() {
         try {
             val pairing =
                 CoreClient.Pairing.create { error ->
-                    handleError(IllegalStateException("Creating Pairing failed: ${error.throwable.stackTraceToString()}"))
+                    throw IllegalStateException("Creating Pairing failed: ${error.throwable.stackTraceToString()}")
                 }!!
 
             val sessionParams = WalletConnectModal.sessionParams

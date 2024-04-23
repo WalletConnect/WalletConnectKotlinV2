@@ -21,6 +21,7 @@ internal interface ParingController {
 internal class PairingControllerImpl : ParingController {
 
     private val web3ModalEngine: Web3ModalEngine = wcKoinApp.koin.get()
+
     private var _pairing: Core.Model.Pairing? = null
 
     private val pairing: Core.Model.Pairing
