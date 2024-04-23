@@ -86,7 +86,9 @@ internal class OnSessionRequestUseCase(
             }
 
             val url = sessionPeerAppMetaData?.url ?: String.Empty
+            logger.log("Resolving session request attestation: ${System.currentTimeMillis()}")
             resolveAttestationIdUseCase(request.id, request.message, url) { verifyContext ->
+                logger.log("Session request attestation resolved: ${System.currentTimeMillis()}")
                 val sessionRequestEvent = EngineDO.SessionRequestEvent(params.toEngineDO(request, sessionPeerAppMetaData), verifyContext.toEngineDO())
                 val event = if (sessionRequestEventsQueue.isEmpty()) {
                     sessionRequestEvent

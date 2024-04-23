@@ -2,7 +2,6 @@
 
 package com.walletconnect.chat.engine.domain
 
-import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.params.ChatNotifyResponseAuthParams
@@ -11,6 +10,7 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.utils.thirtySeconds
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
+import com.walletconnect.android.relay.WSSConnectionState
 import com.walletconnect.chat.common.json_rpc.ChatParams
 import com.walletconnect.chat.engine.use_case.SubscribeToChatTopicsUseCase
 import com.walletconnect.chat.engine.use_case.calls.AcceptInviteUseCase
@@ -58,6 +58,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
@@ -123,9 +124,8 @@ internal class ChatEngine(
     }
 
     fun setup() {
-        jsonRpcInteractor.isConnectionAvailable
-            .onEach { isAvailable -> _events.emit(ConnectionState(isAvailable)) }
-            .filter { isAvailable: Boolean -> isAvailable }
+        jsonRpcInteractor.wssConnectionState
+            .filterIsInstance<WSSConnectionState.Connected>()
             .onEach {
                 coroutineScope { launch(Dispatchers.IO) { subscribeToChatTopicsUseCase() } }
 

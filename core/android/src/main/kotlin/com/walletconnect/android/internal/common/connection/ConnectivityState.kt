@@ -15,8 +15,8 @@ import timber.log.Timber
 internal class ConnectivityState(context: Context) {
     private val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
-    private val _isAvailable = MutableStateFlow(false)
-    val isAvailable: StateFlow<Boolean> = _isAvailable.asStateFlow()
+    private val _isAvailable = MutableStateFlow<Boolean?>(null)
+    val isAvailable: StateFlow<Boolean?> = _isAvailable.asStateFlow()
     private val networks: MutableSet<Network> = mutableSetOf()
 
     private val callback = object : ConnectivityManager.NetworkCallback() {
@@ -24,20 +24,15 @@ internal class ConnectivityState(context: Context) {
         override fun onAvailable(network: Network) {
             if (network.isCapable()) {
                 networks.add(network)
-                _isAvailable.compareAndSet(expect = false, update = true)
+                _isAvailable.value = true
             } else {
-                _isAvailable.compareAndSet(expect = true, update = false)
+                _isAvailable.value = false
             }
         }
 
         override fun onLost(network: Network) {
             networks.remove(network)
-
-            if (networks.isNotEmpty()) {
-                _isAvailable.compareAndSet(expect = false, update = true)
-            } else {
-                _isAvailable.compareAndSet(expect = true, update = false)
-            }
+            _isAvailable.value = networks.isNotEmpty()
         }
     }
 

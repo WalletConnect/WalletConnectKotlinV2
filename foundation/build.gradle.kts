@@ -42,4 +42,5 @@ dependencies {
 
     jUnit4()
     mockk()
+    testImplementation(libs.kotlinx.coroutines.test)
 }

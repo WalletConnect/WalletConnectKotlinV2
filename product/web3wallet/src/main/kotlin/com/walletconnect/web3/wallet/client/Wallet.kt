@@ -52,7 +52,12 @@ object Wallet {
     sealed class Model {
         data class Error(val throwable: Throwable) : Model()
 
-        data class ConnectionState(val isAvailable: Boolean) : Model()
+		data class ConnectionState(val isAvailable: Boolean, val reason: Reason? = null) : Model() {
+			sealed class Reason : Model() {
+				data class ConnectionClosed(val message: String) : Reason()
+				data class ConnectionFailed(val throwable: Throwable) : Reason()
+			}
+		}
 
         data class ExpiredProposal(val pairingTopic: String, val proposerPublicKey: String) : Model()
         data class ExpiredRequest(val topic: String, val id: Long) : Model()

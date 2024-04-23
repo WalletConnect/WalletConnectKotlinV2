@@ -4,7 +4,6 @@ package com.walletconnect.sign.engine.domain
 
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.model.AppMetaDataType
-import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Validation
 import com.walletconnect.android.internal.common.model.type.EngineEvent
@@ -15,6 +14,7 @@ import com.walletconnect.android.internal.common.storage.verify.VerifyContextSto
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
+import com.walletconnect.android.relay.WSSConnectionState
 import com.walletconnect.android.verify.data.model.VerifyContext
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
@@ -75,8 +75,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.merge
@@ -165,6 +167,7 @@ internal class SignEngine(
 
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val engineEvent: SharedFlow<EngineEvent> = _engineEvent.asSharedFlow()
+    val wssConnection: StateFlow<WSSConnectionState> = jsonRpcInteractor.wssConnectionState
 
     init {
         pairingController.register(
@@ -186,9 +189,8 @@ internal class SignEngine(
     }
 
     fun setup() {
-        jsonRpcInteractor.isConnectionAvailable
-            .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
-            .filter { isAvailable: Boolean -> isAvailable }
+        jsonRpcInteractor.wssConnectionState
+            .filterIsInstance<WSSConnectionState.Connected>()
             .onEach {
                 supervisorScope {
                     launch(Dispatchers.IO) {
@@ -278,7 +280,9 @@ internal class SignEngine(
             listOfExpiredSession
                 .map { session -> session.topic }
                 .onEach { sessionTopic ->
-                    crypto.removeKeys(sessionTopic.value)
+                    runCatching {
+                        crypto.removeKeys(sessionTopic.value)
+                    }.onFailure { logger.error(it) }
                     sessionStorageRepository.deleteSession(sessionTopic)
                 }
 
@@ -305,17 +309,24 @@ internal class SignEngine(
         try {
             sessionStorageRepository.onSessionExpired = { sessionTopic ->
                 jsonRpcInteractor.unsubscribe(sessionTopic, onSuccess = {
-                    sessionStorageRepository.deleteSession(sessionTopic)
-                    crypto.removeKeys(sessionTopic.value)
+                    runCatching {
+                        sessionStorageRepository.deleteSession(sessionTopic)
+                        crypto.removeKeys(sessionTopic.value)
+                    }.onFailure { logger.error(it) }
                 })
             }
 
             pairingController.deletedPairingFlow.onEach { pairing ->
                 sessionStorageRepository.getAllSessionTopicsByPairingTopic(pairing.topic).onEach { sessionTopic ->
-                    jsonRpcInteractor.unsubscribe(Topic(sessionTopic), onSuccess = {
-                        sessionStorageRepository.deleteSession(Topic(sessionTopic))
-                        crypto.removeKeys(sessionTopic)
-                    })
+                    jsonRpcInteractor.unsubscribe(
+                        topic = Topic(sessionTopic),
+                        onSuccess = {
+                            runCatching {
+                                sessionStorageRepository.deleteSession(Topic(sessionTopic))
+                                crypto.removeKeys(sessionTopic)
+                            }.onFailure { logger.error(it) }
+                        }
+                    )
                 }
             }.launchIn(scope)
         } catch (e: Exception) {
@@ -332,7 +343,13 @@ internal class SignEngine(
                 scope.launch {
                     supervisorScope {
                         val verifyContext =
-                            verifyContextStorageRepository.get(sessionRequest.request.id) ?: VerifyContext(sessionRequest.request.id, String.Empty, Validation.UNKNOWN, String.Empty, null)
+                            verifyContextStorageRepository.get(sessionRequest.request.id) ?: VerifyContext(
+                                sessionRequest.request.id,
+                                String.Empty,
+                                Validation.UNKNOWN,
+                                String.Empty,
+                                null
+                            )
                         val sessionRequestEvent = EngineDO.SessionRequestEvent(sessionRequest, verifyContext.toEngineDO())
                         sessionRequestEventsQueue.add(sessionRequestEvent)
                     }
