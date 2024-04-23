@@ -10,6 +10,7 @@ import com.walletconnect.android.pairing.engine.domain.PairingEngine
 import com.walletconnect.android.pairing.engine.model.EngineDO
 import com.walletconnect.android.pairing.model.mapper.toCore
 import com.walletconnect.android.relay.RelayConnectionInterface
+import com.walletconnect.android.relay.WSSConnectionState
 import com.walletconnect.foundation.util.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -147,7 +148,7 @@ internal class PairingProtocol(private val koinApp: KoinApplication = wcKoinApp)
                 while (true) {
                     if (relayClient.isNetworkAvailable.value != null) {
                         if (relayClient.isNetworkAvailable.value == true) {
-                            if (relayClient.isWSSConnectionOpened.value) {
+                            if (relayClient.wssConnectionState.value is WSSConnectionState.Connected) {
                                 onConnection()
                                 return@withTimeout
                             }

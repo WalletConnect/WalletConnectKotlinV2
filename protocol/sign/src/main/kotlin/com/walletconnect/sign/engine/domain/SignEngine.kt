@@ -14,6 +14,7 @@ import com.walletconnect.android.internal.common.storage.verify.VerifyContextSto
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
+import com.walletconnect.android.relay.WSSConnectionState
 import com.walletconnect.android.verify.data.model.VerifyContext
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
@@ -77,6 +78,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.merge
@@ -165,7 +167,7 @@ internal class SignEngine(
 
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val engineEvent: SharedFlow<EngineEvent> = _engineEvent.asSharedFlow()
-    val wssConnection: StateFlow<Boolean> = jsonRpcInteractor.isWSSConnectionAvailable
+    val wssConnection: StateFlow<WSSConnectionState> = jsonRpcInteractor.wssConnectionState
 
     init {
         pairingController.register(
@@ -187,8 +189,8 @@ internal class SignEngine(
     }
 
     fun setup() {
-        jsonRpcInteractor.isWSSConnectionAvailable
-            .filter { isAvailable: Boolean -> isAvailable }
+        jsonRpcInteractor.wssConnectionState
+            .filterIsInstance<WSSConnectionState.Connected>()
             .onEach {
                 supervisorScope {
                     launch(Dispatchers.IO) {

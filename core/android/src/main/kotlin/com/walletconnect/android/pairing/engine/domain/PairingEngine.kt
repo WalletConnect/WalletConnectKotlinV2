@@ -38,6 +38,7 @@ import com.walletconnect.android.pairing.model.PairingParams
 import com.walletconnect.android.pairing.model.PairingRpc
 import com.walletconnect.android.pairing.model.inactivePairing
 import com.walletconnect.android.pairing.model.mapper.toCore
+import com.walletconnect.android.relay.WSSConnectionState
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
@@ -55,6 +56,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -271,12 +273,12 @@ internal class PairingEngine(
     }
 
     private fun resubscribeToPairingTopics() {
-        jsonRpcInteractor.isWSSConnectionAvailable
-            .filter { isAvailable: Boolean -> isAvailable }
+        jsonRpcInteractor.wssConnectionState
+            .filterIsInstance<WSSConnectionState.Connected>()
             .onEach {
                 supervisorScope {
                     launch(Dispatchers.IO) {
-                        sendBatchSubcrbeForPairings()
+                        sendBatchSubscribeForPairings()
                     }
                 }
 
@@ -286,7 +288,7 @@ internal class PairingEngine(
             }.launchIn(scope)
     }
 
-    private suspend fun sendBatchSubcrbeForPairings() {
+    private suspend fun sendBatchSubscribeForPairings() {
         try {
             val pairingTopics = pairingRepository.getListOfPairings().filter { pairing -> pairing.isNotExpired() }.map { pairing -> pairing.topic.value }
             jsonRpcInteractor.batchSubscribe(pairingTopics) { error -> scope.launch { internalErrorFlow.emit(SDKError(error)) } }

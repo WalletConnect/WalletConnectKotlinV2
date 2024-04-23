@@ -7,6 +7,7 @@ import com.walletconnect.android.internal.common.model.Participants
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.WCResponse
+import com.walletconnect.android.relay.WSSConnectionState
 import com.walletconnect.foundation.common.model.Topic
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,7 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 interface JsonRpcInteractorInterface {
     val clientSyncJsonRpc: SharedFlow<WCRequest>
     val peerResponse: SharedFlow<WCResponse>
-    val isWSSConnectionAvailable: StateFlow<Boolean>
+    val wssConnectionState: StateFlow<WSSConnectionState>
     val internalErrors: SharedFlow<SDKError>
 
     fun checkConnectionWorking()

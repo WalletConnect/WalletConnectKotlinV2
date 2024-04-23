@@ -36,45 +36,45 @@ import org.koin.core.KoinApplication
 
 @OptIn(ExperimentalCoroutinesApi::class)
 abstract class BaseRelayClient : RelayInterface {
-    private var foundationKoinApp: KoinApplication = KoinApplication.init()
-    lateinit var relayService: RelayService
-    protected var logger: Logger
-    private val resultState: MutableSharedFlow<RelayDTO> = MutableSharedFlow()
+	private var foundationKoinApp: KoinApplication = KoinApplication.init()
+	lateinit var relayService: RelayService
+	protected var logger: Logger
+	private val resultState: MutableSharedFlow<RelayDTO> = MutableSharedFlow()
 
-    init {
-        foundationKoinApp.run { modules(foundationCommonModule()) }
-        logger = foundationKoinApp.koin.get()
-    }
+	init {
+		foundationKoinApp.run { modules(foundationCommonModule()) }
+		logger = foundationKoinApp.koin.get()
+	}
 
     fun observeResults() {
         scope.launch {
             merge(
-                    relayService.observePublishAcknowledgement(),
-                    relayService.observePublishError(),
-                    relayService.observeBatchSubscribeAcknowledgement(),
-                    relayService.observeBatchSubscribeError(),
-                    relayService.observeSubscribeAcknowledgement(),
-                    relayService.observeSubscribeError(),
-                    relayService.observeUnsubscribeAcknowledgement(),
-                    relayService.observeUnsubscribeError()
+                relayService.observePublishAcknowledgement(),
+                relayService.observePublishError(),
+                relayService.observeBatchSubscribeAcknowledgement(),
+                relayService.observeBatchSubscribeError(),
+                relayService.observeSubscribeAcknowledgement(),
+                relayService.observeSubscribeError(),
+                relayService.observeUnsubscribeAcknowledgement(),
+                relayService.observeUnsubscribeError()
             )
-                    .catch { exception -> logger.error(exception) }
-                    .collect { result -> resultState.emit(result) }
+                .catch { exception -> logger.error(exception) }
+                .collect { result -> resultState.emit(result) }
         }
     }
 
-    override val eventsFlow: SharedFlow<Relay.Model.Event> by lazy {
-        relayService
-                .observeWebSocketEvent()
-                .map { event -> event.toRelayEvent() }
-                .shareIn(scope, SharingStarted.Lazily, REPLAY)
-    }
+	override val eventsFlow: SharedFlow<Relay.Model.Event> by lazy {
+		relayService
+			.observeWebSocketEvent()
+			.map { event -> event.toRelayEvent() }
+			.shareIn(scope, SharingStarted.Lazily, REPLAY)
+	}
 
-    override val subscriptionRequest: Flow<Relay.Model.Call.Subscription.Request> by lazy {
-        relayService.observeSubscriptionRequest()
-                .map { request -> request.toRelay() }
-                .onEach { relayRequest -> supervisorScope { publishSubscriptionAcknowledgement(relayRequest.id) } }
-    }
+	override val subscriptionRequest: Flow<Relay.Model.Call.Subscription.Request> by lazy {
+		relayService.observeSubscriptionRequest()
+			.map { request -> request.toRelay() }
+			.onEach { relayRequest -> supervisorScope { publishSubscriptionAcknowledgement(relayRequest.id) } }
+	}
 
     @ExperimentalCoroutinesApi
     override fun publish(
