@@ -108,5 +108,6 @@ dependencies {
     testJson()
     coroutinesTest()
     scarletTest()
+    turbine()
     testImplementation(libs.bundles.sqlDelightTest)
 }
