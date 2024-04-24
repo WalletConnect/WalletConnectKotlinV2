@@ -12,5 +12,5 @@ import retrofit2.http.POST
 interface PulseService {
     @Headers("Content-Type: application/json")
     @POST("/e")
-    suspend fun sendEvent(@Header("x-sdk-type") sdkType: String = "w3m",  @Body body: Event): Response<Unit>
+    suspend fun sendEvent(@Header("x-sdk-type") sdkType: String,  @Body body: Event): Response<Unit>
 }
