@@ -36,7 +36,7 @@ internal class OnSessionAuthenticateUseCase(
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
 
     suspend operator fun invoke(request: WCRequest, authenticateSessionParams: SignParams.SessionAuthenticateParams) = supervisorScope {
-        val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE_RESPONSE, Ttl(dayInSeconds))
+        val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE_RESPONSE_AUTO_REJECT, Ttl(dayInSeconds))
         logger.log("Received session authenticate: ${request.topic}")
         try {
             if (Expiry(authenticateSessionParams.expiryTimestamp).isExpired()) {
