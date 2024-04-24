@@ -42,4 +42,5 @@ dependencies {
     implementation(libs.wsRestJava)
 
     testImplementation(libs.jerseyCommon)
+    testImplementation(libs.coroutines.test)
 }
