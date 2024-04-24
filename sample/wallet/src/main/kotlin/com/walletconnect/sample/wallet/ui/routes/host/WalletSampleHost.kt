@@ -73,6 +73,7 @@ fun WalletSampleHost(
     val bottomBarState = rememberBottomBarMutableState()
     val currentRoute = navController.currentBackStackEntryAsState()
     val isLoader by web3walletViewModel.isLoadingFlow.collectAsState(false)
+    val isRequestLoader by web3walletViewModel.isRequestLoadingFlow.collectAsState(false)
 
     LaunchedEffect(Unit) {
         web3walletViewModel.eventsSharedFlow.collect {
@@ -115,7 +116,11 @@ fun WalletSampleHost(
             }
 
             if (isLoader) {
-                PairingLoader()
+                Loader(initMessage = "WalletConnect is pairing...", updateMessage = "Pairing is taking longer than usual, please try again...")
+            }
+
+            if (isRequestLoader) {
+                Loader(initMessage = "Awaiting a request...", updateMessage = "It is taking longer than usual..")
             }
 
             Timer(web3walletViewModel)
@@ -145,7 +150,7 @@ private fun BeagleDrawer() {
 }
 
 @Composable
-private fun BoxScope.PairingLoader() {
+private fun BoxScope.Loader(initMessage: String, updateMessage: String) {
     var shouldChangeText by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = Unit) {
@@ -170,7 +175,7 @@ private fun BoxScope.PairingLoader() {
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             textAlign = TextAlign.Center,
-            text = if (shouldChangeText) "Pairing is taking longer than usual, please try again..." else "WalletConnect is pairing...",
+            text = if (shouldChangeText) updateMessage else initMessage,
             maxLines = 2,
             style = TextStyle(
                 fontWeight = FontWeight.Medium,
@@ -242,6 +247,6 @@ private fun RestoredConnectionBanner() {
 @Composable
 private fun PreviewPairingLoader() {
     Box() {
-        PairingLoader()
+        Loader("", "")
     }
 }

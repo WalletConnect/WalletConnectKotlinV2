@@ -2,7 +2,6 @@
 
 package com.walletconnect.auth.engine.domain
 
-import com.walletconnect.android.internal.common.model.ConnectionState
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Validation
 import com.walletconnect.android.internal.common.model.type.EngineEvent
@@ -11,6 +10,7 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
+import com.walletconnect.android.relay.WSSConnectionState
 import com.walletconnect.android.verify.data.model.VerifyContext
 import com.walletconnect.auth.common.json_rpc.AuthParams
 import com.walletconnect.auth.common.model.Events
@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
@@ -73,9 +74,8 @@ internal class AuthEngine(
     }
 
     fun setup() {
-        jsonRpcInteractor.isWSSConnectionAvailable
-            .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
-            .filter { isAvailable: Boolean -> isAvailable }
+        jsonRpcInteractor.wssConnectionState
+            .filterIsInstance<WSSConnectionState.Connected>()
             .onEach {
                 supervisorScope {
                     launch(Dispatchers.IO) { resubscribeToPendingRequestsTopics() }

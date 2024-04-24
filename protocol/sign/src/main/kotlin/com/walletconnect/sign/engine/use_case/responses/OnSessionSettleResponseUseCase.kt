@@ -50,8 +50,8 @@ internal class OnSessionSettleResponseUseCase(
                 is JsonRpcResponse.JsonRpcError -> {
                     logger.error("Peer failed to settle session: ${(wcResponse.response as JsonRpcResponse.JsonRpcError).errorMessage}")
                     jsonRpcInteractor.unsubscribe(sessionTopic, onSuccess = {
-                        sessionStorageRepository.deleteSession(sessionTopic)
                         runCatching {
+                            sessionStorageRepository.deleteSession(sessionTopic)
                             crypto.removeKeys(sessionTopic.value)
                         }.onFailure { logger.error(it) }
                     })

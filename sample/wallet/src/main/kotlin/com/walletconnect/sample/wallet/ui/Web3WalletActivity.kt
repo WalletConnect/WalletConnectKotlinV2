@@ -39,8 +39,11 @@ import java.net.URLEncoder
 
 class Web3WalletActivity : AppCompatActivity() {
     private lateinit var navController: NavHostController
+    private val web3walletViewModel = Web3WalletViewModel()
+    private val connectionsViewModel = ConnectionsViewModel()
+
     private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
+            ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
             // FCM SDK (and your app) can post notifications.
@@ -49,8 +52,7 @@ class Web3WalletActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val web3walletViewModel = Web3WalletViewModel()
-        val connectionsViewModel = ConnectionsViewModel()
+
         setContent(web3walletViewModel, connectionsViewModel)
         handleWeb3WalletEvents(web3walletViewModel, connectionsViewModel)
         handleCoreEvents(connectionsViewModel)
@@ -113,12 +115,13 @@ class Web3WalletActivity : AppCompatActivity() {
         connectionsViewModel: ConnectionsViewModel,
     ) {
         web3walletViewModel.sessionRequestStateFlow
-            .onEach {
-                if (it.arrayOfArgs.isNotEmpty()) {
-                    navController.navigate(Route.SessionRequest.path)
+                .onEach {
+                    if (it.arrayOfArgs.isNotEmpty()) {
+                        web3walletViewModel.showRequestLoader(false)
+                        navController.navigate(Route.SessionRequest.path)
+                    }
                 }
-            }
-            .launchIn(lifecycleScope)
+                .launchIn(lifecycleScope)
 
         web3walletViewModel.walletEvents
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
@@ -133,18 +136,18 @@ class Web3WalletActivity : AppCompatActivity() {
                         Toast.makeText(baseContext, "Request expired", Toast.LENGTH_SHORT).show()
                     }
 
-                    is SignEvent.Disconnect -> {
-                        connectionsViewModel.refreshConnections()
-                        navController.navigate(Route.Connections.path)
+                        is SignEvent.Disconnect -> {
+                            connectionsViewModel.refreshConnections()
+                            navController.navigate(Route.Connections.path)
+                        }
+
+                        is AuthEvent.OnRequest -> navController.navigate(Route.AuthRequest.path)
+                        is SignEvent.SessionAuthenticate -> navController.navigate(Route.SessionAuthenticate.path)
+
+                        else -> Unit
                     }
-
-                    is AuthEvent.OnRequest -> navController.navigate(Route.AuthRequest.path)
-                    is SignEvent.SessionAuthenticate -> navController.navigate(Route.SessionAuthenticate.path)
-
-                    else -> Unit
                 }
-            }
-            .launchIn(lifecycleScope)
+                .launchIn(lifecycleScope)
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -162,8 +165,12 @@ class Web3WalletActivity : AppCompatActivity() {
             }
         }
 
+        if (intent?.dataString?.startsWith("kotlin-web3wallet://request") == true) {
+            web3walletViewModel.showRequestLoader(true)
+        }
+
         if (intent?.dataString?.startsWith("kotlin-web3wallet://request") == false
-            && intent.dataString?.contains("requestId") == false
+                && intent.dataString?.contains("requestId") == false
         ) {
             navController.handleDeepLink(intent)
         }
@@ -173,9 +180,9 @@ class Web3WalletActivity : AppCompatActivity() {
         // This is only necessary for API level >= 33 (TIRAMISU)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(
-                    this,
-                    android.Manifest.permission.POST_NOTIFICATIONS
-                ) == PackageManager.PERMISSION_GRANTED
+                            this,
+                            android.Manifest.permission.POST_NOTIFICATIONS
+                    ) == PackageManager.PERMISSION_GRANTED
             ) {
                 // FCM SDK (and your app) can post notifications.
             } else {

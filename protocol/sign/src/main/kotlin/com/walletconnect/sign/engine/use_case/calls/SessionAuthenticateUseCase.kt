@@ -35,6 +35,7 @@ import com.walletconnect.utils.Empty
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -102,21 +103,23 @@ internal class SessionAuthenticateUseCase(
             },
             onFailure = { error ->
                 logger.error("Session authenticate subscribing on topic error: $responseTopic, $error")
-                return@subscribe onFailure(error)
+                onFailure(error)
             })
 
         scope.launch {
-            val sessionAuthenticateDeferred = publishSessionAuthenticateDeferred(pairing, authRequest, responseTopic, requestExpiry)
-            val sessionProposeDeferred = publishSessionProposeDeferred(pairing, optionalNamespaces, responseTopic)
+            supervisorScope {
+                val sessionAuthenticateDeferred = publishSessionAuthenticateDeferred(pairing, authRequest, responseTopic, requestExpiry)
+                val sessionProposeDeferred = publishSessionProposeDeferred(pairing, optionalNamespaces, responseTopic)
 
-            val sessionAuthenticateResult = async { sessionAuthenticateDeferred }.await()
-            val sessionProposeResult = async { sessionProposeDeferred }.await()
+                val sessionAuthenticateResult = async { sessionAuthenticateDeferred }.await()
+                val sessionProposeResult = async { sessionProposeDeferred }.await()
 
-            when {
-                sessionAuthenticateResult.isSuccess && sessionProposeResult.isSuccess -> onSuccess(pairing.uri)
-                sessionAuthenticateResult.isFailure -> onFailure(sessionAuthenticateResult.exceptionOrNull() ?: Throwable("Session authenticate failed"))
-                sessionProposeResult.isFailure -> onFailure(sessionProposeResult.exceptionOrNull() ?: Throwable("Session proposal as a fallback failed"))
-                else -> onFailure(Throwable("Session authenticate failed, please try again"))
+                when {
+                    sessionAuthenticateResult.isSuccess && sessionProposeResult.isSuccess -> onSuccess(pairing.uri)
+                    sessionAuthenticateResult.isFailure -> onFailure(sessionAuthenticateResult.exceptionOrNull() ?: Throwable("Session authenticate failed"))
+                    sessionProposeResult.isFailure -> onFailure(sessionProposeResult.exceptionOrNull() ?: Throwable("Session proposal as a fallback failed"))
+                    else -> onFailure(Throwable("Session authenticate failed, please try again"))
+                }
             }
         }
     }

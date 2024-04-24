@@ -5,7 +5,7 @@ import com.walletconnect.foundation.network.RelayInterface
 import kotlinx.coroutines.flow.StateFlow
 
 interface RelayConnectionInterface : RelayInterface {
-    val isWSSConnectionOpened: StateFlow<Boolean>
+    val wssConnectionState: StateFlow<WSSConnectionState>
     val isNetworkAvailable: StateFlow<Boolean?>
 
     @Deprecated("This has become deprecate in favor of the onError returning Core.Model.Error", ReplaceWith("this.connect(onErrorModel)"))
