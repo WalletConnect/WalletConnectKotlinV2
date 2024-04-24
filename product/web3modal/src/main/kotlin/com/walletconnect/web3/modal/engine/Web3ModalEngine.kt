@@ -8,11 +8,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import com.walletconnect.android.internal.common.modal.domain.usecase.EnableAnalyticsUseCaseInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.android.pulse.domain.SendConnectErrorUseCase
-import com.walletconnect.android.pulse.domain.SendConnectSuccessUseCase
-import com.walletconnect.android.pulse.domain.SendDisconnectErrorUseCase
-import com.walletconnect.android.pulse.domain.SendDisconnectSuccessUseCase
-import com.walletconnect.android.pulse.domain.SendModalLoadedUseCaseInterface
+import com.walletconnect.android.pulse.domain.w3m.SendConnectErrorUseCase
+import com.walletconnect.android.pulse.domain.w3m.SendConnectSuccessUseCase
+import com.walletconnect.android.pulse.domain.w3m.SendDisconnectErrorUseCase
+import com.walletconnect.android.pulse.domain.w3m.SendDisconnectSuccessUseCase
+import com.walletconnect.android.pulse.domain.w3m.SendModalLoadedUseCaseInterface
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient

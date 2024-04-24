@@ -4,10 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.internal.common.modal.data.model.Wallet
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.android.pulse.domain.SendClickAllWalletsUseCase
-import com.walletconnect.android.pulse.domain.SendClickNetworkHelpUseCase
-import com.walletconnect.android.pulse.domain.SendConnectErrorUseCase
-import com.walletconnect.android.pulse.domain.SendSelectWalletUseCase
+import com.walletconnect.android.pulse.domain.w3m.SendClickAllWalletsUseCase
+import com.walletconnect.android.pulse.domain.w3m.SendClickNetworkHelpUseCase
+import com.walletconnect.android.pulse.domain.w3m.SendConnectErrorUseCase
+import com.walletconnect.android.pulse.domain.w3m.SendSelectWalletUseCase
 import com.walletconnect.android.pulse.model.ConnectionMethod
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.modal.ui.model.LoadingState

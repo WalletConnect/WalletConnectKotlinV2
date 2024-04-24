@@ -3,8 +3,8 @@ package com.walletconnect.web3.modal.ui.routes.account
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.android.pulse.domain.SendClickNetworkHelpUseCase
-import com.walletconnect.android.pulse.domain.SendSwitchNetworkUseCase
+import com.walletconnect.android.pulse.domain.w3m.SendClickNetworkHelpUseCase
+import com.walletconnect.android.pulse.domain.w3m.SendSwitchNetworkUseCase
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.modal.ui.model.UiState
 import com.walletconnect.web3.modal.client.Modal

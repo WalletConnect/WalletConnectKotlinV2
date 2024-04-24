@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.android.pulse.domain.SendClickGetWalletUseCase
+import com.walletconnect.android.pulse.domain.w3m.SendClickGetWalletUseCase
 import com.walletconnect.web3.modal.R
 import com.walletconnect.web3.modal.ui.components.internal.commons.HelpSection
 import com.walletconnect.web3.modal.ui.components.internal.commons.VerticalSpacer

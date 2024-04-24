@@ -1,13 +1,15 @@
-package com.walletconnect.android.pulse.domain
+package com.walletconnect.android.pulse.domain.w3m
 
 import com.walletconnect.android.internal.utils.currentTimeInSeconds
 import com.walletconnect.android.pulse.data.PulseService
+import com.walletconnect.android.pulse.domain.SendEventUseCase
 import com.walletconnect.android.pulse.model.Event
+import com.walletconnect.android.pulse.model.SDKType
 import com.walletconnect.android.pulse.model.properties.Props
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.util.generateId
 
-class SendClickWalletHelpUseCase(
+class SendClickNetworksUseCase(
     pulseService: PulseService,
     logger: Logger,
     bundleId: String
@@ -18,8 +20,8 @@ class SendClickWalletHelpUseCase(
                 eventId = generateId(),
                 bundleId = bundleId,
                 timestamp = currentTimeInSeconds,
-                props = Props.ClickWalletHelp()
-            )
+                props = Props.ClickNetworks()
+            ), SDKType.WEB3MODAL
         )
     }
 }

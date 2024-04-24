@@ -18,7 +18,7 @@ abstract class SendEventUseCase(
 ) {
     private val enableAnalytics: Boolean by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.ENABLE_ANALYTICS)) }
 
-    operator fun invoke(event: Event, sdkType: SDKType = SDKType.WEB3MODAL) {
+    operator fun invoke(event: Event, sdkType: SDKType) {
         if (enableAnalytics) {
             scope.launch {
                 supervisorScope {

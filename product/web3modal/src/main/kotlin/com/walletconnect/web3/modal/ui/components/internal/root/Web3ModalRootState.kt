@@ -6,7 +6,7 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.android.pulse.domain.SendClickWalletHelpUseCase
+import com.walletconnect.android.pulse.domain.w3m.SendClickWalletHelpUseCase
 import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.ui.navigation.getTitleArg
 import kotlinx.coroutines.CoroutineScope
