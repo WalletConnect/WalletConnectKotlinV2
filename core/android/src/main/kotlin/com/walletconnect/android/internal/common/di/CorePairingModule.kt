@@ -15,7 +15,9 @@ fun corePairingModule(pairing: PairingInterface, pairingController: PairingContr
             pairingRepository = get(),
             jsonRpcInteractor = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
-            sendMalformedPairingUriUseCase = get()
+            sendMalformedPairingUriUseCase = get(),
+            sendPairingAlreadyExistUseCase = get(),
+            sendFailedToSubscribeToPairingTopicUseCase = get(),
         )
     }
     single { pairing }

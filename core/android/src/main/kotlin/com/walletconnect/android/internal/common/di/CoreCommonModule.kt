@@ -46,6 +46,8 @@ fun coreCommonModule() = module {
             .withSubtype(Props.W3M.ClickNetworkHelp::class.java, "click_network_help")
             .withSubtype(Props.W3M.ClickGetWallet::class.java, "click_get_wallet")
             .withSubtype(Props.Pairing.MalformedPairingUri::class.java, "malformed_pairing_uri")
+            .withSubtype(Props.Pairing.PairingAlreadyExist::class.java, "pairing_already_exist")
+            .withSubtype(Props.Pairing.FailedToSubscribeToPairingTopic::class.java, "failed_to_subscribe_to_pairing_topic")
     }
 
     single<Moshi.Builder>(named(AndroidCommonDITags.MOSHI)) {

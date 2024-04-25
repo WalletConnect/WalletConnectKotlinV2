@@ -38,7 +38,9 @@ import com.walletconnect.android.pairing.model.PairingParams
 import com.walletconnect.android.pairing.model.PairingRpc
 import com.walletconnect.android.pairing.model.inactivePairing
 import com.walletconnect.android.pairing.model.mapper.toCore
+import com.walletconnect.android.pulse.domain.pairing.SendFailedToSubscribeToPairingTopicUseCase
 import com.walletconnect.android.pulse.domain.pairing.SendMalformedPairingUriUseCase
+import com.walletconnect.android.pulse.domain.pairing.SendPairingAlreadyExistUseCase
 import com.walletconnect.android.relay.WSSConnectionState
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -78,7 +80,9 @@ internal class PairingEngine(
     private val crypto: KeyManagementRepository,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val pairingRepository: PairingStorageRepositoryInterface,
-    private val sendMalformedPairingUriUseCase: SendMalformedPairingUriUseCase
+    private val sendMalformedPairingUriUseCase: SendMalformedPairingUriUseCase,
+    private val sendPairingAlreadyExistUseCase: SendPairingAlreadyExistUseCase,
+    private val sendFailedToSubscribeToPairingTopicUseCase: SendFailedToSubscribeToPairingTopicUseCase,
 ) {
     private var jsonRpcRequestsJob: Job? = null
     private val setOfRegisteredMethods: MutableSet<String> = mutableSetOf()
@@ -173,6 +177,7 @@ internal class PairingEngine(
                 }
                 if (pairing.isActive) {
                     logger.error("Pairing already exists error: ${inactivePairing.topic.value}")
+                    sendPairingAlreadyExistUseCase()
                     return onFailure(PairWithExistingPairingIsNotAllowed(PAIRING_NOT_ALLOWED_MESSAGE))
                 } else {
                     logger.log("Emitting activate pairing: ${inactivePairing.topic.value}")
@@ -194,6 +199,7 @@ internal class PairingEngine(
                     onSuccess()
                 }, onFailure = { error ->
                     logger.error("Subscribe pairing topic error: ${inactivePairing.topic.value}, error: $error")
+					sendFailedToSubscribeToPairingTopicUseCase()
                     onFailure(error)
                 })
         } catch (e: Exception) {

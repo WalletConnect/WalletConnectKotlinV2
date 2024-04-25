@@ -16,6 +16,22 @@ sealed class Props {
 			@Json(name = "type")
 			override val type: String = EventType.Pairing.MALFORMED_PAIRING_URI
 		) : Props()
+
+		@JsonClass(generateAdapter = true)
+		data class PairingAlreadyExist(
+			@Json(name = "event")
+			override val event: String = "error",
+			@Json(name = "type")
+			override val type: String = EventType.Pairing.PAIRING_ALREADY_EXIST
+		) : Props()
+
+		@JsonClass(generateAdapter = true)
+		data class FailedToSubscribeToPairingTopic(
+			@Json(name = "event")
+			override val event: String = "error",
+			@Json(name = "type")
+			override val type: String = EventType.Pairing.FAILED_TO_SUBSCRIBE_TO_PAIRING_TOPIC
+		) : Props()
 	}
 
 	sealed class W3M : Props() {

@@ -5,6 +5,12 @@ internal object EventType {
 	internal object Pairing {
 		@get:JvmSynthetic
 		const val MALFORMED_PAIRING_URI: String = "MALFORMED_PAIRING_URI"
+
+		@get:JvmSynthetic
+		const val PAIRING_ALREADY_EXIST: String = "PAIRING_ALREADY_EXIST"
+
+		@get:JvmSynthetic
+		const val FAILED_TO_SUBSCRIBE_TO_PAIRING_TOPIC: String = "FAILED_TO_SUBSCRIBE_TO_PAIRING_TOPIC"
 	}
 
 	internal object W3M {
