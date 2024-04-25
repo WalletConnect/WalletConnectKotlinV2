@@ -15,6 +15,11 @@ import com.walletconnect.android.internal.utils.ACTIVE_SESSION
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
+import com.walletconnect.android.pulse.domain.sign.SendProposalExpiredUseCase
+import com.walletconnect.android.pulse.domain.sign.SendSessionApproveNamespaceValidationFailureUseCase
+import com.walletconnect.android.pulse.domain.sign.SendSessionApprovePublishFailureUseCase
+import com.walletconnect.android.pulse.domain.sign.SendSessionSettlePublishFailureUseCase
+import com.walletconnect.android.pulse.domain.sign.SendSessionSubscriptionFailureUseCase
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -45,6 +50,11 @@ internal class ApproveSessionUseCase(
     private val verifyContextStorageRepository: VerifyContextStorageRepository,
     private val selfAppMetaData: AppMetaData,
     private val pairingController: PairingControllerInterface,
+    private val sendProposalExpiredUseCase: SendProposalExpiredUseCase,
+    private val sendSessionSubscriptionFailureUseCase: SendSessionSubscriptionFailureUseCase,
+    private val sendSessionApprovePublishFailureUseCase: SendSessionApprovePublishFailureUseCase,
+    private val sendSessionSettlePublishFailureUseCase: SendSessionSettlePublishFailureUseCase,
+    private val sendSessionApproveNamespaceValidationFailureUseCase: SendSessionApproveNamespaceValidationFailureUseCase,
     private val logger: Logger
 ) : ApproveSessionUseCaseInterface {
 
@@ -85,6 +95,7 @@ internal class ApproveSessionUseCase(
                     },
                     onFailure = { error ->
                         logger.error("Session settle failure on topic: $sessionTopic, error: $error")
+                        sendSessionSettlePublishFailureUseCase()
                         onFailure(error)
                     }
                 )
@@ -101,12 +112,14 @@ internal class ApproveSessionUseCase(
         proposal.expiry?.let {
             if (it.isExpired()) {
                 logger.error("Proposal expired on approve, topic: ${proposal.pairingTopic.value}, id: ${proposal.requestId}")
+                sendProposalExpiredUseCase()
                 throw SessionProposalExpiredException("Session proposal expired")
             }
         }
 
         SignValidator.validateSessionNamespace(sessionNamespaces.toMapOfNamespacesVOSession(), proposal.requiredNamespaces) { error ->
             logger.log("Session approve failure - invalid namespaces, error: $error")
+            sendSessionApproveNamespaceValidationFailureUseCase()
             throw InvalidNamespaceException(error.message)
         }
 
@@ -121,6 +134,7 @@ internal class ApproveSessionUseCase(
             },
             onFailure = { error ->
                 logger.error("Subscribe to session topic failure: $error")
+                sendSessionSubscriptionFailureUseCase()
                 onFailure(error)
             })
         logger.log("Sending session approve, topic: $sessionTopic")
@@ -130,6 +144,7 @@ internal class ApproveSessionUseCase(
             },
             onFailure = { error ->
                 logger.error("Session approve failure, topic: $sessionTopic: $error")
+                sendSessionApprovePublishFailureUseCase()
                 onFailure(error)
             })
 

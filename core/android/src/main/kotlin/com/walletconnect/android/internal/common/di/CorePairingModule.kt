@@ -17,7 +17,7 @@ fun corePairingModule(pairing: PairingInterface, pairingController: PairingContr
             logger = get(named(AndroidCommonDITags.LOGGER)),
             sendMalformedPairingUriUseCase = get(),
             sendPairingAlreadyExistUseCase = get(),
-            sendFailedToSubscribeToPairingTopicUseCase = get(),
+            sendPairingSubscriptionFailureUseCase = get(),
             sendNoInternetConnectionUseCase = get(),
             sendNoWSSConnection = get(),
             sendPairingExpiredUseCase = get(),

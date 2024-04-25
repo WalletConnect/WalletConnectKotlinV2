@@ -42,11 +42,11 @@ sealed class Props {
 		) : Props()
 
 		@JsonClass(generateAdapter = true)
-		data class FailedToSubscribeToPairingTopic(
+		data class PairingSubscriptionFailure(
 			@Json(name = "event")
 			override val event: String = "error",
 			@Json(name = "type")
-			override val type: String = EventType.Pairing.FAILED_TO_SUBSCRIBE_TO_PAIRING_TOPIC
+			override val type: String = EventType.Pairing.PAIRING_SUBSCRIPTION_FAILURE
 		) : Props()
 
 		@JsonClass(generateAdapter = true)
@@ -55,6 +55,48 @@ sealed class Props {
 			override val event: String = "error",
 			@Json(name = "type")
 			override val type: String = EventType.Pairing.PAIRING_EXPIRED
+		) : Props()
+	}
+
+	sealed class Sign : Props() {
+		@JsonClass(generateAdapter = true)
+		data class ProposalExpired(
+			@Json(name = "event")
+			override val event: String = "error",
+			@Json(name = "type")
+			override val type: String = EventType.Sign.PROPOSAL_EXPIRED
+		) : Props()
+
+		@JsonClass(generateAdapter = true)
+		data class SessionSubscriptionFailure(
+			@Json(name = "event")
+			override val event: String = "error",
+			@Json(name = "type")
+			override val type: String = EventType.Sign.SESSION_SUBSCRIPTION_FAILURE
+		) : Props()
+
+		@JsonClass(generateAdapter = true)
+		data class SessionApprovePublishFailure(
+			@Json(name = "event")
+			override val event: String = "error",
+			@Json(name = "type")
+			override val type: String = EventType.Sign.SESSION_APPROVE_PUBLISH_FAILURE
+		) : Props()
+
+		@JsonClass(generateAdapter = true)
+		data class SessionSettlePublishFailure(
+			@Json(name = "event")
+			override val event: String = "error",
+			@Json(name = "type")
+			override val type: String = EventType.Sign.SESSION_SETTLE_PUBLISH_FAILURE
+		) : Props()
+
+		@JsonClass(generateAdapter = true)
+		data class SessionApproveNamespaceValidationFailure(
+			@Json(name = "event")
+			override val event: String = "error",
+			@Json(name = "type")
+			override val type: String = EventType.Sign.SESSION_APPROVE_NAMESPACE_VALIDATION_FAILURE
 		) : Props()
 	}
 

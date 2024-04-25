@@ -10,7 +10,7 @@ internal object EventType {
 		const val PAIRING_ALREADY_EXIST: String = "PAIRING_ALREADY_EXIST"
 
 		@get:JvmSynthetic
-		const val FAILED_TO_SUBSCRIBE_TO_PAIRING_TOPIC: String = "FAILED_TO_SUBSCRIBE_TO_PAIRING_TOPIC"
+		const val PAIRING_SUBSCRIPTION_FAILURE: String = "FAILED_TO_SUBSCRIBE_TO_PAIRING_TOPIC"
 
 		@get:JvmSynthetic
 		const val PAIRING_EXPIRED: String = "PAIRING_EXPIRED"
@@ -20,6 +20,23 @@ internal object EventType {
 
 		@get:JvmSynthetic
 		const val NO_INTERNET_CONNECTION: String = "NO_INTERNET_CONNECTION"
+	}
+
+	internal object Sign {
+		@get:JvmSynthetic
+		const val PROPOSAL_EXPIRED: String = "PROPOSAL_EXPIRED"
+
+		@get:JvmSynthetic
+		const val SESSION_SUBSCRIPTION_FAILURE: String = "SESSION_SUBSCRIPTION_FAILURE"
+
+		@get:JvmSynthetic
+		const val SESSION_APPROVE_PUBLISH_FAILURE: String = "SESSION_APPROVE_PUBLISH_FAILURE"
+
+		@get:JvmSynthetic
+		const val SESSION_SETTLE_PUBLISH_FAILURE: String = "SESSION_SETTLE_PUBLISH_FAILURE"
+
+		@get:JvmSynthetic
+		const val SESSION_APPROVE_NAMESPACE_VALIDATION_FAILURE: String = "SESSION_APPROVE_NAMESPACE_VALIDATION_FAILURE"
 	}
 
 	internal object W3M {

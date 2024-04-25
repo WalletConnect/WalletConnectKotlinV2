@@ -47,10 +47,15 @@ fun coreCommonModule() = module {
             .withSubtype(Props.W3M.ClickGetWallet::class.java, "click_get_wallet")
             .withSubtype(Props.Pairing.MalformedPairingUri::class.java, "malformed_pairing_uri")
             .withSubtype(Props.Pairing.PairingAlreadyExist::class.java, "pairing_already_exist")
-            .withSubtype(Props.Pairing.FailedToSubscribeToPairingTopic::class.java, "failed_to_subscribe_to_pairing_topic")
+            .withSubtype(Props.Pairing.PairingSubscriptionFailure::class.java, "failed_to_subscribe_to_pairing_topic")
             .withSubtype(Props.Pairing.PairingExpired::class.java, "pairing_expired")
             .withSubtype(Props.NoWSSConnection::class.java, "no_wss_connection")
             .withSubtype(Props.NoInternetConnection::class.java, "no_internet_connection")
+            .withSubtype(Props.Sign.ProposalExpired::class.java, "proposal_expired")
+            .withSubtype(Props.Sign.SessionSettlePublishFailure::class.java, "session_settle_publish_failure")
+            .withSubtype(Props.Sign.SessionApprovePublishFailure::class.java, "session_approve_publish_failure")
+            .withSubtype(Props.Sign.SessionSubscriptionFailure::class.java, "session_subscription_failure")
+            .withSubtype(Props.Sign.SessionApproveNamespaceValidationFailure::class.java, "session_approve_namespace_validation_failure")
     }
 
     single<Moshi.Builder>(named(AndroidCommonDITags.MOSHI)) {

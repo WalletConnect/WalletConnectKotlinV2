@@ -40,12 +40,12 @@ import com.walletconnect.android.pairing.model.PairingParams
 import com.walletconnect.android.pairing.model.PairingRpc
 import com.walletconnect.android.pairing.model.inactivePairing
 import com.walletconnect.android.pairing.model.mapper.toCore
-import com.walletconnect.android.pulse.domain.pairing.SendFailedToSubscribeToPairingTopicUseCase
 import com.walletconnect.android.pulse.domain.pairing.SendMalformedPairingUriUseCase
 import com.walletconnect.android.pulse.domain.pairing.SendNoInternetConnectionUseCase
 import com.walletconnect.android.pulse.domain.pairing.SendNoWSSConnectionUseCase
 import com.walletconnect.android.pulse.domain.pairing.SendPairingAlreadyExistUseCase
 import com.walletconnect.android.pulse.domain.pairing.SendPairingExpiredUseCase
+import com.walletconnect.android.pulse.domain.pairing.SendPairingSubscriptionFailureUseCase
 import com.walletconnect.android.relay.WSSConnectionState
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -87,7 +87,7 @@ internal class PairingEngine(
     private val pairingRepository: PairingStorageRepositoryInterface,
     private val sendMalformedPairingUriUseCase: SendMalformedPairingUriUseCase,
     private val sendPairingAlreadyExistUseCase: SendPairingAlreadyExistUseCase,
-    private val sendFailedToSubscribeToPairingTopicUseCase: SendFailedToSubscribeToPairingTopicUseCase,
+    private val sendPairingSubscriptionFailureUseCase: SendPairingSubscriptionFailureUseCase,
     private val sendPairingExpiredUseCase: SendPairingExpiredUseCase,
     private val sendNoWSSConnection: SendNoWSSConnectionUseCase,
     private val sendNoInternetConnectionUseCase: SendNoInternetConnectionUseCase,
@@ -208,7 +208,7 @@ internal class PairingEngine(
                     onSuccess()
                 }, onFailure = { error ->
                     logger.error("Subscribe pairing topic error: ${inactivePairing.topic.value}, error: $error")
-					sendFailedToSubscribeToPairingTopicUseCase()
+					sendPairingSubscriptionFailureUseCase()
                     onFailure(error)
                 }
             )

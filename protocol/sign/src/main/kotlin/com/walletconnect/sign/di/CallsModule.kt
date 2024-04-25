@@ -91,6 +91,11 @@ internal fun callsModule() = module {
             sessionStorageRepository = get(),
             verifyContextStorageRepository = get(),
             pairingController = get(),
+            sendProposalExpiredUseCase = get(),
+            sendSessionApproveNamespaceValidationFailureUseCase = get(),
+            sendSessionSettlePublishFailureUseCase = get(),
+            sendSessionSubscriptionFailureUseCase = get(),
+            sendSessionApprovePublishFailureUseCase = get(),
             logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }
