@@ -14,6 +14,12 @@ internal object EventType {
 
 		@get:JvmSynthetic
 		const val PAIRING_EXPIRED: String = "PAIRING_EXPIRED"
+
+		@get:JvmSynthetic
+		const val NO_WSS_CONNECTION: String = "NO_WSS_CONNECTION"
+
+		@get:JvmSynthetic
+		const val NO_INTERNET_CONNECTION: String = "NO_INTERNET_CONNECTION"
 	}
 
 	internal object W3M {

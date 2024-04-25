@@ -9,7 +9,7 @@ import com.walletconnect.android.pulse.model.properties.Props
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.util.generateId
 
-class SendFailedToSubscribeToPairingTopicUseCase(
+class SendNoWSSConnectionUseCase(
 	pulseService: PulseService,
 	logger: Logger,
 	bundleId: String
@@ -21,7 +21,7 @@ class SendFailedToSubscribeToPairingTopicUseCase(
 				eventId = generateId(),
 				bundleId = bundleId,
 				timestamp = currentTimeInSeconds,
-				props = Props.Pairing.FailedToSubscribeToPairingTopic()
+				props = Props.Pairing.NoWSSConnection()
 			), SDKType.EVENTS
 		)
 	}

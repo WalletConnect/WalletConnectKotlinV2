@@ -11,6 +11,8 @@ import com.walletconnect.android.internal.common.exception.CannotFindSequenceFor
 import com.walletconnect.android.internal.common.exception.ExpiredPairingException
 import com.walletconnect.android.internal.common.exception.Invalid
 import com.walletconnect.android.internal.common.exception.MalformedWalletConnectUri
+import com.walletconnect.android.internal.common.exception.NoInternetConnectionException
+import com.walletconnect.android.internal.common.exception.NoRelayConnectionException
 import com.walletconnect.android.internal.common.exception.PairWithExistingPairingIsNotAllowed
 import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.model.AppMetaData
@@ -40,6 +42,8 @@ import com.walletconnect.android.pairing.model.inactivePairing
 import com.walletconnect.android.pairing.model.mapper.toCore
 import com.walletconnect.android.pulse.domain.pairing.SendFailedToSubscribeToPairingTopicUseCase
 import com.walletconnect.android.pulse.domain.pairing.SendMalformedPairingUriUseCase
+import com.walletconnect.android.pulse.domain.pairing.SendNoInternetConnectionUseCase
+import com.walletconnect.android.pulse.domain.pairing.SendNoWSSConnectionUseCase
 import com.walletconnect.android.pulse.domain.pairing.SendPairingAlreadyExistUseCase
 import com.walletconnect.android.pulse.domain.pairing.SendPairingExpiredUseCase
 import com.walletconnect.android.relay.WSSConnectionState
@@ -85,6 +89,8 @@ internal class PairingEngine(
     private val sendPairingAlreadyExistUseCase: SendPairingAlreadyExistUseCase,
     private val sendFailedToSubscribeToPairingTopicUseCase: SendFailedToSubscribeToPairingTopicUseCase,
     private val sendPairingExpiredUseCase: SendPairingExpiredUseCase,
+    private val sendNoWSSConnection: SendNoWSSConnectionUseCase,
+    private val sendNoInternetConnectionUseCase: SendNoInternetConnectionUseCase,
 ) {
     private var jsonRpcRequestsJob: Job? = null
     private val setOfRegisteredMethods: MutableSet<String> = mutableSetOf()
@@ -204,9 +210,17 @@ internal class PairingEngine(
                     logger.error("Subscribe pairing topic error: ${inactivePairing.topic.value}, error: $error")
 					sendFailedToSubscribeToPairingTopicUseCase()
                     onFailure(error)
-                })
+                }
+            )
         } catch (e: Exception) {
             logger.error("Subscribe pairing topic error: ${inactivePairing.topic.value}, error: $e")
+			if (e is NoRelayConnectionException) {
+				sendNoWSSConnection()
+			}
+
+            if (e is NoInternetConnectionException) {
+                sendNoInternetConnectionUseCase()
+            }
             runCatching {
                 crypto.removeKeys(walletConnectUri.topic.value)
             }.onFailure { logger.error("Remove keys error: ${inactivePairing.topic.value}, error: $it") }

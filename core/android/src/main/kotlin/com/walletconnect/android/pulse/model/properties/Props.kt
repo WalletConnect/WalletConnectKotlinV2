@@ -40,6 +40,22 @@ sealed class Props {
 			@Json(name = "type")
 			override val type: String = EventType.Pairing.PAIRING_EXPIRED
 		) : Props()
+
+		@JsonClass(generateAdapter = true)
+		data class NoWSSConnection(
+			@Json(name = "event")
+			override val event: String = "error",
+			@Json(name = "type")
+			override val type: String = EventType.Pairing.NO_WSS_CONNECTION
+		) : Props()
+
+		@JsonClass(generateAdapter = true)
+		data class NoInternetConnection(
+			@Json(name = "event")
+			override val event: String = "error",
+			@Json(name = "type")
+			override val type: String = EventType.Pairing.NO_INTERNET_CONNECTION
+		) : Props()
 	}
 
 	sealed class W3M : Props() {
