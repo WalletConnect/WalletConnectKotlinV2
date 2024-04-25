@@ -8,6 +8,22 @@ sealed class Props {
 	abstract val event: String
 	abstract val type: String
 
+	@JsonClass(generateAdapter = true)
+	data class NoWSSConnection(
+		@Json(name = "event")
+		override val event: String = "error",
+		@Json(name = "type")
+		override val type: String = EventType.Pairing.NO_WSS_CONNECTION
+	) : Props()
+
+	@JsonClass(generateAdapter = true)
+	data class NoInternetConnection(
+		@Json(name = "event")
+		override val event: String = "error",
+		@Json(name = "type")
+		override val type: String = EventType.Pairing.NO_INTERNET_CONNECTION
+	) : Props()
+
 	sealed class Pairing : Props() {
 		@JsonClass(generateAdapter = true)
 		data class MalformedPairingUri(
@@ -39,22 +55,6 @@ sealed class Props {
 			override val event: String = "error",
 			@Json(name = "type")
 			override val type: String = EventType.Pairing.PAIRING_EXPIRED
-		) : Props()
-
-		@JsonClass(generateAdapter = true)
-		data class NoWSSConnection(
-			@Json(name = "event")
-			override val event: String = "error",
-			@Json(name = "type")
-			override val type: String = EventType.Pairing.NO_WSS_CONNECTION
-		) : Props()
-
-		@JsonClass(generateAdapter = true)
-		data class NoInternetConnection(
-			@Json(name = "event")
-			override val event: String = "error",
-			@Json(name = "type")
-			override val type: String = EventType.Pairing.NO_INTERNET_CONNECTION
 		) : Props()
 	}
 

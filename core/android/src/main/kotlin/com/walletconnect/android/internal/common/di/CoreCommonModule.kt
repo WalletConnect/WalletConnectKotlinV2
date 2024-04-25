@@ -49,8 +49,8 @@ fun coreCommonModule() = module {
             .withSubtype(Props.Pairing.PairingAlreadyExist::class.java, "pairing_already_exist")
             .withSubtype(Props.Pairing.FailedToSubscribeToPairingTopic::class.java, "failed_to_subscribe_to_pairing_topic")
             .withSubtype(Props.Pairing.PairingExpired::class.java, "pairing_expired")
-            .withSubtype(Props.Pairing.NoWSSConnection::class.java, "no_wss_connection")
-            .withSubtype(Props.Pairing.NoInternetConnection::class.java, "no_internet_connection")
+            .withSubtype(Props.NoWSSConnection::class.java, "no_wss_connection")
+            .withSubtype(Props.NoInternetConnection::class.java, "no_internet_connection")
     }
 
     single<Moshi.Builder>(named(AndroidCommonDITags.MOSHI)) {

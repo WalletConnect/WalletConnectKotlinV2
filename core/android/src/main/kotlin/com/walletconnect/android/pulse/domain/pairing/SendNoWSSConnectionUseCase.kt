@@ -21,7 +21,7 @@ class SendNoWSSConnectionUseCase(
 				eventId = generateId(),
 				bundleId = bundleId,
 				timestamp = currentTimeInSeconds,
-				props = Props.Pairing.NoWSSConnection()
+				props = Props.NoWSSConnection()
 			), SDKType.EVENTS
 		)
 	}

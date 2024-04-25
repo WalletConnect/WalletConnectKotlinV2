@@ -36,7 +36,7 @@ internal class RejectSessionUseCase(
         jsonRpcInteractor.respondWithError(
             proposal.toSessionProposeRequest(),
             PeerError.EIP1193.UserRejectedRequest(reason),
-            IrnParams(Tags.SESSION_PROPOSE_RESPONSE_AUTO_REJECT, Ttl(fiveMinutesInSeconds)),
+            IrnParams(Tags.SESSION_PROPOSE_RESPONSE_REJECT, Ttl(fiveMinutesInSeconds)),
             onSuccess = {
                 logger.log("Session rejection sent successfully, topic: ${proposal.pairingTopic.value}")
                 scope.launch {
