@@ -18,6 +18,9 @@ fun corePairingModule(pairing: PairingInterface, pairingController: PairingContr
             sendMalformedPairingUriUseCase = get(),
             sendPairingAlreadyExistUseCase = get(),
             sendFailedToSubscribeToPairingTopicUseCase = get(),
+            sendNoInternetConnectionUseCase = get(),
+            sendNoWSSConnection = get(),
+            sendPairingExpiredUseCase = get(),
         )
     }
     single { pairing }
