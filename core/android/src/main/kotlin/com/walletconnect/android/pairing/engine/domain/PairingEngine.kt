@@ -38,6 +38,7 @@ import com.walletconnect.android.pairing.model.PairingParams
 import com.walletconnect.android.pairing.model.PairingRpc
 import com.walletconnect.android.pairing.model.inactivePairing
 import com.walletconnect.android.pairing.model.mapper.toCore
+import com.walletconnect.android.pulse.domain.pairing.SendMalformedPairingUriUseCase
 import com.walletconnect.android.relay.WSSConnectionState
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -76,7 +77,8 @@ internal class PairingEngine(
     private val metadataRepository: MetadataStorageRepositoryInterface,
     private val crypto: KeyManagementRepository,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
-    private val pairingRepository: PairingStorageRepositoryInterface
+    private val pairingRepository: PairingStorageRepositoryInterface,
+    private val sendMalformedPairingUriUseCase: SendMalformedPairingUriUseCase
 ) {
     private var jsonRpcRequestsJob: Job? = null
     private val setOfRegisteredMethods: MutableSet<String> = mutableSetOf()
@@ -149,7 +151,12 @@ internal class PairingEngine(
     }
 
     fun pair(uri: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
-        val walletConnectUri: WalletConnectUri = Validator.validateWCUri(uri) ?: return onFailure(MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE))
+        sendMalformedPairingUriUseCase()
+        val walletConnectUri: WalletConnectUri = Validator.validateWCUri(uri) ?: run {
+			sendMalformedPairingUriUseCase()
+            return onFailure(MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE))
+		}
+
         val inactivePairing = Pairing(walletConnectUri)
         val symmetricKey = walletConnectUri.symKey
 

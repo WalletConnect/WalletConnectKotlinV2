@@ -20,7 +20,7 @@ class SendClickGetWalletUseCase(
                 eventId = generateId(),
                 bundleId = bundleId,
                 timestamp = currentTimeInSeconds,
-                props = Props.ClickGetWallet()
+                props = Props.W3M.ClickGetWallet()
             ), SDKType.WEB3MODAL
         )
     }

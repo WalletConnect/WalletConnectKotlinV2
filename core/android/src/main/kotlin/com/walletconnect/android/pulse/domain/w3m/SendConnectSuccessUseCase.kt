@@ -22,7 +22,7 @@ class SendConnectSuccessUseCase(
                 eventId = generateId(),
                 bundleId = bundleId,
                 timestamp = currentTimeInSeconds,
-                props = Props.ConnectSuccess(properties = properties)
+                props = Props.W3M.ConnectSuccess(properties = properties)
             ), SDKType.WEB3MODAL
         )
     }

@@ -22,7 +22,7 @@ class SendSelectWalletUseCase(
                 eventId = generateId(),
                 bundleId = bundleId,
                 timestamp = currentTimeInSeconds,
-                props = Props.SelectWallet(properties = properties)
+                props = Props.W3M.SelectWallet(properties = properties)
             ), SDKType.WEB3MODAL
         )
     }
