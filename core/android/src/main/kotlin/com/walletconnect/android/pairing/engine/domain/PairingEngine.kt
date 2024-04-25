@@ -41,6 +41,7 @@ import com.walletconnect.android.pairing.model.mapper.toCore
 import com.walletconnect.android.pulse.domain.pairing.SendFailedToSubscribeToPairingTopicUseCase
 import com.walletconnect.android.pulse.domain.pairing.SendMalformedPairingUriUseCase
 import com.walletconnect.android.pulse.domain.pairing.SendPairingAlreadyExistUseCase
+import com.walletconnect.android.pulse.domain.pairing.SendPairingExpiredUseCase
 import com.walletconnect.android.relay.WSSConnectionState
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -83,6 +84,7 @@ internal class PairingEngine(
     private val sendMalformedPairingUriUseCase: SendMalformedPairingUriUseCase,
     private val sendPairingAlreadyExistUseCase: SendPairingAlreadyExistUseCase,
     private val sendFailedToSubscribeToPairingTopicUseCase: SendFailedToSubscribeToPairingTopicUseCase,
+    private val sendPairingExpiredUseCase: SendPairingExpiredUseCase,
 ) {
     private var jsonRpcRequestsJob: Job? = null
     private val setOfRegisteredMethods: MutableSet<String> = mutableSetOf()
@@ -167,6 +169,7 @@ internal class PairingEngine(
             logger.log("Pairing started: ${inactivePairing.topic}")
             if (walletConnectUri.expiry?.isExpired() == true) {
                 logger.error("Pairing expired: ${inactivePairing.topic.value}")
+                sendPairingExpiredUseCase()
                 return onFailure(ExpiredPairingException("Pairing expired: ${walletConnectUri.topic.value}"))
             }
             if (pairingRepository.getPairingOrNullByTopic(inactivePairing.topic) != null) {

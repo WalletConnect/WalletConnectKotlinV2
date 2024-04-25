@@ -48,6 +48,7 @@ fun coreCommonModule() = module {
             .withSubtype(Props.Pairing.MalformedPairingUri::class.java, "malformed_pairing_uri")
             .withSubtype(Props.Pairing.PairingAlreadyExist::class.java, "pairing_already_exist")
             .withSubtype(Props.Pairing.FailedToSubscribeToPairingTopic::class.java, "failed_to_subscribe_to_pairing_topic")
+            .withSubtype(Props.Pairing.PairingExpired::class.java, "pairing_expired")
     }
 
     single<Moshi.Builder>(named(AndroidCommonDITags.MOSHI)) {

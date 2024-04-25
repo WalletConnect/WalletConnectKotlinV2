@@ -4,6 +4,7 @@ import com.walletconnect.android.internal.common.model.PackageName
 import com.walletconnect.android.pulse.domain.pairing.SendFailedToSubscribeToPairingTopicUseCase
 import com.walletconnect.android.pulse.domain.pairing.SendMalformedPairingUriUseCase
 import com.walletconnect.android.pulse.domain.pairing.SendPairingAlreadyExistUseCase
+import com.walletconnect.android.pulse.domain.pairing.SendPairingExpiredUseCase
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
@@ -27,6 +28,14 @@ fun pairingPulseModule() = module {
 
 	single {
 		SendFailedToSubscribeToPairingTopicUseCase(
+			pulseService = get(),
+			logger = get(named(AndroidCommonDITags.LOGGER)),
+			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+		)
+	}
+
+	single {
+		SendPairingExpiredUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
 			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value

@@ -11,6 +11,9 @@ internal object EventType {
 
 		@get:JvmSynthetic
 		const val FAILED_TO_SUBSCRIBE_TO_PAIRING_TOPIC: String = "FAILED_TO_SUBSCRIBE_TO_PAIRING_TOPIC"
+
+		@get:JvmSynthetic
+		const val PAIRING_EXPIRED: String = "PAIRING_EXPIRED"
 	}
 
 	internal object W3M {

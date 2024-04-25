@@ -32,6 +32,14 @@ sealed class Props {
 			@Json(name = "type")
 			override val type: String = EventType.Pairing.FAILED_TO_SUBSCRIBE_TO_PAIRING_TOPIC
 		) : Props()
+
+		@JsonClass(generateAdapter = true)
+		data class PairingExpired(
+			@Json(name = "event")
+			override val event: String = "error",
+			@Json(name = "type")
+			override val type: String = EventType.Pairing.PAIRING_EXPIRED
+		) : Props()
 	}
 
 	sealed class W3M : Props() {
