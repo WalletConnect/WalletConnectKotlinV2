@@ -151,7 +151,6 @@ internal class PairingEngine(
     }
 
     fun pair(uri: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
-        sendMalformedPairingUriUseCase()
         val walletConnectUri: WalletConnectUri = Validator.validateWCUri(uri) ?: run {
 			sendMalformedPairingUriUseCase()
             return onFailure(MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE))

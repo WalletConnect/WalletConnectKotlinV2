@@ -9,7 +9,11 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 
 @JvmSynthetic
 fun pulseModule() = module {
-	single(named(AndroidCommonDITags.PULSE_URL)) { "https://pulse.walletconnect.org" }
+	single(named(AndroidCommonDITags.PULSE_URL)) {
+		//todo: use prod
+//		"https://pulse.walletconnect.org"
+		"https://analytics-api-cf-workers-staging.walletconnect-v1-bridge.workers.dev"
+	}
 
 	single(named(AndroidCommonDITags.PULSE_RETROFIT)) {
 		Retrofit.Builder()
