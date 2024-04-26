@@ -13,6 +13,7 @@ import com.walletconnect.android.internal.common.storage.metadata.MetadataStorag
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
+import com.walletconnect.android.pulse.domain.sign.SendProposalExpiredUseCase
 import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.android.relay.WSSConnectionState
 import com.walletconnect.android.verify.data.model.VerifyContext
@@ -135,6 +136,7 @@ internal class SignEngine(
     private val onSessionSettleResponseUseCase: OnSessionSettleResponseUseCase,
     private val onSessionUpdateResponseUseCase: OnSessionUpdateResponseUseCase,
     private val onSessionRequestResponseUseCase: OnSessionRequestResponseUseCase,
+    private val sendProposalExpiredUseCase: SendProposalExpiredUseCase,
     private val logger: Logger
 ) : ProposeSessionUseCaseInterface by proposeSessionUseCase,
     SessionAuthenticateUseCaseInterface by authenticateSessionUseCase,
@@ -419,6 +421,7 @@ internal class SignEngine(
                     } else {
                         val proposal = proposalStorageRepository.getProposalByTopic(pairingTopic.value)
                         if (proposal.expiry?.isExpired() == true) {
+                            sendProposalExpiredUseCase()
                             proposalStorageRepository.deleteProposal(proposal.proposerPublicKey)
                             scope.launch { _engineEvent.emit(proposal.toExpiredProposal()) }
                         } else {

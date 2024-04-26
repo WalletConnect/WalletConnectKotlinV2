@@ -14,7 +14,13 @@ fun corePairingModule(pairing: PairingInterface, pairingController: PairingContr
             metadataRepository = get(),
             pairingRepository = get(),
             jsonRpcInteractor = get(),
-            logger = get(named(AndroidCommonDITags.LOGGER))
+            logger = get(named(AndroidCommonDITags.LOGGER)),
+            sendMalformedPairingUriUseCase = get(),
+            sendPairingAlreadyExistUseCase = get(),
+            sendPairingSubscriptionFailureUseCase = get(),
+            sendNoInternetConnectionUseCase = get(),
+            sendNoWSSConnection = get(),
+            sendPairingExpiredUseCase = get(),
         )
     }
     single { pairing }

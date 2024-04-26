@@ -11,6 +11,8 @@ import com.walletconnect.android.internal.common.exception.CannotFindSequenceFor
 import com.walletconnect.android.internal.common.exception.ExpiredPairingException
 import com.walletconnect.android.internal.common.exception.Invalid
 import com.walletconnect.android.internal.common.exception.MalformedWalletConnectUri
+import com.walletconnect.android.internal.common.exception.NoInternetConnectionException
+import com.walletconnect.android.internal.common.exception.NoRelayConnectionException
 import com.walletconnect.android.internal.common.exception.PairWithExistingPairingIsNotAllowed
 import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.model.AppMetaData
@@ -38,6 +40,12 @@ import com.walletconnect.android.pairing.model.PairingParams
 import com.walletconnect.android.pairing.model.PairingRpc
 import com.walletconnect.android.pairing.model.inactivePairing
 import com.walletconnect.android.pairing.model.mapper.toCore
+import com.walletconnect.android.pulse.domain.pairing.SendMalformedPairingUriUseCase
+import com.walletconnect.android.pulse.domain.pairing.SendNoInternetConnectionUseCase
+import com.walletconnect.android.pulse.domain.pairing.SendNoWSSConnectionUseCase
+import com.walletconnect.android.pulse.domain.pairing.SendPairingAlreadyExistUseCase
+import com.walletconnect.android.pulse.domain.pairing.SendPairingExpiredUseCase
+import com.walletconnect.android.pulse.domain.pairing.SendPairingSubscriptionFailureUseCase
 import com.walletconnect.android.relay.WSSConnectionState
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -76,7 +84,13 @@ internal class PairingEngine(
     private val metadataRepository: MetadataStorageRepositoryInterface,
     private val crypto: KeyManagementRepository,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
-    private val pairingRepository: PairingStorageRepositoryInterface
+    private val pairingRepository: PairingStorageRepositoryInterface,
+    private val sendMalformedPairingUriUseCase: SendMalformedPairingUriUseCase,
+    private val sendPairingAlreadyExistUseCase: SendPairingAlreadyExistUseCase,
+    private val sendPairingSubscriptionFailureUseCase: SendPairingSubscriptionFailureUseCase,
+    private val sendPairingExpiredUseCase: SendPairingExpiredUseCase,
+    private val sendNoWSSConnection: SendNoWSSConnectionUseCase,
+    private val sendNoInternetConnectionUseCase: SendNoInternetConnectionUseCase,
 ) {
     private var jsonRpcRequestsJob: Job? = null
     private val setOfRegisteredMethods: MutableSet<String> = mutableSetOf()
@@ -149,7 +163,11 @@ internal class PairingEngine(
     }
 
     fun pair(uri: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
-        val walletConnectUri: WalletConnectUri = Validator.validateWCUri(uri) ?: return onFailure(MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE))
+        val walletConnectUri: WalletConnectUri = Validator.validateWCUri(uri) ?: run {
+			sendMalformedPairingUriUseCase()
+            return onFailure(MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE))
+		}
+
         val inactivePairing = Pairing(walletConnectUri)
         val symmetricKey = walletConnectUri.symKey
 
@@ -157,6 +175,7 @@ internal class PairingEngine(
             logger.log("Pairing started: ${inactivePairing.topic}")
             if (walletConnectUri.expiry?.isExpired() == true) {
                 logger.error("Pairing expired: ${inactivePairing.topic.value}")
+                sendPairingExpiredUseCase()
                 return onFailure(ExpiredPairingException("Pairing expired: ${walletConnectUri.topic.value}"))
             }
             if (pairingRepository.getPairingOrNullByTopic(inactivePairing.topic) != null) {
@@ -167,6 +186,7 @@ internal class PairingEngine(
                 }
                 if (pairing.isActive) {
                     logger.error("Pairing already exists error: ${inactivePairing.topic.value}")
+                    sendPairingAlreadyExistUseCase()
                     return onFailure(PairWithExistingPairingIsNotAllowed(PAIRING_NOT_ALLOWED_MESSAGE))
                 } else {
                     logger.log("Emitting activate pairing: ${inactivePairing.topic.value}")
@@ -188,10 +208,19 @@ internal class PairingEngine(
                     onSuccess()
                 }, onFailure = { error ->
                     logger.error("Subscribe pairing topic error: ${inactivePairing.topic.value}, error: $error")
+					sendPairingSubscriptionFailureUseCase()
                     onFailure(error)
-                })
+                }
+            )
         } catch (e: Exception) {
             logger.error("Subscribe pairing topic error: ${inactivePairing.topic.value}, error: $e")
+			if (e is NoRelayConnectionException) {
+				sendNoWSSConnection()
+			}
+
+            if (e is NoInternetConnectionException) {
+                sendNoInternetConnectionUseCase()
+            }
             runCatching {
                 crypto.removeKeys(walletConnectUri.topic.value)
             }.onFailure { logger.error("Remove keys error: ${inactivePairing.topic.value}, error: $it") }

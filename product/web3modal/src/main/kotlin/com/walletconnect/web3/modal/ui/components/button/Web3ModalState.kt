@@ -5,9 +5,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavController
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.android.pulse.domain.SendClickNetworksUseCase
-import com.walletconnect.android.pulse.domain.SendModalCloseUseCase
-import com.walletconnect.android.pulse.domain.SendModalOpenUseCase
+import com.walletconnect.android.pulse.domain.w3m.SendClickNetworksUseCase
+import com.walletconnect.android.pulse.domain.w3m.SendModalCloseUseCase
+import com.walletconnect.android.pulse.domain.w3m.SendModalOpenUseCase
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal

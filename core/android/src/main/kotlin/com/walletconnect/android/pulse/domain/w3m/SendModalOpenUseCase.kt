@@ -1,8 +1,10 @@
-package com.walletconnect.android.pulse.domain
+package com.walletconnect.android.pulse.domain.w3m
 
 import com.walletconnect.android.internal.utils.currentTimeInSeconds
 import com.walletconnect.android.pulse.data.PulseService
+import com.walletconnect.android.pulse.domain.SendEventUseCase
 import com.walletconnect.android.pulse.model.Event
+import com.walletconnect.android.pulse.model.SDKType
 import com.walletconnect.android.pulse.model.properties.ModalConnectedProperties
 import com.walletconnect.android.pulse.model.properties.Props
 import com.walletconnect.foundation.util.Logger
@@ -20,8 +22,8 @@ class SendModalOpenUseCase(
                 eventId = generateId(),
                 bundleId = bundleId,
                 timestamp = currentTimeInSeconds,
-                props = Props.ModalOpen(properties = properties)
-            )
+                props = Props.W3M.ModalOpen(properties = properties)
+            ), SDKType.WEB3MODAL
         )
     }
 }
