@@ -24,7 +24,7 @@ data class NetworkClientTimeout(
         private const val MAX_TIMEOUT_LIMIT_AS_MILLIS = 60_000L
 
         fun getDefaultTimeout() = NetworkClientTimeout(
-            timeout = MAX_TIMEOUT_LIMIT_AS_MILLIS,
+            timeout = MIN_TIMEOUT_LIMIT_AS_MILLIS,
             timeUnit = TimeUnit.MILLISECONDS
         )
     }
