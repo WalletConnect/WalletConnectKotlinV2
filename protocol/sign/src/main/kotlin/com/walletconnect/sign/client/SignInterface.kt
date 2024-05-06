@@ -3,6 +3,7 @@ package com.walletconnect.sign.client
 interface SignInterface {
     interface WalletDelegate {
         fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal, verifyContext: Sign.Model.VerifyContext)
+        val onSessionAuthenticate: ((Sign.Model.SessionAuthenticate, Sign.Model.VerifyContext) -> Unit)? get() = null
         fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest, verifyContext: Sign.Model.VerifyContext)
         fun onSessionDelete(deletedSession: Sign.Model.DeletedSession)
         fun onSessionExtend(session: Sign.Model.Session)
@@ -12,8 +13,12 @@ interface SignInterface {
         fun onSessionUpdateResponse(sessionUpdateResponse: Sign.Model.SessionUpdateResponse)
 
         //Utils
-        fun onProposalExpired(proposal: Sign.Model.ExpiredProposal)
-        fun onRequestExpired(request: Sign.Model.ExpiredRequest)
+        fun onProposalExpired(proposal: Sign.Model.ExpiredProposal) {
+            //override me
+        }
+        fun onRequestExpired(request: Sign.Model.ExpiredRequest) {
+            //override me
+        }
         fun onConnectionStateChange(state: Sign.Model.ConnectionState)
         fun onError(error: Sign.Model.Error)
     }
@@ -35,6 +40,7 @@ interface SignInterface {
 
         //Responses
         fun onSessionRequestResponse(response: Sign.Model.SessionRequestResponse)
+        fun onSessionAuthenticateResponse(sessionAuthenticateResponse: Sign.Model.SessionAuthenticateResponse) {}
 
         // Utils
         fun onProposalExpired(proposal: Sign.Model.ExpiredProposal)
@@ -61,6 +67,8 @@ interface SignInterface {
         onError: (Sign.Model.Error) -> Unit,
     )
 
+    fun authenticate(authenticate: Sign.Params.Authenticate, onSuccess: (String) -> Unit, onError: (Sign.Model.Error) -> Unit)
+
     @Deprecated(
         message = "Creating a pairing will be moved to CoreClient to make pairing SDK agnostic",
         replaceWith = ReplaceWith(expression = "CoreClient.Pairing.pair()", imports = ["com.walletconnect.android.CoreClient"])
@@ -68,6 +76,9 @@ interface SignInterface {
     fun pair(pair: Sign.Params.Pair, onSuccess: (Sign.Params.Pair) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun approveSession(approve: Sign.Params.Approve, onSuccess: (Sign.Params.Approve) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
     fun rejectSession(reject: Sign.Params.Reject, onSuccess: (Sign.Params.Reject) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
+    fun approveAuthenticate(approve: Sign.Params.ApproveAuthenticate, onSuccess: (Sign.Params.ApproveAuthenticate) -> Unit, onError: (Sign.Model.Error) -> Unit)
+    fun rejectAuthenticate(reject: Sign.Params.RejectAuthenticate, onSuccess: (Sign.Params.RejectAuthenticate) -> Unit, onError: (Sign.Model.Error) -> Unit)
+    fun formatAuthMessage(formatMessage: Sign.Params.FormatMessage): String
 
     @Deprecated(
         message = "The onSuccess callback has been replaced with a new callback that returns Sign.Model.SentRequest",
@@ -158,6 +169,12 @@ interface SignInterface {
      * It is advised that this function be called from background operation
      */
     fun getVerifyContext(id: Long): Sign.Model.VerifyContext?
+
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
+    fun getPendingAuthenticateRequests(): List<Sign.Model.SessionAuthenticate>
 
     /**
      * Caution: This function is blocking and runs on the current thread.

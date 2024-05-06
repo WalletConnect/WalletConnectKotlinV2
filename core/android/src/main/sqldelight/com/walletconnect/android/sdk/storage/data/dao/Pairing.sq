@@ -21,6 +21,24 @@ SELECT pd.topic, pd.expiry, pd.relay_protocol, pd.relay_data, pd.uri, pd.methods
 FROM Pairing pd
     LEFT JOIN MetaData mdd_peer ON pd.topic = mdd_peer.sequence_topic AND mdd_peer.type = "PEER";
 
+getListOfInactivePairingsWithoutRequestReceived:
+SELECT pd.topic, pd.expiry, pd.relay_protocol, pd.relay_data, pd.uri, pd.methods, pd.is_active, pd.is_proposal_received, mdd_peer.name, mdd_peer.description, mdd_peer.url, mdd_peer.icons, mdd_peer.native
+FROM Pairing pd
+    LEFT JOIN MetaData mdd_peer ON pd.topic = mdd_peer.sequence_topic AND mdd_peer.type = "PEER"
+WHERE pd.is_active = 0 AND pd.is_proposal_received = 0;
+
+getListOfInactivePairings:
+SELECT pd.topic, pd.expiry, pd.relay_protocol, pd.relay_data, pd.uri, pd.methods, pd.is_active, pd.is_proposal_received, mdd_peer.name, mdd_peer.description, mdd_peer.url, mdd_peer.icons, mdd_peer.native
+FROM Pairing pd
+    LEFT JOIN MetaData mdd_peer ON pd.topic = mdd_peer.sequence_topic AND mdd_peer.type = "PEER"
+WHERE pd.is_active = 0;
+
+getListOfActivePairings:
+SELECT pd.topic, pd.expiry, pd.relay_protocol, pd.relay_data, pd.uri, pd.methods, pd.is_active, pd.is_proposal_received, mdd_peer.name, mdd_peer.description, mdd_peer.url, mdd_peer.icons, mdd_peer.native
+FROM Pairing pd
+    LEFT JOIN MetaData mdd_peer ON pd.topic = mdd_peer.sequence_topic AND mdd_peer.type = "PEER"
+WHERE pd.is_active = 1;
+
 getPairingByTopic:
 SELECT pd.topic, pd.expiry, pd.relay_protocol, pd.relay_data, pd.uri, pd.methods, pd.is_active, pd.is_proposal_received, mdd_peer.name, mdd_peer.description, mdd_peer.url, mdd_peer.icons, mdd_peer.native
 FROM Pairing pd
@@ -36,7 +54,7 @@ UPDATE OR ABORT Pairing
 SET expiry = ?, is_active = ?
 WHERE topic = ?;
 
-setProposalReceived:
+setRequestReceived:
 UPDATE OR ABORT Pairing
 SET is_proposal_received = ?
 WHERE topic = ?;

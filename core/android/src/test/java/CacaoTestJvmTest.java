@@ -10,10 +10,11 @@ import com.walletconnect.util.UtilFunctionsKt;
 import org.junit.Assert;
 import org.junit.Test;
 import org.web3j.utils.Numeric;
+
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
-class CacaoTestJvmTest {
+public class CacaoTestJvmTest {
     ArrayList<String> resources = new ArrayList<>();
     byte[] privateKey = UtilFunctionsKt.hexToBytes("305c6cde3846927892cd32762f6120539f3ec74c9e3a16b9b798b1e85351ae2a");
 
@@ -40,7 +41,7 @@ class CacaoTestJvmTest {
         );
 
         String chainName = "Ethereum";
-        String message = CacaoKt.toCAIP122Message(payload, chainName);
+        String message = CacaoKt.toCAIP222Message(payload, chainName);
         SignatureTest signature = CacaoSignerUtil.signHex(SignatureTest.class, Numeric.toHexString(message.getBytes(StandardCharsets.UTF_8)), privateKey, SignatureType.EIP191);
         Cacao.Signature cacaoSig = new Cacao.Signature(signature.getT(), signature.getS(), signature.getM());
         Cacao cacao = new Cacao(CacaoType.EIP4361.toHeader(), payload, cacaoSig);
@@ -72,7 +73,7 @@ class CacaoTestJvmTest {
         );
 
         String chainName = "Ethereum";
-        String message = CacaoKt.toCAIP122Message(payload, chainName);
+        String message = CacaoKt.toCAIP222Message(payload, chainName);
         SignatureTest signature = CacaoSignerUtil.sign(SignatureTest.class, message, privateKey, SignatureType.EIP191);
         Cacao.Signature cacaoSig = new Cacao.Signature(signature.getT(), signature.getS(), signature.getM());
         Cacao cacao = new Cacao(CacaoType.EIP4361.toHeader(), payload, cacaoSig);

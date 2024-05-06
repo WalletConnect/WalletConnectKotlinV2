@@ -5,6 +5,8 @@ import androidx.compose.runtime.remember
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
+import com.walletconnect.android.internal.common.wcKoinApp
+import com.walletconnect.android.pulse.domain.SendClickWalletHelpUseCase
 import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.ui.navigation.getTitleArg
 import kotlinx.coroutines.CoroutineScope
@@ -25,6 +27,7 @@ internal class Web3ModalRootState(
     private val coroutineScope: CoroutineScope,
     private val navController: NavController
 ) {
+    private val sendClickWalletHelpUseCase: SendClickWalletHelpUseCase = wcKoinApp.koin.get()
     val currentDestinationFlow: Flow<NavBackStackEntry>
         get() = navController.currentBackStackEntryFlow
 
@@ -38,6 +41,7 @@ internal class Web3ModalRootState(
         get() = navController.currentDestination?.route
 
     fun navigateToHelp() {
+        sendClickWalletHelpUseCase()
         navController.navigate(Route.WHAT_IS_WALLET.path)
     }
 

@@ -1,0 +1,11 @@
+-- migrates 9db to 10db
+
+-- CREATE V10 SCHEMA
+
+-- ALTER TABLE SessionDao ADD COLUMN is_authenticated INTEGER AS Boolean NOT NULL;
+
+CREATE TABLE AuthenticateResponseTopicDao (
+   id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+   pairingTopic TEXT NOT NULL,
+   responseTopic TEXT NOT NULL
+);

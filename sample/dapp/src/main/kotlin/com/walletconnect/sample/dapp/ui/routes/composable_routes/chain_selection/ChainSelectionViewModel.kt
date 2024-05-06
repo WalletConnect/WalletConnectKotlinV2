@@ -10,6 +10,8 @@ import com.walletconnect.sample.common.Chains
 import com.walletconnect.sample.common.tag
 import com.walletconnect.sample.dapp.domain.DappDelegate
 import com.walletconnect.sample.dapp.ui.DappSampleEvents
+import com.walletconnect.util.bytesToHex
+import com.walletconnect.util.randomBytes
 import com.walletconnect.wcmodal.client.Modal
 import com.walletconnect.wcmodal.client.WalletConnectModal
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -44,6 +46,14 @@ class ChainSelectionViewModel : ViewModel() {
         when (walletEvent) {
             is Modal.Model.ApprovedSession -> DappSampleEvents.SessionApproved
             is Modal.Model.RejectedSession -> DappSampleEvents.SessionRejected
+            is Modal.Model.SessionAuthenticateResponse -> {
+                if (walletEvent is Modal.Model.SessionAuthenticateResponse.Result) {
+                    DappSampleEvents.SessionAuthenticateApproved(if (walletEvent.session == null) "Authenticated successfully!" else null)
+                } else {
+                    DappSampleEvents.SessionAuthenticateRejected
+                }
+            }
+
             is Modal.Model.ExpiredProposal -> DappSampleEvents.ProposalExpired
             else -> DappSampleEvents.NoAction
         }
@@ -67,6 +77,86 @@ class ChainSelectionViewModel : ViewModel() {
             it.toMutableList().apply {
                 this[position] = it[position].copy(isSelected = !selected)
             }
+        }
+    }
+
+    fun getSessionParams() = Modal.Params.SessionParams(
+        requiredNamespaces = getNamespaces(),
+        optionalNamespaces = getOptionalNamespaces(),
+        properties = getProperties()
+    )
+
+    fun authenticate(authenticateParams: Modal.Params.Authenticate, onAuthenticateSuccess: (String) -> Unit, onError: (String) -> Unit = {}) {
+        viewModelScope.launch {
+            _awaitingProposalSharedFlow.emit(true)
+        }
+
+        WalletConnectModal.authenticate(authenticateParams,
+            onSuccess = { url ->
+                viewModelScope.launch {
+                    _awaitingProposalSharedFlow.emit(false)
+                }
+                onAuthenticateSuccess(url)
+            },
+            onError = { error ->
+                viewModelScope.launch {
+                    _awaitingProposalSharedFlow.emit(false)
+                }
+                Timber.tag(tag(this)).e(error.throwable.stackTraceToString())
+                Firebase.crashlytics.recordException(error.throwable)
+                onError(error.throwable.message ?: "Unknown error, please contact support")
+            })
+    }
+
+    fun connectToWallet(pairingTopicPosition: Int = -1, onSuccess: (String) -> Unit = {}, onError: (String) -> Unit = {}) {
+        viewModelScope.launch {
+            _awaitingProposalSharedFlow.emit(true)
+        }
+        try {
+            val pairing: Core.Model.Pairing? = if (pairingTopicPosition > -1) {
+                CoreClient.Pairing.getPairings()[pairingTopicPosition]
+            } else {
+                CoreClient.Pairing.create { error ->
+                    viewModelScope.launch {
+                        _awaitingProposalSharedFlow.emit(false)
+                    }
+                    onError("Creating Pairing failed: ${error.throwable.stackTraceToString()}")
+                }
+            }
+
+            if (pairing != null) {
+                val connectParams =
+                    Modal.Params.Connect(
+                        namespaces = getNamespaces(),
+                        optionalNamespaces = getOptionalNamespaces(),
+                        properties = getProperties(),
+                        pairing = pairing
+                    )
+
+                WalletConnectModal.connect(connectParams,
+                    onSuccess = { url ->
+                        if (pairingTopicPosition == -1) {
+                            viewModelScope.launch {
+                                _awaitingProposalSharedFlow.emit(false)
+                            }
+                        }
+                        onSuccess(url)
+                    },
+                    onError = { error ->
+                        viewModelScope.launch {
+                            _awaitingProposalSharedFlow.emit(false)
+                        }
+                        Timber.tag(tag(this)).e(error.throwable.stackTraceToString())
+                        Firebase.crashlytics.recordException(error.throwable)
+                        onError(error.throwable.message ?: "Unknown error, please contact support")
+                    }
+                )
+            }
+
+        } catch (e: Exception) {
+            Firebase.crashlytics.recordException(e)
+            Timber.tag(tag(this)).e(e)
+            onError(e.message ?: "Unknown error, please contact support")
         }
     }
 
@@ -112,61 +202,37 @@ class ChainSelectionViewModel : ViewModel() {
         return mapOf("sessionExpiry" to "$expiry")
     }
 
-    fun getSessionParams() = Modal.Params.SessionParams(
-        requiredNamespaces = getNamespaces(),
-        optionalNamespaces = getOptionalNamespaces(),
-        properties = getProperties()
-    )
 
-    fun connectToWallet(pairingTopicPosition: Int = -1, onSuccess: (String) -> Unit = {}, onError: (String) -> Unit = {}) {
-        viewModelScope.launch {
-            _awaitingProposalSharedFlow.emit(true)
-        }
-        try {
-            val pairing: Core.Model.Pairing? = if (pairingTopicPosition > -1) {
-                CoreClient.Pairing.getPairings()[pairingTopicPosition]
-            } else {
-                CoreClient.Pairing.create { error ->
-                    viewModelScope.launch {
-                        _awaitingProposalSharedFlow.emit(false)
-                    }
-                    onError("Creating Pairing failed: ${error.throwable.stackTraceToString()}")
-                }
-            }
+    val authenticateParams
+        get() = Modal.Params.Authenticate(
+            chains = uiState.value.filter { it.isSelected }.map { it.chainId },
+            domain = "sample.kotlin.dapp",
+            uri = "https://web3inbox.com/all-apps",
+            nonce = randomBytes(12).bytesToHex(),
+            exp = null,
+            nbf = null,
+            statement = "Sign in with wallet.",
+            requestId = null,
+            resources = listOf(
+                "urn:recap:eyJhdHQiOnsiaHR0cHM6Ly9ub3RpZnkud2FsbGV0Y29ubmVjdC5jb20vYWxsLWFwcHMiOnsiY3J1ZC9zdWJzY3JpcHRpb25zIjpbe31dLCJjcnVkL25vdGlmaWNhdGlvbnMiOlt7fV19fX0=",
+                "ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/"
+            ),
+            methods = listOf("personal_sign", "eth_signTypedData"),
+            expiry = null
+        )
 
-            if (pairing != null) {
-                val connectParams =
-                    Modal.Params.Connect(
-                        namespaces = getNamespaces(),
-                        optionalNamespaces = getOptionalNamespaces(),
-                        properties = getProperties(),
-                        pairing = pairing
-                    )
-
-                WalletConnectModal.connect(connectParams,
-                    onSuccess = { url ->
-                        if (pairingTopicPosition == -1) {
-                            viewModelScope.launch {
-                                _awaitingProposalSharedFlow.emit(false)
-                            }
-                        }
-                        onSuccess(url)
-                    },
-                    onError = { error ->
-                        viewModelScope.launch {
-                            _awaitingProposalSharedFlow.emit(false)
-                        }
-                        Timber.tag(tag(this)).e(error.throwable.stackTraceToString())
-                        Firebase.crashlytics.recordException(error.throwable)
-                        onError(error.throwable.message ?: "sdasdUnknown error, please contact support")
-                    }
-                )
-            }
-
-        } catch (e: Exception) {
-            Firebase.crashlytics.recordException(e)
-            Timber.tag(tag(this)).e(e)
-            onError(e.message ?: "aaaUnknown error, please contact support")
-        }
-    }
+    val siweParams
+        get() = Modal.Params.Authenticate(
+            chains = uiState.value.filter { it.isSelected }.map { it.chainId },
+            domain = "sample.kotlin.dapp",
+            uri = "https://web3inbox.com/all-apps",
+            nonce = randomBytes(12).bytesToHex(),
+            exp = null,
+            nbf = null,
+            statement = "Sign in with wallet.",
+            requestId = null,
+            resources = listOf(),
+            methods = null,
+            expiry = null
+        )
 }

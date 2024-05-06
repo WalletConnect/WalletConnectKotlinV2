@@ -8,18 +8,18 @@ import timber.log.Timber
 
 open class WalletDelegate : SignClient.WalletDelegate {
     override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal, verifyContext: Sign.Model.VerifyContext) {}
+
+    override val onSessionAuthenticate: ((Sign.Model.SessionAuthenticate, Sign.Model.VerifyContext) -> Unit)
+        get() = { _, _ -> }
+
     override fun onSessionRequest(sessionRequest: Sign.Model.SessionRequest, verifyContext: Sign.Model.VerifyContext) {}
     override fun onSessionDelete(deletedSession: Sign.Model.DeletedSession) {}
     override fun onSessionExtend(session: Sign.Model.Session) {}
 
     override fun onSessionSettleResponse(settleSessionResponse: Sign.Model.SettledSessionResponse) {}
     override fun onSessionUpdateResponse(sessionUpdateResponse: Sign.Model.SessionUpdateResponse) {}
-    override fun onProposalExpired(proposal: Sign.Model.ExpiredProposal) {
-    }
-
-    override fun onRequestExpired(request: Sign.Model.ExpiredRequest) {
-    }
-
+    override fun onProposalExpired(proposal: Sign.Model.ExpiredProposal) {}
+    override fun onRequestExpired(request: Sign.Model.ExpiredRequest) {}
     override fun onConnectionStateChange(state: Sign.Model.ConnectionState) {
         Timber.d("Wallet: onConnectionStateChange: $state")
     }
@@ -33,6 +33,9 @@ open class AutoApproveSessionWalletDelegate : WalletDelegate() {
     override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal, verifyContext: Sign.Model.VerifyContext) {
         sessionProposal.approveOnSessionProposal()
     }
+
+    override val onSessionAuthenticate: ((Sign.Model.SessionAuthenticate, Sign.Model.VerifyContext) -> Unit)
+        get() = { _, _ -> }
 }
 
 

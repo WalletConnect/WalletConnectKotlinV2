@@ -38,6 +38,7 @@ import com.walletconnect.android.pairing.model.PairingParams
 import com.walletconnect.android.pairing.model.PairingRpc
 import com.walletconnect.android.pairing.model.inactivePairing
 import com.walletconnect.android.pairing.model.mapper.toCore
+import com.walletconnect.android.relay.WSSConnectionState
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
@@ -55,6 +56,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -62,6 +64,7 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withTimeout
 import java.util.concurrent.TimeUnit
@@ -77,8 +80,6 @@ internal class PairingEngine(
 ) {
     private var jsonRpcRequestsJob: Job? = null
     private val setOfRegisteredMethods: MutableSet<String> = mutableSetOf()
-    private val registeredMethods: String get() = setOfRegisteredMethods.joinToString(",") { it }
-
     private val _isPairingStateFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     private val _deletedPairingFlow: MutableSharedFlow<Pairing> = MutableSharedFlow()
@@ -94,10 +95,12 @@ internal class PairingEngine(
 
     val internalErrorFlow = MutableSharedFlow<SDKError>()
 
+    // TODO: emission of events can be missed since they are emitted potentially before there's a subscriber and the event gets missed by protocols
     init {
         setOfRegisteredMethods.addAll(listOf(PairingJsonRpcMethod.WC_PAIRING_DELETE, PairingJsonRpcMethod.WC_PAIRING_PING))
         resubscribeToPairingTopics()
-        pairingExpiryWatcher()
+        inactivePairingsExpiryWatcher()
+        activePairingsExpiryWatcher()
         isPairingStateWatcher()
     }
 
@@ -112,38 +115,42 @@ internal class PairingEngine(
             }
     }
 
-    fun create(onFailure: (Throwable) -> Unit): Core.Model.Pairing? {
+    // TODO: We should either have callbacks or return values, not both. Simplify this to do one or the other. Pairing should be returned if subscription is successful
+    fun create(onFailure: (Throwable) -> Unit, methods: String? = null): Core.Model.Pairing? {
         val pairingTopic: Topic = generateTopic()
         val symmetricKey: SymmetricKey = crypto.generateAndStoreSymmetricKey(pairingTopic)
         val relay = RelayProtocolOptions()
-        val registeredMethods = setOfRegisteredMethods.joinToString(",") { it }
-        val inactivePairing = Pairing(pairingTopic, relay, symmetricKey, registeredMethods, Expiry(inactivePairing))
+        val inactivePairing = Pairing(pairingTopic, relay, symmetricKey, Expiry(inactivePairing), methods)
 
         return inactivePairing.runCatching {
-            logger.log("Pairing created successfully")
+            logger.log("Creating Pairing")
             pairingRepository.insertPairing(this)
             metadataRepository.upsertPeerMetadata(this.topic, selfMetaData, AppMetaDataType.SELF)
-            jsonRpcInteractor.subscribe(this.topic,
+            jsonRpcInteractor.subscribe(
+                topic = this.topic,
                 onSuccess = { logger.log("Pairing - subscribed on pairing topic: $pairingTopic") },
-                onFailure = { error ->
-                    logger.error("Pairing - subscribed failure on pairing topic: $pairingTopic, error: $error")
-                    return@subscribe onFailure(error)
-                })
+                onFailure = { error -> logger.error("Pairing - subscribed failure on pairing topic: $pairingTopic, error: $error") }
+            )
 
             this.toCore()
         }.onFailure { throwable ->
-            crypto.removeKeys(pairingTopic.value)
-            pairingRepository.deletePairing(pairingTopic)
-            metadataRepository.deleteMetaData(pairingTopic)
-            jsonRpcInteractor.unsubscribe(pairingTopic)
-            logger.error("Pairing - subscribed failure on pairing topic: $pairingTopic, error: $throwable")
-            onFailure(throwable)
+            try {
+                crypto.removeKeys(pairingTopic.value)
+                pairingRepository.deletePairing(pairingTopic)
+                metadataRepository.deleteMetaData(pairingTopic)
+                jsonRpcInteractor.unsubscribe(pairingTopic)
+                logger.error("Pairing - subscribed failure on pairing topic: $pairingTopic, error: $throwable")
+                onFailure(throwable)
+            } catch (e: Exception) {
+                logger.error("Pairing - subscribed failure on pairing topic: $pairingTopic, error: $e")
+                onFailure(e)
+            }
         }.getOrNull()
     }
 
     fun pair(uri: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         val walletConnectUri: WalletConnectUri = Validator.validateWCUri(uri) ?: return onFailure(MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE))
-        val inactivePairing = Pairing(walletConnectUri, registeredMethods)
+        val inactivePairing = Pairing(walletConnectUri)
         val symmetricKey = walletConnectUri.symKey
 
         try {
@@ -181,11 +188,13 @@ internal class PairingEngine(
                     onSuccess()
                 }, onFailure = { error ->
                     logger.error("Subscribe pairing topic error: ${inactivePairing.topic.value}, error: $error")
-                    return@subscribe onFailure(error)
+                    onFailure(error)
                 })
         } catch (e: Exception) {
             logger.error("Subscribe pairing topic error: ${inactivePairing.topic.value}, error: $e")
-            crypto.removeKeys(walletConnectUri.topic.value)
+            runCatching {
+                crypto.removeKeys(walletConnectUri.topic.value)
+            }.onFailure { logger.error("Remove keys error: ${inactivePairing.topic.value}, error: $it") }
             jsonRpcInteractor.unsubscribe(inactivePairing.topic)
             onFailure(e)
         }
@@ -200,11 +209,12 @@ internal class PairingEngine(
         val deleteParams = PairingParams.DeleteParams(6000, "User disconnected")
         val pairingDelete = PairingRpc.PairingDelete(params = deleteParams)
         val irnParams = IrnParams(Tags.PAIRING_DELETE, Ttl(dayInSeconds))
+        logger.log("Sending Pairing disconnect")
         jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, pairingDelete,
             onSuccess = {
                 scope.launch {
                     supervisorScope {
-                        logger.log("Disconnect sent successfully")
+                        logger.log("Pairing disconnect sent successfully")
                         pairingRepository.deletePairing(Topic(topic))
                         metadataRepository.deleteMetaData(Topic(topic))
                         jsonRpcInteractor.unsubscribe(Topic(topic))
@@ -232,18 +242,20 @@ internal class PairingEngine(
         }
     }
 
-    fun getPairings(): List<Pairing> = pairingRepository.getListOfPairings().filter { pairing -> pairing.isNotExpired() }
+    fun getPairings(): List<Pairing> = runBlocking { pairingRepository.getListOfPairings().filter { pairing -> pairing.isNotExpired() } }
 
     fun register(vararg method: String) {
         setOfRegisteredMethods.addAll(method)
     }
 
+    fun getPairingByTopic(topic: Topic): Pairing? = pairingRepository.getPairingOrNullByTopic(topic)?.takeIf { pairing -> pairing.isNotExpired() }
+
     fun activate(topic: String, onFailure: (Throwable) -> Unit) {
         getPairing(topic, onFailure) { pairing -> pairingRepository.activatePairing(pairing.topic) }
     }
 
-    fun setProposalReceived(topic: String, onFailure: (Throwable) -> Unit) {
-        getPairing(topic, onFailure) { pairing -> pairingRepository.setProposalReceived(pairing.topic) }
+    fun setRequestReceived(topic: String, onFailure: (Throwable) -> Unit) {
+        getPairing(topic, onFailure) { pairing -> pairingRepository.setRequestReceived(pairing.topic) }
     }
 
 
@@ -261,12 +273,12 @@ internal class PairingEngine(
     }
 
     private fun resubscribeToPairingTopics() {
-        jsonRpcInteractor.isConnectionAvailable
-            .filter { isAvailable: Boolean -> isAvailable }
+        jsonRpcInteractor.wssConnectionState
+            .filterIsInstance<WSSConnectionState.Connected>()
             .onEach {
                 supervisorScope {
                     launch(Dispatchers.IO) {
-                        resubscribeToPairingFlow()
+                        sendBatchSubscribeForPairings()
                     }
                 }
 
@@ -276,35 +288,63 @@ internal class PairingEngine(
             }.launchIn(scope)
     }
 
-    private fun pairingExpiryWatcher() {
-        flow {
-            while (true) {
-                emit(Unit)
-                delay(WATCHER_INTERVAL)
-            }
-        }.onEach {
-            pairingRepository
-                .getListOfPairings()
-                .onEach { pairing -> pairing.isNotExpired() }
-        }.launchIn(scope)
+    private suspend fun sendBatchSubscribeForPairings() {
+        try {
+            val pairingTopics = pairingRepository.getListOfPairings().filter { pairing -> pairing.isNotExpired() }.map { pairing -> pairing.topic.value }
+            jsonRpcInteractor.batchSubscribe(pairingTopics) { error -> scope.launch { internalErrorFlow.emit(SDKError(error)) } }
+        } catch (e: Exception) {
+            scope.launch { internalErrorFlow.emit(SDKError(e)) }
+        }
     }
 
+    private fun inactivePairingsExpiryWatcher() {
+        repeatableFlow(WATCHER_INTERVAL)
+            .onEach {
+                try {
+                    pairingRepository.getListOfInactivePairings()
+                        .onEach { pairing ->
+                            pairing.isNotExpired()
+                        }
+                } catch (e: Exception) {
+                    logger.error(e)
+                }
+            }.launchIn(scope)
+    }
+
+    private fun activePairingsExpiryWatcher() {
+        repeatableFlow(ACTIVE_PAIRINGS_WATCHER_INTERVAL)
+            .onEach {
+                try {
+                    pairingRepository.getListOfActivePairings()
+                        .onEach { pairing -> pairing.isNotExpired() }
+                } catch (e: Exception) {
+                    logger.error(e)
+                }
+            }.launchIn(scope)
+    }
+
+
     private fun isPairingStateWatcher() {
-        flow {
-            while (true) {
-                emit(Unit)
-                delay(WATCHER_INTERVAL)
-            }
-        }.onEach {
-            val inactivePairings = pairingRepository
-                .getListOfPairings()
-                .filter { pairing -> !pairing.isActive && !pairing.isProposalReceived }
-            if (inactivePairings.isNotEmpty()) {
-                _isPairingStateFlow.compareAndSet(expect = false, update = true)
-            } else {
-                _isPairingStateFlow.compareAndSet(expect = true, update = false)
-            }
-        }.launchIn(scope)
+        repeatableFlow(WATCHER_INTERVAL)
+            .onEach {
+                try {
+                    val inactivePairings = pairingRepository.getListOfInactivePairingsWithoutRequestReceived()
+                    if (inactivePairings.isNotEmpty()) {
+                        _isPairingStateFlow.compareAndSet(expect = false, update = true)
+                    } else {
+                        _isPairingStateFlow.compareAndSet(expect = true, update = false)
+                    }
+                } catch (e: Exception) {
+                    logger.error(e)
+                }
+            }.launchIn(scope)
+    }
+
+    private fun repeatableFlow(interval: Long) = flow {
+        while (true) {
+            emit(Unit)
+            delay(interval)
+        }
     }
 
     private fun collectJsonRpcRequestsFlow(): Job =
@@ -316,15 +356,6 @@ internal class PairingEngine(
                     is PairingParams.PingParams -> onPing(request)
                 }
             }.launchIn(scope)
-
-    private fun resubscribeToPairingFlow() {
-        try {
-            val pairingTopics = pairingRepository.getListOfPairings().filter { pairing -> pairing.isNotExpired() }.map { pairing -> pairing.topic.value }
-            jsonRpcInteractor.batchSubscribe(pairingTopics) { error -> scope.launch { internalErrorFlow.emit(SDKError(error)) } }
-        } catch (e: Exception) {
-            scope.launch { internalErrorFlow.emit(SDKError(e)) }
-        }
-    }
 
     private suspend fun onPairingDelete(request: WCRequest, params: PairingParams.DeleteParams) {
         val irnParams = IrnParams(Tags.PAIRING_DELETE_RESPONSE, Ttl(dayInSeconds))
@@ -416,6 +447,7 @@ internal class PairingEngine(
         pairingRepository.getPairingOrNullByTopic(Topic(topic))?.let { pairing -> return@let pairing.isNotExpired() } ?: false
 
     companion object {
-        private const val WATCHER_INTERVAL = 3000L
+        private const val WATCHER_INTERVAL = 30000L //30s
+        private const val ACTIVE_PAIRINGS_WATCHER_INTERVAL = 600000L //10mins
     }
 }

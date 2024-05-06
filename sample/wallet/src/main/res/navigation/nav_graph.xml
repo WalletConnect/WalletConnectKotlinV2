@@ -6,16 +6,19 @@
 
     <activity
         android:id="@+id/web3walletActivity"
-        android:fitsSystemWindows="true"
         android:name="com.walletconnect.sample.wallet.ui.Web3WalletActivity"
-        android:label="Web3WalletActivity">
-    </activity>
+        android:fitsSystemWindows="true"
+        android:label="Web3WalletActivity" />
 
     <deepLink
         app:action="android.intent.action.VIEW"
-        app:uri="kotlin-web3wallet:/wc" />
+        app:uri="kotlin-web3wallet://wc" />
 
     <deepLink
         app:action="android.intent.action.VIEW"
-        app:uri="kotlin-web3wallet:/request" />
+        app:uri="wc:/{topic}@2" />
+
+    <deepLink
+        app:action="android.intent.action.VIEW"
+        app:uri="kotlin-web3wallet://request" />
 </navigation>

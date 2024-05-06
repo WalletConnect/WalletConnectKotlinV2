@@ -2,7 +2,6 @@
 
 package com.walletconnect.web3.modal.ui.components.internal
 
-import android.net.Uri
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
@@ -60,8 +59,11 @@ internal fun Web3ModalComponent(
         Web3ModalDelegate
             .wcEventModels
             .onEach { event ->
-                when(event) {
-                    is Modal.Model.ApprovedSession, is Modal.Model.DeletedSession.Success  -> { closeModal() }
+                when (event) {
+                    is Modal.Model.ApprovedSession, is Modal.Model.DeletedSession.Success -> {
+                        closeModal()
+                    }
+
                     else -> Unit
                 }
             }
@@ -93,11 +95,13 @@ internal fun Web3ModalComponent(
                     navController = navController,
                     shouldOpenChooseNetwork = shouldOpenChooseNetwork
                 )
+
                 is Web3ModalState.AccountState -> AccountNavGraph(
                     navController = navController,
                     closeModal = closeModal,
                     shouldOpenChangeNetwork = shouldOpenChooseNetwork
                 )
+
                 Web3ModalState.Loading -> LoadingModalState()
                 is Web3ModalState.Error -> ErrorModalState(retry = web3ModalViewModel::initModalState)
             }

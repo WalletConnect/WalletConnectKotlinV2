@@ -27,7 +27,6 @@ class AuthRequestViewModel : ViewModel() {
             if (WCDelegate.authRequestEvent != null) {
                 val request = requireNotNull(WCDelegate.authRequestEvent!!.first)
                 val message = Web3Wallet.formatMessage(Wallet.Params.FormatMessage(request.payloadParams, ISSUER)) ?: throw Exception("Error formatting message")
-
                 Web3Wallet.respondAuthRequest(
                     Wallet.Params.AuthRequestResponse.Result(
                         id = request.id,

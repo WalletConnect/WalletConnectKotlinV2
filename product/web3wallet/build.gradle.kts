@@ -1,7 +1,7 @@
 plugins {
     id("com.android.library")
-    kotlin("android")
-    id("com.google.devtools.ksp") version kspVersion
+    id(libs.plugins.kotlin.android.get().pluginId)
+    alias(libs.plugins.google.ksp)
     id("publish-module-android")
     id("jacoco-report")
 }
@@ -30,7 +30,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "${rootDir.path}/gradle/proguard-rules/sdk-rules.pro")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "${rootDir.path}/gradle/proguard-rules/sdk-rules.pro", "${projectDir}/web3wallet-rules.pro")
         }
     }
     compileOptions {
@@ -48,7 +48,8 @@ android {
 }
 
 dependencies {
-    firebaseMessaging()
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
 
     debugImplementation(project(":core:android"))
     debugImplementation(project(":protocol:sign"))

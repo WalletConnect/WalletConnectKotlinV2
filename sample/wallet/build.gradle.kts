@@ -1,8 +1,8 @@
 plugins {
-    id("com.android.application")
-    kotlin("android")
-    id("com.google.gms.google-services")
-    id("com.google.firebase.crashlytics")
+    id(libs.plugins.android.application.get().pluginId)
+    id(libs.plugins.kotlin.android.get().pluginId)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.crashlytics)
     id("signing-config")
 //    id("io.sentry.android.gradle") version "3.12.0"
 }
@@ -21,7 +21,7 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
-        buildConfigField("String", "PROJECT_ID","\"${System.getenv("WC_CLOUD_PROJECT_ID") ?: ""}\"")
+        buildConfigField("String", "PROJECT_ID", "\"${System.getenv("WC_CLOUD_PROJECT_ID") ?: ""}\"")
         buildConfigField("String", "BOM_VERSION", "\"${BOM_VERSION}\"")
     }
 
@@ -39,9 +39,9 @@ android {
         compose = true
         buildConfig = true
     }
-    
+
     composeOptions {
-        kotlinCompilerExtensionVersion = composeCompilerVersion
+        kotlinCompilerExtensionVersion = libs.versions.composeCompiler.get()
     }
 }
 
@@ -49,9 +49,10 @@ dependencies {
     implementation(project(":sample:common"))
     implementation("androidx.compose.material3:material3:1.0.0-alpha08")
 
-    firebaseMessaging()
-    firebaseChrashlytics()
-    appCompat()
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.bundles.firebase)
+
+    implementation(libs.bundles.androidxAppCompat)
 
     implementation("androidx.core:core-ktx:1.9.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.5.1")
@@ -64,15 +65,24 @@ dependencies {
     implementation("com.github.skydoves:landscapist-glide:2.1.0")
 
     // Accompanist
-    accompanist()
+    implementation(libs.bundles.accompanist)
 
     // Compose
-    compose()
-    coil()
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material)
+    implementation(libs.androidx.compose.navigation)
+    implementation(libs.androidx.compose.lifecycle)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
+    androidTestImplementation(libs.androidx.compose.ui.test.junit)
+    androidTestImplementation(libs.androidx.compose.navigation.testing)
+
+    implementation(libs.coil)
 
     implementation("com.google.android.gms:play-services-mlkit-barcode-scanning:18.1.0")
     implementation("androidx.lifecycle:lifecycle-process:2.5.1")
-    implementation("androidx.navigation:navigation-compose:2.5.3")
     implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
 
     // CameraX
@@ -85,10 +95,6 @@ dependencies {
 
     // MixPanel
     implementation("com.mixpanel.android:mixpanel-android:7.3.1")
-
-    // Unit Tests
-    jUnit4()
-    mockk()
 
     // WalletConnect
     debugImplementation(project(":core:android"))

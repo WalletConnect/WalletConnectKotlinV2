@@ -1,7 +1,10 @@
 package com.walletconnect.wcmodal.client
 
+import androidx.annotation.Keep
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
+import com.walletconnect.android.cacao.SignatureInterface
+import com.walletconnect.android.internal.common.signing.cacao.Issuer
 import java.net.URI
 
 object Modal {
@@ -26,6 +29,21 @@ object Modal {
             val optionalNamespaces: Map<String, Model.Namespace.Proposal>? = null,
             val properties: Map<String, String>? = null,
             val pairing: Core.Model.Pairing,
+        ) : Params()
+
+        data class Authenticate(
+            val pairingTopic: String? = null,
+            val chains: List<String>,
+            val domain: String,
+            val nonce: String,
+            val uri: String,
+            val nbf: String? = null,
+            val exp: String? = null,
+            val statement: String? = null,
+            val requestId: String? = null,
+            val resources: List<String>? = null,
+            val methods: List<String>? = null,
+            val expiry: Long? = null
         ) : Params()
 
         data class Disconnect(val sessionTopic: String) : Params()
@@ -64,6 +82,20 @@ object Modal {
                 val events: List<String>,
             ) : Namespace()
         }
+
+        data class PayloadParams(
+            val chains: List<String>,
+            val domain: String,
+            val nonce: String,
+            val aud: String,
+            val type: String?,
+            val nbf: String?,
+            val iat: String,
+            val exp: String?,
+            val statement: String?,
+            val requestId: String?,
+            val resources: List<String>?
+        ) : Model()
 
         data class ApprovedSession(
             val topic: String,
@@ -151,6 +183,36 @@ object Modal {
                 val code: Int,
                 val message: String,
             ) : JsonRpcResponse()
+        }
+
+        sealed class SessionAuthenticateResponse : Model() {
+            data class Result(val id: Long, val cacaos: List<Cacao>, val session: Session?) : SessionAuthenticateResponse()
+            data class Error(val id: Long, val code: Int, val message: String) : SessionAuthenticateResponse()
+        }
+
+        data class Cacao(
+            val header: Header,
+            val payload: Payload,
+            val signature: Signature,
+        ) : Model() {
+            @Keep
+            data class Signature(override val t: String, override val s: String, override val m: String? = null) : Model(), SignatureInterface
+            data class Header(val t: String) : Model()
+            data class Payload(
+                val iss: String,
+                val domain: String,
+                val aud: String,
+                val version: String,
+                val nonce: String,
+                val iat: String,
+                val nbf: String?,
+                val exp: String?,
+                val statement: String?,
+                val requestId: String?,
+                val resources: List<String>?,
+            ) : Model() {
+                val address: String get() = Issuer(iss).address
+            }
         }
 
         data class SentRequest(

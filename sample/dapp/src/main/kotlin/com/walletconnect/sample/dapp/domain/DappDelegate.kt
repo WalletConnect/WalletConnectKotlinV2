@@ -18,9 +18,10 @@ object DappDelegate : WalletConnectModal.ModalDelegate, CoreClient.CoreDelegate 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val _wcEventModels: MutableSharedFlow<Modal.Model?> = MutableSharedFlow()
     val wcEventModels: SharedFlow<Modal.Model?> = _wcEventModels.asSharedFlow()
-
     private val _coreEvents: MutableSharedFlow<Core.Model> = MutableSharedFlow()
     val coreEvents: SharedFlow<Core.Model> = _coreEvents.asSharedFlow()
+    private val _connectionState: MutableSharedFlow<Modal.Model.ConnectionState> = MutableSharedFlow(replay = 1)
+    val connectionState: SharedFlow<Modal.Model.ConnectionState> = _connectionState.asSharedFlow()
 
     var selectedSessionTopic: String? = null
         private set
@@ -28,6 +29,13 @@ object DappDelegate : WalletConnectModal.ModalDelegate, CoreClient.CoreDelegate 
     init {
         WalletConnectModal.setDelegate(this)
         CoreClient.setDelegate(this)
+    }
+
+    override fun onConnectionStateChange(state: Modal.Model.ConnectionState) {
+        Timber.d(tag(this), "onConnectionStateChange($state)")
+        scope.launch {
+            _connectionState.emit(state)
+        }
     }
 
     override fun onSessionApproved(approvedSession: Modal.Model.ApprovedSession) {
@@ -82,6 +90,15 @@ object DappDelegate : WalletConnectModal.ModalDelegate, CoreClient.CoreDelegate 
         }
     }
 
+    override fun onSessionAuthenticateResponse(sessionUpdateResponse: Modal.Model.SessionAuthenticateResponse) {
+        if (sessionUpdateResponse is Modal.Model.SessionAuthenticateResponse.Result) {
+            selectedSessionTopic = sessionUpdateResponse.session?.topic
+        }
+        scope.launch {
+            _wcEventModels.emit(sessionUpdateResponse)
+        }
+    }
+
     override fun onProposalExpired(proposal: Modal.Model.ExpiredProposal) {
         scope.launch {
             _wcEventModels.emit(proposal)
@@ -96,13 +113,6 @@ object DappDelegate : WalletConnectModal.ModalDelegate, CoreClient.CoreDelegate 
 
     fun deselectAccountDetails() {
         selectedSessionTopic = null
-    }
-
-    override fun onConnectionStateChange(state: Modal.Model.ConnectionState) {
-        Timber.d(tag(this), "onConnectionStateChange($state)")
-        scope.launch {
-            _wcEventModels.emit(state)
-        }
     }
 
     override fun onError(error: Modal.Model.Error) {

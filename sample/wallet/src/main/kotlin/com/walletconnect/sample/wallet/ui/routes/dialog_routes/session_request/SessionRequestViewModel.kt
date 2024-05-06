@@ -51,6 +51,8 @@ class SessionRequestViewModel : ViewModel() {
                         clearSessionRequest()
                         onError(error.throwable.message ?: "Undefined error, please check your Internet connection")
                     })
+            } else {
+                onError("Reject - Cannot find session request")
             }
         } catch (e: Exception) {
             Firebase.crashlytics.recordException(e)
@@ -108,6 +110,8 @@ class SessionRequestViewModel : ViewModel() {
                         clearSessionRequest()
                         onError(error.throwable.message ?: "Undefined error, please check your Internet connection")
                     })
+            } else {
+                onError("Approve - Cannot find session request")
             }
         } catch (e: Exception) {
             Firebase.crashlytics.recordException(e)

@@ -1,7 +1,10 @@
 package com.walletconnect.sign.client
 
+import androidx.annotation.Keep
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreInterface
+import com.walletconnect.android.cacao.SignatureInterface
+import com.walletconnect.android.internal.common.signing.cacao.Issuer
 import java.net.URI
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -116,6 +119,12 @@ object Sign {
             data class Error(val errorMessage: String) : SessionUpdateResponse()
         }
 
+        sealed class SessionAuthenticateResponse : Model() {
+            data class Result(val id: Long, val cacaos: List<Cacao>, val session: Session?) : SessionAuthenticateResponse()
+            data class Error(val id: Long, val code: Int, val message: String) : SessionAuthenticateResponse()
+        }
+
+
         sealed class DeletedSession : Model() {
             data class Success(val topic: String, val reason: String) : DeletedSession()
             data class Error(val error: Throwable) : DeletedSession()
@@ -198,7 +207,14 @@ object Sign {
 
         data class ConnectionState(
             val isAvailable: Boolean,
-        ) : Model()
+            val reason: Reason? = null
+        ) : Model() {
+            sealed class Reason : Model() {
+                data class ConnectionClosed(val message: String) : Reason()
+                data class ConnectionFailed(val throwable: Throwable) : Reason()
+            }
+        }
+
 
         sealed class Message : Model() {
             data class SessionProposal(
@@ -229,6 +245,66 @@ object Sign {
                     val params: String,
                 ) : Message()
             }
+
+            data class SessionAuthenticate(
+                val id: Long,
+                val topic: String,
+                val metadata: Core.Model.AppMetaData,
+                val payloadParams: PayloadParams,
+                val expiry: Long
+            ) : Message()
+        }
+
+        data class SessionAuthenticate(
+            val id: Long,
+            val topic: String,
+            val participant: Participant,
+            val payloadParams: PayloadParams,
+            val expiry: Long
+        ) {
+            data class Participant(
+                val publicKey: String,
+                val metadata: Core.Model.AppMetaData?,
+            ) : Model()
+        }
+
+        data class PayloadParams(
+            val chains: List<String>,
+            val domain: String,
+            val nonce: String,
+            val aud: String,
+            val type: String?,
+            val nbf: String?,
+            val exp: String?,
+            val iat: String,
+            val statement: String?,
+            val requestId: String?,
+            var resources: List<String>?,
+        ) : Model()
+
+        data class Cacao(
+            val header: Header,
+            val payload: Payload,
+            val signature: Signature,
+        ) : Model() {
+            @Keep
+            data class Signature(override val t: String, override val s: String, override val m: String? = null) : Model(), SignatureInterface
+            data class Header(val t: String) : Model()
+            data class Payload(
+                val iss: String,
+                val domain: String,
+                val aud: String,
+                val version: String,
+                val nonce: String,
+                val iat: String,
+                val nbf: String?,
+                val exp: String?,
+                val statement: String?,
+                val requestId: String?,
+                val resources: List<String>?,
+            ) : Model() {
+                val address: String get() = Issuer(iss).address
+            }
         }
     }
 
@@ -245,6 +321,23 @@ object Sign {
             val pairing: Core.Model.Pairing,
         ) : Params()
 
+        data class Authenticate(
+            val pairingTopic: String? = null,
+            val chains: List<String>,
+            val domain: String,
+            val nonce: String,
+            val uri: String,
+            val nbf: String? = null,
+            val exp: String? = null,
+            val statement: String? = null,
+            val requestId: String? = null,
+            val resources: List<String>? = null,
+            val methods: List<String>? = null,
+            val expiry: Long? = null
+        ) : Params()
+
+        data class FormatMessage(val payloadParams: Model.PayloadParams, val iss: String) : Params()
+
         data class Pair(val uri: String) : Params()
 
         data class Approve(
@@ -254,6 +347,9 @@ object Sign {
         ) : Params()
 
         data class Reject(val proposerPublicKey: String, val reason: String) : Params()
+
+        data class ApproveAuthenticate(val id: Long, val cacaos: List<Model.Cacao>) : Params()
+        data class RejectAuthenticate(val id: Long, val reason: String) : Params()
 
         data class Disconnect(val sessionTopic: String) : Params()
 

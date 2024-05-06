@@ -2,6 +2,7 @@
 
 package com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox
 
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -44,7 +45,6 @@ import com.walletconnect.sample.wallet.ui.common.subscriptions.ActiveSubscriptio
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.discover.DiscoverTab
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.discover.ExplorerApp
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.inbox.subscriptions.SubscriptionsTab
-import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -163,7 +163,7 @@ fun TabViewWithPager(
                     else -> error.localizedMessage
                 }
                 coroutineScope.launch {
-                    navController.showSnackbar(message)
+                    Toast.makeText(navController.context, message, Toast.LENGTH_SHORT).show()
                 }
             }
 

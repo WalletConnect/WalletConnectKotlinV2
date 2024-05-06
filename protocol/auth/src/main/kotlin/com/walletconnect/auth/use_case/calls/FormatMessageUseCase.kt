@@ -4,7 +4,7 @@ import com.walletconnect.android.internal.common.signing.cacao.Issuer
 import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.auth.common.exceptions.InvalidParamsException
 import com.walletconnect.auth.common.model.PayloadParams
-import com.walletconnect.auth.engine.mapper.toCAIP122Message
+import com.walletconnect.auth.engine.mapper.toCAIP222Message
 import kotlinx.coroutines.supervisorScope
 
 internal class FormatMessageUseCase : FormatMessageUseCaseInterface {
@@ -15,7 +15,7 @@ internal class FormatMessageUseCase : FormatMessageUseCaseInterface {
         if (!CoreValidator.isChainIdCAIP2Compliant(issuer.chainId)) throw InvalidParamsException("Issuer chainId is not CAIP-2 compliant")
         if (!CoreValidator.isAccountIdCAIP10Compliant(issuer.accountId)) throw InvalidParamsException("Issuer address is not CAIP-10 compliant")
 
-        return@supervisorScope payloadParams.toCAIP122Message(issuer)
+        return@supervisorScope payloadParams.toCAIP222Message(issuer)
     }
 }
 

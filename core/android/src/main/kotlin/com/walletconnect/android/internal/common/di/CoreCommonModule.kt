@@ -9,6 +9,7 @@ import com.walletconnect.android.internal.common.adapter.JsonRpcResultAdapter
 import com.walletconnect.android.internal.common.adapter.TagsAdapter
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.Tags
+import com.walletconnect.android.pulse.model.properties.Props
 import com.walletconnect.foundation.di.FoundationDITags
 import com.walletconnect.foundation.di.foundationCommonModule
 import com.walletconnect.foundation.util.Logger
@@ -27,6 +28,25 @@ fun coreCommonModule() = module {
             .withSubtype(JsonRpcResponse.JsonRpcError::class.java, "error")
     }
 
+    single<PolymorphicJsonAdapterFactory<Props>> {
+        PolymorphicJsonAdapterFactory.of(Props::class.java, "type")
+            .withSubtype(Props.ModalCreated::class.java, "modal_created")
+            .withSubtype(Props.ModalLoaded::class.java, "modal_loaded")
+            .withSubtype(Props.ModalOpen::class.java, "modal_open")
+            .withSubtype(Props.ModalClose::class.java, "modal_close")
+            .withSubtype(Props.ClickNetworks::class.java, "click_networks")
+            .withSubtype(Props.ClickAllWallets::class.java, "click_all_wallets")
+            .withSubtype(Props.SwitchNetwork::class.java, "switch_network")
+            .withSubtype(Props.SelectWallet::class.java, "select_wallet")
+            .withSubtype(Props.ConnectSuccess::class.java, "connect_success")
+            .withSubtype(Props.ConnectError::class.java, "connect_error")
+            .withSubtype(Props.DisconnectSuccess::class.java, "disconnect_success")
+            .withSubtype(Props.DisconnectError::class.java, "disconnect_error")
+            .withSubtype(Props.ClickWalletHelp::class.java, "click_wallet_help")
+            .withSubtype(Props.ClickNetworkHelp::class.java, "click_network_help")
+            .withSubtype(Props.ClickGetWallet::class.java, "click_get_wallet")
+    }
+
     single<Moshi.Builder>(named(AndroidCommonDITags.MOSHI)) {
         get<Moshi>(named(FoundationDITags.MOSHI))
             .newBuilder()
@@ -39,6 +59,7 @@ fun coreCommonModule() = module {
                 }
             }
             .add(get<PolymorphicJsonAdapterFactory<JsonRpcResponse>>())
+            .add(get<PolymorphicJsonAdapterFactory<Props>>())
     }
 
     single {

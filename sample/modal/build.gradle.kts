@@ -1,9 +1,9 @@
 plugins {
-    id("com.android.application")
-    kotlin("android")
-    kotlin("kapt")
-    id("com.google.gms.google-services")
-    id("com.google.firebase.crashlytics")
+    id(libs.plugins.android.application.get().pluginId)
+    id(libs.plugins.kotlin.android.get().pluginId)
+    id(libs.plugins.kotlin.kapt.get().pluginId)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.crashlytics)
     id("signing-config")
 }
 
@@ -39,21 +39,31 @@ android {
         viewBinding = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = composeCompilerVersion
+        kotlinCompilerExtensionVersion = libs.versions.composeCompiler.get()
     }
 }
 
 dependencies {
     implementation(project(":sample:common"))
 
-    firebaseMessaging()
-    firebaseChrashlytics()
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.bundles.firebase)
 
-    compose()
-    accompanist()
-    appCompat()
-    lifecycle()
-    navigationComponent()
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material)
+    implementation(libs.androidx.compose.navigation)
+    implementation(libs.androidx.compose.lifecycle)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
+    androidTestImplementation(libs.androidx.compose.ui.test.junit)
+    androidTestImplementation(libs.androidx.compose.navigation.testing)
+
+    implementation(libs.bundles.accompanist)
+    implementation(libs.bundles.androidxAppCompat)
+    implementation(libs.bundles.androidxLifecycle)
+    api(libs.bundles.androidxNavigation)
 
     debugImplementation(project(":core:android"))
     debugImplementation(project(":product:web3modal"))

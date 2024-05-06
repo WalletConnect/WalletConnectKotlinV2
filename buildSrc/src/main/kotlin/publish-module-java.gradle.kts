@@ -9,7 +9,7 @@ tasks {
         register("javadocJar", Jar::class) {
             dependsOn(named("dokkaHtml"))
             archiveClassifier.set("javadoc")
-            from("$buildDir/dokka/html")
+            from("${layout.buildDirectory}/dokka/html")
         }
         register("sourceJar", Jar::class) {
             archiveClassifier.set("sources")

@@ -34,6 +34,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.walletconnect.android.internal.common.modal.data.model.Wallet
+import com.walletconnect.android.pulse.model.ConnectionMethod
 import com.walletconnect.modal.utils.openMobileLink
 import com.walletconnect.modal.utils.openPlayStore
 import com.walletconnect.modal.utils.openWebAppLink
@@ -74,11 +75,12 @@ internal fun RedirectWalletRoute(
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
     var redirectState by remember { mutableStateOf<RedirectState>(RedirectState.Loading) }
     var platformTab by rememberWalletPlatformTabs(wallet.toPlatform())
+
     val connectMobile = {
         if (wallet.isCoinbaseWallet()) {
             connectState.connectCoinbase()
         } else {
-            connectState.connectWalletConnect { uri ->
+            connectState.connectWalletConnect(name = wallet.name, method = ConnectionMethod.MOBILE) { uri ->
                 uriHandler.openMobileLink(
                     uri = uri,
                     mobileLink = wallet.mobileLink,
@@ -92,8 +94,14 @@ internal fun RedirectWalletRoute(
     LaunchedEffect(Unit) {
         Web3ModalDelegate.wcEventModels.collect {
             when (it) {
-                is Modal.Model.RejectedSession -> { redirectState = RedirectState.Reject }
-                is Modal.Model.ExpiredProposal -> { redirectState = RedirectState.Expired }
+                is Modal.Model.RejectedSession -> {
+                    redirectState = RedirectState.Reject
+                }
+
+                is Modal.Model.ExpiredProposal -> {
+                    redirectState = RedirectState.Expired
+                }
+
                 else -> Unit
             }
         }
@@ -116,9 +124,11 @@ internal fun RedirectWalletRoute(
             redirectState = RedirectState.Loading
             connectMobile()
         },
-        onOpenPlayStore = { uriHandler.openPlayStore(wallet.playStore) },
+        onOpenPlayStore = {
+            uriHandler.openPlayStore(wallet.playStore)
+        },
         onOpenWebApp = {
-            connectState.connectWalletConnect {
+            connectState.connectWalletConnect(name = wallet.name, method = ConnectionMethod.WEB) {
                 uriHandler.openWebAppLink(it, wallet.webAppLink)
             }
         }
@@ -292,18 +302,21 @@ private fun RedirectLabel(state: RedirectState, wallet: Wallet) {
             description = "Accept connection request in your wallet app"
             descriptionStyle = Web3ModalTheme.typo.small400.copy(color = Web3ModalTheme.colors.foreground.color200)
         }
+
         RedirectState.Reject -> {
             header = "Connection declined"
             description = "Connection can be declined if a previous request is still active"
             headerStyle = Web3ModalTheme.typo.paragraph400.copy(Web3ModalTheme.colors.error)
             descriptionStyle = Web3ModalTheme.typo.small400.copy(color = Web3ModalTheme.colors.foreground.color200)
         }
+
         RedirectState.Expired -> {
             header = "Connection expired"
             description = String.Empty
             headerStyle = Web3ModalTheme.typo.paragraph400.copy(Web3ModalTheme.colors.error)
             descriptionStyle = Web3ModalTheme.typo.small400.copy(color = Web3ModalTheme.colors.foreground.color200)
         }
+
         RedirectState.NotDetected -> {
             header = "App not installed"
             description = String.Empty

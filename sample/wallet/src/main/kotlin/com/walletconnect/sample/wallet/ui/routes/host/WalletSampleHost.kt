@@ -2,6 +2,7 @@
 
 package com.walletconnect.sample.wallet.ui.routes.host
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -54,7 +55,6 @@ import com.walletconnect.sample.wallet.ui.Web3WalletNavGraph
 import com.walletconnect.sample.wallet.ui.Web3WalletViewModel
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
-import com.walletconnect.sample.wallet.ui.routes.showSnackbar
 import com.walletconnect.sample.wallet.ui.state.ConnectionState
 import com.walletconnect.sample.wallet.ui.state.PairingEvent
 import kotlinx.coroutines.delay
@@ -69,25 +69,26 @@ fun WalletSampleHost(
     getStartedVisited: Boolean,
 ) {
     val scaffoldState: ScaffoldState = rememberScaffoldState()
-    val connectionState = web3walletViewModel.connectionState.collectAsState(ConnectionState.Idle).value
+    val connectionState by web3walletViewModel.connectionState.collectAsState()
     val bottomBarState = rememberBottomBarMutableState()
     val currentRoute = navController.currentBackStackEntryAsState()
     val isLoader by web3walletViewModel.isLoadingFlow.collectAsState(false)
+    val isRequestLoader by web3walletViewModel.isRequestLoadingFlow.collectAsState(false)
 
     LaunchedEffect(Unit) {
         web3walletViewModel.eventsSharedFlow.collect {
             when (it) {
                 is PairingEvent.Error -> {
                     navController.popBackStack(route = Route.Connections.path, inclusive = false)
-                    navController.showSnackbar(it.message)
+                    Toast.makeText(navController.context, it.message, Toast.LENGTH_SHORT).show()
                 }
 
                 is PairingEvent.Expired -> {
-                    navController.showSnackbar(it.message)
+                    Toast.makeText(navController.context, it.message, Toast.LENGTH_SHORT).show()
                 }
 
                 is PairingEvent.ProposalExpired -> {
-                    navController.showSnackbar(it.message)
+                    Toast.makeText(navController.context, it.message, Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -109,13 +110,17 @@ fun WalletSampleHost(
             )
 
             if (connectionState is ConnectionState.Error) {
-                ErrorBanner(connectionState.message)
+                ErrorBanner()
             } else if (connectionState is ConnectionState.Ok) {
                 RestoredConnectionBanner()
             }
 
             if (isLoader) {
-                PairingLoader()
+                Loader(initMessage = "WalletConnect is pairing...", updateMessage = "Pairing is taking longer than usual, please try again...")
+            }
+
+            if (isRequestLoader) {
+                Loader(initMessage = "Awaiting a request...", updateMessage = "It is taking longer than usual..")
             }
 
             Timer(web3walletViewModel)
@@ -145,7 +150,7 @@ private fun BeagleDrawer() {
 }
 
 @Composable
-private fun BoxScope.PairingLoader() {
+private fun BoxScope.Loader(initMessage: String, updateMessage: String) {
     var shouldChangeText by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = Unit) {
@@ -170,7 +175,7 @@ private fun BoxScope.PairingLoader() {
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             textAlign = TextAlign.Center,
-            text = if (shouldChangeText) "Pairing is taking longer than usual, please try again..." else "WalletConnect is pairing...",
+            text = if (shouldChangeText) updateMessage else initMessage,
             maxLines = 2,
             style = TextStyle(
                 fontWeight = FontWeight.Medium,
@@ -182,22 +187,31 @@ private fun BoxScope.PairingLoader() {
 }
 
 @Composable
-private fun ErrorBanner(message: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color(0xFFDC143C))
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Image(
-            imageVector = ImageVector.vectorResource(id = R.drawable.invalid_domain),
-            contentDescription = null,
-            modifier = Modifier.size(24.dp),
-            colorFilter = ColorFilter.tint(color = Color.White)
-        )
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(text = message, color = Color.White)
+private fun ErrorBanner() {
+    var shouldShow by remember { mutableStateOf(true) }
+
+    LaunchedEffect(key1 = Unit) {
+        delay(2000)
+        shouldShow = false
+    }
+
+    if (shouldShow) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFFDC143C))
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Image(
+                imageVector = ImageVector.vectorResource(id = R.drawable.invalid_domain),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                colorFilter = ColorFilter.tint(color = Color.White)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(text = "Network connection lost", color = Color.White)
+        }
     }
 }
 
@@ -233,6 +247,6 @@ private fun RestoredConnectionBanner() {
 @Composable
 private fun PreviewPairingLoader() {
     Box() {
-        PairingLoader()
+        Loader("", "")
     }
 }

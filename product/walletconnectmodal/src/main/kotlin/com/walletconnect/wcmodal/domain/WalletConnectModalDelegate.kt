@@ -13,7 +13,17 @@ import kotlinx.coroutines.launch
 internal object WalletConnectModalDelegate : WalletConnectModal.ModalDelegate {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val _wcEventModels: MutableSharedFlow<Modal.Model?> = MutableSharedFlow()
-    val wcEventModels: SharedFlow<Modal.Model?> =  _wcEventModels.asSharedFlow()
+    val wcEventModels: SharedFlow<Modal.Model?> = _wcEventModels.asSharedFlow()
+
+    private val _connectionState: MutableSharedFlow<Modal.Model.ConnectionState> = MutableSharedFlow(replay = 1)
+    val connectionState: SharedFlow<Modal.Model.ConnectionState> = _connectionState.asSharedFlow()
+
+    override fun onConnectionStateChange(state: Modal.Model.ConnectionState) {
+        scope.launch {
+            _connectionState.emit(state)
+        }
+    }
+
 
     override fun onSessionApproved(approvedSession: Modal.Model.ApprovedSession) {
         scope.launch {
@@ -75,9 +85,9 @@ internal object WalletConnectModalDelegate : WalletConnectModal.ModalDelegate {
         }
     }
 
-    override fun onConnectionStateChange(state: Modal.Model.ConnectionState) {
+    override fun onSessionAuthenticateResponse(sessionUpdateResponse: Modal.Model.SessionAuthenticateResponse) {
         scope.launch {
-            _wcEventModels.emit(state)
+            _wcEventModels.emit(sessionUpdateResponse)
         }
     }
 

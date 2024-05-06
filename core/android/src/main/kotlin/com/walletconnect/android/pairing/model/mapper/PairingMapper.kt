@@ -23,7 +23,7 @@ internal fun Pairing.toCore(): Core.Model.Pairing =
         relayData,
         uri,
         isActive,
-        registeredMethods
+        methods ?: String.Empty
     )
 
 @JvmSynthetic
@@ -35,7 +35,7 @@ fun Core.Model.Pairing.toPairing(): Pairing =
         relayProtocol,
         relayData,
         uri,
-        registeredMethods
+        methods = registeredMethods
     )
 
 @JvmSynthetic

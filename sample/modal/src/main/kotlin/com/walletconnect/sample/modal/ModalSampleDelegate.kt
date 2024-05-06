@@ -70,6 +70,10 @@ object ModalSampleDelegate : Web3Modal.ModalDelegate {
         }
     }
 
+    override fun onSessionAuthenticateResponse(sessionUpdateResponse: Modal.Model.SessionAuthenticateResponse) {
+        TODO("Not yet implemented")
+    }
+
     override fun onProposalExpired(proposal: Modal.Model.ExpiredProposal) {
         scope.launch {
             _wcEventModels.emit(proposal)
@@ -83,7 +87,6 @@ object ModalSampleDelegate : Web3Modal.ModalDelegate {
     }
 
     override fun onConnectionStateChange(state: Modal.Model.ConnectionState) {
-        Timber.d(tag(this), "onConnectionStateChange($state)")
         scope.launch {
             _wcEventModels.emit(state)
         }

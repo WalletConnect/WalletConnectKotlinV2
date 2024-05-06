@@ -22,6 +22,9 @@ internal object Web3ModalDelegate : Web3Modal.ModalDelegate {
     private val _wcEventModels: MutableSharedFlow<Modal.Model?> = MutableSharedFlow()
     val wcEventModels: SharedFlow<Modal.Model?> = _wcEventModels.asSharedFlow()
 
+    private val _connectionState: MutableSharedFlow<Modal.Model.ConnectionState> = MutableSharedFlow(replay = 1)
+    val connectionState: SharedFlow<Modal.Model.ConnectionState> = _connectionState.asSharedFlow()
+
     //todo replace it with engine
     private val saveSessionUseCase: SaveSessionUseCase by lazy { wcKoinApp.koin.get() }
     private val saveChainSelectionUseCase: SaveChainSelectionUseCase by lazy { wcKoinApp.koin.get() }
@@ -137,9 +140,15 @@ internal object Web3ModalDelegate : Web3Modal.ModalDelegate {
         }
     }
 
+    override fun onSessionAuthenticateResponse(sessionUpdateResponse: Modal.Model.SessionAuthenticateResponse) {
+        scope.launch {
+            _wcEventModels.emit(sessionUpdateResponse)
+        }
+    }
+
     override fun onConnectionStateChange(state: Modal.Model.ConnectionState) {
         scope.launch {
-            _wcEventModels.emit(state)
+            _connectionState.emit(state)
         }
     }
 

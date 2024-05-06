@@ -3,12 +3,14 @@
 package com.walletconnect.android.pairing.client
 
 import com.walletconnect.android.Core
+import com.walletconnect.android.internal.Validator
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.pairing.engine.domain.PairingEngine
 import com.walletconnect.android.pairing.engine.model.EngineDO
 import com.walletconnect.android.pairing.model.mapper.toCore
 import com.walletconnect.android.relay.RelayConnectionInterface
+import com.walletconnect.android.relay.WSSConnectionState
 import com.walletconnect.foundation.util.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -43,7 +45,19 @@ internal class PairingProtocol(private val koinApp: KoinApplication = wcKoinApp)
         checkEngineInitialization()
 
         return try {
-            pairingEngine.create { error -> onError(Core.Model.Error(error)) }
+            pairingEngine.create({ error -> onError(Core.Model.Error(error)) })
+        } catch (e: Exception) {
+            onError(Core.Model.Error(e))
+            null
+        }
+    }
+
+    @Throws(IllegalStateException::class)
+    override fun create(onError: (Core.Model.Error) -> Unit, methods: String): Core.Model.Pairing? {
+        checkEngineInitialization()
+
+        return try {
+            pairingEngine.create({ error -> onError(Core.Model.Error(error)) }, methods)
         } catch (e: Exception) {
             onError(Core.Model.Error(e))
             null
@@ -73,7 +87,7 @@ internal class PairingProtocol(private val koinApp: KoinApplication = wcKoinApp)
                 },
                 { throwable ->
                     logger.error(throwable)
-                    onError(Core.Model.Error(Throwable("Pairing timeout error: ${throwable.message}")))
+                    onError(Core.Model.Error(Throwable("Pairing error: ${throwable.message}")))
                 })
         }
     }
@@ -120,19 +134,34 @@ internal class PairingProtocol(private val koinApp: KoinApplication = wcKoinApp)
         return pairingEngine.getPairings().map { pairing -> pairing.toCore() }
     }
 
+    override fun validatePairingUri(uri: String): Boolean {
+        return try {
+            Validator.validateWCUri(uri) != null
+        } catch (e: Exception) {
+            false
+        }
+    }
+
     private suspend fun awaitConnection(onConnection: () -> Unit, errorLambda: (Throwable) -> Unit = {}) {
         try {
-            withTimeout(5000) {
+            withTimeout(60000) {
                 while (true) {
-                    if (relayClient.isConnectionAvailable.value) {
-                        onConnection()
-                        return@withTimeout
+                    if (relayClient.isNetworkAvailable.value != null) {
+                        if (relayClient.isNetworkAvailable.value == true) {
+                            if (relayClient.wssConnectionState.value is WSSConnectionState.Connected) {
+                                onConnection()
+                                return@withTimeout
+                            }
+                        } else {
+                            errorLambda(Throwable("No internet connection"))
+                            return@withTimeout
+                        }
                     }
                     delay(100)
                 }
             }
         } catch (e: Exception) {
-            errorLambda(e)
+            errorLambda(Throwable("Failed to connect: ${e.message}"))
         }
     }
 

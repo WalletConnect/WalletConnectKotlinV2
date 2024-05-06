@@ -9,7 +9,7 @@ import java.net.URI
 object Wallet {
 
     sealed class Params {
-        data class Init constructor(val core: CoreInterface) : Params()
+        data class Init(val core: CoreInterface) : Params()
 
         data class Pair(val uri: String) : Params()
 
@@ -18,6 +18,10 @@ object Wallet {
             val namespaces: Map<String, Model.Namespace.Session>,
             val relayProtocol: String? = null,
         ) : Params()
+
+        data class ApproveSessionAuthenticate(val id: Long, val auths: List<Model.Cacao>) : Params()
+
+        data class RejectSessionAuthenticate(val id: Long, val reason: String) : Params()
 
         data class SessionReject(val proposerPublicKey: String, val reason: String) : Params()
 
@@ -33,6 +37,8 @@ object Wallet {
 
         data class FormatMessage(val payloadParams: Model.PayloadParams, val issuer: String) : Params()
 
+        data class FormatAuthMessage(val payloadParams: Model.PayloadAuthRequestParams, val issuer: String) : Params()
+
         sealed class AuthRequestResponse : Params() {
             abstract val id: Long
 
@@ -46,7 +52,12 @@ object Wallet {
     sealed class Model {
         data class Error(val throwable: Throwable) : Model()
 
-        data class ConnectionState(val isAvailable: Boolean) : Model()
+		data class ConnectionState(val isAvailable: Boolean, val reason: Reason? = null) : Model() {
+			sealed class Reason : Model() {
+				data class ConnectionClosed(val message: String) : Reason()
+				data class ConnectionFailed(val throwable: Throwable) : Reason()
+			}
+		}
 
         data class ExpiredProposal(val pairingTopic: String, val proposerPublicKey: String) : Model()
         data class ExpiredRequest(val topic: String, val id: Long) : Model()
@@ -65,6 +76,18 @@ object Wallet {
             val relayProtocol: String,
             val relayData: String?,
         ) : Model()
+
+        data class SessionAuthenticate(
+            val id: Long,
+            val pairingTopic: String,
+            val participant: Participant,
+            val payloadParams: PayloadAuthRequestParams,
+        ) : Model() {
+            data class Participant(
+                val publicKey: String,
+                val metadata: Core.Model.AppMetaData?,
+            ) : Model()
+        }
 
         data class VerifyContext(
             val id: Long,
@@ -161,11 +184,24 @@ object Wallet {
             val resources: List<String>?,
         ) : Model()
 
+        data class PayloadAuthRequestParams(
+            val chains: List<String>,
+            val domain: String,
+            val nonce: String,
+            val aud: String,
+            val type: String?,
+            val iat: String,
+            val nbf: String?,
+            val exp: String?,
+            val statement: String?,
+            val requestId: String?,
+            val resources: List<String>?
+        ) : Model()
+
         data class SessionEvent(
             val name: String,
             val data: String,
         ) : Model()
-
 
         data class Event(
             val topic: String,

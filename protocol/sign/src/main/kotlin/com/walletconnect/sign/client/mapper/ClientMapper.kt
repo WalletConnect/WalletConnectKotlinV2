@@ -9,9 +9,14 @@ import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Validation
+import com.walletconnect.android.internal.common.signing.cacao.Cacao
+import com.walletconnect.android.internal.common.signing.cacao.CacaoType
+import com.walletconnect.android.internal.common.signing.cacao.RECAPS_STATEMENT
+import com.walletconnect.android.internal.common.signing.cacao.getStatement
 import com.walletconnect.android.utils.toClient
 import com.walletconnect.sign.client.Sign
-import com.walletconnect.sign.common.model.PendingRequest
+import com.walletconnect.sign.common.model.Request
+import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.utils.Empty
 
@@ -30,11 +35,16 @@ internal fun EngineDO.SettledSessionResponse.toClientSettledSessionResponse(): S
     }
 
 @JvmSynthetic
+internal fun EngineDO.SessionAuthenticateResponse.toClientSessionAuthenticateResponse(): Sign.Model.SessionAuthenticateResponse =
+    when (this) {
+        is EngineDO.SessionAuthenticateResponse.Result -> Sign.Model.SessionAuthenticateResponse.Result(id, cacaos.toClient(), session?.toClientActiveSession())
+        is EngineDO.SessionAuthenticateResponse.Error -> Sign.Model.SessionAuthenticateResponse.Error(id, code, message)
+    }
+
+@JvmSynthetic
 internal fun EngineDO.SessionUpdateNamespacesResponse.toClientUpdateSessionNamespacesResponse(): Sign.Model.SessionUpdateResponse =
     when (this) {
-        is EngineDO.SessionUpdateNamespacesResponse.Result ->
-            Sign.Model.SessionUpdateResponse.Result(topic.value, namespaces.toMapOfClientNamespacesSession())
-
+        is EngineDO.SessionUpdateNamespacesResponse.Result -> Sign.Model.SessionUpdateResponse.Result(topic.value, namespaces.toMapOfClientNamespacesSession())
         is EngineDO.SessionUpdateNamespacesResponse.Error -> Sign.Model.SessionUpdateResponse.Error(errorMessage)
     }
 
@@ -87,6 +97,100 @@ internal fun EngineDO.SessionRequest.toClientSessionRequest(): Sign.Model.Sessio
     )
 
 @JvmSynthetic
+internal fun Sign.Model.PayloadParams.toEngine(): EngineDO.PayloadParams = with(this) {
+    EngineDO.PayloadParams(
+        type = CacaoType.CAIP222.header,
+        chains = chains,
+        domain = domain,
+        aud = aud,
+        nonce = nonce,
+        nbf = nbf,
+        exp = exp,
+        statement = statement,
+        requestId = requestId,
+        resources = resources,
+        iat = iat,
+        version = "1"
+    )
+}
+
+@JvmSynthetic
+internal fun Sign.Params.Authenticate.toAuthenticate(): EngineDO.Authenticate = with(this) {
+    EngineDO.Authenticate(
+        type = CacaoType.EIP4361.header,
+        chains = chains,
+        domain = domain,
+        aud = uri,
+        nonce = nonce,
+        nbf = nbf,
+        exp = exp,
+        statement = statement,
+        requestId = requestId,
+        resources = resources,
+        methods = methods,
+        expiry = expiry
+    )
+}
+
+@JvmSynthetic
+internal fun Sign.Model.PayloadParams.toCacaoPayload(issuer: String): Sign.Model.Cacao.Payload = with(this) {
+    Sign.Model.Cacao.Payload(issuer, domain, aud, "1", nonce, iat = iat, nbf, exp, getStatement(), requestId, resources)
+}
+
+private fun Sign.Model.PayloadParams.getStatement() =
+    if (statement?.contains(RECAPS_STATEMENT) == true) {
+        statement
+    } else {
+        Pair(statement, resources).getStatement()
+    }
+
+@JvmSynthetic
+internal fun List<Sign.Model.Cacao>.toCommon(): List<Cacao> = this.map {
+    with(it) {
+        Cacao(
+            Cacao.Header(header.t),
+            Cacao.Payload(
+                payload.iss,
+                payload.domain,
+                payload.aud,
+                payload.version,
+                payload.nonce,
+                payload.iat,
+                payload.nbf,
+                payload.exp,
+                payload.statement,
+                payload.requestId,
+                payload.resources
+            ),
+            Cacao.Signature(signature.t, signature.s, signature.m)
+        )
+    }
+}
+
+@JvmSynthetic
+internal fun List<Cacao>.toClient(): List<Sign.Model.Cacao> = this.map {
+    with(it) {
+        Sign.Model.Cacao(
+            Sign.Model.Cacao.Header(header.t),
+            Sign.Model.Cacao.Payload(
+                payload.iss,
+                payload.domain,
+                payload.aud,
+                payload.version,
+                payload.nonce,
+                payload.iat,
+                payload.nbf,
+                payload.exp,
+                payload.statement,
+                payload.requestId,
+                payload.resources
+            ),
+            Sign.Model.Cacao.Signature(signature.t, signature.s, signature.m)
+        )
+    }
+}
+
+@JvmSynthetic
 internal fun Sign.Model.JsonRpcResponse.JsonRpcResult.toRpcResult(): JsonRpcResponse.JsonRpcResult = JsonRpcResponse.JsonRpcResult(id, result = result)
 
 @JvmSynthetic
@@ -102,6 +206,35 @@ internal fun EngineDO.SessionDelete.toClientDeletedSession(): Sign.Model.Deleted
 @JvmSynthetic
 internal fun EngineDO.SessionEvent.toClientSessionEvent(): Sign.Model.SessionEvent =
     Sign.Model.SessionEvent(name, data)
+
+@JvmSynthetic
+internal fun EngineDO.SessionAuthenticateEvent.toClientSessionAuthenticate(): Sign.Model.SessionAuthenticate = with(payloadParams) {
+    Sign.Model.SessionAuthenticate(
+        id,
+        pairingTopic,
+        participant.toClient(),
+        payloadParams.toClient(),
+        expiryTimestamp
+    )
+}
+
+@JvmSynthetic
+internal fun EngineDO.Participant.toClient(): Sign.Model.SessionAuthenticate.Participant = Sign.Model.SessionAuthenticate.Participant(publicKey, metadata.toClient())
+
+@JvmSynthetic
+internal fun EngineDO.PayloadParams.toClient(): Sign.Model.PayloadParams = Sign.Model.PayloadParams(
+    type = type,
+    chains = chains,
+    domain = domain,
+    aud = aud,
+    nonce = nonce,
+    nbf = nbf,
+    exp = exp,
+    statement = statement,
+    requestId = requestId,
+    resources = resources,
+    iat = iat
+)
 
 @JvmSynthetic
 internal fun EngineDO.SessionEvent.toClientEvent(): Sign.Model.Event =
@@ -170,7 +303,7 @@ internal fun EngineDO.PairingSettle.toClientSettledPairing(): Sign.Model.Pairing
     Sign.Model.Pairing(topic.value, appMetaData?.toClient())
 
 @JvmSynthetic
-internal fun List<PendingRequest<String>>.mapToPendingRequests(): List<Sign.Model.PendingRequest> = map { request ->
+internal fun List<Request<String>>.mapToPendingRequests(): List<Sign.Model.PendingRequest> = map { request ->
     Sign.Model.PendingRequest(
         request.id,
         request.topic.value,
@@ -183,6 +316,33 @@ internal fun List<PendingRequest<String>>.mapToPendingRequests(): List<Sign.Mode
 @JvmSynthetic
 internal fun List<EngineDO.SessionRequest>.mapToPendingSessionRequests(): List<Sign.Model.SessionRequest> =
     map { request -> request.toClientSessionRequest() }
+
+@JvmSynthetic
+internal fun Request<SignParams.SessionAuthenticateParams>.toClient(): Sign.Model.SessionAuthenticate =
+    Sign.Model.SessionAuthenticate(
+        id = id,
+        topic = topic.value,
+        participant = Sign.Model.SessionAuthenticate.Participant(params.requester.publicKey, params.requester.metadata.toClient()),
+        payloadParams = params.toClient(),
+        expiry = params.expiryTimestamp
+    )
+
+@JvmSynthetic
+internal fun SignParams.SessionAuthenticateParams.toClient(): Sign.Model.PayloadParams = with(this.authPayload) {
+    Sign.Model.PayloadParams(
+        type = type,
+        chains = chains,
+        domain = domain,
+        aud = aud,
+        nonce = nonce,
+        nbf = nbf,
+        exp = exp,
+        statement = statement,
+        requestId = requestId,
+        resources = resources,
+        iat = iat
+    )
+}
 
 @JvmSynthetic
 internal fun EngineDO.SessionPayloadResponse.toClientSessionPayloadResponse(): Sign.Model.SessionRequestResponse =
@@ -269,6 +429,30 @@ internal fun Core.Model.Message.SessionProposal.toSign(): Sign.Model.Message.Ses
         relayProtocol,
         relayData
     )
+
+@JvmSynthetic
+internal fun Core.Model.Message.SessionAuthenticate.toSign(): Sign.Model.Message.SessionAuthenticate =
+    Sign.Model.Message.SessionAuthenticate(
+        id, topic, metadata, payloadParams.toClient(), expiry
+    )
+
+private fun Core.Model.Message.SessionAuthenticate.PayloadParams.toClient(): Sign.Model.PayloadParams {
+    return with(this) {
+        Sign.Model.PayloadParams(
+            chains = chains,
+            domain = domain,
+            nonce = nonce,
+            aud = aud,
+            type = type,
+            nbf = nbf,
+            exp = exp,
+            iat = iat,
+            statement = requestId,
+            resources = resources,
+            requestId = requestId,
+        )
+    }
+}
 
 @JvmSynthetic
 internal fun Core.Model.Message.SessionRequest.toSign(): Sign.Model.Message.SessionRequest =

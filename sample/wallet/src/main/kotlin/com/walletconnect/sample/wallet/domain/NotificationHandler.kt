@@ -80,6 +80,16 @@ object NotificationHandler {
             val iconUrl: String?,
         ) : Notification
 
+        data class SessionAuthenticate(
+            override val messageId: Int,
+            override val channelId: String,
+            override val title: String,
+            override val body: String,
+            val topic: String,
+            val url: String?,
+            val iconUrl: String?,
+        ) : Notification
+
         data class AuthRequest(
             override val messageId: Int,
             override val channelId: String,
@@ -256,6 +266,16 @@ object NotificationHandler {
                     message.icons.firstOrNull(),
                     message.redirect
                 )
+
+            is Core.Model.Message.SessionAuthenticate -> Notification.SessionAuthenticate(
+                message.hashCode(),
+                W3W_CHANNEL_ID,
+                "New Authentication Request!",
+                "A new authentication request arrived from ${message.metadata.name}, please check your wallet",
+                message.topic,
+                message.metadata.url,
+                message.metadata.icons.firstOrNull()
+            )
         }
 
         _notificationsFlow.emit(notification)

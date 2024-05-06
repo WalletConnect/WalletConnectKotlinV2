@@ -41,6 +41,7 @@ import com.walletconnect.sample.wallet.ui.routes.composable_routes.notifications
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.settings.SettingsRoute
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.auth_request.AuthRequestRoute
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.paste_uri.PasteUriRoute
+import com.walletconnect.sample.wallet.ui.routes.dialog_routes.session_authenticate.SessionAuthenticateRoute
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.session_proposal.SessionProposalRoute
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.session_request.SessionRequestRoute
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.snackbar_message.SnackbarMessageRoute
@@ -147,7 +148,10 @@ fun Web3WalletNavGraph(
             dialog(Route.AuthRequest.path, dialogProperties = DialogProperties(usePlatformDefaultWidth = false)) {
                 AuthRequestRoute(navController)
             }
-            dialog(Route.SessionRequest.path, deepLinks = listOf(NavDeepLink("kotlin-web3wallet:/request")), dialogProperties = DialogProperties(usePlatformDefaultWidth = false)) {
+            dialog(Route.SessionAuthenticate.path, dialogProperties = DialogProperties(usePlatformDefaultWidth = false)) {
+                SessionAuthenticateRoute(navController, connectionsViewModel)
+            }
+            dialog(Route.SessionRequest.path, deepLinks = listOf(NavDeepLink("kotlin-web3wallet://request")), dialogProperties = DialogProperties(usePlatformDefaultWidth = false)) {
                 SessionRequestRoute(navController)
             }
             dialog(Route.PasteUri.path, dialogProperties = DialogProperties(usePlatformDefaultWidth = false)) {

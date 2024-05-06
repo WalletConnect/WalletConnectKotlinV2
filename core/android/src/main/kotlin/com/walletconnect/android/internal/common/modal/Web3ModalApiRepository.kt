@@ -21,6 +21,12 @@ internal class Web3ModalApiRepository(
         response.body()!!.data.toWalletsAppData().filter { it.isInstalled }
     }
 
+    suspend fun getAnalyticsConfig(sdkType: String = "w3m") = runCatching {
+        web3ModalService.getAnalyticsConfig(sdkType = sdkType)
+    }.mapCatching { response ->
+        response.body()!!.isAnalyticsEnabled
+    }
+
     suspend fun getWallets(
         sdkType: String,
         page: Int,

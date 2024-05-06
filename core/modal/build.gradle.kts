@@ -1,7 +1,7 @@
 plugins {
     id("com.android.library")
-    kotlin("android")
-    id("com.google.devtools.ksp") version kspVersion
+    id(libs.plugins.kotlin.android.get().pluginId)
+    alias(libs.plugins.google.ksp)
     id("publish-module-android")
 }
 
@@ -45,19 +45,30 @@ android {
         buildConfig = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = composeCompilerVersion
+        kotlinCompilerExtensionVersion = libs.versions.composeCompiler.get()
     }
 }
 
 dependencies {
-    appCompat()
-    accompanist()
-    compose()
-    coil()
-    lifecycle()
-    navigationComponent()
-    qrCodeGenerator()
-    timber()
+    implementation(libs.bundles.androidxAppCompat)
+    implementation(libs.bundles.accompanist)
 
-    jUnit4()
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material)
+    implementation(libs.androidx.compose.navigation)
+    implementation(libs.androidx.compose.lifecycle)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
+    androidTestImplementation(libs.androidx.compose.ui.test.junit)
+    androidTestImplementation(libs.androidx.compose.navigation.testing)
+
+
+    implementation(libs.coil)
+    implementation(libs.bundles.androidxLifecycle)
+    api(libs.bundles.androidxNavigation)
+    implementation(libs.qrCodeGenerator)
+    api(libs.timber)
+
 }
