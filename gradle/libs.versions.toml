@@ -54,6 +54,7 @@ robolectric = "4.9.2"
 mockk = "1.13.5"
 turbine = "1.0.0"
 paparazzi = "1.3.1"
+webkit = "1.11.0"
 
 [libraries]
 sqlDelight-android = { module = "app.cash.sqldelight:android-driver", version.ref = "sqlDelight" }
@@ -156,6 +157,7 @@ coinbaseWallet = { module = "com.coinbase:coinbase-wallet-sdk", version.ref = "c
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 qrCodeGenerator = { module = "com.github.alexzhirkevich:custom-qr-generator", version.ref = "customQrGenerator" }
 coil = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
+androidx-webkit = { group = "androidx.webkit", name = "webkit", version.ref = "webkit" }
 
 [bundles]
 sqlDelight = ["sqlDelight-android", "sqlDelight-coroutines", "sqlDelight-adapters", "sqlDelight-async"]
