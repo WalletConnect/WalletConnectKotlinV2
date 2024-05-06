@@ -104,7 +104,7 @@ internal class RelayerInteractorTest {
     }
 
     private fun mockRelayPublishSuccess() {
-        every { relay.publish(any(), any(), any(), any()) } answers {
+        every { relay.publish(any(), any(), any(), any(), any()) } answers {
             lastArg<(Result<Relay.Model.Call.Publish.Acknowledgement>) -> Unit>().invoke(
                 Result.success(mockk())
             )
@@ -224,9 +224,9 @@ internal class RelayerInteractorTest {
 
     @Test
     fun `OnFailure callback called when subscribe encounters error`() {
-        every { relay.subscribe(any(), any()) } answers {
+        every { relay.subscribe(any(), any(), any()) } answers {
             lastArg<(Result<RelayDTO.Publish.Result.Acknowledgement>) -> Unit>().invoke(
-                Result.failure(mockk())
+                Result.failure(Throwable("error"))
             )
         }
         sut.subscribe(topicVO, onFailure = onFailure)

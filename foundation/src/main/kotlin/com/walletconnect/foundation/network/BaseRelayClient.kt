@@ -108,7 +108,7 @@ abstract class BaseRelayClient : RelayInterface {
                             }
                 }
             } catch (e: TimeoutCancellationException) {
-                onResult(Result.failure(Throwable("Publish request timed out: ${e.message}")))
+                onResult(Result.failure(e))
                 cancelJobIfActive()
             } catch (e: Exception) {
                 onResult(Result.failure(e))
@@ -141,7 +141,7 @@ abstract class BaseRelayClient : RelayInterface {
                             }
                 }
             } catch (e: TimeoutCancellationException) {
-                onResult(Result.failure(Throwable("Subscribe timed out: ${e.message}")))
+                onResult(Result.failure(e))
                 cancelJobIfActive()
             } catch (e: Exception) {
                 onResult(Result.failure(e))
@@ -174,7 +174,7 @@ abstract class BaseRelayClient : RelayInterface {
                             }
                 }
             } catch (e: TimeoutCancellationException) {
-                onResult(Result.failure(Throwable("Batch Subscribe timed out: ${e.message}")))
+                onResult(Result.failure(e))
                 cancelJobIfActive()
             } catch (e: Exception) {
                 onResult(Result.failure(e))
