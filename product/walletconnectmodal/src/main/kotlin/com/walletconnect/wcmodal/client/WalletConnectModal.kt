@@ -23,7 +23,12 @@ object WalletConnectModal {
         fun onSessionApproved(approvedSession: Modal.Model.ApprovedSession)
         fun onSessionRejected(rejectedSession: Modal.Model.RejectedSession)
         fun onSessionUpdate(updatedSession: Modal.Model.UpdatedSession)
+        @Deprecated(
+            message = "Use onSessionEvent(Modal.Model.Event) instead. Using both will result in duplicate events.",
+            replaceWith = ReplaceWith(expression = "onSessionEvent(sessionEvent)")
+        )
         fun onSessionEvent(sessionEvent: Modal.Model.SessionEvent)
+        fun onSessionEvent(sessionEvent: Modal.Model.Event) {}
         fun onSessionExtend(session: Modal.Model.Session)
         fun onSessionDelete(deletedSession: Modal.Model.DeletedSession)
 
@@ -41,7 +46,7 @@ object WalletConnectModal {
     fun initialize(
         init: Modal.Params.Init,
         onSuccess: () -> Unit = {},
-        onError: (Modal.Model.Error) -> Unit
+        onError: (Modal.Model.Error) -> Unit,
     ) {
         SignClient.initialize(
             init = Sign.Params.Init(init.core),
@@ -60,7 +65,7 @@ object WalletConnectModal {
     private fun onInitializedClient(
         init: Modal.Params.Init,
         onSuccess: () -> Unit = {},
-        onError: (Modal.Model.Error) -> Unit
+        onError: (Modal.Model.Error) -> Unit,
     ) {
         this.excludedWalletsIds = init.excludedWalletIds
         this.recommendedWalletsIds = init.recommendedWalletsIds
@@ -83,7 +88,9 @@ object WalletConnectModal {
                 is Modal.Model.Error -> delegate.onError(event)
                 is Modal.Model.RejectedSession -> delegate.onSessionRejected(event)
                 is Modal.Model.Session -> delegate.onSessionExtend(event)
+                //todo: how to notify developer to not us both at the same time
                 is Modal.Model.SessionEvent -> delegate.onSessionEvent(event)
+                is Modal.Model.Event -> delegate.onSessionEvent(event)
                 is Modal.Model.SessionRequestResponse -> delegate.onSessionRequestResponse(event)
                 is Modal.Model.UpdatedSession -> delegate.onSessionUpdate(event)
                 is Modal.Model.ExpiredProposal -> delegate.onProposalExpired(event)
@@ -110,6 +117,10 @@ object WalletConnectModal {
             }
 
             override fun onSessionEvent(sessionEvent: Sign.Model.SessionEvent) {
+                delegate.onSessionEvent(sessionEvent.toModal())
+            }
+
+            override fun onSessionEvent(sessionEvent: Sign.Model.Event) {
                 delegate.onSessionEvent(sessionEvent.toModal())
             }
 
@@ -159,7 +170,7 @@ object WalletConnectModal {
     fun connect(
         connect: Modal.Params.Connect,
         onSuccess: () -> Unit,
-        onError: (Modal.Model.Error) -> Unit
+        onError: (Modal.Model.Error) -> Unit,
     ) {
         SignClient.connect(
             connect = connect.toSign(),
@@ -171,7 +182,7 @@ object WalletConnectModal {
     fun connect(
         connect: Modal.Params.Connect,
         onSuccess: (String) -> Unit,
-        onError: (Modal.Model.Error) -> Unit
+        onError: (Modal.Model.Error) -> Unit,
     ) {
         SignClient.connect(
             connect = connect.toSign(),

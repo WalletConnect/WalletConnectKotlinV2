@@ -153,7 +153,7 @@ internal sealed class EngineDO {
         val topic: String,
         val name: String,
         val data: String,
-        val chainId: String?,
+        val chainId: String, //todo: Why was this nullable?
     ) : EngineDO(), EngineEvent
 
     sealed class SessionAuthenticateResponse : EngineDO(), EngineEvent {

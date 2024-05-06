@@ -65,6 +65,13 @@ internal object Web3ModalDelegate : Web3Modal.ModalDelegate {
         }
     }
 
+    override fun onSessionEvent(sessionEvent: Modal.Model.Event) {
+        scope.launch {
+            consumeEvent(sessionEvent)
+            _wcEventModels.emit(sessionEvent)
+        }
+    }
+
     private suspend fun consumeSessionEvent(sessionEvent: Modal.Model.SessionEvent) {
         try {
             when (sessionEvent.name) {
@@ -74,6 +81,26 @@ internal object Web3ModalDelegate : Web3Modal.ModalDelegate {
                 }
                 EthUtils.chainChanged -> {
                     val (chainReference, _) = sessionEvent.data.split(".")
+                    Web3Modal.chains.find { it.chainReference == chainReference }?.let { chain -> saveChainSelectionUseCase(chain.id) }
+                }
+            }
+        } catch (throwable: Throwable) {
+            onError(Modal.Model.Error(throwable))
+        }
+    }
+
+    //todo: Do we need to change anything here? We have more data in event now.
+    private suspend fun consumeEvent(event: Modal.Model.Event) {
+        try {
+            when (event.name) {
+                EthUtils.accountsChanged -> {
+                    //todo: Can we take chainReference from the event?
+                    val (_, chainReference, _) = event.data.split(":")
+                    Web3Modal.chains.find { it.chainReference == chainReference }?.let { chain -> saveChainSelectionUseCase(chain.id) }
+                }
+                EthUtils.chainChanged -> {
+                    //todo: Can we take chainReference from the event?
+                    val (chainReference, _) = event.data.split(".")
                     Web3Modal.chains.find { it.chainReference == chainReference }?.let { chain -> saveChainSelectionUseCase(chain.id) }
                 }
             }

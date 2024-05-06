@@ -255,6 +255,7 @@ object Web3Wallet {
         SignClient.respond(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
+
     @Throws(IllegalStateException::class)
     fun emitSessionEvent(
             params: Wallet.Params.SessionEmit,

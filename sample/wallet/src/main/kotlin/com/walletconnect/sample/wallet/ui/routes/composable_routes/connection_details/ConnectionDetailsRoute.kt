@@ -89,10 +89,7 @@ fun ConnectionDetailsRoute(navController: NavController, connectionId: Int?, con
                                 val chainId = account.dropLast(account.lastIndex - lastDelimiterIndex + 1)
                                 val event = getAllEventsByChainId(uiConnection.type.namespaces.values.first(), account).first()
                                 Web3Wallet.emitSessionEvent(
-                                    Wallet.Params.SessionEmit(
-                                        uiConnection.type.topic,
-                                        event = Wallet.Model.SessionEvent(event, "someData"), chainId
-                                    ),
+                                    Wallet.Params.SessionEmit(uiConnection.type.topic, Wallet.Model.SessionEvent(event, "someData"), chainId),
                                     onSuccess = {
                                         isEmitLoading = false
                                         composableScope.launch(Dispatchers.Main) {
