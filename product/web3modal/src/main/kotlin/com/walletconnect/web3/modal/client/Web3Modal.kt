@@ -140,10 +140,13 @@ object Web3Modal {
 
     @Throws(IllegalStateException::class)
     fun setDelegate(delegate: ModalDelegate) {
+        Web3ModalDelegate.connectionState.onEach { connectionState ->
+            delegate.onConnectionStateChange(connectionState)
+        }.launchIn(scope)
+
         Web3ModalDelegate.wcEventModels.onEach { event ->
             when (event) {
                 is Modal.Model.ApprovedSession -> delegate.onSessionApproved(event)
-                is Modal.Model.ConnectionState -> delegate.onConnectionStateChange(event)
                 is Modal.Model.DeletedSession.Success -> delegate.onSessionDelete(event)
                 is Modal.Model.Error -> delegate.onError(event)
                 is Modal.Model.RejectedSession -> delegate.onSessionRejected(event)

@@ -199,7 +199,14 @@ object Sign {
 
         data class ConnectionState(
             val isAvailable: Boolean,
-        ) : Model()
+            val reason: Reason? = null
+        ) : Model() {
+            sealed class Reason : Model() {
+                data class ConnectionClosed(val message: String) : Reason()
+                data class ConnectionFailed(val throwable: Throwable) : Reason()
+            }
+        }
+
 
         sealed class Message : Model() {
             data class SessionProposal(

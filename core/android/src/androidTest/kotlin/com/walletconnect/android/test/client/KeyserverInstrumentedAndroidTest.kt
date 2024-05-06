@@ -19,10 +19,7 @@ import org.junit.Test
 import timber.log.Timber
 
 class KeyserverInstrumentedAndroidTest {
-
-
     object CacaoSigner : CacaoSignerInterface<Cacao.Signature>
-
 
     @get:Rule
     val scenarioExtension = WCInstrumentedActivityScenario()

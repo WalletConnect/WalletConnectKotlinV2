@@ -1,9 +1,9 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("java-library")
-    kotlin("jvm")
-    id("com.google.devtools.ksp") version kspVersion
+    id(libs.plugins.javaLibrary.get().pluginId)
+    id(libs.plugins.kotlin.jvm.get().pluginId)
+    alias(libs.plugins.google.ksp)
     id("publish-module-java")
 }
 
@@ -24,22 +24,23 @@ tasks.withType<KotlinCompile>() {
     }
 }
 
-tasks.withType<Test>() {
+tasks.withType<Test> {
     systemProperty("SDK_VERSION", requireNotNull(project.extra.get(KEY_PUBLISH_VERSION)))
     systemProperty("TEST_RELAY_URL", System.getenv("TEST_RELAY_URL"))
     systemProperty("TEST_PROJECT_ID", System.getenv("TEST_PROJECT_ID"))
 }
 
 dependencies {
-    scarlet()
-    okhttp()
-    koinJvm()
-    moshi()
-    moshiKsp()
-    bouncyCastle()
-    multibaseJava()
-    wsRestJava()
+    api(libs.bundles.scarlet)
+    api(platform(libs.okhttp.bom))
+    api(libs.bundles.okhttp)
+    implementation(libs.koin.jvm)
+    api(libs.bundles.moshi)
+    ksp(libs.moshi.ksp)
+    api(libs.bouncyCastle)
+    api(libs.mulitbase)
+    implementation(libs.wsRestJava)
 
-    jUnit4()
-    mockk()
+    testImplementation(libs.jerseyCommon)
+    testImplementation(libs.coroutines.test)
 }

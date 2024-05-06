@@ -105,10 +105,10 @@ internal object TestClient {
             Relay = RelayClient(secondaryKoinApp)
 
             // Override of storage instances and depending objects
-            secondaryKoinApp.modules(overrideModule(Relay, Pairing, PairingController, "test_secondary"))
+            secondaryKoinApp.modules(overrideModule(Relay, Pairing, PairingController, "test_secondary", RELAY_URL, ConnectionType.MANUAL))
 
             // Necessary reinit of Relay, Pairing and PairingController
-            Relay.initialize(RELAY_URL, ConnectionType.MANUAL) { Timber.e(it) }
+            Relay.initialize { Timber.e(it) }
             Pairing.initialize()
             PairingController.initialize()
 

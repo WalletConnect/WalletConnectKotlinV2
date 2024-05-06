@@ -1,8 +1,8 @@
 plugins {
     id("com.android.library")
-    kotlin("android")
+    id(libs.plugins.kotlin.android.get().pluginId)
     alias(libs.plugins.sqlDelight)
-    id("com.google.devtools.ksp") version kspVersion
+    alias(libs.plugins.google.ksp)
     id("publish-module-android")
     id("jacoco-report")
 }
@@ -61,15 +61,13 @@ dependencies {
     releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
 
     retrofit()
-    moshiKsp()
+    ksp(libs.moshi.ksp)
     implementation(libs.bundles.sqlDelight)
 
     androidXTest()
-    jUnit4()
-    robolectric()
-    mockk()
-    testJson()
-    coroutinesTest()
+    testImplementation(libs.robolectric)
+    testImplementation(libs.json)
+    testImplementation(libs.coroutines.test)
     scarletTest()
-    testImplementation(libs.bundles.sqlDelightTest)
+    testImplementation(libs.bundles.sqlDelight.test)
 }

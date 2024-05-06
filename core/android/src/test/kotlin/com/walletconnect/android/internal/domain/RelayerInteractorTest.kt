@@ -1,6 +1,5 @@
 package com.walletconnect.android.internal.domain
 
-import com.tinder.scarlet.testutils.any
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.exception.WalletConnectException
@@ -28,16 +27,10 @@ import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.spyk
 import io.mockk.verify
-import junit.framework.TestCase.assertFalse
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.runBlocking
 import org.junit.BeforeClass
 import org.junit.Test
-import java.io.PrintStream
 import java.io.PrintWriter
 
 @ExperimentalCoroutinesApi
@@ -111,7 +104,7 @@ internal class RelayerInteractorTest {
     }
 
     private fun mockRelayPublishSuccess() {
-        every { relay.publish(any(), any(), any(), any()) } answers {
+        every { relay.publish(any(), any(), any(), any(), any()) } answers {
             lastArg<(Result<Relay.Model.Call.Publish.Acknowledgement>) -> Unit>().invoke(
                 Result.success(mockk())
             )
@@ -231,19 +224,12 @@ internal class RelayerInteractorTest {
 
     @Test
     fun `OnFailure callback called when subscribe encounters error`() {
-        every { relay.subscribe(any(), any()) } answers {
+        every { relay.subscribe(any(), any(), any()) } answers {
             lastArg<(Result<RelayDTO.Publish.Result.Acknowledgement>) -> Unit>().invoke(
-                Result.failure(mockk())
+                Result.failure(Throwable("error"))
             )
         }
         sut.subscribe(topicVO, onFailure = onFailure)
         verify { onFailure(any()) }
-    }
-
-    @Test
-    fun `IsConnectionOpened initial value is false`() = runBlocking {
-        every { relay.isConnectionAvailable } returns flowOf(false).stateIn(this)
-
-        assertFalse(sut.isConnectionAvailable.first())
     }
 }

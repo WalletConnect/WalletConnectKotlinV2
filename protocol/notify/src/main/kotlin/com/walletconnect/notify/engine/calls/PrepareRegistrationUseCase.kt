@@ -6,6 +6,7 @@ import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementReposit
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.signing.cacao.toCAIP222Message
 import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
+import com.walletconnect.foundation.util.Logger
 import com.walletconnect.notify.common.model.CacaoPayloadWithIdentityPrivateKey
 import com.walletconnect.notify.engine.domain.createAuthorizationReCaps
 
@@ -13,6 +14,7 @@ internal class PrepareRegistrationUseCase(
     private val identitiesInteractor: IdentitiesInteractor,
     private val identityServerUrl: String,
     private val keyManagementRepository: KeyManagementRepository,
+    private val logger: Logger
 ) : PrepareRegistrationUseCaseInterface {
 
     override suspend fun prepareRegistration(
@@ -31,7 +33,11 @@ internal class PrepareRegistrationUseCase(
             domain,
             listOf(identityServerUrl, createAuthorizationReCaps())
         )
-            .also { keyManagementRepository.removeKeys(identityPublicKey.keyAsHex) }
+            .also {
+                runCatching {
+                    keyManagementRepository.removeKeys(identityPublicKey.keyAsHex)
+                }.onFailure { logger.error(it) }
+            }
             .fold(
                 onFailure = { error -> onFailure(error) },
                 onSuccess = { cacaoPayload ->

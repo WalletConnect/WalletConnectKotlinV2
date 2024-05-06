@@ -8,6 +8,5 @@
 -dontwarn org.openjsse.**
 -dontwarn okhttp3.internal.platform.**
 
--repackageclasses 'com.walletconnect'
 -allowaccessmodification
 -keeppackagenames doNotKeepAThing

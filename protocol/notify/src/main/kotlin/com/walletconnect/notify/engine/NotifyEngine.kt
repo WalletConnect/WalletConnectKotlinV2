@@ -10,6 +10,7 @@ import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInt
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
+import com.walletconnect.android.relay.WSSConnectionState
 import com.walletconnect.notify.common.JsonRpcMethod
 import com.walletconnect.notify.engine.calls.DeleteSubscriptionUseCaseInterface
 import com.walletconnect.notify.engine.calls.GetActiveSubscriptionsUseCaseInterface
@@ -36,6 +37,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
@@ -99,9 +101,9 @@ internal class NotifyEngine(
     }
 
     suspend fun setup() {
-        jsonRpcInteractor.isConnectionAvailable
-            .onEach { isAvailable -> _engineEvent.emit(ConnectionState(isAvailable)) }
-            .filter { isAvailable: Boolean -> isAvailable }
+        jsonRpcInteractor.wssConnectionState
+            .onEach { state -> handleWSSState(state) }
+            .filterIsInstance<WSSConnectionState.Connected>()
             .onEach {
                 supervisorScope {
                     launch(Dispatchers.IO) {
@@ -114,9 +116,20 @@ internal class NotifyEngine(
                 if (jsonRpcResponsesJob == null) jsonRpcResponsesJob = collectJsonRpcResponses()
                 if (internalErrorsJob == null) internalErrorsJob = collectInternalErrors()
                 if (notifyEventsJob == null) notifyEventsJob = collectNotifyEvents()
-            }
-            .launchIn(scope)
+            }.launchIn(scope)
     }
+
+	private suspend fun handleWSSState(state: WSSConnectionState) {
+		when (state) {
+			is WSSConnectionState.Disconnected.ConnectionFailed ->
+				_engineEvent.emit(ConnectionState(false, ConnectionState.Reason.ConnectionFailed(state.throwable)))
+
+			is WSSConnectionState.Disconnected.ConnectionClosed ->
+				_engineEvent.emit(ConnectionState(false, ConnectionState.Reason.ConnectionClosed(state.message ?: "Connection closed")))
+
+			else -> _engineEvent.emit(ConnectionState(true))
+		}
+	}
 
     private suspend fun collectJsonRpcRequests(): Job =
         jsonRpcInteractor.clientSyncJsonRpc
