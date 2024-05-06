@@ -1,4 +1,4 @@
-rootProject.name = "WalletConnect"
+rootProject.name = "WalletConnect Kotlin"
 
 val excludedDirs = listOf(
     "undefined",
@@ -11,7 +11,8 @@ val excludedDirs = listOf(
     "gradle",
     "docs",
     "licenses",
-    "walletconnectv2"
+    "walletconnectv2",
+    "chat"
 )
 // TODO: Add to rootModules when new module is added to the project root directory
 val rootModules = listOf("foundation")
@@ -30,9 +31,27 @@ File(rootDir.path).listFiles { file -> file.isDirectory && file.name !in exclude
 
 pluginManagement {
     repositories {
+        google {
+            content {
+                includeGroupByRegex("com\\.android.*")
+                includeGroupByRegex("com\\.google.*")
+                includeGroupByRegex("androidx.*")
+            }
+        }
         gradlePluginPortal()
-        google()
         mavenCentral()
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+
+    repositories {
+        google()
+        mavenLocal()
+        mavenCentral()
+        maven(url = "https://jitpack.io")
+        maven(url = "https://s01.oss.sonatype.org/content/repositories/snapshots/")
+        jcenter() // Warning: this repository is going to shut down soon
     }
 }
 

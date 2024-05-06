@@ -1,9 +1,9 @@
 plugins {
     id("com.android.library")
-    kotlin("android")
-    id("com.google.devtools.ksp") version kspVersion
+    id(libs.plugins.kotlin.android.get().pluginId)
+    alias(libs.plugins.google.ksp)
+    alias(libs.plugins.paparazzi)
     id("publish-module-android")
-    id("app.cash.paparazzi") version paparazziVersion
     id("jacoco-report")
 }
 
@@ -51,7 +51,7 @@ android {
         buildConfig = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = composeCompilerVersion
+        kotlinCompilerExtensionVersion = libs.versions.composeCompiler.get()
     }
 
     tasks.withType(Test::class.java) {
@@ -61,21 +61,30 @@ android {
 
 dependencies {
 
-    appCompat()
-    accompanist()
-    coil()
-    compose()
-    dataStore()
-    lifecycle()
-    moshiKsp()
-    navigationComponent()
-    qrCodeGenerator()
-    coinbase()
+    implementation(libs.bundles.androidxAppCompat)
+    implementation(libs.bundles.accompanist)
+    implementation(libs.coil)
 
-    jUnit4()
-    mockk()
-    coroutinesTest()
-    turbine()
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material)
+    implementation(libs.androidx.compose.navigation)
+    implementation(libs.androidx.compose.lifecycle)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
+    androidTestImplementation(libs.androidx.compose.ui.test.junit)
+    androidTestImplementation(libs.androidx.compose.navigation.testing)
+
+    implementation(libs.androidx.datastore)
+    implementation(libs.bundles.androidxLifecycle)
+    ksp(libs.moshi.ksp)
+    api(libs.bundles.androidxNavigation)
+    implementation(libs.qrCodeGenerator)
+    implementation(libs.coinbaseWallet)
+
+    testImplementation(libs.coroutines.test)
+    testImplementation(libs.turbine)
 
     releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
     releaseImplementation("com.walletconnect:sign:$SIGN_VERSION")
@@ -85,5 +94,8 @@ dependencies {
     debugImplementation(project(":protocol:sign"))
     debugImplementation(project(":core:modal"))
 
-    androidXTest()
+    testImplementation(libs.bundles.androidxTest)
+
+    androidTestUtil(libs.androidx.testOrchestrator)
+    androidTestImplementation(libs.bundles.androidxAndroidTest)
 }
