@@ -92,7 +92,10 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
                 is EngineDO.SessionApproved -> delegate.onSessionApproved(event.toClientSessionApproved())
                 is EngineDO.SessionUpdateNamespaces -> delegate.onSessionUpdate(event.toClientSessionsNamespaces())
                 is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
-                is EngineDO.SessionEvent -> delegate.onSessionEvent(event.toClientSessionEvent())
+                is EngineDO.SessionEvent ->{
+                    delegate.onSessionEvent(event.toClientSessionEvent())
+                    delegate.onSessionEvent(event.toClientEvent())
+                }
                 is EngineDO.SessionExtend -> delegate.onSessionExtend(event.toClientActiveSession())
                 //Responses
                 is EngineDO.SessionPayloadResponse -> delegate.onSessionRequestResponse(event.toClientSessionPayloadResponse())

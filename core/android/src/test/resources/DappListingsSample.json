@@ -7021,7 +7021,7 @@
       "description": "Mango is a decentralized autonomous organization.",
       "homepage": "https://mango.markets/",
       "chains": [
-        "solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ",
+        "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
         "solana:8E9rvCKLFQia2Y35HXjjpWzj8weVo44K"
       ],
       "versions": [
@@ -7405,7 +7405,7 @@
         "eip155:32659",
         "eip155:43114",
         "eip155:56",
-        "solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ"
+        "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
       ],
       "versions": [
         "1"
@@ -8107,7 +8107,7 @@
       "description": "Diversify your portfolio with strategies powered by Friktion.",
       "homepage": "https://friktion.fi/",
       "chains": [
-        "solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ",
+        "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
         "solana:8E9rvCKLFQia2Y35HXjjpWzj8weVo44K"
       ],
       "versions": [
@@ -8215,7 +8215,7 @@
       "description": "Delta Neutral Yield Generation",
       "homepage": "https://deltaone.xyz",
       "chains": [
-        "solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ"
+        "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
       ],
       "versions": [
         "1",
@@ -8730,7 +8730,7 @@
         "eip155:86",
         "polkadot:91b171bb158e2d3848fa23a9f1c25182",
         "polkadot:b0a8d493285c2df73290dfb7e61f870f",
-        "solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ"
+        "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
       ],
       "versions": [
         "1"
@@ -9526,7 +9526,7 @@
         "eip155:61",
         "polkadot:91b171bb158e2d3848fa23a9f1c25182",
         "polkadot:b0a8d493285c2df73290dfb7e61f870f",
-        "solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ",
+        "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
         "solana:8E9rvCKLFQia2Y35HXjjpWzj8weVo44K",
         "stellar:pubnet",
         "stellar:testnet"
@@ -10106,7 +10106,7 @@
         "eip155:97",
         "near:mainnet",
         "near:testnet",
-        "solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ",
+        "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
         "solana:8E9rvCKLFQia2Y35HXjjpWzj8weVo44K"
       ],
       "versions": [
@@ -10298,7 +10298,7 @@
         "eip155:820",
         "polkadot:91b171bb158e2d3848fa23a9f1c25182",
         "polkadot:b0a8d493285c2df73290dfb7e61f870f",
-        "solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ"
+        "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
       ],
       "versions": [
         "1"
@@ -10834,7 +10834,7 @@
       "description": "An avenue for the evolution of DeFi Light-speed swaps. Next-level liquidity. Friction-less yield.",
       "homepage": "https://raydium.io/",
       "chains": [
-        "solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ",
+        "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
         "solana:8E9rvCKLFQia2Y35HXjjpWzj8weVo44K"
       ],
       "versions": [
@@ -11216,7 +11216,7 @@
       "chains": [
         "eip155:1",
         "eip155:4",
-        "solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ",
+        "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
         "solana:8E9rvCKLFQia2Y35HXjjpWzj8weVo44K"
       ],
       "versions": [
@@ -11716,7 +11716,7 @@
       "description": "Secure Solana and earn rewards without your funds locked in Get mSOL, staked SOL supported all across the Solana ecosystem",
       "homepage": "https://marinade.finance/",
       "chains": [
-        "solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ",
+        "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
         "solana:8E9rvCKLFQia2Y35HXjjpWzj8weVo44K"
       ],
       "versions": [

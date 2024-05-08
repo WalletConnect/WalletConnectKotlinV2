@@ -21,14 +21,14 @@ object Modal {
             val core: CoreClient,
             val excludedWalletIds: List<String> = listOf(),
             val recommendedWalletsIds: List<String> = listOf(),
-            val sessionParams: SessionParams? = null
+            val sessionParams: SessionParams? = null,
         ) : Params()
 
         data class Connect(
             val namespaces: Map<String, Model.Namespace.Proposal>? = null,
             val optionalNamespaces: Map<String, Model.Namespace.Proposal>? = null,
             val properties: Map<String, String>? = null,
-            val pairing: Core.Model.Pairing
+            val pairing: Core.Model.Pairing,
         ) : Params()
 
         data class Authenticate(
@@ -55,13 +55,13 @@ object Modal {
             val method: String,
             val params: String,
             val chainId: String,
-            val expiry: Long? = null
+            val expiry: Long? = null,
         ) : Params()
 
         data class SessionParams(
             val requiredNamespaces: Map<String, Model.Namespace.Proposal>,
             val optionalNamespaces: Map<String, Model.Namespace.Proposal>? = null,
-            val properties: Map<String, String>? = null
+            val properties: Map<String, String>? = null,
         )
     }
 
@@ -72,14 +72,14 @@ object Modal {
             data class Proposal(
                 val chains: List<String>? = null,
                 val methods: List<String>,
-                val events: List<String>
+                val events: List<String>,
             ) : Namespace()
 
             data class Session(
                 val chains: List<String>? = null,
                 val accounts: List<String>,
                 val methods: List<String>,
-                val events: List<String>
+                val events: List<String>,
             ) : Namespace()
         }
 
@@ -108,12 +108,19 @@ object Modal {
 
         data class UpdatedSession(
             val topic: String,
-            val namespaces: Map<String, Namespace.Session>
+            val namespaces: Map<String, Namespace.Session>,
         ) : Model()
 
         data class SessionEvent(
             val name: String,
             val data: String,
+        ) : Model()
+
+        data class Event(
+            val topic: String,
+            val name: String,
+            val data: String,
+            val chainId: String,
         ) : Model()
 
         sealed class DeletedSession : Model() {
@@ -213,7 +220,7 @@ object Modal {
             val sessionTopic: String,
             val method: String,
             val params: String,
-            val chainId: String
+            val chainId: String,
         ) : Model()
 
         sealed class Ping : Model() {

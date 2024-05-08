@@ -27,7 +27,14 @@ interface SignInterface {
         fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession)
         fun onSessionRejected(rejectedSession: Sign.Model.RejectedSession)
         fun onSessionUpdate(updatedSession: Sign.Model.UpdatedSession)
+
+        @Deprecated(
+
+            message = "onSessionEvent is deprecated. Use onEvent instead. Using both will result in duplicate events.",
+            replaceWith = ReplaceWith(expression = "onEvent(event)")
+        )
         fun onSessionEvent(sessionEvent: Sign.Model.SessionEvent)
+        fun onSessionEvent(sessionEvent: Sign.Model.Event) {}
         fun onSessionExtend(session: Sign.Model.Session)
         fun onSessionDelete(deletedSession: Sign.Model.DeletedSession)
 
@@ -52,12 +59,12 @@ interface SignInterface {
     )
     fun connect(
         connect: Sign.Params.Connect, onSuccess: () -> Unit,
-        onError: (Sign.Model.Error) -> Unit
+        onError: (Sign.Model.Error) -> Unit,
     )
 
     fun connect(
         connect: Sign.Params.Connect, onSuccess: (String) -> Unit,
-        onError: (Sign.Model.Error) -> Unit
+        onError: (Sign.Model.Error) -> Unit,
     )
 
     fun authenticate(authenticate: Sign.Params.Authenticate, onSuccess: (String) -> Unit, onError: (Sign.Model.Error) -> Unit)
@@ -81,7 +88,7 @@ interface SignInterface {
         request: Sign.Params.Request,
         onSuccess: (Sign.Params.Request) -> Unit = {},
         onSuccessWithSentRequest: (Sign.Model.SentRequest) -> Unit = { it: Sign.Model.SentRequest -> Unit },
-        onError: (Sign.Model.Error) -> Unit
+        onError: (Sign.Model.Error) -> Unit,
     )
 
     fun request(request: Sign.Params.Request, onSuccess: (Sign.Model.SentRequest) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
