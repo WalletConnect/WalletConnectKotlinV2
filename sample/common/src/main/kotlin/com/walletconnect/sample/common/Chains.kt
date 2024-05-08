@@ -136,7 +136,7 @@ enum class Chains(
     SOLANA(
         chainName = "Solana Mainnet",
         chainNamespace = Info.Solana.chain,
-        chainReference = "4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ",
+        chainReference = "5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
         icon = R.drawable.ic_solana,
         color = "#F3BA2F",
         methods = Info.Solana.defaultMethods,
