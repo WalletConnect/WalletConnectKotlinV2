@@ -87,7 +87,7 @@ internal class ApproveSessionAuthenticateUseCase(
             val symmetricKey: SymmetricKey = crypto.generateSymmetricKeyFromKeyAgreement(senderPublicKey, receiverPublicKey)
             val responseTopic: Topic = crypto.getTopicFromKey(receiverPublicKey)
             val sessionTopic = crypto.getTopicFromKey(symmetricKey)
-            val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE_RESPONSE, Ttl(dayInSeconds))
+            val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE_RESPONSE_APPROVE, Ttl(dayInSeconds))
 
             if (cacaos.find { cacao -> !cacaoVerifier.verify(cacao) } != null) {
                 logger.error("Invalid Cacao for Session Authenticate")
