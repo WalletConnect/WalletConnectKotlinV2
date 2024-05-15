@@ -92,11 +92,11 @@ fun coreCryptoModule(sharedPrefsFile: String = SHARED_PREFS_FILE, keyStoreAlias:
         }
     }
 
-    single<WCKeyStore> { KeyChain(get()) }
+    single<WCKeyStore> { KeyChain(sharedPreferences = get()) }
 
-    single<ClientIdJwtRepository> { ClientIdJwtRepositoryAndroid(get()) }
+    single<ClientIdJwtRepository> { ClientIdJwtRepositoryAndroid(keyChain = get()) }
 
-    single<KeyManagementRepository> { BouncyCastleKeyManagementRepository(get()) }
+    single<KeyManagementRepository> { BouncyCastleKeyManagementRepository(keyChain = get()) }
 
-    single<Codec> { ChaChaPolyCodec(get()) }
+    single<Codec> { ChaChaPolyCodec(keyManagementRepository = get()) }
 }
