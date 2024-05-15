@@ -166,15 +166,25 @@ internal object SignValidator {
     }
 
     private fun allMethodsWithChains(namespaces: Map<String, Namespace>): Map<String, List<String>> {
-        val methodsByChains = namespaces
+        val methodsByChains = mutableMapOf<String, MutableList<String>>()
+        namespaces
             .filter { (namespaceKey, namespace) -> isNamespaceRegexCompliant(namespaceKey) && namespace.chains != null }
-            .flatMap { (_, namespace) -> namespace.methods.map { method -> method to namespace.chains!! } }
-            .toMap()
+            .flatMap { (_, namespace) ->
+                namespace.methods.map { method ->
+                    val methods = methodsByChains.getOrPut(method) { mutableListOf() }
+                    methods.addAll(namespace.chains!!)
+                }
+            }
 
-        val methodsByNamespaceKey = namespaces
+        val methodsByNamespaceKey = mutableMapOf<String, MutableList<String>>()
+        namespaces
             .filter { (namespaceKey, namespace) -> isChainIdCAIP2Compliant(namespaceKey) && namespace.chains == null }
-            .flatMap { (namespaceKey, namespace) -> namespace.methods.map { method -> method to listOf(namespaceKey) } }
-            .toMap()
+            .flatMap { (namespaceKey, namespace) ->
+                namespace.methods.map { method ->
+					val key = methodsByNamespaceKey.getOrPut(method) { mutableListOf() }
+					key.add(namespaceKey)
+                }
+            }
 
         //TODO: CAIP-25 backward compatibility
         val methodsByChainFromAccount = namespaces
@@ -201,28 +211,38 @@ internal object SignValidator {
         return true
     }
 
-    private fun allEventsWithChains(namespaces: Map<String, Namespace>): Map<String, List<String>> {
-        val eventsByChains = namespaces
-            .filter { (namespaceKey, namespace) -> isNamespaceRegexCompliant(namespaceKey) && namespace.chains != null }
-            .flatMap { (_, namespace) -> namespace.events.map { event -> event to namespace.chains!! } }
-            .toMap()
+	private fun allEventsWithChains(namespaces: Map<String, Namespace>): Map<String, List<String>> {
+		val eventsByChains = mutableMapOf<String, MutableList<String>>()
+		namespaces
+			.filter { (namespaceKey, namespace) -> isNamespaceRegexCompliant(namespaceKey) && namespace.chains != null }
+			.flatMap { (_, namespace) ->
+				namespace.events.map { event ->
+					val chains = eventsByChains.getOrPut(event) { mutableListOf() }
+					chains.addAll(namespace.chains!!)
+				}
+			}
 
-        val eventsByNamespaceKey = namespaces
+		val eventsByNamespaceKey = mutableMapOf<String, MutableList<String>>()
+        namespaces
             .filter { (namespaceKey, namespace) -> isChainIdCAIP2Compliant(namespaceKey) && namespace.chains == null }
-            .flatMap { (namespaceKey, namespace) -> namespace.events.map { event -> event to listOf(namespaceKey) } }
-            .toMap()
+            .flatMap { (namespaceKey, namespace) ->
+				namespace.events.map { event ->
+					val key = eventsByNamespaceKey.getOrPut(event) { mutableListOf() }
+					key.add(namespaceKey)
+				}
+			}
 
-        //TODO: CAIP-25 backward compatibility
-        val eventsByChainFromAccount = namespaces
-            .filter { (namespaceKey, namespace) -> namespace is Namespace.Session && isNamespaceRegexCompliant(namespaceKey) && namespace.chains == null }
-            .flatMap { (_, namespace) -> (namespace as Namespace.Session).events.map { event -> event to namespace.accounts.map { getChainFromAccount(it) } } }
-            .toMap()
+		//TODO: CAIP-25 backward compatibility
+		val eventsByChainFromAccount = namespaces
+			.filter { (namespaceKey, namespace) -> namespace is Namespace.Session && isNamespaceRegexCompliant(namespaceKey) && namespace.chains == null }
+			.flatMap { (_, namespace) -> (namespace as Namespace.Session).events.map { event -> event to namespace.accounts.map { getChainFromAccount(it) } } }
+			.toMap()
 
-        return (eventsByChains.asSequence() + eventsByNamespaceKey.asSequence() + eventsByChainFromAccount.asSequence())
-            .distinct()
-            .groupBy({ it.key }, { it.value })
-            .mapValues { (_, values) -> values.flatten() }
-    }
+		return (eventsByChains.asSequence() + eventsByNamespaceKey.asSequence() + eventsByChainFromAccount.asSequence())
+			.distinct()
+			.groupBy({ it.key }, { it.value })
+			.mapValues { (_, values) -> values.flatten() }
+	}
 
     private fun areAllEventsApproved(
         allApprovedEventsWithChains: Map<String, List<String>>,
