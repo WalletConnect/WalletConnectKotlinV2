@@ -113,7 +113,7 @@ internal class ApproveSessionUseCase(
         val selfPublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
         val sessionTopic = crypto.generateTopicFromKeyAgreement(selfPublicKey, PublicKey(proposerPublicKey))
         val approvalParams = proposal.toSessionApproveParams(selfPublicKey)
-        val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(fiveMinutesInSeconds))
+        val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE_APPROVE, Ttl(fiveMinutesInSeconds))
         logger.log("Subscribing to session topic: $sessionTopic")
         jsonRpcInteractor.subscribe(sessionTopic,
             onSuccess = {
