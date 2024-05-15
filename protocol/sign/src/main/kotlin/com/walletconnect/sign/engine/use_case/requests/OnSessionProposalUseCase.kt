@@ -45,7 +45,7 @@ internal class OnSessionProposalUseCase(
     private val isAuthenticateEnabled: Boolean by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.ENABLE_AUTHENTICATE)) }
 
     suspend operator fun invoke(request: WCRequest, payloadParams: SignParams.SessionProposeParams) = supervisorScope {
-        val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE, Ttl(fiveMinutesInSeconds))
+        val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE_AUTO_REJECT, Ttl(fiveMinutesInSeconds))
         try {
             if (isSessionAuthenticateImplemented(request)) {
                 logger.error("Session proposal received error: pairing supports authenticated sessions")
