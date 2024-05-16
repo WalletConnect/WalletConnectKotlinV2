@@ -37,29 +37,41 @@ internal object EventType {
 
 		@get:JvmSynthetic
 		const val SESSION_APPROVE_NAMESPACE_VALIDATION_FAILURE: String = "SESSION_APPROVE_NAMESPACE_VALIDATION_FAILURE"
+
+		@get:JvmSynthetic
+		const val REQUIRED_NAMESPACE_VALIDATION_FAILURE: String = "REQUIRED_NAMESPACE_VALIDATION_FAILURE"
+
+		@get:JvmSynthetic
+		const val OPTIONAL_NAMESPACE_VALIDATION_FAILURE: String = "OPTIONAL_NAMESPACE_VALIDATION_FAILURE"
+
+		@get:JvmSynthetic
+		const val SESSION_PROPERTIES_VALIDATION_FAILURE: String = "SESSION_PROPERTIES_VALIDATION_FAILURE"
 	}
 
 	internal object SessionAuthenticate {
 		@get:JvmSynthetic
-		const val MISSING_SESSION_AUTH_REQUEST: String = "missing_session_authenticate_request"
+		const val MISSING_SESSION_AUTH_REQUEST: String = "MISSING_SESSION_AUTH_REQUEST"
 
 		@get:JvmSynthetic
-		const val SESSION_AUTH_REQUEST_EXPIRED: String = "session_authenticate_request_expired"
+		const val SESSION_AUTH_REQUEST_EXPIRED: String = "SESSION_AUTH_REQUEST_EXPIRED"
 
 		@get:JvmSynthetic
-		const val CHAINS_CAIP2_COMPLIANT_FAILURE: String = "chains_caip2_compliant_failure"
+		const val CHAINS_CAIP2_COMPLIANT_FAILURE: String = "CHAINS_CAIP2_COMPLIANT_FAILURE"
 
 		@get:JvmSynthetic
-		const val CHAINS_EVM_COMPLIANT_FAILURE: String = "chains_evm_compliant_failure"
+		const val CHAINS_EVM_COMPLIANT_FAILURE: String = "CHAINS_EVM_COMPLIANT_FAILURE"
 
 		@get:JvmSynthetic
-		const val INVALID_CACAO: String = "invalid_cacao"
+		const val INVALID_CACAO: String = "INVALID_CACAO"
 
 		@get:JvmSynthetic
-		const val SUBSCRIBE_AUTH_SESSION_TOPIC_FAILURE: String = "subscribe_authenticated_session_topic_failure"
+		const val SUBSCRIBE_AUTH_SESSION_TOPIC_FAILURE: String = "SUBSCRIBE_AUTH_SESSION_TOPIC_FAILURE"
 
 		@get:JvmSynthetic
-		const val AUTHENTICATED_SESSION_APPROVE_PUBLISH_FAILURE: String = "authenticated_session_approve_publish_failure"
+		const val AUTHENTICATED_SESSION_APPROVE_PUBLISH_FAILURE: String = "AUTHENTICATED_SESSION_APPROVE_PUBLISH_FAILURE"
+
+		@get:JvmSynthetic
+		const val AUTHENTICATED_SESSION_EXPIRED: String = "AUTHENTICATED_SESSION_EXPIRED"
 	}
 
 	internal object W3M {

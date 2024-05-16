@@ -2,6 +2,7 @@ package com.walletconnect.android.internal.common.di
 
 import com.walletconnect.android.internal.common.model.PackageName
 import com.walletconnect.android.pulse.domain.session_authenticate.SendAuthenticatedSessionApprovePublishFailureUseCase
+import com.walletconnect.android.pulse.domain.session_authenticate.SendAuthenticatedSessionExpiredUseCase
 import com.walletconnect.android.pulse.domain.session_authenticate.SendChainsCaip2CompliantFailureUseCase
 import com.walletconnect.android.pulse.domain.session_authenticate.SendChainsEvmCompliantFailureUseCase
 import com.walletconnect.android.pulse.domain.session_authenticate.SendInvalidCacaoUseCase
@@ -63,6 +64,14 @@ fun sessionAuthenticatePulseModule() = module {
 
 	single {
 		SendSubscribeAuthenticatedSessionTopicFailureUseCase(
+			pulseService = get(),
+			logger = get(named(AndroidCommonDITags.LOGGER)),
+			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+		)
+	}
+
+	single {
+		SendAuthenticatedSessionExpiredUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
 			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value

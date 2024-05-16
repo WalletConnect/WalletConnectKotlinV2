@@ -120,6 +120,36 @@ sealed class Props {
 			@Json(name = "properties")
 			val properties: TraceProperties? = null
 		) : Props()
+
+		@JsonClass(generateAdapter = true)
+		data class RequiredNamespaceValidationFailure(
+			@Json(name = "event")
+			override val event: String = "error",
+			@Json(name = "type")
+			override val type: String = EventType.Session.REQUIRED_NAMESPACE_VALIDATION_FAILURE,
+			@Json(name = "properties")
+			val properties: TraceProperties? = null
+		) : Props()
+
+		@JsonClass(generateAdapter = true)
+		data class OptionalNamespaceValidationFailure(
+			@Json(name = "event")
+			override val event: String = "error",
+			@Json(name = "type")
+			override val type: String = EventType.Session.OPTIONAL_NAMESPACE_VALIDATION_FAILURE,
+			@Json(name = "properties")
+			val properties: TraceProperties? = null
+		) : Props()
+
+		@JsonClass(generateAdapter = true)
+		data class SessionPropertiesValidationFailure(
+			@Json(name = "event")
+			override val event: String = "error",
+			@Json(name = "type")
+			override val type: String = EventType.Session.SESSION_PROPERTIES_VALIDATION_FAILURE,
+			@Json(name = "properties")
+			val properties: TraceProperties? = null
+		) : Props()
 	}
 
 	sealed class SessionAuthenticate : Props() {
@@ -189,6 +219,16 @@ sealed class Props {
 			override val event: String = "error",
 			@Json(name = "type")
 			override val type: String = EventType.SessionAuthenticate.AUTHENTICATED_SESSION_APPROVE_PUBLISH_FAILURE,
+			@Json(name = "properties")
+			val properties: TraceProperties? = null
+		) : Props()
+
+		@JsonClass(generateAdapter = true)
+		data class AuthenticatedSessionExpired(
+			@Json(name = "event")
+			override val event: String = "error",
+			@Json(name = "type")
+			override val type: String = EventType.SessionAuthenticate.AUTHENTICATED_SESSION_EXPIRED,
 			@Json(name = "properties")
 			val properties: TraceProperties? = null
 		) : Props()
