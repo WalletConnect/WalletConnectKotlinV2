@@ -14,8 +14,8 @@ sealed class Props {
 		override val event: String = "error",
 		@Json(name = "type")
 		override val type: String = EventType.Pairing.NO_WSS_CONNECTION,
-		@Json(name = "trace")
-		val trace: List<String>
+		@Json(name = "properties")
+		val properties: TraceProperties? = null
 	) : Props()
 
 	@JsonClass(generateAdapter = true)
@@ -23,8 +23,9 @@ sealed class Props {
 		@Json(name = "event")
 		override val event: String = "error",
 		@Json(name = "type")
-		override val type: String = EventType.Pairing.NO_INTERNET_CONNECTION
-
+		override val type: String = EventType.Pairing.NO_INTERNET_CONNECTION,
+		@Json(name = "properties")
+		val properties: TraceProperties? = null
 	) : Props()
 
 	sealed class Pairing : Props() {
@@ -33,7 +34,9 @@ sealed class Props {
 			@Json(name = "event")
 			override val event: String = "error",
 			@Json(name = "type")
-			override val type: String = EventType.Pairing.MALFORMED_PAIRING_URI
+			override val type: String = EventType.Pairing.MALFORMED_PAIRING_URI,
+			@Json(name = "properties")
+			val properties: TraceProperties? = null
 		) : Props()
 
 		@JsonClass(generateAdapter = true)
@@ -41,7 +44,9 @@ sealed class Props {
 			@Json(name = "event")
 			override val event: String = "error",
 			@Json(name = "type")
-			override val type: String = EventType.Pairing.PAIRING_ALREADY_EXIST
+			override val type: String = EventType.Pairing.PAIRING_ALREADY_EXIST,
+			@Json(name = "properties")
+			val properties: TraceProperties? = null
 		) : Props()
 
 		@JsonClass(generateAdapter = true)
@@ -49,7 +54,9 @@ sealed class Props {
 			@Json(name = "event")
 			override val event: String = "error",
 			@Json(name = "type")
-			override val type: String = EventType.Pairing.PAIRING_SUBSCRIPTION_FAILURE
+			override val type: String = EventType.Pairing.PAIRING_SUBSCRIPTION_FAILURE,
+			@Json(name = "properties")
+			val properties: TraceProperties? = null
 		) : Props()
 
 		@JsonClass(generateAdapter = true)
@@ -57,17 +64,21 @@ sealed class Props {
 			@Json(name = "event")
 			override val event: String = "error",
 			@Json(name = "type")
-			override val type: String = EventType.Pairing.PAIRING_EXPIRED
+			override val type: String = EventType.Pairing.PAIRING_EXPIRED,
+			@Json(name = "properties")
+			val properties: TraceProperties? = null
 		) : Props()
 	}
 
-	sealed class Sign : Props() {
+	sealed class Session : Props() {
 		@JsonClass(generateAdapter = true)
 		data class ProposalExpired(
 			@Json(name = "event")
 			override val event: String = "error",
 			@Json(name = "type")
-			override val type: String = EventType.Session.PROPOSAL_EXPIRED
+			override val type: String = EventType.Session.PROPOSAL_EXPIRED,
+			@Json(name = "properties")
+			val properties: TraceProperties? = null
 		) : Props()
 
 		@JsonClass(generateAdapter = true)
@@ -75,7 +86,9 @@ sealed class Props {
 			@Json(name = "event")
 			override val event: String = "error",
 			@Json(name = "type")
-			override val type: String = EventType.Session.SESSION_SUBSCRIPTION_FAILURE
+			override val type: String = EventType.Session.SESSION_SUBSCRIPTION_FAILURE,
+			@Json(name = "properties")
+			val properties: TraceProperties? = null
 		) : Props()
 
 		@JsonClass(generateAdapter = true)
@@ -83,7 +96,9 @@ sealed class Props {
 			@Json(name = "event")
 			override val event: String = "error",
 			@Json(name = "type")
-			override val type: String = EventType.Session.SESSION_APPROVE_PUBLISH_FAILURE
+			override val type: String = EventType.Session.SESSION_APPROVE_PUBLISH_FAILURE,
+			@Json(name = "properties")
+			val properties: TraceProperties? = null
 		) : Props()
 
 		@JsonClass(generateAdapter = true)
@@ -91,7 +106,9 @@ sealed class Props {
 			@Json(name = "event")
 			override val event: String = "error",
 			@Json(name = "type")
-			override val type: String = EventType.Session.SESSION_SETTLE_PUBLISH_FAILURE
+			override val type: String = EventType.Session.SESSION_SETTLE_PUBLISH_FAILURE,
+			@Json(name = "properties")
+			val properties: TraceProperties? = null
 		) : Props()
 
 		@JsonClass(generateAdapter = true)
@@ -99,7 +116,9 @@ sealed class Props {
 			@Json(name = "event")
 			override val event: String = "error",
 			@Json(name = "type")
-			override val type: String = EventType.Session.SESSION_APPROVE_NAMESPACE_VALIDATION_FAILURE
+			override val type: String = EventType.Session.SESSION_APPROVE_NAMESPACE_VALIDATION_FAILURE,
+			@Json(name = "properties")
+			val properties: TraceProperties? = null
 		) : Props()
 	}
 

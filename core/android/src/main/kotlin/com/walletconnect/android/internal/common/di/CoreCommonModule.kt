@@ -51,11 +51,11 @@ fun coreCommonModule() = module {
             .withSubtype(Props.Pairing.PairingExpired::class.java, "pairing_expired")
             .withSubtype(Props.NoWSSConnection::class.java, "no_wss_connection")
             .withSubtype(Props.NoInternetConnection::class.java, "no_internet_connection")
-            .withSubtype(Props.Sign.ProposalExpired::class.java, "proposal_expired")
-            .withSubtype(Props.Sign.SessionSettlePublishFailure::class.java, "session_settle_publish_failure")
-            .withSubtype(Props.Sign.SessionApprovePublishFailure::class.java, "session_approve_publish_failure")
-            .withSubtype(Props.Sign.SessionSubscriptionFailure::class.java, "session_subscription_failure")
-            .withSubtype(Props.Sign.SessionApproveNamespaceValidationFailure::class.java, "session_approve_namespace_validation_failure")
+            .withSubtype(Props.Session.ProposalExpired::class.java, "proposal_expired")
+            .withSubtype(Props.Session.SessionSettlePublishFailure::class.java, "session_settle_publish_failure")
+            .withSubtype(Props.Session.SessionApprovePublishFailure::class.java, "session_approve_publish_failure")
+            .withSubtype(Props.Session.SessionSubscriptionFailure::class.java, "session_subscription_failure")
+            .withSubtype(Props.Session.SessionApproveNamespaceValidationFailure::class.java, "session_approve_namespace_validation_failure")
     }
 
     single<Moshi.Builder>(named(AndroidCommonDITags.MOSHI)) {

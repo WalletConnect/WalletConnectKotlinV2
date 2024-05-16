@@ -21,7 +21,7 @@ class SendSessionSettlePublishFailureUseCase(
 				eventId = generateId(),
 				bundleId = bundleId,
 				timestamp = currentTimeInSeconds,
-				props = Props.Sign.SessionSettlePublishFailure()
+				props = Props.Session.SessionSettlePublishFailure()
 			), SDKType.EVENTS
 		)
 	}

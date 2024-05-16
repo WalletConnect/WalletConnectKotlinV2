@@ -21,7 +21,7 @@ class SendSessionSubscriptionFailureUseCase(
 				eventId = generateId(),
 				bundleId = bundleId,
 				timestamp = currentTimeInSeconds,
-				props = Props.Sign.SessionSubscriptionFailure()
+				props = Props.Session.SessionSubscriptionFailure()
 			), SDKType.EVENTS
 		)
 	}
