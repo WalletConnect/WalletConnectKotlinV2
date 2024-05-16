@@ -164,9 +164,9 @@ internal class PairingEngine(
 
     fun pair(uri: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
         val walletConnectUri: WalletConnectUri = Validator.validateWCUri(uri) ?: run {
-			sendMalformedPairingUriUseCase()
+            sendMalformedPairingUriUseCase()
             return onFailure(MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE))
-		}
+        }
 
         val inactivePairing = Pairing(walletConnectUri)
         val symmetricKey = walletConnectUri.symKey
@@ -208,15 +208,15 @@ internal class PairingEngine(
                     onSuccess()
                 }, onFailure = { error ->
                     logger.error("Subscribe pairing topic error: ${inactivePairing.topic.value}, error: $error")
-					sendPairingSubscriptionFailureUseCase()
+                    sendPairingSubscriptionFailureUseCase()
                     onFailure(error)
                 }
             )
         } catch (e: Exception) {
             logger.error("Subscribe pairing topic error: ${inactivePairing.topic.value}, error: $e")
-			if (e is NoRelayConnectionException) {
-				sendNoWSSConnection()
-			}
+            if (e is NoRelayConnectionException) {
+                sendNoWSSConnection()
+            }
 
             if (e is NoInternetConnectionException) {
                 sendNoInternetConnectionUseCase()

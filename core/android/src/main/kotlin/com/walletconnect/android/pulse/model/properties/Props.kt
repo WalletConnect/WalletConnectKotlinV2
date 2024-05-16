@@ -13,7 +13,9 @@ sealed class Props {
 		@Json(name = "event")
 		override val event: String = "error",
 		@Json(name = "type")
-		override val type: String = EventType.Pairing.NO_WSS_CONNECTION
+		override val type: String = EventType.Pairing.NO_WSS_CONNECTION,
+		@Json(name = "trace")
+		val trace: List<String>
 	) : Props()
 
 	@JsonClass(generateAdapter = true)
@@ -22,6 +24,7 @@ sealed class Props {
 		override val event: String = "error",
 		@Json(name = "type")
 		override val type: String = EventType.Pairing.NO_INTERNET_CONNECTION
+
 	) : Props()
 
 	sealed class Pairing : Props() {
@@ -64,7 +67,7 @@ sealed class Props {
 			@Json(name = "event")
 			override val event: String = "error",
 			@Json(name = "type")
-			override val type: String = EventType.Sign.PROPOSAL_EXPIRED
+			override val type: String = EventType.Session.PROPOSAL_EXPIRED
 		) : Props()
 
 		@JsonClass(generateAdapter = true)
@@ -72,7 +75,7 @@ sealed class Props {
 			@Json(name = "event")
 			override val event: String = "error",
 			@Json(name = "type")
-			override val type: String = EventType.Sign.SESSION_SUBSCRIPTION_FAILURE
+			override val type: String = EventType.Session.SESSION_SUBSCRIPTION_FAILURE
 		) : Props()
 
 		@JsonClass(generateAdapter = true)
@@ -80,7 +83,7 @@ sealed class Props {
 			@Json(name = "event")
 			override val event: String = "error",
 			@Json(name = "type")
-			override val type: String = EventType.Sign.SESSION_APPROVE_PUBLISH_FAILURE
+			override val type: String = EventType.Session.SESSION_APPROVE_PUBLISH_FAILURE
 		) : Props()
 
 		@JsonClass(generateAdapter = true)
@@ -88,7 +91,7 @@ sealed class Props {
 			@Json(name = "event")
 			override val event: String = "error",
 			@Json(name = "type")
-			override val type: String = EventType.Sign.SESSION_SETTLE_PUBLISH_FAILURE
+			override val type: String = EventType.Session.SESSION_SETTLE_PUBLISH_FAILURE
 		) : Props()
 
 		@JsonClass(generateAdapter = true)
@@ -96,7 +99,7 @@ sealed class Props {
 			@Json(name = "event")
 			override val event: String = "error",
 			@Json(name = "type")
-			override val type: String = EventType.Sign.SESSION_APPROVE_NAMESPACE_VALIDATION_FAILURE
+			override val type: String = EventType.Session.SESSION_APPROVE_NAMESPACE_VALIDATION_FAILURE
 		) : Props()
 	}
 

@@ -22,7 +22,7 @@ internal object EventType {
 		const val NO_INTERNET_CONNECTION: String = "NO_INTERNET_CONNECTION"
 	}
 
-	internal object Sign {
+	internal object Session {
 		@get:JvmSynthetic
 		const val PROPOSAL_EXPIRED: String = "PROPOSAL_EXPIRED"
 
