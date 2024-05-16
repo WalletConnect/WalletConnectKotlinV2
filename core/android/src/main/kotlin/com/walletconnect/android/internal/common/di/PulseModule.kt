@@ -27,5 +27,5 @@ fun pulseModule() = module {
 		get<Retrofit>(named(AndroidCommonDITags.PULSE_RETROFIT)).create(PulseService::class.java)
 	}
 
-	includes(w3mPulseModule(), pairingPulseModule(), signPulseModule())
+	includes(w3mPulseModule(), pairingPulseModule(), sessionPulseModule(), sessionAuthenticatePulseModule())
 }

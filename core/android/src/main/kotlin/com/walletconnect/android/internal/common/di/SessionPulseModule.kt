@@ -1,16 +1,16 @@
 package com.walletconnect.android.internal.common.di
 
 import com.walletconnect.android.internal.common.model.PackageName
-import com.walletconnect.android.pulse.domain.sign.SendProposalExpiredUseCase
-import com.walletconnect.android.pulse.domain.sign.SendSessionApproveNamespaceValidationFailureUseCase
-import com.walletconnect.android.pulse.domain.sign.SendSessionApprovePublishFailureUseCase
-import com.walletconnect.android.pulse.domain.sign.SendSessionSettlePublishFailureUseCase
-import com.walletconnect.android.pulse.domain.sign.SendSessionSubscriptionFailureUseCase
+import com.walletconnect.android.pulse.domain.session.SendProposalExpiredUseCase
+import com.walletconnect.android.pulse.domain.session.SendSessionApproveNamespaceValidationFailureUseCase
+import com.walletconnect.android.pulse.domain.session.SendSessionApprovePublishFailureUseCase
+import com.walletconnect.android.pulse.domain.session.SendSessionSettlePublishFailureUseCase
+import com.walletconnect.android.pulse.domain.session.SendSessionSubscriptionFailureUseCase
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 @JvmSynthetic
-fun signPulseModule() = module {
+fun sessionPulseModule() = module {
 	single {
 		SendProposalExpiredUseCase(
 			pulseService = get(),

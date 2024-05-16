@@ -13,7 +13,7 @@ sealed class Props {
 		@Json(name = "event")
 		override val event: String = "error",
 		@Json(name = "type")
-		override val type: String = EventType.Pairing.NO_WSS_CONNECTION,
+		override val type: String = EventType.NO_WSS_CONNECTION,
 		@Json(name = "properties")
 		val properties: TraceProperties? = null
 	) : Props()
@@ -23,7 +23,7 @@ sealed class Props {
 		@Json(name = "event")
 		override val event: String = "error",
 		@Json(name = "type")
-		override val type: String = EventType.Pairing.NO_INTERNET_CONNECTION,
+		override val type: String = EventType.NO_INTERNET_CONNECTION,
 		@Json(name = "properties")
 		val properties: TraceProperties? = null
 	) : Props()
@@ -117,6 +117,78 @@ sealed class Props {
 			override val event: String = "error",
 			@Json(name = "type")
 			override val type: String = EventType.Session.SESSION_APPROVE_NAMESPACE_VALIDATION_FAILURE,
+			@Json(name = "properties")
+			val properties: TraceProperties? = null
+		) : Props()
+	}
+
+	sealed class SessionAuthenticate : Props() {
+		@JsonClass(generateAdapter = true)
+		data class MissingSessionAuthenticateRequest(
+			@Json(name = "event")
+			override val event: String = "error",
+			@Json(name = "type")
+			override val type: String = EventType.SessionAuthenticate.MISSING_SESSION_AUTH_REQUEST,
+			@Json(name = "properties")
+			val properties: TraceProperties? = null
+		) : Props()
+
+		@JsonClass(generateAdapter = true)
+		data class SessionAuthenticateRequestExpired(
+			@Json(name = "event")
+			override val event: String = "error",
+			@Json(name = "type")
+			override val type: String = EventType.SessionAuthenticate.SESSION_AUTH_REQUEST_EXPIRED,
+			@Json(name = "properties")
+			val properties: TraceProperties? = null
+		) : Props()
+
+		@JsonClass(generateAdapter = true)
+		data class ChainsCaip2CompliantFailure(
+			@Json(name = "event")
+			override val event: String = "error",
+			@Json(name = "type")
+			override val type: String = EventType.SessionAuthenticate.CHAINS_CAIP2_COMPLIANT_FAILURE,
+			@Json(name = "properties")
+			val properties: TraceProperties? = null
+		) : Props()
+
+		@JsonClass(generateAdapter = true)
+		data class ChainsEvmCompliantFailure(
+			@Json(name = "event")
+			override val event: String = "error",
+			@Json(name = "type")
+			override val type: String = EventType.SessionAuthenticate.CHAINS_EVM_COMPLIANT_FAILURE,
+			@Json(name = "properties")
+			val properties: TraceProperties? = null
+		) : Props()
+
+		@JsonClass(generateAdapter = true)
+		data class InvalidCacao(
+			@Json(name = "event")
+			override val event: String = "error",
+			@Json(name = "type")
+			override val type: String = EventType.SessionAuthenticate.INVALID_CACAO,
+			@Json(name = "properties")
+			val properties: TraceProperties? = null
+		) : Props()
+
+		@JsonClass(generateAdapter = true)
+		data class SubscribeAuthenticatedSessionTopicFailure(
+			@Json(name = "event")
+			override val event: String = "error",
+			@Json(name = "type")
+			override val type: String = EventType.SessionAuthenticate.SUBSCRIBE_AUTH_SESSION_TOPIC_FAILURE,
+			@Json(name = "properties")
+			val properties: TraceProperties? = null
+		) : Props()
+
+		@JsonClass(generateAdapter = true)
+		data class AuthenticatedSessionApprovePublishFailure(
+			@Json(name = "event")
+			override val event: String = "error",
+			@Json(name = "type")
+			override val type: String = EventType.SessionAuthenticate.AUTHENTICATED_SESSION_APPROVE_PUBLISH_FAILURE,
 			@Json(name = "properties")
 			val properties: TraceProperties? = null
 		) : Props()

@@ -15,11 +15,11 @@ import com.walletconnect.android.internal.utils.ACTIVE_SESSION
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
-import com.walletconnect.android.pulse.domain.sign.SendProposalExpiredUseCase
-import com.walletconnect.android.pulse.domain.sign.SendSessionApproveNamespaceValidationFailureUseCase
-import com.walletconnect.android.pulse.domain.sign.SendSessionApprovePublishFailureUseCase
-import com.walletconnect.android.pulse.domain.sign.SendSessionSettlePublishFailureUseCase
-import com.walletconnect.android.pulse.domain.sign.SendSessionSubscriptionFailureUseCase
+import com.walletconnect.android.pulse.domain.session.SendProposalExpiredUseCase
+import com.walletconnect.android.pulse.domain.session.SendSessionApproveNamespaceValidationFailureUseCase
+import com.walletconnect.android.pulse.domain.session.SendSessionApprovePublishFailureUseCase
+import com.walletconnect.android.pulse.domain.session.SendSessionSettlePublishFailureUseCase
+import com.walletconnect.android.pulse.domain.session.SendSessionSubscriptionFailureUseCase
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl

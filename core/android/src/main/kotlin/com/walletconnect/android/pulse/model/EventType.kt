@@ -2,6 +2,12 @@ package com.walletconnect.android.pulse.model
 
 internal object EventType {
 
+	@get:JvmSynthetic
+	const val NO_WSS_CONNECTION: String = "NO_WSS_CONNECTION"
+
+	@get:JvmSynthetic
+	const val NO_INTERNET_CONNECTION: String = "NO_INTERNET_CONNECTION"
+
 	internal object Pairing {
 		@get:JvmSynthetic
 		const val MALFORMED_PAIRING_URI: String = "MALFORMED_PAIRING_URI"
@@ -14,12 +20,6 @@ internal object EventType {
 
 		@get:JvmSynthetic
 		const val PAIRING_EXPIRED: String = "PAIRING_EXPIRED"
-
-		@get:JvmSynthetic
-		const val NO_WSS_CONNECTION: String = "NO_WSS_CONNECTION"
-
-		@get:JvmSynthetic
-		const val NO_INTERNET_CONNECTION: String = "NO_INTERNET_CONNECTION"
 	}
 
 	internal object Session {
@@ -37,6 +37,29 @@ internal object EventType {
 
 		@get:JvmSynthetic
 		const val SESSION_APPROVE_NAMESPACE_VALIDATION_FAILURE: String = "SESSION_APPROVE_NAMESPACE_VALIDATION_FAILURE"
+	}
+
+	internal object SessionAuthenticate {
+		@get:JvmSynthetic
+		const val MISSING_SESSION_AUTH_REQUEST: String = "missing_session_authenticate_request"
+
+		@get:JvmSynthetic
+		const val SESSION_AUTH_REQUEST_EXPIRED: String = "session_authenticate_request_expired"
+
+		@get:JvmSynthetic
+		const val CHAINS_CAIP2_COMPLIANT_FAILURE: String = "chains_caip2_compliant_failure"
+
+		@get:JvmSynthetic
+		const val CHAINS_EVM_COMPLIANT_FAILURE: String = "chains_evm_compliant_failure"
+
+		@get:JvmSynthetic
+		const val INVALID_CACAO: String = "invalid_cacao"
+
+		@get:JvmSynthetic
+		const val SUBSCRIBE_AUTH_SESSION_TOPIC_FAILURE: String = "subscribe_authenticated_session_topic_failure"
+
+		@get:JvmSynthetic
+		const val AUTHENTICATED_SESSION_APPROVE_PUBLISH_FAILURE: String = "authenticated_session_approve_publish_failure"
 	}
 
 	internal object W3M {

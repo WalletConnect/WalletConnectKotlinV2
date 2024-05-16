@@ -1,4 +1,4 @@
-package com.walletconnect.android.pulse.domain.sign
+package com.walletconnect.android.pulse.domain.session
 
 import com.walletconnect.android.internal.utils.currentTimeInSeconds
 import com.walletconnect.android.pulse.data.PulseService
@@ -9,7 +9,7 @@ import com.walletconnect.android.pulse.model.properties.Props
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.util.generateId
 
-class SendSessionSubscriptionFailureUseCase(
+class SendSessionApprovePublishFailureUseCase(
 	pulseService: PulseService,
 	logger: Logger,
 	bundleId: String
@@ -21,7 +21,7 @@ class SendSessionSubscriptionFailureUseCase(
 				eventId = generateId(),
 				bundleId = bundleId,
 				timestamp = currentTimeInSeconds,
-				props = Props.Session.SessionSubscriptionFailure()
+				props = Props.Session.SessionApprovePublishFailure()
 			), SDKType.EVENTS
 		)
 	}
