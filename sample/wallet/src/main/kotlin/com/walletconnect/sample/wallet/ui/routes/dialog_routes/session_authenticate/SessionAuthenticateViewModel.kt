@@ -28,7 +28,7 @@ class SessionAuthenticateViewModel : ViewModel() {
                     Web3Wallet.generateAuthPayloadParams(
                         sessionAuthenticate.payloadParams,
                         supportedChains = listOf("eip155:1", "eip155:137", "eip155:56"),
-                        supportedMethods = listOf("personal_sign", "eth_signTypedData", "eth_sign")
+                        supportedMethods = listOf("personal_sign", "eth_signTypedData", "eth_signTypedData_v4", "eth_sign")
                     )
 
                 authPayloadParams.chains

@@ -1,9 +1,9 @@
 package com.walletconnect.sign.util
 
+import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.utils.generateApprovedNamespaces
 import com.walletconnect.sign.client.utils.normalizeNamespaces
-import com.walletconnect.android.internal.common.model.Namespace
 import junit.framework.TestCase.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Test
@@ -72,29 +72,158 @@ class GenerateApprovedNamespacesUtilsTest {
 
     /* All test cases and configs can be found: https://docs.google.com/spreadsheets/d/1uc7lLWvx7tjgq_iQYylHVLNcs4F5z7jsnq_2f7ouGM8/edit#gid=0 */
 
-    @Test
-    fun `test if optional namespaces are satisfied when required namespaces are empty`() {
-        val required = emptyMap<String, Sign.Model.Namespace.Proposal>()
-        val optional = mapOf("eip155" to Sign.Model.Namespace.Proposal(chains = listOf("eip155:1"), methods = listOf("eth_sendTransaction"), events = listOf("chainChanged", "accountChanged")))
-        val supported = mapOf(
-            "eip155" to Sign.Model.Namespace.Session(
-                chains = listOf("eip155:1"),
-                methods = listOf("personal_sign", "eth_sendTransaction"),
-                events = listOf("chainChanged"),
-                accounts = listOf("eip155:1:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092")
-            )
-        )
-        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
+	@Test
+	fun `supported namespaces contain extra chain with the same event as required namespaces`() {
+		val required = mapOf(
+			"eip155" to Sign.Model.Namespace.Proposal(
+				chains = listOf("eip155:1"),
+				methods = listOf("wallet_switchEthereumChain", "wallet_addEthereumChain"),
+				events = listOf("connect", "chainChanged", "accountsChanged", "disconnect")
+			)
+		)
 
-        val approved = generateApprovedNamespaces(proposal, supported)
-        val expected = mapOf(
-            "eip155" to Sign.Model.Namespace.Session(
-                chains = listOf("eip155:1"),
-                methods = listOf("eth_sendTransaction"),
-                events = listOf("chainChanged"),
-                accounts = listOf("eip155:1:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092")
-            )
-        )
+		val optional = mapOf(
+			"eip155" to Sign.Model.Namespace.Proposal(
+				chains = listOf("eip155:1", "eip155:5", "eip155:10", "eip155:56"),
+				methods = listOf(
+					"wallet_switchEthereumChain",
+					"wallet_addEthereumChain",
+				),
+				events = listOf("connect", "chainChanged", "accountsChanged", "disconnect", "message")
+			)
+		)
+
+		val supported = mapOf(
+			"eip155" to Sign.Model.Namespace.Session(
+				chains = listOf(
+					"eip155:100",
+					"eip155:250",
+					"eip155:1",
+				),
+				accounts = listOf(
+					"eip155:100:0x63821D66425d3Baf7B72601785E03D14bDF48919",
+					"eip155:250:0x63821D66425d3Baf7B72601785E03D14bDF48919",
+					"eip155:1:0x63821D66425d3Baf7B72601785E03D14bDF48919",
+				),
+				methods = listOf(
+					"wallet_switchEthereumChain",
+					"wallet_addEthereumChain"
+				),
+				events = listOf("connect", "chainChanged", "accountsChanged", "disconnect"),
+			),
+			"solana" to Sign.Model.Namespace.Session(
+				chains = listOf("solana:101"),
+				accounts = listOf("solana:101:3PQbBtoeG8iMuYa5wdmNELXJyRo4L3SwJ3Lmi1TTc81C"),
+				events = listOf("connect"),
+				methods = listOf("solana_rawSendTransaction", "signAndSendTransaction", "signTransaction", "signMessage")
+			)
+		)
+
+		val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
+		val approved = generateApprovedNamespaces(proposal, supported)
+		val expected = mapOf(
+			"eip155" to Sign.Model.Namespace.Session(
+				chains = listOf("eip155:1"),
+				methods = listOf("wallet_switchEthereumChain", "wallet_addEthereumChain"),
+				events = listOf("connect", "chainChanged", "accountsChanged", "disconnect"),
+				accounts = listOf("eip155:1:0x63821D66425d3Baf7B72601785E03D14bDF48919")
+			)
+		)
+
+		assertEquals(expected, approved)
+	}
+
+	@Test
+	fun `supported namespaces contain extra chain with the same method as required namespaces`() {
+		val required = mapOf(
+			"eip155" to Sign.Model.Namespace.Proposal(
+				chains = listOf("eip155:1"),
+				methods = listOf("wallet_switchEthereumChain", "wallet_addEthereumChain", "sign"),
+				events = listOf("connect", "chainChanged", "accountsChanged", "disconnect")
+			)
+		)
+
+		val optional = mapOf(
+			"eip155" to Sign.Model.Namespace.Proposal(
+				chains = listOf("eip155:1", "eip155:5", "eip155:10", "eip155:56"),
+				methods = listOf(
+					"wallet_switchEthereumChain",
+					"wallet_addEthereumChain",
+				),
+				events = listOf("connect", "chainChanged", "accountsChanged", "disconnect", "message")
+			)
+		)
+
+		val supported = mapOf(
+			"eip155" to Sign.Model.Namespace.Session(
+				chains = listOf(
+					"eip155:100",
+					"eip155:250",
+					"eip155:1",
+				),
+				accounts = listOf(
+					"eip155:100:0x63821D66425d3Baf7B72601785E03D14bDF48919",
+					"eip155:250:0x63821D66425d3Baf7B72601785E03D14bDF48919",
+					"eip155:1:0x63821D66425d3Baf7B72601785E03D14bDF48919",
+				),
+				methods = listOf(
+					"wallet_switchEthereumChain",
+					"wallet_addEthereumChain",
+					"sign"
+				),
+				events = listOf("connect", "chainChanged", "accountsChanged", "disconnect"),
+			),
+			"solana" to Sign.Model.Namespace.Session(
+				chains = listOf("solana:101"),
+				accounts = listOf("solana:101:3PQbBtoeG8iMuYa5wdmNELXJyRo4L3SwJ3Lmi1TTc81C"),
+				events = listOf("connect_test"),
+				methods = listOf("solana_rawSendTransaction", "signAndSendTransaction", "signTransaction", "signMessage", "sign")
+			)
+		)
+
+		val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
+		val approved = generateApprovedNamespaces(proposal, supported)
+		val expected = mapOf(
+			"eip155" to Sign.Model.Namespace.Session(
+				chains = listOf("eip155:1"),
+				methods = listOf("wallet_switchEthereumChain", "wallet_addEthereumChain", "sign"),
+				events = listOf("connect", "chainChanged", "accountsChanged", "disconnect"),
+				accounts = listOf("eip155:1:0x63821D66425d3Baf7B72601785E03D14bDF48919")
+			)
+		)
+
+		assertEquals(expected, approved)
+	}
+
+	@Test
+	fun `test if optional namespaces are satisfied when required namespaces are empty`() {
+		val required = emptyMap<String, Sign.Model.Namespace.Proposal>()
+		val optional = mapOf(
+			"eip155" to Sign.Model.Namespace.Proposal(
+				chains = listOf("eip155:1"),
+				methods = listOf("eth_sendTransaction"),
+				events = listOf("chainChanged", "accountChanged")
+			)
+		)
+		val supported = mapOf(
+			"eip155" to Sign.Model.Namespace.Session(
+				chains = listOf("eip155:1"),
+				methods = listOf("personal_sign", "eth_sendTransaction"),
+				events = listOf("chainChanged"),
+				accounts = listOf("eip155:1:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092")
+			)
+		)
+		val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
+
+		val approved = generateApprovedNamespaces(proposal, supported)
+		val expected = mapOf(
+			"eip155" to Sign.Model.Namespace.Session(
+				chains = listOf("eip155:1"),
+				methods = listOf("eth_sendTransaction"),
+				events = listOf("chainChanged"),
+				accounts = listOf("eip155:1:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092")
+			)
+		)
 
         assertEquals(expected, approved)
     }
@@ -153,19 +282,23 @@ class GenerateApprovedNamespacesUtilsTest {
         assertEquals(expected, approved)
     }
 
-    @Test
-    fun `generate approved namespaces - config 1 - optional method`() {
-        val required = mapOf("eip155" to Sign.Model.Namespace.Proposal(chains = listOf("eip155:1"), methods = listOf("personal_sign"), events = listOf("chainChanged")))
-        val optional = mapOf("eip155" to Sign.Model.Namespace.Proposal(chains = listOf("eip155:1"), methods = listOf("eth_sendTransaction"), events = listOf("")))
-        val supported = mapOf(
-            "eip155" to Sign.Model.Namespace.Session(
-                chains = listOf("eip155:1", "eip155:137", "eip155:3"),
-                methods = listOf("personal_sign", "eth_sendTransaction", "eth_signTransaction"),
-                events = listOf("chainChanged"),
-                accounts = listOf("eip155:1:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092", "eip155:137:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092", "eip155:3:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092")
-            )
-        )
-        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
+	@Test
+	fun `generate approved namespaces - config 1 - optional method`() {
+		val required = mapOf("eip155" to Sign.Model.Namespace.Proposal(chains = listOf("eip155:1"), methods = listOf("personal_sign"), events = listOf("chainChanged")))
+		val optional = mapOf("eip155" to Sign.Model.Namespace.Proposal(chains = listOf("eip155:1"), methods = listOf("eth_sendTransaction"), events = listOf("")))
+		val supported = mapOf(
+			"eip155" to Sign.Model.Namespace.Session(
+				chains = listOf("eip155:1", "eip155:137", "eip155:3"),
+				methods = listOf("personal_sign", "eth_sendTransaction", "eth_signTransaction"),
+				events = listOf("chainChanged"),
+				accounts = listOf(
+					"eip155:1:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092",
+					"eip155:137:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092",
+					"eip155:3:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092"
+				)
+			)
+		)
+		val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
 
         val approved = generateApprovedNamespaces(proposal, supported)
         val expected = mapOf(
@@ -180,19 +313,31 @@ class GenerateApprovedNamespacesUtilsTest {
         assertEquals(expected, approved)
     }
 
-    @Test
-    fun `generate approved namespaces - config 2 - optional chain`() {
-        val required = mapOf("eip155" to Sign.Model.Namespace.Proposal(chains = listOf("eip155:1"), methods = listOf("eth_sendTransaction", "personal_sign"), events = listOf("chainChanged")))
-        val optional = mapOf("eip155" to Sign.Model.Namespace.Proposal(chains = listOf("eip155:2"), methods = listOf("eth_sendTransaction", "personal_sign"), events = listOf("chainChanged")))
-        val supported = mapOf(
-            "eip155" to Sign.Model.Namespace.Session(
-                chains = listOf("eip155:1", "eip155:2", "eip155:3"),
-                methods = listOf("personal_sign", "eth_sendTransaction", "eth_signTransaction"),
-                events = listOf("chainChanged"),
-                accounts = listOf("eip155:1:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092", "eip155:2:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092")
-            )
-        )
-        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
+	@Test
+	fun `generate approved namespaces - config 2 - optional chain`() {
+		val required = mapOf(
+			"eip155" to Sign.Model.Namespace.Proposal(
+				chains = listOf("eip155:1"),
+				methods = listOf("eth_sendTransaction", "personal_sign"),
+				events = listOf("chainChanged")
+			)
+		)
+		val optional = mapOf(
+			"eip155" to Sign.Model.Namespace.Proposal(
+				chains = listOf("eip155:2"),
+				methods = listOf("eth_sendTransaction", "personal_sign"),
+				events = listOf("chainChanged")
+			)
+		)
+		val supported = mapOf(
+			"eip155" to Sign.Model.Namespace.Session(
+				chains = listOf("eip155:1", "eip155:2", "eip155:3"),
+				methods = listOf("personal_sign", "eth_sendTransaction", "eth_signTransaction"),
+				events = listOf("chainChanged"),
+				accounts = listOf("eip155:1:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092", "eip155:2:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092")
+			)
+		)
+		val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
 
         val approved = generateApprovedNamespaces(proposal, supported)
         val expected = mapOf(
@@ -234,32 +379,46 @@ class GenerateApprovedNamespacesUtilsTest {
         assertEquals(expected, approved)
     }
 
-    @Test
-    fun `generate approved namespaces - config 4 - multiple inline chains`() {
-        val required = mapOf(
-            "eip155:1" to Sign.Model.Namespace.Proposal(methods = listOf("eth_sendTransaction", "personal_sign"), events = listOf("chainChanged")),
-            "eip155:2" to Sign.Model.Namespace.Proposal(methods = listOf("eth_sendTransaction", "personal_sign"), events = listOf("chainChanged"))
-        )
-        val optional = mapOf("eip155" to Sign.Model.Namespace.Proposal(chains = listOf("eip155:3"), methods = listOf("eth_sendTransaction", "personal_sign"), events = listOf("chainChanged")))
-        val supported = mapOf(
-            "eip155" to Sign.Model.Namespace.Session(
-                chains = listOf("eip155:1", "eip155:2", "eip155:3"),
-                methods = listOf("personal_sign", "eth_sendTransaction", "eth_signTransaction"),
-                events = listOf("chainChanged"),
-                accounts = listOf("eip155:1:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092", "eip155:2:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092", "eip155:3:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092")
-            )
-        )
-        val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
+	@Test
+	fun `generate approved namespaces - config 4 - multiple inline chains`() {
+		val required = mapOf(
+			"eip155:1" to Sign.Model.Namespace.Proposal(methods = listOf("eth_sendTransaction", "personal_sign"), events = listOf("chainChanged")),
+			"eip155:2" to Sign.Model.Namespace.Proposal(methods = listOf("eth_sendTransaction", "personal_sign"), events = listOf("chainChanged"))
+		)
+		val optional = mapOf(
+			"eip155" to Sign.Model.Namespace.Proposal(
+				chains = listOf("eip155:3"),
+				methods = listOf("eth_sendTransaction", "personal_sign"),
+				events = listOf("chainChanged")
+			)
+		)
+		val supported = mapOf(
+			"eip155" to Sign.Model.Namespace.Session(
+				chains = listOf("eip155:1", "eip155:2", "eip155:3"),
+				methods = listOf("personal_sign", "eth_sendTransaction", "eth_signTransaction"),
+				events = listOf("chainChanged"),
+				accounts = listOf(
+					"eip155:1:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092",
+					"eip155:2:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092",
+					"eip155:3:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092"
+				)
+			)
+		)
+		val proposal = Sign.Model.SessionProposal("", "", "", "", listOf(), "", requiredNamespaces = required, optionalNamespaces = optional, mapOf(), "", "", "")
 
-        val approved = generateApprovedNamespaces(proposal, supported)
-        val expected = mapOf(
-            "eip155" to Sign.Model.Namespace.Session(
-                chains = listOf("eip155:1", "eip155:2", "eip155:3"),
-                methods = listOf("personal_sign", "eth_sendTransaction"),
-                events = listOf("chainChanged"),
-                accounts = listOf("eip155:1:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092", "eip155:2:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092", "eip155:3:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092")
-            )
-        )
+		val approved = generateApprovedNamespaces(proposal, supported)
+		val expected = mapOf(
+			"eip155" to Sign.Model.Namespace.Session(
+				chains = listOf("eip155:1", "eip155:2", "eip155:3"),
+				methods = listOf("personal_sign", "eth_sendTransaction"),
+				events = listOf("chainChanged"),
+				accounts = listOf(
+					"eip155:1:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092",
+					"eip155:2:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092",
+					"eip155:3:0x57f48fAFeC1d76B27e3f29b8d277b6218CDE6092"
+				)
+			)
+		)
 
         assertEquals(expected, approved)
     }
