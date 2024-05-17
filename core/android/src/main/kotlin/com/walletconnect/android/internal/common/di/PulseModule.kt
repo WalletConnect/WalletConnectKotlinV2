@@ -1,6 +1,5 @@
 package com.walletconnect.android.internal.common.di
 
-import com.walletconnect.android.internal.common.model.PackageName
 import com.walletconnect.android.pulse.data.PulseService
 import com.walletconnect.android.pulse.domain.SendClickAllWalletsUseCase
 import com.walletconnect.android.pulse.domain.SendClickGetWalletUseCase
@@ -24,7 +23,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 
 @JvmSynthetic
-fun pulseModule() = module {
+fun pulseModule(bundleId: String) = module {
     single(named(AndroidCommonDITags.PULSE_URL)) { "https://pulse.walletconnect.org" }
 
     single(named(AndroidCommonDITags.PULSE_RETROFIT)) {
@@ -41,7 +40,7 @@ fun pulseModule() = module {
         SendModalCreatedUseCase(
             pulseService = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
-            bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+            bundleId = bundleId
         )
     }
 
@@ -49,7 +48,7 @@ fun pulseModule() = module {
         SendClickAllWalletsUseCase(
             pulseService = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
-            bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+            bundleId = bundleId
         )
     }
 
@@ -57,7 +56,7 @@ fun pulseModule() = module {
         SendClickGetWalletUseCase(
             pulseService = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
-            bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+            bundleId = bundleId
         )
     }
 
@@ -65,7 +64,7 @@ fun pulseModule() = module {
         SendClickWalletHelpUseCase(
             pulseService = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
-            bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+            bundleId = bundleId
         )
     }
 
@@ -73,7 +72,7 @@ fun pulseModule() = module {
         SendClickNetworkHelpUseCase(
             pulseService = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
-            bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+            bundleId = bundleId
         )
     }
 
@@ -81,7 +80,7 @@ fun pulseModule() = module {
         SendClickNetworksUseCase(
             pulseService = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
-            bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+            bundleId = bundleId
         )
     }
 
@@ -89,7 +88,7 @@ fun pulseModule() = module {
         SendConnectErrorUseCase(
             pulseService = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
-            bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+            bundleId = bundleId
         )
     }
 
@@ -97,7 +96,7 @@ fun pulseModule() = module {
         SendConnectSuccessUseCase(
             pulseService = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
-            bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+            bundleId = bundleId
         )
     }
 
@@ -105,7 +104,7 @@ fun pulseModule() = module {
         SendDisconnectErrorUseCase(
             pulseService = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
-            bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+            bundleId = bundleId
         )
     }
 
@@ -113,7 +112,7 @@ fun pulseModule() = module {
         SendDisconnectSuccessUseCase(
             pulseService = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
-            bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+            bundleId = bundleId
         )
     }
 
@@ -121,7 +120,7 @@ fun pulseModule() = module {
         SendModalCloseUseCase(
             pulseService = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
-            bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+            bundleId = bundleId
         )
     }
 
@@ -129,7 +128,7 @@ fun pulseModule() = module {
         SendModalLoadedUseCase(
             pulseService = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
-            bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+            bundleId = bundleId
         )
     }
 
@@ -137,7 +136,7 @@ fun pulseModule() = module {
         SendModalOpenUseCase(
             pulseService = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
-            bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+            bundleId = bundleId
         )
     }
 
@@ -145,7 +144,7 @@ fun pulseModule() = module {
         SendSelectWalletUseCase(
             pulseService = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
-            bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+            bundleId = bundleId
         )
     }
 
@@ -153,7 +152,7 @@ fun pulseModule() = module {
         SendSwitchNetworkUseCase(
             pulseService = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
-            bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+            bundleId = bundleId
         )
     }
 }
