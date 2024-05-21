@@ -1,14 +1,14 @@
 [versions]
 jerseyCommon = "3.1.0"
-kotlin = "1.9.23"
-ksp = "1.9.23-1.0.19"
-agp = "8.3.1"
+kotlin = "1.9.24"
+ksp = "1.9.24-1.0.20"
+agp = "8.4.0"
 
 minSdk = "23"
 targetSdk = "34"
 compileSdk = "34"
 
-composeCompiler = "1.5.11"
+composeCompiler = "1.5.14"
 composeBOM = "2024.03.00"
 composeViewModel = "2.6.1"
 accompanist = "0.31.3-beta"

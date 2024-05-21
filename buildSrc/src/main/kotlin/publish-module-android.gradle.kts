@@ -12,10 +12,9 @@ tasks {
     register("javadocJar", Jar::class) {
         dependsOn(named("dokkaHtml"))
         archiveClassifier.set("javadoc")
-        from("$buildDir/dokka/html")
+        from("${layout.buildDirectory}/dokka/html")
     }
 
-    @Suppress("UnstableApiUsage")
     register("sourcesJar", Jar::class) {
         archiveClassifier.set("sources")
         from(
@@ -40,6 +39,8 @@ afterEvaluate {
                 groupId = "com.walletconnect"
                 artifactId = requireNotNull(project.extra[KEY_PUBLISH_ARTIFACT_ID]).toString()
                 version = requireNotNull(project.extra[KEY_PUBLISH_VERSION]).toString()
+
+                println("kobe: android artefact: $artifactId")
 
                 pom {
                     name.set("WalletConnect ${requireNotNull(extra.get(KEY_SDK_NAME))}")

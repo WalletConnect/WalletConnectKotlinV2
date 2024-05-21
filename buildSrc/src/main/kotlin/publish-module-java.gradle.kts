@@ -21,6 +21,7 @@ tasks {
 afterEvaluate {
     publishing {
         publications {
+            println("kobe: start publishing")
             register<MavenPublication>("mavenJvm") {
                 plugins.withId("java") {
                     from(components["java"])
@@ -32,9 +33,12 @@ afterEvaluate {
                     from(components["javaPlatform"])
                 }
 
+
                 groupId = "com.walletconnect"
                 artifactId = requireNotNull(extra.get(KEY_PUBLISH_ARTIFACT_ID)).toString()
                 version = requireNotNull(extra.get(KEY_PUBLISH_VERSION)).toString()
+
+                println("kobe: artefact: $artifactId")
 
                 pom {
                     name.set("WalletConnect ${requireNotNull(extra.get(KEY_SDK_NAME))}")
@@ -77,5 +81,6 @@ signing {
         System.getenv("SIGNING_KEY"),
         System.getenv("SIGNING_PASSWORD")
     )
+    println("kobe: signing")
     sign(publishing.publications)
 }

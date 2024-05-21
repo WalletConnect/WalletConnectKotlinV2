@@ -1,4 +1,5 @@
 import org.apache.tools.ant.taskdefs.condition.Os
+import java.util.Locale
 import kotlin.reflect.full.safeCast
 
 // Example ./gradlew releaseAllSDKs -Ptype=local
@@ -9,16 +10,18 @@ tasks.register("releaseAllSDKs") {
             ?.run(String::class::safeCast)
             ?.run {
                 println("Converting parameter to an supported ReleaseType value")
-                ReleaseType.valueOf(this.toUpperCase())
+                ReleaseType.valueOf(this.uppercase(Locale.getDefault()))
             }?.let { releaseType ->
+                println("kobe: Release type: $releaseType")
                 generateListOfModuleTasks(releaseType).forEach { task ->
-                    println("Executing Task: $task")
+                    println("kobe: Executing Task: $task")
                     exec {
                         val gradleCommand = if (Os.isFamily(Os.FAMILY_WINDOWS)) {
                             "gradlew.bat"
                         } else {
                             "./gradlew"
                         }
+                        println("kobe: Gradle Command: $gradleCommand; Task: ${task.path}")
                         commandLine(gradleCommand, task.path)
                     }
                 }
@@ -47,6 +50,8 @@ fun compileListOfSDKs(): List<Triple<String, String?, String>> = mutableListOf(
 
 // This extension function will determine which task to run based on the type passed
 fun List<Triple<String, String?, String>>.extractListOfPublishingTasks(type: ReleaseType): List<Task> = map { (parentModule, childModule, env) ->
+//    println("kobe: Parent Module: $parentModule, Child Module: $childModule, Env: $env")
+
     val task = when {
         env == "jvm" && type == ReleaseType.LOCAL -> "${publishJvmRoot}MavenLocal"
         env == "jvm" && type == ReleaseType.SONATYPE -> "${publishJvmRoot}SonatypeRepository"
@@ -56,6 +61,7 @@ fun List<Triple<String, String?, String>>.extractListOfPublishingTasks(type: Rel
     }
 
     val module = if (childModule != null) {
+//        println("kobe: subprojects $subprojects")
         subprojects.first { it.name == parentModule }.subprojects.first { it.name == childModule }
     } else {
         subprojects.first { it.name == parentModule }
