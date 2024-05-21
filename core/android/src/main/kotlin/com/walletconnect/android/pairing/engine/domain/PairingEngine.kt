@@ -179,6 +179,7 @@ internal class PairingEngine(
                     insertEvent(Props.Error.PairingExpired(properties = TraceProperties(trace = trace, topic = pairingTopic.value))).also { logger.error("Pairing expired: $pairingTopic") }
                     return onFailure(ExpiredPairingException("Pairing expired: ${pairingTopic.value}"))
                 }
+                trace.add(Trace.Pairing.PAIRING_NOT_EXPIRED)
                 if (pairing.isActive) {
                     insertEvent(Props.Error.PairingAlreadyExist(properties = TraceProperties(trace = trace, topic = pairingTopic.value)))
                         .also { logger.error("Pairing already exists error: $pairingTopic") }
@@ -196,11 +197,10 @@ internal class PairingEngine(
                 pairingRepository.insertPairing(inactivePairing)
                 trace.add(Trace.Pairing.STORE_NEW_PAIRING).also { logger.log("Storing a new pairing: $pairingTopic") }
             }
-
-            logger.log("Subscribing pairing topic: $pairingTopic")
+            trace.add(Trace.Pairing.SUBSCRIBING_PAIRING_TOPIC).also { logger.log("Subscribing pairing topic: $pairingTopic") }
             jsonRpcInteractor.subscribe(topic = pairingTopic,
                 onSuccess = {
-                    logger.log("Subscribe pairing topic success: $pairingTopic")
+                    trace.add(Trace.Pairing.SUBSCRIBE_PAIRING_TOPIC_SUCCESS).also { logger.log("Subscribe pairing topic success: $pairingTopic") }
                     onSuccess()
                 }, onFailure = { error ->
                     insertEvent(Props.Error.PairingSubscriptionFailure(properties = TraceProperties(trace = trace, topic = pairingTopic.value)))
@@ -210,13 +210,8 @@ internal class PairingEngine(
             )
         } catch (e: Exception) {
             logger.error("Subscribe pairing topic error: $pairingTopic, error: $e")
-            if (e is NoRelayConnectionException) {
-                insertEvent(Props.Error.NoWSSConnection(properties = TraceProperties(trace = trace, topic = pairingTopic.value)))
-            }
-
-            if (e is NoInternetConnectionException) {
-                insertEvent(Props.Error.NoInternetConnection(properties = TraceProperties(trace = trace, topic = pairingTopic.value)))
-            }
+            if (e is NoRelayConnectionException) insertEvent(Props.Error.NoWSSConnection(properties = TraceProperties(trace = trace, topic = pairingTopic.value)))
+            if (e is NoInternetConnectionException) insertEvent(Props.Error.NoInternetConnection(properties = TraceProperties(trace = trace, topic = pairingTopic.value)))
             runCatching { crypto.removeKeys(pairingTopic.value) }.onFailure { logger.error("Remove keys error: $pairingTopic, error: $it") }
             jsonRpcInteractor.unsubscribe(pairingTopic)
             onFailure(e)
