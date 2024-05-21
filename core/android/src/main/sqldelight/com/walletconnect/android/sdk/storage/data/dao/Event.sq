@@ -1,0 +1,23 @@
+import kotlin.String;
+import kotlin.collections.List;
+
+CREATE TABLE EventDao(
+    event_id INTEGER PRIMARY KEY NOT NULL,
+    bundle_id TEXT NOT NULL,
+    timestamp INTEGER NOT NULL,
+    event_name TEXT NOT NULL,
+    type TEXT NOT NULL,
+    topic TEXT UNIQUE,
+    trace TEXT AS List<String> NOT NULL
+);
+
+insertOrAbortEvent:
+INSERT OR ABORT INTO EventDao(event_id, bundle_id, timestamp,  event_name, type, topic, trace)
+VALUES (?,?,?,?,?,?, ?);
+
+getAllEvents:
+SELECT event_id, bundle_id, timestamp, event_name, type, topic, trace
+FROM EventDao ed;
+
+deleteAllEvents:
+DELETE FROM EventDao;

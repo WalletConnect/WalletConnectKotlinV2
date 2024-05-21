@@ -119,8 +119,8 @@ internal class AuthEngine(
     }
 
     private fun emitReceivedAuthRequest() {
-        pairingHandler.activePairingFlow
-            .onEach { pairingTopic ->
+        pairingHandler.inactivePairingFlow
+            .onEach { (pairingTopic, trace) ->
                 try {
                     val request = getPendingJsonRpcHistoryEntryByTopicUseCase(pairingTopic)
                     val context = verifyContextStorageRepository.get(request.id) ?: VerifyContext(request.id, String.Empty, Validation.UNKNOWN, String.Empty, null)

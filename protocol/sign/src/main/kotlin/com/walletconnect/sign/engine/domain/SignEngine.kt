@@ -14,6 +14,7 @@ import com.walletconnect.android.internal.common.storage.verify.VerifyContextSto
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.pulse.domain.session.SendProposalExpiredUseCase
+import com.walletconnect.android.pulse.model.Trace
 import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.android.relay.WSSConnectionState
 import com.walletconnect.android.verify.data.model.VerifyContext
@@ -400,8 +401,8 @@ internal class SignEngine(
     }
 
     private fun emitReceivedPendingRequestsWhilePairingOnTheSameURL() {
-        pairingController.activePairingFlow
-            .onEach { pairingTopic ->
+        pairingController.inactivePairingFlow
+            .onEach { (pairingTopic, trace) ->
                 try {
                     val pendingAuthenticateRequests = getPendingAuthenticateRequestUseCase.getPendingAuthenticateRequests().filter { request -> request.topic == pairingTopic }
                     if (pendingAuthenticateRequests.isNotEmpty()) {
@@ -421,6 +422,7 @@ internal class SignEngine(
                     } else {
                         val proposal = proposalStorageRepository.getProposalByTopic(pairingTopic.value)
                         if (proposal.expiry?.isExpired() == true) {
+                            //todo: STORE error with trace
                             sendProposalExpiredUseCase()
                             proposalStorageRepository.deleteProposal(proposal.proposerPublicKey)
                             scope.launch { _engineEvent.emit(proposal.toExpiredProposal()) }
@@ -428,6 +430,7 @@ internal class SignEngine(
                             val context = verifyContextStorageRepository.get(proposal.requestId) ?: VerifyContext(proposal.requestId, String.Empty, Validation.UNKNOWN, String.Empty, null)
                             val sessionProposalEvent = EngineDO.SessionProposalEvent(proposal = proposal.toEngineDO(), context = context.toEngineDO())
                             logger.log("Emitting session proposal from active pairing: $sessionProposalEvent")
+                            trace.add(Trace.Pairing.EMIT_SESSION_PROPOSAL)
                             scope.launch { _engineEvent.emit(sessionProposalEvent) }
                         }
                     }
