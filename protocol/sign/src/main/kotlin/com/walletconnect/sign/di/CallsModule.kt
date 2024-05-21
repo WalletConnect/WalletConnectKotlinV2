@@ -107,7 +107,8 @@ internal fun callsModule() = module {
             getPendingSessionAuthenticateRequest = get(),
             selfAppMetaData = get(),
             sessionStorageRepository = get(),
-            metadataStorageRepository = get()
+            metadataStorageRepository = get(),
+            eventsRepository = get()
         )
     }
 

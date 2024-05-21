@@ -164,7 +164,6 @@ internal class ApproveSessionUseCase(
             }
         }
     }
-
 }
 
 internal interface ApproveSessionUseCaseInterface {

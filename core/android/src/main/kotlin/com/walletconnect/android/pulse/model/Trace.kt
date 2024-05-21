@@ -36,7 +36,9 @@ object Trace {
 		const val CREATE_AUTHENTICATED_SESSION_TOPIC = "create_authenticated_session_topic"
 		const val CACAOS_VERIFIED = "cacaos_verified"
 		const val STORE_AUTHENTICATED_SESSION = "store_authenticated_session"
+		const val SUBSCRIBING_AUTHENTICATED_SESSION_TOPIC = "subscribing_authenticated_session_topic"
 		const val SUBSCRIBE_AUTHENTICATED_SESSION_TOPIC_SUCCESS = "subscribe_authenticated_session_topic_success"
+		const val PUBLISHING_AUTHENTICATED_SESSION_APPROVE = "publishing_authenticated_session_approve"
 		const val AUTHENTICATED_SESSION_APPROVE_PUBLISH_SUCCESS = "authenticated_session_approve_publish_success"
 	}
 }
