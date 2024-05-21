@@ -1,22 +1,21 @@
 package com.walletconnect.android.internal.common.di
 
-import com.walletconnect.android.internal.common.model.PackageName
-import com.walletconnect.android.pulse.domain.pairing.SendPairingSubscriptionFailureUseCase
 import com.walletconnect.android.pulse.domain.pairing.SendMalformedPairingUriUseCase
 import com.walletconnect.android.pulse.domain.pairing.SendNoInternetConnectionUseCase
 import com.walletconnect.android.pulse.domain.pairing.SendNoWSSConnectionUseCase
 import com.walletconnect.android.pulse.domain.pairing.SendPairingAlreadyExistUseCase
 import com.walletconnect.android.pulse.domain.pairing.SendPairingExpiredUseCase
+import com.walletconnect.android.pulse.domain.pairing.SendPairingSubscriptionFailureUseCase
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 @JvmSynthetic
-fun pairingPulseModule() = module {
+fun pairingPulseModule(bundleId: String) = module {
 	single {
 		SendMalformedPairingUriUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -24,7 +23,7 @@ fun pairingPulseModule() = module {
 		SendPairingAlreadyExistUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -32,7 +31,7 @@ fun pairingPulseModule() = module {
 		SendPairingSubscriptionFailureUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -40,7 +39,7 @@ fun pairingPulseModule() = module {
 		SendPairingExpiredUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -48,7 +47,7 @@ fun pairingPulseModule() = module {
 		SendNoWSSConnectionUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -56,7 +55,7 @@ fun pairingPulseModule() = module {
 		SendNoInternetConnectionUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 }

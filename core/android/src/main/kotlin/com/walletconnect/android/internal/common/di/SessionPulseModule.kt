@@ -1,6 +1,5 @@
 package com.walletconnect.android.internal.common.di
 
-import com.walletconnect.android.internal.common.model.PackageName
 import com.walletconnect.android.pulse.domain.session.SendOptionalNamespaceValidationFailureUseCase
 import com.walletconnect.android.pulse.domain.session.SendProposalExpiredUseCase
 import com.walletconnect.android.pulse.domain.session.SendRequiredNamespaceValidationFailureUseCase
@@ -13,12 +12,12 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 @JvmSynthetic
-fun sessionPulseModule() = module {
+fun sessionPulseModule(bundleId: String) = module {
 	single {
 		SendProposalExpiredUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -26,7 +25,7 @@ fun sessionPulseModule() = module {
 		SendSessionSubscriptionFailureUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -34,7 +33,7 @@ fun sessionPulseModule() = module {
 		SendSessionApprovePublishFailureUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -42,7 +41,7 @@ fun sessionPulseModule() = module {
 		SendSessionSettlePublishFailureUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -50,7 +49,7 @@ fun sessionPulseModule() = module {
 		SendSessionApprovePublishFailureUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -58,7 +57,7 @@ fun sessionPulseModule() = module {
 		SendSessionApproveNamespaceValidationFailureUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -66,7 +65,7 @@ fun sessionPulseModule() = module {
 		SendRequiredNamespaceValidationFailureUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -74,7 +73,7 @@ fun sessionPulseModule() = module {
 		SendOptionalNamespaceValidationFailureUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -82,7 +81,7 @@ fun sessionPulseModule() = module {
 		SendSessionPropertiesValidationFailureUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 }

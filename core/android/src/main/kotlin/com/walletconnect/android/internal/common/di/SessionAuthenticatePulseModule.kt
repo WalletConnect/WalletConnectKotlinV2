@@ -1,6 +1,5 @@
 package com.walletconnect.android.internal.common.di
 
-import com.walletconnect.android.internal.common.model.PackageName
 import com.walletconnect.android.pulse.domain.session_authenticate.SendAuthenticatedSessionApprovePublishFailureUseCase
 import com.walletconnect.android.pulse.domain.session_authenticate.SendAuthenticatedSessionExpiredUseCase
 import com.walletconnect.android.pulse.domain.session_authenticate.SendChainsCaip2CompliantFailureUseCase
@@ -13,12 +12,12 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 @JvmSynthetic
-fun sessionAuthenticatePulseModule() = module {
+fun sessionAuthenticatePulseModule(bundleId: String) = module {
 	single {
 		SendChainsCaip2CompliantFailureUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -26,7 +25,7 @@ fun sessionAuthenticatePulseModule() = module {
 		SendAuthenticatedSessionApprovePublishFailureUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -34,7 +33,7 @@ fun sessionAuthenticatePulseModule() = module {
 		SendChainsEvmCompliantFailureUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -42,7 +41,7 @@ fun sessionAuthenticatePulseModule() = module {
 		SendInvalidCacaoUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -50,7 +49,7 @@ fun sessionAuthenticatePulseModule() = module {
 		SendMissingSessionAuthenticateRequestUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -58,7 +57,7 @@ fun sessionAuthenticatePulseModule() = module {
 		SendSessionAuthenticateRequestExpiredUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -66,7 +65,7 @@ fun sessionAuthenticatePulseModule() = module {
 		SendSubscribeAuthenticatedSessionTopicFailureUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -74,7 +73,7 @@ fun sessionAuthenticatePulseModule() = module {
 		SendAuthenticatedSessionExpiredUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 }
