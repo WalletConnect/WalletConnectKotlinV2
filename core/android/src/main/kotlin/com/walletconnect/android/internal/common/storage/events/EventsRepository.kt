@@ -17,9 +17,23 @@ class EventsRepository(private val eventQueries: EventQueries, private val dispa
     }
 
     @Throws(SQLiteException::class)
-    suspend fun getEvents(): List<EventDao> {
+    suspend fun getAll(): List<EventDao> {
         return withContext(dispatcher) {
             eventQueries.getAll().executeAsList()
+        }
+    }
+
+    @Throws(SQLiteException::class)
+    suspend fun deleteAll() {
+        return withContext(dispatcher) {
+            eventQueries.deleteAll()
+        }
+    }
+
+    @Throws(SQLiteException::class)
+    suspend fun deleteById(eventId: Long) {
+        return withContext(dispatcher) {
+            eventQueries.deleteById(eventId)
         }
     }
 }

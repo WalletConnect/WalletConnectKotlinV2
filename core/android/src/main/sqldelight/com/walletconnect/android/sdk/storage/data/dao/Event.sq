@@ -21,3 +21,7 @@ FROM EventDao ed;
 
 deleteAll:
 DELETE FROM EventDao;
+
+deleteById:
+DELETE FROM EventDao
+WHERE event_id = ?;
