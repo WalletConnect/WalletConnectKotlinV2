@@ -40,9 +40,11 @@ val walletMetaData = WalletMetaData(
                 "eth_sign",
                 "eth_signTransaction",
                 "eth_signTypedData",
-                "eth_signTypedData_v4"
+                "eth_signTypedData_v4",
+                "wallet_switchEthereumChain",
+                "wallet_addEthereumChain"
             ),
-            events = listOf("chainChanged", "accountsChanged"),
+            events = listOf("chainChanged", "accountsChanged", "connect", "disconnect"),
             accounts = listOf("eip155:1:$ACCOUNTS_1_EIP155_ADDRESS", "eip155:137:$ACCOUNTS_1_EIP155_ADDRESS", "eip155:56:$ACCOUNTS_1_EIP155_ADDRESS")
         ),
         "cosmos" to Wallet.Model.Namespace.Session(
