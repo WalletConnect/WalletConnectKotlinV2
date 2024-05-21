@@ -21,7 +21,7 @@ class SendSessionPropertiesValidationFailureUseCase(
 				eventId = generateId(),
 				bundleId = bundleId,
 				timestamp = currentTimeInSeconds,
-				props = Props.Session.SessionPropertiesValidationFailure()
+				props = Props.TraceProps.Session.SessionPropertiesValidationFailure()
 			), SDKType.EVENTS
 		)
 	}

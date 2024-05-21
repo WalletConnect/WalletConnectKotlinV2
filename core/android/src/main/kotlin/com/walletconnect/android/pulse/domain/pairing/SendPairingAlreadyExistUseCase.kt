@@ -21,7 +21,7 @@ class SendPairingAlreadyExistUseCase(
 				eventId = generateId(),
 				bundleId = bundleId,
 				timestamp = currentTimeInSeconds,
-				props = Props.Pairing.PairingAlreadyExist()
+				props = Props.TraceProps.Pairing.PairingAlreadyExist()
 			), SDKType.EVENTS
 		)
 	}

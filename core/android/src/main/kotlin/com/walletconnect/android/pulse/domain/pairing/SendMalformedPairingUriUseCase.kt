@@ -21,7 +21,7 @@ class SendMalformedPairingUriUseCase(
 				eventId = generateId(),
 				bundleId = bundleId,
 				timestamp = currentTimeInSeconds,
-				props = Props.Pairing.MalformedPairingUri()
+				props = Props.TraceProps.Pairing.MalformedPairingUri()
 			), SDKType.EVENTS
 		)
 	}

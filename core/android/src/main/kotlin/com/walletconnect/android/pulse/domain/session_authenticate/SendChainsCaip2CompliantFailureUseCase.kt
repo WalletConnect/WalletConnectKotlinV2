@@ -21,7 +21,7 @@ class SendChainsCaip2CompliantFailureUseCase(
 				eventId = generateId(),
 				bundleId = bundleId,
 				timestamp = currentTimeInSeconds,
-				props = Props.SessionAuthenticate.ChainsCaip2CompliantFailure()
+				props = Props.TraceProps.SessionAuthenticate.ChainsCaip2CompliantFailure()
 			), SDKType.EVENTS
 		)
 	}

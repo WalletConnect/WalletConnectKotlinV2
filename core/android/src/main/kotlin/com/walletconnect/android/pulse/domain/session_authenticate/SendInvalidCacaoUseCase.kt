@@ -21,7 +21,7 @@ class SendInvalidCacaoUseCase(
 				eventId = generateId(),
 				bundleId = bundleId,
 				timestamp = currentTimeInSeconds,
-				props = Props.SessionAuthenticate.InvalidCacao()
+				props = Props.TraceProps.SessionAuthenticate.InvalidCacao()
 			), SDKType.EVENTS
 		)
 	}

@@ -11,13 +11,13 @@ CREATE TABLE EventDao(
     trace TEXT AS List<String> NOT NULL
 );
 
-insertOrAbortEvent:
+insertOrAbort:
 INSERT OR ABORT INTO EventDao(event_id, bundle_id, timestamp,  event_name, type, topic, trace)
 VALUES (?,?,?,?,?,?, ?);
 
-getAllEvents:
+getAll:
 SELECT event_id, bundle_id, timestamp, event_name, type, topic, trace
 FROM EventDao ed;
 
-deleteAllEvents:
+deleteAll:
 DELETE FROM EventDao;

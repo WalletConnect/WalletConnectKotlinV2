@@ -21,7 +21,7 @@ class SendChainsEvmCompliantFailureUseCase(
 				eventId = generateId(),
 				bundleId = bundleId,
 				timestamp = currentTimeInSeconds,
-				props = Props.SessionAuthenticate.ChainsEvmCompliantFailure()
+				props = Props.TraceProps.SessionAuthenticate.ChainsEvmCompliantFailure()
 			), SDKType.EVENTS
 		)
 	}

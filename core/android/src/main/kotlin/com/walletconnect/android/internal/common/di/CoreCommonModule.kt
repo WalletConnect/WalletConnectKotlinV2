@@ -46,34 +46,34 @@ fun coreCommonModule() = module {
 			.withSubtype(Props.W3M.ClickWalletHelp::class.java, EventType.W3M.CLICK_WALLET_HELP)
 			.withSubtype(Props.W3M.ClickNetworkHelp::class.java, EventType.W3M.CLICK_NETWORK_HELP)
 			.withSubtype(Props.W3M.ClickGetWallet::class.java, EventType.W3M.CLICK_GET_WALLET)
-			.withSubtype(Props.Pairing.MalformedPairingUri::class.java, EventType.Pairing.MALFORMED_PAIRING_URI)
-			.withSubtype(Props.Pairing.PairingAlreadyExist::class.java, EventType.Pairing.PAIRING_ALREADY_EXIST)
-			.withSubtype(Props.Pairing.PairingSubscriptionFailure::class.java, EventType.Pairing.PAIRING_SUBSCRIPTION_FAILURE)
-			.withSubtype(Props.Pairing.PairingExpired::class.java, EventType.Pairing.PAIRING_EXPIRED)
-			.withSubtype(Props.NoWSSConnection::class.java, EventType.NO_WSS_CONNECTION)
-			.withSubtype(Props.NoInternetConnection::class.java, EventType.NO_INTERNET_CONNECTION)
-			.withSubtype(Props.Session.ProposalExpired::class.java, EventType.Session.PROPOSAL_EXPIRED)
-			.withSubtype(Props.Session.SessionSettlePublishFailure::class.java, EventType.Session.SESSION_SETTLE_PUBLISH_FAILURE)
-			.withSubtype(Props.Session.SessionApprovePublishFailure::class.java, EventType.Session.SESSION_APPROVE_PUBLISH_FAILURE)
-			.withSubtype(Props.Session.SessionSubscriptionFailure::class.java, EventType.Session.SESSION_SUBSCRIPTION_FAILURE)
-			.withSubtype(Props.Session.SessionApproveNamespaceValidationFailure::class.java, EventType.Session.SESSION_APPROVE_NAMESPACE_VALIDATION_FAILURE)
-			.withSubtype(Props.Session.RequiredNamespaceValidationFailure::class.java, EventType.Session.REQUIRED_NAMESPACE_VALIDATION_FAILURE)
-			.withSubtype(Props.Session.OptionalNamespaceValidationFailure::class.java, EventType.Session.OPTIONAL_NAMESPACE_VALIDATION_FAILURE)
-			.withSubtype(Props.Session.SessionPropertiesValidationFailure::class.java, EventType.Session.SESSION_PROPERTIES_VALIDATION_FAILURE)
+			.withSubtype(Props.TraceProps.Pairing.MalformedPairingUri::class.java, EventType.Pairing.MALFORMED_PAIRING_URI)
+			.withSubtype(Props.TraceProps.Pairing.PairingAlreadyExist::class.java, EventType.Pairing.PAIRING_ALREADY_EXIST)
+			.withSubtype(Props.TraceProps.Pairing.PairingSubscriptionFailure::class.java, EventType.Pairing.PAIRING_SUBSCRIPTION_FAILURE)
+			.withSubtype(Props.TraceProps.Pairing.PairingExpired::class.java, EventType.Pairing.PAIRING_EXPIRED)
+			.withSubtype(Props.TraceProps.NoWSSConnection::class.java, EventType.NO_WSS_CONNECTION)
+			.withSubtype(Props.TraceProps.NoInternetConnection::class.java, EventType.NO_INTERNET_CONNECTION)
+			.withSubtype(Props.TraceProps.Session.ProposalExpired::class.java, EventType.Session.PROPOSAL_EXPIRED)
+			.withSubtype(Props.TraceProps.Session.SessionSettlePublishFailure::class.java, EventType.Session.SESSION_SETTLE_PUBLISH_FAILURE)
+			.withSubtype(Props.TraceProps.Session.SessionApprovePublishFailure::class.java, EventType.Session.SESSION_APPROVE_PUBLISH_FAILURE)
+			.withSubtype(Props.TraceProps.Session.SessionSubscriptionFailure::class.java, EventType.Session.SESSION_SUBSCRIPTION_FAILURE)
+			.withSubtype(Props.TraceProps.Session.SessionApproveNamespaceValidationFailure::class.java, EventType.Session.SESSION_APPROVE_NAMESPACE_VALIDATION_FAILURE)
+			.withSubtype(Props.TraceProps.Session.RequiredNamespaceValidationFailure::class.java, EventType.Session.REQUIRED_NAMESPACE_VALIDATION_FAILURE)
+			.withSubtype(Props.TraceProps.Session.OptionalNamespaceValidationFailure::class.java, EventType.Session.OPTIONAL_NAMESPACE_VALIDATION_FAILURE)
+			.withSubtype(Props.TraceProps.Session.SessionPropertiesValidationFailure::class.java, EventType.Session.SESSION_PROPERTIES_VALIDATION_FAILURE)
 			.withSubtype(
-				Props.SessionAuthenticate.AuthenticatedSessionApprovePublishFailure::class.java,
+				Props.TraceProps.SessionAuthenticate.AuthenticatedSessionApprovePublishFailure::class.java,
 				EventType.SessionAuthenticate.AUTHENTICATED_SESSION_APPROVE_PUBLISH_FAILURE
 			)
-			.withSubtype(Props.SessionAuthenticate.MissingSessionAuthenticateRequest::class.java, EventType.SessionAuthenticate.MISSING_SESSION_AUTH_REQUEST)
-			.withSubtype(Props.SessionAuthenticate.SessionAuthenticateRequestExpired::class.java, EventType.SessionAuthenticate.SESSION_AUTH_REQUEST_EXPIRED)
-			.withSubtype(Props.SessionAuthenticate.InvalidCacao::class.java, EventType.SessionAuthenticate.INVALID_CACAO)
-			.withSubtype(Props.SessionAuthenticate.ChainsCaip2CompliantFailure::class.java, EventType.SessionAuthenticate.CHAINS_CAIP2_COMPLIANT_FAILURE)
-			.withSubtype(Props.SessionAuthenticate.ChainsEvmCompliantFailure::class.java, EventType.SessionAuthenticate.CHAINS_EVM_COMPLIANT_FAILURE)
+			.withSubtype(Props.TraceProps.SessionAuthenticate.MissingSessionAuthenticateRequest::class.java, EventType.SessionAuthenticate.MISSING_SESSION_AUTH_REQUEST)
+			.withSubtype(Props.TraceProps.SessionAuthenticate.SessionAuthenticateRequestExpired::class.java, EventType.SessionAuthenticate.SESSION_AUTH_REQUEST_EXPIRED)
+			.withSubtype(Props.TraceProps.SessionAuthenticate.InvalidCacao::class.java, EventType.SessionAuthenticate.INVALID_CACAO)
+			.withSubtype(Props.TraceProps.SessionAuthenticate.ChainsCaip2CompliantFailure::class.java, EventType.SessionAuthenticate.CHAINS_CAIP2_COMPLIANT_FAILURE)
+			.withSubtype(Props.TraceProps.SessionAuthenticate.ChainsEvmCompliantFailure::class.java, EventType.SessionAuthenticate.CHAINS_EVM_COMPLIANT_FAILURE)
 			.withSubtype(
-				Props.SessionAuthenticate.SubscribeAuthenticatedSessionTopicFailure::class.java,
+				Props.TraceProps.SessionAuthenticate.SubscribeAuthenticatedSessionTopicFailure::class.java,
 				EventType.SessionAuthenticate.SUBSCRIBE_AUTH_SESSION_TOPIC_FAILURE
 			)
-			.withSubtype(Props.SessionAuthenticate.AuthenticatedSessionExpired::class.java, EventType.SessionAuthenticate.AUTHENTICATED_SESSION_EXPIRED)
+			.withSubtype(Props.TraceProps.SessionAuthenticate.AuthenticatedSessionExpired::class.java, EventType.SessionAuthenticate.AUTHENTICATED_SESSION_EXPIRED)
 	}
 
 	single<Moshi.Builder>(named(AndroidCommonDITags.MOSHI)) {

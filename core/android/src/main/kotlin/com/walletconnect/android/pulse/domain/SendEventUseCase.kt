@@ -4,6 +4,7 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.pulse.data.PulseService
 import com.walletconnect.android.pulse.model.Event
 import com.walletconnect.android.pulse.model.SDKType
+import com.walletconnect.android.pulse.model.properties.Props
 import com.walletconnect.foundation.util.Logger
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
@@ -16,7 +17,7 @@ abstract class SendEventUseCase(
 	//TODO: handle flag properly
 //	private val enableAnalytics: Boolean by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.ENABLE_ANALYTICS)) }
 
-	operator fun invoke(event: Event, sdkType: SDKType) {
+	operator fun invoke(event: Event<Props>, sdkType: SDKType) {
 //		if (enableAnalytics) {
 			scope.launch {
 				supervisorScope {

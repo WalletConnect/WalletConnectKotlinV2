@@ -21,7 +21,7 @@ class SendSessionApproveNamespaceValidationFailureUseCase(
 				eventId = generateId(),
 				bundleId = bundleId,
 				timestamp = currentTimeInSeconds,
-				props = Props.Session.SessionApproveNamespaceValidationFailure()
+				props = Props.TraceProps.Session.SessionApproveNamespaceValidationFailure()
 			), SDKType.EVENTS
 		)
 	}

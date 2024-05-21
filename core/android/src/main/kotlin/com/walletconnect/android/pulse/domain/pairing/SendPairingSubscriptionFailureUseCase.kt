@@ -21,7 +21,7 @@ class SendPairingSubscriptionFailureUseCase(
 				eventId = generateId(),
 				bundleId = bundleId,
 				timestamp = currentTimeInSeconds,
-				props = Props.Pairing.PairingSubscriptionFailure()
+				props = Props.TraceProps.Pairing.PairingSubscriptionFailure()
 			), SDKType.EVENTS
 		)
 	}
