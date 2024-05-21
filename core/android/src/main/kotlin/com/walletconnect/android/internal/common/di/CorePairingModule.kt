@@ -1,6 +1,5 @@
 package com.walletconnect.android.internal.common.di
 
-import android.os.Bundle
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.engine.domain.PairingEngine
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
@@ -16,12 +15,6 @@ fun corePairingModule(pairing: PairingInterface, pairingController: PairingContr
             pairingRepository = get(),
             jsonRpcInteractor = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
-            sendMalformedPairingUriUseCase = get(),
-            sendPairingAlreadyExistUseCase = get(),
-            sendPairingSubscriptionFailureUseCase = get(),
-            sendNoInternetConnectionUseCase = get(),
-            sendNoWSSConnection = get(),
-            sendPairingExpiredUseCase = get(),
             eventsRepository = get()
         )
     }
