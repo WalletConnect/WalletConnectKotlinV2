@@ -21,7 +21,7 @@ class SendMissingSessionAuthenticateRequestUseCase(
 				eventId = generateId(),
 				bundleId = bundleId,
 				timestamp = currentTimeInSeconds,
-				props = Props.TraceProps.SessionAuthenticate.MissingSessionAuthenticateRequest()
+				props = Props.Error.MissingSessionAuthenticateRequest()
 			), SDKType.EVENTS
 		)
 	}

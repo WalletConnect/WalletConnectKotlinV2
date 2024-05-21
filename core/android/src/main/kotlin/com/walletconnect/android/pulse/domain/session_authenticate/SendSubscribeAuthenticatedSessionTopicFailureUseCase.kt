@@ -21,7 +21,7 @@ class SendSubscribeAuthenticatedSessionTopicFailureUseCase(
 				eventId = generateId(),
 				bundleId = bundleId,
 				timestamp = currentTimeInSeconds,
-				props = Props.TraceProps.SessionAuthenticate.SubscribeAuthenticatedSessionTopicFailure()
+				props = Props.Error.SubscribeAuthenticatedSessionTopicFailure()
 			), SDKType.EVENTS
 		)
 	}

@@ -21,7 +21,7 @@ class SendRequiredNamespaceValidationFailureUseCase(
 				eventId = generateId(),
 				bundleId = bundleId,
 				timestamp = currentTimeInSeconds,
-				props = Props.TraceProps.Session.RequiredNamespaceValidationFailure()
+				props = Props.Error.RequiredNamespaceValidationFailure()
 			), SDKType.EVENTS
 		)
 	}

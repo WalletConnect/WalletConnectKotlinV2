@@ -9,11 +9,24 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class EventsRepository(private val eventQueries: EventQueries, private val dispatcher: CoroutineDispatcher = Dispatchers.IO) {
-
+class EventsRepository(
+    private val eventQueries: EventQueries,
+    private val bundleId: String,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
+) {
     @Throws(SQLiteException::class)
-    suspend fun insertOrAbort(event: Event<Props.TraceProps>) = withContext(dispatcher) {
-        eventQueries.insertOrAbort(event.eventId, event.bundleId, event.timestamp, event.props.event, event.props.type, event.props.properties?.topic!!, event.props.properties?.trace!!)
+    suspend fun insertOrAbort(props: Props.Error) = withContext(dispatcher) {
+        with(Event(bundleId = bundleId, props = props)) {
+            eventQueries.insertOrAbort(
+                eventId,
+                bundleId,
+                timestamp,
+                props.event,
+                props.type,
+                props.properties?.topic,
+                props.properties?.trace
+            )
+        }
     }
 
     @Throws(SQLiteException::class)

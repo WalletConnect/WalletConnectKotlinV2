@@ -21,7 +21,7 @@ class SendPairingExpiredUseCase(
 				eventId = generateId(),
 				bundleId = bundleId,
 				timestamp = currentTimeInSeconds,
-				props = Props.TraceProps.Pairing.PairingExpired()
+				props = Props.Error.PairingExpired()
 			), SDKType.EVENTS
 		)
 	}

@@ -14,7 +14,7 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 
-class RespondSessionRequestUseCaseTest {
+class RespondErrorRequestUseCaseTest {
     private val jsonRpcInteractor = mockk<JsonRpcInteractorInterface>()
     private val sessionStorageRepository = mockk<SessionStorageRepository>()
     private val getPendingJsonRpcHistoryEntryByIdUseCase = mockk<GetPendingJsonRpcHistoryEntryByIdUseCase>()

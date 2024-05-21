@@ -28,6 +28,7 @@ import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.WalletConnectUri
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.internal.common.storage.events.EventsRepository
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.pairing.PairingStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
@@ -47,6 +48,8 @@ import com.walletconnect.android.pulse.domain.pairing.SendPairingAlreadyExistUse
 import com.walletconnect.android.pulse.domain.pairing.SendPairingExpiredUseCase
 import com.walletconnect.android.pulse.domain.pairing.SendPairingSubscriptionFailureUseCase
 import com.walletconnect.android.pulse.model.Trace
+import com.walletconnect.android.pulse.model.properties.Props
+import com.walletconnect.android.pulse.model.properties.TraceProperties
 import com.walletconnect.android.relay.WSSConnectionState
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -92,6 +95,7 @@ internal class PairingEngine(
     private val sendPairingExpiredUseCase: SendPairingExpiredUseCase,
     private val sendNoWSSConnection: SendNoWSSConnectionUseCase,
     private val sendNoInternetConnectionUseCase: SendNoInternetConnectionUseCase,
+    private val eventsRepository: EventsRepository,
 ) {
     private var jsonRpcRequestsJob: Job? = null
     private val setOfRegisteredMethods: MutableSet<String> = mutableSetOf()
@@ -164,20 +168,17 @@ internal class PairingEngine(
     }
 
     fun pair(uri: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
-        logger.log("Pairing started")
         val trace: MutableList<String> = mutableListOf()
-        trace.add(Trace.Pairing.PAIRING_STARTED)
+        trace.add(Trace.Pairing.PAIRING_STARTED).also { logger.log("Pairing started") }
 
         val walletConnectUri: WalletConnectUri = Validator.validateWCUri(uri) ?: run {
-            //todo: STORE error with trace
-            sendMalformedPairingUriUseCase()
+            insertEvent(Props.Error.MalformedPairingUri(properties = TraceProperties(trace = trace)))
             return onFailure(MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE))
         }
         trace.add(Trace.Pairing.PAIRING_URI_VALIDATION_SUCCESS)
 
         val inactivePairing = Pairing(walletConnectUri)
         val symmetricKey = walletConnectUri.symKey
-
         try {
             if (walletConnectUri.expiry?.isExpired() == true) {
                 logger.error("Pairing expired: ${inactivePairing.topic.value}")
@@ -323,6 +324,14 @@ internal class PairingEngine(
 
     fun updateMetadata(topic: String, metadata: AppMetaData, metaDataType: AppMetaDataType) {
         metadataRepository.upsertPeerMetadata(Topic(topic), metadata, metaDataType)
+    }
+
+    private fun insertEvent(props : Props.Error) {
+        scope.launch {
+            supervisorScope {
+                eventsRepository.insertOrAbort(props)
+            }
+        }
     }
 
     private fun resubscribeToPairingTopics() {

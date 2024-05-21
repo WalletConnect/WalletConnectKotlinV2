@@ -26,7 +26,7 @@ import org.koin.core.scope.Scope
 import org.koin.dsl.module
 import com.walletconnect.android.internal.common.scope as wcScope
 
-fun baseStorageModule(storagePrefix: String = String.Empty) = module {
+fun baseStorageModule(storagePrefix: String = String.Empty, bundleId: String) = module {
 
     fun Scope.createCoreDB(): AndroidCoreDatabase = AndroidCoreDatabase(
         driver = get(named(AndroidBuildVariantDITags.ANDROID_CORE_DATABASE_DRIVER)),
@@ -120,7 +120,7 @@ fun baseStorageModule(storagePrefix: String = String.Empty) = module {
 
     single { PushMessagesRepository(pushMessageQueries = get()) }
 
-    single { EventsRepository(eventQueries = get()) }
+    single { EventsRepository(eventQueries = get(), bundleId = bundleId) }
 
     single { DatabaseConfig(storagePrefix = storagePrefix) }
 }

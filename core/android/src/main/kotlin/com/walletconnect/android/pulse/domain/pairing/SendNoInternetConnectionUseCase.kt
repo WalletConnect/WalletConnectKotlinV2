@@ -21,7 +21,7 @@ class SendNoInternetConnectionUseCase(
 				eventId = generateId(),
 				bundleId = bundleId,
 				timestamp = currentTimeInSeconds,
-				props = Props.TraceProps.NoInternetConnection()
+				props = Props.Error.NoInternetConnection()
 			), SDKType.EVENTS
 		)
 	}

@@ -88,7 +88,7 @@ class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInter
                 }
 
                 modules(
-                    coreStorageModule(),
+                    coreStorageModule(bundleId = bundleId),
                     pushModule(),
                     module { single { relay ?: Relay } },
                     module { single { with(metaData) { AppMetaData(name = name, description = description, url = url, icons = icons, redirect = Redirect(redirect)) } } },
@@ -96,7 +96,7 @@ class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInter
                     module { single { Push } },
                     module { single { Verify } },
                     coreJsonRpcModule(),
-                    corePairingModule(Pairing, PairingController),
+                    corePairingModule(Pairing, PairingController, bundleId),
                     keyServerModule(keyServerUrl),
                     explorerModule(),
                     web3ModalModule(),

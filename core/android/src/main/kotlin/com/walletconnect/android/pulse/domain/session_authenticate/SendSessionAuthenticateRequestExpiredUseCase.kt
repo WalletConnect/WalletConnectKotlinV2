@@ -21,7 +21,7 @@ class SendSessionAuthenticateRequestExpiredUseCase(
 				eventId = generateId(),
 				bundleId = bundleId,
 				timestamp = currentTimeInSeconds,
-				props = Props.TraceProps.SessionAuthenticate.SessionAuthenticateRequestExpired()
+				props = Props.Error.SessionAuthenticateRequestExpired()
 			), SDKType.EVENTS
 		)
 	}

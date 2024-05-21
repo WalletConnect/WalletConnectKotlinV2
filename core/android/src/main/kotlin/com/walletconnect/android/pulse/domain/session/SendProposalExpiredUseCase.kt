@@ -21,7 +21,7 @@ class SendProposalExpiredUseCase(
 				eventId = generateId(),
 				bundleId = bundleId,
 				timestamp = currentTimeInSeconds,
-				props = Props.TraceProps.Session.ProposalExpired()
+				props = Props.Error.ProposalExpired()
 			), SDKType.EVENTS
 		)
 	}

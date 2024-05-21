@@ -85,6 +85,7 @@ internal fun engineModule() = module {
             deleteRequestByIdUseCase = get(),
             getPendingAuthenticateRequestUseCase = get(),
             sendProposalExpiredUseCase = get(),
+            eventsRepository = get(),
             logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }

@@ -15,7 +15,7 @@ import org.json.JSONObject
 import org.junit.Test
 import kotlin.reflect.jvm.jvmName
 
-internal class SessionRequestVOJsonAdapterTest {
+internal class ErrorRequestVOJsonAdapterTest {
     private val moshi: Moshi = Moshi.Builder()
         .add { type, _, moshi ->
             when (type.getRawType().name) {

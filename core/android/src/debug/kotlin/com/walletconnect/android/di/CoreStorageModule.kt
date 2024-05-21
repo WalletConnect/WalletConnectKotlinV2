@@ -12,9 +12,9 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
-fun coreStorageModule(storagePrefix: String = String.Empty) = module {
+fun coreStorageModule(storagePrefix: String = String.Empty, bundleId: String) = module {
 
-    includes(baseStorageModule(storagePrefix))
+    includes(baseStorageModule(storagePrefix, bundleId))
 
     single<SqlDriver>(named(AndroidBuildVariantDITags.ANDROID_CORE_DATABASE_DRIVER)) {
         AndroidSqliteDriver(

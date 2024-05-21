@@ -7,8 +7,8 @@ CREATE TABLE EventDao(
     timestamp INTEGER NOT NULL,
     event_name TEXT NOT NULL,
     type TEXT NOT NULL,
-    topic TEXT UNIQUE,
-    trace TEXT AS List<String> NOT NULL
+    topic TEXT,
+    trace TEXT AS List<String>
 );
 
 insertOrAbort:

@@ -19,7 +19,7 @@ import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 
-class ProposeSessionUseCaseTest {
+class ProposeErrorUseCaseTest {
     private val jsonRpcInteractor = mockk<JsonRpcInteractorInterface>()
     private val crypto = mockk<KeyManagementRepository>()
     private val proposalStorageRepository = mockk<ProposalStorageRepository>()

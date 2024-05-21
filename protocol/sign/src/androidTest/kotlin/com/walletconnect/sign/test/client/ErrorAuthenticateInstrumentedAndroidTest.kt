@@ -25,7 +25,7 @@ import org.junit.Test
 import org.web3j.utils.Numeric
 import timber.log.Timber
 
-class SessionAuthenticateInstrumentedAndroidTest {
+class ErrorAuthenticateInstrumentedAndroidTest {
     @get:Rule
     val scenarioExtension = SignClientInstrumentedActivityScenario()
 

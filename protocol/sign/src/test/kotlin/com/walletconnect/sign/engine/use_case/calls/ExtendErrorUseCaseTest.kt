@@ -18,7 +18,7 @@ import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 
-class ExtendSessionUseCaseTest {
+class ExtendErrorUseCaseTest {
     private val jsonRpcInteractor = mockk<JsonRpcInteractorInterface>()
     private val sessionStorageRepository = mockk<SessionStorageRepository>()
     private val logger = mockk<Logger>()

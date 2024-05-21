@@ -20,7 +20,7 @@ class SendDisconnectErrorUseCase(
                 eventId = generateId(),
                 bundleId = bundleId,
                 timestamp = currentTimeInSeconds,
-                props = Props.W3M.DisconnectError()
+                props = Props.Track.DisconnectError()
             ), SDKType.WEB3MODAL
         )
     }

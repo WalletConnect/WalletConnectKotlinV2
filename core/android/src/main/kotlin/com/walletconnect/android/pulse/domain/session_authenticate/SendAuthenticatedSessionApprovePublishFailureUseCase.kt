@@ -21,7 +21,7 @@ class SendAuthenticatedSessionApprovePublishFailureUseCase(
 				eventId = generateId(),
 				bundleId = bundleId,
 				timestamp = currentTimeInSeconds,
-				props = Props.TraceProps.SessionAuthenticate.AuthenticatedSessionApprovePublishFailure()
+				props = Props.Error.AuthenticatedSessionApprovePublishFailure()
 			), SDKType.EVENTS
 		)
 	}

@@ -20,7 +20,7 @@ class SendClickNetworksUseCase(
                 eventId = generateId(),
                 bundleId = bundleId,
                 timestamp = currentTimeInSeconds,
-                props = Props.W3M.ClickNetworks()
+                props = Props.Track.ClickNetworks()
             ), SDKType.WEB3MODAL
         )
     }
