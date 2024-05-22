@@ -4,9 +4,9 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-data class SelectWalletProperties(
-    @Json(name = "name")
-    val name: String,
-    @Json(name = "platform")
-    val platform: String
+data class TraceProperties(
+    @Json(name = "trace")
+    val trace: List<String>? = null,
+    @Json(name = "topic")
+    val topic: String? = null,
 )

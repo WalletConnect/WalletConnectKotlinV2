@@ -22,7 +22,7 @@ class SendSwitchNetworkUseCase(
                 eventId = generateId(),
                 bundleId = bundleId,
                 timestamp = currentTimeInSeconds,
-                props = Props.W3M.SwitchNetwork(properties = properties)
+                props = Props.Track.SwitchNetwork(properties = properties)
             ), SDKType.WEB3MODAL
         )
     }

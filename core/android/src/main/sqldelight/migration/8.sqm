@@ -1,0 +1,14 @@
+import com.sun.tools.javac.util.List;
+import kotlin.String;
+
+-- migration from 8.db to 9.db
+
+CREATE TABLE EventDao(
+    event_id INTEGER PRIMARY KEY NOT NULL,
+    bundle_id TEXT NOT NULL,
+    timestamp INTEGER NOT NULL,
+    event_name TEXT NOT NULL,
+    type TEXT NOT NULL,
+    topic TEXT,
+    trace TEXT AS List<String>
+);

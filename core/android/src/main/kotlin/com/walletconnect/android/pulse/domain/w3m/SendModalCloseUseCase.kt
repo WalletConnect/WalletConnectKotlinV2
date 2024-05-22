@@ -22,7 +22,7 @@ class SendModalCloseUseCase(
                 eventId = generateId(),
                 bundleId = bundleId,
                 timestamp = currentTimeInSeconds,
-                props = Props.W3M.ModalClose(properties = properties)
+                props = Props.Track.ModalClose(properties = properties)
             ), SDKType.WEB3MODAL
         )
     }

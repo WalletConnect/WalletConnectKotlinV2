@@ -91,11 +91,7 @@ internal fun callsModule() = module {
             sessionStorageRepository = get(),
             verifyContextStorageRepository = get(),
             pairingController = get(),
-            sendProposalExpiredUseCase = get(),
-            sendSessionApproveNamespaceValidationFailureUseCase = get(),
-            sendSessionSettlePublishFailureUseCase = get(),
-            sendSessionSubscriptionFailureUseCase = get(),
-            sendSessionApprovePublishFailureUseCase = get(),
+            eventsRepository = get(),
             logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }
@@ -111,7 +107,8 @@ internal fun callsModule() = module {
             getPendingSessionAuthenticateRequest = get(),
             selfAppMetaData = get(),
             sessionStorageRepository = get(),
-            metadataStorageRepository = get()
+            metadataStorageRepository = get(),
+            eventsRepository = get()
         )
     }
 

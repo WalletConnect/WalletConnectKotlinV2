@@ -21,7 +21,7 @@ class SendModalLoadedUseCase(
                 eventId = generateId(),
                 bundleId = bundleId,
                 timestamp = currentTimeInSeconds,
-                props = Props.W3M.ModalLoaded()
+                props = Props.Track.ModalLoaded()
             ), SDKType.WEB3MODAL
         )
     }

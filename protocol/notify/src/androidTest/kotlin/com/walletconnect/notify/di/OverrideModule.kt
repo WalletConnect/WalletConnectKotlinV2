@@ -31,8 +31,8 @@ internal fun overrideModule(
     single { relay }
 
     includes(
-        coreStorageModule(storagePrefix),
-        corePairingModule(pairing, pairingController),
+        coreStorageModule(storagePrefix, bundleId),
+        corePairingModule(pairing, pairingController, bundleId),
         coreCryptoModule(sharedPrefsFile, keyStoreAlias),
         coreJsonRpcModule(),
         coreAndroidNetworkModule(relayUrl, connectionType, "test_version", bundleId = bundleId)

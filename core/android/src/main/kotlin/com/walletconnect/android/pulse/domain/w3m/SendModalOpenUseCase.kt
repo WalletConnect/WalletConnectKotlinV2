@@ -22,7 +22,7 @@ class SendModalOpenUseCase(
                 eventId = generateId(),
                 bundleId = bundleId,
                 timestamp = currentTimeInSeconds,
-                props = Props.W3M.ModalOpen(properties = properties)
+                props = Props.Track.ModalOpen(properties = properties)
             ), SDKType.WEB3MODAL
         )
     }

@@ -22,7 +22,7 @@ class SendConnectErrorUseCase(
                 eventId = generateId(),
                 bundleId = bundleId,
                 timestamp = currentTimeInSeconds,
-                props = Props.W3M.ConnectError(properties = properties)
+                props = Props.Track.ConnectError(properties = properties)
             ), SDKType.WEB3MODAL
         )
     }
