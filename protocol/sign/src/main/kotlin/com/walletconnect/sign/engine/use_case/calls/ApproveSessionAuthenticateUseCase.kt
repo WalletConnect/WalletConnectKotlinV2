@@ -3,7 +3,6 @@ package com.walletconnect.sign.engine.use_case.calls
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
-import com.walletconnect.android.internal.common.exception.Invalid
 import com.walletconnect.android.internal.common.exception.NoInternetConnectionException
 import com.walletconnect.android.internal.common.exception.NoRelayConnectionException
 import com.walletconnect.android.internal.common.exception.RequestExpiredException
@@ -16,9 +15,7 @@ import com.walletconnect.android.internal.common.model.Participant
 import com.walletconnect.android.internal.common.model.Participants
 import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.internal.common.model.Tags
-import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
-import com.walletconnect.android.internal.common.model.type.ClientParams
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
@@ -31,7 +28,6 @@ import com.walletconnect.android.internal.common.storage.verify.VerifyContextSto
 import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.dayInSeconds
-import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.pulse.model.Trace
 import com.walletconnect.android.pulse.model.properties.Props
@@ -45,7 +41,6 @@ import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignPara
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
 import com.walletconnect.sign.common.validator.SignValidator
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionAuthenticateRequest
-import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
@@ -76,10 +71,6 @@ internal class ApproveSessionAuthenticateUseCase(
 
             jsonRpcHistoryEntry.expiry?.let {
                 if (it.isExpired()) {
-                    val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE_RESPONSE_REJECT, Ttl(fiveMinutesInSeconds))
-                    val request = WCRequest(jsonRpcHistoryEntry.topic, jsonRpcHistoryEntry.id, JsonRpcMethod.WC_SESSION_AUTHENTICATE, object : ClientParams {})
-                    //todo: should send here?
-                    jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
                     insertEvent(Props.Error.SessionAuthenticateRequestExpired(properties = TraceProperties(trace = trace)))
                         .also { logger.error("Session Authenticate Request Expired: ${jsonRpcHistoryEntry.topic}, id: ${jsonRpcHistoryEntry.id}") }
                     throw RequestExpiredException("This request has expired, id: ${jsonRpcHistoryEntry.id}")
