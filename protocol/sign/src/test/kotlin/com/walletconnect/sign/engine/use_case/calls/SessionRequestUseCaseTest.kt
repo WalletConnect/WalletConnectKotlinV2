@@ -3,6 +3,7 @@ package com.walletconnect.sign.engine.use_case.calls
 import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.foundation.util.Logger
+import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import io.mockk.every
 import io.mockk.mockk
@@ -12,11 +13,11 @@ import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 
-class ErrorUpdateUseCaseTest {
+class SessionRequestUseCaseTest {
     private val sessionStorageRepository = mockk<SessionStorageRepository>()
     private val jsonRpcInteractor = mockk<JsonRpcInteractorInterface>()
     private val logger = mockk<Logger>()
-    private val sessionUpdateUseCase = SessionUpdateUseCase(jsonRpcInteractor, sessionStorageRepository, logger)
+    private val sessionRequestUseCase = SessionRequestUseCase(sessionStorageRepository, jsonRpcInteractor, logger)
 
     @Before
     fun setUp() {
@@ -28,9 +29,13 @@ class ErrorUpdateUseCaseTest {
     fun `onFailure is called when sessionStorageRepository isSessionValid is false`() = runTest {
         every { sessionStorageRepository.isSessionValid(any()) } returns false
 
-        sessionUpdateUseCase.sessionUpdate(
-            topic = "topic",
-            namespaces = emptyMap(),
+        sessionRequestUseCase.sessionRequest(
+            request = EngineDO.Request(
+                topic = "topic",
+                method = "method",
+                params = "params",
+                chainId = "chainId",
+            ),
             onSuccess = {
                 fail("onSuccess should not be called since should have validation failed")
             },

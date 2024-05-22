@@ -3,21 +3,19 @@ package com.walletconnect.sign.engine.use_case.calls
 import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.foundation.util.Logger
-import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertSame
-import org.junit.Assert.fail
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 
-class ErrorRequestUseCaseTest {
-    private val sessionStorageRepository = mockk<SessionStorageRepository>()
+class DisconnectSessionUseCaseTest {
     private val jsonRpcInteractor = mockk<JsonRpcInteractorInterface>()
+    private val sessionStorageRepository = mockk<SessionStorageRepository>()
     private val logger = mockk<Logger>()
-    private val sessionRequestUseCase = SessionRequestUseCase(sessionStorageRepository, jsonRpcInteractor, logger)
+    private val disconnectSessionUseCase = DisconnectSessionUseCase(jsonRpcInteractor, sessionStorageRepository, logger)
 
     @Before
     fun setUp() {
@@ -29,18 +27,13 @@ class ErrorRequestUseCaseTest {
     fun `onFailure is called when sessionStorageRepository isSessionValid is false`() = runTest {
         every { sessionStorageRepository.isSessionValid(any()) } returns false
 
-        sessionRequestUseCase.sessionRequest(
-            request = EngineDO.Request(
-                topic = "topic",
-                method = "method",
-                params = "params",
-                chainId = "chainId",
-            ),
+        disconnectSessionUseCase.disconnect(
+            topic = "topic",
             onSuccess = {
-                fail("onSuccess should not be called since should have validation failed")
+                Assert.fail("onSuccess should not be called since should have validation failed")
             },
             onFailure = { error ->
-                assertSame(CannotFindSequenceForTopic::class, error::class)
+                Assert.assertSame(CannotFindSequenceForTopic::class, error::class)
             }
         )
     }

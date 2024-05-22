@@ -9,7 +9,7 @@ import org.junit.Test
 import java.util.LinkedList
 import java.util.concurrent.ConcurrentLinkedQueue
 
-class ErrorRequestQueueTest {
+class SessionRequestQueueTest {
 
     @Test
     fun testLinkedListAccessFromMultipleCoroutines() {

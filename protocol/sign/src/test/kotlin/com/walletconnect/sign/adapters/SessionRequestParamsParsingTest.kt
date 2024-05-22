@@ -9,7 +9,7 @@ private val moshi: Moshi = Moshi.Builder()
     .addLast(KotlinJsonAdapterFactory())
     .build()
 
-class ErrorRequestParamsParsingTest {
+class SessionRequestParamsParsingTest {
 
     private val sessionRequestJsonParams1 =
         "[{\"from\":\"0x022c0c42a80bd19EA4cF0F94c4F9F96645759716\",\"to\":\"0x022c0c42a80bd19EA4cF0F94c4F9F96645759716\",\"data\":\"0x\",\"nonce\":0,\"gasPrice\":27000000000,\"gasLimit\":21000,\"value\":0}]"

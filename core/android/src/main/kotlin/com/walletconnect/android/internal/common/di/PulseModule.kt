@@ -15,17 +15,17 @@ fun pulseModule(bundleId: String) = module {
         "https://analytics-api-cf-workers-staging.walletconnect-v1-bridge.workers.dev"
     }
 
-	single(named(AndroidCommonDITags.PULSE_RETROFIT)) {
-		Retrofit.Builder()
-			.baseUrl(get<String>(named(AndroidCommonDITags.PULSE_URL)))
-			.client(get(named(AndroidCommonDITags.WEB3MODAL_OKHTTP)))
-			.addConverterFactory(MoshiConverterFactory.create(get<Moshi.Builder>(named(AndroidCommonDITags.MOSHI)).build()))
-			.build()
-	}
+    single(named(AndroidCommonDITags.PULSE_RETROFIT)) {
+        Retrofit.Builder()
+            .baseUrl(get<String>(named(AndroidCommonDITags.PULSE_URL)))
+            .client(get(named(AndroidCommonDITags.WEB3MODAL_OKHTTP)))
+            .addConverterFactory(MoshiConverterFactory.create(get<Moshi.Builder>(named(AndroidCommonDITags.MOSHI)).build()))
+            .build()
+    }
 
-	single {
-		get<Retrofit>(named(AndroidCommonDITags.PULSE_RETROFIT)).create(PulseService::class.java)
-	}
+    single {
+        get<Retrofit>(named(AndroidCommonDITags.PULSE_RETROFIT)).create(PulseService::class.java)
+    }
 
-	includes(w3mPulseModule(bundleId))
+    includes(w3mPulseModule(bundleId))
 }

@@ -7,15 +7,16 @@ import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert
+import org.junit.Assert.assertSame
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 
-class DisconnectErrorUseCaseTest {
-    private val jsonRpcInteractor = mockk<JsonRpcInteractorInterface>()
+class SessionUpdateUseCaseTest {
     private val sessionStorageRepository = mockk<SessionStorageRepository>()
+    private val jsonRpcInteractor = mockk<JsonRpcInteractorInterface>()
     private val logger = mockk<Logger>()
-    private val disconnectSessionUseCase = DisconnectSessionUseCase(jsonRpcInteractor, sessionStorageRepository, logger)
+    private val sessionUpdateUseCase = SessionUpdateUseCase(jsonRpcInteractor, sessionStorageRepository, logger)
 
     @Before
     fun setUp() {
@@ -27,13 +28,14 @@ class DisconnectErrorUseCaseTest {
     fun `onFailure is called when sessionStorageRepository isSessionValid is false`() = runTest {
         every { sessionStorageRepository.isSessionValid(any()) } returns false
 
-        disconnectSessionUseCase.disconnect(
+        sessionUpdateUseCase.sessionUpdate(
             topic = "topic",
+            namespaces = emptyMap(),
             onSuccess = {
-                Assert.fail("onSuccess should not be called since should have validation failed")
+                fail("onSuccess should not be called since should have validation failed")
             },
             onFailure = { error ->
-                Assert.assertSame(CannotFindSequenceForTopic::class, error::class)
+                assertSame(CannotFindSequenceForTopic::class, error::class)
             }
         )
     }
