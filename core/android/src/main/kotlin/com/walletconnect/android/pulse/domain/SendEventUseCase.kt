@@ -13,29 +13,29 @@ import kotlinx.coroutines.supervisorScope
 import org.koin.core.qualifier.named
 
 abstract class SendEventUseCase(
-	private val pulseService: PulseService,
-	private val logger: Logger,
-	internal val bundleId: String
+    private val pulseService: PulseService,
+    private val logger: Logger,
+    internal val bundleId: String
 ) {
-	private val enableW3MAnalytics: Boolean by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.ENABLE_WEB_3_MODAL_ANALYTICS)) }
+    private val enableW3MAnalytics: Boolean by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.ENABLE_WEB_3_MODAL_ANALYTICS)) }
 
-	operator fun invoke(event: Event<Props>, sdkType: SDKType) {
-		if (enableW3MAnalytics) {
-			scope.launch {
-				supervisorScope {
-					try {
-						logger.log("Event: $event, sdkType: ${sdkType.type}")
-						val response = pulseService.sendEvent(body = event, sdkType = sdkType.type)
-						if (!response.isSuccessful) {
-							logger.error("Failed to send event: ${event.props.type}")
-						} else {
-							logger.log("Event sent successfully: ${event.props.type}")
-						}
-					} catch (e: Exception) {
-						logger.error("Failed to send event: ${event.props.type}, error: $e")
-					}
-				}
-			}
-		}
-	}
+    operator fun invoke(event: Event<Props>, sdkType: SDKType) {
+        if (enableW3MAnalytics) {
+            scope.launch {
+                supervisorScope {
+                    try {
+                        logger.log("Event: $event, sdkType: ${sdkType.type}")
+                        val response = pulseService.sendEvent(body = event, sdkType = sdkType.type)
+                        if (!response.isSuccessful) {
+                            logger.error("Failed to send event: ${event.props.type}")
+                        } else {
+                            logger.log("Event sent successfully: ${event.props.type}")
+                        }
+                    } catch (e: Exception) {
+                        logger.error("Failed to send event: ${event.props.type}, error: $e")
+                    }
+                }
+            }
+        }
+    }
 }
