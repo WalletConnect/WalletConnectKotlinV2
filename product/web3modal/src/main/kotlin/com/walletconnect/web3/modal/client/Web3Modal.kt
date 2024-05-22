@@ -117,7 +117,7 @@ object Web3Modal {
                 web3ModalEngine.setup(init, onError)
                 web3ModalEngine.setInternalDelegate(Web3ModalDelegate)
                 wcKoinApp.modules(
-                    module { single(named(AndroidCommonDITags.ENABLE_ANALYTICS)) { init.enableAnalytics ?: web3ModalEngine.fetchAnalyticsConfig() } }
+                    module { single(named(AndroidCommonDITags.ENABLE_WEB_3_MODAL_ANALYTICS)) { init.enableAnalytics ?: web3ModalEngine.fetchAnalyticsConfig() } }
                 )
             }
                 .onFailure { error -> return@onInitializedClient onError(Modal.Model.Error(error)) }

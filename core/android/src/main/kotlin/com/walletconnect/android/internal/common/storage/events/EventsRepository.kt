@@ -1,6 +1,7 @@
 package com.walletconnect.android.internal.common.storage.events
 
 import android.database.sqlite.SQLiteException
+import com.walletconnect.android.internal.common.model.TelemetryEnabled
 import com.walletconnect.android.pulse.model.Event
 import com.walletconnect.android.pulse.model.properties.Props
 import com.walletconnect.android.sdk.storage.data.dao.EventDao
@@ -12,20 +13,23 @@ import kotlinx.coroutines.withContext
 class EventsRepository(
     private val eventQueries: EventQueries,
     private val bundleId: String,
+    private val telemetryEnabled: TelemetryEnabled,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
     @Throws(SQLiteException::class)
     suspend fun insertOrAbort(props: Props.Error) = withContext(dispatcher) {
-        with(Event(bundleId = bundleId, props = props)) {
-            eventQueries.insertOrAbort(
-                eventId,
-                bundleId,
-                timestamp,
-                props.event,
-                props.type,
-                props.properties?.topic,
-                props.properties?.trace
-            )
+        if (telemetryEnabled.value) {
+            with(Event(bundleId = bundleId, props = props)) {
+                eventQueries.insertOrAbort(
+                    eventId,
+                    bundleId,
+                    timestamp,
+                    props.event,
+                    props.type,
+                    props.properties?.topic,
+                    props.properties?.trace
+                )
+            }
         }
     }
 

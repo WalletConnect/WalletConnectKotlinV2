@@ -167,8 +167,6 @@ internal class PairingEngine(
         val pairingTopic = inactivePairing.topic
         val symmetricKey = walletConnectUri.symKey
         try {
-            insertEvent(Props.Error.PairingExpired(properties = TraceProperties(trace = trace, topic = pairingTopic.value)))
-
             if (walletConnectUri.expiry?.isExpired() == true) {
                 insertEvent(Props.Error.PairingExpired(properties = TraceProperties(trace = trace, topic = pairingTopic.value))).also { logger.error("Pairing expired: $pairingTopic") }
                 return onFailure(ExpiredPairingException("Pairing expired: $pairingTopic"))

@@ -32,6 +32,7 @@ interface CoreInterface {
         relay: RelayConnectionInterface? = null,
         keyServerUrl: String? = null,
         networkClientTimeout: NetworkClientTimeout? = null,
+        telemetryEnabled: Boolean = true,
         onError: (Core.Model.Error) -> Unit,
     )
 }

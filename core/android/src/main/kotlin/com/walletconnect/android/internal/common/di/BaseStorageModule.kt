@@ -120,7 +120,7 @@ fun baseStorageModule(storagePrefix: String = String.Empty, bundleId: String) = 
 
     single { PushMessagesRepository(pushMessageQueries = get()) }
 
-    single { EventsRepository(eventQueries = get(), bundleId = bundleId) }
+    single { EventsRepository(eventQueries = get(), bundleId = bundleId, telemetryEnabled = get(named(AndroidCommonDITags.TELEMETRY_ENABLED))) }
 
     single { DatabaseConfig(storagePrefix = storagePrefix) }
 }
