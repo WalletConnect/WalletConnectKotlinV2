@@ -8,20 +8,20 @@ import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 
 @JvmSynthetic
-fun pulseModule() = module {
-	single(named(AndroidCommonDITags.PULSE_URL)) {
-		//todo: use prod
+fun pulseModule(bundleId: String) = module {
+    single(named(AndroidCommonDITags.PULSE_URL)) {
+        //todo: use prod
 //		"https://pulse.walletconnect.org"
-		"https://analytics-api-cf-workers-staging.walletconnect-v1-bridge.workers.dev"
-	}
+        "https://analytics-api-cf-workers-staging.walletconnect-v1-bridge.workers.dev"
+    }
 
-	single(named(AndroidCommonDITags.PULSE_RETROFIT)) {
-		Retrofit.Builder()
-			.baseUrl(get<String>(named(AndroidCommonDITags.PULSE_URL)))
-			.client(get(named(AndroidCommonDITags.WEB3MODAL_OKHTTP)))
-			.addConverterFactory(MoshiConverterFactory.create(get<Moshi.Builder>(named(AndroidCommonDITags.MOSHI)).build()))
-			.build()
-	}
+    single(named(AndroidCommonDITags.PULSE_RETROFIT)) {
+        Retrofit.Builder()
+            .baseUrl(get<String>(named(AndroidCommonDITags.PULSE_URL)))
+            .client(get(named(AndroidCommonDITags.WEB3MODAL_OKHTTP)))
+            .addConverterFactory(MoshiConverterFactory.create(get(named(AndroidCommonDITags.MOSHI))))
+            .build()
+    }
 
 	single {
 		get<Retrofit>(named(AndroidCommonDITags.PULSE_RETROFIT)).create(PulseService::class.java)

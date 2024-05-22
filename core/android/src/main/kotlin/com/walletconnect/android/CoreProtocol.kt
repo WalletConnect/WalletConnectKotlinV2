@@ -71,39 +71,44 @@ class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInter
         networkClientTimeout: NetworkClientTimeout?,
         onError: (Core.Model.Error) -> Unit
     ) {
-        with(koinApp) {
-            androidContext(application)
-            require(relayServerUrl.isValidRelayServerUrl()) { "Check the schema and projectId parameter of the Server Url" }
-            modules(
-                coreAndroidNetworkModule(relayServerUrl, connectionType.toCommonConnectionType(), BuildConfig.SDK_VERSION, networkClientTimeout),
-                coreCommonModule(),
-                coreCryptoModule(),
-            )
+        try {
+            val bundleId: String = application.packageName
+            with(koinApp) {
+                androidContext(application)
+                require(relayServerUrl.isValidRelayServerUrl()) { "Check the schema and projectId parameter of the Server Url" }
+                modules(
+                    module { single { ProjectId(relayServerUrl.projectId()) } },
+                    coreAndroidNetworkModule(relayServerUrl, connectionType.toCommonConnectionType(), BuildConfig.SDK_VERSION, networkClientTimeout, bundleId),
+                    coreCommonModule(),
+                    coreCryptoModule(),
+                )
 
-            if (relay == null) {
-                Relay.initialize { error -> onError(Core.Model.Error(error)) }
+                if (relay == null) {
+                    Relay.initialize { error -> onError(Core.Model.Error(error)) }
+                }
+
+                modules(
+                    coreStorageModule(),
+                    pushModule(),
+                    module { single { relay ?: Relay } },
+                    module { single { with(metaData) { AppMetaData(name = name, description = description, url = url, icons = icons, redirect = Redirect(redirect)) } } },
+                    module { single { Echo } },
+                    module { single { Push } },
+                    module { single { Verify } },
+                    coreJsonRpcModule(),
+                    corePairingModule(Pairing, PairingController),
+                    keyServerModule(keyServerUrl),
+                    explorerModule(),
+                    web3ModalModule(),
+                    pulseModule(bundleId)
+                )
             }
 
-            modules(
-                module { single { ProjectId(relayServerUrl.projectId()) } },
-                coreStorageModule(),
-                pushModule(),
-                module { single { relay ?: Relay } },
-                module { single { with(metaData) { AppMetaData(name = name, description = description, url = url, icons = icons, redirect = Redirect(redirect)) } } },
-                module { single { Echo } },
-                module { single { Push } },
-                module { single { Verify } },
-                coreJsonRpcModule(),
-                corePairingModule(Pairing, PairingController),
-                keyServerModule(keyServerUrl),
-                explorerModule(),
-                web3ModalModule(),
-                pulseModule()
-            )
+            Verify.initialize()
+            Pairing.initialize()
+            PairingController.initialize()
+        } catch (e: Exception) {
+            onError(Core.Model.Error(e))
         }
-
-        Verify.initialize()
-        Pairing.initialize()
-        PairingController.initialize()
     }
 }
