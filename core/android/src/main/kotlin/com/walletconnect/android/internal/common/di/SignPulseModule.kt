@@ -1,6 +1,5 @@
 package com.walletconnect.android.internal.common.di
 
-import com.walletconnect.android.internal.common.model.PackageName
 import com.walletconnect.android.pulse.domain.sign.SendProposalExpiredUseCase
 import com.walletconnect.android.pulse.domain.sign.SendSessionApproveNamespaceValidationFailureUseCase
 import com.walletconnect.android.pulse.domain.sign.SendSessionApprovePublishFailureUseCase
@@ -10,12 +9,12 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 @JvmSynthetic
-fun signPulseModule() = module {
+fun signPulseModule(bundleId: String) = module {
 	single {
 		SendProposalExpiredUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -23,7 +22,7 @@ fun signPulseModule() = module {
 		SendSessionSubscriptionFailureUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -31,7 +30,7 @@ fun signPulseModule() = module {
 		SendSessionApprovePublishFailureUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -39,7 +38,7 @@ fun signPulseModule() = module {
 		SendSessionSettlePublishFailureUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -47,7 +46,7 @@ fun signPulseModule() = module {
 		SendSessionApprovePublishFailureUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -55,7 +54,7 @@ fun signPulseModule() = module {
 		SendSessionApproveNamespaceValidationFailureUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 }

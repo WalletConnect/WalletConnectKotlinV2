@@ -13,9 +13,7 @@ sealed class Props {
 		@Json(name = "event")
 		override val event: String = "error",
 		@Json(name = "type")
-		override val type: String = EventType.Pairing.NO_WSS_CONNECTION,
-		@Json(name = "trace")
-		val trace: List<String>
+		override val type: String = EventType.Pairing.NO_WSS_CONNECTION
 	) : Props()
 
 	@JsonClass(generateAdapter = true)

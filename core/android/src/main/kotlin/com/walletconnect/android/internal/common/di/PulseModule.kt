@@ -1,6 +1,5 @@
 package com.walletconnect.android.internal.common.di
 
-import com.squareup.moshi.Moshi
 import com.walletconnect.android.pulse.data.PulseService
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -27,5 +26,5 @@ fun pulseModule(bundleId: String) = module {
 		get<Retrofit>(named(AndroidCommonDITags.PULSE_RETROFIT)).create(PulseService::class.java)
 	}
 
-	includes(w3mPulseModule(), pairingPulseModule(), signPulseModule())
+	includes(w3mPulseModule(bundleId), pairingPulseModule(bundleId), signPulseModule(bundleId))
 }

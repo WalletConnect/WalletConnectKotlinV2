@@ -1,6 +1,5 @@
 package com.walletconnect.android.internal.common.di
 
-import com.walletconnect.android.internal.common.model.PackageName
 import com.walletconnect.android.pulse.domain.w3m.SendClickAllWalletsUseCase
 import com.walletconnect.android.pulse.domain.w3m.SendClickGetWalletUseCase
 import com.walletconnect.android.pulse.domain.w3m.SendClickNetworkHelpUseCase
@@ -21,12 +20,12 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 @JvmSynthetic
-fun w3mPulseModule() = module {
+fun w3mPulseModule(bundleId: String) = module {
 	single {
 		SendModalCreatedUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -34,7 +33,7 @@ fun w3mPulseModule() = module {
 		SendClickAllWalletsUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -42,7 +41,7 @@ fun w3mPulseModule() = module {
 		SendClickGetWalletUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -50,7 +49,7 @@ fun w3mPulseModule() = module {
 		SendClickWalletHelpUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -58,7 +57,7 @@ fun w3mPulseModule() = module {
 		SendClickNetworkHelpUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -66,7 +65,7 @@ fun w3mPulseModule() = module {
 		SendClickNetworksUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -74,7 +73,7 @@ fun w3mPulseModule() = module {
 		SendConnectErrorUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -82,7 +81,7 @@ fun w3mPulseModule() = module {
 		SendConnectSuccessUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -90,7 +89,7 @@ fun w3mPulseModule() = module {
 		SendDisconnectErrorUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -98,7 +97,7 @@ fun w3mPulseModule() = module {
 		SendDisconnectSuccessUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -106,7 +105,7 @@ fun w3mPulseModule() = module {
 		SendModalCloseUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -114,7 +113,7 @@ fun w3mPulseModule() = module {
 		SendModalLoadedUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -122,7 +121,7 @@ fun w3mPulseModule() = module {
 		SendModalOpenUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -130,7 +129,7 @@ fun w3mPulseModule() = module {
 		SendSelectWalletUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 
@@ -138,7 +137,7 @@ fun w3mPulseModule() = module {
 		SendSwitchNetworkUseCase(
 			pulseService = get(),
 			logger = get(named(AndroidCommonDITags.LOGGER)),
-			bundleId = get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value
+			bundleId = bundleId
 		)
 	}
 }
