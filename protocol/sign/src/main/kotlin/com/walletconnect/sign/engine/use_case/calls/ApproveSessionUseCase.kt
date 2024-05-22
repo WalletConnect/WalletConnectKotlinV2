@@ -105,6 +105,7 @@ internal class ApproveSessionUseCase(
                 onFailure(e)
             }
         }
+
         val proposal = proposalStorageRepository.getProposalByKey(proposerPublicKey)
         val request = proposal.toSessionProposeRequest()
         val pairingTopic = proposal.pairingTopic.value
@@ -160,7 +161,11 @@ internal class ApproveSessionUseCase(
     private fun insertEvent(props: Props.Error) {
         scope.launch {
             supervisorScope {
-                eventsRepository.insertOrAbort(props)
+                try {
+                    eventsRepository.insertOrAbort(props)
+                } catch (e: Exception) {
+                    logger.error("Inserting session authenticate approve event error: $e")
+                }
             }
         }
     }

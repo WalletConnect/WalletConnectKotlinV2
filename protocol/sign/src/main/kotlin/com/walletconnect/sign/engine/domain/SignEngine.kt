@@ -445,7 +445,11 @@ internal class SignEngine(
     private fun insertEvent(props: Props.Error) {
         scope.launch {
             supervisorScope {
-                eventsRepository.insertOrAbort(props)
+                try {
+                    eventsRepository.insertOrAbort(props)
+                } catch (e: Exception) {
+                    logger.error("Inserting session event error: $e")
+                }
             }
         }
     }

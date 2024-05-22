@@ -186,7 +186,11 @@ internal class ApproveSessionAuthenticateUseCase(
     private fun insertEvent(props: Props.Error) {
         scope.launch {
             supervisorScope {
-                eventsRepository.insertOrAbort(props)
+                try {
+                    eventsRepository.insertOrAbort(props)
+                } catch (e: Exception) {
+                    logger.error("Inserting session approve event error: $e")
+                }
             }
         }
     }
