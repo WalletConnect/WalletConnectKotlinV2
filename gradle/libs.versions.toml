@@ -2,7 +2,7 @@
 jerseyCommon = "3.1.0"
 kotlin = "1.9.24"
 ksp = "1.9.24-1.0.20"
-agp = "8.4.0"
+agp = "8.4.1"
 
 minSdk = "23"
 targetSdk = "34"

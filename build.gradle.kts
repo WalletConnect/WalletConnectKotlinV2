@@ -1,5 +1,6 @@
 import com.android.build.gradle.BaseExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 import org.sonarqube.gradle.SonarExtension
 
 plugins {
@@ -10,10 +11,15 @@ plugins {
 }
 
 allprojects {
+    println("kobe: main KotlinCompile")
+
     tasks.withType<KotlinCompile>().configureEach {
+
+        println("kobe: main configureEach")
         kotlinOptions {
             jvmTarget = jvmVersion.toString()
         }
+
     }
 
     configurations.configureEach {

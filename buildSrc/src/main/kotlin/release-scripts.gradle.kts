@@ -12,15 +12,19 @@ tasks.register("releaseAllSDKs") {
                 println("Converting parameter to an supported ReleaseType value")
                 ReleaseType.valueOf(this.uppercase(Locale.getDefault()))
             }?.let { releaseType ->
+
                 println("kobe: Release type: $releaseType")
+
                 generateListOfModuleTasks(releaseType).forEach { task ->
                     println("kobe: Executing Task: $task")
+
                     exec {
                         val gradleCommand = if (Os.isFamily(Os.FAMILY_WINDOWS)) {
                             "gradlew.bat"
                         } else {
                             "./gradlew"
                         }
+
                         println("kobe: Gradle Command: $gradleCommand; Task: ${task.path}")
                         commandLine(gradleCommand, task.path)
                     }

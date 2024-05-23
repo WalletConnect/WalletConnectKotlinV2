@@ -19,8 +19,14 @@ java {
 }
 
 tasks.withType<KotlinCompile>() {
+    println("kobe: foundation KotlinCompile")
     kotlinOptions {
+        println("kobe: f kotlin options")
         jvmTarget = jvmVersion.toString()
+    }
+
+    doFirst {
+        println("kobe: foun classpath: ${pluginClasspath.asPath}")
     }
 }
 
