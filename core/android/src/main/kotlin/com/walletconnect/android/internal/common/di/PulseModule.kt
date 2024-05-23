@@ -1,7 +1,12 @@
 package com.walletconnect.android.internal.common.di
 
 import com.squareup.moshi.Moshi
+import com.walletconnect.android.internal.common.model.TelemetryEnabled
 import com.walletconnect.android.pulse.data.PulseService
+import com.walletconnect.android.pulse.domain.InsertEventUseCase
+import com.walletconnect.android.pulse.domain.SendBatchEventUseCase
+import com.walletconnect.android.pulse.domain.SendEventInterface
+import com.walletconnect.android.pulse.domain.SendEventUseCase
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import retrofit2.Retrofit
@@ -27,5 +32,27 @@ fun pulseModule(bundleId: String) = module {
         get<Retrofit>(named(AndroidCommonDITags.PULSE_RETROFIT)).create(PulseService::class.java)
     }
 
-    includes(w3mPulseModule(bundleId))
+    single<SendEventInterface> {
+        SendEventUseCase(
+            pulseService = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER)),
+            bundleId = bundleId
+        )
+    }
+
+    single {
+        SendBatchEventUseCase(
+            pulseService = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER)),
+            telemetryEnabled = get<TelemetryEnabled>(named(AndroidCommonDITags.TELEMETRY_ENABLED)),
+            eventsRepository = get(),
+        )
+    }
+
+    single {
+        InsertEventUseCase(
+            logger = get(named(AndroidCommonDITags.LOGGER)),
+            eventsRepository = get(),
+        )
+    }
 }

@@ -28,7 +28,6 @@ import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.WalletConnectUri
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.common.storage.events.EventsRepository
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.pairing.PairingStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
@@ -41,9 +40,11 @@ import com.walletconnect.android.pairing.model.PairingParams
 import com.walletconnect.android.pairing.model.PairingRpc
 import com.walletconnect.android.pairing.model.inactivePairing
 import com.walletconnect.android.pairing.model.mapper.toCore
+import com.walletconnect.android.pulse.domain.InsertEventUseCase
+import com.walletconnect.android.pulse.model.EventType
 import com.walletconnect.android.pulse.model.Trace
+import com.walletconnect.android.pulse.model.properties.Properties
 import com.walletconnect.android.pulse.model.properties.Props
-import com.walletconnect.android.pulse.model.properties.TraceProperties
 import com.walletconnect.android.relay.WSSConnectionState
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -83,7 +84,7 @@ internal class PairingEngine(
     private val crypto: KeyManagementRepository,
     private val jsonRpcInteractor: JsonRpcInteractorInterface,
     private val pairingRepository: PairingStorageRepositoryInterface,
-    private val eventsRepository: EventsRepository,
+    private val insertEventUseCase: InsertEventUseCase
 ) {
     private var jsonRpcRequestsJob: Job? = null
     private val setOfRegisteredMethods: MutableSet<String> = mutableSetOf()
@@ -159,7 +160,7 @@ internal class PairingEngine(
         val trace: MutableList<String> = mutableListOf()
         trace.add(Trace.Pairing.PAIRING_STARTED).also { logger.log("Pairing started") }
         val walletConnectUri: WalletConnectUri = Validator.validateWCUri(uri) ?: run {
-            insertEvent(Props.Error.MalformedPairingUri(properties = TraceProperties(trace = trace)))
+            insertEventUseCase(Props(type = EventType.Error.MALFORMED_PAIRING_URI, properties = Properties(trace = trace)))
             return onFailure(MalformedWalletConnectUri(MALFORMED_PAIRING_URI_MESSAGE))
         }
         trace.add(Trace.Pairing.PAIRING_URI_VALIDATION_SUCCESS)
@@ -168,7 +169,8 @@ internal class PairingEngine(
         val symmetricKey = walletConnectUri.symKey
         try {
             if (walletConnectUri.expiry?.isExpired() == true) {
-                insertEvent(Props.Error.PairingExpired(properties = TraceProperties(trace = trace, topic = pairingTopic.value))).also { logger.error("Pairing expired: $pairingTopic") }
+                insertEventUseCase(Props(type = EventType.Error.PAIRING_EXPIRED, properties = Properties(trace = trace, topic = pairingTopic.value)))
+                    .also { logger.error("Pairing expired: $pairingTopic") }
                 return onFailure(ExpiredPairingException("Pairing expired: $pairingTopic"))
             }
             trace.add(Trace.Pairing.PAIRING_URI_NOT_EXPIRED)
@@ -176,12 +178,13 @@ internal class PairingEngine(
                 val pairing = pairingRepository.getPairingOrNullByTopic(pairingTopic)
                 trace.add(Trace.Pairing.EXISTING_PAIRING)
                 if (!pairing!!.isNotExpired()) {
-                    insertEvent(Props.Error.PairingExpired(properties = TraceProperties(trace = trace, topic = pairingTopic.value))).also { logger.error("Pairing expired: $pairingTopic") }
+                    insertEventUseCase(Props(type = EventType.Error.PAIRING_EXPIRED, properties = Properties(trace = trace, topic = pairingTopic.value)))
+                        .also { logger.error("Pairing expired: $pairingTopic") }
                     return onFailure(ExpiredPairingException("Pairing expired: ${pairingTopic.value}"))
                 }
                 trace.add(Trace.Pairing.PAIRING_NOT_EXPIRED)
                 if (pairing.isActive) {
-                    insertEvent(Props.Error.PairingAlreadyExist(properties = TraceProperties(trace = trace, topic = pairingTopic.value)))
+                    insertEventUseCase(Props(type = EventType.Error.PAIRING_ALREADY_EXIST, properties = Properties(trace = trace, topic = pairingTopic.value)))
                         .also { logger.error("Pairing already exists error: $pairingTopic") }
                     return onFailure(PairWithExistingPairingIsNotAllowed(PAIRING_NOT_ALLOWED_MESSAGE))
                 } else {
@@ -203,15 +206,15 @@ internal class PairingEngine(
                     trace.add(Trace.Pairing.SUBSCRIBE_PAIRING_TOPIC_SUCCESS).also { logger.log("Subscribe pairing topic success: $pairingTopic") }
                     onSuccess()
                 }, onFailure = { error ->
-                    insertEvent(Props.Error.PairingSubscriptionFailure(properties = TraceProperties(trace = trace, topic = pairingTopic.value)))
+                    insertEventUseCase(Props(type = EventType.Error.PAIRING_SUBSCRIPTION_FAILURE, properties = Properties(trace = trace, topic = pairingTopic.value)))
                         .also { logger.error("Subscribe pairing topic error: $pairingTopic, error: $error") }
                     onFailure(error)
                 }
             )
         } catch (e: Exception) {
             logger.error("Subscribe pairing topic error: $pairingTopic, error: $e")
-            if (e is NoRelayConnectionException) insertEvent(Props.Error.NoWSSConnection(properties = TraceProperties(trace = trace, topic = pairingTopic.value)))
-            if (e is NoInternetConnectionException) insertEvent(Props.Error.NoInternetConnection(properties = TraceProperties(trace = trace, topic = pairingTopic.value)))
+            if (e is NoRelayConnectionException) insertEventUseCase(Props(type = EventType.Error.NO_WSS_CONNECTION, properties = Properties(trace = trace, topic = pairingTopic.value)))
+            if (e is NoInternetConnectionException) insertEventUseCase(Props(type = EventType.Error.NO_INTERNET_CONNECTION, properties = Properties(trace = trace, topic = pairingTopic.value)))
             runCatching { crypto.removeKeys(pairingTopic.value) }.onFailure { logger.error("Remove keys error: $pairingTopic, error: $it") }
             jsonRpcInteractor.unsubscribe(pairingTopic)
             onFailure(e)
@@ -288,18 +291,6 @@ internal class PairingEngine(
 
     fun updateMetadata(topic: String, metadata: AppMetaData, metaDataType: AppMetaDataType) {
         metadataRepository.upsertPeerMetadata(Topic(topic), metadata, metaDataType)
-    }
-
-    fun insertEvent(props: Props.Error) {
-        scope.launch {
-            supervisorScope {
-                try {
-                    eventsRepository.insertOrAbort(props)
-                } catch (e: Exception) {
-                    logger.error("Inserting pairing event error: $e")
-                }
-            }
-        }
     }
 
     private fun resubscribeToPairingTopics() {

@@ -9,14 +9,15 @@ import com.walletconnect.android.internal.common.model.Validation
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.common.storage.events.EventsRepository
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
+import com.walletconnect.android.pulse.domain.InsertEventUseCase
+import com.walletconnect.android.pulse.model.EventType
 import com.walletconnect.android.pulse.model.Trace
+import com.walletconnect.android.pulse.model.properties.Properties
 import com.walletconnect.android.pulse.model.properties.Props
-import com.walletconnect.android.pulse.model.properties.TraceProperties
 import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.android.relay.WSSConnectionState
 import com.walletconnect.android.verify.data.model.VerifyContext
@@ -139,7 +140,7 @@ internal class SignEngine(
     private val onSessionSettleResponseUseCase: OnSessionSettleResponseUseCase,
     private val onSessionUpdateResponseUseCase: OnSessionUpdateResponseUseCase,
     private val onSessionRequestResponseUseCase: OnSessionRequestResponseUseCase,
-    private val eventsRepository: EventsRepository,
+    private val insertEventUseCase: InsertEventUseCase,
     private val logger: Logger
 ) : ProposeSessionUseCaseInterface by proposeSessionUseCase,
     SessionAuthenticateUseCaseInterface by authenticateSessionUseCase,
@@ -424,7 +425,7 @@ internal class SignEngine(
                     } else {
                         val proposal = proposalStorageRepository.getProposalByTopic(pairingTopic.value)
                         if (proposal.expiry?.isExpired() == true) {
-                            insertEvent(Props.Error.ProposalExpired(properties = TraceProperties(trace = trace, topic = pairingTopic.value)))
+                            insertEventUseCase(Props(type = EventType.Error.PROPOSAL_EXPIRED, properties = Properties(trace = trace, topic = pairingTopic.value)))
                             proposalStorageRepository.deleteProposal(proposal.proposerPublicKey)
                             scope.launch { _engineEvent.emit(proposal.toExpiredProposal()) }
                         } else {
@@ -440,18 +441,6 @@ internal class SignEngine(
                     scope.launch { _engineEvent.emit(SDKError(Throwable("No proposal or pending session authenticate request for pairing topic: $e"))) }
                 }
             }.launchIn(scope)
-    }
-
-    private fun insertEvent(props: Props.Error) {
-        scope.launch {
-            supervisorScope {
-                try {
-                    eventsRepository.insertOrAbort(props)
-                } catch (e: Exception) {
-                    logger.error("Inserting session event error: $e")
-                }
-            }
-        }
     }
 
     private fun repeatableFlow() = flow {

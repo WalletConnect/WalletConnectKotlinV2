@@ -11,7 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.android.pulse.domain.w3m.SendClickGetWalletUseCase
+import com.walletconnect.android.pulse.domain.SendEventInterface
+import com.walletconnect.android.pulse.model.EventType
+import com.walletconnect.android.pulse.model.properties.Props
 import com.walletconnect.web3.modal.R
 import com.walletconnect.web3.modal.ui.components.internal.commons.HelpSection
 import com.walletconnect.web3.modal.ui.components.internal.commons.VerticalSpacer
@@ -28,9 +30,9 @@ import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 internal fun WhatIsWallet(
     navController: NavController
 ) {
-    val sendClickGetWalletEvent: SendClickGetWalletUseCase = wcKoinApp.koin.get()
+    val sendEventUseCase: SendEventInterface = wcKoinApp.koin.get()
     WhatIsWallet {
-        sendClickGetWalletEvent()
+        sendEventUseCase.send(Props(EventType.TRACK, EventType.Track.CLICK_GET_WALLET))
         navController.navigate(Route.GET_A_WALLET.path)
     }
 }

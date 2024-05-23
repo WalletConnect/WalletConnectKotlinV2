@@ -9,6 +9,8 @@ import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.pairing.engine.domain.PairingEngine
 import com.walletconnect.android.pairing.engine.model.EngineDO
 import com.walletconnect.android.pairing.model.mapper.toCore
+import com.walletconnect.android.pulse.domain.InsertEventUseCase
+import com.walletconnect.android.pulse.model.EventType
 import com.walletconnect.android.pulse.model.properties.Props
 import com.walletconnect.android.relay.RelayConnectionInterface
 import com.walletconnect.android.relay.WSSConnectionState
@@ -24,6 +26,7 @@ internal class PairingProtocol(private val koinApp: KoinApplication = wcKoinApp)
     private lateinit var pairingEngine: PairingEngine
     private val logger: Logger by lazy { koinApp.koin.get() }
     private val relayClient: RelayConnectionInterface by lazy { koinApp.koin.get() }
+    private val insertEventUseCase: InsertEventUseCase by lazy { koinApp.koin.get() }
 
     override fun initialize() {
         pairingEngine = koinApp.koin.get()
@@ -154,7 +157,7 @@ internal class PairingProtocol(private val koinApp: KoinApplication = wcKoinApp)
                                 return@withTimeout
                             }
                         } else {
-                            pairingEngine.insertEvent(Props.Error.NoInternetConnection())
+                            insertEventUseCase(Props(type = EventType.Error.NO_INTERNET_CONNECTION))
                             errorLambda(Throwable("No internet connection"))
                             return@withTimeout
                         }
@@ -163,7 +166,7 @@ internal class PairingProtocol(private val koinApp: KoinApplication = wcKoinApp)
                 }
             }
         } catch (e: Exception) {
-            pairingEngine.insertEvent(Props.Error.NoWSSConnection())
+            insertEventUseCase(Props(type = EventType.Error.NO_WSS_CONNECTION))
             errorLambda(Throwable("Failed to connect: ${e.message}"))
         }
     }

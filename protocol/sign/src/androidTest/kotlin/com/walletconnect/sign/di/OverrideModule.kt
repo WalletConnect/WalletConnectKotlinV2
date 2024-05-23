@@ -32,7 +32,7 @@ internal fun overrideModule(
 
     includes(
         coreStorageModule(storagePrefix, bundleId),
-        corePairingModule(pairing, pairingController, bundleId),
+        corePairingModule(pairing, pairingController),
         coreCryptoModule(sharedPrefsFile, keyStoreAlias),
         coreAndroidNetworkModule(relayUrl, connectionType, "test_version", bundleId = bundleId),
         coreJsonRpcModule()

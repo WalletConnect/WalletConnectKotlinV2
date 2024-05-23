@@ -84,7 +84,7 @@ internal fun engineModule() = module {
             formatAuthenticateMessageUseCase = get(),
             deleteRequestByIdUseCase = get(),
             getPendingAuthenticateRequestUseCase = get(),
-            eventsRepository = get(),
+            insertEventUseCase = get(),
             logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }

@@ -21,13 +21,9 @@ internal fun engineModule() = module {
             getSelectedChainUseCase = get(),
             deleteSessionDataUseCase = get(),
             saveSessionUseCase = get(),
-            sendModalLoadedUseCase = get(),
-            sendDisconnectErrorUseCase = get(),
-            sendDisconnectSuccessUseCase = get(),
-            sendConnectErrorUseCase = get(),
-            sendConnectSuccessUseCase = get(),
             connectionEventRepository = get(),
             enableAnalyticsUseCase = get(),
+            sendEventUseCase = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
         )
     }

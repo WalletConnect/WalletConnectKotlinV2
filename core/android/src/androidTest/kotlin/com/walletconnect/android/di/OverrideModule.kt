@@ -27,7 +27,7 @@ internal fun overrideModule(
 
     includes(
         coreStorageModule(storagePrefix, bundleId),
-        corePairingModule(pairing, pairingController, bundleId),
+        corePairingModule(pairing, pairingController),
         coreCryptoModule(sharedPrefsFile, keyStoreAlias),
         coreJsonRpcModule()
     )

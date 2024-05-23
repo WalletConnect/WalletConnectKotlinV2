@@ -6,7 +6,7 @@ import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
-fun corePairingModule(pairing: PairingInterface, pairingController: PairingControllerInterface, bundleId: String) = module {
+fun corePairingModule(pairing: PairingInterface, pairingController: PairingControllerInterface) = module {
     single {
         PairingEngine(
             selfMetaData = get(),
@@ -15,7 +15,7 @@ fun corePairingModule(pairing: PairingInterface, pairingController: PairingContr
             pairingRepository = get(),
             jsonRpcInteractor = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
-            eventsRepository = get()
+            insertEventUseCase = get()
         )
     }
     single { pairing }
