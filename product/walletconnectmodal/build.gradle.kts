@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.google.ksp)
     alias(libs.plugins.paparazzi)
     id("publish-module-android")
-    id("jacoco-report")
+//    id("jacoco-report")
 }
 
 project.apply {
