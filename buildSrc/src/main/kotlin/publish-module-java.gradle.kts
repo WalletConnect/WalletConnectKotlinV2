@@ -32,7 +32,6 @@ afterEvaluate {
                     from(components["javaPlatform"])
                 }
 
-
                 groupId = "com.walletconnect"
                 artifactId = requireNotNull(extra.get(KEY_PUBLISH_ARTIFACT_ID)).toString()
                 version = requireNotNull(extra.get(KEY_PUBLISH_VERSION)).toString()
@@ -41,6 +40,7 @@ afterEvaluate {
                     name.set("WalletConnect ${requireNotNull(extra.get(KEY_SDK_NAME))}")
                     description.set("${requireNotNull(extra.get(KEY_SDK_NAME))} SDK for WalletConnect")
                     url.set("https://github.com/WalletConnect/WalletConnectKotlinV2")
+
                     licenses {
                         license {
                             name.set("The Apache License, Version 2.0")
