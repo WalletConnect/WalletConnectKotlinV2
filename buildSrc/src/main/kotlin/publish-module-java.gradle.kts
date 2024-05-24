@@ -9,14 +9,10 @@ tasks {
         register("javadocJar", Jar::class) {
             dependsOn(named("dokkaHtml"))
             archiveClassifier.set("javadoc")
-
-            println("kobe: java javadoc")
-
             from("${layout.buildDirectory}/dokka/html")
         }
         register("sourceJar", Jar::class) {
             archiveClassifier.set("sources")
-            println("kobe: java sourcesJar")
             from(((project as ExtensionAware).extensions.getByName("sourceSets") as SourceSetContainer).getByName("main").allSource)
         }
     }
@@ -25,7 +21,6 @@ tasks {
 afterEvaluate {
     publishing {
         publications {
-            println("kobe: java start publishing")
             register<MavenPublication>("mavenJvm") {
                 plugins.withId("java") {
                     from(components["java"])
@@ -42,15 +37,10 @@ afterEvaluate {
                 artifactId = requireNotNull(extra.get(KEY_PUBLISH_ARTIFACT_ID)).toString()
                 version = requireNotNull(extra.get(KEY_PUBLISH_VERSION)).toString()
 
-                println("kobe: java artefact: $artifactId")
-
                 pom {
                     name.set("WalletConnect ${requireNotNull(extra.get(KEY_SDK_NAME))}")
                     description.set("${requireNotNull(extra.get(KEY_SDK_NAME))} SDK for WalletConnect")
                     url.set("https://github.com/WalletConnect/WalletConnectKotlinV2")
-
-                    println("kobe: java pom")
-
                     licenses {
                         license {
                             name.set("The Apache License, Version 2.0")
@@ -87,6 +77,5 @@ signing {
         System.getenv("SIGNING_KEY"),
         System.getenv("SIGNING_PASSWORD")
     )
-//    println("kobe: signing")
     sign(publishing.publications)
 }

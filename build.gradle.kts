@@ -11,11 +11,7 @@ plugins {
 }
 
 allprojects {
-    println("kobe: main KotlinCompile")
-
     tasks.withType<KotlinCompile>().configureEach {
-
-        println("kobe: main configureEach")
         kotlinOptions {
             jvmTarget = jvmVersion.toString()
         }

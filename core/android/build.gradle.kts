@@ -89,11 +89,8 @@ dependencies {
     api(libs.coroutines)
     implementation(libs.scarlet.android)
     implementation(libs.bundles.sqlDelight)
-    api(libs.sqlCipher) {
-        artifact {
-            type = "aar"
-        }
-    }
+    //noinspection UseTomlInstead
+    api("net.zetetic:android-database-sqlcipher:4.5.4@aar")
     implementation(libs.relinker)
     api(libs.androidx.security)
     api(libs.koin.android)
