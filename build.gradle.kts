@@ -36,7 +36,7 @@ sonar {
                 "sonar.organization" to "walletconnect",
                 "sonar.host.url" to "https://sonarcloud.io",
                 "sonar.gradle.skipCompile" to true,
-                "sonar.coverage.exclusions" to "sample/**,**/di/**,/buildSrc/**,**/gradle/**,**/test/**,**/androidTest/**,**/build.gradle.kts",
+//                "sonar.coverage.exclusions" to "sample/**,**/di/**,/buildSrc/**,**/gradle/**,**/test/**,**/androidTest/**,**/build.gradle.kts",
             )
         )
     }
@@ -55,7 +55,7 @@ subprojects {
                     "sonar.gradle.skipCompile" to true,
                     "sonar.sources" to "${projectDir}/src/main/kotlin",
                     "sonar.java.binaries" to layout.buildDirectory,
-                    "sonar.coverage.jacoco.xmlReportPaths" to "${layout.buildDirectory}/reports/jacoco/xml/jacoco.xml"
+//                    "sonar.coverage.jacoco.xmlReportPaths" to "${layout.buildDirectory}/reports/jacoco/xml/jacoco.xml"
                 )
             )
         }
