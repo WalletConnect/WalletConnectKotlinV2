@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.sqlDelight)
     alias(libs.plugins.google.ksp)
     id("publish-module-android")
-    id("jacoco-report")
+//    id("jacoco-report")
 }
 
 project.apply {
