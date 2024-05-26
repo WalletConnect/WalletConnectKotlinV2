@@ -10,219 +10,236 @@ import com.walletconnect.foundation.util.scope
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.withContext
+import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 
 @ExperimentalCoroutinesApi
-
 class BaseRelayClientTest {
-    private val testDispatcher = StandardTestDispatcher()
-    private val testScope = TestScope(testDispatcher)
-    private lateinit var client: BaseRelayClient
-    private val relayServiceMock = mockk<RelayService>(relaxed = true)
-    private val loggerMock = mockk<Logger>(relaxed = true)
+	private val testDispatcher = StandardTestDispatcher()
+	private val testScope = TestScope(testDispatcher)
+	private lateinit var client: BaseRelayClient
+	private val relayServiceMock = mockk<RelayService>(relaxed = true)
+	private val loggerMock = mockk<Logger>(relaxed = true)
 
-    @Before
-    fun setup() {
-        client = object : BaseRelayClient() {
-            init {
-                this.relayService = relayServiceMock
-                this.logger = loggerMock
-                scope = testScope
-            }
-        }
-    }
+	@Before
+	fun setup() {
+		Dispatchers.setMain(testDispatcher)
 
-    @Test
-    fun `test publish success`() = testScope.runTest {
-        val topic = "testTopic"
-        val message = "testMessage"
-        val params = Relay.Model.IrnParams(1, 60, true)
-        val ack = RelayDTO.Publish.Result.Acknowledgement(123L, result = true)
+		client = object : BaseRelayClient() {
+			init {
+				this.relayService = relayServiceMock
+				this.logger = loggerMock
+				scope = testScope
+			}
+		}
+	}
 
-        coEvery { relayServiceMock.publishRequest(any()) } returns Unit
-        coEvery { relayServiceMock.observePublishAcknowledgement() } returns flowOf(ack)
+	@After
+	fun tearDown() {
+		Dispatchers.resetMain()
+	}
 
-        client.observeResults()
-        client.publish(topic, message, params, 123L) { result ->
-            result.fold(
-                    onSuccess = {
-                        assertEquals(123L, it.id)
-                    },
-                    onFailure = { fail(it.message) }
-            )
-        }
+	@Test
+	fun `test publish success`() = testScope.runTest {
+		val topic = "testTopic"
+		val message = "testMessage"
+		val params = Relay.Model.IrnParams(1, 60, true)
+		val ack = RelayDTO.Publish.Result.Acknowledgement(123L, result = true)
 
-        coVerify { relayServiceMock.publishRequest(any()) }
-    }
+		coEvery { relayServiceMock.publishRequest(any()) } returns Unit
+		coEvery { relayServiceMock.observePublishAcknowledgement() } returns flowOf(ack)
 
-    @Test
-    fun `test publish error due to time out`() = testScope.runTest {
-        val topic = "testTopic"
-        val message = "testMessage"
-        val params = Relay.Model.IrnParams(1, 60, true)
+		client.observeResults()
+		client.publish(topic, message, params, 123L) { result ->
+			result.fold(
+				onSuccess = {
+					assertEquals(123L, it.id)
+				},
+				onFailure = { fail(it.message) }
+			)
+		}
 
-        coEvery { relayServiceMock.publishRequest(any()) } returns Unit
-        coEvery { relayServiceMock.observePublishAcknowledgement() } returns flow { delay(10000L) }
+		coVerify { relayServiceMock.publishRequest(any()) }
+	}
 
-        client.publish(topic, message, params) { result ->
-            result.fold(
-                    onSuccess = {
-                        fail("Should not be successful")
-                    },
-                    onFailure = {
-                        assertEquals("Publish request timed out: Timed out waiting for 60000 ms", result.exceptionOrNull()?.message)
-                    }
-            )
-        }
+	@Test
+	fun `test publish error due to time out`() = testScope.runTest {
+		val topic = "testTopic"
+		val message = "testMessage"
+		val params = Relay.Model.IrnParams(1, 60, true)
 
-        testScheduler.apply { advanceTimeBy(5000); runCurrent() }
+		coEvery { relayServiceMock.publishRequest(any()) } returns Unit
+		coEvery { relayServiceMock.observePublishAcknowledgement() } returns flow { delay(10000L) }
 
-        coVerify { relayServiceMock.publishRequest(any()) }
-    }
+		withContext(Dispatchers.Default.limitedParallelism(1)) {
+			client.publish(topic, message, params) { result ->
+				result.fold(
+					onSuccess = {
+						fail("Should not be successful")
+					},
+					onFailure = {
+						assertTrue(result.exceptionOrNull() is TimeoutCancellationException)
+					}
+				)
+			}
+		}
 
-    @Test
-    fun `test subscribe success`() = testScope.runTest {
-        val topic = "testTopic"
-        val expectedId = 123L
-        val relayDto = RelayDTO.Subscribe.Result.Acknowledgement(id = expectedId, result = SubscriptionId("testId"))
+		advanceUntilIdle()
 
-        coEvery { relayServiceMock.subscribeRequest(any()) } returns Unit
-        coEvery { relayServiceMock.observeSubscribeAcknowledgement() } returns flowOf(relayDto)
+		coVerify { relayServiceMock.publishRequest(any()) }
+	}
 
-        client.observeResults()
-        client.subscribe(topic, expectedId) { result ->
-            result.fold(
-                    onSuccess = {
-                        assertEquals(expectedId, result.getOrNull()?.id)
-                    },
-                    onFailure = { fail(it.message) }
-            )
-        }
+	@Test
+	fun `test subscribe success`() = testScope.runTest {
+		val topic = "testTopic"
+		val expectedId = 123L
+		val relayDto = RelayDTO.Subscribe.Result.Acknowledgement(id = expectedId, result = SubscriptionId("testId"))
 
-        coVerify { relayServiceMock.subscribeRequest(any()) }
-    }
+		coEvery { relayServiceMock.subscribeRequest(any()) } returns Unit
+		coEvery { relayServiceMock.observeSubscribeAcknowledgement() } returns flowOf(relayDto)
 
-    @Test
-    fun `test subscribe failure due to timeout`() = testScope.runTest {
-        val topic = "testTopic"
+		client.observeResults()
+		client.subscribe(topic, expectedId) { result ->
+			result.fold(
+				onSuccess = {
+					assertEquals(expectedId, result.getOrNull()?.id)
+				},
+				onFailure = { fail(it.message) }
+			)
+		}
 
-        coEvery { relayServiceMock.subscribeRequest(any()) } returns Unit
-        coEvery { relayServiceMock.observeSubscribeAcknowledgement() } returns flow { delay(10000L) }
+		coVerify { relayServiceMock.subscribeRequest(any()) }
+	}
 
-        client.subscribe(topic) { result ->
-            result.fold(
-                    onSuccess = {
-                        fail("Should not be successful")
-                    },
-                    onFailure = {
-                        assertEquals("Subscribe timed out: Timed out waiting for 60000 ms", result.exceptionOrNull()?.message)
-                    }
-            )
-        }
+	@Test
+	fun `test subscribe failure due to timeout`() = testScope.runTest() {
+		val topic = "testTopic"
 
-        testScheduler.apply { advanceTimeBy(5000); runCurrent() }
+		coEvery { relayServiceMock.subscribeRequest(any()) } returns Unit
+		coEvery { relayServiceMock.observeSubscribeAcknowledgement() } returns flow { delay(10000L) }
 
-        coVerify { relayServiceMock.subscribeRequest(any()) }
-    }
+		client.subscribe(topic) { result ->
+			result.fold(
+				onSuccess = {
+					fail("Should not be successful")
+				},
+				onFailure = {
+					assertTrue(result.exceptionOrNull() is TimeoutCancellationException)
+				}
+			)
+		}
 
-    @Test
-    fun `test batch subscribe success`() = testScope.runTest {
-        val topics = listOf("testTopic")
-        val expectedId = 123L
-        val relayDto = RelayDTO.BatchSubscribe.Result.Acknowledgement(id = expectedId, result = listOf("testId"))
+		testScheduler.apply { advanceTimeBy(5000); runCurrent() }
 
-        coEvery { relayServiceMock.batchSubscribeRequest(any()) } returns Unit
-        coEvery { relayServiceMock.observeBatchSubscribeAcknowledgement() } returns flowOf(relayDto)
+		coVerify { relayServiceMock.subscribeRequest(any()) }
+	}
 
-        client.observeResults()
-        client.batchSubscribe(topics, expectedId) { result ->
-            result.fold(
-                    onSuccess = {
-                        assertEquals(expectedId, result.getOrNull()?.id)
-                    },
-                    onFailure = { fail(it.message) }
-            )
-        }
+	@Test
+	fun `test batch subscribe success`() = testScope.runTest {
+		val topics = listOf("testTopic")
+		val expectedId = 123L
+		val relayDto = RelayDTO.BatchSubscribe.Result.Acknowledgement(id = expectedId, result = listOf("testId"))
 
-        coVerify { relayServiceMock.batchSubscribeRequest(any()) }
-    }
+		coEvery { relayServiceMock.batchSubscribeRequest(any()) } returns Unit
+		coEvery { relayServiceMock.observeBatchSubscribeAcknowledgement() } returns flowOf(relayDto)
 
-    @Test
-    fun `test batch subscribe failure due to timeout`() = testScope.runTest {
-        val topics = listOf("testTopic")
+		client.observeResults()
+		client.batchSubscribe(topics, expectedId) { result ->
+			result.fold(
+				onSuccess = {
+					assertEquals(expectedId, result.getOrNull()?.id)
+				},
+				onFailure = { fail(it.message) }
+			)
+		}
 
-        coEvery { relayServiceMock.batchSubscribeRequest(any()) } returns Unit
-        coEvery { relayServiceMock.observeBatchSubscribeAcknowledgement() } returns flow { delay(10000L) }
+		coVerify { relayServiceMock.batchSubscribeRequest(any()) }
+	}
 
-        client.batchSubscribe(topics) { result ->
-            result.fold(
-                    onSuccess = {
-                        fail("Should not be successful")
-                    },
-                    onFailure = {
-                        assertEquals("Batch Subscribe timed out: Timed out waiting for 60000 ms", result.exceptionOrNull()?.message)
-                    }
-            )
+	@Test
+	fun `test batch subscribe failure due to timeout`() = testScope.runTest {
+		val topics = listOf("testTopic")
 
-        }
+		coEvery { relayServiceMock.batchSubscribeRequest(any()) } returns Unit
+		coEvery { relayServiceMock.observeBatchSubscribeAcknowledgement() } returns flow { delay(10000L) }
 
-        testScheduler.apply { advanceTimeBy(5000); runCurrent() }
+		client.batchSubscribe(topics) { result ->
+			result.fold(
+				onSuccess = {
+					fail("Should not be successful")
+				},
+				onFailure = {
+					assertTrue(result.exceptionOrNull() is TimeoutCancellationException)
+				}
+			)
 
-        coVerify { relayServiceMock.batchSubscribeRequest(any()) }
-    }
+		}
 
-    @Test
-    fun `test unsubscribe success`() = testScope.runTest {
-        val topic = "testTopic"
-        val expectedId = 123L
-        val relayDto = RelayDTO.Unsubscribe.Result.Acknowledgement(id = expectedId, result = true)
+		testScheduler.apply { advanceTimeBy(5000); runCurrent() }
 
-        coEvery { relayServiceMock.unsubscribeRequest(any()) } returns Unit
-        coEvery { relayServiceMock.observeUnsubscribeAcknowledgement() } returns flowOf(relayDto)
+		coVerify { relayServiceMock.batchSubscribeRequest(any()) }
+	}
 
-        client.observeResults()
-        client.unsubscribe(topic, "subsId", expectedId) { result ->
-            result.fold(
-                    onSuccess = {
-                        assertEquals(expectedId, result.getOrNull()?.id)
-                    },
-                    onFailure = { fail(it.message) }
-            )
-        }
+	@Test
+	fun `test unsubscribe success`() = testScope.runTest {
+		val topic = "testTopic"
+		val expectedId = 123L
+		val relayDto = RelayDTO.Unsubscribe.Result.Acknowledgement(id = expectedId, result = true)
 
-        coVerify { relayServiceMock.unsubscribeRequest(any()) }
-    }
+		coEvery { relayServiceMock.unsubscribeRequest(any()) } returns Unit
+		coEvery { relayServiceMock.observeUnsubscribeAcknowledgement() } returns flowOf(relayDto)
 
-    @Test
-    fun `test unsubscribe failure`() = testScope.runTest {
-        val topic = "testTopic"
+		client.observeResults()
+		client.unsubscribe(topic, "subsId", expectedId) { result ->
+			result.fold(
+				onSuccess = {
+					assertEquals(expectedId, result.getOrNull()?.id)
+				},
+				onFailure = { fail(it.message) }
+			)
+		}
 
-        coEvery { relayServiceMock.subscribeRequest(any()) } returns Unit
-        coEvery { relayServiceMock.observeSubscribeAcknowledgement() } returns flow { delay(10000L) }
+		coVerify { relayServiceMock.unsubscribeRequest(any()) }
+	}
 
-        client.subscribe(topic) { result ->
-            result.fold(
-                    onSuccess = {
-                        fail("Should not be successful")
-                    },
-                    onFailure = {
-                        assertEquals("Subscribe timed out: Timed out waiting for 60000 ms", it.message)
-                    }
-            )
-        }
+	@Test
+	fun `test unsubscribe failure`() = testScope.runTest {
+		val topic = "testTopic"
 
-        testScheduler.apply { advanceTimeBy(5000); runCurrent() }
+		coEvery { relayServiceMock.subscribeRequest(any()) } returns Unit
+		coEvery { relayServiceMock.observeSubscribeAcknowledgement() } returns flow { delay(10000L) }
 
-        coVerify { relayServiceMock.subscribeRequest(any()) }
-    }
+		client.subscribe(topic) { result ->
+			result.fold(
+				onSuccess = {
+					fail("Should not be successful")
+				},
+				onFailure = {
+					assertTrue(result.exceptionOrNull() is TimeoutCancellationException)
+				}
+			)
+		}
+
+		testScheduler.apply { advanceTimeBy(5000); runCurrent() }
+
+		coVerify { relayServiceMock.subscribeRequest(any()) }
+	}
+
 }

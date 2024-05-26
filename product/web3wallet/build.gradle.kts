@@ -1,7 +1,7 @@
 plugins {
     id("com.android.library")
-    kotlin("android")
-    id("com.google.devtools.ksp") version kspVersion
+    id(libs.plugins.kotlin.android.get().pluginId)
+    alias(libs.plugins.google.ksp)
     id("publish-module-android")
     id("jacoco-report")
 }
@@ -39,7 +39,7 @@ android {
     }
     kotlinOptions {
         jvmTarget = jvmVersion.toString()
-        freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.time.ExperimentalTime"
+        freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlin.time.ExperimentalTime"
     }
 
     buildFeatures {
@@ -48,7 +48,8 @@ android {
 }
 
 dependencies {
-    firebaseMessaging()
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
 
     debugImplementation(project(":core:android"))
     debugImplementation(project(":protocol:sign"))

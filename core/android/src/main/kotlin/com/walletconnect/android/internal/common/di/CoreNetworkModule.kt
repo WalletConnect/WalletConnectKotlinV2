@@ -14,7 +14,6 @@ import com.walletconnect.android.BuildConfig
 import com.walletconnect.android.internal.common.connection.ConnectivityState
 import com.walletconnect.android.internal.common.connection.ManualConnectionLifecycle
 import com.walletconnect.android.internal.common.jwt.clientid.GenerateJwtStoreClientIdUseCase
-import com.walletconnect.android.internal.common.model.PackageName
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.relay.NetworkClientTimeout
 import com.walletconnect.foundation.network.data.ConnectionController
@@ -26,7 +25,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.android.ext.koin.androidApplication
-import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import java.io.IOException
@@ -39,7 +37,7 @@ private const val DEFAULT_BACKOFF_SECONDS = 5L
 
 @Suppress("LocalVariableName")
 @JvmSynthetic
-fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, sdkVersion: String, timeout: NetworkClientTimeout? = null) = module {
+fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, sdkVersion: String, timeout: NetworkClientTimeout? = null, bundleId: String) = module {
     val networkClientTimeout = timeout ?: NetworkClientTimeout.getDefaultTimeout()
     SERVER_URL = serverUrl
 
@@ -57,19 +55,15 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
         """wc-2/kotlin-${sdkVersion}/android-${Build.VERSION.RELEASE}"""
     }
 
-    single<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)) {
-        PackageName(androidContext().packageName)
-    }
-
     single {
-        GenerateJwtStoreClientIdUseCase(get(), get())
+        GenerateJwtStoreClientIdUseCase(clientIdJwtRepository = get(), sharedPreferences = get())
     }
 
     single(named(AndroidCommonDITags.SHARED_INTERCEPTOR)) {
         Interceptor { chain ->
             val updatedRequest = chain.request().newBuilder()
                 .addHeader("User-Agent", get(named(AndroidCommonDITags.USER_AGENT)))
-                .addHeader("Origin", get<PackageName>(named(AndroidCommonDITags.BUNDLE_ID)).value)
+                .addHeader("Origin", bundleId)
                 .build()
 
             chain.proceed(updatedRequest)

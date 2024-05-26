@@ -64,7 +64,11 @@ class SessionRequestViewModel : ViewModel() {
     private fun extractMessageParamFromPersonalSign(input: String): String {
         val jsonArray = JSONArray(input)
         return if (jsonArray.length() > 0) {
-            String(hexStringToByteArray(jsonArray.getString(0)))
+            if (jsonArray.getString(0).startsWith("0x")) {
+                String(hexStringToByteArray(jsonArray.getString(0)))
+            } else {
+                jsonArray.getString(0)
+            }
         } else {
             throw IllegalArgumentException()
         }

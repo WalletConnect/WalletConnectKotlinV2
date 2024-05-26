@@ -22,7 +22,8 @@ internal fun overrideModule(
     pairingController: PairingControllerInterface,
     storagePrefix: String,
     relayUrl: String,
-    connectionType: ConnectionType
+    connectionType: ConnectionType,
+    bundleId: String
 ) = module {
     val sharedPrefsFile = storagePrefix + SHARED_PREFS_FILE
     val keyStoreAlias = storagePrefix + KEY_STORE_ALIAS
@@ -33,7 +34,7 @@ internal fun overrideModule(
         coreStorageModule(storagePrefix),
         corePairingModule(pairing, pairingController),
         coreCryptoModule(sharedPrefsFile, keyStoreAlias),
-        coreAndroidNetworkModule(relayUrl, connectionType, "test_version"),
+        coreAndroidNetworkModule(relayUrl, connectionType, "test_version", bundleId = bundleId),
         coreJsonRpcModule()
     )
 }

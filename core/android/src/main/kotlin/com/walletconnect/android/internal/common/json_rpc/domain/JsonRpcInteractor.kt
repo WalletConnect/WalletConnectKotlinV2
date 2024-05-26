@@ -102,6 +102,7 @@ internal class JsonRpcInteractor(
 			return onFailure(e)
 		}
 
+
 		val requestJson = try {
 			serializer.serialize(payload) ?: return onFailure(IllegalStateException("JsonRpcInteractor: Unknown result params"))
 		} catch (e: Exception) {
@@ -117,7 +118,7 @@ internal class JsonRpcInteractor(
 						onSuccess = { onSuccess() },
 						onFailure = { error ->
 							logger.error("JsonRpcInteractor: Cannot send the request, error: $error")
-							onFailure(error)
+							onFailure(Throwable("Publish error: ${error.message}"))
 						}
 					)
 				}
@@ -155,7 +156,7 @@ internal class JsonRpcInteractor(
 					},
 					onFailure = { error ->
 						logger.error("JsonRpcInteractor: Cannot send the response, error: $error")
-						onFailure(error)
+						onFailure(Throwable("Publish error: ${error.message}"))
 					}
 				)
 			}
@@ -282,7 +283,7 @@ internal class JsonRpcInteractor(
 				},
 				onFailure = { error ->
 					logger.error("Subscribe to topic error: $topic error: $error")
-					onFailure(error)
+					onFailure(Throwable("Subscribe error: ${error.message}"))
 				}
 			)
 		}
@@ -304,7 +305,7 @@ internal class JsonRpcInteractor(
 					},
 					onFailure = { error ->
 						logger.error("Batch subscribe to topics error: $topics error: $error")
-						onFailure(error)
+						onFailure(Throwable("Batch subscribe error: ${error.message}"))
 					}
 				)
 			}
@@ -334,7 +335,7 @@ internal class JsonRpcInteractor(
 					},
 					onFailure = { error ->
 						logger.error("Unsubscribe to topic: $topic error: $error")
-						onFailure(error)
+						onFailure(Throwable("Unsubscribe error: ${error.message}"))
 					}
 				)
 			}

@@ -1,42 +1,16 @@
 import com.android.build.gradle.BaseExtension
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.sonarqube.gradle.SonarExtension
 
 plugins {
-    id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
+    alias(libs.plugins.nexusPublish)
+    alias(libs.plugins.sonarqube)
     id("release-scripts")
     id("version-bump")
-    alias(libs.plugins.sonarqube)
-}
-
-buildscript {
-    repositories {
-        google()
-        mavenLocal()
-        mavenCentral()
-        maven(url = "https://plugins.gradle.org/m2/")
-    }
-    dependencies {
-        classpath("com.android.tools.build:gradle:$agpVersion")
-        classpath("org.jetbrains.dokka:dokka-core:$dokkaVersion")      // TODO: Leave version until AGP 7.3 https://github.com/Kotlin/dokka/issues/2472#issuecomment-1143604232
-        classpath("org.jetbrains.dokka:dokka-gradle-plugin:$dokkaVersion")
-        classpath("com.squareup.sqldelight:gradle-plugin:$sqlDelightVersion")
-        classpath("com.google.gms:google-services:$googleServiceVersion")
-        classpath("com.google.firebase:firebase-crashlytics-gradle:2.9.2")
-        classpath("com.google.firebase:firebase-appdistribution-gradle:4.0.0")
-    }
 }
 
 allprojects {
-    repositories {
-        google()
-        mavenLocal()
-        mavenCentral()
-        maven(url = "https://jitpack.io")
-        maven(url = "https://s01.oss.sonatype.org/content/repositories/snapshots/")
-        jcenter() // Warning: this repository is going to shut down soon
-    }
-
-    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    tasks.withType<KotlinCompile>().configureEach {
         kotlinOptions {
             jvmTarget = jvmVersion.toString()
         }
@@ -45,7 +19,10 @@ allprojects {
     configurations.configureEach {
         resolutionStrategy.eachDependency {
             if (requested.group == "androidx.navigation" && requested.name == "navigation-compose") {
-                useVersion(composeNavigationVersion)
+                useVersion(libs.versions.androidxNavigation.get())
+            }
+            if (requested.group == "org.bouncycastle" && requested.name == "bcprov-jdk15on") {
+                useTarget(libs.bouncyCastle)
             }
         }
     }
@@ -59,7 +36,7 @@ sonar {
                 "sonar.organization" to "walletconnect",
                 "sonar.host.url" to "https://sonarcloud.io",
                 "sonar.gradle.skipCompile" to true,
-                "sonar.coverage.exclusions" to "sample/**,**/di/**"
+                "sonar.coverage.exclusions" to "sample/**,**/di/**,/buildSrc/**,**/gradle/**,**/test/**,**/androidTest/**,**/build.gradle.kts",
             )
         )
     }
@@ -77,8 +54,8 @@ subprojects {
                 mapOf(
                     "sonar.gradle.skipCompile" to true,
                     "sonar.sources" to "${projectDir}/src/main/kotlin",
-                    "sonar.java.binaries" to buildDir,
-                    "sonar.coverage.jacoco.xmlReportPaths" to "${buildDir}/reports/jacoco/xml/jacoco.xml"
+                    "sonar.java.binaries" to layout.buildDirectory,
+                    "sonar.coverage.jacoco.xmlReportPaths" to "${layout.buildDirectory}/reports/jacoco/xml/jacoco.xml"
                 )
             )
         }
@@ -95,6 +72,20 @@ subprojects {
                         add("META-INF/NOTICE.md")
                     }
                 }
+
+                dependencies {
+                    add("testImplementation", libs.mockk)
+                    add("testImplementation", libs.jUnit)
+                    add("testRuntimeOnly", libs.jUnit.engine)
+                }
+            }
+        }
+
+        plugins.withId(rootProject.libs.plugins.javaLibrary.get().pluginId) {
+            dependencies {
+                add("testImplementation", libs.mockk)
+                add("testImplementation", libs.jUnit)
+                add("testRuntimeOnly", libs.jUnit.engine)
             }
         }
     }
@@ -105,7 +96,7 @@ subprojects {
 }
 
 task<Delete>("clean") {
-    delete(rootProject.buildDir)
+    delete(rootProject.layout.buildDirectory)
 }
 
 nexusPublishing {

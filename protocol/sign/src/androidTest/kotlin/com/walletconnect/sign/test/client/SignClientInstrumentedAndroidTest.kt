@@ -216,6 +216,64 @@ class SignClientInstrumentedAndroidTest {
     }
 
     @Test
+    fun receiveEvent() {
+        Timber.d("receiveEvent: start")
+
+        val walletDelegate = AutoApproveSessionWalletDelegate()
+
+        val onSessionApprovedSuccess = { approvedSession: Sign.Model.ApprovedSession ->
+            walletClientEmitEvent(approvedSession.topic)
+        }
+
+        val dappDelegate = object : AutoApproveDappDelegate(onSessionApprovedSuccess) {
+            override fun onSessionEvent(sessionEvent: Sign.Model.Event) {
+                assert(sessionEvent.name == sessionEvents.first())
+                assert(sessionEvent.data == "dummy")
+                scenarioExtension.closeAsSuccess().also { Timber.d("receiveEvent: finish") }
+            }
+        }
+        launch(walletDelegate, dappDelegate)
+    }
+
+
+    @Test
+    fun receiveEventAndSessionEvent() {
+        Timber.d("receiveEventAndSessionEvent: start")
+
+        val walletDelegate = AutoApproveSessionWalletDelegate()
+
+        val onSessionApprovedSuccess = { approvedSession: Sign.Model.ApprovedSession ->
+            walletClientEmitEvent(approvedSession.topic)
+        }
+
+        var isOnEventReceived = false
+        var isOnSessionEventReceived = false
+
+        val dappDelegate = object : AutoApproveDappDelegate(onSessionApprovedSuccess) {
+            override fun onSessionEvent(sessionEvent: Sign.Model.Event) {
+                assert(sessionEvent.name == sessionEvents.first())
+                assert(sessionEvent.data == "dummy")
+                Timber.d("receiveEventAndSessionEvent: onEvent")
+                isOnEventReceived = true
+                if (isOnSessionEventReceived) {
+                    scenarioExtension.closeAsSuccess()
+                }
+            }
+
+            override fun onSessionEvent(sessionEvent: Sign.Model.SessionEvent) {
+                assert(sessionEvent.name == sessionEvents.first())
+                assert(sessionEvent.data == "dummy")
+                Timber.d("receiveEventAndSessionEvent: onSessionEvent")
+                isOnSessionEventReceived = true
+                if (isOnEventReceived) {
+                    scenarioExtension.closeAsSuccess()
+                }
+            }
+        }
+        launch(walletDelegate, dappDelegate)
+    }
+
+    @Test
     fun extendSessionByWallet() {
         Timber.d("receiveSessionExtendByWallet: start")
 
