@@ -1,4 +1,5 @@
 import org.apache.tools.ant.taskdefs.condition.Os
+import java.util.Locale
 import kotlin.reflect.full.safeCast
 
 // Example ./gradlew releaseAllSDKs -Ptype=local
@@ -9,7 +10,7 @@ tasks.register("releaseAllSDKs") {
             ?.run(String::class::safeCast)
             ?.run {
                 println("Converting parameter to an supported ReleaseType value")
-                ReleaseType.valueOf(this.toUpperCase())
+                ReleaseType.valueOf(this.uppercase(Locale.getDefault()))
             }?.let { releaseType ->
                 generateListOfModuleTasks(releaseType).forEach { task ->
                     println("Executing Task: $task")
