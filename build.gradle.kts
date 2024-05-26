@@ -55,7 +55,7 @@ subprojects {
                     "sonar.gradle.skipCompile" to true,
                     "sonar.sources" to "${projectDir}/src/main/kotlin",
                     "sonar.java.binaries" to layout.buildDirectory,
-//                    "sonar.coverage.jacoco.xmlReportPaths" to "${layout.buildDirectory}/reports/jacoco/xml/jacoco.xml"
+                    "sonar.coverage.jacoco.xmlReportPaths" to "${layout.buildDirectory}/reports/jacoco/xml/jacoco.xml"
                 )
             )
         }
