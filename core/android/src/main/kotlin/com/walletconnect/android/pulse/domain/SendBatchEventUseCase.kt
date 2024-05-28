@@ -1,12 +1,12 @@
 package com.walletconnect.android.pulse.domain
 
 import com.walletconnect.android.internal.common.model.TelemetryEnabled
-import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.events.EventsRepository
 import com.walletconnect.android.pulse.data.PulseService
+import com.walletconnect.android.pulse.model.SDKType
 import com.walletconnect.foundation.util.Logger
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class SendBatchEventUseCase(
 	private val pulseService: PulseService,
@@ -14,27 +14,39 @@ class SendBatchEventUseCase(
 	private val telemetryEnabled: TelemetryEnabled,
 	private val logger: Logger,
 ) {
-	operator fun invoke() {
+	suspend operator fun invoke() = withContext(Dispatchers.IO) {
 		if (telemetryEnabled.value) {
-			scope.launch {
-				supervisorScope {
-//					try {
-////						logger.log("Event: $event")
-//						eventsRepository.getAll()
-//						val response = pulseService.sendEventBatch(body = event, sdkType = SDKType.EVENTS.type)
-//
-//						if (!response.isSuccessful) {
-//							logger.error("Failed to send event: ${event.props.type}")
-//						} else {
-//							logger.log("Event sent successfully: ${event.props.type}")
-//						}
-//					} catch (e: Exception) {
-//						logger.error("Failed to send event: ${event.props.type}, error: $e")
-//					}
+			var continueProcessing = true
+			while (continueProcessing) {
+				val events = eventsRepository.getAllWithLimitAndOffset(LIMIT, 0)
+				if (events.isNotEmpty()) {
+					try {
+						logger.log("Sending batch events: ${events.size}")
+						val response = pulseService.sendEventBatch(body = events, sdkType = SDKType.EVENTS.type)
+						if (response.isSuccessful) {
+							eventsRepository.deleteByIds(events.map { it.eventId })
+						} else {
+							logger.log("Failed to send events: ${events.size}")
+							continueProcessing = false
+						}
+					} catch (e: Exception) {
+						logger.error("Error sending batch events: ${e.message}")
+						continueProcessing = false
+					}
+				} else {
+					continueProcessing = false
 				}
 			}
 		} else {
-			println("kobe: //todo: remove all the events")
+			try {
+				eventsRepository.deleteAll()
+			} catch (e: Exception) {
+				logger.error("Failed to delete events, error: $e")
+			}
 		}
+	}
+
+	companion object {
+		private const val LIMIT = 500
 	}
 }

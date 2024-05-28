@@ -20,23 +20,23 @@ class SendEventUseCase(
     private val enableW3MAnalytics: Boolean by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.ENABLE_WEB_3_MODAL_ANALYTICS)) }
 
     override fun send(props: Props, sdkType: SDKType) {
-//        if (enableW3MAnalytics) {
-        scope.launch {
-            supervisorScope {
-                try {
-                    val event = Event(props = props, bundleId = bundleId)
-                    logger.log("kobe: Event: $event, sdkType: ${sdkType.type}")
-                    val response = pulseService.sendEvent(body = event, sdkType = sdkType.type)
-                    if (!response.isSuccessful) {
-                        logger.error("kobe: Failed to send event: ${event.props.type}")
-                    } else {
-                        logger.log("kobe: Event sent successfully: ${event.props.type}")
+        if (enableW3MAnalytics) {
+            scope.launch {
+                supervisorScope {
+                    try {
+                        val event = Event(props = props, bundleId = bundleId)
+                        logger.log("Event: $event, sdkType: ${sdkType.type}")
+                        val response = pulseService.sendEvent(body = event, sdkType = sdkType.type)
+                        if (!response.isSuccessful) {
+                            logger.error("Failed to send event: ${event.props.type}")
+                        } else {
+                            logger.log("Event sent successfully: ${event.props.type}")
+                        }
+                    } catch (e: Exception) {
+                        logger.error("Failed to send event: ${props.type}, error: $e")
                     }
-                } catch (e: Exception) {
-                    logger.error("kobe: Failed to send event: ${props.type}, error: $e")
                 }
             }
-//            }
         }
     }
 }

@@ -15,7 +15,8 @@ fun corePairingModule(pairing: PairingInterface, pairingController: PairingContr
             pairingRepository = get(),
             jsonRpcInteractor = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
-            insertEventUseCase = get()
+            insertEventUseCase = get(),
+            sendBatchEventUseCase = get(),
         )
     }
     single { pairing }

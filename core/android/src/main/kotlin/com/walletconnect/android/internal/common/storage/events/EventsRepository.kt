@@ -1,6 +1,7 @@
 package com.walletconnect.android.internal.common.storage.events
 
 import android.database.sqlite.SQLiteException
+import app.cash.sqldelight.async.coroutines.awaitAsList
 import com.walletconnect.android.internal.common.model.TelemetryEnabled
 import com.walletconnect.android.pulse.model.Event
 import com.walletconnect.android.pulse.model.properties.Properties
@@ -34,9 +35,10 @@ class EventsRepository(
     }
 
     @Throws(SQLiteException::class)
-    suspend fun getAll(): List<Event> {
-        return withContext(dispatcher) {
-            eventQueries.getAll().executeAsList().map {
+    suspend fun getAllWithLimitAndOffset(limit: Int, offset: Int): List<Event> {
+        return eventQueries.getAllWithLimitAndOffset(limit.toLong(), offset.toLong())
+            .awaitAsList()
+            .map {
                 Event(
                     eventId = it.event_id,
                     bundleId = it.bundle_id,
@@ -51,7 +53,6 @@ class EventsRepository(
                     )
                 )
             }
-        }
     }
 
     @Throws(SQLiteException::class)
@@ -62,9 +63,9 @@ class EventsRepository(
     }
 
     @Throws(SQLiteException::class)
-    suspend fun deleteById(eventId: Long) {
-        return withContext(dispatcher) {
-            eventQueries.deleteById(eventId)
+    suspend fun deleteByIds(eventIds: List<Long>) {
+        withContext(dispatcher) {
+            eventQueries.deleteByIds(eventIds)
         }
     }
 }

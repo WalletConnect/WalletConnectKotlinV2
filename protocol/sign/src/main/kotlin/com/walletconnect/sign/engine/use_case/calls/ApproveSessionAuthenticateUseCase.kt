@@ -144,8 +144,9 @@ internal class ApproveSessionAuthenticateUseCase(
                     trace.add(Trace.SessionAuthenticate.SUBSCRIBE_AUTHENTICATED_SESSION_TOPIC_SUCCESS).also { logger.log("Subscribed Session Authenticate on topic: $responseTopic") }
                 },
                 onFailure = { error ->
-                    insertEventUseCase(Props(type = EventType.Error.SUBSCRIBE_AUTH_SESSION_TOPIC_FAILURE, properties = Properties(trace = trace, topic = sessionTopic.value)))
-                        .also { logger.log("Subscribing Session Authenticate error on topic: $responseTopic, $error") }
+                    scope.launch {
+                        supervisorScope { insertEventUseCase(Props(type = EventType.Error.SUBSCRIBE_AUTH_SESSION_TOPIC_FAILURE, properties = Properties(trace = trace, topic = sessionTopic.value))) }
+                    }.also { logger.log("Subscribing Session Authenticate error on topic: $responseTopic, $error") }
                     onFailure(error)
                 })
 
@@ -164,8 +165,11 @@ internal class ApproveSessionAuthenticateUseCase(
                 onFailure = { error ->
                     runCatching { crypto.removeKeys(sessionTopic.value) }.onFailure { logger.error(it) }
                     sessionStorageRepository.deleteSession(sessionTopic)
-                    insertEventUseCase(Props(type = EventType.Error.AUTHENTICATED_SESSION_APPROVE_PUBLISH_FAILURE, properties = Properties(trace = trace, topic = responseTopic.value)))
-                        .also { logger.error("Error Responding Session Authenticate on topic: $responseTopic, error: $error") }
+                    scope.launch {
+                        supervisorScope {
+                            insertEventUseCase(Props(type = EventType.Error.AUTHENTICATED_SESSION_APPROVE_PUBLISH_FAILURE, properties = Properties(trace = trace, topic = responseTopic.value)))
+                        }
+                    }.also { logger.error("Error Responding Session Authenticate on topic: $responseTopic, error: $error") }
                     onFailure(error)
                 }
             )

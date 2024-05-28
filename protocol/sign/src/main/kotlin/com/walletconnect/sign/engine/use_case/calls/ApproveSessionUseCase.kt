@@ -92,14 +92,27 @@ internal class ApproveSessionUseCase(
                         }
                     },
                     onFailure = { error ->
-                        insertEventUseCase(Props(type = EventType.Error.SESSION_APPROVE_PUBLISH_FAILURE, properties = Properties(trace = trace, topic = sessionTopic.value)))
-                            .also { logger.error("Session settle failure on topic: $sessionTopic, error: $error") }
+                        scope.launch {
+                            supervisorScope {
+                                insertEventUseCase(Props(type = EventType.Error.SESSION_APPROVE_PUBLISH_FAILURE, properties = Properties(trace = trace, topic = sessionTopic.value)))
+                            }
+                        }.also { logger.error("Session settle failure on topic: $sessionTopic, error: $error") }
                         onFailure(error)
                     }
                 )
             } catch (e: Exception) {
-                if (e is NoRelayConnectionException) insertEventUseCase(Props(type = EventType.Error.NO_WSS_CONNECTION, properties = Properties(trace = trace, topic = pairingTopic.value)))
-                if (e is NoInternetConnectionException) insertEventUseCase(Props(type = EventType.Error.NO_INTERNET_CONNECTION, properties = Properties(trace = trace, topic = pairingTopic.value)))
+                if (e is NoRelayConnectionException)
+                    scope.launch {
+                        supervisorScope {
+                            insertEventUseCase(Props(type = EventType.Error.NO_WSS_CONNECTION, properties = Properties(trace = trace, topic = pairingTopic.value)))
+                        }
+                    }
+                if (e is NoInternetConnectionException)
+                    scope.launch {
+                        supervisorScope {
+                            insertEventUseCase(Props(type = EventType.Error.NO_INTERNET_CONNECTION, properties = Properties(trace = trace, topic = pairingTopic.value)))
+                        }
+                    }
                 sessionStorageRepository.deleteSession(sessionTopic)
                 logger.error("Session settle failure, error: $e")
                 // todo: missing metadata deletion. Also check other try catches
@@ -136,8 +149,11 @@ internal class ApproveSessionUseCase(
                     trace.add(Trace.Session.SUBSCRIBE_SESSION_TOPIC_SUCCESS).also { logger.log("Successfully subscribed to session topic: $sessionTopic") }
                 },
                 onFailure = { error ->
-                    insertEventUseCase(Props(type = EventType.Error.SESSION_SUBSCRIPTION_FAILURE, properties = Properties(trace = trace, topic = sessionTopic.value)))
-                        .also { logger.error("Subscribe to session topic failure: $error") }
+                    scope.launch {
+                        supervisorScope {
+                            insertEventUseCase(Props(type = EventType.Error.SESSION_SUBSCRIPTION_FAILURE, properties = Properties(trace = trace, topic = sessionTopic.value)))
+                        }
+                    }.also { logger.error("Subscribe to session topic failure: $error") }
                     onFailure(error)
                 })
             trace.add(Trace.Session.PUBLISHING_SESSION_APPROVE).also { logger.log("Publishing session approve on topic: $sessionTopic") }
@@ -146,8 +162,11 @@ internal class ApproveSessionUseCase(
                     trace.add(Trace.Session.SESSION_APPROVE_PUBLISH_SUCCESS).also { logger.log("Session approve sent successfully, topic: $sessionTopic") }
                 },
                 onFailure = { error ->
-                    insertEventUseCase(Props(type = EventType.Error.SESSION_APPROVE_PUBLISH_FAILURE, properties = Properties(trace = trace, topic = sessionTopic.value)))
-                        .also { logger.error("Session approve failure, topic: $sessionTopic: $error") }
+                    scope.launch {
+                        supervisorScope {
+                            insertEventUseCase(Props(type = EventType.Error.SESSION_APPROVE_PUBLISH_FAILURE, properties = Properties(trace = trace, topic = sessionTopic.value)))
+                        }
+                    }.also { logger.error("Session approve failure, topic: $sessionTopic: $error") }
                     onFailure(error)
                 })
 
