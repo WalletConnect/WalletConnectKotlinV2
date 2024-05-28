@@ -22,7 +22,7 @@ internal fun requestsModule() = module {
             jsonRpcInteractor = get(),
             proposalStorageRepository = get(),
             resolveAttestationIdUseCase = get(),
-            eventsRepository = get(),
+            insertEventUseCase = get(),
             logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }
@@ -33,7 +33,7 @@ internal fun requestsModule() = module {
             resolveAttestationIdUseCase = get(),
             logger = get(),
             pairingController = get(),
-            eventsRepository = get()
+            insertEventUseCase = get()
         )
     }
 

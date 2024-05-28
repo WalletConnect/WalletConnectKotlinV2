@@ -1,8 +1,13 @@
 package com.walletconnect.android.pulse.model
 
-internal object EventType {
+object EventType {
+    @get:JvmSynthetic
+    const val ERROR: String = "ERROR"
 
-    internal object Error {
+    @get:JvmSynthetic
+    const val TRACK: String = "TRACE"
+
+    object Error {
         @get:JvmSynthetic
         const val NO_WSS_CONNECTION: String = "NO_WSS_CONNECTION"
 
@@ -70,7 +75,7 @@ internal object EventType {
         const val AUTHENTICATED_SESSION_EXPIRED: String = "AUTHENTICATED_SESSION_EXPIRED"
     }
 
-    internal object Track {
+    object Track {
         @get:JvmSynthetic
         const val MODAL_CREATED: String = "MODAL_CREATED"
 

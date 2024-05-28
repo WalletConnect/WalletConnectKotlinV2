@@ -15,13 +15,14 @@ insertOrAbort:
 INSERT OR ABORT INTO EventDao(event_id, bundle_id, timestamp,  event_name, type, topic, trace)
 VALUES (?,?,?,?,?,?, ?);
 
-getAll:
+getAllWithLimitAndOffset:
 SELECT event_id, bundle_id, timestamp, event_name, type, topic, trace
-FROM EventDao ed;
+FROM EventDao ed
+LIMIT ? OFFSET ?;
+
+deleteByIds:
+DELETE FROM EventDao
+WHERE event_id IN ?;
 
 deleteAll:
 DELETE FROM EventDao;
-
-deleteById:
-DELETE FROM EventDao
-WHERE event_id = ?;

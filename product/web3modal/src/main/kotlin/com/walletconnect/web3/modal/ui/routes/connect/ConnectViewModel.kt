@@ -4,11 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.internal.common.modal.data.model.Wallet
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.android.pulse.domain.w3m.SendClickAllWalletsUseCase
-import com.walletconnect.android.pulse.domain.w3m.SendClickNetworkHelpUseCase
-import com.walletconnect.android.pulse.domain.w3m.SendConnectErrorUseCase
-import com.walletconnect.android.pulse.domain.w3m.SendSelectWalletUseCase
+import com.walletconnect.android.pulse.domain.SendEventInterface
 import com.walletconnect.android.pulse.model.ConnectionMethod
+import com.walletconnect.android.pulse.model.EventType
+import com.walletconnect.android.pulse.model.properties.Properties
+import com.walletconnect.android.pulse.model.properties.Props
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.modal.ui.model.LoadingState
 import com.walletconnect.modal.ui.model.UiState
@@ -35,20 +35,14 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
     private val saveRecentWalletUseCase: SaveRecentWalletUseCase = wcKoinApp.koin.get()
     private val saveChainSelectionUseCase: SaveChainSelectionUseCase = wcKoinApp.koin.get()
     private val observeSelectedChainUseCase: ObserveSelectedChainUseCase = wcKoinApp.koin.get()
-    private val sendClickAllWalletsEvent: SendClickAllWalletsUseCase = wcKoinApp.koin.get()
     private val web3ModalEngine: Web3ModalEngine = wcKoinApp.koin.get()
-    private val sendClickNetworkHelpUseCase: SendClickNetworkHelpUseCase = wcKoinApp.koin.get()
-    private val sendSelectWalletEvent: SendSelectWalletUseCase = wcKoinApp.koin.get()
-    private val sendConnectErrorUseCase: SendConnectErrorUseCase = wcKoinApp.koin.get()
-
+    private val sendEventUseCase: SendEventInterface = wcKoinApp.koin.get()
     private var sessionParams = getSessionParamsSelectedChain(Web3Modal.selectedChain?.id)
-
     val selectedChain = observeSelectedChainUseCase().map { savedChainId ->
         Web3Modal.chains.find { it.id == savedChainId } ?: web3ModalEngine.getSelectedChainOrFirst()
     }
 
     val walletsState: StateFlow<WalletsData> = walletsDataStore.searchWalletsState.stateIn(viewModelScope, SharingStarted.Lazily, WalletsData.empty())
-
     val uiState: StateFlow<UiState<List<Wallet>>> = walletsDataStore.walletState.map { pagingData ->
         when {
             pagingData.error != null -> UiState.Error(pagingData.error)
@@ -69,17 +63,17 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
     }
 
     fun navigateToHelp() {
-        sendClickNetworkHelpUseCase()
+        sendEventUseCase.send(Props(EventType.TRACK, EventType.Track.CLICK_NETWORK_HELP))
         navigateTo(Route.WHAT_IS_WALLET.path)
     }
 
     fun navigateToScanQRCode() {
-        sendSelectWalletEvent(name = "WalletConnect", platform = ConnectionMethod.QR_CODE)
+        sendEventUseCase.send(Props(EventType.TRACK, EventType.Track.SELECT_WALLET, Properties(name = "WalletConnect", platform = ConnectionMethod.QR_CODE)))
         connectWalletConnect(name = "WalletConnect", method = ConnectionMethod.QR_CODE) { navigateTo(Route.QR_CODE.path) }
     }
 
     fun navigateToRedirectRoute(wallet: Wallet) {
-        sendSelectWalletEvent(name = wallet.name, platform = wallet.toConnectionType())
+        sendEventUseCase.send(Props(EventType.TRACK, EventType.Track.SELECT_WALLET, Properties(name = wallet.name, platform = wallet.toConnectionType())))
         saveRecentWalletUseCase(wallet.id)
         walletsDataStore.updateRecentWallet(wallet.id)
         navigateTo(wallet.toRedirectPath())
@@ -92,7 +86,7 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
     }
 
     fun navigateToAllWallets() {
-        sendClickAllWalletsEvent()
+        sendEventUseCase.send(Props(EventType.TRACK, EventType.Track.CLICK_ALL_WALLETS))
         clearSearch()
         navigateTo(Route.ALL_WALLETS.path)
     }
@@ -103,7 +97,7 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
             sessionParams = sessionParams,
             onSuccess = onSuccess,
             onError = {
-                sendConnectErrorUseCase(message = it.message ?: "Relay error while connecting")
+                sendEventUseCase.send(Props(EventType.TRACK, EventType.Track.CONNECT_ERROR, Properties(message = it.message ?: "Relay error while connecting")))
                 showError(it.localizedMessage)
                 logger.error(it)
             }

@@ -1,10 +1,11 @@
 package com.walletconnect.android.internal.common.storage.events
 
 import android.database.sqlite.SQLiteException
+import app.cash.sqldelight.async.coroutines.awaitAsList
 import com.walletconnect.android.internal.common.model.TelemetryEnabled
 import com.walletconnect.android.pulse.model.Event
+import com.walletconnect.android.pulse.model.properties.Properties
 import com.walletconnect.android.pulse.model.properties.Props
-import com.walletconnect.android.sdk.storage.data.dao.EventDao
 import com.walletconnect.android.sdk.storage.data.dao.EventQueries
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -17,27 +18,41 @@ class EventsRepository(
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
     @Throws(SQLiteException::class)
-    suspend fun insertOrAbort(props: Props.Error) = withContext(dispatcher) {
+    suspend fun insertOrAbort(props: Props) = withContext(dispatcher) {
         if (telemetryEnabled.value) {
             with(Event(bundleId = bundleId, props = props)) {
                 eventQueries.insertOrAbort(
                     eventId,
                     bundleId,
                     timestamp,
-                    props.event,
-                    props.type,
-                    props.properties?.topic,
-                    props.properties?.trace
+                    this.props.event,
+                    this.props.type,
+                    this.props.properties?.topic,
+                    this.props.properties?.trace
                 )
             }
         }
     }
 
     @Throws(SQLiteException::class)
-    suspend fun getAll(): List<EventDao> {
-        return withContext(dispatcher) {
-            eventQueries.getAll().executeAsList()
-        }
+    suspend fun getAllWithLimitAndOffset(limit: Int, offset: Int): List<Event> {
+        return eventQueries.getAllWithLimitAndOffset(limit.toLong(), offset.toLong())
+            .awaitAsList()
+            .map {
+                Event(
+                    eventId = it.event_id,
+                    bundleId = it.bundle_id,
+                    timestamp = it.timestamp,
+                    props = Props(
+                        event = it.event_name,
+                        type = it.type,
+                        properties = Properties(
+                            topic = it.topic,
+                            trace = it.trace
+                        )
+                    )
+                )
+            }
     }
 
     @Throws(SQLiteException::class)
@@ -48,9 +63,9 @@ class EventsRepository(
     }
 
     @Throws(SQLiteException::class)
-    suspend fun deleteById(eventId: Long) {
-        return withContext(dispatcher) {
-            eventQueries.deleteById(eventId)
+    suspend fun deleteByIds(eventIds: List<Long>) {
+        withContext(dispatcher) {
+            eventQueries.deleteByIds(eventIds)
         }
     }
 }
