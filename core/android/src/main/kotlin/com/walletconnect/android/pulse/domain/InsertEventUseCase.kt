@@ -7,16 +7,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class InsertEventUseCase(
-	private val eventsRepository: EventsRepository,
-	private val logger: Logger
+    private val eventsRepository: EventsRepository,
+    private val logger: Logger
 ) {
-	suspend operator fun invoke(props: Props) {
-		withContext(Dispatchers.IO) {
-			try {
-				eventsRepository.insertOrAbort(props)
-			} catch (e: Exception) {
-				logger.error("Inserting event ${props.type} error: $e")
-			}
-		}
-	}
+    suspend operator fun invoke(props: Props) {
+        withContext(Dispatchers.IO) {
+            try {
+                eventsRepository.insertOrAbort(props)
+            } catch (e: Exception) {
+                logger.error("Inserting event ${props.type} error: $e")
+            }
+        }
+    }
 }
