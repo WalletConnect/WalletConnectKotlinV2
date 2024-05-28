@@ -59,7 +59,7 @@ class Web3WalletApplication : Application() {
 
         EthAccountDelegate.application = this
 
-        val projectId = "b9b338b8add6eb7a688d3cf9307717c6"//BuildConfig.PROJECT_ID TODO: delete me temp project_id for rejections tags testing
+        val projectId = BuildConfig.PROJECT_ID
         val serverUrl = "wss://$RELAY_URL?projectId=$projectId"
         val appMetaData = Core.Model.AppMetaData(
             name = "Kotlin Wallet",
