@@ -1,5 +1,5 @@
 plugins {
-    id("com.android.library")
+    id(libs.plugins.android.library.get().pluginId)
     id(libs.plugins.kotlin.android.get().pluginId)
     alias(libs.plugins.sqlDelight)
     alias(libs.plugins.google.ksp)
@@ -60,14 +60,14 @@ dependencies {
     debugImplementation(project(":core:android"))
     releaseImplementation("com.walletconnect:android-core:$CORE_VERSION")
 
-    retrofit()
+    implementation(libs.bundles.retrofit)
     ksp(libs.moshi.ksp)
     implementation(libs.bundles.sqlDelight)
 
-    androidXTest()
+    testImplementation(libs.bundles.androidxTest)
     testImplementation(libs.robolectric)
     testImplementation(libs.json)
     testImplementation(libs.coroutines.test)
-    scarletTest()
+    testImplementation(libs.bundles.scarlet.test)
     testImplementation(libs.bundles.sqlDelight.test)
 }

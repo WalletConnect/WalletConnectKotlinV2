@@ -39,7 +39,7 @@ android {
     }
     kotlinOptions {
         jvmTarget = jvmVersion.toString()
-        freeCompilerArgs = freeCompilerArgs + "-Xopt-in=kotlin.time.ExperimentalTime"
+        freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlin.time.ExperimentalTime"
     }
 
     buildFeatures {

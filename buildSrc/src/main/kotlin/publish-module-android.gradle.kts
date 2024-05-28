@@ -12,10 +12,9 @@ tasks {
     register("javadocJar", Jar::class) {
         dependsOn(named("dokkaHtml"))
         archiveClassifier.set("javadoc")
-        from("$buildDir/dokka/html")
+        from("${layout.buildDirectory}/dokka/html")
     }
 
-    @Suppress("UnstableApiUsage")
     register("sourcesJar", Jar::class) {
         archiveClassifier.set("sources")
         from(
@@ -45,7 +44,6 @@ afterEvaluate {
                     name.set("WalletConnect ${requireNotNull(extra.get(KEY_SDK_NAME))}")
                     description.set("${requireNotNull(extra.get(KEY_SDK_NAME))} SDK for WalletConnect")
                     url.set("https://github.com/WalletConnect/WalletConnectKotlinV2")
-
                     licenses {
                         license {
                             name.set("The Apache License, Version 2.0")
