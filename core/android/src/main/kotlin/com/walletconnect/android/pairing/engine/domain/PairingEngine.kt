@@ -112,7 +112,7 @@ internal class PairingEngine(
         inactivePairingsExpiryWatcher()
         activePairingsExpiryWatcher()
         isPairingStateWatcher()
-        scope.launch { supervisorScope { sendBatchEventUseCase() } }
+        sendEvents()
     }
 
     val jsonRpcErrorFlow: Flow<SDKError> by lazy {
@@ -299,6 +299,18 @@ internal class PairingEngine(
 
     fun updateMetadata(topic: String, metadata: AppMetaData, metaDataType: AppMetaDataType) {
         metadataRepository.upsertPeerMetadata(Topic(topic), metadata, metaDataType)
+    }
+
+    private fun sendEvents() {
+        scope.launch {
+            supervisorScope {
+                try {
+                    sendBatchEventUseCase()
+                } catch (e:Exception){
+                    logger.error("Error when sending events: $e")
+                }
+            }
+        }
     }
 
     private fun resubscribeToPairingTopics() {
