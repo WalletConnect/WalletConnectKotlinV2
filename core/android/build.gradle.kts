@@ -110,6 +110,7 @@ dependencies {
     testImplementation(libs.coroutines.test)
     testImplementation(libs.bundles.scarlet.test)
     testImplementation(libs.bundles.sqlDelight.test)
+    testImplementation(libs.koin.test)
 
     androidTestUtil(libs.androidx.testOrchestrator)
     androidTestImplementation(libs.bundles.androidxAndroidTest)

@@ -114,6 +114,7 @@ okhttp-logging = { module = "com.squareup.okhttp3:logging-interceptor" }
 
 koin-jvm = { module = "io.insert-koin:koin-core", version.ref = "koin" }
 koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
+koin-test = { module = "io.insert-koin:koin-test", version.ref = "koin" }
 
 jUnit = { module = "junit:junit", version.ref = "jUnit" }
 jUnit-engine = { module = "org.junit.vintage:junit-vintage-engine", version = "5.10.0" }

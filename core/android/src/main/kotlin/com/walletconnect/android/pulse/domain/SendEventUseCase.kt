@@ -15,7 +15,7 @@ import org.koin.core.qualifier.named
 class SendEventUseCase(
     private val pulseService: PulseService,
     private val logger: Logger,
-    private val bundleId: String
+    private val bundleId: String,
 ) : SendEventInterface {
     private val enableW3MAnalytics: Boolean by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.ENABLE_WEB_3_MODAL_ANALYTICS)) }
 
@@ -25,7 +25,7 @@ class SendEventUseCase(
                 supervisorScope {
                     try {
                         val event = Event(props = props, bundleId = bundleId)
-                        logger.log("Event: $event, sdkType: ${sdkType.type}")
+                        println("kobe: $event")
                         val response = pulseService.sendEvent(body = event, sdkType = sdkType.type)
                         if (!response.isSuccessful) {
                             logger.error("Failed to send event: ${event.props.type}")

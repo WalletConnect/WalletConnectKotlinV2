@@ -3,7 +3,6 @@
 package com.walletconnect.android.pulse.data
 
 import com.walletconnect.android.pulse.model.Event
-import com.walletconnect.android.pulse.model.properties.Props
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.Header
