@@ -8,9 +8,13 @@ import com.walletconnect.android.pulse.model.Event
 import com.walletconnect.android.pulse.model.SDKType
 import com.walletconnect.android.pulse.model.properties.Props
 import com.walletconnect.foundation.util.Logger
+import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -64,14 +68,13 @@ class SendEventUseCaseTest : KoinTest {
         val event = Event(props = props, bundleId = bundleId)
 
         coEvery { pulseService.sendEvent(body = any(), sdkType = any()) } returns Response.success(Unit)
-//        every { logger.log() } just Runs
+        every { logger.log("Event sent successfully: ${event.props.type}") } just Runs
 
-        useCase.send(props, sdkType)
+        useCase.send(props, sdkType, event.timestamp, event.eventId)
 
-        advanceUntilIdle() // Ensure all coroutines have completed
+        advanceUntilIdle()
 
         coVerify { pulseService.sendEvent(body = event, sdkType = sdkType.type) }
-//        verify { logger.log("Event: $event, sdkType: ${sdkType.type}") }
-//        verify { logger.log("Event sent successfully: ${event.props.type}") }
+        verify { logger.log("Event sent successfully: ${event.props.type}") }
     }
 }
