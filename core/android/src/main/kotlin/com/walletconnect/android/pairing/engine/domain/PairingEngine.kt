@@ -306,7 +306,7 @@ internal class PairingEngine(
             supervisorScope {
                 try {
                     sendBatchEventUseCase()
-                } catch (e:Exception){
+                } catch (e: Exception) {
                     logger.error("Error when sending events: $e")
                 }
             }

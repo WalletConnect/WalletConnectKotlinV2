@@ -94,7 +94,7 @@ internal class ApproveSessionUseCase(
                     onFailure = { error ->
                         scope.launch {
                             supervisorScope {
-                                insertEventUseCase(Props(type = EventType.Error.SESSION_APPROVE_PUBLISH_FAILURE, properties = Properties(trace = trace, topic = sessionTopic.value)))
+                                insertEventUseCase(Props(type = EventType.Error.SESSION_SETTLE_PUBLISH_FAILURE, properties = Properties(trace = trace, topic = sessionTopic.value)))
                             }
                         }.also { logger.error("Session settle failure on topic: $sessionTopic, error: $error") }
                         onFailure(error)
