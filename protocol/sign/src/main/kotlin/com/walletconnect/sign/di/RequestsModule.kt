@@ -22,11 +22,20 @@ internal fun requestsModule() = module {
             jsonRpcInteractor = get(),
             proposalStorageRepository = get(),
             resolveAttestationIdUseCase = get(),
+            insertEventUseCase = get(),
             logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }
 
-    single { OnSessionAuthenticateUseCase(jsonRpcInteractor = get(), resolveAttestationIdUseCase = get(), logger = get(), pairingController = get()) }
+    single {
+        OnSessionAuthenticateUseCase(
+            jsonRpcInteractor = get(),
+            resolveAttestationIdUseCase = get(),
+            logger = get(),
+            pairingController = get(),
+            insertEventUseCase = get()
+        )
+    }
 
     single {
         OnSessionSettleUseCase(

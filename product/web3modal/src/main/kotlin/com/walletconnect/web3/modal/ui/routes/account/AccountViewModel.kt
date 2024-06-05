@@ -3,8 +3,10 @@ package com.walletconnect.web3.modal.ui.routes.account
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.android.pulse.domain.SendClickNetworkHelpUseCase
-import com.walletconnect.android.pulse.domain.SendSwitchNetworkUseCase
+import com.walletconnect.android.pulse.domain.SendEventInterface
+import com.walletconnect.android.pulse.model.EventType
+import com.walletconnect.android.pulse.model.properties.Properties
+import com.walletconnect.android.pulse.model.properties.Props
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.modal.ui.model.UiState
 import com.walletconnect.web3.modal.client.Modal
@@ -47,9 +49,7 @@ internal class AccountViewModel : ViewModel(), Navigator by NavigatorImpl() {
     private val getIdentityUseCase: GetIdentityUseCase = wcKoinApp.koin.get()
     private val getEthBalanceUseCase: GetEthBalanceUseCase = wcKoinApp.koin.get()
     private val web3ModalEngine: Web3ModalEngine = wcKoinApp.koin.get()
-    private val sendClickNetworkHelpUseCase: SendClickNetworkHelpUseCase = wcKoinApp.koin.get()
-    private val sendSwitchNetworkUseCase: SendSwitchNetworkUseCase = wcKoinApp.koin.get()
-
+    private val sendEventUseCase: SendEventInterface = wcKoinApp.koin.get()
     private val activeSessionFlow = observeSessionUseCase()
 
     private val accountDataFlow = activeSessionFlow
@@ -101,7 +101,7 @@ internal class AccountViewModel : ViewModel(), Navigator by NavigatorImpl() {
 
     fun changeActiveChain(chain: Modal.Model.Chain) = viewModelScope.launch {
         if (accountData.chains.contains(chain)) {
-            sendSwitchNetworkUseCase(network = chain.id)
+            sendEventUseCase.send(Props(EventType.TRACK, EventType.Track.SWITCH_NETWORK, Properties(network = chain.id)))
             saveChainSelectionUseCase(chain.id)
             popBackStack()
         } else {
@@ -111,7 +111,7 @@ internal class AccountViewModel : ViewModel(), Navigator by NavigatorImpl() {
 
     suspend fun updatedSessionAfterChainSwitch(updatedSession: Session) {
         if (updatedSession.getChains().any { it.id == updatedSession.chain }) {
-            sendSwitchNetworkUseCase(network = updatedSession.chain)
+            sendEventUseCase.send(Props(EventType.TRACK, EventType.Track.SWITCH_NETWORK, Properties(network = updatedSession.chain)))
             saveSessionUseCase(updatedSession)
             popBackStack(path = Route.CHANGE_NETWORK.path, inclusive = true)
         }
@@ -177,7 +177,7 @@ internal class AccountViewModel : ViewModel(), Navigator by NavigatorImpl() {
     fun getSelectedChainOrFirst() = web3ModalEngine.getSelectedChainOrFirst()
 
     fun navigateToHelp() {
-        sendClickNetworkHelpUseCase()
+        sendEventUseCase.send(Props(EventType.TRACK, EventType.Track.CLICK_NETWORK_HELP))
         navigateTo(Route.WHAT_IS_WALLET.path)
     }
 }

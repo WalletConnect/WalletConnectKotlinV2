@@ -6,6 +6,7 @@ import com.squareup.moshi.Moshi
 import com.walletconnect.android.di.AndroidBuildVariantDITags
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.Validation
+import com.walletconnect.android.internal.common.storage.events.EventsRepository
 import com.walletconnect.android.internal.common.storage.identity.IdentitiesStorageRepository
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepository
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
@@ -15,6 +16,7 @@ import com.walletconnect.android.internal.common.storage.push_messages.PushMessa
 import com.walletconnect.android.internal.common.storage.rpc.JsonRpcHistory
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.sdk.core.AndroidCoreDatabase
+import com.walletconnect.android.sdk.storage.data.dao.EventDao
 import com.walletconnect.android.sdk.storage.data.dao.MetaData
 import com.walletconnect.android.sdk.storage.data.dao.VerifyContext
 import com.walletconnect.utils.Empty
@@ -24,7 +26,7 @@ import org.koin.core.scope.Scope
 import org.koin.dsl.module
 import com.walletconnect.android.internal.common.scope as wcScope
 
-fun baseStorageModule(storagePrefix: String = String.Empty) = module {
+fun baseStorageModule(storagePrefix: String = String.Empty, bundleId: String) = module {
 
     fun Scope.createCoreDB(): AndroidCoreDatabase = AndroidCoreDatabase(
         driver = get(named(AndroidBuildVariantDITags.ANDROID_CORE_DATABASE_DRIVER)),
@@ -34,6 +36,9 @@ fun baseStorageModule(storagePrefix: String = String.Empty) = module {
         ),
         VerifyContextAdapter = VerifyContext.Adapter(
             validationAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_VALIDATION))
+        ),
+        EventDaoAdapter = EventDao.Adapter(
+            traceAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_LIST))
         )
     )
 
@@ -101,6 +106,8 @@ fun baseStorageModule(storagePrefix: String = String.Empty) = module {
 
     single { get<AndroidCoreDatabase>(named(AndroidBuildVariantDITags.ANDROID_CORE_DATABASE)).pushMessageQueries }
 
+    single { get<AndroidCoreDatabase>(named(AndroidBuildVariantDITags.ANDROID_CORE_DATABASE)).eventQueries }
+
     single<MetadataStorageRepositoryInterface> { MetadataStorageRepository(metaDataQueries = get()) }
 
     single<PairingStorageRepositoryInterface> { PairingStorageRepository(pairingQueries = get()) }
@@ -112,6 +119,8 @@ fun baseStorageModule(storagePrefix: String = String.Empty) = module {
     single { VerifyContextStorageRepository(verifyContextQueries = get()) }
 
     single { PushMessagesRepository(pushMessageQueries = get()) }
+
+    single { EventsRepository(eventQueries = get(), bundleId = bundleId, telemetryEnabled = get(named(AndroidCommonDITags.TELEMETRY_ENABLED))) }
 
     single { DatabaseConfig(storagePrefix = storagePrefix) }
 }

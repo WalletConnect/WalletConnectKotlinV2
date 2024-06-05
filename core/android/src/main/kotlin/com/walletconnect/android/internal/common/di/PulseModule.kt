@@ -1,22 +1,12 @@
 package com.walletconnect.android.internal.common.di
 
+import com.squareup.moshi.Moshi
+import com.walletconnect.android.internal.common.model.TelemetryEnabled
 import com.walletconnect.android.pulse.data.PulseService
-import com.walletconnect.android.pulse.domain.SendClickAllWalletsUseCase
-import com.walletconnect.android.pulse.domain.SendClickGetWalletUseCase
-import com.walletconnect.android.pulse.domain.SendClickNetworkHelpUseCase
-import com.walletconnect.android.pulse.domain.SendClickNetworksUseCase
-import com.walletconnect.android.pulse.domain.SendClickWalletHelpUseCase
-import com.walletconnect.android.pulse.domain.SendConnectErrorUseCase
-import com.walletconnect.android.pulse.domain.SendConnectSuccessUseCase
-import com.walletconnect.android.pulse.domain.SendDisconnectErrorUseCase
-import com.walletconnect.android.pulse.domain.SendDisconnectSuccessUseCase
-import com.walletconnect.android.pulse.domain.SendModalCloseUseCase
-import com.walletconnect.android.pulse.domain.SendModalCreatedUseCase
-import com.walletconnect.android.pulse.domain.SendModalLoadedUseCase
-import com.walletconnect.android.pulse.domain.SendModalLoadedUseCaseInterface
-import com.walletconnect.android.pulse.domain.SendModalOpenUseCase
-import com.walletconnect.android.pulse.domain.SendSelectWalletUseCase
-import com.walletconnect.android.pulse.domain.SendSwitchNetworkUseCase
+import com.walletconnect.android.pulse.domain.InsertEventUseCase
+import com.walletconnect.android.pulse.domain.SendBatchEventUseCase
+import com.walletconnect.android.pulse.domain.SendEventInterface
+import com.walletconnect.android.pulse.domain.SendEventUseCase
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import retrofit2.Retrofit
@@ -30,14 +20,16 @@ fun pulseModule(bundleId: String) = module {
         Retrofit.Builder()
             .baseUrl(get<String>(named(AndroidCommonDITags.PULSE_URL)))
             .client(get(named(AndroidCommonDITags.WEB3MODAL_OKHTTP)))
-            .addConverterFactory(MoshiConverterFactory.create(get(named(AndroidCommonDITags.MOSHI))))
+            .addConverterFactory(MoshiConverterFactory.create(get<Moshi.Builder>(named(AndroidCommonDITags.MOSHI)).build()))
             .build()
     }
 
-    single { get<Retrofit>(named(AndroidCommonDITags.PULSE_RETROFIT)).create(PulseService::class.java) }
-
     single {
-        SendModalCreatedUseCase(
+        get<Retrofit>(named(AndroidCommonDITags.PULSE_RETROFIT)).create(PulseService::class.java)
+    }
+
+    single<SendEventInterface> {
+        SendEventUseCase(
             pulseService = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
             bundleId = bundleId
@@ -45,114 +37,18 @@ fun pulseModule(bundleId: String) = module {
     }
 
     single {
-        SendClickAllWalletsUseCase(
+        SendBatchEventUseCase(
             pulseService = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
-            bundleId = bundleId
+            telemetryEnabled = get<TelemetryEnabled>(named(AndroidCommonDITags.TELEMETRY_ENABLED)),
+            eventsRepository = get(),
         )
     }
 
     single {
-        SendClickGetWalletUseCase(
-            pulseService = get(),
+        InsertEventUseCase(
             logger = get(named(AndroidCommonDITags.LOGGER)),
-            bundleId = bundleId
-        )
-    }
-
-    single {
-        SendClickWalletHelpUseCase(
-            pulseService = get(),
-            logger = get(named(AndroidCommonDITags.LOGGER)),
-            bundleId = bundleId
-        )
-    }
-
-    single {
-        SendClickNetworkHelpUseCase(
-            pulseService = get(),
-            logger = get(named(AndroidCommonDITags.LOGGER)),
-            bundleId = bundleId
-        )
-    }
-
-    single {
-        SendClickNetworksUseCase(
-            pulseService = get(),
-            logger = get(named(AndroidCommonDITags.LOGGER)),
-            bundleId = bundleId
-        )
-    }
-
-    single {
-        SendConnectErrorUseCase(
-            pulseService = get(),
-            logger = get(named(AndroidCommonDITags.LOGGER)),
-            bundleId = bundleId
-        )
-    }
-
-    single {
-        SendConnectSuccessUseCase(
-            pulseService = get(),
-            logger = get(named(AndroidCommonDITags.LOGGER)),
-            bundleId = bundleId
-        )
-    }
-
-    single {
-        SendDisconnectErrorUseCase(
-            pulseService = get(),
-            logger = get(named(AndroidCommonDITags.LOGGER)),
-            bundleId = bundleId
-        )
-    }
-
-    single {
-        SendDisconnectSuccessUseCase(
-            pulseService = get(),
-            logger = get(named(AndroidCommonDITags.LOGGER)),
-            bundleId = bundleId
-        )
-    }
-
-    single {
-        SendModalCloseUseCase(
-            pulseService = get(),
-            logger = get(named(AndroidCommonDITags.LOGGER)),
-            bundleId = bundleId
-        )
-    }
-
-    single<SendModalLoadedUseCaseInterface> {
-        SendModalLoadedUseCase(
-            pulseService = get(),
-            logger = get(named(AndroidCommonDITags.LOGGER)),
-            bundleId = bundleId
-        )
-    }
-
-    single {
-        SendModalOpenUseCase(
-            pulseService = get(),
-            logger = get(named(AndroidCommonDITags.LOGGER)),
-            bundleId = bundleId
-        )
-    }
-
-    single {
-        SendSelectWalletUseCase(
-            pulseService = get(),
-            logger = get(named(AndroidCommonDITags.LOGGER)),
-            bundleId = bundleId
-        )
-    }
-
-    single {
-        SendSwitchNetworkUseCase(
-            pulseService = get(),
-            logger = get(named(AndroidCommonDITags.LOGGER)),
-            bundleId = bundleId
+            eventsRepository = get(),
         )
     }
 }

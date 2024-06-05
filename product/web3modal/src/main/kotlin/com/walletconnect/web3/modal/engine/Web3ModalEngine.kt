@@ -8,11 +8,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import com.walletconnect.android.internal.common.modal.domain.usecase.EnableAnalyticsUseCaseInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.android.pulse.domain.SendConnectErrorUseCase
-import com.walletconnect.android.pulse.domain.SendConnectSuccessUseCase
-import com.walletconnect.android.pulse.domain.SendDisconnectErrorUseCase
-import com.walletconnect.android.pulse.domain.SendDisconnectSuccessUseCase
-import com.walletconnect.android.pulse.domain.SendModalLoadedUseCaseInterface
+import com.walletconnect.android.pulse.domain.SendEventInterface
+import com.walletconnect.android.pulse.model.EventType
+import com.walletconnect.android.pulse.model.properties.Properties
+import com.walletconnect.android.pulse.model.properties.Props
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
@@ -50,15 +49,11 @@ internal class Web3ModalEngine(
     private val getSelectedChainUseCase: GetSelectedChainUseCase,
     private val saveSessionUseCase: SaveSessionUseCase,
     private val deleteSessionDataUseCase: DeleteSessionDataUseCase,
-    private val sendModalLoadedUseCase: SendModalLoadedUseCaseInterface,
-    private val sendDisconnectSuccessUseCase: SendDisconnectSuccessUseCase,
-    private val sendDisconnectErrorUseCase: SendDisconnectErrorUseCase,
-    private val sendConnectErrorUseCase: SendConnectErrorUseCase,
-    private val sendConnectSuccessUseCase: SendConnectSuccessUseCase,
+    private val sendEventUseCase: SendEventInterface,
     private val connectionEventRepository: ConnectionEventRepository,
     private val enableAnalyticsUseCase: EnableAnalyticsUseCaseInterface,
     private val logger: Logger
-) : SendModalLoadedUseCaseInterface by sendModalLoadedUseCase,
+) : SendEventInterface by sendEventUseCase,
     EnableAnalyticsUseCaseInterface by enableAnalyticsUseCase {
     internal var excludedWalletsIds: MutableList<String> = mutableListOf()
     internal var recommendedWalletsIds: MutableList<String> = mutableListOf()
@@ -193,11 +188,11 @@ internal class Web3ModalEngine(
             is Session.WalletConnect -> {
                 SignClient.disconnect(Sign.Params.Disconnect(session.topic),
                     onSuccess = {
-                        sendDisconnectSuccessUseCase()
+                        sendEventUseCase.send(Props(EventType.TRACK, EventType.Track.DISCONNECT_SUCCESS))
                         onSuccess()
                     },
                     onError = {
-                        sendDisconnectErrorUseCase()
+                        sendEventUseCase.send(Props(EventType.TRACK, EventType.Track.DISCONNECT_ERROR))
                         onError(it.throwable)
                     })
             }
@@ -228,7 +223,7 @@ internal class Web3ModalEngine(
             override fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession) {
                 try {
                     val (name, method) = connectionEventRepository.getEvent()
-                    sendConnectSuccessUseCase(name = name, method = method)
+                    sendEventUseCase.send(Props(EventType.TRACK, EventType.Track.CONNECT_SUCCESS, Properties(name = name, method = method)))
                     connectionEventRepository.deleteEvent()
                 } catch (e: Exception) {
                     logger.error(e)
@@ -243,7 +238,7 @@ internal class Web3ModalEngine(
                 } catch (e: Exception) {
                     logger.error(e)
                 }
-                sendConnectErrorUseCase(message = rejectedSession.reason)
+                sendEventUseCase.send(Props(EventType.TRACK, EventType.Track.CONNECT_ERROR, Properties(message = rejectedSession.reason)))
                 delegate.onSessionRejected(rejectedSession.toModal())
             }
 

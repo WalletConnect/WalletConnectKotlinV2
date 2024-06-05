@@ -4,6 +4,8 @@ import androidx.activity.ComponentActivity
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
+import com.walletconnect.android.pulse.model.EventType
+import com.walletconnect.android.pulse.model.properties.Props
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.client.SignClient
 import com.walletconnect.sign.common.exceptions.SignClientAlreadyInitializedException
@@ -117,13 +119,13 @@ object Web3Modal {
                 web3ModalEngine.setup(init, onError)
                 web3ModalEngine.setInternalDelegate(Web3ModalDelegate)
                 wcKoinApp.modules(
-                    module { single(named(AndroidCommonDITags.ENABLE_ANALYTICS)) { init.enableAnalytics ?: web3ModalEngine.fetchAnalyticsConfig() } }
+                    module { single(named(AndroidCommonDITags.ENABLE_WEB_3_MODAL_ANALYTICS)) { init.enableAnalytics ?: web3ModalEngine.fetchAnalyticsConfig() } }
                 )
             }
                 .onFailure { error -> return@onInitializedClient onError(Modal.Model.Error(error)) }
                 .onSuccess {
                     onSuccess()
-                    web3ModalEngine.sendModalLoadedEvent()
+                    web3ModalEngine.send(Props(event = EventType.TRACK, type = EventType.Track.MODAL_LOADED))
                 }
         } else {
             onError(Modal.Model.Error(Web3ModelClientAlreadyInitializedException()))
@@ -133,7 +135,6 @@ object Web3Modal {
     fun setChains(chains: List<Modal.Model.Chain>) {
         this.chains = chains
     }
-
 
     fun setSessionProperties(properties: Map<String, String>) {
         sessionProperties = properties
