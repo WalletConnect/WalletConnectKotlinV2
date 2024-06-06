@@ -7,7 +7,6 @@ import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.exceptions.NotSettledSessionException
-import com.walletconnect.sign.common.exceptions.UnauthorizedPeerException
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import io.mockk.every

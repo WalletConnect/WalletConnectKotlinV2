@@ -5,9 +5,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavController
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.android.pulse.domain.SendClickNetworksUseCase
-import com.walletconnect.android.pulse.domain.SendModalCloseUseCase
-import com.walletconnect.android.pulse.domain.SendModalOpenUseCase
+import com.walletconnect.android.pulse.domain.SendEventInterface
+import com.walletconnect.android.pulse.model.EventType
+import com.walletconnect.android.pulse.model.properties.Properties
+import com.walletconnect.android.pulse.model.properties.Props
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
@@ -50,9 +51,7 @@ class Web3ModalState(
     private val getSessionUseCase: GetSessionUseCase = wcKoinApp.koin.get()
     private val getEthBalanceUseCase: GetEthBalanceUseCase = wcKoinApp.koin.get()
     private val web3ModalEngine: Web3ModalEngine = wcKoinApp.koin.get()
-    private val sendModalOpenEvent: SendModalOpenUseCase = wcKoinApp.koin.get()
-    private val sendModalCloseEvent: SendModalCloseUseCase = wcKoinApp.koin.get()
-    private val sendClickNetworksEvent: SendClickNetworksUseCase = wcKoinApp.koin.get()
+    private val sendEventUseCase: SendEventInterface = wcKoinApp.koin.get()
     private val sessionTopicFlow = observeSessionTopicUseCase()
 
     val isOpen = ComponentDelegate.modalComponentEvent
@@ -84,10 +83,10 @@ class Web3ModalState(
 
     private fun sendModalCloseOrOpenEvents(event: ComponentEvent) {
         when {
-            event.isOpen && isConnected.value -> sendModalOpenEvent(connected = true)
-            event.isOpen && !isConnected.value -> sendModalOpenEvent(connected = false)
-            !event.isOpen && isConnected.value -> sendModalCloseEvent(connected = true)
-            !event.isOpen && !isConnected.value -> sendModalCloseEvent(connected = false)
+            event.isOpen && isConnected.value -> sendEventUseCase.send(Props(EventType.TRACK, EventType.Track.MODAL_OPEN, Properties(connected = true)))
+            event.isOpen && !isConnected.value -> sendEventUseCase.send(Props(EventType.TRACK, EventType.Track.MODAL_OPEN, Properties(connected = false)))
+            !event.isOpen && isConnected.value -> sendEventUseCase.send(Props(EventType.TRACK, EventType.Track.MODAL_CLOSE, Properties(connected = true)))
+            !event.isOpen && !isConnected.value -> sendEventUseCase.send(Props(EventType.TRACK, EventType.Track.MODAL_CLOSE, Properties(connected = false)))
         }
     }
 
@@ -116,7 +115,7 @@ class Web3ModalState(
 
     internal fun openWeb3Modal(shouldOpenChooseNetwork: Boolean = false, isActiveNetwork: Boolean = false) {
         if (shouldOpenChooseNetwork && isActiveNetwork) {
-            sendClickNetworksEvent()
+            sendEventUseCase.send(Props(EventType.TRACK, EventType.Track.CLICK_NETWORKS))
         }
 
         navController.openWeb3Modal(

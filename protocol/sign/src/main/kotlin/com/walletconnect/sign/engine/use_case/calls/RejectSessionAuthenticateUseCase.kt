@@ -45,7 +45,7 @@ internal class RejectSessionAuthenticateUseCase(
 
         jsonRpcHistoryEntry.expiry?.let {
             if (it.isExpired()) {
-                val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(fiveMinutesInSeconds))
+                val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE_RESPONSE_REJECT, Ttl(fiveMinutesInSeconds))
                 val request = WCRequest(jsonRpcHistoryEntry.topic, jsonRpcHistoryEntry.id, JsonRpcMethod.WC_SESSION_AUTHENTICATE, object : ClientParams {})
                 jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
                 logger.error("Session Authenticate Request Expired: ${jsonRpcHistoryEntry.topic}, id: ${jsonRpcHistoryEntry.id}")

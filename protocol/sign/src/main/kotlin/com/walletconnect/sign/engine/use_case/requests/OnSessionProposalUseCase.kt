@@ -14,6 +14,10 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
+import com.walletconnect.android.pulse.domain.InsertEventUseCase
+import com.walletconnect.android.pulse.model.EventType
+import com.walletconnect.android.pulse.model.properties.Properties
+import com.walletconnect.android.pulse.model.properties.Props
 import com.walletconnect.android.utils.toClient
 import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
 import com.walletconnect.foundation.common.model.Ttl
@@ -38,6 +42,7 @@ internal class OnSessionProposalUseCase(
     private val proposalStorageRepository: ProposalStorageRepository,
     private val resolveAttestationIdUseCase: ResolveAttestationIdUseCase,
     private val pairingController: PairingControllerInterface,
+    private val insertEventUseCase: InsertEventUseCase,
     private val logger: Logger
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
@@ -54,12 +59,14 @@ internal class OnSessionProposalUseCase(
             logger.log("Session proposal received: ${request.topic}")
             SignValidator.validateProposalNamespaces(payloadParams.requiredNamespaces) { error ->
                 logger.error("Session proposal received error: required namespace validation: ${error.message}")
+                insertEventUseCase(Props(type = EventType.Error.REQUIRED_NAMESPACE_VALIDATION_FAILURE, properties = Properties(topic = request.topic.value)))
                 jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
                 return@supervisorScope
             }
 
             SignValidator.validateProposalNamespaces(payloadParams.optionalNamespaces ?: emptyMap()) { error ->
                 logger.error("Session proposal received error: optional namespace validation: ${error.message}")
+                insertEventUseCase(Props(type = EventType.Error.OPTIONAL_NAMESPACE_VALIDATION_FAILURE, properties = Properties(topic = request.topic.value)))
                 jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
                 return@supervisorScope
             }
@@ -67,6 +74,7 @@ internal class OnSessionProposalUseCase(
             payloadParams.properties?.let {
                 SignValidator.validateProperties(payloadParams.properties) { error ->
                     logger.error("Session proposal received error: session properties validation: ${error.message}")
+                    insertEventUseCase(Props(type = EventType.Error.SESSION_PROPERTIES_VALIDATION_FAILURE, properties = Properties(topic = request.topic.value)))
                     jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
                     return@supervisorScope
                 }

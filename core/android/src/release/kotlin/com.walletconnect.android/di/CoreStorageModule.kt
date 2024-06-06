@@ -9,18 +9,21 @@ import android.security.keystore.KeyProperties
 import android.util.Base64
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
-import com.getkeepsafe.relinker.ReLinker
 import app.cash.sqldelight.db.QueryResult
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.db.SqlSchema
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
-import com.walletconnect.android.internal.common.di.*
+import com.getkeepsafe.relinker.ReLinker
+import com.walletconnect.android.internal.common.di.AndroidCommonDITags
+import com.walletconnect.android.internal.common.di.DatabaseConfig
+import com.walletconnect.android.internal.common.di.baseStorageModule
+import com.walletconnect.android.internal.common.di.deleteDatabases
 import com.walletconnect.android.sdk.core.AndroidCoreDatabase
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.util.randomBytes
 import com.walletconnect.utils.Empty
-import net.sqlcipher.database.SupportFactory
 import net.sqlcipher.database.SQLiteDatabaseHook
+import net.sqlcipher.database.SupportFactory
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
@@ -175,9 +178,9 @@ private fun loadSqlCipherLibrary(context: Context) {
     }
 }
 
-fun coreStorageModule(storagePrefix: String = String.Empty) = module {
+fun coreStorageModule(storagePrefix: String = String.Empty, bundleId: String) = module {
 
-    includes(baseStorageModule(storagePrefix), signingModule())
+    includes(baseStorageModule(storagePrefix, bundleId), signingModule())
 
     single<SqlDriver>(named(AndroidBuildVariantDITags.ANDROID_CORE_DATABASE_DRIVER)) {
         AndroidSqliteDriver(

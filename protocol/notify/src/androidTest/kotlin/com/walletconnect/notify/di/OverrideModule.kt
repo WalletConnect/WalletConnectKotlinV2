@@ -31,7 +31,7 @@ internal fun overrideModule(
     single { relay }
 
     includes(
-        coreStorageModule(storagePrefix),
+        coreStorageModule(storagePrefix, bundleId),
         corePairingModule(pairing, pairingController),
         coreCryptoModule(sharedPrefsFile, keyStoreAlias),
         coreJsonRpcModule(),
