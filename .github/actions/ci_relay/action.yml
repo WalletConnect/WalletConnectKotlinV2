@@ -17,7 +17,7 @@ runs:
         architecture: x86_64
         cache: 'gradle'
     - name: Cache Gradle packages
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         path: |
           ~/.gradle/caches
