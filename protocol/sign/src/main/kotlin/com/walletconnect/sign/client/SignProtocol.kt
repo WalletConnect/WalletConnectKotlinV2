@@ -180,7 +180,6 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     @Throws(IllegalStateException::class)
     override fun formatAuthMessage(formatMessage: Sign.Params.FormatMessage): String {
         checkEngineInitialization()
-
         return runBlocking { signEngine.formatMessage(formatMessage.payloadParams.toEngine(), formatMessage.iss) }
     }
 
