@@ -65,7 +65,7 @@ fun ConnectionsRoute(navController: NavController, connectionsViewModel: Connect
         Title(navController)
         Connections(connections, { connectionUI -> navController.navigate("${Route.ConnectionDetails.path}/${connectionUI.id}") }, onClickBack = {
             val intent = Intent(Intent.ACTION_VIEW).apply {
-                data = Uri.parse("https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/dapp/.well-known/assetlinks.json")
+                data = Uri.parse("https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/dapp/")
             }
             context.startActivity(intent)
         })

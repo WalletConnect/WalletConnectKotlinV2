@@ -144,7 +144,7 @@ fun ChainSelectionRoute(navController: NavController) {
         },
         onLinkMode = {
             val intent = Intent(Intent.ACTION_VIEW).apply {
-                data = Uri.parse("https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet/.well-known/assetlinks.json")
+                data = Uri.parse("https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet/")//.well-known/assetlinks.json")
             }
             context.startActivity(intent)
         }

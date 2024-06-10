@@ -92,10 +92,11 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
                 is EngineDO.SessionApproved -> delegate.onSessionApproved(event.toClientSessionApproved())
                 is EngineDO.SessionUpdateNamespaces -> delegate.onSessionUpdate(event.toClientSessionsNamespaces())
                 is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
-                is EngineDO.SessionEvent ->{
+                is EngineDO.SessionEvent -> {
                     delegate.onSessionEvent(event.toClientSessionEvent())
                     delegate.onSessionEvent(event.toClientEvent())
                 }
+
                 is EngineDO.SessionExtend -> delegate.onSessionExtend(event.toClientActiveSession())
                 //Responses
                 is EngineDO.SessionPayloadResponse -> delegate.onSessionRequestResponse(event.toClientSessionPayloadResponse())
@@ -168,7 +169,10 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
         checkEngineInitialization()
         scope.launch {
             try {
-                signEngine.authenticate(authenticate.toAuthenticate(), authenticate.methods, authenticate.pairingTopic, if (authenticate.expiry == null) null else Expiry(authenticate.expiry),
+                signEngine.authenticate(authenticate.toAuthenticate(),
+                    authenticate.methods, authenticate.pairingTopic,
+                    if (authenticate.expiry == null) null else Expiry(authenticate.expiry),
+                    "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet/",
                     onSuccess = { url -> onSuccess(url) },
                     onFailure = { throwable -> onError(Sign.Model.Error(throwable)) })
             } catch (error: Exception) {
@@ -534,41 +538,41 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
 //        wcKoinApp.close()
 //    }
 
-	private fun handleConnectionState(onDelegate: (state: Sign.Model.ConnectionState) -> Unit) {
-		signEngine.wssConnection.onEach { connectionState ->
-			when {
-				atomicBoolean == null -> {
-					atomicBoolean = AtomicBoolean()
-					when (connectionState) {
-						is WSSConnectionState.Disconnected.ConnectionFailed ->
-							onDelegate(Sign.Model.ConnectionState(false, Sign.Model.ConnectionState.Reason.ConnectionFailed(connectionState.throwable)))
+    private fun handleConnectionState(onDelegate: (state: Sign.Model.ConnectionState) -> Unit) {
+        signEngine.wssConnection.onEach { connectionState ->
+            when {
+                atomicBoolean == null -> {
+                    atomicBoolean = AtomicBoolean()
+                    when (connectionState) {
+                        is WSSConnectionState.Disconnected.ConnectionFailed ->
+                            onDelegate(Sign.Model.ConnectionState(false, Sign.Model.ConnectionState.Reason.ConnectionFailed(connectionState.throwable)))
 
-						is WSSConnectionState.Disconnected.ConnectionClosed ->
-							onDelegate(Sign.Model.ConnectionState(false, Sign.Model.ConnectionState.Reason.ConnectionClosed(connectionState.message ?: "Connection closed")))
+                        is WSSConnectionState.Disconnected.ConnectionClosed ->
+                            onDelegate(Sign.Model.ConnectionState(false, Sign.Model.ConnectionState.Reason.ConnectionClosed(connectionState.message ?: "Connection closed")))
 
-						else -> onDelegate(Sign.Model.ConnectionState(true))
-					}
-				}
+                        else -> onDelegate(Sign.Model.ConnectionState(true))
+                    }
+                }
 
-				atomicBoolean?.get() == true && connectionState is WSSConnectionState.Disconnected.ConnectionFailed -> {
-					atomicBoolean?.set(false)
-					onDelegate(Sign.Model.ConnectionState(false, Sign.Model.ConnectionState.Reason.ConnectionFailed(connectionState.throwable)))
-				}
+                atomicBoolean?.get() == true && connectionState is WSSConnectionState.Disconnected.ConnectionFailed -> {
+                    atomicBoolean?.set(false)
+                    onDelegate(Sign.Model.ConnectionState(false, Sign.Model.ConnectionState.Reason.ConnectionFailed(connectionState.throwable)))
+                }
 
-				atomicBoolean?.get() == true && connectionState is WSSConnectionState.Disconnected.ConnectionClosed -> {
-					atomicBoolean?.set(false)
-					onDelegate(Sign.Model.ConnectionState(false, Sign.Model.ConnectionState.Reason.ConnectionClosed(connectionState.message ?: "Connection closed")))
-				}
+                atomicBoolean?.get() == true && connectionState is WSSConnectionState.Disconnected.ConnectionClosed -> {
+                    atomicBoolean?.set(false)
+                    onDelegate(Sign.Model.ConnectionState(false, Sign.Model.ConnectionState.Reason.ConnectionClosed(connectionState.message ?: "Connection closed")))
+                }
 
-				atomicBoolean?.get() == false && connectionState is WSSConnectionState.Connected -> {
-					atomicBoolean?.set(true)
-					onDelegate(Sign.Model.ConnectionState(true))
-				}
+                atomicBoolean?.get() == false && connectionState is WSSConnectionState.Connected -> {
+                    atomicBoolean?.set(true)
+                    onDelegate(Sign.Model.ConnectionState(true))
+                }
 
-				else -> Unit
-			}
-		}.launchIn(scope)
-	}
+                else -> Unit
+            }
+        }.launchIn(scope)
+    }
 
     @Throws(IllegalStateException::class)
     private fun checkEngineInitialization() {

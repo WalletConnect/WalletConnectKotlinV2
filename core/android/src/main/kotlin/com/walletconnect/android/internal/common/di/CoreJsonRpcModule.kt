@@ -1,6 +1,7 @@
 package com.walletconnect.android.internal.common.di
 
 import com.squareup.moshi.Moshi
+import com.walletconnect.android.internal.common.dispacher.EnvelopeDispatcher
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.json_rpc.domain.JsonRpcInteractor
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
@@ -41,4 +42,6 @@ fun coreJsonRpcModule() = module {
             moshiBuilder = get<Moshi.Builder>(named(AndroidCommonDITags.MOSHI))
         )
     }
+
+    single { EnvelopeDispatcher(chaChaPolyCodec = get(), jsonRpcHistory = get(), serializer = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
 }

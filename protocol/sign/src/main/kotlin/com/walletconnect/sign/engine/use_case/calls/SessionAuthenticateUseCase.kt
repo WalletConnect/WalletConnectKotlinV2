@@ -1,5 +1,8 @@
 package com.walletconnect.sign.engine.use_case.calls
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.util.Base64
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
@@ -47,6 +50,7 @@ internal class SessionAuthenticateUseCase(
     private val proposeSessionUseCase: ProposeSessionUseCaseInterface,
     private val getPairingForSessionAuthenticate: GetPairingForSessionAuthenticateUseCase,
     private val getNamespacesFromReCaps: GetNamespacesFromReCaps,
+    private val context: Context,
     private val logger: Logger
 ) : SessionAuthenticateUseCaseInterface {
     override suspend fun authenticate(
@@ -54,6 +58,7 @@ internal class SessionAuthenticateUseCase(
         methods: List<String>?,
         pairingTopic: String?,
         expiry: Expiry?,
+        walletAppLink: String?,
         onSuccess: (String) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
@@ -106,19 +111,28 @@ internal class SessionAuthenticateUseCase(
                 onFailure(error)
             })
 
-        scope.launch {
-            supervisorScope {
-                val sessionAuthenticateDeferred = publishSessionAuthenticateDeferred(pairing, authRequest, responseTopic, requestExpiry)
-                val sessionProposeDeferred = publishSessionProposeDeferred(pairing, optionalNamespaces, responseTopic)
+        if (!walletAppLink.isNullOrEmpty()) {
+            //todo: clean up
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                data = Uri.parse("https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet/")
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(intent)
+        } else {
+            scope.launch {
+                supervisorScope {
+                    val sessionAuthenticateDeferred = publishSessionAuthenticateDeferred(pairing, authRequest, responseTopic, requestExpiry)
+                    val sessionProposeDeferred = publishSessionProposeDeferred(pairing, optionalNamespaces, responseTopic)
 
-                val sessionAuthenticateResult = async { sessionAuthenticateDeferred }.await()
-                val sessionProposeResult = async { sessionProposeDeferred }.await()
+                    val sessionAuthenticateResult = async { sessionAuthenticateDeferred }.await()
+                    val sessionProposeResult = async { sessionProposeDeferred }.await()
 
-                when {
-                    sessionAuthenticateResult.isSuccess && sessionProposeResult.isSuccess -> onSuccess(pairing.uri)
-                    sessionAuthenticateResult.isFailure -> onFailure(sessionAuthenticateResult.exceptionOrNull() ?: Throwable("Session authenticate failed"))
-                    sessionProposeResult.isFailure -> onFailure(sessionProposeResult.exceptionOrNull() ?: Throwable("Session proposal as a fallback failed"))
-                    else -> onFailure(Throwable("Session authenticate failed, please try again"))
+                    when {
+                        sessionAuthenticateResult.isSuccess && sessionProposeResult.isSuccess -> onSuccess(pairing.uri)
+                        sessionAuthenticateResult.isFailure -> onFailure(sessionAuthenticateResult.exceptionOrNull() ?: Throwable("Session authenticate failed"))
+                        sessionProposeResult.isFailure -> onFailure(sessionProposeResult.exceptionOrNull() ?: Throwable("Session proposal as a fallback failed"))
+                        else -> onFailure(Throwable("Session authenticate failed, please try again"))
+                    }
                 }
             }
         }
@@ -204,5 +218,13 @@ internal class SessionAuthenticateUseCase(
 }
 
 internal interface SessionAuthenticateUseCaseInterface {
-    suspend fun authenticate(authenticate: EngineDO.Authenticate, methods: List<String>?, pairingTopic: String?, expiry: Expiry?, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit)
+    suspend fun authenticate(
+        authenticate: EngineDO.Authenticate,
+        methods: List<String>?,
+        pairingTopic: String?,
+        expiry: Expiry?,
+        walletAppLink: String?,
+        onSuccess: (String) -> Unit,
+        onFailure: (Throwable) -> Unit
+    )
 }
