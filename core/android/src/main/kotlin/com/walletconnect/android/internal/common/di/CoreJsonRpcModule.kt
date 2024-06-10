@@ -11,6 +11,7 @@ import com.walletconnect.android.pairing.model.PairingRpc
 import com.walletconnect.utils.JsonAdapterEntry
 import com.walletconnect.utils.addDeserializerEntry
 import com.walletconnect.utils.addSerializerEntry
+import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import kotlin.reflect.KClass
@@ -43,5 +44,13 @@ fun coreJsonRpcModule() = module {
         )
     }
 
-    single { EnvelopeDispatcher(chaChaPolyCodec = get(), jsonRpcHistory = get(), serializer = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
+    single {
+        EnvelopeDispatcher(
+            chaChaPolyCodec = get(),
+            jsonRpcHistory = get(),
+            serializer = get(),
+            context = androidContext(),
+            logger = get(named(AndroidCommonDITags.LOGGER))
+        )
+    }
 }

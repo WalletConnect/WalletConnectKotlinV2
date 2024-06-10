@@ -50,7 +50,6 @@ import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCaseByTopic
 import com.walletconnect.sign.json_rpc.domain.GetPendingRequestsUseCaseByTopicInterface
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequestByTopicUseCase
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequestByTopicUseCaseInterface
-import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
@@ -76,7 +75,7 @@ internal fun callsModule() = module {
             proposeSessionUseCase = get(),
             getPairingForSessionAuthenticate = get(),
             getNamespacesFromReCaps = get(),
-            context = androidContext(),
+            envelopeDispatcher = get(),
             logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }

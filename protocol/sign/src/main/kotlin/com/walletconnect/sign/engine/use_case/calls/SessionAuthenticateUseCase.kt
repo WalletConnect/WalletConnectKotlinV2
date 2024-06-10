@@ -1,11 +1,9 @@
 package com.walletconnect.sign.engine.use_case.calls
 
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import android.util.Base64
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
+import com.walletconnect.android.internal.common.dispacher.EnvelopeDispatcher
 import com.walletconnect.android.internal.common.exception.InvalidExpiryException
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.Expiry
@@ -50,7 +48,7 @@ internal class SessionAuthenticateUseCase(
     private val proposeSessionUseCase: ProposeSessionUseCaseInterface,
     private val getPairingForSessionAuthenticate: GetPairingForSessionAuthenticateUseCase,
     private val getNamespacesFromReCaps: GetNamespacesFromReCaps,
-    private val context: Context,
+    private val envelopeDispatcher: EnvelopeDispatcher,
     private val logger: Logger
 ) : SessionAuthenticateUseCaseInterface {
     override suspend fun authenticate(
@@ -112,12 +110,7 @@ internal class SessionAuthenticateUseCase(
             })
 
         if (!walletAppLink.isNullOrEmpty()) {
-            //todo: clean up
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                data = Uri.parse("https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet/")
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-            context.startActivity(intent)
+           envelopeDispatcher.triggerRequest(authRequest)
         } else {
             scope.launch {
                 supervisorScope {
