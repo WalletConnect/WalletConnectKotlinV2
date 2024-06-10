@@ -4,6 +4,7 @@ import android.content.Context
 import android.widget.Toast
 import android.content.Intent
 import android.graphics.Bitmap
+import android.net.Uri
 import androidmads.library.qrgenearator.QRGContents
 import androidmads.library.qrgenearator.QRGEncoder
 import java.net.URLEncoder
@@ -140,6 +141,12 @@ fun ChainSelectionRoute(navController: NavController) {
             } else {
                 Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
             }
+        },
+        onLinkMode = {
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                data = Uri.parse("https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet/.well-known/assetlinks.json")
+            }
+            context.startActivity(intent)
         }
     )
 }
@@ -154,7 +161,8 @@ private fun ChainSelectionScreen(
     onChainClick: (Int, Boolean) -> Unit,
     onConnectClick: () -> Unit,
     onAuthenticateClick: () -> Unit,
-    onAuthenticateSIWEClick: () -> Unit
+    onAuthenticateSIWEClick: () -> Unit,
+    onLinkMode: () -> Unit
 ) {
     Box {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -187,6 +195,15 @@ private fun ChainSelectionScreen(
             BlueButton(
                 text = "Authenticate (SIWE)",
                 onClick = onAuthenticateSIWEClick,
+                modifier = Modifier
+                    .padding(vertical = 10.dp)
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .padding(horizontal = 16.dp)
+            )
+            BlueButton(
+                text = "Link Mode",
+                onClick = onLinkMode,
                 modifier = Modifier
                     .padding(vertical = 10.dp)
                     .fillMaxWidth()
@@ -520,6 +537,7 @@ private fun ChainSelectionScreenPreview(
             onConnectClick = {},
             onAuthenticateClick = {},
             onAuthenticateSIWEClick = {},
+            onLinkMode = {}
         )
     }
 }

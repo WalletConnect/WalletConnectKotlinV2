@@ -67,10 +67,12 @@
 
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
-                <data
-                    android:scheme="kotlin-modal-wc"
-                    android:host="request" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="kotlin-modal-wc" />
+                <data android:host="request" />
             </intent-filter>
         </activity>
         <activity android:name=".compose.ComposeActivity" />
