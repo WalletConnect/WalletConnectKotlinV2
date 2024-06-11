@@ -4,7 +4,7 @@ import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
-import com.walletconnect.android.internal.common.json_rpc.domain.JsonRpcInteractor
+import com.walletconnect.android.internal.common.json_rpc.domain.RelayJsonRpcInteractor
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.WCRequest
@@ -70,7 +70,7 @@ internal class RelayerInteractorTest {
     }
 
     private val sut =
-        spyk(JsonRpcInteractor(relay, codec, jsonRpcHistory, pushMessagesRepository, logger), recordPrivateCalls = true) {
+        spyk(RelayJsonRpcInteractor(relay, codec, jsonRpcHistory, pushMessagesRepository, logger), recordPrivateCalls = true) {
             every { checkConnectionWorking() } answers { }
         }
 

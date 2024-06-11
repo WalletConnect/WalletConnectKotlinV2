@@ -1,6 +1,7 @@
 package com.walletconnect.sign.engine.use_case.calls
 
 import com.walletconnect.android.internal.common.JsonRpcResponse
+import com.walletconnect.android.internal.common.dispacher.LinkModeJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
 import com.walletconnect.android.internal.common.exception.Invalid
 import com.walletconnect.android.internal.common.exception.RequestExpiredException
@@ -10,7 +11,7 @@ import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.type.ClientParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
@@ -30,9 +31,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
 internal class RespondSessionRequestUseCase(
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val sessionStorageRepository: SessionStorageRepository,
     private val getPendingJsonRpcHistoryEntryByIdUseCase: GetPendingJsonRpcHistoryEntryByIdUseCase,
+    private val envelopeDispatcher: LinkModeJsonRpcInteractorInterface,
     private val logger: Logger,
     private val verifyContextStorageRepository: VerifyContextStorageRepository,
 ) : RespondSessionRequestUseCaseInterface {
@@ -65,21 +67,26 @@ internal class RespondSessionRequestUseCase(
 
         val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(fiveMinutesInSeconds))
         logger.log("Sending session request response on topic: $topic, id: ${jsonRpcResponse.id}")
-        jsonRpcInteractor.publishJsonRpcResponse(topic = Topic(topic), params = irnParams, response = jsonRpcResponse,
-            onSuccess = {
-                onSuccess()
-                logger.log("Session request response sent successfully on topic: $topic, id: ${jsonRpcResponse.id}")
-                scope.launch {
-                    supervisorScope {
-                        removePendingSessionRequestAndEmit(jsonRpcResponse.id)
-                    }
-                }
-            },
-            onFailure = { error ->
-                logger.error("Sending session response error: $error, id: ${jsonRpcResponse.id}")
-                onFailure(error)
-            }
-        )
+
+        removePendingSessionRequestAndEmit(jsonRpcResponse.id)
+        envelopeDispatcher.triggerResponse(Topic(topic), jsonRpcResponse)
+
+        //todo: check transport type
+//        jsonRpcInteractor.publishJsonRpcResponse(topic = Topic(topic), params = irnParams, response = jsonRpcResponse,
+//            onSuccess = {
+//                onSuccess()
+//                logger.log("Session request response sent successfully on topic: $topic, id: ${jsonRpcResponse.id}")
+//                scope.launch {
+//                    supervisorScope {
+//                        removePendingSessionRequestAndEmit(jsonRpcResponse.id)
+//                    }
+//                }
+//            },
+//            onFailure = { error ->
+//                logger.error("Sending session response error: $error, id: ${jsonRpcResponse.id}")
+//                onFailure(error)
+//            }
+//        )
     }
 
     private fun checkExpiry(expiry: Expiry, topic: String, jsonRpcResponse: JsonRpcResponse) {

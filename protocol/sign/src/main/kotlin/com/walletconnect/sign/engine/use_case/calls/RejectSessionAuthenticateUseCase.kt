@@ -2,16 +2,17 @@ package com.walletconnect.sign.engine.use_case.calls
 
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
-import com.walletconnect.android.internal.common.dispacher.EnvelopeDispatcherInterface
+import com.walletconnect.android.internal.common.dispacher.LinkModeJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.exception.Invalid
 import com.walletconnect.android.internal.common.exception.RequestExpiredException
+import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Participants
 import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.type.ClientParams
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.dayInSeconds
@@ -27,11 +28,11 @@ import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
 import kotlinx.coroutines.supervisorScope
 
 internal class RejectSessionAuthenticateUseCase(
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val getPendingSessionAuthenticateRequest: GetPendingSessionAuthenticateRequest,
     private val crypto: KeyManagementRepository,
     private val verifyContextStorageRepository: VerifyContextStorageRepository,
-    private val envelopeDispatcher: EnvelopeDispatcherInterface,
+    private val envelopeDispatcher: LinkModeJsonRpcInteractorInterface,
     private val logger: Logger
 ) : RejectSessionAuthenticateUseCaseInterface {
     override suspend fun rejectSessionAuthenticate(id: Long, reason: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
@@ -65,7 +66,7 @@ internal class RejectSessionAuthenticateUseCase(
 
         logger.log("Sending Session Authenticate Reject on topic: $responseTopic")
         //todo: check transport type
-        envelopeDispatcher.triggerResponse(responseTopic, response, Participants(senderPublicKey, receiverPublicKey))
+        envelopeDispatcher.triggerResponse(responseTopic, response, Participants(senderPublicKey, receiverPublicKey), EnvelopeType.ONE)
 //        jsonRpcInteractor.publishJsonRpcResponse(
 //            responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
 //            onSuccess = {

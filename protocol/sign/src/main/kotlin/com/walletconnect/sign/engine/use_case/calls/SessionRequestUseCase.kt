@@ -1,6 +1,7 @@
 package com.walletconnect.sign.engine.use_case.calls
 
 import com.walletconnect.android.internal.common.JsonRpcResponse
+import com.walletconnect.android.internal.common.dispacher.LinkModeJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
 import com.walletconnect.android.internal.common.exception.InvalidExpiryException
 import com.walletconnect.android.internal.common.model.Expiry
@@ -8,8 +9,7 @@ import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
-import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.android.internal.utils.currentTimeInSeconds
 import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
@@ -25,20 +25,16 @@ import com.walletconnect.sign.common.model.vo.clientsync.session.payload.Session
 import com.walletconnect.sign.common.validator.SignValidator
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
-import kotlinx.coroutines.withTimeout
-import java.util.concurrent.TimeUnit
 
 internal class SessionRequestUseCase(
     private val sessionStorageRepository: SessionStorageRepository,
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
+    private val envelopeDispatcher: LinkModeJsonRpcInteractorInterface,
     private val logger: Logger,
 ) : SessionRequestUseCaseInterface {
     private val _errors: MutableSharedFlow<SDKError> = MutableSharedFlow()
@@ -81,25 +77,29 @@ internal class SessionRequestUseCase(
         val requestTtlInSeconds = expiry.run { seconds - nowInSeconds }
 
         logger.log("Sending session request on topic: ${request.topic}}")
-        jsonRpcInteractor.publishJsonRpcRequest(Topic(request.topic), irnParams, sessionPayload,
-            onSuccess = {
-                logger.log("Session request sent successfully on topic: ${request.topic}")
-                onSuccess(sessionPayload.id)
-                scope.launch {
-                    try {
-                        withTimeout(TimeUnit.SECONDS.toMillis(requestTtlInSeconds)) {
-                            collectResponse(sessionPayload.id) { cancel() }
-                        }
-                    } catch (e: TimeoutCancellationException) {
-                        _errors.emit(SDKError(e))
-                    }
-                }
-            },
-            onFailure = { error ->
-                logger.error("Sending session request error: $error")
-                onFailure(error)
-            }
-        )
+
+
+        envelopeDispatcher.triggerRequest(sessionPayload, Topic(request.topic))
+        //todo check transport type of the session
+//        jsonRpcInteractor.publishJsonRpcRequest(Topic(request.topic), irnParams, sessionPayload,
+//            onSuccess = {
+//                logger.log("Session request sent successfully on topic: ${request.topic}")
+//                onSuccess(sessionPayload.id)
+//                scope.launch {
+//                    try {
+//                        withTimeout(TimeUnit.SECONDS.toMillis(requestTtlInSeconds)) {
+//                            collectResponse(sessionPayload.id) { cancel() }
+//                        }
+//                    } catch (e: TimeoutCancellationException) {
+//                        _errors.emit(SDKError(e))
+//                    }
+//                }
+//            },
+//            onFailure = { error ->
+//                logger.error("Sending session request error: $error")
+//                onFailure(error)
+//            }
+//        )
     }
 
     private suspend fun collectResponse(id: Long, onResponse: (Result<JsonRpcResponse.JsonRpcResult>) -> Unit = {}) {

@@ -49,8 +49,6 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
         MissingKeyException::class
     )
     override fun decrypt(topic: Topic, cipherText: ByteArray): String {
-//        val encryptedPayloadBytes = Base64.decode(cipherText)
-
         return when (val envelopeType = cipherText.envelopeType) {
             EnvelopeType.ZERO.id -> decryptType0(topic, cipherText)
             EnvelopeType.ONE.id -> decryptType1(cipherText, keyManagementRepository.getPublicKey(topic.getParticipantTag()))
@@ -107,7 +105,7 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
             .put(envelopeType.id).put(nonceBytes).put(cipherBytes)
             .array()
 
-        return encryptedPayloadBytes //Base64.toBase64String()
+        return encryptedPayloadBytes
     }
 
     private fun encryptEnvelopeType1(
@@ -132,7 +130,7 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
             .put(cipherBytes)
             .array()
 
-        return encryptedPayloadBytes//Base64.toBase64String()
+        return encryptedPayloadBytes
     }
 
     private fun encryptPayload(key: SymmetricKey, nonce: ByteArray, input: ByteArray): ByteArray {

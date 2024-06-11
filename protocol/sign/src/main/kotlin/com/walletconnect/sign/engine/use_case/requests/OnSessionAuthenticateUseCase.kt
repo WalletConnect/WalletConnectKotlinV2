@@ -9,7 +9,7 @@ import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.type.EngineEvent
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.dayInSeconds
@@ -31,7 +31,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
 internal class OnSessionAuthenticateUseCase(
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val resolveAttestationIdUseCase: ResolveAttestationIdUseCase,
     private val pairingController: PairingControllerInterface,
     private val insertEventUseCase: InsertEventUseCase,
@@ -54,6 +54,7 @@ internal class OnSessionAuthenticateUseCase(
 
             val url = authenticateSessionParams.requester.metadata.url
             pairingController.setRequestReceived(Core.Params.RequestReceived(request.topic.value))
+            //todo: delete attestation for LinkMode based on the transport type
             resolveAttestationIdUseCase(request.id, request.message, url) { verifyContext ->
                 scope.launch {
                     logger.log("Received session authenticate - emitting: ${request.topic}")

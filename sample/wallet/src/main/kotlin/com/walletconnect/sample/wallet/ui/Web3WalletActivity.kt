@@ -59,6 +59,9 @@ class Web3WalletActivity : AppCompatActivity() {
         handleCoreEvents(connectionsViewModel)
         askNotificationPermission()
         handleErrors()
+
+        println("kobe: New Activity: ${intent?.dataString}")
+        handleAppLink(intent)
     }
 
     private fun setContent(
@@ -151,17 +154,22 @@ class Web3WalletActivity : AppCompatActivity() {
             .launchIn(lifecycleScope)
     }
 
+    private fun handleAppLink(intent: Intent?) {
+        if (intent?.dataString?.contains("wc_ev") == true) {
+            println("kobe: Wallet: ${intent.dataString}")
+            Web3Wallet.dispatchEnvelope(intent.dataString ?: "") {
+                println("kobe: Dispatch error: $it")
+            }
+        }
+    }
+
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
 
-        when {
-            intent?.dataString?.contains("wc_ev") == true -> {
-                println("kobe: Wallet: ${intent.dataString}")
-                Web3Wallet.dispatchEnvelope(intent.dataString ?: "") {
-                    println("kobe: Dispatch error: $it")
-                }
-            }
+        println("kobe: New Intent: ${intent?.dataString}")
+        handleAppLink(intent)
 
+        when {
             intent?.dataString?.startsWith("kotlin-web3wallet:/wc") == true -> {
                 val uri = intent.dataString?.replace("kotlin-web3wallet:/wc", "kotlin-web3wallet://wc")
                 intent.setData(uri?.toUri())

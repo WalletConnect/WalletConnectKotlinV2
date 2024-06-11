@@ -21,7 +21,7 @@ import com.walletconnect.android.internal.common.model.sync.ClientJsonRpc
 import com.walletconnect.android.internal.common.model.type.ClientParams
 import com.walletconnect.android.internal.common.model.type.Error
 import com.walletconnect.android.internal.common.model.type.JsonRpcClientSync
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.push_messages.PushMessagesRepository
 import com.walletconnect.android.internal.common.storage.rpc.JsonRpcHistory
@@ -45,13 +45,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import org.bouncycastle.util.encoders.Base64
 
-internal class JsonRpcInteractor(
+internal class RelayJsonRpcInteractor(
 	private val relay: RelayConnectionInterface,
 	private val chaChaPolyCodec: Codec,
 	private val jsonRpcHistory: JsonRpcHistory,
 	private val pushMessageStorage: PushMessagesRepository,
 	private val logger: Logger,
-) : JsonRpcInteractorInterface {
+) : RelayJsonRpcInteractorInterface {
 	private val serializer: JsonRpcSerializer get() = wcKoinApp.koin.get()
 
 	private val _clientSyncJsonRpc: MutableSharedFlow<WCRequest> = MutableSharedFlow()

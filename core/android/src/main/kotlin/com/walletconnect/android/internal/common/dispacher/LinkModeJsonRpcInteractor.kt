@@ -15,6 +15,7 @@ import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.sync.ClientJsonRpc
 import com.walletconnect.android.internal.common.model.type.JsonRpcClientSync
+import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.rpc.JsonRpcHistory
 import com.walletconnect.android.internal.common.wcKoinApp
@@ -26,13 +27,12 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
-class EnvelopeDispatcher(
+class LinkModeJsonRpcInteractor(
     private val chaChaPolyCodec: Codec,
     private val jsonRpcHistory: JsonRpcHistory,
-//    private val serializer: JsonRpcSerializer,
     private val context: Context,
     private val logger: Logger
-) : EnvelopeDispatcherInterface {
+) : LinkModeJsonRpcInteractorInterface {
     private val serializer: JsonRpcSerializer get() = wcKoinApp.koin.get()
 
     private val _clientSyncJsonRpc: MutableSharedFlow<WCRequest> = MutableSharedFlow()
@@ -44,18 +44,23 @@ class EnvelopeDispatcher(
     private val _internalErrors = MutableSharedFlow<SDKError>()
     override val internalErrors: SharedFlow<SDKError> = _internalErrors.asSharedFlow()
 
-    override fun triggerRequest(payload: JsonRpcClientSync<*>) {
+    override fun triggerRequest(payload: JsonRpcClientSync<*>, topic: Topic?) {
         val requestJson = serializer.serialize(payload) ?: throw Exception("Null")
 
         println("kobe: Request: $requestJson: ${payload.id}")
 
         try {
-            if (jsonRpcHistory.setRequest(payload.id, Topic("topic"), payload.method, requestJson)) {
-                val encodedRequest = Base64.encodeToString(requestJson.toByteArray(Charsets.UTF_8), Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
+            if (jsonRpcHistory.setRequest(payload.id, topic ?: Topic(""), payload.method, requestJson)) {
+                val encodedRequest = if (topic != null) {
+                    val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, EnvelopeType.ZERO)
+                    Base64.encodeToString(encryptedRequest, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
+                } else {
+                    Base64.encodeToString(requestJson.toByteArray(Charsets.UTF_8), Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
+                }
 
                 val intent = Intent(Intent.ACTION_VIEW).apply {
                     //TODO: pass App Link
-                    data = Uri.parse("https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet?wc_ev=$encodedRequest")
+                    data = Uri.parse("https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet?wc_ev=$encodedRequest&topic=${topic?.value ?: ""}")
                         .also { println("kobe: URL: $it") }
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
@@ -66,14 +71,12 @@ class EnvelopeDispatcher(
         }
     }
 
-    override fun triggerResponse(topic: Topic, response: JsonRpcResponse, participants: Participants?) {
+    override fun triggerResponse(topic: Topic, response: JsonRpcResponse, participants: Participants?, envelopeType: EnvelopeType) {
         val responseJson = serializer.serialize(response) ?: throw Exception("Null")
-
         println("kobe: Response: $responseJson")
 
-
         try {
-            val encryptedResponse = chaChaPolyCodec.encrypt(topic, responseJson, EnvelopeType.ONE, participants)
+            val encryptedResponse = chaChaPolyCodec.encrypt(topic, responseJson, envelopeType, participants)
             val encodedResponse = Base64.encodeToString(encryptedResponse, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
 
             val intent = Intent(Intent.ACTION_VIEW).apply {
@@ -92,15 +95,12 @@ class EnvelopeDispatcher(
 
     override fun dispatchEnvelope(url: String) {
         val uri = Uri.parse(url)
-
         println("kobe: Dispatch URI: $uri")
         val encodedEnvelope = uri.getQueryParameter("wc_ev") ?: throw Exception("null")
         val topic = uri.getQueryParameter("topic")
 
-        println("kobe: Topic: $topic")
-
         //todo: try/catch
-        val envelope = if (topic != null) {
+        val envelope = if (!topic.isNullOrEmpty()) {
             chaChaPolyCodec.decrypt(Topic(topic), Base64.decode(encodedEnvelope, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING))
         } else {
             String(Base64.decode(encodedEnvelope, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING), Charsets.UTF_8)
@@ -114,7 +114,7 @@ class EnvelopeDispatcher(
                     if (jsonRpcHistory.setRequest(clientJsonRpc.id, Topic(topic ?: ""), clientJsonRpc.method, envelope)) {
                         println("kobe: Request")
                         serializer.deserialize(clientJsonRpc.method, envelope)?.let {
-                            println("kobe: Payload sync: $it")
+                            println("kobe: Payload sync: $it; $clientJsonRpc")
                             _clientSyncJsonRpc.emit(WCRequest(Topic(topic ?: ""), clientJsonRpc.id, clientJsonRpc.method, it))
                         }
                     }
@@ -148,12 +148,8 @@ class EnvelopeDispatcher(
     }
 }
 
-interface EnvelopeDispatcherInterface {
-    fun triggerRequest(payload: JsonRpcClientSync<*>)
-    fun triggerResponse(topic: Topic, response: JsonRpcResponse, participants: Participants?)
+interface LinkModeJsonRpcInteractorInterface : JsonRpcInteractorInterface {
+    fun triggerRequest(payload: JsonRpcClientSync<*>, topic: Topic? = null)
+    fun triggerResponse(topic: Topic, response: JsonRpcResponse, participants: Participants? = null, envelopeType: EnvelopeType = EnvelopeType.ZERO)
     fun dispatchEnvelope(url: String)
-
-    val clientSyncJsonRpc: SharedFlow<WCRequest>
-    val peerResponse: SharedFlow<WCResponse>
-    val internalErrors: SharedFlow<SDKError>
 }

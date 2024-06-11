@@ -11,7 +11,7 @@ import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
 import com.walletconnect.android.internal.common.signing.cacao.Issuer
@@ -45,7 +45,7 @@ internal class OnSessionAuthenticateResponseUseCase(
     private val cacaoVerifier: CacaoVerifier,
     private val sessionStorageRepository: SessionStorageRepository,
     private val crypto: KeyManagementRepository,
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val authenticateResponseTopicRepository: AuthenticateResponseTopicRepository,
     private val logger: Logger,
@@ -65,7 +65,7 @@ internal class OnSessionAuthenticateResponseUseCase(
             }
 
             val pairingTopic = jsonRpcHistoryEntry.topic
-            //todo: add check for linkMode
+            //todo: add check for linkMode, no pairing in LinkMode
 //            if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) {
 //                _events.emit(SDKError(Throwable("Received session authenticate response - pairing doesn't exist topic: ${wcResponse.topic}")))
 //                return@supervisorScope
@@ -81,6 +81,7 @@ internal class OnSessionAuthenticateResponseUseCase(
                 }
 
                 is JsonRpcResponse.JsonRpcResult -> {
+                    //todo: don't update for LinkMode
                     updatePairing(pairingTopic, params)
 
                     val approveParams = (response.result as CoreSignParams.SessionAuthenticateApproveParams)

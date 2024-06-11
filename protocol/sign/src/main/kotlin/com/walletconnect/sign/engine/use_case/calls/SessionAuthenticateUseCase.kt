@@ -3,13 +3,13 @@ package com.walletconnect.sign.engine.use_case.calls
 import android.util.Base64
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
-import com.walletconnect.android.internal.common.dispacher.EnvelopeDispatcherInterface
+import com.walletconnect.android.internal.common.dispacher.LinkModeJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.exception.InvalidExpiryException
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.signing.cacao.Cacao.Payload.Companion.ATT_KEY
 import com.walletconnect.android.internal.common.signing.cacao.Cacao.Payload.Companion.RECAPS_PREFIX
@@ -41,14 +41,14 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 internal class SessionAuthenticateUseCase(
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val crypto: KeyManagementRepository,
     private val selfAppMetaData: AppMetaData,
     private val authenticateResponseTopicRepository: AuthenticateResponseTopicRepository,
     private val proposeSessionUseCase: ProposeSessionUseCaseInterface,
     private val getPairingForSessionAuthenticate: GetPairingForSessionAuthenticateUseCase,
     private val getNamespacesFromReCaps: GetNamespacesFromReCaps,
-    private val envelopeDispatcher: EnvelopeDispatcherInterface,
+    private val envelopeDispatcher: LinkModeJsonRpcInteractorInterface,
     private val logger: Logger
 ) : SessionAuthenticateUseCaseInterface {
     override suspend fun authenticate(
@@ -95,23 +95,24 @@ internal class SessionAuthenticateUseCase(
         val authRequest: SignRpc.SessionAuthenticate = SignRpc.SessionAuthenticate(params = authParams)
         crypto.setKey(requesterPublicKey, responseTopic.getParticipantTag())
 
-        logger.log("Session authenticate subscribing on topic: $responseTopic")
-        jsonRpcInteractor.subscribe(
-            responseTopic,
-            onSuccess = {
-                logger.log("Session authenticate subscribed on topic: $responseTopic")
-                scope.launch {
-                    authenticateResponseTopicRepository.insertOrAbort(pairing.topic, responseTopic.value)
-                }
-            },
-            onFailure = { error ->
-                logger.error("Session authenticate subscribing on topic error: $responseTopic, $error")
-                onFailure(error)
-            })
-
         if (!walletAppLink.isNullOrEmpty()) {
-           envelopeDispatcher.triggerRequest(authRequest)
+            //todo: add storage and metadata checks
+            envelopeDispatcher.triggerRequest(authRequest)
         } else {
+            logger.log("Session authenticate subscribing on topic: $responseTopic")
+            jsonRpcInteractor.subscribe(
+                responseTopic,
+                onSuccess = {
+                    logger.log("Session authenticate subscribed on topic: $responseTopic")
+                    scope.launch {
+                        authenticateResponseTopicRepository.insertOrAbort(pairing.topic, responseTopic.value)
+                    }
+                },
+                onFailure = { error ->
+                    logger.error("Session authenticate subscribing on topic error: $responseTopic, $error")
+                    onFailure(error)
+                })
+
             scope.launch {
                 supervisorScope {
                     val sessionAuthenticateDeferred = publishSessionAuthenticateDeferred(pairing, authRequest, responseTopic, requestExpiry)

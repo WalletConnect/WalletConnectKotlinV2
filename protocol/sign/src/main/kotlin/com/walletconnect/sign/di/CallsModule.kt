@@ -1,7 +1,7 @@
 package com.walletconnect.sign.di
 
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
-import com.walletconnect.android.internal.common.dispacher.EnvelopeDispatcherInterface
+import com.walletconnect.android.internal.common.dispacher.LinkModeJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.ApproveSessionAuthenticateUseCase
@@ -76,7 +76,7 @@ internal fun callsModule() = module {
             proposeSessionUseCase = get(),
             getPairingForSessionAuthenticate = get(),
             getNamespacesFromReCaps = get(),
-            envelopeDispatcher = get<EnvelopeDispatcherInterface>(),
+            envelopeDispatcher = get<LinkModeJsonRpcInteractorInterface>(),
             logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }
@@ -111,7 +111,7 @@ internal fun callsModule() = module {
             sessionStorageRepository = get(),
             metadataStorageRepository = get(),
             insertEventUseCase = get(),
-            envelopeDispatcher = get<EnvelopeDispatcherInterface>()
+            envelopeDispatcher = get<LinkModeJsonRpcInteractorInterface>()
         )
     }
 
@@ -137,7 +137,14 @@ internal fun callsModule() = module {
 
     single<SessionUpdateUseCaseInterface> { SessionUpdateUseCase(jsonRpcInteractor = get(), sessionStorageRepository = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
 
-    single<SessionRequestUseCaseInterface> { SessionRequestUseCase(jsonRpcInteractor = get(), sessionStorageRepository = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
+    single<SessionRequestUseCaseInterface> {
+        SessionRequestUseCase(
+            jsonRpcInteractor = get(),
+            sessionStorageRepository = get(),
+            envelopeDispatcher = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER))
+        )
+    }
 
     single<RespondSessionRequestUseCaseInterface> {
         RespondSessionRequestUseCase(
@@ -145,7 +152,8 @@ internal fun callsModule() = module {
             verifyContextStorageRepository = get(),
             sessionStorageRepository = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
-            getPendingJsonRpcHistoryEntryByIdUseCase = get()
+            getPendingJsonRpcHistoryEntryByIdUseCase = get(),
+            envelopeDispatcher = get()
         )
     }
 

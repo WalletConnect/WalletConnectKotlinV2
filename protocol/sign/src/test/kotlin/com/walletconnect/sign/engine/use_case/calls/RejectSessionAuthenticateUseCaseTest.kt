@@ -4,7 +4,7 @@ import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementReposit
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.internal.common.model.SymmetricKey
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
 import com.walletconnect.foundation.common.model.PublicKey
@@ -36,7 +36,7 @@ import org.junit.Before
 import org.junit.Test
 
 class RejectSessionAuthenticateUseCaseTest {
-    private val jsonRpcInteractor: JsonRpcInteractorInterface = mockk()
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface = mockk()
     private val getPendingSessionAuthenticateRequest: GetPendingSessionAuthenticateRequest = mockk()
     private val crypto: KeyManagementRepository = mockk()
     private val verifyContextStorageRepository: VerifyContextStorageRepository = mockk()

@@ -1,11 +1,11 @@
 package com.walletconnect.android.internal.common.di
 
 import com.squareup.moshi.Moshi
-import com.walletconnect.android.internal.common.dispacher.EnvelopeDispatcher
-import com.walletconnect.android.internal.common.dispacher.EnvelopeDispatcherInterface
+import com.walletconnect.android.internal.common.dispacher.LinkModeJsonRpcInteractor
+import com.walletconnect.android.internal.common.dispacher.LinkModeJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
-import com.walletconnect.android.internal.common.json_rpc.domain.JsonRpcInteractor
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.json_rpc.domain.RelayJsonRpcInteractor
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.model.type.SerializableJsonRpc
 import com.walletconnect.android.pairing.model.PairingJsonRpcMethod
 import com.walletconnect.android.pairing.model.PairingRpc
@@ -20,8 +20,8 @@ import kotlin.reflect.KClass
 @JvmSynthetic
 fun coreJsonRpcModule() = module {
 
-    single<JsonRpcInteractorInterface> {
-        JsonRpcInteractor(
+    single<RelayJsonRpcInteractorInterface> {
+        RelayJsonRpcInteractor(
             relay = get(),
             chaChaPolyCodec = get(),
             jsonRpcHistory = get(),
@@ -45,8 +45,8 @@ fun coreJsonRpcModule() = module {
         )
     }
 
-    single<EnvelopeDispatcherInterface> {
-        EnvelopeDispatcher(
+    single<LinkModeJsonRpcInteractorInterface> {
+        LinkModeJsonRpcInteractor(
             chaChaPolyCodec = get(),
             jsonRpcHistory = get(),
 //            serializer = get(),

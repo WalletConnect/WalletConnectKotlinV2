@@ -7,7 +7,7 @@ import com.walletconnect.android.internal.common.jwt.did.encodeDidJwt
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.params.ChatNotifyResponseAuthParams
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.utils.monthInSeconds
 import com.walletconnect.android.internal.utils.getInviteTag
@@ -31,7 +31,7 @@ internal class AcceptInviteUseCase(
     private val invitesRepository: InvitesStorageRepository,
     private val keyManagementRepository: KeyManagementRepository,
     private val identitiesInteractor: IdentitiesInteractor,
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val threadsRepository: ThreadsStorageRepository,
 ) : AcceptInviteUseCaseInterface {
 

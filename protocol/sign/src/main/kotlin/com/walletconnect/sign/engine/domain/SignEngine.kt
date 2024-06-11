@@ -3,12 +3,12 @@
 package com.walletconnect.sign.engine.domain
 
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
-import com.walletconnect.android.internal.common.dispacher.EnvelopeDispatcherInterface
+import com.walletconnect.android.internal.common.dispacher.LinkModeJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Validation
 import com.walletconnect.android.internal.common.model.type.EngineEvent
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
@@ -93,7 +93,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
 internal class SignEngine(
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val getPendingRequestsByTopicUseCase: GetPendingRequestsUseCaseByTopicInterface,
     private val getPendingSessionRequestByTopicUseCase: GetPendingSessionRequestByTopicUseCaseInterface,
     private val getPendingSessionRequests: GetPendingSessionRequests,
@@ -142,7 +142,7 @@ internal class SignEngine(
     private val onSessionUpdateResponseUseCase: OnSessionUpdateResponseUseCase,
     private val onSessionRequestResponseUseCase: OnSessionRequestResponseUseCase,
     private val insertEventUseCase: InsertEventUseCase,
-    private val envelopeDispatcher: EnvelopeDispatcherInterface,
+    private val envelopeDispatcher: LinkModeJsonRpcInteractorInterface,
     private val logger: Logger
 ) : ProposeSessionUseCaseInterface by proposeSessionUseCase,
     SessionAuthenticateUseCaseInterface by authenticateSessionUseCase,
@@ -168,7 +168,7 @@ internal class SignEngine(
     GetSessionProposalsUseCaseInterface by getSessionProposalsUseCase,
     GetVerifyContextByIdUseCaseInterface by getVerifyContextByIdUseCase,
     GetListOfVerifyContextsUseCaseInterface by getListOfVerifyContextsUseCase,
-    EnvelopeDispatcherInterface by envelopeDispatcher {
+    LinkModeJsonRpcInteractorInterface by envelopeDispatcher {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
 
@@ -202,15 +202,14 @@ internal class SignEngine(
     }
 
     fun setup() {
+        //todo: clean up
         if (envelopeRequestsJob == null) {
             envelopeRequestsJob = envelopeDispatcher.clientSyncJsonRpc
                 .filter { request -> request.params is SignParams }
                 .onEach { request ->
                     when (val requestParams = request.params) {
-                        is SignParams.SessionAuthenticateParams -> {
-                            println("kobe: AUth Requets")
-                            onAuthenticateSessionUseCase(request, requestParams)
-                        }
+                        is SignParams.SessionAuthenticateParams -> onAuthenticateSessionUseCase(request, requestParams)
+                        is SignParams.SessionRequestParams -> onSessionRequestUseCase(request, requestParams)
                     }
                 }.launchIn(scope)
         }
@@ -220,10 +219,8 @@ internal class SignEngine(
                 .filter { request -> request.params is SignParams }
                 .onEach { response ->
                     when (val params = response.params) {
-                        is SignParams.SessionAuthenticateParams -> {
-                            println("kobe: Response")
-                            onSessionAuthenticateResponseUseCase(response, params)
-                        }
+                        is SignParams.SessionAuthenticateParams -> onSessionAuthenticateResponseUseCase(response, params)
+                        is SignParams.SessionRequestParams -> onSessionRequestResponseUseCase(response, params)
                     }
                 }.launchIn(scope)
         }
@@ -342,7 +339,6 @@ internal class SignEngine(
             }
         }
     }
-
 
     private fun setupSequenceExpiration() {
         try {
