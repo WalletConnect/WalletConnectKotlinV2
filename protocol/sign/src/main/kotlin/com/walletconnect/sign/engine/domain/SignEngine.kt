@@ -3,6 +3,7 @@
 package com.walletconnect.sign.engine.domain
 
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
+import com.walletconnect.android.internal.common.dispacher.EnvelopeDispatcherInterface
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Validation
@@ -141,6 +142,7 @@ internal class SignEngine(
     private val onSessionUpdateResponseUseCase: OnSessionUpdateResponseUseCase,
     private val onSessionRequestResponseUseCase: OnSessionRequestResponseUseCase,
     private val insertEventUseCase: InsertEventUseCase,
+    private val envelopeDispatcher: EnvelopeDispatcherInterface,
     private val logger: Logger
 ) : ProposeSessionUseCaseInterface by proposeSessionUseCase,
     SessionAuthenticateUseCaseInterface by authenticateSessionUseCase,
@@ -165,11 +167,16 @@ internal class SignEngine(
     GetPendingSessionRequestByTopicUseCaseInterface by getPendingSessionRequestByTopicUseCase,
     GetSessionProposalsUseCaseInterface by getSessionProposalsUseCase,
     GetVerifyContextByIdUseCaseInterface by getVerifyContextByIdUseCase,
-    GetListOfVerifyContextsUseCaseInterface by getListOfVerifyContextsUseCase {
+    GetListOfVerifyContextsUseCaseInterface by getListOfVerifyContextsUseCase,
+    EnvelopeDispatcherInterface by envelopeDispatcher {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
+
     private var internalErrorsJob: Job? = null
     private var signEventsJob: Job? = null
+
+    private var envelopeRequestsJob: Job? = null
+    private var envelopeResponsesJob: Job? = null
 
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val engineEvent: SharedFlow<EngineEvent> = _engineEvent.asSharedFlow()
@@ -195,6 +202,40 @@ internal class SignEngine(
     }
 
     fun setup() {
+        if (envelopeRequestsJob == null) {
+            envelopeRequestsJob = envelopeDispatcher.clientSyncJsonRpc
+                .filter { request -> request.params is SignParams }
+                .onEach { request ->
+                    when (val requestParams = request.params) {
+                        is SignParams.SessionAuthenticateParams -> {
+                            println("kobe: AUth Requets")
+                            onAuthenticateSessionUseCase(request, requestParams)
+                        }
+                    }
+                }.launchIn(scope)
+        }
+
+        if (envelopeResponsesJob == null) {
+            envelopeResponsesJob = envelopeDispatcher.peerResponse
+                .filter { request -> request.params is SignParams }
+                .onEach { response ->
+                    when (val params = response.params) {
+                        is SignParams.SessionAuthenticateParams -> {
+                            println("kobe: Response")
+                            onSessionAuthenticateResponseUseCase(response, params)
+                        }
+                    }
+                }.launchIn(scope)
+        }
+
+        if (signEventsJob == null) {
+            signEventsJob = collectSignEvents()
+        }
+
+        if (internalErrorsJob == null) {
+            internalErrorsJob = collectInternalErrors()
+        }
+
         jsonRpcInteractor.wssConnectionState
             .filterIsInstance<WSSConnectionState.Connected>()
             .onEach {
@@ -211,14 +252,6 @@ internal class SignEngine(
 
                 if (jsonRpcResponsesJob == null) {
                     jsonRpcResponsesJob = collectJsonRpcResponses()
-                }
-
-                if (internalErrorsJob == null) {
-                    internalErrorsJob = collectInternalErrors()
-                }
-
-                if (signEventsJob == null) {
-                    signEventsJob = collectSignEvents()
                 }
             }.launchIn(scope)
     }
@@ -254,7 +287,7 @@ internal class SignEngine(
             }.launchIn(scope)
 
     private fun collectInternalErrors(): Job =
-        merge(jsonRpcInteractor.internalErrors, pairingController.findWrongMethodsFlow, sessionRequestUseCase.errors)
+        merge(jsonRpcInteractor.internalErrors, envelopeDispatcher.internalErrors, pairingController.findWrongMethodsFlow, sessionRequestUseCase.errors)
             .onEach { exception -> _engineEvent.emit(exception) }
             .launchIn(scope)
 

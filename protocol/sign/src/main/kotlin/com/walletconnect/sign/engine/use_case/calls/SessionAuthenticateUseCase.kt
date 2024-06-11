@@ -3,7 +3,7 @@ package com.walletconnect.sign.engine.use_case.calls
 import android.util.Base64
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
-import com.walletconnect.android.internal.common.dispacher.EnvelopeDispatcher
+import com.walletconnect.android.internal.common.dispacher.EnvelopeDispatcherInterface
 import com.walletconnect.android.internal.common.exception.InvalidExpiryException
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.Expiry
@@ -48,7 +48,7 @@ internal class SessionAuthenticateUseCase(
     private val proposeSessionUseCase: ProposeSessionUseCaseInterface,
     private val getPairingForSessionAuthenticate: GetPairingForSessionAuthenticateUseCase,
     private val getNamespacesFromReCaps: GetNamespacesFromReCaps,
-    private val envelopeDispatcher: EnvelopeDispatcher,
+    private val envelopeDispatcher: EnvelopeDispatcherInterface,
     private val logger: Logger
 ) : SessionAuthenticateUseCaseInterface {
     override suspend fun authenticate(

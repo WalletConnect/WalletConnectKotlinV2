@@ -182,6 +182,18 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     }
 
     @Throws(IllegalStateException::class)
+    override fun dispatchEnvelope(urlWithEnvelope: String, onError: (Sign.Model.Error) -> Unit) {
+        checkEngineInitialization()
+        scope.launch {
+            try {
+                signEngine.dispatchEnvelope(urlWithEnvelope)
+            } catch (error: Exception) {
+                onError(Sign.Model.Error(error))
+            }
+        }
+    }
+
+    @Throws(IllegalStateException::class)
     override fun formatAuthMessage(formatMessage: Sign.Params.FormatMessage): String {
         checkEngineInitialization()
         return runBlocking { signEngine.formatMessage(formatMessage.payloadParams.toEngine(), formatMessage.iss) }

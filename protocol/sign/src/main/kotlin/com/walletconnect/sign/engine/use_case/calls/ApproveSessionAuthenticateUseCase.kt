@@ -1,14 +1,13 @@
 package com.walletconnect.sign.engine.use_case.calls
 
-import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
+import com.walletconnect.android.internal.common.dispacher.EnvelopeDispatcherInterface
 import com.walletconnect.android.internal.common.exception.NoInternetConnectionException
 import com.walletconnect.android.internal.common.exception.NoRelayConnectionException
 import com.walletconnect.android.internal.common.exception.RequestExpiredException
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.AppMetaDataType
-import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.model.Participant
@@ -58,6 +57,7 @@ internal class ApproveSessionAuthenticateUseCase(
     private val selfAppMetaData: AppMetaData,
     private val sessionStorageRepository: SessionStorageRepository,
     private val insertEventUseCase: InsertEventUseCase,
+    private val envelopeDispatcher: EnvelopeDispatcherInterface
 ) : ApproveSessionAuthenticateUseCaseInterface {
     override suspend fun approveSessionAuthenticate(id: Long, cacaos: List<Cacao>, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         val trace: MutableList<String> = mutableListOf()
@@ -151,28 +151,31 @@ internal class ApproveSessionAuthenticateUseCase(
                 })
 
             trace.add(Trace.SessionAuthenticate.PUBLISHING_AUTHENTICATED_SESSION_APPROVE).also { logger.log("Sending Session Authenticate Approve on topic: $responseTopic") }
-            jsonRpcInteractor.publishJsonRpcResponse(responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
-                onSuccess = {
-                    trace.add(Trace.SessionAuthenticate.AUTHENTICATED_SESSION_APPROVE_PUBLISH_SUCCESS).also { logger.log("Session Authenticate Approve Responded on topic: $responseTopic") }
-                    onSuccess()
-                    scope.launch {
-                        supervisorScope {
-                            pairingController.activate(Core.Params.Activate(jsonRpcHistoryEntry.topic.value))
-                            verifyContextStorageRepository.delete(id)
-                        }
-                    }
-                },
-                onFailure = { error ->
-                    runCatching { crypto.removeKeys(sessionTopic.value) }.onFailure { logger.error(it) }
-                    sessionStorageRepository.deleteSession(sessionTopic)
-                    scope.launch {
-                        supervisorScope {
-                            insertEventUseCase(Props(type = EventType.Error.AUTHENTICATED_SESSION_APPROVE_PUBLISH_FAILURE, properties = Properties(trace = trace, topic = responseTopic.value)))
-                        }
-                    }.also { logger.error("Error Responding Session Authenticate on topic: $responseTopic, error: $error") }
-                    onFailure(error)
-                }
-            )
+
+            //todo: check transport type
+            envelopeDispatcher.triggerResponse(responseTopic, response, Participants(senderPublicKey, receiverPublicKey))
+//            jsonRpcInteractor.publishJsonRpcResponse(responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
+//                onSuccess = {
+//                    trace.add(Trace.SessionAuthenticate.AUTHENTICATED_SESSION_APPROVE_PUBLISH_SUCCESS).also { logger.log("Session Authenticate Approve Responded on topic: $responseTopic") }
+//                    onSuccess()
+//                    scope.launch {
+//                        supervisorScope {
+//                            pairingController.activate(Core.Params.Activate(jsonRpcHistoryEntry.topic.value))
+//                            verifyContextStorageRepository.delete(id)
+//                        }
+//                    }
+//                },
+//                onFailure = { error ->
+//                    runCatching { crypto.removeKeys(sessionTopic.value) }.onFailure { logger.error(it) }
+//                    sessionStorageRepository.deleteSession(sessionTopic)
+//                    scope.launch {
+//                        supervisorScope {
+//                            insertEventUseCase(Props(type = EventType.Error.AUTHENTICATED_SESSION_APPROVE_PUBLISH_FAILURE, properties = Properties(trace = trace, topic = responseTopic.value)))
+//                        }
+//                    }.also { logger.error("Error Responding Session Authenticate on topic: $responseTopic, error: $error") }
+//                    onFailure(error)
+//                }
+//            )
         } catch (e: Exception) {
             logger.error("Error Responding Session Authenticate, error: $e")
             if (e is NoRelayConnectionException) insertEventUseCase(Props(type = EventType.Error.NO_WSS_CONNECTION, properties = Properties(trace = trace)))

@@ -43,6 +43,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import org.bouncycastle.util.encoders.Base64
 
 internal class JsonRpcInteractor(
 	private val relay: RelayConnectionInterface,
@@ -112,8 +113,9 @@ internal class JsonRpcInteractor(
 		try {
 			if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
 				val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, envelopeType, participants)
+				val encryptedRequestString = Base64.toBase64String(encryptedRequest)
 
-				relay.publish(topic.value, encryptedRequest, params.toRelay()) { result ->
+				relay.publish(topic.value, encryptedRequestString, params.toRelay()) { result ->
 					result.fold(
 						onSuccess = { onSuccess() },
 						onFailure = { error ->
@@ -147,8 +149,9 @@ internal class JsonRpcInteractor(
 		try {
 			val responseJson = serializer.serialize(response) ?: return onFailure(IllegalStateException("JsonRpcInteractor: Unknown result params"))
 			val encryptedResponse = chaChaPolyCodec.encrypt(topic, responseJson, envelopeType, participants)
+			val encryptedResponseString = Base64.toBase64String(encryptedResponse)
 
-			relay.publish(topic.value, encryptedResponse, params.toRelay()) { result ->
+			relay.publish(topic.value, encryptedResponseString, params.toRelay()) { result ->
 				result.fold(
 					onSuccess = {
 						jsonRpcHistory.updateRequestWithResponse(response.id, responseJson)
@@ -374,9 +377,9 @@ internal class JsonRpcInteractor(
 			}.launchIn(scope)
 	}
 
-	private fun decryptMessage(topic: Topic, relayRequest: Relay.Model.Call.Subscription.Request) =
+	private fun decryptMessage(topic: Topic, relayRequest: Relay.Model.Call.Subscription.Request): String =
 		try {
-			chaChaPolyCodec.decrypt(topic, relayRequest.message)
+			chaChaPolyCodec.decrypt(topic, Base64.decode(relayRequest.message))
 		} catch (e: Exception) {
 			handleError("ManSub: ${e.stackTraceToString()}")
 			String.Empty

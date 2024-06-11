@@ -9,6 +9,7 @@ import com.walletconnect.wcmodal.di.walletConnectModalModule
 import com.walletconnect.wcmodal.domain.WalletConnectModalDelegate
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
 object WalletConnectModal {
 
@@ -23,6 +24,7 @@ object WalletConnectModal {
         fun onSessionApproved(approvedSession: Modal.Model.ApprovedSession)
         fun onSessionRejected(rejectedSession: Modal.Model.RejectedSession)
         fun onSessionUpdate(updatedSession: Modal.Model.UpdatedSession)
+
         @Deprecated(
             message = "Use onSessionEvent(Modal.Model.Event) instead. Using both will result in duplicate events.",
             replaceWith = ReplaceWith(expression = "onSessionEvent(sessionEvent)")
@@ -189,6 +191,18 @@ object WalletConnectModal {
             onSuccess = { url -> onSuccess(url) },
             onError = { onError(it.toModal()) }
         )
+    }
+
+    fun dispatchEnvelope(urlWithEnvelope: String, onError: (Modal.Model.Error) -> Unit) {
+        scope.launch {
+            try {
+                SignClient.dispatchEnvelope(urlWithEnvelope) { error ->
+                    onError(error.toModal())
+                }
+            } catch (error: Exception) {
+                onError(Modal.Model.Error(error))
+            }
+        }
     }
 
     fun authenticate(

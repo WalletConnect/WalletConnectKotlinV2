@@ -32,6 +32,7 @@ import com.walletconnect.sample.wallet.domain.NotifyDelegate
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
 import com.walletconnect.sample.wallet.ui.routes.host.WalletSampleHost
+import com.walletconnect.web3.wallet.client.Web3Wallet
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import timber.log.Timber
@@ -156,6 +157,9 @@ class Web3WalletActivity : AppCompatActivity() {
         when {
             intent?.dataString?.contains("wc_ev") == true -> {
                 println("kobe: Wallet: ${intent.dataString}")
+                Web3Wallet.dispatchEnvelope(intent.dataString ?: "") {
+                    println("kobe: Dispatch error: $it")
+                }
             }
 
             intent?.dataString?.startsWith("kotlin-web3wallet:/wc") == true -> {

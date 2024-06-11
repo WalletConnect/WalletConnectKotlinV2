@@ -69,6 +69,8 @@ interface SignInterface {
 
     fun authenticate(authenticate: Sign.Params.Authenticate, onSuccess: (String) -> Unit, onError: (Sign.Model.Error) -> Unit)
 
+    fun dispatchEnvelope(urlWithEnvelope: String, onError: (Sign.Model.Error) -> Unit)
+
     @Deprecated(
         message = "Creating a pairing will be moved to CoreClient to make pairing SDK agnostic",
         replaceWith = ReplaceWith(expression = "CoreClient.Pairing.pair()", imports = ["com.walletconnect.android.CoreClient"])

@@ -65,13 +65,13 @@ internal class OnSessionAuthenticateResponseUseCase(
             }
 
             val pairingTopic = jsonRpcHistoryEntry.topic
-            if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) {
-                _events.emit(SDKError(Throwable("Received session authenticate response - pairing doesn't exist topic: ${wcResponse.topic}")))
-                return@supervisorScope
-            }
+            //todo: add check for linkMode
+//            if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) {
+//                _events.emit(SDKError(Throwable("Received session authenticate response - pairing doesn't exist topic: ${wcResponse.topic}")))
+//                return@supervisorScope
+//            }
             runCatching { authenticateResponseTopicRepository.delete(pairingTopic.value) }.onFailure {
                 logger.error("Received session authenticate response - failed to delete authenticate response topic: ${wcResponse.topic}")
-
             }
 
             when (val response = wcResponse.response) {

@@ -2,9 +2,9 @@ package com.walletconnect.sign.engine.use_case.calls
 
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
+import com.walletconnect.android.internal.common.dispacher.EnvelopeDispatcherInterface
 import com.walletconnect.android.internal.common.exception.Invalid
 import com.walletconnect.android.internal.common.exception.RequestExpiredException
-import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Participants
 import com.walletconnect.android.internal.common.model.SymmetricKey
@@ -12,7 +12,6 @@ import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.type.ClientParams
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
-import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.dayInSeconds
@@ -25,7 +24,6 @@ import com.walletconnect.sign.common.exceptions.MissingSessionAuthenticateReques
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionAuthenticateRequest
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
 internal class RejectSessionAuthenticateUseCase(
@@ -33,6 +31,7 @@ internal class RejectSessionAuthenticateUseCase(
     private val getPendingSessionAuthenticateRequest: GetPendingSessionAuthenticateRequest,
     private val crypto: KeyManagementRepository,
     private val verifyContextStorageRepository: VerifyContextStorageRepository,
+    private val envelopeDispatcher: EnvelopeDispatcherInterface,
     private val logger: Logger
 ) : RejectSessionAuthenticateUseCaseInterface {
     override suspend fun rejectSessionAuthenticate(id: Long, reason: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
@@ -65,27 +64,29 @@ internal class RejectSessionAuthenticateUseCase(
         val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE_RESPONSE_REJECT, Ttl(dayInSeconds), false)
 
         logger.log("Sending Session Authenticate Reject on topic: $responseTopic")
-        jsonRpcInteractor.publishJsonRpcResponse(
-            responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
-            onSuccess = {
-                logger.log("Session Authenticate Reject Responded on topic: $responseTopic")
-                scope.launch {
-                    supervisorScope {
-                        verifyContextStorageRepository.delete(id)
-                    }
-                }
-                onSuccess()
-            },
-            onFailure = { error ->
-                logger.error("Session Authenticate Error Responded on topic: $responseTopic")
-                scope.launch {
-                    supervisorScope {
-                        verifyContextStorageRepository.delete(id)
-                    }
-                }
-                onFailure(error)
-            }
-        )
+        //todo: check transport type
+        envelopeDispatcher.triggerResponse(responseTopic, response, Participants(senderPublicKey, receiverPublicKey))
+//        jsonRpcInteractor.publishJsonRpcResponse(
+//            responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
+//            onSuccess = {
+//                logger.log("Session Authenticate Reject Responded on topic: $responseTopic")
+//                scope.launch {
+//                    supervisorScope {
+//                        verifyContextStorageRepository.delete(id)
+//                    }
+//                }
+//                onSuccess()
+//            },
+//            onFailure = { error ->
+//                logger.error("Session Authenticate Error Responded on topic: $responseTopic")
+//                scope.launch {
+//                    supervisorScope {
+//                        verifyContextStorageRepository.delete(id)
+//                    }
+//                }
+//                onFailure(error)
+//            }
+//        )
     }
 }
 

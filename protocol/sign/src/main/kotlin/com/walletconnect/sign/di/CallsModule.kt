@@ -1,6 +1,7 @@
 package com.walletconnect.sign.di
 
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
+import com.walletconnect.android.internal.common.dispacher.EnvelopeDispatcherInterface
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.ApproveSessionAuthenticateUseCase
@@ -75,7 +76,7 @@ internal fun callsModule() = module {
             proposeSessionUseCase = get(),
             getPairingForSessionAuthenticate = get(),
             getNamespacesFromReCaps = get(),
-            envelopeDispatcher = get(),
+            envelopeDispatcher = get<EnvelopeDispatcherInterface>(),
             logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }
@@ -109,7 +110,8 @@ internal fun callsModule() = module {
             selfAppMetaData = get(),
             sessionStorageRepository = get(),
             metadataStorageRepository = get(),
-            insertEventUseCase = get()
+            insertEventUseCase = get(),
+            envelopeDispatcher = get<EnvelopeDispatcherInterface>()
         )
     }
 
@@ -119,7 +121,8 @@ internal fun callsModule() = module {
             crypto = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
             verifyContextStorageRepository = get(),
-            getPendingSessionAuthenticateRequest = get()
+            getPendingSessionAuthenticateRequest = get(),
+            envelopeDispatcher = get()
         )
     }
 
