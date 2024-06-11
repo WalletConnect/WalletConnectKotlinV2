@@ -1,10 +1,10 @@
 package com.walletconnect.android.internal.common.di
 
 import com.squareup.moshi.Moshi
-import com.walletconnect.android.internal.common.dispacher.LinkModeJsonRpcInteractor
-import com.walletconnect.android.internal.common.dispacher.LinkModeJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
-import com.walletconnect.android.internal.common.json_rpc.domain.RelayJsonRpcInteractor
+import com.walletconnect.android.internal.common.json_rpc.domain.link_mode.LinkModeJsonRpcInteractor
+import com.walletconnect.android.internal.common.json_rpc.domain.link_mode.LinkModeJsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.json_rpc.domain.relay.RelayJsonRpcInteractor
 import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.model.type.SerializableJsonRpc
 import com.walletconnect.android.pairing.model.PairingJsonRpcMethod
@@ -49,7 +49,6 @@ fun coreJsonRpcModule() = module {
         LinkModeJsonRpcInteractor(
             chaChaPolyCodec = get(),
             jsonRpcHistory = get(),
-//            serializer = get(),
             context = androidContext(),
             logger = get(named(AndroidCommonDITags.LOGGER))
         )

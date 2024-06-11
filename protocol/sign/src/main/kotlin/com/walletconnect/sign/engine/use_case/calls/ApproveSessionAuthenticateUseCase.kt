@@ -2,10 +2,10 @@ package com.walletconnect.sign.engine.use_case.calls
 
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
-import com.walletconnect.android.internal.common.dispacher.LinkModeJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.exception.NoInternetConnectionException
 import com.walletconnect.android.internal.common.exception.NoRelayConnectionException
 import com.walletconnect.android.internal.common.exception.RequestExpiredException
+import com.walletconnect.android.internal.common.json_rpc.domain.link_mode.LinkModeJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.EnvelopeType
@@ -58,7 +58,7 @@ internal class ApproveSessionAuthenticateUseCase(
     private val selfAppMetaData: AppMetaData,
     private val sessionStorageRepository: SessionStorageRepository,
     private val insertEventUseCase: InsertEventUseCase,
-    private val envelopeDispatcher: LinkModeJsonRpcInteractorInterface
+    private val linkModeJsonRpcInteractor: LinkModeJsonRpcInteractorInterface
 ) : ApproveSessionAuthenticateUseCaseInterface {
     override suspend fun approveSessionAuthenticate(id: Long, cacaos: List<Cacao>, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         val trace: MutableList<String> = mutableListOf()
@@ -154,7 +154,7 @@ internal class ApproveSessionAuthenticateUseCase(
             trace.add(Trace.SessionAuthenticate.PUBLISHING_AUTHENTICATED_SESSION_APPROVE).also { logger.log("Sending Session Authenticate Approve on topic: $responseTopic") }
 
             //todo: check transport type
-            envelopeDispatcher.triggerResponse(responseTopic, response, Participants(senderPublicKey, receiverPublicKey), EnvelopeType.ONE)
+            linkModeJsonRpcInteractor.triggerResponse(responseTopic, response, Participants(senderPublicKey, receiverPublicKey), EnvelopeType.ONE)
 //            jsonRpcInteractor.publishJsonRpcResponse(responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
 //                onSuccess = {
 //                    trace.add(Trace.SessionAuthenticate.AUTHENTICATED_SESSION_APPROVE_PUBLISH_SUCCESS).also { logger.log("Session Authenticate Approve Responded on topic: $responseTopic") }

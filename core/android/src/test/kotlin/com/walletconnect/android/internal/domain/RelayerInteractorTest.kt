@@ -4,10 +4,10 @@ import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
-import com.walletconnect.android.internal.common.json_rpc.domain.RelayJsonRpcInteractor
+import com.walletconnect.android.internal.common.json_rpc.domain.relay.RelayJsonRpcInteractor
 import com.walletconnect.android.internal.common.model.IrnParams
-import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.WCRequest
+import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.type.ClientParams
 import com.walletconnect.android.internal.common.model.type.Error
 import com.walletconnect.android.internal.common.model.type.JsonRpcClientSync
@@ -46,7 +46,7 @@ internal class RelayerInteractorTest {
     }
 
     private val codec: Codec = mockk {
-        every { encrypt(any(), any(), any()) } returns ""
+        every { encrypt(any(), any(), any()) } returns ByteArray(1)
     }
 
     private val pushMessagesRepository: PushMessagesRepository = mockk()

@@ -18,7 +18,6 @@ import com.walletconnect.sign.client.Sign
 import com.walletconnect.sign.common.model.Request
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.engine.model.EngineDO
-import com.walletconnect.utils.Empty
 
 @JvmSynthetic
 internal fun Sign.Model.JsonRpcResponse.toJsonRpcResponse(): JsonRpcResponse =

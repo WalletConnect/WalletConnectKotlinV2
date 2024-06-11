@@ -1,4 +1,4 @@
-package com.walletconnect.android.internal.common.json_rpc.domain
+package com.walletconnect.android.internal.common.json_rpc.domain.relay
 
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.codec.Codec

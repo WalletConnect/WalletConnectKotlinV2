@@ -2,7 +2,7 @@ package com.walletconnect.sign.engine.use_case.calls
 
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
-import com.walletconnect.android.internal.common.dispacher.LinkModeJsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.json_rpc.domain.link_mode.LinkModeJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.exception.Invalid
 import com.walletconnect.android.internal.common.exception.RequestExpiredException
 import com.walletconnect.android.internal.common.model.EnvelopeType
@@ -32,7 +32,7 @@ internal class RejectSessionAuthenticateUseCase(
     private val getPendingSessionAuthenticateRequest: GetPendingSessionAuthenticateRequest,
     private val crypto: KeyManagementRepository,
     private val verifyContextStorageRepository: VerifyContextStorageRepository,
-    private val envelopeDispatcher: LinkModeJsonRpcInteractorInterface,
+    private val linkModeJsonRpcInteractor: LinkModeJsonRpcInteractorInterface,
     private val logger: Logger
 ) : RejectSessionAuthenticateUseCaseInterface {
     override suspend fun rejectSessionAuthenticate(id: Long, reason: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
@@ -66,7 +66,7 @@ internal class RejectSessionAuthenticateUseCase(
 
         logger.log("Sending Session Authenticate Reject on topic: $responseTopic")
         //todo: check transport type
-        envelopeDispatcher.triggerResponse(responseTopic, response, Participants(senderPublicKey, receiverPublicKey), EnvelopeType.ONE)
+        linkModeJsonRpcInteractor.triggerResponse(responseTopic, response, Participants(senderPublicKey, receiverPublicKey), EnvelopeType.ONE)
 //        jsonRpcInteractor.publishJsonRpcResponse(
 //            responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
 //            onSuccess = {

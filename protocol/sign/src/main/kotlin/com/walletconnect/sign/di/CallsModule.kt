@@ -1,7 +1,7 @@
 package com.walletconnect.sign.di
 
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
-import com.walletconnect.android.internal.common.dispacher.LinkModeJsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.json_rpc.domain.link_mode.LinkModeJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.ApproveSessionAuthenticateUseCase
@@ -76,7 +76,7 @@ internal fun callsModule() = module {
             proposeSessionUseCase = get(),
             getPairingForSessionAuthenticate = get(),
             getNamespacesFromReCaps = get(),
-            envelopeDispatcher = get<LinkModeJsonRpcInteractorInterface>(),
+            linkModeJsonRpcInteractor = get<LinkModeJsonRpcInteractorInterface>(),
             logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }
@@ -111,7 +111,7 @@ internal fun callsModule() = module {
             sessionStorageRepository = get(),
             metadataStorageRepository = get(),
             insertEventUseCase = get(),
-            envelopeDispatcher = get<LinkModeJsonRpcInteractorInterface>()
+            linkModeJsonRpcInteractor = get<LinkModeJsonRpcInteractorInterface>()
         )
     }
 
@@ -122,7 +122,7 @@ internal fun callsModule() = module {
             logger = get(named(AndroidCommonDITags.LOGGER)),
             verifyContextStorageRepository = get(),
             getPendingSessionAuthenticateRequest = get(),
-            envelopeDispatcher = get()
+            linkModeJsonRpcInteractor = get<LinkModeJsonRpcInteractorInterface>()
         )
     }
 
@@ -141,7 +141,7 @@ internal fun callsModule() = module {
         SessionRequestUseCase(
             jsonRpcInteractor = get(),
             sessionStorageRepository = get(),
-            envelopeDispatcher = get(),
+            linkModeJsonRpcInteractor = get(),
             logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }
@@ -153,7 +153,7 @@ internal fun callsModule() = module {
             sessionStorageRepository = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
             getPendingJsonRpcHistoryEntryByIdUseCase = get(),
-            envelopeDispatcher = get()
+            linkModeJsonRpcInteractor = get()
         )
     }
 

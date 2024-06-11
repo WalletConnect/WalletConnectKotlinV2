@@ -1,9 +1,10 @@
 package com.walletconnect.sign.engine.use_case.calls
 
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
+import com.walletconnect.android.internal.common.json_rpc.domain.link_mode.LinkModeJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.model.AppMetaData
-import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.internal.common.model.SymmetricKey
+import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
@@ -40,6 +41,7 @@ class RejectSessionAuthenticateUseCaseTest {
     private val getPendingSessionAuthenticateRequest: GetPendingSessionAuthenticateRequest = mockk()
     private val crypto: KeyManagementRepository = mockk()
     private val verifyContextStorageRepository: VerifyContextStorageRepository = mockk()
+    private val linkModeJsonRpcInteractor: LinkModeJsonRpcInteractorInterface = mockk()
     private val logger: Logger = mockk()
     private lateinit var useCase: RejectSessionAuthenticateUseCase
     private val testDispatcher = StandardTestDispatcher()
@@ -53,6 +55,7 @@ class RejectSessionAuthenticateUseCaseTest {
             getPendingSessionAuthenticateRequest,
             crypto,
             verifyContextStorageRepository,
+            linkModeJsonRpcInteractor,
             logger
         )
     }

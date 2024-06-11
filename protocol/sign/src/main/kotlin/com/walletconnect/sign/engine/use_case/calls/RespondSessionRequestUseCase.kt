@@ -1,14 +1,14 @@
 package com.walletconnect.sign.engine.use_case.calls
 
 import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.dispacher.LinkModeJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
 import com.walletconnect.android.internal.common.exception.Invalid
 import com.walletconnect.android.internal.common.exception.RequestExpiredException
+import com.walletconnect.android.internal.common.json_rpc.domain.link_mode.LinkModeJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.IrnParams
-import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.WCRequest
+import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.type.ClientParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
@@ -34,7 +34,7 @@ internal class RespondSessionRequestUseCase(
     private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val sessionStorageRepository: SessionStorageRepository,
     private val getPendingJsonRpcHistoryEntryByIdUseCase: GetPendingJsonRpcHistoryEntryByIdUseCase,
-    private val envelopeDispatcher: LinkModeJsonRpcInteractorInterface,
+    private val linkModeJsonRpcInteractor: LinkModeJsonRpcInteractorInterface,
     private val logger: Logger,
     private val verifyContextStorageRepository: VerifyContextStorageRepository,
 ) : RespondSessionRequestUseCaseInterface {
@@ -69,7 +69,7 @@ internal class RespondSessionRequestUseCase(
         logger.log("Sending session request response on topic: $topic, id: ${jsonRpcResponse.id}")
 
         removePendingSessionRequestAndEmit(jsonRpcResponse.id)
-        envelopeDispatcher.triggerResponse(Topic(topic), jsonRpcResponse)
+        linkModeJsonRpcInteractor.triggerResponse(Topic(topic), jsonRpcResponse)
 
         //todo: check transport type
 //        jsonRpcInteractor.publishJsonRpcResponse(topic = Topic(topic), params = irnParams, response = jsonRpcResponse,

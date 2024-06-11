@@ -3,7 +3,7 @@
 package com.walletconnect.sign.engine.domain
 
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
-import com.walletconnect.android.internal.common.dispacher.LinkModeJsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.json_rpc.domain.link_mode.LinkModeJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Validation
@@ -142,7 +142,7 @@ internal class SignEngine(
     private val onSessionUpdateResponseUseCase: OnSessionUpdateResponseUseCase,
     private val onSessionRequestResponseUseCase: OnSessionRequestResponseUseCase,
     private val insertEventUseCase: InsertEventUseCase,
-    private val envelopeDispatcher: LinkModeJsonRpcInteractorInterface,
+    private val linkModeJsonRpcInteractor: LinkModeJsonRpcInteractorInterface,
     private val logger: Logger
 ) : ProposeSessionUseCaseInterface by proposeSessionUseCase,
     SessionAuthenticateUseCaseInterface by authenticateSessionUseCase,
@@ -168,7 +168,7 @@ internal class SignEngine(
     GetSessionProposalsUseCaseInterface by getSessionProposalsUseCase,
     GetVerifyContextByIdUseCaseInterface by getVerifyContextByIdUseCase,
     GetListOfVerifyContextsUseCaseInterface by getListOfVerifyContextsUseCase,
-    LinkModeJsonRpcInteractorInterface by envelopeDispatcher {
+    LinkModeJsonRpcInteractorInterface by linkModeJsonRpcInteractor {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
 
@@ -204,7 +204,7 @@ internal class SignEngine(
     fun setup() {
         //todo: clean up
         if (envelopeRequestsJob == null) {
-            envelopeRequestsJob = envelopeDispatcher.clientSyncJsonRpc
+            envelopeRequestsJob = linkModeJsonRpcInteractor.clientSyncJsonRpc
                 .filter { request -> request.params is SignParams }
                 .onEach { request ->
                     when (val requestParams = request.params) {
@@ -215,7 +215,7 @@ internal class SignEngine(
         }
 
         if (envelopeResponsesJob == null) {
-            envelopeResponsesJob = envelopeDispatcher.peerResponse
+            envelopeResponsesJob = linkModeJsonRpcInteractor.peerResponse
                 .filter { request -> request.params is SignParams }
                 .onEach { response ->
                     when (val params = response.params) {
@@ -284,7 +284,7 @@ internal class SignEngine(
             }.launchIn(scope)
 
     private fun collectInternalErrors(): Job =
-        merge(jsonRpcInteractor.internalErrors, envelopeDispatcher.internalErrors, pairingController.findWrongMethodsFlow, sessionRequestUseCase.errors)
+        merge(jsonRpcInteractor.internalErrors, linkModeJsonRpcInteractor.internalErrors, pairingController.findWrongMethodsFlow, sessionRequestUseCase.errors)
             .onEach { exception -> _engineEvent.emit(exception) }
             .launchIn(scope)
 

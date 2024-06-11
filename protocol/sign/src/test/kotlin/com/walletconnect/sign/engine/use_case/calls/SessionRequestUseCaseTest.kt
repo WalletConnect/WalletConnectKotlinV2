@@ -1,6 +1,7 @@
 package com.walletconnect.sign.engine.use_case.calls
 
 import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
+import com.walletconnect.android.internal.common.json_rpc.domain.link_mode.LinkModeJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.engine.model.EngineDO
@@ -17,7 +18,8 @@ class SessionRequestUseCaseTest {
     private val sessionStorageRepository = mockk<SessionStorageRepository>()
     private val jsonRpcInteractor = mockk<RelayJsonRpcInteractorInterface>()
     private val logger = mockk<Logger>()
-    private val sessionRequestUseCase = SessionRequestUseCase(sessionStorageRepository, jsonRpcInteractor, logger)
+    private val linkModeJsonRpcInteractor: LinkModeJsonRpcInteractorInterface = mockk()
+    private val sessionRequestUseCase = SessionRequestUseCase(sessionStorageRepository, jsonRpcInteractor, linkModeJsonRpcInteractor, logger)
 
     @Before
     fun setUp() {

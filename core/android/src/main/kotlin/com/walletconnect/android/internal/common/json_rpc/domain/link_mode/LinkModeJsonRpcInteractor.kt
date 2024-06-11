@@ -1,4 +1,4 @@
-package com.walletconnect.android.internal.common.dispacher
+package com.walletconnect.android.internal.common.json_rpc.domain.link_mode
 
 import android.content.Context
 import android.content.Intent
