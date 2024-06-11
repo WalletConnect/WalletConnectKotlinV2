@@ -58,7 +58,8 @@ class ExtendSessionUseCaseTest {
             requiredNamespaces = emptyMap(),
             optionalNamespaces = emptyMap(),
             isAcknowledged = false,
-            pairingTopic = "pairingTopic"
+            pairingTopic = "pairingTopic",
+            transportType = null
         )
 
         extendSessionUseCase.extend(

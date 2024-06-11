@@ -14,6 +14,7 @@ import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Participants
 import com.walletconnect.android.internal.common.model.SDKError
+import com.walletconnect.android.internal.common.model.TransportType
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.params.ChatNotifyResponseAuthParams
@@ -111,7 +112,7 @@ internal class RelayJsonRpcInteractor(
 		}
 
 		try {
-			if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
+			if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson,  TransportType.RELAY)) {
 				val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, envelopeType, participants)
 				val encryptedRequestString = Base64.toBase64String(encryptedRequest)
 
@@ -396,7 +397,7 @@ internal class RelayJsonRpcInteractor(
 	}
 
 	private suspend fun handleRequest(clientJsonRpc: ClientJsonRpc, topic: Topic, decryptedMessage: String, publishedAt: Long) {
-		if (jsonRpcHistory.setRequest(clientJsonRpc.id, topic, clientJsonRpc.method, decryptedMessage)) {
+		if (jsonRpcHistory.setRequest(clientJsonRpc.id, topic, clientJsonRpc.method, decryptedMessage,  TransportType.RELAY)) {
 			serializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
 				_clientSyncJsonRpc.emit(WCRequest(topic, clientJsonRpc.id, clientJsonRpc.method, params, decryptedMessage, publishedAt))
 			} ?: handleError("JsonRpcInteractor: Unknown request params")

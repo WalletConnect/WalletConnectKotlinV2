@@ -11,6 +11,7 @@ import com.walletconnect.android.internal.common.json_rpc.model.toWCResponse
 import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.internal.common.model.Participants
 import com.walletconnect.android.internal.common.model.SDKError
+import com.walletconnect.android.internal.common.model.TransportType
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.sync.ClientJsonRpc
@@ -50,7 +51,7 @@ class LinkModeJsonRpcInteractor(
         println("kobe: Request: $requestJson: ${payload.id}")
 
         try {
-            if (jsonRpcHistory.setRequest(payload.id, topic ?: Topic(""), payload.method, requestJson)) {
+            if (jsonRpcHistory.setRequest(payload.id, topic ?: Topic(""), payload.method, requestJson,  TransportType.LINK_MODE)) {
                 val encodedRequest = if (topic != null) {
                     val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, EnvelopeType.ZERO)
                     Base64.encodeToString(encryptedRequest, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
@@ -111,7 +112,7 @@ class LinkModeJsonRpcInteractor(
         scope.launch {
             supervisorScope {
                 serializer.tryDeserialize<ClientJsonRpc>(envelope)?.let { clientJsonRpc ->
-                    if (jsonRpcHistory.setRequest(clientJsonRpc.id, Topic(topic ?: ""), clientJsonRpc.method, envelope)) {
+                    if (jsonRpcHistory.setRequest(clientJsonRpc.id, Topic(topic ?: ""), clientJsonRpc.method, envelope, TransportType.LINK_MODE)) {
                         println("kobe: Request")
                         serializer.deserialize(clientJsonRpc.method, envelope)?.let {
                             println("kobe: Payload sync: $it; $clientJsonRpc")
