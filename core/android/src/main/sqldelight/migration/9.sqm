@@ -1,0 +1,3 @@
+-- migration from 9.db to 10.db
+
+ALTER TABLE JsonRpcHistoryDao ADD COLUMN transport_type TEXT;

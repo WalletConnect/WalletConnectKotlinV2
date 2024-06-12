@@ -1,0 +1,5 @@
+-- migrates 10db to 11db
+
+-- CREATE V11 SCHEMA
+
+ALTER TABLE SessionDao ADD COLUMN transport_type TEXT;
