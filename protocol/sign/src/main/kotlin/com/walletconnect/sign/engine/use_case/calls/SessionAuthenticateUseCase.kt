@@ -3,8 +3,8 @@ package com.walletconnect.sign.engine.use_case.calls
 import android.util.Base64
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
-import com.walletconnect.android.internal.common.json_rpc.domain.link_mode.LinkModeJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.exception.InvalidExpiryException
+import com.walletconnect.android.internal.common.json_rpc.domain.link_mode.LinkModeJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.IrnParams
@@ -96,7 +96,8 @@ internal class SessionAuthenticateUseCase(
         crypto.setKey(requesterPublicKey, responseTopic.getParticipantTag())
 
         if (!walletAppLink.isNullOrEmpty()) {
-            //todo: add storage and metadata checks
+            //todo: add link storage check and metadata checks flag
+            //todo: add success and error callbacks
             linkModeJsonRpcInteractor.triggerRequest(authRequest)
         } else {
             logger.log("Session authenticate subscribing on topic: $responseTopic")

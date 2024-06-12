@@ -399,7 +399,7 @@ internal class RelayJsonRpcInteractor(
 	private suspend fun handleRequest(clientJsonRpc: ClientJsonRpc, topic: Topic, decryptedMessage: String, publishedAt: Long) {
 		if (jsonRpcHistory.setRequest(clientJsonRpc.id, topic, clientJsonRpc.method, decryptedMessage,  TransportType.RELAY)) {
 			serializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
-				_clientSyncJsonRpc.emit(WCRequest(topic, clientJsonRpc.id, clientJsonRpc.method, params, decryptedMessage, publishedAt))
+				_clientSyncJsonRpc.emit(WCRequest(topic, clientJsonRpc.id, clientJsonRpc.method, params, decryptedMessage, publishedAt, TransportType.RELAY))
 			} ?: handleError("JsonRpcInteractor: Unknown request params")
 		}
 	}

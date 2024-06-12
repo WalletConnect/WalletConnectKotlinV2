@@ -109,7 +109,8 @@ internal data class SessionVO(
             controllerKey: PublicKey?,
             requiredNamespaces: Map<String, Namespace.Proposal>,
             sessionNamespaces: Map<String, Namespace.Session>,
-            pairingTopic: String
+            pairingTopic: String,
+            transportType: TransportType?
         ): SessionVO {
             return SessionVO(
                 sessionTopic,
@@ -126,7 +127,7 @@ internal data class SessionVO(
                 optionalNamespaces = null,
                 isAcknowledged = true,
                 pairingTopic = pairingTopic,
-                transportType = TransportType.RELAY
+                transportType = transportType
             )
         }
     }

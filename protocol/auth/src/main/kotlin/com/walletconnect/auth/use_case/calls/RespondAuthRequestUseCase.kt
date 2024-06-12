@@ -11,6 +11,7 @@ import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Participants
 import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.internal.common.model.Tags
+import com.walletconnect.android.internal.common.model.TransportType
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.params.CoreAuthParams
 import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
@@ -98,7 +99,7 @@ internal class RespondAuthRequestUseCase(
     private fun checkExpiry(expiry: Expiry, responseTopic: Topic, respond: Respond, authParams: AuthParams.RequestParams): Boolean {
         if (expiry.isExpired()) {
                 val irnParams = IrnParams(Tags.AUTH_REQUEST_RESPONSE, Ttl(dayInSeconds))
-                val wcRequest = WCRequest(responseTopic, respond.id, JsonRpcMethod.WC_AUTH_REQUEST, authParams)
+                val wcRequest = WCRequest(responseTopic, respond.id, JsonRpcMethod.WC_AUTH_REQUEST, authParams, transportType = TransportType.RELAY)
                 jsonRpcInteractor.respondWithError(wcRequest, Invalid.RequestExpired, irnParams)
                 return true
             }

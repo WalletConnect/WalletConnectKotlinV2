@@ -2,21 +2,19 @@ package com.walletconnect.sign.engine.use_case.calls
 
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
-import com.walletconnect.android.internal.common.json_rpc.domain.link_mode.LinkModeJsonRpcInteractorInterface
-import com.walletconnect.android.internal.common.exception.Invalid
 import com.walletconnect.android.internal.common.exception.RequestExpiredException
+import com.walletconnect.android.internal.common.json_rpc.domain.link_mode.LinkModeJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Participants
 import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.internal.common.model.Tags
-import com.walletconnect.android.internal.common.model.WCRequest
-import com.walletconnect.android.internal.common.model.type.ClientParams
+import com.walletconnect.android.internal.common.model.TransportType
 import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.dayInSeconds
-import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -24,7 +22,7 @@ import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.exceptions.MissingSessionAuthenticateRequest
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionAuthenticateRequest
-import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
 internal class RejectSessionAuthenticateUseCase(
@@ -45,9 +43,6 @@ internal class RejectSessionAuthenticateUseCase(
 
         jsonRpcHistoryEntry.expiry?.let {
             if (it.isExpired()) {
-                val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE_RESPONSE_REJECT, Ttl(fiveMinutesInSeconds))
-                val request = WCRequest(jsonRpcHistoryEntry.topic, jsonRpcHistoryEntry.id, JsonRpcMethod.WC_SESSION_AUTHENTICATE, object : ClientParams {})
-                jsonRpcInteractor.respondWithError(request, Invalid.RequestExpired, irnParams)
                 logger.error("Session Authenticate Request Expired: ${jsonRpcHistoryEntry.topic}, id: ${jsonRpcHistoryEntry.id}")
                 throw RequestExpiredException("This request has expired, id: ${jsonRpcHistoryEntry.id}")
             }
@@ -65,29 +60,25 @@ internal class RejectSessionAuthenticateUseCase(
         val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE_RESPONSE_REJECT, Ttl(dayInSeconds), false)
 
         logger.log("Sending Session Authenticate Reject on topic: $responseTopic")
-        //todo: check transport type
-        linkModeJsonRpcInteractor.triggerResponse(responseTopic, response, Participants(senderPublicKey, receiverPublicKey), EnvelopeType.ONE)
-//        jsonRpcInteractor.publishJsonRpcResponse(
-//            responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
-//            onSuccess = {
-//                logger.log("Session Authenticate Reject Responded on topic: $responseTopic")
-//                scope.launch {
-//                    supervisorScope {
-//                        verifyContextStorageRepository.delete(id)
-//                    }
-//                }
-//                onSuccess()
-//            },
-//            onFailure = { error ->
-//                logger.error("Session Authenticate Error Responded on topic: $responseTopic")
-//                scope.launch {
-//                    supervisorScope {
-//                        verifyContextStorageRepository.delete(id)
-//                    }
-//                }
-//                onFailure(error)
-//            }
-//        )
+
+        if (jsonRpcHistoryEntry.transportType == TransportType.LINK_MODE) {
+            //todo: add success and error callbacks
+            linkModeJsonRpcInteractor.triggerResponse(responseTopic, response, Participants(senderPublicKey, receiverPublicKey), EnvelopeType.ONE)
+        } else {
+            jsonRpcInteractor.publishJsonRpcResponse(
+                responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
+                onSuccess = {
+                    logger.log("Session Authenticate Reject Responded on topic: $responseTopic")
+                    scope.launch { supervisorScope { verifyContextStorageRepository.delete(id) } }
+                    onSuccess()
+                },
+                onFailure = { error ->
+                    logger.error("Session Authenticate Error Responded on topic: $responseTopic")
+                    scope.launch { supervisorScope { verifyContextStorageRepository.delete(id) } }
+                    onFailure(error)
+                }
+            )
+        }
     }
 }
 

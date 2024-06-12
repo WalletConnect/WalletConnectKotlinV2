@@ -9,6 +9,8 @@ import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
+import com.walletconnect.android.internal.common.model.TransportType
+import com.walletconnect.android.internal.common.model.Validation
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
@@ -16,6 +18,7 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
+import com.walletconnect.android.verify.data.model.VerifyContext
 import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
@@ -85,22 +88,23 @@ internal class OnSessionRequestUseCase(
                 return@supervisorScope
             }
 
-            val url = sessionPeerAppMetaData?.url ?: String.Empty
-            logger.log("Resolving session request attestation: ${System.currentTimeMillis()}")
-
-            //todo: remove attestaion for LinkMode based on the transport type
-            resolveAttestationIdUseCase(request.id, request.message, url) { verifyContext ->
-                logger.log("Session request attestation resolved: ${System.currentTimeMillis()}")
-                val sessionRequestEvent = EngineDO.SessionRequestEvent(params.toEngineDO(request, sessionPeerAppMetaData), verifyContext.toEngineDO())
-                val event = if (sessionRequestEventsQueue.isEmpty()) {
-                    sessionRequestEvent
-                } else {
-                    sessionRequestEventsQueue.find { event -> if (event.request.expiry != null) !event.request.expiry.isExpired() else true } ?: sessionRequestEvent
+            if (request.transportType == TransportType.LINK_MODE) {
+                //todo: add Verify for LinkMode
+                val verifyContext = VerifyContext(
+                    12345678,
+                    String.Empty,
+                    Validation.UNKNOWN,
+                    String.Empty,
+                    null
+                )
+                emitSessionRequest(params, request, sessionPeerAppMetaData, verifyContext)
+            } else {
+                val url = sessionPeerAppMetaData?.url ?: String.Empty
+                logger.log("Resolving session request attestation: ${System.currentTimeMillis()}")
+                resolveAttestationIdUseCase(request.id, request.message, url) { verifyContext ->
+                    logger.log("Session request attestation resolved: ${System.currentTimeMillis()}")
+                    emitSessionRequest(params, request, sessionPeerAppMetaData, verifyContext)
                 }
-
-                sessionRequestEventsQueue.add(sessionRequestEvent)
-                logger.log("Session request received on topic: ${request.topic} - emitting")
-                scope.launch { _events.emit(event) }
             }
         } catch (e: Exception) {
             logger.error("Session request received failure on topic: ${request.topic} - ${e.message}")
@@ -112,5 +116,23 @@ internal class OnSessionRequestUseCase(
             _events.emit(SDKError(e))
             return@supervisorScope
         }
+    }
+
+    private fun emitSessionRequest(
+        params: SignParams.SessionRequestParams,
+        request: WCRequest,
+        sessionPeerAppMetaData: AppMetaData?,
+        verifyContext: VerifyContext
+    ) {
+        val sessionRequestEvent = EngineDO.SessionRequestEvent(params.toEngineDO(request, sessionPeerAppMetaData), verifyContext.toEngineDO())
+        val event = if (sessionRequestEventsQueue.isEmpty()) {
+            sessionRequestEvent
+        } else {
+            sessionRequestEventsQueue.find { event -> if (event.request.expiry != null) !event.request.expiry.isExpired() else true } ?: sessionRequestEvent
+        }
+
+        sessionRequestEventsQueue.add(sessionRequestEvent)
+        logger.log("Session request received on topic: ${request.topic} - emitting")
+        scope.launch { _events.emit(event) }
     }
 }

@@ -3,8 +3,9 @@ package com.walletconnect.sign.engine.use_case.calls
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.json_rpc.domain.link_mode.LinkModeJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.model.AppMetaData
-import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.internal.common.model.EnvelopeType
+import com.walletconnect.android.internal.common.model.SymmetricKey
+import com.walletconnect.android.internal.common.model.TransportType
 import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
@@ -106,7 +107,14 @@ class RejectSessionAuthenticateUseCaseTest {
             )
         )
 
-        val jsonRpcHistoryEntry = Request<SignParams.SessionAuthenticateParams>(chainId = "chainId", id = id, method = "method", topic = Topic("topic"), params = sessionAuthenticateParams)
+        val jsonRpcHistoryEntry = Request<SignParams.SessionAuthenticateParams>(
+            chainId = "chainId",
+            id = id,
+            method = "method",
+            topic = Topic("topic"),
+            params = sessionAuthenticateParams,
+            transportType = TransportType.RELAY
+        )
         val senderPublicKey = PublicKey("senderPublicKey")
         val receiverPublicKey = PublicKey("receiverPublicKey")
         val symmetricKey = SymmetricKey("symmetricKey")

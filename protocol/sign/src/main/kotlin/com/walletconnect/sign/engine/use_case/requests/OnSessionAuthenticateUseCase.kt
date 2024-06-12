@@ -7,6 +7,8 @@ import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
+import com.walletconnect.android.internal.common.model.TransportType
+import com.walletconnect.android.internal.common.model.Validation
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
@@ -18,12 +20,14 @@ import com.walletconnect.android.pulse.domain.InsertEventUseCase
 import com.walletconnect.android.pulse.model.EventType
 import com.walletconnect.android.pulse.model.properties.Properties
 import com.walletconnect.android.pulse.model.properties.Props
+import com.walletconnect.android.verify.data.model.VerifyContext
 import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toEngineDO
+import com.walletconnect.utils.Empty
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -54,26 +58,48 @@ internal class OnSessionAuthenticateUseCase(
 
             val url = authenticateSessionParams.requester.metadata.url
             pairingController.setRequestReceived(Core.Params.RequestReceived(request.topic.value))
-            //todo: delete attestation for LinkMode based on the transport type
-            resolveAttestationIdUseCase(request.id, request.message, url) { verifyContext ->
-                scope.launch {
-                    logger.log("Received session authenticate - emitting: ${request.topic}")
-                    _events.emit(
-                        EngineDO.SessionAuthenticateEvent(
-                            request.id,
-                            request.topic.value,
-                            authenticateSessionParams.authPayload.toEngineDO(),
-                            authenticateSessionParams.requester.toEngineDO(),
-                            authenticateSessionParams.expiryTimestamp,
-                            verifyContext.toEngineDO()
-                        )
+
+            if (request.transportType == TransportType.LINK_MODE) {
+                //todo: add Verify for LinkMode
+                emitSessionAuthenticate(
+                    request, authenticateSessionParams,
+                    VerifyContext(
+                        12345678,
+                        String.Empty,
+                        Validation.UNKNOWN,
+                        String.Empty,
+                        null
                     )
+                )
+            } else {
+                resolveAttestationIdUseCase(request.id, request.message, url) { verifyContext ->
+                    emitSessionAuthenticate(request, authenticateSessionParams, verifyContext)
                 }
             }
         } catch (e: Exception) {
             logger.log("Received session authenticate - cannot handle request: ${request.topic}")
             jsonRpcInteractor.respondWithError(request, Uncategorized.GenericError("Cannot handle a auth request: ${e.message}, topic: ${request.topic}"), irnParams)
             _events.emit(SDKError(e))
+        }
+    }
+
+    private fun emitSessionAuthenticate(
+        request: WCRequest,
+        authenticateSessionParams: SignParams.SessionAuthenticateParams,
+        verifyContext: VerifyContext
+    ) {
+        scope.launch {
+            logger.log("Received session authenticate - emitting: ${request.topic}")
+            _events.emit(
+                EngineDO.SessionAuthenticateEvent(
+                    request.id,
+                    request.topic.value,
+                    authenticateSessionParams.authPayload.toEngineDO(),
+                    authenticateSessionParams.requester.toEngineDO(),
+                    authenticateSessionParams.expiryTimestamp,
+                    verifyContext.toEngineDO()
+                )
+            )
         }
     }
 }

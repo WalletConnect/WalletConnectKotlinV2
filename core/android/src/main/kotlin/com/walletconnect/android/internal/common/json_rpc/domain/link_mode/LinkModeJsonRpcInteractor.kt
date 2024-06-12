@@ -116,7 +116,7 @@ class LinkModeJsonRpcInteractor(
                         println("kobe: Request")
                         serializer.deserialize(clientJsonRpc.method, envelope)?.let {
                             println("kobe: Payload sync: $it; $clientJsonRpc")
-                            _clientSyncJsonRpc.emit(WCRequest(Topic(topic ?: ""), clientJsonRpc.id, clientJsonRpc.method, it))
+                            _clientSyncJsonRpc.emit(WCRequest(Topic(topic ?: ""), clientJsonRpc.id, clientJsonRpc.method, it, transportType = TransportType.LINK_MODE))
                         }
                     }
                 } ?: serializer.tryDeserialize<JsonRpcResponse.JsonRpcResult>(envelope)?.let { result ->
