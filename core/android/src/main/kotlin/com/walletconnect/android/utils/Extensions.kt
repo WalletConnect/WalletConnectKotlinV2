@@ -10,7 +10,6 @@ import com.walletconnect.android.internal.common.exception.ProjectIdDoesNotExist
 import com.walletconnect.android.internal.common.exception.UnableToConnectToWebsocketException
 import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.internal.common.model.AppMetaData
-import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.utils.Empty
 import java.net.HttpURLConnection
 
@@ -18,13 +17,6 @@ import java.net.HttpURLConnection
 internal fun String.strippedUrl() = Uri.parse(this).run {
     this@run.scheme + "://" + this@run.authority
 }
-
-@JvmSynthetic
-internal fun ConnectionType.toCommonConnectionType(): ConnectionType =
-    when (this) {
-        ConnectionType.AUTOMATIC -> ConnectionType.AUTOMATIC
-        ConnectionType.MANUAL -> ConnectionType.MANUAL
-    }
 
 @JvmSynthetic
 internal fun String.isValidRelayServerUrl(): Boolean {

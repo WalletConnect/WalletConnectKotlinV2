@@ -5,7 +5,6 @@ import com.tinder.scarlet.messageadapter.moshi.MoshiMessageAdapter
 import com.tinder.scarlet.retry.LinearBackoffStrategy
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
 import com.walletconnect.foundation.network.BaseRelayClient
-import com.walletconnect.foundation.network.data.ConnectionController
 import com.walletconnect.foundation.network.data.adapter.FlowStreamAdapter
 import com.walletconnect.foundation.network.data.service.RelayService
 import okhttp3.Interceptor
@@ -47,11 +46,6 @@ fun networkModule(serverUrl: String, sdkVersion: String, jwt: String): Module = 
     single { FlowStreamAdapter.Factory() }
 
     single { LinearBackoffStrategy(TimeUnit.SECONDS.toMillis(DEFAULT_BACKOFF_SECONDS)) }
-
-    single<ConnectionController>() {
-
-        ConnectionController.Manual()
-    }
 
     single(named(FoundationDITags.SCARLET)) {
         Scarlet.Builder()

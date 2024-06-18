@@ -50,6 +50,7 @@ import com.google.accompanist.pager.rememberPagerState
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
 import com.skydoves.landscapist.glide.GlideImage
+import com.walletconnect.android.CoreClient
 import com.walletconnect.sample.common.ui.themedColor
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.wallet.ui.common.Content
@@ -153,6 +154,13 @@ fun ConnectionDetailsRoute(navController: NavController, connectionId: Int?, con
                                     Toast.makeText(context, "Session update error. Error: ${e.message}", Toast.LENGTH_SHORT).show()
                                 }
                             }
+                        }
+                    }
+                },
+                onRestart = {
+                    CoreClient.Relay.restart { error ->
+                        composableScope.launch(Dispatchers.Main) {
+                            Toast.makeText(context, error.throwable.message, Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
@@ -317,7 +325,7 @@ fun Connection(connectionUI: ConnectionUI) {
 }
 
 @Composable
-fun TopButtons(navController: NavController, isEmitAndUpdateVisible: Boolean, isEmitLoading: Boolean, isUpdateLoading: Boolean, onEmit: () -> Unit, onUpdate: () -> Unit) {
+fun TopButtons(navController: NavController, isEmitAndUpdateVisible: Boolean, isEmitLoading: Boolean, isUpdateLoading: Boolean, onEmit: () -> Unit, onUpdate: () -> Unit, onRestart: () -> Unit) {
     val color = Color(0xFF3496ff)
     val style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 17.sp, color = color)
     Row(
@@ -376,6 +384,14 @@ fun TopButtons(navController: NavController, isEmitAndUpdateVisible: Boolean, is
                     )
                 }
             }
+
+            Text(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(5.dp))
+                    .clickable { onRestart() }
+                    .padding(horizontal = 5.dp, vertical = 5.dp),
+                text = "Restart", style = style
+            )
         }
     }
 }
