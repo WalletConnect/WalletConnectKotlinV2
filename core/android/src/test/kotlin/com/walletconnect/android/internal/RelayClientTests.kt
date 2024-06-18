@@ -4,8 +4,8 @@ import com.tinder.scarlet.WebSocket
 import com.walletconnect.android.internal.common.connection.ConnectivityState
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.relay.RelayClient
-import com.walletconnect.foundation.network.data.ConnectionController
 import com.walletconnect.foundation.network.data.service.RelayService
 import com.walletconnect.foundation.util.Logger
 import io.mockk.clearAllMocks
@@ -35,7 +35,6 @@ class RelayClientTests {
 	private lateinit var relayClient: RelayClient
 	private val mockRelayService = mockk<RelayService>(relaxed = true)
 	private val mockLogger = mockk<Logger>(relaxed = true)
-	private val mockConnectionController = mockk<ConnectionController>(relaxed = true)
 	private val mockNetworkState = mockk<ConnectivityState>(relaxed = true)
 	private val testDispatcher = StandardTestDispatcher()
 	private val testScope = TestScope(testDispatcher)
@@ -47,7 +46,6 @@ class RelayClientTests {
 			modules(module {
 				single(named(AndroidCommonDITags.RELAY_SERVICE)) { mockRelayService }
 				single(named(AndroidCommonDITags.LOGGER)) { mockLogger }
-				single(named(AndroidCommonDITags.CONNECTION_CONTROLLER)) { mockConnectionController }
 				single(named(AndroidCommonDITags.CONNECTIVITY_STATE)) { mockNetworkState }
 			})
 		}
@@ -73,7 +71,7 @@ class RelayClientTests {
 			emit(WebSocket.Event.OnConnectionFailed(Throwable("Network failure2")))
 		}
 
-		relayClient.initialize { error ->
+		relayClient.initialize(ConnectionType.MANUAL) { error ->
 			assertEquals(
 				"Error while connecting, please check your Internet connection or contact support: java.lang.Throwable: Network failure",
 				error.message

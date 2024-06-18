@@ -33,7 +33,6 @@ import com.walletconnect.android.relay.RelayConnectionInterface
 import com.walletconnect.android.utils.isValidRelayServerUrl
 import com.walletconnect.android.utils.plantTimber
 import com.walletconnect.android.utils.projectId
-import com.walletconnect.android.utils.toCommonConnectionType
 import com.walletconnect.android.verify.client.VerifyClient
 import com.walletconnect.android.verify.client.VerifyInterface
 import org.koin.android.ext.koin.androidContext
@@ -83,13 +82,13 @@ class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInter
                 modules(
                     module { single { ProjectId(relayServerUrl.projectId()) } },
                     module { single(named(AndroidCommonDITags.TELEMETRY_ENABLED)) { TelemetryEnabled(telemetryEnabled) } },
-                    coreAndroidNetworkModule(relayServerUrl, connectionType.toCommonConnectionType(), BuildConfig.SDK_VERSION, networkClientTimeout, bundleId),
+                    coreAndroidNetworkModule(relayServerUrl, connectionType, BuildConfig.SDK_VERSION, networkClientTimeout, bundleId),
                     coreCommonModule(),
                     coreCryptoModule(),
                 )
 
                 if (relay == null) {
-                    Relay.initialize { error -> onError(Core.Model.Error(error)) }
+                    Relay.initialize(connectionType) { error -> onError(Core.Model.Error(error)) }
                 }
 
                 modules(

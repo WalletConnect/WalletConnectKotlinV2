@@ -59,7 +59,7 @@ class Web3WalletApplication : Application() {
 
         EthAccountDelegate.application = this
 
-        val projectId = BuildConfig.PROJECT_ID
+        val projectId = "a7f155fbc59c18b6ad4fb5650067dd41" //BuildConfig.PROJECT_ID //todo: remove
         val serverUrl = "wss://$RELAY_URL?projectId=$projectId"
         val appMetaData = Core.Model.AppMetaData(
             name = "Kotlin Wallet",
@@ -71,12 +71,12 @@ class Web3WalletApplication : Application() {
 
         CoreClient.initialize(
             relayServerUrl = serverUrl,
-            connectionType = ConnectionType.AUTOMATIC,
+            connectionType = ConnectionType.MANUAL,
             application = this,
             metaData = appMetaData,
             onError = { error ->
                 Firebase.crashlytics.recordException(error.throwable)
-                logger.error(error.throwable.stackTraceToString())
+                println(error.throwable.stackTraceToString())
                 scope.launch {
                     connectionStateFlow.emit(ConnectionState.Error(error.throwable.message ?: ""))
                 }

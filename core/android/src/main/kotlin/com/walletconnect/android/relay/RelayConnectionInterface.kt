@@ -14,4 +14,6 @@ interface RelayConnectionInterface : RelayInterface {
     @Deprecated("This has become deprecate in favor of the onError returning Core.Model.Error", ReplaceWith("this.disconnect(onErrorModel)"))
     fun disconnect(onErrorModel: (Core.Model.Error) -> Unit = {}, onError: (String) -> Unit)
     fun disconnect(onError: (Core.Model.Error) -> Unit)
+
+    fun restart(onError: (Core.Model.Error) -> Unit)
 }
