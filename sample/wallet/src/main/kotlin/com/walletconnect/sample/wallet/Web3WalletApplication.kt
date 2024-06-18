@@ -59,7 +59,7 @@ class Web3WalletApplication : Application() {
 
         EthAccountDelegate.application = this
 
-        val projectId = "a7f155fbc59c18b6ad4fb5650067dd41" //BuildConfig.PROJECT_ID //todo: remove
+        val projectId = BuildConfig.PROJECT_ID
         val serverUrl = "wss://$RELAY_URL?projectId=$projectId"
         val appMetaData = Core.Model.AppMetaData(
             name = "Kotlin Wallet",
@@ -108,6 +108,8 @@ class Web3WalletApplication : Application() {
         }
 
         FirebaseAppDistribution.getInstance().updateIfNewReleaseAvailable()
+
+        CoreClient.Relay.restart {  }
 
         registerAccount()
         initializeBeagle()
