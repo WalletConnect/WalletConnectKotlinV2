@@ -86,7 +86,11 @@ internal class SessionRequestUseCase(
 
         if (session.transportType == TransportType.LINK_MODE) {
             //todo: add success and error callbacks
-            linkModeJsonRpcInteractor.triggerRequest(sessionPayload, Topic(request.topic))
+            try {
+                linkModeJsonRpcInteractor.triggerRequest(sessionPayload, Topic(request.topic))
+            } catch (e: Exception) {
+                onFailure(e)
+            }
         } else {
             jsonRpcInteractor.publishJsonRpcRequest(Topic(request.topic), irnParams, sessionPayload,
                 onSuccess = {

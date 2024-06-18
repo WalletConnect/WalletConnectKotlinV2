@@ -62,8 +62,11 @@ internal class RejectSessionAuthenticateUseCase(
         logger.log("Sending Session Authenticate Reject on topic: $responseTopic")
 
         if (jsonRpcHistoryEntry.transportType == TransportType.LINK_MODE) {
-            //todo: add success and error callbacks
-            linkModeJsonRpcInteractor.triggerResponse(responseTopic, response, Participants(senderPublicKey, receiverPublicKey), EnvelopeType.ONE)
+            try {
+                linkModeJsonRpcInteractor.triggerResponse(responseTopic, response, Participants(senderPublicKey, receiverPublicKey), EnvelopeType.ONE)
+            } catch (e: Exception) {
+                onFailure(e)
+            }
         } else {
             jsonRpcInteractor.publishJsonRpcResponse(
                 responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),

@@ -141,14 +141,7 @@ fun ChainSelectionRoute(navController: NavController) {
             } else {
                 Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
             }
-        },
-        onLinkMode = {
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                data = Uri.parse("https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet/")//.well-known/assetlinks.json")
-            }
-            context.startActivity(intent)
-        }
-    )
+        })
 }
 
 @Composable
@@ -161,8 +154,7 @@ private fun ChainSelectionScreen(
     onChainClick: (Int, Boolean) -> Unit,
     onConnectClick: () -> Unit,
     onAuthenticateClick: () -> Unit,
-    onAuthenticateSIWEClick: () -> Unit,
-    onLinkMode: () -> Unit
+    onAuthenticateSIWEClick: () -> Unit
 ) {
     Box {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -195,15 +187,6 @@ private fun ChainSelectionScreen(
             BlueButton(
                 text = "Authenticate (SIWE)",
                 onClick = onAuthenticateSIWEClick,
-                modifier = Modifier
-                    .padding(vertical = 10.dp)
-                    .fillMaxWidth()
-                    .height(50.dp)
-                    .padding(horizontal = 16.dp)
-            )
-            BlueButton(
-                text = "Link Mode",
-                onClick = onLinkMode,
                 modifier = Modifier
                     .padding(vertical = 10.dp)
                     .fillMaxWidth()
@@ -536,8 +519,7 @@ private fun ChainSelectionScreenPreview(
             onChainClick = { _, _ -> },
             onConnectClick = {},
             onAuthenticateClick = {},
-            onAuthenticateSIWEClick = {},
-            onLinkMode = {}
+            onAuthenticateSIWEClick = {}
         )
     }
 }

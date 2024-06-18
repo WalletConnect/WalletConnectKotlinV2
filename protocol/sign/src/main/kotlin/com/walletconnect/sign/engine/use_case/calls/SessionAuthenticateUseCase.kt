@@ -98,7 +98,11 @@ internal class SessionAuthenticateUseCase(
         if (!walletAppLink.isNullOrEmpty()) {
             //todo: add link storage check and metadata checks flag
             //todo: add success and error callbacks
-            linkModeJsonRpcInteractor.triggerRequest(authRequest)
+            try {
+                linkModeJsonRpcInteractor.triggerRequest(authRequest)
+            } catch (e: Error) {
+                onFailure(e)
+            }
         } else {
             logger.log("Session authenticate subscribing on topic: $responseTopic")
             jsonRpcInteractor.subscribe(

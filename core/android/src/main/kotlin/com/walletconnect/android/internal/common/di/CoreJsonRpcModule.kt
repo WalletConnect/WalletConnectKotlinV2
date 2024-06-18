@@ -49,8 +49,7 @@ fun coreJsonRpcModule() = module {
         LinkModeJsonRpcInteractor(
             chaChaPolyCodec = get(),
             jsonRpcHistory = get(),
-            context = androidContext(),
-            logger = get(named(AndroidCommonDITags.LOGGER))
+            context = androidContext()
         )
     }
 }

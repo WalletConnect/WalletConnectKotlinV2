@@ -156,7 +156,11 @@ internal class ApproveSessionAuthenticateUseCase(
 
             if (jsonRpcHistoryEntry.transportType == TransportType.LINK_MODE) {
                 //todo: add success and error callbacks
-                linkModeJsonRpcInteractor.triggerResponse(responseTopic, response, Participants(senderPublicKey, receiverPublicKey), EnvelopeType.ONE)
+                try {
+                    linkModeJsonRpcInteractor.triggerResponse(responseTopic, response, Participants(senderPublicKey, receiverPublicKey), EnvelopeType.ONE)
+                } catch (e: Exception) {
+                    onFailure(e)
+                }
             } else {
                 trace.add(Trace.SessionAuthenticate.PUBLISHING_AUTHENTICATED_SESSION_APPROVE).also { logger.log("Sending Session Authenticate Approve on topic: $responseTopic") }
                 jsonRpcInteractor.publishJsonRpcResponse(responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
