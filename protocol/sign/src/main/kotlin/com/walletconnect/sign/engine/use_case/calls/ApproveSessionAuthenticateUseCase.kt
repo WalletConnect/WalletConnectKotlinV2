@@ -157,7 +157,9 @@ internal class ApproveSessionAuthenticateUseCase(
             if (jsonRpcHistoryEntry.transportType == TransportType.LINK_MODE) {
                 //todo: add success and error callbacks
                 try {
+                    onSuccess()
                     linkModeJsonRpcInteractor.triggerResponse(responseTopic, response, Participants(senderPublicKey, receiverPublicKey), EnvelopeType.ONE)
+
                 } catch (e: Exception) {
                     onFailure(e)
                 }

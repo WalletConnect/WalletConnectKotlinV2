@@ -100,6 +100,7 @@ internal class SessionAuthenticateUseCase(
             //todo: add success and error callbacks
             try {
                 linkModeJsonRpcInteractor.triggerRequest(authRequest)
+                onSuccess("") // todo: deprecate onSuccess
             } catch (e: Error) {
                 onFailure(e)
             }

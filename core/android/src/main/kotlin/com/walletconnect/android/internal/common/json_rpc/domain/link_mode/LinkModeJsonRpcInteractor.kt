@@ -77,31 +77,40 @@ class LinkModeJsonRpcInteractor(
         val envelope = getEnvelope(topic, encodedEnvelope)
         scope.launch {
             supervisorScope {
-                serializer.tryDeserialize<ClientJsonRpc>(envelope)?.let { clientJsonRpc ->
-                    if (jsonRpcHistory.setRequest(clientJsonRpc.id, Topic(topic ?: String.Empty), clientJsonRpc.method, envelope, TransportType.LINK_MODE)) {
-                        serializer.deserialize(clientJsonRpc.method, envelope)?.let {
-                            _clientSyncJsonRpc.emit(WCRequest(Topic(topic ?: String.Empty), clientJsonRpc.id, clientJsonRpc.method, it, transportType = TransportType.LINK_MODE))
-                        }
-                    }
-                } ?: serializer.tryDeserialize<JsonRpcResponse.JsonRpcResult>(envelope)?.let { result ->
-                    val serializedResult = serializer.serialize(result) ?: throw IllegalStateException("LinkMode: Unknown result params")
-                    val jsonRpcRecord = jsonRpcHistory.updateRequestWithResponse(result.id, serializedResult)
-                    if (jsonRpcRecord != null) {
-                        println("kobe: check: ${jsonRpcRecord.method}; ${jsonRpcRecord.body}")
-                        serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->
-                            _peerResponse.emit(jsonRpcRecord.toWCResponse(JsonRpcResponse.JsonRpcResult(result.id, result = result.result), params))
-                        } ?: throw IllegalStateException("LinkMode: Unknown result params")
-                    }
-                } ?: serializer.tryDeserialize<JsonRpcResponse.JsonRpcError>(envelope)?.let { error ->
-                    val serializedResult = serializer.serialize(error) ?: throw IllegalStateException("LinkMode: Unknown result params")
-                    val jsonRpcRecord = jsonRpcHistory.updateRequestWithResponse(error.id, serializedResult)
-                    if (jsonRpcRecord != null) {
-                        serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->
-                            _peerResponse.emit(jsonRpcRecord.toWCResponse(error, params))
-                        } ?: throw IllegalStateException("LinkMode: Unknown error params")
-                    }
-                } ?: throw IllegalStateException("LinkMode: Received unknown object type")
+                serializer.tryDeserialize<ClientJsonRpc>(envelope)?.let { clientJsonRpc -> serializeRequest(clientJsonRpc, topic, envelope) }
+                    ?: serializer.tryDeserialize<JsonRpcResponse.JsonRpcResult>(envelope)?.let { result -> serializeResult(result) }
+                    ?: serializer.tryDeserialize<JsonRpcResponse.JsonRpcError>(envelope)?.let { error -> serializeError(error) }
+                    ?: throw IllegalStateException("LinkMode: Received unknown object type")
             }
+        }
+    }
+
+    private suspend fun serializeRequest(clientJsonRpc: ClientJsonRpc, topic: String?, envelope: String) {
+        if (jsonRpcHistory.setRequest(clientJsonRpc.id, Topic(topic ?: String.Empty), clientJsonRpc.method, envelope, TransportType.LINK_MODE)) {
+            serializer.deserialize(clientJsonRpc.method, envelope)?.let {
+                _clientSyncJsonRpc.emit(WCRequest(Topic(topic ?: String.Empty), clientJsonRpc.id, clientJsonRpc.method, it, transportType = TransportType.LINK_MODE))
+            }
+        }
+    }
+
+    private suspend fun serializeResult(result: JsonRpcResponse.JsonRpcResult) {
+        val serializedResult = serializer.serialize(result) ?: throw IllegalStateException("LinkMode: Unknown result params")
+        val jsonRpcRecord = jsonRpcHistory.updateRequestWithResponse(result.id, serializedResult)
+        if (jsonRpcRecord != null) {
+
+            serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->
+                _peerResponse.emit(jsonRpcRecord.toWCResponse(JsonRpcResponse.JsonRpcResult(result.id, result = result.result), params))
+            } ?: throw IllegalStateException("LinkMode: Unknown result params")
+        }
+    }
+
+    private suspend fun serializeError(error: JsonRpcResponse.JsonRpcError) {
+        val serializedResult = serializer.serialize(error) ?: throw IllegalStateException("LinkMode: Unknown result params")
+        val jsonRpcRecord = jsonRpcHistory.updateRequestWithResponse(error.id, serializedResult)
+        if (jsonRpcRecord != null) {
+            serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->
+                _peerResponse.emit(jsonRpcRecord.toWCResponse(error, params))
+            } ?: throw IllegalStateException("LinkMode: Unknown error params")
         }
     }
 

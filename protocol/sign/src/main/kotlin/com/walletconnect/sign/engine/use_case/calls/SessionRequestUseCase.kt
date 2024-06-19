@@ -72,26 +72,27 @@ internal class SessionRequestUseCase(
 
         val params = SignParams.SessionRequestParams(SessionRequestVO(request.method, request.params, expiry.seconds), request.chainId)
         val sessionPayload = SignRpc.SessionRequest(params = params)
-        val irnParamsTtl = expiry.run {
-            val defaultTtl = fiveMinutesInSeconds
-            val extractedTtl = seconds - nowInSeconds
-            val newTtl = extractedTtl.takeIf { extractedTtl >= defaultTtl } ?: defaultTtl
-
-            Ttl(newTtl)
-        }
-        val irnParams = IrnParams(Tags.SESSION_REQUEST, irnParamsTtl, true)
-        val requestTtlInSeconds = expiry.run { seconds - nowInSeconds }
-
-        logger.log("Sending session request on topic: ${request.topic}}")
 
         if (session.transportType == TransportType.LINK_MODE) {
             //todo: add success and error callbacks
             try {
                 linkModeJsonRpcInteractor.triggerRequest(sessionPayload, Topic(request.topic))
+                onSuccess(sessionPayload.id)
             } catch (e: Exception) {
                 onFailure(e)
             }
         } else {
+            val irnParamsTtl = expiry.run {
+                val defaultTtl = fiveMinutesInSeconds
+                val extractedTtl = seconds - nowInSeconds
+                val newTtl = extractedTtl.takeIf { extractedTtl >= defaultTtl } ?: defaultTtl
+
+                Ttl(newTtl)
+            }
+            val irnParams = IrnParams(Tags.SESSION_REQUEST, irnParamsTtl, true)
+            val requestTtlInSeconds = expiry.run { seconds - nowInSeconds }
+
+            logger.log("Sending session request on topic: ${request.topic}}")
             jsonRpcInteractor.publishJsonRpcRequest(Topic(request.topic), irnParams, sessionPayload,
                 onSuccess = {
                     logger.log("Session request sent successfully on topic: ${request.topic}")

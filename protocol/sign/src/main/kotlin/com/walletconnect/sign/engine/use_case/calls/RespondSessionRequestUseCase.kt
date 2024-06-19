@@ -65,8 +65,9 @@ internal class RespondSessionRequestUseCase(
         if (session.transportType == TransportType.LINK_MODE) {
             //todo: add success and error callbacks
             try {
-                linkModeJsonRpcInteractor.triggerResponse(Topic(topic), jsonRpcResponse)
                 removePendingSessionRequestAndEmit(jsonRpcResponse.id) //todo: check if this executes
+                linkModeJsonRpcInteractor.triggerResponse(Topic(topic), jsonRpcResponse)
+                onSuccess()
             } catch (e: Exception) {
                 onFailure(e)
             }

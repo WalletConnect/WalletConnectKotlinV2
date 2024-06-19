@@ -64,6 +64,7 @@ internal class RejectSessionAuthenticateUseCase(
         if (jsonRpcHistoryEntry.transportType == TransportType.LINK_MODE) {
             try {
                 linkModeJsonRpcInteractor.triggerResponse(responseTopic, response, Participants(senderPublicKey, receiverPublicKey), EnvelopeType.ONE)
+                onSuccess()
             } catch (e: Exception) {
                 onFailure(e)
             }
