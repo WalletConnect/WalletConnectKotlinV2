@@ -86,12 +86,12 @@ class ChainSelectionViewModel : ViewModel() {
         properties = getProperties()
     )
 
-    fun authenticate(authenticateParams: Modal.Params.Authenticate, onAuthenticateSuccess: (String) -> Unit, onError: (String) -> Unit = {}) {
+    fun authenticate(authenticateParams: Modal.Params.Authenticate, onAuthenticateSuccess: (String?) -> Unit, onError: (String) -> Unit = {}) {
         viewModelScope.launch {
             _awaitingProposalSharedFlow.emit(true)
         }
 
-        WalletConnectModal.authenticate(authenticateParams,
+        WalletConnectModal.authenticate(authenticateParams, walletAppLink = "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet/",
             onSuccess = { url ->
                 viewModelScope.launch {
                     _awaitingProposalSharedFlow.emit(false)

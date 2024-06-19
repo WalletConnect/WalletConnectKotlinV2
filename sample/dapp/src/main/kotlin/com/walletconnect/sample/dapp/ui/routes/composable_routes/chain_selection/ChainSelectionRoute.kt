@@ -118,7 +118,7 @@ fun ChainSelectionRoute(navController: NavController) {
             if (viewModel.isAnyChainSelected) {
                 viewModel.authenticate(
                     viewModel.authenticateParams,
-                    onAuthenticateSuccess = { uri -> pairingUri = PairingUri(uri, true) },
+                    onAuthenticateSuccess = { uri -> pairingUri = PairingUri(uri ?: "", true) },
                     onError = { error ->
                         composableScope.launch(Dispatchers.Main) {
                             Toast.makeText(context, "Authenticate error: $error", Toast.LENGTH_SHORT).show()
@@ -132,7 +132,7 @@ fun ChainSelectionRoute(navController: NavController) {
             if (viewModel.isAnyChainSelected) {
                 viewModel.authenticate(
                     viewModel.siweParams,
-                    onAuthenticateSuccess = { uri -> pairingUri = PairingUri(uri, false) },
+                    onAuthenticateSuccess = { uri -> pairingUri = PairingUri(uri ?: "", false) },
                     onError = { error ->
                         composableScope.launch(Dispatchers.Main) {
                             Toast.makeText(context, "Authenticate error: $error", Toast.LENGTH_SHORT).show()
@@ -392,7 +392,7 @@ private fun authenticate(
         viewModel.authenticate(
             params,
             onAuthenticateSuccess = { uri ->
-                onDeepLink(uri)
+                uri?.let { onDeepLink(it) }
             },
             onError = { error ->
                 composableScope.launch(Dispatchers.Main) {

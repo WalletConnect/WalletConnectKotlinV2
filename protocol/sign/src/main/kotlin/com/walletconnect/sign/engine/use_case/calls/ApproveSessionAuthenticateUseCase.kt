@@ -155,11 +155,15 @@ internal class ApproveSessionAuthenticateUseCase(
             )
 
             if (jsonRpcHistoryEntry.transportType == TransportType.LINK_MODE) {
-                //todo: add success and error callbacks
                 try {
                     onSuccess()
-                    linkModeJsonRpcInteractor.triggerResponse(responseTopic, response, Participants(senderPublicKey, receiverPublicKey), EnvelopeType.ONE)
-
+                    linkModeJsonRpcInteractor.triggerResponse(
+                        responseTopic,
+                        response,
+                        "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/dapp",
+                        Participants(senderPublicKey, receiverPublicKey),
+                        EnvelopeType.ONE
+                    )
                 } catch (e: Exception) {
                     onFailure(e)
                 }

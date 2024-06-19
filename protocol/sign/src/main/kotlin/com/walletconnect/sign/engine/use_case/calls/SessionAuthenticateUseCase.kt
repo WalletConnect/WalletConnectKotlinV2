@@ -99,7 +99,7 @@ internal class SessionAuthenticateUseCase(
             //todo: add link storage check and metadata checks flag
             //todo: add success and error callbacks
             try {
-                linkModeJsonRpcInteractor.triggerRequest(authRequest)
+                linkModeJsonRpcInteractor.triggerRequest(authRequest, appLink = walletAppLink)
                 onSuccess("") // todo: deprecate onSuccess
             } catch (e: Error) {
                 onFailure(e)
@@ -223,7 +223,7 @@ internal interface SessionAuthenticateUseCaseInterface {
         methods: List<String>?,
         pairingTopic: String?,
         expiry: Expiry?,
-        walletAppLink: String?,
+        walletAppLink: String? = null,
         onSuccess: (String) -> Unit,
         onFailure: (Throwable) -> Unit
     )

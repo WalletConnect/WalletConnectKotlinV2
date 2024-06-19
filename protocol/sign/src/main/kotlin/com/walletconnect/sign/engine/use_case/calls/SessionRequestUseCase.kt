@@ -76,7 +76,7 @@ internal class SessionRequestUseCase(
         if (session.transportType == TransportType.LINK_MODE) {
             //todo: add success and error callbacks
             try {
-                linkModeJsonRpcInteractor.triggerRequest(sessionPayload, Topic(request.topic))
+                linkModeJsonRpcInteractor.triggerRequest(sessionPayload, Topic(request.topic), "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet")
                 onSuccess(sessionPayload.id)
             } catch (e: Exception) {
                 onFailure(e)

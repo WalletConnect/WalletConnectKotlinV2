@@ -44,25 +44,25 @@ class LinkModeJsonRpcInteractor(
     private val _internalErrors = MutableSharedFlow<SDKError>()
     override val internalErrors: SharedFlow<SDKError> = _internalErrors.asSharedFlow()
 
-    override fun triggerRequest(payload: JsonRpcClientSync<*>, topic: Topic?) {
+    //    https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet
+    override fun triggerRequest(payload: JsonRpcClientSync<*>, topic: Topic?, appLink: String) {
         val requestJson = serializer.serialize(payload) ?: throw IllegalStateException("LinkMode: Unknown result params")
         if (jsonRpcHistory.setRequest(payload.id, topic ?: Topic(), payload.method, requestJson, TransportType.LINK_MODE)) {
             val encodedRequest = getEncodedRequest(topic, requestJson)
             val intent = Intent(Intent.ACTION_VIEW).apply {
-                //TODO: pass App Link from where?
-                data = Uri.parse("https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet?wc_ev=$encodedRequest&topic=${topic?.value ?: ""}")
+                data = Uri.parse("$appLink?wc_ev=$encodedRequest&topic=${topic?.value ?: ""}")
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(intent)
         }
     }
 
-    override fun triggerResponse(topic: Topic, response: JsonRpcResponse, participants: Participants?, envelopeType: EnvelopeType) {
-        val responseJson = serializer.serialize(response) ?: throw Exception("Null")
+    //    https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/dapp
+    override fun triggerResponse(topic: Topic, response: JsonRpcResponse, appLink: String, participants: Participants?, envelopeType: EnvelopeType) {
+        val responseJson = serializer.serialize(response) ?: throw IllegalStateException("LinkMode: Unknown result params")
         val encodedResponse = Base64.encodeToString(chaChaPolyCodec.encrypt(topic, responseJson, envelopeType, participants), Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
         val intent = Intent(Intent.ACTION_VIEW).apply {
-            //TODO: pass App Link from where?
-            data = Uri.parse("https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/dapp?wc_ev=$encodedResponse&topic=${topic.value}")
+            data = Uri.parse("$appLink?wc_ev=$encodedResponse&topic=${topic.value}")
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         jsonRpcHistory.updateRequestWithResponse(response.id, responseJson)
@@ -129,7 +129,7 @@ class LinkModeJsonRpcInteractor(
 }
 
 interface LinkModeJsonRpcInteractorInterface : JsonRpcInteractorInterface {
-    fun triggerRequest(payload: JsonRpcClientSync<*>, topic: Topic? = null)
-    fun triggerResponse(topic: Topic, response: JsonRpcResponse, participants: Participants? = null, envelopeType: EnvelopeType = EnvelopeType.ZERO)
+    fun triggerRequest(payload: JsonRpcClientSync<*>, topic: Topic? = null, appLink: String)
+    fun triggerResponse(topic: Topic, response: JsonRpcResponse, appLink: String, participants: Participants? = null, envelopeType: EnvelopeType = EnvelopeType.ZERO)
     fun dispatchEnvelope(url: String)
 }

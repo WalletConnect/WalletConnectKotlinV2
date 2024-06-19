@@ -63,7 +63,13 @@ internal class RejectSessionAuthenticateUseCase(
 
         if (jsonRpcHistoryEntry.transportType == TransportType.LINK_MODE) {
             try {
-                linkModeJsonRpcInteractor.triggerResponse(responseTopic, response, Participants(senderPublicKey, receiverPublicKey), EnvelopeType.ONE)
+                linkModeJsonRpcInteractor.triggerResponse(
+                    responseTopic,
+                    response,
+                    "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/dapp",
+                    Participants(senderPublicKey, receiverPublicKey),
+                    EnvelopeType.ONE
+                )
                 onSuccess()
             } catch (e: Exception) {
                 onFailure(e)

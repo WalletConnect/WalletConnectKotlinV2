@@ -63,10 +63,9 @@ internal class RespondSessionRequestUseCase(
         logger.log("Sending session request response on topic: $topic, id: ${jsonRpcResponse.id}")
 
         if (session.transportType == TransportType.LINK_MODE) {
-            //todo: add success and error callbacks
             try {
-                removePendingSessionRequestAndEmit(jsonRpcResponse.id) //todo: check if this executes
-                linkModeJsonRpcInteractor.triggerResponse(Topic(topic), jsonRpcResponse)
+                removePendingSessionRequestAndEmit(jsonRpcResponse.id)
+                linkModeJsonRpcInteractor.triggerResponse(Topic(topic), jsonRpcResponse, "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/dapp")
                 onSuccess()
             } catch (e: Exception) {
                 onFailure(e)

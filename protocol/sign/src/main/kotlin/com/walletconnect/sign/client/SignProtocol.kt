@@ -109,33 +109,6 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
         }.launchIn(scope)
     }
 
-    @Deprecated(
-        message = "Replaced with the same name method but onSuccess callback returns a Pairing URL",
-        replaceWith = ReplaceWith(expression = "fun connect(connect: Sign.Params.Connect, onSuccess: (String) -> Unit, onError: (Sign.Model.Error) -> Unit)")
-    )
-    @Throws(IllegalStateException::class)
-    override fun connect(
-        connect: Sign.Params.Connect,
-        onSuccess: () -> Unit,
-        onError: (Sign.Model.Error) -> Unit,
-    ) {
-        checkEngineInitialization()
-        scope.launch {
-            try {
-                signEngine.proposeSession(
-                    connect.namespaces?.toMapOfEngineNamespacesRequired(),
-                    connect.optionalNamespaces?.toMapOfEngineNamespacesOptional(),
-                    connect.properties,
-                    connect.pairing.toPairing(),
-                    onSuccess = { onSuccess() },
-                    onFailure = { error -> onError(Sign.Model.Error(error)) }
-                )
-            } catch (error: Exception) {
-                onError(Sign.Model.Error(error))
-            }
-        }
-    }
-
     @Throws(IllegalStateException::class)
     override fun connect(
         connect: Sign.Params.Connect,
@@ -144,7 +117,6 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     ) {
         checkEngineInitialization()
         scope.launch {
-
             try {
                 signEngine.proposeSession(
                     connect.namespaces?.toMapOfEngineNamespacesRequired(),
@@ -163,7 +135,8 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     @Throws(IllegalStateException::class)
     override fun authenticate(
         authenticate: Sign.Params.Authenticate,
-        onSuccess: (String) -> Unit,
+        walletAppLink: String?,
+        onSuccess: (String?) -> Unit,
         onError: (Sign.Model.Error) -> Unit,
     ) {
         checkEngineInitialization()
@@ -172,7 +145,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
                 signEngine.authenticate(authenticate.toAuthenticate(),
                     authenticate.methods, authenticate.pairingTopic,
                     if (authenticate.expiry == null) null else Expiry(authenticate.expiry),
-                    "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet/",
+                    walletAppLink,
                     onSuccess = { url -> onSuccess(url) },
                     onFailure = { throwable -> onError(Sign.Model.Error(throwable)) })
             } catch (error: Exception) {
@@ -279,32 +252,6 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
         scope.launch {
             try {
                 signEngine.rejectSessionAuthenticate(reject.id, reject.reason, onSuccess = { onSuccess(reject) }) { error -> onError(Sign.Model.Error(error)) }
-            } catch (error: Exception) {
-                onError(Sign.Model.Error(error))
-            }
-        }
-    }
-
-    @Deprecated(
-        "The onSuccess callback has been replaced with a new callback that returns Sign.Model.SentRequest",
-        replaceWith = ReplaceWith("this.request(request, onSuccessWithSentRequest, onError)", "com.walletconnect.sign.client")
-    )
-    @Throws(IllegalStateException::class)
-    override fun request(
-        request: Sign.Params.Request,
-        onSuccess: (Sign.Params.Request) -> Unit,
-        onSuccessWithSentRequest: (Sign.Model.SentRequest) -> Unit,
-        onError: (Sign.Model.Error) -> Unit,
-    ) {
-        checkEngineInitialization()
-
-        scope.launch {
-            try {
-                signEngine.sessionRequest(
-                    request = request.toEngineDORequest(),
-                    onSuccess = { onSuccess(request) },
-                    onFailure = { error -> onError(Sign.Model.Error(error)) }
-                )
             } catch (error: Exception) {
                 onError(Sign.Model.Error(error))
             }
@@ -494,26 +441,6 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
         }
     }
 
-    @Deprecated(
-        "Getting a list of Pairings will be moved to CoreClient to make pairing SDK agnostic",
-        replaceWith = ReplaceWith("CoreClient.Pairing.getPairings()", "com.walletconnect.android.CoreClient")
-    )
-    @Throws(IllegalStateException::class)
-    override fun getListOfSettledPairings(): List<Sign.Model.Pairing> {
-        checkEngineInitialization()
-        return runBlocking { signEngine.getListOfSettledPairings().map(EngineDO.PairingSettle::toClientSettledPairing) }
-    }
-
-    @Deprecated(
-        "The return type of getPendingRequests methods has been replaced with SessionRequest list",
-        replaceWith = ReplaceWith("getPendingSessionRequests(topic: String): List<Sign.Model.SessionRequest>")
-    )
-    @Throws(IllegalStateException::class)
-    override fun getPendingRequests(topic: String): List<Sign.Model.PendingRequest> {
-        checkEngineInitialization()
-        return runBlocking { signEngine.getPendingRequests(Topic(topic)).mapToPendingRequests() }
-    }
-
     @Throws(IllegalStateException::class)
     override fun getPendingSessionRequests(topic: String): List<Sign.Model.SessionRequest> {
         checkEngineInitialization()
@@ -542,6 +469,104 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     override fun getListOfVerifyContexts(): List<Sign.Model.VerifyContext> {
         checkEngineInitialization()
         return runBlocking { signEngine.getListOfVerifyContexts().map { verifyContext -> verifyContext.toCore() } }
+    }
+
+    @Deprecated(
+        message = "Replaced with the same name method but onSuccess callback returns a Pairing URL",
+        replaceWith = ReplaceWith(expression = "fun connect(connect: Sign.Params.Connect, onSuccess: (String) -> Unit, onError: (Sign.Model.Error) -> Unit)")
+    )
+    @Throws(IllegalStateException::class)
+    override fun connect(
+        connect: Sign.Params.Connect,
+        onSuccess: () -> Unit,
+        onError: (Sign.Model.Error) -> Unit,
+    ) {
+        checkEngineInitialization()
+        scope.launch {
+            try {
+                signEngine.proposeSession(
+                    connect.namespaces?.toMapOfEngineNamespacesRequired(),
+                    connect.optionalNamespaces?.toMapOfEngineNamespacesOptional(),
+                    connect.properties,
+                    connect.pairing.toPairing(),
+                    onSuccess = { onSuccess() },
+                    onFailure = { error -> onError(Sign.Model.Error(error)) }
+                )
+            } catch (error: Exception) {
+                onError(Sign.Model.Error(error))
+            }
+        }
+    }
+
+    @Deprecated(
+        "The onSuccess callback has been replaced with a new callback that returns optional Pairing URL",
+        replaceWith = ReplaceWith("fun authenticate(authenticate: Sign.Params.Authenticate, val walletAppLink: String?, onSuccess: (String?) -> Unit, onError: (Sign.Model.Error) -> Unit)")
+    )
+    @Throws(IllegalStateException::class)
+    override fun authenticate(
+        authenticate: Sign.Params.Authenticate,
+        onSuccess: (String) -> Unit,
+        onError: (Sign.Model.Error) -> Unit,
+    ) {
+        checkEngineInitialization()
+        scope.launch {
+            try {
+                signEngine.authenticate(authenticate.toAuthenticate(),
+                    authenticate.methods, authenticate.pairingTopic,
+                    if (authenticate.expiry == null) null else Expiry(authenticate.expiry),
+                    null,
+                    onSuccess = { url -> onSuccess(url) },
+                    onFailure = { throwable -> onError(Sign.Model.Error(throwable)) })
+            } catch (error: Exception) {
+                onError(Sign.Model.Error(error))
+            }
+        }
+    }
+
+    @Deprecated(
+        "The onSuccess callback has been replaced with a new callback that returns Sign.Model.SentRequest",
+        replaceWith = ReplaceWith("this.request(request, onSuccessWithSentRequest, onError)", "com.walletconnect.sign.client")
+    )
+    @Throws(IllegalStateException::class)
+    override fun request(
+        request: Sign.Params.Request,
+        onSuccess: (Sign.Params.Request) -> Unit,
+        onSuccessWithSentRequest: (Sign.Model.SentRequest) -> Unit,
+        onError: (Sign.Model.Error) -> Unit,
+    ) {
+        checkEngineInitialization()
+
+        scope.launch {
+            try {
+                signEngine.sessionRequest(
+                    request = request.toEngineDORequest(),
+                    onSuccess = { onSuccess(request) },
+                    onFailure = { error -> onError(Sign.Model.Error(error)) }
+                )
+            } catch (error: Exception) {
+                onError(Sign.Model.Error(error))
+            }
+        }
+    }
+
+    @Deprecated(
+        "Getting a list of Pairings will be moved to CoreClient to make pairing SDK agnostic",
+        replaceWith = ReplaceWith("CoreClient.Pairing.getPairings()", "com.walletconnect.android.CoreClient")
+    )
+    @Throws(IllegalStateException::class)
+    override fun getListOfSettledPairings(): List<Sign.Model.Pairing> {
+        checkEngineInitialization()
+        return runBlocking { signEngine.getListOfSettledPairings().map(EngineDO.PairingSettle::toClientSettledPairing) }
+    }
+
+    @Deprecated(
+        "The return type of getPendingRequests methods has been replaced with SessionRequest list",
+        replaceWith = ReplaceWith("getPendingSessionRequests(topic: String): List<Sign.Model.SessionRequest>")
+    )
+    @Throws(IllegalStateException::class)
+    override fun getPendingRequests(topic: String): List<Sign.Model.PendingRequest> {
+        checkEngineInitialization()
+        return runBlocking { signEngine.getPendingRequests(Topic(topic)).mapToPendingRequests() }
     }
 
 // TODO: Uncomment once reinit scope logic is added
