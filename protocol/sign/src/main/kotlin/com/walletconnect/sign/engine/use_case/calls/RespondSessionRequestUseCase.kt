@@ -4,6 +4,7 @@ import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
 import com.walletconnect.android.internal.common.exception.RequestExpiredException
 import com.walletconnect.android.internal.common.json_rpc.domain.link_mode.LinkModeJsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
@@ -11,6 +12,7 @@ import com.walletconnect.android.internal.common.model.TransportType
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
@@ -34,6 +36,7 @@ internal class RespondSessionRequestUseCase(
     private val linkModeJsonRpcInteractor: LinkModeJsonRpcInteractorInterface,
     private val logger: Logger,
     private val verifyContextStorageRepository: VerifyContextStorageRepository,
+    private val metadataStorageRepository: MetadataStorageRepositoryInterface,
 ) : RespondSessionRequestUseCaseInterface {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     override val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
@@ -49,6 +52,11 @@ internal class RespondSessionRequestUseCase(
             return@supervisorScope onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic"))
         }
         val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(topicWrapper)
+            .run {
+                val peerAppMetaData = metadataStorageRepository.getByTopicAndType(this.topic, AppMetaDataType.PEER)
+                this.copy(peerAppMetaData = peerAppMetaData)
+            }
+
         if (getPendingJsonRpcHistoryEntryByIdUseCase(jsonRpcResponse.id) == null) {
             logger.error("Request doesn't exist: $topic, id: ${jsonRpcResponse.id}")
             throw RequestExpiredException("This request has expired, id: ${jsonRpcResponse.id}")

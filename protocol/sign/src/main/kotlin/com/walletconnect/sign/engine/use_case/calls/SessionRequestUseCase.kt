@@ -4,6 +4,7 @@ import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
 import com.walletconnect.android.internal.common.exception.InvalidExpiryException
 import com.walletconnect.android.internal.common.json_rpc.domain.link_mode.LinkModeJsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Namespace
@@ -12,6 +13,7 @@ import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.TransportType
 import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.android.internal.utils.currentTimeInSeconds
 import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
@@ -42,6 +44,7 @@ internal class SessionRequestUseCase(
     private val sessionStorageRepository: SessionStorageRepository,
     private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val linkModeJsonRpcInteractor: LinkModeJsonRpcInteractorInterface,
+    private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val logger: Logger,
 ) : SessionRequestUseCaseInterface {
     private val _errors: MutableSharedFlow<SDKError> = MutableSharedFlow()
@@ -51,7 +54,12 @@ internal class SessionRequestUseCase(
         if (!sessionStorageRepository.isSessionValid(Topic(request.topic))) {
             return@supervisorScope onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE${request.topic}"))
         }
+
         val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic(request.topic))
+                .run {
+                    val peerAppMetaData = metadataStorageRepository.getByTopicAndType(this.topic, AppMetaDataType.PEER)
+                    this.copy(peerAppMetaData = peerAppMetaData)
+                }
 
         val nowInSeconds = currentTimeInSeconds
         if (!CoreValidator.isExpiryWithinBounds(request.expiry)) {

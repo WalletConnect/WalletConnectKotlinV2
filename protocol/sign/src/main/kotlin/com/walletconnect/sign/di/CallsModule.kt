@@ -142,6 +142,7 @@ internal fun callsModule() = module {
             jsonRpcInteractor = get(),
             sessionStorageRepository = get(),
             linkModeJsonRpcInteractor = get(),
+            metadataStorageRepository = get(),
             logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }
@@ -153,7 +154,8 @@ internal fun callsModule() = module {
             sessionStorageRepository = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
             getPendingJsonRpcHistoryEntryByIdUseCase = get(),
-            linkModeJsonRpcInteractor = get()
+            linkModeJsonRpcInteractor = get(),
+            metadataStorageRepository = get()
         )
     }
 

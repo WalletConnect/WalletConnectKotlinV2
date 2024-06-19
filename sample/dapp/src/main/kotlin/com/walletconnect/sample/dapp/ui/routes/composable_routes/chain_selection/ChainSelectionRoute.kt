@@ -76,6 +76,7 @@ import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.sample.dapp.ui.routes.Route
 import com.walletconnect.sample.dapp.ui.routes.bottom_routes.PairingSelectionResult
 import com.walletconnect.sample.dapp.ui.routes.bottom_routes.pairingSelectionResultKey
+import com.walletconnect.sign.client.Sign
 import com.walletconnect.wcmodal.client.Modal
 import com.walletconnect.wcmodal.client.WalletConnectModal
 import com.walletconnect.wcmodal.ui.openWalletConnectModal
@@ -378,29 +379,6 @@ private fun handlePairingEvents(
                 }
             }
         }
-    }
-}
-
-private fun authenticate(
-    viewModel: ChainSelectionViewModel,
-    context: Context,
-    params: Modal.Params.Authenticate,
-    composableScope: CoroutineScope,
-    onDeepLink: (String) -> Unit
-) {
-    if (viewModel.isAnyChainSelected) {
-        viewModel.authenticate(
-            params,
-            onAuthenticateSuccess = { uri ->
-                uri?.let { onDeepLink(it) }
-            },
-            onError = { error ->
-                composableScope.launch(Dispatchers.Main) {
-                    Toast.makeText(context, "Authenticate error: $error", Toast.LENGTH_SHORT).show()
-                }
-            })
-    } else {
-        Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
     }
 }
 

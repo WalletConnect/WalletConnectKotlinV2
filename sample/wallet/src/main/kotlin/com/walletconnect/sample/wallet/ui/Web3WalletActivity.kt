@@ -60,7 +60,6 @@ class Web3WalletActivity : AppCompatActivity() {
         askNotificationPermission()
         handleErrors()
 
-        println("kobe: New Activity: ${intent?.dataString}")
         handleAppLink(intent)
     }
 
@@ -156,17 +155,14 @@ class Web3WalletActivity : AppCompatActivity() {
 
     private fun handleAppLink(intent: Intent?) {
         if (intent?.dataString?.contains("wc_ev") == true) {
-            println("kobe: Wallet: ${intent.dataString}")
             Web3Wallet.dispatchEnvelope(intent.dataString ?: "") {
-                println("kobe: Dispatch error: $it")
+                println("Dispatch error: $it")
             }
         }
     }
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
-
-        println("kobe: New Intent: ${intent?.dataString}")
         handleAppLink(intent)
 
         when {

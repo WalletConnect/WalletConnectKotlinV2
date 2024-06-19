@@ -205,23 +205,6 @@ object WalletConnectModal {
         }
     }
 
-    //todo:might not be needed since linkmode would be integrated internally in modals, only for testing purposes
-    fun authenticate(
-        authenticate: Modal.Params.Authenticate,
-        walletAppLink: String?,
-        onSuccess: (String?) -> Unit,
-        onError: (Modal.Model.Error) -> Unit,
-    ) {
-
-        SignClient.authenticate(authenticate.toSign(), walletAppLink,
-            onSuccess = { url -> onSuccess(url) },
-            onError = { onError(it.toModal()) })
-    }
-
-    @Deprecated(
-        "The onSuccess callback has been replaced with a new callback that returns optional Pairing URL",
-        replaceWith = ReplaceWith("fun authenticate(authenticate: Sign.Params.Authenticate, val walletAppLink: String?, onSuccess: (String?) -> Unit, onError: (Sign.Model.Error) -> Unit)")
-    )
     fun authenticate(
         authenticate: Modal.Params.Authenticate,
         onSuccess: (String) -> Unit,

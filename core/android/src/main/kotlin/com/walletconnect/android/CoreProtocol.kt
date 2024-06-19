@@ -104,7 +104,7 @@ class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInter
                                     description = description,
                                     url = url,
                                     icons = icons,
-                                    redirect = Redirect(native = redirect , universal = appLink, linkMode)
+                                    redirect = Redirect(native = redirect , universal = appLink, linkMode = linkMode)
                                 )
                             }
                         }
