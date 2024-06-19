@@ -41,7 +41,7 @@ internal class OnAuthRequestUseCase(
             }
 
             val url = authParams.requester.metadata.url
-            resolveAttestationIdUseCase(wcRequest.id, wcRequest.message, url) { verifyContext ->
+            resolveAttestationIdUseCase(wcRequest, url) { verifyContext ->
                 scope.launch { _events.emit(Events.OnAuthRequest(wcRequest.id, wcRequest.topic.value, authParams.payloadParams, verifyContext)) }
             }
         } catch (e: Exception) {

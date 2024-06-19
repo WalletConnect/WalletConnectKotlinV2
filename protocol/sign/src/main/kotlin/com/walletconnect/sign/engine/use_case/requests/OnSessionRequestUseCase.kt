@@ -10,7 +10,6 @@ import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.TransportType
-import com.walletconnect.android.internal.common.model.Validation
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
@@ -88,23 +87,11 @@ internal class OnSessionRequestUseCase(
                 return@supervisorScope
             }
 
-            if (request.transportType == TransportType.LINK_MODE) {
-                //todo: add Verify for LinkMode
-                val verifyContext = VerifyContext(
-                    12345678,
-                    String.Empty,
-                    Validation.UNKNOWN,
-                    String.Empty,
-                    null
-                )
+            val url = sessionPeerAppMetaData?.url ?: String.Empty
+            logger.log("Resolving session request attestation: ${System.currentTimeMillis()}")
+            resolveAttestationIdUseCase(request, url, linkMode = request.transportType == TransportType.LINK_MODE, appLink = sessionPeerAppMetaData?.redirect?.universal) { verifyContext ->
+                logger.log("Session request attestation resolved: ${System.currentTimeMillis()}")
                 emitSessionRequest(params, request, sessionPeerAppMetaData, verifyContext)
-            } else {
-                val url = sessionPeerAppMetaData?.url ?: String.Empty
-                logger.log("Resolving session request attestation: ${System.currentTimeMillis()}")
-                resolveAttestationIdUseCase(request.id, request.message, url) { verifyContext ->
-                    logger.log("Session request attestation resolved: ${System.currentTimeMillis()}")
-                    emitSessionRequest(params, request, sessionPeerAppMetaData, verifyContext)
-                }
             }
         } catch (e: Exception) {
             logger.error("Session request received failure on topic: ${request.topic} - ${e.message}")

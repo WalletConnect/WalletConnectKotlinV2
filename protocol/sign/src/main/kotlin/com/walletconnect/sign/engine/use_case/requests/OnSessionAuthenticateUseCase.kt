@@ -8,7 +8,6 @@ import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.TransportType
-import com.walletconnect.android.internal.common.model.Validation
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
@@ -27,7 +26,6 @@ import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toEngineDO
-import com.walletconnect.utils.Empty
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -58,23 +56,8 @@ internal class OnSessionAuthenticateUseCase(
 
             val url = authenticateSessionParams.requester.metadata.url
             pairingController.setRequestReceived(Core.Params.RequestReceived(request.topic.value))
-
-            if (request.transportType == TransportType.LINK_MODE) {
-                //todo: add Verify for LinkMode
-                emitSessionAuthenticate(
-                    request, authenticateSessionParams,
-                    VerifyContext(
-                        12345678,
-                        String.Empty,
-                        Validation.UNKNOWN,
-                        String.Empty,
-                        null
-                    )
-                )
-            } else {
-                resolveAttestationIdUseCase(request.id, request.message, url) { verifyContext ->
-                    emitSessionAuthenticate(request, authenticateSessionParams, verifyContext)
-                }
+            resolveAttestationIdUseCase(request, url, linkMode = request.transportType == TransportType.LINK_MODE, appLink = authenticateSessionParams.appLink) { verifyContext ->
+                emitSessionAuthenticate(request, authenticateSessionParams, verifyContext)
             }
         } catch (e: Exception) {
             logger.log("Received session authenticate - cannot handle request: ${request.topic}")
