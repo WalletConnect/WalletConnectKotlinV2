@@ -96,8 +96,7 @@ internal class SessionAuthenticateUseCase(
         crypto.setKey(requesterPublicKey, responseTopic.getParticipantTag())
 
         if (!walletAppLink.isNullOrEmpty()) {
-            //todo: add link storage check and metadata checks flag
-            //todo: add success and error callbacks
+            //todo: add link storage check and metadata checks flag for discovery
             try {
                 linkModeJsonRpcInteractor.triggerRequest(authRequest, appLink = walletAppLink)
                 onSuccess("") // todo: deprecate onSuccess

@@ -28,7 +28,6 @@ class DappSampleActivity : ComponentActivity() {
 
 
         if (intent?.dataString?.contains("wc_ev") == true) {
-            println("kobe: Dapp: ${intent.dataString}")
             WalletConnectModal.dispatchEnvelope(intent.dataString ?: "") {
                 println("kobe: Dapp Dispatch error: $it")
             }

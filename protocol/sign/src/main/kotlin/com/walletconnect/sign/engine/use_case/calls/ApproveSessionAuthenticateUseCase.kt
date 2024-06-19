@@ -154,13 +154,14 @@ internal class ApproveSessionAuthenticateUseCase(
                 }
             )
 
-            if (jsonRpcHistoryEntry.transportType == TransportType.LINK_MODE) {
+            if (jsonRpcHistoryEntry.transportType == TransportType.LINK_MODE && receiverMetadata.redirect?.linkMode == true) {
+                if (receiverMetadata.redirect?.universal.isNullOrEmpty()) return@supervisorScope onFailure(IllegalStateException("App link is missing"))
                 try {
                     onSuccess()
                     linkModeJsonRpcInteractor.triggerResponse(
                         responseTopic,
                         response,
-                        "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/dapp",
+                        receiverMetadata.redirect!!.universal!!,
                         Participants(senderPublicKey, receiverPublicKey),
                         EnvelopeType.ONE
                     )

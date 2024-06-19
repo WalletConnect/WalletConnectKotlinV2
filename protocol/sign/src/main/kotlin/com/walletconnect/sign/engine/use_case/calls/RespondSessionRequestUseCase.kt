@@ -62,10 +62,11 @@ internal class RespondSessionRequestUseCase(
         val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(fiveMinutesInSeconds))
         logger.log("Sending session request response on topic: $topic, id: ${jsonRpcResponse.id}")
 
-        if (session.transportType == TransportType.LINK_MODE) {
+        if (session.transportType == TransportType.LINK_MODE && session.linkMode == true) {
+            if (session.appLink.isNullOrEmpty()) return@supervisorScope onFailure(IllegalStateException("App link is missing"))
             try {
                 removePendingSessionRequestAndEmit(jsonRpcResponse.id)
-                linkModeJsonRpcInteractor.triggerResponse(Topic(topic), jsonRpcResponse, "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/dapp")
+                linkModeJsonRpcInteractor.triggerResponse(Topic(topic), jsonRpcResponse, session.appLink)
                 onSuccess()
             } catch (e: Exception) {
                 onFailure(e)

@@ -73,10 +73,10 @@ internal class SessionRequestUseCase(
         val params = SignParams.SessionRequestParams(SessionRequestVO(request.method, request.params, expiry.seconds), request.chainId)
         val sessionPayload = SignRpc.SessionRequest(params = params)
 
-        if (session.transportType == TransportType.LINK_MODE) {
-            //todo: add success and error callbacks
+        if (session.transportType == TransportType.LINK_MODE && session.linkMode == true) {
+            if (session.appLink.isNullOrEmpty()) return@supervisorScope onFailure(IllegalStateException("App link is missing"))
             try {
-                linkModeJsonRpcInteractor.triggerRequest(sessionPayload, Topic(request.topic), "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet")
+                linkModeJsonRpcInteractor.triggerRequest(sessionPayload, Topic(request.topic), session.appLink)
                 onSuccess(sessionPayload.id)
             } catch (e: Exception) {
                 onFailure(e)

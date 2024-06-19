@@ -4,6 +4,7 @@ import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.RequestExpiredException
 import com.walletconnect.android.internal.common.json_rpc.domain.link_mode.LinkModeJsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Participants
@@ -51,22 +52,20 @@ internal class RejectSessionAuthenticateUseCase(
         //todo: handle error codes
         val response = JsonRpcResponse.JsonRpcError(id, error = JsonRpcResponse.Error(12001, reason))
         val sessionAuthenticateParams: SignParams.SessionAuthenticateParams = jsonRpcHistoryEntry.params
+        val receiverMetadata: AppMetaData = sessionAuthenticateParams.requester.metadata
         val receiverPublicKey = PublicKey(sessionAuthenticateParams.requester.publicKey)
         val senderPublicKey: PublicKey = crypto.generateAndStoreX25519KeyPair()
         val symmetricKey: SymmetricKey = crypto.generateSymmetricKeyFromKeyAgreement(senderPublicKey, receiverPublicKey)
         val responseTopic: Topic = crypto.getTopicFromKey(receiverPublicKey)
-
         crypto.setKey(symmetricKey, responseTopic.value)
-        val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE_RESPONSE_REJECT, Ttl(dayInSeconds), false)
 
-        logger.log("Sending Session Authenticate Reject on topic: $responseTopic")
-
-        if (jsonRpcHistoryEntry.transportType == TransportType.LINK_MODE) {
+        if (jsonRpcHistoryEntry.transportType == TransportType.LINK_MODE && receiverMetadata.redirect?.linkMode == true) {
+            if (receiverMetadata.redirect?.universal.isNullOrEmpty()) return@supervisorScope onFailure(IllegalStateException("App link is missing"))
             try {
                 linkModeJsonRpcInteractor.triggerResponse(
                     responseTopic,
                     response,
-                    "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/dapp",
+                    receiverMetadata.redirect?.universal!!,
                     Participants(senderPublicKey, receiverPublicKey),
                     EnvelopeType.ONE
                 )
@@ -75,6 +74,8 @@ internal class RejectSessionAuthenticateUseCase(
                 onFailure(e)
             }
         } else {
+            val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE_RESPONSE_REJECT, Ttl(dayInSeconds), false)
+            logger.log("Sending Session Authenticate Reject on topic: $responseTopic")
             jsonRpcInteractor.publishJsonRpcResponse(
                 responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
                 onSuccess = {

@@ -44,7 +44,6 @@ class LinkModeJsonRpcInteractor(
     private val _internalErrors = MutableSharedFlow<SDKError>()
     override val internalErrors: SharedFlow<SDKError> = _internalErrors.asSharedFlow()
 
-    //    https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet
     override fun triggerRequest(payload: JsonRpcClientSync<*>, topic: Topic?, appLink: String) {
         val requestJson = serializer.serialize(payload) ?: throw IllegalStateException("LinkMode: Unknown result params")
         if (jsonRpcHistory.setRequest(payload.id, topic ?: Topic(), payload.method, requestJson, TransportType.LINK_MODE)) {
@@ -57,7 +56,6 @@ class LinkModeJsonRpcInteractor(
         }
     }
 
-    //    https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/dapp
     override fun triggerResponse(topic: Topic, response: JsonRpcResponse, appLink: String, participants: Participants?, envelopeType: EnvelopeType) {
         val responseJson = serializer.serialize(response) ?: throw IllegalStateException("LinkMode: Unknown result params")
         val encodedResponse = Base64.encodeToString(chaChaPolyCodec.encrypt(topic, responseJson, envelopeType, participants), Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
@@ -97,7 +95,6 @@ class LinkModeJsonRpcInteractor(
         val serializedResult = serializer.serialize(result) ?: throw IllegalStateException("LinkMode: Unknown result params")
         val jsonRpcRecord = jsonRpcHistory.updateRequestWithResponse(result.id, serializedResult)
         if (jsonRpcRecord != null) {
-
             serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->
                 _peerResponse.emit(jsonRpcRecord.toWCResponse(JsonRpcResponse.JsonRpcResult(result.id, result = result.result), params))
             } ?: throw IllegalStateException("LinkMode: Unknown result params")
