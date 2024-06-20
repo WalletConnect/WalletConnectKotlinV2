@@ -15,13 +15,12 @@ import kotlinx.coroutines.supervisorScope
 class ResolveAttestationIdUseCase(private val verifyInterface: VerifyInterface, private val repository: VerifyContextStorageRepository, private val verifyUrl: String) {
 
     operator fun invoke(request: WCRequest, metadataUrl: String, linkMode: Boolean? = false, appLink: String? = null, onResolve: (VerifyContext) -> Unit) {
-        val attestationId = sha256(request.message.toByteArray())
-
         if (linkMode == true && !appLink.isNullOrEmpty()) {
             insertContext(VerifyContext(request.id, metadataUrl, getValidation(metadataUrl, appLink), String.Empty, null)) { verifyContext ->
                 onResolve(verifyContext)
             }
         } else {
+            val attestationId = sha256(request.message.toByteArray())
             verifyInterface.resolve(attestationId,
                 onSuccess = { attestationResult ->
                     val (origin, isScam) = Pair(attestationResult.origin, attestationResult.isScam)
