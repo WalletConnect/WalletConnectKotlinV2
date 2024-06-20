@@ -5,6 +5,7 @@ package com.walletconnect.sign.common.model.vo.sequence
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.Namespace
+import com.walletconnect.android.internal.common.model.TransportType
 import com.walletconnect.android.internal.common.model.type.Sequence
 import com.walletconnect.android.internal.utils.ACTIVE_SESSION
 import com.walletconnect.foundation.common.model.PublicKey
@@ -30,10 +31,13 @@ internal data class SessionVO(
     val optionalNamespaces: Map<String, Namespace.Proposal>?,
     val properties: Map<String, String>? = null,
     val isAcknowledged: Boolean,
-    val pairingTopic: String
+    val pairingTopic: String,
+    val transportType: TransportType?
 ) : Sequence {
     val isPeerController: Boolean = peerPublicKey?.keyAsHex == controllerKey?.keyAsHex
     val isSelfController: Boolean = selfPublicKey.keyAsHex == controllerKey?.keyAsHex
+    val linkMode: Boolean? = peerAppMetaData?.redirect?.linkMode
+    val appLink: String? = peerAppMetaData?.redirect?.universal
 
     internal companion object {
 
@@ -61,7 +65,8 @@ internal data class SessionVO(
                 optionalNamespaces = proposal.optionalNamespaces,
                 properties = proposal.properties,
                 isAcknowledged = false,
-                pairingTopic = pairingTopic
+                pairingTopic = pairingTopic,
+                transportType = TransportType.RELAY
             )
         }
 
@@ -91,7 +96,8 @@ internal data class SessionVO(
                 optionalNamespaces = optionalNamespaces,
                 properties = properties,
                 isAcknowledged = true,
-                pairingTopic = pairingTopic
+                pairingTopic = pairingTopic,
+                transportType = TransportType.RELAY
             )
         }
 
@@ -105,7 +111,8 @@ internal data class SessionVO(
             controllerKey: PublicKey?,
             requiredNamespaces: Map<String, Namespace.Proposal>,
             sessionNamespaces: Map<String, Namespace.Session>,
-            pairingTopic: String
+            pairingTopic: String,
+            transportType: TransportType?
         ): SessionVO {
             return SessionVO(
                 sessionTopic,
@@ -121,7 +128,8 @@ internal data class SessionVO(
                 requiredNamespaces = requiredNamespaces,
                 optionalNamespaces = null,
                 isAcknowledged = true,
-                pairingTopic = pairingTopic
+                pairingTopic = pairingTopic,
+                transportType = transportType
             )
         }
     }

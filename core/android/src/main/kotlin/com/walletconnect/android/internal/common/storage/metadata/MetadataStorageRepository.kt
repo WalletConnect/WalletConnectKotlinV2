@@ -13,12 +13,12 @@ internal class MetadataStorageRepository(private val metaDataQueries: MetaDataQu
 
     @Throws(SQLiteException::class)
     override fun insertOrAbortMetadata(topic: Topic, appMetaData: AppMetaData, appMetaDataType: AppMetaDataType) = with(appMetaData) {
-        metaDataQueries.insertOrAbortMetaData(topic.value, name, description, url, icons, redirect?.native, appMetaDataType)
+        metaDataQueries.insertOrAbortMetaData(topic.value, name, description, url, icons, redirect?.native, appMetaDataType, redirect?.universal, redirect?.linkMode)
     }
 
     @Throws(SQLiteException::class)
     override fun updateMetaData(topic: Topic, appMetaData: AppMetaData, appMetaDataType: AppMetaDataType) = with(appMetaData) {
-        metaDataQueries.updateMetaData(name, description, url, icons, redirect?.native, appMetaDataType, topic.value)
+        metaDataQueries.updateMetaData(name, description, url, icons, redirect?.native, appMetaDataType, redirect?.universal, redirect?.linkMode, topic.value)
     }
 
     @Throws(SQLiteException::class)
@@ -43,6 +43,6 @@ internal class MetadataStorageRepository(private val metaDataQueries: MetaDataQu
     override fun getByTopicAndType(topic: Topic, type: AppMetaDataType): AppMetaData? =
         metaDataQueries.getMetadataByTopicAndType(sequence_topic = topic.value, type = type, mapper = this::toMetadata).executeAsOneOrNull()
 
-    private fun toMetadata(peerName: String, peerDesc: String, peerUrl: String, peerIcons: List<String>, native: String?): AppMetaData =
-        AppMetaData(name = peerName, description = peerDesc, url = peerUrl, icons = peerIcons, redirect = Redirect(native = native))
+    private fun toMetadata(peerName: String, peerDesc: String, peerUrl: String, peerIcons: List<String>, native: String?, appLink: String?, linkMode: Boolean?): AppMetaData =
+        AppMetaData(name = peerName, description = peerDesc, url = peerUrl, icons = peerIcons, redirect = Redirect(native = native, universal = appLink, linkMode = linkMode ?: false))
 }

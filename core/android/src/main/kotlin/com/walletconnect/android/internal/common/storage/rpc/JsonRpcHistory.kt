@@ -1,6 +1,7 @@
 package com.walletconnect.android.internal.common.storage.rpc
 
 import com.walletconnect.android.internal.common.json_rpc.model.JsonRpcHistoryRecord
+import com.walletconnect.android.internal.common.model.TransportType
 import com.walletconnect.android.sdk.storage.data.dao.JsonRpcHistoryQueries
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
@@ -10,10 +11,10 @@ class JsonRpcHistory(
     private val logger: Logger,
 ) {
 
-    fun setRequest(requestId: Long, topic: Topic, method: String, payload: String): Boolean {
+    fun setRequest(requestId: Long, topic: Topic, method: String, payload: String, transportType: TransportType): Boolean {
         return try {
             if (jsonRpcHistoryQueries.doesJsonRpcNotExist(requestId).executeAsOne()) {
-                jsonRpcHistoryQueries.insertOrAbortJsonRpcHistory(requestId, topic.value, method, payload)
+                jsonRpcHistoryQueries.insertOrAbortJsonRpcHistory(requestId, topic.value, method, payload, transportType)
                 jsonRpcHistoryQueries.selectLastInsertedRowId().executeAsOne() > 0L
             } else {
                 logger.error("Duplicated JsonRpc RequestId: $requestId")
@@ -71,6 +72,6 @@ class JsonRpcHistory(
         return jsonRpcHistoryQueries.getJsonRpcHistoryRecord(id, mapper = ::toRecord).executeAsOneOrNull()
     }
 
-    private fun toRecord(requestId: Long, topic: String, method: String, body: String, response: String?): JsonRpcHistoryRecord =
-        JsonRpcHistoryRecord(requestId, topic, method, body, response)
+    private fun toRecord(requestId: Long, topic: String, method: String, body: String, response: String?, transportType: TransportType?): JsonRpcHistoryRecord =
+        JsonRpcHistoryRecord(requestId, topic, method, body, response, transportType)
 }

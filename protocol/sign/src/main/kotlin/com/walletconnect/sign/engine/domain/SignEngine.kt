@@ -3,11 +3,12 @@
 package com.walletconnect.sign.engine.domain
 
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
+import com.walletconnect.android.internal.common.json_rpc.domain.link_mode.LinkModeJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Validation
 import com.walletconnect.android.internal.common.model.type.EngineEvent
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
@@ -92,7 +93,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
 internal class SignEngine(
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val getPendingRequestsByTopicUseCase: GetPendingRequestsUseCaseByTopicInterface,
     private val getPendingSessionRequestByTopicUseCase: GetPendingSessionRequestByTopicUseCaseInterface,
     private val getPendingSessionRequests: GetPendingSessionRequests,
@@ -141,6 +142,7 @@ internal class SignEngine(
     private val onSessionUpdateResponseUseCase: OnSessionUpdateResponseUseCase,
     private val onSessionRequestResponseUseCase: OnSessionRequestResponseUseCase,
     private val insertEventUseCase: InsertEventUseCase,
+    private val linkModeJsonRpcInteractor: LinkModeJsonRpcInteractorInterface,
     private val logger: Logger
 ) : ProposeSessionUseCaseInterface by proposeSessionUseCase,
     SessionAuthenticateUseCaseInterface by authenticateSessionUseCase,
@@ -165,11 +167,16 @@ internal class SignEngine(
     GetPendingSessionRequestByTopicUseCaseInterface by getPendingSessionRequestByTopicUseCase,
     GetSessionProposalsUseCaseInterface by getSessionProposalsUseCase,
     GetVerifyContextByIdUseCaseInterface by getVerifyContextByIdUseCase,
-    GetListOfVerifyContextsUseCaseInterface by getListOfVerifyContextsUseCase {
+    GetListOfVerifyContextsUseCaseInterface by getListOfVerifyContextsUseCase,
+    LinkModeJsonRpcInteractorInterface by linkModeJsonRpcInteractor {
     private var jsonRpcRequestsJob: Job? = null
     private var jsonRpcResponsesJob: Job? = null
+
     private var internalErrorsJob: Job? = null
     private var signEventsJob: Job? = null
+
+    private var envelopeRequestsJob: Job? = null
+    private var envelopeResponsesJob: Job? = null
 
     private val _engineEvent: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val engineEvent: SharedFlow<EngineEvent> = _engineEvent.asSharedFlow()
@@ -195,6 +202,37 @@ internal class SignEngine(
     }
 
     fun setup() {
+        //todo: clean up
+        if (envelopeRequestsJob == null) {
+            envelopeRequestsJob = linkModeJsonRpcInteractor.clientSyncJsonRpc
+                .filter { request -> request.params is SignParams }
+                .onEach { request ->
+                    when (val requestParams = request.params) {
+                        is SignParams.SessionAuthenticateParams -> onAuthenticateSessionUseCase(request, requestParams)
+                        is SignParams.SessionRequestParams -> onSessionRequestUseCase(request, requestParams)
+                    }
+                }.launchIn(scope)
+        }
+
+        if (envelopeResponsesJob == null) {
+            envelopeResponsesJob = linkModeJsonRpcInteractor.peerResponse
+                .filter { request -> request.params is SignParams }
+                .onEach { response ->
+                    when (val params = response.params) {
+                        is SignParams.SessionAuthenticateParams -> onSessionAuthenticateResponseUseCase(response, params)
+                        is SignParams.SessionRequestParams -> onSessionRequestResponseUseCase(response, params)
+                    }
+                }.launchIn(scope)
+        }
+
+        if (signEventsJob == null) {
+            signEventsJob = collectSignEvents()
+        }
+
+        if (internalErrorsJob == null) {
+            internalErrorsJob = collectInternalErrors()
+        }
+
         jsonRpcInteractor.wssConnectionState
             .filterIsInstance<WSSConnectionState.Connected>()
             .onEach {
@@ -211,14 +249,6 @@ internal class SignEngine(
 
                 if (jsonRpcResponsesJob == null) {
                     jsonRpcResponsesJob = collectJsonRpcResponses()
-                }
-
-                if (internalErrorsJob == null) {
-                    internalErrorsJob = collectInternalErrors()
-                }
-
-                if (signEventsJob == null) {
-                    signEventsJob = collectSignEvents()
                 }
             }.launchIn(scope)
     }
@@ -254,7 +284,7 @@ internal class SignEngine(
             }.launchIn(scope)
 
     private fun collectInternalErrors(): Job =
-        merge(jsonRpcInteractor.internalErrors, pairingController.findWrongMethodsFlow, sessionRequestUseCase.errors)
+        merge(jsonRpcInteractor.internalErrors, linkModeJsonRpcInteractor.internalErrors, pairingController.findWrongMethodsFlow, sessionRequestUseCase.errors)
             .onEach { exception -> _engineEvent.emit(exception) }
             .launchIn(scope)
 
@@ -309,7 +339,6 @@ internal class SignEngine(
             }
         }
     }
-
 
     private fun setupSequenceExpiration() {
         try {

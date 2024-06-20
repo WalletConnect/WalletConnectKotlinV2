@@ -5,6 +5,7 @@ package com.walletconnect.sign.storage.sequence
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.Namespace
+import com.walletconnect.android.internal.common.model.TransportType
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.model.vo.sequence.SessionVO
@@ -77,7 +78,8 @@ internal class SessionStorageRepository(
                 peer_participant = peerPublicKey?.keyAsHex,
                 relay_data = relayData,
                 is_acknowledged = isAcknowledged,
-                properties = properties
+                properties = properties,
+                transport_type = transportType
             )
         }
 
@@ -214,7 +216,8 @@ internal class SessionStorageRepository(
         peer_participant: String?,
         is_acknowledged: Boolean,
         pairingTopic: String,
-        properties: Map<String, String>?
+        properties: Map<String, String>?,
+        transportType: TransportType?
     ): SessionVO {
         val sessionNamespaces: Map<String, Namespace.Session> = getSessionNamespaces(id)
         val requiredNamespaces: Map<String, Namespace.Proposal> = getRequiredNamespaces(id)
@@ -235,7 +238,8 @@ internal class SessionStorageRepository(
             optionalNamespaces = optionalNamespaces,
             isAcknowledged = is_acknowledged,
             properties = properties,
-            pairingTopic = pairingTopic
+            pairingTopic = pairingTopic,
+            transportType = transportType
         )
     }
 

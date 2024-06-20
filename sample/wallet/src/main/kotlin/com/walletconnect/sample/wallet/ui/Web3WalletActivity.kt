@@ -32,6 +32,7 @@ import com.walletconnect.sample.wallet.domain.NotifyDelegate
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
 import com.walletconnect.sample.wallet.ui.routes.host.WalletSampleHost
+import com.walletconnect.web3.wallet.client.Web3Wallet
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import timber.log.Timber
@@ -43,7 +44,7 @@ class Web3WalletActivity : AppCompatActivity() {
     private val connectionsViewModel = ConnectionsViewModel()
 
     private val requestPermissionLauncher = registerForActivityResult(
-            ActivityResultContracts.RequestPermission()
+        ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
             // FCM SDK (and your app) can post notifications.
@@ -58,6 +59,8 @@ class Web3WalletActivity : AppCompatActivity() {
         handleCoreEvents(connectionsViewModel)
         askNotificationPermission()
         handleErrors()
+
+        handleAppLink(intent)
     }
 
     private fun setContent(
@@ -115,13 +118,13 @@ class Web3WalletActivity : AppCompatActivity() {
         connectionsViewModel: ConnectionsViewModel,
     ) {
         web3walletViewModel.sessionRequestStateFlow
-                .onEach {
-                    if (it.arrayOfArgs.isNotEmpty()) {
-                        web3walletViewModel.showRequestLoader(false)
-                        navController.navigate(Route.SessionRequest.path)
-                    }
+            .onEach {
+                if (it.arrayOfArgs.isNotEmpty()) {
+                    web3walletViewModel.showRequestLoader(false)
+                    navController.navigate(Route.SessionRequest.path)
                 }
-                .launchIn(lifecycleScope)
+            }
+            .launchIn(lifecycleScope)
 
         web3walletViewModel.walletEvents
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
@@ -136,22 +139,31 @@ class Web3WalletActivity : AppCompatActivity() {
                         Toast.makeText(baseContext, "Request expired", Toast.LENGTH_SHORT).show()
                     }
 
-                        is SignEvent.Disconnect -> {
-                            connectionsViewModel.refreshConnections()
-                            navController.navigate(Route.Connections.path)
-                        }
-
-                        is AuthEvent.OnRequest -> navController.navigate(Route.AuthRequest.path)
-                        is SignEvent.SessionAuthenticate -> navController.navigate(Route.SessionAuthenticate.path)
-
-                        else -> Unit
+                    is SignEvent.Disconnect -> {
+                        connectionsViewModel.refreshConnections()
+                        navController.navigate(Route.Connections.path)
                     }
+
+                    is AuthEvent.OnRequest -> navController.navigate(Route.AuthRequest.path)
+                    is SignEvent.SessionAuthenticate -> navController.navigate(Route.SessionAuthenticate.path)
+
+                    else -> Unit
                 }
-                .launchIn(lifecycleScope)
+            }
+            .launchIn(lifecycleScope)
+    }
+
+    private fun handleAppLink(intent: Intent?) {
+        if (intent?.dataString?.contains("wc_ev") == true) {
+            Web3Wallet.dispatchEnvelope(intent.dataString ?: "") {
+                println("Dispatch error: $it")
+            }
+        }
     }
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
+        handleAppLink(intent)
 
         when {
             intent?.dataString?.startsWith("kotlin-web3wallet:/wc") == true -> {
@@ -170,7 +182,7 @@ class Web3WalletActivity : AppCompatActivity() {
         }
 
         if (intent?.dataString?.startsWith("kotlin-web3wallet://request") == false
-                && intent.dataString?.contains("requestId") == false
+            && intent.dataString?.contains("requestId") == false
         ) {
             navController.handleDeepLink(intent)
         }
@@ -180,9 +192,9 @@ class Web3WalletActivity : AppCompatActivity() {
         // This is only necessary for API level >= 33 (TIRAMISU)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(
-                            this,
-                            android.Manifest.permission.POST_NOTIFICATIONS
-                    ) == PackageManager.PERMISSION_GRANTED
+                    this,
+                    android.Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED
             ) {
                 // FCM SDK (and your app) can post notifications.
             } else {

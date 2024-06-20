@@ -1,4 +1,4 @@
-package com.walletconnect.android.internal.common.json_rpc.domain
+package com.walletconnect.android.internal.common.json_rpc.domain.relay
 
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.codec.Codec
@@ -14,6 +14,7 @@ import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Participants
 import com.walletconnect.android.internal.common.model.SDKError
+import com.walletconnect.android.internal.common.model.TransportType
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.params.ChatNotifyResponseAuthParams
@@ -21,7 +22,7 @@ import com.walletconnect.android.internal.common.model.sync.ClientJsonRpc
 import com.walletconnect.android.internal.common.model.type.ClientParams
 import com.walletconnect.android.internal.common.model.type.Error
 import com.walletconnect.android.internal.common.model.type.JsonRpcClientSync
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.push_messages.PushMessagesRepository
 import com.walletconnect.android.internal.common.storage.rpc.JsonRpcHistory
@@ -43,14 +44,15 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import org.bouncycastle.util.encoders.Base64
 
-internal class JsonRpcInteractor(
+internal class RelayJsonRpcInteractor(
 	private val relay: RelayConnectionInterface,
 	private val chaChaPolyCodec: Codec,
 	private val jsonRpcHistory: JsonRpcHistory,
 	private val pushMessageStorage: PushMessagesRepository,
 	private val logger: Logger,
-) : JsonRpcInteractorInterface {
+) : RelayJsonRpcInteractorInterface {
 	private val serializer: JsonRpcSerializer get() = wcKoinApp.koin.get()
 
 	private val _clientSyncJsonRpc: MutableSharedFlow<WCRequest> = MutableSharedFlow()
@@ -110,10 +112,11 @@ internal class JsonRpcInteractor(
 		}
 
 		try {
-			if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson)) {
+			if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson,  TransportType.RELAY)) {
 				val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, envelopeType, participants)
+				val encryptedRequestString = Base64.toBase64String(encryptedRequest)
 
-				relay.publish(topic.value, encryptedRequest, params.toRelay()) { result ->
+				relay.publish(topic.value, encryptedRequestString, params.toRelay()) { result ->
 					result.fold(
 						onSuccess = { onSuccess() },
 						onFailure = { error ->
@@ -147,8 +150,9 @@ internal class JsonRpcInteractor(
 		try {
 			val responseJson = serializer.serialize(response) ?: return onFailure(IllegalStateException("JsonRpcInteractor: Unknown result params"))
 			val encryptedResponse = chaChaPolyCodec.encrypt(topic, responseJson, envelopeType, participants)
+			val encryptedResponseString = Base64.toBase64String(encryptedResponse)
 
-			relay.publish(topic.value, encryptedResponse, params.toRelay()) { result ->
+			relay.publish(topic.value, encryptedResponseString, params.toRelay()) { result ->
 				result.fold(
 					onSuccess = {
 						jsonRpcHistory.updateRequestWithResponse(response.id, responseJson)
@@ -374,9 +378,9 @@ internal class JsonRpcInteractor(
 			}.launchIn(scope)
 	}
 
-	private fun decryptMessage(topic: Topic, relayRequest: Relay.Model.Call.Subscription.Request) =
+	private fun decryptMessage(topic: Topic, relayRequest: Relay.Model.Call.Subscription.Request): String =
 		try {
-			chaChaPolyCodec.decrypt(topic, relayRequest.message)
+			chaChaPolyCodec.decrypt(topic, Base64.decode(relayRequest.message))
 		} catch (e: Exception) {
 			handleError("ManSub: ${e.stackTraceToString()}")
 			String.Empty
@@ -393,9 +397,9 @@ internal class JsonRpcInteractor(
 	}
 
 	private suspend fun handleRequest(clientJsonRpc: ClientJsonRpc, topic: Topic, decryptedMessage: String, publishedAt: Long) {
-		if (jsonRpcHistory.setRequest(clientJsonRpc.id, topic, clientJsonRpc.method, decryptedMessage)) {
+		if (jsonRpcHistory.setRequest(clientJsonRpc.id, topic, clientJsonRpc.method, decryptedMessage,  TransportType.RELAY)) {
 			serializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
-				_clientSyncJsonRpc.emit(WCRequest(topic, clientJsonRpc.id, clientJsonRpc.method, params, decryptedMessage, publishedAt))
+				_clientSyncJsonRpc.emit(WCRequest(topic, clientJsonRpc.id, clientJsonRpc.method, params, decryptedMessage, publishedAt, TransportType.RELAY))
 			} ?: handleError("JsonRpcInteractor: Unknown request params")
 		}
 	}

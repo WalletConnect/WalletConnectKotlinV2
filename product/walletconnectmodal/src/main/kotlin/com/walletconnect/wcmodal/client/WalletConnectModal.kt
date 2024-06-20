@@ -23,6 +23,7 @@ object WalletConnectModal {
         fun onSessionApproved(approvedSession: Modal.Model.ApprovedSession)
         fun onSessionRejected(rejectedSession: Modal.Model.RejectedSession)
         fun onSessionUpdate(updatedSession: Modal.Model.UpdatedSession)
+
         @Deprecated(
             message = "Use onSessionEvent(Modal.Model.Event) instead. Using both will result in duplicate events.",
             replaceWith = ReplaceWith(expression = "onSessionEvent(sessionEvent)")

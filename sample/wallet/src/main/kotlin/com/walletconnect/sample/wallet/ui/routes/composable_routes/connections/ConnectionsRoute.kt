@@ -1,7 +1,6 @@
 package com.walletconnect.sample.wallet.ui.routes.composable_routes.connections
 
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -40,7 +39,6 @@ import androidx.navigation.NavController
 import com.skydoves.landscapist.glide.GlideImage
 import com.walletconnect.sample.common.ui.TopBarActionImage
 import com.walletconnect.sample.common.ui.WCTopAppBar
-import com.walletconnect.sample.common.ui.commons.BlueButton
 import com.walletconnect.sample.common.ui.findActivity
 import com.walletconnect.sample.common.ui.themedColor
 import com.walletconnect.sample.wallet.R
@@ -63,12 +61,7 @@ fun ConnectionsRoute(navController: NavController, connectionsViewModel: Connect
 
     Column(modifier = Modifier.fillMaxSize()) {
         Title(navController)
-        Connections(connections, { connectionUI -> navController.navigate("${Route.ConnectionDetails.path}/${connectionUI.id}") }, onClickBack = {
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                data = Uri.parse("https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/dapp/.well-known/assetlinks.json")
-            }
-            context.startActivity(intent)
-        })
+        Connections(connections) { connectionUI -> navController.navigate("${Route.ConnectionDetails.path}/${connectionUI.id}") }
     }
 }
 
@@ -85,11 +78,10 @@ fun Title(navController: NavController) {
 fun Connections(
     connections: List<ConnectionUI>,
     onClick: (ConnectionUI) -> Unit = {},
-    onClickBack: () -> Unit = {},
 ) {
     val modifier = Modifier.fillMaxHeight()
     if (connections.isEmpty()) {
-        NoConnections(modifier, onClickBack)
+        NoConnections(modifier)
     } else {
         ConnectionsLazyColumn(connections, modifier, onClick)
     }
@@ -169,20 +161,9 @@ fun Connection(
 }
 
 @Composable
-fun NoConnections(modifier: Modifier, onClick: () -> Unit = {}) {
+fun NoConnections(modifier: Modifier) {
     val contentColor = Color(if (isSystemInDarkTheme()) 0xFF585F5F else 0xFF9EA9A9)
     Column(modifier = modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-        BlueButton(
-            text = "Back",
-            onClick = {
-               onClick()
-            },
-            modifier = Modifier
-                .padding(vertical = 10.dp)
-                .fillMaxWidth()
-                .height(50.dp)
-                .padding(horizontal = 16.dp)
-        )
         Spacer(modifier = Modifier.weight(1f))
         Icon(
             tint = contentColor,
@@ -190,7 +171,7 @@ fun NoConnections(modifier: Modifier, onClick: () -> Unit = {}) {
         )
         Spacer(modifier = Modifier.height(10.dp))
         Text(text = "Apps you connect with will appear here.", maxLines = 1, color = contentColor, style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp))
-        Row() {
+        Row {
             Text(text = "To connect ", color = contentColor, style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp))
             Icon(tint = contentColor, imageVector = ImageVector.vectorResource(id = R.drawable.ic_qr_code), contentDescription = "Scan QRCode Icon", modifier = Modifier.size(24.dp))
             Text(text = " scan or ", color = contentColor, style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp))

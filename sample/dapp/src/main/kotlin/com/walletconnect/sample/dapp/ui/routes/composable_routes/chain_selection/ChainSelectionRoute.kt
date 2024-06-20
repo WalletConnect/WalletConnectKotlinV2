@@ -76,6 +76,7 @@ import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.sample.dapp.ui.routes.Route
 import com.walletconnect.sample.dapp.ui.routes.bottom_routes.PairingSelectionResult
 import com.walletconnect.sample.dapp.ui.routes.bottom_routes.pairingSelectionResultKey
+import com.walletconnect.sign.client.Sign
 import com.walletconnect.wcmodal.client.Modal
 import com.walletconnect.wcmodal.client.WalletConnectModal
 import com.walletconnect.wcmodal.ui.openWalletConnectModal
@@ -118,7 +119,7 @@ fun ChainSelectionRoute(navController: NavController) {
             if (viewModel.isAnyChainSelected) {
                 viewModel.authenticate(
                     viewModel.authenticateParams,
-                    onAuthenticateSuccess = { uri -> pairingUri = PairingUri(uri, true) },
+                    onAuthenticateSuccess = { uri -> pairingUri = PairingUri(uri ?: "", true) },
                     onError = { error ->
                         composableScope.launch(Dispatchers.Main) {
                             Toast.makeText(context, "Authenticate error: $error", Toast.LENGTH_SHORT).show()
@@ -132,7 +133,7 @@ fun ChainSelectionRoute(navController: NavController) {
             if (viewModel.isAnyChainSelected) {
                 viewModel.authenticate(
                     viewModel.siweParams,
-                    onAuthenticateSuccess = { uri -> pairingUri = PairingUri(uri, false) },
+                    onAuthenticateSuccess = { uri -> pairingUri = PairingUri(uri ?: "", false) },
                     onError = { error ->
                         composableScope.launch(Dispatchers.Main) {
                             Toast.makeText(context, "Authenticate error: $error", Toast.LENGTH_SHORT).show()
@@ -141,14 +142,7 @@ fun ChainSelectionRoute(navController: NavController) {
             } else {
                 Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
             }
-        },
-        onLinkMode = {
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                data = Uri.parse("https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet/.well-known/assetlinks.json")
-            }
-            context.startActivity(intent)
-        }
-    )
+        })
 }
 
 @Composable
@@ -161,8 +155,7 @@ private fun ChainSelectionScreen(
     onChainClick: (Int, Boolean) -> Unit,
     onConnectClick: () -> Unit,
     onAuthenticateClick: () -> Unit,
-    onAuthenticateSIWEClick: () -> Unit,
-    onLinkMode: () -> Unit
+    onAuthenticateSIWEClick: () -> Unit
 ) {
     Box {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -195,15 +188,6 @@ private fun ChainSelectionScreen(
             BlueButton(
                 text = "Authenticate (SIWE)",
                 onClick = onAuthenticateSIWEClick,
-                modifier = Modifier
-                    .padding(vertical = 10.dp)
-                    .fillMaxWidth()
-                    .height(50.dp)
-                    .padding(horizontal = 16.dp)
-            )
-            BlueButton(
-                text = "Link Mode",
-                onClick = onLinkMode,
                 modifier = Modifier
                     .padding(vertical = 10.dp)
                     .fillMaxWidth()
@@ -398,29 +382,6 @@ private fun handlePairingEvents(
     }
 }
 
-private fun authenticate(
-    viewModel: ChainSelectionViewModel,
-    context: Context,
-    params: Modal.Params.Authenticate,
-    composableScope: CoroutineScope,
-    onDeepLink: (String) -> Unit
-) {
-    if (viewModel.isAnyChainSelected) {
-        viewModel.authenticate(
-            params,
-            onAuthenticateSuccess = { uri ->
-                onDeepLink(uri)
-            },
-            onError = { error ->
-                composableScope.launch(Dispatchers.Main) {
-                    Toast.makeText(context, "Authenticate error: $error", Toast.LENGTH_SHORT).show()
-                }
-            })
-    } else {
-        Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
-    }
-}
-
 private fun onConnectClick(
     viewModel: ChainSelectionViewModel,
     navController: NavController,
@@ -536,8 +497,7 @@ private fun ChainSelectionScreenPreview(
             onChainClick = { _, _ -> },
             onConnectClick = {},
             onAuthenticateClick = {},
-            onAuthenticateSIWEClick = {},
-            onLinkMode = {}
+            onAuthenticateSIWEClick = {}
         )
     }
 }

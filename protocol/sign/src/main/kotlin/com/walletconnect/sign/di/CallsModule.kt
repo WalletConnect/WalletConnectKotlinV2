@@ -1,6 +1,7 @@
 package com.walletconnect.sign.di
 
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
+import com.walletconnect.android.internal.common.json_rpc.domain.link_mode.LinkModeJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.ApproveSessionAuthenticateUseCase
@@ -75,6 +76,7 @@ internal fun callsModule() = module {
             proposeSessionUseCase = get(),
             getPairingForSessionAuthenticate = get(),
             getNamespacesFromReCaps = get(),
+            linkModeJsonRpcInteractor = get<LinkModeJsonRpcInteractorInterface>(),
             logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }
@@ -108,7 +110,8 @@ internal fun callsModule() = module {
             selfAppMetaData = get(),
             sessionStorageRepository = get(),
             metadataStorageRepository = get(),
-            insertEventUseCase = get()
+            insertEventUseCase = get(),
+            linkModeJsonRpcInteractor = get<LinkModeJsonRpcInteractorInterface>()
         )
     }
 
@@ -118,7 +121,8 @@ internal fun callsModule() = module {
             crypto = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
             verifyContextStorageRepository = get(),
-            getPendingSessionAuthenticateRequest = get()
+            getPendingSessionAuthenticateRequest = get(),
+            linkModeJsonRpcInteractor = get<LinkModeJsonRpcInteractorInterface>()
         )
     }
 
@@ -133,7 +137,15 @@ internal fun callsModule() = module {
 
     single<SessionUpdateUseCaseInterface> { SessionUpdateUseCase(jsonRpcInteractor = get(), sessionStorageRepository = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
 
-    single<SessionRequestUseCaseInterface> { SessionRequestUseCase(jsonRpcInteractor = get(), sessionStorageRepository = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
+    single<SessionRequestUseCaseInterface> {
+        SessionRequestUseCase(
+            jsonRpcInteractor = get(),
+            sessionStorageRepository = get(),
+            linkModeJsonRpcInteractor = get(),
+            metadataStorageRepository = get(),
+            logger = get(named(AndroidCommonDITags.LOGGER))
+        )
+    }
 
     single<RespondSessionRequestUseCaseInterface> {
         RespondSessionRequestUseCase(
@@ -141,7 +153,9 @@ internal fun callsModule() = module {
             verifyContextStorageRepository = get(),
             sessionStorageRepository = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
-            getPendingJsonRpcHistoryEntryByIdUseCase = get()
+            getPendingJsonRpcHistoryEntryByIdUseCase = get(),
+            linkModeJsonRpcInteractor = get(),
+            metadataStorageRepository = get()
         )
     }
 

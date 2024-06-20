@@ -10,6 +10,8 @@ import com.walletconnect.sample.common.Chains
 import com.walletconnect.sample.common.tag
 import com.walletconnect.sample.dapp.domain.DappDelegate
 import com.walletconnect.sample.dapp.ui.DappSampleEvents
+import com.walletconnect.sign.client.Sign
+import com.walletconnect.sign.client.SignClient
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.randomBytes
 import com.walletconnect.wcmodal.client.Modal
@@ -86,12 +88,12 @@ class ChainSelectionViewModel : ViewModel() {
         properties = getProperties()
     )
 
-    fun authenticate(authenticateParams: Modal.Params.Authenticate, onAuthenticateSuccess: (String) -> Unit, onError: (String) -> Unit = {}) {
+    fun authenticate(authenticateParams: Sign.Params.Authenticate, onAuthenticateSuccess: (String?) -> Unit, onError: (String) -> Unit = {}) {
         viewModelScope.launch {
             _awaitingProposalSharedFlow.emit(true)
         }
 
-        WalletConnectModal.authenticate(authenticateParams,
+        SignClient.authenticate(authenticateParams, walletAppLink = "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet/",
             onSuccess = { url ->
                 viewModelScope.launch {
                     _awaitingProposalSharedFlow.emit(false)
@@ -204,7 +206,7 @@ class ChainSelectionViewModel : ViewModel() {
 
 
     val authenticateParams
-        get() = Modal.Params.Authenticate(
+        get() = Sign.Params.Authenticate(
             chains = uiState.value.filter { it.isSelected }.map { it.chainId },
             domain = "sample.kotlin.dapp",
             uri = "https://web3inbox.com/all-apps",
@@ -222,7 +224,7 @@ class ChainSelectionViewModel : ViewModel() {
         )
 
     val siweParams
-        get() = Modal.Params.Authenticate(
+        get() = Sign.Params.Authenticate(
             chains = uiState.value.filter { it.isSelected }.map { it.chainId },
             domain = "sample.kotlin.dapp",
             uri = "https://web3inbox.com/all-apps",

@@ -18,7 +18,6 @@ import com.walletconnect.util.randomBytes
 import org.bouncycastle.crypto.modes.ChaCha20Poly1305
 import org.bouncycastle.crypto.params.KeyParameter
 import org.bouncycastle.crypto.params.ParametersWithIV
-import org.bouncycastle.util.encoders.Base64
 import java.nio.ByteBuffer
 
 /* Note:
@@ -34,7 +33,7 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
         UnknownEnvelopeTypeException::class,
         MissingParticipantsException::class
     )
-    override fun encrypt(topic: Topic, payload: String, envelopeType: EnvelopeType, participants: Participants?): String {
+    override fun encrypt(topic: Topic, payload: String, envelopeType: EnvelopeType, participants: Participants?): ByteArray {
         val input = payload.toByteArray(Charsets.UTF_8)
         val nonceBytes = randomBytes(NONCE_SIZE)
 
@@ -49,12 +48,10 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
         UnknownEnvelopeTypeException::class,
         MissingKeyException::class
     )
-    override fun decrypt(topic: Topic, cipherText: String): String {
-        val encryptedPayloadBytes = Base64.decode(cipherText)
-
-        return when (val envelopeType = encryptedPayloadBytes.envelopeType) {
-            EnvelopeType.ZERO.id -> decryptType0(topic, encryptedPayloadBytes)
-            EnvelopeType.ONE.id -> decryptType1(encryptedPayloadBytes, keyManagementRepository.getPublicKey(topic.getParticipantTag()))
+    override fun decrypt(topic: Topic, cipherText: ByteArray): String {
+        return when (val envelopeType = cipherText.envelopeType) {
+            EnvelopeType.ZERO.id -> decryptType0(topic, cipherText)
+            EnvelopeType.ONE.id -> decryptType1(cipherText, keyManagementRepository.getPublicKey(topic.getParticipantTag()))
             else -> throw UnknownEnvelopeTypeException("Decrypt; Unknown envelope type: $envelopeType")
         }
     }
@@ -98,7 +95,7 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
         return String(decryptedTextBytes, Charsets.UTF_8)
     }
 
-    private fun encryptEnvelopeType0(topic: Topic, nonceBytes: ByteArray, input: ByteArray, envelopeType: EnvelopeType): String {
+    private fun encryptEnvelopeType0(topic: Topic, nonceBytes: ByteArray, input: ByteArray, envelopeType: EnvelopeType): ByteArray {
         val symmetricKey = keyManagementRepository.getSymmetricKey(topic.value)
         val cipherBytes = encryptPayload(symmetricKey, nonceBytes, input)
         val payloadSize = cipherBytes.size + NONCE_SIZE + ENVELOPE_TYPE_SIZE
@@ -108,7 +105,7 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
             .put(envelopeType.id).put(nonceBytes).put(cipherBytes)
             .array()
 
-        return Base64.toBase64String(encryptedPayloadBytes)
+        return encryptedPayloadBytes
     }
 
     private fun encryptEnvelopeType1(
@@ -116,7 +113,7 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
         nonceBytes: ByteArray,
         input: ByteArray,
         envelopeType: EnvelopeType,
-    ): String {
+    ): ByteArray {
         if (participants == null) throw MissingParticipantsException("Missing participants when encrypting envelope type 1")
         val self = participants.senderPublicKey
         val selfBytes = self.keyAsHex.hexToBytes()
@@ -133,7 +130,7 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
             .put(cipherBytes)
             .array()
 
-        return Base64.toBase64String(encryptedPayloadBytes)
+        return encryptedPayloadBytes
     }
 
     private fun encryptPayload(key: SymmetricKey, nonce: ByteArray, input: ByteArray): ByteArray {
