@@ -177,7 +177,7 @@ private fun ChainSelectionScreen(
                     .padding(horizontal = 16.dp),
             )
             BlueButton(
-                text = "Authenticate (ReCaps)",
+                text = "1-CA Link Mode",//""Authenticate (ReCaps)",
                 onClick = onAuthenticateClick,
                 modifier = Modifier
                     .padding(vertical = 10.dp)
