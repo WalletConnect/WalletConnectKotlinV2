@@ -23,5 +23,8 @@ open class CoreSignParams : ClientParams {
         val responder: Participant,
         @Json(name = "cacaos")
         val cacaos: List<Cacao>,
-    ) : CoreSignParams()
+    ) : CoreSignParams() {
+        val linkMode = responder.metadata.redirect?.linkMode
+        val appLink = responder.metadata.redirect?.universal
+    }
 }

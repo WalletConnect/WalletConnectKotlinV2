@@ -93,7 +93,7 @@ class ChainSelectionViewModel : ViewModel() {
             _awaitingProposalSharedFlow.emit(true)
         }
 
-        SignClient.authenticate(authenticateParams, walletAppLink = "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet/",
+        SignClient.authenticate(authenticateParams, walletAppLink = "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet",
             onSuccess = { url ->
                 viewModelScope.launch {
                     _awaitingProposalSharedFlow.emit(false)

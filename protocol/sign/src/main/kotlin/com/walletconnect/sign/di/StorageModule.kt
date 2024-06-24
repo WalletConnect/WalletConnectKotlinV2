@@ -13,6 +13,7 @@ import com.walletconnect.sign.storage.data.dao.proposal.ProposalDao
 import com.walletconnect.sign.storage.data.dao.proposalnamespace.ProposalNamespaceDao
 import com.walletconnect.sign.storage.data.dao.session.SessionDao
 import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceDao
+import com.walletconnect.sign.storage.link_mode.LinkModeStorageRepository
 import com.walletconnect.sign.storage.proposal.ProposalStorageRepository
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import kotlinx.coroutines.launch
@@ -107,6 +108,10 @@ internal fun storageModule(dbName: String): Module = module {
     }
 
     single {
+        get<SignDatabase>().linkModeDaoQueries
+    }
+
+    single {
         SessionStorageRepository(
             sessionDaoQueries = get(),
             namespaceDaoQueries = get(),
@@ -126,5 +131,9 @@ internal fun storageModule(dbName: String): Module = module {
 
     single {
         AuthenticateResponseTopicRepository(authenticateResponseTopicDaoQueries = get())
+    }
+
+    single {
+        LinkModeStorageRepository(linkModeDaoQueries = get())
     }
 }

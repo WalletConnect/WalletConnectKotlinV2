@@ -77,6 +77,7 @@ internal fun callsModule() = module {
             getPairingForSessionAuthenticate = get(),
             getNamespacesFromReCaps = get(),
             linkModeJsonRpcInteractor = get<LinkModeJsonRpcInteractorInterface>(),
+            linkModeStorageRepository = get(),
             logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }
