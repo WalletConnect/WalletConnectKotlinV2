@@ -14,6 +14,7 @@ import com.walletconnect.android.internal.common.modal.domain.usecase.GetWallets
 import com.walletconnect.android.internal.common.model.ProjectId
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -38,6 +39,7 @@ internal fun web3ModalModule() = module {
         get<OkHttpClient>(named(AndroidCommonDITags.OK_HTTP))
             .newBuilder()
             .addInterceptor(get<Interceptor>(named(AndroidCommonDITags.WEB3MODAL_INTERCEPTOR)))
+            .addInterceptor(HttpLoggingInterceptor().apply { setLevel(HttpLoggingInterceptor.Level.BODY) }) //todo: remove me
             .build()
     }
 

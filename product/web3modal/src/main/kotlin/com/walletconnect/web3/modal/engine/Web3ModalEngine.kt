@@ -91,6 +91,17 @@ internal class Web3ModalEngine(
         SignClient.connect(connect.toSign(), onSuccess) { onError(it.throwable) }
     }
 
+    fun authenticate(
+        name: String, method: String,
+        authenticate: Modal.Params.Authenticate,
+        walletAppLink: String? = null,
+        onSuccess: (String?) -> Unit,
+        onError: (Throwable) -> Unit
+    ) {
+        connectionEventRepository.saveEvent(name, method)
+        SignClient.authenticate(authenticate.toSign(), walletAppLink, onSuccess) { onError(it.throwable) }
+    }
+
     fun connectCoinbase(
         onSuccess: () -> Unit,
         onError: (Throwable) -> Unit
@@ -141,12 +152,12 @@ internal class Web3ModalEngine(
 
             is Session.WalletConnect ->
                 SignClient.request(request.toSign(session.topic, selectedChain.id),
-                {
-                    onSuccess(it.toSentRequest())
-                    openWalletApp(session.topic, onError)
-                },
-                { onError(it.throwable) }
-            )
+                    {
+                        onSuccess(it.toSentRequest())
+                        openWalletApp(session.topic, onError)
+                    },
+                    { onError(it.throwable) }
+                )
         }
     }
 

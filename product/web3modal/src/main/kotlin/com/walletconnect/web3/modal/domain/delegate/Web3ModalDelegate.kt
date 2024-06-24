@@ -3,10 +3,12 @@ package com.walletconnect.web3.modal.domain.delegate
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
+import com.walletconnect.web3.modal.domain.model.Session
 import com.walletconnect.web3.modal.domain.usecase.DeleteSessionDataUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveChainSelectionUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveSessionUseCase
 import com.walletconnect.web3.modal.utils.EthUtils
+import com.walletconnect.web3.modal.utils.getAddress
 import com.walletconnect.web3.modal.utils.getSelectedChain
 import com.walletconnect.web3.modal.utils.toSession
 import kotlinx.coroutines.CoroutineScope
@@ -41,6 +43,23 @@ internal object Web3ModalDelegate : Web3Modal.ModalDelegate {
             val chain = Web3Modal.chains.getSelectedChain(Web3Modal.selectedChain?.id)
             saveSessionUseCase(approvedSession.toSession(chain))
             _wcEventModels.emit(approvedSession)
+        }
+    }
+
+    override fun onSessionAuthenticateResponse(sessionAuthenticateResponse: Modal.Model.SessionAuthenticateResponse) {
+        scope.launch {
+            if (sessionAuthenticateResponse is Modal.Model.SessionAuthenticateResponse.Result) {
+                val chain = Web3Modal.chains.getSelectedChain(Web3Modal.selectedChain?.id)
+                saveSessionUseCase(
+                    Session.WalletConnect(
+                        chain = chain.id,
+                        topic = sessionAuthenticateResponse.session?.topic ?: "",
+                        address = sessionAuthenticateResponse.session?.getAddress(chain) ?: ""
+                    )
+                )
+            }
+
+            _wcEventModels.emit(sessionAuthenticateResponse)
         }
     }
 
@@ -79,6 +98,7 @@ internal object Web3ModalDelegate : Web3Modal.ModalDelegate {
                     val (_, chainReference, _) = sessionEvent.data.split(":")
                     Web3Modal.chains.find { it.chainReference == chainReference }?.let { chain -> saveChainSelectionUseCase(chain.id) }
                 }
+
                 EthUtils.chainChanged -> {
                     val (chainReference, _) = sessionEvent.data.split(".")
                     Web3Modal.chains.find { it.chainReference == chainReference }?.let { chain -> saveChainSelectionUseCase(chain.id) }
@@ -98,6 +118,7 @@ internal object Web3ModalDelegate : Web3Modal.ModalDelegate {
                     val (_, chainReference, _) = event.data.split(":")
                     Web3Modal.chains.find { it.chainReference == chainReference }?.let { chain -> saveChainSelectionUseCase(chain.id) }
                 }
+
                 EthUtils.chainChanged -> {
                     //todo: Can we take chainReference from the event?
                     val (chainReference, _) = event.data.split(".")
@@ -137,12 +158,6 @@ internal object Web3ModalDelegate : Web3Modal.ModalDelegate {
     override fun onRequestExpired(request: Modal.Model.ExpiredRequest) {
         scope.launch {
             _wcEventModels.emit(request)
-        }
-    }
-
-    override fun onSessionAuthenticateResponse(sessionUpdateResponse: Modal.Model.SessionAuthenticateResponse) {
-        scope.launch {
-            _wcEventModels.emit(sessionUpdateResponse)
         }
     }
 

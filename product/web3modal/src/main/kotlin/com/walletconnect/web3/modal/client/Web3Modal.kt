@@ -34,6 +34,8 @@ object Web3Modal {
 
     internal var selectedChain: Modal.Model.Chain? = null
 
+    internal var authPayloadParams: Modal.Model.AuthPayloadParams? = null
+
     private lateinit var web3ModalEngine: Web3ModalEngine
 
     interface ModalDelegate {
@@ -136,6 +138,10 @@ object Web3Modal {
         this.chains = chains
     }
 
+    fun setAuthRequestParams(authParams: Modal.Model.AuthPayloadParams) {
+        authPayloadParams = authParams
+    }
+
     fun setSessionProperties(properties: Map<String, String>) {
         sessionProperties = properties
     }
@@ -195,11 +201,12 @@ object Web3Modal {
 
     fun authenticate(
         authenticate: Modal.Params.Authenticate,
-        onSuccess: (String) -> Unit,
+        walletAppLink: String? = null,
+        onSuccess: (String?) -> Unit,
         onError: (Modal.Model.Error) -> Unit,
     ) {
 
-        SignClient.authenticate(authenticate.toSign(),
+        SignClient.authenticate(authenticate.toSign(), walletAppLink,
             onSuccess = { url -> onSuccess(url) },
             onError = { onError(it.toModal()) })
     }

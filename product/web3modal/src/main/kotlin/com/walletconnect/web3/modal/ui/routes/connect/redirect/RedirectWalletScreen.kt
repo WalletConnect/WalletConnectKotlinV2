@@ -94,7 +94,7 @@ internal fun RedirectWalletRoute(
     LaunchedEffect(Unit) {
         Web3ModalDelegate.wcEventModels.collect {
             when (it) {
-                is Modal.Model.RejectedSession -> {
+                is Modal.Model.RejectedSession, is Modal.Model.SessionAuthenticateResponse.Error -> {
                     redirectState = RedirectState.Reject
                 }
 

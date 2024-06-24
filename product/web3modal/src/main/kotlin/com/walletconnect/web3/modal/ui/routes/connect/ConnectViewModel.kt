@@ -91,17 +91,33 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
         navigateTo(Route.ALL_WALLETS.path)
     }
 
-    fun connectWalletConnect(name: String, method: String, onSuccess: (String) -> Unit) =
-        connect(
-            name, method,
-            sessionParams = sessionParams,
-            onSuccess = onSuccess,
-            onError = {
-                sendEventUseCase.send(Props(EventType.TRACK, EventType.Track.CONNECT_ERROR, Properties(message = it.message ?: "Relay error while connecting")))
-                showError(it.localizedMessage)
-                logger.error(it)
-            }
-        )
+    //todo: add app link from Cloud
+    fun connectWalletConnect(name: String, method: String, onSuccess: (String) -> Unit) {
+        if (Web3Modal.authPayloadParams != null) {
+            authenticate(
+                name, method,
+                walletAppLink = null,
+                authParams = Web3Modal.authPayloadParams!!,
+                onSuccess = { if (!it.isNullOrBlank()) onSuccess(it) },
+                onError = {
+                    sendEventUseCase.send(Props(EventType.TRACK, EventType.Track.CONNECT_ERROR, Properties(message = it.message ?: "Relay error while connecting")))
+                    showError(it.localizedMessage)
+                    logger.error(it)
+                }
+            )
+        } else {
+            connect(
+                name, method,
+                sessionParams = sessionParams,
+                onSuccess = onSuccess,
+                onError = {
+                    sendEventUseCase.send(Props(EventType.TRACK, EventType.Track.CONNECT_ERROR, Properties(message = it.message ?: "Relay error while connecting")))
+                    showError(it.localizedMessage)
+                    logger.error(it)
+                }
+            )
+        }
+    }
 
     fun connectCoinbase(onSuccess: () -> Unit = {}) {
         web3ModalEngine.connectCoinbase(

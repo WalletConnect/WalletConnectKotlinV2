@@ -104,12 +104,13 @@ internal class RelayJsonRpcInteractor(
 			return onFailure(e)
 		}
 
-
 		val requestJson = try {
 			serializer.serialize(payload) ?: return onFailure(IllegalStateException("JsonRpcInteractor: Unknown result params"))
 		} catch (e: Exception) {
 			return onFailure(e)
 		}
+
+		println("kobe: Request: $requestJson")
 
 		try {
 			if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson,  TransportType.RELAY)) {
