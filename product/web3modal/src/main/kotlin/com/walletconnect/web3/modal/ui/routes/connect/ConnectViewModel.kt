@@ -96,7 +96,7 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
         if (Web3Modal.authPayloadParams != null) {
             authenticate(
                 name, method,
-                walletAppLink = null,
+                walletAppLink = "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet",
                 authParams = Web3Modal.authPayloadParams!!,
                 onSuccess = { if (!it.isNullOrBlank()) onSuccess(it) },
                 onError = {

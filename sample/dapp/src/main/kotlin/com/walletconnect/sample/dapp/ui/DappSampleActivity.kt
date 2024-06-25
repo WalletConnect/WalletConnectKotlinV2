@@ -21,11 +21,16 @@ class DappSampleActivity : ComponentActivity() {
                 DappSampleHost()
             }
         }
+
+        if (intent?.dataString?.contains("wc_ev") == true) {
+            SignClient.dispatchEnvelope(intent.dataString ?: "") {
+                println("Dapp Dispatch error: $it")
+            }
+        }
     }
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
-
 
         if (intent?.dataString?.contains("wc_ev") == true) {
             SignClient.dispatchEnvelope(intent.dataString ?: "") {

@@ -211,6 +211,12 @@ object Web3Modal {
             onError = { onError(it.toModal()) })
     }
 
+    fun handleDeepLink(url: String, onError: (Modal.Model.Error) -> Unit) {
+        SignClient.dispatchEnvelope(url) {
+            onError(it.toModal())
+        }
+    }
+
     @Deprecated(
         message = "Modal.Params.Request is deprecated",
         replaceWith = ReplaceWith("com.walletconnect.web3.modal.client.models.Request")

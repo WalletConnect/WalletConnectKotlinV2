@@ -172,6 +172,22 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
+        if (intent?.dataString?.contains("wc_ev") == true) {
+            Web3Modal.handleDeepLink(intent.dataString ?: "") {
+                println("Dapp Dispatch error: $it")
+            }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+
+        if (intent?.dataString?.contains("wc_ev") == true) {
+            Web3Modal.handleDeepLink(intent.dataString ?: "") {
+                println("Dapp Dispatch error: $it")
+            }
+        }
     }
 
     override fun onDestroy() {

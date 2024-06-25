@@ -98,7 +98,7 @@ internal class SessionAuthenticateUseCase(
         crypto.setKey(requesterPublicKey, responseTopic.getParticipantTag())
 
         //todo: add metadata checks flag for discovery?
-        if (!walletAppLink.isNullOrEmpty() && linkModeStorageRepository.isEnabled(walletAppLink)) {
+        if (!walletAppLink.isNullOrEmpty() && selfAppMetaData.redirect?.linkMode == true && linkModeStorageRepository.isEnabled(walletAppLink)) {
             try {
                 linkModeJsonRpcInteractor.triggerRequest(authRequest, appLink = walletAppLink)
                 onSuccess(null)

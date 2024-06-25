@@ -120,6 +120,12 @@ internal class ApproveSessionAuthenticateUseCase(
                 logger.log("Creating authenticated session")
                 val requiredNamespace: Map<String, Namespace.Proposal> = mapOf(namespace to Namespace.Proposal(events = events, methods = methods, chains = chains))
                 val sessionNamespaces: Map<String, Namespace.Session> = mapOf(namespace to Namespace.Session(accounts = accounts, events = events, methods = methods, chains = chains))
+                //todo: check selfMetadata?
+                val transportType = if (sessionAuthenticateParams.linkMode == true && !sessionAuthenticateParams.appLink.isNullOrEmpty()) {
+                    TransportType.LINK_MODE
+                } else {
+                    TransportType.RELAY
+                }
                 val authenticatedSession = SessionVO.createAuthenticatedSession(
                     sessionTopic = sessionTopic,
                     peerPublicKey = receiverPublicKey,
@@ -130,7 +136,7 @@ internal class ApproveSessionAuthenticateUseCase(
                     requiredNamespaces = requiredNamespace,
                     sessionNamespaces = sessionNamespaces,
                     pairingTopic = jsonRpcHistoryEntry.topic.value,
-                    transportType = jsonRpcHistoryEntry.transportType
+                    transportType = transportType
                 )
                 metadataStorageRepository.insertOrAbortMetadata(sessionTopic, selfAppMetaData, AppMetaDataType.SELF)
                 metadataStorageRepository.insertOrAbortMetadata(sessionTopic, receiverMetadata, AppMetaDataType.PEER)

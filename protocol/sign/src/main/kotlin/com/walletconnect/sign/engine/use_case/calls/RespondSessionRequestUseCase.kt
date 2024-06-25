@@ -67,10 +67,8 @@ internal class RespondSessionRequestUseCase(
                 throw RequestExpiredException("This request has expired, id: ${jsonRpcResponse.id}")
             }
         }
-        val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(fiveMinutesInSeconds))
-        logger.log("Sending session request response on topic: $topic, id: ${jsonRpcResponse.id}")
 
-        if (session.transportType == TransportType.LINK_MODE && session.linkMode == true) {
+        if (session.transportType == TransportType.LINK_MODE && session.peerLinkMode == true) {
             if (session.appLink.isNullOrEmpty()) return@supervisorScope onFailure(IllegalStateException("App link is missing"))
             try {
                 removePendingSessionRequestAndEmit(jsonRpcResponse.id)
@@ -80,6 +78,8 @@ internal class RespondSessionRequestUseCase(
                 onFailure(e)
             }
         } else {
+            val irnParams = IrnParams(Tags.SESSION_REQUEST_RESPONSE, Ttl(fiveMinutesInSeconds))
+            logger.log("Sending session request response on topic: $topic, id: ${jsonRpcResponse.id}")
             jsonRpcInteractor.publishJsonRpcResponse(topic = Topic(topic), params = irnParams, response = jsonRpcResponse,
                 onSuccess = {
                     onSuccess()
