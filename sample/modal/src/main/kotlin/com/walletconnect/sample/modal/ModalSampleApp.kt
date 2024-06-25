@@ -26,7 +26,7 @@ class ModalSampleApp : Application() {
         val appMetaData = Core.Model.AppMetaData(
             name = "Kotlin Modals",
             description = "Kotlin Modals Lab Sample",
-            url = "https://web3modal.com/",
+            url = "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app",
             icons = listOf("https://gblobscdn.gitbook.com/spaces%2F-LJJeCjcLrr53DcT1Ml7%2Favatar.png?alt=media"),
             redirect = "kotlin-modal-wc://request",
             linkMode = true,
@@ -55,11 +55,7 @@ class ModalSampleApp : Application() {
             uri = "https://web3inbox.com/all-apps",
             nonce = randomBytes(12).bytesToHex(),
             statement = "I accept the Terms of Service: https://yourDappDomain.com/",
-            resources = listOf(
-                "urn:recap:eyJhdHQiOnsiaHR0cHM6Ly9ub3RpZnkud2FsbGV0Y29ubmVjdC5jb20vYWxsLWFwcHMiOnsiY3J1ZC9zdWJzY3JpcHRpb25zIjpbe31dLCJjcnVkL25vdGlmaWNhdGlvbnMiOlt7fV19fX0=",
-                "ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/"
-            ),
-            methods = EthUtils.ethMethods,
+            methods = EthUtils.ethMethods
         )
         Web3Modal.setAuthRequestParams(authParams)
 

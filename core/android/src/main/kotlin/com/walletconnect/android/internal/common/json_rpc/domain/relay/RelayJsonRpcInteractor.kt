@@ -110,8 +110,6 @@ internal class RelayJsonRpcInteractor(
 			return onFailure(e)
 		}
 
-		println("kobe: Request: $requestJson")
-
 		try {
 			if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson,  TransportType.RELAY)) {
 				val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, envelopeType, participants)
