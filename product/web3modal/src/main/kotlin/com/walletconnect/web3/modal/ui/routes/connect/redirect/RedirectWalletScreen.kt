@@ -80,7 +80,7 @@ internal fun RedirectWalletRoute(
         if (wallet.isCoinbaseWallet()) {
             connectState.connectCoinbase()
         } else {
-            connectState.connectWalletConnect(name = wallet.name, method = ConnectionMethod.MOBILE) { uri ->
+            connectState.connectWalletConnect(name = wallet.name, method = ConnectionMethod.MOBILE, linkMode = wallet.linkMode) { uri ->
                 uriHandler.openMobileLink(
                     uri = uri,
                     mobileLink = wallet.mobileLink,
@@ -128,7 +128,7 @@ internal fun RedirectWalletRoute(
             uriHandler.openPlayStore(wallet.playStore)
         },
         onOpenWebApp = {
-            connectState.connectWalletConnect(name = wallet.name, method = ConnectionMethod.WEB) {
+            connectState.connectWalletConnect(name = wallet.name, method = ConnectionMethod.WEB, linkMode = wallet.linkMode) {
                 uriHandler.openWebAppLink(it, wallet.webAppLink)
             }
         }

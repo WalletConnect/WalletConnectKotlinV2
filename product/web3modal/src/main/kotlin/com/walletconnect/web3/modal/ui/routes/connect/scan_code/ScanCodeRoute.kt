@@ -53,7 +53,7 @@ internal fun ScanQRCodeRoute(connectViewModel: ConnectViewModel) {
             .filter { event -> event is Modal.Model.RejectedSession || event is Modal.Model.SessionAuthenticateResponse.Error }
             .collect {
                 snackBarHandler.showErrorSnack("Declined")
-                connectViewModel.connectWalletConnect(name = "WalletConnect", method = ConnectionMethod.QR_CODE) { newUri -> uri = newUri }
+                connectViewModel.connectWalletConnect(name = "WalletConnect", method = ConnectionMethod.QR_CODE, linkMode = null) { newUri -> uri = newUri }
             }
     }
 

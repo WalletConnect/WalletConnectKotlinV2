@@ -69,7 +69,7 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
 
     fun navigateToScanQRCode() {
         sendEventUseCase.send(Props(EventType.TRACK, EventType.Track.SELECT_WALLET, Properties(name = "WalletConnect", platform = ConnectionMethod.QR_CODE)))
-        connectWalletConnect(name = "WalletConnect", method = ConnectionMethod.QR_CODE) { navigateTo(Route.QR_CODE.path) }
+        connectWalletConnect(name = "WalletConnect", method = ConnectionMethod.QR_CODE, linkMode = null) { navigateTo(Route.QR_CODE.path) }
     }
 
     fun navigateToRedirectRoute(wallet: Wallet) {
@@ -92,11 +92,11 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
     }
 
     //todo: add app link from Cloud
-    fun connectWalletConnect(name: String, method: String, onSuccess: (String) -> Unit) {
+    fun connectWalletConnect(name: String, method: String, linkMode: String?, onSuccess: (String) -> Unit) {
         if (Web3Modal.authPayloadParams != null) {
             authenticate(
                 name, method,
-                walletAppLink = "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet",
+                walletAppLink = linkMode,
                 authParams = Web3Modal.authPayloadParams!!,
                 onSuccess = { if (!it.isNullOrBlank()) onSuccess(it) },
                 onError = {
