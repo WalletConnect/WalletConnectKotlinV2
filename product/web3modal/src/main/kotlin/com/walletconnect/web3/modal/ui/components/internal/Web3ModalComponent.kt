@@ -60,7 +60,7 @@ internal fun Web3ModalComponent(
             .wcEventModels
             .onEach { event ->
                 when (event) {
-                    is Modal.Model.ApprovedSession, is Modal.Model.DeletedSession.Success -> {
+                    is Modal.Model.ApprovedSession, is Modal.Model.DeletedSession.Success, is Modal.Model.SessionAuthenticateResponse.Result -> {
                         closeModal()
                     }
 

@@ -81,7 +81,7 @@ internal class SessionRequestUseCase(
         val params = SignParams.SessionRequestParams(SessionRequestVO(request.method, request.params, expiry.seconds), request.chainId)
         val sessionPayload = SignRpc.SessionRequest(params = params)
 
-        if (session.transportType == TransportType.LINK_MODE && session.linkMode == true) {
+        if (session.transportType == TransportType.LINK_MODE && session.peerLinkMode == true) {
             if (session.appLink.isNullOrEmpty()) return@supervisorScope onFailure(IllegalStateException("App link is missing"))
             try {
                 linkModeJsonRpcInteractor.triggerRequest(sessionPayload, Topic(request.topic), session.appLink)

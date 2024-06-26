@@ -69,7 +69,7 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
 
     fun navigateToScanQRCode() {
         sendEventUseCase.send(Props(EventType.TRACK, EventType.Track.SELECT_WALLET, Properties(name = "WalletConnect", platform = ConnectionMethod.QR_CODE)))
-        connectWalletConnect(name = "WalletConnect", method = ConnectionMethod.QR_CODE) { navigateTo(Route.QR_CODE.path) }
+        connectWalletConnect(name = "WalletConnect", method = ConnectionMethod.QR_CODE, linkMode = null) { navigateTo(Route.QR_CODE.path) }
     }
 
     fun navigateToRedirectRoute(wallet: Wallet) {
@@ -91,17 +91,32 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
         navigateTo(Route.ALL_WALLETS.path)
     }
 
-    fun connectWalletConnect(name: String, method: String, onSuccess: (String) -> Unit) =
-        connect(
-            name, method,
-            sessionParams = sessionParams,
-            onSuccess = onSuccess,
-            onError = {
-                sendEventUseCase.send(Props(EventType.TRACK, EventType.Track.CONNECT_ERROR, Properties(message = it.message ?: "Relay error while connecting")))
-                showError(it.localizedMessage)
-                logger.error(it)
-            }
-        )
+    fun connectWalletConnect(name: String, method: String, linkMode: String?, onSuccess: (String) -> Unit) {
+        if (Web3Modal.authPayloadParams != null) {
+            authenticate(
+                name, method,
+                walletAppLink = linkMode,
+                authParams = if (Web3Modal.selectedChain != null) Web3Modal.authPayloadParams!!.copy(chains = listOf(Web3Modal.selectedChain!!.id)) else Web3Modal.authPayloadParams!!,
+                onSuccess = { if (!it.isNullOrBlank()) onSuccess(it) },
+                onError = {
+                    sendEventUseCase.send(Props(EventType.TRACK, EventType.Track.CONNECT_ERROR, Properties(message = it.message ?: "Relay error while connecting")))
+                    showError(it.localizedMessage)
+                    logger.error(it)
+                }
+            )
+        } else {
+            connect(
+                name, method,
+                sessionParams = sessionParams,
+                onSuccess = onSuccess,
+                onError = {
+                    sendEventUseCase.send(Props(EventType.TRACK, EventType.Track.CONNECT_ERROR, Properties(message = it.message ?: "Relay error while connecting")))
+                    showError(it.localizedMessage)
+                    logger.error(it)
+                }
+            )
+        }
+    }
 
     fun connectCoinbase(onSuccess: () -> Unit = {}) {
         web3ModalEngine.connectCoinbase(

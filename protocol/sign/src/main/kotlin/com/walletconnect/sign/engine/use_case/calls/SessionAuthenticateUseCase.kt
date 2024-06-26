@@ -32,6 +32,7 @@ import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toCommon
 import com.walletconnect.sign.engine.model.mapper.toMapOfEngineNamespacesOptional
 import com.walletconnect.sign.storage.authenticate.AuthenticateResponseTopicRepository
+import com.walletconnect.sign.storage.link_mode.LinkModeStorageRepository
 import com.walletconnect.utils.Empty
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
@@ -49,6 +50,7 @@ internal class SessionAuthenticateUseCase(
     private val getPairingForSessionAuthenticate: GetPairingForSessionAuthenticateUseCase,
     private val getNamespacesFromReCaps: GetNamespacesFromReCaps,
     private val linkModeJsonRpcInteractor: LinkModeJsonRpcInteractorInterface,
+    private val linkModeStorageRepository: LinkModeStorageRepository,
     private val logger: Logger
 ) : SessionAuthenticateUseCaseInterface {
     override suspend fun authenticate(
@@ -57,7 +59,7 @@ internal class SessionAuthenticateUseCase(
         pairingTopic: String?,
         expiry: Expiry?,
         walletAppLink: String?,
-        onSuccess: (String) -> Unit,
+        onSuccess: (String?) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
         if (authenticate.chains.isEmpty()) {
@@ -95,11 +97,11 @@ internal class SessionAuthenticateUseCase(
         val authRequest: SignRpc.SessionAuthenticate = SignRpc.SessionAuthenticate(params = authParams)
         crypto.setKey(requesterPublicKey, responseTopic.getParticipantTag())
 
-        if (!walletAppLink.isNullOrEmpty()) {
-            //todo: add link storage check and metadata checks flag for discovery
+        //todo: add metadata checks flag for discovery?
+        if (!walletAppLink.isNullOrEmpty() && selfAppMetaData.redirect?.linkMode == true && linkModeStorageRepository.isEnabled(walletAppLink)) {
             try {
                 linkModeJsonRpcInteractor.triggerRequest(authRequest, appLink = walletAppLink)
-                onSuccess("") // todo: deprecate onSuccess
+                onSuccess(null)
             } catch (e: Error) {
                 onFailure(e)
             }
@@ -223,7 +225,7 @@ internal interface SessionAuthenticateUseCaseInterface {
         pairingTopic: String?,
         expiry: Expiry?,
         walletAppLink: String? = null,
-        onSuccess: (String) -> Unit,
+        onSuccess: (String?) -> Unit,
         onFailure: (Throwable) -> Unit
     )
 }

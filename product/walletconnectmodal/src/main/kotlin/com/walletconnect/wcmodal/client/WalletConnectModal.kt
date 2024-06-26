@@ -192,17 +192,6 @@ object WalletConnectModal {
         )
     }
 
-    fun authenticate(
-        authenticate: Modal.Params.Authenticate,
-        onSuccess: (String) -> Unit,
-        onError: (Modal.Model.Error) -> Unit,
-    ) {
-
-        SignClient.authenticate(authenticate.toSign(),
-            onSuccess = { url -> onSuccess(url) },
-            onError = { onError(it.toModal()) })
-    }
-
     fun request(request: Modal.Params.Request, onSuccess: (Modal.Model.SentRequest) -> Unit = {}, onError: (Modal.Model.Error) -> Unit) {
         SignClient.request(
             request.toSign(),

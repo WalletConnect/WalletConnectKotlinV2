@@ -32,6 +32,7 @@ private val SampleWallet = Wallet(
     mobileLink = "kotlin-web3wallet://",
     playStore = null,
     webAppLink = null,
+    linkMode = "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet",
     true
 )
 

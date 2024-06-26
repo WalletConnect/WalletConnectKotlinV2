@@ -1,6 +1,5 @@
 package com.walletconnect.web3.modal.client
 
-import com.walletconnect.android.internal.common.signing.cacao.CacaoType
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.web3.modal.client.models.Account
 import com.walletconnect.web3.modal.client.models.Session
@@ -102,19 +101,20 @@ internal fun Modal.Params.Authenticate.toSign(): Sign.Params.Authenticate = with
     )
 }
 
-internal fun Modal.Model.PayloadParams.toSign(): Sign.Model.PayloadParams = with(this) {
-    Sign.Model.PayloadParams(
+internal fun Modal.Model.AuthPayloadParams.toModel(pairingTopic: String): Modal.Params.Authenticate = with(this) {
+    Modal.Params.Authenticate(
         chains = chains,
-        type = type ?: CacaoType.CAIP222.header,
         domain = domain,
-        aud = aud,
+        uri = uri,
         nonce = nonce,
         nbf = nbf,
         exp = exp,
         statement = statement,
         requestId = requestId,
         resources = resources,
-        iat = iat,
+        expiry = expiry,
+        methods = methods,
+        pairingTopic = pairingTopic,
     )
 }
 

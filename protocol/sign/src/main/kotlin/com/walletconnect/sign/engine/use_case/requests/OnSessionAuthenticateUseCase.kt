@@ -7,7 +7,6 @@ import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
-import com.walletconnect.android.internal.common.model.TransportType
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
@@ -56,7 +55,7 @@ internal class OnSessionAuthenticateUseCase(
 
             val url = authenticateSessionParams.requester.metadata.url
             pairingController.setRequestReceived(Core.Params.RequestReceived(request.topic.value))
-            resolveAttestationIdUseCase(request, url, linkMode = request.transportType == TransportType.LINK_MODE, appLink = authenticateSessionParams.appLink) { verifyContext ->
+            resolveAttestationIdUseCase(request, url, linkMode = authenticateSessionParams.linkMode, appLink = authenticateSessionParams.appLink) { verifyContext ->
                 emitSessionAuthenticate(request, authenticateSessionParams, verifyContext)
             }
         } catch (e: Exception) {

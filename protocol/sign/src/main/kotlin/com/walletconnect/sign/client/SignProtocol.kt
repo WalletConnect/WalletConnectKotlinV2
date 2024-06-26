@@ -19,6 +19,7 @@ import com.walletconnect.sign.di.signJsonRpcModule
 import com.walletconnect.sign.di.storageModule
 import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.engine.model.EngineDO
+import com.walletconnect.util.Empty
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -515,7 +516,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
                     authenticate.methods, authenticate.pairingTopic,
                     if (authenticate.expiry == null) null else Expiry(authenticate.expiry),
                     null,
-                    onSuccess = { url -> onSuccess(url) },
+                    onSuccess = { url -> onSuccess(url ?: String.Empty) },
                     onFailure = { throwable -> onError(Sign.Model.Error(throwable)) })
             } catch (error: Exception) {
                 onError(Sign.Model.Error(error))
