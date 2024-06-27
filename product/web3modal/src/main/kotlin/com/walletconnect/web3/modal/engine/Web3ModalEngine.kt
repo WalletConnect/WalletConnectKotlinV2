@@ -135,6 +135,10 @@ internal class Web3ModalEngine(
 
     internal fun getSelectedChainOrFirst() = getSelectedChain() ?: Web3Modal.chains.first()
 
+    fun formatSIWEMessage(authParams: Modal.Model.AuthPayloadParams, issuer: String): String {
+        return SignClient.formatAuthMessage(authParams.toSign(issuer))
+    }
+
     fun request(request: Request, onSuccess: (SentRequestResult) -> Unit, onError: (Throwable) -> Unit) {
         val session = getActiveSession()
         val selectedChain = getSelectedChain()
@@ -188,11 +192,12 @@ internal class Web3ModalEngine(
             onError(InvalidSessionException)
             return
         }
-        scope.launch { deleteSessionDataUseCase() }
+
         when (session) {
             is Session.Coinbase -> {
                 checkEngineInitialization()
                 coinbaseClient.disconnect()
+                scope.launch { deleteSessionDataUseCase() }
                 onSuccess()
             }
 
@@ -200,6 +205,7 @@ internal class Web3ModalEngine(
                 SignClient.disconnect(Sign.Params.Disconnect(session.topic),
                     onSuccess = {
                         sendEventUseCase.send(Props(EventType.TRACK, EventType.Track.DISCONNECT_SUCCESS))
+                        scope.launch { deleteSessionDataUseCase() }
                         onSuccess()
                     },
                     onError = {

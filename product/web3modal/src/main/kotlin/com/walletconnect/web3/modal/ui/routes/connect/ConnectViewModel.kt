@@ -14,6 +14,8 @@ import com.walletconnect.modal.ui.model.LoadingState
 import com.walletconnect.modal.ui.model.UiState
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
+import com.walletconnect.web3.modal.client.models.Account
+import com.walletconnect.web3.modal.client.models.request.Request
 import com.walletconnect.web3.modal.domain.usecase.ObserveSelectedChainUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveChainSelectionUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveRecentWalletUseCase
@@ -23,8 +25,10 @@ import com.walletconnect.web3.modal.ui.navigation.NavigatorImpl
 import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.ui.navigation.connection.toRedirectPath
 import com.walletconnect.web3.modal.utils.getSelectedChain
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -41,6 +45,11 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
     val selectedChain = observeSelectedChainUseCase().map { savedChainId ->
         Web3Modal.chains.find { it.id == savedChainId } ?: web3ModalEngine.getSelectedChainOrFirst()
     }
+    private var _isConfirmLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isConfirmLoading get() = _isConfirmLoading.asStateFlow()
+
+    private var _isCancelLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isCancelLoading get() = _isCancelLoading.asStateFlow()
 
     val walletsState: StateFlow<WalletsData> = walletsDataStore.searchWalletsState.stateIn(viewModelScope, SharingStarted.Lazily, WalletsData.empty())
     val uiState: StateFlow<UiState<List<Wallet>>> = walletsDataStore.walletState.map { pagingData ->
@@ -56,6 +65,43 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
 
     init {
         fetchInitialWallets()
+    }
+
+    fun disconnect() {
+        _isCancelLoading.value = true
+        web3ModalEngine.disconnect(
+            onSuccess = {
+                _isCancelLoading.value = false
+                closeModal()
+            },
+            onError = {
+                _isCancelLoading.value = false
+                showError(it.localizedMessage)
+                logger.error(it)
+            }
+        )
+    }
+
+    fun sendSIWEOverPersonalSign() {
+        _isConfirmLoading.value = true
+        val account = web3ModalEngine.getAccount() ?: throw IllegalStateException("Account is null")
+        web3ModalEngine.request(
+            request = Request("personal_sign", getPersonalSignBody(account)),
+            onSuccess = {
+                logger.log("SIWE sent successfully")
+            },
+            onError = {
+                _isConfirmLoading.value = false
+                showError(it.localizedMessage)
+            },
+        )
+    }
+
+    private fun getPersonalSignBody(account: Account): String {
+        val issuer = "did:pkh:${account.chain.id}:${account.address}"
+        val siweMessage = web3ModalEngine.formatSIWEMessage(Web3Modal.authPayloadParams!!, issuer)
+        val msg = siweMessage.encodeToByteArray().joinToString(separator = "", prefix = "0x") { eachByte -> "%02x".format(eachByte) }
+        return "[\"$msg\", \"$account\"]"
     }
 
     fun fetchInitialWallets() {

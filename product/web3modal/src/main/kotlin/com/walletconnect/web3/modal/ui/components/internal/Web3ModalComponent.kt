@@ -20,10 +20,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.walletconnect.web3.modal.client.Modal
+import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
 import com.walletconnect.web3.modal.ui.Web3ModalState
 import com.walletconnect.web3.modal.ui.Web3ModalViewModel
 import com.walletconnect.web3.modal.ui.components.internal.root.Web3ModalRoot
+import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.ui.routes.account.AccountNavGraph
 import com.walletconnect.web3.modal.ui.routes.connect.ConnectionNavGraph
 import com.walletconnect.web3.modal.ui.utils.ComposableLifecycleEffect
@@ -61,7 +63,11 @@ internal fun Web3ModalComponent(
             .onEach { event ->
                 when (event) {
                     is Modal.Model.ApprovedSession, is Modal.Model.DeletedSession.Success, is Modal.Model.SessionAuthenticateResponse.Result -> {
-                        closeModal()
+                        if (Web3Modal.authPayloadParams != null) {
+                            navController.navigate(Route.SIWE_FALLBACK.path)
+                        } else {
+                            closeModal()
+                        }
                     }
 
                     else -> Unit
@@ -93,6 +99,7 @@ internal fun Web3ModalComponent(
             when (state) {
                 is Web3ModalState.Connect -> ConnectionNavGraph(
                     navController = navController,
+                    closeModal = closeModal,
                     shouldOpenChooseNetwork = shouldOpenChooseNetwork
                 )
 
