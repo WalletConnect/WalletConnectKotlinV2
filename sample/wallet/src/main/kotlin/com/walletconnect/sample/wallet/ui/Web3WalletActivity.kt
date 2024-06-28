@@ -78,7 +78,6 @@ class Web3WalletActivity : AppCompatActivity() {
             val bottomSheetNavigator = BottomSheetNavigator(sheetState)
             val navController = rememberAnimatedNavController(bottomSheetNavigator)
             this.navController = navController
-            println("kobe: set nav controller")
             val sharedPref = getPreferences(MODE_PRIVATE)
             val getStartedVisited = sharedPref.getBoolean("get_started_visited", false)
             WCSampleAppTheme {

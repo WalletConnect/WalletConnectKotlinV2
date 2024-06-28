@@ -55,7 +55,7 @@ object Web3Modal {
         //Responses
         fun onSessionRequestResponse(response: Modal.Model.SessionRequestResponse)
         fun onSessionAuthenticateResponse(sessionAuthenticateResponse: Modal.Model.SessionAuthenticateResponse) {}
-        fun onSIWEAuthenticationResponse(response: Modal.Model.SIWEAuthenticateResponse) //todo: keep default impl {}
+        fun onSIWEAuthenticationResponse(response: Modal.Model.SIWEAuthenticateResponse) {}
 
         // Utils
         fun onProposalExpired(proposal: Modal.Model.ExpiredProposal)
