@@ -33,6 +33,7 @@ import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
 import com.walletconnect.sample.wallet.ui.routes.host.WalletSampleHost
 import com.walletconnect.web3.wallet.client.Web3Wallet
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import timber.log.Timber
@@ -75,6 +76,7 @@ class Web3WalletActivity : AppCompatActivity() {
             val bottomSheetNavigator = BottomSheetNavigator(sheetState)
             val navController = rememberAnimatedNavController(bottomSheetNavigator)
             this.navController = navController
+            println("kobe: set nav controller")
             val sharedPref = getPreferences(MODE_PRIVATE)
             val getStartedVisited = sharedPref.getBoolean("get_started_visited", false)
             WCSampleAppTheme {
@@ -121,21 +123,20 @@ class Web3WalletActivity : AppCompatActivity() {
             .onEach {
                 if (it.arrayOfArgs.isNotEmpty()) {
                     web3walletViewModel.showRequestLoader(false)
-                    navController.navigate(Route.SessionRequest.path)
+                    navigateWhenReady{
+                        navController.navigate(Route.SessionRequest.path)
+                    }
                 }
             }
             .launchIn(lifecycleScope)
 
         web3walletViewModel.walletEvents
-            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
             .onEach { event ->
                 when (event) {
-                    is SignEvent.SessionProposal -> navController.navigate(Route.SessionProposal.path)
+                    is SignEvent.SessionProposal -> navigateWhenReady { navController.navigate(Route.SessionProposal.path) }
+                    is SignEvent.SessionAuthenticate ->  navigateWhenReady { navController.navigate(Route.SessionAuthenticate.path) }
                     is SignEvent.ExpiredRequest -> {
-                        navController.popBackStack(
-                            route = Route.Connections.path,
-                            inclusive = false
-                        )
+                        navController.popBackStack(route = Route.Connections.path, inclusive = false)
                         Toast.makeText(baseContext, "Request expired", Toast.LENGTH_SHORT).show()
                     }
 
@@ -145,12 +146,19 @@ class Web3WalletActivity : AppCompatActivity() {
                     }
 
                     is AuthEvent.OnRequest -> navController.navigate(Route.AuthRequest.path)
-                    is SignEvent.SessionAuthenticate -> navController.navigate(Route.SessionAuthenticate.path)
-
                     else -> Unit
                 }
             }
             .launchIn(lifecycleScope)
+    }
+
+    private suspend fun navigateWhenReady(navigate :() -> Unit) {
+        if (!::navController.isInitialized) {
+            delay(200)
+            navigate()
+        } else {
+            navigate()
+        }
     }
 
     private fun handleAppLink(intent: Intent?) {

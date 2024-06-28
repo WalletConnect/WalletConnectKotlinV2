@@ -128,7 +128,7 @@ class Web3WalletViewModel : ViewModel() {
 
             else -> NoAction
         }
-    }.shareIn(viewModelScope, SharingStarted.Eagerly)
+    }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())//Eagerly
 
     fun showLoader(isLoading: Boolean) {
         _isLoadingFlow.value = isLoading
