@@ -29,21 +29,22 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import com.walletconnect.web3.modal.ui.components.internal.commons.VerticalSpacer
+import com.walletconnect.web3.modal.ui.components.internal.commons.WalletImageWithLoader
 import com.walletconnect.web3.modal.ui.routes.connect.ConnectViewModel
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 @Composable
 internal fun SIWEFallbackRoute(
-    navController: NavController,
     connectViewModel: ConnectViewModel
 ) {
     val isConfirmLoading = connectViewModel.isConfirmLoading.collectAsState()
     val isCancelLoading = connectViewModel.isCancelLoading.collectAsState()
     SIWEFallback(
+        connectViewModel,
         isLoadingConfirm = isConfirmLoading.value,
         isLoadingCancel = isCancelLoading.value,
         onConfirm = { connectViewModel.sendSIWEOverPersonalSign() },
@@ -53,6 +54,7 @@ internal fun SIWEFallbackRoute(
 
 @Composable
 private fun SIWEFallback(
+    connectViewModel: ConnectViewModel,
     isLoadingConfirm: Boolean,
     isLoadingCancel: Boolean,
     onConfirm: () -> Unit,
@@ -65,8 +67,26 @@ private fun SIWEFallback(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         VerticalSpacer(20.dp)
-        Text("Web3Modal needs to connect to your wallet")
-        Text("Sign this message to prove you own this wallet and proceed.\n Cancelling will disconnect you.")
+        WalletImageWithLoader(connectViewModel.wallet?.imageUrl ?: "") //todo: wc logo as default
+        VerticalSpacer(4.dp)
+        Text(
+            text = connectViewModel.wallet?.name ?: "",
+            style = Web3ModalTheme.typo.paragraph400,
+            textAlign = TextAlign.Center,
+        )
+        VerticalSpacer(20.dp)
+        Spacer(modifier = Modifier.height(20.dp))
+        Text(
+            text = "Web3Modal needs to connect to your wallet",
+            style = Web3ModalTheme.typo.paragraph400,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Sign this message to prove you own this wallet and proceed.\\n Cancelling will disconnect you.",
+            style = Web3ModalTheme.typo.small400.copy(Web3ModalTheme.colors.foreground.color200),
+            textAlign = TextAlign.Center,
+        )
         VerticalSpacer(20.dp)
         Buttons(
             allowButtonColor = Color(0xFF4A90E2),

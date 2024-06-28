@@ -41,10 +41,7 @@ internal fun ConnectionNavGraph(
         startDestination = startDestination
     ) {
         animatedComposable(route = Route.SIWE_FALLBACK.path) {
-            SIWEFallbackRoute(
-                connectViewModel = connectViewModel,
-                navController = navController
-            )
+            SIWEFallbackRoute(connectViewModel = connectViewModel)
         }
         animatedComposable(route = Route.CONNECT_YOUR_WALLET.path) {
             ConnectWalletRoute(connectViewModel = connectViewModel)

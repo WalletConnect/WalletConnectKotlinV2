@@ -51,9 +51,9 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
     }
     private var _isConfirmLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isConfirmLoading get() = _isConfirmLoading.asStateFlow()
-
     private var _isCancelLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isCancelLoading get() = _isCancelLoading.asStateFlow()
+    var wallet: Wallet? = null
 
     val walletsState: StateFlow<WalletsData> = walletsDataStore.searchWalletsState.stateIn(viewModelScope, SharingStarted.Lazily, WalletsData.empty())
     val uiState: StateFlow<UiState<List<Wallet>>> = walletsDataStore.walletState.map { pagingData ->
@@ -72,7 +72,6 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
             .wcEventModels
             .filterIsInstance<Modal.Model.SIWEAuthenticateResponse.Error>()
             .onEach {
-                println("error siwe")
                 _isConfirmLoading.value = false
                 showError(it.message)
                 disconnect()
@@ -196,7 +195,7 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
 
     fun clearSearch() = walletsDataStore.clearSearch()
 
-    fun getWallet(walletId: String?) = walletsDataStore.getWallet(walletId)
+    fun getWallet(walletId: String?) = walletsDataStore.getWallet(walletId).also { wallet = it }
 
     fun getNotInstalledWallets() = walletsDataStore.wallets.filterNot { it.isWalletInstalled }
 
