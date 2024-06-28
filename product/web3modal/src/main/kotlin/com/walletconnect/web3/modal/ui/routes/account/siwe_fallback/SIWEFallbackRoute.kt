@@ -2,6 +2,7 @@ package com.walletconnect.web3.modal.ui.routes.account.siwe_fallback
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,6 +34,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.walletconnect.web3.modal.ui.components.internal.commons.VerticalSpacer
 import com.walletconnect.web3.modal.ui.routes.connect.ConnectViewModel
+import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 
 @Composable
 internal fun SIWEFallbackRoute(
@@ -89,9 +91,10 @@ fun Buttons(
     Row(modifier = modifier) {
         Spacer(modifier = Modifier.width(18.dp))
         ButtonWithLoader(
-            buttonColor = Color(0xFFD6D6D6),
+            buttonColor = Color(0xFFFFFFFF),
             loaderColor = Color(0xFF000000),
             modifier = Modifier
+                .border(width = 1.dp, color = Web3ModalTheme.colors.grayGlass05, shape = RoundedCornerShape(20.dp))
                 .weight(1f)
                 .height(46.dp)
                 .clickable { onCancel() },
@@ -179,10 +182,10 @@ fun ButtonTopLevel(
         contentAlignment = Alignment.Center,
         modifier = modifier
             .padding(
-                start = 8.0.dp,
+                start = 0.0.dp,
                 top = 0.0.dp,
-                end = 8.0.dp,
-                bottom = 1.0.dp
+                end = 0.0.dp,
+                bottom = 0.0.dp
             )
             .clip(RoundedCornerShape(20.dp))
             .background(buttonColor)
