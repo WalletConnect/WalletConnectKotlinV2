@@ -45,7 +45,7 @@ class LinkModeJsonRpcInteractor(
     override val internalErrors: SharedFlow<SDKError> = _internalErrors.asSharedFlow()
 
     override fun triggerRequest(payload: JsonRpcClientSync<*>, topic: Topic, appLink: String, envelopeType: EnvelopeType) {
-        val requestJson = serializer.serialize(payload) ?: throw IllegalStateException("LinkMode: Unknown result params")
+        val requestJson = serializer.serialize(payload) ?: throw IllegalStateException("LinkMode: Cannot serialize the request")
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson, TransportType.LINK_MODE)) {
 
             val encodedRequest = if (envelopeType == EnvelopeType.TWO) {
@@ -64,7 +64,7 @@ class LinkModeJsonRpcInteractor(
     }
 
     override fun triggerResponse(topic: Topic, response: JsonRpcResponse, appLink: String, participants: Participants?, envelopeType: EnvelopeType) {
-        val responseJson = serializer.serialize(response) ?: throw IllegalStateException("LinkMode: Unknown result params")
+        val responseJson = serializer.serialize(response) ?: throw IllegalStateException("LinkMode: Cannot serialize the response")
         val encryptedResponse = chaChaPolyCodec.encrypt(topic, responseJson, envelopeType, participants)
         val encodedResponse = Base64.encodeToString(encryptedResponse, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
         val intent = Intent(Intent.ACTION_VIEW).apply {
@@ -76,7 +76,6 @@ class LinkModeJsonRpcInteractor(
     }
 
     override fun dispatchEnvelope(url: String) {
-        //todo: check if all errors are caught on the client level
         val uri = Uri.parse(url)
         val encodedEnvelope = uri.getQueryParameter("wc_ev") ?: throw IllegalStateException("LinkMode: Missing wc_ev parameter")
         val topic = uri.getQueryParameter("topic") ?: throw IllegalStateException("LinkMode: Missing topic parameter")
@@ -111,7 +110,7 @@ class LinkModeJsonRpcInteractor(
         if (jsonRpcRecord != null) {
             serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->
                 _peerResponse.emit(jsonRpcRecord.toWCResponse(JsonRpcResponse.JsonRpcResult(result.id, result = result.result), params))
-            } ?: throw IllegalStateException("LinkMode: Unknown result params")
+            } ?: throw IllegalStateException("LinkMode: Cannot serialize result")
         }
     }
 
@@ -121,7 +120,7 @@ class LinkModeJsonRpcInteractor(
         if (jsonRpcRecord != null) {
             serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->
                 _peerResponse.emit(jsonRpcRecord.toWCResponse(error, params))
-            } ?: throw IllegalStateException("LinkMode: Unknown error params")
+            } ?: throw IllegalStateException("LinkMode: Cannot serialize error")
         }
     }
 }
