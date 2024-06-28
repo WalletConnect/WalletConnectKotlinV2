@@ -14,8 +14,9 @@ import com.walletconnect.modal.ui.model.LoadingState
 import com.walletconnect.modal.ui.model.UiState
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
-import com.walletconnect.web3.modal.client.models.Account
 import com.walletconnect.web3.modal.client.models.request.Request
+import com.walletconnect.web3.modal.client.models.request.SentRequestResult
+import com.walletconnect.web3.modal.domain.delegate.Web3ModalDelegate
 import com.walletconnect.web3.modal.domain.usecase.ObserveSelectedChainUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveChainSelectionUseCase
 import com.walletconnect.web3.modal.domain.usecase.SaveRecentWalletUseCase
@@ -29,7 +30,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -64,6 +68,16 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
         get() = walletsDataStore.searchPhrase
 
     init {
+        Web3ModalDelegate
+            .wcEventModels
+            .filterIsInstance<Modal.Model.SIWEAuthenticateResponse.Error>()
+            .onEach {
+                println("error siwe")
+                _isConfirmLoading.value = false
+                showError(it.message)
+                disconnect()
+            }.launchIn(viewModelScope)
+
         fetchInitialWallets()
     }
 
@@ -85,23 +99,21 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
     fun sendSIWEOverPersonalSign() {
         _isConfirmLoading.value = true
         val account = web3ModalEngine.getAccount() ?: throw IllegalStateException("Account is null")
+        val issuer = "did:pkh:${account.chain.id}:${account.address}"
+        val siweMessage = web3ModalEngine.formatSIWEMessage(Web3Modal.authPayloadParams!!, issuer)
+        val msg = siweMessage.encodeToByteArray().joinToString(separator = "", prefix = "0x") { eachByte -> "%02x".format(eachByte) }
+        val body = "[\"$msg\", \"$account\"]"
         web3ModalEngine.request(
-            request = Request("personal_sign", getPersonalSignBody(account)),
-            onSuccess = {
+            request = Request("personal_sign", body),
+            onSuccess = { sendRequest ->
                 logger.log("SIWE sent successfully")
+                web3ModalEngine.siweRequestIdWithMessage = Pair((sendRequest as SentRequestResult.WalletConnect).requestId, siweMessage)
             },
             onError = {
                 _isConfirmLoading.value = false
                 showError(it.localizedMessage)
             },
         )
-    }
-
-    private fun getPersonalSignBody(account: Account): String {
-        val issuer = "did:pkh:${account.chain.id}:${account.address}"
-        val siweMessage = web3ModalEngine.formatSIWEMessage(Web3Modal.authPayloadParams!!, issuer)
-        val msg = siweMessage.encodeToByteArray().joinToString(separator = "", prefix = "0x") { eachByte -> "%02x".format(eachByte) }
-        return "[\"$msg\", \"$account\"]"
     }
 
     fun fetchInitialWallets() {

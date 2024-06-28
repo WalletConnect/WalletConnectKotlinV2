@@ -57,7 +57,7 @@ internal class Web3ModalEngine(
     EnableAnalyticsUseCaseInterface by enableAnalyticsUseCase {
     internal var excludedWalletsIds: MutableList<String> = mutableListOf()
     internal var recommendedWalletsIds: MutableList<String> = mutableListOf()
-
+    internal var siweRequestIdWithMessage: Pair<Long, String>? = null
     private lateinit var coinbaseClient: CoinbaseClient
 
     fun setup(
@@ -175,7 +175,6 @@ internal class Web3ModalEngine(
         } catch (e: Throwable) {
             onError(e)
         }
-
     }
 
     fun ping(sessionPing: Modal.Listeners.SessionPing?) {
@@ -281,7 +280,27 @@ internal class Web3ModalEngine(
             }
 
             override fun onSessionRequestResponse(response: Sign.Model.SessionRequestResponse) {
-                delegate.onSessionRequestResponse(response.toModal())
+                if (response.result.id == siweRequestIdWithMessage?.first) {
+                    if (response.result is Sign.Model.JsonRpcResponse.JsonRpcResult) {
+                        val siweResponse = Modal.Model.SIWEAuthenticateResponse.Result(
+                            id = response.result.id,
+                            message = siweRequestIdWithMessage!!.second,
+                            signature = (response.result as Sign.Model.JsonRpcResponse.JsonRpcResult).result
+                        )
+                        siweRequestIdWithMessage = null
+                        delegate.onSIWEAuthenticationResponse(siweResponse)
+                    } else if (response.result is Sign.Model.JsonRpcResponse.JsonRpcError) {
+                        val siweResponse = Modal.Model.SIWEAuthenticateResponse.Error(
+                            id = response.result.id,
+                            message = (response.result as Sign.Model.JsonRpcResponse.JsonRpcError).message,
+                            code = (response.result as Sign.Model.JsonRpcResponse.JsonRpcError).code
+                        )
+                        siweRequestIdWithMessage = null
+                        delegate.onSIWEAuthenticationResponse(siweResponse)
+                    }
+                } else {
+                    delegate.onSessionRequestResponse(response.toModal())
+                }
             }
 
             override fun onSessionAuthenticateResponse(sessionAuthenticateResponse: Sign.Model.SessionAuthenticateResponse) {

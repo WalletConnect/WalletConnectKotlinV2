@@ -138,6 +138,7 @@ object Modal {
             val data: String,
             val chainId: String,
         ) : Model()
+
         sealed class DeletedSession : Model() {
             data class Success(val topic: String, val reason: String) : DeletedSession()
             data class Error(val error: Throwable) : DeletedSession()
@@ -199,6 +200,11 @@ object Modal {
         sealed class SessionAuthenticateResponse : Model() {
             data class Result(val id: Long, val cacaos: List<Cacao>, val session: Session?) : SessionAuthenticateResponse()
             data class Error(val id: Long, val code: Int, val message: String) : SessionAuthenticateResponse()
+        }
+
+        sealed class SIWEAuthenticateResponse : Model() {
+            data class Result(val id: Long, val message: String, val signature: String) : SIWEAuthenticateResponse()
+            data class Error(val id: Long, val code: Int, val message: String) : SIWEAuthenticateResponse()
         }
 
         data class Cacao(

@@ -54,7 +54,8 @@ object Web3Modal {
 
         //Responses
         fun onSessionRequestResponse(response: Modal.Model.SessionRequestResponse)
-        fun onSessionAuthenticateResponse(sessionUpdateResponse: Modal.Model.SessionAuthenticateResponse) {}
+        fun onSessionAuthenticateResponse(sessionAuthenticateResponse: Modal.Model.SessionAuthenticateResponse) {}
+        fun onSIWEAuthenticationResponse(response: Modal.Model.SIWEAuthenticateResponse) //todo: keep default impl {}
 
         // Utils
         fun onProposalExpired(proposal: Modal.Model.ExpiredProposal)
@@ -167,6 +168,7 @@ object Web3Modal {
                 is Modal.Model.ExpiredRequest -> delegate.onRequestExpired(event)
                 is Modal.Model.ExpiredProposal -> delegate.onProposalExpired(event)
                 is Modal.Model.SessionAuthenticateResponse -> delegate.onSessionAuthenticateResponse(event)
+                is Modal.Model.SIWEAuthenticateResponse -> delegate.onSIWEAuthenticationResponse(event)
                 else -> Unit
             }
         }.launchIn(scope)

@@ -102,22 +102,31 @@ internal fun Web3ModalRoot(
 private fun TopBarStartIcon(
     rootState: Web3ModalRootState
 ) {
-    if (rootState.canPopUp) {
-        val keyboardController = LocalSoftwareKeyboardController.current
-        BackArrowIcon(onClick = {
-            keyboardController?.hide()
-            rootState.popUp()
-        })
+    if (rootState.currentDestinationRoute == Route.SIWE_FALLBACK.path) {
+        questionMark(rootState)
     } else {
-        when (rootState.currentDestinationRoute) {
-            Route.CONNECT_YOUR_WALLET.path -> QuestionMarkIcon(
-                modifier = Modifier
-                    .size(36.dp)
-                    .roundedClickable(onClick = rootState::navigateToHelp)
-                    .padding(10.dp)
-            )
+        if (rootState.canPopUp) {
+            val keyboardController = LocalSoftwareKeyboardController.current
+            BackArrowIcon(onClick = {
+                keyboardController?.hide()
+                rootState.popUp()
+            })
+        } else {
+            when (rootState.currentDestinationRoute) {
+                Route.CONNECT_YOUR_WALLET.path -> questionMark(rootState)
+            }
         }
     }
+}
+
+@Composable
+private fun questionMark(rootState: Web3ModalRootState) {
+    QuestionMarkIcon(
+        modifier = Modifier
+            .size(36.dp)
+            .roundedClickable(onClick = rootState::navigateToHelp)
+            .padding(10.dp)
+    )
 }
 
 @Composable
