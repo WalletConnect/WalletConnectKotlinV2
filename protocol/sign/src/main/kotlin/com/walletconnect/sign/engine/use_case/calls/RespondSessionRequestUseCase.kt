@@ -69,10 +69,10 @@ internal class RespondSessionRequestUseCase(
         }
 
         if (session.transportType == TransportType.LINK_MODE && session.peerLinkMode == true) {
-            if (session.appLink.isNullOrEmpty()) return@supervisorScope onFailure(IllegalStateException("App link is missing"))
+            if (session.peerAppLink.isNullOrEmpty()) return@supervisorScope onFailure(IllegalStateException("App link is missing"))
             try {
                 removePendingSessionRequestAndEmit(jsonRpcResponse.id)
-                linkModeJsonRpcInteractor.triggerResponse(Topic(topic), jsonRpcResponse, session.appLink)
+                linkModeJsonRpcInteractor.triggerResponse(Topic(topic), jsonRpcResponse, session.peerAppLink)
                 onSuccess()
             } catch (e: Exception) {
                 onFailure(e)

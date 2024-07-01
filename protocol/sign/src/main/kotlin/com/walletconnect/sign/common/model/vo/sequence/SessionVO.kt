@@ -37,8 +37,7 @@ internal data class SessionVO(
     val isPeerController: Boolean = peerPublicKey?.keyAsHex == controllerKey?.keyAsHex
     val isSelfController: Boolean = selfPublicKey.keyAsHex == controllerKey?.keyAsHex
     val peerLinkMode: Boolean? = peerAppMetaData?.redirect?.linkMode
-    val selfLinkMode: Boolean? = selfAppMetaData?.redirect?.linkMode
-    val appLink: String? = peerAppMetaData?.redirect?.universal
+    val peerAppLink: String? = peerAppMetaData?.redirect?.universal
 
     internal companion object {
 

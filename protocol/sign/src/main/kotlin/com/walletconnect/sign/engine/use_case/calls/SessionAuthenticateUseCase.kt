@@ -99,7 +99,6 @@ internal class SessionAuthenticateUseCase(
         val authRequest: SignRpc.SessionAuthenticate = SignRpc.SessionAuthenticate(params = authParams)
         crypto.setKey(requesterPublicKey, responseTopic.getParticipantTag())
 
-        //todo: add metadata checks flag for discovery?
         if (!walletAppLink.isNullOrEmpty() && selfAppMetaData.redirect?.linkMode == true && linkModeStorageRepository.isEnabled(walletAppLink)) {
             try {
                 linkModeJsonRpcInteractor.triggerRequest(authRequest, appLink = walletAppLink, topic = Topic(generateUUID()), envelopeType = EnvelopeType.TWO)

@@ -120,7 +120,6 @@ internal class ApproveSessionAuthenticateUseCase(
                 logger.log("Creating authenticated session")
                 val requiredNamespace: Map<String, Namespace.Proposal> = mapOf(namespace to Namespace.Proposal(events = events, methods = methods, chains = chains))
                 val sessionNamespaces: Map<String, Namespace.Session> = mapOf(namespace to Namespace.Session(accounts = accounts, events = events, methods = methods, chains = chains))
-                //todo: check selfMetadata?
                 val transportType = if (sessionAuthenticateParams.linkMode == true && !sessionAuthenticateParams.appLink.isNullOrEmpty()) {
                     TransportType.LINK_MODE
                 } else {

@@ -53,7 +53,7 @@ internal class OnSessionAuthenticateUseCase(
                 return@supervisorScope
             }
 
-            val url = authenticateSessionParams.requester.metadata.url
+            val url = authenticateSessionParams.metadataUrl
             pairingController.setRequestReceived(Core.Params.RequestReceived(request.topic.value))
             resolveAttestationIdUseCase(request, url, linkMode = authenticateSessionParams.linkMode, appLink = authenticateSessionParams.appLink) { verifyContext ->
                 emitSessionAuthenticate(request, authenticateSessionParams, verifyContext)
