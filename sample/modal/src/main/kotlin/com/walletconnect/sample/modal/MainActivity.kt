@@ -4,6 +4,7 @@ package com.walletconnect.sample.modal
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -50,6 +51,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -77,7 +79,9 @@ import com.walletconnect.sample.modal.view.ViewActivity
 import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.ui.Web3ModalTheme
 import com.walletconnect.web3.modal.ui.web3ModalGraph
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 
@@ -175,7 +179,9 @@ class MainActivity : ComponentActivity() {
 
         if (intent?.dataString?.contains("wc_ev") == true) {
             Web3Modal.handleDeepLink(intent.dataString ?: "") {
-                println("Dapp Dispatch error: $it")
+                lifecycleScope.launch(Dispatchers.Main) {
+                    Toast.makeText(this@MainActivity, "Error dispatching envelope: ${it.throwable.message}", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -185,7 +191,9 @@ class MainActivity : ComponentActivity() {
 
         if (intent?.dataString?.contains("wc_ev") == true) {
             Web3Modal.handleDeepLink(intent.dataString ?: "") {
-                println("Dapp Dispatch error: $it")
+                lifecycleScope.launch(Dispatchers.Main) {
+                    Toast.makeText(this@MainActivity, "Error dispatching envelope: ${it.throwable.message}", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }

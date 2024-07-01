@@ -76,6 +76,10 @@ object ModalSampleDelegate : Web3Modal.ModalDelegate {
         }
     }
 
+    override fun onSIWEAuthenticationResponse(response: Modal.Model.SIWEAuthenticateResponse) {
+        println("SIWE response: $response")
+    }
+
     override fun onProposalExpired(proposal: Modal.Model.ExpiredProposal) {
         scope.launch {
             _wcEventModels.emit(proposal)

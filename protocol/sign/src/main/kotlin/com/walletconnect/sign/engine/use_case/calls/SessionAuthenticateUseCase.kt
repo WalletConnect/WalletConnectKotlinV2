@@ -6,6 +6,7 @@ import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementReposit
 import com.walletconnect.android.internal.common.exception.InvalidExpiryException
 import com.walletconnect.android.internal.common.json_rpc.domain.link_mode.LinkModeJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.model.AppMetaData
+import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
@@ -40,6 +41,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import org.json.JSONArray
 import org.json.JSONObject
+import java.util.UUID
 
 internal class SessionAuthenticateUseCase(
     private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
@@ -100,7 +102,7 @@ internal class SessionAuthenticateUseCase(
         //todo: add metadata checks flag for discovery?
         if (!walletAppLink.isNullOrEmpty() && selfAppMetaData.redirect?.linkMode == true && linkModeStorageRepository.isEnabled(walletAppLink)) {
             try {
-                linkModeJsonRpcInteractor.triggerRequest(authRequest, appLink = walletAppLink)
+                linkModeJsonRpcInteractor.triggerRequest(authRequest, appLink = walletAppLink, topic = Topic(generateUUID()), envelopeType = EnvelopeType.TWO)
                 onSuccess(null)
             } catch (e: Error) {
                 onFailure(e)
@@ -216,6 +218,8 @@ internal class SessionAuthenticateUseCase(
         val newTtl = extractedTtl.takeIf { extractedTtl >= defaultTtl } ?: defaultTtl
         Ttl(newTtl)
     } ?: Ttl(dayInSeconds)
+
+    private fun generateUUID(): String = UUID.randomUUID().toString()
 }
 
 internal interface SessionAuthenticateUseCaseInterface {

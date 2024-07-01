@@ -44,12 +44,19 @@ class LinkModeJsonRpcInteractor(
     private val _internalErrors = MutableSharedFlow<SDKError>()
     override val internalErrors: SharedFlow<SDKError> = _internalErrors.asSharedFlow()
 
-    override fun triggerRequest(payload: JsonRpcClientSync<*>, topic: Topic?, appLink: String) {
-        val requestJson = serializer.serialize(payload) ?: throw IllegalStateException("LinkMode: Unknown result params")
-        if (jsonRpcHistory.setRequest(payload.id, topic ?: Topic(), payload.method, requestJson, TransportType.LINK_MODE)) {
-            val encodedRequest = getEncodedRequest(topic, requestJson)
+    override fun triggerRequest(payload: JsonRpcClientSync<*>, topic: Topic, appLink: String, envelopeType: EnvelopeType) {
+        val requestJson = serializer.serialize(payload) ?: throw IllegalStateException("LinkMode: Cannot serialize the request")
+        if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson, TransportType.LINK_MODE)) {
+
+            val encodedRequest = if (envelopeType == EnvelopeType.TWO) {
+                "${EnvelopeType.TWO.id}${Base64.encodeToString(requestJson.toByteArray(Charsets.UTF_8), Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)}"
+            } else {
+                val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, envelopeType)
+                Base64.encodeToString(encryptedRequest, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
+            }
+
             val intent = Intent(Intent.ACTION_VIEW).apply {
-                data = Uri.parse("$appLink?wc_ev=$encodedRequest&topic=${topic?.value ?: ""}")
+                data = Uri.parse("$appLink?wc_ev=$encodedRequest&topic=${topic.value}")
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(intent)
@@ -57,8 +64,9 @@ class LinkModeJsonRpcInteractor(
     }
 
     override fun triggerResponse(topic: Topic, response: JsonRpcResponse, appLink: String, participants: Participants?, envelopeType: EnvelopeType) {
-        val responseJson = serializer.serialize(response) ?: throw IllegalStateException("LinkMode: Unknown result params")
-        val encodedResponse = Base64.encodeToString(chaChaPolyCodec.encrypt(topic, responseJson, envelopeType, participants), Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
+        val responseJson = serializer.serialize(response) ?: throw IllegalStateException("LinkMode: Cannot serialize the response")
+        val encryptedResponse = chaChaPolyCodec.encrypt(topic, responseJson, envelopeType, participants)
+        val encodedResponse = Base64.encodeToString(encryptedResponse, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
         val intent = Intent(Intent.ACTION_VIEW).apply {
             data = Uri.parse("$appLink?wc_ev=$encodedResponse&topic=${topic.value}")
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -68,11 +76,16 @@ class LinkModeJsonRpcInteractor(
     }
 
     override fun dispatchEnvelope(url: String) {
-        //todo: check if all errors are caught on the client level
         val uri = Uri.parse(url)
-        val encodedEnvelope = uri.getQueryParameter("wc_ev") ?: throw IllegalStateException("LinkMode: Unknown result params")
-        val topic = uri.getQueryParameter("topic")
-        val envelope = getEnvelope(topic, encodedEnvelope)
+        val encodedEnvelope = uri.getQueryParameter("wc_ev") ?: throw IllegalStateException("LinkMode: Missing wc_ev parameter")
+        val topic = uri.getQueryParameter("topic") ?: throw IllegalStateException("LinkMode: Missing topic parameter")
+
+        val envelope = if (encodedEnvelope[0].toString() == EnvelopeType.TWO.id.toInt().toString()){
+            String(Base64.decode(encodedEnvelope.drop(1), Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING), Charsets.UTF_8)
+        } else {
+            chaChaPolyCodec.decrypt(Topic(topic), Base64.decode(encodedEnvelope, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING))
+        }
+
         scope.launch {
             supervisorScope {
                 serializer.tryDeserialize<ClientJsonRpc>(envelope)?.let { clientJsonRpc -> serializeRequest(clientJsonRpc, topic, envelope) }
@@ -97,7 +110,7 @@ class LinkModeJsonRpcInteractor(
         if (jsonRpcRecord != null) {
             serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->
                 _peerResponse.emit(jsonRpcRecord.toWCResponse(JsonRpcResponse.JsonRpcResult(result.id, result = result.result), params))
-            } ?: throw IllegalStateException("LinkMode: Unknown result params")
+            } ?: throw IllegalStateException("LinkMode: Cannot serialize result")
         }
     }
 
@@ -107,26 +120,13 @@ class LinkModeJsonRpcInteractor(
         if (jsonRpcRecord != null) {
             serializer.deserialize(jsonRpcRecord.method, jsonRpcRecord.body)?.let { params ->
                 _peerResponse.emit(jsonRpcRecord.toWCResponse(error, params))
-            } ?: throw IllegalStateException("LinkMode: Unknown error params")
+            } ?: throw IllegalStateException("LinkMode: Cannot serialize error")
         }
-    }
-
-    private fun getEnvelope(topic: String?, encodedEnvelope: String) = if (!topic.isNullOrEmpty()) {
-        chaChaPolyCodec.decrypt(Topic(topic), Base64.decode(encodedEnvelope, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING))
-    } else {
-        String(Base64.decode(encodedEnvelope, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING), Charsets.UTF_8)
-    }
-
-    private fun getEncodedRequest(topic: Topic?, requestJson: String): String? = if (topic != null) {
-        val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, EnvelopeType.ZERO)
-        Base64.encodeToString(encryptedRequest, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
-    } else {
-        Base64.encodeToString(requestJson.toByteArray(Charsets.UTF_8), Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
     }
 }
 
 interface LinkModeJsonRpcInteractorInterface : JsonRpcInteractorInterface {
-    fun triggerRequest(payload: JsonRpcClientSync<*>, topic: Topic? = null, appLink: String)
+    fun triggerRequest(payload: JsonRpcClientSync<*>, topic: Topic, appLink: String, envelopeType: EnvelopeType = EnvelopeType.ZERO)
     fun triggerResponse(topic: Topic, response: JsonRpcResponse, appLink: String, participants: Participants? = null, envelopeType: EnvelopeType = EnvelopeType.ZERO)
     fun dispatchEnvelope(url: String)
 }

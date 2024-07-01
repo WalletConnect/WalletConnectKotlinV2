@@ -33,8 +33,11 @@ import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
 import com.walletconnect.sample.wallet.ui.routes.host.WalletSampleHost
 import com.walletconnect.web3.wallet.client.Web3Wallet
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.net.URLEncoder
 
@@ -121,21 +124,20 @@ class Web3WalletActivity : AppCompatActivity() {
             .onEach {
                 if (it.arrayOfArgs.isNotEmpty()) {
                     web3walletViewModel.showRequestLoader(false)
-                    navController.navigate(Route.SessionRequest.path)
+                    navigateWhenReady {
+                        navController.navigate(Route.SessionRequest.path)
+                    }
                 }
             }
             .launchIn(lifecycleScope)
 
         web3walletViewModel.walletEvents
-            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
             .onEach { event ->
                 when (event) {
-                    is SignEvent.SessionProposal -> navController.navigate(Route.SessionProposal.path)
+                    is SignEvent.SessionProposal -> navigateWhenReady { navController.navigate(Route.SessionProposal.path) }
+                    is SignEvent.SessionAuthenticate -> navigateWhenReady { navController.navigate(Route.SessionAuthenticate.path) }
                     is SignEvent.ExpiredRequest -> {
-                        navController.popBackStack(
-                            route = Route.Connections.path,
-                            inclusive = false
-                        )
+                        navController.popBackStack(route = Route.Connections.path, inclusive = false)
                         Toast.makeText(baseContext, "Request expired", Toast.LENGTH_SHORT).show()
                     }
 
@@ -145,18 +147,27 @@ class Web3WalletActivity : AppCompatActivity() {
                     }
 
                     is AuthEvent.OnRequest -> navController.navigate(Route.AuthRequest.path)
-                    is SignEvent.SessionAuthenticate -> navController.navigate(Route.SessionAuthenticate.path)
-
                     else -> Unit
                 }
             }
             .launchIn(lifecycleScope)
     }
 
+    private suspend fun navigateWhenReady(navigate: () -> Unit) {
+        if (!::navController.isInitialized) {
+            delay(200)
+            navigate()
+        } else {
+            navigate()
+        }
+    }
+
     private fun handleAppLink(intent: Intent?) {
         if (intent?.dataString?.contains("wc_ev") == true) {
             Web3Wallet.dispatchEnvelope(intent.dataString ?: "") {
-                println("Dispatch error: $it")
+                lifecycleScope.launch(Dispatchers.Main) {
+                    Toast.makeText(this@Web3WalletActivity, "Error dispatching envelope: ${it.throwable.message}", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }

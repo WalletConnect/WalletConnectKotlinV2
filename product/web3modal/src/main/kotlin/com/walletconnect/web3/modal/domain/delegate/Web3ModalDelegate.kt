@@ -63,6 +63,12 @@ internal object Web3ModalDelegate : Web3Modal.ModalDelegate {
         }
     }
 
+    override fun onSIWEAuthenticationResponse(response: Modal.Model.SIWEAuthenticateResponse) {
+        scope.launch {
+            _wcEventModels.emit(response)
+        }
+    }
+
     override fun onSessionRejected(rejectedSession: Modal.Model.RejectedSession) {
         scope.launch {
             _wcEventModels.emit(rejectedSession)

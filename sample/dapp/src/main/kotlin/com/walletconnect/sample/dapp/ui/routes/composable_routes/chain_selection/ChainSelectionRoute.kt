@@ -177,7 +177,7 @@ private fun ChainSelectionScreen(
                     .padding(horizontal = 16.dp),
             )
             BlueButton(
-                text = "1-CA Link Mode",//""Authenticate (ReCaps)",
+                text = "Authenticate Link Mode",
                 onClick = onAuthenticateClick,
                 modifier = Modifier
                     .padding(vertical = 10.dp)
@@ -249,7 +249,7 @@ private fun QRDialog(pairingUri: PairingUri, onDismissRequest: () -> Unit, conte
                     },
                     modifier = Modifier.padding(top = 16.dp)
                 ) {
-                    Text("Deep link")
+                    Text("Deep link to Kotlin Wallet")
                 }
                 if (pairingUri.isReCaps) {
                     Button(

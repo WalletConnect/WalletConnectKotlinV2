@@ -2,7 +2,6 @@ package com.walletconnect.web3.modal.ui.routes.connect.redirect
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,10 +10,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -25,7 +22,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalUriHandler
@@ -45,9 +41,9 @@ import com.walletconnect.web3.modal.engine.coinbase.isCoinbaseWallet
 import com.walletconnect.web3.modal.ui.components.internal.OrientationBox
 import com.walletconnect.web3.modal.ui.components.internal.commons.DeclinedIcon
 import com.walletconnect.web3.modal.ui.components.internal.commons.ExternalIcon
-import com.walletconnect.web3.modal.ui.components.internal.commons.LoadingBorder
+import com.walletconnect.web3.modal.ui.components.internal.commons.RoundedWalletImage
 import com.walletconnect.web3.modal.ui.components.internal.commons.VerticalSpacer
-import com.walletconnect.web3.modal.ui.components.internal.commons.WalletImage
+import com.walletconnect.web3.modal.ui.components.internal.commons.WalletImageWithLoader
 import com.walletconnect.web3.modal.ui.components.internal.commons.button.ButtonSize
 import com.walletconnect.web3.modal.ui.components.internal.commons.button.ButtonStyle
 import com.walletconnect.web3.modal.ui.components.internal.commons.button.ChipButton
@@ -428,25 +424,6 @@ private fun LoadingState(
     TryAgainButton(onClick = onRetry)
     VerticalSpacer(height = 20.dp)
     CopyActionEntry(onClick = onCopyLinkClick)
-}
-
-@Composable
-private fun WalletImageWithLoader(url: String) {
-    LoadingBorder(
-        cornerRadius = 28.dp
-    ) {
-        RoundedWalletImage(url = url)
-    }
-}
-
-@Composable
-private fun RoundedWalletImage(url: String) {
-    WalletImage(
-        url = url, modifier = Modifier
-            .size(80.dp)
-            .border(width = 1.dp, color = Web3ModalTheme.colors.grayGlass10, shape = RoundedCornerShape(28.dp))
-            .clip(RoundedCornerShape(28.dp))
-    )
 }
 
 @Composable
