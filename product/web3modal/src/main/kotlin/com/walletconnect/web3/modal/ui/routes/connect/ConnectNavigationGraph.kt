@@ -6,19 +6,21 @@ import androidx.navigation.NavHostController
 import com.walletconnect.web3.modal.ui.navigation.ConsumeNavigationEventsEffect
 import com.walletconnect.web3.modal.ui.navigation.Route
 import com.walletconnect.web3.modal.ui.navigation.connection.redirectRoute
-import com.walletconnect.web3.modal.ui.routes.connect.choose_network.ChooseNetworkRoute
+import com.walletconnect.web3.modal.ui.routes.account.siwe_fallback.SIWEFallbackRoute
 import com.walletconnect.web3.modal.ui.routes.common.WhatIsNetworkRoute
 import com.walletconnect.web3.modal.ui.routes.connect.all_wallets.AllWalletsRoute
+import com.walletconnect.web3.modal.ui.routes.connect.choose_network.ChooseNetworkRoute
 import com.walletconnect.web3.modal.ui.routes.connect.connect_wallet.ConnectWalletRoute
 import com.walletconnect.web3.modal.ui.routes.connect.get_wallet.GetAWalletRoute
-import com.walletconnect.web3.modal.ui.routes.connect.what_is_wallet.WhatIsWallet
 import com.walletconnect.web3.modal.ui.routes.connect.scan_code.ScanQRCodeRoute
+import com.walletconnect.web3.modal.ui.routes.connect.what_is_wallet.WhatIsWallet
 import com.walletconnect.web3.modal.ui.utils.AnimatedNavGraph
 import com.walletconnect.web3.modal.ui.utils.animatedComposable
 
 @Composable
 internal fun ConnectionNavGraph(
     navController: NavHostController,
+    closeModal: () -> Unit,
     shouldOpenChooseNetwork: Boolean
 ) {
     val connectViewModel = viewModel<ConnectViewModel>()
@@ -30,13 +32,17 @@ internal fun ConnectionNavGraph(
 
     ConsumeNavigationEventsEffect(
         navController = navController,
-        navigator = connectViewModel
+        navigator = connectViewModel,
+        closeModal = closeModal
     )
 
     AnimatedNavGraph(
         navController = navController,
         startDestination = startDestination
     ) {
+        animatedComposable(route = Route.SIWE_FALLBACK.path) {
+            SIWEFallbackRoute(connectViewModel = connectViewModel)
+        }
         animatedComposable(route = Route.CONNECT_YOUR_WALLET.path) {
             ConnectWalletRoute(connectViewModel = connectViewModel)
         }

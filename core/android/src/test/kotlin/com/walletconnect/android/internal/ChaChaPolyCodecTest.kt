@@ -2,11 +2,11 @@ package com.walletconnect.android.internal
 
 import com.walletconnect.android.internal.common.crypto.codec.ChaChaPolyCodec
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
-import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.internal.common.model.MissingKeyException
 import com.walletconnect.android.internal.common.model.MissingParticipantsException
 import com.walletconnect.android.internal.common.model.Participants
 import com.walletconnect.android.internal.common.model.SymmetricKey
+import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.internal.utils.getParticipantTag
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
@@ -102,7 +102,7 @@ class ChaChaPolyCodecTest {
     @Test
     fun `ChaCha20-Poly1305 decryption envelope type 0 of non base64 encoded message throws `() {
         assertThrows(Exception::class.java) {
-            codec.decrypt(topic, MESSAGE)
+            codec.decrypt(topic, MESSAGE.toByteArray())
         }
     }
 }

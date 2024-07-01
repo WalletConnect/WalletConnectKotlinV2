@@ -4,7 +4,7 @@ import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
-import com.walletconnect.android.internal.common.json_rpc.domain.JsonRpcInteractor
+import com.walletconnect.android.internal.common.json_rpc.domain.relay.RelayJsonRpcInteractor
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.WCRequest
@@ -41,12 +41,12 @@ internal class RelayerInteractorTest {
     }
 
     private val jsonRpcHistory: JsonRpcHistory = mockk {
-        every { setRequest(any(), any(), any(), any()) } returns true
+        every { setRequest(any(), any(), any(), any(), any()) } returns true
         every { updateRequestWithResponse(any(), any()) } returns mockk()
     }
 
     private val codec: Codec = mockk {
-        every { encrypt(any(), any(), any()) } returns ""
+        every { encrypt(any(), any(), any()) } returns ByteArray(1)
     }
 
     private val pushMessagesRepository: PushMessagesRepository = mockk()
@@ -70,7 +70,7 @@ internal class RelayerInteractorTest {
     }
 
     private val sut =
-        spyk(JsonRpcInteractor(relay, codec, jsonRpcHistory, pushMessagesRepository, logger), recordPrivateCalls = true) {
+        spyk(RelayJsonRpcInteractor(relay, codec, jsonRpcHistory, pushMessagesRepository, logger), recordPrivateCalls = true) {
             every { checkConnectionWorking() } answers { }
         }
 
@@ -163,7 +163,7 @@ internal class RelayerInteractorTest {
 
     @Test
     fun `PublishJsonRpcRequests called when setRequest returned false does not call any callback`() {
-        every { jsonRpcHistory.setRequest(any(), any(), any(), any()) } returns false
+        every { jsonRpcHistory.setRequest(any(), any(), any(), any(), any()) } returns false
         publishJsonRpcRequests()
         verify { onFailure wasNot Called }
         verify { onSuccess wasNot Called }

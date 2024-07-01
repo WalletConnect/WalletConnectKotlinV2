@@ -1,10 +1,12 @@
 package com.walletconnect.sign.engine.use_case.calls
 
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
+import com.walletconnect.android.internal.common.json_rpc.domain.link_mode.LinkModeJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.internal.common.model.SymmetricKey
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.TransportType
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
 import com.walletconnect.foundation.common.model.PublicKey
@@ -36,10 +38,11 @@ import org.junit.Before
 import org.junit.Test
 
 class RejectSessionAuthenticateUseCaseTest {
-    private val jsonRpcInteractor: JsonRpcInteractorInterface = mockk()
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface = mockk()
     private val getPendingSessionAuthenticateRequest: GetPendingSessionAuthenticateRequest = mockk()
     private val crypto: KeyManagementRepository = mockk()
     private val verifyContextStorageRepository: VerifyContextStorageRepository = mockk()
+    private val linkModeJsonRpcInteractor: LinkModeJsonRpcInteractorInterface = mockk()
     private val logger: Logger = mockk()
     private lateinit var useCase: RejectSessionAuthenticateUseCase
     private val testDispatcher = StandardTestDispatcher()
@@ -53,6 +56,7 @@ class RejectSessionAuthenticateUseCaseTest {
             getPendingSessionAuthenticateRequest,
             crypto,
             verifyContextStorageRepository,
+            linkModeJsonRpcInteractor,
             logger
         )
     }
@@ -103,7 +107,14 @@ class RejectSessionAuthenticateUseCaseTest {
             )
         )
 
-        val jsonRpcHistoryEntry = Request<SignParams.SessionAuthenticateParams>(chainId = "chainId", id = id, method = "method", topic = Topic("topic"), params = sessionAuthenticateParams)
+        val jsonRpcHistoryEntry = Request<SignParams.SessionAuthenticateParams>(
+            chainId = "chainId",
+            id = id,
+            method = "method",
+            topic = Topic("topic"),
+            params = sessionAuthenticateParams,
+            transportType = TransportType.RELAY
+        )
         val senderPublicKey = PublicKey("senderPublicKey")
         val receiverPublicKey = PublicKey("receiverPublicKey")
         val symmetricKey = SymmetricKey("symmetricKey")

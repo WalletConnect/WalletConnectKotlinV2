@@ -25,4 +25,6 @@ internal data class WalletDTO(
     val appStore: String?,
     @Json(name = "play_store")
     val playStore: String?,
+    @Json(name = "link_mode")
+    val linkMode: String?,
 )

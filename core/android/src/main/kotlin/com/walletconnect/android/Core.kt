@@ -19,7 +19,16 @@ object Core {
             data class Error(val error: Throwable) : Ping()
         }
 
-        data class AppMetaData(val name: String, val description: String, val url: String, val icons: List<String>, val redirect: String?, val verifyUrl: String? = null) : Model()
+        data class AppMetaData(
+            val name: String,
+            val description: String,
+            val url: String,
+            val icons: List<String>,
+            val redirect: String?,
+            val appLink: String? = null,
+            val linkMode: Boolean = false,
+            val verifyUrl: String? = null
+        ) : Model()
 
         data class DeletedPairing(val topic: String, val reason: String) : Model()
         data class ExpiredPairing(val pairing: Pairing) : Model()

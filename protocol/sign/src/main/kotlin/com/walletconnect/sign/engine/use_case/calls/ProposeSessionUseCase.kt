@@ -7,7 +7,7 @@ import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Pairing
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.Tags
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.utils.PROPOSAL_EXPIRY
 import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
 import com.walletconnect.foundation.common.model.PublicKey
@@ -27,7 +27,7 @@ import com.walletconnect.sign.storage.proposal.ProposalStorageRepository
 import kotlinx.coroutines.supervisorScope
 
 internal class ProposeSessionUseCase(
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val crypto: KeyManagementRepository,
     private val proposalStorageRepository: ProposalStorageRepository,
     private val selfAppMetaData: AppMetaData,

@@ -4,7 +4,7 @@ import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.utils.thirtySeconds
 import com.walletconnect.android.pairing.client.PairingInterface
@@ -26,7 +26,7 @@ import kotlin.time.Duration.Companion.seconds
 private val THIRTY_SECONDS_TIMEOUT: Duration = 30.seconds
 
 internal class PingUseCase(
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val sessionStorageRepository: SessionStorageRepository,
     private val pairingInterface: PairingInterface,
     private val logger: Logger

@@ -2,7 +2,7 @@ package com.walletconnect.chat.engine.use_case.calls
 
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.model.AccountId
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.utils.getInviteTag
 import com.walletconnect.android.internal.utils.getParticipantTag
@@ -17,7 +17,7 @@ internal class UnregisterIdentityUseCase(
     private val identitiesInteractor: IdentitiesInteractor,
     private val accountsRepository: AccountsStorageRepository,
     private val keyManagementRepository: KeyManagementRepository,
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
 ) : UnregisterIdentityUseCaseInterface {
 
     override fun unregister(accountId: AccountId, onSuccess: (String) -> Unit, onError: (Throwable) -> Unit) {

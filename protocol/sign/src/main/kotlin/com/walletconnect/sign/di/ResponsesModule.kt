@@ -44,7 +44,8 @@ internal fun responsesModule() = module {
             authenticateResponseTopicRepository = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
             getSessionAuthenticateRequest = get(),
-            metadataStorageRepository = get()
+            metadataStorageRepository = get(),
+            linkModeStorageRepository = get()
         )
     }
 

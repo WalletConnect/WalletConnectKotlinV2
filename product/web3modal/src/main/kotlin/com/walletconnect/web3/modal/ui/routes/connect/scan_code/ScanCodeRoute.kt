@@ -39,7 +39,7 @@ import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.previews.Web3ModalPreview
 import com.walletconnect.web3.modal.ui.routes.connect.ConnectViewModel
 import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
-import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.filter
 
 @Composable
 internal fun ScanQRCodeRoute(connectViewModel: ConnectViewModel) {
@@ -50,10 +50,10 @@ internal fun ScanQRCodeRoute(connectViewModel: ConnectViewModel) {
     LaunchedEffect(Unit) {
         Web3ModalDelegate
             .wcEventModels
-            .filterIsInstance<Modal.Model.RejectedSession>()
+            .filter { event -> event is Modal.Model.RejectedSession || event is Modal.Model.SessionAuthenticateResponse.Error }
             .collect {
                 snackBarHandler.showErrorSnack("Declined")
-                connectViewModel.connectWalletConnect(name = "WalletConnect", method = ConnectionMethod.QR_CODE) { newUri -> uri = newUri }
+                connectViewModel.connectWalletConnect(name = "WalletConnect", method = ConnectionMethod.QR_CODE, linkMode = null) { newUri -> uri = newUri }
             }
     }
 

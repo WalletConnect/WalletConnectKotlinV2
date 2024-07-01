@@ -23,6 +23,7 @@ object WalletConnectModal {
         fun onSessionApproved(approvedSession: Modal.Model.ApprovedSession)
         fun onSessionRejected(rejectedSession: Modal.Model.RejectedSession)
         fun onSessionUpdate(updatedSession: Modal.Model.UpdatedSession)
+
         @Deprecated(
             message = "Use onSessionEvent(Modal.Model.Event) instead. Using both will result in duplicate events.",
             replaceWith = ReplaceWith(expression = "onSessionEvent(sessionEvent)")
@@ -189,17 +190,6 @@ object WalletConnectModal {
             onSuccess = { url -> onSuccess(url) },
             onError = { onError(it.toModal()) }
         )
-    }
-
-    fun authenticate(
-        authenticate: Modal.Params.Authenticate,
-        onSuccess: (String) -> Unit,
-        onError: (Modal.Model.Error) -> Unit,
-    ) {
-
-        SignClient.authenticate(authenticate.toSign(),
-            onSuccess = { url -> onSuccess(url) },
-            onError = { onError(it.toModal()) })
     }
 
     fun request(request: Modal.Params.Request, onSuccess: (Modal.Model.SentRequest) -> Unit = {}, onError: (Modal.Model.Error) -> Unit) {

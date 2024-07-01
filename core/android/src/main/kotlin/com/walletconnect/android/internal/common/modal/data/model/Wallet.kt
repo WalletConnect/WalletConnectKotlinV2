@@ -11,6 +11,7 @@ data class Wallet(
     val mobileLink: String?,
     val playStore: String?,
     val webAppLink: String?,
+    val linkMode: String?,
     val isRecommended: Boolean = false
 ) {
     val appPackage: String? = playStore?.extractPackage()

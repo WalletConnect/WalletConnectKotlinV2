@@ -26,7 +26,7 @@ import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.WalletConnectUri
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.pairing.PairingStorageRepositoryInterface
@@ -83,7 +83,7 @@ internal class PairingEngine(
     private val selfMetaData: AppMetaData,
     private val metadataRepository: MetadataStorageRepositoryInterface,
     private val crypto: KeyManagementRepository,
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val pairingRepository: PairingStorageRepositoryInterface,
     private val insertEventUseCase: InsertEventUseCase,
     private val sendBatchEventUseCase: SendBatchEventUseCase

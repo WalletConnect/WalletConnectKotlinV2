@@ -70,8 +70,14 @@ object ModalSampleDelegate : Web3Modal.ModalDelegate {
         }
     }
 
-    override fun onSessionAuthenticateResponse(sessionUpdateResponse: Modal.Model.SessionAuthenticateResponse) {
-        TODO("Not yet implemented")
+    override fun onSessionAuthenticateResponse(sessionAuthenticateResponse: Modal.Model.SessionAuthenticateResponse) {
+        scope.launch {
+            _wcEventModels.emit(sessionAuthenticateResponse)
+        }
+    }
+
+    override fun onSIWEAuthenticationResponse(response: Modal.Model.SIWEAuthenticateResponse) {
+        println("SIWE response: $response")
     }
 
     override fun onProposalExpired(proposal: Modal.Model.ExpiredProposal) {

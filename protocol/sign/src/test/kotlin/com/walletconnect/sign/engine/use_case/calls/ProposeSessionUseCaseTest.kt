@@ -5,7 +5,7 @@ import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SymmetricKey
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.exceptions.InvalidNamespaceException
@@ -20,7 +20,7 @@ import org.junit.Before
 import org.junit.Test
 
 class ProposeSessionUseCaseTest {
-    private val jsonRpcInteractor = mockk<JsonRpcInteractorInterface>()
+    private val jsonRpcInteractor = mockk<RelayJsonRpcInteractorInterface>()
     private val crypto = mockk<KeyManagementRepository>()
     private val proposalStorageRepository = mockk<ProposalStorageRepository>()
     private val selfAppMetaData = mockk<AppMetaData>()

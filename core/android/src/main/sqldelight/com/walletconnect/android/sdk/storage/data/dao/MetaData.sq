@@ -1,4 +1,5 @@
 import com.walletconnect.android.internal.common.model.AppMetaDataType;
+import kotlin.Boolean;
 import kotlin.String;
 import kotlin.collections.List;
 
@@ -11,16 +12,18 @@ CREATE TABLE MetaData(
   	icons TEXT AS List<String> NOT NULL,
   	native TEXT,
   	type TEXT AS AppMetaDataType NOT NULL,
+    app_link TEXT,
+    link_mode INTEGER AS Boolean,
   	UNIQUE(sequence_topic, type)
 );
 
 insertOrAbortMetaData:
-INSERT OR ABORT INTO MetaData(sequence_topic, name, description, url, icons, native, type)
-VALUES (?, ?, ?, ?, ?, ?,?);
+INSERT OR ABORT INTO MetaData(sequence_topic, name, description, url, icons, native, type, app_link, link_mode)
+VALUES (?, ?, ?, ?, ?, ?,?,?, ?);
 
 updateMetaData:
 UPDATE MetaData
-SET name = ?, description = ?, url = ?, icons = ?, native = ?, type = ?
+SET name = ?, description = ?, url = ?, icons = ?, native = ?, type = ?, app_link = ?, link_mode = ?
 WHERE sequence_topic = ?;
 
 updateOrAbortMetaDataTopic:
@@ -29,7 +32,7 @@ SET sequence_topic = ?
 WHERE sequence_topic = ?;
 
 getMetadataByTopicAndType:
-SELECT name, description, url, icons, native
+SELECT name, description, url, icons, native, app_link, link_mode
 FROM MetaData
 WHERE sequence_topic = ? AND type = ?;
 

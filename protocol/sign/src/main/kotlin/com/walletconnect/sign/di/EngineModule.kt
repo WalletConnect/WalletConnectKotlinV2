@@ -85,6 +85,7 @@ internal fun engineModule() = module {
             deleteRequestByIdUseCase = get(),
             getPendingAuthenticateRequestUseCase = get(),
             insertEventUseCase = get(),
+            linkModeJsonRpcInteractor = get(),
             logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }

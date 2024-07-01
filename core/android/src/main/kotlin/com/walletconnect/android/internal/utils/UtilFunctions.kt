@@ -49,8 +49,12 @@ fun <T> Module.addJsonAdapter(type: Class<T>, adapter: (Moshi) -> JsonAdapter<T>
 }
 
 @JvmSynthetic
-internal fun compareDomains(metadataUrl: String, originUrl: String): Boolean {
-    val metadataDomain = URI(metadataUrl).host.removePrefix("www.")
-    val originDomain = URI(originUrl).host.removePrefix("www.")
-    return metadataDomain == originDomain
+fun compareDomains(metadataUrl: String, originUrl: String): Boolean {
+    try {
+        val metadataDomain = URI(metadataUrl).host.removePrefix("www.")
+        val originDomain = URI(originUrl).host.removePrefix("www.")
+        return metadataDomain == originDomain
+    } catch (e: Exception) {
+        return false
+    }
 }

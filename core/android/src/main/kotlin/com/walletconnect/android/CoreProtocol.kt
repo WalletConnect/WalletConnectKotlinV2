@@ -96,7 +96,19 @@ class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInter
                     coreStorageModule(bundleId = bundleId),
                     pushModule(),
                     module { single { relay ?: Relay } },
-                    module { single { with(metaData) { AppMetaData(name = name, description = description, url = url, icons = icons, redirect = Redirect(redirect)) } } },
+                    module {
+                        single {
+                            with(metaData) {
+                                AppMetaData(
+                                    name = name,
+                                    description = description,
+                                    url = url,
+                                    icons = icons,
+                                    redirect = Redirect(native = redirect , universal = appLink, linkMode = linkMode)
+                                )
+                            }
+                        }
+                    },
                     module { single { Echo } },
                     module { single { Push } },
                     module { single { Verify } },

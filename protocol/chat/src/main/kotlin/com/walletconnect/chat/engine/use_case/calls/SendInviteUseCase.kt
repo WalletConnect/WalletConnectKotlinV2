@@ -8,7 +8,7 @@ import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Participants
 import com.walletconnect.android.internal.common.model.Tags
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.utils.monthInSeconds
 import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
 import com.walletconnect.chat.common.exceptions.AccountsAlreadyHaveInviteException
@@ -46,7 +46,7 @@ internal class SendInviteUseCase(
     private val threadsRepository: ThreadsStorageRepository,
     private val keyManagementRepository: KeyManagementRepository,
     private val identitiesInteractor: IdentitiesInteractor,
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val contactRepository: ContactStorageRepository,
 ) : SendInviteUseCaseInterface {
 

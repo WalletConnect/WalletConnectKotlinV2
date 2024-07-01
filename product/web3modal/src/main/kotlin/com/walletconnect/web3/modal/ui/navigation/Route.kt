@@ -19,5 +19,6 @@ enum class Route(val path: String, val title: String? = null) {
     CHANGE_NETWORK("change_network", "Select network"),
     CHAIN_SWITCH_REDIRECT("chain_switch_redirect"),
     RECENT_TRANSACTION("recent_transaction"),
-    WHAT_IS_NETWORK("what_is_network", "What is a network?")
+    WHAT_IS_NETWORK("what_is_network", "What is a network?"),
+    SIWE_FALLBACK("siwe_fallback", "Sign In")
 }

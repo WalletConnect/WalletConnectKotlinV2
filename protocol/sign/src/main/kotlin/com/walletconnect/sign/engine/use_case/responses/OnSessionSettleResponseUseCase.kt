@@ -6,7 +6,7 @@ import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.type.EngineEvent
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.engine.model.EngineDO
@@ -19,7 +19,7 @@ import kotlinx.coroutines.supervisorScope
 
 internal class OnSessionSettleResponseUseCase(
     private val sessionStorageRepository: SessionStorageRepository,
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val crypto: KeyManagementRepository,
     private val logger: Logger

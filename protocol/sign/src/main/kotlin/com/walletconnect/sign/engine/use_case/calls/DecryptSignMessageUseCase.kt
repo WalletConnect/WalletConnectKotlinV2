@@ -17,6 +17,7 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.exceptions.InvalidSignParamsType
 import com.walletconnect.sign.common.model.vo.clientsync.common.PayloadParams
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
+import org.bouncycastle.util.encoders.Base64
 
 internal class DecryptSignMessageUseCase(
     private val codec: Codec,
@@ -27,7 +28,7 @@ internal class DecryptSignMessageUseCase(
     override suspend fun decryptNotification(topic: String, message: String, onSuccess: (Core.Model.Message) -> Unit, onFailure: (Throwable) -> Unit) {
         try {
             if (!pushMessageStorage.doesPushMessageExist(sha256(message.toByteArray()))) {
-                val decryptedMessageString = codec.decrypt(Topic(topic), message)
+                val decryptedMessageString = codec.decrypt(Topic(topic), Base64.decode(message))
                 val clientJsonRpc: ClientJsonRpc = serializer.tryDeserialize<ClientJsonRpc>(decryptedMessageString) ?: return onFailure(InvalidSignParamsType())
                 val params: ClientParams = serializer.deserialize(clientJsonRpc.method, decryptedMessageString) ?: return onFailure(InvalidSignParamsType())
                 val metadata: AppMetaData = metadataRepository.getByTopicAndType(Topic(topic), AppMetaDataType.PEER) ?: return onFailure(InvalidSignParamsType())

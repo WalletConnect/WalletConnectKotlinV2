@@ -7,9 +7,10 @@ import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
+import com.walletconnect.android.internal.common.model.TransportType
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.type.EngineEvent
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
@@ -38,7 +39,7 @@ import kotlinx.coroutines.supervisorScope
 import org.koin.core.qualifier.named
 
 internal class OnSessionProposalUseCase(
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val proposalStorageRepository: ProposalStorageRepository,
     private val resolveAttestationIdUseCase: ResolveAttestationIdUseCase,
     private val pairingController: PairingControllerInterface,
@@ -86,7 +87,7 @@ internal class OnSessionProposalUseCase(
             val url = payloadParams.proposer.metadata.url
 
             logger.log("Resolving session proposal attestation: ${System.currentTimeMillis()}")
-            resolveAttestationIdUseCase(request.id, request.message, url) { verifyContext ->
+            resolveAttestationIdUseCase(request, url, linkMode = request.transportType == TransportType.LINK_MODE, appLink = payloadParams.proposer.metadata.redirect?.universal) { verifyContext ->
                 logger.log("Session proposal attestation resolved: ${System.currentTimeMillis()}")
                 val sessionProposalEvent = EngineDO.SessionProposalEvent(proposal = payloadParams.toEngineDO(request.topic), context = verifyContext.toEngineDO())
                 logger.log("Session proposal received on topic: ${request.topic} - emitting")

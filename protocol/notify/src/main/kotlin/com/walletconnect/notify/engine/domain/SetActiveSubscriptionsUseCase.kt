@@ -8,7 +8,7 @@ import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.internal.common.model.type.EngineEvent
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.storage.key_chain.KeyStore
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.foundation.common.model.Topic
@@ -27,7 +27,7 @@ internal class SetActiveSubscriptionsUseCase(
     private val subscriptionRepository: SubscriptionRepository,
     private val extractMetadataFromConfigUseCase: ExtractMetadataFromConfigUseCase,
     private val metadataRepository: MetadataStorageRepositoryInterface,
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val keyStore: KeyStore,
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()

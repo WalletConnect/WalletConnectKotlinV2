@@ -8,5 +8,7 @@ data class Redirect(
     @Json(name = "native")
     val native: String? = null,
     @Json(name = "universal")
-    val universal: String? = null
+    val universal: String? = null,
+    @Json(name = "linkMode")
+    val linkMode: Boolean = false
 )

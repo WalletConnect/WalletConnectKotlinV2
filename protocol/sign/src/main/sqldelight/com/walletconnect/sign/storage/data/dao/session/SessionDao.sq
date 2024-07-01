@@ -1,6 +1,7 @@
 import kotlin.Boolean;
 import kotlin.String;
 import kotlin.collections.Map;
+import com.walletconnect.android.internal.common.model.TransportType;
 
 CREATE TABLE SessionDao(
    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -13,12 +14,13 @@ CREATE TABLE SessionDao(
    self_participant TEXT NOT NULL,
    peer_participant TEXT,
    is_acknowledged INTEGER AS Boolean NOT NULL,
-   properties TEXT AS Map<String, String>
+   properties TEXT AS Map<String, String>,
+   transport_type TEXT AS TransportType
 );
 
 insertOrAbortSession:
-INSERT OR ABORT INTO SessionDao(topic, pairingTopic, expiry, relay_protocol, relay_data, controller_key, self_participant, peer_participant, is_acknowledged, properties)
-VALUES (?,  ?, ?,?, ?, ?, ?, ?, ?, ?);
+INSERT OR ABORT INTO SessionDao(topic, pairingTopic, expiry, relay_protocol, relay_data, controller_key, self_participant, peer_participant, is_acknowledged, properties, transport_type)
+VALUES (?,  ?, ?,?, ?, ?, ?, ?, ?, ?, ?);
 
 lastInsertedRow:
 SELECT id
@@ -26,11 +28,11 @@ FROM SessionDao
 WHERE id = (SELECT MAX(id) FROM SessionDao);
 
 getListOfSessionDaos:
-SELECT sd.id, sd.topic, sd.expiry, sd.relay_protocol, sd.relay_data, sd.controller_key, sd.self_participant, sd.peer_participant, sd.is_acknowledged, sd.pairingTopic, sd.properties
+SELECT sd.id, sd.topic, sd.expiry, sd.relay_protocol, sd.relay_data, sd.controller_key, sd.self_participant, sd.peer_participant, sd.is_acknowledged, sd.pairingTopic, sd.properties, sd.transport_type
 FROM SessionDao sd;
 
 getSessionByTopic:
-SELECT sd.id, sd.topic, sd.expiry, sd.relay_protocol, sd.relay_data, sd.controller_key, sd.self_participant, sd.peer_participant, sd.is_acknowledged, sd.pairingTopic, sd.properties
+SELECT sd.id, sd.topic, sd.expiry, sd.relay_protocol, sd.relay_data, sd.controller_key, sd.self_participant, sd.peer_participant, sd.is_acknowledged, sd.pairingTopic, sd.properties, sd.transport_type
 FROM SessionDao sd
 WHERE topic = ?;
 
