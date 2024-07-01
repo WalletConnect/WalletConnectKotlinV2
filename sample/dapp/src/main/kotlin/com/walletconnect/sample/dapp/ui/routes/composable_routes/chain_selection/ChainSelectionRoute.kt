@@ -129,6 +129,38 @@ fun ChainSelectionRoute(navController: NavController) {
                 Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
             }
         },
+        onAuthenticateLinkMode = {
+            if (viewModel.isAnyChainSelected) {
+                viewModel.authenticate(
+                    viewModel.authenticateParams,
+                    onAuthenticateSuccess = { uri ->
+                        if (uri != null) {
+                            try {
+                                val intent = Intent(Intent.ACTION_VIEW).apply {
+                                    val encoded = URLEncoder.encode(uri, "UTF-8")
+                                    data = "kotlin-web3wallet://wc?uri=$encoded".toUri()
+                                    println("kobe: $encoded")
+                                    `package` = when (BuildConfig.BUILD_TYPE) {
+                                        "debug" -> SAMPLE_WALLET_DEBUG_PACKAGE
+                                        "internal" -> SAMPLE_WALLET_INTERNAL_PACKAGE
+                                        else -> SAMPLE_WALLET_RELEASE_PACKAGE
+                                    }
+                                }
+                                context.startActivity(intent)
+                            } catch (e: Exception) {
+                                Toast.makeText(context, "Please install Kotlin Sample Wallet", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    },
+                    onError = { error ->
+                        composableScope.launch(Dispatchers.Main) {
+                            Toast.makeText(context, "Authenticate error: $error", Toast.LENGTH_SHORT).show()
+                        }
+                    })
+            } else {
+                Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
+            }
+        },
         onAuthenticateSIWEClick = {
             if (viewModel.isAnyChainSelected) {
                 viewModel.authenticate(
@@ -154,6 +186,7 @@ private fun ChainSelectionScreen(
     onDialogDismiss: () -> Unit,
     onChainClick: (Int, Boolean) -> Unit,
     onConnectClick: () -> Unit,
+    onAuthenticateLinkMode: () -> Unit,
     onAuthenticateClick: () -> Unit,
     onAuthenticateSIWEClick: () -> Unit
 ) {
@@ -177,7 +210,17 @@ private fun ChainSelectionScreen(
                     .padding(horizontal = 16.dp),
             )
             BlueButton(
-                text = "Authenticate Link Mode",
+                text = "1-CA Link Mode (Kotlin Sample Wallet)",
+                onClick = onAuthenticateLinkMode,
+                modifier = Modifier
+                    .padding(vertical = 10.dp)
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .padding(horizontal = 16.dp)
+            )
+
+            BlueButton(
+                text = "1-CA",
                 onClick = onAuthenticateClick,
                 modifier = Modifier
                     .padding(vertical = 10.dp)
@@ -186,7 +229,7 @@ private fun ChainSelectionScreen(
                     .padding(horizontal = 16.dp)
             )
             BlueButton(
-                text = "Authenticate (SIWE)",
+                text = "1-CA (SIWE)",
                 onClick = onAuthenticateSIWEClick,
                 modifier = Modifier
                     .padding(vertical = 10.dp)
@@ -497,7 +540,8 @@ private fun ChainSelectionScreenPreview(
             onChainClick = { _, _ -> },
             onConnectClick = {},
             onAuthenticateClick = {},
-            onAuthenticateSIWEClick = {}
+            onAuthenticateSIWEClick = {},
+            onAuthenticateLinkMode = {}
         )
     }
 }
