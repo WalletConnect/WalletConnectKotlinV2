@@ -40,6 +40,7 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
         return when (envelopeType.id) {
             EnvelopeType.ZERO.id -> encryptEnvelopeType0(topic, nonceBytes, input, envelopeType)
             EnvelopeType.ONE.id -> encryptEnvelopeType1(participants, nonceBytes, input, envelopeType)
+            EnvelopeType.TWO.id -> encryptEnvelopeType2(input, envelopeType)
             else -> throw UnknownEnvelopeTypeException("Encrypt; Unknown envelope type: ${envelopeType.id}")
         }
     }
@@ -52,6 +53,7 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
         return when (val envelopeType = cipherText.envelopeType) {
             EnvelopeType.ZERO.id -> decryptType0(topic, cipherText)
             EnvelopeType.ONE.id -> decryptType1(cipherText, keyManagementRepository.getPublicKey(topic.getParticipantTag()))
+            EnvelopeType.TWO.id -> decryptType2(cipherText)
             else -> throw UnknownEnvelopeTypeException("Decrypt; Unknown envelope type: $envelopeType")
         }
     }
@@ -95,6 +97,17 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
         return String(decryptedTextBytes, Charsets.UTF_8)
     }
 
+    private fun decryptType2(encryptedPayloadBytes: ByteArray): String {
+        val envelopeType = ByteArray(ENVELOPE_TYPE_SIZE)
+        val encryptedMessageBytes = ByteArray(encryptedPayloadBytes.size - ENVELOPE_TYPE_SIZE)
+
+        val byteBuffer: ByteBuffer = ByteBuffer.wrap(encryptedPayloadBytes)
+        byteBuffer.get(envelopeType)
+        byteBuffer.get(encryptedMessageBytes)
+
+        return String(encryptedMessageBytes, Charsets.UTF_8)
+    }
+
     private fun encryptEnvelopeType0(topic: Topic, nonceBytes: ByteArray, input: ByteArray, envelopeType: EnvelopeType): ByteArray {
         val symmetricKey = keyManagementRepository.getSymmetricKey(topic.value)
         val cipherBytes = encryptPayload(symmetricKey, nonceBytes, input)
@@ -128,6 +141,19 @@ internal class ChaChaPolyCodec(private val keyManagementRepository: KeyManagemen
             .put(selfBytes)
             .put(nonceBytes)
             .put(cipherBytes)
+            .array()
+
+        return encryptedPayloadBytes
+    }
+
+    private fun encryptEnvelopeType2(
+        input: ByteArray,
+        envelopeType: EnvelopeType,
+    ): ByteArray {
+        val payloadSize = input.size + ENVELOPE_TYPE_SIZE
+        val encryptedPayloadBytes = ByteBuffer.allocate(payloadSize)
+            .put(envelopeType.id)
+            .put(input)
             .array()
 
         return encryptedPayloadBytes

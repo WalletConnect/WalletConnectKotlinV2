@@ -47,14 +47,8 @@ class LinkModeJsonRpcInteractor(
     override fun triggerRequest(payload: JsonRpcClientSync<*>, topic: Topic, appLink: String, envelopeType: EnvelopeType) {
         val requestJson = serializer.serialize(payload) ?: throw IllegalStateException("LinkMode: Cannot serialize the request")
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson, TransportType.LINK_MODE)) {
-
-            val encodedRequest = if (envelopeType == EnvelopeType.TWO) {
-                "${EnvelopeType.TWO.id}${Base64.encodeToString(requestJson.toByteArray(Charsets.UTF_8), Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)}"
-            } else {
-                val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, envelopeType)
-                Base64.encodeToString(encryptedRequest, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
-            }
-
+            val encryptedResponse = chaChaPolyCodec.encrypt(topic, requestJson, envelopeType)
+            val encodedRequest = Base64.encodeToString(encryptedResponse, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
             val intent = Intent(Intent.ACTION_VIEW).apply {
                 data = Uri.parse("$appLink?wc_ev=$encodedRequest&topic=${topic.value}")
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -79,13 +73,7 @@ class LinkModeJsonRpcInteractor(
         val uri = Uri.parse(url)
         val encodedEnvelope = uri.getQueryParameter("wc_ev") ?: throw IllegalStateException("LinkMode: Missing wc_ev parameter")
         val topic = uri.getQueryParameter("topic") ?: throw IllegalStateException("LinkMode: Missing topic parameter")
-
-        val envelope = if (encodedEnvelope[0].toString() == EnvelopeType.TWO.id.toInt().toString()){
-            String(Base64.decode(encodedEnvelope.drop(1), Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING), Charsets.UTF_8)
-        } else {
-            chaChaPolyCodec.decrypt(Topic(topic), Base64.decode(encodedEnvelope, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING))
-        }
-
+        val envelope = chaChaPolyCodec.decrypt(Topic(topic), Base64.decode(encodedEnvelope, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING))
         scope.launch {
             supervisorScope {
                 serializer.tryDeserialize<ClientJsonRpc>(envelope)?.let { clientJsonRpc -> serializeRequest(clientJsonRpc, topic, envelope) }
