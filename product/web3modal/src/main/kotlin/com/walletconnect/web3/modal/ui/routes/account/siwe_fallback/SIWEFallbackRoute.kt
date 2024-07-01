@@ -67,7 +67,7 @@ private fun SIWEFallback(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         VerticalSpacer(20.dp)
-        WalletImageWithLoader(null)//connectViewModel.wallet?.imageUrl)
+        WalletImageWithLoader(connectViewModel.wallet?.imageUrl)
         VerticalSpacer(4.dp)
         Text(
             text = connectViewModel.wallet?.name ?: "",
