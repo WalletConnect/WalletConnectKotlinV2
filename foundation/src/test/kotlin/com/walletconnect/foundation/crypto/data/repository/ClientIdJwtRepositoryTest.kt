@@ -19,7 +19,7 @@ internal class ClientIdJwtRepositoryTest {
             return "884ab67f787b69e534bfdba8d5beb4e719700e90ac06317ed177d49e5a33be5a" to "58e0254c211b858ef7896b00e3f36beeb13d568d47c6031c4218b87718061295"
         }
     })
-    private val serverUrl = "wss://relay.walletconnect.com"
+    private val serverUrl = "wss://relay.walletconnect.org"
 
     // Expected JWT for given nonce
     private val expectedJWT =
