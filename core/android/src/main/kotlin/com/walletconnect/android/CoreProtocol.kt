@@ -107,7 +107,7 @@ class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInter
         onError: (Core.Model.Error) -> Unit
     ) {
         try {
-            require(projectId.isEmpty()) { "Project Id cannot be empty" }
+            require(projectId.isNotEmpty()) { "Project Id cannot be empty" }
 
             setup(
                 application = application,

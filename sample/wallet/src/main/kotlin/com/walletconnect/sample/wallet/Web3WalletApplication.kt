@@ -72,7 +72,7 @@ class Web3WalletApplication : Application() {
             metaData = appMetaData,
             onError = { error ->
                 Firebase.crashlytics.recordException(error.throwable)
-                logger.error(error.throwable.stackTraceToString())
+                println(error.throwable.stackTraceToString())
                 scope.launch {
                     connectionStateFlow.emit(ConnectionState.Error(error.throwable.message ?: ""))
                 }
