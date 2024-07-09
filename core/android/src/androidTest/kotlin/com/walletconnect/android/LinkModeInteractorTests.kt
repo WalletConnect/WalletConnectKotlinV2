@@ -1,6 +1,5 @@
 package com.walletconnect.android
 
-//import androidx.test.runner.AndroidJUnit4
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.walletconnect.android.internal.common.JsonRpcResponse
