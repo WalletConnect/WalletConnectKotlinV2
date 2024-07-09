@@ -50,6 +50,36 @@ internal object TestClient {
         internal val Pairing = coreProtocol.Pairing
     }
 
+    object WalletLinkMode {
+
+        private val metadata = Core.Model.AppMetaData(
+            name = "Kotlin E2E Wallet",
+            description = "Wallet for automation tests",
+            url = "kotlin.e2e.wallet",
+            icons = listOf(),
+            appLink = "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet",
+            linkMode = true,
+            redirect = null
+        )
+
+        private val coreProtocol = CoreClient.apply {
+            Timber.d("Wallet CP start: ")
+            initialize(metadata, RELAY_URL, ConnectionType.MANUAL, app, onError = ::globalOnError)
+            Relay.connect(::globalOnError)
+        }
+
+        private val initParams = Sign.Params.Init(coreProtocol)
+        private var _isInitialized = MutableStateFlow(false)
+        internal var isInitialized = _isInitialized.asStateFlow()
+        internal val signClient = SignClient.apply {
+            initialize(initParams, onSuccess = { _isInitialized.tryEmit(true) }, onError = { Timber.e(it.throwable) })
+            Timber.d("Wallet CP finish: ")
+        }
+
+        internal val Relay get() = coreProtocol.Relay
+        internal val Pairing = coreProtocol.Pairing
+    }
+
     object Dapp {
 
         private val metadata = Core.Model.AppMetaData(
@@ -84,6 +114,50 @@ internal object TestClient {
         private var _isInitialized = MutableStateFlow(false)
         internal var isInitialized = _isInitialized.asStateFlow()
         internal val signClient = SignProtocol(dappKoinApp).apply {
+            initialize(initParams, onSuccess = { _isInitialized.tryEmit(true) }, onError = { Timber.e(it.throwable) })
+            Timber.d("Dapp CP finish: ")
+        }
+
+        internal val Relay get() = coreProtocol.Relay
+        internal val Pairing = coreProtocol.Pairing
+    }
+
+    object DappLinkMode {
+
+        private val metadata = Core.Model.AppMetaData(
+            name = "Kotlin E2E Dapp",
+            description = "Dapp for automation tests",
+            url = "kotlin.e2e.dapp",
+            icons = listOf(),
+            linkMode = true,
+            appLink = "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/dapp",
+            redirect = null
+        )
+
+        private val dappKoinApp = KoinApplication.createNewWCKoinApp()
+
+        private val coreProtocol = CoreProtocol(dappKoinApp).apply {
+            Timber.d("Dapp CP start: ")
+            initialize(metadata, RELAY_URL, ConnectionType.MANUAL, app) { Timber.e(it.throwable) }
+
+            // Override of previous Relay necessary for reinitialization of `eventsFlow`
+            Relay = RelayClient(dappKoinApp)
+
+            // Override of storage instances and depending objects
+            dappKoinApp.modules(overrideModule(Relay, Pairing, PairingController, "test_dapp", RELAY_URL, ConnectionType.MANUAL, app.packageName))
+
+            // Necessary reinit of Relay, Pairing and PairingController
+            Relay.initialize { Timber.e(it) }
+            Pairing.initialize()
+            PairingController.initialize()
+
+            Relay.connect(::globalOnError)
+        }
+
+        private val initParams = Sign.Params.Init(coreProtocol)
+        private var _isInitialized = MutableStateFlow(false)
+        internal var isInitialized = _isInitialized.asStateFlow()
+        internal val signClientLinkMode = SignProtocol(dappKoinApp).apply {
             initialize(initParams, onSuccess = { _isInitialized.tryEmit(true) }, onError = { Timber.e(it.throwable) })
             Timber.d("Dapp CP finish: ")
         }
