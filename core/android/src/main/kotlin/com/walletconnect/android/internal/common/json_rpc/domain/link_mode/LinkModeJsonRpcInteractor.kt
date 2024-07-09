@@ -73,7 +73,9 @@ class LinkModeJsonRpcInteractor(
         val uri = Uri.parse(url)
         val encodedEnvelope = uri.getQueryParameter("wc_ev") ?: throw IllegalStateException("LinkMode: Missing wc_ev parameter")
         val topic = uri.getQueryParameter("topic") ?: throw IllegalStateException("LinkMode: Missing topic parameter")
-        val envelope = chaChaPolyCodec.decrypt(Topic(topic), Base64.decode(encodedEnvelope, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING))
+        val decoded = Base64.decode(encodedEnvelope, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
+        val envelope = chaChaPolyCodec.decrypt(Topic(topic), decoded)
+
         scope.launch {
             supervisorScope {
                 serializer.tryDeserialize<ClientJsonRpc>(envelope)?.let { clientJsonRpc -> serializeRequest(clientJsonRpc, topic, envelope) }

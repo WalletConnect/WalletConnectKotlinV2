@@ -129,26 +129,39 @@ fun ChainSelectionRoute(navController: NavController) {
                 Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
             }
         },
-        onAuthenticateLinkMode = {
+        onAuthenticateLinkMode = { appLink ->
             if (viewModel.isAnyChainSelected) {
                 viewModel.authenticate(
                     viewModel.authenticateParams,
+                    appLink,
                     onAuthenticateSuccess = { uri ->
                         if (uri != null) {
-                            try {
-                                val intent = Intent(Intent.ACTION_VIEW).apply {
-                                    val encoded = URLEncoder.encode(uri, "UTF-8")
-                                    data = "kotlin-web3wallet://wc?uri=$encoded".toUri()
-                                    println("kobe: $encoded")
-                                    `package` = when (BuildConfig.BUILD_TYPE) {
-                                        "debug" -> SAMPLE_WALLET_DEBUG_PACKAGE
-                                        "internal" -> SAMPLE_WALLET_INTERNAL_PACKAGE
-                                        else -> SAMPLE_WALLET_RELEASE_PACKAGE
+                            if (appLink.contains("walletkit_rn")) {
+                                try {
+                                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                                        val encoded = URLEncoder.encode(uri, "UTF-8")
+                                        data = "rn-web3wallet://wc?uri=$encoded".toUri()
+                                        `package` = "com.walletconnect.web3wallet.rnsample.internal"
                                     }
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    Toast.makeText(context, "Please install RN Wallet", Toast.LENGTH_SHORT).show()
                                 }
-                                context.startActivity(intent)
-                            } catch (e: Exception) {
-                                Toast.makeText(context, "Please install Kotlin Sample Wallet", Toast.LENGTH_SHORT).show()
+                            } else {
+                                try {
+                                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                                        val encoded = URLEncoder.encode(uri, "UTF-8")
+                                        data = "kotlin-web3wallet://wc?uri=$encoded".toUri()
+                                        `package` = when (BuildConfig.BUILD_TYPE) {
+                                            "debug" -> SAMPLE_WALLET_DEBUG_PACKAGE
+                                            "internal" -> SAMPLE_WALLET_INTERNAL_PACKAGE
+                                            else -> SAMPLE_WALLET_RELEASE_PACKAGE
+                                        }
+                                    }
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    Toast.makeText(context, "Please install Kotlin Sample Wallet", Toast.LENGTH_SHORT).show()
+                                }
                             }
                         }
                     },
@@ -186,7 +199,7 @@ private fun ChainSelectionScreen(
     onDialogDismiss: () -> Unit,
     onChainClick: (Int, Boolean) -> Unit,
     onConnectClick: () -> Unit,
-    onAuthenticateLinkMode: () -> Unit,
+    onAuthenticateLinkMode: (String) -> Unit,
     onAuthenticateClick: () -> Unit,
     onAuthenticateSIWEClick: () -> Unit
 ) {
@@ -211,7 +224,16 @@ private fun ChainSelectionScreen(
             )
             BlueButton(
                 text = "1-CA Link Mode (Kotlin Sample Wallet)",
-                onClick = onAuthenticateLinkMode,
+                onClick = { onAuthenticateLinkMode("https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet") },
+                modifier = Modifier
+                    .padding(vertical = 10.dp)
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .padding(horizontal = 16.dp)
+            )
+            BlueButton(
+                text = "1-CA Link Mode (RN Wallet)",
+                onClick = { onAuthenticateLinkMode("https://lab.web3modal.com/walletkit_rn") },
                 modifier = Modifier
                     .padding(vertical = 10.dp)
                     .fillMaxWidth()

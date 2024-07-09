@@ -88,12 +88,12 @@ class ChainSelectionViewModel : ViewModel() {
         properties = getProperties()
     )
 
-    fun authenticate(authenticateParams: Sign.Params.Authenticate, onAuthenticateSuccess: (String?) -> Unit, onError: (String) -> Unit = {}) {
+    fun authenticate(authenticateParams: Sign.Params.Authenticate, appLink: String = "", onAuthenticateSuccess: (String?) -> Unit, onError: (String) -> Unit = {}) {
         viewModelScope.launch {
             _awaitingProposalSharedFlow.emit(true)
         }
 
-        SignClient.authenticate(authenticateParams, walletAppLink = "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet",
+        SignClient.authenticate(authenticateParams, walletAppLink = appLink,
             onSuccess = { url ->
                 viewModelScope.launch {
                     _awaitingProposalSharedFlow.emit(false)
