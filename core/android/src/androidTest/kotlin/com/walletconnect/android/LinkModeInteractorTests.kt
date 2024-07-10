@@ -34,7 +34,7 @@ import org.junit.Test
 class LinkModeInteractorTests {
     private val chaChaPolyCodec: Codec = mockk()
     private val jsonRpcHistory: JsonRpcHistory = mockk()
-    private val context: Context = ApplicationProvider.getApplicationContext<Context>()
+    private val context: Context = ApplicationProvider.getApplicationContext()
     private val serializer: JsonRpcSerializer = mockk()
     private val interactor: LinkModeJsonRpcInteractor
 

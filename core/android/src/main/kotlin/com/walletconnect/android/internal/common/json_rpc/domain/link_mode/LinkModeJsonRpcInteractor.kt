@@ -47,8 +47,6 @@ class LinkModeJsonRpcInteractor(
     override fun triggerRequest(payload: JsonRpcClientSync<*>, topic: Topic, appLink: String, envelopeType: EnvelopeType) {
         val requestJson = serializer.serialize(payload) ?: throw IllegalStateException("LinkMode: Cannot serialize the request")
 
-        println("kobe; Request: $requestJson")
-
         if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson, TransportType.LINK_MODE)) {
             val encryptedResponse = chaChaPolyCodec.encrypt(topic, requestJson, envelopeType)
             val encodedRequest = Base64.encodeToString(encryptedResponse, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
@@ -73,7 +71,6 @@ class LinkModeJsonRpcInteractor(
     }
 
     override fun dispatchEnvelope(url: String) {
-        println("kobe: URL: $url")
         val uri = Uri.parse(url)
         val encodedEnvelope = uri.getQueryParameter("wc_ev") ?: throw IllegalStateException("LinkMode: Missing wc_ev parameter")
         val topic = uri.getQueryParameter("topic") ?: throw IllegalStateException("LinkMode: Missing topic parameter")
