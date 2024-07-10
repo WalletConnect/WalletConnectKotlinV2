@@ -8,7 +8,6 @@ import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.sample.common.BuildConfig
-import com.walletconnect.sample.common.RELAY_URL
 import com.walletconnect.sample.common.tag
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
@@ -19,7 +18,6 @@ class ModalSampleApp : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        val serverUri = "wss://$RELAY_URL?projectId=${BuildConfig.PROJECT_ID}"
         val appMetaData = Core.Model.AppMetaData(
             name = "Kotlin Modals",
             description = "Kotlin Modals Lab Sample",
@@ -29,7 +27,7 @@ class ModalSampleApp : Application() {
         )
 
         CoreClient.initialize(
-            relayServerUrl = serverUri,
+            projectId = BuildConfig.PROJECT_ID,
             connectionType = ConnectionType.AUTOMATIC,
             application = this,
             metaData = appMetaData,

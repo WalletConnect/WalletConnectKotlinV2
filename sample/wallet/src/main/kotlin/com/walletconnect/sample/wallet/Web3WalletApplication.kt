@@ -20,13 +20,11 @@ import com.walletconnect.android.CoreClient
 import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.utils.cacao.sign
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.notify.client.Notify
 import com.walletconnect.notify.client.NotifyClient
 import com.walletconnect.notify.client.cacao.CacaoSigner
-import com.walletconnect.sample.common.RELAY_URL
 import com.walletconnect.sample.common.initBeagle
 import com.walletconnect.sample.common.tag
 import com.walletconnect.sample.wallet.domain.EthAccountDelegate
@@ -60,7 +58,6 @@ class Web3WalletApplication : Application() {
         EthAccountDelegate.application = this
 
         val projectId = BuildConfig.PROJECT_ID
-        val serverUrl = "wss://$RELAY_URL?projectId=$projectId"
         val appMetaData = Core.Model.AppMetaData(
             name = "Kotlin Wallet",
             description = "Kotlin Wallet Implementation",
@@ -70,13 +67,12 @@ class Web3WalletApplication : Application() {
         )
 
         CoreClient.initialize(
-            relayServerUrl = serverUrl,
-            connectionType = ConnectionType.AUTOMATIC,
             application = this,
+            projectId = projectId,
             metaData = appMetaData,
             onError = { error ->
                 Firebase.crashlytics.recordException(error.throwable)
-                logger.error(error.throwable.stackTraceToString())
+                println(error.throwable.stackTraceToString())
                 scope.launch {
                     connectionStateFlow.emit(ConnectionState.Error(error.throwable.message ?: ""))
                 }

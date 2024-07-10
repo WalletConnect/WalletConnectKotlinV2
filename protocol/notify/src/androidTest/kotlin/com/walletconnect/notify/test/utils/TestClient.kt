@@ -22,7 +22,6 @@ import org.koin.core.KoinApplication
 import timber.log.Timber
 
 internal object TestClient {
-    const val RELAY_URL = "wss://relay.walletconnect.com?projectId=${BuildConfig.PROJECT_ID}"
     private val app = ApplicationProvider.getApplicationContext<Application>()
     fun KoinApplication.Companion.createNewWCKoinApp(): KoinApplication = init().apply { createEagerInstances() }
 
@@ -43,7 +42,7 @@ internal object TestClient {
 
         private val coreProtocol = CoreClient.apply {
             Timber.d("Primary CP start: ")
-            initialize(metadata, RELAY_URL, ConnectionType.MANUAL, app, onError = ::globalOnError)
+            initialize(app, BuildConfig.PROJECT_ID, metadata, ConnectionType.MANUAL, onError = ::globalOnError)
             Relay.connect(::globalOnError)
         }
 
@@ -99,13 +98,23 @@ internal object TestClient {
 
         private val coreProtocol = CoreProtocol(secondaryKoinApp).apply {
             Timber.d("Secondary CP start: ")
-            initialize(metadata, RELAY_URL, ConnectionType.MANUAL, app) { Timber.e(it.throwable) }
+            initialize(app, BuildConfig.PROJECT_ID, metadata, ConnectionType.MANUAL) { Timber.e(it.throwable) }
 
             // Override of previous Relay necessary for reinitialization of `eventsFlow`
             Relay = RelayClient(secondaryKoinApp)
 
             // Override of storage instances and depending objects
-            secondaryKoinApp.modules(overrideModule(Relay, Pairing, PairingController, "test_secondary", RELAY_URL, ConnectionType.MANUAL, app.packageName))
+            secondaryKoinApp.modules(
+                overrideModule(
+                    Relay,
+                    Pairing,
+                    PairingController,
+                    "test_secondary",
+                    "wss://relay.walletconnect.org?projectId=${BuildConfig.PROJECT_ID}",
+                    ConnectionType.MANUAL,
+                    app.packageName
+                )
+            )
 
             // Necessary reinit of Relay, Pairing and PairingController
             Relay.initialize { Timber.e(it) }

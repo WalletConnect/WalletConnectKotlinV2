@@ -18,7 +18,7 @@ internal class ClientIdJwtRepositoryAndroidTest {
     private val keyChain = KeyChainMock()
     private val sut = spyk(ClientIdJwtRepositoryAndroid(keyChain))
     private val tag = "key_did_keypair"
-    private val serverUrl = "wss://relay.walletconnect.com"
+    private val serverUrl = "wss://relay.walletconnect.org"
 
     // Expected JWT for given nonce
     private val expectedJWT =
