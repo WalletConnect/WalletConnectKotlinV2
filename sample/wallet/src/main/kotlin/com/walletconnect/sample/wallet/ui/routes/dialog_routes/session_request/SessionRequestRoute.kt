@@ -64,7 +64,7 @@ fun SessionRequestRoutePreview() {
 @SuppressLint("RestrictedApi")
 @Composable
 fun SessionRequestRoute(navController: NavHostController, sessionRequestViewModel: SessionRequestViewModel = viewModel()) {
-    val sessionRequestUI = sessionRequestViewModel.sessionRequest
+    val sessionRequestUI = sessionRequestViewModel.sessionRequestUI
     val composableScope = rememberCoroutineScope()
     val context = LocalContext.current
     var isConfirmLoading by remember { mutableStateOf(false) }
