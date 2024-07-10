@@ -156,10 +156,10 @@ private fun SessionAuthenticateDialog(
                         },
                         onError = { error ->
                             isCancelLoading = false
-                            closeAndShowError(navController, error, composableScope, context)
+                            showError(error, composableScope, context)
                         })
                 } catch (e: Throwable) {
-                    closeAndShowError(navController, e.message, composableScope, context)
+                    showError(e.message, composableScope, context)
                 }
             }, onConfirm = {
                 isConfirmLoading = true
@@ -183,10 +183,10 @@ private fun SessionAuthenticateDialog(
                         },
                         onError = { error ->
                             isConfirmLoading = false
-                            closeAndShowError(navController, error, composableScope, context)
+                            showError(error, composableScope, context)
                         })
                 } catch (e: Exception) {
-                    closeAndShowError(navController, e.message, composableScope, context)
+                    showError(e.message, composableScope, context)
                 }
             },
             isLoadingConfirm = isConfirmLoading,
@@ -196,10 +196,9 @@ private fun SessionAuthenticateDialog(
     }
 }
 
-private fun closeAndShowError(navController: NavHostController, mesage: String?, coroutineScope: CoroutineScope, context: Context) {
+private fun showError(message: String?, coroutineScope: CoroutineScope, context: Context) {
     coroutineScope.launch(Dispatchers.Main) {
-        navController.popBackStack(route = Route.Connections.path, inclusive = false)
-        Toast.makeText(context, mesage ?: "Session authenticate error, please check your Internet connection", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, message ?: "Session authenticate error, please check your Internet connection", Toast.LENGTH_SHORT).show()
     }
 }
 

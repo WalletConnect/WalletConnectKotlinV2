@@ -179,10 +179,10 @@ private fun SessionProposalDialog(
                         },
                         onError = { error ->
                             isCancelLoading = false
-                            closeAndShowError(navController, error, coroutineScope, context)
+                            showError(error, coroutineScope, context)
                         })
                 } catch (e: Throwable) {
-                    closeAndShowError(navController, e.message, coroutineScope, context)
+                    showError(e.message, coroutineScope, context)
                 }
             },
             onConfirm = {
@@ -206,10 +206,10 @@ private fun SessionProposalDialog(
                         },
                         onError = { error ->
                             isConfirmLoading = false
-                            closeAndShowError(navController, error, coroutineScope, context)
+                            showError(error, coroutineScope, context)
                         })
                 } catch (e: Throwable) {
-                    closeAndShowError(navController, e.message, coroutineScope, context)
+                    showError(e.message, coroutineScope, context)
                 }
             },
             isLoadingConfirm = isConfirmLoading,
@@ -219,10 +219,9 @@ private fun SessionProposalDialog(
     }
 }
 
-private fun closeAndShowError(navController: NavHostController, mesage: String?, coroutineScope: CoroutineScope, context: Context) {
+private fun showError(message: String?, coroutineScope: CoroutineScope, context: Context) {
     coroutineScope.launch(Dispatchers.Main) {
-        navController.popBackStack(route = Route.Connections.path, inclusive = false)
-        Toast.makeText(context, mesage ?: "Session proposal error, please check your Internet connection", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, message ?: "Session proposal error, please check your Internet connection", Toast.LENGTH_SHORT).show()
     }
 }
 

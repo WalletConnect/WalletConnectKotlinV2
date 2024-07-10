@@ -44,7 +44,6 @@ class SessionAuthenticateViewModel : ViewModel() {
                 Web3Wallet.approveSessionAuthenticate(approveProposal,
                     onError = { error ->
                         Firebase.crashlytics.recordException(error.throwable)
-                        WCDelegate.sessionAuthenticateEvent = null
                         onError(error.throwable.message ?: "Undefined error, please check your Internet connection")
                     },
                     onSuccess = {
@@ -53,7 +52,7 @@ class SessionAuthenticateViewModel : ViewModel() {
                     })
             } catch (e: Exception) {
                 Firebase.crashlytics.recordException(e)
-                WCDelegate.sessionProposalEvent = null
+                WCDelegate.sessionAuthenticateEvent = null
                 onError(e.message ?: "Undefined error, please check your Internet connection")
             }
         } else {
@@ -78,7 +77,6 @@ class SessionAuthenticateViewModel : ViewModel() {
                     },
                     onError = { error ->
                         Firebase.crashlytics.recordException(error.throwable)
-                        WCDelegate.sessionAuthenticateEvent = null
                         onError(error.throwable.message ?: "Undefined error, please check your Internet connection")
                     })
             } catch (e: Exception) {

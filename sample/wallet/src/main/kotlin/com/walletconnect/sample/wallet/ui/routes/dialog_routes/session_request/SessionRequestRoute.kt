@@ -64,7 +64,7 @@ fun SessionRequestRoutePreview() {
 @SuppressLint("RestrictedApi")
 @Composable
 fun SessionRequestRoute(navController: NavHostController, sessionRequestViewModel: SessionRequestViewModel = viewModel()) {
-    val sessionRequestUI = sessionRequestViewModel.sessionRequest
+    val sessionRequestUI = sessionRequestViewModel.sessionRequestUI
     val composableScope = rememberCoroutineScope()
     val context = LocalContext.current
     var isConfirmLoading by remember { mutableStateOf(false) }
@@ -100,11 +100,11 @@ fun SessionRequestRoute(navController: NavHostController, sessionRequestViewMode
                                 },
                                 onError = { error ->
                                     isConfirmLoading = false
-                                    closeAndShowError(navController, error, composableScope, context)
+                                    showError(error, composableScope, context)
                                 })
 
                         } catch (e: Throwable) {
-                            closeAndShowError(navController, e.message, composableScope, context)
+                            showError(e.message, composableScope, context)
                         }
                     },
                     onCancel = {
@@ -126,10 +126,10 @@ fun SessionRequestRoute(navController: NavHostController, sessionRequestViewMode
                                 },
                                 onError = { error ->
                                     isCancelLoading = false
-                                    closeAndShowError(navController, error, composableScope, context)
+                                    showError(error, composableScope, context)
                                 })
                         } catch (e: Throwable) {
-                            closeAndShowError(navController, e.message, composableScope, context)
+                            showError(e.message, composableScope, context)
                         }
                     },
                     isLoadingConfirm = isConfirmLoading,
@@ -163,9 +163,8 @@ fun SessionRequestRoute(navController: NavHostController, sessionRequestViewMode
     }
 }
 
-private fun closeAndShowError(navController: NavHostController, message: String?, coroutineScope: CoroutineScope, context: Context) {
+private fun showError(message: String?, coroutineScope: CoroutineScope, context: Context) {
     coroutineScope.launch(Dispatchers.Main) {
-        navController.popBackStack()
         Toast.makeText(context, message ?: "Session request error, please check your Internet connection", Toast.LENGTH_SHORT).show()
     }
 }

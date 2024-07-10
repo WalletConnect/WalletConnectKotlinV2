@@ -20,17 +20,16 @@ import org.json.JSONArray
 import org.web3j.utils.Numeric.hexStringToByteArray
 
 class SessionRequestViewModel : ViewModel() {
-    var sessionRequest: SessionRequestUI = generateSessionRequestUI()
+    var sessionRequestUI: SessionRequestUI = generateSessionRequestUI()
 
     private fun clearSessionRequest() {
         WCDelegate.sessionRequestEvent = null
         WCDelegate.currentId = null
-        sessionRequest = SessionRequestUI.Initial
     }
 
     fun reject(onSuccess: (Uri?) -> Unit = {}, onError: (String) -> Unit = {}) {
         try {
-            val sessionRequest = sessionRequest as? SessionRequestUI.Content
+            val sessionRequest = sessionRequestUI as? SessionRequestUI.Content
             if (sessionRequest != null) {
                 val result = Wallet.Params.SessionRequestResponse(
                     sessionTopic = sessionRequest.topic,
@@ -44,6 +43,7 @@ class SessionRequestViewModel : ViewModel() {
                 Web3Wallet.respondSessionRequest(result,
                     onSuccess = {
                         clearSessionRequest()
+                        sessionRequestUI = SessionRequestUI.Initial
                         onSuccess(redirect)
                     },
                     onError = { error ->
@@ -57,6 +57,7 @@ class SessionRequestViewModel : ViewModel() {
         } catch (e: Exception) {
             Firebase.crashlytics.recordException(e)
             clearSessionRequest()
+            sessionRequestUI = SessionRequestUI.Initial
             onError(e.message ?: "Undefined error, please check your Internet connection")
         }
     }
@@ -76,7 +77,7 @@ class SessionRequestViewModel : ViewModel() {
 
     fun approve(onSuccess: (Uri?) -> Unit = {}, onError: (String) -> Unit = {}) {
         try {
-            val sessionRequest = sessionRequest as? SessionRequestUI.Content
+            val sessionRequest = sessionRequestUI as? SessionRequestUI.Content
             if (sessionRequest != null) {
                 val result: String = when {
                     sessionRequest.method == PERSONAL_SIGN_METHOD -> CacaoSigner.sign(
@@ -107,6 +108,7 @@ class SessionRequestViewModel : ViewModel() {
                 Web3Wallet.respondSessionRequest(response,
                     onSuccess = {
                         clearSessionRequest()
+                        sessionRequestUI = SessionRequestUI.Initial
                         onSuccess(redirect)
                     },
                     onError = { error ->
@@ -120,6 +122,7 @@ class SessionRequestViewModel : ViewModel() {
         } catch (e: Exception) {
             Firebase.crashlytics.recordException(e)
             clearSessionRequest()
+            sessionRequestUI = SessionRequestUI.Initial
             onError(e.message ?: "Undefined error, please check your Internet connection")
         }
     }
