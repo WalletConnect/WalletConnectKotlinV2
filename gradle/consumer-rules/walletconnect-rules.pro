@@ -7,6 +7,7 @@
 -dontwarn org.bouncycastle.**
 -dontwarn org.openjsse.**
 -dontwarn okhttp3.internal.platform.**
+-dontwarn groovy.lang.GroovyShell
 
 -allowaccessmodification
 -keeppackagenames doNotKeepAThing
