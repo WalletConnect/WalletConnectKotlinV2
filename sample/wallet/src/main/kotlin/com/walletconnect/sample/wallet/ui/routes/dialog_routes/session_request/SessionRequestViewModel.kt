@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
 import com.walletconnect.android.cacao.signature.SignatureType
+import com.walletconnect.android.internal.common.exception.NoConnectivityException
 import com.walletconnect.android.utils.cacao.sign
 import com.walletconnect.sample.common.Chains
 import com.walletconnect.sample.wallet.domain.EthAccountDelegate
@@ -25,9 +26,10 @@ class SessionRequestViewModel : ViewModel() {
     private fun clearSessionRequest() {
         WCDelegate.sessionRequestEvent = null
         WCDelegate.currentId = null
+        sessionRequestUI = SessionRequestUI.Initial
     }
 
-    fun reject(onSuccess: (Uri?) -> Unit = {}, onError: (String) -> Unit = {}) {
+    fun reject(onSuccess: (Uri?) -> Unit = {}, onError: (Throwable) -> Unit = {}) {
         try {
             val sessionRequest = sessionRequestUI as? SessionRequestUI.Content
             if (sessionRequest != null) {
@@ -43,22 +45,22 @@ class SessionRequestViewModel : ViewModel() {
                 Web3Wallet.respondSessionRequest(result,
                     onSuccess = {
                         clearSessionRequest()
-                        sessionRequestUI = SessionRequestUI.Initial
                         onSuccess(redirect)
                     },
                     onError = { error ->
                         Firebase.crashlytics.recordException(error.throwable)
-                        clearSessionRequest()
-                        onError(error.throwable.message ?: "Undefined error, please check your Internet connection")
+                        if (error.throwable !is NoConnectivityException) {
+                            clearSessionRequest()
+                        }
+                        onError(error.throwable)
                     })
             } else {
-                onError("Reject - Cannot find session request")
+                onError(Throwable("Reject - Cannot find session request"))
             }
         } catch (e: Exception) {
             Firebase.crashlytics.recordException(e)
             clearSessionRequest()
-            sessionRequestUI = SessionRequestUI.Initial
-            onError(e.message ?: "Undefined error, please check your Internet connection")
+            onError(e.cause ?: Throwable("Undefined error, please check your Internet connection"))
         }
     }
 
@@ -75,7 +77,7 @@ class SessionRequestViewModel : ViewModel() {
         }
     }
 
-    fun approve(onSuccess: (Uri?) -> Unit = {}, onError: (String) -> Unit = {}) {
+    fun approve(onSuccess: (Uri?) -> Unit = {}, onError: (Throwable) -> Unit = {}) {
         try {
             val sessionRequest = sessionRequestUI as? SessionRequestUI.Content
             if (sessionRequest != null) {
@@ -94,6 +96,7 @@ class SessionRequestViewModel : ViewModel() {
                     //Note: Only for testing purposes - it will always fail on Dapp side
                     sessionRequest.chain?.contains(Chains.Info.Solana.chain, true) == true ->
                         """{"signature":"pBvp1bMiX6GiWmfYmkFmfcZdekJc19GbZQanqaGa\/kLPWjoYjaJWYttvm17WoDMyn4oROas4JLu5oKQVRIj911==","pub_key":{"value":"psclI0DNfWq6cOlGrKD9wNXPxbUsng6Fei77XjwdkPSt","type":"tendermint\/PubKeySecp256k1"}}"""
+
                     else -> throw Exception("Unsupported Chain")
                 }
                 val response = Wallet.Params.SessionRequestResponse(
@@ -108,22 +111,22 @@ class SessionRequestViewModel : ViewModel() {
                 Web3Wallet.respondSessionRequest(response,
                     onSuccess = {
                         clearSessionRequest()
-                        sessionRequestUI = SessionRequestUI.Initial
                         onSuccess(redirect)
                     },
                     onError = { error ->
                         Firebase.crashlytics.recordException(error.throwable)
-                        clearSessionRequest()
-                        onError(error.throwable.message ?: "Undefined error, please check your Internet connection")
+                        if (error.throwable !is NoConnectivityException) {
+                            clearSessionRequest()
+                        }
+                        onError(error.throwable)
                     })
             } else {
-                onError("Approve - Cannot find session request")
+                onError(Throwable("Approve - Cannot find session request"))
             }
         } catch (e: Exception) {
             Firebase.crashlytics.recordException(e)
             clearSessionRequest()
-            sessionRequestUI = SessionRequestUI.Initial
-            onError(e.message ?: "Undefined error, please check your Internet connection")
+            onError(e.cause ?: Throwable("Undefined error, please check your Internet connection"))
         }
     }
 
