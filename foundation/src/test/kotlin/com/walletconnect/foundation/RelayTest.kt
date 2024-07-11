@@ -42,7 +42,7 @@ sealed class TestState {
 @ExperimentalCoroutinesApi
 class RelayTest {
     private val testProjectId: String = requireNotNull(System.getProperty("TEST_PROJECT_ID"))
-    private val testRelayUrl: String = requireNotNull(System.getProperty("TEST_RELAY_URL"))
+    private val testRelayUrl: String = "https://staging.relay.walletconnect.org"
     private val serverUrl = "$testRelayUrl?projectId=$testProjectId"
     private val sdkVersion: String = System.getProperty("SDK_VERSION") + "-relayTest"
     private val testJob: CompletableJob = SupervisorJob()

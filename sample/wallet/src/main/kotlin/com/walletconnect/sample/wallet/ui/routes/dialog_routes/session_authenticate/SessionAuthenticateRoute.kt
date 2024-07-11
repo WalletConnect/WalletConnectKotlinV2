@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.walletconnect.android.internal.common.exception.NoConnectivityException
 import com.walletconnect.sample.common.sendResponseDeepLink
 import com.walletconnect.sample.common.ui.theme.mismatch_color
 import com.walletconnect.sample.common.ui.themedColor
@@ -156,10 +157,10 @@ private fun SessionAuthenticateDialog(
                         },
                         onError = { error ->
                             isCancelLoading = false
-                            showError(error, composableScope, context)
+                            showError(navController, error, composableScope, context)
                         })
                 } catch (e: Throwable) {
-                    showError(e.message, composableScope, context)
+                    showError(navController, e, composableScope, context)
                 }
             }, onConfirm = {
                 isConfirmLoading = true
@@ -183,10 +184,10 @@ private fun SessionAuthenticateDialog(
                         },
                         onError = { error ->
                             isConfirmLoading = false
-                            showError(error, composableScope, context)
+                            showError(navController, error, composableScope, context)
                         })
                 } catch (e: Exception) {
-                    showError(e.message, composableScope, context)
+                    showError(navController, e, composableScope, context)
                 }
             },
             isLoadingConfirm = isConfirmLoading,
@@ -196,9 +197,13 @@ private fun SessionAuthenticateDialog(
     }
 }
 
-private fun showError(message: String?, coroutineScope: CoroutineScope, context: Context) {
+private fun showError(navController: NavHostController, throwable: Throwable?, coroutineScope: CoroutineScope, context: Context) {
     coroutineScope.launch(Dispatchers.Main) {
-        Toast.makeText(context, message ?: "Session authenticate error, please check your Internet connection", Toast.LENGTH_SHORT).show()
+        if (throwable !is NoConnectivityException) {
+            navController.popBackStack()
+        }
+
+        Toast.makeText(context, throwable?.message ?: "Session authenticate error, please check your Internet connection", Toast.LENGTH_SHORT).show()
     }
 }
 

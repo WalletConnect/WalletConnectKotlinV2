@@ -12,7 +12,7 @@ import timber.log.Timber
 
 class SessionProposalViewModel : ViewModel() {
     val sessionProposal: SessionProposalUI? = generateSessionProposalUI()
-    fun approve(proposalPublicKey: String, onSuccess: (String) -> Unit = {}, onError: (String) -> Unit = {}) {
+    fun approve(proposalPublicKey: String, onSuccess: (String) -> Unit = {}, onError: (Throwable) -> Unit = {}) {
         val proposal = Web3Wallet.getSessionProposals().find { it.proposerPublicKey == proposalPublicKey }
         if (proposal != null) {
             try {
@@ -24,7 +24,7 @@ class SessionProposalViewModel : ViewModel() {
                     onError = { error ->
                         Firebase.crashlytics.recordException(error.throwable)
                         WCDelegate.sessionProposalEvent = null
-                        onError(error.throwable.message ?: "Undefined error, please check your Internet connection")
+                        onError(error.throwable)
                     },
                     onSuccess = {
                         WCDelegate.sessionProposalEvent = null
@@ -33,14 +33,14 @@ class SessionProposalViewModel : ViewModel() {
             } catch (e: Exception) {
                 Firebase.crashlytics.recordException(e)
                 WCDelegate.sessionProposalEvent = null
-                onError(e.message ?: "Undefined error, please check your Internet connection")
+                onError(e)
             }
         } else {
-            onError("Cannot approve session proposal, it has expired. Please try again.")
+            onError(Throwable("Cannot approve session proposal, it has expired. Please try again."))
         }
     }
 
-    fun reject(proposalPublicKey: String, onSuccess: (String) -> Unit = {}, onError: (String) -> Unit = {}) {
+    fun reject(proposalPublicKey: String, onSuccess: (String) -> Unit = {}, onError: (Throwable) -> Unit = {}) {
         val proposal = Web3Wallet.getSessionProposals().find { it.proposerPublicKey == proposalPublicKey }
         if (proposal != null) {
             try {
@@ -58,15 +58,15 @@ class SessionProposalViewModel : ViewModel() {
                     onError = { error ->
                         Firebase.crashlytics.recordException(error.throwable)
                         WCDelegate.sessionProposalEvent = null
-                        onError(error.throwable.message ?: "Undefined error, please check your Internet connection")
+                        onError(error.throwable)
                     })
             } catch (e: Exception) {
                 Firebase.crashlytics.recordException(e)
                 WCDelegate.sessionProposalEvent = null
-                onError(e.message ?: "Undefined error, please check your Internet connection")
+                onError(e)
             }
         } else {
-            onError("Cannot reject session proposal, it has expired. Please try again.")
+            onError(Throwable("Cannot reject session proposal, it has expired. Please try again."))
         }
     }
 

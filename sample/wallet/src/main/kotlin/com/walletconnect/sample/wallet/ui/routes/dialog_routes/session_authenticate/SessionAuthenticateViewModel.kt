@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
 import com.walletconnect.android.cacao.signature.SignatureType
+import com.walletconnect.android.internal.common.exception.NoConnectivityException
 import com.walletconnect.android.utils.cacao.sign
 import com.walletconnect.sample.wallet.domain.ACCOUNTS_1_EIP155_ADDRESS
 import com.walletconnect.sample.wallet.domain.EthAccountDelegate
@@ -18,7 +19,7 @@ import com.walletconnect.web3.wallet.utils.CacaoSigner
 class SessionAuthenticateViewModel : ViewModel() {
     val sessionAuthenticateUI: SessionAuthenticateUI? get() = generateAuthRequestUI()
 
-    fun approve(onSuccess: (String) -> Unit = {}, onError: (String) -> Unit = {}) {
+    fun approve(onSuccess: (String) -> Unit = {}, onError: (Throwable) -> Unit = {}) {
         if (WCDelegate.sessionAuthenticateEvent != null) {
             try {
                 val sessionAuthenticate = WCDelegate.sessionAuthenticateEvent!!.first
@@ -42,25 +43,29 @@ class SessionAuthenticateViewModel : ViewModel() {
 
                 val approveProposal = Wallet.Params.ApproveSessionAuthenticate(id = sessionAuthenticate.id, auths = auths)
                 Web3Wallet.approveSessionAuthenticate(approveProposal,
-                    onError = { error ->
-                        Firebase.crashlytics.recordException(error.throwable)
-                        onError(error.throwable.message ?: "Undefined error, please check your Internet connection")
-                    },
                     onSuccess = {
                         WCDelegate.sessionAuthenticateEvent = null
                         onSuccess(sessionAuthenticate.participant.metadata?.redirect ?: "")
-                    })
+                    },
+                    onError = { error ->
+                        if (error.throwable !is NoConnectivityException) {
+                            WCDelegate.sessionAuthenticateEvent = null
+                        }
+                        Firebase.crashlytics.recordException(error.throwable)
+                        onError(error.throwable)
+                    }
+                )
             } catch (e: Exception) {
                 Firebase.crashlytics.recordException(e)
                 WCDelegate.sessionAuthenticateEvent = null
-                onError(e.message ?: "Undefined error, please check your Internet connection")
+                onError(e)
             }
         } else {
-            onError("Authenticate request expired")
+            onError(Throwable("Authenticate request expired"))
         }
     }
 
-    fun reject(onSuccess: (String) -> Unit = {}, onError: (String) -> Unit = {}) {
+    fun reject(onSuccess: (String) -> Unit = {}, onError: (Throwable) -> Unit = {}) {
         if (WCDelegate.sessionAuthenticateEvent != null) {
             try {
                 val sessionAuthenticate = WCDelegate.sessionAuthenticateEvent!!.first
@@ -76,16 +81,19 @@ class SessionAuthenticateViewModel : ViewModel() {
                         onSuccess(sessionAuthenticate.participant.metadata?.redirect ?: "")
                     },
                     onError = { error ->
+                        if (error.throwable !is NoConnectivityException) {
+                            WCDelegate.sessionAuthenticateEvent = null
+                        }
                         Firebase.crashlytics.recordException(error.throwable)
-                        onError(error.throwable.message ?: "Undefined error, please check your Internet connection")
+                        onError(error.throwable)
                     })
             } catch (e: Exception) {
                 Firebase.crashlytics.recordException(e)
                 WCDelegate.sessionAuthenticateEvent = null
-                onError(e.message ?: "Undefined error, please check your Internet connection")
+                onError(e)
             }
         } else {
-            onError("Authenticate request expired")
+            onError(Throwable("Authenticate request expired"))
         }
     }
 
