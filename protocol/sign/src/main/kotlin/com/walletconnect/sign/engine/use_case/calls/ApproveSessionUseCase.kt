@@ -94,7 +94,7 @@ internal class ApproveSessionUseCase(
                     onFailure = { error ->
                         scope.launch {
                             supervisorScope {
-                                insertEventUseCase(Props(type = EventType.Error.SESSION_SETTLE_PUBLISH_FAILURE, properties = Properties(trace = trace, topic = sessionTopic.value)))
+                                insertEventUseCase(Props(type = EventType.Error.SESSION_SETTLE_PUBLISH_FAILURE, properties = Properties(trace = trace, topic = pairingTopic.value)))
                             }
                         }.also { logger.error("Session settle failure on topic: $sessionTopic, error: $error") }
                         onFailure(error)
@@ -133,7 +133,7 @@ internal class ApproveSessionUseCase(
             }
             trace.add(Trace.Session.PROPOSAL_NOT_EXPIRED)
             SignValidator.validateSessionNamespace(sessionNamespaces.toMapOfNamespacesVOSession(), proposal.requiredNamespaces) { error ->
-                insertEventUseCase(Props(type = EventType.Error.SESSION_APPROVE_NAMESPACE_VALIDATION_FAILURE, properties = Properties(trace = trace, topic = proposal.pairingTopic.value)))
+                insertEventUseCase(Props(type = EventType.Error.SESSION_APPROVE_NAMESPACE_VALIDATION_FAILURE, properties = Properties(trace = trace, topic = pairingTopic)))
                     .also { logger.log("Session approve failure - invalid namespaces, error: $error") }
                 throw InvalidNamespaceException(error.message)
             }
@@ -151,7 +151,7 @@ internal class ApproveSessionUseCase(
                 onFailure = { error ->
                     scope.launch {
                         supervisorScope {
-                            insertEventUseCase(Props(type = EventType.Error.SESSION_SUBSCRIPTION_FAILURE, properties = Properties(trace = trace, topic = sessionTopic.value)))
+                            insertEventUseCase(Props(type = EventType.Error.SESSION_SUBSCRIPTION_FAILURE, properties = Properties(trace = trace, topic = pairingTopic)))
                         }
                     }.also { logger.error("Subscribe to session topic failure: $error") }
                     onFailure(error)
@@ -164,7 +164,7 @@ internal class ApproveSessionUseCase(
                 onFailure = { error ->
                     scope.launch {
                         supervisorScope {
-                            insertEventUseCase(Props(type = EventType.Error.SESSION_APPROVE_PUBLISH_FAILURE, properties = Properties(trace = trace, topic = sessionTopic.value)))
+                            insertEventUseCase(Props(type = EventType.Error.SESSION_APPROVE_PUBLISH_FAILURE, properties = Properties(trace = trace, topic = pairingTopic)))
                         }
                     }.also { logger.error("Session approve failure, topic: $sessionTopic: $error") }
                     onFailure(error)

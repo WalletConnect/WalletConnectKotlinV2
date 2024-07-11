@@ -41,6 +41,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.walletconnect.android.internal.common.exception.NoConnectivityException
 import com.walletconnect.sample.common.Chains
 import com.walletconnect.sample.common.CompletePreviews
 import com.walletconnect.sample.common.sendResponseDeepLink
@@ -179,10 +180,10 @@ private fun SessionProposalDialog(
                         },
                         onError = { error ->
                             isCancelLoading = false
-                            closeAndShowError(navController, error, coroutineScope, context)
+                            showError(navController, error, coroutineScope, context)
                         })
                 } catch (e: Throwable) {
-                    closeAndShowError(navController, e.message, coroutineScope, context)
+                    showError(navController, e, coroutineScope, context)
                 }
             },
             onConfirm = {
@@ -206,10 +207,10 @@ private fun SessionProposalDialog(
                         },
                         onError = { error ->
                             isConfirmLoading = false
-                            closeAndShowError(navController, error, coroutineScope, context)
+                            showError(navController, error, coroutineScope, context)
                         })
                 } catch (e: Throwable) {
-                    closeAndShowError(navController, e.message, coroutineScope, context)
+                    showError(navController, e, coroutineScope, context)
                 }
             },
             isLoadingConfirm = isConfirmLoading,
@@ -219,10 +220,13 @@ private fun SessionProposalDialog(
     }
 }
 
-private fun closeAndShowError(navController: NavHostController, mesage: String?, coroutineScope: CoroutineScope, context: Context) {
+private fun showError(navController: NavHostController, throwable: Throwable?, coroutineScope: CoroutineScope, context: Context) {
     coroutineScope.launch(Dispatchers.Main) {
-        navController.popBackStack(route = Route.Connections.path, inclusive = false)
-        Toast.makeText(context, mesage ?: "Session proposal error, please check your Internet connection", Toast.LENGTH_SHORT).show()
+        if (throwable !is NoConnectivityException) {
+            navController.popBackStack()
+        }
+
+        Toast.makeText(context, throwable?.message ?: "Session proposal error, please check your Internet connection", Toast.LENGTH_SHORT).show()
     }
 }
 
