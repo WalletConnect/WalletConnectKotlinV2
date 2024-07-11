@@ -28,6 +28,7 @@ import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.google.accompanist.navigation.material.ModalBottomSheetLayout
 import com.google.accompanist.navigation.material.bottomSheet
+import com.walletconnect.sample.wallet.domain.WCDelegate
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.bottomsheet_routes.scan_uri.ScanUriRoute
 import com.walletconnect.sample.wallet.ui.routes.bottomsheet_routes.update_subscription.UpdateSubscriptionRoute
@@ -59,6 +60,14 @@ fun Web3WalletNavGraph(
 ) {
     var scrimColor by remember { mutableStateOf(Color.Unspecified) }
     val inboxViewModel: InboxViewModel = viewModel()
+
+    navController.addOnDestinationChangedListener(
+        listener = { _, destination, _ ->
+            if (destination.route == Route.Connections.path) {
+                WCDelegate.sessionRequestEvent = null
+                WCDelegate.currentId = null
+            }
+        })
 
     ModalBottomSheetLayout(
         modifier = modifier,
