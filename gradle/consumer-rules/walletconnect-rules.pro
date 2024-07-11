@@ -10,3 +10,5 @@
 
 -allowaccessmodification
 -keeppackagenames doNotKeepAThing
+
+-dontwarn groovy.lang.GroovyShell
