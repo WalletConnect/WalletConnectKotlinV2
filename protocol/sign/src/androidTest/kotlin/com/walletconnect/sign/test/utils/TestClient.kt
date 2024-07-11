@@ -63,7 +63,7 @@ internal object TestClient {
 
         private val coreProtocol = CoreClient.apply {
             Timber.d("Wallet CP start: ")
-            initialize(metadata, RELAY_URL, ConnectionType.MANUAL, app, onError = ::globalOnError)
+            initialize(app, BuildConfig.PROJECT_ID, metadata, ConnectionType.MANUAL, onError = ::globalOnError)
             Relay.connect(::globalOnError)
         }
 
@@ -147,13 +147,23 @@ internal object TestClient {
 
         private val coreProtocol = CoreProtocol(dappKoinApp).apply {
             Timber.d("Dapp CP start: ")
-            initialize(metadata, RELAY_URL, ConnectionType.MANUAL, app) { Timber.e(it.throwable) }
+            initialize(app, BuildConfig.PROJECT_ID, metadata, ConnectionType.MANUAL) { Timber.e(it.throwable) }
 
             // Override of previous Relay necessary for reinitialization of `eventsFlow`
             Relay = RelayClient(dappKoinApp)
 
             // Override of storage instances and depending objects
-            dappKoinApp.modules(overrideModule(Relay, Pairing, PairingController, "test_dapp", RELAY_URL, ConnectionType.MANUAL, app.packageName))
+            dappKoinApp.modules(
+                overrideModule(
+                    Relay,
+                    Pairing,
+                    PairingController,
+                    "test_hybrid",
+                    "wss://relay.walletconnect.org?projectId=${BuildConfig.PROJECT_ID}",
+                    ConnectionType.MANUAL,
+                    app.packageName
+                )
+            )
 
             // Necessary reinit of Relay, Pairing and PairingController
             Relay.initialize { Timber.e(it) }
