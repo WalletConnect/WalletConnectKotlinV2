@@ -99,7 +99,10 @@ class Web3WalletActivity : AppCompatActivity() {
                 when (event) {
                     is CoreEvent.Disconnect -> {
                         connectionsViewModel.refreshConnections()
-                        navController.navigate(Route.Connections.path)
+
+                        if (navController.currentDestination?.route != Route.Connections.path) {
+                            navController.navigate(Route.Connections.path)
+                        }
                     }
 
                     else -> Unit
@@ -137,13 +140,17 @@ class Web3WalletActivity : AppCompatActivity() {
                     is SignEvent.SessionProposal -> navigateWhenReady { navController.navigate(Route.SessionProposal.path) }
                     is SignEvent.SessionAuthenticate -> navigateWhenReady { navController.navigate(Route.SessionAuthenticate.path) }
                     is SignEvent.ExpiredRequest -> {
-                        navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                        if (navController.currentDestination?.route != Route.Connections.path) {
+                            navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                        }
                         Toast.makeText(baseContext, "Request expired", Toast.LENGTH_SHORT).show()
                     }
 
                     is SignEvent.Disconnect -> {
                         connectionsViewModel.refreshConnections()
-                        navController.navigate(Route.Connections.path)
+                        if (navController.currentDestination?.route != Route.Connections.path) {
+                            navController.navigate(Route.Connections.path)
+                        }
                     }
 
                     is AuthEvent.OnRequest -> navController.navigate(Route.AuthRequest.path)

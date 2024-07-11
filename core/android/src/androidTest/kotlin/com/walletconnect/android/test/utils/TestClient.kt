@@ -9,6 +9,7 @@ import com.walletconnect.android.CoreProtocol
 import com.walletconnect.android.di.overrideModule
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
+import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
@@ -21,7 +22,6 @@ import org.koin.core.qualifier.named
 import timber.log.Timber
 
 internal object TestClient {
-    const val RELAY_URL = "wss://relay.walletconnect.com?projectId=${BuildConfig.PROJECT_ID}"
     private val app = ApplicationProvider.getApplicationContext<Application>()
     fun KoinApplication.Companion.createNewWCKoinApp(): KoinApplication = KoinApplication.init().apply { createEagerInstances() }
 
@@ -40,7 +40,7 @@ internal object TestClient {
 
         private val coreProtocol = CoreClient.apply {
             Timber.d("Primary CP start: ")
-            initialize(metadata, RELAY_URL, ConnectionType.MANUAL, app, onError = ::globalOnError)
+            initialize(app, BuildConfig.PROJECT_ID, metadata, ConnectionType.MANUAL, onError = ::globalOnError)
             Relay.connect(::globalOnError)
             _isInitialized.tryEmit(true)
             Timber.d("Primary CP finish: ")
@@ -72,7 +72,7 @@ internal object TestClient {
 
         private val coreProtocol = CoreProtocol(secondaryKoinApp).apply {
             Timber.d("Secondary CP start: ")
-            initialize(metadata, RELAY_URL, ConnectionType.MANUAL, app) { Timber.e(it.throwable) }
+            initialize(app, BuildConfig.PROJECT_ID, metadata, ConnectionType.MANUAL) { Timber.e(it.throwable) }
 
             // Override of previous Relay necessary for reinitialization of `eventsFlow`
             Relay = RelayClient(secondaryKoinApp)

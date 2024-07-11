@@ -27,8 +27,20 @@ interface CoreInterface {
     fun initialize(
         metaData: Core.Model.AppMetaData,
         relayServerUrl: String,
-        connectionType: ConnectionType,
+        connectionType: ConnectionType = ConnectionType.AUTOMATIC,
         application: Application,
+        relay: RelayConnectionInterface? = null,
+        keyServerUrl: String? = null,
+        networkClientTimeout: NetworkClientTimeout? = null,
+        telemetryEnabled: Boolean = true,
+        onError: (Core.Model.Error) -> Unit,
+    )
+
+    fun initialize(
+        application: Application,
+        projectId: String,
+        metaData: Core.Model.AppMetaData,
+        connectionType: ConnectionType = ConnectionType.AUTOMATIC,
         relay: RelayConnectionInterface? = null,
         keyServerUrl: String? = null,
         networkClientTimeout: NetworkClientTimeout? = null,

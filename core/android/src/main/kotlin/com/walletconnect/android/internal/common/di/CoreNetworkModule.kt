@@ -22,28 +22,21 @@ import com.walletconnect.foundation.network.data.service.RelayService
 import okhttp3.Authenticator
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
-import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.android.ext.koin.androidApplication
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
-import java.io.IOException
-import java.net.SocketTimeoutException
 import java.util.concurrent.TimeUnit
 
-private var SERVER_URL: String = ""
-private const val DEFAULT_RELAY_URL = "relay.walletconnect.com"
 private const val DEFAULT_BACKOFF_SECONDS = 5L
 
 @Suppress("LocalVariableName")
 @JvmSynthetic
 fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, sdkVersion: String, timeout: NetworkClientTimeout? = null, bundleId: String) = module {
     val networkClientTimeout = timeout ?: NetworkClientTimeout.getDefaultTimeout()
-    SERVER_URL = serverUrl
-
     factory(named(AndroidCommonDITags.RELAY_URL)) {
-        val jwt = get<GenerateJwtStoreClientIdUseCase>().invoke(SERVER_URL)
-        Uri.parse(SERVER_URL)
+        val jwt = get<GenerateJwtStoreClientIdUseCase>().invoke(serverUrl)
+        Uri.parse(serverUrl)
             .buildUpon()
             .appendQueryParameter("auth", jwt)
             .appendQueryParameter("ua", get(named(AndroidCommonDITags.USER_AGENT)))
@@ -74,42 +67,10 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
         HttpLoggingInterceptor().apply { setLevel(HttpLoggingInterceptor.Level.BODY) }
     }
 
-    single(named(AndroidCommonDITags.FAIL_OVER_INTERCEPTOR)) {
-        Interceptor { chain ->
-            var request = chain.request()
-            var response: Response? = null
-
-            if (request.url.host.contains(DEFAULT_RELAY_URL)) {
-                try {
-                    response = chain.proceed(request)
-
-                    return@Interceptor response
-                } catch (e: Exception) {
-                    when (e) {
-                        is SocketTimeoutException, is IOException -> {
-                            val failoverUrl = request.url.host.replace(".com", ".org")
-                            val newHttpUrl = request.url.newBuilder().host(failoverUrl).build()
-
-                            request = request.newBuilder().url(newHttpUrl).build()
-                            return@Interceptor chain.proceed(request)
-                        }
-                        else -> {
-                            throw e
-                        }
-                    }
-                } finally {
-                    response?.close()
-                }
-            } else {
-                return@Interceptor chain.proceed(request)
-            }
-        }
-    }
-
     single(named(AndroidCommonDITags.AUTHENTICATOR)) {
         Authenticator { _, response ->
             response.request.run {
-                if (Uri.parse(SERVER_URL).host == this.url.host) {
+                if (Uri.parse(serverUrl).host == this.url.host) {
                     this.newBuilder().url(get<String>(named(AndroidCommonDITags.RELAY_URL))).build()
                 } else {
                     null
@@ -121,7 +82,6 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
     single(named(AndroidCommonDITags.OK_HTTP)) {
         OkHttpClient.Builder()
             .addInterceptor(get<Interceptor>(named(AndroidCommonDITags.SHARED_INTERCEPTOR)))
-            .addInterceptor(get<Interceptor>(named(AndroidCommonDITags.FAIL_OVER_INTERCEPTOR)))
             .authenticator((get(named(AndroidCommonDITags.AUTHENTICATOR))))
             .writeTimeout(networkClientTimeout.timeout, networkClientTimeout.timeUnit)
             .readTimeout(networkClientTimeout.timeout, networkClientTimeout.timeUnit)

@@ -82,7 +82,7 @@ class WCInstrumentedActivityScenario : TestRule {
                     }
                 }
             }.fold(
-                onSuccess = { Timber.d("Connection established with: ${TestClient.RELAY_URL}") },
+                onSuccess = { Timber.d("Connection established with successfully") },
                 onFailure = { fail("Unable to establish connection within $timeoutDuration") }
             )
 
