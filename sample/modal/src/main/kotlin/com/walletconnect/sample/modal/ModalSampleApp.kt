@@ -28,7 +28,7 @@ class ModalSampleApp : Application() {
             icons = listOf("https://gblobscdn.gitbook.com/spaces%2F-LJJeCjcLrr53DcT1Ml7%2Favatar.png?alt=media"),
             redirect = "kotlin-modal-wc://request",
             linkMode = true,
-            appLink = "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/dapp"
+            appLink = "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/lab"
         )
 
         CoreClient.initialize(
