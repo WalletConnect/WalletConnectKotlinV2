@@ -204,7 +204,7 @@ object Web3Modal {
     fun authenticate(
         authenticate: Modal.Params.Authenticate,
         walletAppLink: String? = null,
-        onSuccess: (String?) -> Unit,
+        onSuccess: (String) -> Unit,
         onError: (Modal.Model.Error) -> Unit,
     ) {
 

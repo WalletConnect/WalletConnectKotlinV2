@@ -61,7 +61,7 @@ internal class SessionAuthenticateUseCase(
         pairingTopic: String?,
         expiry: Expiry?,
         walletAppLink: String?,
-        onSuccess: (String?) -> Unit,
+        onSuccess: (String) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
         if (authenticate.chains.isEmpty()) {
@@ -75,7 +75,6 @@ internal class SessionAuthenticateUseCase(
         }
 
         val requestExpiry = expiry ?: Expiry(currentTimeInSeconds + oneHourInSeconds)
-        val pairing = getPairingForSessionAuthenticate(pairingTopic)
         val optionalNamespaces = getNamespacesFromReCaps(authenticate.chains, if (methods.isNullOrEmpty()) listOf("personal_sign") else methods).toMapOfEngineNamespacesOptional()
         val externalReCapsJson: String = getExternalReCapsJson(authenticate)
         val signReCapsJson = getSignReCapsJson(methods, authenticate)
@@ -99,14 +98,14 @@ internal class SessionAuthenticateUseCase(
         val authRequest: SignRpc.SessionAuthenticate = SignRpc.SessionAuthenticate(params = authParams)
         crypto.setKey(requesterPublicKey, responseTopic.getParticipantTag())
 
-        if (!walletAppLink.isNullOrEmpty() && selfAppMetaData.redirect?.linkMode == true && linkModeStorageRepository.isEnabled(walletAppLink)) {
+        if (isLinkModeEnabled(walletAppLink)) {
             try {
-                linkModeJsonRpcInteractor.triggerRequest(authRequest, appLink = walletAppLink, topic = Topic(generateUUID()), envelopeType = EnvelopeType.TWO)
-                onSuccess(null)
+                linkModeJsonRpcInteractor.triggerRequest(authRequest, appLink = walletAppLink!!, topic = Topic(generateUUID()), envelopeType = EnvelopeType.TWO)
             } catch (e: Error) {
                 onFailure(e)
             }
         } else {
+            val pairing = getPairingForSessionAuthenticate(pairingTopic)
             logger.log("Session authenticate subscribing on topic: $responseTopic")
             jsonRpcInteractor.subscribe(
                 responseTopic,
@@ -139,6 +138,8 @@ internal class SessionAuthenticateUseCase(
             }
         }
     }
+
+    private suspend fun isLinkModeEnabled(walletAppLink: String?) = !walletAppLink.isNullOrEmpty() && selfAppMetaData.redirect?.linkMode == true && linkModeStorageRepository.isEnabled(walletAppLink)
 
     private fun getSignReCapsJson(methods: List<String>?, authenticate: EngineDO.Authenticate) =
         if (!methods.isNullOrEmpty()) {
@@ -228,7 +229,7 @@ internal interface SessionAuthenticateUseCaseInterface {
         pairingTopic: String?,
         expiry: Expiry?,
         walletAppLink: String? = null,
-        onSuccess: (String?) -> Unit,
+        onSuccess: (String) -> Unit,
         onFailure: (Throwable) -> Unit
     )
 }

@@ -85,7 +85,6 @@ internal class SessionRequestUseCase(
             if (session.peerAppLink.isNullOrEmpty()) return@supervisorScope onFailure(IllegalStateException("App link is missing"))
             try {
                 linkModeJsonRpcInteractor.triggerRequest(sessionPayload, Topic(request.topic), session.peerAppLink)
-                onSuccess(sessionPayload.id)
             } catch (e: Exception) {
                 onFailure(e)
             }

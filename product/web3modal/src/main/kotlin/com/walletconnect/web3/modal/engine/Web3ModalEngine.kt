@@ -95,7 +95,7 @@ internal class Web3ModalEngine(
         name: String, method: String,
         authenticate: Modal.Params.Authenticate,
         walletAppLink: String? = null,
-        onSuccess: (String?) -> Unit,
+        onSuccess: (String) -> Unit,
         onError: (Throwable) -> Unit
     ) {
         connectionEventRepository.saveEvent(name, method)

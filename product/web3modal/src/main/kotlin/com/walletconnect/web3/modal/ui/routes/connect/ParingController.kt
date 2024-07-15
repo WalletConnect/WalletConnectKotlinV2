@@ -20,7 +20,7 @@ internal interface ParingController {
         name: String, method: String,
         authParams: Modal.Model.AuthPayloadParams,
         walletAppLink: String? = null,
-        onSuccess: (String?) -> Unit,
+        onSuccess: (String) -> Unit,
         onError: (Throwable) -> Unit
     )
 
@@ -66,7 +66,7 @@ internal class PairingControllerImpl : ParingController {
         method: String,
         authParams: Modal.Model.AuthPayloadParams,
         walletAppLink: String?,
-        onSuccess: (String?) -> Unit,
+        onSuccess: (String) -> Unit,
         onError: (Throwable) -> Unit
     ) {
         try {
