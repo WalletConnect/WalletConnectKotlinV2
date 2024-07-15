@@ -61,7 +61,7 @@ internal class SessionAuthenticateUseCase(
         pairingTopic: String?,
         expiry: Expiry?,
         walletAppLink: String?,
-        onSuccess: (String?) -> Unit,
+        onSuccess: (String) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
         if (authenticate.chains.isEmpty()) {
@@ -101,7 +101,6 @@ internal class SessionAuthenticateUseCase(
         if (isLinkModeEnabled(walletAppLink)) {
             try {
                 linkModeJsonRpcInteractor.triggerRequest(authRequest, appLink = walletAppLink!!, topic = Topic(generateUUID()), envelopeType = EnvelopeType.TWO)
-                onSuccess(null)
             } catch (e: Error) {
                 onFailure(e)
             }
@@ -230,7 +229,7 @@ internal interface SessionAuthenticateUseCaseInterface {
         pairingTopic: String?,
         expiry: Expiry?,
         walletAppLink: String? = null,
-        onSuccess: (String?) -> Unit,
+        onSuccess: (String) -> Unit,
         onFailure: (Throwable) -> Unit
     )
 }

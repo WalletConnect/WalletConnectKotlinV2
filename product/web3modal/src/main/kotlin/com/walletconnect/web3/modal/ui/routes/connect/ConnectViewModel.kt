@@ -154,7 +154,7 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
                 name, method,
                 walletAppLink = linkMode,
                 authParams = if (Web3Modal.selectedChain != null) Web3Modal.authPayloadParams!!.copy(chains = listOf(Web3Modal.selectedChain!!.id)) else Web3Modal.authPayloadParams!!,
-                onSuccess = { if (!it.isNullOrBlank()) onSuccess(it) },
+                onSuccess = { onSuccess(it) },
                 onError = {
                     sendEventUseCase.send(Props(EventType.TRACK, EventType.Track.CONNECT_ERROR, Properties(message = it.message ?: "Relay error while connecting")))
                     showError(it.localizedMessage)

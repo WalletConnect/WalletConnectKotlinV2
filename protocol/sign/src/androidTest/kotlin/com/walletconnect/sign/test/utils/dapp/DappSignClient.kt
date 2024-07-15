@@ -67,7 +67,7 @@ fun dappClientAuthenticateLinkMode(onPairing: (String) -> Unit) {
         "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet",
         onSuccess = { pairingUrl ->
             Timber.d("DappClient: on sent authenticate success: $pairingUrl")
-            onPairing(pairingUrl ?: "")
+            onPairing(pairingUrl)
         },
         onError = ::globalOnError
     )

@@ -19,7 +19,6 @@ import com.walletconnect.sign.di.signJsonRpcModule
 import com.walletconnect.sign.di.storageModule
 import com.walletconnect.sign.engine.domain.SignEngine
 import com.walletconnect.sign.engine.model.EngineDO
-import com.walletconnect.util.Empty
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -137,7 +136,7 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     override fun authenticate(
         authenticate: Sign.Params.Authenticate,
         walletAppLink: String?,
-        onSuccess: (String?) -> Unit,
+        onSuccess: (String) -> Unit,
         onError: (Sign.Model.Error) -> Unit,
     ) {
         checkEngineInitialization()
@@ -493,31 +492,6 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
                     onSuccess = { onSuccess() },
                     onFailure = { error -> onError(Sign.Model.Error(error)) }
                 )
-            } catch (error: Exception) {
-                onError(Sign.Model.Error(error))
-            }
-        }
-    }
-
-    @Deprecated(
-        "The onSuccess callback has been replaced with a new callback that returns optional Pairing URL",
-        replaceWith = ReplaceWith("fun authenticate(authenticate: Sign.Params.Authenticate, val walletAppLink: String?, onSuccess: (String?) -> Unit, onError: (Sign.Model.Error) -> Unit)")
-    )
-    @Throws(IllegalStateException::class)
-    override fun authenticate(
-        authenticate: Sign.Params.Authenticate,
-        onSuccess: (String) -> Unit,
-        onError: (Sign.Model.Error) -> Unit,
-    ) {
-        checkEngineInitialization()
-        scope.launch {
-            try {
-                signEngine.authenticate(authenticate.toAuthenticate(),
-                    authenticate.methods, authenticate.pairingTopic,
-                    if (authenticate.expiry == null) null else Expiry(authenticate.expiry),
-                    null,
-                    onSuccess = { url -> onSuccess(url ?: String.Empty) },
-                    onFailure = { throwable -> onError(Sign.Model.Error(throwable)) })
             } catch (error: Exception) {
                 onError(Sign.Model.Error(error))
             }
