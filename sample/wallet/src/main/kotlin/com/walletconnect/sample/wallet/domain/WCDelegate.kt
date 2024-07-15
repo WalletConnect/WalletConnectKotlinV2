@@ -75,7 +75,6 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
 
     override val onSessionAuthenticate: (Wallet.Model.SessionAuthenticate, Wallet.Model.VerifyContext) -> Unit
         get() = { sessionAuthenticate, verifyContext ->
-
             sessionAuthenticateEvent = Pair(sessionAuthenticate, verifyContext)
 
             scope.launch {

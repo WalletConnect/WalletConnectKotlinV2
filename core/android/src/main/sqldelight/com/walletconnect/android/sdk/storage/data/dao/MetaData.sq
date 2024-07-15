@@ -19,7 +19,7 @@ CREATE TABLE MetaData(
 
 insertOrAbortMetaData:
 INSERT OR ABORT INTO MetaData(sequence_topic, name, description, url, icons, native, type, app_link, link_mode)
-VALUES (?, ?, ?, ?, ?, ?,?,?, ?);
+VALUES (?,?,?,?,?,?,?,?,?);
 
 updateMetaData:
 UPDATE MetaData
