@@ -181,28 +181,35 @@ class Web3WalletActivity : AppCompatActivity() {
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
-        handleAppLink(intent)
 
-        when {
-            intent?.dataString?.startsWith("kotlin-web3wallet:/wc") == true -> {
-                val uri = intent.dataString?.replace("kotlin-web3wallet:/wc", "kotlin-web3wallet://wc")
-                intent.setData(uri?.toUri())
+        if (intent?.dataString?.contains("wc_ev") == true) {
+            Web3Wallet.dispatchEnvelope(intent.dataString ?: "") {
+                lifecycleScope.launch(Dispatchers.Main) {
+                    Toast.makeText(this@Web3WalletActivity, "Error dispatching envelope: ${it.throwable.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        } else {
+            when {
+                intent?.dataString?.startsWith("kotlin-web3wallet:/wc") == true -> {
+                    val uri = intent.dataString?.replace("kotlin-web3wallet:/wc", "kotlin-web3wallet://wc")
+                    intent.setData(uri?.toUri())
+                }
+
+                intent?.dataString?.startsWith("wc:") == true -> {
+                    val uri = "kotlin-web3wallet://wc?uri=" + URLEncoder.encode(intent.dataString, "UTF-8")
+                    intent.setData(uri.toUri())
+                }
             }
 
-            intent?.dataString?.startsWith("wc:") == true -> {
-                val uri = "kotlin-web3wallet://wc?uri=" + URLEncoder.encode(intent.dataString, "UTF-8")
-                intent.setData(uri.toUri())
+            if (intent?.dataString?.startsWith("kotlin-web3wallet://request") == true) {
+                web3walletViewModel.showRequestLoader(true)
             }
-        }
 
-        if (intent?.dataString?.startsWith("kotlin-web3wallet://request") == true) {
-            web3walletViewModel.showRequestLoader(true)
-        }
-
-        if (intent?.dataString?.startsWith("kotlin-web3wallet://request") == false
-            && intent.dataString?.contains("requestId") == false
-        ) {
-            navController.handleDeepLink(intent)
+            if (intent?.dataString?.startsWith("kotlin-web3wallet://request") == false
+                && intent.dataString?.contains("requestId") == false
+            ) {
+                navController.handleDeepLink(intent)
+            }
         }
     }
 
