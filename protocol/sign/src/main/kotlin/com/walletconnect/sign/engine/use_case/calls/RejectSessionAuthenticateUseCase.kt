@@ -69,7 +69,6 @@ internal class RejectSessionAuthenticateUseCase(
                     Participants(senderPublicKey, receiverPublicKey),
                     EnvelopeType.ONE
                 )
-                onSuccess()
             } catch (e: Exception) {
                 onFailure(e)
             }

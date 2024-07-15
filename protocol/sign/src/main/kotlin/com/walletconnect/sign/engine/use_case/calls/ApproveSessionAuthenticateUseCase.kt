@@ -162,7 +162,6 @@ internal class ApproveSessionAuthenticateUseCase(
             if (jsonRpcHistoryEntry.transportType == TransportType.LINK_MODE && receiverMetadata.redirect?.linkMode == true) {
                 if (receiverMetadata.redirect?.universal.isNullOrEmpty()) return@supervisorScope onFailure(IllegalStateException("App link is missing"))
                 try {
-                    onSuccess()
                     linkModeJsonRpcInteractor.triggerResponse(
                         responseTopic,
                         response,

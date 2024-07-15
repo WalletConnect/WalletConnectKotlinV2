@@ -202,28 +202,8 @@ internal class SignEngine(
     }
 
     fun setup() {
-        //todo: clean up
-        if (envelopeRequestsJob == null) {
-            envelopeRequestsJob = linkModeJsonRpcInteractor.clientSyncJsonRpc
-                .filter { request -> request.params is SignParams }
-                .onEach { request ->
-                    when (val requestParams = request.params) {
-                        is SignParams.SessionAuthenticateParams -> onAuthenticateSessionUseCase(request, requestParams)
-                        is SignParams.SessionRequestParams -> onSessionRequestUseCase(request, requestParams)
-                    }
-                }.launchIn(scope)
-        }
-
-        if (envelopeResponsesJob == null) {
-            envelopeResponsesJob = linkModeJsonRpcInteractor.peerResponse
-                .filter { request -> request.params is SignParams }
-                .onEach { response ->
-                    when (val params = response.params) {
-                        is SignParams.SessionAuthenticateParams -> onSessionAuthenticateResponseUseCase(response, params)
-                        is SignParams.SessionRequestParams -> onSessionRequestResponseUseCase(response, params)
-                    }
-                }.launchIn(scope)
-        }
+        handleLinkModeRequests()
+        handleLinkModeResponses()
 
         if (signEventsJob == null) {
             signEventsJob = collectSignEvents()
@@ -233,6 +213,10 @@ internal class SignEngine(
             internalErrorsJob = collectInternalErrors()
         }
 
+        handleRelayRequestsAndResponses()
+    }
+
+    private fun handleRelayRequestsAndResponses() {
         jsonRpcInteractor.wssConnectionState
             .filterIsInstance<WSSConnectionState.Connected>()
             .onEach {
@@ -251,6 +235,32 @@ internal class SignEngine(
                     jsonRpcResponsesJob = collectJsonRpcResponses()
                 }
             }.launchIn(scope)
+    }
+
+    private fun handleLinkModeResponses() {
+        if (envelopeResponsesJob == null) {
+            envelopeResponsesJob = linkModeJsonRpcInteractor.peerResponse
+                .filter { request -> request.params is SignParams }
+                .onEach { response ->
+                    when (val params = response.params) {
+                        is SignParams.SessionAuthenticateParams -> onSessionAuthenticateResponseUseCase(response, params)
+                        is SignParams.SessionRequestParams -> onSessionRequestResponseUseCase(response, params)
+                    }
+                }.launchIn(scope)
+        }
+    }
+
+    private fun handleLinkModeRequests() {
+        if (envelopeRequestsJob == null) {
+            envelopeRequestsJob = linkModeJsonRpcInteractor.clientSyncJsonRpc
+                .filter { request -> request.params is SignParams }
+                .onEach { request ->
+                    when (val requestParams = request.params) {
+                        is SignParams.SessionAuthenticateParams -> onAuthenticateSessionUseCase(request, requestParams)
+                        is SignParams.SessionRequestParams -> onSessionRequestUseCase(request, requestParams)
+                    }
+                }.launchIn(scope)
+        }
     }
 
     private fun collectJsonRpcRequests(): Job =

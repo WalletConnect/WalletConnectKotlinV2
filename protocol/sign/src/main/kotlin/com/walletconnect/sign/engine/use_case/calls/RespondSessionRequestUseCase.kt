@@ -73,7 +73,6 @@ internal class RespondSessionRequestUseCase(
             try {
                 removePendingSessionRequestAndEmit(jsonRpcResponse.id)
                 linkModeJsonRpcInteractor.triggerResponse(Topic(topic), jsonRpcResponse, session.peerAppLink)
-                onSuccess()
             } catch (e: Exception) {
                 onFailure(e)
             }
