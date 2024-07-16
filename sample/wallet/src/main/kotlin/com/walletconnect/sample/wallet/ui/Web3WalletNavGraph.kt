@@ -2,6 +2,7 @@
 
 package com.walletconnect.sample.wallet.ui
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
@@ -47,6 +48,7 @@ import com.walletconnect.sample.wallet.ui.routes.dialog_routes.session_proposal.
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.session_request.SessionRequestRoute
 import com.walletconnect.sample.wallet.ui.routes.dialog_routes.snackbar_message.SnackbarMessageRoute
 
+@SuppressLint("RestrictedApi")
 @ExperimentalMaterialNavigationApi
 @Composable
 fun Web3WalletNavGraph(
