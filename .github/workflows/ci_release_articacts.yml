@@ -1,4 +1,4 @@
-name: Release Artifacts
+name: Release Artifacts - Sonatype
 
 #on:
 #  push:
@@ -6,15 +6,6 @@ name: Release Artifacts
 #      - master
 
 on:
-  push:
-    branches:
-      - feat/automate_sending_artifacts_on_merge
-    paths:
-      - 'foundation/**'
-      - 'core/**'
-      - 'protocol/**'
-      - 'product/**'
-      - 'sample/**'
   workflow_dispatch:
 
 jobs:
