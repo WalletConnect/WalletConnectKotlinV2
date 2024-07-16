@@ -32,10 +32,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Fetch Properties File
-        env:
-          SECRETS_PROPERTIES: ${{ secrets.SECRETS_PROPERTIES }}
-        run: echo $SECRETS_PROPERTIES | base64 --decode > secrets.properties
+#      - name: Fetch Properties File
+#        env:
+#          SECRETS_PROPERTIES: ${{ secrets.SECRETS_PROPERTIES }}
+#        run: echo $SECRETS_PROPERTIES | base64 --decode > secrets.properties
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
