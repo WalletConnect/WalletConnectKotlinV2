@@ -1,3 +1,7 @@
+import kotlin.String;
+import kotlin.collections.List;
+import kotlin.collections.Map;
+
 -- migrates 8db to 9db
 
 -- CREATE V9 SCHEMA
