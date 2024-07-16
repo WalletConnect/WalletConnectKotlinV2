@@ -8,7 +8,7 @@ name: Release Artifacts
 on:
   push:
     branches:
-      - develop
+      - feat/automate_sending_artifacts_on_merge
     paths:
       - 'foundation/**'
       - 'core/**'
