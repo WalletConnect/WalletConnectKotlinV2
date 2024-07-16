@@ -25,6 +25,12 @@ android {
         buildConfigField("String", "BOM_VERSION", "\"${BOM_VERSION}\"")
     }
 
+    lint {
+        abortOnError = true
+        ignoreWarnings = true
+        warningsAsErrors = false
+    }
+
     compileOptions {
         sourceCompatibility = jvmVersion
         targetCompatibility = jvmVersion
