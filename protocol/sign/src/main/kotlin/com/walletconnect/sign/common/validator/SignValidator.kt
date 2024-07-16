@@ -2,6 +2,7 @@
 
 package com.walletconnect.sign.common.validator
 
+import android.annotation.SuppressLint
 import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.model.RelayProtocolOptions
 import com.walletconnect.android.internal.common.model.SymmetricKey
@@ -211,7 +212,8 @@ internal object SignValidator {
         return true
     }
 
-	private fun allEventsWithChains(namespaces: Map<String, Namespace>): Map<String, List<String>> {
+	@SuppressLint("SuspiciousIndentation")
+    private fun allEventsWithChains(namespaces: Map<String, Namespace>): Map<String, List<String>> {
 		val eventsByChains = mutableMapOf<String, MutableList<String>>()
 		namespaces
 			.filter { (namespaceKey, namespace) -> isNamespaceRegexCompliant(namespaceKey) && namespace.chains != null }

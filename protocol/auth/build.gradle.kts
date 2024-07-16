@@ -47,6 +47,13 @@ android {
         targetCompatibility = jvmVersion
     }
 
+    lint {
+        abortOnError = true
+        ignoreWarnings = true
+        warningsAsErrors = false
+    }
+
+
     kotlinOptions {
         jvmTarget = jvmVersion.toString()
     }
