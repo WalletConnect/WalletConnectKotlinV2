@@ -64,5 +64,6 @@ jobs:
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
         run: |
+          ./gradlew releaseAllSDKs -Ptype=local
           ./gradlew releaseAllSDKs -Ptype=sonatype
-          ./gradlew closeSonatypeStagingRepository
+#          ./gradlew closeSonatypeStagingRepository
