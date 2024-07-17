@@ -1,9 +1,12 @@
 name: Release Artifacts - Sonatype
 
+#on:
+#  push:
+#    branches:
+#      - master
+
 on:
-  push:
-    branches:
-      - master
+  workflow_dispatch:
 
 jobs:
   release:
