@@ -201,5 +201,5 @@ javaLibrary = { id = "org.gradle.java-library" }
 
 sqlDelight = { id = "app.cash.sqldelight", version.ref = "sqlDelight" }
 sonarqube = { id = "org.sonarqube", version = "4.4.1.3373" }
-nexusPublish = { id = "io.github.gradle-nexus.publish-plugin", version = "1.1.0" }
+nexusPublish = { id = "io.github.gradle-nexus.publish-plugin", version = "2.0.0" }
 paparazzi = { id = "app.cash.paparazzi", version.ref = "paparazzi" }
