@@ -66,7 +66,7 @@ jobs:
         run: |
           ./gradlew releaseAllSDKs -Ptype=local
 
-      - name: Run Release all SDKs Task
+      - name: Run Publish all SDKs to Sonatype task
         env:
           SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
@@ -76,4 +76,14 @@ jobs:
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
         run: |
           ./gradlew releaseAllSDKs -Ptype=sonatype
+
+      - name: Run Close and Release staging repositories ask
+        env:
+          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+          SONATYPE_STAGING_PROFILE_ID: ${{ secrets.SONATYPE_STAGING_PROFILE_ID }}
+          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+        run: |
           ./gradlew closeAndReleaseMultipleRepositories

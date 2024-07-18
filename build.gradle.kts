@@ -126,11 +126,11 @@ val nexusPassword: String get() = System.getenv("OSSRH_PASSWORD")
 val nexusUrl = "https://s01.oss.sonatype.org/service/local/staging"
 
 tasks.register("closeAndReleaseMultipleRepositories") {
+    group = "release"
+    description = "Release all Sonatype staging repositories"
 
-    @TaskAction
-    fun closeAndRelease() {
+    doLast {
         val repos = fetchRepositoryIds()
-
         println("kobe: Repos IDs: $repos")
 
         closeRepositories(repos)
