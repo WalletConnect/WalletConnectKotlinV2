@@ -1,16 +1,13 @@
 
 import com.android.build.gradle.BaseExtension
-import org.apache.http.HttpResponse
-import org.apache.http.client.methods.HttpPost
-import org.apache.http.impl.client.HttpClients
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.sonarqube.gradle.SonarExtension
-import java.util.Base64
 
 plugins {
     alias(libs.plugins.nexusPublish)
     alias(libs.plugins.sonarqube)
     id("release-scripts")
+    id("close-release-repositories")
     id("version-bump")
 }
 
@@ -119,28 +116,10 @@ nexusPublishing {
     }
 }
 
-tasks.register("closeSonatypeStagingRepositories") {
-    group = "release"
-    description = "Close all Sonatype staging repositories"
-
-    doLast {
-        val client = HttpClients.createDefault()
-        val post = HttpPost("https://oss.sonatype.org/service/local/staging/bulk/close")
-        post.setHeader("Content-Type", "application/json")
-        post.setHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString("${System.getenv("OSSRH_USERNAME")}:${System.getenv("OSSRH_PASSWORD")}".toByteArray()))
-        println("kobe: POST: $post")
-
-
-
-        val response: HttpResponse = client.execute(post)
-        println("Closed staging repositories - Response Code: ${response}")
-    }
-}
-
-tasks.register("releaseSonatypeStagingRepositories", Exec::class) {
-    group = "release"
-    description = "Release all closed Sonatype staging repositories"
-
-    // Command to release all closed staging repositories
-    commandLine("curl", "-u", "${System.getenv("OSSRH_USERNAME")}:${System.getenv("OSSRH_PASSWORD")}", "-X", "POST", "https://oss.sonatype.org/service/local/staging/bulk/promote")
-}
+//tasks.register("releaseSonatypeStagingRepositories", Exec::class) {
+//    group = "release"
+//    description = "Release all closed Sonatype staging repositories"
+//
+//    // Command to release all closed staging repositories
+//    commandLine("curl", "-u", "${System.getenv("OSSRH_USERNAME")}:${System.getenv("OSSRH_PASSWORD")}", "-X", "POST", "https://oss.sonatype.org/service/local/staging/bulk/promote")
+//}
