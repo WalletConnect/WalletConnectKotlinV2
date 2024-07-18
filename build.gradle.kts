@@ -1,15 +1,13 @@
-
 import com.android.build.gradle.BaseExtension
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.sonarqube.gradle.SonarExtension
-import java.util.Base64
-import javax.xml.parsers.DocumentBuilderFactory
-import org.apache.http.HttpResponse
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.HttpClients
 import org.apache.http.util.EntityUtils
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.sonarqube.gradle.SonarExtension
+import java.util.Base64
+import javax.xml.parsers.DocumentBuilderFactory
 
 plugins {
     alias(libs.plugins.nexusPublish)
@@ -123,89 +121,143 @@ nexusPublishing {
     }
 }
 
-tasks.register("closeSonatypeStagingRepositories") {
-    group = "release"
-    description = "Close all Sonatype staging repositories"
+val nexusUsername: String get() = System.getenv("OSSRH_USERNAME")
+val nexusPassword: String get() = System.getenv("OSSRH_PASSWORD")
+val nexusUrl = "https://s01.oss.sonatype.org/service/local/staging"
 
-    doLast {
-        val client = HttpClients.createDefault()
-        val get = HttpGet("https://s01.oss.sonatype.org/service/local/staging/profile_repositories")
-        get.setHeader("Content-Type", "application/xml")
-        get.setHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString("${System.getenv("OSSRH_USERNAME")}:${System.getenv("OSSRH_PASSWORD")}".toByteArray()))
+tasks.register("closeAndReleaseMultipleRepositories") {
 
-        val response: HttpResponse
-        try {
-            response = client.execute(get)
-        } catch (e: Exception) {
-            println("Failed to fetch staging repositories - Exception: ${e.message}")
-            return@doLast
+    @TaskAction
+    fun closeAndRelease() {
+        val repos = fetchRepositoryIds()
+
+        println("kobe: Repos IDs: $repos")
+
+        closeRepositories(repos)
+        waitForAllRepositoriesToClose(repos)
+        releaseRepositories(repos)
+    }
+}
+
+fun fetchRepositoryIds(): List<String> {
+    val client = HttpClients.createDefault()
+    val httpGet = HttpGet("$nexusUrl/profile_repositories").apply {
+        setHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString("$nexusUsername:$nexusPassword".toByteArray()))
+    }
+
+    val response = client.execute(httpGet)
+    val responseBody = EntityUtils.toString(response.entity)
+    if (response.statusLine.statusCode != 200) {
+        throw RuntimeException("Failed: HTTP error code : ${response.statusLine.statusCode} $responseBody")
+    }
+
+    return parseRepositoryIds(responseBody)
+}
+
+fun parseRepositoryIds(xmlResponse: String): List<String> {
+    val factory = DocumentBuilderFactory.newInstance()
+    val builder = factory.newDocumentBuilder()
+    val inputStream = xmlResponse.byteInputStream()
+    val doc = builder.parse(inputStream)
+    val nodeList = doc.getElementsByTagName("stagingProfileRepository")
+
+    val repositoryIds = mutableListOf<String>()
+    for (i in 0 until nodeList.length) {
+        val node = nodeList.item(i)
+        val element = node as? org.w3c.dom.Element
+        val repoId = element?.getElementsByTagName("repositoryId")?.item(0)?.textContent
+        val type = element?.getElementsByTagName("type")?.item(0)?.textContent
+        if (repoId != null && type == "open") {
+            repositoryIds.add(repoId)
         }
+    }
+    return repositoryIds
+}
 
-        if (response.statusLine.statusCode != 200) {
-            println("Failed to list staging repositories - Response Code: ${response.statusLine.statusCode}")
-            return@doLast
-        }
-
-        val xmlResponse = EntityUtils.toString(response.entity).trim()
-        val repositoryIds = mutableListOf<String>()
-        try {
-            val dbFactory = DocumentBuilderFactory.newInstance()
-            val dBuilder = dbFactory.newDocumentBuilder()
-            val doc = dBuilder.parse(xmlResponse.byteInputStream())
-
-            doc.documentElement.normalize()
-
-            val repositories = doc.getElementsByTagName("stagingProfileRepository")
-            for (i in 0 until repositories.length) {
-                val repository = repositories.item(i)
-
-                if (repository.nodeType == org.w3c.dom.Node.ELEMENT_NODE) {
-                    val element = repository as org.w3c.dom.Element
-                    val repositoryId = element.getElementsByTagName("repositoryId").item(0).textContent.trim()
-                    val type = element.getElementsByTagName("type").item(0).textContent.trim()
-
-                    if (type == "open") {
-                        repositoryIds.add(repositoryId)
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            println("Failed to parse XML response - Exception: ${e.message}")
-            return@doLast
-        }
-
-        if (repositoryIds.isEmpty()) {
-            println("No open staging repositories found")
-            return@doLast
-        }
-
-        val post = HttpPost("https://s01.oss.sonatype.org/service/local/staging/bulk/close")
-        post.setHeader("Content-Type", "application/json")
-        post.setHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString("${System.getenv("OSSRH_USERNAME")}:${System.getenv("OSSRH_PASSWORD")}".toByteArray()))
-
-        val json = """
+fun closeRepositories(repoIds: List<String>) {
+    val closeUrl = "$nexusUrl/bulk/close"
+    val json = """
             {
                 "data": {
-                    "stagedRepositoryIds": ${repositoryIds.joinToString(prefix = "[", postfix = "]", separator = ",") { "\"$it\"" }}
+                    "stagedRepositoryIds": ${repoIds.joinToString(prefix = "[\"", separator = "\",\"", postfix = "\"]")}
                 }
             }
         """.trimIndent()
+    executePostRequest(closeUrl, json)
+}
 
-        post.entity = StringEntity(json)
+fun waitForAllRepositoriesToClose(repoIds: List<String>) {
+    val client = HttpClients.createDefault()
+    val statusUrl = "$nexusUrl/repository/"
+    val closedRepos = mutableSetOf<String>()
 
-        try {
-            val closeResponse = client.execute(post)
-            println("Closed staging repositories - Response Code: ${closeResponse.statusLine.statusCode}")
-        } catch (e: Exception) {
-            println("Failed to close staging repositories - Exception: ${e.message}")
+    while (closedRepos.size < repoIds.size) {
+        repoIds.forEach { repoId ->
+            if (!closedRepos.contains(repoId)) {
+                val httpGet = HttpGet("$statusUrl$repoId").apply {
+                    setHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString("$nexusUsername:$nexusPassword".toByteArray()))
+                }
+                val response = client.execute(httpGet)
+                println("kobe: GET request to $repoId returned status code: ${response.statusLine.statusCode}")
+                val responseBody = EntityUtils.toString(response.entity)
+
+                val state = parseRepositoryState(responseBody, repoId)
+                if (state == "closed") {
+                    println("kobe: Repository $repoId is now in state: $state")
+                    closedRepos.add(repoId)
+                } else {
+                    println("Waiting for repository $repoId to be closed, current state: $state")
+                }
+            }
+        }
+        if (closedRepos.size < repoIds.size) {
+            Thread.sleep(10000) // Wait for 10 seconds before retrying
         }
     }
 }
 
-//tasks.register("releaseSonatypeStagingRepositories", Exec::class) {
-//    group = "release"
-//    description = "Release all closed Sonatype staging repositories"
-//
-//    // Command to release all closed staging repositories
-//    commandLine("curl", "-u", "${System.getenv("OSSRH_USERNAME")}:${System.getenv("OSSRH_PASSWORD")}", "-X", "POST", "https://oss.sonatype.org/service/local/staging/bulk/promote")
-//}
+fun releaseRepositories(repoIds: List<String>) {
+    val releaseUrl = "$nexusUrl/bulk/promote"
+    val json = """
+            {
+                "data": {
+                    "stagedRepositoryIds": ${repoIds.joinToString(prefix = "[\"", separator = "\",\"", postfix = "\"]")}
+                }
+            }
+        """.trimIndent()
+    println("kobe: Release JSON: $json")
+//    executePostRequest(releaseUrl, json)
+}
+
+fun executePostRequest(url: String, json: String) {
+    val client = HttpClients.createDefault()
+    val httpPost = HttpPost(url).apply {
+        setHeader("Content-type", "application/json")
+        entity = StringEntity(json)
+        setHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString("$nexusUsername:$nexusPassword".toByteArray()))
+    }
+
+    val response = client.execute(httpPost)
+    val responseBody = EntityUtils.toString(response.entity)
+    if (response.statusLine.statusCode != 201) {
+        throw RuntimeException("Failed: HTTP error code : ${response.statusLine.statusCode} $responseBody")
+    }
+}
+
+fun parseRepositoryState(xmlResponse: String, repositoryId: String): String? {
+    val factory = DocumentBuilderFactory.newInstance()
+    val builder = factory.newDocumentBuilder()
+    val inputStream = xmlResponse.byteInputStream()
+    val doc = builder.parse(inputStream)
+    val nodeList = doc.getElementsByTagName("stagingProfileRepository")
+
+    for (i in 0 until nodeList.length) {
+        val node = nodeList.item(i)
+        val element = node as? org.w3c.dom.Element
+        val repoId = element?.getElementsByTagName("repositoryId")?.item(0)?.textContent
+        if (repoId == repositoryId) {
+            return element.getElementsByTagName("type")?.item(0)?.textContent
+        }
+    }
+    return null
+}

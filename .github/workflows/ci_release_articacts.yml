@@ -76,4 +76,4 @@ jobs:
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
         run: |
           ./gradlew releaseAllSDKs -Ptype=sonatype
-          ./gradlew closeSonatypeStagingRepositories
+          ./gradlew closeAndReleaseMultipleRepositories
