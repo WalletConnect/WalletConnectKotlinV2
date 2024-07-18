@@ -127,8 +127,10 @@ tasks.register("closeSonatypeStagingRepositories") {
         val client = HttpClients.createDefault()
         val post = HttpPost("https://oss.sonatype.org/service/local/staging/bulk/close")
         post.setHeader("Content-Type", "application/json")
-        post.setHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString("KotlinWC:7nL%X_X92vZKj@+".toByteArray())) //todo: get the same pass as in 1Pass
+        post.setHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString("${System.getenv("OSSRH_USERNAME")}:${System.getenv("OSSRH_PASSWORD")}".toByteArray()))
         println("kobe: POST: $post")
+
+
 
         val response: HttpResponse = client.execute(post)
         println("Closed staging repositories - Response Code: ${response}")

@@ -5,8 +5,10 @@ const val KEY_PUBLISH_ARTIFACT_ID = "PUBLISH_ARTIFACT_ID"
 const val KEY_SDK_NAME = "SDK_NAME"
 
 //Latest versions
+
+//todo: test versions - remove
 const val BOM_VERSION = "1.32.18000"
-const val FOUNDATION_VERSION = "1.17.3"
+const val FOUNDATION_VERSION = "1.17.28000"
 const val CORE_VERSION = "1.32.08000"
 const val SIGN_VERSION = "2.32.08000"
 const val AUTH_VERSION = "1.28.38000"
