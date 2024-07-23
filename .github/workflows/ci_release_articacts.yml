@@ -77,7 +77,7 @@ jobs:
         run: |
           ./gradlew releaseAllSDKs -Ptype=sonatype
 
-      - name: Run Close and Release staging repositories ask
+      - name: Run Close and Release staging repositories task
         env:
           SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
