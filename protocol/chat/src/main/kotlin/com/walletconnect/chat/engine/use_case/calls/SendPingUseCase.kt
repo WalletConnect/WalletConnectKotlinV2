@@ -3,7 +3,7 @@ package com.walletconnect.chat.engine.use_case.calls
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.utils.thirtySeconds
 import com.walletconnect.chat.common.json_rpc.ChatParams
@@ -20,7 +20,7 @@ import kotlinx.coroutines.withTimeout
 
 internal class SendPingUseCase(
     private val logger: Logger,
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
 ) : SendPingUseCaseInterface {
 
     override fun ping(topic: String, onSuccess: (String) -> Unit, onError: (Throwable) -> Unit) {

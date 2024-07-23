@@ -5,7 +5,7 @@ import com.walletconnect.android.internal.common.jwt.did.EncodeDidJwtPayloadUseC
 import com.walletconnect.android.internal.common.jwt.did.encodeDidJwt
 import com.walletconnect.android.internal.common.model.AccountId
 import com.walletconnect.android.internal.common.model.MissingKeyException
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.utils.getInviteTag
 import com.walletconnect.android.internal.utils.getParticipantTag
@@ -24,7 +24,7 @@ internal class GoPrivateUseCase(
     private val identitiesInteractor: IdentitiesInteractor,
     private val accountsRepository: AccountsStorageRepository,
     private val keyManagementRepository: KeyManagementRepository,
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val unregisterInviteUseCase: UnregisterInviteUseCase,
 ) : GoPrivateUseCaseInterface {
 

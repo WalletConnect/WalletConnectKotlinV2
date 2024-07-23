@@ -9,7 +9,7 @@ import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.type.EngineEvent
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
@@ -33,7 +33,7 @@ import kotlinx.coroutines.supervisorScope
 
 internal class OnSessionSettleUseCase(
     private val crypto: KeyManagementRepository,
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val proposalStorageRepository: ProposalStorageRepository,
     private val sessionStorageRepository: SessionStorageRepository,
     private val pairingController: PairingControllerInterface,

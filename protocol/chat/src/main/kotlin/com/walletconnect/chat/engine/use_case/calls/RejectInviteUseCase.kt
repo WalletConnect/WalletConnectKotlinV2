@@ -5,7 +5,7 @@ import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementReposit
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.MissingKeyException
 import com.walletconnect.android.internal.common.model.Tags
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.utils.monthInSeconds
 import com.walletconnect.android.internal.utils.getInviteTag
@@ -25,7 +25,7 @@ internal class RejectInviteUseCase(
     private val logger: Logger,
     private val invitesRepository: InvitesStorageRepository,
     private val keyManagementRepository: KeyManagementRepository,
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
 ) : RejectInviteUseCaseInterface {
     override fun reject(inviteId: Long, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
         scope.launch {

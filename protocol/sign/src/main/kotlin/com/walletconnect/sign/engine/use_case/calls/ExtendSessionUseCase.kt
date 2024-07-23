@@ -3,7 +3,7 @@ package com.walletconnect.sign.engine.use_case.calls
 import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.utils.dayInSeconds
 import com.walletconnect.android.internal.utils.weekInSeconds
 import com.walletconnect.foundation.common.model.Topic
@@ -18,7 +18,7 @@ import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import kotlinx.coroutines.supervisorScope
 
 internal class ExtendSessionUseCase(
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val sessionStorageRepository: SessionStorageRepository,
     private val logger: Logger,
 ) : ExtendSessionUseCaseInterface {

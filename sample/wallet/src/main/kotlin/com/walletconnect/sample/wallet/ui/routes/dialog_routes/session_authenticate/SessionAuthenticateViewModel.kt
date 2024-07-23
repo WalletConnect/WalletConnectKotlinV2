@@ -118,6 +118,7 @@ class SessionAuthenticateViewModel : ViewModel() {
                     peerName = "Kotlin Wallet",
                     peerUri = "https://walletconnect.com/",
                     peerDescription = "The communications protocol for web3.",
+                    linkMode = sessionAuthenticate.participant.metadata?.linkMode ?: false
                 ),
                 messages = messages,
                 peerContextUI = authContext.toPeerUI()

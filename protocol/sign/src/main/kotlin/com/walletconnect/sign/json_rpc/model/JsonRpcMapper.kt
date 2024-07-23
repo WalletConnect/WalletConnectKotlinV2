@@ -18,6 +18,7 @@ internal fun SignRpc.SessionRequest.toRequest(entry: JsonRpcHistoryRecord): Requ
         params.chainId,
         params.request.params,
         if (params.request.expiryTimestamp != null) Expiry(params.request.expiryTimestamp) else null,
+        transportType = entry.transportType
     )
 
 @JvmSynthetic
@@ -28,6 +29,7 @@ internal fun JsonRpcHistoryRecord.toRequest(params: SignParams.SessionRequestPar
         method,
         params.chainId,
         params,
+        transportType = transportType
     )
 
 @JvmSynthetic
@@ -38,7 +40,8 @@ internal fun JsonRpcHistoryRecord.toRequest(params: SignParams.SessionAuthentica
         method,
         null,
         params,
-        Expiry(params.expiryTimestamp)
+        Expiry(params.expiryTimestamp),
+        transportType = transportType
     )
 
 @JvmSynthetic
@@ -49,5 +52,6 @@ internal fun SignRpc.SessionAuthenticate.toRequest(entry: JsonRpcHistoryRecord):
         entry.method,
         null,
         params,
-        Expiry(params.expiryTimestamp)
+        Expiry(params.expiryTimestamp),
+        transportType = entry.transportType
     )

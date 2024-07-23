@@ -16,12 +16,13 @@ import com.walletconnect.android.internal.common.storage.rpc.JsonRpcHistory
 import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
-import com.walletconnect.notify.common.model.NotificationMessage
 import com.walletconnect.notify.common.model.Notification
+import com.walletconnect.notify.common.model.NotificationMessage
 import com.walletconnect.notify.common.model.toCore
 import com.walletconnect.notify.data.jwt.message.MessageRequestJwtClaim
 import com.walletconnect.notify.data.storage.NotificationsRepository
 import kotlinx.coroutines.supervisorScope
+import org.bouncycastle.util.encoders.Base64
 import kotlin.reflect.safeCast
 
 internal class DecryptNotifyMessageUseCase(
@@ -35,7 +36,7 @@ internal class DecryptNotifyMessageUseCase(
 
     override suspend fun decryptNotification(topic: String, message: String, onSuccess: (Core.Model.Message) -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         try {
-            val decryptedMessageString = codec.decrypt(Topic(topic), message)
+            val decryptedMessageString = codec.decrypt(Topic(topic), Base64.decode(message))
             val messageHash = sha256(decryptedMessageString.toByteArray())
 
             if (messageHash !in jsonRpcHistory.getListOfPendingRecords().map { sha256(it.body.toByteArray()) }) {

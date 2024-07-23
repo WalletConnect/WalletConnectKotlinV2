@@ -7,7 +7,7 @@ import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.type.EngineEvent
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.dayInSeconds
@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
 internal class OnAuthRequestUseCase(
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val resolveAttestationIdUseCase: ResolveAttestationIdUseCase,
     private val pairingController: PairingControllerInterface,
 ) {
@@ -41,7 +41,7 @@ internal class OnAuthRequestUseCase(
             }
 
             val url = authParams.requester.metadata.url
-            resolveAttestationIdUseCase(wcRequest.id, wcRequest.message, url) { verifyContext ->
+            resolveAttestationIdUseCase(wcRequest, url) { verifyContext ->
                 scope.launch { _events.emit(Events.OnAuthRequest(wcRequest.id, wcRequest.topic.value, authParams.payloadParams, verifyContext)) }
             }
         } catch (e: Exception) {

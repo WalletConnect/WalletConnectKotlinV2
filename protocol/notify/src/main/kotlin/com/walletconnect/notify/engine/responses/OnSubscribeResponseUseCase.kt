@@ -4,17 +4,15 @@ package com.walletconnect.notify.engine.responses
 
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.jwt.did.extractVerifiedDidJwtClaims
-import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.params.ChatNotifyResponseAuthParams
 import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.foundation.util.jwt.decodeDidPkh
 import com.walletconnect.notify.common.model.CreateSubscription
-import com.walletconnect.notify.common.model.DeleteSubscription
 import com.walletconnect.notify.data.jwt.subscription.SubscriptionRequestJwtClaim
 import com.walletconnect.notify.data.jwt.subscription.SubscriptionResponseJwtClaim
 import com.walletconnect.notify.data.storage.SubscriptionRepository
@@ -29,7 +27,7 @@ internal class OnSubscribeResponseUseCase(
     private val setActiveSubscriptionsUseCase: SetActiveSubscriptionsUseCase,
     private val findRequestedSubscriptionUseCase: FindRequestedSubscriptionUseCase,
     private val subscriptionRepository: SubscriptionRepository,
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val logger: Logger,
 ) {
     private val _events: MutableSharedFlow<Pair<CoreNotifyParams.SubscribeParams, EngineEvent>> = MutableSharedFlow()

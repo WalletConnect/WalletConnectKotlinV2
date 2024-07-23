@@ -1,10 +1,13 @@
 [versions]
+core = "1.6.1"
 jerseyCommon = "3.1.6"
 kotlin = "1.9.24"
+kotlinxCoroutinesTest = "1.5.2"
 ksp = "1.9.24-1.0.20"
 agp = "8.4.1"
 
 minSdk = "23"
+mockkAndroid = "1.12.0"
 targetSdk = "34"
 compileSdk = "34"
 
@@ -56,6 +59,9 @@ turbine = "1.1.0"
 paparazzi = "1.3.4"
 
 [libraries]
+core = { module = "androidx.test:core", version.ref = "core" }
+kotlinx-coroutines-test-v152 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
+mockk-android = { module = "io.mockk:mockk-android", version.ref = "mockkAndroid" }
 sqlDelight-android = { module = "app.cash.sqldelight:android-driver", version.ref = "sqlDelight" }
 sqlDelight-coroutines = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqlDelight" }
 sqlDelight-adapters = { module = "app.cash.sqldelight:primitive-adapters", version.ref = "sqlDelight" }

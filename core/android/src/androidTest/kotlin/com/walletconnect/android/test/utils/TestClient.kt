@@ -10,6 +10,7 @@ import com.walletconnect.android.di.overrideModule
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
 import com.walletconnect.android.relay.ConnectionType
@@ -47,7 +48,7 @@ internal object TestClient {
 
 
         internal val Relay get() = coreProtocol.Relay
-        internal val jsonRpcInteractor: JsonRpcInteractorInterface by lazy { wcKoinApp.koin.get() }
+        internal val jsonRpcInteractor: RelayJsonRpcInteractorInterface by lazy { wcKoinApp.koin.get() }
         internal val keyManagementRepository: KeyManagementRepository by lazy { wcKoinApp.koin.get() }
         internal val identitiesInteractor: IdentitiesInteractor by lazy { wcKoinApp.koin.get() }
         internal val keyserverUrl: String by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.KEYSERVER_URL)) }
@@ -90,5 +91,8 @@ internal object TestClient {
         }
 
         internal val Relay get() = coreProtocol.Relay
+        internal val jsonRpcInteractor: RelayJsonRpcInteractorInterface by lazy { secondaryKoinApp.koin.get() }
+        internal val keyManagementRepository: KeyManagementRepository by lazy { secondaryKoinApp.koin.get() }
+
     }
 }

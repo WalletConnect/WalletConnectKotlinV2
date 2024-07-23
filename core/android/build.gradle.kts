@@ -118,6 +118,10 @@ dependencies {
     testImplementation(libs.bundles.sqlDelight.test)
     testImplementation(libs.koin.test)
 
+    androidTestImplementation(libs.mockk.android)
+    androidTestImplementation(libs.coroutines.test)
+    androidTestImplementation(libs.core)
+
     androidTestUtil(libs.androidx.testOrchestrator)
     androidTestImplementation(libs.bundles.androidxAndroidTest)
 }

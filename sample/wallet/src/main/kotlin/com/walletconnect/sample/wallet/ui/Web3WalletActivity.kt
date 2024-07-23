@@ -32,8 +32,12 @@ import com.walletconnect.sample.wallet.domain.NotifyDelegate
 import com.walletconnect.sample.wallet.ui.routes.Route
 import com.walletconnect.sample.wallet.ui.routes.composable_routes.connections.ConnectionsViewModel
 import com.walletconnect.sample.wallet.ui.routes.host.WalletSampleHost
+import com.walletconnect.web3.wallet.client.Web3Wallet
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.net.URLEncoder
 
@@ -58,6 +62,8 @@ class Web3WalletActivity : AppCompatActivity() {
         handleCoreEvents(connectionsViewModel)
         askNotificationPermission()
         handleErrors()
+
+        handleAppLink(intent)
     }
 
     private fun setContent(
@@ -121,16 +127,18 @@ class Web3WalletActivity : AppCompatActivity() {
             .onEach {
                 if (it.arrayOfArgs.isNotEmpty()) {
                     web3walletViewModel.showRequestLoader(false)
-                    navController.navigate(Route.SessionRequest.path)
+                    navigateWhenReady {
+                        navController.navigate(Route.SessionRequest.path)
+                    }
                 }
             }
             .launchIn(lifecycleScope)
 
         web3walletViewModel.walletEvents
-            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
             .onEach { event ->
                 when (event) {
-                    is SignEvent.SessionProposal -> navController.navigate(Route.SessionProposal.path)
+                    is SignEvent.SessionProposal -> navigateWhenReady { navController.navigate(Route.SessionProposal.path) }
+                    is SignEvent.SessionAuthenticate -> navigateWhenReady { navController.navigate(Route.SessionAuthenticate.path) }
                     is SignEvent.ExpiredRequest -> {
                         if (navController.currentDestination?.route != Route.Connections.path) {
                             navController.popBackStack(route = Route.Connections.path, inclusive = false)
@@ -140,44 +148,68 @@ class Web3WalletActivity : AppCompatActivity() {
 
                     is SignEvent.Disconnect -> {
                         connectionsViewModel.refreshConnections()
-
                         if (navController.currentDestination?.route != Route.Connections.path) {
                             navController.navigate(Route.Connections.path)
                         }
                     }
 
                     is AuthEvent.OnRequest -> navController.navigate(Route.AuthRequest.path)
-                    is SignEvent.SessionAuthenticate -> navController.navigate(Route.SessionAuthenticate.path)
-
                     else -> Unit
                 }
             }
             .launchIn(lifecycleScope)
     }
 
+    private suspend fun navigateWhenReady(navigate: () -> Unit) {
+        if (!::navController.isInitialized) {
+            delay(200)
+            navigate()
+        } else {
+            navigate()
+        }
+    }
+
+    private fun handleAppLink(intent: Intent?) {
+        if (intent?.dataString?.contains("wc_ev") == true) {
+            Web3Wallet.dispatchEnvelope(intent.dataString ?: "") {
+                lifecycleScope.launch(Dispatchers.Main) {
+                    Toast.makeText(this@Web3WalletActivity, "Error dispatching envelope: ${it.throwable.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
 
-        when {
-            intent?.dataString?.startsWith("kotlin-web3wallet:/wc") == true -> {
-                val uri = intent.dataString?.replace("kotlin-web3wallet:/wc", "kotlin-web3wallet://wc")
-                intent.setData(uri?.toUri())
+        if (intent?.dataString?.contains("wc_ev") == true) {
+            Web3Wallet.dispatchEnvelope(intent.dataString ?: "") {
+                lifecycleScope.launch(Dispatchers.Main) {
+                    Toast.makeText(this@Web3WalletActivity, "Error dispatching envelope: ${it.throwable.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        } else {
+            when {
+                intent?.dataString?.startsWith("kotlin-web3wallet:/wc") == true -> {
+                    val uri = intent.dataString?.replace("kotlin-web3wallet:/wc", "kotlin-web3wallet://wc")
+                    intent.setData(uri?.toUri())
+                }
+
+                intent?.dataString?.startsWith("wc:") == true -> {
+                    val uri = "kotlin-web3wallet://wc?uri=" + URLEncoder.encode(intent.dataString, "UTF-8")
+                    intent.setData(uri.toUri())
+                }
             }
 
-            intent?.dataString?.startsWith("wc:") == true -> {
-                val uri = "kotlin-web3wallet://wc?uri=" + URLEncoder.encode(intent.dataString, "UTF-8")
-                intent.setData(uri.toUri())
+            if (intent?.dataString?.startsWith("kotlin-web3wallet://request") == true) {
+                web3walletViewModel.showRequestLoader(true)
             }
-        }
 
-        if (intent?.dataString?.startsWith("kotlin-web3wallet://request") == true) {
-            web3walletViewModel.showRequestLoader(true)
-        }
-
-        if (intent?.dataString?.startsWith("kotlin-web3wallet://request") == false
-            && intent.dataString?.contains("requestId") == false
-        ) {
-            navController.handleDeepLink(intent)
+            if (intent?.dataString?.startsWith("kotlin-web3wallet://request") == false
+                && intent.dataString?.contains("requestId") == false
+            ) {
+                navController.handleDeepLink(intent)
+            }
         }
     }
 

@@ -1,6 +1,7 @@
 package com.walletconnect.sign.common.model
 
 import com.walletconnect.android.internal.common.model.Expiry
+import com.walletconnect.android.internal.common.model.TransportType
 import com.walletconnect.foundation.common.model.Topic
 
 internal data class Request<T>(
@@ -9,5 +10,6 @@ internal data class Request<T>(
     val method: String,
     val chainId: String?,
     val params: T,
-    val expiry: Expiry? = null
+    val expiry: Expiry? = null,
+    val transportType: TransportType?
 )
