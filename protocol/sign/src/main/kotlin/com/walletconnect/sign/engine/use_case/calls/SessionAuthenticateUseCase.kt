@@ -4,11 +4,13 @@ import android.util.Base64
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.InvalidExpiryException
+import com.walletconnect.android.internal.common.json_rpc.domain.link_mode.LinkModeJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.model.AppMetaData
+import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.signing.cacao.Cacao.Payload.Companion.ATT_KEY
 import com.walletconnect.android.internal.common.signing.cacao.Cacao.Payload.Companion.RECAPS_PREFIX
@@ -31,6 +33,7 @@ import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toCommon
 import com.walletconnect.sign.engine.model.mapper.toMapOfEngineNamespacesOptional
 import com.walletconnect.sign.storage.authenticate.AuthenticateResponseTopicRepository
+import com.walletconnect.sign.storage.link_mode.LinkModeStorageRepository
 import com.walletconnect.utils.Empty
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
@@ -38,15 +41,18 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import org.json.JSONArray
 import org.json.JSONObject
+import java.util.UUID
 
 internal class SessionAuthenticateUseCase(
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val crypto: KeyManagementRepository,
     private val selfAppMetaData: AppMetaData,
     private val authenticateResponseTopicRepository: AuthenticateResponseTopicRepository,
     private val proposeSessionUseCase: ProposeSessionUseCaseInterface,
     private val getPairingForSessionAuthenticate: GetPairingForSessionAuthenticateUseCase,
     private val getNamespacesFromReCaps: GetNamespacesFromReCaps,
+    private val linkModeJsonRpcInteractor: LinkModeJsonRpcInteractorInterface,
+    private val linkModeStorageRepository: LinkModeStorageRepository,
     private val logger: Logger
 ) : SessionAuthenticateUseCaseInterface {
     override suspend fun authenticate(
@@ -54,6 +60,7 @@ internal class SessionAuthenticateUseCase(
         methods: List<String>?,
         pairingTopic: String?,
         expiry: Expiry?,
+        walletAppLink: String?,
         onSuccess: (String) -> Unit,
         onFailure: (Throwable) -> Unit
     ) {
@@ -68,7 +75,6 @@ internal class SessionAuthenticateUseCase(
         }
 
         val requestExpiry = expiry ?: Expiry(currentTimeInSeconds + oneHourInSeconds)
-        val pairing = getPairingForSessionAuthenticate(pairingTopic)
         val optionalNamespaces = getNamespacesFromReCaps(authenticate.chains, if (methods.isNullOrEmpty()) listOf("personal_sign") else methods).toMapOfEngineNamespacesOptional()
         val externalReCapsJson: String = getExternalReCapsJson(authenticate)
         val signReCapsJson = getSignReCapsJson(methods, authenticate)
@@ -92,37 +98,48 @@ internal class SessionAuthenticateUseCase(
         val authRequest: SignRpc.SessionAuthenticate = SignRpc.SessionAuthenticate(params = authParams)
         crypto.setKey(requesterPublicKey, responseTopic.getParticipantTag())
 
-        logger.log("Session authenticate subscribing on topic: $responseTopic")
-        jsonRpcInteractor.subscribe(
-            responseTopic,
-            onSuccess = {
-                logger.log("Session authenticate subscribed on topic: $responseTopic")
-                scope.launch {
-                    authenticateResponseTopicRepository.insertOrAbort(pairing.topic, responseTopic.value)
-                }
-            },
-            onFailure = { error ->
-                logger.error("Session authenticate subscribing on topic error: $responseTopic, $error")
-                onFailure(error)
-            })
+        if (isLinkModeEnabled(walletAppLink)) {
+            try {
+                linkModeJsonRpcInteractor.triggerRequest(authRequest, appLink = walletAppLink!!, topic = Topic(generateUUID()), envelopeType = EnvelopeType.TWO)
+            } catch (e: Error) {
+                onFailure(e)
+            }
+        } else {
+            val pairing = getPairingForSessionAuthenticate(pairingTopic)
+            logger.log("Session authenticate subscribing on topic: $responseTopic")
+            jsonRpcInteractor.subscribe(
+                responseTopic,
+                onSuccess = {
+                    logger.log("Session authenticate subscribed on topic: $responseTopic")
+                    scope.launch {
+                        authenticateResponseTopicRepository.insertOrAbort(pairing.topic, responseTopic.value)
+                    }
+                },
+                onFailure = { error ->
+                    logger.error("Session authenticate subscribing on topic error: $responseTopic, $error")
+                    onFailure(error)
+                })
 
-        scope.launch {
-            supervisorScope {
-                val sessionAuthenticateDeferred = publishSessionAuthenticateDeferred(pairing, authRequest, responseTopic, requestExpiry)
-                val sessionProposeDeferred = publishSessionProposeDeferred(pairing, optionalNamespaces, responseTopic)
+            scope.launch {
+                supervisorScope {
+                    val sessionAuthenticateDeferred = publishSessionAuthenticateDeferred(pairing, authRequest, responseTopic, requestExpiry)
+                    val sessionProposeDeferred = publishSessionProposeDeferred(pairing, optionalNamespaces, responseTopic)
 
-                val sessionAuthenticateResult = async { sessionAuthenticateDeferred }.await()
-                val sessionProposeResult = async { sessionProposeDeferred }.await()
+                    val sessionAuthenticateResult = async { sessionAuthenticateDeferred }.await()
+                    val sessionProposeResult = async { sessionProposeDeferred }.await()
 
-                when {
-                    sessionAuthenticateResult.isSuccess && sessionProposeResult.isSuccess -> onSuccess(pairing.uri)
-                    sessionAuthenticateResult.isFailure -> onFailure(sessionAuthenticateResult.exceptionOrNull() ?: Throwable("Session authenticate failed"))
-                    sessionProposeResult.isFailure -> onFailure(sessionProposeResult.exceptionOrNull() ?: Throwable("Session proposal as a fallback failed"))
-                    else -> onFailure(Throwable("Session authenticate failed, please try again"))
+                    when {
+                        sessionAuthenticateResult.isSuccess && sessionProposeResult.isSuccess -> onSuccess(pairing.uri)
+                        sessionAuthenticateResult.isFailure -> onFailure(sessionAuthenticateResult.exceptionOrNull() ?: Throwable("Session authenticate failed"))
+                        sessionProposeResult.isFailure -> onFailure(sessionProposeResult.exceptionOrNull() ?: Throwable("Session proposal as a fallback failed"))
+                        else -> onFailure(Throwable("Session authenticate failed, please try again"))
+                    }
                 }
             }
         }
     }
+
+    private suspend fun isLinkModeEnabled(walletAppLink: String?) = !walletAppLink.isNullOrEmpty() && selfAppMetaData.redirect?.linkMode == true && linkModeStorageRepository.isEnabled(walletAppLink)
 
     private fun getSignReCapsJson(methods: List<String>?, authenticate: EngineDO.Authenticate) =
         if (!methods.isNullOrEmpty()) {
@@ -201,8 +218,18 @@ internal class SessionAuthenticateUseCase(
         val newTtl = extractedTtl.takeIf { extractedTtl >= defaultTtl } ?: defaultTtl
         Ttl(newTtl)
     } ?: Ttl(dayInSeconds)
+
+    private fun generateUUID(): String = UUID.randomUUID().toString()
 }
 
 internal interface SessionAuthenticateUseCaseInterface {
-    suspend fun authenticate(authenticate: EngineDO.Authenticate, methods: List<String>?, pairingTopic: String?, expiry: Expiry?, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit)
+    suspend fun authenticate(
+        authenticate: EngineDO.Authenticate,
+        methods: List<String>?,
+        pairingTopic: String?,
+        expiry: Expiry?,
+        walletAppLink: String? = null,
+        onSuccess: (String) -> Unit,
+        onFailure: (Throwable) -> Unit
+    )
 }

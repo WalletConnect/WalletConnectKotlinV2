@@ -92,10 +92,11 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
                 is EngineDO.SessionApproved -> delegate.onSessionApproved(event.toClientSessionApproved())
                 is EngineDO.SessionUpdateNamespaces -> delegate.onSessionUpdate(event.toClientSessionsNamespaces())
                 is EngineDO.SessionDelete -> delegate.onSessionDelete(event.toClientDeletedSession())
-                is EngineDO.SessionEvent ->{
+                is EngineDO.SessionEvent -> {
                     delegate.onSessionEvent(event.toClientSessionEvent())
                     delegate.onSessionEvent(event.toClientEvent())
                 }
+
                 is EngineDO.SessionExtend -> delegate.onSessionExtend(event.toClientActiveSession())
                 //Responses
                 is EngineDO.SessionPayloadResponse -> delegate.onSessionRequestResponse(event.toClientSessionPayloadResponse())
@@ -108,33 +109,6 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
         }.launchIn(scope)
     }
 
-    @Deprecated(
-        message = "Replaced with the same name method but onSuccess callback returns a Pairing URL",
-        replaceWith = ReplaceWith(expression = "fun connect(connect: Sign.Params.Connect, onSuccess: (String) -> Unit, onError: (Sign.Model.Error) -> Unit)")
-    )
-    @Throws(IllegalStateException::class)
-    override fun connect(
-        connect: Sign.Params.Connect,
-        onSuccess: () -> Unit,
-        onError: (Sign.Model.Error) -> Unit,
-    ) {
-        checkEngineInitialization()
-        scope.launch {
-            try {
-                signEngine.proposeSession(
-                    connect.namespaces?.toMapOfEngineNamespacesRequired(),
-                    connect.optionalNamespaces?.toMapOfEngineNamespacesOptional(),
-                    connect.properties,
-                    connect.pairing.toPairing(),
-                    onSuccess = { onSuccess() },
-                    onFailure = { error -> onError(Sign.Model.Error(error)) }
-                )
-            } catch (error: Exception) {
-                onError(Sign.Model.Error(error))
-            }
-        }
-    }
-
     @Throws(IllegalStateException::class)
     override fun connect(
         connect: Sign.Params.Connect,
@@ -143,7 +117,6 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     ) {
         checkEngineInitialization()
         scope.launch {
-
             try {
                 signEngine.proposeSession(
                     connect.namespaces?.toMapOfEngineNamespacesRequired(),
@@ -162,13 +135,17 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     @Throws(IllegalStateException::class)
     override fun authenticate(
         authenticate: Sign.Params.Authenticate,
+        walletAppLink: String?,
         onSuccess: (String) -> Unit,
         onError: (Sign.Model.Error) -> Unit,
     ) {
         checkEngineInitialization()
         scope.launch {
             try {
-                signEngine.authenticate(authenticate.toAuthenticate(), authenticate.methods, authenticate.pairingTopic, if (authenticate.expiry == null) null else Expiry(authenticate.expiry),
+                signEngine.authenticate(authenticate.toAuthenticate(),
+                    authenticate.methods, authenticate.pairingTopic,
+                    if (authenticate.expiry == null) null else Expiry(authenticate.expiry),
+                    walletAppLink,
                     onSuccess = { url -> onSuccess(url) },
                     onFailure = { throwable -> onError(Sign.Model.Error(throwable)) })
             } catch (error: Exception) {
@@ -178,9 +155,20 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
     }
 
     @Throws(IllegalStateException::class)
+    override fun dispatchEnvelope(urlWithEnvelope: String, onError: (Sign.Model.Error) -> Unit) {
+        checkEngineInitialization()
+        scope.launch {
+            try {
+                signEngine.dispatchEnvelope(urlWithEnvelope)
+            } catch (error: Exception) {
+                onError(Sign.Model.Error(error))
+            }
+        }
+    }
+
+    @Throws(IllegalStateException::class)
     override fun formatAuthMessage(formatMessage: Sign.Params.FormatMessage): String {
         checkEngineInitialization()
-
         return runBlocking { signEngine.formatMessage(formatMessage.payloadParams.toEngine(), formatMessage.iss) }
     }
 
@@ -264,32 +252,6 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
         scope.launch {
             try {
                 signEngine.rejectSessionAuthenticate(reject.id, reject.reason, onSuccess = { onSuccess(reject) }) { error -> onError(Sign.Model.Error(error)) }
-            } catch (error: Exception) {
-                onError(Sign.Model.Error(error))
-            }
-        }
-    }
-
-    @Deprecated(
-        "The onSuccess callback has been replaced with a new callback that returns Sign.Model.SentRequest",
-        replaceWith = ReplaceWith("this.request(request, onSuccessWithSentRequest, onError)", "com.walletconnect.sign.client")
-    )
-    @Throws(IllegalStateException::class)
-    override fun request(
-        request: Sign.Params.Request,
-        onSuccess: (Sign.Params.Request) -> Unit,
-        onSuccessWithSentRequest: (Sign.Model.SentRequest) -> Unit,
-        onError: (Sign.Model.Error) -> Unit,
-    ) {
-        checkEngineInitialization()
-
-        scope.launch {
-            try {
-                signEngine.sessionRequest(
-                    request = request.toEngineDORequest(),
-                    onSuccess = { onSuccess(request) },
-                    onFailure = { error -> onError(Sign.Model.Error(error)) }
-                )
             } catch (error: Exception) {
                 onError(Sign.Model.Error(error))
             }
@@ -479,26 +441,6 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
         }
     }
 
-    @Deprecated(
-        "Getting a list of Pairings will be moved to CoreClient to make pairing SDK agnostic",
-        replaceWith = ReplaceWith("CoreClient.Pairing.getPairings()", "com.walletconnect.android.CoreClient")
-    )
-    @Throws(IllegalStateException::class)
-    override fun getListOfSettledPairings(): List<Sign.Model.Pairing> {
-        checkEngineInitialization()
-        return runBlocking { signEngine.getListOfSettledPairings().map(EngineDO.PairingSettle::toClientSettledPairing) }
-    }
-
-    @Deprecated(
-        "The return type of getPendingRequests methods has been replaced with SessionRequest list",
-        replaceWith = ReplaceWith("getPendingSessionRequests(topic: String): List<Sign.Model.SessionRequest>")
-    )
-    @Throws(IllegalStateException::class)
-    override fun getPendingRequests(topic: String): List<Sign.Model.PendingRequest> {
-        checkEngineInitialization()
-        return runBlocking { signEngine.getPendingRequests(Topic(topic)).mapToPendingRequests() }
-    }
-
     @Throws(IllegalStateException::class)
     override fun getPendingSessionRequests(topic: String): List<Sign.Model.SessionRequest> {
         checkEngineInitialization()
@@ -529,47 +471,120 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
         return runBlocking { signEngine.getListOfVerifyContexts().map { verifyContext -> verifyContext.toCore() } }
     }
 
+    @Deprecated(
+        message = "Replaced with the same name method but onSuccess callback returns a Pairing URL",
+        replaceWith = ReplaceWith(expression = "fun connect(connect: Sign.Params.Connect, onSuccess: (String) -> Unit, onError: (Sign.Model.Error) -> Unit)")
+    )
+    @Throws(IllegalStateException::class)
+    override fun connect(
+        connect: Sign.Params.Connect,
+        onSuccess: () -> Unit,
+        onError: (Sign.Model.Error) -> Unit,
+    ) {
+        checkEngineInitialization()
+        scope.launch {
+            try {
+                signEngine.proposeSession(
+                    connect.namespaces?.toMapOfEngineNamespacesRequired(),
+                    connect.optionalNamespaces?.toMapOfEngineNamespacesOptional(),
+                    connect.properties,
+                    connect.pairing.toPairing(),
+                    onSuccess = { onSuccess() },
+                    onFailure = { error -> onError(Sign.Model.Error(error)) }
+                )
+            } catch (error: Exception) {
+                onError(Sign.Model.Error(error))
+            }
+        }
+    }
+
+    @Deprecated(
+        "The onSuccess callback has been replaced with a new callback that returns Sign.Model.SentRequest",
+        replaceWith = ReplaceWith("this.request(request, onSuccessWithSentRequest, onError)", "com.walletconnect.sign.client")
+    )
+    @Throws(IllegalStateException::class)
+    override fun request(
+        request: Sign.Params.Request,
+        onSuccess: (Sign.Params.Request) -> Unit,
+        onSuccessWithSentRequest: (Sign.Model.SentRequest) -> Unit,
+        onError: (Sign.Model.Error) -> Unit,
+    ) {
+        checkEngineInitialization()
+
+        scope.launch {
+            try {
+                signEngine.sessionRequest(
+                    request = request.toEngineDORequest(),
+                    onSuccess = { onSuccess(request) },
+                    onFailure = { error -> onError(Sign.Model.Error(error)) }
+                )
+            } catch (error: Exception) {
+                onError(Sign.Model.Error(error))
+            }
+        }
+    }
+
+    @Deprecated(
+        "Getting a list of Pairings will be moved to CoreClient to make pairing SDK agnostic",
+        replaceWith = ReplaceWith("CoreClient.Pairing.getPairings()", "com.walletconnect.android.CoreClient")
+    )
+    @Throws(IllegalStateException::class)
+    override fun getListOfSettledPairings(): List<Sign.Model.Pairing> {
+        checkEngineInitialization()
+        return runBlocking { signEngine.getListOfSettledPairings().map(EngineDO.PairingSettle::toClientSettledPairing) }
+    }
+
+    @Deprecated(
+        "The return type of getPendingRequests methods has been replaced with SessionRequest list",
+        replaceWith = ReplaceWith("getPendingSessionRequests(topic: String): List<Sign.Model.SessionRequest>")
+    )
+    @Throws(IllegalStateException::class)
+    override fun getPendingRequests(topic: String): List<Sign.Model.PendingRequest> {
+        checkEngineInitialization()
+        return runBlocking { signEngine.getPendingRequests(Topic(topic)).mapToPendingRequests() }
+    }
+
 // TODO: Uncomment once reinit scope logic is added
 //    fun shutdown() {
 //        scope.cancel()
 //        wcKoinApp.close()
 //    }
 
-	private fun handleConnectionState(onDelegate: (state: Sign.Model.ConnectionState) -> Unit) {
-		signEngine.wssConnection.onEach { connectionState ->
-			when {
-				atomicBoolean == null -> {
-					atomicBoolean = AtomicBoolean()
-					when (connectionState) {
-						is WSSConnectionState.Disconnected.ConnectionFailed ->
-							onDelegate(Sign.Model.ConnectionState(false, Sign.Model.ConnectionState.Reason.ConnectionFailed(connectionState.throwable)))
+    private fun handleConnectionState(onDelegate: (state: Sign.Model.ConnectionState) -> Unit) {
+        signEngine.wssConnection.onEach { connectionState ->
+            when {
+                atomicBoolean == null -> {
+                    atomicBoolean = AtomicBoolean()
+                    when (connectionState) {
+                        is WSSConnectionState.Disconnected.ConnectionFailed ->
+                            onDelegate(Sign.Model.ConnectionState(false, Sign.Model.ConnectionState.Reason.ConnectionFailed(connectionState.throwable)))
 
-						is WSSConnectionState.Disconnected.ConnectionClosed ->
-							onDelegate(Sign.Model.ConnectionState(false, Sign.Model.ConnectionState.Reason.ConnectionClosed(connectionState.message ?: "Connection closed")))
+                        is WSSConnectionState.Disconnected.ConnectionClosed ->
+                            onDelegate(Sign.Model.ConnectionState(false, Sign.Model.ConnectionState.Reason.ConnectionClosed(connectionState.message ?: "Connection closed")))
 
-						else -> onDelegate(Sign.Model.ConnectionState(true))
-					}
-				}
+                        else -> onDelegate(Sign.Model.ConnectionState(true))
+                    }
+                }
 
-				atomicBoolean?.get() == true && connectionState is WSSConnectionState.Disconnected.ConnectionFailed -> {
-					atomicBoolean?.set(false)
-					onDelegate(Sign.Model.ConnectionState(false, Sign.Model.ConnectionState.Reason.ConnectionFailed(connectionState.throwable)))
-				}
+                atomicBoolean?.get() == true && connectionState is WSSConnectionState.Disconnected.ConnectionFailed -> {
+                    atomicBoolean?.set(false)
+                    onDelegate(Sign.Model.ConnectionState(false, Sign.Model.ConnectionState.Reason.ConnectionFailed(connectionState.throwable)))
+                }
 
-				atomicBoolean?.get() == true && connectionState is WSSConnectionState.Disconnected.ConnectionClosed -> {
-					atomicBoolean?.set(false)
-					onDelegate(Sign.Model.ConnectionState(false, Sign.Model.ConnectionState.Reason.ConnectionClosed(connectionState.message ?: "Connection closed")))
-				}
+                atomicBoolean?.get() == true && connectionState is WSSConnectionState.Disconnected.ConnectionClosed -> {
+                    atomicBoolean?.set(false)
+                    onDelegate(Sign.Model.ConnectionState(false, Sign.Model.ConnectionState.Reason.ConnectionClosed(connectionState.message ?: "Connection closed")))
+                }
 
-				atomicBoolean?.get() == false && connectionState is WSSConnectionState.Connected -> {
-					atomicBoolean?.set(true)
-					onDelegate(Sign.Model.ConnectionState(true))
-				}
+                atomicBoolean?.get() == false && connectionState is WSSConnectionState.Connected -> {
+                    atomicBoolean?.set(true)
+                    onDelegate(Sign.Model.ConnectionState(true))
+                }
 
-				else -> Unit
-			}
-		}.launchIn(scope)
-	}
+                else -> Unit
+            }
+        }.launchIn(scope)
+    }
 
     @Throws(IllegalStateException::class)
     private fun checkEngineInitialization() {

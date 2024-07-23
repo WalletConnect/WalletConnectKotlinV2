@@ -57,7 +57,7 @@ internal class Web3ModalEngine(
     EnableAnalyticsUseCaseInterface by enableAnalyticsUseCase {
     internal var excludedWalletsIds: MutableList<String> = mutableListOf()
     internal var recommendedWalletsIds: MutableList<String> = mutableListOf()
-
+    internal var siweRequestIdWithMessage: Pair<Long, String>? = null
     private lateinit var coinbaseClient: CoinbaseClient
 
     fun setup(
@@ -89,6 +89,17 @@ internal class Web3ModalEngine(
     ) {
         connectionEventRepository.saveEvent(name, method)
         SignClient.connect(connect.toSign(), onSuccess) { onError(it.throwable) }
+    }
+
+    fun authenticate(
+        name: String, method: String,
+        authenticate: Modal.Params.Authenticate,
+        walletAppLink: String? = null,
+        onSuccess: (String) -> Unit,
+        onError: (Throwable) -> Unit
+    ) {
+        connectionEventRepository.saveEvent(name, method)
+        SignClient.authenticate(authenticate.toSign(), walletAppLink, onSuccess) { onError(it.throwable) }
     }
 
     fun connectCoinbase(
@@ -124,6 +135,10 @@ internal class Web3ModalEngine(
 
     internal fun getSelectedChainOrFirst() = getSelectedChain() ?: Web3Modal.chains.first()
 
+    fun formatSIWEMessage(authParams: Modal.Model.AuthPayloadParams, issuer: String): String {
+        return SignClient.formatAuthMessage(authParams.toSign(issuer))
+    }
+
     fun request(request: Request, onSuccess: (SentRequestResult) -> Unit, onError: (Throwable) -> Unit) {
         val session = getActiveSession()
         val selectedChain = getSelectedChain()
@@ -141,12 +156,12 @@ internal class Web3ModalEngine(
 
             is Session.WalletConnect ->
                 SignClient.request(request.toSign(session.topic, selectedChain.id),
-                {
-                    onSuccess(it.toSentRequest())
-                    openWalletApp(session.topic, onError)
-                },
-                { onError(it.throwable) }
-            )
+                    {
+                        onSuccess(it.toSentRequest())
+                        openWalletApp(session.topic, onError)
+                    },
+                    { onError(it.throwable) }
+                )
         }
     }
 
@@ -160,7 +175,6 @@ internal class Web3ModalEngine(
         } catch (e: Throwable) {
             onError(e)
         }
-
     }
 
     fun ping(sessionPing: Modal.Listeners.SessionPing?) {
@@ -177,11 +191,12 @@ internal class Web3ModalEngine(
             onError(InvalidSessionException)
             return
         }
-        scope.launch { deleteSessionDataUseCase() }
+
         when (session) {
             is Session.Coinbase -> {
                 checkEngineInitialization()
                 coinbaseClient.disconnect()
+                scope.launch { deleteSessionDataUseCase() }
                 onSuccess()
             }
 
@@ -189,6 +204,7 @@ internal class Web3ModalEngine(
                 SignClient.disconnect(Sign.Params.Disconnect(session.topic),
                     onSuccess = {
                         sendEventUseCase.send(Props(EventType.TRACK, EventType.Track.DISCONNECT_SUCCESS))
+                        scope.launch { deleteSessionDataUseCase() }
                         onSuccess()
                     },
                     onError = {
@@ -264,7 +280,27 @@ internal class Web3ModalEngine(
             }
 
             override fun onSessionRequestResponse(response: Sign.Model.SessionRequestResponse) {
-                delegate.onSessionRequestResponse(response.toModal())
+                if (response.result.id == siweRequestIdWithMessage?.first) {
+                    if (response.result is Sign.Model.JsonRpcResponse.JsonRpcResult) {
+                        val siweResponse = Modal.Model.SIWEAuthenticateResponse.Result(
+                            id = response.result.id,
+                            message = siweRequestIdWithMessage!!.second,
+                            signature = (response.result as Sign.Model.JsonRpcResponse.JsonRpcResult).result
+                        )
+                        siweRequestIdWithMessage = null
+                        delegate.onSIWEAuthenticationResponse(siweResponse)
+                    } else if (response.result is Sign.Model.JsonRpcResponse.JsonRpcError) {
+                        val siweResponse = Modal.Model.SIWEAuthenticateResponse.Error(
+                            id = response.result.id,
+                            message = (response.result as Sign.Model.JsonRpcResponse.JsonRpcError).message,
+                            code = (response.result as Sign.Model.JsonRpcResponse.JsonRpcError).code
+                        )
+                        siweRequestIdWithMessage = null
+                        delegate.onSIWEAuthenticationResponse(siweResponse)
+                    }
+                } else {
+                    delegate.onSessionRequestResponse(response.toModal())
+                }
             }
 
             override fun onSessionAuthenticateResponse(sessionAuthenticateResponse: Sign.Model.SessionAuthenticateResponse) {

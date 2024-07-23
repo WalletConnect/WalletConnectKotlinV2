@@ -139,6 +139,11 @@ private fun SessionAuthenticateDialog(
             onCancel = {
                 isCancelLoading = true
 
+                if (authenticateRequestUI.peerUI.linkMode) {
+                    navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                    connectionsViewModel.refreshConnections()
+                }
+
                 try {
                     sessionAuthenticateViewModel.reject(
                         onSuccess = { redirect ->
@@ -164,6 +169,11 @@ private fun SessionAuthenticateDialog(
                 }
             }, onConfirm = {
                 isConfirmLoading = true
+
+                if (authenticateRequestUI.peerUI.linkMode) {
+                    navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                    connectionsViewModel.refreshConnections()
+                }
 
                 try {
                     sessionAuthenticateViewModel.approve(

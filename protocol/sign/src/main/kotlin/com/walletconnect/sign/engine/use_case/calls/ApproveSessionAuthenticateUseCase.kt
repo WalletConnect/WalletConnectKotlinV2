@@ -6,6 +6,7 @@ import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementReposit
 import com.walletconnect.android.internal.common.exception.NoInternetConnectionException
 import com.walletconnect.android.internal.common.exception.NoRelayConnectionException
 import com.walletconnect.android.internal.common.exception.RequestExpiredException
+import com.walletconnect.android.internal.common.json_rpc.domain.link_mode.LinkModeJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.EnvelopeType
@@ -15,8 +16,9 @@ import com.walletconnect.android.internal.common.model.Participant
 import com.walletconnect.android.internal.common.model.Participants
 import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.internal.common.model.Tags
+import com.walletconnect.android.internal.common.model.TransportType
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
@@ -47,7 +49,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
 internal class ApproveSessionAuthenticateUseCase(
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val getPendingSessionAuthenticateRequest: GetPendingSessionAuthenticateRequest,
     private val crypto: KeyManagementRepository,
     private val cacaoVerifier: CacaoVerifier,
@@ -58,6 +60,7 @@ internal class ApproveSessionAuthenticateUseCase(
     private val selfAppMetaData: AppMetaData,
     private val sessionStorageRepository: SessionStorageRepository,
     private val insertEventUseCase: InsertEventUseCase,
+    private val linkModeJsonRpcInteractor: LinkModeJsonRpcInteractorInterface
 ) : ApproveSessionAuthenticateUseCaseInterface {
     override suspend fun approveSessionAuthenticate(id: Long, cacaos: List<Cacao>, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
         val trace: MutableList<String> = mutableListOf()
@@ -117,6 +120,11 @@ internal class ApproveSessionAuthenticateUseCase(
                 logger.log("Creating authenticated session")
                 val requiredNamespace: Map<String, Namespace.Proposal> = mapOf(namespace to Namespace.Proposal(events = events, methods = methods, chains = chains))
                 val sessionNamespaces: Map<String, Namespace.Session> = mapOf(namespace to Namespace.Session(accounts = accounts, events = events, methods = methods, chains = chains))
+                val transportType = if (sessionAuthenticateParams.linkMode == true && !sessionAuthenticateParams.appLink.isNullOrEmpty()) {
+                    TransportType.LINK_MODE
+                } else {
+                    TransportType.RELAY
+                }
                 val authenticatedSession = SessionVO.createAuthenticatedSession(
                     sessionTopic = sessionTopic,
                     peerPublicKey = receiverPublicKey,
@@ -126,7 +134,8 @@ internal class ApproveSessionAuthenticateUseCase(
                     controllerKey = senderPublicKey,
                     requiredNamespaces = requiredNamespace,
                     sessionNamespaces = sessionNamespaces,
-                    pairingTopic = jsonRpcHistoryEntry.topic.value
+                    pairingTopic = jsonRpcHistoryEntry.topic.value,
+                    transportType = transportType
                 )
                 metadataStorageRepository.insertOrAbortMetadata(sessionTopic, selfAppMetaData, AppMetaDataType.SELF)
                 metadataStorageRepository.insertOrAbortMetadata(sessionTopic, receiverMetadata, AppMetaDataType.PEER)
@@ -137,7 +146,6 @@ internal class ApproveSessionAuthenticateUseCase(
             val responseParams = CoreSignParams.SessionAuthenticateApproveParams(responder = Participant(publicKey = senderPublicKey.keyAsHex, metadata = selfAppMetaData), cacaos = cacaos)
             val response: JsonRpcResponse = JsonRpcResponse.JsonRpcResult(id, result = responseParams)
             crypto.setKey(symmetricKey, sessionTopic.value)
-
             trace.add(Trace.SessionAuthenticate.SUBSCRIBING_AUTHENTICATED_SESSION_TOPIC).also { logger.log("Subscribing Session Authenticate on topic: $responseTopic") }
             jsonRpcInteractor.subscribe(sessionTopic,
                 onSuccess = {
@@ -148,31 +156,47 @@ internal class ApproveSessionAuthenticateUseCase(
                         supervisorScope { insertEventUseCase(Props(type = EventType.Error.SUBSCRIBE_AUTH_SESSION_TOPIC_FAILURE, properties = Properties(trace = trace, topic = sessionTopic.value))) }
                     }.also { logger.log("Subscribing Session Authenticate error on topic: $responseTopic, $error") }
                     onFailure(error)
-                })
-
-            trace.add(Trace.SessionAuthenticate.PUBLISHING_AUTHENTICATED_SESSION_APPROVE).also { logger.log("Sending Session Authenticate Approve on topic: $responseTopic") }
-            jsonRpcInteractor.publishJsonRpcResponse(responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
-                onSuccess = {
-                    trace.add(Trace.SessionAuthenticate.AUTHENTICATED_SESSION_APPROVE_PUBLISH_SUCCESS).also { logger.log("Session Authenticate Approve Responded on topic: $responseTopic") }
-                    onSuccess()
-                    scope.launch {
-                        supervisorScope {
-                            pairingController.activate(Core.Params.Activate(jsonRpcHistoryEntry.topic.value))
-                            verifyContextStorageRepository.delete(id)
-                        }
-                    }
-                },
-                onFailure = { error ->
-                    runCatching { crypto.removeKeys(sessionTopic.value) }.onFailure { logger.error(it) }
-                    sessionStorageRepository.deleteSession(sessionTopic)
-                    scope.launch {
-                        supervisorScope {
-                            insertEventUseCase(Props(type = EventType.Error.AUTHENTICATED_SESSION_APPROVE_PUBLISH_FAILURE, properties = Properties(trace = trace, topic = responseTopic.value)))
-                        }
-                    }.also { logger.error("Error Responding Session Authenticate on topic: $responseTopic, error: $error") }
-                    onFailure(error)
                 }
             )
+
+            if (jsonRpcHistoryEntry.transportType == TransportType.LINK_MODE && receiverMetadata.redirect?.linkMode == true) {
+                if (receiverMetadata.redirect?.universal.isNullOrEmpty()) return@supervisorScope onFailure(IllegalStateException("App link is missing"))
+                try {
+                    linkModeJsonRpcInteractor.triggerResponse(
+                        responseTopic,
+                        response,
+                        receiverMetadata.redirect!!.universal!!,
+                        Participants(senderPublicKey, receiverPublicKey),
+                        EnvelopeType.ONE
+                    )
+                } catch (e: Exception) {
+                    onFailure(e)
+                }
+            } else {
+                trace.add(Trace.SessionAuthenticate.PUBLISHING_AUTHENTICATED_SESSION_APPROVE).also { logger.log("Sending Session Authenticate Approve on topic: $responseTopic") }
+                jsonRpcInteractor.publishJsonRpcResponse(responseTopic, irnParams, response, envelopeType = EnvelopeType.ONE, participants = Participants(senderPublicKey, receiverPublicKey),
+                    onSuccess = {
+                        trace.add(Trace.SessionAuthenticate.AUTHENTICATED_SESSION_APPROVE_PUBLISH_SUCCESS).also { logger.log("Session Authenticate Approve Responded on topic: $responseTopic") }
+                        onSuccess()
+                        scope.launch {
+                            supervisorScope {
+                                pairingController.activate(Core.Params.Activate(jsonRpcHistoryEntry.topic.value))
+                                verifyContextStorageRepository.delete(id)
+                            }
+                        }
+                    },
+                    onFailure = { error ->
+                        runCatching { crypto.removeKeys(sessionTopic.value) }.onFailure { logger.error(it) }
+                        sessionStorageRepository.deleteSession(sessionTopic)
+                        scope.launch {
+                            supervisorScope {
+                                insertEventUseCase(Props(type = EventType.Error.AUTHENTICATED_SESSION_APPROVE_PUBLISH_FAILURE, properties = Properties(trace = trace, topic = responseTopic.value)))
+                            }
+                        }.also { logger.error("Error Responding Session Authenticate on topic: $responseTopic, error: $error") }
+                        onFailure(error)
+                    }
+                )
+            }
         } catch (e: Exception) {
             logger.error("Error Responding Session Authenticate, error: $e")
             if (e is NoRelayConnectionException) insertEventUseCase(Props(type = EventType.Error.NO_WSS_CONNECTION, properties = Properties(trace = trace)))

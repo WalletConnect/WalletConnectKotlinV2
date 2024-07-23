@@ -15,6 +15,7 @@ import com.walletconnect.android.utils.toClient
 import com.walletconnect.auth.common.exceptions.InvalidAuthParamsType
 import com.walletconnect.auth.common.json_rpc.AuthParams
 import com.walletconnect.foundation.common.model.Topic
+import org.bouncycastle.util.encoders.Base64
 
 class DecryptAuthMessageUseCase(
     private val codec: Codec,
@@ -25,7 +26,7 @@ class DecryptAuthMessageUseCase(
     override suspend fun decryptNotification(topic: String, message: String, onSuccess: (Core.Model.Message) -> Unit, onFailure: (Throwable) -> Unit) {
         try {
             if (!pushMessageStorageRepository.doesPushMessageExist(sha256(message.toByteArray()))) {
-                val decryptedMessageString = codec.decrypt(Topic(topic), message)
+                val decryptedMessageString = codec.decrypt(Topic(topic), Base64.decode(message))
                 val clientJsonRpc: ClientJsonRpc = serializer.tryDeserialize<ClientJsonRpc>(decryptedMessageString) ?: return onFailure(InvalidAuthParamsType())
                 val params: ClientParams = serializer.deserialize(clientJsonRpc.method, decryptedMessageString) ?: return onFailure(InvalidAuthParamsType())
                 val metadata: AppMetaData = metadataRepository.getByTopicAndType(Topic(topic), AppMetaDataType.PEER) ?: return onFailure(InvalidAuthParamsType())

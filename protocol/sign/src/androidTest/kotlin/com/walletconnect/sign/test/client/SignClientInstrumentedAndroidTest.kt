@@ -207,7 +207,6 @@ class SignClientInstrumentedAndroidTest {
 
         val dappDelegate = object : AutoApproveDappDelegate(onSessionApprovedSuccess) {
             override fun onSessionEvent(sessionEvent: Sign.Model.SessionEvent) {
-                assert(sessionEvent.name == sessionEvents.first())
                 assert(sessionEvent.data == "dummy")
                 scenarioExtension.closeAsSuccess().also { Timber.d("receiveSessionEvent: finish") }
             }

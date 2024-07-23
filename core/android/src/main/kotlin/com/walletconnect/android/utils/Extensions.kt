@@ -37,7 +37,7 @@ internal fun String.isValidRelayServerUrl(): Boolean {
 @JvmSynthetic
 internal fun String.projectId(): String {
     return Uri.parse(this)!!.let { relayUrl ->
-         relayUrl.getQueryParameter("projectId")!!
+        relayUrl.getQueryParameter("projectId")!!
     }
 }
 
@@ -47,10 +47,13 @@ internal val Throwable.toWalletConnectException: WalletConnectException
         when {
             this.message?.contains(HttpURLConnection.HTTP_UNAUTHORIZED.toString()) == true ->
                 UnableToConnectToWebsocketException("${this.message}. It's possible that JWT has expired. Try initializing the CoreClient again.")
+
             this.message?.contains(HttpURLConnection.HTTP_NOT_FOUND.toString()) == true ->
                 ProjectIdDoesNotExistException(this.message)
+
             this.message?.contains(HttpURLConnection.HTTP_FORBIDDEN.toString()) == true ->
                 InvalidProjectIdException(this.message)
+
             else -> GenericException("Error while connecting, please check your Internet connection or contact support: $this")
         }
 
@@ -58,4 +61,12 @@ internal val Throwable.toWalletConnectException: WalletConnectException
 val Int.Companion.DefaultId
     get() = -1
 
-fun AppMetaData?.toClient() = Core.Model.AppMetaData(this?.name ?: String.Empty, this?.description ?: String.Empty, this?.url ?: String.Empty, this?.icons ?: emptyList(), this?.redirect?.native)
+fun AppMetaData?.toClient() = Core.Model.AppMetaData(
+    name = this?.name ?: String.Empty,
+    description = this?.description ?: String.Empty,
+    url = this?.url ?: String.Empty,
+    icons = this?.icons ?: emptyList(),
+    redirect = this?.redirect?.native,
+    appLink = this?.redirect?.universal,
+    linkMode = this?.redirect?.linkMode ?: false
+)

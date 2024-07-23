@@ -1,0 +1,8 @@
+-- migrates 10db to 11db
+
+-- CREATE V11 SCHEMA
+
+ALTER TABLE SessionDao ADD COLUMN transport_type TEXT;
+CREATE TABLE LinkModeDao (
+    app_link TEXT NOT NULL UNIQUE
+);

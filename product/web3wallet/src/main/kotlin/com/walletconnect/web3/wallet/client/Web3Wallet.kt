@@ -166,6 +166,17 @@ object Web3Wallet {
     }
 
     @Throws(IllegalStateException::class)
+    fun dispatchEnvelope(urlWithEnvelope: String, onError: (Wallet.Model.Error) -> Unit) {
+        scope.launch {
+            try {
+                SignClient.dispatchEnvelope(urlWithEnvelope) { error -> onError(Wallet.Model.Error(error.throwable)) }
+            } catch (error: Exception) {
+                onError(Wallet.Model.Error(error))
+            }
+        }
+    }
+
+    @Throws(IllegalStateException::class)
     fun pair(params: Wallet.Params.Pair, onSuccess: (Wallet.Params.Pair) -> Unit = {}, onError: (Wallet.Model.Error) -> Unit = {}) {
         coreClient.Pairing.pair(Core.Params.Pair(params.uri), { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }

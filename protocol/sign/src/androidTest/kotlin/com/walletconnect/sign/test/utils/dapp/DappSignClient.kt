@@ -13,6 +13,8 @@ import timber.log.Timber
 
 val DappSignClient = TestClient.Dapp.signClient
 
+val DappSignClientLinkMode = TestClient.DappLinkMode.signClientLinkMode
+
 val dappClientConnect = { pairing: Core.Model.Pairing ->
     val connectParams = Sign.Params.Connect(namespaces = proposalNamespaces, optionalNamespaces = null, properties = null, pairing = pairing)
     DappSignClient.connect(
@@ -38,6 +40,31 @@ fun dappClientAuthenticate(onPairing: (String) -> Unit) {
     )
     DappSignClient.authenticate(
         authenticateParams,
+        onSuccess = { pairingUrl ->
+            Timber.d("DappClient: on sent authenticate success: $pairingUrl")
+            onPairing(pairingUrl)
+        },
+        onError = ::globalOnError
+    )
+}
+
+fun dappClientAuthenticateLinkMode(onPairing: (String) -> Unit) {
+    val authenticateParams = Sign.Params.Authenticate(
+        chains = listOf("eip155:1", "eip155:137"),
+        domain = "sample.dapp",
+        uri = "https://react-auth-dapp.vercel.app/",
+        nonce = randomBytes(12).bytesToHex(),
+        exp = null,
+        nbf = null,
+        statement = "Sign in with wallet.",
+        requestId = null,
+        resources = null,
+        methods = listOf("personal_sign", "eth_signTypedData_v4", "eth_sign"),
+        expiry = null
+    )
+    DappSignClientLinkMode.authenticate(
+        authenticateParams,
+        "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet",
         onSuccess = { pairingUrl ->
             Timber.d("DappClient: on sent authenticate success: $pairingUrl")
             onPairing(pairingUrl)

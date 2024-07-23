@@ -139,6 +139,7 @@ class SessionRequestViewModel : ViewModel() {
                     peerIcon = sessionRequest.peerMetaData?.icons?.firstOrNull() ?: "",
                     peerUri = sessionRequest.peerMetaData?.url ?: "",
                     peerDescription = sessionRequest.peerMetaData?.description ?: "",
+                    linkMode = sessionRequest.peerMetaData?.linkMode ?: false
                 ),
                 topic = sessionRequest.topic,
                 requestId = sessionRequest.request.id,

@@ -85,6 +85,9 @@ fun SessionRequestRoute(navController: NavHostController, sessionRequestViewMode
                     allowButtonColor,
                     onConfirm = {
                         isConfirmLoading = true
+                        if (sessionRequestUI.peerUI.linkMode) {
+                            navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                        }
                         try {
                             sessionRequestViewModel.approve(
                                 onSuccess = { uri ->
@@ -111,6 +114,9 @@ fun SessionRequestRoute(navController: NavHostController, sessionRequestViewMode
                     },
                     onCancel = {
                         isCancelLoading = true
+                        if (sessionRequestUI.peerUI.linkMode) {
+                            navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                        }
                         try {
                             sessionRequestViewModel.reject(
                                 onSuccess = { uri ->

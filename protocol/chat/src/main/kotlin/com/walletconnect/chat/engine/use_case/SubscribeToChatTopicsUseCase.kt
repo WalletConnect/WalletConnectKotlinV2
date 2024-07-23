@@ -1,7 +1,7 @@
 package com.walletconnect.chat.engine.use_case
 
 import com.walletconnect.android.internal.common.model.SDKError
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.chat.storage.AccountsStorageRepository
 import com.walletconnect.chat.storage.InvitesStorageRepository
@@ -18,7 +18,7 @@ internal class SubscribeToChatTopicsUseCase(
     private val invitesRepository: InvitesStorageRepository,
     private val accountsRepository: AccountsStorageRepository,
     private val threadsRepository: ThreadsStorageRepository,
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
 ) {
     private val _errors: MutableSharedFlow<SDKError> = MutableSharedFlow()
     val errors: SharedFlow<SDKError> = _errors.asSharedFlow()

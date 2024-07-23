@@ -16,9 +16,11 @@ interface SignInterface {
         fun onProposalExpired(proposal: Sign.Model.ExpiredProposal) {
             //override me
         }
+
         fun onRequestExpired(request: Sign.Model.ExpiredRequest) {
             //override me
         }
+
         fun onConnectionStateChange(state: Sign.Model.ConnectionState)
         fun onError(error: Sign.Model.Error)
     }
@@ -67,7 +69,8 @@ interface SignInterface {
         onError: (Sign.Model.Error) -> Unit,
     )
 
-    fun authenticate(authenticate: Sign.Params.Authenticate, onSuccess: (String) -> Unit, onError: (Sign.Model.Error) -> Unit)
+    fun authenticate(authenticate: Sign.Params.Authenticate, walletAppLink: String? = null, onSuccess: (String) -> Unit, onError: (Sign.Model.Error) -> Unit)
+    fun dispatchEnvelope(urlWithEnvelope: String, onError: (Sign.Model.Error) -> Unit)
 
     @Deprecated(
         message = "Creating a pairing will be moved to CoreClient to make pairing SDK agnostic",
