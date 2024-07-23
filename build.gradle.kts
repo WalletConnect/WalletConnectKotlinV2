@@ -131,8 +131,6 @@ tasks.register("closeAndReleaseMultipleRepositories") {
 
     doLast {
         val repos = fetchRepositoryIds()
-        println("kobe: Repos IDs: $repos")
-
         closeRepositories(repos)
         waitForAllRepositoriesToClose(repos)
         releaseRepositories(repos)
@@ -198,12 +196,12 @@ fun waitForAllRepositoriesToClose(repoIds: List<String>) {
                     setHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString("$nexusUsername:$nexusPassword".toByteArray()))
                 }
                 val response = client.execute(httpGet)
-                println("kobe: GET request to $repoId returned status code: ${response.statusLine.statusCode}")
+                println("GET request to $repoId returned status code: ${response.statusLine.statusCode}")
                 val responseBody = EntityUtils.toString(response.entity)
 
                 val state = parseRepositoryState(responseBody, repoId)
                 if (state == "closed") {
-                    println("kobe: Repository $repoId is now in state: $state")
+                    println("Repository $repoId is now in state: $state")
                     closedRepos.add(repoId)
                 } else {
                     println("Waiting for repository $repoId to be closed, current state: $state")
@@ -211,7 +209,7 @@ fun waitForAllRepositoriesToClose(repoIds: List<String>) {
             }
         }
         if (closedRepos.size < repoIds.size) {
-            Thread.sleep(10000) // Wait for 10 seconds before retrying
+            Thread.sleep(30000) // Wait for 30 seconds before retrying
         }
     }
 }
@@ -225,8 +223,7 @@ fun releaseRepositories(repoIds: List<String>) {
                 }
             }
         """.trimIndent()
-    println("kobe: Release JSON: $json")
-//    executePostRequest(releaseUrl, json)
+    executePostRequest(releaseUrl, json)
 }
 
 fun executePostRequest(url: String, json: String) {
@@ -256,7 +253,7 @@ fun parseRepositoryState(xmlResponse: String, repositoryId: String): String? {
         val element = node as? org.w3c.dom.Element
         val repoId = element?.getElementsByTagName("repositoryId")?.item(0)?.textContent
         if (repoId == repositoryId) {
-            return element.getElementsByTagName("type")?.item(0)?.textContent
+            return element.getElementsByTagName("type").item(0)?.textContent
         }
     }
     return null
