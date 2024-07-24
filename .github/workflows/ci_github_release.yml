@@ -1,12 +1,9 @@
-name: Create Release
-
-#on:
-#  push:
-#    tags:
-#      - 'BOM_*.*.*'
+name: Create GitHub Release
 
 on:
-  workflow_dispatch:
+  push:
+    tags:
+      - 'BOM_*.*.*'
 
 jobs:
   create_release:
@@ -34,3 +31,4 @@ jobs:
         body: ${{ steps.drafter.outputs.changelog }}
         draft: false
         prerelease: false
+        target_commitish: master
