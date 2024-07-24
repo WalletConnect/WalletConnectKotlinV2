@@ -1,3 +1,4 @@
+
 import com.android.build.gradle.BaseExtension
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.methods.HttpPost
@@ -131,9 +132,15 @@ tasks.register("closeAndReleaseMultipleRepositories") {
 
     doLast {
         val repos = fetchRepositoryIds()
+        if (repos.isEmpty()) {
+            println("No open repositories found")
+            return@doLast
+        }
         closeRepositories(repos)
         waitForAllRepositoriesToClose(repos)
         releaseRepositories(repos)
+        waitForArtifactsToBeAvailable()
+        //todo task for pushing a tag
     }
 }
 
@@ -226,6 +233,27 @@ fun releaseRepositories(repoIds: List<String>) {
     executePostRequest(releaseUrl, json)
 }
 
+fun waitForArtifactsToBeAvailable() {
+    val client = HttpClients.createDefault()
+    var artifactsAvailable = false
+
+    while (!artifactsAvailable) {
+        artifactsAvailable = repoIdWithVersion.all { (repoId, version) ->
+            val artifactUrl = "https://repo1.maven.org/maven2/com/walletconnect/$repoId/$version/"
+            val httpGet = HttpGet(artifactUrl)
+            val response = client.execute(httpGet)
+            response.statusLine.statusCode == 200
+        }
+
+        if (!artifactsAvailable) {
+            println("Artifacts not yet available. Waiting...")
+            Thread.sleep(30000) // Wait for 30 seconds before retrying
+        } else {
+            println("All artifacts are now available.")
+        }
+    }
+}
+
 fun executePostRequest(url: String, json: String) {
     val client = HttpClients.createDefault()
     val httpPost = HttpPost(url).apply {
@@ -258,3 +286,17 @@ fun parseRepositoryState(xmlResponse: String, repositoryId: String): String? {
     }
     return null
 }
+
+private val repoIdWithVersion = listOf(
+    Pair(ANDROID_BOM, BOM_VERSION),
+    Pair(FOUNDATION, FOUNDATION_VERSION),
+    Pair(ANDROID_CORE, CORE_VERSION),
+    Pair(SIGN, SIGN_VERSION),
+    Pair(AUTH, AUTH_VERSION),
+    Pair(CHAT, CHAT_VERSION),
+    Pair(NOTIFY, NOTIFY_VERSION),
+    Pair(WEB_3_WALLET, WEB_3_WALLET_VERSION),
+    Pair(WEB_3_MODAL, WEB_3_MODAL_VERSION),
+    Pair(WC_MODAL, WC_MODAL_VERSION),
+    Pair(MODAL_CORE, MODAL_CORE_VERSION)
+)

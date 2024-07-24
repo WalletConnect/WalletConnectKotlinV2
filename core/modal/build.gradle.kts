@@ -6,7 +6,7 @@ plugins {
 }
 
 project.apply {
-    extra[KEY_PUBLISH_ARTIFACT_ID] = "modal-core"
+    extra[KEY_PUBLISH_ARTIFACT_ID] = MODAL_CORE
     extra[KEY_PUBLISH_VERSION] = MODAL_CORE_VERSION
     extra[KEY_SDK_NAME] = "Modal Core"
 }
