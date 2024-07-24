@@ -53,8 +53,8 @@ import com.walletconnect.modal.ui.components.common.HorizontalSpacer
 import com.walletconnect.modal.ui.components.common.VerticalSpacer
 import com.walletconnect.modal.ui.components.common.WeightSpacer
 import com.walletconnect.modal.utils.goToNativeWallet
-import com.walletconnect.modal.utils.openWebAppLink
 import com.walletconnect.modal.utils.openPlayStore
+import com.walletconnect.modal.utils.openWebAppLink
 import com.walletconnect.wcmodal.R
 import com.walletconnect.wcmodal.client.Modal
 import com.walletconnect.wcmodal.domain.WalletConnectModalDelegate
@@ -294,7 +294,7 @@ private fun OnHoldScreenPreview(
     @PreviewParameter(RedirectStateProvider::class) state: RedirectState
 ) {
     ModalPreview {
-        val wallet = Wallet("Id", "Kotlin Wallet", "url", "", "", "", null, "", false)
+        val wallet = Wallet("Id", "Kotlin Wallet", "url", "", "", "", null, "", linkMode = "", false)
         RedirectOnHoldScreen(wallet = wallet, state = state, onBackPressed = { }, onRetry = { }, onOpenWebLink = { }, onOpenPlayStore = {})
     }
 }

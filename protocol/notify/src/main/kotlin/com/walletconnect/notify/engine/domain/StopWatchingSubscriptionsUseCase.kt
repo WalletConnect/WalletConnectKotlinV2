@@ -3,12 +3,12 @@
 package com.walletconnect.notify.engine.domain
 
 import com.walletconnect.android.internal.common.model.AccountId
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.notify.data.storage.RegisteredAccountsRepository
 import kotlinx.coroutines.supervisorScope
 
 internal class StopWatchingSubscriptionsUseCase(
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val registeredAccountsRepository: RegisteredAccountsRepository,
 ) {
 

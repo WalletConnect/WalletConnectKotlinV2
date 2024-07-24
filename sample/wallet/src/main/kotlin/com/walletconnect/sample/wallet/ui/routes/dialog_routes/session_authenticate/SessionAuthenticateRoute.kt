@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.walletconnect.android.internal.common.exception.NoConnectivityException
 import com.walletconnect.sample.common.sendResponseDeepLink
 import com.walletconnect.sample.common.ui.theme.mismatch_color
 import com.walletconnect.sample.common.ui.themedColor
@@ -138,6 +139,11 @@ private fun SessionAuthenticateDialog(
             onCancel = {
                 isCancelLoading = true
 
+                if (authenticateRequestUI.peerUI.linkMode) {
+                    navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                    connectionsViewModel.refreshConnections()
+                }
+
                 try {
                     sessionAuthenticateViewModel.reject(
                         onSuccess = { redirect ->
@@ -156,13 +162,18 @@ private fun SessionAuthenticateDialog(
                         },
                         onError = { error ->
                             isCancelLoading = false
-                            closeAndShowError(navController, error, composableScope, context)
+                            showError(navController, error, composableScope, context)
                         })
                 } catch (e: Throwable) {
-                    closeAndShowError(navController, e.message, composableScope, context)
+                    showError(navController, e, composableScope, context)
                 }
             }, onConfirm = {
                 isConfirmLoading = true
+
+                if (authenticateRequestUI.peerUI.linkMode) {
+                    navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                    connectionsViewModel.refreshConnections()
+                }
 
                 try {
                     sessionAuthenticateViewModel.approve(
@@ -183,10 +194,10 @@ private fun SessionAuthenticateDialog(
                         },
                         onError = { error ->
                             isConfirmLoading = false
-                            closeAndShowError(navController, error, composableScope, context)
+                            showError(navController, error, composableScope, context)
                         })
                 } catch (e: Exception) {
-                    closeAndShowError(navController, e.message, composableScope, context)
+                    showError(navController, e, composableScope, context)
                 }
             },
             isLoadingConfirm = isConfirmLoading,
@@ -196,10 +207,13 @@ private fun SessionAuthenticateDialog(
     }
 }
 
-private fun closeAndShowError(navController: NavHostController, mesage: String?, coroutineScope: CoroutineScope, context: Context) {
+private fun showError(navController: NavHostController, throwable: Throwable?, coroutineScope: CoroutineScope, context: Context) {
     coroutineScope.launch(Dispatchers.Main) {
-        navController.popBackStack(route = Route.Connections.path, inclusive = false)
-        Toast.makeText(context, mesage ?: "Session authenticate error, please check your Internet connection", Toast.LENGTH_SHORT).show()
+        if (throwable !is NoConnectivityException) {
+            navController.popBackStack()
+        }
+
+        Toast.makeText(context, throwable?.message ?: "Session authenticate error, please check your Internet connection", Toast.LENGTH_SHORT).show()
     }
 }
 

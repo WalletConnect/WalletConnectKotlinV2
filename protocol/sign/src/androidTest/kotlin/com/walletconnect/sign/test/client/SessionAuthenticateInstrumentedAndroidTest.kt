@@ -14,6 +14,7 @@ import com.walletconnect.sign.test.utils.TestClient
 import com.walletconnect.sign.test.utils.dapp.DappDelegate
 import com.walletconnect.sign.test.utils.dapp.DappSignClient
 import com.walletconnect.sign.test.utils.dapp.dappClientAuthenticate
+import com.walletconnect.sign.test.utils.dapp.dappClientAuthenticateLinkMode
 import com.walletconnect.sign.test.utils.dapp.dappClientSendRequest
 import com.walletconnect.sign.test.utils.globalOnError
 import com.walletconnect.sign.test.utils.wallet.WalletDelegate
@@ -214,6 +215,15 @@ class SessionAuthenticateInstrumentedAndroidTest {
             }
         }
         launch(walletDelegate, dappDelegate)
+    }
+
+    @Test
+    fun testTriggeringLinkMode() {
+        dappClientAuthenticateLinkMode {
+            if (it.isNotEmpty()) {
+                scenarioExtension.closeAsSuccess().also { Timber.d("pairing uri returned: finish") }
+            }
+        }
     }
 
     private fun pairAndConnect() {

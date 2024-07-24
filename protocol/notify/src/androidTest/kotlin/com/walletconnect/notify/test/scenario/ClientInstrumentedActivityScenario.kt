@@ -120,7 +120,7 @@ class ClientInstrumentedActivityScenario : TestRule, ActivityScenario() {
                     }
                 }
             }.fold(
-                onSuccess = { Timber.d("Connection established and peers initialized with: ${TestClient.RELAY_URL}") },
+                onSuccess = { Timber.d("Connection established and peers initialized successfully") },
                 onFailure = { fail("Unable to establish connection OR initialize peers within $timeoutDuration") }
             )
 

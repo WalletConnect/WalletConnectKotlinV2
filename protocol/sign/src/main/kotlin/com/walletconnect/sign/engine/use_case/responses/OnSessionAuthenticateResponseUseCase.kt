@@ -8,10 +8,11 @@ import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.SymmetricKey
+import com.walletconnect.android.internal.common.model.TransportType
 import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
 import com.walletconnect.android.internal.common.signing.cacao.Issuer
@@ -32,6 +33,7 @@ import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.engine.model.mapper.toEngineDO
 import com.walletconnect.sign.json_rpc.domain.GetSessionAuthenticateRequest
 import com.walletconnect.sign.storage.authenticate.AuthenticateResponseTopicRepository
+import com.walletconnect.sign.storage.link_mode.LinkModeStorageRepository
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -45,11 +47,12 @@ internal class OnSessionAuthenticateResponseUseCase(
     private val cacaoVerifier: CacaoVerifier,
     private val sessionStorageRepository: SessionStorageRepository,
     private val crypto: KeyManagementRepository,
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val authenticateResponseTopicRepository: AuthenticateResponseTopicRepository,
     private val logger: Logger,
     private val getSessionAuthenticateRequest: GetSessionAuthenticateRequest,
+    private val linkModeStorageRepository: LinkModeStorageRepository
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
@@ -65,13 +68,14 @@ internal class OnSessionAuthenticateResponseUseCase(
             }
 
             val pairingTopic = jsonRpcHistoryEntry.topic
-            if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) {
-                _events.emit(SDKError(Throwable("Received session authenticate response - pairing doesn't exist topic: ${wcResponse.topic}")))
-                return@supervisorScope
+            if (jsonRpcHistoryEntry.transportType == TransportType.RELAY) {
+                if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) {
+                    _events.emit(SDKError(Throwable("Received session authenticate response - pairing doesn't exist topic: ${wcResponse.topic}")))
+                    return@supervisorScope
+                }
             }
             runCatching { authenticateResponseTopicRepository.delete(pairingTopic.value) }.onFailure {
                 logger.error("Received session authenticate response - failed to delete authenticate response topic: ${wcResponse.topic}")
-
             }
 
             when (val response = wcResponse.response) {
@@ -81,18 +85,20 @@ internal class OnSessionAuthenticateResponseUseCase(
                 }
 
                 is JsonRpcResponse.JsonRpcResult -> {
-                    updatePairing(pairingTopic, params)
+                    if (jsonRpcHistoryEntry.transportType == TransportType.RELAY) {
+                        updatePairing(pairingTopic, params)
+                    }
 
-                    val approveParams = (response.result as CoreSignParams.SessionAuthenticateApproveParams)
-                    if (approveParams.cacaos.find { cacao -> !cacaoVerifier.verify(cacao) } != null) {
+                    val approveResponseParams = (response.result as CoreSignParams.SessionAuthenticateApproveParams)
+                    if (approveResponseParams.cacaos.find { cacao -> !cacaoVerifier.verify(cacao) } != null) {
                         logger.error("Signature verification failed Session Authenticate")
                         _events.emit(SDKError(Throwable("Signature verification failed Session Authenticate")))
                         return@supervisorScope
                     }
 
-                    with(approveParams) {
+                    with(approveResponseParams) {
                         val selfPublicKey = PublicKey(params.requester.publicKey)
-                        val peerPublicKey = PublicKey(approveParams.responder.publicKey)
+                        val peerPublicKey = PublicKey(approveResponseParams.responder.publicKey)
                         val symmetricKey: SymmetricKey = crypto.generateSymmetricKeyFromKeyAgreement(selfPublicKey, peerPublicKey)
                         val sessionTopic: Topic = crypto.getTopicFromKey(symmetricKey)
                         crypto.setKey(symmetricKey, sessionTopic.value)
@@ -113,25 +119,32 @@ internal class OnSessionAuthenticateResponseUseCase(
                             logger.log("Creating authenticated session")
                             val sessionNamespaces: Map<String, Namespace.Session> = mapOf(namespace to Namespace.Session(accounts = accounts, events = events, methods = methods, chains = chains))
                             val requiredNamespace: Map<String, Namespace.Proposal> = mapOf(namespace to Namespace.Proposal(events = listOf(), methods = events, chains = chains))
+                            val transportType = if (linkMode == true && !appLink.isNullOrEmpty()) {
+                                linkModeStorageRepository.insert(appLink!!)
+                                TransportType.LINK_MODE
+                            } else {
+                                TransportType.RELAY
+                            }
                             authenticatedSession = SessionVO.createAuthenticatedSession(
                                 sessionTopic = sessionTopic,
-                                peerPublicKey = PublicKey(approveParams.responder.publicKey),
-                                peerMetadata = approveParams.responder.metadata,
+                                peerPublicKey = PublicKey(approveResponseParams.responder.publicKey),
+                                peerMetadata = approveResponseParams.responder.metadata,
                                 selfPublicKey = PublicKey(params.requester.publicKey),
                                 selfMetadata = params.requester.metadata,
-                                controllerKey = PublicKey(approveParams.responder.publicKey),
+                                controllerKey = PublicKey(approveResponseParams.responder.publicKey),
                                 requiredNamespaces = requiredNamespace,
                                 sessionNamespaces = sessionNamespaces,
-                                pairingTopic = pairingTopic.value
+                                pairingTopic = pairingTopic.value,
+                                transportType = transportType
                             )
                             metadataStorageRepository.insertOrAbortMetadata(sessionTopic, params.requester.metadata, AppMetaDataType.SELF)
-                            metadataStorageRepository.insertOrAbortMetadata(sessionTopic, approveParams.responder.metadata, AppMetaDataType.PEER)
+                            metadataStorageRepository.insertOrAbortMetadata(sessionTopic, approveResponseParams.responder.metadata, AppMetaDataType.PEER)
                             sessionStorageRepository.insertSession(authenticatedSession, response.id)
                         }
 
                         jsonRpcInteractor.subscribe(sessionTopic) { error -> scope.launch { _events.emit(SDKError(error)) } }
                         logger.log("Received session authenticate response - emitting rpc result: ${wcResponse.topic}")
-                        _events.emit(EngineDO.SessionAuthenticateResponse.Result(response.id, approveParams.cacaos, authenticatedSession?.toEngineDO()))
+                        _events.emit(EngineDO.SessionAuthenticateResponse.Result(response.id, approveResponseParams.cacaos, authenticatedSession?.toEngineDO()))
                     }
                 }
             }

@@ -8,7 +8,7 @@ plugins {
 }
 
 project.apply {
-    extra[KEY_PUBLISH_ARTIFACT_ID] = "android-core"
+    extra[KEY_PUBLISH_ARTIFACT_ID] = ANDROID_CORE
     extra[KEY_PUBLISH_VERSION] = CORE_VERSION
     extra[KEY_SDK_NAME] = "Android Core"
 }
@@ -39,6 +39,12 @@ android {
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "${rootDir.path}/gradle/proguard-rules/sdk-rules.pro")
         }
+    }
+
+    lint {
+        abortOnError = true
+        ignoreWarnings = true
+        warningsAsErrors = false
     }
 
     compileOptions {
@@ -111,6 +117,10 @@ dependencies {
     testImplementation(libs.bundles.scarlet.test)
     testImplementation(libs.bundles.sqlDelight.test)
     testImplementation(libs.koin.test)
+
+    androidTestImplementation(libs.mockk.android)
+    androidTestImplementation(libs.coroutines.test)
+    androidTestImplementation(libs.core)
 
     androidTestUtil(libs.androidx.testOrchestrator)
     androidTestImplementation(libs.bundles.androidxAndroidTest)

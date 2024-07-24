@@ -8,7 +8,7 @@ plugins {
 }
 
 project.apply {
-    extra[KEY_PUBLISH_ARTIFACT_ID] = "sign"
+    extra[KEY_PUBLISH_ARTIFACT_ID] = SIGN
     extra[KEY_PUBLISH_VERSION] = SIGN_VERSION
     extra[KEY_SDK_NAME] = "Sign"
 }
@@ -52,6 +52,12 @@ android {
                 "${rootDir.path}/gradle/proguard-rules/sdk-rules.pro"
             )
         }
+    }
+
+    lint {
+        abortOnError = true
+        ignoreWarnings = true
+        warningsAsErrors = false
     }
 
     compileOptions {

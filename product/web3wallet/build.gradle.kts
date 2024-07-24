@@ -7,7 +7,7 @@ plugins {
 }
 
 project.apply {
-    extra[KEY_PUBLISH_ARTIFACT_ID] = "web3wallet"
+    extra[KEY_PUBLISH_ARTIFACT_ID] = WEB_3_WALLET
     extra[KEY_PUBLISH_VERSION] = WEB_3_WALLET_VERSION
     extra[KEY_SDK_NAME] = "web3wallet"
 }
@@ -33,6 +33,12 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "${rootDir.path}/gradle/proguard-rules/sdk-rules.pro", "${projectDir}/web3wallet-rules.pro")
         }
     }
+    lint {
+        abortOnError = true
+        ignoreWarnings = true
+        warningsAsErrors = false
+    }
+
     compileOptions {
         sourceCompatibility = jvmVersion
         targetCompatibility = jvmVersion

@@ -2,6 +2,7 @@
 
 package com.walletconnect.sample.dapp.ui
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -24,6 +25,7 @@ import com.walletconnect.sample.dapp.ui.routes.composable_routes.chain_selection
 import com.walletconnect.sample.dapp.ui.routes.composable_routes.session.SessionRoute
 import com.walletconnect.wcmodal.ui.walletConnectModalGraph
 
+@SuppressLint("RestrictedApi")
 @Composable
 fun DappSampleNavGraph(
     bottomSheetNavigator: BottomSheetNavigator,

@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.walletconnect.android.internal.common.exception.NoConnectivityException
 import com.walletconnect.sample.common.CompletePreviews
 import com.walletconnect.sample.common.sendResponseDeepLink
 import com.walletconnect.sample.common.ui.theme.PreviewTheme
@@ -64,7 +65,7 @@ fun SessionRequestRoutePreview() {
 @SuppressLint("RestrictedApi")
 @Composable
 fun SessionRequestRoute(navController: NavHostController, sessionRequestViewModel: SessionRequestViewModel = viewModel()) {
-    val sessionRequestUI = sessionRequestViewModel.sessionRequest
+    val sessionRequestUI = sessionRequestViewModel.sessionRequestUI
     val composableScope = rememberCoroutineScope()
     val context = LocalContext.current
     var isConfirmLoading by remember { mutableStateOf(false) }
@@ -73,6 +74,7 @@ fun SessionRequestRoute(navController: NavHostController, sessionRequestViewMode
         is SessionRequestUI.Content -> {
             val allowButtonColor = getColor(sessionRequestUI.peerContextUI)
             currentId = sessionRequestUI.requestId
+
             SemiTransparentDialog {
                 Spacer(modifier = Modifier.height(24.dp))
                 Peer(peerUI = sessionRequestUI.peerUI, "sends a request", sessionRequestUI.peerContextUI)
@@ -83,6 +85,9 @@ fun SessionRequestRoute(navController: NavHostController, sessionRequestViewMode
                     allowButtonColor,
                     onConfirm = {
                         isConfirmLoading = true
+                        if (sessionRequestUI.peerUI.linkMode) {
+                            navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                        }
                         try {
                             sessionRequestViewModel.approve(
                                 onSuccess = { uri ->
@@ -100,15 +105,18 @@ fun SessionRequestRoute(navController: NavHostController, sessionRequestViewMode
                                 },
                                 onError = { error ->
                                     isConfirmLoading = false
-                                    closeAndShowError(navController, error, composableScope, context)
+                                    showError(navController, error, composableScope, context)
                                 })
 
                         } catch (e: Throwable) {
-                            closeAndShowError(navController, e.message, composableScope, context)
+                            showError(navController, e, composableScope, context)
                         }
                     },
                     onCancel = {
                         isCancelLoading = true
+                        if (sessionRequestUI.peerUI.linkMode) {
+                            navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                        }
                         try {
                             sessionRequestViewModel.reject(
                                 onSuccess = { uri ->
@@ -126,10 +134,10 @@ fun SessionRequestRoute(navController: NavHostController, sessionRequestViewMode
                                 },
                                 onError = { error ->
                                     isCancelLoading = false
-                                    closeAndShowError(navController, error, composableScope, context)
+                                    showError(navController, error, composableScope, context)
                                 })
                         } catch (e: Throwable) {
-                            closeAndShowError(navController, e.message, composableScope, context)
+                            showError(navController, e, composableScope, context)
                         }
                     },
                     isLoadingConfirm = isConfirmLoading,
@@ -163,10 +171,12 @@ fun SessionRequestRoute(navController: NavHostController, sessionRequestViewMode
     }
 }
 
-private fun closeAndShowError(navController: NavHostController, message: String?, coroutineScope: CoroutineScope, context: Context) {
+private fun showError(navController: NavHostController, throwable: Throwable?, coroutineScope: CoroutineScope, context: Context) {
     coroutineScope.launch(Dispatchers.Main) {
-        navController.popBackStack()
-        Toast.makeText(context, message ?: "Session request error, please check your Internet connection", Toast.LENGTH_SHORT).show()
+        if (throwable !is NoConnectivityException) {
+            navController.popBackStack()
+        }
+        Toast.makeText(context, throwable?.message ?: "Session request error, please check your Internet connection", Toast.LENGTH_SHORT).show()
     }
 }
 

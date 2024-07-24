@@ -1,0 +1,12 @@
+CREATE TABLE LinkModeDao (
+    app_link TEXT NOT NULL UNIQUE
+);
+
+insertOrIgnore:
+INSERT OR IGNORE INTO LinkModeDao (app_link)
+VALUES (?);
+
+isEnabled:
+SELECT app_link
+FROM LinkModeDao
+WHERE ? = app_link;

@@ -3,7 +3,7 @@
 package com.walletconnect.notify.engine.calls
 
 import com.walletconnect.android.internal.common.model.AccountId
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.notify.data.storage.NotificationsRepository
@@ -17,7 +17,7 @@ internal class UnregisterUseCase(
     private val keyserverUrl: String,
     private val registeredAccountsRepository: RegisteredAccountsRepository,
     private val stopWatchingSubscriptionsUseCase: StopWatchingSubscriptionsUseCase,
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val subscriptionRepository: SubscriptionRepository,
     private val notificationsRepository: NotificationsRepository,
 ) : UnregisterUseCaseInterface {

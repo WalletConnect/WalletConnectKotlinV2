@@ -2,7 +2,7 @@ package com.walletconnect.sign.engine.use_case.calls
 
 import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
 import com.walletconnect.android.internal.common.model.Expiry
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
@@ -18,7 +18,7 @@ import org.junit.Before
 import org.junit.Test
 
 class ExtendSessionUseCaseTest {
-    private val jsonRpcInteractor = mockk<JsonRpcInteractorInterface>()
+    private val jsonRpcInteractor = mockk<RelayJsonRpcInteractorInterface>()
     private val sessionStorageRepository = mockk<SessionStorageRepository>()
     private val logger = mockk<Logger>()
     private val extendSessionUseCase = ExtendSessionUseCase(jsonRpcInteractor, sessionStorageRepository, logger)
@@ -58,7 +58,8 @@ class ExtendSessionUseCaseTest {
             requiredNamespaces = emptyMap(),
             optionalNamespaces = emptyMap(),
             isAcknowledged = false,
-            pairingTopic = "pairingTopic"
+            pairingTopic = "pairingTopic",
+            transportType = null
         )
 
         extendSessionUseCase.extend(

@@ -8,7 +8,7 @@ plugins {
 }
 
 project.apply {
-    extra[KEY_PUBLISH_ARTIFACT_ID] = "walletconnect-modal"
+    extra[KEY_PUBLISH_ARTIFACT_ID] = WC_MODAL
     extra[KEY_PUBLISH_VERSION] = WC_MODAL_VERSION
     extra[KEY_SDK_NAME] = "Wallet Connect Modal"
 }
@@ -38,6 +38,13 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "${rootDir.path}/gradle/proguard-rules/sdk-rules.pro")
         }
     }
+
+    lint {
+        abortOnError = true
+        ignoreWarnings = true
+        warningsAsErrors = false
+    }
+
     compileOptions {
         sourceCompatibility = jvmVersion
         targetCompatibility = jvmVersion

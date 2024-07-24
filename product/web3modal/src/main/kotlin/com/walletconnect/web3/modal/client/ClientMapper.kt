@@ -1,10 +1,12 @@
 package com.walletconnect.web3.modal.client
 
-import com.walletconnect.android.internal.common.signing.cacao.CacaoType
+import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.web3.modal.client.models.Account
 import com.walletconnect.web3.modal.client.models.Session
 import com.walletconnect.web3.modal.client.models.request.Request
+import java.text.SimpleDateFormat
+import java.util.Calendar
 
 internal fun Sign.Model.ApprovedSession.toModal() = Modal.Model.ApprovedSession.WalletConnectSession(topic, metaData, namespaces.toModal(), accounts)
 
@@ -102,21 +104,42 @@ internal fun Modal.Params.Authenticate.toSign(): Sign.Params.Authenticate = with
     )
 }
 
-internal fun Modal.Model.PayloadParams.toSign(): Sign.Model.PayloadParams = with(this) {
-    Sign.Model.PayloadParams(
+internal fun Modal.Model.AuthPayloadParams.toModel(pairingTopic: String): Modal.Params.Authenticate = with(this) {
+    Modal.Params.Authenticate(
         chains = chains,
-        type = type ?: CacaoType.CAIP222.header,
         domain = domain,
-        aud = aud,
+        uri = uri,
         nonce = nonce,
         nbf = nbf,
         exp = exp,
         statement = statement,
         requestId = requestId,
         resources = resources,
-        iat = iat,
+        expiry = expiry,
+        methods = methods,
+        pairingTopic = pairingTopic,
     )
 }
+
+internal fun Modal.Model.AuthPayloadParams.toSign(issuer: String): Sign.Params.FormatMessage = with(this) {
+    Sign.Params.FormatMessage(
+        payloadParams = Sign.Model.PayloadParams(
+            chains = chains,
+            domain = domain,
+            aud = uri,
+            nonce = nonce,
+            nbf = nbf,
+            exp = exp,
+            iat = SimpleDateFormat(Cacao.Payload.ISO_8601_PATTERN).format(Calendar.getInstance().time),
+            type = "",
+            statement = statement,
+            requestId = requestId,
+            resources = resources,
+        ),
+        iss = issuer
+    )
+}
+
 
 internal fun Map<String, Modal.Model.Namespace.Proposal>.toSign() = mapValues { (_, namespace) -> Sign.Model.Namespace.Proposal(namespace.chains, namespace.methods, namespace.events) }
 
@@ -139,5 +162,3 @@ internal fun Modal.Listeners.SessionPing.toSign() = object : Sign.Listeners.Sess
 internal fun Sign.Model.Session.toSession() = Session.WalletConnectSession(pairingTopic, topic, expiry, namespaces.toModal(), metaData)
 
 internal fun Account.toCoinbaseSession() = Session.CoinbaseSession(chain.id, address)
-
-//internal fun Sign.Model.Session.toSession() = Session(pairingTopic, topic, expiry, namespaces.toModal(), metaData)

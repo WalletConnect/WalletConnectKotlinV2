@@ -41,17 +41,10 @@ class SendEventUseCaseTest : KoinTest {
     private lateinit var useCase: SendEventUseCase
     private val testDispatcher = StandardTestDispatcher()
 
-    private val testModule: Module = module {
-        single(named(AndroidCommonDITags.ENABLE_WEB_3_MODAL_ANALYTICS)) { true }
-    }
-
     @OptIn(ExperimentalCoroutinesApi::class)
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        val app = startKoin { modules(testModule) }
-        useCase = SendEventUseCase(pulseService, logger, bundleId)
-        wcKoinApp = app
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -64,6 +57,14 @@ class SendEventUseCaseTest : KoinTest {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `send should log and send event when analytics is enabled and response is successful`() = runTest(testDispatcher) {
+        stopKoin()
+        val module: Module = module {
+            single(named(AndroidCommonDITags.ENABLE_WEB_3_MODAL_ANALYTICS)) { true }
+        }
+        val app = startKoin { modules(module) }
+        useCase = SendEventUseCase(pulseService, logger, bundleId)
+        wcKoinApp = app
+
         val props = Props(type = "testEvent")
         val sdkType = SDKType.WEB3MODAL
         val event = Event(props = props, bundleId = bundleId)
@@ -82,6 +83,14 @@ class SendEventUseCaseTest : KoinTest {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `send should log error when analytics is enabled and response is unsuccessful`() = runTest(testDispatcher) {
+        stopKoin()
+        val module: Module = module {
+            single(named(AndroidCommonDITags.ENABLE_WEB_3_MODAL_ANALYTICS)) { true }
+        }
+        val app = startKoin { modules(module) }
+        useCase = SendEventUseCase(pulseService, logger, bundleId)
+        wcKoinApp = app
+
         val props = Props(type = "testEvent")
         val sdkType = SDKType.WEB3MODAL
         val event = Event(props = props, bundleId = bundleId)
@@ -100,6 +109,14 @@ class SendEventUseCaseTest : KoinTest {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `send should log exception when analytics is enabled and an exception occurs`() = runTest(testDispatcher) {
+        stopKoin()
+        val module: Module = module {
+            single(named(AndroidCommonDITags.ENABLE_WEB_3_MODAL_ANALYTICS)) { true }
+        }
+        val app = startKoin { modules(module) }
+        useCase = SendEventUseCase(pulseService, logger, bundleId)
+        wcKoinApp = app
+
         val props = Props(type = "testEvent")
         val sdkType = SDKType.WEB3MODAL
         val event = Event(props = props, bundleId = bundleId)
