@@ -8,7 +8,7 @@ plugins {
 }
 
 project.apply {
-    extra[KEY_PUBLISH_ARTIFACT_ID] = "auth"
+    extra[KEY_PUBLISH_ARTIFACT_ID] = AUTH
     extra[KEY_PUBLISH_VERSION] = AUTH_VERSION
     extra[KEY_SDK_NAME] = "Auth"
 }

@@ -8,7 +8,7 @@ plugins {
 }
 
 project.apply {
-    extra[KEY_PUBLISH_ARTIFACT_ID] = "notify"
+    extra[KEY_PUBLISH_ARTIFACT_ID] = NOTIFY
     extra[KEY_PUBLISH_VERSION] = NOTIFY_VERSION
     extra[KEY_SDK_NAME] = "Notify"
 }

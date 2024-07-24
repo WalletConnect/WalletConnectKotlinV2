@@ -8,7 +8,7 @@ plugins {
 }
 
 project.apply {
-    extra[KEY_PUBLISH_ARTIFACT_ID] = "walletconnect-modal"
+    extra[KEY_PUBLISH_ARTIFACT_ID] = WC_MODAL
     extra[KEY_PUBLISH_VERSION] = WC_MODAL_VERSION
     extra[KEY_SDK_NAME] = "Wallet Connect Modal"
 }

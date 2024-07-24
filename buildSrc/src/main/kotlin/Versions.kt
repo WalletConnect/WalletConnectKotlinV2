@@ -17,6 +17,19 @@ const val WEB_3_MODAL_VERSION = "1.5.4"
 const val WC_MODAL_VERSION = "1.5.4"
 const val MODAL_CORE_VERSION = "1.5.4"
 
+//Artifact ids
+const val ANDROID_BOM = "android-bom"
+const val FOUNDATION = "foundation"
+const val ANDROID_CORE = "android-core"
+const val SIGN = "sign"
+const val AUTH = "auth"
+const val CHAT = "chat"
+const val NOTIFY = "notify"
+const val WEB_3_WALLET = "web3wallet"
+const val WEB_3_MODAL = "web3modal"
+const val WC_MODAL = "walletconnect-modal"
+const val MODAL_CORE = "modal-core"
+
 val jvmVersion = JavaVersion.VERSION_11
 const val MIN_SDK: Int = 23
 const val TARGET_SDK: Int = 34
