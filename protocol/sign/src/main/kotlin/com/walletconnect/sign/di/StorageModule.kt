@@ -25,6 +25,8 @@ import com.walletconnect.android.internal.common.scope as wcScope
 
 @JvmSynthetic
 internal fun storageModule(dbName: String): Module = module {
+    includes(sdkBaseStorageModule(SignDatabase.Schema, dbName))
+
     fun Scope.createSignDB(): SignDatabase = SignDatabase(
         driver = get(named(dbName)),
         NamespaceDaoAdapter = NamespaceDao.Adapter(
@@ -58,8 +60,6 @@ internal fun storageModule(dbName: String): Module = module {
             iconsAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_LIST))
         )
     )
-
-    includes(sdkBaseStorageModule(SignDatabase.Schema, dbName))
 
     single {
         try {

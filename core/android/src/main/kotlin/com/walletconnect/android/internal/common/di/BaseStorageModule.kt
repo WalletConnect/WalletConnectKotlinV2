@@ -29,24 +29,6 @@ import org.koin.dsl.module
 import com.walletconnect.android.internal.common.scope as wcScope
 
 fun baseStorageModule(storagePrefix: String = String.Empty, bundleId: String) = module {
-
-    fun Scope.createCoreDB(): AndroidCoreDatabase = AndroidCoreDatabase(
-        driver = get(named(AndroidBuildVariantDITags.ANDROID_CORE_DATABASE_DRIVER)),
-        MetaDataAdapter = MetaData.Adapter(
-            iconsAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_LIST)),
-            typeAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_APPMETADATATYPE))
-        ),
-        VerifyContextAdapter = VerifyContext.Adapter(
-            validationAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_VALIDATION))
-        ),
-        EventDaoAdapter = EventDao.Adapter(
-            traceAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_LIST))
-        ),
-        JsonRpcHistoryDaoAdapter = JsonRpcHistoryDao.Adapter(
-            transport_typeAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_TRANSPORT_TYPE))
-        )
-    )
-
     single<ColumnAdapter<List<String>, String>>(named(AndroidCommonDITags.COLUMN_ADAPTER_LIST)) {
         object : ColumnAdapter<List<String>, String> {
             override fun decode(databaseValue: String): List<String> =
@@ -81,6 +63,23 @@ fun baseStorageModule(storagePrefix: String = String.Empty, bundleId: String) = 
     single<ColumnAdapter<TransportType, String>>(named(AndroidCommonDITags.COLUMN_ADAPTER_TRANSPORT_TYPE)) { EnumColumnAdapter() }
 
     single<ColumnAdapter<Validation, String>>(named(AndroidCommonDITags.COLUMN_ADAPTER_VALIDATION)) { EnumColumnAdapter() }
+
+    fun Scope.createCoreDB(): AndroidCoreDatabase = AndroidCoreDatabase(
+        driver = get(named(AndroidBuildVariantDITags.ANDROID_CORE_DATABASE_DRIVER)),
+        MetaDataAdapter = MetaData.Adapter(
+            iconsAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_LIST)),
+            typeAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_APPMETADATATYPE))
+        ),
+        VerifyContextAdapter = VerifyContext.Adapter(
+            validationAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_VALIDATION))
+        ),
+        EventDaoAdapter = EventDao.Adapter(
+            traceAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_LIST))
+        ),
+        JsonRpcHistoryDaoAdapter = JsonRpcHistoryDao.Adapter(
+            transport_typeAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_TRANSPORT_TYPE))
+        )
+    )
 
     single<AndroidCoreDatabase>(named(AndroidBuildVariantDITags.ANDROID_CORE_DATABASE)) {
         try {
