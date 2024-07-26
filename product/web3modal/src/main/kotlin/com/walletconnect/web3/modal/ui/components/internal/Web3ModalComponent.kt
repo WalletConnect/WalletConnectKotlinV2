@@ -63,13 +63,14 @@ internal fun Web3ModalComponent(
             .onEach { event ->
                 when (event) {
                     is Modal.Model.SIWEAuthenticateResponse.Result, is Modal.Model.SessionAuthenticateResponse.Result -> closeModal()
-                    is Modal.Model.ApprovedSession, is Modal.Model.DeletedSession.Success -> {
+                    is Modal.Model.ApprovedSession -> {
                         if (Web3Modal.authPayloadParams != null) {
                             navController.navigate(Route.SIWE_FALLBACK.path)
                         } else {
                             closeModal()
                         }
                     }
+                    is Modal.Model.DeletedSession.Success -> closeModal()
 
                     else -> Unit
                 }
@@ -79,7 +80,13 @@ internal fun Web3ModalComponent(
 
     ComposableLifecycleEffect(
         onEvent = { _, event ->
-            coroutineScope.launch { event.toComponentEvent() }
+            coroutineScope.launch {
+                event.toComponentEvent(onClosed = {
+                    if (navController.currentDestination?.route == Route.SIWE_FALLBACK.path && web3ModalViewModel.shouldDisconnect) {
+                        web3ModalViewModel.disconnect()
+                    }
+                })
+            }
         }
     )
 

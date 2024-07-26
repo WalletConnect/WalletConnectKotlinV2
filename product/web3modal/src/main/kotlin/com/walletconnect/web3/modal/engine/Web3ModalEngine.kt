@@ -59,6 +59,7 @@ internal class Web3ModalEngine(
     internal var recommendedWalletsIds: MutableList<String> = mutableListOf()
     internal var siweRequestIdWithMessage: Pair<Long, String>? = null
     private lateinit var coinbaseClient: CoinbaseClient
+    internal var shouldDisconnect: Boolean = true
 
     fun setup(
         init: Modal.Params.Init,
@@ -205,6 +206,7 @@ internal class Web3ModalEngine(
                     onSuccess = {
                         sendEventUseCase.send(Props(EventType.TRACK, EventType.Track.DISCONNECT_SUCCESS))
                         scope.launch { deleteSessionDataUseCase() }
+                        shouldDisconnect = true
                         onSuccess()
                     },
                     onError = {

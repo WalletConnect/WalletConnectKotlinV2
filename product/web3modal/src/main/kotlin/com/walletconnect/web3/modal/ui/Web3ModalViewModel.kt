@@ -14,6 +14,7 @@ internal class Web3ModalViewModel : ViewModel() {
 
     private val web3ModalEngine: Web3ModalEngine = wcKoinApp.koin.get()
     private val _modalState: MutableStateFlow<Web3ModalState> = MutableStateFlow(Web3ModalState.Loading)
+    val shouldDisconnect get() = web3ModalEngine.shouldDisconnect
 
     val modalState: StateFlow<Web3ModalState>
         get() = _modalState.asStateFlow()
@@ -21,6 +22,13 @@ internal class Web3ModalViewModel : ViewModel() {
     init {
         require(Web3Modal.chains.isNotEmpty()) { "Be sure to set the Chains using Web3Modal.setChains" }
         initModalState()
+    }
+
+    fun disconnect() {
+        web3ModalEngine.disconnect(
+            onSuccess = { println("Disconnected successfully") },
+            onError = { println("Disconnect error: $it") }
+        )
     }
 
     internal fun initModalState() {
