@@ -59,6 +59,7 @@ internal class Web3ModalEngine(
     internal var recommendedWalletsIds: MutableList<String> = mutableListOf()
     internal var siweRequestIdWithMessage: Pair<Long, String>? = null
     private lateinit var coinbaseClient: CoinbaseClient
+    internal var shouldDisconnect: Boolean = true
 
     fun setup(
         init: Modal.Params.Init,
@@ -165,7 +166,7 @@ internal class Web3ModalEngine(
         }
     }
 
-    private fun openWalletApp(topic: String, onError: (Throwable) -> Unit) {
+    private fun openWalletApp(topic: String, onError: (RedirectMissingThrowable) -> Unit) {
         val redirect = SignClient.getActiveSessionByTopic(topic)?.redirect ?: String.Empty
         try {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(redirect))
@@ -173,7 +174,7 @@ internal class Web3ModalEngine(
             intent.addFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
             wcKoinApp.koin.get<Context>().startActivity(intent)
         } catch (e: Throwable) {
-            onError(e)
+            onError(RedirectMissingThrowable("Please redirect to a wallet manually"))
         }
     }
 
@@ -205,6 +206,7 @@ internal class Web3ModalEngine(
                     onSuccess = {
                         sendEventUseCase.send(Props(EventType.TRACK, EventType.Track.DISCONNECT_SUCCESS))
                         scope.launch { deleteSessionDataUseCase() }
+                        shouldDisconnect = true
                         onSuccess()
                     },
                     onError = {
@@ -346,4 +348,6 @@ internal class Web3ModalEngine(
             "Coinbase Client needs to be initialized first using the initialize function"
         }
     }
+
+    internal class RedirectMissingThrowable(message: String) : Throwable(message)
 }

@@ -97,11 +97,12 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
 
     fun sendSIWEOverPersonalSign() {
         _isConfirmLoading.value = true
+        web3ModalEngine.shouldDisconnect = false
         val account = web3ModalEngine.getAccount() ?: throw IllegalStateException("Account is null")
         val issuer = "did:pkh:${account.chain.id}:${account.address}"
         val siweMessage = web3ModalEngine.formatSIWEMessage(Web3Modal.authPayloadParams!!, issuer)
         val msg = siweMessage.encodeToByteArray().joinToString(separator = "", prefix = "0x") { eachByte -> "%02x".format(eachByte) }
-        val body = "[\"$msg\", \"$account\"]"
+        val body = "[\"$msg\", \"${account.address}\"]"
         web3ModalEngine.request(
             request = Request("personal_sign", body),
             onSuccess = { sendRequest ->
@@ -109,8 +110,12 @@ internal class ConnectViewModel : ViewModel(), Navigator by NavigatorImpl(), Par
                 web3ModalEngine.siweRequestIdWithMessage = Pair((sendRequest as SentRequestResult.WalletConnect).requestId, siweMessage)
             },
             onError = {
+                if (it !is Web3ModalEngine.RedirectMissingThrowable) {
+                    web3ModalEngine.shouldDisconnect = true
+                }
+
                 _isConfirmLoading.value = false
-                showError(it.localizedMessage)
+                showError(it.message)
             },
         )
     }

@@ -1,4 +1,4 @@
-name: Create Release
+name: Create GitHub Release
 
 on:
   push:
@@ -19,15 +19,16 @@ jobs:
       with:
         config-name: release-drafter.yml
       env:
-        GITHUB_TOKEN: ${{ secrets.ASSIGN_TO_PROJECT_GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Create GitHub Release
       uses: actions/create-release@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.ASSIGN_TO_PROJECT_GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{ github.ref }}
         release_name: ${{ github.ref }}
         body: ${{ steps.drafter.outputs.changelog }}
         draft: false
         prerelease: false
+        target_commitish: master

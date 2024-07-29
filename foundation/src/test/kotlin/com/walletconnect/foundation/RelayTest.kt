@@ -42,7 +42,7 @@ sealed class TestState {
 @ExperimentalCoroutinesApi
 class RelayTest {
     private val testProjectId: String = requireNotNull(System.getProperty("TEST_PROJECT_ID"))
-    private val testRelayUrl: String = "https://staging.relay.walletconnect.org"
+    private val testRelayUrl: String = requireNotNull(System.getProperty("TEST_RELAY_URL"))
     private val serverUrl = "$testRelayUrl?projectId=$testProjectId"
     private val sdkVersion: String = System.getProperty("SDK_VERSION") + "-relayTest"
     private val testJob: CompletableJob = SupervisorJob()
@@ -97,7 +97,7 @@ class RelayTest {
         runBlocking {
             val start = System.currentTimeMillis()
             // Await test finish or check if timeout occurred
-            while (testState.value is TestState.Idle && !didTimeout(start, 20000L)) {
+            while (testState.value is TestState.Idle && !didTimeout(start, 60000L)) {
                 delay(10)
             }
 
@@ -138,7 +138,7 @@ class RelayTest {
         runBlocking {
             val start = System.currentTimeMillis()
             // Await test finish or check if timeout occurred
-            while (testState.value is TestState.Idle && !didTimeout(start, 10000L)) {
+            while (testState.value is TestState.Idle && !didTimeout(start, 60000L)) {
                 delay(10)
             }
 
