@@ -28,7 +28,7 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import java.util.concurrent.TimeUnit
 
-private const val INIT_BACKOFF_MILLIS = 100L
+private const val INIT_BACKOFF_MILLIS = 1L
 private const val MAX_BACKOFF_SEC = 20L
 
 @Suppress("LocalVariableName")
