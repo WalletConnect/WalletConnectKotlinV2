@@ -8,7 +8,7 @@ import com.tinder.scarlet.Scarlet
 import com.tinder.scarlet.lifecycle.LifecycleRegistry
 import com.tinder.scarlet.lifecycle.android.AndroidLifecycle
 import com.tinder.scarlet.messageadapter.moshi.MoshiMessageAdapter
-import com.tinder.scarlet.retry.LinearBackoffStrategy
+import com.tinder.scarlet.retry.ExponentialBackoffStrategy
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
 import com.walletconnect.android.BuildConfig
 import com.walletconnect.android.internal.common.connection.ConnectivityState
@@ -28,7 +28,8 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import java.util.concurrent.TimeUnit
 
-private const val DEFAULT_BACKOFF_SECONDS = 5L
+private const val INIT_BACKOFF_MILLIS = 100L
+private const val MAX_BACKOFF_SEC = 20L
 
 @Suppress("LocalVariableName")
 @JvmSynthetic
@@ -119,13 +120,13 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
         }
     }
 
-    single { LinearBackoffStrategy(TimeUnit.SECONDS.toMillis(DEFAULT_BACKOFF_SECONDS)) }
+    single { ExponentialBackoffStrategy(INIT_BACKOFF_MILLIS, TimeUnit.SECONDS.toMillis(MAX_BACKOFF_SEC)) }
 
     single { FlowStreamAdapter.Factory() }
 
     single(named(AndroidCommonDITags.SCARLET)) {
         Scarlet.Builder()
-            .backoffStrategy(get<LinearBackoffStrategy>())
+            .backoffStrategy(get<ExponentialBackoffStrategy>())
             .webSocketFactory(get<OkHttpClient>(named(AndroidCommonDITags.OK_HTTP)).newWebSocketFactory(get<String>(named(AndroidCommonDITags.RELAY_URL))))
             .lifecycle(get(named(AndroidCommonDITags.LIFECYCLE)))
             .addMessageAdapterFactory(get<MoshiMessageAdapter.Factory>(named(AndroidCommonDITags.MSG_ADAPTER)))
