@@ -176,18 +176,6 @@ class Web3WalletActivity : AppCompatActivity() {
                     Toast.makeText(this@Web3WalletActivity, "Error dispatching envelope: ${it.throwable.message}", Toast.LENGTH_SHORT).show()
                 }
             }
-        }
-    }
-
-    override fun onNewIntent(intent: Intent?) {
-        super.onNewIntent(intent)
-
-        if (intent?.dataString?.contains("wc_ev") == true) {
-            Web3Wallet.dispatchEnvelope(intent.dataString ?: "") {
-                lifecycleScope.launch(Dispatchers.Main) {
-                    Toast.makeText(this@Web3WalletActivity, "Error dispatching envelope: ${it.throwable.message}", Toast.LENGTH_SHORT).show()
-                }
-            }
         } else {
             when {
                 intent?.dataString?.startsWith("kotlin-web3wallet:/wc") == true -> {
@@ -208,9 +196,19 @@ class Web3WalletActivity : AppCompatActivity() {
             if (intent?.dataString?.startsWith("kotlin-web3wallet://request") == false
                 && intent.dataString?.contains("requestId") == false
             ) {
-                navController.handleDeepLink(intent)
+                lifecycleScope.launch {
+                    navigateWhenReady {
+                        navController.handleDeepLink(intent)
+                    }
+                }
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+
+        handleAppLink(intent)
     }
 
     private fun askNotificationPermission() {
