@@ -1,8 +1,8 @@
 package com.walletconnect.android.verify.data
 
-import com.walletconnect.android.verify.client.VerifyServerPublicKey
 import com.walletconnect.android.verify.model.Origin
 import com.walletconnect.android.verify.model.RegisterAttestationBody
+import com.walletconnect.android.verify.model.VerifyServerPublicKey
 import com.walletconnect.android.verify.model.VerifyServerResponse
 import retrofit2.Response
 import retrofit2.http.Body

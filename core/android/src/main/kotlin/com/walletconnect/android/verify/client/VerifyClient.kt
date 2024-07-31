@@ -2,7 +2,8 @@ package com.walletconnect.android.verify.client
 
 import com.walletconnect.android.internal.common.di.verifyModule
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.android.verify.data.model.AttestationResult
+import com.walletconnect.android.verify.domain.VerifyRepository
+import com.walletconnect.android.verify.domain.AttestationResult
 import org.koin.core.KoinApplication
 
 internal class VerifyClient(private val koinApp: KoinApplication = wcKoinApp, ) : VerifyInterface {

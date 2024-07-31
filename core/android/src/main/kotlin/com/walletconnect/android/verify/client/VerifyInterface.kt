@@ -1,6 +1,6 @@
 package com.walletconnect.android.verify.client
 
-import com.walletconnect.android.verify.data.model.AttestationResult
+import com.walletconnect.android.verify.domain.AttestationResult
 
 interface VerifyInterface {
     fun initialize()

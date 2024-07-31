@@ -6,7 +6,7 @@ import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.verify.client.VerifyInterface
-import com.walletconnect.android.verify.data.model.VerifyContext
+import com.walletconnect.android.verify.model.VerifyContext
 import com.walletconnect.utils.Empty
 import com.walletconnect.utils.compareDomains
 import kotlinx.coroutines.launch

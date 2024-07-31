@@ -1,4 +1,4 @@
-package com.walletconnect.android.verify.data.model
+package com.walletconnect.android.verify.domain
 
 data class AttestationResult(
     val origin: String,

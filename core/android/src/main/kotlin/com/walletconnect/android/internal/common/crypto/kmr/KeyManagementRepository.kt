@@ -2,6 +2,7 @@ package com.walletconnect.android.internal.common.crypto.kmr
 
 import com.walletconnect.android.internal.common.model.MissingKeyException
 import com.walletconnect.android.internal.common.model.SymmetricKey
+import com.walletconnect.android.verify.model.JWK
 import com.walletconnect.foundation.common.model.Key
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
@@ -29,4 +30,6 @@ interface KeyManagementRepository {
 
     fun getTopicFromKey(key: Key): Topic
     fun generateTopicFromKeyAgreement(self: PublicKey, peer: PublicKey): Topic
+
+    fun generateP256PublicKeyFromJWK(jwk: JWK): String
 }

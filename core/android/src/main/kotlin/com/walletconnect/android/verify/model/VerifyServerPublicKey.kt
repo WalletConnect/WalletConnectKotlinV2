@@ -1,4 +1,4 @@
-package com.walletconnect.android.verify.client
+package com.walletconnect.android.verify.model
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
