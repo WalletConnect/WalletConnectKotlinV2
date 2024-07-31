@@ -5,6 +5,7 @@ import com.squareup.moshi.Moshi
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.verify.data.VerifyService
 import com.walletconnect.android.verify.data.model.AttestationResult
+import com.walletconnect.util.bytesToHex
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -64,6 +65,7 @@ internal class VerifyRepository(
                                 val pubSpec = ECPublicKeySpec(point, ecSpec)
                                 val kf = KeyFactory.getInstance("EC")
                                 val publicKey: PublicKey = kf.generatePublic(pubSpec)
+                                publicKey.encoded.bytesToHex()
                                 //todo: store key to DB: bytes, expiration
                             } else {
                                 println("kobe: Error: Failed to parse JWK")

@@ -8,7 +8,7 @@ data class VerifyServerPublicKey(
     @Json(name = "publicKey")
     val publicKey: String,
     @Json(name = "expiresAt")
-    val expiresAt: String,
+    val expiresAt: Long,
 )
 
 @JsonClass(generateAdapter = true)
