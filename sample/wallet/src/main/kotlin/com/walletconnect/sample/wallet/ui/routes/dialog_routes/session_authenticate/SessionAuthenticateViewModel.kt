@@ -114,10 +114,10 @@ class SessionAuthenticateViewModel : ViewModel() {
 
             SessionAuthenticateUI(
                 peerUI = PeerUI(
-                    peerIcon = "https://raw.githubusercontent.com/WalletConnect/walletconnect-assets/master/Icon/Gradient/Icon.png",
-                    peerName = "Kotlin Wallet",
-                    peerUri = "https://walletconnect.com/",
-                    peerDescription = "The communications protocol for web3.",
+                    peerIcon = sessionAuthenticate.participant.metadata?.icons?.firstOrNull().toString(),
+                    peerName = sessionAuthenticate.participant.metadata?.name ?: "WalletConnect",
+                    peerUri = sessionAuthenticate.participant.metadata?.url ?: "https://walletconnect.com/",
+                    peerDescription = sessionAuthenticate.participant.metadata?.url ?: "The communications protocol for web3.",
                     linkMode = sessionAuthenticate.participant.metadata?.linkMode ?: false
                 ),
                 messages = messages,
