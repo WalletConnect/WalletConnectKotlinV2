@@ -76,7 +76,18 @@ class Web3ModalSheet : BottomSheetDialogFragment() {
                 modifier = Modifier.nestedScroll(rememberNestedScrollInteropConnection()),
                 navController = navController,
                 shouldOpenChooseNetwork = shouldOpenChooseNetwork,
-                closeModal = { this@Web3ModalSheet.dismiss() })
+                closeModal = {
+                    if (isAdded) {
+                        if (!isStateSaved) {
+                            this@Web3ModalSheet.dismiss()
+                        } else {
+                            Handler(Looper.getMainLooper()).post {
+                                this@Web3ModalSheet.dismissAllowingStateLoss()
+                            }
+                        }
+                    }
+                }
+            )
         }
     }
 
