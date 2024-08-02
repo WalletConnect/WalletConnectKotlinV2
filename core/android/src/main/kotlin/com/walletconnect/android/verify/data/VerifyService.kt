@@ -17,7 +17,7 @@ interface VerifyService {
     suspend fun registerAttestation(@Body body: RegisterAttestationBody): Response<VerifyServerResponse.RegisterAttestation>
 
     @Headers("Content-Type: application/json")
-    @GET("attestation/{attestationId}")
+    @GET("attestation/{attestationId}?v2Supported=true")
     suspend fun resolveAttestation(@Path("attestationId") attestationId: String): Response<Origin>
 
     @GET("v2/public-key")

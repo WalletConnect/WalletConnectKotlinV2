@@ -20,18 +20,38 @@ class ResolveAttestationIdUseCase(private val verifyInterface: VerifyInterface, 
                 onResolve(verifyContext)
             }
         } else {
-            val attestationId = sha256(request.message.toByteArray())
-            verifyInterface.resolve(attestationId,
-                onSuccess = { attestationResult ->
-                    val (origin, isScam) = Pair(attestationResult.origin, attestationResult.isScam)
-                    insertContext(VerifyContext(request.id, origin, getValidation(metadataUrl, origin), verifyUrl, isScam)) { verifyContext ->
-                        onResolve(verifyContext)
-                    }
-                },
-                onError = {
-                    insertContext(VerifyContext(request.id, String.Empty, Validation.UNKNOWN, verifyUrl, null)) { verifyContext -> onResolve(verifyContext) }
+            when {
+                !request.attestation.isNullOrEmpty() -> {
+                    println("kobe: Verify v2")
+                    verifyInterface.resolveV2(request.attestation,
+                        onSuccess = { attestationResult ->
+//                            val (origin, isScam) = Pair(attestationResult.origin, attestationResult.isScam)
+//                            insertContext(VerifyContext(request.id, origin, getValidation(metadataUrl, origin), verifyUrl, isScam)) { verifyContext ->
+//                                onResolve(verifyContext)
+//                            }
+                        },
+                        onError = {
+                            insertContext(VerifyContext(request.id, String.Empty, Validation.UNKNOWN, verifyUrl, null)) { verifyContext -> onResolve(verifyContext) }
+                        }
+                    )
                 }
-            )
+
+                else -> {
+                    println("kobe: Verify v1 - backward compatibility")
+                    val attestationId = sha256(request.message.toByteArray())
+                    verifyInterface.resolve(attestationId,
+                        onSuccess = { attestationResult ->
+                            val (origin, isScam) = Pair(attestationResult.origin, attestationResult.isScam)
+                            insertContext(VerifyContext(request.id, origin, getValidation(metadataUrl, origin), verifyUrl, isScam)) { verifyContext ->
+                                onResolve(verifyContext)
+                            }
+                        },
+                        onError = {
+                            insertContext(VerifyContext(request.id, String.Empty, Validation.UNKNOWN, verifyUrl, null)) { verifyContext -> onResolve(verifyContext) }
+                        }
+                    )
+                }
+            }
         }
     }
 

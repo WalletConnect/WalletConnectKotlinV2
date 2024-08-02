@@ -1,6 +1,7 @@
 package com.walletconnect.android.internal.common.di
 
 import com.walletconnect.android.verify.data.VerifyService
+import com.walletconnect.android.verify.domain.JWTRepository
 import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
 import com.walletconnect.android.verify.domain.VerifyPublicKeyStorageRepository
 import com.walletconnect.android.verify.domain.VerifyRepository
@@ -27,11 +28,12 @@ internal fun verifyModule() = module {
 
     single { VerifyPublicKeyStorageRepository(get()) }
 
+    single { JWTRepository() }
+
     single {
         VerifyRepository(
             verifyService = get(),
-            keyManagementRepository = get(),
-            moshi = get(named(AndroidCommonDITags.MOSHI)),
+            jwtRepository = get(),
             verifyPublicKeyStorageRepository = get()
         )
     }

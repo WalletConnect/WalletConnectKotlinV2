@@ -6,4 +6,5 @@ interface VerifyInterface {
     fun initialize()
     fun register(attestationId: String, onSuccess: () -> Unit, onError: (Throwable) -> Unit)
     fun resolve(attestationId: String, onSuccess: (AttestationResult) -> Unit, onError: (Throwable) -> Unit)
+    fun resolveV2(attestation: String, onSuccess: (AttestationResult) -> Unit, onError: (Throwable) -> Unit)
 }

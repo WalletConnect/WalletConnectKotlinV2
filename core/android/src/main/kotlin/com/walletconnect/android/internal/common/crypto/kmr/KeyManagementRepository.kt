@@ -2,7 +2,6 @@ package com.walletconnect.android.internal.common.crypto.kmr
 
 import com.walletconnect.android.internal.common.model.MissingKeyException
 import com.walletconnect.android.internal.common.model.SymmetricKey
-import com.walletconnect.android.verify.model.JWK
 import com.walletconnect.foundation.common.model.Key
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
@@ -10,6 +9,7 @@ import com.walletconnect.foundation.common.model.Topic
 
 interface KeyManagementRepository {
     fun setKey(key: Key, tag: String)
+
     @Throws(MissingKeyException::class)
     fun removeKeys(tag: String)
 
@@ -30,6 +30,4 @@ interface KeyManagementRepository {
 
     fun getTopicFromKey(key: Key): Topic
     fun generateTopicFromKeyAgreement(self: PublicKey, peer: PublicKey): Topic
-
-    fun generateP256PublicKeyFromJWK(jwk: JWK): String
 }

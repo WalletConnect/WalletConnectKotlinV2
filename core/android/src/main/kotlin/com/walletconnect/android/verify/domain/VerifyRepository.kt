@@ -1,9 +1,8 @@
 package com.walletconnect.android.verify.domain
 
-import com.squareup.moshi.Moshi
-import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
+import com.walletconnect.android.internal.utils.currentTimeInSeconds
 import com.walletconnect.android.verify.data.VerifyService
-import com.walletconnect.android.verify.model.JWK
+import com.walletconnect.util.hexToBytes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -12,11 +11,60 @@ import kotlinx.coroutines.supervisorScope
 
 internal class VerifyRepository(
     private val verifyService: VerifyService,
-    private val moshi: Moshi,
-    private val keyManagementRepository: KeyManagementRepository,
+    private val jwtRepository: JWTRepository,
     private val verifyPublicKeyStorageRepository: VerifyPublicKeyStorageRepository,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 ) {
+    suspend fun getVerifyPublicKey(): Result<String> {
+        return kotlin.runCatching {
+            val (localPublicKey, expiresAt) = verifyPublicKeyStorageRepository.getPublicKey()
+            val publicKey = if (!isLocalKeyValid(localPublicKey, expiresAt)) {
+                fetchAndCacheKey()
+            } else {
+                println("kobe: Local key is valid: $localPublicKey")
+                localPublicKey!!
+            }
+            publicKey
+        }
+    }
+
+    fun resolveV2(attestation: String, onSuccess: (AttestationResult) -> Unit, onError: (Throwable) -> Unit) {
+        println("kobe: Verify v2: attestation jwt: $attestation")
+
+        scope.launch {
+            supervisorScope {
+                getVerifyPublicKey()
+                    .fold(
+                        onSuccess = { key ->
+                            println("kobe: Gen key2: ${key}")
+                            val (header, claims, signature) = jwtRepository.decodeJWT(attestation)
+                            //varify claims
+                            val data = "$header.$claims".toByteArray()
+
+                            val isValid = jwtRepository.verifyJWT(data, signature, key.hexToBytes())
+                            println("kobe: isValid: $isValid")
+                            //if verification fails get new key and try again
+                            //return onSuccess
+
+                        },
+                        onFailure = { throwable -> onError(throwable) }
+                    )
+            }
+        }
+    }
+
+    private suspend fun fetchAndCacheKey(): String {
+        val response = verifyService.getPublicKey()
+        if (response.isSuccessful && response.body() != null) {
+            println("kobe: JWK: ${response.body()!!.jwk}")
+            val publicKey = jwtRepository.generateP256PublicKeyFromJWK(response.body()!!.jwk)
+            verifyPublicKeyStorageRepository.upsertPublicKey(publicKey, response.body()!!.expiresAt)
+            return publicKey
+        } else {
+            println("kobe: Error while fetching a key: ${response.errorBody()?.string()}")
+            throw Exception("Error while fetching a Verify PublicKey: ${response.errorBody()?.string()}")
+        }
+    }
 
     fun resolve(attestationId: String, onSuccess: (AttestationResult) -> Unit, onError: (Throwable) -> Unit) {
         scope.launch {
@@ -37,36 +85,6 @@ internal class VerifyRepository(
         }
     }
 
-    fun getVerifyPublicKey() {
-        scope.launch {
-            supervisorScope {
-                try {
-                    val (localPublicKey, expiresAt) = verifyPublicKeyStorageRepository.getPublicKey()
-                    if (!shouldFetchKey(localPublicKey, expiresAt)) {
-                        val response = verifyService.getPublicKey()
-                        if (response.isSuccessful && response.body() != null) {
-                            moshi.adapter(JWK::class.java).fromJson(response.body()!!.publicKey).let { jwk ->
-                                if (jwk != null) {
-                                    println("kobe: JWK: $jwk")
-                                    val publicKey = keyManagementRepository.generateP256PublicKeyFromJWK(jwk)
-                                    verifyPublicKeyStorageRepository.upsertPublicKey(publicKey, response.body()!!.expiresAt)
-                                } else {
-                                    println("kobe: Error: Failed to parse JWK")
-                                }
-                            }
-                        } else {
-                            println("kobe: Error: ${response.errorBody()?.string()}")
-                        }
-                    } else {
-                        println("kobe: Key is not expired: $localPublicKey")
-                    }
-                } catch (e: Exception) {
-                    println("kobe: Exception: $e")
-                }
-            }
-        }
-    }
-
-    private fun shouldFetchKey(localPublicKey: String?, expiresAt: Long?) = localPublicKey != null && expiresAt != null && isKeyExpired(expiresAt)
-    private fun isKeyExpired(expiresAt: Long): Boolean = System.currentTimeMillis() >= expiresAt
+    private fun isLocalKeyValid(localPublicKey: String?, expiresAt: Long?) = localPublicKey != null && expiresAt != null && !isKeyExpired(expiresAt)
+    private fun isKeyExpired(expiresAt: Long): Boolean = currentTimeInSeconds >= expiresAt
 }

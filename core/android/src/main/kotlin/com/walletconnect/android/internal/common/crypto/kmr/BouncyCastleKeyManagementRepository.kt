@@ -2,12 +2,10 @@
 
 package com.walletconnect.android.internal.common.crypto.kmr
 
-import android.util.Base64
 import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.model.MissingKeyException
 import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.internal.common.storage.key_chain.KeyStore
-import com.walletconnect.android.verify.model.JWK
 import com.walletconnect.foundation.common.model.Key
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
@@ -18,14 +16,9 @@ import org.bouncycastle.crypto.digests.SHA256Digest
 import org.bouncycastle.crypto.generators.HKDFBytesGenerator
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters
 import org.bouncycastle.crypto.params.HKDFParameters
-import org.bouncycastle.jce.ECNamedCurveTable
-import org.bouncycastle.jce.spec.ECNamedCurveSpec
 import org.bouncycastle.math.ec.rfc7748.X25519
 import org.bouncycastle.math.ec.rfc8032.Ed25519
-import java.security.KeyFactory
 import java.security.SecureRandom
-import java.security.spec.ECPoint
-import java.security.spec.ECPublicKeySpec
 import javax.crypto.KeyGenerator
 
 internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStore) : KeyManagementRepository {
@@ -109,19 +102,6 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
         return topic
     }
 
-    override fun generateP256PublicKeyFromJWK(jwk: JWK): String {
-        val crv = jwk.crv
-        val xBytes: ByteArray = Base64.decode(jwk.x.toByteArray(), Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
-        val yBytes: ByteArray = Base64.decode(jwk.y.toByteArray(), Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
-        val point = ECPoint(xBytes.toBigInt(), yBytes.toBigInt())
-        val curveTableSpecs = ECNamedCurveTable.getParameterSpec(crv)
-        val ecSpec = ECNamedCurveSpec(crv, curveTableSpecs.curve, curveTableSpecs.g, curveTableSpecs.n)
-        val pubSpec = ECPublicKeySpec(point, ecSpec)
-        val kf = KeyFactory.getInstance("EC")
-        val publicKey: java.security.PublicKey = kf.generatePublic(pubSpec)
-        return publicKey.encoded.bytesToHex()
-    }
-
     override fun getTopicFromKey(key: Key): Topic = Topic(sha256(key.keyAsBytes))
 
     @Throws(MissingKeyException::class)
@@ -170,7 +150,5 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
         const val AES: String = "AES"
 
         const val KEY_AGREEMENT_CONTEXT = "key_agreement/"
-
-        fun ByteArray.toBigInt(): java.math.BigInteger = java.math.BigInteger(1, this)
     }
 }

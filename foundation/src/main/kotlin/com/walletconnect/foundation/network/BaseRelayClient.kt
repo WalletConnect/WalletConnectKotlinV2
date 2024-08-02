@@ -72,10 +72,7 @@ abstract class BaseRelayClient : RelayInterface {
 
     override val subscriptionRequest: Flow<Relay.Model.Call.Subscription.Request> by lazy {
         relayService.observeSubscriptionRequest()
-            .map { request ->
-                println("kobe: Request: $request")
-                request.toRelay()
-            }
+            .map { request -> request.toRelay() }
             .onEach { relayRequest -> supervisorScope { publishSubscriptionAcknowledgement(relayRequest.id) } }
     }
 

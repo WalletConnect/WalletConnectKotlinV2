@@ -6,7 +6,7 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 data class VerifyServerPublicKey(
     @Json(name = "publicKey")
-    val publicKey: String,
+    val jwk: JWK,
     @Json(name = "expiresAt")
     val expiresAt: Long,
 )
