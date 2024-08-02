@@ -9,7 +9,6 @@ import com.walletconnect.foundation.common.model.Topic
 
 interface KeyManagementRepository {
     fun setKey(key: Key, tag: String)
-
     @Throws(MissingKeyException::class)
     fun removeKeys(tag: String)
 
