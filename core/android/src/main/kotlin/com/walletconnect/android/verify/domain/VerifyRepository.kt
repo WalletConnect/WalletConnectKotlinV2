@@ -1,7 +1,10 @@
 package com.walletconnect.android.verify.domain
 
+import com.squareup.moshi.Moshi
+import com.walletconnect.android.internal.common.model.Validation
 import com.walletconnect.android.internal.utils.currentTimeInSeconds
 import com.walletconnect.android.verify.data.VerifyService
+import com.walletconnect.android.verify.model.VerifyClaims
 import com.walletconnect.util.hexToBytes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -12,40 +15,52 @@ import kotlinx.coroutines.supervisorScope
 internal class VerifyRepository(
     private val verifyService: VerifyService,
     private val jwtRepository: JWTRepository,
+    private val moshi: Moshi,
     private val verifyPublicKeyStorageRepository: VerifyPublicKeyStorageRepository,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 ) {
-    suspend fun getVerifyPublicKey(): Result<String> {
-        return kotlin.runCatching {
-            val (localPublicKey, expiresAt) = verifyPublicKeyStorageRepository.getPublicKey()
-            val publicKey = if (!isLocalKeyValid(localPublicKey, expiresAt)) {
-                fetchAndCacheKey()
-            } else {
-                println("kobe: Local key is valid: $localPublicKey")
-                localPublicKey!!
-            }
-            publicKey
+    suspend fun getVerifyPublicKey(): Result<String> = runCatching {
+        val (localPublicKey, expiresAt) = verifyPublicKeyStorageRepository.getPublicKey()
+        val publicKey = if (!isLocalKeyValid(localPublicKey, expiresAt)) {
+            fetchAndCacheKey()
+        } else {
+            localPublicKey!!
         }
+        publicKey
     }
 
-    fun resolveV2(attestation: String, onSuccess: (AttestationResult) -> Unit, onError: (Throwable) -> Unit) {
-        println("kobe: Verify v2: attestation jwt: $attestation")
-
+    fun resolveV2(attestationJWT: String, metadataUrl: String, onSuccess: (VerifyResult) -> Unit, onError: (Throwable) -> Unit) {
         scope.launch {
             supervisorScope {
                 getVerifyPublicKey()
                     .fold(
                         onSuccess = { key ->
-                            println("kobe: Gen key2: ${key}")
-                            val (header, claims, signature) = jwtRepository.decodeJWT(attestation)
-                            //varify claims
-                            val data = "$header.$claims".toByteArray()
+                            if (jwtRepository.verifyJWT(attestationJWT, key.hexToBytes())) {
+                                val claims = moshi.adapter(VerifyClaims::class.java).fromJson(jwtRepository.decodeClaimsJWT(attestationJWT))
+                                if (claims == null) {
+                                    onError(IllegalArgumentException("Error while decoding JWT claims"))
+                                    return@fold
+                                }
 
-                            val isValid = jwtRepository.verifyJWT(data, signature, key.hexToBytes())
-                            println("kobe: isValid: $isValid")
-                            //if verification fails get new key and try again
-                            //return onSuccess
+                                onSuccess(VerifyResult(getValidation(claims, metadataUrl), claims.isScam, claims.origin))
+                            } else {
+                                try {
+                                    val newKey = fetchAndCacheKey()
+                                    if (jwtRepository.verifyJWT(attestationJWT, newKey.hexToBytes())) {
+                                        val claims = moshi.adapter(VerifyClaims::class.java).fromJson(jwtRepository.decodeClaimsJWT(attestationJWT))
+                                        if (claims == null) {
+                                            onError(IllegalArgumentException("Error while decoding JWT claims"))
+                                            return@fold
+                                        }
 
+                                        onSuccess(VerifyResult(getValidation(claims, metadataUrl), claims.isScam, claims.origin))
+                                    } else {
+                                        onError(IllegalArgumentException("Error while verifying JWT"))
+                                    }
+                                } catch (e: Exception) {
+                                    onError(e)
+                                }
+                            }
                         },
                         onFailure = { throwable -> onError(throwable) }
                     )
@@ -53,20 +68,24 @@ internal class VerifyRepository(
         }
     }
 
+    private fun getValidation(claims: VerifyClaims, metadataUrl: String): Validation =
+        when {
+            !claims.isVerified || currentTimeInSeconds >= claims.expiration -> Validation.UNKNOWN
+            else -> getValidation(metadataUrl, claims.origin)
+        }
+
     private suspend fun fetchAndCacheKey(): String {
         val response = verifyService.getPublicKey()
         if (response.isSuccessful && response.body() != null) {
-            println("kobe: JWK: ${response.body()!!.jwk}")
             val publicKey = jwtRepository.generateP256PublicKeyFromJWK(response.body()!!.jwk)
             verifyPublicKeyStorageRepository.upsertPublicKey(publicKey, response.body()!!.expiresAt)
             return publicKey
         } else {
-            println("kobe: Error while fetching a key: ${response.errorBody()?.string()}")
             throw Exception("Error while fetching a Verify PublicKey: ${response.errorBody()?.string()}")
         }
     }
 
-    fun resolve(attestationId: String, onSuccess: (AttestationResult) -> Unit, onError: (Throwable) -> Unit) {
+    fun resolve(attestationId: String, metadataUrl: String, onSuccess: (VerifyResult) -> Unit, onError: (Throwable) -> Unit) {
         scope.launch {
             supervisorScope {
                 try {
@@ -74,7 +93,8 @@ internal class VerifyRepository(
                     if (response.isSuccessful && response.body() != null) {
                         val origin = response.body()!!.origin
                         val isScam = response.body()!!.isScam
-                        onSuccess(AttestationResult(origin, isScam))
+
+                        onSuccess(VerifyResult(getValidation(metadataUrl, origin), isScam, origin))
                     } else {
                         onError(IllegalArgumentException(response.errorBody()?.string()))
                     }

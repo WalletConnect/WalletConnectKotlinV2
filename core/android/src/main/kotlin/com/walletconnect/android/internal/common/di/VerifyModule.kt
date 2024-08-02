@@ -34,6 +34,7 @@ internal fun verifyModule() = module {
         VerifyRepository(
             verifyService = get(),
             jwtRepository = get(),
+            moshi = get(named(AndroidCommonDITags.MOSHI)),
             verifyPublicKeyStorageRepository = get()
         )
     }

@@ -13,7 +13,6 @@ import org.bouncycastle.math.ec.ECPoint
 import java.math.BigInteger
 
 class JWTRepository {
-
     fun generateP256PublicKeyFromJWK(jwk: JWK): String {
         val xBytes: ByteArray = io.ipfs.multibase.binary.Base64.decodeBase64(jwk.x)
         val yBytes: ByteArray = io.ipfs.multibase.binary.Base64.decodeBase64(jwk.y)
@@ -22,15 +21,15 @@ class JWTRepository {
         val domainParams = ECDomainParameters(ecSpec.curve, ecSpec.g, ecSpec.n, ecSpec.h)
         val pubKeyParams = ECPublicKeyParameters(ecPoint, domainParams)
         val pubKeyBytes = pubKeyParams.q.getEncoded(false)
-        println("kobe: Gen key: ${pubKeyBytes.bytesToHex()}")
         return pubKeyBytes.bytesToHex()
     }
 
-    fun verifyJWT(data: ByteArray, signature: ByteArray, publicKey: ByteArray): Boolean {
+    fun verifyJWT(jwt: String, publicKey: ByteArray): Boolean {
+        val (headerJWT, claimsJWT, signatureJWT) = jwt.split(JWT_DELIMITER).also { if (it.size != 3) throw Throwable("Unable to split jwt: $jwt") }
+        val signature = io.ipfs.multibase.binary.Base64.decodeBase64(signatureJWT)
+        val data = "$headerJWT.$claimsJWT".toByteArray()
         val r = BigInteger(1, signature.sliceArray(0 until (signature.size / 2)))
         val s = BigInteger(1, signature.sliceArray((signature.size / 2) until signature.size))
-
-
         val ecSpec: ECNamedCurveParameterSpec = ECNamedCurveTable.getParameterSpec("P-256")
         val ecPoint: ECPoint = ecSpec.curve.decodePoint(publicKey)
         val domainParams = ECDomainParameters(ecSpec.curve, ecSpec.g, ecSpec.n, ecSpec.h)
@@ -43,23 +42,12 @@ class JWTRepository {
         val hash = ByteArray(sha256Digest.digestSize)
         sha256Digest.doFinal(hash, 0)
 
-        val isVerified = signer.verifySignature(hash, r, s)
-
-        return isVerified
+        return signer.verifySignature(hash, r, s)
     }
 
-    fun decodeJWT(jwt: String): Triple<String, String, ByteArray> {
-        val (headerString, claimsString, signatureString) = jwt.split(JWT_DELIMITER).also { if (it.size != 3) throw Throwable("Unable to split jwt: $jwt") }
-
-        println("kobe: JWT: header: $headerString, claims: $claimsString, signature: $signatureString")
-
-        val headerDecoded = io.ipfs.multibase.binary.Base64.decodeBase64(headerString).toString(Charsets.UTF_8)
-        val claimsDecoded = io.ipfs.multibase.binary.Base64.decodeBase64(claimsString).toString(Charsets.UTF_8)
-        val signatureDecoded = io.ipfs.multibase.binary.Base64.decodeBase64(signatureString)
-
-        println("kobe: JWT decoded: header: $headerDecoded, claims: $claimsDecoded, signature: $signatureDecoded")
-
-        return Triple(headerString, claimsString, signatureDecoded)
+    fun decodeClaimsJWT(jwt: String): String {
+        val (_, claimsString, _) = jwt.split(JWT_DELIMITER).also { if (it.size != 3) throw Throwable("Unable to split jwt: $jwt") }
+        return io.ipfs.multibase.binary.Base64.decodeBase64(claimsString).toString(Charsets.UTF_8)
     }
 
     private companion object {
