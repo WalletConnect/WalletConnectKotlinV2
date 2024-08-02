@@ -36,13 +36,17 @@ internal class VerifyRepository(
                     .fold(
                         onSuccess = { key ->
                             if (jwtRepository.verifyJWT(attestationJWT, key.hexToBytes())) {
-                                val claims = moshi.adapter(VerifyClaims::class.java).fromJson(jwtRepository.decodeClaimsJWT(attestationJWT))
-                                if (claims == null) {
-                                    onError(IllegalArgumentException("Error while decoding JWT claims"))
-                                    return@fold
-                                }
+                                try {
+                                    val claims = moshi.adapter(VerifyClaims::class.java).fromJson(jwtRepository.decodeClaimsJWT(attestationJWT))
+                                    if (claims == null) {
+                                        onError(IllegalArgumentException("Error while decoding JWT claims"))
+                                        return@fold
+                                    }
 
-                                onSuccess(VerifyResult(getValidation(claims, metadataUrl), claims.isScam, claims.origin))
+                                    onSuccess(VerifyResult(getValidation(claims, metadataUrl), claims.isScam, claims.origin))
+                                } catch (e: Exception) {
+                                    onError(e)
+                                }
                             } else {
                                 try {
                                     val newKey = fetchAndCacheKey()

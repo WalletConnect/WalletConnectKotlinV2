@@ -25,24 +25,28 @@ class JWTRepository {
     }
 
     fun verifyJWT(jwt: String, publicKey: ByteArray): Boolean {
-        val (headerJWT, claimsJWT, signatureJWT) = jwt.split(JWT_DELIMITER).also { if (it.size != 3) throw Throwable("Unable to split jwt: $jwt") }
-        val signature = io.ipfs.multibase.binary.Base64.decodeBase64(signatureJWT)
-        val data = "$headerJWT.$claimsJWT".toByteArray()
-        val r = BigInteger(1, signature.sliceArray(0 until (signature.size / 2)))
-        val s = BigInteger(1, signature.sliceArray((signature.size / 2) until signature.size))
-        val ecSpec: ECNamedCurveParameterSpec = ECNamedCurveTable.getParameterSpec("P-256")
-        val ecPoint: ECPoint = ecSpec.curve.decodePoint(publicKey)
-        val domainParams = ECDomainParameters(ecSpec.curve, ecSpec.g, ecSpec.n, ecSpec.h)
-        val pubKeyParams = ECPublicKeyParameters(ecPoint, domainParams)
+        try {
+            val (headerJWT, claimsJWT, signatureJWT) = jwt.split(JWT_DELIMITER).also { if (it.size != 3) throw Throwable("Unable to split jwt: $jwt") }
+            val signature = io.ipfs.multibase.binary.Base64.decodeBase64(signatureJWT)
+            val data = "$headerJWT.$claimsJWT".toByteArray()
+            val r = BigInteger(1, signature.sliceArray(0 until (signature.size / 2)))
+            val s = BigInteger(1, signature.sliceArray((signature.size / 2) until signature.size))
+            val ecSpec: ECNamedCurveParameterSpec = ECNamedCurveTable.getParameterSpec("P-256")
+            val ecPoint: ECPoint = ecSpec.curve.decodePoint(publicKey)
+            val domainParams = ECDomainParameters(ecSpec.curve, ecSpec.g, ecSpec.n, ecSpec.h)
+            val pubKeyParams = ECPublicKeyParameters(ecPoint, domainParams)
 
-        val signer = ECDSASigner()
-        signer.init(false, pubKeyParams)
-        val sha256Digest = SHA256Digest()
-        sha256Digest.update(data, 0, data.size)
-        val hash = ByteArray(sha256Digest.digestSize)
-        sha256Digest.doFinal(hash, 0)
+            val signer = ECDSASigner()
+            signer.init(false, pubKeyParams)
+            val sha256Digest = SHA256Digest()
+            sha256Digest.update(data, 0, data.size)
+            val hash = ByteArray(sha256Digest.digestSize)
+            sha256Digest.doFinal(hash, 0)
 
-        return signer.verifySignature(hash, r, s)
+            return signer.verifySignature(hash, r, s)
+        } catch (e: Exception) {
+            return false
+        }
     }
 
     fun decodeClaimsJWT(jwt: String): String {
