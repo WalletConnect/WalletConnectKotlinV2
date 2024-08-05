@@ -10,9 +10,12 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import org.koin.core.KoinApplication
 
-internal class VerifyClient(private val koinApp: KoinApplication = wcKoinApp) : VerifyInterface {
-    private val verifyRepository by lazy { koinApp.koin.get<VerifyRepository>() }
+internal class VerifyClient(
+    private val koinApp: KoinApplication = wcKoinApp,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+) : VerifyInterface {
+    private val verifyRepository by lazy { koinApp.koin.get<VerifyRepository>() }
+
     override fun initialize() {
         koinApp.modules(verifyModule())
 
