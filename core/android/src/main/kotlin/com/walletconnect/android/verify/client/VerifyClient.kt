@@ -2,6 +2,7 @@ package com.walletconnect.android.verify.client
 
 import com.walletconnect.android.internal.common.di.verifyModule
 import com.walletconnect.android.internal.common.wcKoinApp
+import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.verify.domain.VerifyRepository
 import com.walletconnect.android.verify.domain.VerifyResult
 import kotlinx.coroutines.CoroutineScope
@@ -15,12 +16,15 @@ internal class VerifyClient(
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 ) : VerifyInterface {
     private val verifyRepository by lazy { koinApp.koin.get<VerifyRepository>() }
+    private val pairingController: PairingControllerInterface by lazy { koinApp.koin.get() }
 
     override fun initialize() {
         koinApp.modules(verifyModule())
 
         scope.launch {
-            verifyRepository.getVerifyPublicKey().onFailure { throwable -> println("Error fetching a key: ${throwable.message}") }
+            pairingController.checkVerifyKeyFlow.collect {
+                verifyRepository.getVerifyPublicKey().onFailure { throwable -> println("Error fetching a key: ${throwable.message}") }
+            }
         }
     }
 
