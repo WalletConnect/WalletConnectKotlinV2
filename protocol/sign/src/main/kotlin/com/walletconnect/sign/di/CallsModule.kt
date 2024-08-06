@@ -163,7 +163,9 @@ internal fun callsModule() = module {
             logger = get(named(AndroidCommonDITags.LOGGER)),
             getPendingJsonRpcHistoryEntryByIdUseCase = get(),
             linkModeJsonRpcInteractor = get(),
-            metadataStorageRepository = get()
+            metadataStorageRepository = get(),
+            insertEventUseCase = get(),
+            clientId = get(named(AndroidCommonDITags.CLIENT_ID)),
         )
     }
 

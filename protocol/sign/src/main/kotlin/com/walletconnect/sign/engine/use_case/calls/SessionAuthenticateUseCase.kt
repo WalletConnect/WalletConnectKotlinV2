@@ -108,7 +108,6 @@ internal class SessionAuthenticateUseCase(
             try {
                 linkModeJsonRpcInteractor.triggerRequest(authRequest, appLink = walletAppLink!!, topic = Topic(generateUUID()), envelopeType = EnvelopeType.TWO)
                 insertEventUseCase(Props(EventType.SUCCESS, Tags.SESSION_AUTHENTICATE_LINK_MODE.id.toString(), Properties(correlationId = authRequest.id, clientId = clientId)))
-
             } catch (e: Error) {
                 onFailure(e)
             }
