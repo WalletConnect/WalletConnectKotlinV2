@@ -162,7 +162,7 @@ class Web3WalletActivity : AppCompatActivity() {
 
     private suspend fun navigateWhenReady(navigate: () -> Unit) {
         if (!::navController.isInitialized) {
-            delay(200)
+            delay(300)
             navigate()
         } else {
             navigate()

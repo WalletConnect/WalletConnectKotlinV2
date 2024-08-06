@@ -11,6 +11,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 internal class VerifyRepository(
     private val verifyService: VerifyService,
@@ -19,55 +21,59 @@ internal class VerifyRepository(
     private val verifyPublicKeyStorageRepository: VerifyPublicKeyStorageRepository,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 ) {
-    suspend fun getVerifyPublicKey(): Result<String> = runCatching {
-        val (localPublicKey, expiresAt) = verifyPublicKeyStorageRepository.getPublicKey()
-        val publicKey = if (!isLocalKeyValid(localPublicKey, expiresAt)) {
-            fetchAndCacheKey()
-        } else {
-            localPublicKey!!
+    private val mutex = Mutex()
+    suspend fun getVerifyPublicKey(): Result<String> = mutex.withLock {
+        runCatching {
+            val (localPublicKey, expiresAt) = verifyPublicKeyStorageRepository.getPublicKey()
+            val publicKey = if (!isLocalKeyValid(localPublicKey, expiresAt)) {
+                fetchAndCacheKey()
+            } else {
+                localPublicKey!!
+            }
+            publicKey
         }
-        publicKey
     }
 
     fun resolveV2(attestationJWT: String, metadataUrl: String, onSuccess: (VerifyResult) -> Unit, onError: (Throwable) -> Unit) {
         scope.launch {
             supervisorScope {
-                getVerifyPublicKey()
-                    .fold(
-                        onSuccess = { key ->
-                            if (jwtRepository.verifyJWT(attestationJWT, key.hexToBytes())) {
-                                try {
+                getVerifyPublicKey().fold(
+                    onSuccess = { key ->
+                        if (jwtRepository.verifyJWT(attestationJWT, key.hexToBytes())) {
+                            try {
+                                val claims = moshi.adapter(VerifyClaims::class.java).fromJson(jwtRepository.decodeClaimsJWT(attestationJWT))
+                                if (claims == null) {
+                                    onError(IllegalArgumentException("Error while decoding JWT claims"))
+                                    return@supervisorScope
+                                }
+
+                                onSuccess(VerifyResult(getValidation(claims, metadataUrl), claims.isScam, claims.origin))
+                            } catch (e: Exception) {
+                                onError(e)
+                            }
+                        } else {
+                            try {
+                                val newKey = fetchAndCacheKey()
+                                if (jwtRepository.verifyJWT(attestationJWT, newKey.hexToBytes())) {
                                     val claims = moshi.adapter(VerifyClaims::class.java).fromJson(jwtRepository.decodeClaimsJWT(attestationJWT))
                                     if (claims == null) {
                                         onError(IllegalArgumentException("Error while decoding JWT claims"))
-                                        return@fold
+                                        return@supervisorScope
                                     }
 
                                     onSuccess(VerifyResult(getValidation(claims, metadataUrl), claims.isScam, claims.origin))
-                                } catch (e: Exception) {
-                                    onError(e)
+                                } else {
+                                    onError(IllegalArgumentException("Error while verifying JWT"))
                                 }
-                            } else {
-                                try {
-                                    val newKey = fetchAndCacheKey()
-                                    if (jwtRepository.verifyJWT(attestationJWT, newKey.hexToBytes())) {
-                                        val claims = moshi.adapter(VerifyClaims::class.java).fromJson(jwtRepository.decodeClaimsJWT(attestationJWT))
-                                        if (claims == null) {
-                                            onError(IllegalArgumentException("Error while decoding JWT claims"))
-                                            return@fold
-                                        }
-
-                                        onSuccess(VerifyResult(getValidation(claims, metadataUrl), claims.isScam, claims.origin))
-                                    } else {
-                                        onError(IllegalArgumentException("Error while verifying JWT"))
-                                    }
-                                } catch (e: Exception) {
-                                    onError(e)
-                                }
+                            } catch (e: Exception) {
+                                onError(e)
                             }
-                        },
-                        onFailure = { throwable -> onError(throwable) }
-                    )
+                        }
+                    },
+                    onFailure = { error ->
+                        onError(error)
+                    }
+                )
             }
         }
     }

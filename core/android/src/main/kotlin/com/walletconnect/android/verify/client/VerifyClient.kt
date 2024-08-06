@@ -25,11 +25,19 @@ internal class VerifyClient(
     }
 
     override fun resolve(attestationId: String, metadataUrl: String, onSuccess: (VerifyResult) -> Unit, onError: (Throwable) -> Unit) {
-        verifyRepository.resolve(attestationId, metadataUrl, onSuccess, onError)
+        try {
+            verifyRepository.resolve(attestationId, metadataUrl, onSuccess, onError)
+        } catch (e: Exception) {
+            onError(e)
+        }
     }
 
     override fun resolveV2(attestation: String, metadataUrl: String, onSuccess: (VerifyResult) -> Unit, onError: (Throwable) -> Unit) {
-        verifyRepository.resolveV2(attestation, metadataUrl, onSuccess, onError)
+        try {
+            verifyRepository.resolveV2(attestation, metadataUrl, onSuccess, onError)
+        } catch (e: Exception) {
+            onError(e)
+        }
     }
 
     override fun register(attestationId: String, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
