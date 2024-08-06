@@ -1,8 +1,10 @@
 package com.walletconnect.android
 
 import android.app.Application
+import android.content.SharedPreferences
 import com.walletconnect.android.di.coreStorageModule
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
+import com.walletconnect.android.internal.common.di.KEY_CLIENT_ID
 import com.walletconnect.android.internal.common.di.coreAndroidNetworkModule
 import com.walletconnect.android.internal.common.di.coreCommonModule
 import com.walletconnect.android.internal.common.di.coreCryptoModule
@@ -156,6 +158,7 @@ class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInter
 
             modules(
                 coreStorageModule(bundleId = bundleId),
+                module { single(named(AndroidCommonDITags.CLIENT_ID)) { requireNotNull(get<SharedPreferences>().getString(KEY_CLIENT_ID, null)) } },
                 pushModule(),
                 module { single { relay ?: Relay } },
                 module {

@@ -60,6 +60,7 @@ internal class ApproveSessionAuthenticateUseCase(
     private val selfAppMetaData: AppMetaData,
     private val sessionStorageRepository: SessionStorageRepository,
     private val insertEventUseCase: InsertEventUseCase,
+    private val clientId: String,
     private val linkModeJsonRpcInteractor: LinkModeJsonRpcInteractorInterface
 ) : ApproveSessionAuthenticateUseCaseInterface {
     override suspend fun approveSessionAuthenticate(id: Long, cacaos: List<Cacao>, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
@@ -169,6 +170,7 @@ internal class ApproveSessionAuthenticateUseCase(
                         Participants(senderPublicKey, receiverPublicKey),
                         EnvelopeType.ONE
                     )
+                    insertEventUseCase(Props(EventType.SUCCESS, Tags.SESSION_AUTHENTICATE_LINK_MODE_RESPONSE_APPROVE.id.toString(), Properties(clientId = clientId, correlationId = id)))
                 } catch (e: Exception) {
                     onFailure(e)
                 }

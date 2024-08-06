@@ -16,6 +16,10 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.dayInSeconds
+import com.walletconnect.android.pulse.domain.InsertEventUseCase
+import com.walletconnect.android.pulse.model.EventType
+import com.walletconnect.android.pulse.model.properties.Properties
+import com.walletconnect.android.pulse.model.properties.Props
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -32,6 +36,8 @@ internal class RejectSessionAuthenticateUseCase(
     private val crypto: KeyManagementRepository,
     private val verifyContextStorageRepository: VerifyContextStorageRepository,
     private val linkModeJsonRpcInteractor: LinkModeJsonRpcInteractorInterface,
+    private val insertEventUseCase: InsertEventUseCase,
+    private val clientId: String,
     private val logger: Logger
 ) : RejectSessionAuthenticateUseCaseInterface {
     override suspend fun rejectSessionAuthenticate(id: Long, reason: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) = supervisorScope {
@@ -69,6 +75,7 @@ internal class RejectSessionAuthenticateUseCase(
                     Participants(senderPublicKey, receiverPublicKey),
                     EnvelopeType.ONE
                 )
+                insertEventUseCase(Props(EventType.SUCCESS, Tags.SESSION_AUTHENTICATE_LINK_MODE_RESPONSE_REJECT.id.toString(), Properties(clientId = clientId, correlationId = id)))
             } catch (e: Exception) {
                 onFailure(e)
             }

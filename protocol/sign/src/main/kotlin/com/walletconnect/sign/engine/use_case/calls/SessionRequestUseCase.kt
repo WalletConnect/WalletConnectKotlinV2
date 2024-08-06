@@ -17,6 +17,7 @@ import com.walletconnect.android.internal.common.storage.metadata.MetadataStorag
 import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.android.internal.utils.currentTimeInSeconds
 import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
+import com.walletconnect.android.pulse.domain.InsertEventUseCase
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
@@ -45,6 +46,8 @@ internal class SessionRequestUseCase(
     private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val linkModeJsonRpcInteractor: LinkModeJsonRpcInteractorInterface,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
+    private val insertEventUseCase: InsertEventUseCase,
+    private val clientId: String,
     private val logger: Logger,
 ) : SessionRequestUseCaseInterface {
     private val _errors: MutableSharedFlow<SDKError> = MutableSharedFlow()

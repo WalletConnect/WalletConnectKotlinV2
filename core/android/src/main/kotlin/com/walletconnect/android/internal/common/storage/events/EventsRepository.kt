@@ -28,7 +28,9 @@ class EventsRepository(
                     this.props.event,
                     this.props.type,
                     this.props.properties?.topic,
-                    this.props.properties?.trace
+                    this.props.properties?.trace,
+                    this.props.properties?.correlationId,
+                    this.props.properties?.clientId
                 )
             }
         }
@@ -48,7 +50,9 @@ class EventsRepository(
                         type = it.type,
                         properties = Properties(
                             topic = it.topic,
-                            trace = it.trace
+                            trace = it.trace,
+                            clientId = it.client_id,
+                            correlationId = it.correlation_id
                         )
                     )
                 )
