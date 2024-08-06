@@ -1,4 +1,4 @@
-package com.walletconnect.android.verify.data.model
+package com.walletconnect.android.verify.model
 
 import com.walletconnect.android.internal.common.model.Validation
 

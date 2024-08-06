@@ -11,6 +11,7 @@ interface PairingControllerInterface {
     val deletedPairingFlow: SharedFlow<Pairing>
     val findWrongMethodsFlow: Flow<SDKError>
     val inactivePairingFlow: SharedFlow<Pair<Topic, MutableList<String>>>
+    val checkVerifyKeyFlow: SharedFlow<Unit>
 
     fun initialize()
 

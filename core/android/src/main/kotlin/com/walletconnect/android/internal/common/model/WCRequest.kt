@@ -11,5 +11,7 @@ data class WCRequest(
     val params: ClientParams,
     val message: String = String.Empty,
     val publishedAt: Long = 0,
+    val encryptedMessage: String = String.Empty,
+    val attestation: String? = null,
     val transportType: TransportType
 )

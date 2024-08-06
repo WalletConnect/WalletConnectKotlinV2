@@ -17,6 +17,7 @@ internal class PairingController(private val koinApp: KoinApplication = wcKoinAp
     override val deletedPairingFlow: SharedFlow<Pairing> by lazy { pairingEngine.deletedPairingFlow }
     override val findWrongMethodsFlow: Flow<SDKError> by lazy { merge(pairingEngine.internalErrorFlow, pairingEngine.jsonRpcErrorFlow) }
     override val inactivePairingFlow: SharedFlow<Pair<Topic, MutableList<String>>> by lazy { pairingEngine.inactivePairingTopicFlow }
+    override val checkVerifyKeyFlow: SharedFlow<Unit> by lazy { pairingEngine.checkVerifyKeyFlow }
 
     override fun initialize() {
         pairingEngine = koinApp.koin.get()

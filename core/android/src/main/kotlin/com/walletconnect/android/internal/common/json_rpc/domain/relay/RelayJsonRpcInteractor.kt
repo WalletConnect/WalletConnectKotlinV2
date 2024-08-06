@@ -9,6 +9,7 @@ import com.walletconnect.android.internal.common.exception.NoRelayConnectionExce
 import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.json_rpc.model.toRelay
+import com.walletconnect.android.internal.common.json_rpc.model.toWCRequest
 import com.walletconnect.android.internal.common.json_rpc.model.toWCResponse
 import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.internal.common.model.IrnParams
@@ -45,6 +46,14 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import org.bouncycastle.util.encoders.Base64
+
+internal data class Subscription(
+    val decryptedMessage: String,
+    val encryptedMessage: String,
+    val topic: Topic,
+    val publishedAt: Long,
+    val attestation: String?,
+)
 
 internal class RelayJsonRpcInteractor(
     private val relay: RelayConnectionInterface,
@@ -351,14 +360,14 @@ internal class RelayJsonRpcInteractor(
         scope.launch {
             relay.subscriptionRequest.map { relayRequest ->
                 //TODO silences 4050
-                if (relayRequest.tag == 4050) return@map Triple(String.Empty, Topic(""), 0L)
+                if (relayRequest.tag == 4050) return@map Subscription(String.Empty, String.Empty, Topic(""), 0L, String.Empty)
                 val topic = Topic(relayRequest.subscriptionTopic)
                 storePushRequestsIfEnabled(relayRequest, topic)
-                Triple(decryptMessage(topic, relayRequest), topic, relayRequest.publishedAt)
-            }.collect { (decryptedMessage, topic, publishedAt) ->
-                if (decryptedMessage.isNotEmpty()) {
+                Subscription(decryptMessage(topic, relayRequest), relayRequest.message, topic, relayRequest.publishedAt, relayRequest.attestation)
+            }.collect { subscription ->
+                if (subscription.decryptedMessage.isNotEmpty()) {
                     try {
-                        manageSubscriptions(decryptedMessage, topic, publishedAt)
+                        manageSubscriptions(subscription)
                     } catch (e: Exception) {
                         handleError("ManSub: ${e.stackTraceToString()}")
                     }
@@ -385,20 +394,20 @@ internal class RelayJsonRpcInteractor(
             String.Empty
         }
 
-    private suspend fun manageSubscriptions(decryptedMessage: String, topic: Topic, publishedAt: Long) {
-        serializer.tryDeserialize<ClientJsonRpc>(decryptedMessage)?.let { clientJsonRpc ->
-            handleRequest(clientJsonRpc, topic, decryptedMessage, publishedAt)
-        } ?: serializer.tryDeserialize<JsonRpcResponse.JsonRpcResult>(decryptedMessage)?.let { result ->
-            handleJsonRpcResult(result, topic)
-        } ?: serializer.tryDeserialize<JsonRpcResponse.JsonRpcError>(decryptedMessage)?.let { error ->
+    private suspend fun manageSubscriptions(subscription: Subscription) {
+        serializer.tryDeserialize<ClientJsonRpc>(subscription.decryptedMessage)?.let { clientJsonRpc ->
+            handleRequest(clientJsonRpc, subscription)
+        } ?: serializer.tryDeserialize<JsonRpcResponse.JsonRpcResult>(subscription.decryptedMessage)?.let { result ->
+            handleJsonRpcResult(result, subscription.topic)
+        } ?: serializer.tryDeserialize<JsonRpcResponse.JsonRpcError>(subscription.decryptedMessage)?.let { error ->
             handleJsonRpcError(error)
         } ?: handleError("JsonRpcInteractor: Received unknown object type")
     }
 
-    private suspend fun handleRequest(clientJsonRpc: ClientJsonRpc, topic: Topic, decryptedMessage: String, publishedAt: Long) {
-        if (jsonRpcHistory.setRequest(clientJsonRpc.id, topic, clientJsonRpc.method, decryptedMessage, TransportType.RELAY)) {
-            serializer.deserialize(clientJsonRpc.method, decryptedMessage)?.let { params ->
-                _clientSyncJsonRpc.emit(WCRequest(topic, clientJsonRpc.id, clientJsonRpc.method, params, decryptedMessage, publishedAt, TransportType.RELAY))
+    private suspend fun handleRequest(clientJsonRpc: ClientJsonRpc, subscription: Subscription) {
+        if (jsonRpcHistory.setRequest(clientJsonRpc.id, subscription.topic, clientJsonRpc.method, subscription.decryptedMessage, TransportType.RELAY)) {
+            serializer.deserialize(clientJsonRpc.method, subscription.decryptedMessage)?.let { params ->
+                _clientSyncJsonRpc.emit(subscription.toWCRequest(clientJsonRpc, params, TransportType.RELAY))
             } ?: handleError("JsonRpcInteractor: Unknown request params")
         }
     }

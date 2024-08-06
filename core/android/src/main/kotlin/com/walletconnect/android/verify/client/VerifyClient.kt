@@ -1,41 +1,50 @@
 package com.walletconnect.android.verify.client
 
 import com.walletconnect.android.internal.common.di.verifyModule
-import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.android.verify.data.VerifyService
-import com.walletconnect.android.verify.data.model.AttestationResult
+import com.walletconnect.android.pairing.handler.PairingControllerInterface
+import com.walletconnect.android.verify.domain.VerifyRepository
+import com.walletconnect.android.verify.domain.VerifyResult
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
 import org.koin.core.KoinApplication
 
-internal class VerifyClient(private val koinApp: KoinApplication = wcKoinApp) : VerifyInterface {
-    private val verifyService get() = koinApp.koin.get<VerifyService>()
+internal class VerifyClient(
+    private val koinApp: KoinApplication = wcKoinApp,
+    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+) : VerifyInterface {
+    private val verifyRepository by lazy { koinApp.koin.get<VerifyRepository>() }
+    private val pairingController: PairingControllerInterface by lazy { koinApp.koin.get() }
 
     override fun initialize() {
         koinApp.modules(verifyModule())
+
+        scope.launch {
+            pairingController.checkVerifyKeyFlow.collect {
+                verifyRepository.getVerifyPublicKey().onFailure { throwable -> println("Error fetching a key: ${throwable.message}") }
+            }
+        }
+    }
+
+    override fun resolve(attestationId: String, metadataUrl: String, onSuccess: (VerifyResult) -> Unit, onError: (Throwable) -> Unit) {
+        try {
+            verifyRepository.resolve(attestationId, metadataUrl, onSuccess, onError)
+        } catch (e: Exception) {
+            onError(e)
+        }
+    }
+
+    override fun resolveV2(attestation: String, metadataUrl: String, onSuccess: (VerifyResult) -> Unit, onError: (Throwable) -> Unit) {
+        try {
+            verifyRepository.resolveV2(attestation, metadataUrl, onSuccess, onError)
+        } catch (e: Exception) {
+            onError(e)
+        }
     }
 
     override fun register(attestationId: String, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
         TODO("Not yet implemented")
-    }
-
-    override fun resolve(attestationId: String, onSuccess: (AttestationResult) -> Unit, onError: (Throwable) -> Unit) {
-        scope.launch {
-            supervisorScope {
-                try {
-                    val response = verifyService.resolveAttestation(attestationId)
-                    if (response.isSuccessful && response.body() != null) {
-                        val origin = response.body()!!.origin
-                        val isScam = response.body()!!.isScam
-                        onSuccess(AttestationResult(origin, isScam))
-                    } else {
-                        onError(IllegalArgumentException(response.errorBody()?.string()))
-                    }
-                } catch (e: Exception) {
-                    onError(e)
-                }
-            }
-        }
     }
 }

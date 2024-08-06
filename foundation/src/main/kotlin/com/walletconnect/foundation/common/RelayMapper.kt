@@ -12,12 +12,16 @@ import com.walletconnect.foundation.network.model.RelayDTO
 fun WebSocket.Event.toRelayEvent() = when (this) {
     is WebSocket.Event.OnConnectionOpened<*> ->
         Relay.Model.Event.OnConnectionOpened(webSocket)
+
     is WebSocket.Event.OnMessageReceived ->
         Relay.Model.Event.OnMessageReceived(message.toRelay())
+
     is WebSocket.Event.OnConnectionClosing ->
         Relay.Model.Event.OnConnectionClosing(shutdownReason.toRelay())
+
     is WebSocket.Event.OnConnectionClosed ->
         Relay.Model.Event.OnConnectionClosed(shutdownReason.toRelay())
+
     is WebSocket.Event.OnConnectionFailed ->
         Relay.Model.Event.OnConnectionFailed(throwable)
 }
@@ -34,7 +38,7 @@ internal fun ShutdownReason.toRelay() =
 
 @JvmSynthetic
 internal fun RelayDTO.Subscription.Request.Params.SubscriptionData.toRelay() =
-    Relay.Model.Call.Subscription.Request.Params.SubscriptionData(topic.value, message, publishedAt, tag)
+    Relay.Model.Call.Subscription.Request.Params.SubscriptionData(topic.value, message, publishedAt, attestation, tag)
 
 @JvmSynthetic
 internal fun RelayDTO.Subscription.Request.Params.toRelay() =

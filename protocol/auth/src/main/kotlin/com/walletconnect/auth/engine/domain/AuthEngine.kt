@@ -11,7 +11,7 @@ import com.walletconnect.android.internal.common.storage.verify.VerifyContextSto
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.android.relay.WSSConnectionState
-import com.walletconnect.android.verify.data.model.VerifyContext
+import com.walletconnect.android.verify.model.VerifyContext
 import com.walletconnect.auth.common.json_rpc.AuthParams
 import com.walletconnect.auth.common.model.Events
 import com.walletconnect.auth.engine.pairingTopicToResponseTopicMap

@@ -114,6 +114,8 @@ fun baseStorageModule(storagePrefix: String = String.Empty, bundleId: String) = 
 
     single { get<AndroidCoreDatabase>(named(AndroidBuildVariantDITags.ANDROID_CORE_DATABASE)).eventQueries }
 
+    single { get<AndroidCoreDatabase>(named(AndroidBuildVariantDITags.ANDROID_CORE_DATABASE)).verifyPublicKeyQueries }
+
     single<MetadataStorageRepositoryInterface> { MetadataStorageRepository(metaDataQueries = get()) }
 
     single<PairingStorageRepositoryInterface> { PairingStorageRepository(pairingQueries = get()) }

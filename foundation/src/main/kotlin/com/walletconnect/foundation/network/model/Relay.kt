@@ -103,6 +103,7 @@ object Relay {
                     val message: String = params.subscriptionData.message
                     val tag: Int = params.subscriptionData.tag
                     val publishedAt: Long = params.subscriptionData.publishedAt
+                    val attestation: String? = params.subscriptionData.attestation
 
                     data class Params(
                         val subscriptionId: String,
@@ -113,6 +114,7 @@ object Relay {
                             val topic: String,
                             val message: String,
                             val publishedAt: Long,
+                            val attestation: String?,
                             val tag: Int
                         )
                     }

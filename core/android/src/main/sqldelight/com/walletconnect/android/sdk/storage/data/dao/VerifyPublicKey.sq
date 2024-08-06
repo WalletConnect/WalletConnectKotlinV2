@@ -1,0 +1,12 @@
+CREATE TABLE VerifyPublicKey(
+    key TEXT PRIMARY KEY NOT NULL,
+    expires_at INTEGER NOT NULL
+);
+
+upsertKey:
+INSERT OR REPLACE INTO VerifyPublicKey(key, expires_at)
+VALUES (?, ?);
+
+getKey:
+SELECT key, expires_at
+FROM VerifyPublicKey;

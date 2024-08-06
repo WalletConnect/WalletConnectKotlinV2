@@ -162,7 +162,7 @@ class Web3WalletActivity : AppCompatActivity() {
 
     private suspend fun navigateWhenReady(navigate: () -> Unit) {
         if (!::navController.isInitialized) {
-            delay(200)
+            delay(300)
             navigate()
         } else {
             navigate()
@@ -183,18 +183,23 @@ class Web3WalletActivity : AppCompatActivity() {
                     intent.setData(uri?.toUri())
                 }
 
-                intent?.dataString?.startsWith("wc:") == true -> {
+                intent?.dataString?.startsWith("wc:") == true && intent.dataString?.contains("requestId") == false -> {
                     val uri = "kotlin-web3wallet://wc?uri=" + URLEncoder.encode(intent.dataString, "UTF-8")
                     intent.setData(uri.toUri())
                 }
             }
 
-            if (intent?.dataString?.startsWith("kotlin-web3wallet://request") == true) {
-                web3walletViewModel.showRequestLoader(true)
+            if (intent?.dataString?.startsWith("kotlin-web3wallet://request") == true || intent?.dataString?.contains("requestId") == true) {
+                lifecycleScope.launch {
+                    navigateWhenReady {
+                        if (navController.currentDestination?.route != Route.SessionRequest.path) {
+                            web3walletViewModel.showRequestLoader(true)
+                        }
+                    }
+                }
             }
 
-            if (intent?.dataString?.startsWith("kotlin-web3wallet://request") == false
-                && intent.dataString?.contains("requestId") == false
+            if (intent?.dataString?.startsWith("kotlin-web3wallet://request") == false && intent.dataString?.contains("requestId") == false
             ) {
                 lifecycleScope.launch {
                     navigateWhenReady {

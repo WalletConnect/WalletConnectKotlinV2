@@ -21,7 +21,7 @@ import com.walletconnect.android.pulse.model.properties.Properties
 import com.walletconnect.android.pulse.model.properties.Props
 import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.android.relay.WSSConnectionState
-import com.walletconnect.android.verify.data.model.VerifyContext
+import com.walletconnect.android.verify.model.VerifyContext
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
