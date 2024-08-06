@@ -1,0 +1,5 @@
+
+-- migration from 10.db to 11.db
+
+ALTER TABLE EventDao ADD COLUMN correlation_id INTEGER;
+ALTER TABLE EventDao ADD COLUMN client_id TEXT;
