@@ -203,7 +203,7 @@ class SessionAuthenticateUseCaseTest {
         )
 
         every {
-            logger.log("\"Link Mode - Request triggered successfully")
+            logger.log("Link Mode - Request triggered successfully")
         }
     }
 
