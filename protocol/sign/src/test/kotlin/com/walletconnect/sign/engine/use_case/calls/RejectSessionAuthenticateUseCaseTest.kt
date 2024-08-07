@@ -9,6 +9,7 @@ import com.walletconnect.android.internal.common.model.TransportType
 import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
+import com.walletconnect.android.pulse.domain.InsertEventUseCase
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
@@ -46,6 +47,7 @@ class RejectSessionAuthenticateUseCaseTest {
     private val logger: Logger = mockk()
     private lateinit var useCase: RejectSessionAuthenticateUseCase
     private val testDispatcher = StandardTestDispatcher()
+    private val insertEventUseCase = mockk<InsertEventUseCase>()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Before
@@ -57,7 +59,9 @@ class RejectSessionAuthenticateUseCaseTest {
             crypto,
             verifyContextStorageRepository,
             linkModeJsonRpcInteractor,
-            logger
+            insertEventUseCase,
+            "clientId",
+            logger,
         )
     }
 
