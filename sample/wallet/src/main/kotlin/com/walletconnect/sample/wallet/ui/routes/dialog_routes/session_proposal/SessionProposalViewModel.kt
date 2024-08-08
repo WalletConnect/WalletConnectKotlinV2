@@ -18,6 +18,8 @@ class SessionProposalViewModel : ViewModel() {
             try {
                 Timber.d("Approving session proposal: $proposalPublicKey")
                 val sessionNamespaces = Web3Wallet.generateApprovedNamespaces(sessionProposal = proposal, supportedNamespaces = walletMetaData.namespaces)
+
+                println("kobe: sessionNamespaces: $sessionNamespaces")
                 val approveProposal = Wallet.Params.SessionApprove(proposerPublicKey = proposal.proposerPublicKey, namespaces = sessionNamespaces)
 
                 Web3Wallet.approveSession(approveProposal,
