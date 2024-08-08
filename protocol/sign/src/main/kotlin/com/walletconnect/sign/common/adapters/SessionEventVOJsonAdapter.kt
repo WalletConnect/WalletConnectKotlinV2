@@ -20,7 +20,7 @@ internal class SessionEventVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionEven
 
     override fun fromJson(reader: JsonReader): SessionEventVO {
         var name: String? = null
-        var data: Any? = null
+        var data: String? = null
 
         reader.beginObject()
 
@@ -46,7 +46,6 @@ internal class SessionEventVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionEven
             }
         }
         reader.endObject()
-
         return SessionEventVO(
             name = name ?: throw Util.missingProperty("name", "name", reader),
             data = data ?: throw Util.missingProperty("data", "data", reader),

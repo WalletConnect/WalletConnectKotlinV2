@@ -35,6 +35,6 @@ internal fun signJsonRpcModule() = module {
     addDeserializerEntry(JsonRpcMethod.WC_SESSION_EXTEND, SignRpc.SessionExtend::class)
     addDeserializerEntry(JsonRpcMethod.WC_SESSION_AUTHENTICATE, SignRpc.SessionAuthenticate::class)
 
-    addJsonAdapter(SessionRequestVO::class.java, ::SessionRequestVOJsonAdapter)
     addJsonAdapter(SessionEventVO::class.java, ::SessionEventVOJsonAdapter)
+    addJsonAdapter(SessionRequestVO::class.java, ::SessionRequestVOJsonAdapter)
 }

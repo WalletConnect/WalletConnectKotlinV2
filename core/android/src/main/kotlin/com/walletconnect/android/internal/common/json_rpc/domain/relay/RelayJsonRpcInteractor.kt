@@ -110,8 +110,6 @@ internal class RelayJsonRpcInteractor(
             return onFailure(e)
         }
 
-        println("kobe: Request: $requestJson")
-
         try {
             if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson, TransportType.RELAY)) {
                 val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, envelopeType, participants)
@@ -358,9 +356,6 @@ internal class RelayJsonRpcInteractor(
                 storePushRequestsIfEnabled(relayRequest, topic)
                 Triple(decryptMessage(topic, relayRequest), topic, relayRequest.publishedAt)
             }.collect { (decryptedMessage, topic, publishedAt) ->
-
-                println("kobe: Message: $decryptedMessage")
-
                 if (decryptedMessage.isNotEmpty()) {
                     try {
                         manageSubscriptions(decryptedMessage, topic, publishedAt)

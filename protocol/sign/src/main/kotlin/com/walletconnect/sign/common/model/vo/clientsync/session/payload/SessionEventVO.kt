@@ -10,5 +10,5 @@ internal data class SessionEventVO(
     @Json(name = "name")
     val name: String,
     @Json(name = "data")
-    val data: Any, //or Any
+    val data: Any
 )

@@ -213,7 +213,6 @@ fun ConnectionDetailsRoute(navController: NavController, connectionId: Int?, con
                                     }
                                 }
                             )
-                            println("kobe: switch account: ${connectionsViewModel.displayedAccounts}")
                         }
                     }
                 })
@@ -312,7 +311,6 @@ fun Accounts(accounts: List<String>) {
             )
         }
 
-        println("kobe: accounts: $accounts")
         accounts.forEachIndexed { index, account ->
             Text(
                 text = account,
