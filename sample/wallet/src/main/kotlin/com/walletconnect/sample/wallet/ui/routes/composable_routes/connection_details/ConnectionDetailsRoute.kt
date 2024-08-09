@@ -4,6 +4,7 @@ package com.walletconnect.sample.wallet.ui.routes.composable_routes.connection_d
 
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -36,6 +37,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
@@ -43,13 +45,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
-import com.skydoves.landscapist.glide.GlideImage
 import com.walletconnect.sample.common.ui.themedColor
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.wallet.ui.common.Content
@@ -341,7 +344,25 @@ fun Connection(connectionUI: ConnectionUI) {
             .clip(CircleShape)
             .border(width = 1.dp, shape = CircleShape, color = themedColor(darkColor = Color(0xFF191919), lightColor = Color(0xFFE0E0E0)))
         if (connectionUI.icon?.isNotBlank() == true) {
-            GlideImage(modifier = iconModifier, imageModel = { connectionUI.icon })
+            val painter = rememberAsyncImagePainter(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(connectionUI.icon)
+                    .size(60)
+                    .crossfade(true)
+                    .error(com.walletconnect.sample.common.R.drawable.ic_walletconnect_circle_blue)
+                    .listener(
+                        onSuccess = { request, metadata -> println("kobe: onSuccess: $request, $metadata") },
+                        onError = { _, throwable -> println("Error loading image: ${throwable.throwable.message}") })
+                    .build()
+            )
+
+            Image(
+                painter = painter,
+                contentDescription = "Connection image",
+                modifier = iconModifier,
+                contentScale = ContentScale.Fit,
+                alignment = Alignment.Center
+            )
         } else {
             Icon(modifier = iconModifier.alpha(.7f), imageVector = ImageVector.vectorResource(id = R.drawable.sad_face), contentDescription = "Sad face")
         }
