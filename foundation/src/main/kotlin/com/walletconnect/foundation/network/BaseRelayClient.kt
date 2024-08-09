@@ -60,14 +60,25 @@ abstract class BaseRelayClient : RelayInterface {
                 relayService.observeUnsubscribeError()
             )
                 .catch { exception -> logger.error(exception) }
-                .collect { result -> resultState.emit(result) }
+                .collect { result ->
+                    if (isLoggingEnabled) {
+                        println("Result: $result")
+                    }
+
+                    resultState.emit(result)
+                }
         }
     }
 
     override val eventsFlow: SharedFlow<Relay.Model.Event> by lazy {
         relayService
             .observeWebSocketEvent()
-            .map { event -> event.toRelayEvent() }
+            .map { event ->
+                if (isLoggingEnabled) {
+                    println("Event: $event")
+                }
+                event.toRelayEvent()
+            }
             .shareIn(scope, SharingStarted.Lazily, REPLAY)
     }
 
@@ -135,10 +146,12 @@ abstract class BaseRelayClient : RelayInterface {
             try {
                 withTimeout(RESULT_TIMEOUT) {
                     resultState
+                        .onEach { relayResult -> if (isLoggingEnabled) logger.log("SubscribeResult 1: $relayResult") }
                         .filterIsInstance<RelayDTO.Subscribe.Result>()
-                        .onEach {relayResult -> if (isLoggingEnabled) logger.log("SubscribeResult: $relayResult") }
+                        .onEach { relayResult -> if (isLoggingEnabled) logger.log("SubscribeResult 2: $relayResult") }
                         .filter { relayResult -> relayResult.id == id }
                         .first { subscribeResult ->
+                            if (isLoggingEnabled) println("SubscribeResult 3: $subscribeResult")
                             when (subscribeResult) {
                                 is RelayDTO.Subscribe.Result.Acknowledgement -> onResult(Result.success(subscribeResult.toRelay()))
                                 is RelayDTO.Subscribe.Result.JsonRpcError -> onResult(Result.failure(Throwable(subscribeResult.error.errorMessage)))
