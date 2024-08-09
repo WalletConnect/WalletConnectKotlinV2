@@ -61,6 +61,20 @@ class SignClientInstrumentedAndroidTest {
     }
 
     @Test
+    fun receiveSessionProposal() {
+        Timber.d("receiveRejectSession: start")
+
+        val walletDelegate = object : WalletDelegate() {
+            override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal, verifyContext: Sign.Model.VerifyContext) {
+                scenarioExtension.closeAsSuccess().also { Timber.d("proposal received: finish") }
+            }
+        }
+        val dappDelegate = object : DappDelegate() {}
+
+        launch(walletDelegate, dappDelegate)
+    }
+
+    @Test
     fun receiveRejectSession() {
         Timber.d("receiveRejectSession: start")
 
@@ -312,22 +326,13 @@ class SignClientInstrumentedAndroidTest {
     }
 
     private fun pairDappAndWallet(onPairSuccess: (pairing: Core.Model.Pairing) -> Unit) {
-        TestClient.Dapp.Pairing.getPairings().let { pairings ->
-            if (pairings.isEmpty()) {
-                Timber.d("pairings.isEmpty() == true")
+        val pairing: Core.Model.Pairing = (TestClient.Dapp.Pairing.create(onError = ::globalOnError) ?: fail("Unable to create a Pairing")) as Core.Model.Pairing
+        Timber.d("DappClient.pairing.create: $pairing")
 
-                val pairing: Core.Model.Pairing = (TestClient.Dapp.Pairing.create(onError = ::globalOnError) ?: fail("Unable to create a Pairing")) as Core.Model.Pairing
-                Timber.d("DappClient.pairing.create: $pairing")
-
-                TestClient.Wallet.Pairing.pair(Core.Params.Pair(pairing.uri), onError = ::globalOnError, onSuccess = {
-                    Timber.d("WalletClient.pairing.pair: $pairing")
-                    onPairSuccess(pairing)
-                })
-            } else {
-                Timber.d("pairings.isEmpty() == false")
-                fail("Pairing already exists. Storage must be cleared in between runs")
-            }
-        }
+        TestClient.Wallet.Pairing.pair(Core.Params.Pair(pairing.uri), onError = ::globalOnError, onSuccess = {
+            Timber.d("WalletClient.pairing.pair: $pairing")
+            onPairSuccess(pairing)
+        })
     }
 
     private fun pairAndConnect() {
