@@ -3,6 +3,8 @@ package com.walletconnect.android.pulse.model
 object EventType {
     @get:JvmSynthetic
     const val ERROR: String = "ERROR"
+    @get:JvmSynthetic
+    const val SUCCESS: String = "SUCCESS"
 
     @get:JvmSynthetic
     const val TRACK: String = "TRACE"

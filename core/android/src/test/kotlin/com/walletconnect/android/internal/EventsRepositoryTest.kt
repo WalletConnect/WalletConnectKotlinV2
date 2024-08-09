@@ -46,13 +46,13 @@ class EventsRepositoryTest {
     @Test
     fun `insertOrAbort should insert event when telemetry is enabled`() = runTest(testDispatcher) {
         val props = Props(event = "testEvent", type = "testType")
-        every { eventQueries.insertOrAbort(any(), any(), any(), any(), any(), any(), any()) } just Runs
+        every { eventQueries.insertOrAbort(any(), any(), any(), any(), any(), any(), any(), any(), any()) } just Runs
 
         repository.insertOrAbort(props)
 
         verify {
             eventQueries.insertOrAbort(
-                any(), bundleId, any(), "testEvent", "testType", null, null
+                any(), bundleId, any(), "testEvent", "testType", null, null, 1L, "testBundleId"
             )
         }
     }
@@ -65,14 +65,14 @@ class EventsRepositoryTest {
         repository.insertOrAbort(props)
 
         verify(exactly = 0) {
-            eventQueries.insertOrAbort(any(), any(), any(), any(), any(), any(), any())
+            eventQueries.insertOrAbort(any(), any(), any(), any(), any(), any(), any(), any(), any())
         }
     }
 
     @Test
     fun `insertOrAbort should throw SQLiteException when insertion fails`() = runTest(testDispatcher) {
         val props = Props(event = "testEvent", type = "testType")
-        every { eventQueries.insertOrAbort(any(), any(), any(), any(), any(), any(), any()) } throws SQLiteException()
+        every { eventQueries.insertOrAbort(any(), any(), any(), any(), any(), any(), any(), any(), any()) } throws SQLiteException()
 
         assertFailsWith<SQLiteException> {
             repository.insertOrAbort(props)

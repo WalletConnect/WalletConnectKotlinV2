@@ -4,6 +4,7 @@ import com.walletconnect.android.internal.common.exception.CannotFindSequenceFor
 import com.walletconnect.android.internal.common.json_rpc.domain.link_mode.LinkModeJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
+import com.walletconnect.android.pulse.domain.InsertEventUseCase
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.engine.model.EngineDO
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
@@ -21,7 +22,16 @@ class SessionRequestUseCaseTest {
     private val logger = mockk<Logger>()
     private val linkModeJsonRpcInteractor: LinkModeJsonRpcInteractorInterface = mockk()
     private val metadataStorageRepository = mockk<MetadataStorageRepositoryInterface>()
-    private val sessionRequestUseCase = SessionRequestUseCase(sessionStorageRepository, jsonRpcInteractor, linkModeJsonRpcInteractor, metadataStorageRepository, logger)
+    private val insertEventUseCase = mockk<InsertEventUseCase>()
+    private val sessionRequestUseCase = SessionRequestUseCase(
+        sessionStorageRepository,
+        jsonRpcInteractor,
+        linkModeJsonRpcInteractor,
+        metadataStorageRepository,
+        insertEventUseCase,
+        "clientId",
+        logger
+    )
 
     @Before
     fun setUp() {
