@@ -2,8 +2,10 @@
 
 package com.walletconnect.sign.di
 
+import com.walletconnect.sign.common.adapters.SessionEventVOJsonAdapter
 import com.walletconnect.sign.common.adapters.SessionRequestVOJsonAdapter
 import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpc
+import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionEventVO
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionRequestVO
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
 import com.walletconnect.utils.addDeserializerEntry
@@ -33,5 +35,6 @@ internal fun signJsonRpcModule() = module {
     addDeserializerEntry(JsonRpcMethod.WC_SESSION_EXTEND, SignRpc.SessionExtend::class)
     addDeserializerEntry(JsonRpcMethod.WC_SESSION_AUTHENTICATE, SignRpc.SessionAuthenticate::class)
 
+    addJsonAdapter(SessionEventVO::class.java, ::SessionEventVOJsonAdapter)
     addJsonAdapter(SessionRequestVO::class.java, ::SessionRequestVOJsonAdapter)
 }

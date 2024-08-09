@@ -1,5 +1,3 @@
-@file:JvmSynthetic
-
 package com.walletconnect.sign.common.adapters
 
 import com.squareup.moshi.JsonAdapter
@@ -7,43 +5,38 @@ import com.squareup.moshi.JsonReader
 import com.squareup.moshi.JsonWriter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.internal.Util
-import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionRequestVO
+import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionEventVO
 import org.json.JSONArray
 import org.json.JSONObject
-import kotlin.String
 
-internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRequestVO>() {
-    private val options: JsonReader.Options = JsonReader.Options.of("method", "params", "expiryTimestamp")
-    private val stringAdapter: JsonAdapter<String> = moshi.adapter(String::class.java, emptySet(), "method")
-    private val anyAdapter: JsonAdapter<Any> = moshi.adapter(Any::class.java, emptySet(), "params")
-    private val longAdapter: JsonAdapter<Long> = moshi.adapter(Long::class.java, emptySet(), "expiryTimestamp")
+internal class SessionEventVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionEventVO>() {
+    private val options: JsonReader.Options = JsonReader.Options.of("name", "data")
+    private val stringAdapter: JsonAdapter<String> = moshi.adapter(String::class.java, emptySet(), "name")
+    private val anyAdapter: JsonAdapter<Any> = moshi.adapter(Any::class.java, emptySet(), "data")
 
     override fun toString(): String = buildString(38) {
-        append("GeneratedJsonAdapter(").append("SessionRequestVO").append(')')
+        append("GeneratedJsonAdapter(").append("SessionEventVO").append(')')
     }
 
-    override fun fromJson(reader: JsonReader): SessionRequestVO {
-        var method: String? = null
-        var params: String? = null
-        var expiryTimestamp: Long? = null
+    override fun fromJson(reader: JsonReader): SessionEventVO {
+        var name: String? = null
+        var data: String? = null
 
         reader.beginObject()
 
         while (reader.hasNext()) {
             when (reader.selectName(options)) {
-                0 -> method = stringAdapter.fromJson(reader) ?: throw Util.unexpectedNull("method", "method", reader)
+                0 -> name = stringAdapter.fromJson(reader) ?: throw Util.unexpectedNull("name", "name", reader)
                 1 -> {
                     // Moshi does not handle malformed JSON where there is a missing key for an array or object
-                    val paramsAny = anyAdapter.fromJson(reader) ?: throw Util.unexpectedNull("params", "params", reader)
-                    params = if (paramsAny is List<*>) {
-                        upsertArray(JSONArray(), paramsAny).toString()
+                    val dataAny = anyAdapter.fromJson(reader) ?: throw Util.unexpectedNull("data", "data", reader)
+                    data = if (dataAny is List<*>) {
+                        upsertArray(JSONArray(), dataAny).toString()
                     } else {
-                        val paramsMap = paramsAny as Map<*, *>
+                        val paramsMap = dataAny as Map<*, *>
                         upsertObject(JSONObject(), paramsMap).toString()
                     }
                 }
-
-                2 -> expiryTimestamp = longAdapter.fromJson(reader) ?: throw Util.unexpectedNull("expiryTimestamp", "expiryTimestamp", reader)
 
                 -1 -> {
                     // Unknown name, skip it.
@@ -53,11 +46,9 @@ internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRe
             }
         }
         reader.endObject()
-
-        return SessionRequestVO(
-            method = method ?: throw Util.missingProperty("method", "method", reader),
-            params = params ?: throw Util.missingProperty("params", "params", reader),
-            expiryTimestamp = expiryTimestamp
+        return SessionEventVO(
+            name = name ?: throw Util.missingProperty("name", "name", reader),
+            data = data ?: throw Util.missingProperty("data", "data", reader),
         )
     }
 
@@ -116,27 +107,23 @@ internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRe
         return rootArray
     }
 
-    override fun toJson(writer: JsonWriter, value_: SessionRequestVO?) {
+    override fun toJson(writer: JsonWriter, value_: SessionEventVO?) {
         if (value_ == null) {
             throw NullPointerException("value_ was null! Wrap in .nullSafe() to write nullable values.")
         }
 
         with(writer) {
             beginObject()
-            name("method")
-            stringAdapter.toJson(this, value_.method)
-            name("params")
+            name("name")
+            stringAdapter.toJson(this, value_.name)
+            name("data")
             valueSink().use {
-                val encodedParams: String = anyAdapter.toJson(value_.params)
+                val encodedParams: String = anyAdapter.toJson(value_.data)
                     .removeSurrounding("\"")
                     .replace("\\\"", "\"")
                     .replace("\\\\\"", "\\\"")
 
                 it.writeUtf8(encodedParams)
-            }
-            value_.expiryTimestamp?.let {
-                name("expiryTimestamp")
-                longAdapter.toJson(this, value_.expiryTimestamp)
             }
             endObject()
         }

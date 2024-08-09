@@ -5,8 +5,9 @@ import com.walletconnect.util.hexToBytes
 import io.ipfs.multibase.Base16
 
 val ACCOUNTS_1_EIP155_ADDRESS by lazy { EthAccountDelegate.account }
+const val ACCOUNTS_2_EIP155_ADDRESS = "0x15bca56b6e2728aec2532df9d436bd1600e86688"
 
-val accounts: List<Pair<Chains, String>> by lazy {
+private val accounts: List<Pair<Chains, String>> by lazy {
     listOf(
         Chains.ETHEREUM_MAIN to ACCOUNTS_1_EIP155_ADDRESS,
         Chains.POLYGON_MATIC to ACCOUNTS_1_EIP155_ADDRESS,

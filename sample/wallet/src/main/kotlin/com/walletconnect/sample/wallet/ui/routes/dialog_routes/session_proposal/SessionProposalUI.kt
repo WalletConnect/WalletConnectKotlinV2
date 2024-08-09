@@ -1,6 +1,7 @@
 package com.walletconnect.sample.wallet.ui.routes.dialog_routes.session_proposal
 
 import com.walletconnect.sample.wallet.domain.ACCOUNTS_1_EIP155_ADDRESS
+import com.walletconnect.sample.wallet.domain.ACCOUNTS_2_EIP155_ADDRESS
 import com.walletconnect.sample.wallet.ui.common.peer.PeerContextUI
 import com.walletconnect.sample.wallet.ui.common.peer.PeerUI
 import com.walletconnect.web3.wallet.client.Wallet
@@ -45,7 +46,14 @@ val walletMetaData = WalletMetaData(
                 "wallet_addEthereumChain"
             ),
             events = listOf("chainChanged", "accountsChanged", "connect", "disconnect"),
-            accounts = listOf("eip155:1:$ACCOUNTS_1_EIP155_ADDRESS", "eip155:137:$ACCOUNTS_1_EIP155_ADDRESS", "eip155:56:$ACCOUNTS_1_EIP155_ADDRESS")
+            accounts = listOf(
+                "eip155:1:$ACCOUNTS_1_EIP155_ADDRESS",
+                "eip155:1:$ACCOUNTS_2_EIP155_ADDRESS",
+                "eip155:137:$ACCOUNTS_1_EIP155_ADDRESS",
+                "eip155:137:$ACCOUNTS_2_EIP155_ADDRESS",
+                "eip155:56:$ACCOUNTS_1_EIP155_ADDRESS",
+                "eip155:56:$ACCOUNTS_2_EIP155_ADDRESS"
+            )
         ),
         "cosmos" to Wallet.Model.Namespace.Session(
             chains = listOf("cosmos:cosmoshub-4", "cosmos:cosmoshub-1"),

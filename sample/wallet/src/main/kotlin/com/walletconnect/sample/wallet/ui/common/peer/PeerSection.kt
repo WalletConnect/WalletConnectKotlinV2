@@ -22,21 +22,22 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.skydoves.landscapist.ImageOptions
-import com.skydoves.landscapist.glide.GlideImage
-import com.walletconnect.sample.common.ui.theme.mismatch_color
-import com.walletconnect.sample.wallet.R
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.walletconnect.sample.common.ui.themedColor
+import com.walletconnect.sample.wallet.R
 
 
 @Composable
 fun Peer(peerUI: PeerUI, actionText: String?, peerContextUI: PeerContextUI? = null) {
+
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
             val iconModifier = Modifier
@@ -45,10 +46,24 @@ fun Peer(peerUI: PeerUI, actionText: String?, peerContextUI: PeerContextUI? = nu
                 .background(color = themedColor(darkColor = Color(0xFFE4E4E7).copy(0.12f), lightColor = Color(0xFF3C3C43).copy(0.12f)), shape = CircleShape)
 
             if (peerUI.peerIcon.isNotBlank() && peerUI.peerIcon != "null") {
-                GlideImage(
-                    imageModel = { peerUI.peerIcon },
-                    imageOptions = ImageOptions(contentScale = ContentScale.Fit, alignment = Alignment.Center),
-                    modifier = iconModifier
+                val painter = rememberAsyncImagePainter(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(peerUI.peerIcon)
+                        .size(60)
+                        .crossfade(true)
+                        .error(com.walletconnect.sample.common.R.drawable.ic_walletconnect_circle_blue)
+                        .listener(
+                            onSuccess = { request, metadata -> println("kobe: onSuccess: $request, $metadata") },
+                            onError = { _, throwable -> println("Error loading image: ${throwable.throwable.message}") })
+                        .build()
+                )
+
+                Image(
+                    painter = painter,
+                    contentDescription = "Peer icon",
+                    modifier = iconModifier,
+                    contentScale = ContentScale.Fit,
+                    alignment = Alignment.Center
                 )
             } else {
                 Image(modifier = iconModifier.alpha(.7f), imageVector = ImageVector.vectorResource(id = R.drawable.sad_face), contentDescription = "Sad face")

@@ -6,6 +6,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.walletconnect.android.Core
+import com.walletconnect.sample.wallet.domain.ACCOUNTS_1_EIP155_ADDRESS
+import com.walletconnect.sample.wallet.domain.ACCOUNTS_2_EIP155_ADDRESS
 import com.walletconnect.sample.wallet.domain.WCDelegate
 import com.walletconnect.sample.wallet.ui.CoreEvent
 import com.walletconnect.sample.wallet.ui.NoAction
@@ -28,6 +30,7 @@ class ConnectionsViewModel : ViewModel() {
         Log.d("Web3Wallet", "signConnectionsFlow: $it")
         getLatestActiveSignSessions()
     }
+    var displayedAccounts: List<String> = emptyList()
 
     var currentConnectionId: Int? = null
         set(value) {
@@ -46,6 +49,18 @@ class ConnectionsViewModel : ViewModel() {
     fun refreshConnections() {
         val res = _refreshFlow.tryEmit(Unit)
         Log.e("Web3Wallet", "refreshConnections $res")
+    }
+
+    private var areNewAccounts: Boolean = true
+
+    fun getAccountsToChange(): String {
+        return if (areNewAccounts) {
+            areNewAccounts = false
+            "[\"${"eip155:1:$ACCOUNTS_2_EIP155_ADDRESS"}\",\"${"eip155:137:$ACCOUNTS_2_EIP155_ADDRESS"}\",\"${"eip155:56:$ACCOUNTS_2_EIP155_ADDRESS"}\"]"
+        } else {
+            areNewAccounts = true
+            "[\"${"eip155:1:$ACCOUNTS_1_EIP155_ADDRESS"}\",\"${"eip155:137:${ACCOUNTS_1_EIP155_ADDRESS}"}\",\"${"eip155:56:$ACCOUNTS_1_EIP155_ADDRESS"}\"]"
+        }
     }
 
     private fun refreshCurrentConnectionUI() {
