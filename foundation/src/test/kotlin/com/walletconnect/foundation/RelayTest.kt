@@ -188,6 +188,9 @@ class RelayTest {
         startLoggingClientEventsFlow(clientA, "ClientA")
         startLoggingClientEventsFlow(clientB, "ClientB")
 
+        clientA.isLoggingEnabled = true
+        clientB.isLoggingEnabled = true
+
         return (clientA to clientB)
     }
 
@@ -220,7 +223,9 @@ class RelayTest {
             delay(10)
         }
 
-        if (didTimeout(start, 50000L)) { throw Exception("Unable to establish socket connection") }
+        if (didTimeout(start, 50000L)) {
+            throw Exception("Unable to establish socket connection")
+        }
 
         clientAJob.cancel()
         clientBJob.cancel()
