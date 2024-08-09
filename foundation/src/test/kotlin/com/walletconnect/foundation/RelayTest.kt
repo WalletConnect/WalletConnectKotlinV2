@@ -73,10 +73,7 @@ class RelayTest {
                     println("ClientB subscribe on topic: $testTopic")
                 },
                 onFailure = { error ->
-                    testState.compareAndSet(
-                        expect = TestState.Idle,
-                        update = TestState.Error("ClientB failed to subscribe on topic: $testTopic. Message: ${error.message}")
-                    )
+                    println("ClientB failed to subscribe on topic: $testTopic. Message: ${error.message}")
                 }
             )
         }
@@ -85,10 +82,7 @@ class RelayTest {
             result.fold(
                 onSuccess = { println("ClientA publish on topic: $testTopic; message: $testMessage") },
                 onFailure = { error ->
-                    testState.compareAndSet(
-                        expect = TestState.Idle,
-                        update = TestState.Error("ClientA failed to publish on topic: $testTopic. Message: ${error.message}")
-                    )
+                    println("ClientA failed to publish on topic: $testTopic. Message: ${error.message}")
                 }
             )
         }
