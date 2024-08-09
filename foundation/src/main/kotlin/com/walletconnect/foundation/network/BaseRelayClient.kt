@@ -62,7 +62,7 @@ abstract class BaseRelayClient : RelayInterface {
                 .catch { exception -> logger.error(exception) }
                 .collect { result ->
                     if (isLoggingEnabled) {
-                        println("Result: $result")
+                        println("Result: $result; timestamp: ${System.currentTimeMillis()}")
                     }
 
                     resultState.emit(result)
@@ -134,7 +134,7 @@ abstract class BaseRelayClient : RelayInterface {
         val subscribeRequest = RelayDTO.Subscribe.Request(id = id ?: generateClientToServerId(), params = RelayDTO.Subscribe.Request.Params(Topic(topic)))
 
         if (isLoggingEnabled) {
-            logger.log("Sending SubscribeRequest: $subscribeRequest")
+            logger.log("Sending SubscribeRequest: $subscribeRequest;  timestamp: ${System.currentTimeMillis()}")
         }
 
         observeSubscribeResult(subscribeRequest.id, onResult)
@@ -145,6 +145,7 @@ abstract class BaseRelayClient : RelayInterface {
         scope.launch {
             try {
                 withTimeout(RESULT_TIMEOUT) {
+                    if (isLoggingEnabled) println("ObserveSubscribeResult: $id; timestamp: ${System.currentTimeMillis()}")
                     resultState
                         .onEach { relayResult -> if (isLoggingEnabled) logger.log("SubscribeResult 1: $relayResult") }
                         .filterIsInstance<RelayDTO.Subscribe.Result>()
