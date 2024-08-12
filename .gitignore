@@ -94,3 +94,5 @@ lint/tmp/
 *.hprof
 
 core/android/property 'buildDir'
+
+protocol/sign/property 'buildDir'
