@@ -221,7 +221,7 @@ class SignClientInstrumentedAndroidTest {
 
         val dappDelegate = object : AutoApproveDappDelegate(onSessionApprovedSuccess) {
             override fun onSessionEvent(sessionEvent: Sign.Model.SessionEvent) {
-                assert(sessionEvent.data == "dummy")
+                assert(sessionEvent.data.contains("0x1111"))
                 scenarioExtension.closeAsSuccess().also { Timber.d("receiveSessionEvent: finish") }
             }
         }
@@ -241,7 +241,7 @@ class SignClientInstrumentedAndroidTest {
         val dappDelegate = object : AutoApproveDappDelegate(onSessionApprovedSuccess) {
             override fun onSessionEvent(sessionEvent: Sign.Model.Event) {
                 assert(sessionEvent.name == sessionEvents.first())
-                assert(sessionEvent.data == "dummy")
+                assert(sessionEvent.data.contains("0x1111"))
                 scenarioExtension.closeAsSuccess().also { Timber.d("receiveEvent: finish") }
             }
         }
@@ -265,7 +265,7 @@ class SignClientInstrumentedAndroidTest {
         val dappDelegate = object : AutoApproveDappDelegate(onSessionApprovedSuccess) {
             override fun onSessionEvent(sessionEvent: Sign.Model.Event) {
                 assert(sessionEvent.name == sessionEvents.first())
-                assert(sessionEvent.data == "dummy")
+                assert(sessionEvent.data.contains("0x1111"))
                 Timber.d("receiveEventAndSessionEvent: onEvent")
                 isOnEventReceived = true
                 if (isOnSessionEventReceived) {
@@ -275,7 +275,7 @@ class SignClientInstrumentedAndroidTest {
 
             override fun onSessionEvent(sessionEvent: Sign.Model.SessionEvent) {
                 assert(sessionEvent.name == sessionEvents.first())
-                assert(sessionEvent.data == "dummy")
+                assert(sessionEvent.data.contains("0x1111"))
                 Timber.d("receiveEventAndSessionEvent: onSessionEvent")
                 isOnSessionEventReceived = true
                 if (isOnEventReceived) {
