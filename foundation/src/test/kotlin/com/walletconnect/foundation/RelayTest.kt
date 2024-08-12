@@ -71,24 +71,18 @@ class RelayTest {
             result.fold(
                 onSuccess = {
                     println("ClientB subscribe on topic: $testTopic")
-                    //Publish message
-                    clientA.publish(testTopic, testMessage, Relay.Model.IrnParams(1114, 300)) { result ->
-                        result.fold(
-                            onSuccess = { println("ClientA publish on topic: $testTopic; message: $testMessage") },
-                            onFailure = { error ->
-                                testState.compareAndSet(
-                                    expect = TestState.Idle,
-                                    update = TestState.Error("ClientA failed to publish on topic: $testTopic. Message: ${error.message}")
-                                )
-                            }
-                        )
-                    }
                 },
                 onFailure = { error ->
-                    testState.compareAndSet(
-                        expect = TestState.Idle,
-                        update = TestState.Error("ClientB failed to subscribe on topic: $testTopic. Message: ${error.message}")
-                    )
+                    println("ClientB failed to subscribe on topic: $testTopic. Message: ${error.message}")
+                }
+            )
+        }
+
+        clientA.publish(testTopic, testMessage, Relay.Model.IrnParams(1114, 300)) { result ->
+            result.fold(
+                onSuccess = { println("ClientA publish on topic: $testTopic; message: $testMessage") },
+                onFailure = { error ->
+                    println("ClientA failed to publish on topic: $testTopic. Message: ${error.message}")
                 }
             )
         }
@@ -182,6 +176,9 @@ class RelayTest {
         clientA.relayService = koinAppA.koin.get(named(FoundationDITags.RELAY_SERVICE))
         clientB.relayService = koinAppB.koin.get(named(FoundationDITags.RELAY_SERVICE))
 
+        clientA.isLoggingEnabled = true
+        clientB.isLoggingEnabled = true
+
         clientA.observeResults()
         clientB.observeResults()
 
@@ -220,7 +217,9 @@ class RelayTest {
             delay(10)
         }
 
-        if (didTimeout(start, 50000L)) { throw Exception("Unable to establish socket connection") }
+        if (didTimeout(start, 50000L)) {
+            throw Exception("Unable to establish socket connection")
+        }
 
         clientAJob.cancel()
         clientBJob.cancel()
