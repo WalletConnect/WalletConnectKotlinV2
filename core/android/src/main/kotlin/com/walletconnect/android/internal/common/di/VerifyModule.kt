@@ -1,7 +1,10 @@
 package com.walletconnect.android.internal.common.di
 
 import com.walletconnect.android.verify.data.VerifyService
+import com.walletconnect.android.verify.domain.JWTRepository
 import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
+import com.walletconnect.android.verify.domain.VerifyPublicKeyStorageRepository
+import com.walletconnect.android.verify.domain.VerifyRepository
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import retrofit2.Retrofit
@@ -22,4 +25,17 @@ internal fun verifyModule() = module {
     single { get<Retrofit>(named(AndroidCommonDITags.VERIFY_RETROFIT)).create(VerifyService::class.java) }
 
     single { ResolveAttestationIdUseCase(get(), get(), get(named(AndroidCommonDITags.VERIFY_URL))) }
+
+    single { VerifyPublicKeyStorageRepository(get()) }
+
+    single { JWTRepository() }
+
+    single {
+        VerifyRepository(
+            verifyService = get(),
+            jwtRepository = get(),
+            moshi = get(named(AndroidCommonDITags.MOSHI)),
+            verifyPublicKeyStorageRepository = get()
+        )
+    }
 }

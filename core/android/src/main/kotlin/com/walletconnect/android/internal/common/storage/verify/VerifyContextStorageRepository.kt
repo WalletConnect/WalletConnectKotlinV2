@@ -3,7 +3,7 @@ package com.walletconnect.android.internal.common.storage.verify
 import android.database.sqlite.SQLiteException
 import com.walletconnect.android.internal.common.model.Validation
 import com.walletconnect.android.sdk.storage.data.dao.VerifyContextQueries
-import com.walletconnect.android.verify.data.model.VerifyContext
+import com.walletconnect.android.verify.model.VerifyContext
 
 class VerifyContextStorageRepository(private val verifyContextQueries: VerifyContextQueries) {
 

@@ -93,4 +93,6 @@ lint/tmp/
 # Android Profiling
 *.hprof
 
+core/android/property 'buildDir'
+
 protocol/sign/property 'buildDir'

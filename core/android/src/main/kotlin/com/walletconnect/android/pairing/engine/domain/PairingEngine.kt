@@ -91,19 +91,19 @@ internal class PairingEngine(
     private var jsonRpcRequestsJob: Job? = null
     private val setOfRegisteredMethods: MutableSet<String> = mutableSetOf()
     private val _isPairingStateFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
-
     private val _deletedPairingFlow: MutableSharedFlow<Pairing> = MutableSharedFlow()
     val deletedPairingFlow: SharedFlow<Pairing> = _deletedPairingFlow.asSharedFlow()
+    private val _inactivePairingTopicFlow: MutableSharedFlow<Pair<Topic, MutableList<String>>> = MutableSharedFlow()
+    val inactivePairingTopicFlow: SharedFlow<Pair<Topic, MutableList<String>>> = _inactivePairingTopicFlow.asSharedFlow()
+    val internalErrorFlow = MutableSharedFlow<SDKError>()
+    private val _checkVerifyKeyFlow: MutableSharedFlow<Unit> = MutableSharedFlow()
+    val checkVerifyKeyFlow: SharedFlow<Unit> = _checkVerifyKeyFlow.shareIn(scope, SharingStarted.Lazily, 1)
 
     private val _engineEvent: MutableSharedFlow<EngineDO> = MutableSharedFlow()
     val engineEvent: SharedFlow<EngineDO> =
         merge(_engineEvent, _deletedPairingFlow.map { pairing -> EngineDO.PairingExpire(pairing) }, _isPairingStateFlow.map { EngineDO.PairingState(it) })
             .shareIn(scope, SharingStarted.Lazily, 0)
 
-    private val _inactivePairingTopicFlow: MutableSharedFlow<Pair<Topic, MutableList<String>>> = MutableSharedFlow()
-    val inactivePairingTopicFlow: SharedFlow<Pair<Topic, MutableList<String>>> = _inactivePairingTopicFlow.asSharedFlow()
-
-    val internalErrorFlow = MutableSharedFlow<SDKError>()
 
     // TODO: emission of events can be missed since they are emitted potentially before there's a subscriber and the event gets missed by protocols
     init {
@@ -160,6 +160,7 @@ internal class PairingEngine(
     }
 
     fun pair(uri: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
+        scope.launch { _checkVerifyKeyFlow.emit(Unit) }
         val trace: MutableList<String> = mutableListOf()
         trace.add(Trace.Pairing.PAIRING_STARTED).also { logger.log("Pairing started") }
         val walletConnectUri: WalletConnectUri = Validator.validateWCUri(uri) ?: run {
