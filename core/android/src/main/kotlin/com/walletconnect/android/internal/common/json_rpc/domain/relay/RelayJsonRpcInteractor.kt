@@ -356,7 +356,6 @@ internal class RelayJsonRpcInteractor(
                 storePushRequestsIfEnabled(relayRequest, topic)
                 Triple(decryptMessage(topic, relayRequest), topic, relayRequest.publishedAt)
             }.collect { (decryptedMessage, topic, publishedAt) ->
-                println("kobe: Message: $decryptedMessage")
                 if (decryptedMessage.isNotEmpty()) {
                     try {
                         manageSubscriptions(decryptedMessage, topic, publishedAt)

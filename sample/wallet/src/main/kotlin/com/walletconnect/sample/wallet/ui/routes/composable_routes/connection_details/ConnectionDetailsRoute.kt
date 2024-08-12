@@ -351,7 +351,7 @@ fun Connection(connectionUI: ConnectionUI) {
                     .crossfade(true)
                     .error(com.walletconnect.sample.common.R.drawable.ic_walletconnect_circle_blue)
                     .listener(
-                        onSuccess = { request, metadata -> println("kobe: onSuccess: $request, $metadata") },
+                        onSuccess = { request, metadata -> println("onSuccess: $request, $metadata") },
                         onError = { _, throwable -> println("Error loading image: ${throwable.throwable.message}") })
                     .build()
             )
