@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit
 
 fun networkModule(serverUrl: String, sdkVersion: String, jwt: String): Module = module {
     val DEFAULT_BACKOFF_SECONDS = 5L
-    val TIMEOUT_TIME = 10000L
+    val TIMEOUT_TIME = 40000L
 
     // TODO: Setup env variable for tag instead of relayTest. Use env variable here instead of hard coded version
     single(named(FoundationDITags.INTERCEPTOR)) {
