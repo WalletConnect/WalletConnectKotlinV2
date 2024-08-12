@@ -15,14 +15,14 @@ class ResolveAttestationIdUseCase(private val verifyInterface: VerifyInterface, 
 
     operator fun invoke(request: WCRequest, metadataUrl: String, linkMode: Boolean? = false, appLink: String? = null, onResolve: (VerifyContext) -> Unit) {
         when {
-            linkMode == true && !appLink.isNullOrEmpty() -> resolveKLinkMode(request, metadataUrl, appLink, onResolve)
+            linkMode == true && !appLink.isNullOrEmpty() -> resolveLinkMode(request, metadataUrl, appLink, onResolve)
             !request.attestation.isNullOrEmpty() -> resolveVerifyV2(metadataUrl, request, onResolve)
             request.attestation?.isEmpty() == true -> insertContext(VerifyContext(request.id, String.Empty, Validation.UNKNOWN, verifyUrl, null)) { verifyContext -> onResolve(verifyContext) }
             else -> resolveVerifyV1(request, metadataUrl, onResolve)
         }
     }
 
-    private fun resolveKLinkMode(
+    private fun resolveLinkMode(
         request: WCRequest,
         metadataUrl: String,
         appLink: String,
