@@ -17,6 +17,7 @@ class ResolveAttestationIdUseCase(private val verifyInterface: VerifyInterface, 
         when {
             linkMode == true && !appLink.isNullOrEmpty() -> resolveKLinkMode(request, metadataUrl, appLink, onResolve)
             !request.attestation.isNullOrEmpty() -> resolveVerifyV2(metadataUrl, request, onResolve)
+            request.attestation?.isEmpty() == true -> insertContext(VerifyContext(request.id, String.Empty, Validation.UNKNOWN, verifyUrl, null)) { verifyContext -> onResolve(verifyContext) }
             else -> resolveVerifyV1(request, metadataUrl, onResolve)
         }
     }
