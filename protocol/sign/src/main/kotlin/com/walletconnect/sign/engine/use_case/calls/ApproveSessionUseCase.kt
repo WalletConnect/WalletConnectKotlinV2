@@ -156,6 +156,9 @@ internal class ApproveSessionUseCase(
                     }.also { logger.error("Subscribe to session topic failure: $error") }
                     onFailure(error)
                 })
+
+            sessionSettle(request.id, proposal, sessionTopic, request.topic)
+
             trace.add(Trace.Session.PUBLISHING_SESSION_APPROVE).also { logger.log("Publishing session approve on topic: $sessionTopic") }
             jsonRpcInteractor.respondWithParams(request, approvalParams, irnParams,
                 onSuccess = {
@@ -169,8 +172,6 @@ internal class ApproveSessionUseCase(
                     }.also { logger.error("Session approve failure, topic: $sessionTopic: $error") }
                     onFailure(error)
                 })
-
-            sessionSettle(request.id, proposal, sessionTopic, request.topic)
         } catch (e: Exception) {
             if (e is NoRelayConnectionException) insertEventUseCase(Props(type = EventType.Error.NO_WSS_CONNECTION, properties = Properties(trace = trace, topic = pairingTopic)))
             if (e is NoInternetConnectionException) insertEventUseCase(Props(type = EventType.Error.NO_INTERNET_CONNECTION, properties = Properties(trace = trace, topic = pairingTopic)))
