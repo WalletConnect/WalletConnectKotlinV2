@@ -64,6 +64,17 @@ internal class PairingController(private val koinApp: KoinApplication = wcKoinAp
     }
 
     @Throws(IllegalStateException::class)
+    override fun deleteAndUnsubscribePairing(deletePairing: Core.Params.Delete, onError: (Core.Model.Error) -> Unit) {
+        checkEngineInitialization()
+
+        try {
+            pairingEngine.deleteAndUnsubscribePairing(deletePairing.topic)
+        } catch (e: Exception) {
+            onError(Core.Model.Error(e))
+        }
+    }
+
+    @Throws(IllegalStateException::class)
     private fun checkEngineInitialization() {
         check(::pairingEngine.isInitialized) {
             "CoreClient needs to be initialized first using the initialize function"

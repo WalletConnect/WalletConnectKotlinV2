@@ -190,12 +190,12 @@ internal class PairingEngine(
 //                        .also { logger.error("Pairing already exists error: $pairingTopic") }
 //                    return onFailure(PairWithExistingPairingIsNotAllowed(PAIRING_NOT_ALLOWED_MESSAGE))
 //                } else {
-                    trace.add(Trace.Pairing.EMIT_INACTIVE_PAIRING).also { logger.log("Emitting inactive pairing: $pairingTopic") }
-                    scope.launch {
-                        supervisorScope {
-                            _inactivePairingTopicFlow.emit(Pair(pairingTopic, trace))
-                        }
+                trace.add(Trace.Pairing.EMIT_INACTIVE_PAIRING).also { logger.log("Emitting inactive pairing: $pairingTopic") }
+                scope.launch {
+                    supervisorScope {
+                        _inactivePairingTopicFlow.emit(Pair(pairingTopic, trace))
                     }
+                }
 //                }
             } else {
                 crypto.setKey(symmetricKey, pairingTopic.value)
@@ -228,6 +228,7 @@ internal class PairingEngine(
         }
     }
 
+    @Deprecated("Disconnect method has been deprecated")
     fun disconnect(topic: String, onFailure: (Throwable) -> Unit) {
         if (!isPairingValid(topic)) {
             return onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic"))
@@ -257,6 +258,7 @@ internal class PairingEngine(
         )
     }
 
+    @Deprecated("Ping method has been deprecated")
     fun ping(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
         if (isPairingValid(topic)) {
             val pingPayload = PairingRpc.PairingPing(params = PairingParams.PingParams())
@@ -282,18 +284,13 @@ internal class PairingEngine(
         getPairing(topic, onFailure) { pairing -> pairingRepository.setRequestReceived(pairing.topic) }
     }
 
-
-    fun updateExpiry(topic: String, expiry: Expiry, onFailure: (Throwable) -> Unit) {
-        val pairing: Pairing = pairingRepository.getPairingOrNullByTopic(Topic(topic))?.run {
-            this.takeIf { pairing -> pairing.isNotExpired() } ?: return onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic"))
-        } ?: return onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic"))
-
-        val newExpiration = pairing.expiry.seconds + expiry.seconds
-        pairingRepository.updateExpiry(Topic(topic), Expiry(newExpiration))
-    }
-
     fun updateMetadata(topic: String, metadata: AppMetaData, metaDataType: AppMetaDataType) {
         metadataRepository.upsertPeerMetadata(Topic(topic), metadata, metaDataType)
+    }
+
+    fun deleteAndUnsubscribePairing(topic: String) {
+        jsonRpcInteractor.unsubscribe(Topic(topic))
+        pairingRepository.deletePairing(Topic(topic))
     }
 
     private fun sendEvents() {
@@ -378,6 +375,7 @@ internal class PairingEngine(
                 }
             }.launchIn(scope)
 
+    @Deprecated("onPairingDelete method has been deprecated")
     private suspend fun onPairingDelete(request: WCRequest, params: PairingParams.DeleteParams) {
         val irnParams = IrnParams(Tags.PAIRING_DELETE_RESPONSE, Ttl(dayInSeconds))
         try {
@@ -400,6 +398,7 @@ internal class PairingEngine(
         }
     }
 
+    @Deprecated("onPing method has been deprecated")
     private fun onPing(request: WCRequest) {
         val irnParams = IrnParams(Tags.PAIRING_PING, Ttl(thirtySeconds))
         jsonRpcInteractor.respondWithSuccess(request, irnParams)

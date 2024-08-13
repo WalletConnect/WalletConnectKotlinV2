@@ -1,6 +1,5 @@
 package com.walletconnect.sign.engine.use_case.calls
 
-import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
@@ -48,15 +47,7 @@ internal class PingUseCase(
                     onFailure(error)
                 })
         } else {
-            pairingInterface.ping(Core.Params.Ping(topic), object : Core.Listeners.PairingPing {
-                override fun onSuccess(pingSuccess: Core.Model.Ping.Success) {
-                    onSuccess(pingSuccess.topic)
-                }
-
-                override fun onError(pingError: Core.Model.Ping.Error) {
-                    onFailure(pingError.error)
-                }
-            })
+            onFailure(Throwable("Session is not valid"))
         }
     }
 

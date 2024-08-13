@@ -1,5 +1,6 @@
 package com.walletconnect.sign.engine.use_case.responses
 
+import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.model.SDKError
@@ -36,14 +37,10 @@ internal class OnSessionProposalResponseUseCase(
         try {
             logger.log("Session proposal response received on topic: ${wcResponse.topic}")
             val pairingTopic = wcResponse.topic
+            pairingController.deleteAndUnsubscribePairing(Core.Params.Delete(pairingTopic.value))
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcResult -> {
                     logger.log("Session proposal approval received on topic: ${wcResponse.topic}")
-                    if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) {
-                        logger.error("Session proposal approval received failure on topic: ${wcResponse.topic} - invalid pairing")
-                        _events.emit(SDKError(Throwable("Invalid Pairing")))
-                        return@supervisorScope
-                    }
                     val selfPublicKey = PublicKey(params.proposer.publicKey)
                     val approveParams = response.result as CoreSignParams.ApprovalParams
                     val responderPublicKey = PublicKey(approveParams.responderPublicKey)
@@ -54,7 +51,8 @@ internal class OnSessionProposalResponseUseCase(
                         onFailure = { error ->
                             logger.error("Session proposal approval subscribe error on session topic: $sessionTopic - $error")
                             scope.launch { _events.emit(SDKError(error)) }
-                        })
+                        }
+                    )
                 }
 
                 is JsonRpcResponse.JsonRpcError -> {

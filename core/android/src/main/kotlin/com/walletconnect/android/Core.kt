@@ -1,7 +1,6 @@
 package com.walletconnect.android
 
 import com.walletconnect.android.internal.common.model.AppMetaDataType
-import com.walletconnect.android.internal.common.model.Expiry
 
 object Core {
     sealed interface Listeners {
@@ -163,11 +162,9 @@ object Core {
 
         data class Disconnect(val topic: String) : Params()
 
-        data class Activate(val topic: String) : Params()
+        data class Delete(val topic: String) : Params()
 
         data class RequestReceived(val topic: String) : Params()
-
-        data class UpdateExpiry(val topic: String, val expiry: Expiry) : Params()
 
         data class UpdateMetadata(val topic: String, val metadata: Model.AppMetaData, val metaDataType: AppMetaDataType) : Params()
     }

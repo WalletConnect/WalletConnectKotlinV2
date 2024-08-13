@@ -24,14 +24,13 @@ interface PairingInterface {
         onError: (Core.Model.Error) -> Unit = {},
     )
 
-    @Deprecated(
-        message = "Disconnect method has been replaced",
-        replaceWith = ReplaceWith(expression = "disconnect(disconnect: Core.Params.Disconnect, onError: (Core.Model.Error) -> Unit = {})")
-    )
+    @Deprecated(message = "Disconnect method has been deprecated")
     fun disconnect(topic: String, onError: (Core.Model.Error) -> Unit = {})
 
+    @Deprecated(message = "Disconnect method has been deprecated")
     fun disconnect(disconnect: Core.Params.Disconnect, onError: (Core.Model.Error) -> Unit = {})
 
+    @Deprecated(message = "Ping method has been deprecated")
     fun ping(ping: Core.Params.Ping, pairingPing: Core.Listeners.PairingPing? = null)
 
     /**

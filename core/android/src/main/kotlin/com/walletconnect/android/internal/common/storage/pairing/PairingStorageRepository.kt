@@ -22,7 +22,7 @@ class PairingStorageRepository(private val pairingQueries: PairingQueries) : Pai
                 relay_data = relayData,
                 uri = uri,
                 methods = methods ?: String.Empty,
-                is_active = false,
+                is_active = true,
                 is_proposal_received = isProposalReceived
             )
         }
@@ -59,7 +59,6 @@ class PairingStorageRepository(private val pairingQueries: PairingQueries) : Pai
         relay_data: String?,
         uri: String,
         methods: String,
-        is_active: Boolean,
         is_proposal_received: Boolean?,
         peerName: String?,
         peerDesc: String?,

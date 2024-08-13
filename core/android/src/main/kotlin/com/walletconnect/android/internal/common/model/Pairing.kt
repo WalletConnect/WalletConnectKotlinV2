@@ -4,15 +4,13 @@ import com.walletconnect.android.internal.common.model.type.Sequence
 import com.walletconnect.android.pairing.model.pairingExpiry
 import com.walletconnect.foundation.common.model.Topic
 
-data class
-Pairing(
+data class Pairing(
     override val topic: Topic,
     override val expiry: Expiry,
     val peerAppMetaData: AppMetaData? = null,
     val relayProtocol: String,
     val relayData: String?,
     val uri: String,
-    val isProposalReceived: Boolean = false,
     val methods: String? = null,
 ) : Sequence {
 
