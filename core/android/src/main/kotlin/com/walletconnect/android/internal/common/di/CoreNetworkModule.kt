@@ -4,8 +4,8 @@ import android.net.Uri
 import android.os.Build
 import com.pandulapeter.beagle.logOkHttp.BeagleOkHttpLogger
 import com.squareup.moshi.Moshi
+import com.tinder.scarlet.Lifecycle
 import com.tinder.scarlet.Scarlet
-import com.tinder.scarlet.lifecycle.LifecycleRegistry
 import com.tinder.scarlet.lifecycle.android.AndroidLifecycle
 import com.tinder.scarlet.messageadapter.moshi.MoshiMessageAdapter
 import com.tinder.scarlet.retry.ExponentialBackoffStrategy
@@ -16,7 +16,6 @@ import com.walletconnect.android.internal.common.connection.ManualConnectionLife
 import com.walletconnect.android.internal.common.jwt.clientid.GenerateJwtStoreClientIdUseCase
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.relay.NetworkClientTimeout
-import com.walletconnect.foundation.network.data.ConnectionController
 import com.walletconnect.foundation.network.data.adapter.FlowStreamAdapter
 import com.walletconnect.foundation.network.data.service.RelayService
 import okhttp3.Authenticator
@@ -25,6 +24,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.android.ext.koin.androidApplication
 import org.koin.core.qualifier.named
+import org.koin.core.scope.Scope
 import org.koin.dsl.module
 import java.util.concurrent.TimeUnit
 
@@ -104,20 +104,12 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
 
     single(named(AndroidCommonDITags.MSG_ADAPTER)) { MoshiMessageAdapter.Factory(get<Moshi.Builder>(named(AndroidCommonDITags.MOSHI)).build()) }
 
-    single(named(AndroidCommonDITags.CONNECTION_CONTROLLER)) {
-        if (connectionType == ConnectionType.MANUAL) {
-            ConnectionController.Manual()
-        } else {
-            ConnectionController.Automatic
-        }
+    single<ManualConnectionLifecycle>(named(AndroidCommonDITags.MANUAL_CONNECTION_LIFECYCLE)) {
+        ManualConnectionLifecycle()
     }
 
-    single(named(AndroidCommonDITags.LIFECYCLE)) {
-        if (connectionType == ConnectionType.MANUAL) {
-            ManualConnectionLifecycle(get(named(AndroidCommonDITags.CONNECTION_CONTROLLER)), LifecycleRegistry())
-        } else {
-            AndroidLifecycle.ofApplicationForeground(androidApplication())
-        }
+    single<Lifecycle>(named(AndroidCommonDITags.AUTOMATIC_CONNECTION_LIFECYCLE)) {
+        AndroidLifecycle.ofApplicationForeground(androidApplication())
     }
 
     single { ExponentialBackoffStrategy(INIT_BACKOFF_MILLIS, TimeUnit.SECONDS.toMillis(MAX_BACKOFF_SEC)) }
@@ -128,7 +120,7 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
         Scarlet.Builder()
             .backoffStrategy(get<ExponentialBackoffStrategy>())
             .webSocketFactory(get<OkHttpClient>(named(AndroidCommonDITags.OK_HTTP)).newWebSocketFactory(get<String>(named(AndroidCommonDITags.RELAY_URL))))
-            .lifecycle(get(named(AndroidCommonDITags.LIFECYCLE)))
+            .lifecycle(getLifecycle(connectionType))
             .addMessageAdapterFactory(get<MoshiMessageAdapter.Factory>(named(AndroidCommonDITags.MSG_ADAPTER)))
             .addStreamAdapterFactory(get<FlowStreamAdapter.Factory>())
             .build()
@@ -142,3 +134,10 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
         ConnectivityState(androidApplication())
     }
 }
+
+private fun Scope.getLifecycle(connectionType: ConnectionType) =
+    if (connectionType == ConnectionType.MANUAL) {
+        get<ManualConnectionLifecycle>(named(AndroidCommonDITags.MANUAL_CONNECTION_LIFECYCLE))
+    } else {
+        get<Lifecycle>(named(AndroidCommonDITags.AUTOMATIC_CONNECTION_LIFECYCLE))
+    }
