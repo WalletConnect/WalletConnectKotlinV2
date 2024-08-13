@@ -22,7 +22,7 @@ internal fun Pairing.toCore(): Core.Model.Pairing =
         relayProtocol,
         relayData,
         uri,
-        isActive,
+        isActive = true,
         methods ?: String.Empty
     )
 

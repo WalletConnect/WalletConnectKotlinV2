@@ -1,20 +1,16 @@
 package com.walletconnect.sign.engine.use_case.responses
 
-import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
-import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.utils.monthInSeconds
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.foundation.common.model.PublicKey
-import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.engine.model.EngineDO
@@ -43,7 +39,6 @@ internal class OnSessionProposalResponseUseCase(
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcResult -> {
                     logger.log("Session proposal approval received on topic: ${wcResponse.topic}")
-                    updatePairing(pairingTopic)
                     if (!pairingInterface.getPairings().any { pairing -> pairing.topic == pairingTopic.value }) {
                         logger.error("Session proposal approval received failure on topic: ${wcResponse.topic} - invalid pairing")
                         _events.emit(SDKError(Throwable("Invalid Pairing")))
@@ -72,10 +67,5 @@ internal class OnSessionProposalResponseUseCase(
             logger.error("Session proposal response received failure on topic: ${wcResponse.topic}: $e")
             _events.emit(SDKError(e))
         }
-    }
-
-    private fun updatePairing(pairingTopic: Topic) = with(pairingController) {
-        updateExpiry(Core.Params.UpdateExpiry(pairingTopic.value, Expiry(monthInSeconds)))
-        activate(Core.Params.Activate(pairingTopic.value))
     }
 }

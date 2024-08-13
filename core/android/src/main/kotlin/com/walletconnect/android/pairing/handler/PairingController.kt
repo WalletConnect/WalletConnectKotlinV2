@@ -42,33 +42,11 @@ internal class PairingController(private val koinApp: KoinApplication = wcKoinAp
     }
 
     @Throws(IllegalStateException::class)
-    override fun activate(activate: Core.Params.Activate, onError: (Core.Model.Error) -> Unit) {
-        checkEngineInitialization()
-
-        try {
-            pairingEngine.activate(activate.topic) { error -> onError(Core.Model.Error(error)) }
-        } catch (e: Exception) {
-            onError(Core.Model.Error(e))
-        }
-    }
-
-    @Throws(IllegalStateException::class)
     override fun setRequestReceived(activate: Core.Params.RequestReceived, onError: (Core.Model.Error) -> Unit) {
         checkEngineInitialization()
 
         try {
             pairingEngine.setRequestReceived(activate.topic) { error -> onError(Core.Model.Error(error)) }
-        } catch (e: Exception) {
-            onError(Core.Model.Error(e))
-        }
-    }
-
-    @Throws(IllegalStateException::class)
-    override fun updateExpiry(updateExpiry: Core.Params.UpdateExpiry, onError: (Core.Model.Error) -> Unit) {
-        checkEngineInitialization()
-
-        try {
-            pairingEngine.updateExpiry(updateExpiry.topic, updateExpiry.expiry) { error -> onError(Core.Model.Error(error)) }
         } catch (e: Exception) {
             onError(Core.Model.Error(e))
         }

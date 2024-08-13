@@ -24,6 +24,9 @@ object EventType {
         const val PAIRING_SUBSCRIPTION_FAILURE: String = "FAILED_TO_SUBSCRIBE_TO_PAIRING_TOPIC"
 
         @get:JvmSynthetic
+        const val PAIRING_URI_EXPIRED: String = "PAIRING_URI_EXPIRED"
+
+        @get:JvmSynthetic
         const val PAIRING_EXPIRED: String = "PAIRING_EXPIRED"
 
         @get:JvmSynthetic

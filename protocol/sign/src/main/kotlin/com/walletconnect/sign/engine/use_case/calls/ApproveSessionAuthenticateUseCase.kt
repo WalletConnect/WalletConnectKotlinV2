@@ -1,6 +1,5 @@
 package com.walletconnect.sign.engine.use_case.calls
 
-import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.NoInternetConnectionException
@@ -180,7 +179,6 @@ internal class ApproveSessionAuthenticateUseCase(
                         onSuccess()
                         scope.launch {
                             supervisorScope {
-                                pairingController.activate(Core.Params.Activate(jsonRpcHistoryEntry.topic.value))
                                 verifyContextStorageRepository.delete(id)
                             }
                         }

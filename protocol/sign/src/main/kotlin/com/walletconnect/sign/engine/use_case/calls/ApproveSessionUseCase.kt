@@ -1,6 +1,5 @@
 package com.walletconnect.sign.engine.use_case.calls
 
-import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.NoInternetConnectionException
 import com.walletconnect.android.internal.common.exception.NoRelayConnectionException
@@ -84,7 +83,6 @@ internal class ApproveSessionUseCase(
                         onSuccess()
                         scope.launch {
                             supervisorScope {
-                                pairingController.activate(Core.Params.Activate(pairingTopic.value))
                                 proposalStorageRepository.deleteProposal(proposerPublicKey)
                                 verifyContextStorageRepository.delete(proposal.requestId)
                                 trace.add(Trace.Session.SESSION_SETTLE_PUBLISH_SUCCESS).also { logger.log("Session settle sent successfully on topic: $sessionTopic") }
