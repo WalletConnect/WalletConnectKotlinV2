@@ -86,6 +86,6 @@ jobs:
           ./gradlew closeAndReleaseMultipleRepositories
       - name: Push Tag
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PUSH_GITHUB_TOKEN }}
         run: |
           ./gradlew pushTagToMain

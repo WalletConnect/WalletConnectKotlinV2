@@ -200,7 +200,12 @@ fun ConnectionDetailsRoute(navController: NavController, connectionId: Int?, con
                 onSwitch = {
                     when (uiConnection.type) {
                         is ConnectionType.Sign -> {
-                            val (namespace, reference, _) = connectionsViewModel.displayedAccounts[1].split(":")
+                            val (namespace, reference, _) = try {
+                                connectionsViewModel.displayedAccounts[1].split(":")
+                            } catch (e: Exception) {
+                                connectionsViewModel.displayedAccounts[0].split(":")
+                            }
+
                             val chainId = "$namespace:$reference"
                             val accountsToChange = connectionsViewModel.getAccountsToChange()
                             Web3Wallet.emitSessionEvent(Wallet.Params.SessionEmit(uiConnection.type.topic, Wallet.Model.SessionEvent("accountsChanged", accountsToChange), chainId),
