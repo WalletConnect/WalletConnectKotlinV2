@@ -3,13 +3,17 @@ package com.walletconnect.sign.engine.use_case.calls
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
 import com.walletconnect.android.internal.common.exception.InvalidExpiryException
+import com.walletconnect.android.internal.common.json_rpc.domain.link_mode.LinkModeJsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.TransportType
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
+import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.android.internal.utils.currentTimeInSeconds
 import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
@@ -38,7 +42,9 @@ import java.util.concurrent.TimeUnit
 
 internal class SessionRequestUseCase(
     private val sessionStorageRepository: SessionStorageRepository,
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
+    private val linkModeJsonRpcInteractor: LinkModeJsonRpcInteractorInterface,
+    private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val logger: Logger,
 ) : SessionRequestUseCaseInterface {
     private val _errors: MutableSharedFlow<SDKError> = MutableSharedFlow()
@@ -49,20 +55,24 @@ internal class SessionRequestUseCase(
             return@supervisorScope onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE${request.topic}"))
         }
 
+        val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic(request.topic))
+                .run {
+                    val peerAppMetaData = metadataStorageRepository.getByTopicAndType(this.topic, AppMetaDataType.PEER)
+                    this.copy(peerAppMetaData = peerAppMetaData)
+                }
+
         val nowInSeconds = currentTimeInSeconds
         if (!CoreValidator.isExpiryWithinBounds(request.expiry)) {
             logger.error("Sending session request error: expiry not within bounds")
             return@supervisorScope onFailure(InvalidExpiryException())
         }
         val expiry = request.expiry ?: Expiry(currentTimeInSeconds + fiveMinutesInSeconds)
-
         SignValidator.validateSessionRequest(request) { error ->
             logger.error("Sending session request error: invalid session request, ${error.message}")
             return@supervisorScope onFailure(InvalidRequestException(error.message))
         }
 
-        val namespaces: Map<String, Namespace.Session> =
-            sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic(request.topic)).sessionNamespaces
+        val namespaces: Map<String, Namespace.Session> = sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic(request.topic)).sessionNamespaces
         SignValidator.validateChainIdWithMethodAuthorisation(request.chainId, request.method, namespaces) { error ->
             logger.error("Sending session request error: unauthorized method, ${error.message}")
             return@supervisorScope onFailure(UnauthorizedMethodException(error.message))
@@ -70,36 +80,46 @@ internal class SessionRequestUseCase(
 
         val params = SignParams.SessionRequestParams(SessionRequestVO(request.method, request.params, expiry.seconds), request.chainId)
         val sessionPayload = SignRpc.SessionRequest(params = params)
-        val irnParamsTtl = expiry.run {
-            val defaultTtl = fiveMinutesInSeconds
-            val extractedTtl = seconds - nowInSeconds
-            val newTtl = extractedTtl.takeIf { extractedTtl >= defaultTtl } ?: defaultTtl
 
-            Ttl(newTtl)
-        }
-        val irnParams = IrnParams(Tags.SESSION_REQUEST, irnParamsTtl, true)
-        val requestTtlInSeconds = expiry.run { seconds - nowInSeconds }
-
-        logger.log("Sending session request on topic: ${request.topic}}")
-        jsonRpcInteractor.publishJsonRpcRequest(Topic(request.topic), irnParams, sessionPayload,
-            onSuccess = {
-                logger.log("Session request sent successfully on topic: ${request.topic}")
-                onSuccess(sessionPayload.id)
-                scope.launch {
-                    try {
-                        withTimeout(TimeUnit.SECONDS.toMillis(requestTtlInSeconds)) {
-                            collectResponse(sessionPayload.id) { cancel() }
-                        }
-                    } catch (e: TimeoutCancellationException) {
-                        _errors.emit(SDKError(e))
-                    }
-                }
-            },
-            onFailure = { error ->
-                logger.error("Sending session request error: $error")
-                onFailure(error)
+        if (session.transportType == TransportType.LINK_MODE && session.peerLinkMode == true) {
+            if (session.peerAppLink.isNullOrEmpty()) return@supervisorScope onFailure(IllegalStateException("App link is missing"))
+            try {
+                linkModeJsonRpcInteractor.triggerRequest(sessionPayload, Topic(request.topic), session.peerAppLink)
+            } catch (e: Exception) {
+                onFailure(e)
             }
-        )
+        } else {
+            val irnParamsTtl = expiry.run {
+                val defaultTtl = fiveMinutesInSeconds
+                val extractedTtl = seconds - nowInSeconds
+                val newTtl = extractedTtl.takeIf { extractedTtl >= defaultTtl } ?: defaultTtl
+
+                Ttl(newTtl)
+            }
+            val irnParams = IrnParams(Tags.SESSION_REQUEST, irnParamsTtl, true)
+            val requestTtlInSeconds = expiry.run { seconds - nowInSeconds }
+
+            logger.log("Sending session request on topic: ${request.topic}}")
+            jsonRpcInteractor.publishJsonRpcRequest(Topic(request.topic), irnParams, sessionPayload,
+                onSuccess = {
+                    logger.log("Session request sent successfully on topic: ${request.topic}")
+                    onSuccess(sessionPayload.id)
+                    scope.launch {
+                        try {
+                            withTimeout(TimeUnit.SECONDS.toMillis(requestTtlInSeconds)) {
+                                collectResponse(sessionPayload.id) { cancel() }
+                            }
+                        } catch (e: TimeoutCancellationException) {
+                            _errors.emit(SDKError(e))
+                        }
+                    }
+                },
+                onFailure = { error ->
+                    logger.error("Sending session request error: $error")
+                    onFailure(error)
+                }
+            )
+        }
     }
 
     private suspend fun collectResponse(id: Long, onResponse: (Result<JsonRpcResponse.JsonRpcResult>) -> Unit = {}) {

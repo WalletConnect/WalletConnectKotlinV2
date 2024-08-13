@@ -3,7 +3,6 @@ package com.walletconnect.android.internal.common.di
 enum class AndroidCommonDITags {
     MOSHI,
     SHARED_INTERCEPTOR,
-    FAIL_OVER_INTERCEPTOR,
     LOGGING_INTERCEPTOR,
     AUTHENTICATOR,
     OK_HTTP,
@@ -31,6 +30,7 @@ enum class AndroidCommonDITags {
     COLUMN_ADAPTER_LIST,
     COLUMN_ADAPTER_MAP,
     COLUMN_ADAPTER_APPMETADATATYPE,
+    COLUMN_ADAPTER_TRANSPORT_TYPE,
     WEB3MODAL_URL,
     WEB3MODAL_INTERCEPTOR,
     WEB3MODAL_OKHTTP,

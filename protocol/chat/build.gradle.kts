@@ -8,7 +8,7 @@ plugins {
 }
 
 project.apply {
-    extra[KEY_PUBLISH_ARTIFACT_ID] = "chat"
+    extra[KEY_PUBLISH_ARTIFACT_ID] = CHAT
     extra[KEY_PUBLISH_VERSION] = CHAT_VERSION
     extra[KEY_SDK_NAME] = "Chat"
 }
@@ -29,6 +29,12 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "${rootDir.path}/gradle/proguard-rules/sdk-rules.pro")
         }
     }
+    lint {
+        abortOnError = true
+        ignoreWarnings = true
+        warningsAsErrors = false
+    }
+
     compileOptions {
         sourceCompatibility = jvmVersion
         targetCompatibility = jvmVersion

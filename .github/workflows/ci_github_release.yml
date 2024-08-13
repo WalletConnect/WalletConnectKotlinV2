@@ -1,0 +1,34 @@
+name: Create GitHub Release
+
+on:
+  push:
+    tags:
+      - 'BOM_*.*.*'
+
+jobs:
+  create_release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Generate Release Notes
+      id: drafter
+      uses: release-drafter/release-drafter@v5
+      with:
+        config-name: release-drafter.yml
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Create GitHub Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: ${{ github.ref }}
+        body: ${{ steps.drafter.outputs.changelog }}
+        draft: false
+        prerelease: false
+        target_commitish: master

@@ -79,7 +79,9 @@ fun WalletSampleHost(
         web3walletViewModel.eventsSharedFlow.collect {
             when (it) {
                 is PairingEvent.Error -> {
-                    navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                    if (navController.currentDestination?.route != Route.Connections.path) {
+                        navController.popBackStack(route = Route.Connections.path, inclusive = false)
+                    }
                     Toast.makeText(navController.context, it.message, Toast.LENGTH_SHORT).show()
                 }
 

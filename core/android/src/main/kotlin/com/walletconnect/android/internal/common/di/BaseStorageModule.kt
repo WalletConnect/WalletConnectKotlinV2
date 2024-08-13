@@ -5,6 +5,7 @@ import app.cash.sqldelight.EnumColumnAdapter
 import com.squareup.moshi.Moshi
 import com.walletconnect.android.di.AndroidBuildVariantDITags
 import com.walletconnect.android.internal.common.model.AppMetaDataType
+import com.walletconnect.android.internal.common.model.TransportType
 import com.walletconnect.android.internal.common.model.Validation
 import com.walletconnect.android.internal.common.storage.events.EventsRepository
 import com.walletconnect.android.internal.common.storage.identity.IdentitiesStorageRepository
@@ -17,6 +18,7 @@ import com.walletconnect.android.internal.common.storage.rpc.JsonRpcHistory
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.sdk.core.AndroidCoreDatabase
 import com.walletconnect.android.sdk.storage.data.dao.EventDao
+import com.walletconnect.android.sdk.storage.data.dao.JsonRpcHistoryDao
 import com.walletconnect.android.sdk.storage.data.dao.MetaData
 import com.walletconnect.android.sdk.storage.data.dao.VerifyContext
 import com.walletconnect.utils.Empty
@@ -27,21 +29,6 @@ import org.koin.dsl.module
 import com.walletconnect.android.internal.common.scope as wcScope
 
 fun baseStorageModule(storagePrefix: String = String.Empty, bundleId: String) = module {
-
-    fun Scope.createCoreDB(): AndroidCoreDatabase = AndroidCoreDatabase(
-        driver = get(named(AndroidBuildVariantDITags.ANDROID_CORE_DATABASE_DRIVER)),
-        MetaDataAdapter = MetaData.Adapter(
-            iconsAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_LIST)),
-            typeAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_APPMETADATATYPE))
-        ),
-        VerifyContextAdapter = VerifyContext.Adapter(
-            validationAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_VALIDATION))
-        ),
-        EventDaoAdapter = EventDao.Adapter(
-            traceAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_LIST))
-        )
-    )
-
     single<ColumnAdapter<List<String>, String>>(named(AndroidCommonDITags.COLUMN_ADAPTER_LIST)) {
         object : ColumnAdapter<List<String>, String> {
             override fun decode(databaseValue: String): List<String> =
@@ -73,7 +60,26 @@ fun baseStorageModule(storagePrefix: String = String.Empty, bundleId: String) = 
 
     single<ColumnAdapter<AppMetaDataType, String>>(named(AndroidCommonDITags.COLUMN_ADAPTER_APPMETADATATYPE)) { EnumColumnAdapter() }
 
+    single<ColumnAdapter<TransportType, String>>(named(AndroidCommonDITags.COLUMN_ADAPTER_TRANSPORT_TYPE)) { EnumColumnAdapter() }
+
     single<ColumnAdapter<Validation, String>>(named(AndroidCommonDITags.COLUMN_ADAPTER_VALIDATION)) { EnumColumnAdapter() }
+
+    fun Scope.createCoreDB(): AndroidCoreDatabase = AndroidCoreDatabase(
+        driver = get(named(AndroidBuildVariantDITags.ANDROID_CORE_DATABASE_DRIVER)),
+        MetaDataAdapter = MetaData.Adapter(
+            iconsAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_LIST)),
+            typeAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_APPMETADATATYPE))
+        ),
+        VerifyContextAdapter = VerifyContext.Adapter(
+            validationAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_VALIDATION))
+        ),
+        EventDaoAdapter = EventDao.Adapter(
+            traceAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_LIST))
+        ),
+        JsonRpcHistoryDaoAdapter = JsonRpcHistoryDao.Adapter(
+            transport_typeAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_TRANSPORT_TYPE))
+        )
+    )
 
     single<AndroidCoreDatabase>(named(AndroidBuildVariantDITags.ANDROID_CORE_DATABASE)) {
         try {
@@ -107,6 +113,8 @@ fun baseStorageModule(storagePrefix: String = String.Empty, bundleId: String) = 
     single { get<AndroidCoreDatabase>(named(AndroidBuildVariantDITags.ANDROID_CORE_DATABASE)).pushMessageQueries }
 
     single { get<AndroidCoreDatabase>(named(AndroidBuildVariantDITags.ANDROID_CORE_DATABASE)).eventQueries }
+
+    single { get<AndroidCoreDatabase>(named(AndroidBuildVariantDITags.ANDROID_CORE_DATABASE)).verifyPublicKeyQueries }
 
     single<MetadataStorageRepositoryInterface> { MetadataStorageRepository(metaDataQueries = get()) }
 

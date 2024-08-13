@@ -8,7 +8,7 @@ import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
@@ -43,7 +43,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
 internal class ApproveSessionUseCase(
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val crypto: KeyManagementRepository,
     private val sessionStorageRepository: SessionStorageRepository,
     private val proposalStorageRepository: ProposalStorageRepository,
@@ -94,7 +94,7 @@ internal class ApproveSessionUseCase(
                     onFailure = { error ->
                         scope.launch {
                             supervisorScope {
-                                insertEventUseCase(Props(type = EventType.Error.SESSION_SETTLE_PUBLISH_FAILURE, properties = Properties(trace = trace, topic = sessionTopic.value)))
+                                insertEventUseCase(Props(type = EventType.Error.SESSION_SETTLE_PUBLISH_FAILURE, properties = Properties(trace = trace, topic = pairingTopic.value)))
                             }
                         }.also { logger.error("Session settle failure on topic: $sessionTopic, error: $error") }
                         onFailure(error)
@@ -133,7 +133,7 @@ internal class ApproveSessionUseCase(
             }
             trace.add(Trace.Session.PROPOSAL_NOT_EXPIRED)
             SignValidator.validateSessionNamespace(sessionNamespaces.toMapOfNamespacesVOSession(), proposal.requiredNamespaces) { error ->
-                insertEventUseCase(Props(type = EventType.Error.SESSION_APPROVE_NAMESPACE_VALIDATION_FAILURE, properties = Properties(trace = trace, topic = proposal.pairingTopic.value)))
+                insertEventUseCase(Props(type = EventType.Error.SESSION_APPROVE_NAMESPACE_VALIDATION_FAILURE, properties = Properties(trace = trace, topic = pairingTopic)))
                     .also { logger.log("Session approve failure - invalid namespaces, error: $error") }
                 throw InvalidNamespaceException(error.message)
             }
@@ -151,11 +151,14 @@ internal class ApproveSessionUseCase(
                 onFailure = { error ->
                     scope.launch {
                         supervisorScope {
-                            insertEventUseCase(Props(type = EventType.Error.SESSION_SUBSCRIPTION_FAILURE, properties = Properties(trace = trace, topic = sessionTopic.value)))
+                            insertEventUseCase(Props(type = EventType.Error.SESSION_SUBSCRIPTION_FAILURE, properties = Properties(trace = trace, topic = pairingTopic)))
                         }
                     }.also { logger.error("Subscribe to session topic failure: $error") }
                     onFailure(error)
                 })
+
+            sessionSettle(request.id, proposal, sessionTopic, request.topic)
+
             trace.add(Trace.Session.PUBLISHING_SESSION_APPROVE).also { logger.log("Publishing session approve on topic: $sessionTopic") }
             jsonRpcInteractor.respondWithParams(request, approvalParams, irnParams,
                 onSuccess = {
@@ -164,13 +167,11 @@ internal class ApproveSessionUseCase(
                 onFailure = { error ->
                     scope.launch {
                         supervisorScope {
-                            insertEventUseCase(Props(type = EventType.Error.SESSION_APPROVE_PUBLISH_FAILURE, properties = Properties(trace = trace, topic = sessionTopic.value)))
+                            insertEventUseCase(Props(type = EventType.Error.SESSION_APPROVE_PUBLISH_FAILURE, properties = Properties(trace = trace, topic = pairingTopic)))
                         }
                     }.also { logger.error("Session approve failure, topic: $sessionTopic: $error") }
                     onFailure(error)
                 })
-
-            sessionSettle(request.id, proposal, sessionTopic, request.topic)
         } catch (e: Exception) {
             if (e is NoRelayConnectionException) insertEventUseCase(Props(type = EventType.Error.NO_WSS_CONNECTION, properties = Properties(trace = trace, topic = pairingTopic)))
             if (e is NoInternetConnectionException) insertEventUseCase(Props(type = EventType.Error.NO_INTERNET_CONNECTION, properties = Properties(trace = trace, topic = pairingTopic)))

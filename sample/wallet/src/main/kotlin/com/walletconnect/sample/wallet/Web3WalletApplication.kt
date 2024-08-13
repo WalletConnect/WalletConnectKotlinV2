@@ -20,13 +20,11 @@ import com.walletconnect.android.CoreClient
 import com.walletconnect.android.cacao.signature.SignatureType
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.wcKoinApp
-import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.android.utils.cacao.sign
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.notify.client.Notify
 import com.walletconnect.notify.client.NotifyClient
 import com.walletconnect.notify.client.cacao.CacaoSigner
-import com.walletconnect.sample.common.RELAY_URL
 import com.walletconnect.sample.common.initBeagle
 import com.walletconnect.sample.common.tag
 import com.walletconnect.sample.wallet.domain.EthAccountDelegate
@@ -60,19 +58,19 @@ class Web3WalletApplication : Application() {
         EthAccountDelegate.application = this
 
         val projectId = BuildConfig.PROJECT_ID
-        val serverUrl = "wss://$RELAY_URL?projectId=$projectId"
         val appMetaData = Core.Model.AppMetaData(
             name = "Kotlin Wallet",
             description = "Kotlin Wallet Implementation",
-            url = "kotlin.wallet.walletconnect.com",
+            url = "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app",
             icons = listOf("https://raw.githubusercontent.com/WalletConnect/walletconnect-assets/master/Icon/Gradient/Icon.png"),
-            redirect = "kotlin-web3wallet://request"
+            redirect = "kotlin-web3wallet://request",
+            appLink = "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet",
+            linkMode = true
         )
 
         CoreClient.initialize(
-            relayServerUrl = serverUrl,
-            connectionType = ConnectionType.MANUAL,
             application = this,
+            projectId = projectId,
             metaData = appMetaData,
             onError = { error ->
                 Firebase.crashlytics.recordException(error.throwable)
@@ -108,8 +106,6 @@ class Web3WalletApplication : Application() {
         }
 
         FirebaseAppDistribution.getInstance().updateIfNewReleaseAvailable()
-
-        CoreClient.Relay.restart {  }
 
         registerAccount()
         initializeBeagle()

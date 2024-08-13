@@ -5,13 +5,13 @@ package com.walletconnect.auth.engine.domain
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Validation
 import com.walletconnect.android.internal.common.model.type.EngineEvent
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.android.relay.WSSConnectionState
-import com.walletconnect.android.verify.data.model.VerifyContext
+import com.walletconnect.android.verify.model.VerifyContext
 import com.walletconnect.auth.common.json_rpc.AuthParams
 import com.walletconnect.auth.common.model.Events
 import com.walletconnect.auth.engine.pairingTopicToResponseTopicMap
@@ -40,7 +40,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
 internal class AuthEngine(
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val verifyContextStorageRepository: VerifyContextStorageRepository,
     private val getPendingJsonRpcHistoryEntriesUseCase: GetPendingJsonRpcHistoryEntriesUseCaseInterface,
     private val getPendingJsonRpcHistoryEntryByTopicUseCase: GetPendingJsonRpcHistoryEntryByTopicUseCase,

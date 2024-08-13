@@ -5,7 +5,7 @@
 name: 'Slack Release Notifications'
 on:
   release:
-    types: [ published, edited ]
+    types: [ published ]
 jobs:
   push-notifications:
     runs-on: 'ubuntu-latest'

@@ -1,6 +1,7 @@
 package com.walletconnect.sample.wallet.ui.routes.composable_routes.connections
 
 import android.content.Intent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -29,6 +30,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
@@ -36,7 +38,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.skydoves.landscapist.glide.GlideImage
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.walletconnect.sample.common.ui.TopBarActionImage
 import com.walletconnect.sample.common.ui.WCTopAppBar
 import com.walletconnect.sample.common.ui.findActivity
@@ -139,7 +142,27 @@ fun Connection(
                 color = themedColor(darkColor = Color(0xFF191919), lightColor = Color(0xFFE0E0E0))
             )
         if (connectionUI.icon?.isNotBlank() == true) {
-            GlideImage(modifier = iconModifier, imageModel = { connectionUI.icon })
+            val painter = rememberAsyncImagePainter(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(connectionUI.icon)
+                    .size(60)
+                    .crossfade(true)
+                    .error(com.walletconnect.sample.common.R.drawable.ic_walletconnect_circle_blue)
+                    .listener(
+                        onSuccess = { request, metadata -> println("onSuccess: $request, $metadata") },
+                        onError = { _, throwable ->
+                            println("Error loading image: ${throwable.throwable.message}")
+                        })
+                    .build()
+            )
+
+            Image(
+                painter = painter,
+                contentDescription = "Connection image",
+                modifier = iconModifier,
+                contentScale = ContentScale.Fit,
+                alignment = Alignment.Center
+            )
         } else {
             Icon(modifier = iconModifier.alpha(.7f), imageVector = ImageVector.vectorResource(id = R.drawable.sad_face), contentDescription = "Sad face")
         }
@@ -171,7 +194,7 @@ fun NoConnections(modifier: Modifier) {
         )
         Spacer(modifier = Modifier.height(10.dp))
         Text(text = "Apps you connect with will appear here.", maxLines = 1, color = contentColor, style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp))
-        Row() {
+        Row {
             Text(text = "To connect ", color = contentColor, style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp))
             Icon(tint = contentColor, imageVector = ImageVector.vectorResource(id = R.drawable.ic_qr_code), contentDescription = "Scan QRCode Icon", modifier = Modifier.size(24.dp))
             Text(text = " scan or ", color = contentColor, style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 15.sp))

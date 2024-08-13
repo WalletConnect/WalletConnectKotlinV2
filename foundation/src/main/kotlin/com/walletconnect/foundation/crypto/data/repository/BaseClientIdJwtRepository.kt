@@ -3,7 +3,12 @@ package com.walletconnect.foundation.crypto.data.repository
 import com.walletconnect.foundation.common.model.PrivateKey
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.crypto.data.repository.model.IrnJwtClaims
-import com.walletconnect.foundation.util.jwt.*
+import com.walletconnect.foundation.util.jwt.JwtHeader
+import com.walletconnect.foundation.util.jwt.encodeData
+import com.walletconnect.foundation.util.jwt.encodeEd25519DidKey
+import com.walletconnect.foundation.util.jwt.encodeJWT
+import com.walletconnect.foundation.util.jwt.jwtIatAndExp
+import com.walletconnect.foundation.util.jwt.signJwt
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.hexToBytes
 import com.walletconnect.util.randomBytes
@@ -39,7 +44,7 @@ abstract class BaseClientIdJwtRepository : ClientIdJwtRepository {
     }
 
     fun generateAndStoreClientIdKeyPair(): Pair<String, String> {
-        val secureRandom = SecureRandom(ByteArray(KEY_SIZE))
+        val secureRandom = SecureRandom()
         val keyPair: AsymmetricCipherKeyPair = Ed25519KeyPairGenerator().run {
             this.init(Ed25519KeyGenerationParameters(secureRandom))
             this.generateKeyPair()

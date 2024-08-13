@@ -54,7 +54,7 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
     override fun generateAndStoreEd25519KeyPair(): PublicKey {
         val publicKey = ByteArray(KEY_SIZE)
         val privateKey = ByteArray(KEY_SIZE)
-        Ed25519.generatePrivateKey(SecureRandom(ByteArray(KEY_SIZE)), privateKey)
+        Ed25519.generatePrivateKey(SecureRandom(), privateKey)
         Ed25519.generatePublicKey(privateKey, 0, publicKey, 0)
 
         setKeyPair(PublicKey(publicKey.bytesToHex().lowercase()), PrivateKey(privateKey.bytesToHex().lowercase()))
@@ -72,7 +72,7 @@ internal class BouncyCastleKeyManagementRepository(private val keyChain: KeyStor
     override fun generateAndStoreX25519KeyPair(): PublicKey {
         val publicKey = ByteArray(KEY_SIZE)
         val privateKey = ByteArray(KEY_SIZE)
-        X25519.generatePrivateKey(SecureRandom(ByteArray(KEY_SIZE)), privateKey)
+        X25519.generatePrivateKey(SecureRandom(), privateKey)
         X25519.generatePublicKey(privateKey, 0, publicKey, 0)
         setKeyPair(PublicKey(publicKey.bytesToHex().lowercase()), PrivateKey(privateKey.bytesToHex().lowercase()))
         return PublicKey(publicKey.bytesToHex().lowercase())

@@ -13,6 +13,7 @@ data class PeerUI(
     val peerName: String,
     val peerUri: String,
     val peerDescription: String,
+    val linkMode: Boolean = false
 ) {
     companion object {
         val Empty = PeerUI("", "", "", "")

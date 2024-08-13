@@ -75,44 +75,115 @@ class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInter
         onError: (Core.Model.Error) -> Unit
     ) {
         try {
-            val bundleId: String = application.packageName
-            with(koinApp) {
-                androidContext(application)
-                require(relayServerUrl.isValidRelayServerUrl()) { "Check the schema and projectId parameter of the Server Url" }
-                modules(
-                    module { single { ProjectId(relayServerUrl.projectId()) } },
-                    module { single(named(AndroidCommonDITags.TELEMETRY_ENABLED)) { TelemetryEnabled(telemetryEnabled) } },
-                    coreAndroidNetworkModule(relayServerUrl, connectionType, BuildConfig.SDK_VERSION, networkClientTimeout, bundleId),
-                    coreCommonModule(),
-                    coreCryptoModule(),
-                )
+            require(relayServerUrl.isValidRelayServerUrl()) { "Check the schema and projectId parameter of the Server Url" }
 
-                if (relay == null) {
-                    Relay.initialize(connectionType) { error -> onError(Core.Model.Error(error)) }
-                }
-
-                modules(
-                    coreStorageModule(bundleId = bundleId),
-                    pushModule(),
-                    module { single { relay ?: Relay } },
-                    module { single { with(metaData) { AppMetaData(name = name, description = description, url = url, icons = icons, redirect = Redirect(redirect)) } } },
-                    module { single { Echo } },
-                    module { single { Push } },
-                    module { single { Verify } },
-                    coreJsonRpcModule(),
-                    corePairingModule(Pairing, PairingController),
-                    keyServerModule(keyServerUrl),
-                    explorerModule(),
-                    web3ModalModule(),
-                    pulseModule(bundleId)
-                )
-            }
-
-            Verify.initialize()
-            Pairing.initialize()
-            PairingController.initialize()
+            setup(
+                application = application,
+                serverUrl = relayServerUrl,
+                projectId = relayServerUrl.projectId(),
+                telemetryEnabled = telemetryEnabled,
+                connectionType = connectionType,
+                networkClientTimeout = networkClientTimeout,
+                relay = relay,
+                onError = onError,
+                metaData = metaData,
+                keyServerUrl = keyServerUrl
+            )
         } catch (e: Exception) {
             onError(Core.Model.Error(e))
         }
+    }
+
+    override fun initialize(
+        application: Application,
+        projectId: String,
+        metaData: Core.Model.AppMetaData,
+        connectionType: ConnectionType,
+        relay: RelayConnectionInterface?,
+        keyServerUrl: String?,
+        networkClientTimeout: NetworkClientTimeout?,
+        telemetryEnabled: Boolean,
+        onError: (Core.Model.Error) -> Unit
+    ) {
+        try {
+            require(projectId.isNotEmpty()) { "Project Id cannot be empty" }
+
+            setup(
+                application = application,
+                projectId = projectId,
+                telemetryEnabled = telemetryEnabled,
+                connectionType = connectionType,
+                networkClientTimeout = networkClientTimeout,
+                relay = relay,
+                onError = onError,
+                metaData = metaData,
+                keyServerUrl = keyServerUrl
+            )
+        } catch (e: Exception) {
+            onError(Core.Model.Error(e))
+        }
+    }
+
+    private fun CoreProtocol.setup(
+        application: Application,
+        serverUrl: String? = null,
+        projectId: String,
+        telemetryEnabled: Boolean,
+        connectionType: ConnectionType,
+        networkClientTimeout: NetworkClientTimeout?,
+        relay: RelayConnectionInterface?,
+        onError: (Core.Model.Error) -> Unit,
+        metaData: Core.Model.AppMetaData,
+        keyServerUrl: String?
+    ) {
+        val bundleId: String = application.packageName
+        val relayServerUrl = if (serverUrl.isNullOrEmpty()) "wss://relay.walletconnect.org?projectId=$projectId" else serverUrl
+
+        with(koinApp) {
+            androidContext(application)
+            modules(
+                module { single { ProjectId(projectId) } },
+                module { single(named(AndroidCommonDITags.TELEMETRY_ENABLED)) { TelemetryEnabled(telemetryEnabled) } },
+                coreAndroidNetworkModule(relayServerUrl, connectionType, BuildConfig.SDK_VERSION, networkClientTimeout, bundleId),
+                coreCommonModule(),
+                coreCryptoModule(),
+            )
+
+            if (relay == null) {
+                Relay.initialize(connectionType) { error -> onError(Core.Model.Error(error)) }
+            }
+
+            modules(
+                coreStorageModule(bundleId = bundleId),
+                pushModule(),
+                module { single { relay ?: Relay } },
+                module {
+                    single {
+                        with(metaData) {
+                            AppMetaData(
+                                name = name,
+                                description = description,
+                                url = url,
+                                icons = icons,
+                                redirect = Redirect(native = redirect, universal = appLink, linkMode = linkMode)
+                            )
+                        }
+                    }
+                },
+                module { single { Echo } },
+                module { single { Push } },
+                module { single { Verify } },
+                coreJsonRpcModule(),
+                corePairingModule(Pairing, PairingController),
+                keyServerModule(keyServerUrl),
+                explorerModule(),
+                web3ModalModule(),
+                pulseModule(bundleId)
+            )
+        }
+
+        Pairing.initialize()
+        PairingController.initialize()
+        Verify.initialize()
     }
 }

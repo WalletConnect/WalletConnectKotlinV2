@@ -40,6 +40,7 @@ abstract class BaseRelayClient : RelayInterface {
     lateinit var relayService: RelayService
     protected var logger: Logger
     private val resultState: MutableSharedFlow<RelayDTO> = MutableSharedFlow()
+    var isLoggingEnabled: Boolean = false
 
     init {
         foundationKoinApp.run { modules(foundationCommonModule()) }
@@ -59,7 +60,13 @@ abstract class BaseRelayClient : RelayInterface {
                 relayService.observeUnsubscribeError()
             )
                 .catch { exception -> logger.error(exception) }
-                .collect { result -> resultState.emit(result) }
+                .collect { result ->
+                    if (isLoggingEnabled) {
+                        println("Result: $result; timestamp: ${System.currentTimeMillis()}")
+                    }
+
+                    resultState.emit(result)
+                }
         }
     }
 
@@ -67,7 +74,9 @@ abstract class BaseRelayClient : RelayInterface {
         relayService
             .observeWebSocketEvent()
             .map { event ->
-                logger.log(event.toString())
+                if (isLoggingEnabled) {
+                    println("Event: $event")
+                }
                 event.toRelayEvent()
             }
             .shareIn(scope, SharingStarted.Lazily, REPLAY)
@@ -124,6 +133,10 @@ abstract class BaseRelayClient : RelayInterface {
     override fun subscribe(topic: String, id: Long?, onResult: (Result<Relay.Model.Call.Subscribe.Acknowledgement>) -> Unit) {
         val subscribeRequest = RelayDTO.Subscribe.Request(id = id ?: generateClientToServerId(), params = RelayDTO.Subscribe.Request.Params(Topic(topic)))
 
+        if (isLoggingEnabled) {
+            logger.log("Sending SubscribeRequest: $subscribeRequest;  timestamp: ${System.currentTimeMillis()}")
+        }
+
         observeSubscribeResult(subscribeRequest.id, onResult)
         relayService.subscribeRequest(subscribeRequest)
     }
@@ -132,10 +145,14 @@ abstract class BaseRelayClient : RelayInterface {
         scope.launch {
             try {
                 withTimeout(RESULT_TIMEOUT) {
+                    if (isLoggingEnabled) println("ObserveSubscribeResult: $id; timestamp: ${System.currentTimeMillis()}")
                     resultState
+                        .onEach { relayResult -> if (isLoggingEnabled) logger.log("SubscribeResult 1: $relayResult") }
                         .filterIsInstance<RelayDTO.Subscribe.Result>()
+                        .onEach { relayResult -> if (isLoggingEnabled) logger.log("SubscribeResult 2: $relayResult") }
                         .filter { relayResult -> relayResult.id == id }
                         .first { subscribeResult ->
+                            if (isLoggingEnabled) println("SubscribeResult 3: $subscribeResult")
                             when (subscribeResult) {
                                 is RelayDTO.Subscribe.Result.Acknowledgement -> onResult(Result.success(subscribeResult.toRelay()))
                                 is RelayDTO.Subscribe.Result.JsonRpcError -> onResult(Result.failure(Throwable(subscribeResult.error.errorMessage)))

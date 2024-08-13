@@ -27,7 +27,7 @@ internal fun ConsumeNavigationEventsEffect(
                     is NavigationEvent.PopBackStack -> navController.popBackStack()
                     is NavigationEvent.PopBackStackTo -> navController.popBackStack(it.path, it.inclusive)
                     is NavigationEvent.Close -> closeModal?.invoke()
-                    is NavigationEvent.ShowError -> { snackBar.showErrorSnack(it.message ?: "Something went wrong") }
+                    is NavigationEvent.ShowError -> snackBar.showErrorSnack(it.message ?: "Something went wrong")
                 }
                 if (navController.currentDestination == null) {
                     closeModal?.invoke()

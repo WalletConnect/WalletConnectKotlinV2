@@ -9,13 +9,15 @@ import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
+import com.walletconnect.android.internal.common.model.TransportType
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.type.EngineEvent
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
+import com.walletconnect.android.verify.model.VerifyContext
 import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
@@ -35,7 +37,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
 internal class OnSessionRequestUseCase(
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val sessionStorageRepository: SessionStorageRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val resolveAttestationIdUseCase: ResolveAttestationIdUseCase,
@@ -87,18 +89,9 @@ internal class OnSessionRequestUseCase(
 
             val url = sessionPeerAppMetaData?.url ?: String.Empty
             logger.log("Resolving session request attestation: ${System.currentTimeMillis()}")
-            resolveAttestationIdUseCase(request.id, request.message, url) { verifyContext ->
+            resolveAttestationIdUseCase(request, url, linkMode = request.transportType == TransportType.LINK_MODE, appLink = sessionPeerAppMetaData?.redirect?.universal) { verifyContext ->
                 logger.log("Session request attestation resolved: ${System.currentTimeMillis()}")
-                val sessionRequestEvent = EngineDO.SessionRequestEvent(params.toEngineDO(request, sessionPeerAppMetaData), verifyContext.toEngineDO())
-                val event = if (sessionRequestEventsQueue.isEmpty()) {
-                    sessionRequestEvent
-                } else {
-                    sessionRequestEventsQueue.find { event -> if (event.request.expiry != null) !event.request.expiry.isExpired() else true } ?: sessionRequestEvent
-                }
-
-                sessionRequestEventsQueue.add(sessionRequestEvent)
-                logger.log("Session request received on topic: ${request.topic} - emitting")
-                scope.launch { _events.emit(event) }
+                emitSessionRequest(params, request, sessionPeerAppMetaData, verifyContext)
             }
         } catch (e: Exception) {
             logger.error("Session request received failure on topic: ${request.topic} - ${e.message}")
@@ -110,5 +103,23 @@ internal class OnSessionRequestUseCase(
             _events.emit(SDKError(e))
             return@supervisorScope
         }
+    }
+
+    private fun emitSessionRequest(
+        params: SignParams.SessionRequestParams,
+        request: WCRequest,
+        sessionPeerAppMetaData: AppMetaData?,
+        verifyContext: VerifyContext
+    ) {
+        val sessionRequestEvent = EngineDO.SessionRequestEvent(params.toEngineDO(request, sessionPeerAppMetaData), verifyContext.toEngineDO())
+        val event = if (sessionRequestEventsQueue.isEmpty()) {
+            sessionRequestEvent
+        } else {
+            sessionRequestEventsQueue.find { event -> if (event.request.expiry != null) !event.request.expiry.isExpired() else true } ?: sessionRequestEvent
+        }
+
+        sessionRequestEventsQueue.add(sessionRequestEvent)
+        logger.log("Session request received on topic: ${request.topic} - emitting")
+        scope.launch { _events.emit(event) }
     }
 }

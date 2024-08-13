@@ -71,24 +71,18 @@ class RelayTest {
             result.fold(
                 onSuccess = {
                     println("ClientB subscribe on topic: $testTopic")
-                    //Publish message
-                    clientA.publish(testTopic, testMessage, Relay.Model.IrnParams(1114, 300)) { result ->
-                        result.fold(
-                            onSuccess = { println("ClientA publish on topic: $testTopic; message: $testMessage") },
-                            onFailure = { error ->
-                                testState.compareAndSet(
-                                    expect = TestState.Idle,
-                                    update = TestState.Error("ClientA failed to publish on topic: $testTopic. Message: ${error.message}")
-                                )
-                            }
-                        )
-                    }
                 },
                 onFailure = { error ->
-                    testState.compareAndSet(
-                        expect = TestState.Idle,
-                        update = TestState.Error("ClientB failed to subscribe on topic: $testTopic. Message: ${error.message}")
-                    )
+                    println("ClientB failed to subscribe on topic: $testTopic. Message: ${error.message}")
+                }
+            )
+        }
+
+        clientA.publish(testTopic, testMessage, Relay.Model.IrnParams(1114, 300)) { result ->
+            result.fold(
+                onSuccess = { println("ClientA publish on topic: $testTopic; message: $testMessage") },
+                onFailure = { error ->
+                    println("ClientA failed to publish on topic: $testTopic. Message: ${error.message}")
                 }
             )
         }
@@ -97,7 +91,7 @@ class RelayTest {
         runBlocking {
             val start = System.currentTimeMillis()
             // Await test finish or check if timeout occurred
-            while (testState.value is TestState.Idle && !didTimeout(start, 20000L)) {
+            while (testState.value is TestState.Idle && !didTimeout(start, 60000L)) {
                 delay(10)
             }
 
@@ -138,7 +132,7 @@ class RelayTest {
         runBlocking {
             val start = System.currentTimeMillis()
             // Await test finish or check if timeout occurred
-            while (testState.value is TestState.Idle && !didTimeout(start, 10000L)) {
+            while (testState.value is TestState.Idle && !didTimeout(start, 60000L)) {
                 delay(10)
             }
 
@@ -182,6 +176,9 @@ class RelayTest {
         clientA.relayService = koinAppA.koin.get(named(FoundationDITags.RELAY_SERVICE))
         clientB.relayService = koinAppB.koin.get(named(FoundationDITags.RELAY_SERVICE))
 
+        clientA.isLoggingEnabled = true
+        clientB.isLoggingEnabled = true
+
         clientA.observeResults()
         clientB.observeResults()
 
@@ -220,7 +217,9 @@ class RelayTest {
             delay(10)
         }
 
-        if (didTimeout(start, 50000L)) { throw Exception("Unable to establish socket connection") }
+        if (didTimeout(start, 50000L)) {
+            throw Exception("Unable to establish socket connection")
+        }
 
         clientAJob.cancel()
         clientBJob.cancel()

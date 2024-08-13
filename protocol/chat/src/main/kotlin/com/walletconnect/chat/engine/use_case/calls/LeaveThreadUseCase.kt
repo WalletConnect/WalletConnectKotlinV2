@@ -3,7 +3,7 @@ package com.walletconnect.chat.engine.use_case.calls
 import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.utils.monthInSeconds
 import com.walletconnect.chat.common.json_rpc.ChatParams
@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 internal class LeaveThreadUseCase(
     private val logger: Logger,
     private val threadsRepository: ThreadsStorageRepository,
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
 ) : LeaveThreadUseCaseInterface {
     override fun leave(topic: String, onError: (Throwable) -> Unit) {
         val payload = ChatRpc.ChatLeave(params = ChatParams.LeaveParams())

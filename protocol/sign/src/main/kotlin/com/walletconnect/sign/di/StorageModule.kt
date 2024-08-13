@@ -13,6 +13,7 @@ import com.walletconnect.sign.storage.data.dao.proposal.ProposalDao
 import com.walletconnect.sign.storage.data.dao.proposalnamespace.ProposalNamespaceDao
 import com.walletconnect.sign.storage.data.dao.session.SessionDao
 import com.walletconnect.sign.storage.data.dao.temp.TempNamespaceDao
+import com.walletconnect.sign.storage.link_mode.LinkModeStorageRepository
 import com.walletconnect.sign.storage.proposal.ProposalStorageRepository
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
 import kotlinx.coroutines.launch
@@ -24,6 +25,8 @@ import com.walletconnect.android.internal.common.scope as wcScope
 
 @JvmSynthetic
 internal fun storageModule(dbName: String): Module = module {
+    includes(sdkBaseStorageModule(SignDatabase.Schema, dbName))
+
     fun Scope.createSignDB(): SignDatabase = SignDatabase(
         driver = get(named(dbName)),
         NamespaceDaoAdapter = NamespaceDao.Adapter(
@@ -49,15 +52,14 @@ internal fun storageModule(dbName: String): Module = module {
             eventsAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_LIST))
         ),
         SessionDaoAdapter = SessionDao.Adapter(
-            propertiesAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_MAP))
+            propertiesAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_MAP)),
+            transport_typeAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_TRANSPORT_TYPE))
         ),
         ProposalDaoAdapter = ProposalDao.Adapter(
             propertiesAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_MAP)),
             iconsAdapter = get(named(AndroidCommonDITags.COLUMN_ADAPTER_LIST))
         )
     )
-
-    includes(sdkBaseStorageModule(SignDatabase.Schema, dbName))
 
     single {
         try {
@@ -106,6 +108,10 @@ internal fun storageModule(dbName: String): Module = module {
     }
 
     single {
+        get<SignDatabase>().linkModeDaoQueries
+    }
+
+    single {
         SessionStorageRepository(
             sessionDaoQueries = get(),
             namespaceDaoQueries = get(),
@@ -125,5 +131,9 @@ internal fun storageModule(dbName: String): Module = module {
 
     single {
         AuthenticateResponseTopicRepository(authenticateResponseTopicDaoQueries = get())
+    }
+
+    single {
+        LinkModeStorageRepository(linkModeDaoQueries = get())
     }
 }

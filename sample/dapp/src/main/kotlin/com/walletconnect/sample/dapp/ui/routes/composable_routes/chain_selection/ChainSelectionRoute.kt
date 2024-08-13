@@ -4,6 +4,7 @@ import android.content.Context
 import android.widget.Toast
 import android.content.Intent
 import android.graphics.Bitmap
+import android.net.Uri
 import androidmads.library.qrgenearator.QRGContents
 import androidmads.library.qrgenearator.QRGEncoder
 import java.net.URLEncoder
@@ -75,6 +76,7 @@ import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.sample.dapp.ui.routes.Route
 import com.walletconnect.sample.dapp.ui.routes.bottom_routes.PairingSelectionResult
 import com.walletconnect.sample.dapp.ui.routes.bottom_routes.pairingSelectionResultKey
+import com.walletconnect.sign.client.Sign
 import com.walletconnect.wcmodal.client.Modal
 import com.walletconnect.wcmodal.client.WalletConnectModal
 import com.walletconnect.wcmodal.ui.openWalletConnectModal
@@ -117,7 +119,52 @@ fun ChainSelectionRoute(navController: NavController) {
             if (viewModel.isAnyChainSelected) {
                 viewModel.authenticate(
                     viewModel.authenticateParams,
-                    onAuthenticateSuccess = { uri -> pairingUri = PairingUri(uri, true) },
+                    onAuthenticateSuccess = { uri -> pairingUri = PairingUri(uri ?: "", true) },
+                    onError = { error ->
+                        composableScope.launch(Dispatchers.Main) {
+                            Toast.makeText(context, "Authenticate error: $error", Toast.LENGTH_SHORT).show()
+                        }
+                    })
+            } else {
+                Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
+            }
+        },
+        onAuthenticateLinkMode = { appLink ->
+            if (viewModel.isAnyChainSelected) {
+                viewModel.authenticate(
+                    viewModel.authenticateParams,
+                    appLink,
+                    onAuthenticateSuccess = { uri ->
+                        if (uri != null) {
+                            if (appLink.contains("walletkit_rn")) {
+                                try {
+                                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                                        val encoded = URLEncoder.encode(uri, "UTF-8")
+                                        data = "rn-web3wallet://wc?uri=$encoded".toUri()
+                                        `package` = "com.walletconnect.web3wallet.rnsample.internal"
+                                    }
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    Toast.makeText(context, "Please install RN Wallet", Toast.LENGTH_SHORT).show()
+                                }
+                            } else {
+                                try {
+                                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                                        val encoded = URLEncoder.encode(uri, "UTF-8")
+                                        data = "kotlin-web3wallet://wc?uri=$encoded".toUri()
+                                        `package` = when (BuildConfig.BUILD_TYPE) {
+                                            "debug" -> SAMPLE_WALLET_DEBUG_PACKAGE
+                                            "internal" -> SAMPLE_WALLET_INTERNAL_PACKAGE
+                                            else -> SAMPLE_WALLET_RELEASE_PACKAGE
+                                        }
+                                    }
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    Toast.makeText(context, "Please install Kotlin Sample Wallet", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
+                    },
                     onError = { error ->
                         composableScope.launch(Dispatchers.Main) {
                             Toast.makeText(context, "Authenticate error: $error", Toast.LENGTH_SHORT).show()
@@ -131,7 +178,7 @@ fun ChainSelectionRoute(navController: NavController) {
             if (viewModel.isAnyChainSelected) {
                 viewModel.authenticate(
                     viewModel.siweParams,
-                    onAuthenticateSuccess = { uri -> pairingUri = PairingUri(uri, false) },
+                    onAuthenticateSuccess = { uri -> pairingUri = PairingUri(uri ?: "", false) },
                     onError = { error ->
                         composableScope.launch(Dispatchers.Main) {
                             Toast.makeText(context, "Authenticate error: $error", Toast.LENGTH_SHORT).show()
@@ -140,8 +187,7 @@ fun ChainSelectionRoute(navController: NavController) {
             } else {
                 Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
             }
-        }
-    )
+        })
 }
 
 @Composable
@@ -153,6 +199,7 @@ private fun ChainSelectionScreen(
     onDialogDismiss: () -> Unit,
     onChainClick: (Int, Boolean) -> Unit,
     onConnectClick: () -> Unit,
+    onAuthenticateLinkMode: (String) -> Unit,
     onAuthenticateClick: () -> Unit,
     onAuthenticateSIWEClick: () -> Unit
 ) {
@@ -176,7 +223,26 @@ private fun ChainSelectionScreen(
                     .padding(horizontal = 16.dp),
             )
             BlueButton(
-                text = "Authenticate (ReCaps)",
+                text = "1-CA Link Mode (Kotlin Sample Wallet)",
+                onClick = { onAuthenticateLinkMode("https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet") },
+                modifier = Modifier
+                    .padding(vertical = 10.dp)
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .padding(horizontal = 16.dp)
+            )
+            BlueButton(
+                text = "1-CA Link Mode (RN Wallet)",
+                onClick = { onAuthenticateLinkMode("https://lab.web3modal.com/walletkit_rn") },
+                modifier = Modifier
+                    .padding(vertical = 10.dp)
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .padding(horizontal = 16.dp)
+            )
+
+            BlueButton(
+                text = "1-CA",
                 onClick = onAuthenticateClick,
                 modifier = Modifier
                     .padding(vertical = 10.dp)
@@ -185,7 +251,7 @@ private fun ChainSelectionScreen(
                     .padding(horizontal = 16.dp)
             )
             BlueButton(
-                text = "Authenticate (SIWE)",
+                text = "1-CA (SIWE)",
                 onClick = onAuthenticateSIWEClick,
                 modifier = Modifier
                     .padding(vertical = 10.dp)
@@ -248,7 +314,7 @@ private fun QRDialog(pairingUri: PairingUri, onDismissRequest: () -> Unit, conte
                     },
                     modifier = Modifier.padding(top = 16.dp)
                 ) {
-                    Text("Deep link")
+                    Text("Deep link to Kotlin Wallet")
                 }
                 if (pairingUri.isReCaps) {
                     Button(
@@ -381,29 +447,6 @@ private fun handlePairingEvents(
     }
 }
 
-private fun authenticate(
-    viewModel: ChainSelectionViewModel,
-    context: Context,
-    params: Modal.Params.Authenticate,
-    composableScope: CoroutineScope,
-    onDeepLink: (String) -> Unit
-) {
-    if (viewModel.isAnyChainSelected) {
-        viewModel.authenticate(
-            params,
-            onAuthenticateSuccess = { uri ->
-                onDeepLink(uri)
-            },
-            onError = { error ->
-                composableScope.launch(Dispatchers.Main) {
-                    Toast.makeText(context, "Authenticate error: $error", Toast.LENGTH_SHORT).show()
-                }
-            })
-    } else {
-        Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
-    }
-}
-
 private fun onConnectClick(
     viewModel: ChainSelectionViewModel,
     navController: NavController,
@@ -520,6 +563,7 @@ private fun ChainSelectionScreenPreview(
             onConnectClick = {},
             onAuthenticateClick = {},
             onAuthenticateSIWEClick = {},
+            onAuthenticateLinkMode = {}
         )
     }
 }

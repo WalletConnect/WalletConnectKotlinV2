@@ -87,10 +87,30 @@ internal fun LazyGridScope.walletsGridItems(
 }
 
 @Composable
-internal fun WalletImage(url: String, isEnabled: Boolean = true, modifier: Modifier) {
+internal fun WalletImageWithLoader(url: String?) {
+    LoadingBorder(
+        cornerRadius = 28.dp
+    ) {
+        RoundedWalletImage(url = url)
+    }
+}
+
+@Composable
+internal fun RoundedWalletImage(url: String?) {
+    WalletImage(
+        url = url, modifier = Modifier
+            .size(80.dp)
+            .border(width = 1.dp, color = Web3ModalTheme.colors.grayGlass10, shape = RoundedCornerShape(28.dp))
+            .clip(RoundedCornerShape(28.dp))
+    )
+}
+
+@Composable
+internal fun WalletImage(url: String?, isEnabled: Boolean = true, modifier: Modifier) {
     AsyncImage(
         model = ImageRequest.Builder(LocalContext.current)
             .data(url)
+            .fallback(R.drawable.walletconnect_blue)
             .crossfade(true)
             .placeholder(R.drawable.wallet_placeholder)
             .imageHeaders()

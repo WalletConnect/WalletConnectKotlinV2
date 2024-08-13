@@ -1,0 +1,7 @@
+import kotlin.Boolean;
+
+-- migration from 9.db to 10.db
+
+ALTER TABLE JsonRpcHistoryDao ADD COLUMN transport_type TEXT;
+ALTER TABLE MetaData ADD COLUMN app_link TEXT;
+ALTER TABLE MetaData ADD COLUMN link_mode INTEGER AS Boolean;

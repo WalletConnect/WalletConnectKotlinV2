@@ -9,7 +9,7 @@ import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.type.EngineEvent
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.dayInSeconds
@@ -18,6 +18,7 @@ import com.walletconnect.android.pulse.domain.InsertEventUseCase
 import com.walletconnect.android.pulse.model.EventType
 import com.walletconnect.android.pulse.model.properties.Properties
 import com.walletconnect.android.pulse.model.properties.Props
+import com.walletconnect.android.verify.model.VerifyContext
 import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
@@ -31,7 +32,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 
 internal class OnSessionAuthenticateUseCase(
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val resolveAttestationIdUseCase: ResolveAttestationIdUseCase,
     private val pairingController: PairingControllerInterface,
     private val insertEventUseCase: InsertEventUseCase,
@@ -52,27 +53,35 @@ internal class OnSessionAuthenticateUseCase(
                 return@supervisorScope
             }
 
-            val url = authenticateSessionParams.requester.metadata.url
+            val url = authenticateSessionParams.metadataUrl
             pairingController.setRequestReceived(Core.Params.RequestReceived(request.topic.value))
-            resolveAttestationIdUseCase(request.id, request.message, url) { verifyContext ->
-                scope.launch {
-                    logger.log("Received session authenticate - emitting: ${request.topic}")
-                    _events.emit(
-                        EngineDO.SessionAuthenticateEvent(
-                            request.id,
-                            request.topic.value,
-                            authenticateSessionParams.authPayload.toEngineDO(),
-                            authenticateSessionParams.requester.toEngineDO(),
-                            authenticateSessionParams.expiryTimestamp,
-                            verifyContext.toEngineDO()
-                        )
-                    )
-                }
+            resolveAttestationIdUseCase(request, url, linkMode = authenticateSessionParams.linkMode, appLink = authenticateSessionParams.appLink) { verifyContext ->
+                emitSessionAuthenticate(request, authenticateSessionParams, verifyContext)
             }
         } catch (e: Exception) {
             logger.log("Received session authenticate - cannot handle request: ${request.topic}")
             jsonRpcInteractor.respondWithError(request, Uncategorized.GenericError("Cannot handle a auth request: ${e.message}, topic: ${request.topic}"), irnParams)
             _events.emit(SDKError(e))
+        }
+    }
+
+    private fun emitSessionAuthenticate(
+        request: WCRequest,
+        authenticateSessionParams: SignParams.SessionAuthenticateParams,
+        verifyContext: VerifyContext
+    ) {
+        scope.launch {
+            logger.log("Received session authenticate - emitting: ${request.topic}")
+            _events.emit(
+                EngineDO.SessionAuthenticateEvent(
+                    request.id,
+                    request.topic.value,
+                    authenticateSessionParams.authPayload.toEngineDO(),
+                    authenticateSessionParams.requester.toEngineDO(),
+                    authenticateSessionParams.expiryTimestamp,
+                    verifyContext.toEngineDO()
+                )
+            )
         }
     }
 }

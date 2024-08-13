@@ -34,6 +34,8 @@ object Web3Modal {
 
     internal var selectedChain: Modal.Model.Chain? = null
 
+    internal var authPayloadParams: Modal.Model.AuthPayloadParams? = null
+
     private lateinit var web3ModalEngine: Web3ModalEngine
 
     interface ModalDelegate {
@@ -52,7 +54,8 @@ object Web3Modal {
 
         //Responses
         fun onSessionRequestResponse(response: Modal.Model.SessionRequestResponse)
-        fun onSessionAuthenticateResponse(sessionUpdateResponse: Modal.Model.SessionAuthenticateResponse) {}
+        fun onSessionAuthenticateResponse(sessionAuthenticateResponse: Modal.Model.SessionAuthenticateResponse) {}
+        fun onSIWEAuthenticationResponse(response: Modal.Model.SIWEAuthenticateResponse) {}
 
         // Utils
         fun onProposalExpired(proposal: Modal.Model.ExpiredProposal)
@@ -136,6 +139,10 @@ object Web3Modal {
         this.chains = chains
     }
 
+    fun setAuthRequestParams(authParams: Modal.Model.AuthPayloadParams) {
+        authPayloadParams = authParams
+    }
+
     fun setSessionProperties(properties: Map<String, String>) {
         sessionProperties = properties
     }
@@ -161,6 +168,7 @@ object Web3Modal {
                 is Modal.Model.ExpiredRequest -> delegate.onRequestExpired(event)
                 is Modal.Model.ExpiredProposal -> delegate.onProposalExpired(event)
                 is Modal.Model.SessionAuthenticateResponse -> delegate.onSessionAuthenticateResponse(event)
+                is Modal.Model.SIWEAuthenticateResponse -> delegate.onSIWEAuthenticationResponse(event)
                 else -> Unit
             }
         }.launchIn(scope)
@@ -195,13 +203,20 @@ object Web3Modal {
 
     fun authenticate(
         authenticate: Modal.Params.Authenticate,
+        walletAppLink: String? = null,
         onSuccess: (String) -> Unit,
         onError: (Modal.Model.Error) -> Unit,
     ) {
 
-        SignClient.authenticate(authenticate.toSign(),
+        SignClient.authenticate(authenticate.toSign(), walletAppLink,
             onSuccess = { url -> onSuccess(url) },
             onError = { onError(it.toModal()) })
+    }
+
+    fun handleDeepLink(url: String, onError: (Modal.Model.Error) -> Unit) {
+        SignClient.dispatchEnvelope(url) {
+            onError(it.toModal())
+        }
     }
 
     @Deprecated(

@@ -26,7 +26,7 @@ import com.walletconnect.android.internal.common.model.SymmetricKey
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.WalletConnectUri
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.pairing.PairingStorageRepositoryInterface
@@ -83,7 +83,7 @@ internal class PairingEngine(
     private val selfMetaData: AppMetaData,
     private val metadataRepository: MetadataStorageRepositoryInterface,
     private val crypto: KeyManagementRepository,
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val pairingRepository: PairingStorageRepositoryInterface,
     private val insertEventUseCase: InsertEventUseCase,
     private val sendBatchEventUseCase: SendBatchEventUseCase
@@ -91,19 +91,19 @@ internal class PairingEngine(
     private var jsonRpcRequestsJob: Job? = null
     private val setOfRegisteredMethods: MutableSet<String> = mutableSetOf()
     private val _isPairingStateFlow: MutableStateFlow<Boolean> = MutableStateFlow(false)
-
     private val _deletedPairingFlow: MutableSharedFlow<Pairing> = MutableSharedFlow()
     val deletedPairingFlow: SharedFlow<Pairing> = _deletedPairingFlow.asSharedFlow()
+    private val _inactivePairingTopicFlow: MutableSharedFlow<Pair<Topic, MutableList<String>>> = MutableSharedFlow()
+    val inactivePairingTopicFlow: SharedFlow<Pair<Topic, MutableList<String>>> = _inactivePairingTopicFlow.asSharedFlow()
+    val internalErrorFlow = MutableSharedFlow<SDKError>()
+    private val _checkVerifyKeyFlow: MutableSharedFlow<Unit> = MutableSharedFlow()
+    val checkVerifyKeyFlow: SharedFlow<Unit> = _checkVerifyKeyFlow.shareIn(scope, SharingStarted.Lazily, 1)
 
     private val _engineEvent: MutableSharedFlow<EngineDO> = MutableSharedFlow()
     val engineEvent: SharedFlow<EngineDO> =
         merge(_engineEvent, _deletedPairingFlow.map { pairing -> EngineDO.PairingExpire(pairing) }, _isPairingStateFlow.map { EngineDO.PairingState(it) })
             .shareIn(scope, SharingStarted.Lazily, 0)
 
-    private val _inactivePairingTopicFlow: MutableSharedFlow<Pair<Topic, MutableList<String>>> = MutableSharedFlow()
-    val inactivePairingTopicFlow: SharedFlow<Pair<Topic, MutableList<String>>> = _inactivePairingTopicFlow.asSharedFlow()
-
-    val internalErrorFlow = MutableSharedFlow<SDKError>()
 
     // TODO: emission of events can be missed since they are emitted potentially before there's a subscriber and the event gets missed by protocols
     init {
@@ -160,6 +160,7 @@ internal class PairingEngine(
     }
 
     fun pair(uri: String, onSuccess: () -> Unit, onFailure: (Throwable) -> Unit) {
+        scope.launch { _checkVerifyKeyFlow.emit(Unit) }
         val trace: MutableList<String> = mutableListOf()
         trace.add(Trace.Pairing.PAIRING_STARTED).also { logger.log("Pairing started") }
         val walletConnectUri: WalletConnectUri = Validator.validateWCUri(uri) ?: run {

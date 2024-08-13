@@ -8,7 +8,7 @@ plugins {
 }
 
 project.apply {
-    extra[KEY_PUBLISH_ARTIFACT_ID] = "web3modal"
+    extra[KEY_PUBLISH_ARTIFACT_ID] = WEB_3_MODAL
     extra[KEY_PUBLISH_VERSION] = WEB_3_MODAL_VERSION
     extra[KEY_SDK_NAME] = "web3modal"
 }
@@ -38,6 +38,12 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "${rootDir.path}/gradle/proguard-rules/sdk-rules.pro")
         }
     }
+    lint {
+        abortOnError = true
+        ignoreWarnings = true
+        warningsAsErrors = false
+    }
+
     compileOptions {
         sourceCompatibility = jvmVersion
         targetCompatibility = jvmVersion

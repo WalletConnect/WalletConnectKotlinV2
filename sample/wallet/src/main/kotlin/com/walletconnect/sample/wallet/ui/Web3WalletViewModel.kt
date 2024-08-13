@@ -135,7 +135,9 @@ class Web3WalletViewModel : ViewModel() {
     }
 
     fun showRequestLoader(isLoading: Boolean) {
-        _isRequestLoadingFlow.value = isLoading
+        if (_isRequestLoadingFlow.value != isLoading) {
+            _isRequestLoadingFlow.value = isLoading
+        }
     }
 
     fun pair(pairingUri: String) {

@@ -26,6 +26,12 @@ android {
         buildConfigField("String", "BOM_VERSION", "\"${BOM_VERSION ?: ""}\"")
     }
 
+    lint {
+        abortOnError = true
+        ignoreWarnings = true
+        warningsAsErrors = false
+    }
+
     compileOptions {
         sourceCompatibility = jvmVersion
         targetCompatibility = jvmVersion
@@ -74,11 +80,14 @@ dependencies {
 
     debugImplementation(project(":core:android"))
     debugImplementation(project(":product:walletconnectmodal"))
+    debugImplementation(project(":protocol:sign"))
 
     internalImplementation(project(":core:android"))
     internalImplementation(project(":product:walletconnectmodal"))
+    internalImplementation(project(":protocol:sign"))
 
     releaseImplementation(platform("com.walletconnect:android-bom:$BOM_VERSION"))
     releaseImplementation("com.walletconnect:android-core")
-    releaseImplementation(project(":product:walletconnectmodal"))
+    releaseImplementation("com.walletconnect:walletconnect-modal")
+    releaseImplementation("com.walletconnect:sign")
 }

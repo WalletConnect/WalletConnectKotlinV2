@@ -25,6 +25,12 @@ android {
         buildConfigField("String", "BOM_VERSION", "\"${BOM_VERSION}\"")
     }
 
+    lint {
+        abortOnError = true
+        ignoreWarnings = true
+        warningsAsErrors = false
+    }
+
     compileOptions {
         sourceCompatibility = jvmVersion
         targetCompatibility = jvmVersion
@@ -63,6 +69,7 @@ dependencies {
 
     // Glide
     implementation("com.github.skydoves:landscapist-glide:2.1.0")
+    implementation("io.coil-kt:coil-svg:2.4.0")
 
     // Accompanist
     implementation(libs.bundles.accompanist)

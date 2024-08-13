@@ -1,10 +1,13 @@
 [versions]
+core = "1.6.1"
 jerseyCommon = "3.1.6"
 kotlin = "1.9.24"
+kotlinxCoroutinesTest = "1.5.2"
 ksp = "1.9.24-1.0.20"
 agp = "8.4.1"
 
 minSdk = "23"
+mockkAndroid = "1.12.0"
 targetSdk = "34"
 compileSdk = "34"
 
@@ -14,7 +17,7 @@ composeViewModel = "2.8.0"
 accompanist = "0.34.0"
 
 coroutines = "1.8.1"
-sqlDelight = "2.0.0"
+sqlDelight = "2.0.2"
 dokka = "1.9.20"
 moshi = "1.15.1"
 googleService = "4.4.1"
@@ -22,7 +25,7 @@ scarlet = "1.0.1"
 koin = "3.5.6"
 retrofit = "2.11.0"
 okhttp = "4.12.0"
-bouncyCastle = "1.77"
+bouncyCastle = "1.78.1"
 sqlCipher = "4.5.4"
 multibase = "1.1.1"
 json = "20220924"
@@ -56,6 +59,9 @@ turbine = "1.1.0"
 paparazzi = "1.3.4"
 
 [libraries]
+core = { module = "androidx.test:core", version.ref = "core" }
+kotlinx-coroutines-test-v152 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
+mockk-android = { module = "io.mockk:mockk-android", version.ref = "mockkAndroid" }
 sqlDelight-android = { module = "app.cash.sqldelight:android-driver", version.ref = "sqlDelight" }
 sqlDelight-coroutines = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqlDelight" }
 sqlDelight-adapters = { module = "app.cash.sqldelight:primitive-adapters", version.ref = "sqlDelight" }
@@ -201,5 +207,5 @@ javaLibrary = { id = "org.gradle.java-library" }
 
 sqlDelight = { id = "app.cash.sqldelight", version.ref = "sqlDelight" }
 sonarqube = { id = "org.sonarqube", version = "4.4.1.3373" }
-nexusPublish = { id = "io.github.gradle-nexus.publish-plugin", version = "1.1.0" }
+nexusPublish = { id = "io.github.gradle-nexus.publish-plugin", version = "2.0.0" }
 paparazzi = { id = "app.cash.paparazzi", version.ref = "paparazzi" }

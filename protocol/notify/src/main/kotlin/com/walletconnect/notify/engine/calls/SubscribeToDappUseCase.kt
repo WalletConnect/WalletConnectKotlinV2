@@ -13,7 +13,7 @@ import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Participants
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
-import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
+import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.monthInSeconds
@@ -49,7 +49,7 @@ import kotlin.time.Duration
 typealias DidJsonPublicKeyPair = Pair<PublicKey, PublicKey>
 
 internal class SubscribeToDappUseCase(
-    private val jsonRpcInteractor: JsonRpcInteractorInterface,
+    private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val crypto: KeyManagementRepository,
     private val extractMetadataFromConfigUseCase: ExtractMetadataFromConfigUseCase,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,

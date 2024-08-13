@@ -1,3 +1,5 @@
+import kotlin.Boolean;
+
 ALTER TABLE RegisteredAccounts ADD COLUMN notifyServerWatchTopic TEXT DEFAULT NULL;
 ALTER TABLE RegisteredAccounts ADD COLUMN notifyServerAuthenticationKey TEXT DEFAULT NULL;
 

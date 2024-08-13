@@ -41,7 +41,11 @@ internal sealed class SignParams : CoreSignParams() {
         val authPayload: PayloadParams,
         @Json(name = "expiryTimestamp")
         val expiryTimestamp: Long
-    ) : SignParams()
+    ) : SignParams() {
+        val metadataUrl = requester.metadata.url
+        val appLink = requester.metadata.redirect?.universal
+        val linkMode = requester.metadata.redirect?.linkMode
+    }
 
     @JsonClass(generateAdapter = true)
     internal data class SessionSettleParams(

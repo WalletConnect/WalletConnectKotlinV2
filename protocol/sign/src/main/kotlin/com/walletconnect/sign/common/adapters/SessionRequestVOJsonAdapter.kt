@@ -8,10 +8,9 @@ import com.squareup.moshi.JsonWriter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.internal.Util
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionRequestVO
-import kotlin.String
 import org.json.JSONArray
 import org.json.JSONObject
-
+import kotlin.String
 
 internal class SessionRequestVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionRequestVO>() {
     private val options: JsonReader.Options = JsonReader.Options.of("method", "params", "expiryTimestamp")

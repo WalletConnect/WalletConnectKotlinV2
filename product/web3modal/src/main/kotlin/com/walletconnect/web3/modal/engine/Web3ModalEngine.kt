@@ -57,8 +57,9 @@ internal class Web3ModalEngine(
     EnableAnalyticsUseCaseInterface by enableAnalyticsUseCase {
     internal var excludedWalletsIds: MutableList<String> = mutableListOf()
     internal var recommendedWalletsIds: MutableList<String> = mutableListOf()
-
+    internal var siweRequestIdWithMessage: Pair<Long, String>? = null
     private lateinit var coinbaseClient: CoinbaseClient
+    internal var shouldDisconnect: Boolean = true
 
     fun setup(
         init: Modal.Params.Init,
@@ -89,6 +90,17 @@ internal class Web3ModalEngine(
     ) {
         connectionEventRepository.saveEvent(name, method)
         SignClient.connect(connect.toSign(), onSuccess) { onError(it.throwable) }
+    }
+
+    fun authenticate(
+        name: String, method: String,
+        authenticate: Modal.Params.Authenticate,
+        walletAppLink: String? = null,
+        onSuccess: (String) -> Unit,
+        onError: (Throwable) -> Unit
+    ) {
+        connectionEventRepository.saveEvent(name, method)
+        SignClient.authenticate(authenticate.toSign(), walletAppLink, onSuccess) { onError(it.throwable) }
     }
 
     fun connectCoinbase(
@@ -124,6 +136,10 @@ internal class Web3ModalEngine(
 
     internal fun getSelectedChainOrFirst() = getSelectedChain() ?: Web3Modal.chains.first()
 
+    fun formatSIWEMessage(authParams: Modal.Model.AuthPayloadParams, issuer: String): String {
+        return SignClient.formatAuthMessage(authParams.toSign(issuer))
+    }
+
     fun request(request: Request, onSuccess: (SentRequestResult) -> Unit, onError: (Throwable) -> Unit) {
         val session = getActiveSession()
         val selectedChain = getSelectedChain()
@@ -141,16 +157,16 @@ internal class Web3ModalEngine(
 
             is Session.WalletConnect ->
                 SignClient.request(request.toSign(session.topic, selectedChain.id),
-                {
-                    onSuccess(it.toSentRequest())
-                    openWalletApp(session.topic, onError)
-                },
-                { onError(it.throwable) }
-            )
+                    {
+                        onSuccess(it.toSentRequest())
+                        openWalletApp(session.topic, onError)
+                    },
+                    { onError(it.throwable) }
+                )
         }
     }
 
-    private fun openWalletApp(topic: String, onError: (Throwable) -> Unit) {
+    private fun openWalletApp(topic: String, onError: (RedirectMissingThrowable) -> Unit) {
         val redirect = SignClient.getActiveSessionByTopic(topic)?.redirect ?: String.Empty
         try {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(redirect))
@@ -158,9 +174,8 @@ internal class Web3ModalEngine(
             intent.addFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
             wcKoinApp.koin.get<Context>().startActivity(intent)
         } catch (e: Throwable) {
-            onError(e)
+            onError(RedirectMissingThrowable("Please redirect to a wallet manually"))
         }
-
     }
 
     fun ping(sessionPing: Modal.Listeners.SessionPing?) {
@@ -177,11 +192,12 @@ internal class Web3ModalEngine(
             onError(InvalidSessionException)
             return
         }
-        scope.launch { deleteSessionDataUseCase() }
+
         when (session) {
             is Session.Coinbase -> {
                 checkEngineInitialization()
                 coinbaseClient.disconnect()
+                scope.launch { deleteSessionDataUseCase() }
                 onSuccess()
             }
 
@@ -189,6 +205,8 @@ internal class Web3ModalEngine(
                 SignClient.disconnect(Sign.Params.Disconnect(session.topic),
                     onSuccess = {
                         sendEventUseCase.send(Props(EventType.TRACK, EventType.Track.DISCONNECT_SUCCESS))
+                        scope.launch { deleteSessionDataUseCase() }
+                        shouldDisconnect = true
                         onSuccess()
                     },
                     onError = {
@@ -264,7 +282,27 @@ internal class Web3ModalEngine(
             }
 
             override fun onSessionRequestResponse(response: Sign.Model.SessionRequestResponse) {
-                delegate.onSessionRequestResponse(response.toModal())
+                if (response.result.id == siweRequestIdWithMessage?.first) {
+                    if (response.result is Sign.Model.JsonRpcResponse.JsonRpcResult) {
+                        val siweResponse = Modal.Model.SIWEAuthenticateResponse.Result(
+                            id = response.result.id,
+                            message = siweRequestIdWithMessage!!.second,
+                            signature = (response.result as Sign.Model.JsonRpcResponse.JsonRpcResult).result
+                        )
+                        siweRequestIdWithMessage = null
+                        delegate.onSIWEAuthenticationResponse(siweResponse)
+                    } else if (response.result is Sign.Model.JsonRpcResponse.JsonRpcError) {
+                        val siweResponse = Modal.Model.SIWEAuthenticateResponse.Error(
+                            id = response.result.id,
+                            message = (response.result as Sign.Model.JsonRpcResponse.JsonRpcError).message,
+                            code = (response.result as Sign.Model.JsonRpcResponse.JsonRpcError).code
+                        )
+                        siweRequestIdWithMessage = null
+                        delegate.onSIWEAuthenticationResponse(siweResponse)
+                    }
+                } else {
+                    delegate.onSessionRequestResponse(response.toModal())
+                }
             }
 
             override fun onSessionAuthenticateResponse(sessionAuthenticateResponse: Sign.Model.SessionAuthenticateResponse) {
@@ -310,4 +348,6 @@ internal class Web3ModalEngine(
             "Coinbase Client needs to be initialized first using the initialize function"
         }
     }
+
+    internal class RedirectMissingThrowable(message: String) : Throwable(message)
 }

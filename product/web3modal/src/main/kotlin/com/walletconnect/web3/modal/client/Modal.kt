@@ -91,18 +91,18 @@ object Modal {
             ) : Namespace()
         }
 
-        data class PayloadParams(
+        data class AuthPayloadParams(
             val chains: List<String>,
             val domain: String,
             val nonce: String,
-            val aud: String,
-            val type: String?,
-            val nbf: String?,
-            val iat: String,
-            val exp: String?,
-            val statement: String?,
-            val requestId: String?,
-            val resources: List<String>?
+            val uri: String,
+            val nbf: String? = null,
+            val exp: String? = null,
+            val statement: String? = null,
+            val requestId: String? = null,
+            val resources: List<String>? = null,
+            val methods: List<String>? = null,
+            val expiry: Long? = null
         ) : Model()
 
         sealed class ApprovedSession : Model() {
@@ -138,6 +138,7 @@ object Modal {
             val data: String,
             val chainId: String,
         ) : Model()
+
         sealed class DeletedSession : Model() {
             data class Success(val topic: String, val reason: String) : DeletedSession()
             data class Error(val error: Throwable) : DeletedSession()
@@ -199,6 +200,11 @@ object Modal {
         sealed class SessionAuthenticateResponse : Model() {
             data class Result(val id: Long, val cacaos: List<Cacao>, val session: Session?) : SessionAuthenticateResponse()
             data class Error(val id: Long, val code: Int, val message: String) : SessionAuthenticateResponse()
+        }
+
+        sealed class SIWEAuthenticateResponse : Model() {
+            data class Result(val id: Long, val message: String, val signature: String) : SIWEAuthenticateResponse()
+            data class Error(val id: Long, val code: Int, val message: String) : SIWEAuthenticateResponse()
         }
 
         data class Cacao(

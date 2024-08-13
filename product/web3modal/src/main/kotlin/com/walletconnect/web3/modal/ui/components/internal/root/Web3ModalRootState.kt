@@ -54,4 +54,4 @@ internal class Web3ModalRootState(
 
 private fun NavDestination.toTitle(): String? = Route.values().find { route.orEmpty().startsWith(it.path) }?.title
 
-private val topLevelDestinations = listOf(Route.CONNECT_YOUR_WALLET, Route.ACCOUNT, Route.CHOOSE_NETWORK, Route.CHANGE_NETWORK)
+private val topLevelDestinations = listOf(Route.CONNECT_YOUR_WALLET, Route.ACCOUNT, Route.CHOOSE_NETWORK, Route.CHANGE_NETWORK, Route.SIWE_FALLBACK)

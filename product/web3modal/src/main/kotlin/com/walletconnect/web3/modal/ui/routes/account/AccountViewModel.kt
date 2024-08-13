@@ -92,11 +92,13 @@ internal class AccountViewModel : ViewModel(), Navigator by NavigatorImpl() {
     }.flowOn(Dispatchers.IO).catch { logger.error(it) }.stateIn(viewModelScope, started = SharingStarted.Lazily, initialValue = null)
 
     fun disconnect() {
-        closeModal()
-        web3ModalEngine.disconnect {
-            showError(it.localizedMessage)
-            logger.error(it)
-        }
+        web3ModalEngine.disconnect(
+            onSuccess = { closeModal() },
+            onError = {
+                showError(it.localizedMessage)
+                logger.error(it)
+            }
+        )
     }
 
     fun changeActiveChain(chain: Modal.Model.Chain) = viewModelScope.launch {
