@@ -4,6 +4,7 @@ package com.walletconnect.sample.wallet.ui.routes.composable_routes.connection_d
 
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -36,6 +37,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
@@ -43,13 +45,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
-import com.skydoves.landscapist.glide.GlideImage
 import com.walletconnect.sample.common.ui.themedColor
 import com.walletconnect.sample.wallet.R
 import com.walletconnect.sample.wallet.ui.common.Content
@@ -160,7 +163,7 @@ fun ConnectionDetailsRoute(navController: NavController, connectionId: Int?, con
             Spacer(modifier = Modifier.height(16.dp))
             Connection(uiConnection)
             Spacer(modifier = Modifier.height(16.dp))
-            ConnectionType(uiConnection, isDeleteLoading,
+            ConnectionType(uiConnection, isDeleteLoading, connectionsViewModel,
                 onDelete = {
                     when (uiConnection.type) {
                         is ConnectionType.Sign -> {
@@ -193,6 +196,28 @@ fun ConnectionDetailsRoute(navController: NavController, connectionId: Int?, con
                             }
                         }
                     }
+                },
+                onSwitch = {
+                    when (uiConnection.type) {
+                        is ConnectionType.Sign -> {
+                            val (namespace, reference, _) = connectionsViewModel.displayedAccounts[1].split(":")
+                            val chainId = "$namespace:$reference"
+                            val accountsToChange = connectionsViewModel.getAccountsToChange()
+                            Web3Wallet.emitSessionEvent(Wallet.Params.SessionEmit(uiConnection.type.topic, Wallet.Model.SessionEvent("accountsChanged", accountsToChange), chainId),
+                                onSuccess = {
+                                    composableScope.launch(Dispatchers.Main) {
+                                        Toast.makeText(context, "Switching account", Toast.LENGTH_SHORT).show()
+                                    }
+                                },
+                                onError = { error ->
+                                    Firebase.crashlytics.recordException(error.throwable)
+                                    composableScope.launch(Dispatchers.Main) {
+                                        Toast.makeText(context, "Switch account error: ${error.throwable.message ?: "Unknown error please contact support"}", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            )
+                        }
+                    }
                 })
         }
     } ?: run {
@@ -201,10 +226,10 @@ fun ConnectionDetailsRoute(navController: NavController, connectionId: Int?, con
 }
 
 @Composable
-fun ConnectionType(connectionUI: ConnectionUI, isLoading: Boolean, onDelete: () -> Unit) {
+fun ConnectionType(connectionUI: ConnectionUI, isLoading: Boolean, connectionsViewModel: ConnectionsViewModel, onDelete: () -> Unit, onSwitch: () -> Unit) {
     Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         when (val type = connectionUI.type) {
-            is ConnectionType.Sign -> Namespace(type.namespaces)
+            is ConnectionType.Sign -> Namespace(type.namespaces, connectionsViewModel)
         }
 
         AnimatedContent(targetState = isLoading, label = "Loading") { state ->
@@ -218,19 +243,28 @@ fun ConnectionType(connectionUI: ConnectionUI, isLoading: Boolean, onDelete: () 
                     color = themedColor(darkColor = 0xfff25a67, lightColor = 0xfff05142), strokeWidth = 4.dp
                 )
             } else {
-                Text(modifier = Modifier
-                    .clip(RoundedCornerShape(5.dp))
-                    .clickable { onDelete() }
-                    .padding(horizontal = 20.dp, vertical = 5.dp),
-                    text = "Delete",
-                    style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 20.sp, color = themedColor(darkColor = 0xfff25a67, lightColor = 0xfff05142)))
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(modifier = Modifier
+                        .clip(RoundedCornerShape(5.dp))
+                        .clickable { onSwitch() }
+                        .padding(vertical = 5.dp),
+                        text = "Switch Account",
+                        style = TextStyle(fontWeight = FontWeight.Normal, fontSize = 16.sp, color = themedColor(darkColor = 0xFFe3e7e7, lightColor = 0xFF141414)))
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(modifier = Modifier
+                        .clip(RoundedCornerShape(5.dp))
+                        .clickable { onDelete() }
+                        .padding(vertical = 5.dp),
+                        text = "Delete",
+                        style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 20.sp, color = themedColor(darkColor = 0xfff25a67, lightColor = 0xfff05142)))
+                }
             }
         }
     }
 }
 
 @Composable
-fun Namespace(namespaces: Map<String, Wallet.Model.Namespace.Session>) {
+fun Namespace(namespaces: Map<String, Wallet.Model.Namespace.Session>, connectionsViewModel: ConnectionsViewModel) {
     val pagerState = rememberPagerState()
     val accounts = namespaces.flatMap { (namespace, session) -> session.accounts }.distinctBy { "${it.split(":")[0]}:${it.split(":")[1]}" }
     val accountsToSessions: Map<String, Wallet.Model.Namespace.Session> = namespaces.flatMap { (namespace, proposal) -> proposal.accounts.map { chain -> chain to proposal } }.toMap()
@@ -240,7 +274,7 @@ fun Namespace(namespaces: Map<String, Wallet.Model.Namespace.Session>) {
             count = accounts.size,
             state = pagerState,
         ) { current ->
-            accounts[current].also { account -> ChainPermissions(account, accountsToSessions) }
+            accounts[current].also { account -> ChainPermissions(account, accountsToSessions, connectionsViewModel) }
         }
 
         if (accounts.size > 1) {
@@ -255,12 +289,16 @@ fun Namespace(namespaces: Map<String, Wallet.Model.Namespace.Session>) {
 }
 
 @Composable
-fun ChainPermissions(account: String, accountsToSessions: Map<String, Wallet.Model.Namespace.Session>) {
+fun ChainPermissions(account: String, accountsToSessions: Map<String, Wallet.Model.Namespace.Session>, connectionsViewModel: ConnectionsViewModel) {
     val session: Wallet.Model.Namespace.Session = accountsToSessions[account]!!
     val lastDelimiterIndex = account.indexOfLast { it == ':' }
     val chainId = account.dropLast(account.lastIndex - lastDelimiterIndex + 1)
     Content(title = chainId.uppercase()) {
-        Accounts(session.accounts.filter { "${it.split(":")[0]}:${it.split(":")[1]}" == chainId })
+
+        val accountsToShow = session.accounts.filter { "${it.split(":")[0]}:${it.split(":")[1]}" == chainId }
+
+        connectionsViewModel.displayedAccounts = accountsToShow
+        Accounts(accountsToShow)
         val sections = mapOf("Methods" to getAllMethodsByChainId(session, account), "Events" to getAllEventsByChainId(session, account))
         sections.forEach { (title, values) -> BlueLabelTexts(title, values, title != "Events") }
     }
@@ -275,7 +313,6 @@ fun Accounts(accounts: List<String>) {
                 text = "Accounts", style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = themedColor(darkColor = Color(0xFF9ea9a9), lightColor = Color(0xFF788686)))
             )
         }
-
 
         accounts.forEachIndexed { index, account ->
             Text(
@@ -307,7 +344,25 @@ fun Connection(connectionUI: ConnectionUI) {
             .clip(CircleShape)
             .border(width = 1.dp, shape = CircleShape, color = themedColor(darkColor = Color(0xFF191919), lightColor = Color(0xFFE0E0E0)))
         if (connectionUI.icon?.isNotBlank() == true) {
-            GlideImage(modifier = iconModifier, imageModel = { connectionUI.icon })
+            val painter = rememberAsyncImagePainter(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(connectionUI.icon)
+                    .size(60)
+                    .crossfade(true)
+                    .error(com.walletconnect.sample.common.R.drawable.ic_walletconnect_circle_blue)
+                    .listener(
+                        onSuccess = { request, metadata -> println("onSuccess: $request, $metadata") },
+                        onError = { _, throwable -> println("Error loading image: ${throwable.throwable.message}") })
+                    .build()
+            )
+
+            Image(
+                painter = painter,
+                contentDescription = "Connection image",
+                modifier = iconModifier,
+                contentScale = ContentScale.Fit,
+                alignment = Alignment.Center
+            )
         } else {
             Icon(modifier = iconModifier.alpha(.7f), imageVector = ImageVector.vectorResource(id = R.drawable.sad_face), contentDescription = "Sad face")
         }

@@ -183,8 +183,8 @@ class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInter
             )
         }
 
-        Verify.initialize()
         Pairing.initialize()
         PairingController.initialize()
+        Verify.initialize()
     }
 }

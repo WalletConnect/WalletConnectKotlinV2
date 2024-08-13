@@ -255,7 +255,7 @@ fun waitForArtifactsToBeAvailable() {
         println("Checking: https://repo1.maven.org/maven2/com/walletconnect/$repoId/$version/")
         "https://repo1.maven.org/maven2/com/walletconnect/$repoId/$version/"
     }
-    val maxRetries = 20
+    val maxRetries = 40
     var attempt = 0
     val availableRepos = mutableSetOf<String>()
 
@@ -283,7 +283,7 @@ fun waitForArtifactsToBeAvailable() {
         if (availableRepos.size < repoIds.size) {
             println("Waiting for artifacts to be available... Attempt: ${attempt + 1}")
             attempt++
-            Thread.sleep(10000) // Wait for 10 seconds before retrying
+            Thread.sleep(45000) // Wait for 10 seconds before retrying
         }
     }
 
@@ -335,7 +335,7 @@ tasks.register<Exec>("createTag") {
 tasks.register<Exec>("pushTagToMain") {
     val tagName = "BOM_$BOM_VERSION"
     val repoUrl = "https://github.com/WalletConnect/WalletConnectKotlinV2.git"
-    val token = System.getenv("GITHUB_TOKEN") ?: throw GradleException("GITHUB_TOKEN environment variable is not set")
+    val token = System.getenv("PUSH_GITHUB_TOKEN") ?: throw GradleException("GITHUB_TOKEN environment variable is not set")
     dependsOn("createTag")
     val authenticatedRepoUrl = repoUrl.replace("https://", "https://$token:@")
     commandLine("git", "push", authenticatedRepoUrl, tagName, "refs/heads/main")

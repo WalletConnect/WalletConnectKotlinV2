@@ -148,7 +148,9 @@ class SessionRequestViewModel : ViewModel() {
                 method = sessionRequest.request.method,
                 peerContextUI = context.toPeerUI()
             )
-        } else SessionRequestUI.Initial
+        } else {
+            SessionRequestUI.Initial
+        }
     }
 }
 

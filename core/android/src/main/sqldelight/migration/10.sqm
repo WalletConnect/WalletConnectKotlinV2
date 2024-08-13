@@ -1,0 +1,6 @@
+-- migration from 10.db to 11.db
+
+CREATE TABLE VerifyPublicKey(
+    key TEXT PRIMARY KEY NOT NULL,
+    expires_at INTEGER NOT NULL
+);

@@ -66,7 +66,6 @@ fun Web3WalletNavGraph(
     navController.addOnDestinationChangedListener(
         listener = { _, destination, _ ->
             if (destination.route == Route.Connections.path) {
-                WCDelegate.sessionRequestEvent = null
                 WCDelegate.currentId = null
             }
         })
