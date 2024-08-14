@@ -359,20 +359,6 @@ internal class SignEngine(
                     }.onFailure { logger.error(it) }
                 })
             }
-
-//            pairingController.deletedPairingFlow.onEach { pairing ->
-//                sessionStorageRepository.getAllSessionTopicsByPairingTopic(pairing.topic).onEach { sessionTopic ->
-//                    jsonRpcInteractor.unsubscribe(
-//                        topic = Topic(sessionTopic),
-//                        onSuccess = {
-//                            runCatching {
-//                                sessionStorageRepository.deleteSession(Topic(sessionTopic))
-//                                crypto.removeKeys(sessionTopic)
-//                            }.onFailure { logger.error(it) }
-//                        }
-//                    )
-//                }
-//            }.launchIn(scope)
         } catch (e: Exception) {
             scope.launch { _engineEvent.emit(SDKError(e)) }
         }

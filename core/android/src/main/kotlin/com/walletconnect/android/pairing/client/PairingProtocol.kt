@@ -96,15 +96,21 @@ internal class PairingProtocol(private val koinApp: KoinApplication = wcKoinApp)
 
     @Deprecated(message = "Disconnect method has been deprecated. Pairing will disconnect automatically")
     @Throws(IllegalStateException::class)
-    override fun disconnect(disconnect: Core.Params.Disconnect, onError: (Core.Model.Error) -> Unit) {}
+    override fun disconnect(disconnect: Core.Params.Disconnect, onError: (Core.Model.Error) -> Unit) {
+        //Disconnect method has been deprecated. Pairing will disconnect automatically
+    }
 
     @Deprecated(message = "Disconnect method has been deprecated. Pairing will disconnect automatically")
     @Throws(IllegalStateException::class)
-    override fun disconnect(topic: String, onError: (Core.Model.Error) -> Unit) {}
+    override fun disconnect(topic: String, onError: (Core.Model.Error) -> Unit) {
+        //Disconnect method has been deprecated. Pairing will disconnect automatically
+    }
 
     @Deprecated(message = "Ping method has been deprecated. Please use Ping from Web3Wallet or Sing clients")
     @Throws(IllegalStateException::class)
-    override fun ping(ping: Core.Params.Ping, pairingPing: Core.Listeners.PairingPing?) {}
+    override fun ping(ping: Core.Params.Ping, pairingPing: Core.Listeners.PairingPing?) {
+        //Ping method has been deprecated. Please use Ping from Web3Wallet or Sing clients
+    }
 
     @Throws(IllegalStateException::class)
     override fun getPairings(): List<Core.Model.Pairing> {

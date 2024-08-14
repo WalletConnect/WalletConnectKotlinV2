@@ -43,10 +43,14 @@ interface PairingInterface {
 
     interface Delegate {
         @Deprecated(message = "onPairingDelete callback has been deprecated")
-        fun onPairingDelete(deletedPairing: Core.Model.DeletedPairing) {}
+        fun onPairingDelete(deletedPairing: Core.Model.DeletedPairing) {
+            //onPairingDelete callback has been deprecated
+        }
 
         @Deprecated(message = "onPairingExpired callback has been deprecated")
-        fun onPairingExpired(expiredPairing: Core.Model.ExpiredPairing) {}
+        fun onPairingExpired(expiredPairing: Core.Model.ExpiredPairing) {
+            //onPairingExpired callback has been deprecated
+        }
 
         fun onPairingState(pairingState: Core.Model.PairingState) {}
     }

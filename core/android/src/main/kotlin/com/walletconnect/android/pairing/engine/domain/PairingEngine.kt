@@ -3,7 +3,6 @@ package com.walletconnect.android.pairing.engine.domain
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.MALFORMED_PAIRING_URI_MESSAGE
 import com.walletconnect.android.internal.Validator
-import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.ExpiredPairingException
 import com.walletconnect.android.internal.common.exception.ExpiredPairingURIException
@@ -33,7 +32,6 @@ import com.walletconnect.android.internal.utils.thirtySeconds
 import com.walletconnect.android.pairing.engine.model.EngineDO
 import com.walletconnect.android.pairing.model.PairingJsonRpcMethod
 import com.walletconnect.android.pairing.model.PairingParams
-import com.walletconnect.android.pairing.model.PairingRpc
 import com.walletconnect.android.pairing.model.mapper.toCore
 import com.walletconnect.android.pairing.model.pairingExpiry
 import com.walletconnect.android.pulse.domain.InsertEventUseCase
@@ -50,8 +48,6 @@ import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.randomBytes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -70,8 +66,6 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
-import kotlinx.coroutines.withTimeout
-import java.util.concurrent.TimeUnit
 
 //Split into PairingProtocolEngine and PairingControllerEngine
 internal class PairingEngine(
@@ -325,37 +319,6 @@ internal class PairingEngine(
         jsonRpcInteractor.respondWithSuccess(request, irnParams)
     }
 
-    private fun onPingSuccess(
-        pingPayload: PairingRpc.PairingPing,
-        onSuccess: (String) -> Unit,
-        topic: String,
-        onFailure: (Throwable) -> Unit
-    ) {
-        scope.launch {
-            try {
-                withTimeout(TimeUnit.SECONDS.toMillis(thirtySeconds)) {
-                    jsonRpcInteractor.peerResponse
-                        .filter { response -> response.response.id == pingPayload.id }
-                        .collect { response ->
-                            when (val result = response.response) {
-                                is JsonRpcResponse.JsonRpcResult -> {
-                                    cancel()
-                                    onSuccess(topic)
-                                }
-
-                                is JsonRpcResponse.JsonRpcError -> {
-                                    cancel()
-                                    onFailure(Throwable(result.errorMessage))
-                                }
-                            }
-                        }
-                }
-            } catch (e: TimeoutCancellationException) {
-                onFailure(e)
-            }
-        }
-    }
-
     private fun generateTopic(): Topic = Topic(randomBytes(32).bytesToHex())
 
     private fun getPairing(topic: String, onFailure: (Throwable) -> Unit, onPairing: (pairing: Pairing) -> Unit) {
@@ -382,9 +345,6 @@ internal class PairingEngine(
             }
         }
     }
-
-    private fun isPairingValid(topic: String): Boolean =
-        pairingRepository.getPairingOrNullByTopic(Topic(topic))?.let { pairing -> return@let pairing.isNotExpired() } ?: false
 
     companion object {
         private const val WATCHER_INTERVAL = 30000L //30s
