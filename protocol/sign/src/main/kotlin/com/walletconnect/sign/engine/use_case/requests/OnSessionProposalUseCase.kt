@@ -79,15 +79,12 @@ internal class OnSessionProposalUseCase(
                 }
             }
             proposalStorageRepository.insertProposal(payloadParams.toVO(request.topic, request.id))
-            pairingController.deleteAndUnsubscribePairing(Core.Params.Delete(request.topic.value))
+            pairingController.setRequestReceived(Core.Params.RequestReceived(request.topic.value))
+            jsonRpcInteractor.unsubscribe(request.topic)
+            val url = payloadParams.proposer.metadata.url
 
             logger.log("Resolving session proposal attestation: ${System.currentTimeMillis()}")
-            resolveAttestationIdUseCase(
-                request,
-                payloadParams.proposer.metadata.url,
-                linkMode = request.transportType == TransportType.LINK_MODE,
-                appLink = payloadParams.proposer.metadata.redirect?.universal
-            ) { verifyContext ->
+            resolveAttestationIdUseCase(request, url, linkMode = request.transportType == TransportType.LINK_MODE, appLink = payloadParams.proposer.metadata.redirect?.universal) { verifyContext ->
                 logger.log("Session proposal attestation resolved: ${System.currentTimeMillis()}")
                 val sessionProposalEvent = EngineDO.SessionProposalEvent(proposal = payloadParams.toEngineDO(request.topic), context = verifyContext.toEngineDO())
                 logger.log("Session proposal received on topic: ${request.topic} - emitting")

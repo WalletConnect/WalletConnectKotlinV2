@@ -41,9 +41,6 @@ class ChainSelectionViewModel : ViewModel() {
     val isAnyChainSelected: Boolean
         get() = uiState.value.any { it.isSelected }
 
-    val isAnySettledParingExist: Boolean
-        get() = CoreClient.Pairing.getPairings().isNotEmpty()
-
     val walletEvents = DappDelegate.wcEventModels.map { walletEvent: Modal.Model? ->
         when (walletEvent) {
             is Modal.Model.ApprovedSession -> DappSampleEvents.SessionApproved

@@ -177,9 +177,9 @@ internal class PairingEngine(
             }
             trace.add(Trace.Pairing.PAIRING_URI_NOT_EXPIRED)
             if (pairingRepository.getPairingOrNullByTopic(pairingTopic) != null) {
-                val pairing = pairingRepository.getPairingOrNullByTopic(pairingTopic)
+                val localPairing = pairingRepository.getPairingOrNullByTopic(pairingTopic)
                 trace.add(Trace.Pairing.EXISTING_PAIRING)
-                if (!pairing!!.isNotExpired()) {
+                if (!localPairing!!.isNotExpired()) {
                     scope.launch { supervisorScope { insertEventUseCase(Props(type = EventType.Error.PAIRING_EXPIRED, properties = Properties(trace = trace, topic = pairingTopic.value))) } }
                         .also { logger.error("Pairing expired: $pairingTopic") }
                     return onFailure(ExpiredPairingException("Pairing expired: ${pairingTopic.value}"))

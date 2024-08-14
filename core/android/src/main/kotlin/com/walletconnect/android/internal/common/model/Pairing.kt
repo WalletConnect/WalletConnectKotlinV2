@@ -11,6 +11,7 @@ data class Pairing(
     val relayProtocol: String,
     val relayData: String?,
     val uri: String,
+    val isProposalReceived: Boolean = false,
     val methods: String? = null,
 ) : Sequence {
 

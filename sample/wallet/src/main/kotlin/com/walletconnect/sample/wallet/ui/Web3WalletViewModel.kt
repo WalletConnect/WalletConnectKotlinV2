@@ -52,8 +52,7 @@ class Web3WalletViewModel : ViewModel() {
             _isLoadingFlow.value = (coreEvent as? Core.Model.PairingState)?.isPairingState ?: false
 
             if (coreEvent is Core.Model.ExpiredPairing) {
-                val pairingType = if (coreEvent.pairing.isActive) "Active" else "Inactive"
-                _eventsSharedFlow.emit(PairingEvent.Expired("$pairingType pairing expired"))
+                _eventsSharedFlow.emit(PairingEvent.Expired("Pairing expired"))
             }
         }.launchIn(viewModelScope)
 

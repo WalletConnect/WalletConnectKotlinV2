@@ -17,9 +17,7 @@ import androidx.navigation.navArgument
 import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.google.accompanist.navigation.material.ModalBottomSheetLayout
-import com.google.accompanist.navigation.material.bottomSheet
 import com.walletconnect.sample.dapp.ui.routes.Route
-import com.walletconnect.sample.dapp.ui.routes.bottom_routes.PairingSelectionRoute
 import com.walletconnect.sample.dapp.ui.routes.composable_routes.account.AccountRoute
 import com.walletconnect.sample.dapp.ui.routes.composable_routes.chain_selection.ChainSelectionRoute
 import com.walletconnect.sample.dapp.ui.routes.composable_routes.session.SessionRoute
@@ -54,9 +52,6 @@ fun DappSampleNavGraph(
                 arguments = listOf(navArgument(accountArg) { type = NavType.StringType })
             ) {
                 AccountRoute(navController)
-            }
-            bottomSheet(Route.ParingSelection.path) {
-                PairingSelectionRoute(navController)
             }
             walletConnectModalGraph(navController)
         }

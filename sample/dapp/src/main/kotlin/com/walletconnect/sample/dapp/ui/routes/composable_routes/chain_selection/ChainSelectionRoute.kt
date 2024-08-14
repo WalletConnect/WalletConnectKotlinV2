@@ -74,8 +74,6 @@ import com.walletconnect.sample.common.ui.toColor
 import com.walletconnect.sample.dapp.BuildConfig
 import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.sample.dapp.ui.routes.Route
-import com.walletconnect.sample.dapp.ui.routes.bottom_routes.PairingSelectionResult
-import com.walletconnect.sample.dapp.ui.routes.bottom_routes.pairingSelectionResultKey
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.wcmodal.client.Modal
 import com.walletconnect.wcmodal.client.WalletConnectModal
@@ -96,18 +94,21 @@ fun ChainSelectionRoute(navController: NavController) {
     val awaitingProposalResponse = viewModel.awaitingSharedFlow.collectAsState(false).value
     var pairingUri by remember { mutableStateOf(PairingUri(uri = "", isReCaps = false)) }
 
-    handlePairingEvents(navController, viewModel, composableScope, context)
+//    handlePairingEvents(navController, viewModel, composableScope, context)
+
     handleSignEvents(viewModel, navController, context) { pairingUri = PairingUri(uri = "", isReCaps = false) }
     LaunchedEffect(Unit) {
         viewModel.coreEvents.collect { event ->
             if (event is DappSampleEvents.PairingExpired) {
-                val pairingType = if (event.pairing.isActive) "Active" else "Inactive"
-                Toast.makeText(context, "$pairingType pairing has been expired", Toast.LENGTH_SHORT).show()
+                composableScope.launch(Dispatchers.Main) {
+                    Toast.makeText(context, "Pairing has been expired", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
 
     ChainSelectionScreen(
+        composableScope,
         chains = chainsState,
         awaitingState = awaitingProposalResponse,
         pairingUri = pairingUri,
@@ -126,7 +127,9 @@ fun ChainSelectionRoute(navController: NavController) {
                         }
                     })
             } else {
-                Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
+                composableScope.launch(Dispatchers.Main) {
+                    Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
+                }
             }
         },
         onAuthenticateLinkMode = { appLink ->
@@ -145,7 +148,9 @@ fun ChainSelectionRoute(navController: NavController) {
                                     }
                                     context.startActivity(intent)
                                 } catch (e: Exception) {
-                                    Toast.makeText(context, "Please install RN Wallet", Toast.LENGTH_SHORT).show()
+                                    composableScope.launch(Dispatchers.Main) {
+                                        Toast.makeText(context, "Please install RN Wallet", Toast.LENGTH_SHORT).show()
+                                    }
                                 }
                             } else {
                                 try {
@@ -160,7 +165,9 @@ fun ChainSelectionRoute(navController: NavController) {
                                     }
                                     context.startActivity(intent)
                                 } catch (e: Exception) {
-                                    Toast.makeText(context, "Please install Kotlin Sample Wallet", Toast.LENGTH_SHORT).show()
+                                    composableScope.launch(Dispatchers.Main) {
+                                        Toast.makeText(context, "Please install Kotlin Sample Wallet", Toast.LENGTH_SHORT).show()
+                                    }
                                 }
                             }
                         }
@@ -171,7 +178,9 @@ fun ChainSelectionRoute(navController: NavController) {
                         }
                     })
             } else {
-                Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
+                composableScope.launch(Dispatchers.Main) {
+                    Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
+                }
             }
         },
         onAuthenticateSIWEClick = {
@@ -185,13 +194,16 @@ fun ChainSelectionRoute(navController: NavController) {
                         }
                     })
             } else {
-                Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
+                composableScope.launch(Dispatchers.Main) {
+                    Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
+                }
             }
         })
 }
 
 @Composable
 private fun ChainSelectionScreen(
+    composableScope: CoroutineScope,
     chains: List<ChainSelectionUi>,
     awaitingState: Boolean,
     pairingUri: PairingUri,
@@ -265,13 +277,13 @@ private fun ChainSelectionScreen(
         }
 
         if (pairingUri.uri.isNotEmpty()) {
-            QRDialog(pairingUri, onDismissRequest = { onDialogDismiss() }, context)
+            QRDialog(composableScope, pairingUri, onDismissRequest = { onDialogDismiss() }, context)
         }
     }
 }
 
 @Composable
-private fun QRDialog(pairingUri: PairingUri, onDismissRequest: () -> Unit, context: Context) {
+private fun QRDialog(composableScope: CoroutineScope, pairingUri: PairingUri, onDismissRequest: () -> Unit, context: Context) {
     val qrBitmap = generateQRCode(pairingUri.uri)
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
 
@@ -309,7 +321,9 @@ private fun QRDialog(pairingUri: PairingUri, onDismissRequest: () -> Unit, conte
                             }
                             context.startActivity(intent)
                         } catch (e: Exception) {
-                            Toast.makeText(context, "Please install Kotlin Sample Wallet", Toast.LENGTH_SHORT).show()
+                            composableScope.launch(Dispatchers.Main) {
+                                Toast.makeText(context, "Please install Kotlin Sample Wallet", Toast.LENGTH_SHORT).show()
+                            }
                         }
                     },
                     modifier = Modifier.padding(top = 16.dp)
@@ -327,7 +341,9 @@ private fun QRDialog(pairingUri: PairingUri, onDismissRequest: () -> Unit, conte
                                 }
                                 context.startActivity(intent)
                             } catch (e: Exception) {
-                                Toast.makeText(context, "Please install TrustWallet", Toast.LENGTH_SHORT).show()
+                                composableScope.launch(Dispatchers.Main) {
+                                    Toast.makeText(context, "Please install TrustWallet", Toast.LENGTH_SHORT).show()
+                                }
                             }
                         },
                         modifier = Modifier.padding(top = 16.dp)
@@ -337,7 +353,9 @@ private fun QRDialog(pairingUri: PairingUri, onDismissRequest: () -> Unit, conte
                 }
                 Button(
                     onClick = {
-                        Toast.makeText(context, "URI copied to clipboard", Toast.LENGTH_SHORT).show()
+                        composableScope.launch(Dispatchers.Main) {
+                            Toast.makeText(context, "URI copied to clipboard", Toast.LENGTH_SHORT).show()
+                        }
                         clipboardManager.setText(AnnotatedString(pairingUri.uri))
                         onDismissRequest()
                     },
@@ -412,55 +430,14 @@ private fun handleSignEvents(
     }
 }
 
-@Composable
-private fun handlePairingEvents(
-    navController: NavController,
-    viewModel: ChainSelectionViewModel,
-    composableScope: CoroutineScope,
-    context: Context
-) {
-    LaunchedEffect(Unit) {
-        navController.currentBackStackEntryFlow.collectLatest { event ->
-            event.savedStateHandle.get<PairingSelectionResult>(pairingSelectionResultKey)?.let {
-                navController.currentBackStackEntry?.savedStateHandle?.remove<PairingSelectionResult>(pairingSelectionResultKey)
-                when (it) {
-                    PairingSelectionResult.NewPairing -> {
-                        WalletConnectModal.setSessionParams(viewModel.getSessionParams())
-                        navController.openWalletConnectModal()
-                    }
-
-                    PairingSelectionResult.None -> Unit
-                    is PairingSelectionResult.SelectedPairing -> {
-                        viewModel.connectToWallet(it.position,
-                            onSuccess = {
-                                println("Proposal sent successfully")
-                            },
-                            onError = { error ->
-                                composableScope.launch(Dispatchers.Main) {
-                                    Toast.makeText(context, "Error while connecting: $error", Toast.LENGTH_SHORT).show()
-                                }
-                            })
-                    }
-                }
-            }
-        }
-    }
-}
-
 private fun onConnectClick(
     viewModel: ChainSelectionViewModel,
     navController: NavController,
     context: Context
 ) {
     if (viewModel.isAnyChainSelected) {
-        if (viewModel.isAnySettledParingExist) {
-            navController.navigate(Route.ParingSelection.path) {
-                popUpTo(Route.ChainSelection.path)
-            }
-        } else {
-            WalletConnectModal.setSessionParams(viewModel.getSessionParams())
-            navController.openWalletConnectModal()
-        }
+        WalletConnectModal.setSessionParams(viewModel.getSessionParams())
+        navController.openWalletConnectModal()
     } else {
         Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
     }
@@ -549,11 +526,10 @@ private fun ChainItem(
 
 @CompletePreviews
 @Composable
-private fun ChainSelectionScreenPreview(
-    @PreviewParameter(ChainSelectionStateProvider::class) chains: List<ChainSelectionUi>
-) {
+private fun ChainSelectionScreenPreview(@PreviewParameter(ChainSelectionStateProvider::class) chains: List<ChainSelectionUi>) {
     PreviewTheme {
         ChainSelectionScreen(
+            composableScope = rememberCoroutineScope(),
             chains = chains,
             awaitingState = false,
             pairingUri = PairingUri(uri = "", isReCaps = false),
