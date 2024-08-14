@@ -5,12 +5,9 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.walletconnect.android.Core
 import com.walletconnect.sample.wallet.domain.ACCOUNTS_1_EIP155_ADDRESS
 import com.walletconnect.sample.wallet.domain.ACCOUNTS_2_EIP155_ADDRESS
 import com.walletconnect.sample.wallet.domain.WCDelegate
-import com.walletconnect.sample.wallet.ui.CoreEvent
-import com.walletconnect.sample.wallet.ui.NoAction
 import com.walletconnect.web3.wallet.client.Web3Wallet
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -20,7 +17,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 
 class ConnectionsViewModel : ViewModel() {
@@ -66,13 +62,6 @@ class ConnectionsViewModel : ViewModel() {
     private fun refreshCurrentConnectionUI() {
         currentConnectionUI.value = getConnectionUI()
     }
-
-    val coreEvents = WCDelegate.coreEvents.map { wcEvent ->
-        when (wcEvent) {
-            is Core.Model.DeletedPairing -> CoreEvent.Disconnect
-            else -> NoAction
-        }
-    }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
     private fun getLatestActiveSignSessions(): List<ConnectionUI> {
         return try {

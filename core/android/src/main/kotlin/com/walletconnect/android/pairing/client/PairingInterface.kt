@@ -42,8 +42,10 @@ interface PairingInterface {
     fun validatePairingUri(uri: String): Boolean
 
     interface Delegate {
-        fun onPairingDelete(deletedPairing: Core.Model.DeletedPairing)
+        @Deprecated(message = "onPairingDelete callback has been deprecated")
+        fun onPairingDelete(deletedPairing: Core.Model.DeletedPairing) {}
 
+        @Deprecated(message = "onPairingExpired callback has been deprecated")
         fun onPairingExpired(expiredPairing: Core.Model.ExpiredPairing) {}
 
         fun onPairingState(pairingState: Core.Model.PairingState) {}

@@ -22,7 +22,6 @@ import com.walletconnect.android.pulse.model.properties.Props
 import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.android.relay.WSSConnectionState
 import com.walletconnect.android.verify.model.VerifyContext
-import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.engine.model.EngineDO
@@ -361,19 +360,19 @@ internal class SignEngine(
                 })
             }
 
-            pairingController.deletedPairingFlow.onEach { pairing ->
-                sessionStorageRepository.getAllSessionTopicsByPairingTopic(pairing.topic).onEach { sessionTopic ->
-                    jsonRpcInteractor.unsubscribe(
-                        topic = Topic(sessionTopic),
-                        onSuccess = {
-                            runCatching {
-                                sessionStorageRepository.deleteSession(Topic(sessionTopic))
-                                crypto.removeKeys(sessionTopic)
-                            }.onFailure { logger.error(it) }
-                        }
-                    )
-                }
-            }.launchIn(scope)
+//            pairingController.deletedPairingFlow.onEach { pairing ->
+//                sessionStorageRepository.getAllSessionTopicsByPairingTopic(pairing.topic).onEach { sessionTopic ->
+//                    jsonRpcInteractor.unsubscribe(
+//                        topic = Topic(sessionTopic),
+//                        onSuccess = {
+//                            runCatching {
+//                                sessionStorageRepository.deleteSession(Topic(sessionTopic))
+//                                crypto.removeKeys(sessionTopic)
+//                            }.onFailure { logger.error(it) }
+//                        }
+//                    )
+//                }
+//            }.launchIn(scope)
         } catch (e: Exception) {
             scope.launch { _engineEvent.emit(SDKError(e)) }
         }
@@ -443,7 +442,7 @@ internal class SignEngine(
     }
 
     private fun emitReceivedPendingRequestsWhilePairingOnTheSameURL() {
-        pairingController.inactivePairingFlow
+        pairingController.storedPairingFlow
             .onEach { (pairingTopic, trace) ->
                 try {
                     val pendingAuthenticateRequests = getPendingAuthenticateRequestUseCase.getPendingAuthenticateRequests().filter { request -> request.topic == pairingTopic }

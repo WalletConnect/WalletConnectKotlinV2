@@ -50,10 +50,6 @@ class Web3WalletViewModel : ViewModel() {
     init {
         WCDelegate.coreEvents.onEach { coreEvent ->
             _isLoadingFlow.value = (coreEvent as? Core.Model.PairingState)?.isPairingState ?: false
-
-            if (coreEvent is Core.Model.ExpiredPairing) {
-                _eventsSharedFlow.emit(PairingEvent.Expired("Pairing expired"))
-            }
         }.launchIn(viewModelScope)
 
         flow {

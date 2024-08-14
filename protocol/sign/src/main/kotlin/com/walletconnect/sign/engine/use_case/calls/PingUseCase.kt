@@ -6,7 +6,6 @@ import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.utils.thirtySeconds
-import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
@@ -27,7 +26,6 @@ private val THIRTY_SECONDS_TIMEOUT: Duration = 30.seconds
 internal class PingUseCase(
     private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val sessionStorageRepository: SessionStorageRepository,
-    private val pairingInterface: PairingInterface,
     private val logger: Logger
 ) : PingUseCaseInterface {
 
@@ -47,7 +45,7 @@ internal class PingUseCase(
                     onFailure(error)
                 })
         } else {
-            onFailure(Throwable("Session is not valid"))
+            onFailure(Throwable("Session topic is not valid"))
         }
     }
 

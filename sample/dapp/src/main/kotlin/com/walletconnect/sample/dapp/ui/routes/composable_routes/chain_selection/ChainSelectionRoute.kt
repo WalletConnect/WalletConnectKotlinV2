@@ -94,19 +94,7 @@ fun ChainSelectionRoute(navController: NavController) {
     val awaitingProposalResponse = viewModel.awaitingSharedFlow.collectAsState(false).value
     var pairingUri by remember { mutableStateOf(PairingUri(uri = "", isReCaps = false)) }
 
-//    handlePairingEvents(navController, viewModel, composableScope, context)
-
     handleSignEvents(viewModel, navController, context) { pairingUri = PairingUri(uri = "", isReCaps = false) }
-    LaunchedEffect(Unit) {
-        viewModel.coreEvents.collect { event ->
-            if (event is DappSampleEvents.PairingExpired) {
-                composableScope.launch(Dispatchers.Main) {
-                    Toast.makeText(context, "Pairing has been expired", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-    }
-
     ChainSelectionScreen(
         composableScope,
         chains = chainsState,

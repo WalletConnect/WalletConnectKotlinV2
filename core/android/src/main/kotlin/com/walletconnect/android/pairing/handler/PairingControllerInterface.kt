@@ -8,9 +8,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 
 interface PairingControllerInterface {
-    val deletedPairingFlow: SharedFlow<Pairing>
     val findWrongMethodsFlow: Flow<SDKError>
-    val inactivePairingFlow: SharedFlow<Pair<Topic, MutableList<String>>>
+    val storedPairingFlow: SharedFlow<Pair<Topic, MutableList<String>>>
     val checkVerifyKeyFlow: SharedFlow<Unit>
 
     fun initialize()

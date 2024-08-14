@@ -58,13 +58,6 @@ class ChainSelectionViewModel : ViewModel() {
         }
     }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
 
-    val coreEvents = DappDelegate.coreEvents.map { walletEvent: Core.Model ->
-        when (walletEvent) {
-            is Core.Model.ExpiredPairing -> DappSampleEvents.PairingExpired(walletEvent.pairing)
-            else -> DappSampleEvents.NoAction
-        }
-    }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
-
     fun awaitingProposalResponse(isAwaiting: Boolean) {
         viewModelScope.launch {
             _awaitingProposalSharedFlow.emit(isAwaiting)

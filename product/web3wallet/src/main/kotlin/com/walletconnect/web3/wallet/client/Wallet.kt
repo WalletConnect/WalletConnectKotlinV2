@@ -5,8 +5,17 @@ import com.walletconnect.android.Core
 import com.walletconnect.android.CoreInterface
 import com.walletconnect.android.cacao.SignatureInterface
 import java.net.URI
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 object Wallet {
+
+    sealed interface Listeners {
+        interface SessionPing : Listeners {
+            fun onSuccess(pingSuccess: Model.Ping.Success)
+            fun onError(pingError: Model.Ping.Error)
+        }
+    }
 
     sealed class Params {
         data class Init(val core: CoreInterface) : Params()
@@ -39,6 +48,8 @@ object Wallet {
 
         data class FormatAuthMessage(val payloadParams: Model.PayloadAuthRequestParams, val issuer: String) : Params()
 
+        data class Ping(val sessionTopic: String, val timeout: Duration = 30.seconds) : Params()
+
         sealed class AuthRequestResponse : Params() {
             abstract val id: Long
 
@@ -50,6 +61,11 @@ object Wallet {
     }
 
     sealed class Model {
+
+        sealed class Ping : Model() {
+            data class Success(val topic: String) : Ping()
+            data class Error(val error: Throwable) : Ping()
+        }
         data class Error(val throwable: Throwable) : Model()
 
 		data class ConnectionState(val isAvailable: Boolean, val reason: Reason? = null) : Model() {
@@ -241,6 +257,7 @@ object Wallet {
         }
 
         data class Session(
+            @Deprecated("Pairing topic is deprecated")
             val pairingTopic: String,
             val topic: String,
             val expiry: Long,

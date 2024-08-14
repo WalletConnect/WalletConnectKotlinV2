@@ -8,7 +8,7 @@ object Trace {
         const val STORE_NEW_PAIRING = "store_new_pairing"
         const val EXISTING_PAIRING = "existing_pairing"
         const val PAIRING_NOT_EXPIRED = "pairing_not_expired"
-        const val EMIT_INACTIVE_PAIRING = "emit_inactive_pairing"
+        const val EMIT_STORED_PAIRING = "emit_inactive_pairing"
         const val EMIT_SESSION_PROPOSAL = "emit_session_proposal"
         const val SUBSCRIBING_PAIRING_TOPIC = "subscribing_pairing_topic"
         const val SUBSCRIBE_PAIRING_TOPIC_SUCCESS = "subscribe_pairing_topic_success"

@@ -29,7 +29,9 @@ object Core {
             val verifyUrl: String? = null
         ) : Model()
 
+        @Deprecated(message = "DeletedPairing has been deprecated")
         data class DeletedPairing(val topic: String, val reason: String) : Model()
+        @Deprecated(message = "ExpiredPairing has been deprecated")
         data class ExpiredPairing(val pairing: Pairing) : Model()
 
         data class PairingState(val isPairingState: Boolean) : Model()
@@ -41,6 +43,7 @@ object Core {
             val relayProtocol: String,
             val relayData: String?,
             val uri: String,
+            @Deprecated("isActive has been deprecated")
             val isActive: Boolean,
             val registeredMethods: String
         ) : Model()
