@@ -106,7 +106,6 @@ internal fun callsModule() = module {
             cacaoVerifier = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
             verifyContextStorageRepository = get(),
-            pairingController = get(),
             getPendingSessionAuthenticateRequest = get(),
             selfAppMetaData = get(),
             sessionStorageRepository = get(),

@@ -28,7 +28,6 @@ import com.walletconnect.android.internal.common.storage.verify.VerifyContextSto
 import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.dayInSeconds
-import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.pulse.domain.InsertEventUseCase
 import com.walletconnect.android.pulse.model.EventType
 import com.walletconnect.android.pulse.model.Trace
@@ -54,7 +53,6 @@ internal class ApproveSessionAuthenticateUseCase(
     private val cacaoVerifier: CacaoVerifier,
     private val verifyContextStorageRepository: VerifyContextStorageRepository,
     private val logger: Logger,
-    private val pairingController: PairingControllerInterface,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val selfAppMetaData: AppMetaData,
     private val sessionStorageRepository: SessionStorageRepository,
