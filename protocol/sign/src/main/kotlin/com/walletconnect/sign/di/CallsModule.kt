@@ -93,7 +93,6 @@ internal fun callsModule() = module {
             metadataStorageRepository = get(),
             sessionStorageRepository = get(),
             verifyContextStorageRepository = get(),
-            pairingController = get(),
             insertEventUseCase = get(),
             logger = get(named(AndroidCommonDITags.LOGGER))
         )
