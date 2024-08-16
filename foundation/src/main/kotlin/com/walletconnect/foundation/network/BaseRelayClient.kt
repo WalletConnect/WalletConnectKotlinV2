@@ -40,7 +40,7 @@ abstract class BaseRelayClient : RelayInterface {
     lateinit var relayService: RelayService
     protected var logger: Logger
     private val resultState: MutableSharedFlow<RelayDTO> = MutableSharedFlow()
-    var isLoggingEnabled: Boolean = false
+    override var isLoggingEnabled: Boolean = false
 
     init {
         foundationKoinApp.run { modules(foundationCommonModule()) }

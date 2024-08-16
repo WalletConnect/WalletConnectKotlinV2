@@ -38,6 +38,8 @@ class SignClientInstrumentedActivityScenario : TestRule, SignActivityScenario() 
             val isWalletRelayReady = MutableStateFlow(false)
 
             val timeoutDuration = BuildConfig.TEST_TIMEOUT_SECONDS.seconds
+            TestClient.Wallet.Relay.isLoggingEnabled = true
+            TestClient.Dapp.Relay.isLoggingEnabled = true
 
             val dappRelayJob = TestClient.Dapp.Relay.eventsFlow.onEach { event ->
                 when (event) {
