@@ -106,89 +106,130 @@ fun ChainSelectionRoute(navController: NavController, dispatcher: CoroutineDispa
         onDialogDismiss = { pairingUri = PairingUri(uri = "", isReCaps = false) },
         onChainClick = viewModel::updateChainSelectState,
         onConnectClick = { onConnectClick(viewModel, navController, context) },
-        onAuthenticateClick = {
-            if (viewModel.isAnyChainSelected) {
-                viewModel.authenticate(
-                    viewModel.authenticateParams,
-                    onAuthenticateSuccess = { uri -> pairingUri = PairingUri(uri ?: "", true) },
-                    onError = { error ->
-                        composableScope.launch(dispatcher) {
-                            Toast.makeText(context, "Authenticate error: $error", Toast.LENGTH_SHORT).show()
-                        }
-                    })
-            } else {
+        onAuthenticateClick = { onAuthenticate(viewModel, composableScope, dispatcher, context) { uri -> pairingUri = uri } },
+        onAuthenticateLinkMode = { appLink -> onAuthenticateLinkMode(viewModel, appLink, context, composableScope, dispatcher) },
+        onAuthenticateSIWEClick = { onAuthenticateSIWE(viewModel, composableScope, dispatcher, context) { uri -> pairingUri = uri } }
+    )
+}
+
+private fun onAuthenticateSIWE(
+    viewModel: ChainSelectionViewModel,
+    composableScope: CoroutineScope,
+    dispatcher: CoroutineDispatcher,
+    context: Context,
+    onSuccess: (PairingUri) -> Unit,
+) {
+    if (viewModel.isAnyChainSelected) {
+        viewModel.authenticate(
+            viewModel.siweParams,
+            onAuthenticateSuccess = { uri -> onSuccess(PairingUri(uri ?: "", false)) },
+            onError = { error ->
                 composableScope.launch(dispatcher) {
-                    Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Authenticate error: $error", Toast.LENGTH_SHORT).show()
                 }
-            }
-        },
-        onAuthenticateLinkMode = { appLink ->
-            if (viewModel.isAnyChainSelected) {
-                viewModel.authenticate(
-                    viewModel.authenticateParams,
-                    appLink,
-                    onAuthenticateSuccess = { uri ->
-                        if (uri != null) {
-                            if (appLink.contains("walletkit_rn")) {
-                                try {
-                                    val intent = Intent(Intent.ACTION_VIEW).apply {
-                                        val encoded = URLEncoder.encode(uri, "UTF-8")
-                                        data = "rn-web3wallet://wc?uri=$encoded".toUri()
-                                        `package` = "com.walletconnect.web3wallet.rnsample.internal"
-                                    }
-                                    context.startActivity(intent)
-                                } catch (e: Exception) {
-                                    composableScope.launch(dispatcher) {
-                                        Toast.makeText(context, "Please install RN Wallet", Toast.LENGTH_SHORT).show()
-                                    }
-                                }
-                            } else {
-                                try {
-                                    val intent = Intent(Intent.ACTION_VIEW).apply {
-                                        val encoded = URLEncoder.encode(uri, "UTF-8")
-                                        data = "kotlin-web3wallet://wc?uri=$encoded".toUri()
-                                        `package` = when (BuildConfig.BUILD_TYPE) {
-                                            "debug" -> SAMPLE_WALLET_DEBUG_PACKAGE
-                                            "internal" -> SAMPLE_WALLET_INTERNAL_PACKAGE
-                                            else -> SAMPLE_WALLET_RELEASE_PACKAGE
-                                        }
-                                    }
-                                    context.startActivity(intent)
-                                } catch (e: Exception) {
-                                    composableScope.launch(dispatcher) {
-                                        Toast.makeText(context, "Please install Kotlin Sample Wallet", Toast.LENGTH_SHORT).show()
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    onError = { error ->
-                        composableScope.launch(dispatcher) {
-                            Toast.makeText(context, "Authenticate error: $error", Toast.LENGTH_SHORT).show()
-                        }
-                    })
-            } else {
+            })
+    } else {
+        composableScope.launch(dispatcher) {
+            Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
+        }
+    }
+}
+
+private fun onAuthenticateLinkMode(
+    viewModel: ChainSelectionViewModel,
+    appLink: String,
+    context: Context,
+    composableScope: CoroutineScope,
+    dispatcher: CoroutineDispatcher
+) {
+    if (viewModel.isAnyChainSelected) {
+        viewModel.authenticate(
+            viewModel.authenticateParams,
+            appLink,
+            onAuthenticateSuccess = { uri -> onAuthenticateSuccess(uri, appLink, context, composableScope, dispatcher) },
+            onError = { error ->
                 composableScope.launch(dispatcher) {
-                    Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Authenticate error: $error", Toast.LENGTH_SHORT).show()
                 }
+            })
+    } else {
+        composableScope.launch(dispatcher) {
+            Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
+        }
+    }
+}
+
+private fun onAuthenticateSuccess(
+    uri: String?,
+    appLink: String,
+    context: Context,
+    composableScope: CoroutineScope,
+    dispatcher: CoroutineDispatcher
+) {
+    if (uri != null) {
+        if (appLink.contains("walletkit_rn")) {
+            redirectToRNWallet(uri, context, composableScope, dispatcher)
+        } else {
+            redirectToKotlinWallet(uri, context, composableScope, dispatcher)
+        }
+    }
+}
+
+private fun redirectToKotlinWallet(uri: String?, context: Context, composableScope: CoroutineScope, dispatcher: CoroutineDispatcher) {
+    try {
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            val encoded = URLEncoder.encode(uri, "UTF-8")
+            data = "kotlin-web3wallet://wc?uri=$encoded".toUri()
+            `package` = when (BuildConfig.BUILD_TYPE) {
+                "debug" -> SAMPLE_WALLET_DEBUG_PACKAGE
+                "internal" -> SAMPLE_WALLET_INTERNAL_PACKAGE
+                else -> SAMPLE_WALLET_RELEASE_PACKAGE
             }
-        },
-        onAuthenticateSIWEClick = {
-            if (viewModel.isAnyChainSelected) {
-                viewModel.authenticate(
-                    viewModel.siweParams,
-                    onAuthenticateSuccess = { uri -> pairingUri = PairingUri(uri ?: "", false) },
-                    onError = { error ->
-                        composableScope.launch(dispatcher) {
-                            Toast.makeText(context, "Authenticate error: $error", Toast.LENGTH_SHORT).show()
-                        }
-                    })
-            } else {
+        }
+        context.startActivity(intent)
+    } catch (e: Exception) {
+        composableScope.launch(dispatcher) {
+            Toast.makeText(context, "Please install Kotlin Sample Wallet", Toast.LENGTH_SHORT).show()
+        }
+    }
+}
+
+private fun redirectToRNWallet(uri: String?, context: Context, composableScope: CoroutineScope, dispatcher: CoroutineDispatcher) {
+    try {
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            val encoded = URLEncoder.encode(uri, "UTF-8")
+            data = "rn-web3wallet://wc?uri=$encoded".toUri()
+            `package` = "com.walletconnect.web3wallet.rnsample.internal"
+        }
+        context.startActivity(intent)
+    } catch (e: Exception) {
+        composableScope.launch(dispatcher) {
+            Toast.makeText(context, "Please install RN Wallet", Toast.LENGTH_SHORT).show()
+        }
+    }
+}
+
+private fun onAuthenticate(
+    viewModel: ChainSelectionViewModel,
+    composableScope: CoroutineScope,
+    dispatcher: CoroutineDispatcher,
+    context: Context,
+    onSuccess: (PairingUri) -> Unit,
+) {
+    if (viewModel.isAnyChainSelected) {
+        viewModel.authenticate(
+            viewModel.authenticateParams,
+            onAuthenticateSuccess = { uri -> onSuccess(PairingUri(uri ?: "", true)) },
+            onError = { error ->
                 composableScope.launch(dispatcher) {
-                    Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Authenticate error: $error", Toast.LENGTH_SHORT).show()
                 }
-            }
-        })
+            })
+    } else {
+        composableScope.launch(dispatcher) {
+            Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
+        }
+    }
 }
 
 @Composable
@@ -298,49 +339,13 @@ private fun QRDialog(composableScope: CoroutineScope, dispatcher: CoroutineDispa
                     )
                 } ?: Text("Error while generating QR code", modifier = Modifier.padding(16.dp))
                 Button(
-                    onClick = {
-                        onDismissRequest()
-                        try {
-                            val intent = Intent(Intent.ACTION_VIEW).apply {
-                                val encoded = URLEncoder.encode(pairingUri.uri, "UTF-8")
-                                data = "kotlin-web3wallet://wc?uri=$encoded".toUri()
-                                `package` = when (BuildConfig.BUILD_TYPE) {
-                                    "debug" -> SAMPLE_WALLET_DEBUG_PACKAGE
-                                    "internal" -> SAMPLE_WALLET_INTERNAL_PACKAGE
-                                    else -> SAMPLE_WALLET_RELEASE_PACKAGE
-                                }
-                            }
-                            context.startActivity(intent)
-                        } catch (e: Exception) {
-                            composableScope.launch(dispatcher) {
-                                Toast.makeText(context, "Please install Kotlin Sample Wallet", Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    },
+                    onClick = { onKotlinWalletDeepLink(onDismissRequest, pairingUri, context, composableScope, dispatcher) },
                     modifier = Modifier.padding(top = 16.dp)
                 ) {
                     Text("Deep link to Kotlin Wallet")
                 }
                 if (pairingUri.isReCaps) {
-                    Button(
-                        onClick = {
-                            onDismissRequest()
-                            try {
-                                val intent = Intent(Intent.ACTION_VIEW).apply {
-                                    val encoded = URLEncoder.encode(pairingUri.uri, "UTF-8")
-                                    data = "trust://wc?uri=$encoded".toUri()
-                                }
-                                context.startActivity(intent)
-                            } catch (e: Exception) {
-                                composableScope.launch(dispatcher) {
-                                    Toast.makeText(context, "Please install TrustWallet", Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                        },
-                        modifier = Modifier.padding(top = 16.dp)
-                    ) {
-                        Text("Dynamic Switcher Deeplink (TrustWallet)", textAlign = TextAlign.Center)
-                    }
+                    showReCapsButton(onDismissRequest, pairingUri, context, composableScope, dispatcher)
                 }
                 Button(
                     onClick = {
@@ -361,6 +366,69 @@ private fun QRDialog(composableScope: CoroutineScope, dispatcher: CoroutineDispa
                     Text("Close")
                 }
             }
+        }
+    }
+}
+
+private fun onKotlinWalletDeepLink(
+    onDismissRequest: () -> Unit,
+    pairingUri: PairingUri,
+    context: Context,
+    composableScope: CoroutineScope,
+    dispatcher: CoroutineDispatcher
+) {
+    onDismissRequest()
+    try {
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            val encoded = URLEncoder.encode(pairingUri.uri, "UTF-8")
+            data = "kotlin-web3wallet://wc?uri=$encoded".toUri()
+            `package` = when (BuildConfig.BUILD_TYPE) {
+                "debug" -> SAMPLE_WALLET_DEBUG_PACKAGE
+                "internal" -> SAMPLE_WALLET_INTERNAL_PACKAGE
+                else -> SAMPLE_WALLET_RELEASE_PACKAGE
+            }
+        }
+        context.startActivity(intent)
+    } catch (e: Exception) {
+        composableScope.launch(dispatcher) {
+            Toast.makeText(context, "Please install Kotlin Sample Wallet", Toast.LENGTH_SHORT).show()
+        }
+    }
+}
+
+@Composable
+private fun showReCapsButton(
+    onDismissRequest: () -> Unit,
+    pairingUri: PairingUri,
+    context: Context,
+    composableScope: CoroutineScope,
+    dispatcher: CoroutineDispatcher
+) {
+    Button(
+        onClick = { onDynamicSwitcher(onDismissRequest, pairingUri, context, composableScope, dispatcher) },
+        modifier = Modifier.padding(top = 16.dp)
+    ) {
+        Text("Dynamic Switcher Deeplink (TrustWallet)", textAlign = TextAlign.Center)
+    }
+}
+
+private fun onDynamicSwitcher(
+    onDismissRequest: () -> Unit,
+    pairingUri: PairingUri,
+    context: Context,
+    composableScope: CoroutineScope,
+    dispatcher: CoroutineDispatcher
+) {
+    onDismissRequest()
+    try {
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            val encoded = URLEncoder.encode(pairingUri.uri, "UTF-8")
+            data = "trust://wc?uri=$encoded".toUri()
+        }
+        context.startActivity(intent)
+    } catch (e: Exception) {
+        composableScope.launch(dispatcher) {
+            Toast.makeText(context, "Please install TrustWallet", Toast.LENGTH_SHORT).show()
         }
     }
 }
