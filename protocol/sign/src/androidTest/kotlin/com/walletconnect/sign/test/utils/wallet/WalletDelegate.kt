@@ -7,7 +7,10 @@ import com.walletconnect.sign.test.utils.sessionNamespaces
 import timber.log.Timber
 
 open class WalletDelegate : SignClient.WalletDelegate {
-    override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal, verifyContext: Sign.Model.VerifyContext) {}
+    override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal, verifyContext: Sign.Model.VerifyContext) {
+        println("kobe: test session proposal: $sessionProposal")
+
+    }
 
     override val onSessionAuthenticate: ((Sign.Model.SessionAuthenticate, Sign.Model.VerifyContext) -> Unit)
         get() = { _, _ -> }

@@ -267,7 +267,10 @@ internal class SignEngine(
             .filter { request -> request.params is SignParams }
             .onEach { request ->
                 when (val requestParams = request.params) {
-                    is SignParams.SessionProposeParams -> onSessionProposeUse(request, requestParams)
+                    is SignParams.SessionProposeParams -> {
+                        println("kobe: session proposal received engine: ${request.topic}")
+                        onSessionProposeUse(request, requestParams)
+                    }
                     is SignParams.SessionAuthenticateParams -> onAuthenticateSessionUseCase(request, requestParams)
                     is SignParams.SessionSettleParams -> onSessionSettleUseCase(request, requestParams)
                     is SignParams.SessionRequestParams -> onSessionRequestUseCase(request, requestParams)

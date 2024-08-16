@@ -49,6 +49,7 @@ internal class OnSessionProposalUseCase(
     private val isAuthenticateEnabled: Boolean by lazy { wcKoinApp.koin.get(named(AndroidCommonDITags.ENABLE_AUTHENTICATE)) }
 
     suspend operator fun invoke(request: WCRequest, payloadParams: SignParams.SessionProposeParams) = supervisorScope {
+        println("kobe: session proposal received: ${request.topic}")
         val irnParams = IrnParams(Tags.SESSION_PROPOSE_RESPONSE_AUTO_REJECT, Ttl(fiveMinutesInSeconds))
         try {
             if (isSessionAuthenticateImplemented(request)) {
@@ -78,12 +79,21 @@ internal class OnSessionProposalUseCase(
                     return@supervisorScope
                 }
             }
+            println("kobe: on propose session: insertING proposal success")
+
             proposalStorageRepository.insertProposal(payloadParams.toVO(request.topic, request.id))
 
             println("kobe: on propose session: insert proposal success")
 
             pairingController.setRequestReceived(Core.Params.RequestReceived(request.topic.value))
-            jsonRpcInteractor.unsubscribe(request.topic)
+            jsonRpcInteractor.unsubscribe(request.topic,
+                onSuccess = {
+                    println("kobe: unsubscribe success")
+                },
+                onFailure = {
+                println("kobe: unsubscribe error: $it")
+            })
+
             val url = payloadParams.proposer.metadata.url
 
             logger.log("Resolving session proposal attestation: ${System.currentTimeMillis()}")
