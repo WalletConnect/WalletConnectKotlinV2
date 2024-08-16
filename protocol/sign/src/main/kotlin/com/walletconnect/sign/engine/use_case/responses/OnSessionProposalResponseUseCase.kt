@@ -9,7 +9,6 @@ import com.walletconnect.android.internal.common.model.params.CoreSignParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.util.Logger
@@ -25,7 +24,6 @@ import kotlinx.coroutines.supervisorScope
 internal class OnSessionProposalResponseUseCase(
     private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val pairingController: PairingControllerInterface,
-    private val pairingInterface: PairingInterface,
     private val crypto: KeyManagementRepository,
     private val proposalStorageRepository: ProposalStorageRepository,
     private val logger: Logger

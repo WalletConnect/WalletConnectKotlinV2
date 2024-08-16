@@ -79,6 +79,9 @@ internal class OnSessionProposalUseCase(
                 }
             }
             proposalStorageRepository.insertProposal(payloadParams.toVO(request.topic, request.id))
+
+            println("kobe: on propose session: insert proposal success")
+
             pairingController.setRequestReceived(Core.Params.RequestReceived(request.topic.value))
             jsonRpcInteractor.unsubscribe(request.topic)
             val url = payloadParams.proposer.metadata.url

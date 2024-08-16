@@ -31,6 +31,7 @@ open class WalletDelegate : SignClient.WalletDelegate {
 
 open class AutoApproveSessionWalletDelegate : WalletDelegate() {
     override fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal, verifyContext: Sign.Model.VerifyContext) {
+        println("kobe: session proposal: $sessionProposal")
         sessionProposal.approveOnSessionProposal()
     }
 
@@ -41,8 +42,17 @@ open class AutoApproveSessionWalletDelegate : WalletDelegate() {
 
 internal fun Sign.Model.SessionProposal.approveOnSessionProposal() {
     Timber.d("walletDelegate: onSessionProposal: $this")
+    println("kobe: walletDelegate: onSessionProposal: $this")
 
-    WalletSignClient.approveSession(Sign.Params.Approve(proposerPublicKey, sessionNamespaces), onSuccess = {}, onError = ::globalOnError)
+    WalletSignClient.approveSession(Sign.Params.Approve(proposerPublicKey, sessionNamespaces),
+        onSuccess = {
+        println("kobe: session proposal: approve success")
+
+        }, onError = {
+            println("kobe: session proposal error: $it")
+            globalOnError(it)
+        }
+    )
     Timber.d("WalletClient: approveSession")
 }
 
