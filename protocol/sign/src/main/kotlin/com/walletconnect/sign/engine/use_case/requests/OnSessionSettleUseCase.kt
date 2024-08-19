@@ -92,10 +92,7 @@ internal class OnSessionSettleUseCase(
             _events.emit(session.toSessionApproved())
         } catch (e: Exception) {
             logger.error("Session settle received failure: ${request.topic}, error: $e")
-
-            println("kobe: on settle error: $e")
             proposalStorageRepository.insertProposal(proposal)
-            println("kobe: on settle error insert proposal: $e")
             sessionStorageRepository.deleteSession(sessionTopic)
             jsonRpcInteractor.respondWithError(request, PeerError.Failure.SessionSettlementFailed(e.message ?: String.Empty), irnParams)
             _events.emit(SDKError(e))

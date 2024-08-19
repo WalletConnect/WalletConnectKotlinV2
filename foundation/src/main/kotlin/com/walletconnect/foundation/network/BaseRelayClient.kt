@@ -246,7 +246,6 @@ abstract class BaseRelayClient : RelayInterface {
 
     private fun publishSubscriptionAcknowledgement(id: Long) {
         val publishRequest = RelayDTO.Subscription.Result.Acknowledgement(id = id, result = true)
-        println("kobe: Publish ACK: $id")
         relayService.publishSubscriptionAcknowledgement(publishRequest)
     }
 
