@@ -86,13 +86,13 @@ internal class OnSessionProposalUseCase(
             println("kobe: on propose session: insert proposal success")
 
             pairingController.setRequestReceived(Core.Params.RequestReceived(request.topic.value))
-            jsonRpcInteractor.unsubscribe(request.topic,
-                onSuccess = {
-                    println("kobe: unsubscribe success")
-                },
-                onFailure = {
-                println("kobe: unsubscribe error: $it")
-            })
+//            jsonRpcInteractor.unsubscribe(request.topic,
+//                onSuccess = {
+//                    println("kobe: unsubscribe success")
+//                },
+//                onFailure = {
+//                println("kobe: unsubscribe error: $it")
+//            })
 
             val url = payloadParams.proposer.metadata.url
 
