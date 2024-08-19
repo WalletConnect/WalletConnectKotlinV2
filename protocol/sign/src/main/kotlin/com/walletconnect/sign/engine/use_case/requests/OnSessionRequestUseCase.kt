@@ -17,7 +17,7 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
-import com.walletconnect.android.verify.data.model.VerifyContext
+import com.walletconnect.android.verify.model.VerifyContext
 import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger

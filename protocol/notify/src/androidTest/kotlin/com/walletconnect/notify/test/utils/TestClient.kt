@@ -117,7 +117,7 @@ internal object TestClient {
             )
 
             // Necessary reinit of Relay, Pairing and PairingController
-            Relay.initialize { Timber.e(it) }
+            Relay.initialize(ConnectionType.MANUAL) { Timber.e(it) }
             Pairing.initialize()
             PairingController.initialize()
 

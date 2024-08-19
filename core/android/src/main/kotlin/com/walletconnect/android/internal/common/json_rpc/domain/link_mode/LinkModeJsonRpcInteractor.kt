@@ -15,6 +15,7 @@ import com.walletconnect.android.internal.common.model.TransportType
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.sync.ClientJsonRpc
+import com.walletconnect.android.internal.common.model.type.ClientParams
 import com.walletconnect.android.internal.common.model.type.JsonRpcClientSync
 import com.walletconnect.android.internal.common.model.type.JsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
@@ -90,7 +91,7 @@ class LinkModeJsonRpcInteractor(
     private suspend fun serializeRequest(clientJsonRpc: ClientJsonRpc, topic: String?, envelope: String) {
         if (jsonRpcHistory.setRequest(clientJsonRpc.id, Topic(topic ?: String.Empty), clientJsonRpc.method, envelope, TransportType.LINK_MODE)) {
             serializer.deserialize(clientJsonRpc.method, envelope)?.let {
-                _clientSyncJsonRpc.emit(WCRequest(Topic(topic ?: String.Empty), clientJsonRpc.id, clientJsonRpc.method, it, transportType = TransportType.LINK_MODE))
+                _clientSyncJsonRpc.emit(getWCRequest(topic, clientJsonRpc, it))
             }
         }
     }
@@ -114,6 +115,18 @@ class LinkModeJsonRpcInteractor(
             } ?: throw IllegalStateException("LinkMode: Cannot serialize error")
         }
     }
+
+    private fun getWCRequest(topic: String?, clientJsonRpc: ClientJsonRpc, params: ClientParams) = WCRequest(
+        Topic(topic ?: String.Empty),
+        clientJsonRpc.id,
+        clientJsonRpc.method,
+        params,
+        String.Empty,
+        0L,
+        String.Empty,
+        String.Empty,
+        transportType = TransportType.LINK_MODE
+    )
 }
 
 interface LinkModeJsonRpcInteractorInterface : JsonRpcInteractorInterface {

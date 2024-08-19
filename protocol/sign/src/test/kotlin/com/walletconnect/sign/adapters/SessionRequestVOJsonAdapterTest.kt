@@ -1,4 +1,4 @@
-package com.walletconnect.sign.core.adapters
+package com.walletconnect.sign.adapters
 
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -7,6 +7,8 @@ import com.walletconnect.sign.common.adapters.SessionRequestVOJsonAdapter
 import com.walletconnect.sign.common.model.vo.clientsync.session.SignRpc
 import com.walletconnect.sign.common.model.vo.clientsync.session.params.SignParams
 import com.walletconnect.sign.common.model.vo.clientsync.session.payload.SessionRequestVO
+import com.walletconnect.sign.util.iterateJsonArrays
+import com.walletconnect.sign.util.iterateJsonObjects
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertTrue
 import org.intellij.lang.annotations.Language
@@ -690,40 +692,5 @@ internal class SessionRequestVOJsonAdapterTest {
         assertEquals(expectedParamsJsonObj.length(), actualParamsJsonObj.length())
 
         iterateJsonObjects(expectedParamsJsonObj, actualParamsJsonObj)
-    }
-
-    private fun iterateJsonObjects(expJsonObject: JSONObject, actJsonObject: JSONObject) {
-        expJsonObject.keys().forEach { key ->
-            assert(actJsonObject.has(key))
-            val expCurrentItem = expJsonObject.get(key)
-            val actCurrentItem = actJsonObject.get(key)
-
-            when {
-                expCurrentItem is JSONObject && actCurrentItem is JSONObject -> {
-                    iterateJsonObjects(expCurrentItem, actCurrentItem)
-                }
-
-                expCurrentItem is JSONArray && actCurrentItem is JSONArray -> {
-                    iterateJsonArrays(expCurrentItem, actCurrentItem)
-                }
-
-                else -> assertEquals(expCurrentItem, actCurrentItem)
-            }
-        }
-    }
-
-    private fun iterateJsonArrays(expJsonArray: JSONArray, actJsonArray: JSONArray) {
-        assertEquals(expJsonArray.length(), actJsonArray.length())
-
-        (0 until expJsonArray.length()).forEach { index ->
-            val expCurrentIndexItem = expJsonArray.get(index)
-            val actCurrentIndexItem = actJsonArray[index]
-
-            when {
-                expCurrentIndexItem is JSONObject && actCurrentIndexItem is JSONObject -> iterateJsonObjects(expCurrentIndexItem, actCurrentIndexItem)
-                expCurrentIndexItem is JSONArray && actCurrentIndexItem is JSONArray -> iterateJsonArrays(expCurrentIndexItem, actCurrentIndexItem)
-                else -> assertEquals(expCurrentIndexItem, actCurrentIndexItem)
-            }
-        }
     }
 }

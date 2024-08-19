@@ -15,7 +15,7 @@ import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.signing.cacao.CacaoType
 import com.walletconnect.android.internal.common.signing.cacao.Issuer
 import com.walletconnect.android.internal.common.signing.cacao.toCAIP222Message
-import com.walletconnect.android.verify.data.model.VerifyContext
+import com.walletconnect.android.verify.model.VerifyContext
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.sign.common.exceptions.PeerError
