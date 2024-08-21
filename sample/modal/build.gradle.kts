@@ -25,6 +25,24 @@ android {
         buildConfigField("String", "BOM_VERSION", "\"${BOM_VERSION}\"")
     }
 
+    buildTypes {
+        getByName("release") {
+            manifestPlaceholders["pathPrefix"] = "/lab_release"
+            buildConfigField("String", "LAB_APP_LINK", "\"https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/lab_release\"")
+        }
+
+        getByName("internal") {
+            manifestPlaceholders["pathPrefix"] = "/lab_internal"
+            buildConfigField("String", "LAB_APP_LINK", "\"https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/lab_internal\"")
+
+        }
+
+        getByName("debug") {
+            manifestPlaceholders["pathPrefix"] = "/lab_debug"
+            buildConfigField("String", "LAB_APP_LINK", "\"https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/lab_debug\"")
+        }
+    }
+
     lint {
         abortOnError = true
         ignoreWarnings = true
