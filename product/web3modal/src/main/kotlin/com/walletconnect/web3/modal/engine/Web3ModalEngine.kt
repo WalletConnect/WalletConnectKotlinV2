@@ -290,6 +290,7 @@ internal class Web3ModalEngine(
                             signature = (response.result as Sign.Model.JsonRpcResponse.JsonRpcResult).result
                         )
                         siweRequestIdWithMessage = null
+                        println("kobe: response reault: $siweResponse")
                         delegate.onSIWEAuthenticationResponse(siweResponse)
                     } else if (response.result is Sign.Model.JsonRpcResponse.JsonRpcError) {
                         val siweResponse = Modal.Model.SIWEAuthenticateResponse.Error(
@@ -298,6 +299,7 @@ internal class Web3ModalEngine(
                             code = (response.result as Sign.Model.JsonRpcResponse.JsonRpcError).code
                         )
                         siweRequestIdWithMessage = null
+                        println("kobe: response error: $siweResponse")
                         delegate.onSIWEAuthenticationResponse(siweResponse)
                     }
                 } else {

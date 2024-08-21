@@ -2,6 +2,7 @@
 
 package com.walletconnect.web3.modal.ui.components.internal
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
@@ -46,6 +47,7 @@ fun Web3ModalComponent(
     )
 }
 
+@SuppressLint("RestrictedApi")
 @Composable
 internal fun Web3ModalComponent(
     modifier: Modifier = Modifier,
@@ -62,9 +64,13 @@ internal fun Web3ModalComponent(
             .wcEventModels
             .onEach { event ->
                 when (event) {
-                    is Modal.Model.SIWEAuthenticateResponse.Result, is Modal.Model.SessionAuthenticateResponse.Result -> closeModal()
+                    is Modal.Model.SIWEAuthenticateResponse.Result, is Modal.Model.SessionAuthenticateResponse.Result -> {
+                        println("kobe: close modal: ${navController.currentBackStack.value}")
+                        closeModal()
+                    }
                     is Modal.Model.ApprovedSession -> {
                         if (Web3Modal.authPayloadParams != null) {
+                            println("kobe: approved")
                             navController.navigate(Route.SIWE_FALLBACK.path)
                         } else {
                             closeModal()

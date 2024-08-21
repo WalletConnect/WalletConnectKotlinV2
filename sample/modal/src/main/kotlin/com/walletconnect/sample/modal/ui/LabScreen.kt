@@ -19,7 +19,6 @@ import com.walletconnect.sample.common.getEthSignTypedData
 import com.walletconnect.sample.common.getPersonalSignBody
 import com.walletconnect.sample.common.ui.commons.BlueButton
 import com.walletconnect.sample.modal.ModalSampleDelegate
-import com.walletconnect.sample.modal.common.openAlertDialog
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.client.models.request.Request
@@ -44,17 +43,20 @@ fun LabScreen(
 
     LaunchedEffect(Unit) {
         ModalSampleDelegate.wcEventModels.collect { event ->
-            when(event) {
+            when (event) {
                 is Modal.Model.SessionRequestResponse -> {
-                    when(event.result) {
+                    when (event.result) {
                         is Modal.Model.JsonRpcResponse.JsonRpcError -> {
                             val error = event.result as Modal.Model.JsonRpcResponse.JsonRpcError
-                            navController.openAlertDialog("Error Message: ${error.message}\n Error Code: ${error.code}")
+                            Toast.makeText(context, "Error Message: ${error.message}\n Error Code: ${error.code}", Toast.LENGTH_SHORT).show()
                         }
-                        is Modal.Model.JsonRpcResponse.JsonRpcResult -> navController.openAlertDialog((event.result as Modal.Model.JsonRpcResponse.JsonRpcResult).result)
+
+                        is Modal.Model.JsonRpcResponse.JsonRpcResult -> Toast.makeText(context, (event.result as Modal.Model.JsonRpcResponse.JsonRpcResult).result, Toast.LENGTH_SHORT).show()
                     }
                 }
-                is Modal.Model.Error -> { navController.openAlertDialog(event.throwable.localizedMessage ?:  "Something went wrong") }
+
+                is Modal.Model.Error -> Toast.makeText(context, event.throwable.localizedMessage ?: "Something went wrong", Toast.LENGTH_SHORT).show()
+
                 else -> Unit
             }
         }
