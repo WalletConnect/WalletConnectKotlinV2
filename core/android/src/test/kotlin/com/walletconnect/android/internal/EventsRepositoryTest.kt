@@ -48,7 +48,7 @@ class EventsRepositoryTest {
         val props = Props(event = "testEvent", type = "testType")
         every { eventQueries.insertOrAbort(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } just Runs
 
-        repository.insertOrAbort(props)
+        repository.insertOrAbortTelemetry(props)
 
         verify {
             eventQueries.insertOrAbort(
@@ -62,7 +62,7 @@ class EventsRepositoryTest {
         repository = EventsRepository(eventQueries, bundleId, TelemetryEnabled(false), testDispatcher)
         val props = Props(event = "testEvent", type = "testType")
 
-        repository.insertOrAbort(props)
+        repository.insertOrAbortTelemetry(props)
 
         verify(exactly = 0) {
             eventQueries.insertOrAbort(any(), any(), any(), any(), any(), any(), any(), any(), any(), any())
@@ -75,17 +75,17 @@ class EventsRepositoryTest {
         every { eventQueries.insertOrAbort(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } throws SQLiteException()
 
         assertFailsWith<SQLiteException> {
-            repository.insertOrAbort(props)
+            repository.insertOrAbortTelemetry(props)
         }
     }
 
     @Test
     fun `deleteAll should delete all events`() = runTest(testDispatcher) {
-        coEvery { eventQueries.deleteAll() } just Runs
+        coEvery { eventQueries.deleteAllTelemetry() } just Runs
 
-        repository.deleteAll()
+        repository.deleteAllTelemetry()
 
-        coVerify { eventQueries.deleteAll() }
+        coVerify { eventQueries.deleteAllTelemetry() }
     }
 
     @Test

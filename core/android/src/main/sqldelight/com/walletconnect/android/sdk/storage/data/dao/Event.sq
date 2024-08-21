@@ -18,7 +18,7 @@ insertOrAbort:
 INSERT OR ABORT INTO EventDao(event_id, bundle_id, timestamp,  event_name, type, topic, trace, correlation_id, client_id, direction)
 VALUES (?,?,?,?,?,?, ?, ?, ?, ?);
 
-getAllWithLimitAndOffset:
+getAllEventsWithLimitAndOffset:
 SELECT event_id, bundle_id, timestamp, event_name, type, topic, trace, correlation_id, client_id, direction
 FROM EventDao ed
 LIMIT ? OFFSET ?;
@@ -27,5 +27,6 @@ deleteByIds:
 DELETE FROM EventDao
 WHERE event_id IN ?;
 
-deleteAll:
-DELETE FROM EventDao;
+deleteAllTelemetry:
+DELETE FROM EventDao
+WHERE correlation_id IS NULL;

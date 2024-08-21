@@ -31,6 +31,7 @@ import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.dayInSeconds
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.pulse.domain.InsertEventUseCase
+import com.walletconnect.android.pulse.domain.InsertTelemetryEventUseCase
 import com.walletconnect.android.pulse.model.EventType
 import com.walletconnect.android.pulse.model.Trace
 import com.walletconnect.android.pulse.model.properties.Properties
@@ -59,6 +60,7 @@ internal class ApproveSessionAuthenticateUseCase(
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val selfAppMetaData: AppMetaData,
     private val sessionStorageRepository: SessionStorageRepository,
+    private val insertTelemetryEventUseCase: InsertTelemetryEventUseCase,
     private val insertEventUseCase: InsertEventUseCase,
     private val clientId: String,
     private val linkModeJsonRpcInteractor: LinkModeJsonRpcInteractorInterface
@@ -69,7 +71,7 @@ internal class ApproveSessionAuthenticateUseCase(
         try {
             val jsonRpcHistoryEntry = getPendingSessionAuthenticateRequest(id)
             if (jsonRpcHistoryEntry == null) {
-                insertEventUseCase(Props(type = EventType.Error.MISSING_SESSION_AUTH_REQUEST, properties = Properties(trace = trace)))
+                insertTelemetryEventUseCase(Props(type = EventType.Error.MISSING_SESSION_AUTH_REQUEST, properties = Properties(trace = trace)))
                     .also { logger.error(MissingSessionAuthenticateRequest().message) }
                 onFailure(MissingSessionAuthenticateRequest())
                 return@supervisorScope
@@ -77,7 +79,7 @@ internal class ApproveSessionAuthenticateUseCase(
 
             jsonRpcHistoryEntry.expiry?.let {
                 if (it.isExpired()) {
-                    insertEventUseCase(Props(type = EventType.Error.SESSION_AUTH_REQUEST_EXPIRED, properties = Properties(trace = trace)))
+                    insertTelemetryEventUseCase(Props(type = EventType.Error.SESSION_AUTH_REQUEST_EXPIRED, properties = Properties(trace = trace)))
                         .also { logger.error("Session Authenticate Request Expired: ${jsonRpcHistoryEntry.topic}, id: ${jsonRpcHistoryEntry.id}") }
                     throw RequestExpiredException("This request has expired, id: ${jsonRpcHistoryEntry.id}")
                 }
@@ -86,12 +88,12 @@ internal class ApproveSessionAuthenticateUseCase(
             val sessionAuthenticateParams: SignParams.SessionAuthenticateParams = jsonRpcHistoryEntry.params
             val chains = cacaos.first().payload.resources.getChains().ifEmpty { sessionAuthenticateParams.authPayload.chains }
             if (!chains.all { chain -> CoreValidator.isChainIdCAIP2Compliant(chain) }) {
-                insertEventUseCase(Props(type = EventType.Error.CHAINS_CAIP2_COMPLIANT_FAILURE, properties = Properties(trace = trace)))
+                insertTelemetryEventUseCase(Props(type = EventType.Error.CHAINS_CAIP2_COMPLIANT_FAILURE, properties = Properties(trace = trace)))
                 throw Exception("Chains are not CAIP-2 compliant")
             }
             trace.add(Trace.SessionAuthenticate.CHAINS_CAIP2_COMPLIANT)
             if (!chains.all { chain -> SignValidator.getNamespaceKeyFromChainId(chain) == "eip155" }) {
-                insertEventUseCase(Props(type = EventType.Error.CHAINS_EVM_COMPLIANT_FAILURE, properties = Properties(trace = trace)))
+                insertTelemetryEventUseCase(Props(type = EventType.Error.CHAINS_EVM_COMPLIANT_FAILURE, properties = Properties(trace = trace)))
                 throw Exception("Only eip155 (EVM) is supported")
             }
             trace.add(Trace.SessionAuthenticate.CHAINS_EVM_COMPLIANT)
@@ -105,7 +107,7 @@ internal class ApproveSessionAuthenticateUseCase(
             val irnParams = IrnParams(Tags.SESSION_AUTHENTICATE_RESPONSE_APPROVE, Ttl(dayInSeconds))
 
             if (cacaos.find { cacao -> !cacaoVerifier.verify(cacao) } != null) {
-                insertEventUseCase(Props(type = EventType.Error.INVALID_CACAO, properties = Properties(trace = trace, topic = sessionTopic.value)))
+                insertTelemetryEventUseCase(Props(type = EventType.Error.INVALID_CACAO, properties = Properties(trace = trace, topic = sessionTopic.value)))
                     .also { logger.error("Invalid Cacao for Session Authenticate") }
                 return@supervisorScope onFailure(Throwable("Signature verification failed Session Authenticate, please try again"))
             }
@@ -154,7 +156,7 @@ internal class ApproveSessionAuthenticateUseCase(
                 },
                 onFailure = { error ->
                     scope.launch {
-                        supervisorScope { insertEventUseCase(Props(type = EventType.Error.SUBSCRIBE_AUTH_SESSION_TOPIC_FAILURE, properties = Properties(trace = trace, topic = sessionTopic.value))) }
+                        supervisorScope { insertTelemetryEventUseCase(Props(type = EventType.Error.SUBSCRIBE_AUTH_SESSION_TOPIC_FAILURE, properties = Properties(trace = trace, topic = sessionTopic.value))) }
                     }.also { logger.log("Subscribing Session Authenticate error on topic: $responseTopic, $error") }
                     onFailure(error)
                 }
@@ -192,7 +194,7 @@ internal class ApproveSessionAuthenticateUseCase(
                         sessionStorageRepository.deleteSession(sessionTopic)
                         scope.launch {
                             supervisorScope {
-                                insertEventUseCase(Props(type = EventType.Error.AUTHENTICATED_SESSION_APPROVE_PUBLISH_FAILURE, properties = Properties(trace = trace, topic = responseTopic.value)))
+                                insertTelemetryEventUseCase(Props(type = EventType.Error.AUTHENTICATED_SESSION_APPROVE_PUBLISH_FAILURE, properties = Properties(trace = trace, topic = responseTopic.value)))
                             }
                         }.also { logger.error("Error Responding Session Authenticate on topic: $responseTopic, error: $error") }
                         onFailure(error)
@@ -201,8 +203,8 @@ internal class ApproveSessionAuthenticateUseCase(
             }
         } catch (e: Exception) {
             logger.error("Error Responding Session Authenticate, error: $e")
-            if (e is NoRelayConnectionException) insertEventUseCase(Props(type = EventType.Error.NO_WSS_CONNECTION, properties = Properties(trace = trace)))
-            if (e is NoInternetConnectionException) insertEventUseCase(Props(type = EventType.Error.NO_INTERNET_CONNECTION, properties = Properties(trace = trace)))
+            if (e is NoRelayConnectionException) insertTelemetryEventUseCase(Props(type = EventType.Error.NO_WSS_CONNECTION, properties = Properties(trace = trace)))
+            if (e is NoInternetConnectionException) insertTelemetryEventUseCase(Props(type = EventType.Error.NO_INTERNET_CONNECTION, properties = Properties(trace = trace)))
             onFailure(e)
         }
     }

@@ -9,7 +9,7 @@ import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.pairing.engine.domain.PairingEngine
 import com.walletconnect.android.pairing.engine.model.EngineDO
 import com.walletconnect.android.pairing.model.mapper.toCore
-import com.walletconnect.android.pulse.domain.InsertEventUseCase
+import com.walletconnect.android.pulse.domain.InsertTelemetryEventUseCase
 import com.walletconnect.android.pulse.model.EventType
 import com.walletconnect.android.pulse.model.properties.Props
 import com.walletconnect.android.relay.RelayConnectionInterface
@@ -26,7 +26,7 @@ internal class PairingProtocol(private val koinApp: KoinApplication = wcKoinApp)
     private lateinit var pairingEngine: PairingEngine
     private val logger: Logger by lazy { koinApp.koin.get() }
     private val relayClient: RelayConnectionInterface by lazy { koinApp.koin.get() }
-    private val insertEventUseCase: InsertEventUseCase by lazy { koinApp.koin.get() }
+    private val insertEventUseCase: InsertTelemetryEventUseCase by lazy { koinApp.koin.get() }
 
     override fun initialize() {
         pairingEngine = koinApp.koin.get()

@@ -14,7 +14,7 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.dayInSeconds
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
-import com.walletconnect.android.pulse.domain.InsertEventUseCase
+import com.walletconnect.android.pulse.domain.InsertTelemetryEventUseCase
 import com.walletconnect.android.pulse.model.EventType
 import com.walletconnect.android.pulse.model.properties.Properties
 import com.walletconnect.android.pulse.model.properties.Props
@@ -35,7 +35,7 @@ internal class OnSessionAuthenticateUseCase(
     private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val resolveAttestationIdUseCase: ResolveAttestationIdUseCase,
     private val pairingController: PairingControllerInterface,
-    private val insertEventUseCase: InsertEventUseCase,
+    private val insertEventUseCase: InsertTelemetryEventUseCase,
     private val logger: Logger
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()

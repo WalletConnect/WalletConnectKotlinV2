@@ -1,7 +1,7 @@
 package com.walletconnect.android.internal
 
 import com.walletconnect.android.internal.common.storage.events.EventsRepository
-import com.walletconnect.android.pulse.domain.InsertEventUseCase
+import com.walletconnect.android.pulse.domain.InsertTelemetryEventUseCase
 import com.walletconnect.android.pulse.model.properties.Props
 import com.walletconnect.foundation.util.Logger
 import io.mockk.Runs
@@ -22,11 +22,11 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
-class InsertEventUseCaseTest {
+class InsertTelemetryEventUseCaseTest {
 
     private val eventsRepository: EventsRepository = mockk()
     private val logger: Logger = mockk()
-    private val useCase = InsertEventUseCase(eventsRepository, logger)
+    private val useCase = InsertTelemetryEventUseCase(eventsRepository, logger)
     private val testDispatcher = StandardTestDispatcher()
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -45,11 +45,11 @@ class InsertEventUseCaseTest {
     fun `invoke should call insertOrAbort on eventsRepository with given props`() = runTest(testDispatcher) {
         val props = Props(type = "test")
 
-        coEvery { eventsRepository.insertOrAbort(props) } just Runs
+        coEvery { eventsRepository.insertOrAbortTelemetry(props) } just Runs
 
         useCase(props)
 
-        coVerify { eventsRepository.insertOrAbort(props) }
+        coVerify { eventsRepository.insertOrAbortTelemetry(props) }
         confirmVerified(eventsRepository)
     }
     @Test
@@ -57,7 +57,7 @@ class InsertEventUseCaseTest {
         val props = Props(type = "test")
         val exception = Exception("Test exception")
 
-        coEvery { eventsRepository.insertOrAbort(props) } throws exception
+        coEvery { eventsRepository.insertOrAbortTelemetry(props) } throws exception
         every { logger.error("Inserting event test error: java.lang.Exception: Test exception") } just Runs
 
         useCase(props)

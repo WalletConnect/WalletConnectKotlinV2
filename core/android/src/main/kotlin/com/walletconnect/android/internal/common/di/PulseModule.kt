@@ -3,7 +3,7 @@ package com.walletconnect.android.internal.common.di
 import com.squareup.moshi.Moshi
 import com.walletconnect.android.internal.common.model.TelemetryEnabled
 import com.walletconnect.android.pulse.data.PulseService
-import com.walletconnect.android.pulse.domain.InsertEventUseCase
+import com.walletconnect.android.pulse.domain.InsertTelemetryEventUseCase
 import com.walletconnect.android.pulse.domain.SendBatchEventUseCase
 import com.walletconnect.android.pulse.domain.SendEventInterface
 import com.walletconnect.android.pulse.domain.SendEventUseCase
@@ -46,7 +46,7 @@ fun pulseModule(bundleId: String) = module {
     }
 
     single {
-        InsertEventUseCase(
+        InsertTelemetryEventUseCase(
             logger = get(named(AndroidCommonDITags.LOGGER)),
             eventsRepository = get(),
         )
