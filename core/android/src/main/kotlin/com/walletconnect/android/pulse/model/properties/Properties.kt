@@ -25,4 +25,6 @@ data class Properties(
     val correlationId: Long? = null,
     @Json(name = "client_id")
     val clientId: String? = null,
+    @Json(name = "direction")
+    val direction: String? = null,
 )
