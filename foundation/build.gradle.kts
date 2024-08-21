@@ -39,7 +39,6 @@ dependencies {
     ksp(libs.moshi.ksp)
     api(libs.bouncyCastle)
     api(libs.mulitbase)
-    implementation(libs.wsRestJava)
 
     testImplementation(libs.jerseyCommon)
     testImplementation(libs.coroutines.test)
