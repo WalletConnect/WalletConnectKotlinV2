@@ -76,6 +76,6 @@ private val RNSampleWallet = Wallet(
     mobileLink = "rn-web3wallet://",
     playStore = null,
     webAppLink = null,
-    linkMode = "https://lab.web3modal.com/walletkit_rn",
+    linkMode = "https://lab.web3modal.com/rn_walletkit",
     true
 )
