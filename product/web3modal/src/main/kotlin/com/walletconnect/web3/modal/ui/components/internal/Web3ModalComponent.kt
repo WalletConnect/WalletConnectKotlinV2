@@ -64,13 +64,9 @@ internal fun Web3ModalComponent(
             .wcEventModels
             .onEach { event ->
                 when (event) {
-                    is Modal.Model.SIWEAuthenticateResponse.Result, is Modal.Model.SessionAuthenticateResponse.Result -> {
-                        println("kobe: close modal: ${navController.currentBackStack.value}")
-                        closeModal()
-                    }
+                    is Modal.Model.SIWEAuthenticateResponse.Result, is Modal.Model.SessionAuthenticateResponse.Result -> closeModal()
                     is Modal.Model.ApprovedSession -> {
                         if (Web3Modal.authPayloadParams != null) {
-                            println("kobe: approved")
                             navController.navigate(Route.SIWE_FALLBACK.path)
                         } else {
                             closeModal()
