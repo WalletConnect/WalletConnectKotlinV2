@@ -1,6 +1,5 @@
 package com.walletconnect.auth.use_case.calls
 
-import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.Invalid
@@ -78,7 +77,6 @@ internal class RespondAuthRequestUseCase(
                 logger.log("Success Responded on topic: $responseTopic")
                 scope.launch {
                     supervisorScope {
-                        pairingController.activate(Core.Params.Activate(jsonRpcHistoryEntry.topic.value))
                         verifyContextStorageRepository.delete(respond.id)
                     }
                 }

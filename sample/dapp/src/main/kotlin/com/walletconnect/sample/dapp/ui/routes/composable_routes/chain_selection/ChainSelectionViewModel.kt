@@ -41,9 +41,6 @@ class ChainSelectionViewModel : ViewModel() {
     val isAnyChainSelected: Boolean
         get() = uiState.value.any { it.isSelected }
 
-    val isAnySettledParingExist: Boolean
-        get() = CoreClient.Pairing.getPairings().isNotEmpty()
-
     val walletEvents = DappDelegate.wcEventModels.map { walletEvent: Modal.Model? ->
         when (walletEvent) {
             is Modal.Model.ApprovedSession -> DappSampleEvents.SessionApproved
@@ -57,13 +54,6 @@ class ChainSelectionViewModel : ViewModel() {
             }
 
             is Modal.Model.ExpiredProposal -> DappSampleEvents.ProposalExpired
-            else -> DappSampleEvents.NoAction
-        }
-    }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())
-
-    val coreEvents = DappDelegate.coreEvents.map { walletEvent: Core.Model ->
-        when (walletEvent) {
-            is Core.Model.ExpiredPairing -> DappSampleEvents.PairingExpired(walletEvent.pairing)
             else -> DappSampleEvents.NoAction
         }
     }.shareIn(viewModelScope, SharingStarted.WhileSubscribed())

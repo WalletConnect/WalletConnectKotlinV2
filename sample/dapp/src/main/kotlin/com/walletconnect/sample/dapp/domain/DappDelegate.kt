@@ -123,13 +123,11 @@ object DappDelegate : WalletConnectModal.ModalDelegate, CoreClient.CoreDelegate 
     }
 
     override fun onPairingDelete(deletedPairing: Core.Model.DeletedPairing) {
-        Timber.d(tag(this), "Pairing deleted: ${deletedPairing.topic}")
+        //Deprecated - pairings are automatically deleted
     }
 
     override fun onPairingExpired(expiredPairing: Core.Model.ExpiredPairing) {
-        scope.launch {
-            _coreEvents.emit(expiredPairing)
-        }
+        //Deprecated - pairings are automatically expired
     }
 
     override fun onPairingState(pairingState: Core.Model.PairingState) {

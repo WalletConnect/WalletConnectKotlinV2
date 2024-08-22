@@ -11,6 +11,7 @@ import junit.framework.TestCase
 import org.json.JSONArray
 import org.junit.Test
 import kotlin.reflect.jvm.jvmName
+import kotlin.test.assertEquals
 
 class SessionEventVOJsonAdapterTest {
     private val moshi: Moshi = Moshi.Builder()
@@ -59,5 +60,11 @@ class SessionEventVOJsonAdapterTest {
         TestCase.assertEquals(expectedParamsJsonArray.length(), actualParamsJsonArray.length())
 
         iterateJsonArrays(expectedParamsJsonArray, actualParamsJsonArray)
+    }
+
+    @Test
+    fun testParsingNumber() {
+        data = """1""".trimIndent()
+        assertEquals(data, serializedData)
     }
 }

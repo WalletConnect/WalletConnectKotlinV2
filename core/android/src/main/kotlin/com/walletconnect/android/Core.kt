@@ -1,6 +1,7 @@
 package com.walletconnect.android
 
 import com.walletconnect.android.internal.common.model.AppMetaDataType
+import com.walletconnect.android.internal.common.model.Expiry
 
 object Core {
     sealed interface Listeners {

@@ -118,15 +118,11 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
     }
 
     override fun onPairingDelete(deletedPairing: Core.Model.DeletedPairing) {
-        scope.launch {
-            _coreEvents.emit(deletedPairing)
-        }
+       //Deprecated - pairings are automatically deleted
     }
 
     override fun onPairingExpired(expiredPairing: Core.Model.ExpiredPairing) {
-        scope.launch {
-            _coreEvents.emit(expiredPairing)
-        }
+        //Deprecated - pairings are automatically expired
     }
 
     override fun onPairingState(pairingState: Core.Model.PairingState) {

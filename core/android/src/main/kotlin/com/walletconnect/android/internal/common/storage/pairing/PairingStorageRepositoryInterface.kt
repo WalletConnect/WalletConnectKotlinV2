@@ -14,13 +14,7 @@ interface PairingStorageRepositoryInterface {
 
     suspend fun getListOfPairings(): List<Pairing>
 
-    suspend fun getListOfInactivePairings(): List<Pairing>
-
-    suspend fun getListOfActivePairings(): List<Pairing>
-
-    suspend fun getListOfInactivePairingsWithoutRequestReceived(): List<Pairing>
-
-    fun activatePairing(topic: Topic)
+    suspend fun getListOfPairingsWithoutRequestReceived(): List<Pairing>
 
     fun setRequestReceived(topic: Topic)
 

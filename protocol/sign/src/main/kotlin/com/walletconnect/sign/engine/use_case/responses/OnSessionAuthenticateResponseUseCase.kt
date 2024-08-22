@@ -4,7 +4,6 @@ import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.model.AppMetaDataType
-import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.SymmetricKey
@@ -19,7 +18,6 @@ import com.walletconnect.android.internal.common.signing.cacao.Issuer
 import com.walletconnect.android.internal.common.signing.cacao.getChains
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.CoreValidator
-import com.walletconnect.android.internal.utils.monthInSeconds
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.utils.toClient
@@ -86,7 +84,7 @@ internal class OnSessionAuthenticateResponseUseCase(
 
                 is JsonRpcResponse.JsonRpcResult -> {
                     if (jsonRpcHistoryEntry.transportType == TransportType.RELAY) {
-                        updatePairing(pairingTopic, params)
+                        pairingController.updateMetadata(Core.Params.UpdateMetadata(pairingTopic.value, params.requester.metadata.toClient(), AppMetaDataType.PEER))
                     }
 
                     val approveResponseParams = (response.result as CoreSignParams.SessionAuthenticateApproveParams)
@@ -155,10 +153,4 @@ internal class OnSessionAuthenticateResponseUseCase(
     }
 
     private fun areEVMAndCAIP2Chains(chains: List<String>) = chains.all { chain -> CoreValidator.isChainIdCAIP2Compliant(chain) && SignValidator.getNamespaceKeyFromChainId(chain) == "eip155" }
-
-    private fun updatePairing(topic: Topic, requestParams: SignParams.SessionAuthenticateParams) = with(pairingController) {
-        updateExpiry(Core.Params.UpdateExpiry(topic.value, Expiry(monthInSeconds)))
-        updateMetadata(Core.Params.UpdateMetadata(topic.value, requestParams.requester.metadata.toClient(), AppMetaDataType.PEER))
-        activate(Core.Params.Activate(topic.value))
-    }
 }

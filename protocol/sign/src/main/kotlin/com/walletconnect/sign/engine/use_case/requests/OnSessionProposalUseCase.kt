@@ -3,7 +3,6 @@ package com.walletconnect.sign.engine.use_case.requests
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.exception.Uncategorized
-import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.Tags
@@ -19,7 +18,6 @@ import com.walletconnect.android.pulse.domain.InsertEventUseCase
 import com.walletconnect.android.pulse.model.EventType
 import com.walletconnect.android.pulse.model.properties.Properties
 import com.walletconnect.android.pulse.model.properties.Props
-import com.walletconnect.android.utils.toClient
 import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
@@ -80,10 +78,8 @@ internal class OnSessionProposalUseCase(
                     return@supervisorScope
                 }
             }
-
             proposalStorageRepository.insertProposal(payloadParams.toVO(request.topic, request.id))
             pairingController.setRequestReceived(Core.Params.RequestReceived(request.topic.value))
-            pairingController.updateMetadata(Core.Params.UpdateMetadata(request.topic.value, payloadParams.proposer.metadata.toClient(), AppMetaDataType.PEER))
             val url = payloadParams.proposer.metadata.url
 
             logger.log("Resolving session proposal attestation: ${System.currentTimeMillis()}")
