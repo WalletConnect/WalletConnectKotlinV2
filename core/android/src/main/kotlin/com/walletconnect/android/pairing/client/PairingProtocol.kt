@@ -37,6 +37,8 @@ internal class PairingProtocol(private val koinApp: KoinApplication = wcKoinApp)
 
         pairingEngine.engineEvent.onEach { event ->
             when (event) {
+                is EngineDO.PairingDelete -> delegate.onPairingDelete(event.toCore())
+                is EngineDO.PairingExpire -> delegate.onPairingExpired(Core.Model.ExpiredPairing(event.pairing.toCore()))
                 is EngineDO.PairingState -> delegate.onPairingState(Core.Model.PairingState(event.isPairingState))
             }
         }.launchIn(scope)
@@ -94,22 +96,42 @@ internal class PairingProtocol(private val koinApp: KoinApplication = wcKoinApp)
         }
     }
 
-    @Deprecated(message = "Disconnect method has been deprecated. Pairing will disconnect automatically")
+    @Deprecated(message = "Disconnect method has been deprecated. It will be removed soon. Pairing will disconnect automatically internally.")
     @Throws(IllegalStateException::class)
     override fun disconnect(disconnect: Core.Params.Disconnect, onError: (Core.Model.Error) -> Unit) {
-        //Disconnect method has been deprecated. Pairing will disconnect automatically
+        checkEngineInitialization()
+
+        try {
+            pairingEngine.disconnect(disconnect.topic) { error -> onError(Core.Model.Error(error)) }
+        } catch (e: Exception) {
+            onError(Core.Model.Error(e))
+        }
     }
 
-    @Deprecated(message = "Disconnect method has been deprecated. Pairing will disconnect automatically")
+    @Deprecated(message = "Disconnect method has been deprecated. It will be removed soon. Pairing will disconnect automatically internally.")
     @Throws(IllegalStateException::class)
     override fun disconnect(topic: String, onError: (Core.Model.Error) -> Unit) {
-        //Disconnect method has been deprecated. Pairing will disconnect automatically
+        checkEngineInitialization()
+
+        try {
+            pairingEngine.disconnect(topic) { error -> onError(Core.Model.Error(error)) }
+        } catch (e: Exception) {
+            onError(Core.Model.Error(e))
+        }
     }
 
-    @Deprecated(message = "Ping method has been deprecated. Please use Ping from Web3Wallet or Sing clients")
+    @Deprecated(message = "Ping method has been deprecated. It will be removed soon. Please use Ping from Web3Wallet or Sing clients.")
     @Throws(IllegalStateException::class)
     override fun ping(ping: Core.Params.Ping, pairingPing: Core.Listeners.PairingPing?) {
-        //Ping method has been deprecated. Please use Ping from Web3Wallet or Sing clients
+        checkEngineInitialization()
+
+        try {
+            pairingEngine.ping(ping.topic,
+                onSuccess = { topic -> pairingPing?.onSuccess(Core.Model.Ping.Success(topic)) },
+                onFailure = { error -> pairingPing?.onError(Core.Model.Ping.Error(error)) })
+        } catch (e: Exception) {
+            pairingPing?.onError(Core.Model.Ping.Error(e))
+        }
     }
 
     @Throws(IllegalStateException::class)

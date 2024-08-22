@@ -24,13 +24,13 @@ interface PairingInterface {
         onError: (Core.Model.Error) -> Unit = {},
     )
 
-    @Deprecated(message = "Disconnect method has been deprecated")
+    @Deprecated(message = "Disconnect method has been deprecated. It will be removed soon. Pairing will disconnect automatically internally.")
     fun disconnect(topic: String, onError: (Core.Model.Error) -> Unit = {})
 
-    @Deprecated(message = "Disconnect method has been deprecated")
+    @Deprecated(message = "Disconnect method has been deprecated. It will be removed soon. Pairing will disconnect automatically internally.")
     fun disconnect(disconnect: Core.Params.Disconnect, onError: (Core.Model.Error) -> Unit = {})
 
-    @Deprecated(message = "Ping method has been deprecated")
+    @Deprecated(message = "Ping method has been deprecated. It will be removed soon. Please use Ping from Web3Wallet or Sing clients.")
     fun ping(ping: Core.Params.Ping, pairingPing: Core.Listeners.PairingPing? = null)
 
     /**
@@ -42,15 +42,11 @@ interface PairingInterface {
     fun validatePairingUri(uri: String): Boolean
 
     interface Delegate {
-        @Deprecated(message = "onPairingDelete callback has been deprecated")
-        fun onPairingDelete(deletedPairing: Core.Model.DeletedPairing) {
-            //onPairingDelete callback has been deprecated
-        }
+        @Deprecated(message = "onPairingDelete callback has been deprecated. It will be removed soon. Pairing will disconnect automatically internally.")
+        fun onPairingDelete(deletedPairing: Core.Model.DeletedPairing) {}
 
-        @Deprecated(message = "onPairingExpired callback has been deprecated")
-        fun onPairingExpired(expiredPairing: Core.Model.ExpiredPairing) {
-            //onPairingExpired callback has been deprecated
-        }
+        @Deprecated(message = "onPairingExpired callback has been deprecated. It will be removed soon. Pairing will disconnect automatically internally.")
+        fun onPairingExpired(expiredPairing: Core.Model.ExpiredPairing) {}
 
         fun onPairingState(pairingState: Core.Model.PairingState) {}
     }

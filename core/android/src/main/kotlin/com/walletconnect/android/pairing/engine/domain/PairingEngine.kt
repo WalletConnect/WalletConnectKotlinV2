@@ -2,14 +2,18 @@ package com.walletconnect.android.pairing.engine.domain
 
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.MALFORMED_PAIRING_URI_MESSAGE
+import com.walletconnect.android.internal.NO_SEQUENCE_FOR_TOPIC_MESSAGE
 import com.walletconnect.android.internal.Validator
+import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
+import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
 import com.walletconnect.android.internal.common.exception.ExpiredPairingException
 import com.walletconnect.android.internal.common.exception.ExpiredPairingURIException
 import com.walletconnect.android.internal.common.exception.Invalid
 import com.walletconnect.android.internal.common.exception.MalformedWalletConnectUri
 import com.walletconnect.android.internal.common.exception.NoInternetConnectionException
 import com.walletconnect.android.internal.common.exception.NoRelayConnectionException
+import com.walletconnect.android.internal.common.exception.Uncategorized
 import com.walletconnect.android.internal.common.model.AppMetaData
 import com.walletconnect.android.internal.common.model.AppMetaDataType
 import com.walletconnect.android.internal.common.model.Expiry
@@ -32,6 +36,7 @@ import com.walletconnect.android.internal.utils.thirtySeconds
 import com.walletconnect.android.pairing.engine.model.EngineDO
 import com.walletconnect.android.pairing.model.PairingJsonRpcMethod
 import com.walletconnect.android.pairing.model.PairingParams
+import com.walletconnect.android.pairing.model.PairingRpc
 import com.walletconnect.android.pairing.model.mapper.toCore
 import com.walletconnect.android.pairing.model.pairingExpiry
 import com.walletconnect.android.pulse.domain.InsertEventUseCase
@@ -48,6 +53,8 @@ import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.randomBytes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -66,6 +73,8 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.withTimeout
+import java.util.concurrent.TimeUnit
 
 //Split into PairingProtocolEngine and PairingControllerEngine
 internal class PairingEngine(
@@ -211,6 +220,49 @@ internal class PairingEngine(
         }
     }
 
+    @Deprecated(message = "Disconnect method has been deprecated. It will be removed soon. Pairing will disconnect automatically internally.")
+    fun disconnect(topic: String, onFailure: (Throwable) -> Unit) {
+        if (!isPairingValid(topic)) {
+            return onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE$topic"))
+        }
+
+        val pairing = pairingRepository.getPairingOrNullByTopic(Topic(topic))
+        val deleteParams = PairingParams.DeleteParams(6000, "User disconnected")
+        val pairingDelete = PairingRpc.PairingDelete(params = deleteParams)
+        val irnParams = IrnParams(Tags.PAIRING_DELETE, Ttl(dayInSeconds))
+        logger.log("Sending Pairing disconnect")
+        jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, pairingDelete,
+            onSuccess = {
+                scope.launch {
+                    supervisorScope {
+                        logger.log("Pairing disconnect sent successfully")
+                        pairingRepository.deletePairing(Topic(topic))
+                        metadataRepository.deleteMetaData(Topic(topic))
+                        jsonRpcInteractor.unsubscribe(Topic(topic))
+                    }
+                }
+            },
+            onFailure = { error ->
+                logger.error("Sending session disconnect error: $error")
+                onFailure(error)
+            }
+        )
+    }
+
+    @Deprecated(message = "Ping method has been deprecated. It will be removed soon.")
+    fun ping(topic: String, onSuccess: (String) -> Unit, onFailure: (Throwable) -> Unit) {
+        if (isPairingValid(topic)) {
+            val pingPayload = PairingRpc.PairingPing(params = PairingParams.PingParams())
+            val irnParams = IrnParams(Tags.PAIRING_PING, Ttl(thirtySeconds))
+
+            jsonRpcInteractor.publishJsonRpcRequest(Topic(topic), irnParams, pingPayload,
+                onSuccess = { onPingSuccess(pingPayload, onSuccess, topic, onFailure) },
+                onFailure = { error -> onFailure(error) })
+        } else {
+            onFailure(CannotFindSequenceForTopic("$NO_SEQUENCE_FOR_TOPIC_MESSAGE${topic}"))
+        }
+    }
+
     fun getPairings(): List<Pairing> = runBlocking { pairingRepository.getListOfPairings().filter { pairing -> pairing.isNotExpired() } }
 
     fun register(vararg method: String) {
@@ -308,15 +360,70 @@ internal class PairingEngine(
         jsonRpcInteractor.clientSyncJsonRpc
             .filter { request -> request.params is PairingParams }
             .onEach { request ->
-                when (request.params) {
+                when (val requestParams = request.params) {
+                    is PairingParams.DeleteParams -> onPairingDelete(request, requestParams)
                     is PairingParams.PingParams -> onPing(request)
                 }
             }.launchIn(scope)
 
-    @Deprecated("onPing method has been deprecated")
+    @Deprecated(message = "This method has been deprecated. It will be removed soon.")
+    private suspend fun onPairingDelete(request: WCRequest, params: PairingParams.DeleteParams) {
+        val irnParams = IrnParams(Tags.PAIRING_DELETE_RESPONSE, Ttl(dayInSeconds))
+        try {
+            val pairing = pairingRepository.getPairingOrNullByTopic(request.topic)
+            if (!isPairingValid(request.topic.value)) {
+                jsonRpcInteractor.respondWithError(request, Uncategorized.NoMatchingTopic("Pairing", request.topic.value), irnParams)
+                return
+            }
+
+            crypto.removeKeys(request.topic.value)
+            jsonRpcInteractor.unsubscribe(request.topic)
+            pairingRepository.deletePairing(request.topic)
+            metadataRepository.deleteMetaData(request.topic)
+
+            _engineEvent.emit(EngineDO.PairingDelete(request.topic.value, params.message))
+        } catch (e: Exception) {
+            jsonRpcInteractor.respondWithError(request, Uncategorized.GenericError("Cannot delete pairing: ${e.message}"), irnParams)
+            return
+        }
+    }
+
+    @Deprecated(message = "Ping method has been deprecated. It will be removed soon.")
     private fun onPing(request: WCRequest) {
         val irnParams = IrnParams(Tags.PAIRING_PING, Ttl(thirtySeconds))
         jsonRpcInteractor.respondWithSuccess(request, irnParams)
+    }
+
+    @Deprecated(message = "Ping method has been deprecated. It will be removed soon.")
+    private fun onPingSuccess(
+        pingPayload: PairingRpc.PairingPing,
+        onSuccess: (String) -> Unit,
+        topic: String,
+        onFailure: (Throwable) -> Unit
+    ) {
+        scope.launch {
+            try {
+                withTimeout(TimeUnit.SECONDS.toMillis(thirtySeconds)) {
+                    jsonRpcInteractor.peerResponse
+                        .filter { response -> response.response.id == pingPayload.id }
+                        .collect { response ->
+                            when (val result = response.response) {
+                                is JsonRpcResponse.JsonRpcResult -> {
+                                    cancel()
+                                    onSuccess(topic)
+                                }
+
+                                is JsonRpcResponse.JsonRpcError -> {
+                                    cancel()
+                                    onFailure(Throwable(result.errorMessage))
+                                }
+                            }
+                        }
+                }
+            } catch (e: TimeoutCancellationException) {
+                onFailure(e)
+            }
+        }
     }
 
     private fun generateTopic(): Topic = Topic(randomBytes(32).bytesToHex())
@@ -345,6 +452,10 @@ internal class PairingEngine(
             }
         }
     }
+
+    @Deprecated(message = "This method has been deprecated. It will be removed soon.")
+    private fun isPairingValid(topic: String): Boolean =
+        pairingRepository.getPairingOrNullByTopic(Topic(topic))?.let { pairing -> return@let pairing.isNotExpired() } ?: false
 
     companion object {
         private const val WATCHER_INTERVAL = 30000L //30s

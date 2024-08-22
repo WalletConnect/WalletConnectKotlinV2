@@ -10,6 +10,12 @@ import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.utils.Empty
 
 @JvmSynthetic
+@Deprecated("This mapper has been deprecated. It will be removed soon.")
+internal fun EngineDO.PairingDelete.toCore(): Core.Model.DeletedPairing =
+    Core.Model.DeletedPairing(topic, reason)
+
+@JvmSynthetic
+@Deprecated("This mapper has been deprecated. It will be removed soon.")
 internal fun Pairing.toCore(): Core.Model.Pairing =
     Core.Model.Pairing(
         topic.value,
