@@ -46,7 +46,7 @@
                 <data
                     android:host="web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app"
                     android:scheme="https"
-                    android:pathPrefix="/dapp"/>
+                    android:pathPrefix="${pathPrefix}"/>
             </intent-filter>
 
             <intent-filter>

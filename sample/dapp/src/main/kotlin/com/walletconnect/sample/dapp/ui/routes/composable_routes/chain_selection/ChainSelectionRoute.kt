@@ -136,7 +136,7 @@ fun ChainSelectionRoute(navController: NavController) {
                     appLink,
                     onAuthenticateSuccess = { uri ->
                         if (uri != null) {
-                            if (appLink.contains("walletkit_rn")) {
+                            if (appLink.contains("rn_walletkit")) {
                                 try {
                                     val intent = Intent(Intent.ACTION_VIEW).apply {
                                         val encoded = URLEncoder.encode(uri, "UTF-8")
@@ -233,7 +233,7 @@ private fun ChainSelectionScreen(
             )
             BlueButton(
                 text = "1-CA Link Mode (RN Wallet)",
-                onClick = { onAuthenticateLinkMode("https://lab.web3modal.com/walletkit_rn") },
+                onClick = { onAuthenticateLinkMode("https://lab.web3modal.com/rn_walletkit") },
                 modifier = Modifier
                     .padding(vertical = 10.dp)
                     .fillMaxWidth()

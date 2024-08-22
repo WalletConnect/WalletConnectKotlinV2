@@ -64,7 +64,7 @@ class Web3WalletApplication : Application() {
             url = "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app",
             icons = listOf("https://raw.githubusercontent.com/WalletConnect/walletconnect-assets/master/Icon/Gradient/Icon.png"),
             redirect = "kotlin-web3wallet://request",
-            appLink = "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet",
+            appLink = BuildConfig.WALLET_APP_LINK,
             linkMode = true
         )
 
