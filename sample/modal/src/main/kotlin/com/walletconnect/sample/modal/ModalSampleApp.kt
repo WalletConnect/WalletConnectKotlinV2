@@ -7,7 +7,6 @@ import com.google.firebase.ktx.Firebase
 import com.walletconnect.android.Core
 import com.walletconnect.android.CoreClient
 import com.walletconnect.android.relay.ConnectionType
-import com.walletconnect.sample.common.BuildConfig
 import com.walletconnect.sample.common.tag
 import com.walletconnect.util.bytesToHex
 import com.walletconnect.util.randomBytes
@@ -16,6 +15,7 @@ import com.walletconnect.web3.modal.client.Web3Modal
 import com.walletconnect.web3.modal.presets.Web3ModalChainsPresets
 import com.walletconnect.web3.modal.utils.EthUtils
 import timber.log.Timber
+import com.walletconnect.sample.common.BuildConfig as CommonBuildConfig
 
 class ModalSampleApp : Application() {
     override fun onCreate() {
@@ -28,11 +28,11 @@ class ModalSampleApp : Application() {
             icons = listOf("https://gblobscdn.gitbook.com/spaces%2F-LJJeCjcLrr53DcT1Ml7%2Favatar.png?alt=media"),
             redirect = "kotlin-modal-wc://request",
             linkMode = true,
-            appLink = "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/lab"
+            appLink = BuildConfig.LAB_APP_LINK
         )
 
         CoreClient.initialize(
-            projectId = BuildConfig.PROJECT_ID,
+            projectId = CommonBuildConfig.PROJECT_ID,
             connectionType = ConnectionType.AUTOMATIC,
             application = this,
             metaData = appMetaData,

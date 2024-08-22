@@ -277,7 +277,7 @@ private fun ChainSelectionScreen(
             )
             BlueButton(
                 text = "1-CA Link Mode (RN Wallet)",
-                onClick = { onAuthenticateLinkMode("https://lab.web3modal.com/walletkit_rn") },
+                onClick = { onAuthenticateLinkMode("https://lab.web3modal.com/rn_walletkit") },
                 modifier = Modifier
                     .padding(vertical = 10.dp)
                     .fillMaxWidth()

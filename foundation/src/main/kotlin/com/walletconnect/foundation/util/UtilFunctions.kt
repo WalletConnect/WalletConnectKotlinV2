@@ -2,7 +2,6 @@
 
 package com.walletconnect.util
 
-import jakarta.ws.rs.core.UriBuilder
 import java.security.SecureRandom
 import kotlin.math.pow
 
@@ -60,9 +59,4 @@ fun String.hexToBytes(): ByteArray {
 }
 
 @JvmSynthetic
-internal fun String.addUserAgent(sdkVersion: String): String {
-    return UriBuilder.fromUri(this)
-        .queryParam("ua", """wc-2/kotlin-$sdkVersion""")
-        .build()
-        .toString()
-}
+internal fun String.addUserAgent(sdkVersion: String): String = "$this&ua=wc-2/kotlin-$sdkVersion"
