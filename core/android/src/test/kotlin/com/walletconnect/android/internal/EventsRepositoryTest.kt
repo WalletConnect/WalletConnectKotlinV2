@@ -52,7 +52,39 @@ class EventsRepositoryTest {
 
         verify {
             eventQueries.insertOrAbort(
-                any(), bundleId, any(), "testEvent", "testType", null, null, 1L, "testBundleId", any()
+                event_id = any(),
+                bundle_id = bundleId,
+                timestamp = any(),
+                event_name = "testEvent",
+                type = "testType",
+                topic = null,
+                trace = null,
+                correlation_id = any(),
+                client_id = any(),
+                direction = any()
+            )
+        }
+    }
+
+    @Test
+    fun `insertOrAbort should insert event `() = runTest(testDispatcher) {
+        val props = Props(event = "testEvent", type = "testType")
+        every { eventQueries.insertOrAbort(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } just Runs
+
+        repository.insertOrAbort(props)
+
+        verify {
+            eventQueries.insertOrAbort(
+                event_id = any(),
+                bundle_id = bundleId,
+                timestamp = any(),
+                event_name = "testEvent",
+                type = "testType",
+                topic = null,
+                trace = null,
+                correlation_id = any(),
+                client_id = any(),
+                direction = any()
             )
         }
     }
