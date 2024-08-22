@@ -8,6 +8,7 @@ import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.CannotFindSequenceForTopic
 import com.walletconnect.android.internal.common.exception.ExpiredPairingException
+import com.walletconnect.android.internal.common.exception.ExpiredPairingURIException
 import com.walletconnect.android.internal.common.exception.Invalid
 import com.walletconnect.android.internal.common.exception.MalformedWalletConnectUri
 import com.walletconnect.android.internal.common.exception.NoInternetConnectionException
@@ -37,6 +38,7 @@ import com.walletconnect.android.pairing.model.PairingJsonRpcMethod
 import com.walletconnect.android.pairing.model.PairingParams
 import com.walletconnect.android.pairing.model.PairingRpc
 import com.walletconnect.android.pairing.model.mapper.toCore
+import com.walletconnect.android.pairing.model.pairingExpiry
 import com.walletconnect.android.pulse.domain.InsertTelemetryEventUseCase
 import com.walletconnect.android.pulse.domain.SendBatchEventUseCase
 import com.walletconnect.android.pulse.model.EventType

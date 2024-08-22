@@ -15,6 +15,7 @@ import com.walletconnect.android.internal.common.storage.metadata.MetadataStorag
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
 import com.walletconnect.android.pulse.domain.InsertEventUseCase
+import com.walletconnect.android.pulse.domain.InsertTelemetryEventUseCase
 import com.walletconnect.android.pulse.model.Trace
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
@@ -52,6 +53,7 @@ class ApproveSessionAuthenticateUseCaseTest {
     private val selfAppMetaData: AppMetaData = mockk(relaxed = true)
     private val sessionStorageRepository: SessionStorageRepository = mockk(relaxed = true)
     private val insertEventUseCase: InsertEventUseCase = mockk(relaxed = true)
+    private val insertTelemetryEventUseCase: InsertTelemetryEventUseCase = mockk(relaxed = true)
     private val linkModeJsonRpcInteractor: LinkModeJsonRpcInteractorInterface = mockk(relaxed = true)
     private val iss = "did:pkh:eip155:1:0x15bca56b6e2728aec2532df9d436bd1600e86688"
     private val payload = Cacao.Payload(
@@ -83,7 +85,9 @@ class ApproveSessionAuthenticateUseCaseTest {
             metadataStorageRepository,
             selfAppMetaData,
             sessionStorageRepository,
+            insertTelemetryEventUseCase,
             insertEventUseCase,
+            "clientID",
             linkModeJsonRpcInteractor
         )
     }
@@ -211,6 +215,7 @@ class ApproveSessionAuthenticateUseCaseTest {
 
         coVerify { insertEventUseCase(any()) }
     }
+
     @Test
     fun `approveSessionAuthenticate handles exception in publishing session response`() = runTest {
         val id = 123L
