@@ -9,7 +9,6 @@ import com.walletconnect.foundation.util.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-//todo: one use case that handles sending batch for both types of events
 class SendBatchEventUseCase(
     private val pulseService: PulseService,
     private val eventsRepository: EventsRepository,
@@ -39,7 +38,6 @@ class SendBatchEventUseCase(
                     logger.log("Sending batch events: ${events.size}")
                     val response = pulseService.sendEventBatch(body = events, sdkType = SDKType.EVENTS.type)
                     if (response.isSuccessful) {
-                        println("Success sending events: ${events.size}")
                         eventsRepository.deleteByIds(events.map { it.eventId })
                     } else {
                         logger.log("Failed to send events: ${events.size}")

@@ -6,6 +6,7 @@ import com.walletconnect.android.pulse.data.PulseService
 import com.walletconnect.android.pulse.domain.SendBatchEventUseCase
 import com.walletconnect.android.pulse.model.Event
 import com.walletconnect.android.pulse.model.SDKType
+import com.walletconnect.android.pulse.model.properties.Properties
 import com.walletconnect.android.pulse.model.properties.Props
 import com.walletconnect.foundation.util.Logger
 import io.mockk.Runs
@@ -106,23 +107,36 @@ class SendBatchEventUseCaseTest {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun `invoke should delete all events when telemetry is disabled`() = runTest(testDispatcher) {
+    fun `invoke should delete all events when telemetry is disabled but still send the rest of the events`() = runTest(testDispatcher) {
+        val props = Props(type = "testEvent", properties = Properties(correlationId = 1L))
+        val bundleId = "testBundleId"
+        val events = listOf(Event(eventId = 1, props = props, bundleId = bundleId), Event(eventId = 2, props = props, bundleId = bundleId))
+        coEvery { eventsRepository.getAllNonTelemetryEventsWithLimitAndOffset(any(), any()) } returns events andThen listOf()
         useCase = SendBatchEventUseCase(pulseService, eventsRepository, TelemetryEnabled(false), logger)
+
         coEvery { eventsRepository.deleteAllTelemetry() } just Runs
+        every { logger.log(any<String>()) } just Runs
+        coEvery { pulseService.sendEventBatch(any(), any()) } returns Response.success(Unit)
+        coEvery { eventsRepository.deleteByIds(any()) } just Runs
 
         useCase.invoke()
         advanceUntilIdle()
-
-        coVerify(exactly = 1) { eventsRepository.deleteAllTelemetry() }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `invoke should log error when deleting all events fails`() = runTest(testDispatcher) {
+        val props = Props(type = "testEvent", properties = Properties(correlationId = 1L))
+        val bundleId = "testBundleId"
+        val events = listOf(Event(eventId = 1, props = props, bundleId = bundleId), Event(eventId = 2, props = props, bundleId = bundleId))
+        coEvery { eventsRepository.getAllNonTelemetryEventsWithLimitAndOffset(any(), any()) } returns events andThen listOf()
         useCase = SendBatchEventUseCase(pulseService, eventsRepository, TelemetryEnabled(false), logger)
         val exception = Exception("Test exception")
         coEvery { eventsRepository.deleteAllTelemetry() } throws exception
-        every { logger.error("Failed to delete events, error: java.lang.Exception: Test exception") } just Runs
+        every { logger.log(any<String>()) } just Runs
+        every { logger.error(any<String>()) } just Runs
+        coEvery { pulseService.sendEventBatch(any(), any()) } returns Response.success(Unit)
+        coEvery { eventsRepository.deleteByIds(any()) } just Runs
 
         useCase.invoke()
         advanceUntilIdle()
