@@ -59,6 +59,7 @@ internal fun responsesModule() = module {
             logger = get(named(AndroidCommonDITags.LOGGER)),
             insertEventUseCase = get<InsertEventUseCase>(),
             clientId = get(named(AndroidCommonDITags.CLIENT_ID)),
+            getSessionRequestByIdUseCase = get()
         )
     }
 }

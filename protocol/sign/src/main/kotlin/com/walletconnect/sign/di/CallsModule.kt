@@ -3,7 +3,6 @@ package com.walletconnect.sign.di
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
 import com.walletconnect.android.internal.common.json_rpc.domain.link_mode.LinkModeJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.model.Tags
-import com.walletconnect.android.pulse.domain.InsertEventUseCase
 import com.walletconnect.android.push.notifications.DecryptMessageUseCaseInterface
 import com.walletconnect.sign.engine.use_case.calls.ApproveSessionAuthenticateUseCase
 import com.walletconnect.sign.engine.use_case.calls.ApproveSessionAuthenticateUseCaseInterface
@@ -79,7 +78,7 @@ internal fun callsModule() = module {
             getNamespacesFromReCaps = get(),
             linkModeJsonRpcInteractor = get<LinkModeJsonRpcInteractorInterface>(),
             linkModeStorageRepository = get(),
-            insertEventUseCase = get<InsertEventUseCase>(),
+            insertEventUseCase = get(),
             clientId = get(named(AndroidCommonDITags.CLIENT_ID)),
             logger = get(named(AndroidCommonDITags.LOGGER))
         )

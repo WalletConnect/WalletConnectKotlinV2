@@ -12,6 +12,7 @@ import com.walletconnect.sign.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdU
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionAuthenticateRequest
 import com.walletconnect.sign.json_rpc.domain.GetPendingSessionRequests
 import com.walletconnect.sign.json_rpc.domain.GetSessionAuthenticateRequest
+import com.walletconnect.sign.json_rpc.domain.GetSessionRequestByIdUseCase
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
@@ -27,6 +28,8 @@ internal fun engineModule() = module {
     single { DeleteRequestByIdUseCase(jsonRpcHistory = get()) }
 
     single { GetPendingJsonRpcHistoryEntryByIdUseCase(jsonRpcHistory = get(), serializer = get()) }
+
+    single { GetSessionRequestByIdUseCase(jsonRpcHistory = get(), serializer = get()) }
 
     single { GetPendingSessionAuthenticateRequest(jsonRpcHistory = get(), serializer = get()) }
 

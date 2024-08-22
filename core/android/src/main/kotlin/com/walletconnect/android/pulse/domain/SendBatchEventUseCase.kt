@@ -17,8 +17,6 @@ class SendBatchEventUseCase(
     private val logger: Logger,
 ) {
     suspend operator fun invoke() = withContext(Dispatchers.IO) {
-        //todo; if telemetry send both, if relemetry disabled sent only events
-
         if (telemetryEnabled.value) {
             sendEventsInBatches { eventsRepository.getAllEventsWithLimitAndOffset(LIMIT, 0) }
         } else {
@@ -29,11 +27,10 @@ class SendBatchEventUseCase(
             }
 
             sendEventsInBatches { eventsRepository.getAllNonTelemetryEventsWithLimitAndOffset(LIMIT, 0) }
-            //todo: send only events
         }
     }
 
-    private suspend fun sendEventsInBatches(getEvents : suspend () -> List<Event>) {
+    private suspend fun sendEventsInBatches(getEvents: suspend () -> List<Event>) {
         var continueProcessing = true
         while (continueProcessing) {
             val events = getEvents()
@@ -42,6 +39,7 @@ class SendBatchEventUseCase(
                     logger.log("Sending batch events: ${events.size}")
                     val response = pulseService.sendEventBatch(body = events, sdkType = SDKType.EVENTS.type)
                     if (response.isSuccessful) {
+                        println("Success sending events: ${events.size}")
                         eventsRepository.deleteByIds(events.map { it.eventId })
                     } else {
                         logger.log("Failed to send events: ${events.size}")
