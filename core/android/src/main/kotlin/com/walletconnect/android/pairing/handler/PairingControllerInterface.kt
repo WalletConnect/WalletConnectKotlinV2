@@ -8,20 +8,17 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 
 interface PairingControllerInterface {
-    val deletedPairingFlow: SharedFlow<Pairing>
     val findWrongMethodsFlow: Flow<SDKError>
-    val inactivePairingFlow: SharedFlow<Pair<Topic, MutableList<String>>>
+    val storedPairingFlow: SharedFlow<Pair<Topic, MutableList<String>>>
     val checkVerifyKeyFlow: SharedFlow<Unit>
 
     fun initialize()
 
-    fun activate(activate: Core.Params.Activate, onError: (Core.Model.Error) -> Unit = {})
-
     fun setRequestReceived(activate: Core.Params.RequestReceived, onError: (Core.Model.Error) -> Unit = {})
 
-    fun updateExpiry(updateExpiry: Core.Params.UpdateExpiry, onError: (Core.Model.Error) -> Unit = {})
-
     fun updateMetadata(updateMetadata: Core.Params.UpdateMetadata, onError: (Core.Model.Error) -> Unit = {})
+
+    fun deleteAndUnsubscribePairing(deletePairing: Core.Params.Delete, onError: (Core.Model.Error) -> Unit = {})
 
     fun register(vararg method: String)
 

@@ -18,7 +18,6 @@ internal fun responsesModule() = module {
             crypto = get(),
             pairingController = get(),
             proposalStorageRepository = get(),
-            pairingInterface = get(),
             logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }

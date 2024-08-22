@@ -1,7 +1,6 @@
 package com.walletconnect.android
 
 import com.walletconnect.android.internal.common.model.AppMetaDataType
-import com.walletconnect.android.internal.common.model.Expiry
 
 object Core {
     sealed interface Listeners {
@@ -30,7 +29,9 @@ object Core {
             val verifyUrl: String? = null
         ) : Model()
 
+        @Deprecated(message = "DeletedPairing has been deprecated")
         data class DeletedPairing(val topic: String, val reason: String) : Model()
+        @Deprecated(message = "ExpiredPairing has been deprecated")
         data class ExpiredPairing(val pairing: Pairing) : Model()
 
         data class PairingState(val isPairingState: Boolean) : Model()
@@ -42,6 +43,7 @@ object Core {
             val relayProtocol: String,
             val relayData: String?,
             val uri: String,
+            @Deprecated("isActive has been deprecated")
             val isActive: Boolean,
             val registeredMethods: String
         ) : Model()
@@ -163,11 +165,9 @@ object Core {
 
         data class Disconnect(val topic: String) : Params()
 
-        data class Activate(val topic: String) : Params()
+        data class Delete(val topic: String) : Params()
 
         data class RequestReceived(val topic: String) : Params()
-
-        data class UpdateExpiry(val topic: String, val expiry: Expiry) : Params()
 
         data class UpdateMetadata(val topic: String, val metadata: Model.AppMetaData, val metaDataType: AppMetaDataType) : Params()
     }

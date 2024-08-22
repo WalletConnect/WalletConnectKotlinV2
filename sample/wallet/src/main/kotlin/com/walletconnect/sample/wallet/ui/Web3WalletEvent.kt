@@ -4,11 +4,6 @@ sealed interface Web3WalletEvent
 
 object NoAction : Web3WalletEvent, NotifyEvent
 
-interface CoreEvent : Web3WalletEvent {
-    object Disconnect : CoreEvent
-    data class PairingExpired(val message: String) : CoreEvent
-}
-
 interface SignEvent : Web3WalletEvent {
     object SessionProposal : SignEvent
     object SessionAuthenticate : SignEvent

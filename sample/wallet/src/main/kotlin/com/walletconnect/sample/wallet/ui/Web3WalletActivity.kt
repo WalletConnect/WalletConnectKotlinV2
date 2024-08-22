@@ -59,10 +59,8 @@ class Web3WalletActivity : AppCompatActivity() {
 
         setContent(web3walletViewModel, connectionsViewModel)
         handleWeb3WalletEvents(web3walletViewModel, connectionsViewModel)
-        handleCoreEvents(connectionsViewModel)
         askNotificationPermission()
         handleErrors()
-
         handleAppLink(intent)
     }
 
@@ -91,26 +89,6 @@ class Web3WalletActivity : AppCompatActivity() {
             }
         }
     }
-
-    private fun handleCoreEvents(connectionsViewModel: ConnectionsViewModel) {
-        connectionsViewModel.coreEvents
-            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-            .onEach { event ->
-                when (event) {
-                    is CoreEvent.Disconnect -> {
-                        connectionsViewModel.refreshConnections()
-
-                        if (navController.currentDestination?.route != Route.Connections.path) {
-                            navController.navigate(Route.Connections.path)
-                        }
-                    }
-
-                    else -> Unit
-                }
-            }
-            .launchIn(lifecycleScope)
-    }
-
 
     private fun handleErrors() {
         NotifyDelegate.notifyErrors

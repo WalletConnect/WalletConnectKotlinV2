@@ -119,7 +119,7 @@ internal class AuthEngine(
     }
 
     private fun emitReceivedAuthRequest() {
-        pairingHandler.inactivePairingFlow
+        pairingHandler.storedPairingFlow
             .onEach { (pairingTopic, trace) ->
                 try {
                     val request = getPendingJsonRpcHistoryEntryByTopicUseCase(pairingTopic)
