@@ -17,6 +17,7 @@ import com.walletconnect.android.internal.common.storage.verify.VerifyContextSto
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.dayInSeconds
 import com.walletconnect.android.pulse.domain.InsertEventUseCase
+import com.walletconnect.android.pulse.model.Direction
 import com.walletconnect.android.pulse.model.EventType
 import com.walletconnect.android.pulse.model.properties.Properties
 import com.walletconnect.android.pulse.model.properties.Props
@@ -75,7 +76,13 @@ internal class RejectSessionAuthenticateUseCase(
                     Participants(senderPublicKey, receiverPublicKey),
                     EnvelopeType.ONE
                 )
-                insertEventUseCase(Props(EventType.SUCCESS, Tags.SESSION_AUTHENTICATE_LINK_MODE_RESPONSE_REJECT.id.toString(), Properties(clientId = clientId, correlationId = id)))
+                insertEventUseCase(
+                    Props(
+                        EventType.SUCCESS,
+                        Tags.SESSION_AUTHENTICATE_LINK_MODE_RESPONSE_REJECT.id.toString(),
+                        Properties(clientId = clientId, correlationId = id, direction = Direction.SENT.state)
+                    )
+                )
             } catch (e: Exception) {
                 onFailure(e)
             }

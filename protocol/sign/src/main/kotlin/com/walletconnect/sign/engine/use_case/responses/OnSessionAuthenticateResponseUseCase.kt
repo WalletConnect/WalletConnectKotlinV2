@@ -8,6 +8,7 @@ import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.Namespace
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.SymmetricKey
+import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.TransportType
 import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.params.CoreSignParams
@@ -22,6 +23,11 @@ import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.android.internal.utils.monthInSeconds
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
+import com.walletconnect.android.pulse.domain.InsertEventUseCase
+import com.walletconnect.android.pulse.model.Direction
+import com.walletconnect.android.pulse.model.EventType
+import com.walletconnect.android.pulse.model.properties.Properties
+import com.walletconnect.android.pulse.model.properties.Props
 import com.walletconnect.android.utils.toClient
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
@@ -51,6 +57,8 @@ internal class OnSessionAuthenticateResponseUseCase(
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val authenticateResponseTopicRepository: AuthenticateResponseTopicRepository,
     private val logger: Logger,
+    private val insertEventUseCase: InsertEventUseCase,
+    private val clientId: String,
     private val getSessionAuthenticateRequest: GetSessionAuthenticateRequest,
     private val linkModeStorageRepository: LinkModeStorageRepository
 ) {
@@ -80,6 +88,15 @@ internal class OnSessionAuthenticateResponseUseCase(
 
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcError -> {
+                    if (jsonRpcHistoryEntry.transportType == TransportType.LINK_MODE) {
+                        insertEventUseCase(
+                            Props(
+                                EventType.SUCCESS,
+                                Tags.SESSION_AUTHENTICATE_LINK_MODE_RESPONSE_REJECT.id.toString(),
+                                Properties(clientId = clientId, correlationId = wcResponse.response.id, direction = Direction.RECEIVED.state)
+                            )
+                        )
+                    }
                     logger.error("Received session authenticate response - emitting rpc error: ${wcResponse.topic}, ${response.error}")
                     _events.emit(EngineDO.SessionAuthenticateResponse.Error(response.id, response.error.code, response.error.message))
                 }
@@ -140,6 +157,16 @@ internal class OnSessionAuthenticateResponseUseCase(
                             metadataStorageRepository.insertOrAbortMetadata(sessionTopic, params.requester.metadata, AppMetaDataType.SELF)
                             metadataStorageRepository.insertOrAbortMetadata(sessionTopic, approveResponseParams.responder.metadata, AppMetaDataType.PEER)
                             sessionStorageRepository.insertSession(authenticatedSession, response.id)
+
+                            if (transportType == TransportType.LINK_MODE) {
+                                insertEventUseCase(
+                                    Props(
+                                        EventType.SUCCESS,
+                                        Tags.SESSION_AUTHENTICATE_LINK_MODE_RESPONSE_APPROVE.id.toString(),
+                                        Properties(clientId = clientId, correlationId = wcResponse.response.id, direction = Direction.RECEIVED.state)
+                                    )
+                                )
+                            }
                         }
 
                         jsonRpcInteractor.subscribe(sessionTopic) { error -> scope.launch { _events.emit(SDKError(error)) } }

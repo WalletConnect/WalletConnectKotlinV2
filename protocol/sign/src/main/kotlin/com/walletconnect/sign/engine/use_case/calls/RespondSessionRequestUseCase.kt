@@ -17,6 +17,7 @@ import com.walletconnect.android.internal.common.storage.verify.VerifyContextSto
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
 import com.walletconnect.android.pulse.domain.InsertEventUseCase
+import com.walletconnect.android.pulse.model.Direction
 import com.walletconnect.android.pulse.model.EventType
 import com.walletconnect.android.pulse.model.properties.Properties
 import com.walletconnect.android.pulse.model.properties.Props
@@ -79,7 +80,13 @@ internal class RespondSessionRequestUseCase(
             try {
                 removePendingSessionRequestAndEmit(jsonRpcResponse.id)
                 linkModeJsonRpcInteractor.triggerResponse(Topic(topic), jsonRpcResponse, session.peerAppLink)
-                insertEventUseCase(Props(EventType.SUCCESS, Tags.SESSION_REQUEST_LINK_MODE_RESPONSE.id.toString(), Properties(correlationId = jsonRpcResponse.id, clientId = clientId)))
+                insertEventUseCase(
+                    Props(
+                        EventType.SUCCESS,
+                        Tags.SESSION_REQUEST_LINK_MODE_RESPONSE.id.toString(),
+                        Properties(correlationId = jsonRpcResponse.id, clientId = clientId, direction = Direction.SENT.state)
+                    )
+                )
             } catch (e: Exception) {
                 onFailure(e)
             }

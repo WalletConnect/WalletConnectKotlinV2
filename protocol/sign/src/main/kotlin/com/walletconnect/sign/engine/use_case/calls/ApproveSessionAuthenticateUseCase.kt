@@ -32,6 +32,7 @@ import com.walletconnect.android.internal.utils.dayInSeconds
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.pulse.domain.InsertEventUseCase
 import com.walletconnect.android.pulse.domain.InsertTelemetryEventUseCase
+import com.walletconnect.android.pulse.model.Direction
 import com.walletconnect.android.pulse.model.EventType
 import com.walletconnect.android.pulse.model.Trace
 import com.walletconnect.android.pulse.model.properties.Properties
@@ -156,7 +157,14 @@ internal class ApproveSessionAuthenticateUseCase(
                 },
                 onFailure = { error ->
                     scope.launch {
-                        supervisorScope { insertTelemetryEventUseCase(Props(type = EventType.Error.SUBSCRIBE_AUTH_SESSION_TOPIC_FAILURE, properties = Properties(trace = trace, topic = sessionTopic.value))) }
+                        supervisorScope {
+                            insertTelemetryEventUseCase(
+                                Props(
+                                    type = EventType.Error.SUBSCRIBE_AUTH_SESSION_TOPIC_FAILURE,
+                                    properties = Properties(trace = trace, topic = sessionTopic.value)
+                                )
+                            )
+                        }
                     }.also { logger.log("Subscribing Session Authenticate error on topic: $responseTopic, $error") }
                     onFailure(error)
                 }
@@ -172,7 +180,13 @@ internal class ApproveSessionAuthenticateUseCase(
                         Participants(senderPublicKey, receiverPublicKey),
                         EnvelopeType.ONE
                     )
-                    insertEventUseCase(Props(EventType.SUCCESS, Tags.SESSION_AUTHENTICATE_LINK_MODE_RESPONSE_APPROVE.id.toString(), Properties(clientId = clientId, correlationId = id)))
+                    insertEventUseCase(
+                        Props(
+                            EventType.SUCCESS,
+                            Tags.SESSION_AUTHENTICATE_LINK_MODE_RESPONSE_APPROVE.id.toString(),
+                            Properties(clientId = clientId, correlationId = id, direction = Direction.SENT.state)
+                        )
+                    )
                 } catch (e: Exception) {
                     onFailure(e)
                 }
@@ -194,7 +208,12 @@ internal class ApproveSessionAuthenticateUseCase(
                         sessionStorageRepository.deleteSession(sessionTopic)
                         scope.launch {
                             supervisorScope {
-                                insertTelemetryEventUseCase(Props(type = EventType.Error.AUTHENTICATED_SESSION_APPROVE_PUBLISH_FAILURE, properties = Properties(trace = trace, topic = responseTopic.value)))
+                                insertTelemetryEventUseCase(
+                                    Props(
+                                        type = EventType.Error.AUTHENTICATED_SESSION_APPROVE_PUBLISH_FAILURE,
+                                        properties = Properties(trace = trace, topic = responseTopic.value)
+                                    )
+                                )
                             }
                         }.also { logger.error("Error Responding Session Authenticate on topic: $responseTopic, error: $error") }
                         onFailure(error)
