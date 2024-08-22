@@ -9,8 +9,8 @@ import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.params.ChatNotifyResponseAuthParams
 import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.scope
-import com.walletconnect.android.internal.utils.monthInSeconds
 import com.walletconnect.android.internal.utils.getInviteTag
+import com.walletconnect.android.internal.utils.monthInSeconds
 import com.walletconnect.android.keyserver.domain.IdentitiesInteractor
 import com.walletconnect.chat.common.exceptions.InviteWasAlreadyRespondedTo
 import com.walletconnect.chat.common.exceptions.MissingInviteRequestException

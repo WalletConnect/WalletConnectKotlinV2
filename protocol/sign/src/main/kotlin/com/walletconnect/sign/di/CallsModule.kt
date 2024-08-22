@@ -95,7 +95,6 @@ internal fun callsModule() = module {
             metadataStorageRepository = get(),
             sessionStorageRepository = get(),
             verifyContextStorageRepository = get(),
-            pairingController = get(),
             insertEventUseCase = get(),
             logger = get(named(AndroidCommonDITags.LOGGER))
         )
@@ -108,7 +107,6 @@ internal fun callsModule() = module {
             cacaoVerifier = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
             verifyContextStorageRepository = get(),
-            pairingController = get(),
             getPendingSessionAuthenticateRequest = get(),
             selfAppMetaData = get(),
             sessionStorageRepository = get(),
@@ -182,7 +180,7 @@ internal fun callsModule() = module {
         useCase
     }
 
-    single<PingUseCaseInterface> { PingUseCase(sessionStorageRepository = get(), jsonRpcInteractor = get(), pairingInterface = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
+    single<PingUseCaseInterface> { PingUseCase(sessionStorageRepository = get(), jsonRpcInteractor = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
 
     single<EmitEventUseCaseInterface> { EmitEventUseCase(jsonRpcInteractor = get(), sessionStorageRepository = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
 

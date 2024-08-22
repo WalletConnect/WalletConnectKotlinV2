@@ -3,14 +3,12 @@ package com.walletconnect.auth.use_case.responses
 import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.JsonRpcResponse
 import com.walletconnect.android.internal.common.model.AppMetaDataType
-import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.SDKError
 import com.walletconnect.android.internal.common.model.WCResponse
 import com.walletconnect.android.internal.common.model.params.CoreAuthParams
 import com.walletconnect.android.internal.common.model.type.EngineEvent
 import com.walletconnect.android.internal.common.signing.cacao.Cacao
 import com.walletconnect.android.internal.common.signing.cacao.CacaoVerifier
-import com.walletconnect.android.internal.utils.monthInSeconds
 import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.android.utils.toClient
@@ -19,7 +17,6 @@ import com.walletconnect.auth.common.json_rpc.AuthParams
 import com.walletconnect.auth.common.model.AuthResponse
 import com.walletconnect.auth.common.model.Events
 import com.walletconnect.auth.engine.pairingTopicToResponseTopicMap
-import com.walletconnect.foundation.common.model.Topic
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -42,7 +39,7 @@ internal class OnAuthRequestResponseUseCase(
             when (val response = wcResponse.response) {
                 is JsonRpcResponse.JsonRpcError -> _events.emit(Events.OnAuthResponse(response.id, AuthResponse.Error(response.error.code, response.error.message)))
                 is JsonRpcResponse.JsonRpcResult -> {
-                    updatePairing(pairingTopic, requestParams)
+                    pairingHandler.updateMetadata(Core.Params.UpdateMetadata(pairingTopic.value, requestParams.requester.metadata.toClient(), AppMetaDataType.PEER))
                     val (header, payload, signature) = (response.result as CoreAuthParams.ResponseParams)
                     val cacao = Cacao(header, payload, signature)
                     if (cacaoVerifier.verify(cacao)) {
@@ -55,11 +52,5 @@ internal class OnAuthRequestResponseUseCase(
         } catch (e: Exception) {
             _events.emit(SDKError(e))
         }
-    }
-
-    private fun updatePairing(topic: Topic, requestParams: AuthParams.RequestParams) = with(pairingHandler) {
-        updateExpiry(Core.Params.UpdateExpiry(topic.value, Expiry(monthInSeconds)))
-        updateMetadata(Core.Params.UpdateMetadata(topic.value, requestParams.requester.metadata.toClient(), AppMetaDataType.PEER))
-        activate(Core.Params.Activate(topic.value))
     }
 }
