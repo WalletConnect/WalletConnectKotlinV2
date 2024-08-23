@@ -36,9 +36,9 @@ internal class VerifyClient(
         }
     }
 
-    override fun resolveV2(attestation: String, metadataUrl: String, onSuccess: (VerifyResult) -> Unit, onError: (Throwable) -> Unit) {
+    override fun resolveV2(attestationId: String, attestationJWT: String, metadataUrl: String, onSuccess: (VerifyResult) -> Unit, onError: (Throwable) -> Unit) {
         try {
-            verifyRepository.resolveV2(attestation, metadataUrl, onSuccess, onError)
+            verifyRepository.resolveV2(attestationId, attestationJWT, metadataUrl, onSuccess, onError)
         } catch (e: Exception) {
             onError(e)
         }

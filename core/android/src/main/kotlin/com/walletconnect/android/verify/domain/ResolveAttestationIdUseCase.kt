@@ -36,7 +36,7 @@ class ResolveAttestationIdUseCase(private val verifyInterface: VerifyInterface, 
         request: WCRequest,
         onResolve: (VerifyContext) -> Unit
     ) {
-        verifyInterface.resolveV2(request.attestation!!, metadataUrl,
+        verifyInterface.resolveV2(sha256(request.encryptedMessage.toByteArray()), request.attestation!!, metadataUrl,
             onSuccess = { result ->
                 insertContext(VerifyContext(request.id, result.origin, result.validation, verifyUrl, result.isScam)) { verifyContext -> onResolve(verifyContext) }
             },
