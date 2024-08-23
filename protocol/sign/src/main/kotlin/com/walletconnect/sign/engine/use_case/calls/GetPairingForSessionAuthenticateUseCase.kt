@@ -5,7 +5,7 @@ import com.walletconnect.android.pairing.client.PairingInterface
 import com.walletconnect.sign.json_rpc.model.JsonRpcMethod
 
 internal class GetPairingForSessionAuthenticateUseCase(private var pairingProtocol: PairingInterface) {
-    suspend operator fun invoke(pairingTopic: String?): Core.Model.Pairing {
+    operator fun invoke(pairingTopic: String?): Core.Model.Pairing {
         val pairing: Core.Model.Pairing = if (pairingTopic != null) {
             pairingProtocol.getPairings().find { pairing -> pairing.topic == pairingTopic } ?: throw Exception("Pairing does not exist")
         } else {

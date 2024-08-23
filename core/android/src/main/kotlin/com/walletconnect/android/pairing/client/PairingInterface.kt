@@ -24,14 +24,13 @@ interface PairingInterface {
         onError: (Core.Model.Error) -> Unit = {},
     )
 
-    @Deprecated(
-        message = "Disconnect method has been replaced",
-        replaceWith = ReplaceWith(expression = "disconnect(disconnect: Core.Params.Disconnect, onError: (Core.Model.Error) -> Unit = {})")
-    )
+    @Deprecated(message = "Disconnect method has been deprecated. It will be removed soon. Pairing will disconnect automatically internally.")
     fun disconnect(topic: String, onError: (Core.Model.Error) -> Unit = {})
 
+    @Deprecated(message = "Disconnect method has been deprecated. It will be removed soon. Pairing will disconnect automatically internally.")
     fun disconnect(disconnect: Core.Params.Disconnect, onError: (Core.Model.Error) -> Unit = {})
 
+    @Deprecated(message = "Ping method has been deprecated. It will be removed soon. Please use Ping from Web3Wallet or Sign clients.")
     fun ping(ping: Core.Params.Ping, pairingPing: Core.Listeners.PairingPing? = null)
 
     /**
@@ -43,8 +42,10 @@ interface PairingInterface {
     fun validatePairingUri(uri: String): Boolean
 
     interface Delegate {
-        fun onPairingDelete(deletedPairing: Core.Model.DeletedPairing)
+        @Deprecated(message = "onPairingDelete callback has been deprecated. It will be removed soon. Pairing will disconnect automatically internally.")
+        fun onPairingDelete(deletedPairing: Core.Model.DeletedPairing) {}
 
+        @Deprecated(message = "onPairingExpired callback has been deprecated. It will be removed soon. Pairing will disconnect automatically internally.")
         fun onPairingExpired(expiredPairing: Core.Model.ExpiredPairing) {}
 
         fun onPairingState(pairingState: Core.Model.PairingState) {}

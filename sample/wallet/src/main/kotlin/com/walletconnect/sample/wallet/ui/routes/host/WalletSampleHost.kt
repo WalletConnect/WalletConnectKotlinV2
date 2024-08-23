@@ -85,10 +85,6 @@ fun WalletSampleHost(
                     Toast.makeText(navController.context, it.message, Toast.LENGTH_SHORT).show()
                 }
 
-                is PairingEvent.Expired -> {
-                    Toast.makeText(navController.context, it.message, Toast.LENGTH_SHORT).show()
-                }
-
                 is PairingEvent.ProposalExpired -> {
                     Toast.makeText(navController.context, it.message, Toast.LENGTH_SHORT).show()
                 }

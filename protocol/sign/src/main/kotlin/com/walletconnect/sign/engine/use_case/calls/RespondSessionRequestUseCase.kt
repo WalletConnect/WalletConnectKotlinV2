@@ -16,6 +16,11 @@ import com.walletconnect.android.internal.common.storage.metadata.MetadataStorag
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
+import com.walletconnect.android.pulse.domain.InsertEventUseCase
+import com.walletconnect.android.pulse.model.Direction
+import com.walletconnect.android.pulse.model.EventType
+import com.walletconnect.android.pulse.model.properties.Properties
+import com.walletconnect.android.pulse.model.properties.Props
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
@@ -37,6 +42,8 @@ internal class RespondSessionRequestUseCase(
     private val logger: Logger,
     private val verifyContextStorageRepository: VerifyContextStorageRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
+    private val insertEventUseCase: InsertEventUseCase,
+    private val clientId: String,
 ) : RespondSessionRequestUseCaseInterface {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
     override val events: SharedFlow<EngineEvent> = _events.asSharedFlow()
@@ -73,6 +80,13 @@ internal class RespondSessionRequestUseCase(
             try {
                 removePendingSessionRequestAndEmit(jsonRpcResponse.id)
                 linkModeJsonRpcInteractor.triggerResponse(Topic(topic), jsonRpcResponse, session.peerAppLink)
+                insertEventUseCase(
+                    Props(
+                        EventType.SUCCESS,
+                        Tags.SESSION_REQUEST_LINK_MODE_RESPONSE.id.toString(),
+                        Properties(correlationId = jsonRpcResponse.id, clientId = clientId, direction = Direction.SENT.state)
+                    )
+                )
             } catch (e: Exception) {
                 onFailure(e)
             }

@@ -12,7 +12,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 open class SignActivityScenario {
-    var scenario: ActivityScenario<InstrumentedTestActivity>? = null
+    private var scenario: ActivityScenario<InstrumentedTestActivity>? = null
     private var scenarioLaunched: Boolean = false
     private val latch = CountDownLatch(1)
     private val testScope: CoroutineScope = CoroutineScope(Dispatchers.Default)

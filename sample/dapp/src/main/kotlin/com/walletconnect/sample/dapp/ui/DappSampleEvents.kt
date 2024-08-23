@@ -1,7 +1,5 @@
 package com.walletconnect.sample.dapp.ui
 
-import com.walletconnect.android.Core
-
 sealed class DappSampleEvents {
 
     object SessionApproved : DappSampleEvents()
@@ -36,8 +34,6 @@ sealed class DappSampleEvents {
     object SessionExtend : DappSampleEvents()
 
     data class ConnectionEvent(val isAvailable: Boolean) : DappSampleEvents()
-
-    data class PairingExpired(val pairing: Core.Model.Pairing) : DappSampleEvents()
 
     object ProposalExpired : DappSampleEvents()
 }

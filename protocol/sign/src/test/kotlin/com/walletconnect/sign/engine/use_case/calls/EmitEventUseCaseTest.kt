@@ -23,8 +23,6 @@ class EmitEventUseCaseTest {
     private val sessionStorageRepository = mockk<SessionStorageRepository>(relaxed = true)
     private val logger = mockk<Logger>(relaxed = true)
     private val emitEventUseCase = EmitEventUseCase(jsonRpcInteractor, sessionStorageRepository, logger)
-    private val onSuccess: () -> Unit = mockk(relaxed = true)
-    private val onFailure: (Throwable) -> Unit = mockk(relaxed = true)
 
     @Before
     fun setUp() {

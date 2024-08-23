@@ -39,7 +39,7 @@ implementation("com.walletconnect:web3wallet")
 ## Migration guide from SignClient and AuthClient to Web3Wallet
 
 Web3Wallet SDK introduces a new interface for all wallets that wraps the Sign and Auth clients internally. Only one dependency is needed to
-enable new use cases for wallets. Down below you can find a migration guide for Sing and Auth clients.
+enable new use cases for wallets. Down below you can find a migration guide for Sign and Auth clients.
 
 ## Migration from SignClient
 

@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 
 interface RelayInterface {
+    var isLoggingEnabled: Boolean
     val eventsFlow: SharedFlow<Relay.Model.Event>
     val subscriptionRequest: Flow<Relay.Model.Call.Subscription.Request>
 

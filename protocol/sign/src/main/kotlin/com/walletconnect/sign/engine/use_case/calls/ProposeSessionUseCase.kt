@@ -60,7 +60,7 @@ internal class ProposeSessionUseCase(
                 val irnParams = IrnParams(Tags.SESSION_PROPOSE, Ttl(fiveMinutesInSeconds), true)
                 jsonRpcInteractor.subscribe(pairing.topic) { error -> onFailure(error) }
 
-                logger.log("Sending proposal on topic: ${pairing.topic}")
+                logger.log("Sending proposal on topic: ${pairing.topic.value}")
                 jsonRpcInteractor.publishJsonRpcRequest(pairing.topic, irnParams, request,
                     onSuccess = {
                         logger.log("Session proposal sent successfully, topic: ${pairing.topic}")

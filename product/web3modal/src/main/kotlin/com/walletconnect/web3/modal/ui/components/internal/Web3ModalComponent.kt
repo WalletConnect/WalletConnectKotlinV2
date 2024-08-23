@@ -2,6 +2,7 @@
 
 package com.walletconnect.web3.modal.ui.components.internal
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
@@ -46,6 +47,7 @@ fun Web3ModalComponent(
     )
 }
 
+@SuppressLint("RestrictedApi")
 @Composable
 internal fun Web3ModalComponent(
     modifier: Modifier = Modifier,

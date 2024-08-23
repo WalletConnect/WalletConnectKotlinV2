@@ -8,15 +8,18 @@ CREATE TABLE EventDao(
     event_name TEXT NOT NULL,
     type TEXT NOT NULL,
     topic TEXT,
-    trace TEXT AS List<String>
+    trace TEXT AS List<String>,
+    correlation_id INTEGER,
+    client_id TEXT,
+    direction TEXT
 );
 
 insertOrAbort:
-INSERT OR ABORT INTO EventDao(event_id, bundle_id, timestamp,  event_name, type, topic, trace)
-VALUES (?,?,?,?,?,?, ?);
+INSERT OR ABORT INTO EventDao(event_id, bundle_id, timestamp,  event_name, type, topic, trace, correlation_id, client_id, direction)
+VALUES (?,?,?,?,?,?, ?, ?, ?, ?);
 
-getAllWithLimitAndOffset:
-SELECT event_id, bundle_id, timestamp, event_name, type, topic, trace
+getAllEventsWithLimitAndOffset:
+SELECT event_id, bundle_id, timestamp, event_name, type, topic, trace, correlation_id, client_id, direction
 FROM EventDao ed
 LIMIT ? OFFSET ?;
 
@@ -24,5 +27,6 @@ deleteByIds:
 DELETE FROM EventDao
 WHERE event_id IN ?;
 
-deleteAll:
-DELETE FROM EventDao;
+deleteAllTelemetry:
+DELETE FROM EventDao
+WHERE correlation_id IS NULL;

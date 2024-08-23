@@ -6,6 +6,7 @@ import com.walletconnect.android.internal.common.json_rpc.domain.link_mode.LinkM
 import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
+import com.walletconnect.android.pulse.domain.InsertEventUseCase
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.json_rpc.domain.GetPendingJsonRpcHistoryEntryByIdUseCase
 import com.walletconnect.sign.storage.sequence.SessionStorageRepository
@@ -24,6 +25,7 @@ class RespondSessionRequestUseCaseTest {
     private val verifyContextStorageRepository = mockk<VerifyContextStorageRepository>()
     private val metadataStorageRepository = mockk<MetadataStorageRepositoryInterface>()
     private val linkModeJsonRpcInteractor: LinkModeJsonRpcInteractorInterface = mockk()
+    private val insertEventUseCase = mockk<InsertEventUseCase>()
     private val respondSessionRequestUseCase = RespondSessionRequestUseCase(
         jsonRpcInteractor,
         sessionStorageRepository,
@@ -31,7 +33,9 @@ class RespondSessionRequestUseCaseTest {
         linkModeJsonRpcInteractor,
         logger,
         verifyContextStorageRepository,
-        metadataStorageRepository
+        metadataStorageRepository,
+        insertEventUseCase,
+        "clientId"
     )
 
     @Before

@@ -1,6 +1,5 @@
 package com.walletconnect.sign.engine.use_case.calls
 
-import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.exception.NoInternetConnectionException
 import com.walletconnect.android.internal.common.exception.NoRelayConnectionException
@@ -15,8 +14,7 @@ import com.walletconnect.android.internal.common.storage.verify.VerifyContextSto
 import com.walletconnect.android.internal.utils.ACTIVE_SESSION
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
-import com.walletconnect.android.pairing.handler.PairingControllerInterface
-import com.walletconnect.android.pulse.domain.InsertEventUseCase
+import com.walletconnect.android.pulse.domain.InsertTelemetryEventUseCase
 import com.walletconnect.android.pulse.model.EventType
 import com.walletconnect.android.pulse.model.Trace
 import com.walletconnect.android.pulse.model.properties.Properties
@@ -50,8 +48,7 @@ internal class ApproveSessionUseCase(
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val verifyContextStorageRepository: VerifyContextStorageRepository,
     private val selfAppMetaData: AppMetaData,
-    private val pairingController: PairingControllerInterface,
-    private val insertEventUseCase: InsertEventUseCase,
+    private val insertEventUseCase: InsertTelemetryEventUseCase,
     private val logger: Logger
 ) : ApproveSessionUseCaseInterface {
 
@@ -84,7 +81,6 @@ internal class ApproveSessionUseCase(
                         onSuccess()
                         scope.launch {
                             supervisorScope {
-                                pairingController.activate(Core.Params.Activate(pairingTopic.value))
                                 proposalStorageRepository.deleteProposal(proposerPublicKey)
                                 verifyContextStorageRepository.delete(proposal.requestId)
                                 trace.add(Trace.Session.SESSION_SETTLE_PUBLISH_SUCCESS).also { logger.log("Session settle sent successfully on topic: $sessionTopic") }

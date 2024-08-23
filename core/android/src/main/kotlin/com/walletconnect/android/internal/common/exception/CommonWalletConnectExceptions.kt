@@ -5,6 +5,7 @@ class GenericException(override val message: String?) : WalletConnectException(m
 class MalformedWalletConnectUri(override val message: String?) : WalletConnectException(message)
 class PairWithExistingPairingIsNotAllowed(override val message: String?) : WalletConnectException(message)
 class ExpiredPairingException(override val message: String?) : WalletConnectException(message)
+class ExpiredPairingURIException(override val message: String?) : WalletConnectException(message)
 class CannotFindSequenceForTopic(override val message: String?) : WalletConnectException(message)
 
 class InvalidProjectIdException(override val message: String?) : WalletConnectException(message)

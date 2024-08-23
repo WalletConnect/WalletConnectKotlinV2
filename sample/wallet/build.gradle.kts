@@ -25,6 +25,24 @@ android {
         buildConfigField("String", "BOM_VERSION", "\"${BOM_VERSION}\"")
     }
 
+    buildTypes {
+        getByName("release") {
+            manifestPlaceholders["pathPrefix"] = "/wallet_release"
+            buildConfigField("String", "WALLET_APP_LINK", "\"https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet_release\"")
+        }
+
+        getByName("internal") {
+            manifestPlaceholders["pathPrefix"] = "/wallet_internal"
+            buildConfigField("String", "WALLET_APP_LINK", "\"https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet_internal\"")
+
+        }
+
+        getByName("debug") {
+            manifestPlaceholders["pathPrefix"] = "/wallet_debug"
+            buildConfigField("String", "WALLET_APP_LINK", "\"https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet_debug\"")
+        }
+    }
+
     lint {
         abortOnError = true
         ignoreWarnings = true

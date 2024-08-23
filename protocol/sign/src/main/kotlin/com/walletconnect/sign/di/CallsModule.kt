@@ -78,6 +78,8 @@ internal fun callsModule() = module {
             getNamespacesFromReCaps = get(),
             linkModeJsonRpcInteractor = get<LinkModeJsonRpcInteractorInterface>(),
             linkModeStorageRepository = get(),
+            insertEventUseCase = get(),
+            clientId = get(named(AndroidCommonDITags.CLIENT_ID)),
             logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }
@@ -93,7 +95,6 @@ internal fun callsModule() = module {
             metadataStorageRepository = get(),
             sessionStorageRepository = get(),
             verifyContextStorageRepository = get(),
-            pairingController = get(),
             insertEventUseCase = get(),
             logger = get(named(AndroidCommonDITags.LOGGER))
         )
@@ -106,12 +107,13 @@ internal fun callsModule() = module {
             cacaoVerifier = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
             verifyContextStorageRepository = get(),
-            pairingController = get(),
             getPendingSessionAuthenticateRequest = get(),
             selfAppMetaData = get(),
             sessionStorageRepository = get(),
             metadataStorageRepository = get(),
+            insertTelemetryEventUseCase = get(),
             insertEventUseCase = get(),
+            clientId = get(named(AndroidCommonDITags.CLIENT_ID)),
             linkModeJsonRpcInteractor = get<LinkModeJsonRpcInteractorInterface>()
         )
     }
@@ -123,7 +125,9 @@ internal fun callsModule() = module {
             logger = get(named(AndroidCommonDITags.LOGGER)),
             verifyContextStorageRepository = get(),
             getPendingSessionAuthenticateRequest = get(),
-            linkModeJsonRpcInteractor = get<LinkModeJsonRpcInteractorInterface>()
+            linkModeJsonRpcInteractor = get<LinkModeJsonRpcInteractorInterface>(),
+            clientId = get(named(AndroidCommonDITags.CLIENT_ID)),
+            insertEventUseCase = get()
         )
     }
 
@@ -144,6 +148,8 @@ internal fun callsModule() = module {
             sessionStorageRepository = get(),
             linkModeJsonRpcInteractor = get(),
             metadataStorageRepository = get(),
+            insertEventUseCase = get(),
+            clientId = get(named(AndroidCommonDITags.CLIENT_ID)),
             logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }
@@ -156,7 +162,9 @@ internal fun callsModule() = module {
             logger = get(named(AndroidCommonDITags.LOGGER)),
             getPendingJsonRpcHistoryEntryByIdUseCase = get(),
             linkModeJsonRpcInteractor = get(),
-            metadataStorageRepository = get()
+            metadataStorageRepository = get(),
+            insertEventUseCase = get(),
+            clientId = get(named(AndroidCommonDITags.CLIENT_ID)),
         )
     }
 
@@ -172,7 +180,7 @@ internal fun callsModule() = module {
         useCase
     }
 
-    single<PingUseCaseInterface> { PingUseCase(sessionStorageRepository = get(), jsonRpcInteractor = get(), pairingInterface = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
+    single<PingUseCaseInterface> { PingUseCase(sessionStorageRepository = get(), jsonRpcInteractor = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
 
     single<EmitEventUseCaseInterface> { EmitEventUseCase(jsonRpcInteractor = get(), sessionStorageRepository = get(), logger = get(named(AndroidCommonDITags.LOGGER))) }
 

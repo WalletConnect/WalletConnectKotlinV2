@@ -1,20 +1,13 @@
 package com.walletconnect.android.internal
-
 import com.walletconnect.android.internal.common.storage.events.EventsRepository
 import com.walletconnect.android.pulse.domain.InsertEventUseCase
 import com.walletconnect.android.pulse.model.properties.Props
 import com.walletconnect.foundation.util.Logger
-import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.confirmVerified
-import io.mockk.every
-import io.mockk.just
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -22,47 +15,41 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class InsertEventUseCaseTest {
+    private val eventsRepository: EventsRepository = mockk(relaxed = true)
+    private val logger: Logger = mockk(relaxed = true)
 
-    private val eventsRepository: EventsRepository = mockk()
-    private val logger: Logger = mockk()
-    private val useCase = InsertEventUseCase(eventsRepository, logger)
-    private val testDispatcher = StandardTestDispatcher()
+    private lateinit var insertEventUseCase: InsertEventUseCase
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @Before
     fun setUp() {
-        Dispatchers.setMain(testDispatcher)
+        Dispatchers.setMain(Dispatchers.Unconfined)
+        insertEventUseCase = InsertEventUseCase(eventsRepository, logger)
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @After
     fun tearDown() {
         Dispatchers.resetMain()
     }
 
     @Test
-    fun `invoke should call insertOrAbort on eventsRepository with given props`() = runTest(testDispatcher) {
-        val props = Props(type = "test")
+    fun `invoke should call insertOrAbort on eventsRepository`() = runTest {
+        val props = Props(type = "testEventType")
 
-        coEvery { eventsRepository.insertOrAbort(props) } just Runs
-
-        useCase(props)
+        insertEventUseCase.invoke(props)
 
         coVerify { eventsRepository.insertOrAbort(props) }
-        confirmVerified(eventsRepository)
     }
+
     @Test
-    fun `invoke should log error when eventsRepository throws exception`() = runTest(testDispatcher) {
-        val props = Props(type = "test")
-        val exception = Exception("Test exception")
-
+    fun `invoke should log error when exception occurs`() = runTest {
+        val props = Props(type = "testEventType")
+        val exception = RuntimeException("Test Exception")
         coEvery { eventsRepository.insertOrAbort(props) } throws exception
-        every { logger.error("Inserting event test error: java.lang.Exception: Test exception") } just Runs
 
-        useCase(props)
+        insertEventUseCase.invoke(props)
 
-        verify { logger.error("Inserting event test error: java.lang.Exception: Test exception") }
-        confirmVerified(logger)
+        coVerify { logger.error("Inserting event ${props.type} error: $exception") }
     }
 }

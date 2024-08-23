@@ -9,7 +9,7 @@ import com.walletconnect.android.internal.common.wcKoinApp
 import com.walletconnect.android.pairing.engine.domain.PairingEngine
 import com.walletconnect.android.pairing.engine.model.EngineDO
 import com.walletconnect.android.pairing.model.mapper.toCore
-import com.walletconnect.android.pulse.domain.InsertEventUseCase
+import com.walletconnect.android.pulse.domain.InsertTelemetryEventUseCase
 import com.walletconnect.android.pulse.model.EventType
 import com.walletconnect.android.pulse.model.properties.Props
 import com.walletconnect.android.relay.RelayConnectionInterface
@@ -26,7 +26,7 @@ internal class PairingProtocol(private val koinApp: KoinApplication = wcKoinApp)
     private lateinit var pairingEngine: PairingEngine
     private val logger: Logger by lazy { koinApp.koin.get() }
     private val relayClient: RelayConnectionInterface by lazy { koinApp.koin.get() }
-    private val insertEventUseCase: InsertEventUseCase by lazy { koinApp.koin.get() }
+    private val insertEventUseCase: InsertTelemetryEventUseCase by lazy { koinApp.koin.get() }
 
     override fun initialize() {
         pairingEngine = koinApp.koin.get()
@@ -96,6 +96,7 @@ internal class PairingProtocol(private val koinApp: KoinApplication = wcKoinApp)
         }
     }
 
+    @Deprecated(message = "Disconnect method has been deprecated. It will be removed soon. Pairing will disconnect automatically internally.")
     @Throws(IllegalStateException::class)
     override fun disconnect(disconnect: Core.Params.Disconnect, onError: (Core.Model.Error) -> Unit) {
         checkEngineInitialization()
@@ -107,6 +108,7 @@ internal class PairingProtocol(private val koinApp: KoinApplication = wcKoinApp)
         }
     }
 
+    @Deprecated(message = "Disconnect method has been deprecated. It will be removed soon. Pairing will disconnect automatically internally.")
     @Throws(IllegalStateException::class)
     override fun disconnect(topic: String, onError: (Core.Model.Error) -> Unit) {
         checkEngineInitialization()
@@ -118,6 +120,7 @@ internal class PairingProtocol(private val koinApp: KoinApplication = wcKoinApp)
         }
     }
 
+    @Deprecated(message = "Ping method has been deprecated. It will be removed soon. Please use Ping from Web3Wallet or Sign clients.")
     @Throws(IllegalStateException::class)
     override fun ping(ping: Core.Params.Ping, pairingPing: Core.Listeners.PairingPing?) {
         checkEngineInitialization()

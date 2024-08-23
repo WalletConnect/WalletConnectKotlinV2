@@ -3,6 +3,8 @@ package com.walletconnect.android.pulse.model
 object EventType {
     @get:JvmSynthetic
     const val ERROR: String = "ERROR"
+    @get:JvmSynthetic
+    const val SUCCESS: String = "SUCCESS"
 
     @get:JvmSynthetic
     const val TRACK: String = "TRACE"
@@ -22,6 +24,9 @@ object EventType {
 
         @get:JvmSynthetic
         const val PAIRING_SUBSCRIPTION_FAILURE: String = "FAILED_TO_SUBSCRIBE_TO_PAIRING_TOPIC"
+
+        @get:JvmSynthetic
+        const val PAIRING_URI_EXPIRED: String = "PAIRING_URI_EXPIRED"
 
         @get:JvmSynthetic
         const val PAIRING_EXPIRED: String = "PAIRING_EXPIRED"

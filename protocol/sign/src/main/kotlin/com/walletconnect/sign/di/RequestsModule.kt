@@ -1,6 +1,7 @@
 package com.walletconnect.sign.di
 
 import com.walletconnect.android.internal.common.di.AndroidCommonDITags
+import com.walletconnect.android.pulse.domain.InsertEventUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnPingUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionAuthenticateUseCase
 import com.walletconnect.sign.engine.use_case.requests.OnSessionDeleteUseCase
@@ -33,7 +34,9 @@ internal fun requestsModule() = module {
             resolveAttestationIdUseCase = get(),
             logger = get(),
             pairingController = get(),
-            insertEventUseCase = get()
+            insertTelemetryEventUseCase = get(),
+            insertEventUseCase = get<InsertEventUseCase>(),
+            clientId = get(named(AndroidCommonDITags.CLIENT_ID)),
         )
     }
 
@@ -56,7 +59,9 @@ internal fun requestsModule() = module {
             sessionStorageRepository = get(),
             jsonRpcInteractor = get(),
             resolveAttestationIdUseCase = get(),
-            logger = get(named(AndroidCommonDITags.LOGGER))
+            logger = get(named(AndroidCommonDITags.LOGGER)),
+            insertEventUseCase = get<InsertEventUseCase>(),
+            clientId = get(named(AndroidCommonDITags.CLIENT_ID)),
         )
     }
 

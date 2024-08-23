@@ -1,5 +1,5 @@
-import com.sun.tools.javac.util.List;
 import kotlin.String;
+import kotlin.collections.List;
 
 -- migration from 8.db to 9.db
 

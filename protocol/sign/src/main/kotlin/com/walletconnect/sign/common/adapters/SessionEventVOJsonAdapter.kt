@@ -30,11 +30,23 @@ internal class SessionEventVOJsonAdapter(moshi: Moshi) : JsonAdapter<SessionEven
                 1 -> {
                     // Moshi does not handle malformed JSON where there is a missing key for an array or object
                     val dataAny = anyAdapter.fromJson(reader) ?: throw Util.unexpectedNull("data", "data", reader)
+
                     data = if (dataAny is List<*>) {
                         upsertArray(JSONArray(), dataAny).toString()
-                    } else {
+                    } else if (dataAny is Map<*, *>) {
                         val paramsMap = dataAny as Map<*, *>
                         upsertObject(JSONObject(), paramsMap).toString()
+                    } else {
+                        if (dataAny is Number) {
+                            val castedNumber = if (dataAny.toDouble() % 1 == 0.0) {
+                                dataAny.toLong()
+                            } else {
+                                dataAny.toDouble()
+                            }
+                            castedNumber.toString()
+                        } else {
+                            dataAny.toString()
+                        }
                     }
                 }
 

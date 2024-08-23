@@ -32,7 +32,6 @@ json = "20220924"
 timber = "5.0.1"
 web3j = "4.9.8-hotfix"
 kethereum = "0.86.0"
-wsRestJava = "4.0.0"
 relinker = "1.4.5"
 coil = "2.6.0"
 customQrGenerator = "1.6.2"
@@ -152,7 +151,6 @@ bouncyCastle = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "boun
 sqlCipher = { module = "net.zetetic:android-database-sqlcipher", version.ref = "sqlCipher" }
 relinker = { module = "com.getkeepsafe.relinker:relinker", version.ref = "relinker" }
 mulitbase = { module = "com.github.multiformats:java-multibase", version.ref = "multibase" }
-wsRestJava = { module = "jakarta.ws.rs:jakarta.ws.rs-api", version.ref = "wsRestJava" }
 jerseyCommon = { module = "org.glassfish.jersey.core:jersey-common", version.ref = "jerseyCommon" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }

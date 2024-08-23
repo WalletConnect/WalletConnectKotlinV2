@@ -327,20 +327,6 @@ fun parseRepositoryState(xmlResponse: String, repositoryId: String): String? {
     return null
 }
 
-tasks.register<Exec>("createTag") {
-    val tagName = "BOM_$BOM_VERSION"
-    commandLine("git", "tag", tagName)
-}
-
-tasks.register<Exec>("pushTagToMain") {
-    val tagName = "BOM_$BOM_VERSION"
-    val repoUrl = "https://github.com/WalletConnect/WalletConnectKotlinV2.git"
-    val token = System.getenv("PUSH_GITHUB_TOKEN") ?: throw GradleException("PUSH_GITHUB_TOKEN environment variable is not set")
-    dependsOn("createTag")
-    val authenticatedRepoUrl = repoUrl.replace("https://", "https://$token:@")
-    commandLine("git", "push", authenticatedRepoUrl, tagName, "refs/heads/main")
-}
-
 private val repoIdWithVersion = listOf(
     Pair(ANDROID_BOM, BOM_VERSION),
     Pair(FOUNDATION, FOUNDATION_VERSION),

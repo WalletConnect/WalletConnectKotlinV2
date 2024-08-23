@@ -42,7 +42,9 @@ open class AutoApproveSessionWalletDelegate : WalletDelegate() {
 internal fun Sign.Model.SessionProposal.approveOnSessionProposal() {
     Timber.d("walletDelegate: onSessionProposal: $this")
 
-    WalletSignClient.approveSession(Sign.Params.Approve(proposerPublicKey, sessionNamespaces), onSuccess = {}, onError = ::globalOnError)
+    WalletSignClient.approveSession(Sign.Params.Approve(proposerPublicKey, sessionNamespaces),
+        onSuccess = {}, onError = { globalOnError(it) }
+    )
     Timber.d("WalletClient: approveSession")
 }
 
