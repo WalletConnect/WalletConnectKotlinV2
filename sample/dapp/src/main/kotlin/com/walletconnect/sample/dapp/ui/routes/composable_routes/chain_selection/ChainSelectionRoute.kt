@@ -142,19 +142,25 @@ private fun onAuthenticateLinkMode(
     composableScope: CoroutineScope,
     dispatcher: CoroutineDispatcher
 ) {
-    if (viewModel.isAnyChainSelected) {
-        viewModel.authenticate(
-            viewModel.authenticateParams,
-            appLink,
-            onAuthenticateSuccess = { uri -> onAuthenticateSuccess(uri, appLink, context, composableScope, dispatcher) },
-            onError = { error ->
-                composableScope.launch(dispatcher) {
-                    Toast.makeText(context, "Authenticate error: $error", Toast.LENGTH_SHORT).show()
-                }
-            })
+    if (appLink.isNotEmpty()) {
+        if (viewModel.isAnyChainSelected) {
+            viewModel.authenticate(
+                viewModel.authenticateParams,
+                appLink,
+                onAuthenticateSuccess = { uri -> onAuthenticateSuccess(uri, appLink, context, composableScope, dispatcher) },
+                onError = { error ->
+                    composableScope.launch(dispatcher) {
+                        Toast.makeText(context, "Authenticate error: $error", Toast.LENGTH_SHORT).show()
+                    }
+                })
+        } else {
+            composableScope.launch(dispatcher) {
+                Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
+            }
+        }
     } else {
         composableScope.launch(dispatcher) {
-            Toast.makeText(context, "Please select a chain", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Wallet not installed", Toast.LENGTH_SHORT).show()
         }
     }
 }
@@ -167,7 +173,7 @@ private fun onAuthenticateSuccess(
     dispatcher: CoroutineDispatcher
 ) {
     if (uri != null) {
-        if (appLink.contains("walletkit_rn")) {
+        if (appLink.contains("rn_walletkit")) {
             redirectToRNWallet(uri, context, composableScope, dispatcher)
         } else {
             redirectToKotlinWallet(uri, context, composableScope, dispatcher)
@@ -268,7 +274,15 @@ private fun ChainSelectionScreen(
             )
             BlueButton(
                 text = "1-CA Link Mode (Kotlin Sample Wallet)",
-                onClick = { onAuthenticateLinkMode("https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet") },
+                onClick = {
+                    val applink = when {
+                        context.packageManager.isPackageInstalled(SAMPLE_WALLET_DEBUG_PACKAGE) -> "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet_debug"
+                        context.packageManager.isPackageInstalled(SAMPLE_WALLET_INTERNAL_PACKAGE) -> "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet_internal"
+                        context.packageManager.isPackageInstalled(SAMPLE_WALLET_RELEASE_PACKAGE) -> "https://web3modal-laboratory-git-chore-kotlin-assetlinks-walletconnect1.vercel.app/wallet_release"
+                        else -> ""
+                    }
+                    onAuthenticateLinkMode(applink)
+                },
                 modifier = Modifier
                     .padding(vertical = 10.dp)
                     .fillMaxWidth()
@@ -277,7 +291,7 @@ private fun ChainSelectionScreen(
             )
             BlueButton(
                 text = "1-CA Link Mode (RN Wallet)",
-                onClick = { onAuthenticateLinkMode("https://lab.web3modal.com/rn_walletkit") },
+                onClick = { onAuthenticateLinkMode(if (context.packageManager.isPackageInstalled(SAMPLE_WALLET_DEBUG_PACKAGE)) "https://lab.web3modal.com/rn_walletkit" else "") },
                 modifier = Modifier
                     .padding(vertical = 10.dp)
                     .fillMaxWidth()
@@ -614,10 +628,6 @@ private class ChainSelectionStateProvider : PreviewParameterProvider<List<ChainS
 private const val SAMPLE_WALLET_DEBUG_PACKAGE = "com.walletconnect.sample.wallet.debug"
 private const val SAMPLE_WALLET_INTERNAL_PACKAGE = "com.walletconnect.sample.wallet.internal"
 private const val SAMPLE_WALLET_RELEASE_PACKAGE = "com.walletconnect.sample.wallet"
-private fun Context.isSampleWalletInstalled() =
-    (BuildConfig.BUILD_TYPE == "debug" && packageManager.isPackageInstalled(SAMPLE_WALLET_DEBUG_PACKAGE)) ||
-            (BuildConfig.BUILD_TYPE == "release" && packageManager.isPackageInstalled(SAMPLE_WALLET_RELEASE_PACKAGE)) ||
-            (BuildConfig.BUILD_TYPE == "internal" && packageManager.isPackageInstalled(SAMPLE_WALLET_INTERNAL_PACKAGE))
 
 data class PairingUri(
     val uri: String,
