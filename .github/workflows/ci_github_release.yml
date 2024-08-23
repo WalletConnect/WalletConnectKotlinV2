@@ -1,9 +1,7 @@
 name: Create GitHub Release
 
 on:
-  push:
-    tags:
-      - 'BOM_*.*.*'
+  workflow_dispatch:
 
 jobs:
   create_release:
