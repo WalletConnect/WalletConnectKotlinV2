@@ -5,6 +5,7 @@ import com.squareup.moshi.JsonClass
 import com.walletconnect.util.generateId
 import com.walletconnect.web3.modal.data.json_rpc.JsonRpcMethod
 
+@JsonClass(generateAdapter = true)
 internal data class BalanceRequest(
     val address: String,
     @Json(name = "id")
