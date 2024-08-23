@@ -39,7 +39,7 @@ import com.walletconnect.android.pairing.model.PairingParams
 import com.walletconnect.android.pairing.model.PairingRpc
 import com.walletconnect.android.pairing.model.mapper.toCore
 import com.walletconnect.android.pairing.model.pairingExpiry
-import com.walletconnect.android.pulse.domain.InsertEventUseCase
+import com.walletconnect.android.pulse.domain.InsertTelemetryEventUseCase
 import com.walletconnect.android.pulse.domain.SendBatchEventUseCase
 import com.walletconnect.android.pulse.model.EventType
 import com.walletconnect.android.pulse.model.Trace
@@ -84,7 +84,7 @@ internal class PairingEngine(
     private val crypto: KeyManagementRepository,
     private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val pairingRepository: PairingStorageRepositoryInterface,
-    private val insertEventUseCase: InsertEventUseCase,
+    private val insertEventUseCase: InsertTelemetryEventUseCase,
     private val sendBatchEventUseCase: SendBatchEventUseCase
 ) {
     private var jsonRpcRequestsJob: Job? = null

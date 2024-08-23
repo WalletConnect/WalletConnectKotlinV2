@@ -21,4 +21,10 @@ data class Properties(
     val trace: List<String>? = null,
     @Json(name = "topic")
     val topic: String? = null,
+    @Json(name = "correlation_id")
+    val correlationId: Long? = null,
+    @Json(name = "client_id")
+    val clientId: String? = null,
+    @Json(name = "direction")
+    val direction: String? = null,
 )

@@ -17,8 +17,13 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
-import com.walletconnect.android.verify.model.VerifyContext
+import com.walletconnect.android.pulse.domain.InsertEventUseCase
+import com.walletconnect.android.pulse.model.Direction
+import com.walletconnect.android.pulse.model.EventType
+import com.walletconnect.android.pulse.model.properties.Properties
+import com.walletconnect.android.pulse.model.properties.Props
 import com.walletconnect.android.verify.domain.ResolveAttestationIdUseCase
+import com.walletconnect.android.verify.model.VerifyContext
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.model.type.Sequences
@@ -41,6 +46,8 @@ internal class OnSessionRequestUseCase(
     private val sessionStorageRepository: SessionStorageRepository,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
     private val resolveAttestationIdUseCase: ResolveAttestationIdUseCase,
+    private val insertEventUseCase: InsertEventUseCase,
+    private val clientId: String,
     private val logger: Logger
 ) {
     private val _events: MutableSharedFlow<EngineEvent> = MutableSharedFlow()
@@ -85,6 +92,16 @@ internal class OnSessionRequestUseCase(
             SignValidator.validateChainIdWithMethodAuthorisation(params.chainId, method, sessionNamespaces) { error ->
                 jsonRpcInteractor.respondWithError(request, error.toPeerError(), irnParams)
                 return@supervisorScope
+            }
+
+            if (request.transportType == TransportType.LINK_MODE) {
+                insertEventUseCase(
+                    Props(
+                        EventType.SUCCESS,
+                        Tags.SESSION_REQUEST_LINK_MODE.id.toString(),
+                        Properties(correlationId = request.id, clientId = clientId, direction = Direction.RECEIVED.state)
+                    )
+                )
             }
 
             val url = sessionPeerAppMetaData?.url ?: String.Empty

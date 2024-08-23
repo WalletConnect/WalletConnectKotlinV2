@@ -6,7 +6,7 @@ import com.walletconnect.android.internal.common.model.Expiry
 import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
 import com.walletconnect.android.internal.common.storage.metadata.MetadataStorageRepositoryInterface
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
-import com.walletconnect.android.pulse.domain.InsertEventUseCase
+import com.walletconnect.android.pulse.domain.InsertTelemetryEventUseCase
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.util.Logger
@@ -35,7 +35,7 @@ class ApproveSessionUseCaseTest {
     private val proposalStorageRepository = mockk<ProposalStorageRepository>(relaxed = true)
     private val metadataStorageRepository = mockk<MetadataStorageRepositoryInterface>(relaxed = true)
     private val verifyContextStorageRepository = mockk<VerifyContextStorageRepository>(relaxed = true)
-    private val insertEventUseCase = mockk<InsertEventUseCase>(relaxed = true)
+    private val insertEventUseCase = mockk<InsertTelemetryEventUseCase>(relaxed = true)
     private val logger = mockk<Logger>(relaxed = true)
     private val selfAppMetaData = mockk<AppMetaData>(relaxed = true)
 

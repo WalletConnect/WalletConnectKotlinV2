@@ -21,6 +21,11 @@ import com.walletconnect.android.internal.utils.dayInSeconds
 import com.walletconnect.android.internal.utils.getParticipantTag
 import com.walletconnect.android.internal.utils.oneHourInSeconds
 import com.walletconnect.android.pairing.model.mapper.toPairing
+import com.walletconnect.android.pulse.domain.InsertEventUseCase
+import com.walletconnect.android.pulse.model.Direction
+import com.walletconnect.android.pulse.model.EventType
+import com.walletconnect.android.pulse.model.properties.Properties
+import com.walletconnect.android.pulse.model.properties.Props
 import com.walletconnect.foundation.common.model.PublicKey
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -53,6 +58,8 @@ internal class SessionAuthenticateUseCase(
     private val getNamespacesFromReCaps: GetNamespacesFromReCaps,
     private val linkModeJsonRpcInteractor: LinkModeJsonRpcInteractorInterface,
     private val linkModeStorageRepository: LinkModeStorageRepository,
+    private val insertEventUseCase: InsertEventUseCase,
+    private val clientId: String,
     private val logger: Logger
 ) : SessionAuthenticateUseCaseInterface {
     override suspend fun authenticate(
@@ -101,6 +108,14 @@ internal class SessionAuthenticateUseCase(
         if (isLinkModeEnabled(walletAppLink)) {
             try {
                 linkModeJsonRpcInteractor.triggerRequest(authRequest, appLink = walletAppLink!!, topic = Topic(generateUUID()), envelopeType = EnvelopeType.TWO)
+                insertEventUseCase(
+                    Props(
+                        EventType.SUCCESS,
+                        Tags.SESSION_AUTHENTICATE_LINK_MODE.id.toString(),
+                        Properties(correlationId = authRequest.id, clientId = clientId, direction = Direction.SENT.state)
+                    )
+                )
+                logger.log("Link Mode - Request triggered successfully")
             } catch (e: Error) {
                 onFailure(e)
             }

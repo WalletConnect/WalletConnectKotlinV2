@@ -78,6 +78,8 @@ internal fun callsModule() = module {
             getNamespacesFromReCaps = get(),
             linkModeJsonRpcInteractor = get<LinkModeJsonRpcInteractorInterface>(),
             linkModeStorageRepository = get(),
+            insertEventUseCase = get(),
+            clientId = get(named(AndroidCommonDITags.CLIENT_ID)),
             logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }
@@ -109,7 +111,9 @@ internal fun callsModule() = module {
             selfAppMetaData = get(),
             sessionStorageRepository = get(),
             metadataStorageRepository = get(),
+            insertTelemetryEventUseCase = get(),
             insertEventUseCase = get(),
+            clientId = get(named(AndroidCommonDITags.CLIENT_ID)),
             linkModeJsonRpcInteractor = get<LinkModeJsonRpcInteractorInterface>()
         )
     }
@@ -121,7 +125,9 @@ internal fun callsModule() = module {
             logger = get(named(AndroidCommonDITags.LOGGER)),
             verifyContextStorageRepository = get(),
             getPendingSessionAuthenticateRequest = get(),
-            linkModeJsonRpcInteractor = get<LinkModeJsonRpcInteractorInterface>()
+            linkModeJsonRpcInteractor = get<LinkModeJsonRpcInteractorInterface>(),
+            clientId = get(named(AndroidCommonDITags.CLIENT_ID)),
+            insertEventUseCase = get()
         )
     }
 
@@ -142,6 +148,8 @@ internal fun callsModule() = module {
             sessionStorageRepository = get(),
             linkModeJsonRpcInteractor = get(),
             metadataStorageRepository = get(),
+            insertEventUseCase = get(),
+            clientId = get(named(AndroidCommonDITags.CLIENT_ID)),
             logger = get(named(AndroidCommonDITags.LOGGER))
         )
     }
@@ -154,7 +162,9 @@ internal fun callsModule() = module {
             logger = get(named(AndroidCommonDITags.LOGGER)),
             getPendingJsonRpcHistoryEntryByIdUseCase = get(),
             linkModeJsonRpcInteractor = get(),
-            metadataStorageRepository = get()
+            metadataStorageRepository = get(),
+            insertEventUseCase = get(),
+            clientId = get(named(AndroidCommonDITags.CLIENT_ID)),
         )
     }
 

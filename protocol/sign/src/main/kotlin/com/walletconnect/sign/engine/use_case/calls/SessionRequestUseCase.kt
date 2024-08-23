@@ -17,6 +17,11 @@ import com.walletconnect.android.internal.common.storage.metadata.MetadataStorag
 import com.walletconnect.android.internal.utils.CoreValidator
 import com.walletconnect.android.internal.utils.currentTimeInSeconds
 import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
+import com.walletconnect.android.pulse.domain.InsertEventUseCase
+import com.walletconnect.android.pulse.model.Direction
+import com.walletconnect.android.pulse.model.EventType
+import com.walletconnect.android.pulse.model.properties.Properties
+import com.walletconnect.android.pulse.model.properties.Props
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
@@ -45,6 +50,8 @@ internal class SessionRequestUseCase(
     private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val linkModeJsonRpcInteractor: LinkModeJsonRpcInteractorInterface,
     private val metadataStorageRepository: MetadataStorageRepositoryInterface,
+    private val insertEventUseCase: InsertEventUseCase,
+    private val clientId: String,
     private val logger: Logger,
 ) : SessionRequestUseCaseInterface {
     private val _errors: MutableSharedFlow<SDKError> = MutableSharedFlow()
@@ -56,10 +63,10 @@ internal class SessionRequestUseCase(
         }
 
         val session = sessionStorageRepository.getSessionWithoutMetadataByTopic(Topic(request.topic))
-                .run {
-                    val peerAppMetaData = metadataStorageRepository.getByTopicAndType(this.topic, AppMetaDataType.PEER)
-                    this.copy(peerAppMetaData = peerAppMetaData)
-                }
+            .run {
+                val peerAppMetaData = metadataStorageRepository.getByTopicAndType(this.topic, AppMetaDataType.PEER)
+                this.copy(peerAppMetaData = peerAppMetaData)
+            }
 
         val nowInSeconds = currentTimeInSeconds
         if (!CoreValidator.isExpiryWithinBounds(request.expiry)) {
@@ -85,6 +92,13 @@ internal class SessionRequestUseCase(
             if (session.peerAppLink.isNullOrEmpty()) return@supervisorScope onFailure(IllegalStateException("App link is missing"))
             try {
                 linkModeJsonRpcInteractor.triggerRequest(sessionPayload, Topic(request.topic), session.peerAppLink)
+                insertEventUseCase(
+                    Props(
+                        EventType.SUCCESS,
+                        Tags.SESSION_REQUEST_LINK_MODE.id.toString(),
+                        Properties(correlationId = sessionPayload.id, clientId = clientId, direction = Direction.SENT.state)
+                    )
+                )
             } catch (e: Exception) {
                 onFailure(e)
             }

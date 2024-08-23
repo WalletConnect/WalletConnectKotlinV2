@@ -30,6 +30,7 @@ import java.util.concurrent.TimeUnit
 
 private const val INIT_BACKOFF_MILLIS = 1L
 private const val MAX_BACKOFF_SEC = 20L
+internal const val KEY_CLIENT_ID = "clientId"
 
 @Suppress("LocalVariableName")
 @JvmSynthetic
