@@ -4,9 +4,7 @@ package com.walletconnect.notify.engine.domain
 
 import com.walletconnect.android.internal.common.crypto.kmr.KeyManagementRepository
 import com.walletconnect.android.internal.common.model.AccountId
-import com.walletconnect.android.internal.common.model.EnvelopeType
 import com.walletconnect.android.internal.common.model.IrnParams
-import com.walletconnect.android.internal.common.model.Participants
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.params.CoreNotifyParams
 import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
@@ -35,7 +33,8 @@ internal class WatchSubscriptionsUseCase(
         val selfPublicKey = getSelfKeyForWatchSubscriptionUseCase(requestTopic, accountId)
         val responseTopic = keyManagementRepository.generateTopicFromKeyAgreement(selfPublicKey, peerPublicKey)
 
-        jsonRpcInteractor.subscribe(responseTopic) { error -> onFailure(error) }
+//        println("kobe: watch")
+//        jsonRpcInteractor.subscribe(responseTopic) { error -> onFailure(error) }
 
         val account = registeredAccountsRepository.getAccountByAccountId(accountId.value)
         val didJwt = fetchDidJwtInteractor.watchSubscriptionsRequest(accountId, authenticationPublicKey, account.appDomain)
@@ -46,14 +45,14 @@ internal class WatchSubscriptionsUseCase(
         val request = NotifyRpc.NotifyWatchSubscriptions(params = watchSubscriptionsParams)
         val irnParams = IrnParams(Tags.NOTIFY_WATCH_SUBSCRIPTIONS, Ttl(thirtySeconds))
 
-        jsonRpcInteractor.publishJsonRpcRequest(
-            topic = requestTopic,
-            params = irnParams,
-            payload = request,
-            envelopeType = EnvelopeType.ONE,
-            participants = Participants(selfPublicKey, peerPublicKey),
-            onSuccess = onSuccess,
-            onFailure = onFailure
-        )
+//        jsonRpcInteractor.publishJsonRpcRequest(
+//            topic = requestTopic,
+//            params = irnParams,
+//            payload = request,
+//            envelopeType = EnvelopeType.ONE,
+//            participants = Participants(selfPublicKey, peerPublicKey),
+//            onSuccess = onSuccess,
+//            onFailure = onFailure
+//        )
     }
 }

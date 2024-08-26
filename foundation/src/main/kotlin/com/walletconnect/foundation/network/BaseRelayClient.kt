@@ -74,9 +74,9 @@ abstract class BaseRelayClient : RelayInterface {
         relayService
             .observeWebSocketEvent()
             .map { event ->
-                if (isLoggingEnabled) {
-                    println("Event: $event")
-                }
+//                if (isLoggingEnabled) {
+                    println("kobe: Event: $event")
+//                }
                 event.toRelayEvent()
             }
             .shareIn(scope, SharingStarted.Lazily, REPLAY)

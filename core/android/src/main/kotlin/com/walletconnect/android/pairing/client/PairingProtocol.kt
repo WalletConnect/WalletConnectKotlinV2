@@ -77,22 +77,22 @@ internal class PairingProtocol(private val koinApp: KoinApplication = wcKoinApp)
         checkEngineInitialization()
 
         scope.launch(Dispatchers.IO) {
-            awaitConnection(
-                {
+//            awaitConnection(
+//                {
                     try {
                         pairingEngine.pair(
                             uri = pair.uri,
                             onSuccess = { onSuccess(pair) },
-                            onFailure = { error -> onError(Core.Model.Error(error)) }
+                            onFailure = { error -> onError(Core.Model.Error(Throwable("Pairing error: ${error.message}"))) }
                         )
                     } catch (e: Exception) {
                         onError(Core.Model.Error(e))
                     }
-                },
-                { throwable ->
-                    logger.error(throwable)
-                    onError(Core.Model.Error(Throwable("Pairing error: ${throwable.message}")))
-                })
+//                },
+//                { throwable ->
+//                    logger.error(throwable)
+//                    onError(Core.Model.Error(Throwable("Pairing error: ${throwable.message}")))
+//                })
         }
     }
 
@@ -159,6 +159,7 @@ internal class PairingProtocol(private val koinApp: KoinApplication = wcKoinApp)
                                 onConnection()
                                 return@withTimeout
                             }
+                            //todo: return an error after earlier - after tries ?
                         } else {
                             insertEventUseCase(Props(type = EventType.Error.NO_INTERNET_CONNECTION))
                             errorLambda(Throwable("No internet connection"))

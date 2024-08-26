@@ -45,7 +45,6 @@ import com.walletconnect.android.pulse.model.EventType
 import com.walletconnect.android.pulse.model.Trace
 import com.walletconnect.android.pulse.model.properties.Properties
 import com.walletconnect.android.pulse.model.properties.Props
-import com.walletconnect.android.relay.WSSConnectionState
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
@@ -63,7 +62,6 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -297,24 +295,37 @@ internal class PairingEngine(
     }
 
     private fun resubscribeToPairingTopics() {
-        jsonRpcInteractor.wssConnectionState
-            .filterIsInstance<WSSConnectionState.Connected>()
-            .onEach {
-                supervisorScope {
-                    launch(Dispatchers.IO) {
-                        sendBatchSubscribeForPairings()
-                    }
+        scope.launch {
+            supervisorScope {
+                launch(Dispatchers.IO) {
+                    sendBatchSubscribeForPairings()
                 }
+            }
 
-                if (jsonRpcRequestsJob == null) {
-                    jsonRpcRequestsJob = collectJsonRpcRequestsFlow()
-                }
-            }.launchIn(scope)
+            if (jsonRpcRequestsJob == null) {
+                jsonRpcRequestsJob = collectJsonRpcRequestsFlow()
+            }
+        }
+
+//        jsonRpcInteractor.wssConnectionState
+//            .filterIsInstance<WSSConnectionState.Connected>()
+//            .onEach {
+//                supervisorScope {
+//                    launch(Dispatchers.IO) {
+//                        sendBatchSubscribeForPairings()
+//                    }
+//                }
+//
+//                if (jsonRpcRequestsJob == null) {
+//                    jsonRpcRequestsJob = collectJsonRpcRequestsFlow()
+//                }
+//            }.launchIn(scope)
     }
 
     private suspend fun sendBatchSubscribeForPairings() {
         try {
             val pairingTopics = pairingRepository.getListOfPairings().filter { pairing -> pairing.isNotExpired() }.map { pairing -> pairing.topic.value }
+            println("kobe: re-subscribing to pairing topics: $pairingTopics")
             jsonRpcInteractor.batchSubscribe(pairingTopics) { error -> scope.launch { internalErrorFlow.emit(SDKError(error)) } }
         } catch (e: Exception) {
             scope.launch { internalErrorFlow.emit(SDKError(e)) }

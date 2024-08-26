@@ -83,7 +83,6 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.merge
@@ -216,24 +215,42 @@ internal class SignEngine(
     }
 
     private fun handleRelayRequestsAndResponses() {
-        jsonRpcInteractor.wssConnectionState
-            .filterIsInstance<WSSConnectionState.Connected>()
-            .onEach {
-                supervisorScope {
-                    launch(Dispatchers.IO) {
-                        resubscribeToSession()
-                        resubscribeToPendingAuthenticateTopics()
-                    }
+        scope.launch {
+            supervisorScope {
+                launch(Dispatchers.IO) {
+                    resubscribeToSession()
+                    resubscribeToPendingAuthenticateTopics()
                 }
+            }
 
-                if (jsonRpcRequestsJob == null) {
-                    jsonRpcRequestsJob = collectJsonRpcRequests()
-                }
+            if (jsonRpcRequestsJob == null) {
+                jsonRpcRequestsJob = collectJsonRpcRequests()
+            }
 
-                if (jsonRpcResponsesJob == null) {
-                    jsonRpcResponsesJob = collectJsonRpcResponses()
-                }
-            }.launchIn(scope)
+            if (jsonRpcResponsesJob == null) {
+                jsonRpcResponsesJob = collectJsonRpcResponses()
+            }
+        }
+
+
+//        jsonRpcInteractor.wssConnectionState
+//            .filterIsInstance<WSSConnectionState.Connected>()
+//            .onEach {
+//                supervisorScope {
+//                    launch(Dispatchers.IO) {
+//                        resubscribeToSession()
+//                        resubscribeToPendingAuthenticateTopics()
+//                    }
+//                }
+//
+//                if (jsonRpcRequestsJob == null) {
+//                    jsonRpcRequestsJob = collectJsonRpcRequests()
+//                }
+//
+//                if (jsonRpcResponsesJob == null) {
+//                    jsonRpcResponsesJob = collectJsonRpcResponses()
+//                }
+//            }.launchIn(scope)
     }
 
     private fun handleLinkModeResponses() {
@@ -325,13 +342,12 @@ internal class SignEngine(
             listOfExpiredSession
                 .map { session -> session.topic }
                 .onEach { sessionTopic ->
-                    runCatching {
-                        crypto.removeKeys(sessionTopic.value)
-                    }.onFailure { logger.error(it) }
+                    runCatching { crypto.removeKeys(sessionTopic.value) }.onFailure { logger.error(it) }
                     sessionStorageRepository.deleteSession(sessionTopic)
                 }
 
             val validSessionTopics = listOfValidSessions.map { it.topic.value }
+            println("kobe: re-subscribe to session topics: $validSessionTopics")
             jsonRpcInteractor.batchSubscribe(validSessionTopics) { error -> scope.launch { _engineEvent.emit(SDKError(error)) } }
         } catch (e: Exception) {
             scope.launch { _engineEvent.emit(SDKError(e)) }
@@ -342,6 +358,7 @@ internal class SignEngine(
         scope.launch {
             try {
                 val responseTopics = authenticateResponseTopicRepository.getResponseTopics().map { responseTopic -> responseTopic }
+                println("kobe: re-subscribe to pending auth topics; $responseTopics")
                 jsonRpcInteractor.batchSubscribe(responseTopics) { error -> scope.launch { _engineEvent.emit(SDKError(error)) } }
             } catch (e: Exception) {
                 scope.launch { _engineEvent.emit(SDKError(e)) }

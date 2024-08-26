@@ -27,6 +27,7 @@ fun coreJsonRpcModule() = module {
             jsonRpcHistory = get(),
             pushMessageStorage = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
+            connectionLifecycle = get(named(AndroidCommonDITags.DEFAULT_CONNECTION_LIFECYCLE))
         )
     }
 

@@ -1,5 +1,6 @@
 package com.walletconnect.sign.engine.use_case.calls
 
+import com.walletconnect.android.Core
 import com.walletconnect.android.internal.common.model.IrnParams
 import com.walletconnect.android.internal.common.model.Tags
 import com.walletconnect.android.internal.common.model.type.RelayJsonRpcInteractorInterface
@@ -7,6 +8,7 @@ import com.walletconnect.android.internal.common.scope
 import com.walletconnect.android.internal.common.storage.verify.VerifyContextStorageRepository
 import com.walletconnect.android.internal.utils.CoreValidator.isExpired
 import com.walletconnect.android.internal.utils.fiveMinutesInSeconds
+import com.walletconnect.android.pairing.handler.PairingControllerInterface
 import com.walletconnect.foundation.common.model.Ttl
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.sign.common.exceptions.PeerError
@@ -20,6 +22,7 @@ internal class RejectSessionUseCase(
     private val verifyContextStorageRepository: VerifyContextStorageRepository,
     private val jsonRpcInteractor: RelayJsonRpcInteractorInterface,
     private val proposalStorageRepository: ProposalStorageRepository,
+    private val pairingController: PairingControllerInterface,
     private val logger: Logger
 ) : RejectSessionUseCaseInterface {
 
@@ -42,6 +45,7 @@ internal class RejectSessionUseCase(
                 scope.launch {
                     proposalStorageRepository.deleteProposal(proposerPublicKey)
                     verifyContextStorageRepository.delete(proposal.requestId)
+                    pairingController.deleteAndUnsubscribePairing(Core.Params.Delete(proposal.pairingTopic.value))
                 }
                 onSuccess()
             },

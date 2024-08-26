@@ -6,12 +6,12 @@ import com.pandulapeter.beagle.logOkHttp.BeagleOkHttpLogger
 import com.squareup.moshi.Moshi
 import com.tinder.scarlet.Lifecycle
 import com.tinder.scarlet.Scarlet
-import com.tinder.scarlet.lifecycle.android.AndroidLifecycle
 import com.tinder.scarlet.messageadapter.moshi.MoshiMessageAdapter
 import com.tinder.scarlet.retry.ExponentialBackoffStrategy
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
 import com.walletconnect.android.BuildConfig
 import com.walletconnect.android.internal.common.connection.ConnectivityState
+import com.walletconnect.android.internal.common.connection.DefaultConnectionLifecycle
 import com.walletconnect.android.internal.common.connection.ManualConnectionLifecycle
 import com.walletconnect.android.internal.common.jwt.clientid.GenerateJwtStoreClientIdUseCase
 import com.walletconnect.android.relay.ConnectionType
@@ -109,8 +109,9 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
         ManualConnectionLifecycle()
     }
 
-    single<Lifecycle>(named(AndroidCommonDITags.AUTOMATIC_CONNECTION_LIFECYCLE)) {
-        AndroidLifecycle.ofApplicationForeground(androidApplication())
+    single<DefaultConnectionLifecycle>(named(AndroidCommonDITags.DEFAULT_CONNECTION_LIFECYCLE)) {
+        DefaultConnectionLifecycle(androidApplication())
+//        AndroidLifecycle.ofApplicationForeground(androidApplication()) //todo: combine with connectivity check?
     }
 
     single { ExponentialBackoffStrategy(INIT_BACKOFF_MILLIS, TimeUnit.SECONDS.toMillis(MAX_BACKOFF_SEC)) }
@@ -136,9 +137,9 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
     }
 }
 
-private fun Scope.getLifecycle(connectionType: ConnectionType) =
+private fun Scope.getLifecycle(connectionType: ConnectionType): Lifecycle =
     if (connectionType == ConnectionType.MANUAL) {
         get<ManualConnectionLifecycle>(named(AndroidCommonDITags.MANUAL_CONNECTION_LIFECYCLE))
     } else {
-        get<Lifecycle>(named(AndroidCommonDITags.AUTOMATIC_CONNECTION_LIFECYCLE))
+        get<DefaultConnectionLifecycle>(named(AndroidCommonDITags.DEFAULT_CONNECTION_LIFECYCLE))
     }

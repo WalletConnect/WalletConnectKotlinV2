@@ -36,6 +36,7 @@ class RelayClient(private val koinApp: KoinApplication = wcKoinApp) : BaseRelayC
         this.connectionType = connectionType
         logger = koinApp.koin.get(named(AndroidCommonDITags.LOGGER))
         relayService = koinApp.koin.get(named(AndroidCommonDITags.RELAY_SERVICE))
+
         collectConnectionInitializationErrors { error -> onError(error) }
         monitorConnectionState()
         observeResults()

@@ -1,6 +1,7 @@
 package com.walletconnect.android.internal.domain
 
 import com.walletconnect.android.internal.common.JsonRpcResponse
+import com.walletconnect.android.internal.common.connection.DefaultConnectionLifecycle
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
@@ -40,6 +41,8 @@ internal class RelayerInteractorTest {
         every { subscriptionRequest } returns flow { }
     }
 
+    private val defaultConnectionLifecycle: DefaultConnectionLifecycle = mockk()
+
     private val jsonRpcHistory: JsonRpcHistory = mockk {
         every { setRequest(any(), any(), any(), any(), any()) } returns true
         every { updateRequestWithResponse(any(), any()) } returns mockk()
@@ -70,7 +73,7 @@ internal class RelayerInteractorTest {
     }
 
     private val sut =
-        spyk(RelayJsonRpcInteractor(relay, codec, jsonRpcHistory, pushMessagesRepository, logger), recordPrivateCalls = true) {
+        spyk(RelayJsonRpcInteractor(relay, codec, jsonRpcHistory, pushMessagesRepository, logger, defaultConnectionLifecycle), recordPrivateCalls = true) {
             every { checkConnectionWorking() } answers { }
         }
 
@@ -86,7 +89,7 @@ internal class RelayerInteractorTest {
         every { topic } returns topicVO
     }
 
-    val peerError: Error = mockk {
+    private val peerError: Error = mockk {
         every { message } returns "message"
         every { code } returns -1
     }
