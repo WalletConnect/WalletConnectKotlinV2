@@ -16,7 +16,9 @@ internal class GetSampleWalletsUseCase(
             "com.walletconnect.sample.wallet.debug" to SampleWalletDebug,
             "com.walletconnect.sample.wallet.internal" to SampleWalletInternal,
             "com.walletconnect.sample.wallet" to SampleWalletRelease,
-            "com.walletconnect.web3wallet.rnsample.internal" to RNSampleWallet
+            "com.walletconnect.web3wallet.rnsample.internal" to RNSampleWallet,
+            "com.walletconnect.flutterwallet" to FLSampleWallet,
+            "com.walletconnect.flutterwallet.internal" to FLSampleWalletInternal
         )
         samples.forEach { (walletPackage, wallet) ->
             wallet.apply {
@@ -77,5 +79,31 @@ private val RNSampleWallet = Wallet(
     playStore = null,
     webAppLink = null,
     linkMode = "https://lab.web3modal.com/rn_walletkit",
+    true
+)
+
+private val FLSampleWallet = Wallet(
+    id = "FLSampleWallet",
+    name = "FL Sample",
+    homePage = "https://walletconnect.com",
+    imageUrl = "https://raw.githubusercontent.com/WalletConnect/WalletConnectKotlinV2/develop/sample/wallet/src/main/res/drawable-xxxhdpi/wc_icon.png",
+    order = "4",
+    mobileLink = "wcflutterwallet://",
+    playStore = null,
+    webAppLink = null,
+    linkMode = "https://lab.web3modal.com/flutter_walletkit",
+    true
+)
+
+private val FLSampleWalletInternal = Wallet(
+    id = "FLSampleWalletInternal",
+    name = "FL Sample Internal",
+    homePage = "https://walletconnect.com",
+    imageUrl = "https://raw.githubusercontent.com/WalletConnect/WalletConnectKotlinV2/develop/sample/wallet/src/main/res/drawable-xxxhdpi/wc_icon.png",
+    order = "4",
+    mobileLink = "wcflutterwallet-internal://",
+    playStore = null,
+    webAppLink = null,
+    linkMode = "https://dev.lab.web3modal.com/flutter_walletkit_internal",
     true
 )
