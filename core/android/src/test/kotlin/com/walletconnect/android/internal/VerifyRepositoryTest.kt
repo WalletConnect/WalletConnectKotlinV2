@@ -77,8 +77,10 @@ class VerifyRepositoryTest {
         coVerify { verifyPublicKeyStorageRepository.upsertPublicKey(newKey, any()) }
     }
 
+
     @Test
-    fun `resolveV2 calls onSuccess when JWT is valid`() = testScope.runTest {
+    fun `resolveV2 calls onSuccess when JWT is valid and ids match`() = testScope.runTest {
+        val attestationId = "5106a25552e89acfb5bed83ee21bf4e80dbcd51b0b203f6925a369aacb1c860b"
         val attestationJWT = "attestationJWT"
         val metadataUrl = "https://metadata.url"
         val publicKey = "0409b2f80ce60e6f59ed77ef0e984c4efa84b40d608c0b4d039edaf2989a01f2d92931708c7b50c464c347dd55b0eca971d05fbdba3ab00323e69e166fef61440d"
@@ -93,7 +95,38 @@ class VerifyRepositoryTest {
         val onSuccess = mockk<(VerifyResult) -> Unit>(relaxed = true)
         val onError = mockk<(Throwable) -> Unit>(relaxed = true)
 
-        verifyRepository.resolveV2(attestationJWT, metadataUrl, onSuccess, onError)
+        verifyRepository.resolveV2(attestationId, attestationJWT, metadataUrl, onSuccess, onError)
+
+        advanceUntilIdle()
+
+        verify { onSuccess(verifyResult) }
+    }
+
+    @Test
+    fun `resolveV2 calls onSuccess when JWT is valid and ids do not match`() = testScope.runTest {
+        val attestationId = "test"
+        val attestationJWT = "attestationJWT"
+        val metadataUrl = "https://metadata.url"
+        val publicKey = "0409b2f80ce60e6f59ed77ef0e984c4efa84b40d608c0b4d039edaf2989a01f2d92931708c7b50c464c347dd55b0eca971d05fbdba3ab00323e69e166fef61440d"
+        val verifyResult = VerifyResult(Validation.INVALID, false, "https://react-dapp-v2-git-chore-verify-v2-samples-walletconnect1.vercel.app")
+        val claimsJson =
+            """{"exp":1722579908,"id":"5106a25552e89acfb5bed83ee21bf4e80dbcd51b0b203f6925a369aacb1c860b","origin":"https://react-dapp-v2-git-chore-verify-v2-samples-walletconnect1.vercel.app","isScam":null,"isVerified":true}"""
+
+        coEvery { verifyPublicKeyStorageRepository.getPublicKey() } returns Pair(publicKey, currentTimeInSeconds + 1000)
+        every { jwtRepository.verifyJWT(any(), any()) } returns true
+        every { jwtRepository.decodeClaimsJWT(any()) } returns claimsJson
+        coEvery { verifyService.resolveAttestation(attestationId) } returns Response.success(
+            Origin(
+                "attId",
+                origin = "https://react-dapp-v2-git-chore-verify-v2-samples-walletconnect1.vercel.app",
+                isScam = false
+            )
+        )
+
+        val onSuccess = mockk<(VerifyResult) -> Unit>(relaxed = true)
+        val onError = mockk<(Throwable) -> Unit>(relaxed = true)
+
+        verifyRepository.resolveV2(attestationId, attestationJWT, metadataUrl, onSuccess, onError)
 
         advanceUntilIdle()
 
