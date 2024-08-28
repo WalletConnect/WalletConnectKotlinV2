@@ -36,7 +36,7 @@ class ResolveAttestationIdUseCase(private val verifyInterface: VerifyInterface, 
         request: WCRequest,
         onResolve: (VerifyContext) -> Unit
     ) {
-        verifyInterface.resolveV2(request.attestation!!, metadataUrl,
+        verifyInterface.resolveV2(sha256(request.encryptedMessage.toByteArray()), request.attestation!!, metadataUrl,
             onSuccess = { result ->
                 insertContext(VerifyContext(request.id, result.origin, result.validation, verifyUrl, result.isScam)) { verifyContext -> onResolve(verifyContext) }
             },
@@ -64,8 +64,12 @@ class ResolveAttestationIdUseCase(private val verifyInterface: VerifyInterface, 
     private fun insertContext(context: VerifyContext, onResolve: (VerifyContext) -> Unit) {
         scope.launch {
             supervisorScope {
-                repository.insertOrAbort(context)
-                onResolve(context)
+                try {
+                    repository.insertOrAbort(context)
+                    onResolve(context)
+                } catch (e: Exception) {
+                    onResolve(context)
+                }
             }
         }
     }

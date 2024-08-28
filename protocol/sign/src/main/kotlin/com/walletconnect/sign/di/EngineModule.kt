@@ -25,7 +25,7 @@ internal fun engineModule() = module {
 
     single<GetPendingAuthenticateRequestUseCaseInterface> { GetPendingAuthenticateRequestUseCase(jsonRpcHistory = get(), serializer = get()) }
 
-    single { DeleteRequestByIdUseCase(jsonRpcHistory = get()) }
+    single { DeleteRequestByIdUseCase(jsonRpcHistory = get(), verifyContextStorageRepository = get()) }
 
     single { GetPendingJsonRpcHistoryEntryByIdUseCase(jsonRpcHistory = get(), serializer = get()) }
 

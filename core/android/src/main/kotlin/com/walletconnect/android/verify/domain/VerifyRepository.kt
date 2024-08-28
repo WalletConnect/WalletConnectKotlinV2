@@ -34,7 +34,7 @@ internal class VerifyRepository(
         }
     }
 
-    fun resolveV2(attestationJWT: String, metadataUrl: String, onSuccess: (VerifyResult) -> Unit, onError: (Throwable) -> Unit) {
+    fun resolveV2(attestationId: String, attestationJWT: String, metadataUrl: String, onSuccess: (VerifyResult) -> Unit, onError: (Throwable) -> Unit) {
         scope.launch {
             supervisorScope {
                 getVerifyPublicKey().fold(
@@ -47,7 +47,7 @@ internal class VerifyRepository(
                                     return@supervisorScope
                                 }
 
-                                onSuccess(VerifyResult(getValidation(claims, metadataUrl), claims.isScam, claims.origin))
+                                checkIds(attestationId, claims, metadataUrl, onSuccess, onError)
                             } catch (e: Exception) {
                                 onError(e)
                             }
@@ -75,6 +75,20 @@ internal class VerifyRepository(
                     }
                 )
             }
+        }
+    }
+
+    private fun checkIds(
+        attestationId: String,
+        claims: VerifyClaims,
+        metadataUrl: String,
+        onSuccess: (VerifyResult) -> Unit,
+        onError: (Throwable) -> Unit
+    ) {
+        if (attestationId != claims.id) {
+            resolve(attestationId, metadataUrl, onSuccess, onError)
+        } else {
+            onSuccess(VerifyResult(getValidation(claims, metadataUrl), claims.isScam, claims.origin))
         }
     }
 

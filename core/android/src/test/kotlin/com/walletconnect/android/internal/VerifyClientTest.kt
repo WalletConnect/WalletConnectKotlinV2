@@ -57,8 +57,8 @@ class VerifyClientTest {
         val onSuccess = mockk<(VerifyResult) -> Unit>(relaxed = true)
         val onError = mockk<(Throwable) -> Unit>(relaxed = true)
 
-        verifyClient.resolveV2(attestation, metadataUrl, onSuccess, onError)
+        verifyClient.resolveV2("id", attestation, metadataUrl, onSuccess, onError)
 
-        coVerify { verifyRepository.resolveV2(attestation, metadataUrl, onSuccess, onError) }
+        coVerify { verifyRepository.resolveV2("id", attestation, metadataUrl, onSuccess, onError) }
     }
 }

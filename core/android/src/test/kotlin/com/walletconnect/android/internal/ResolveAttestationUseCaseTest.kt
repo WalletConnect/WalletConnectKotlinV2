@@ -15,6 +15,7 @@ import com.walletconnect.utils.Empty
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.invoke
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
@@ -77,8 +78,8 @@ class ResolveAttestationUseCaseTest {
             isScam = false
         )
 
-        coEvery { verifyInterface.resolveV2(any(), any(), any(), any()) } answers {
-            thirdArg<(VerifyResult) -> Unit>().invoke(result)
+        coEvery { verifyInterface.resolveV2(any(), any(), any(), captureLambda(), any()) } answers {
+            lambda<(VerifyResult) -> Unit>().invoke(result)
         }
 
         coEvery { repository.insertOrAbort(any()) } just Runs
@@ -90,7 +91,7 @@ class ResolveAttestationUseCaseTest {
         }
 
         coVerify {
-            verifyInterface.resolveV2("jwt", metadataUrl, any(), any())
+            verifyInterface.resolveV2(any(), "jwt", metadataUrl, any(), any())
         }
         coVerify {
             repository.insertOrAbort(withArg { context ->
@@ -121,8 +122,8 @@ class ResolveAttestationUseCaseTest {
         )
         val metadataUrl = "https://metadata.url"
 
-        coEvery { verifyInterface.resolveV2(any(), any(), any(), any()) } answers {
-            thirdArg<(VerifyResult) -> Unit>().invoke(result)
+        coEvery { verifyInterface.resolveV2(any(), any(), any(), captureLambda(), any()) } answers {
+            lambda<(VerifyResult) -> Unit>().invoke(result)
         }
 
         coEvery { repository.insertOrAbort(any()) } just Runs
@@ -134,7 +135,7 @@ class ResolveAttestationUseCaseTest {
         }
 
         coVerify {
-            verifyInterface.resolveV2("jwt", metadataUrl, any(), any())
+            verifyInterface.resolveV2(any(), "jwt", metadataUrl, any(), any())
         }
         coVerify {
             repository.insertOrAbort(withArg { context ->
