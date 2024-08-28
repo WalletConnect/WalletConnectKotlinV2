@@ -64,8 +64,12 @@ class ResolveAttestationIdUseCase(private val verifyInterface: VerifyInterface, 
     private fun insertContext(context: VerifyContext, onResolve: (VerifyContext) -> Unit) {
         scope.launch {
             supervisorScope {
-                repository.insertOrAbort(context)
-                onResolve(context)
+                try {
+                    repository.insertOrAbort(context)
+                    onResolve(context)
+                } catch (e: Exception) {
+                    onResolve(context)
+                }
             }
         }
     }
