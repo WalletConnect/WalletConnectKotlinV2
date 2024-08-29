@@ -38,7 +38,8 @@ class EventsRepository(
                 this.props.properties?.trace,
                 this.props.properties?.correlationId,
                 this.props.properties?.clientId,
-                this.props.properties?.direction
+                this.props.properties?.direction,
+                this.props.properties?.userAgent
             )
         }
     }
@@ -85,7 +86,8 @@ class EventsRepository(
                     trace = trace,
                     clientId = client_id,
                     correlationId = correlation_id,
-                    direction = direction
+                    direction = direction,
+                    userAgent = user_agent
                 )
             )
         )

@@ -1,0 +1,3 @@
+-- migration from 11.db to 12.db
+
+ALTER TABLE EventDao ADD COLUMN user_agent TEXT;

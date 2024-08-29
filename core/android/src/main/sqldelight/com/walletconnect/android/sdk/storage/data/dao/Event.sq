@@ -11,15 +11,16 @@ CREATE TABLE EventDao(
     trace TEXT AS List<String>,
     correlation_id INTEGER,
     client_id TEXT,
-    direction TEXT
+    direction TEXT,
+    user_agent TEXT
 );
 
 insertOrAbort:
-INSERT OR ABORT INTO EventDao(event_id, bundle_id, timestamp,  event_name, type, topic, trace, correlation_id, client_id, direction)
-VALUES (?,?,?,?,?,?, ?, ?, ?, ?);
+INSERT OR ABORT INTO EventDao(event_id, bundle_id, timestamp,  event_name, type, topic, trace, correlation_id, client_id, direction, user_agent)
+VALUES (?,?,?,?,?,?, ?, ?, ?, ?, ?);
 
 getAllEventsWithLimitAndOffset:
-SELECT event_id, bundle_id, timestamp, event_name, type, topic, trace, correlation_id, client_id, direction
+SELECT event_id, bundle_id, timestamp, event_name, type, topic, trace, correlation_id, client_id, direction, user_agent
 FROM EventDao ed
 LIMIT ? OFFSET ?;
 

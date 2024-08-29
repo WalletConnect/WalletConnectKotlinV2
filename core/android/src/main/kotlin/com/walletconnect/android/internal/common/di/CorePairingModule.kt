@@ -15,8 +15,11 @@ fun corePairingModule(pairing: PairingInterface, pairingController: PairingContr
             pairingRepository = get(),
             jsonRpcInteractor = get(),
             logger = get(named(AndroidCommonDITags.LOGGER)),
+            insertTelemetryEventUseCase = get(),
             insertEventUseCase = get(),
             sendBatchEventUseCase = get(),
+            clientId = get(named(AndroidCommonDITags.CLIENT_ID)),
+            userAgent = get(named(AndroidCommonDITags.USER_AGENT))
         )
     }
     single { pairing }

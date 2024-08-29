@@ -27,4 +27,6 @@ data class Properties(
     val clientId: String? = null,
     @Json(name = "direction")
     val direction: String? = null,
+    @Json(name = "user_agent")
+    val userAgent: String? = null,
 )
