@@ -7,11 +7,13 @@ import com.walletconnect.android.internal.common.model.Participants
 import com.walletconnect.android.internal.common.model.WCRequest
 import com.walletconnect.android.relay.WSSConnectionState
 import com.walletconnect.foundation.common.model.Topic
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
 interface RelayJsonRpcInteractorInterface : JsonRpcInteractorInterface {
     val wssConnectionState: StateFlow<WSSConnectionState>
-    fun checkConnectionWorking()
+    val onResubscribe: Flow<Any?>
+    fun checkNetworkConnectivity()
 
     fun subscribe(topic: Topic, onSuccess: (Topic) -> Unit = {}, onFailure: (Throwable) -> Unit = {})
 

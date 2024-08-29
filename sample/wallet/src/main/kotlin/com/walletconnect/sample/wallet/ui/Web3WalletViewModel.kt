@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
 import com.walletconnect.android.Core
+import com.walletconnect.android.internal.common.exception.InvalidProjectIdException
+import com.walletconnect.android.internal.common.exception.ProjectIdDoesNotExistException
 import com.walletconnect.sample.wallet.domain.ISSUER
 import com.walletconnect.sample.wallet.domain.WCDelegate
 import com.walletconnect.sample.wallet.ui.state.ConnectionState
@@ -68,7 +70,17 @@ class Web3WalletViewModel : ViewModel() {
             val connectionState = if (it.isAvailable) {
                 ConnectionState.Ok
             } else {
-                ConnectionState.Error("No Internet connection, please check your internet connection and try again")
+                val message = when (it.reason) {
+                    is Wallet.Model.ConnectionState.Reason.ConnectionFailed -> {
+                        if ((it.reason as Wallet.Model.ConnectionState.Reason.ConnectionFailed).throwable is ProjectIdDoesNotExistException ||
+                            (it.reason as Wallet.Model.ConnectionState.Reason.ConnectionFailed).throwable is InvalidProjectIdException
+                        ) "Invalid Project Id" else "Connection failed"
+                    }
+
+                    else -> "Connection closed"
+                }
+
+                ConnectionState.Error(message)
             }
             connectivityStateFlow.value = connectionState
         }.launchIn(viewModelScope)

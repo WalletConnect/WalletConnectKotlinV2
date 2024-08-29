@@ -37,7 +37,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
@@ -101,9 +100,7 @@ internal class NotifyEngine(
     }
 
     suspend fun setup() {
-        jsonRpcInteractor.wssConnectionState
-            .onEach { state -> handleWSSState(state) }
-            .filterIsInstance<WSSConnectionState.Connected>()
+        jsonRpcInteractor.onResubscribe
             .onEach {
                 supervisorScope {
                     launch(Dispatchers.IO) {

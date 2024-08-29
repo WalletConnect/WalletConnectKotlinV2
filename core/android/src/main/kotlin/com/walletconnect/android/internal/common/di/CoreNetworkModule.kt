@@ -7,9 +7,9 @@ import com.squareup.moshi.Moshi
 import com.tinder.scarlet.Lifecycle
 import com.tinder.scarlet.Scarlet
 import com.tinder.scarlet.messageadapter.moshi.MoshiMessageAdapter
-import com.tinder.scarlet.retry.ExponentialBackoffStrategy
 import com.tinder.scarlet.websocket.okhttp.newWebSocketFactory
 import com.walletconnect.android.BuildConfig
+import com.walletconnect.android.internal.common.ConditionalExponentialBackoffStrategy
 import com.walletconnect.android.internal.common.connection.ConnectivityState
 import com.walletconnect.android.internal.common.connection.DefaultConnectionLifecycle
 import com.walletconnect.android.internal.common.connection.ManualConnectionLifecycle
@@ -111,16 +111,15 @@ fun coreAndroidNetworkModule(serverUrl: String, connectionType: ConnectionType, 
 
     single<DefaultConnectionLifecycle>(named(AndroidCommonDITags.DEFAULT_CONNECTION_LIFECYCLE)) {
         DefaultConnectionLifecycle(androidApplication())
-//        AndroidLifecycle.ofApplicationForeground(androidApplication()) //todo: combine with connectivity check?
     }
 
-    single { ExponentialBackoffStrategy(INIT_BACKOFF_MILLIS, TimeUnit.SECONDS.toMillis(MAX_BACKOFF_SEC)) }
+    single { ConditionalExponentialBackoffStrategy(INIT_BACKOFF_MILLIS, TimeUnit.SECONDS.toMillis(MAX_BACKOFF_SEC)) }
 
     single { FlowStreamAdapter.Factory() }
 
     single(named(AndroidCommonDITags.SCARLET)) {
         Scarlet.Builder()
-            .backoffStrategy(get<ExponentialBackoffStrategy>())
+            .backoffStrategy((get<ConditionalExponentialBackoffStrategy>()))
             .webSocketFactory(get<OkHttpClient>(named(AndroidCommonDITags.OK_HTTP)).newWebSocketFactory(get<String>(named(AndroidCommonDITags.RELAY_URL))))
             .lifecycle(getLifecycle(connectionType))
             .addMessageAdapterFactory(get<MoshiMessageAdapter.Factory>(named(AndroidCommonDITags.MSG_ADAPTER)))

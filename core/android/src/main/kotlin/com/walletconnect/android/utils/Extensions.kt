@@ -41,12 +41,12 @@ internal val Throwable.toWalletConnectException: WalletConnectException
                 UnableToConnectToWebsocketException("${this.message}. It's possible that JWT has expired. Try initializing the CoreClient again.")
 
             this.message?.contains(HttpURLConnection.HTTP_NOT_FOUND.toString()) == true ->
-                ProjectIdDoesNotExistException(this.message)
+                ProjectIdDoesNotExistException("Project ID doesn't exist: ${this.message}")
 
             this.message?.contains(HttpURLConnection.HTTP_FORBIDDEN.toString()) == true ->
-                InvalidProjectIdException(this.message)
+                InvalidProjectIdException("Invalid project ID: ${this.message}")
 
-            else -> GenericException("Error while connecting, please check your Internet connection or contact support: $this")
+            else -> GenericException("Error while connecting, please check your Internet connection or contact support: ${this.message}")
         }
 
 @get:JvmSynthetic

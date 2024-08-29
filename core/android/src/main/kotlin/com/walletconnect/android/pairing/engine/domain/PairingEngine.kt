@@ -295,31 +295,18 @@ internal class PairingEngine(
     }
 
     private fun resubscribeToPairingTopics() {
-        scope.launch {
-            supervisorScope {
-                launch(Dispatchers.IO) {
-                    sendBatchSubscribeForPairings()
+        jsonRpcInteractor.onResubscribe
+            .onEach {
+                supervisorScope {
+                    launch(Dispatchers.IO) {
+                        sendBatchSubscribeForPairings()
+                    }
                 }
-            }
 
-            if (jsonRpcRequestsJob == null) {
-                jsonRpcRequestsJob = collectJsonRpcRequestsFlow()
-            }
-        }
-
-//        jsonRpcInteractor.wssConnectionState
-//            .filterIsInstance<WSSConnectionState.Connected>()
-//            .onEach {
-//                supervisorScope {
-//                    launch(Dispatchers.IO) {
-//                        sendBatchSubscribeForPairings()
-//                    }
-//                }
-//
-//                if (jsonRpcRequestsJob == null) {
-//                    jsonRpcRequestsJob = collectJsonRpcRequestsFlow()
-//                }
-//            }.launchIn(scope)
+                if (jsonRpcRequestsJob == null) {
+                    jsonRpcRequestsJob = collectJsonRpcRequestsFlow()
+                }
+            }.launchIn(scope)
     }
 
     private suspend fun sendBatchSubscribeForPairings() {

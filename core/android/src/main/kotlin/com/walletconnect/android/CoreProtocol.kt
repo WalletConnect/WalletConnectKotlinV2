@@ -176,7 +176,7 @@ class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInter
                 module { single { Echo } },
                 module { single { Push } },
                 module { single { Verify } },
-                coreJsonRpcModule(),
+                coreJsonRpcModule(connectionType),
                 corePairingModule(Pairing, PairingController),
                 keyServerModule(keyServerUrl),
                 explorerModule(),

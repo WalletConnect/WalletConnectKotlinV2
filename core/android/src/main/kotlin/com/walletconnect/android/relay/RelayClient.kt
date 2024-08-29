@@ -14,10 +14,9 @@ import com.walletconnect.foundation.network.BaseRelayClient
 import com.walletconnect.foundation.network.model.Relay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import org.koin.core.KoinApplication
@@ -27,6 +26,7 @@ class RelayClient(private val koinApp: KoinApplication = wcKoinApp) : BaseRelayC
     private val manualConnection: ManualConnectionLifecycle by lazy { koinApp.koin.get(named(AndroidCommonDITags.MANUAL_CONNECTION_LIFECYCLE)) }
     private val networkState: ConnectivityState by lazy { koinApp.koin.get(named(AndroidCommonDITags.CONNECTIVITY_STATE)) }
     override val isNetworkAvailable: StateFlow<Boolean?> by lazy { networkState.isAvailable }
+
     private val _wssConnectionState: MutableStateFlow<WSSConnectionState> = MutableStateFlow(WSSConnectionState.Disconnected.ConnectionClosed())
     override val wssConnectionState: StateFlow<WSSConnectionState> = _wssConnectionState
     private lateinit var connectionType: ConnectionType
@@ -46,13 +46,13 @@ class RelayClient(private val koinApp: KoinApplication = wcKoinApp) : BaseRelayC
         scope.launch {
             supervisorScope {
                 eventsFlow
-                    .takeWhile { event ->
+                    .first { event ->
                         if (event is Relay.Model.Event.OnConnectionFailed) {
                             onError(event.throwable.toWalletConnectException)
                         }
 
                         event !is Relay.Model.Event.OnConnectionOpened<*>
-                    }.collect()
+                    }
             }
         }
     }
@@ -69,7 +69,10 @@ class RelayClient(private val koinApp: KoinApplication = wcKoinApp) : BaseRelayC
                 _wssConnectionState.value = WSSConnectionState.Connected
 
             event is Relay.Model.Event.OnConnectionFailed && _wssConnectionState.value is WSSConnectionState.Connected ->
-                _wssConnectionState.value = WSSConnectionState.Disconnected.ConnectionFailed(event.throwable)
+                _wssConnectionState.value = WSSConnectionState.Disconnected.ConnectionFailed(event.throwable.toWalletConnectException)
+
+            event is Relay.Model.Event.OnConnectionFailed && _wssConnectionState.value is WSSConnectionState.Disconnected.ConnectionClosed ->
+                _wssConnectionState.value = WSSConnectionState.Disconnected.ConnectionFailed(event.throwable.toWalletConnectException)
 
             event is Relay.Model.Event.OnConnectionClosed && _wssConnectionState.value is WSSConnectionState.Connected ->
                 _wssConnectionState.value = WSSConnectionState.Disconnected.ConnectionClosed("Connection closed: ${event.shutdownReason.reason} ${event.shutdownReason.code}")
@@ -94,7 +97,7 @@ class RelayClient(private val koinApp: KoinApplication = wcKoinApp) : BaseRelayC
         try {
             when (connectionType) {
                 ConnectionType.AUTOMATIC -> onError(Core.Model.Error(IllegalStateException(WRONG_CONNECTION_TYPE)))
-                ConnectionType.MANUAL -> manualConnection.restart()
+                ConnectionType.MANUAL -> manualConnection.reconnect()
             }
         } catch (e: Exception) {
             onError(Core.Model.Error(e))

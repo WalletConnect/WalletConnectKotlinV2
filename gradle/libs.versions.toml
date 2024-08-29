@@ -21,7 +21,7 @@ sqlDelight = "2.0.2"
 dokka = "1.9.20"
 moshi = "1.15.1"
 googleService = "4.4.1"
-scarlet = "1.0.1"
+scarlet = "0.1.14-SNAPSHOT" #"1.0.1"
 koin = "3.5.6"
 retrofit = "2.11.0"
 okhttp = "4.12.0"
@@ -98,13 +98,13 @@ androidx-compose-material = { module = "androidx.compose.material:material", ver
 coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 
-scarlet = { module = "com.walletconnect.Scarlet:scarlet", version.ref = "scarlet" }
-scarlet-okhttp = { module = "com.walletconnect.Scarlet:websocket-okhttp", version.ref = "scarlet" }
-scarlet-coroutines = { module = "com.walletconnect.Scarlet:stream-adapter-coroutines", version.ref = "scarlet" }
-scarlet-moshi = { module = "com.walletconnect.Scarlet:message-adapter-moshi", version.ref = "scarlet" }
-scarlet-android = { module = "com.walletconnect.Scarlet:lifecycle-android", version.ref = "scarlet" }
-scarlet-mockwebserver = { module = "com.walletconnect.Scarlet:websocket-mockwebserver", version.ref = "scarlet" }
-scarlet-testUtils = { module = "com.walletconnect.Scarlet:test-utils", version.ref = "scarlet" }
+scarlet = { module = "com.tinder.scarlet:scarlet", version.ref = "scarlet" }
+scarlet-okhttp = { module = "com.tinder.scarlet:websocket-okhttp", version.ref = "scarlet" }
+scarlet-coroutines = { module = "com.tinder.scarlet:stream-adapter-coroutines", version.ref = "scarlet" }
+scarlet-moshi = { module = "com.tinder.scarlet:message-adapter-moshi", version.ref = "scarlet" }
+scarlet-android = { module = "com.tinder.scarlet:lifecycle-android", version.ref = "scarlet" }
+scarlet-mockwebserver = { module = "com.tinder.scarlet:websocket-mockwebserver", version.ref = "scarlet" }
+scarlet-testUtils = { module = "com.tinder.scarlet:test-utils", version.ref = "scarlet" }
 
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 retrofit-moshi = { module = "com.squareup.retrofit2:converter-moshi", version.ref = "retrofit" }

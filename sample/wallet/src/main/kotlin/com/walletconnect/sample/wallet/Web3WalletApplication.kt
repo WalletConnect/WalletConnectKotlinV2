@@ -74,12 +74,13 @@ class Web3WalletApplication : Application() {
             metaData = appMetaData,
             onError = { error ->
                 Firebase.crashlytics.recordException(error.throwable)
-                println(error.throwable.stackTraceToString())
+                println("kobe: core init: ${error.throwable.stackTraceToString()}")
                 scope.launch {
                     connectionStateFlow.emit(ConnectionState.Error(error.throwable.message ?: ""))
                 }
             }
         )
+
 
         mixPanel = MixpanelAPI.getInstance(this, CommonBuildConfig.MIX_PANEL, true).apply {
             identify(CoreClient.Push.clientId)

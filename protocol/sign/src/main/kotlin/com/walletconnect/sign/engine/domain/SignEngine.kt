@@ -215,42 +215,25 @@ internal class SignEngine(
     }
 
     private fun handleRelayRequestsAndResponses() {
-        scope.launch {
-            supervisorScope {
-                launch(Dispatchers.IO) {
-                    resubscribeToSession()
-                    resubscribeToPendingAuthenticateTopics()
+        jsonRpcInteractor.onResubscribe
+            .onEach {
+                scope.launch {
+                    supervisorScope {
+                        launch(Dispatchers.IO) {
+                            resubscribeToSession()
+                            resubscribeToPendingAuthenticateTopics()
+                        }
+                    }
+
+                    if (jsonRpcRequestsJob == null) {
+                        jsonRpcRequestsJob = collectJsonRpcRequests()
+                    }
+
+                    if (jsonRpcResponsesJob == null) {
+                        jsonRpcResponsesJob = collectJsonRpcResponses()
+                    }
                 }
-            }
-
-            if (jsonRpcRequestsJob == null) {
-                jsonRpcRequestsJob = collectJsonRpcRequests()
-            }
-
-            if (jsonRpcResponsesJob == null) {
-                jsonRpcResponsesJob = collectJsonRpcResponses()
-            }
-        }
-
-
-//        jsonRpcInteractor.wssConnectionState
-//            .filterIsInstance<WSSConnectionState.Connected>()
-//            .onEach {
-//                supervisorScope {
-//                    launch(Dispatchers.IO) {
-//                        resubscribeToSession()
-//                        resubscribeToPendingAuthenticateTopics()
-//                    }
-//                }
-//
-//                if (jsonRpcRequestsJob == null) {
-//                    jsonRpcRequestsJob = collectJsonRpcRequests()
-//                }
-//
-//                if (jsonRpcResponsesJob == null) {
-//                    jsonRpcResponsesJob = collectJsonRpcResponses()
-//                }
-//            }.launchIn(scope)
+            }.launchIn(scope)
     }
 
     private fun handleLinkModeResponses() {
