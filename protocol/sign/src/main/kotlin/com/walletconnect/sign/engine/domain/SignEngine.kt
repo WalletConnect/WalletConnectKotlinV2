@@ -330,7 +330,6 @@ internal class SignEngine(
                 }
 
             val validSessionTopics = listOfValidSessions.map { it.topic.value }
-            println("kobe: re-subscribe to session topics: $validSessionTopics")
             jsonRpcInteractor.batchSubscribe(validSessionTopics) { error -> scope.launch { _engineEvent.emit(SDKError(error)) } }
         } catch (e: Exception) {
             scope.launch { _engineEvent.emit(SDKError(e)) }
@@ -341,7 +340,6 @@ internal class SignEngine(
         scope.launch {
             try {
                 val responseTopics = authenticateResponseTopicRepository.getResponseTopics().map { responseTopic -> responseTopic }
-                println("kobe: re-subscribe to pending auth topics; $responseTopics")
                 jsonRpcInteractor.batchSubscribe(responseTopics) { error -> scope.launch { _engineEvent.emit(SDKError(error)) } }
             } catch (e: Exception) {
                 scope.launch { _engineEvent.emit(SDKError(e)) }

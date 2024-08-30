@@ -326,7 +326,6 @@ internal class PairingEngine(
     private suspend fun sendBatchSubscribeForPairings() {
         try {
             val pairingTopics = pairingRepository.getListOfPairings().filter { pairing -> pairing.isNotExpired() }.map { pairing -> pairing.topic.value }
-            println("kobe: re-subscribing to pairing topics: $pairingTopics")
             jsonRpcInteractor.batchSubscribe(pairingTopics) { error -> scope.launch { internalErrorFlow.emit(SDKError(error)) } }
         } catch (e: Exception) {
             scope.launch { internalErrorFlow.emit(SDKError(e)) }

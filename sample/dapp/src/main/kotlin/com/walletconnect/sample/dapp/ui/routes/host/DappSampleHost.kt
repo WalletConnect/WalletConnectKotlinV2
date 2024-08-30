@@ -87,20 +87,29 @@ fun DappSampleHost() {
 
 @Composable
 private fun NoConnectionIndicator() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color(0xFF3496ff))
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-    ) {
-        Text(text = "No internet connection", color = Color.White)
-        Spacer(modifier = Modifier.width(4.dp))
-        Image(
-            imageVector = ImageVector.vectorResource(id = R.drawable.ic_offline),
-            contentDescription = null,
-            modifier = Modifier.size(24.dp),
-            colorFilter = ColorFilter.tint(color = Color.White)
-        )
+    var shouldShow by remember { mutableStateOf(true) }
+
+    LaunchedEffect(key1 = Unit) {
+        delay(3000)
+        shouldShow = false
+    }
+
+    if (shouldShow) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFF3496ff))
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+        ) {
+            Text(text = "No internet connection", color = Color.White)
+            Spacer(modifier = Modifier.width(4.dp))
+            Image(
+                imageVector = ImageVector.vectorResource(id = R.drawable.ic_offline),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                colorFilter = ColorFilter.tint(color = Color.White)
+            )
+        }
     }
 }
 
@@ -109,7 +118,7 @@ private fun RestoredConnectionIndicator() {
     var shouldShow by remember { mutableStateOf(true) }
 
     LaunchedEffect(key1 = Unit) {
-        delay(2000)
+        delay(3000)
         shouldShow = false
     }
     if (shouldShow) {

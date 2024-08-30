@@ -1,5 +1,6 @@
 package com.walletconnect.foundation.network
 
+import com.tinder.scarlet.WebSocket
 import com.walletconnect.foundation.common.model.SubscriptionId
 import com.walletconnect.foundation.common.model.Topic
 import com.walletconnect.foundation.common.model.Ttl
@@ -12,11 +13,13 @@ import com.walletconnect.foundation.network.model.RelayDTO
 import com.walletconnect.foundation.util.Logger
 import com.walletconnect.foundation.util.scope
 import com.walletconnect.util.generateClientToServerId
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
@@ -28,18 +31,30 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withTimeout
 import org.koin.core.KoinApplication
 
+sealed class ConnectionState {
+    data object Open : ConnectionState()
+    data class Closed(val throwable: Throwable) : ConnectionState()
+    data object Idle : ConnectionState()
+}
+
 @OptIn(ExperimentalCoroutinesApi::class)
 abstract class BaseRelayClient : RelayInterface {
     private var foundationKoinApp: KoinApplication = KoinApplication.init()
     lateinit var relayService: RelayService
+    lateinit var connectionLifecycle: ConnectionLifecycle
     protected var logger: Logger
     private val resultState: MutableSharedFlow<RelayDTO> = MutableSharedFlow()
+    private var connectionState: MutableStateFlow<ConnectionState> = MutableStateFlow(ConnectionState.Idle)
+    private var unAckedTopics: MutableList<String> = mutableListOf()
+    private var isConnecting: Boolean = false
+    private var retryCount: Int = 0
     override var isLoggingEnabled: Boolean = false
 
     init {
@@ -73,10 +88,17 @@ abstract class BaseRelayClient : RelayInterface {
     override val eventsFlow: SharedFlow<Relay.Model.Event> by lazy {
         relayService
             .observeWebSocketEvent()
+            .onEach { event ->
+                if (event is WebSocket.Event.OnConnectionOpened<*>) {
+                    connectionState.value = ConnectionState.Open
+                } else if (event is WebSocket.Event.OnConnectionClosed || event is WebSocket.Event.OnConnectionFailed) {
+                    connectionState.value = ConnectionState.Closed(Throwable(getErrorMessage(event)))
+                }
+            }
             .map { event ->
-//                if (isLoggingEnabled) {
-                    println("kobe: Event: $event")
-//                }
+                if (isLoggingEnabled) {
+                    println("Event: $event")
+                }
                 event.toRelayEvent()
             }
             .shareIn(scope, SharingStarted.Lazily, REPLAY)
@@ -96,12 +118,16 @@ abstract class BaseRelayClient : RelayInterface {
         id: Long?,
         onResult: (Result<Relay.Model.Call.Publish.Acknowledgement>) -> Unit,
     ) {
-        val (tag, ttl, prompt) = params
-        val publishParams = RelayDTO.Publish.Request.Params(Topic(topic), message, Ttl(ttl), tag, prompt)
-        val publishRequest = RelayDTO.Publish.Request(id = id ?: generateClientToServerId(), params = publishParams)
-
-        observePublishResult(publishRequest.id, onResult)
-        relayService.publishRequest(publishRequest)
+        connectAndCallRelay(
+            onConnected = {
+                val (tag, ttl, prompt) = params
+                val publishParams = RelayDTO.Publish.Request.Params(Topic(topic), message, Ttl(ttl), tag, prompt)
+                val publishRequest = RelayDTO.Publish.Request(id = id ?: generateClientToServerId(), params = publishParams)
+                observePublishResult(publishRequest.id, onResult)
+                relayService.publishRequest(publishRequest)
+            },
+            onFailure = { onResult(Result.failure(it)) }
+        )
     }
 
     private fun observePublishResult(id: Long, onResult: (Result<Relay.Model.Call.Publish.Acknowledgement>) -> Unit) {
@@ -131,14 +157,17 @@ abstract class BaseRelayClient : RelayInterface {
 
     @ExperimentalCoroutinesApi
     override fun subscribe(topic: String, id: Long?, onResult: (Result<Relay.Model.Call.Subscribe.Acknowledgement>) -> Unit) {
-        val subscribeRequest = RelayDTO.Subscribe.Request(id = id ?: generateClientToServerId(), params = RelayDTO.Subscribe.Request.Params(Topic(topic)))
-
-        if (isLoggingEnabled) {
-            logger.log("Sending SubscribeRequest: $subscribeRequest;  timestamp: ${System.currentTimeMillis()}")
-        }
-
-        observeSubscribeResult(subscribeRequest.id, onResult)
-        relayService.subscribeRequest(subscribeRequest)
+        connectAndCallRelay(
+            onConnected = {
+                val subscribeRequest = RelayDTO.Subscribe.Request(id = id ?: generateClientToServerId(), params = RelayDTO.Subscribe.Request.Params(Topic(topic)))
+                if (isLoggingEnabled) {
+                    logger.log("Sending SubscribeRequest: $subscribeRequest;  timestamp: ${System.currentTimeMillis()}")
+                }
+                observeSubscribeResult(subscribeRequest.id, onResult)
+                relayService.subscribeRequest(subscribeRequest)
+            },
+            onFailure = { onResult(Result.failure(it)) }
+        )
     }
 
     private fun observeSubscribeResult(id: Long, onResult: (Result<Relay.Model.Call.Subscribe.Acknowledgement>) -> Unit) {
@@ -172,18 +201,26 @@ abstract class BaseRelayClient : RelayInterface {
 
     @ExperimentalCoroutinesApi
     override fun batchSubscribe(topics: List<String>, id: Long?, onResult: (Result<Relay.Model.Call.BatchSubscribe.Acknowledgement>) -> Unit) {
-        val batchSubscribeRequest = RelayDTO.BatchSubscribe.Request(id = id ?: generateClientToServerId(), params = RelayDTO.BatchSubscribe.Request.Params(topics))
-
-        observeBatchSubscribeResult(batchSubscribeRequest.id, onResult)
-        relayService.batchSubscribeRequest(batchSubscribeRequest)
+        connectAndCallRelay(
+            onConnected = {
+                if (!unAckedTopics.containsAll(topics)) {
+                    unAckedTopics.addAll(topics)
+                    val batchSubscribeRequest = RelayDTO.BatchSubscribe.Request(id = id ?: generateClientToServerId(), params = RelayDTO.BatchSubscribe.Request.Params(topics))
+                    observeBatchSubscribeResult(batchSubscribeRequest.id, topics, onResult)
+                    relayService.batchSubscribeRequest(batchSubscribeRequest)
+                }
+            },
+            onFailure = { onResult(Result.failure(it)) }
+        )
     }
 
-    private fun observeBatchSubscribeResult(id: Long, onResult: (Result<Relay.Model.Call.BatchSubscribe.Acknowledgement>) -> Unit) {
+    private fun observeBatchSubscribeResult(id: Long, topics: List<String>, onResult: (Result<Relay.Model.Call.BatchSubscribe.Acknowledgement>) -> Unit) {
         scope.launch {
             try {
                 withTimeout(RESULT_TIMEOUT) {
                     resultState
                         .filterIsInstance<RelayDTO.BatchSubscribe.Result>()
+                        .onEach { if (unAckedTopics.isNotEmpty()) unAckedTopics.removeAll(topics) }
                         .filter { relayResult -> relayResult.id == id }
                         .first { batchSubscribeResult ->
                             when (batchSubscribeResult) {
@@ -210,13 +247,18 @@ abstract class BaseRelayClient : RelayInterface {
         id: Long?,
         onResult: (Result<Relay.Model.Call.Unsubscribe.Acknowledgement>) -> Unit,
     ) {
-        val unsubscribeRequest = RelayDTO.Unsubscribe.Request(
-            id = id ?: generateClientToServerId(),
-            params = RelayDTO.Unsubscribe.Request.Params(Topic(topic), SubscriptionId(subscriptionId))
-        )
+        connectAndCallRelay(
+            onConnected = {
+                val unsubscribeRequest = RelayDTO.Unsubscribe.Request(
+                    id = id ?: generateClientToServerId(),
+                    params = RelayDTO.Unsubscribe.Request.Params(Topic(topic), SubscriptionId(subscriptionId))
+                )
 
-        observeUnsubscribeResult(unsubscribeRequest.id, onResult)
-        relayService.unsubscribeRequest(unsubscribeRequest)
+                observeUnsubscribeResult(unsubscribeRequest.id, onResult)
+                relayService.unsubscribeRequest(unsubscribeRequest)
+            },
+            onFailure = { onResult(Result.failure(it)) }
+        )
     }
 
     private fun observeUnsubscribeResult(id: Long, onResult: (Result<Relay.Model.Call.Unsubscribe.Acknowledgement>) -> Unit) {
@@ -244,6 +286,98 @@ abstract class BaseRelayClient : RelayInterface {
         }
     }
 
+    private fun connectAndCallRelay(onConnected: () -> Unit, onFailure: (Throwable) -> Unit) {
+        when {
+            shouldConnect() -> {
+                isConnecting = true
+                connectionLifecycle.reconnect()
+                retryCount++
+
+                awaitConnectionWithRetry(
+                    onConnected = {
+                        isConnecting = false
+                        retryCount = 0
+                        onConnected()
+                    },
+                    onRetry = { error ->
+                        if (retryCount == 3) {
+                            isConnecting = false
+                            retryCount = 0
+                            onFailure(error)
+                        } else {
+                            connectionLifecycle.reconnect()
+                            retryCount++
+                        }
+                    },
+                    onTimeout = { error -> onFailure(error) }
+                )
+            }
+
+            isConnecting -> awaitConnection(onConnected, onFailure)
+            connectionState.value == ConnectionState.Open -> onConnected()
+        }
+    }
+
+    private fun awaitConnection(onConnected: () -> Unit, onFailure: (Throwable) -> Unit) {
+        scope.launch {
+            try {
+                withTimeout(CONNECTION_TIMEOUT) {
+                    connectionState
+                        .filter { state -> state != ConnectionState.Idle }
+                        .collect { state ->
+                            if (state == ConnectionState.Open) {
+                                cancelJobIfActive()
+                                onConnected()
+                            }
+                        }
+                }
+            } catch (e: TimeoutCancellationException) {
+                onFailure(e)
+                cancelJobIfActive()
+            } catch (e: Exception) {
+                if (e !is CancellationException) {
+                    onFailure(e)
+                }
+                cancelJobIfActive()
+            }
+        }
+    }
+
+    private fun awaitConnectionWithRetry(onConnected: () -> Unit, onRetry: (Throwable) -> Unit, onTimeout: (Throwable) -> Unit = {}) {
+        scope.launch {
+            try {
+                withTimeout(CONNECTION_TIMEOUT) {
+                    connectionState
+                        .filter { state -> state != ConnectionState.Idle }
+                        .take(MAX_RETRIES)
+                        .collect { state ->
+                            if (state == ConnectionState.Open) {
+                                cancelJobIfActive()
+                                onConnected()
+                            } else {
+                                onRetry((state as ConnectionState.Closed).throwable)
+                            }
+                        }
+                }
+            } catch (e: TimeoutCancellationException) {
+                isConnecting = false
+                onTimeout(e)
+                cancelJobIfActive()
+            } catch (e: Exception) {
+                if (e !is CancellationException) {
+                    onRetry(e)
+                }
+            }
+        }
+    }
+
+    private fun shouldConnect() = !isConnecting && (connectionState.value is ConnectionState.Closed || connectionState.value is ConnectionState.Idle)
+    private fun getErrorMessage(event: WebSocket.Event) = when (event) {
+        is WebSocket.Event.OnConnectionClosed -> event.shutdownReason.reason
+        is WebSocket.Event.OnConnectionFailed -> event.throwable.message
+        else -> "Unknown"
+    }
+
     private fun publishSubscriptionAcknowledgement(id: Long) {
         val publishRequest = RelayDTO.Subscription.Result.Acknowledgement(id = id, result = true)
         relayService.publishSubscriptionAcknowledgement(publishRequest)
@@ -258,5 +392,7 @@ abstract class BaseRelayClient : RelayInterface {
     private companion object {
         const val REPLAY: Int = 1
         const val RESULT_TIMEOUT: Long = 60000
+        const val CONNECTION_TIMEOUT: Long = 15000
+        const val MAX_RETRIES: Int = 3
     }
 }

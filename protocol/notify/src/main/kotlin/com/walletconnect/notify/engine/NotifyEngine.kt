@@ -104,9 +104,8 @@ internal class NotifyEngine(
             .onEach {
                 supervisorScope {
                     launch(Dispatchers.IO) {
-//                        println("kobe: Notify batch subs")
-//                        resubscribeToSubscriptions()
-//                        watchSubscriptionsForEveryRegisteredAccount()
+                        resubscribeToSubscriptions()
+                        watchSubscriptionsForEveryRegisteredAccount()
                     }
                 }
 

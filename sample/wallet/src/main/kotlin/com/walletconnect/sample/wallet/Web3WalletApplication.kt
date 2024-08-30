@@ -74,7 +74,7 @@ class Web3WalletApplication : Application() {
             metaData = appMetaData,
             onError = { error ->
                 Firebase.crashlytics.recordException(error.throwable)
-                println("kobe: core init: ${error.throwable.stackTraceToString()}")
+                println("Init error: ${error.throwable.stackTraceToString()}")
                 scope.launch {
                     connectionStateFlow.emit(ConnectionState.Error(error.throwable.message ?: ""))
                 }

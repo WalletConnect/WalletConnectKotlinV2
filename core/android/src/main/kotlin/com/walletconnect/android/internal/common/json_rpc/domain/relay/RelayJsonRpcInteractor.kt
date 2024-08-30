@@ -2,12 +2,10 @@ package com.walletconnect.android.internal.common.json_rpc.domain.relay
 
 import com.walletconnect.android.internal.common.ConditionalExponentialBackoffStrategy
 import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.connection.ConnectionLifecycle
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.crypto.sha256
 import com.walletconnect.android.internal.common.exception.NoConnectivityException
 import com.walletconnect.android.internal.common.exception.NoInternetConnectionException
-import com.walletconnect.android.internal.common.exception.NoRelayConnectionException
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
 import com.walletconnect.android.internal.common.json_rpc.model.toRelay
 import com.walletconnect.android.internal.common.json_rpc.model.toWCRequest
@@ -43,11 +41,8 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
@@ -67,7 +62,6 @@ internal class RelayJsonRpcInteractor(
     private val jsonRpcHistory: JsonRpcHistory,
     private val pushMessageStorage: PushMessagesRepository,
     private val logger: Logger,
-    private val connectionLifecycle: ConnectionLifecycle,
     private val backoffStrategy: ConditionalExponentialBackoffStrategy
 ) : RelayJsonRpcInteractorInterface {
     private val serializer: JsonRpcSerializer get() = wcKoinApp.koin.get()
@@ -83,11 +77,7 @@ internal class RelayJsonRpcInteractor(
     override val wssConnectionState: StateFlow<WSSConnectionState> get() = relay.wssConnectionState
 
     private var subscriptions = ObservableMap<String, String>(mutableMapOf()) { newMap -> backoffStrategy.shouldBackoff(newMap.isNotEmpty()) }
-    override val onResubscribe: Flow<Any?>
-        get() = merge(
-            connectionLifecycle.onResume.filter { isResumed -> isResumed != null && isResumed },
-            relay.wssConnectionState.filterIsInstance(WSSConnectionState.Connected::class)
-        )
+    override val onResubscribe: Flow<Any?> = relay.onResubscribe
 
     init {
         manageSubscriptions()
@@ -96,47 +86,6 @@ internal class RelayJsonRpcInteractor(
     override fun checkNetworkConnectivity() {
         if (relay.isNetworkAvailable.value != null && relay.isNetworkAvailable.value == false) {
             throw NoInternetConnectionException("Connection error: Please check your Internet connection")
-        }
-    }
-
-    private fun connectAndCallRelay(onConnected: () -> Unit, onFailure: (Throwable) -> Unit) {
-        if (relay.wssConnectionState.value is WSSConnectionState.Disconnected) {
-            connectionLifecycle.reconnect()
-            //todo: timeout(?) + check how many times we try to re-connect
-            scope.launch {
-                supervisorScope {
-                    relay.wssConnectionState
-                        .filter { state ->
-                            when (state) {
-                                is WSSConnectionState.Disconnected.ConnectionClosed -> state.message != null
-                                else -> true
-                            }
-                        }
-                        .first { state ->
-                            println("kobe: interactor state: $state")
-                            when (state) {
-                                is WSSConnectionState.Connected -> {
-                                    println("kobe: action")
-                                    onConnected()
-                                }
-
-                                is WSSConnectionState.Disconnected.ConnectionFailed -> {
-                                    println("kobe: error failed: ${state.throwable}")
-                                    onFailure(NoRelayConnectionException(state.throwable.message))
-                                }
-
-                                is WSSConnectionState.Disconnected.ConnectionClosed -> {
-                                    println("kobe: error closed: $state")
-                                    onFailure(NoRelayConnectionException(state.message))
-                                }
-                            }
-                            true
-                        }
-                }
-            }
-        } else if (relay.wssConnectionState.value is WSSConnectionState.Connected) {
-            println("kobe: already connected")
-            onConnected()
         }
     }
 
@@ -155,31 +104,26 @@ internal class RelayJsonRpcInteractor(
             return onFailure(e)
         }
 
-        connectAndCallRelay(onConnected = {
-            try {
-                val requestJson = serializer.serialize(payload) ?: throw IllegalStateException("RelayJsonRpcInteractor: Unknown Request Params")
+        try {
+            val requestJson = serializer.serialize(payload) ?: throw IllegalStateException("RelayJsonRpcInteractor: Unknown Request Params")
+            if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson, TransportType.RELAY)) {
+                val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, envelopeType, participants)
+                val encryptedRequestString = Base64.toBase64String(encryptedRequest)
 
-                println("kobe: Request: $requestJson")
-
-                if (jsonRpcHistory.setRequest(payload.id, topic, payload.method, requestJson, TransportType.RELAY)) {
-                    val encryptedRequest = chaChaPolyCodec.encrypt(topic, requestJson, envelopeType, participants)
-                    val encryptedRequestString = Base64.toBase64String(encryptedRequest)
-
-                    relay.publish(topic.value, encryptedRequestString, params.toRelay()) { result ->
-                        result.fold(
-                            onSuccess = { onSuccess() },
-                            onFailure = { error ->
-                                logger.error("JsonRpcInteractor: Cannot send the request, error: $error")
-                                onFailure(Throwable("Publish error: ${error.message}"))
-                            }
-                        )
-                    }
+                relay.publish(topic.value, encryptedRequestString, params.toRelay()) { result ->
+                    result.fold(
+                        onSuccess = { onSuccess() },
+                        onFailure = { error ->
+                            logger.error("JsonRpcInteractor: Cannot send the request, error: $error")
+                            onFailure(Throwable("Publish error: ${error.message}"))
+                        }
+                    )
                 }
-            } catch (e: Exception) {
-                logger.error("JsonRpcInteractor: Cannot send the request, exception: $e")
-                onFailure(Throwable("Publish Request Error: $e"))
             }
-        }, onFailure = { error -> onFailure(error) })
+        } catch (e: Exception) {
+            logger.error("JsonRpcInteractor: Cannot send the request, exception: $e")
+            onFailure(Throwable("Publish Request Error: $e"))
+        }
     }
 
     override fun publishJsonRpcResponse(
@@ -197,31 +141,26 @@ internal class RelayJsonRpcInteractor(
             return onFailure(e)
         }
 
-        connectAndCallRelay(onConnected = {
-            try {
-                val responseJson = serializer.serialize(response) ?: throw IllegalStateException("RelayJsonRpcInteractor: Unknown Response Params")
-                val encryptedResponse = chaChaPolyCodec.encrypt(topic, responseJson, envelopeType, participants)
-                val encryptedResponseString = Base64.toBase64String(encryptedResponse)
-
-                println("kobe: Response: $responseJson")
-
-                relay.publish(topic.value, encryptedResponseString, params.toRelay()) { result ->
-                    result.fold(
-                        onSuccess = {
-                            jsonRpcHistory.updateRequestWithResponse(response.id, responseJson)
-                            onSuccess()
-                        },
-                        onFailure = { error ->
-                            logger.error("JsonRpcInteractor: Cannot send the response, error: $error")
-                            onFailure(Throwable("Publish error: ${error.message}"))
-                        }
-                    )
-                }
-            } catch (e: Exception) {
-                logger.error("JsonRpcInteractor: Cannot send the response, exception: $e")
-                onFailure(Throwable("Publish Response Error: $e"))
+        try {
+            val responseJson = serializer.serialize(response) ?: throw IllegalStateException("RelayJsonRpcInteractor: Unknown Response Params")
+            val encryptedResponse = chaChaPolyCodec.encrypt(topic, responseJson, envelopeType, participants)
+            val encryptedResponseString = Base64.toBase64String(encryptedResponse)
+            relay.publish(topic.value, encryptedResponseString, params.toRelay()) { result ->
+                result.fold(
+                    onSuccess = {
+                        jsonRpcHistory.updateRequestWithResponse(response.id, responseJson)
+                        onSuccess()
+                    },
+                    onFailure = { error ->
+                        logger.error("JsonRpcInteractor: Cannot send the response, error: $error")
+                        onFailure(Throwable("Publish error: ${error.message}"))
+                    }
+                )
             }
-        }, onFailure = { error -> onFailure(error) })
+        } catch (e: Exception) {
+            logger.error("JsonRpcInteractor: Cannot send the response, exception: $e")
+            onFailure(Throwable("Publish Response Error: $e"))
+        }
     }
 
     override fun subscribe(topic: Topic, onSuccess: (Topic) -> Unit, onFailure: (Throwable) -> Unit) {
@@ -231,25 +170,23 @@ internal class RelayJsonRpcInteractor(
             return onFailure(e)
         }
 
-        connectAndCallRelay(onConnected = {
-            try {
-                relay.subscribe(topic.value) { result ->
-                    result.fold(
-                        onSuccess = { acknowledgement ->
-                            subscriptions[topic.value] = acknowledgement.result
-                            onSuccess(topic)
-                        },
-                        onFailure = { error ->
-                            logger.error("Subscribe to topic error: $topic error: $error")
-                            onFailure(Throwable("Subscribe error: ${error.message}"))
-                        }
-                    )
-                }
-            } catch (e: Exception) {
-                logger.error("Subscribe to topic error: $topic error: $e")
-                onFailure(Throwable("Subscribe error: ${e.message}"))
+        try {
+            relay.subscribe(topic.value) { result ->
+                result.fold(
+                    onSuccess = { acknowledgement ->
+                        subscriptions[topic.value] = acknowledgement.result
+                        onSuccess(topic)
+                    },
+                    onFailure = { error ->
+                        logger.error("Subscribe to topic error: $topic error: $error")
+                        onFailure(Throwable("Subscribe error: ${error.message}"))
+                    }
+                )
             }
-        }, onFailure = { error -> onFailure(error) })
+        } catch (e: Exception) {
+            logger.error("Subscribe to topic error: $topic error: $e")
+            onFailure(Throwable("Subscribe error: ${e.message}"))
+        }
     }
 
     override fun batchSubscribe(topics: List<String>, onSuccess: (List<String>) -> Unit, onFailure: (Throwable) -> Unit) {
@@ -260,25 +197,23 @@ internal class RelayJsonRpcInteractor(
         }
 
         if (topics.isNotEmpty()) {
-            connectAndCallRelay(onConnected = {
-                try {
-                    relay.batchSubscribe(topics) { result ->
-                        result.fold(
-                            onSuccess = { acknowledgement ->
-                                subscriptions.plusAssign(topics.zip(acknowledgement.result).toMap())
-                                onSuccess(topics)
-                            },
-                            onFailure = { error ->
-                                logger.error("Batch subscribe to topics error: $topics error: $error")
-                                onFailure(Throwable("Batch subscribe error: ${error.message}"))
-                            }
-                        )
-                    }
-                } catch (e: Exception) {
-                    logger.error("Batch subscribe to topics error: $topics error: $e")
-                    onFailure(Throwable("Batch subscribe error: ${e.message}"))
+            try {
+                relay.batchSubscribe(topics) { result ->
+                    result.fold(
+                        onSuccess = { acknowledgement ->
+                            subscriptions.plusAssign(topics.zip(acknowledgement.result).toMap())
+                            onSuccess(topics)
+                        },
+                        onFailure = { error ->
+                            logger.error("Batch subscribe to topics error: $topics error: $error")
+                            onFailure(Throwable("Batch subscribe error: ${error.message}"))
+                        }
+                    )
                 }
-            }, onFailure = { error -> onFailure(error) })
+            } catch (e: Exception) {
+                logger.error("Batch subscribe to topics error: $topics error: $e")
+                onFailure(Throwable("Batch subscribe error: ${e.message}"))
+            }
         }
     }
 
@@ -290,27 +225,25 @@ internal class RelayJsonRpcInteractor(
         }
 
         if (subscriptions.contains(topic.value)) {
-            connectAndCallRelay(onConnected = {
-                val subscriptionId = SubscriptionId(subscriptions[topic.value].toString())
-                relay.unsubscribe(topic.value, subscriptionId.id) { result ->
-                    result.fold(
-                        onSuccess = {
-                            scope.launch {
-                                supervisorScope {
-                                    jsonRpcHistory.deleteRecordsByTopic(topic)
-                                    subscriptions.remove(topic.value)
-                                    pushMessageStorage.deletePushMessagesByTopic(topic.value)
-                                    onSuccess()
-                                }
+            val subscriptionId = SubscriptionId(subscriptions[topic.value].toString())
+            relay.unsubscribe(topic.value, subscriptionId.id) { result ->
+                result.fold(
+                    onSuccess = {
+                        scope.launch {
+                            supervisorScope {
+                                jsonRpcHistory.deleteRecordsByTopic(topic)
+                                subscriptions.remove(topic.value)
+                                pushMessageStorage.deletePushMessagesByTopic(topic.value)
+                                onSuccess()
                             }
-                        },
-                        onFailure = { error ->
-                            logger.error("Unsubscribe to topic: $topic error: $error")
-                            onFailure(Throwable("Unsubscribe error: ${error.message}"))
                         }
-                    )
-                }
-            }, onFailure = { error -> onFailure(error) })
+                    },
+                    onFailure = { error ->
+                        logger.error("Unsubscribe to topic: $topic error: $error")
+                        onFailure(Throwable("Unsubscribe error: ${error.message}"))
+                    }
+                )
+            }
         }
     }
 
@@ -425,9 +358,6 @@ internal class RelayJsonRpcInteractor(
                 storePushRequestsIfEnabled(relayRequest, topic)
                 Subscription(decryptMessage(topic, relayRequest), relayRequest.message, topic, relayRequest.publishedAt, relayRequest.attestation)
             }.collect { subscription ->
-
-                println("kobe: Message: ${subscription.decryptedMessage}")
-
                 if (subscription.decryptedMessage.isNotEmpty()) {
                     try {
                         manageSubscriptions(subscription)

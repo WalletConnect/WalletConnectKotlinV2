@@ -1,4 +1,4 @@
-package com.walletconnect.android.internal.common.connection
+package com.walletconnect.foundation.network
 
 import kotlinx.coroutines.flow.StateFlow
 

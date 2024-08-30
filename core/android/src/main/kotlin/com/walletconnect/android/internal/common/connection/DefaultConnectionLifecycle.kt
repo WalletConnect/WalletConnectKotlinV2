@@ -8,6 +8,7 @@ import android.os.Bundle
 import com.tinder.scarlet.Lifecycle
 import com.tinder.scarlet.ShutdownReason
 import com.tinder.scarlet.lifecycle.LifecycleRegistry
+import com.walletconnect.foundation.network.ConnectionLifecycle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -34,7 +35,6 @@ internal class DefaultConnectionLifecycle(
     }
 
     override fun reconnect() {
-        println("kobe: reconnect()")
         lifecycleRegistry.onNext(Lifecycle.State.Stopped.WithReason())
         lifecycleRegistry.onNext(Lifecycle.State.Started)
     }
@@ -44,13 +44,11 @@ internal class DefaultConnectionLifecycle(
         var job: Job? = null
 
         override fun onActivityPaused(activity: Activity) {
-            println("kobe: pause")
             isResumed = false
 
             job = scope.launch {
                 delay(TimeUnit.SECONDS.toMillis(30))
                 if (!isResumed) {
-                    println("kobe: onPaused; disconnect()")
                     lifecycleRegistry.onNext(Lifecycle.State.Stopped.WithReason(ShutdownReason(1000, "App is paused")))
                     job = null
                     _onResume.value = false
@@ -59,7 +57,6 @@ internal class DefaultConnectionLifecycle(
         }
 
         override fun onActivityResumed(activity: Activity) {
-            println("kobe: resume")
             isResumed = true
 
             if (job?.isActive == true) {

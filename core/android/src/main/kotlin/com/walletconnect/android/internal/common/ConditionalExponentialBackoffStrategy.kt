@@ -15,7 +15,6 @@ class ConditionalExponentialBackoffStrategy(
     override var shouldBackoff: Boolean = false
 
     fun shouldBackoff(shouldBackoff: Boolean) {
-        println("kobe:be Sending shouldBackoff: $shouldBackoff")
         this.shouldBackoff = shouldBackoff
     }
 
