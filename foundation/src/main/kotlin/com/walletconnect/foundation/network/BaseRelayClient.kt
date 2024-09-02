@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
@@ -92,13 +93,11 @@ abstract class BaseRelayClient : RelayInterface {
                 if (event is WebSocket.Event.OnConnectionOpened<*>) {
                     connectionState.value = ConnectionState.Open
                 } else if (event is WebSocket.Event.OnConnectionClosed || event is WebSocket.Event.OnConnectionFailed) {
-                    connectionState.value = ConnectionState.Closed(Throwable(getErrorMessage(event)))
+                    connectionState.value = ConnectionState.Closed(getError(event))
                 }
             }
             .map { event ->
-                if (isLoggingEnabled) {
-                    println("Event: $event")
-                }
+                logger.log("Event: $event")
                 event.toRelayEvent()
             }
             .shareIn(scope, SharingStarted.Lazily, REPLAY)
@@ -288,33 +287,50 @@ abstract class BaseRelayClient : RelayInterface {
 
     private fun connectAndCallRelay(onConnected: () -> Unit, onFailure: (Throwable) -> Unit) {
         when {
-            shouldConnect() -> {
-                isConnecting = true
-                connectionLifecycle.reconnect()
-                retryCount++
-
-                awaitConnectionWithRetry(
-                    onConnected = {
-                        isConnecting = false
-                        retryCount = 0
-                        onConnected()
-                    },
-                    onRetry = { error ->
-                        if (retryCount == 3) {
-                            isConnecting = false
-                            retryCount = 0
-                            onFailure(error)
-                        } else {
-                            connectionLifecycle.reconnect()
-                            retryCount++
-                        }
-                    },
-                    onTimeout = { error -> onFailure(error) }
-                )
-            }
-
+            shouldConnect() -> connect(onConnected, onFailure)
             isConnecting -> awaitConnection(onConnected, onFailure)
             connectionState.value == ConnectionState.Open -> onConnected()
+        }
+    }
+
+    private fun shouldConnect() = !isConnecting && (connectionState.value is ConnectionState.Closed || connectionState.value is ConnectionState.Idle)
+    private fun connect(onConnected: () -> Unit, onFailure: (Throwable) -> Unit) {
+        isConnecting = true
+        connectionLifecycle.reconnect()
+        awaitConnectionWithRetry(
+            onConnected = {
+                reset()
+                onConnected()
+            },
+            onFailure = { error ->
+                reset()
+                onFailure(error)
+            }
+        )
+    }
+
+    private fun awaitConnectionWithRetry(onConnected: () -> Unit, onFailure: (Throwable) -> Unit = {}) {
+        scope.launch {
+            try {
+                withTimeout(CONNECTION_TIMEOUT) {
+                    connectionState
+                        .filter { state -> state != ConnectionState.Idle }
+                        .take(4)
+                        .onEach { state -> handleRetries(state, onFailure) }
+                        .filter { state -> state == ConnectionState.Open }
+                        .firstOrNull {
+                            onConnected()
+                            true
+                        }
+                }
+            } catch (e: TimeoutCancellationException) {
+                onFailure(e)
+                cancelJobIfActive()
+            } catch (e: Exception) {
+                if (e !is CancellationException) {
+                    onFailure(e)
+                }
+            }
         }
     }
 
@@ -323,12 +339,10 @@ abstract class BaseRelayClient : RelayInterface {
             try {
                 withTimeout(CONNECTION_TIMEOUT) {
                     connectionState
-                        .filter { state -> state != ConnectionState.Idle }
-                        .collect { state ->
-                            if (state == ConnectionState.Open) {
-                                cancelJobIfActive()
-                                onConnected()
-                            }
+                        .filter { state -> state is ConnectionState.Open }
+                        .firstOrNull {
+                            onConnected()
+                            true
                         }
                 }
             } catch (e: TimeoutCancellationException) {
@@ -343,39 +357,22 @@ abstract class BaseRelayClient : RelayInterface {
         }
     }
 
-    private fun awaitConnectionWithRetry(onConnected: () -> Unit, onRetry: (Throwable) -> Unit, onTimeout: (Throwable) -> Unit = {}) {
-        scope.launch {
-            try {
-                withTimeout(CONNECTION_TIMEOUT) {
-                    connectionState
-                        .filter { state -> state != ConnectionState.Idle }
-                        .take(MAX_RETRIES)
-                        .collect { state ->
-                            if (state == ConnectionState.Open) {
-                                cancelJobIfActive()
-                                onConnected()
-                            } else {
-                                onRetry((state as ConnectionState.Closed).throwable)
-                            }
-                        }
-                }
-            } catch (e: TimeoutCancellationException) {
-                isConnecting = false
-                onTimeout(e)
+    private fun CoroutineScope.handleRetries(state: ConnectionState, onFailure: (Throwable) -> Unit) {
+        if (state is ConnectionState.Closed) {
+            if (retryCount == MAX_RETRIES) {
+                onFailure(Throwable("Connectivity error, please check your Internet connection and try again"))
                 cancelJobIfActive()
-            } catch (e: Exception) {
-                if (e !is CancellationException) {
-                    onRetry(e)
-                }
+            } else {
+                connectionLifecycle.reconnect()
+                retryCount++
             }
         }
     }
 
-    private fun shouldConnect() = !isConnecting && (connectionState.value is ConnectionState.Closed || connectionState.value is ConnectionState.Idle)
-    private fun getErrorMessage(event: WebSocket.Event) = when (event) {
-        is WebSocket.Event.OnConnectionClosed -> event.shutdownReason.reason
-        is WebSocket.Event.OnConnectionFailed -> event.throwable.message
-        else -> "Unknown"
+    private fun getError(event: WebSocket.Event): Throwable = when (event) {
+        is WebSocket.Event.OnConnectionClosed -> Throwable(event.shutdownReason.reason)
+        is WebSocket.Event.OnConnectionFailed -> event.throwable
+        else -> Throwable("Unknown")
     }
 
     private fun publishSubscriptionAcknowledgement(id: Long) {
@@ -387,6 +384,11 @@ abstract class BaseRelayClient : RelayInterface {
         if (this.coroutineContext.job.isActive) {
             this.coroutineContext.job.cancel()
         }
+    }
+
+    private fun reset() {
+        isConnecting = false
+        retryCount = 0
     }
 
     private companion object {

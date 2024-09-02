@@ -76,7 +76,7 @@ internal class RelayJsonRpcInteractor(
     override val internalErrors: SharedFlow<SDKError> = _internalErrors.asSharedFlow()
     override val wssConnectionState: StateFlow<WSSConnectionState> get() = relay.wssConnectionState
 
-    private var subscriptions = ObservableMap<String, String>(mutableMapOf()) { newMap -> backoffStrategy.shouldBackoff(newMap.isNotEmpty()) }
+    private var subscriptions = ObservableMap<String, String> { newMap -> if (newMap.isEmpty()) backoffStrategy.shouldBackoff(false) }
     override val onResubscribe: Flow<Any?> = relay.onResubscribe
 
     init {
@@ -171,6 +171,7 @@ internal class RelayJsonRpcInteractor(
         }
 
         try {
+            backoffStrategy.shouldBackoff(true)
             relay.subscribe(topic.value) { result ->
                 result.fold(
                     onSuccess = { acknowledgement ->
@@ -197,6 +198,7 @@ internal class RelayJsonRpcInteractor(
         }
 
         if (topics.isNotEmpty()) {
+            backoffStrategy.shouldBackoff(true)
             try {
                 relay.batchSubscribe(topics) { result ->
                     result.fold(

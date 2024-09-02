@@ -82,9 +82,6 @@ class RelayClient(private val koinApp: KoinApplication = wcKoinApp) : BaseRelayC
             event is Relay.Model.Event.OnConnectionFailed && _wssConnectionState.value is WSSConnectionState.Connected ->
                 _wssConnectionState.value = WSSConnectionState.Disconnected.ConnectionFailed(event.throwable.toWalletConnectException)
 
-//            event is Relay.Model.Event.OnConnectionFailed && _wssConnectionState.value is WSSConnectionState.Disconnected.ConnectionClosed ->
-//                _wssConnectionState.value = WSSConnectionState.Disconnected.ConnectionFailed(event.throwable.toWalletConnectException)
-
             event is Relay.Model.Event.OnConnectionClosed && _wssConnectionState.value is WSSConnectionState.Connected ->
                 _wssConnectionState.value = WSSConnectionState.Disconnected.ConnectionClosed("Connection closed: ${event.shutdownReason.reason} ${event.shutdownReason.code}")
         }

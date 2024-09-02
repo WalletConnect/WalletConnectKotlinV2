@@ -111,14 +111,14 @@ fun WalletSampleHost(
                 ErrorBanner((connectionState as ConnectionState.Error).message)
             } else if (connectionState is ConnectionState.Ok) {
                 RestoredConnectionBanner()
+            }
 
-                if (isLoader) {
-                    Loader(initMessage = "WalletConnect is pairing...", updateMessage = "Pairing is taking longer than usual, please try again...")
-                }
+            if (isLoader) {
+                Loader(initMessage = "WalletConnect is pairing...", updateMessage = "Pairing is taking longer than usual, please try again...")
+            }
 
-                if (isRequestLoader) {
-                    Loader(initMessage = "Awaiting a request...", updateMessage = "It is taking longer than usual..")
-                }
+            if (isRequestLoader) {
+                Loader(initMessage = "Awaiting a request...", updateMessage = "It is taking longer than usual..")
             }
 
             Timer(web3walletViewModel)
