@@ -580,11 +580,6 @@ class SignProtocol(private val koinApp: KoinApplication = wcKoinApp) : SignInter
                     atomicBoolean?.set(true)
                     onDelegate(Sign.Model.ConnectionState(true))
                 }
-//
-//                atomicBoolean?.get() == false && connectionState is WSSConnectionState.Disconnected.ConnectionFailed -> {
-//                    atomicBoolean?.set(false)
-//                    onDelegate(Sign.Model.ConnectionState(false, Sign.Model.ConnectionState.Reason.ConnectionFailed(connectionState.throwable)))
-//                }
 
                 else -> Unit
             }
