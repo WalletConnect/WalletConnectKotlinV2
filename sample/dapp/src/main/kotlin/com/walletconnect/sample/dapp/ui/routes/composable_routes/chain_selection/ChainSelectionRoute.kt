@@ -3,10 +3,7 @@ package com.walletconnect.sample.dapp.ui.routes.composable_routes.chain_selectio
 import android.content.Context
 import android.widget.Toast
 import android.content.Intent
-import android.graphics.Bitmap
-import android.net.Uri
-import androidmads.library.qrgenearator.QRGContents
-import androidmads.library.qrgenearator.QRGEncoder
+import android.graphics.drawable.Drawable
 import java.net.URLEncoder
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -61,7 +58,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.github.alexzhirkevich.customqrgenerator.QrData
+import com.github.alexzhirkevich.customqrgenerator.vector.QrCodeDrawable
+import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.walletconnect.android.utils.isPackageInstalled
+import com.walletconnect.modalcore.R
 import com.walletconnect.sample.common.Chains
 import com.walletconnect.sample.common.CompletePreviews
 import com.walletconnect.sample.common.ui.WCTopAppBarLegacy
@@ -74,15 +75,12 @@ import com.walletconnect.sample.common.ui.toColor
 import com.walletconnect.sample.dapp.BuildConfig
 import com.walletconnect.sample.dapp.ui.DappSampleEvents
 import com.walletconnect.sample.dapp.ui.routes.Route
-import com.walletconnect.sign.client.Sign
-import com.walletconnect.wcmodal.client.Modal
 import com.walletconnect.wcmodal.client.WalletConnectModal
 import com.walletconnect.wcmodal.ui.openWalletConnectModal
 import com.walletconnect.wcmodal.ui.state.rememberModalState
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @Composable
@@ -330,7 +328,7 @@ private fun ChainSelectionScreen(
 
 @Composable
 private fun QRDialog(composableScope: CoroutineScope, dispatcher: CoroutineDispatcher, pairingUri: PairingUri, onDismissRequest: () -> Unit, context: Context) {
-    val qrBitmap = generateQRCode(pairingUri.uri)
+    val qrDrawable = generateQRCode(pairingUri.uri)
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
 
     Dialog(onDismissRequest = { onDismissRequest() }) {
@@ -342,9 +340,9 @@ private fun QRDialog(composableScope: CoroutineScope, dispatcher: CoroutineDispa
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                qrBitmap?.let {
+                qrDrawable?.let {
                     Image(
-                        bitmap = it.asImageBitmap(),
+                        painter = rememberDrawablePainter(drawable = it),
                         contentDescription = "QR Code",
                         modifier = Modifier
                             .fillMaxWidth()
@@ -447,10 +445,10 @@ private fun onDynamicSwitcher(
     }
 }
 
-fun generateQRCode(content: String): Bitmap? {
-    val qrgEncoder = QRGEncoder(content, null, QRGContents.Type.TEXT, 400)
+fun generateQRCode(content: String): Drawable? {
+    val qrgEncoder = QrCodeDrawable(QrData.Url(content))
     return try {
-        qrgEncoder.bitmap
+        qrgEncoder
     } catch (e: Exception) {
         e.printStackTrace()
         null
