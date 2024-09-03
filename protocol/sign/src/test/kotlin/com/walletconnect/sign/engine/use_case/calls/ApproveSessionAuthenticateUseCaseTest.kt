@@ -168,7 +168,7 @@ class ApproveSessionAuthenticateUseCaseTest {
             assert(throwable is MissingSessionAuthenticateRequest)
         })
 
-        coVerify { insertEventUseCase(any()) }
+        coVerify { insertTelemetryEventUseCase(any()) }
     }
 
     @Test
@@ -213,7 +213,7 @@ class ApproveSessionAuthenticateUseCaseTest {
             assert(throwable is RequestExpiredException)
         })
 
-        coVerify { insertEventUseCase(any()) }
+        coVerify { insertTelemetryEventUseCase(any()) }
     }
 
     @Test

@@ -52,7 +52,7 @@ abstract class BaseRelayClient : RelayInterface {
     lateinit var connectionLifecycle: ConnectionLifecycle
     protected var logger: Logger
     private val resultState: MutableSharedFlow<RelayDTO> = MutableSharedFlow()
-    private var connectionState: MutableStateFlow<ConnectionState> = MutableStateFlow(ConnectionState.Idle)
+    internal var connectionState: MutableStateFlow<ConnectionState> = MutableStateFlow(ConnectionState.Idle)
     private var unAckedTopics: MutableList<String> = mutableListOf()
     private var isConnecting: Boolean = false
     private var retryCount: Int = 0

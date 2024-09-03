@@ -2,7 +2,6 @@ package com.walletconnect.android.internal.domain
 
 import com.walletconnect.android.internal.common.ConditionalExponentialBackoffStrategy
 import com.walletconnect.android.internal.common.JsonRpcResponse
-import com.walletconnect.android.internal.common.connection.DefaultConnectionLifecycle
 import com.walletconnect.android.internal.common.crypto.codec.Codec
 import com.walletconnect.android.internal.common.exception.WalletConnectException
 import com.walletconnect.android.internal.common.json_rpc.data.JsonRpcSerializer
@@ -42,8 +41,6 @@ internal class RelayerInteractorTest {
         every { subscriptionRequest } returns flow { }
     }
 
-    private val defaultConnectionLifecycle: DefaultConnectionLifecycle = mockk()
-
     private val backoffStrategy: ConditionalExponentialBackoffStrategy = mockk()
 
     private val jsonRpcHistory: JsonRpcHistory = mockk {
@@ -76,8 +73,9 @@ internal class RelayerInteractorTest {
     }
 
     private val sut =
-        spyk(RelayJsonRpcInteractor(relay, codec, jsonRpcHistory, pushMessagesRepository, logger, defaultConnectionLifecycle, backoffStrategy), recordPrivateCalls = true) {
+        spyk(RelayJsonRpcInteractor(relay, codec, jsonRpcHistory, pushMessagesRepository, logger, backoffStrategy), recordPrivateCalls = true) {
             every { checkNetworkConnectivity() } answers { }
+            every { relay.onResubscribe } returns flow { }
         }
 
     private val topicVO = Topic("mockkTopic")

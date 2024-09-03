@@ -77,7 +77,7 @@ internal class RelayJsonRpcInteractor(
     override val wssConnectionState: StateFlow<WSSConnectionState> get() = relay.wssConnectionState
 
     private var subscriptions = ObservableMap<String, String> { newMap -> if (newMap.isEmpty()) backoffStrategy.shouldBackoff(false) }
-    override val onResubscribe: Flow<Any?> = relay.onResubscribe
+    override val onResubscribe: Flow<Any?> get() = relay.onResubscribe
 
     init {
         manageSubscriptions()
