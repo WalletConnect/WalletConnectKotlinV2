@@ -12,9 +12,11 @@ import com.walletconnect.sign.common.exceptions.SignClientAlreadyInitializedExce
 import kotlinx.coroutines.*
 import java.util.*
 
+@Deprecated("Web3Wallet has been deprecated. Please use WalletKit instead from - https://github.com/reown-com/reown-kotlin")
 object Web3Wallet {
     private lateinit var coreClient: CoreInterface
 
+    @Deprecated("Web3Wallet has been deprecated. Please use WalletKit instead from - https://github.com/reown-com/reown-kotlin", replaceWith = ReplaceWith("WalletKit.WalletDelegate"))
     interface WalletDelegate {
         fun onSessionProposal(sessionProposal: Wallet.Model.SessionProposal, verifyContext: Wallet.Model.VerifyContext)
         val onSessionAuthenticate: ((Wallet.Model.SessionAuthenticate, Wallet.Model.VerifyContext) -> Unit)? get() = null
@@ -45,6 +47,7 @@ object Web3Wallet {
         fun onError(error: Wallet.Model.Error)
     }
 
+    @Deprecated("Web3Wallet has been deprecated. Please use WalletKit instead from - https://github.com/reown-com/reown-kotlin", replaceWith = ReplaceWith("WalletKit.setWalletDelegate(delegate)"))
     @Throws(IllegalStateException::class)
     fun setWalletDelegate(delegate: WalletDelegate) {
         val isSessionAuthenticateImplemented = delegate.onSessionAuthenticate != null
@@ -119,6 +122,10 @@ object Web3Wallet {
         AuthClient.setResponderDelegate(authWalletDelegate)
     }
 
+    @Deprecated(
+        "Web3Wallet has been deprecated. Please use WalletKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("WalletKit.initialize(params, onSuccess, onError)")
+    )
     @Throws(IllegalStateException::class)
     fun initialize(params: Wallet.Params.Init, onSuccess: () -> Unit = {}, onError: (Wallet.Model.Error) -> Unit) {
         coreClient = params.core
@@ -143,11 +150,19 @@ object Web3Wallet {
         validateInitializationCount(clientInitCounter, onSuccess, onError)
     }
 
+    @Deprecated(
+        "Web3Wallet has been deprecated. Please use WalletKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("WalletKit.registerDeviceToken(firebaseAccessToken, enableEncrypted, onSuccess, onError)")
+    )
     @Throws(IllegalStateException::class)
     fun registerDeviceToken(firebaseAccessToken: String, enableEncrypted: Boolean = false, onSuccess: () -> Unit, onError: (Wallet.Model.Error) -> Unit) {
         coreClient.Echo.register(firebaseAccessToken, enableEncrypted, onSuccess) { error -> onError(Wallet.Model.Error(error)) }
     }
 
+    @Deprecated(
+        "Web3Wallet has been deprecated. Please use WalletKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("WalletKit.decryptMessage(params, onSuccess, onError)")
+    )
     @Throws(IllegalStateException::class)
     fun decryptMessage(params: Wallet.Params.DecryptMessage, onSuccess: (Wallet.Model.Message) -> Unit, onError: (Wallet.Model.Error) -> Unit) {
         scope.launch {
@@ -165,6 +180,10 @@ object Web3Wallet {
         }
     }
 
+    @Deprecated(
+        "Web3Wallet has been deprecated. Please use WalletKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("WalletKit.dispatchEnvelope(urlWithEnvelope, onError)")
+    )
     @Throws(IllegalStateException::class)
     fun dispatchEnvelope(urlWithEnvelope: String, onError: (Wallet.Model.Error) -> Unit) {
         scope.launch {
@@ -176,11 +195,19 @@ object Web3Wallet {
         }
     }
 
+    @Deprecated(
+        "Web3Wallet has been deprecated. Please use WalletKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("WalletKit.pair(params, onSuccess, onError)")
+    )
     @Throws(IllegalStateException::class)
     fun pair(params: Wallet.Params.Pair, onSuccess: (Wallet.Params.Pair) -> Unit = {}, onError: (Wallet.Model.Error) -> Unit = {}) {
         coreClient.Pairing.pair(Core.Params.Pair(params.uri), { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
+    @Deprecated(
+        "Web3Wallet has been deprecated. Please use WalletKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("WalletKit.approveSession(params, onSuccess, onError)")
+    )
     @Throws(IllegalStateException::class)
     fun approveSession(
         params: Wallet.Params.SessionApprove,
@@ -191,11 +218,19 @@ object Web3Wallet {
         SignClient.approveSession(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
+    @Deprecated(
+        "Web3Wallet has been deprecated. Please use WalletKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("WalletKit.generateApprovedNamespaces(sessionProposal, supportedNamespaces, onError)")
+    )
     @Throws(Exception::class)
     fun generateApprovedNamespaces(sessionProposal: Wallet.Model.SessionProposal, supportedNamespaces: Map<String, Wallet.Model.Namespace.Session>): Map<String, Wallet.Model.Namespace.Session> {
         return com.walletconnect.sign.client.utils.generateApprovedNamespaces(sessionProposal.toSign(), supportedNamespaces.toSign()).toWallet()
     }
 
+    @Deprecated(
+        "Web3Wallet has been deprecated. Please use WalletKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("WalletKit.rejectSession(params, onSuccess, onError)")
+    )
     @Throws(IllegalStateException::class)
     fun rejectSession(
         params: Wallet.Params.SessionReject,
@@ -206,6 +241,10 @@ object Web3Wallet {
         SignClient.rejectSession(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
+    @Deprecated(
+        "Web3Wallet has been deprecated. Please use WalletKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("WalletKit.approveSessionAuthenticate(params, onSuccess, onError)")
+    )
     @Throws(IllegalStateException::class)
     fun approveSessionAuthenticate(
         params: Wallet.Params.ApproveSessionAuthenticate,
@@ -216,6 +255,10 @@ object Web3Wallet {
         SignClient.approveAuthenticate(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
+    @Deprecated(
+        "Web3Wallet has been deprecated. Please use WalletKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("WalletKit.rejectSessionAuthenticate(params, onSuccess, onError)")
+    )
     @Throws(IllegalStateException::class)
     fun rejectSessionAuthenticate(
         params: Wallet.Params.RejectSessionAuthenticate,
@@ -226,16 +269,28 @@ object Web3Wallet {
         SignClient.rejectAuthenticate(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
+    @Deprecated(
+        "Web3Wallet has been deprecated. Please use WalletKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("WalletKit.generateAuthObject(payloadParams, issuer, signature)")
+    )
     @Throws(Exception::class)
     fun generateAuthObject(payloadParams: Wallet.Model.PayloadAuthRequestParams, issuer: String, signature: Wallet.Model.Cacao.Signature): Wallet.Model.Cacao {
         return com.walletconnect.sign.client.utils.generateAuthObject(payloadParams.toSign(), issuer, signature.toSign()).toWallet()
     }
 
+    @Deprecated(
+        "Web3Wallet has been deprecated. Please use WalletKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("WalletKit.generateAuthPayloadParams(payloadParams, supportedChains, supportedMethods)")
+    )
     @Throws(Exception::class)
     fun generateAuthPayloadParams(payloadParams: Wallet.Model.PayloadAuthRequestParams, supportedChains: List<String>, supportedMethods: List<String>): Wallet.Model.PayloadAuthRequestParams {
         return com.walletconnect.sign.client.utils.generateAuthPayloadParams(payloadParams.toSign(), supportedChains, supportedMethods).toWallet()
     }
 
+    @Deprecated(
+        "Web3Wallet has been deprecated. Please use WalletKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("WalletKit.updateSession(params, onSuccess, onError)")
+    )
     @Throws(IllegalStateException::class)
     fun updateSession(
         params: Wallet.Params.SessionUpdate,
@@ -246,6 +301,10 @@ object Web3Wallet {
         SignClient.update(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
+    @Deprecated(
+        "Web3Wallet has been deprecated. Please use WalletKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("WalletKit.extendSession(params, onSuccess, onError)")
+    )
     @Throws(IllegalStateException::class)
     fun extendSession(
         params: Wallet.Params.SessionExtend,
@@ -256,6 +315,10 @@ object Web3Wallet {
         SignClient.extend(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
+    @Deprecated(
+        "Web3Wallet has been deprecated. Please use WalletKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("WalletKit.respondSessionRequest(params, onSuccess, onError)")
+    )
     @Throws(IllegalStateException::class)
     fun respondSessionRequest(
         params: Wallet.Params.SessionRequestResponse,
@@ -266,7 +329,10 @@ object Web3Wallet {
         SignClient.respond(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
-
+    @Deprecated(
+        "Web3Wallet has been deprecated. Please use WalletKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("WalletKit.emitSessionEvent(params, onSuccess, onError)")
+    )
     @Throws(IllegalStateException::class)
     fun emitSessionEvent(
         params: Wallet.Params.SessionEmit,
@@ -277,6 +343,10 @@ object Web3Wallet {
         SignClient.emit(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
+    @Deprecated(
+        "Web3Wallet has been deprecated. Please use WalletKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("WalletKit.disconnectSession(params, onSuccess, onError)")
+    )
     @Throws(IllegalStateException::class)
     fun disconnectSession(
         params: Wallet.Params.SessionDisconnect,
@@ -287,6 +357,10 @@ object Web3Wallet {
         SignClient.disconnect(signParams, { onSuccess(params) }, { error -> onError(Wallet.Model.Error(error.throwable)) })
     }
 
+    @Deprecated(
+        "Web3Wallet has been deprecated. Please use WalletKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("WalletKit.pingSession(params, sessionPing)")
+    )
     @Throws(IllegalStateException::class)
     fun pingSession(
         params: Wallet.Params.Ping,
@@ -310,6 +384,10 @@ object Web3Wallet {
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
+    @Deprecated(
+        "Web3Wallet has been deprecated. Please use WalletKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("WalletKit.formatAuthMessage(params)")
+    )
     @Throws(IllegalStateException::class)
     fun formatAuthMessage(params: Wallet.Params.FormatAuthMessage): String {
         val signParams = Sign.Params.FormatMessage(params.payloadParams.toSign(), params.issuer)
@@ -321,8 +399,8 @@ object Web3Wallet {
      * It is advised that this function be called from background operation
      */
     @Deprecated(
-        "AuthSDK has been deprecated. Please use updated Web3Wallet and Sign SDKs instead.",
-        replaceWith = ReplaceWith("fun formatAuthMessage(formatMessage: Sign.Params.FormatMessage): String? in Web3Wallet SDK")
+        "Web3Wallet has been deprecated. Please use WalletKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("WalletKit.formatAuthMessage(params)")
     )
     @Throws(IllegalStateException::class)
     fun formatMessage(params: Wallet.Params.FormatMessage): String? {
@@ -331,8 +409,8 @@ object Web3Wallet {
     }
 
     @Deprecated(
-        "AuthSDK has been deprecated. Please use updated Web3Wallet and Sign SDKs instead.",
-        replaceWith = ReplaceWith("fun approveSessionAuthenticated(approve: Sign.Params.ApproveSessionAuthenticate, onSuccess: (Sign.Params.ApproveSessionAuthenticate) -> Unit, onError: (Sign.Model.Error) -> Unit) or fun rejectSessionAuthenticated(reject: Sign.Params.RejectSessionAuthenticate, onSuccess: (Sign.Params.RejectSessionAuthenticate) -> Unit, onError: (Sign.Model.Error) -> Unit) in Web3Wallet SDK")
+        "Web3Wallet has been deprecated. Please use WalletKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("WalletKit.approveSessionAuthenticate(params, onSuccess, onError)")
     )
     @Throws(IllegalStateException::class)
     fun respondAuthRequest(
@@ -347,6 +425,10 @@ object Web3Wallet {
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
+    @Deprecated(
+        "Web3Wallet has been deprecated. Please use WalletKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("WalletKit.getListOfActiveSessions()")
+    )
     @Throws(IllegalStateException::class)
     @JvmStatic
     fun getListOfActiveSessions(): List<Wallet.Model.Session> {
@@ -357,6 +439,10 @@ object Web3Wallet {
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
+    @Deprecated(
+        "Web3Wallet has been deprecated. Please use WalletKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("WalletKit.getActiveSessionByTopic()")
+    )
     @Throws(IllegalStateException::class)
     fun getActiveSessionByTopic(topic: String): Wallet.Model.Session? {
         return SignClient.getActiveSessionByTopic(topic)?.toWallet()
@@ -367,9 +453,13 @@ object Web3Wallet {
      * It is advised that this function be called from background operation
      */
 
+    /**
+     * Caution: This function is blocking and runs on the current thread.
+     * It is advised that this function be called from background operation
+     */
     @Deprecated(
-        "The return type of getPendingRequests methods has been replaced with SessionRequest list",
-        replaceWith = ReplaceWith("getPendingSessionRequests(topic: String): List<Sign.Model.SessionRequest>")
+        "Web3Wallet has been deprecated. Please use WalletKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("WalletKit.getPendingSessionRequests(topic)")
     )
     @Throws(IllegalStateException::class)
     fun getPendingSessionRequests(topic: String): List<Wallet.Model.PendingSessionRequest> {
@@ -380,7 +470,10 @@ object Web3Wallet {
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
-
+    @Deprecated(
+        "Web3Wallet has been deprecated. Please use WalletKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("WalletKit.getPendingListOfSessionRequests(topic)")
+    )
     @Throws(IllegalStateException::class)
     fun getPendingListOfSessionRequests(topic: String): List<Wallet.Model.SessionRequest> {
         return SignClient.getPendingSessionRequests(topic).mapToPendingSessionRequests()
@@ -391,6 +484,10 @@ object Web3Wallet {
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
+    @Deprecated(
+        "Web3Wallet has been deprecated. Please use WalletKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("WalletKit.getSessionProposals()")
+    )
     @Throws(IllegalStateException::class)
     fun getSessionProposals(): List<Wallet.Model.SessionProposal> {
         return SignClient.getSessionProposals().map(Sign.Model.SessionProposal::toWallet)
@@ -413,6 +510,10 @@ object Web3Wallet {
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
+    @Deprecated(
+        "Web3Wallet has been deprecated. Please use WalletKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("WalletKit.getVerifyContext(id)")
+    )
     @Throws(IllegalStateException::class)
     fun getVerifyContext(id: Long): Wallet.Model.VerifyContext? {
         return SignClient.getVerifyContext(id)?.toWallet()
@@ -422,6 +523,10 @@ object Web3Wallet {
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
+    @Deprecated(
+        "Web3Wallet has been deprecated. Please use WalletKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("WalletKit.getListOfVerifyContexts()")
+    )
     @Throws(IllegalStateException::class)
     fun getListOfVerifyContexts(): List<Wallet.Model.VerifyContext> {
         return SignClient.getListOfVerifyContexts().map { verifyContext -> verifyContext.toWallet() }
