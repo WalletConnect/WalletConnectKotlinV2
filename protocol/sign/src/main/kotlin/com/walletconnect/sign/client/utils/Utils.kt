@@ -20,6 +20,7 @@ import com.walletconnect.sign.common.validator.SignValidator
 import org.json.JSONArray
 import org.json.JSONObject
 
+@Deprecated("com.walletconnect.sign.client.utils.generateApprovedNamespaces has been deprecated. Please use com.reown.sign.client.utils.generateApprovedNamespaces instead from - https://github.com/reown-com/reown-kotlin")
 fun generateApprovedNamespaces(
     proposal: Sign.Model.SessionProposal,
     supportedNamespaces: Map<String, Sign.Model.Namespace.Session>,
@@ -84,6 +85,7 @@ private fun MutableMap<String, Namespace.Proposal>.getChains(normalizedKey: Stri
 private fun MutableMap<String, Namespace.Proposal>.getMethods(normalizedKey: String) = (this[normalizedKey]?.methods ?: emptyList())
 private fun MutableMap<String, Namespace.Proposal>.getEvents(normalizedKey: String) = (this[normalizedKey]?.events ?: emptyList())
 
+@Deprecated("com.walletconnect.sign.client.utils.generateAuthObject has been deprecated. Please use com.reown.sign.client.utils.generateAuthObject instead from - https://github.com/reown-com/reown-kotlin")
 fun generateAuthObject(payload: Sign.Model.PayloadParams, issuer: String, signature: Sign.Model.Cacao.Signature): Sign.Model.Cacao {
     return Sign.Model.Cacao(
         header = Sign.Model.Cacao.Header(t = CacaoType.CAIP222.header),
@@ -92,6 +94,7 @@ fun generateAuthObject(payload: Sign.Model.PayloadParams, issuer: String, signat
     )
 }
 
+@Deprecated("com.walletconnect.sign.client.utils.generateAuthPayloadParams has been deprecated. Please use com.reown.sign.client.utils.generateAuthPayloadParams instead from - https://github.com/reown-com/reown-kotlin")
 fun generateAuthPayloadParams(payloadParams: Sign.Model.PayloadParams, supportedChains: List<String>, supportedMethods: List<String>): Sign.Model.PayloadParams {
     val reCapsJson: String? = payloadParams.resources.decodeReCaps()
     if (reCapsJson.isNullOrEmpty() || !reCapsJson.contains("eip155")) return payloadParams

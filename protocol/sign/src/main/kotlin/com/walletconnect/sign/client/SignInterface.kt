@@ -1,6 +1,8 @@
 package com.walletconnect.sign.client
 
+@Deprecated("com.walletconnect.sign.client.SignInterface has been deprecated. Please use com.reown.sign.client.SignInterface instead from - https://github.com/reown-com/reown-kotlin")
 interface SignInterface {
+    @Deprecated("com.walletconnect.sign.client.WalletDelegate has been deprecated. Please use com.reown.sign.client.WalletDelegate instead from - https://github.com/reown-com/reown-kotlin")
     interface WalletDelegate {
         fun onSessionProposal(sessionProposal: Sign.Model.SessionProposal, verifyContext: Sign.Model.VerifyContext)
         val onSessionAuthenticate: ((Sign.Model.SessionAuthenticate, Sign.Model.VerifyContext) -> Unit)? get() = null
@@ -25,6 +27,7 @@ interface SignInterface {
         fun onError(error: Sign.Model.Error)
     }
 
+    @Deprecated("com.walletconnect.sign.client.DappDelegate has been deprecated. Please use com.reown.sign.client.DappDelegate instead from - https://github.com/reown-com/reown-kotlin")
     interface DappDelegate {
         fun onSessionApproved(approvedSession: Sign.Model.ApprovedSession)
         fun onSessionRejected(rejectedSession: Sign.Model.RejectedSession)
@@ -51,8 +54,11 @@ interface SignInterface {
         fun onError(error: Sign.Model.Error)
     }
 
+    @Deprecated("com.walletconnect.sign.client.SignClient has been deprecated. Please use com.reown.sign.client.SignClient instead from - https://github.com/reown-com/reown-kotlin")
     fun initialize(init: Sign.Params.Init, onSuccess: () -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
+    @Deprecated("com.walletconnect.sign.client.SignClient has been deprecated. Please use com.reown.sign.client.SignClient instead from - https://github.com/reown-com/reown-kotlin")
     fun setWalletDelegate(delegate: WalletDelegate)
+    @Deprecated("com.walletconnect.sign.client.SignClient has been deprecated. Please use com.reown.sign.client.SignClient instead from - https://github.com/reown-com/reown-kotlin")
     fun setDappDelegate(delegate: DappDelegate)
 
     @Deprecated(
@@ -64,12 +70,15 @@ interface SignInterface {
         onError: (Sign.Model.Error) -> Unit,
     )
 
+    @Deprecated("com.walletconnect.sign.client.SignClient has been deprecated. Please use com.reown.sign.client.SignClient instead from - https://github.com/reown-com/reown-kotlin")
     fun connect(
         connect: Sign.Params.Connect, onSuccess: (String) -> Unit,
         onError: (Sign.Model.Error) -> Unit,
     )
 
+    @Deprecated("com.walletconnect.sign.client.SignClient has been deprecated. Please use com.reown.sign.client.SignClient instead from - https://github.com/reown-com/reown-kotlin")
     fun authenticate(authenticate: Sign.Params.Authenticate, walletAppLink: String? = null, onSuccess: (String) -> Unit, onError: (Sign.Model.Error) -> Unit)
+    @Deprecated("com.walletconnect.sign.client.SignClient has been deprecated. Please use com.reown.sign.client.SignClient instead from - https://github.com/reown-com/reown-kotlin")
     fun dispatchEnvelope(urlWithEnvelope: String, onError: (Sign.Model.Error) -> Unit)
 
     @Deprecated(
@@ -77,10 +86,15 @@ interface SignInterface {
         replaceWith = ReplaceWith(expression = "CoreClient.Pairing.pair()", imports = ["com.walletconnect.android.CoreClient"])
     )
     fun pair(pair: Sign.Params.Pair, onSuccess: (Sign.Params.Pair) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
+    @Deprecated("com.walletconnect.sign.client.SignClient has been deprecated. Please use com.reown.sign.client.SignClient instead from - https://github.com/reown-com/reown-kotlin")
     fun approveSession(approve: Sign.Params.Approve, onSuccess: (Sign.Params.Approve) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
+    @Deprecated("com.walletconnect.sign.client.SignClient has been deprecated. Please use com.reown.sign.client.SignClient instead from - https://github.com/reown-com/reown-kotlin")
     fun rejectSession(reject: Sign.Params.Reject, onSuccess: (Sign.Params.Reject) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
+    @Deprecated("com.walletconnect.sign.client.SignClient has been deprecated. Please use com.reown.sign.client.SignClient instead from - https://github.com/reown-com/reown-kotlin")
     fun approveAuthenticate(approve: Sign.Params.ApproveAuthenticate, onSuccess: (Sign.Params.ApproveAuthenticate) -> Unit, onError: (Sign.Model.Error) -> Unit)
+    @Deprecated("com.walletconnect.sign.client.SignClient has been deprecated. Please use com.reown.sign.client.SignClient instead from - https://github.com/reown-com/reown-kotlin")
     fun rejectAuthenticate(reject: Sign.Params.RejectAuthenticate, onSuccess: (Sign.Params.RejectAuthenticate) -> Unit, onError: (Sign.Model.Error) -> Unit)
+    @Deprecated("com.walletconnect.sign.client.SignClient has been deprecated. Please use com.reown.sign.client.SignClient instead from - https://github.com/reown-com/reown-kotlin")
     fun formatAuthMessage(formatMessage: Sign.Params.FormatMessage): String
 
     @Deprecated(
@@ -93,26 +107,35 @@ interface SignInterface {
         onSuccessWithSentRequest: (Sign.Model.SentRequest) -> Unit = { it: Sign.Model.SentRequest -> Unit },
         onError: (Sign.Model.Error) -> Unit,
     )
-
+    @Deprecated("com.walletconnect.sign.client.SignClient has been deprecated. Please use com.reown.sign.client.SignClient instead from - https://github.com/reown-com/reown-kotlin")
     fun request(request: Sign.Params.Request, onSuccess: (Sign.Model.SentRequest) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
+    @Deprecated("com.walletconnect.sign.client.SignClient has been deprecated. Please use com.reown.sign.client.SignClient instead from - https://github.com/reown-com/reown-kotlin")
     fun respond(response: Sign.Params.Response, onSuccess: (Sign.Params.Response) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
+    @Deprecated("com.walletconnect.sign.client.SignClient has been deprecated. Please use com.reown.sign.client.SignClient instead from - https://github.com/reown-com/reown-kotlin")
     fun update(update: Sign.Params.Update, onSuccess: (Sign.Params.Update) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
+    @Deprecated("com.walletconnect.sign.client.SignClient has been deprecated. Please use com.reown.sign.client.SignClient instead from - https://github.com/reown-com/reown-kotlin")
     fun extend(extend: Sign.Params.Extend, onSuccess: (Sign.Params.Extend) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
+    @Deprecated("com.walletconnect.sign.client.SignClient has been deprecated. Please use com.reown.sign.client.SignClient instead from - https://github.com/reown-com/reown-kotlin")
     fun emit(emit: Sign.Params.Emit, onSuccess: (Sign.Params.Emit) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
+    @Deprecated("com.walletconnect.sign.client.SignClient has been deprecated. Please use com.reown.sign.client.SignClient instead from - https://github.com/reown-com/reown-kotlin")
     fun ping(ping: Sign.Params.Ping, sessionPing: Sign.Listeners.SessionPing? = null)
+    @Deprecated("com.walletconnect.sign.client.SignClient has been deprecated. Please use com.reown.sign.client.SignClient instead from - https://github.com/reown-com/reown-kotlin")
     fun disconnect(disconnect: Sign.Params.Disconnect, onSuccess: (Sign.Params.Disconnect) -> Unit = {}, onError: (Sign.Model.Error) -> Unit)
+    @Deprecated("com.walletconnect.sign.client.SignClient has been deprecated. Please use com.reown.sign.client.SignClient instead from - https://github.com/reown-com/reown-kotlin")
     fun decryptMessage(params: Sign.Params.DecryptMessage, onSuccess: (Sign.Model.Message) -> Unit, onError: (Sign.Model.Error) -> Unit)
 
     /**
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
+    @Deprecated("com.walletconnect.sign.client.SignClient has been deprecated. Please use com.reown.sign.client.SignClient instead from - https://github.com/reown-com/reown-kotlin")
     fun getListOfActiveSessions(): List<Sign.Model.Session>
 
     /**
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
+    @Deprecated("com.walletconnect.sign.client.SignClient has been deprecated. Please use com.reown.sign.client.SignClient instead from - https://github.com/reown-com/reown-kotlin")
     fun getActiveSessionByTopic(topic: String): Sign.Model.Session?
 
     /**
@@ -159,29 +182,34 @@ interface SignInterface {
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
+    @Deprecated("com.walletconnect.sign.client.SignClient has been deprecated. Please use com.reown.sign.client.SignClient instead from - https://github.com/reown-com/reown-kotlin")
     fun getPendingSessionRequests(topic: String): List<Sign.Model.SessionRequest>
 
     /**
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
+    @Deprecated("com.walletconnect.sign.client.SignClient has been deprecated. Please use com.reown.sign.client.SignClient instead from - https://github.com/reown-com/reown-kotlin")
     fun getSessionProposals(): List<Sign.Model.SessionProposal>
 
     /**
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
+    @Deprecated("com.walletconnect.sign.client.SignClient has been deprecated. Please use com.reown.sign.client.SignClient instead from - https://github.com/reown-com/reown-kotlin")
     fun getVerifyContext(id: Long): Sign.Model.VerifyContext?
 
     /**
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
+    @Deprecated("com.walletconnect.sign.client.SignClient has been deprecated. Please use com.reown.sign.client.SignClient instead from - https://github.com/reown-com/reown-kotlin")
     fun getPendingAuthenticateRequests(): List<Sign.Model.SessionAuthenticate>
 
     /**
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
+    @Deprecated("com.walletconnect.sign.client.SignClient has been deprecated. Please use com.reown.sign.client.SignClient instead from - https://github.com/reown-com/reown-kotlin")
     fun getListOfVerifyContexts(): List<Sign.Model.VerifyContext>
 }

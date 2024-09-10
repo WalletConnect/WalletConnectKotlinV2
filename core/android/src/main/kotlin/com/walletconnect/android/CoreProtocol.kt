@@ -57,6 +57,7 @@ class CoreProtocol(private val koinApp: KoinApplication = wcKoinApp) : CoreInter
         plantTimber()
     }
 
+    @Deprecated("com.walletconnect.android.CoreClient has been deprecated. Please use com.reown.android.CoreClient instead from - https://github.com/reown-com/reown-kotlin")
     override fun setDelegate(delegate: CoreInterface.Delegate) {
         Pairing.setDelegate(delegate)
     }

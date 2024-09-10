@@ -24,6 +24,7 @@ interface CoreInterface {
     @Deprecated("com.walletconnect.android.CoreInterface has been deprecated. Please use com.reown.android.CoreInterface instead from - https://github.com/reown-com/reown-kotlin")
     interface Delegate : PairingInterface.Delegate
 
+    @Deprecated("com.walletconnect.android.CoreInterface has been deprecated. Please use com.reown.android.CoreInterface instead from - https://github.com/reown-com/reown-kotlin")
     fun setDelegate(delegate: Delegate)
 
     @Deprecated("com.walletconnect.android.CoreClient has been deprecated. Please use com.reown.android.CoreClient instead from - https://github.com/reown-com/reown-kotlin")
