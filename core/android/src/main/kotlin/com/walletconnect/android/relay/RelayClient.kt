@@ -23,6 +23,7 @@ import kotlinx.coroutines.supervisorScope
 import org.koin.core.KoinApplication
 import org.koin.core.qualifier.named
 
+@Deprecated("com.walletconnect.android.relay.RelayClient has been deprecated. Please use com.reown.android.relay.RelayClient instead from - https://github.com/reown-com/reown-kotlin")
 class RelayClient(private val koinApp: KoinApplication = wcKoinApp) : BaseRelayClient(), RelayConnectionInterface {
     private val manualConnection: ManualConnectionLifecycle by lazy { koinApp.koin.get(named(AndroidCommonDITags.MANUAL_CONNECTION_LIFECYCLE)) }
     private val networkState: ConnectivityState by lazy { koinApp.koin.get(named(AndroidCommonDITags.CONNECTIVITY_STATE)) }
