@@ -4,6 +4,7 @@ import androidx.annotation.Keep
 import com.walletconnect.android.CoreInterface
 import com.walletconnect.android.cacao.SignatureInterface
 
+@Deprecated("ChatSDK has been deprecated")
 object Chat {
     sealed interface Listeners {
         fun onError(error: Model.Error)
