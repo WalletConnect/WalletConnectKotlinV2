@@ -26,6 +26,7 @@ import org.jetbrains.annotations.ApiStatus.Experimental
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
+@Deprecated("Web3Modal has been deprecated. Please use AppKit instead from - https://github.com/reown-com/reown-kotlin")
 object Web3Modal {
 
     internal var chains: List<Modal.Model.Chain> = listOf()
@@ -38,6 +39,7 @@ object Web3Modal {
 
     private lateinit var web3ModalEngine: Web3ModalEngine
 
+    @Deprecated("Web3Modal has been deprecated. Please use AppKit instead from - https://github.com/reown-com/reown-kotlin", replaceWith = ReplaceWith("AppKit.ModalDelegate"))
     interface ModalDelegate {
         fun onSessionApproved(approvedSession: Modal.Model.ApprovedSession)
         fun onSessionRejected(rejectedSession: Modal.Model.RejectedSession)
@@ -64,6 +66,7 @@ object Web3Modal {
         fun onError(error: Modal.Model.Error)
     }
 
+    @Deprecated("Web3Modal has been deprecated. Please use AppKit instead from - https://github.com/reown-com/reown-kotlin", replaceWith = ReplaceWith("AppKit.ComponentDelegate"))
     interface ComponentDelegate {
         fun onModalExpanded()
 
@@ -71,6 +74,7 @@ object Web3Modal {
 
     }
 
+    @Deprecated("Web3Modal has been deprecated. Please use AppKit instead from - https://github.com/reown-com/reown-kotlin", replaceWith = ReplaceWith("AppKit.initialize(init, onSuccess, onError)"))
     fun initialize(
         init: Modal.Params.Init,
         onSuccess: () -> Unit = {},
@@ -91,12 +95,14 @@ object Web3Modal {
         )
     }
 
+    @Deprecated("Web3Modal has been deprecated. Please use AppKit instead from - https://github.com/reown-com/reown-kotlin", replaceWith = ReplaceWith("AppKit.register(activity)"))
     @Experimental
     fun register(activity: ComponentActivity) {
         checkEngineInitialization()
         web3ModalEngine.registerCoinbaseLauncher(activity)
     }
 
+    @Deprecated("Web3Modal has been deprecated. Please use AppKit instead from - https://github.com/reown-com/reown-kotlin", replaceWith = ReplaceWith("AppKit.unregister()"))
     @Experimental
     fun unregister() {
         checkEngineInitialization()
@@ -135,18 +141,22 @@ object Web3Modal {
         }
     }
 
+    @Deprecated("Web3Modal has been deprecated. Please use AppKit instead from - https://github.com/reown-com/reown-kotlin", replaceWith = ReplaceWith("AppKit.setChains(chains)"))
     fun setChains(chains: List<Modal.Model.Chain>) {
         this.chains = chains
     }
 
+    @Deprecated("Web3Modal has been deprecated. Please use AppKit instead from - https://github.com/reown-com/reown-kotlin", replaceWith = ReplaceWith("AppKit.setAuthRequestParams(authParams)"))
     fun setAuthRequestParams(authParams: Modal.Model.AuthPayloadParams) {
         authPayloadParams = authParams
     }
 
+    @Deprecated("Web3Modal has been deprecated. Please use AppKit instead from - https://github.com/reown-com/reown-kotlin", replaceWith = ReplaceWith("AppKit.setSessionProperties(properties)"))
     fun setSessionProperties(properties: Map<String, String>) {
         sessionProperties = properties
     }
 
+    @Deprecated("Web3Modal has been deprecated. Please use AppKit instead from - https://github.com/reown-com/reown-kotlin", replaceWith = ReplaceWith("AppKit.setDelegate(delegate)"))
     @Throws(IllegalStateException::class)
     fun setDelegate(delegate: ModalDelegate) {
         Web3ModalDelegate.connectionState.onEach { connectionState ->
@@ -189,6 +199,7 @@ object Web3Modal {
         ) { onError(it.toModal()) }
     }
 
+    @Deprecated("Web3Modal has been deprecated. Please use AppKit instead from - https://github.com/reown-com/reown-kotlin", replaceWith = ReplaceWith("AppKit.connect(connect, onSuccess, onError)"))
     fun connect(
         connect: Modal.Params.Connect,
         onSuccess: (String) -> Unit,
@@ -201,6 +212,10 @@ object Web3Modal {
         )
     }
 
+    @Deprecated(
+        "Web3Modal has been deprecated. Please use AppKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("AppKit.authenticate(authenticate, walletAppLink, onSuccess, onError)")
+    )
     fun authenticate(
         authenticate: Modal.Params.Authenticate,
         walletAppLink: String? = null,
@@ -213,6 +228,10 @@ object Web3Modal {
             onError = { onError(it.toModal()) })
     }
 
+    @Deprecated(
+        "Web3Modal has been deprecated. Please use AppKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("AppKit.handleDeepLink(url, onError)")
+    )
     fun handleDeepLink(url: String, onError: (Modal.Model.Error) -> Unit) {
         SignClient.dispatchEnvelope(url) {
             onError(it.toModal())
@@ -220,8 +239,8 @@ object Web3Modal {
     }
 
     @Deprecated(
-        message = "Modal.Params.Request is deprecated",
-        replaceWith = ReplaceWith("com.walletconnect.web3.modal.client.models.Request")
+        "Web3Modal has been deprecated. Please use AppKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("AppKit.request(request, onSuccess, onError)")
     )
     fun request(
         request: Modal.Params.Request,
@@ -236,6 +255,10 @@ object Web3Modal {
         )
     }
 
+    @Deprecated(
+        "Web3Modal has been deprecated. Please use AppKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("AppKit.request(request, onSuccess, onError)")
+    )
     fun request(
         request: Request,
         onSuccess: (SentRequestResult) -> Unit = {},
@@ -250,6 +273,10 @@ object Web3Modal {
         is SentRequestResult.WalletConnect -> Modal.Model.SentRequest(requestId, sessionTopic, method, params, chainId)
     }
 
+    @Deprecated(
+        "Web3Modal has been deprecated. Please use AppKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("AppKit.request(request, onSuccess, onError)")
+    )
     fun request(
         request: Request,
         onSuccess: () -> Unit,
@@ -259,11 +286,15 @@ object Web3Modal {
         web3ModalEngine.request(request, { onSuccess() }, onError)
     }
 
+    @Deprecated(
+        "Web3Modal has been deprecated. Please use AppKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("AppKit.ping(sessionPing)")
+    )
     fun ping(sessionPing: Modal.Listeners.SessionPing? = null) = web3ModalEngine.ping(sessionPing)
 
     @Deprecated(
-        message = "This has become deprecate in favor of the parameterless disconnect function",
-        level = DeprecationLevel.WARNING
+        "Web3Modal has been deprecated. Please use AppKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("AppKit.disconnect(onSuccess, onError)")
     )
     fun disconnect(
         onSuccess: (Modal.Params.Disconnect) -> Unit = {},
@@ -281,6 +312,10 @@ object Web3Modal {
         )
     }
 
+    @Deprecated(
+        "Web3Modal has been deprecated. Please use AppKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("AppKit.disconnect(onSuccess, onError)")
+    )
     fun disconnect(
         onSuccess: () -> Unit,
         onError: (Throwable) -> Unit,
@@ -293,6 +328,10 @@ object Web3Modal {
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
+    @Deprecated(
+        "Web3Modal has been deprecated. Please use AppKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("AppKit.getSelectedChain()")
+    )
     fun getSelectedChain() = selectedChain
 //    fun getSelectedChain() = getSelectedChainUseCase()?.toChain()
 
@@ -301,9 +340,8 @@ object Web3Modal {
      * It is advised that this function be called from background operation
      */
     @Deprecated(
-        message = "Getting active session is replaced with getAccount()",
-        replaceWith = ReplaceWith("com.walletconnect.web3.modal.client.Web3Modal.getAccount()"),
-        level = DeprecationLevel.WARNING
+        "Web3Modal has been deprecated. Please use AppKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("AppKit.getAccount()")
     )
     internal fun getActiveSessionByTopic(topic: String) = SignClient.getActiveSessionByTopic(topic)?.toModal()
 
@@ -312,9 +350,8 @@ object Web3Modal {
      * It is advised that this function be called from background operation
      */
     @Deprecated(
-        message = "Getting active session is replaced with getAccount()",
-        replaceWith = ReplaceWith("com.walletconnect.web3.modal.client.Web3Modal.getAccount()"),
-        level = DeprecationLevel.WARNING
+        "Web3Modal has been deprecated. Please use AppKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("AppKit.getAccount()")
     )
     fun getActiveSession(): Modal.Model.Session? {
         checkEngineInitialization()
@@ -325,6 +362,10 @@ object Web3Modal {
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
+    @Deprecated(
+        "Web3Modal has been deprecated. Please use AppKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("AppKit.getAccount()")
+    )
     fun getAccount(): Account? {
         checkEngineInitialization()
         return web3ModalEngine.getAccount()
@@ -334,6 +375,10 @@ object Web3Modal {
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
+    @Deprecated(
+        "Web3Modal has been deprecated. Please use AppKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("AppKit.getSession()")
+    )
     fun getSession(): Session? {
         checkEngineInitialization()
         return web3ModalEngine.getSession()
@@ -343,6 +388,10 @@ object Web3Modal {
      * Caution: This function is blocking and runs on the current thread.
      * It is advised that this function be called from background operation
      */
+    @Deprecated(
+        "Web3Modal has been deprecated. Please use AppKit instead from - https://github.com/reown-com/reown-kotlin",
+        replaceWith = ReplaceWith("AppKit.getConnectorType()")
+    )
     fun getConnectorType(): Modal.ConnectorType? {
         checkEngineInitialization()
         return web3ModalEngine.getConnectorType()

@@ -33,6 +33,7 @@ import com.walletconnect.web3.modal.R
 import com.walletconnect.web3.modal.ui.components.internal.Web3ModalComponent
 import com.walletconnect.web3.modal.ui.theme.ColorPalette
 
+@Deprecated("com.walletconnect.web3.modal.ui.Web3ModalSheet has been deprecated. Please use com.reown.appkit.modal.ui.AppKitSheet instead from - https://github.com/reown-com/reown-kotlin")
 class Web3ModalSheet : BottomSheetDialogFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {

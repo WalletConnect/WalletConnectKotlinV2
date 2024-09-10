@@ -12,6 +12,7 @@ import com.walletconnect.web3.modal.ui.components.internal.commons.network.Circl
 import com.walletconnect.web3.modal.ui.theme.ProvideWeb3ModalThemeComposition
 import com.walletconnect.web3.modal.utils.getImageData
 
+@Deprecated("com.walletconnect.web3.modal.ui.components.button.NetworkButton has been deprecated. Please use com.reown.appkit.modal.ui.components.button.NetworkButton instead from - https://github.com/reown-com/reown-kotlin")
 @Composable
 fun NetworkButton(
     state: Web3ModalState

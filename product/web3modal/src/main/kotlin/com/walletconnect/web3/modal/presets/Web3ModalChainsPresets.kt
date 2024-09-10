@@ -3,6 +3,7 @@ package com.walletconnect.web3.modal.presets
 import com.walletconnect.web3.modal.client.Modal
 import com.walletconnect.web3.modal.utils.EthUtils
 
+@Deprecated("com.walletconnect.web3.modal.presets.Web3ModalChainsPresets has been deprecated. Please use  com.reown.appkit.presets.AppKitChainsPresets instead from - https://github.com/reown-com/reown-kotlin")
 object Web3ModalChainsPresets {
     val ethToken = Modal.Model.Token(name = "Ether", symbol = "ETH", decimal = 18)
 

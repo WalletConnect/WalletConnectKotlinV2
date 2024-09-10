@@ -12,6 +12,7 @@ import com.walletconnect.web3.modal.ui.components.button.AccountButton
 import com.walletconnect.web3.modal.ui.components.button.rememberWeb3ModalState
 import com.walletconnect.web3.modal.utils.toAccountButtonType
 
+@Deprecated("com.walletconnect.web3.modal.ui.components.buttons.views.AccountButton has been deprecated. Please use com.reown.appkit.modal.ui.components.buttons.views.AccountButton instead from - https://github.com/reown-com/reown-kotlin")
 class AccountButton @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : FrameLayout(context, attrs, defStyleAttr) {

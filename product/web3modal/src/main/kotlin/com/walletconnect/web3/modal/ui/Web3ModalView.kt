@@ -9,6 +9,7 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import com.walletconnect.web3.modal.R
 import com.walletconnect.web3.modal.ui.components.internal.Web3ModalComponent
 
+@Deprecated("com.walletconnect.web3.modal.ui.Web3ModalView has been deprecated. Please use com.reown.appkit.modal.ui.AppKitView instead from - https://github.com/reown-com/reown-kotlin")
 class Web3ModalView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
@@ -18,6 +19,7 @@ class Web3ModalView @JvmOverloads constructor(
     private var shouldOpenNetwork: Boolean
     private var closeModal: () -> Unit = {}
 
+    @Deprecated("com.walletconnect.web3.modal.ui.setOnCloseModal has been deprecated. Please use com.reown.appkit.modal.ui.setOnCloseModal instead from - https://github.com/reown-com/reown-kotlin", ReplaceWith("AppKit.setOnCloseModal(onCloseModal)"))
     fun setOnCloseModal(onCloseModal: () -> Unit) {
         closeModal = onCloseModal
     }

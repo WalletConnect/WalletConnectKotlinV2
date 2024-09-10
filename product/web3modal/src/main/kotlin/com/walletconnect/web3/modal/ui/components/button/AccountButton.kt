@@ -40,6 +40,7 @@ import com.walletconnect.web3.modal.ui.theme.Web3ModalTheme
 import com.walletconnect.web3.modal.utils.getImageData
 import com.walletconnect.web3.modal.utils.toVisibleAddress
 
+@Deprecated("com.walletconnect.web3.modal.ui.components.AccountButtonType has been deprecated. Please use com.reown.appkit.modal.ui.components.AccountButtonType instead from - https://github.com/reown-com/reown-kotlin")
 enum class AccountButtonType {
     NORMAL, MIXED
 }
@@ -59,6 +60,7 @@ internal sealed class AccountButtonState {
     object Invalid : AccountButtonState()
 }
 
+@Deprecated("com.walletconnect.web3.modal.ui.components.AccountButton has been deprecated. Please use com.reown.appkit.modal.ui.components.AccountButton instead from - https://github.com/reown-com/reown-kotlin")
 @Composable
 fun AccountButton(
     state: Web3ModalState,
