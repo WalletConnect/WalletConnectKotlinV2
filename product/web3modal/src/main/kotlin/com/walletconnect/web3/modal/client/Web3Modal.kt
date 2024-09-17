@@ -26,7 +26,7 @@ import org.jetbrains.annotations.ApiStatus.Experimental
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
-@Deprecated("Web3Modal has been deprecated. Please use AppKit instead from - https://github.com/reown-com/reown-kotlin")
+@Deprecated("This package is now considered deprecated and will reach End-of-Life on February 17th 2025. For more details, including migration guides please see: docs.reown.com")
 object Web3Modal {
 
     internal var chains: List<Modal.Model.Chain> = listOf()

@@ -12,7 +12,7 @@ import com.walletconnect.sign.common.exceptions.SignClientAlreadyInitializedExce
 import kotlinx.coroutines.*
 import java.util.*
 
-@Deprecated("Web3Wallet has been deprecated. Please use WalletKit instead from - https://github.com/reown-com/reown-kotlin")
+@Deprecated("This package is now considered deprecated and will reach End-of-Life on February 17th 2025. For more details, including migration guides please see: docs.reown.com")
 object Web3Wallet {
     private lateinit var coreClient: CoreInterface
 
