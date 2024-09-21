@@ -8,6 +8,7 @@ import com.walletconnect.android.cacao.SignatureInterface
 import com.walletconnect.foundation.common.model.PrivateKey
 import kotlin.time.Duration
 
+@Deprecated("com.walletconnect.notify.client.NotifyClient has been deprecated. Please use com.reown.notify.client.NotifyClient instead from - https://github.com/reown-com/reown-kotlin")
 object Notify {
 
     sealed class Model {

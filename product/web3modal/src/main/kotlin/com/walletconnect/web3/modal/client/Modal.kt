@@ -7,6 +7,7 @@ import com.walletconnect.android.CoreInterface
 import com.walletconnect.android.cacao.SignatureInterface
 import com.walletconnect.android.internal.common.signing.cacao.Issuer
 
+@Deprecated("com.walletconnect.web3.modal.client.Wallet has been deprecated. Please use com.reown.appkit.client.Modal instead from - https://github.com/reown-com/reown-kotlin")
 object Modal {
 
     sealed interface Listeners {

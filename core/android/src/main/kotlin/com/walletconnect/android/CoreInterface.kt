@@ -10,6 +10,7 @@ import com.walletconnect.android.relay.NetworkClientTimeout
 import com.walletconnect.android.relay.RelayConnectionInterface
 import com.walletconnect.android.verify.client.VerifyInterface
 
+@Deprecated("com.walletconnect.android.CoreInterface has been deprecated. Please use com.reown.android.CoreInterface instead from - https://github.com/reown-com/reown-kotlin")
 interface CoreInterface {
     val Pairing: PairingInterface
     val PairingController: PairingControllerInterface
@@ -20,10 +21,13 @@ interface CoreInterface {
     val Verify: VerifyInterface
     val Explorer: ExplorerInterface
 
+    @Deprecated("com.walletconnect.android.CoreInterface has been deprecated. Please use com.reown.android.CoreInterface instead from - https://github.com/reown-com/reown-kotlin")
     interface Delegate : PairingInterface.Delegate
 
+    @Deprecated("com.walletconnect.android.CoreInterface has been deprecated. Please use com.reown.android.CoreInterface instead from - https://github.com/reown-com/reown-kotlin")
     fun setDelegate(delegate: Delegate)
 
+    @Deprecated("com.walletconnect.android.CoreClient has been deprecated. Please use com.reown.android.CoreClient instead from - https://github.com/reown-com/reown-kotlin")
     fun initialize(
         metaData: Core.Model.AppMetaData,
         relayServerUrl: String,
@@ -36,6 +40,7 @@ interface CoreInterface {
         onError: (Core.Model.Error) -> Unit,
     )
 
+    @Deprecated("com.walletconnect.android.CoreClient has been deprecated. Please use com.reown.android.CoreClient instead from - https://github.com/reown-com/reown-kotlin")
     fun initialize(
         application: Application,
         projectId: String,

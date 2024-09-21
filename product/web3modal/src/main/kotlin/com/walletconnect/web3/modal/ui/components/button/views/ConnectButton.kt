@@ -12,6 +12,7 @@ import com.walletconnect.web3.modal.ui.components.button.ConnectButton
 import com.walletconnect.web3.modal.ui.components.button.rememberWeb3ModalState
 import com.walletconnect.web3.modal.utils.toConnectButtonSize
 
+@Deprecated("com.walletconnect.web3.modal.ui.components.buttons.views.ConnectButton has been deprecated. Please use com.reown.appkit.modal.ui.components.buttons.views.ConnectButton instead from - https://github.com/reown-com/reown-kotlin")
 class ConnectButton @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : FrameLayout(context, attrs, defStyleAttr) {

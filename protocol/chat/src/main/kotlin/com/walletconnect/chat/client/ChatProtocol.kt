@@ -24,6 +24,7 @@ internal class ChatProtocol(private val koinApp: KoinApplication = wcKoinApp) : 
         val instance = ChatProtocol()
     }
 
+    @Deprecated("ChatSDK has been deprecated")
     @Throws(IllegalStateException::class)
     override fun initialize(init: Chat.Params.Init, onError: (Chat.Model.Error) -> Unit) {
         try {
@@ -42,6 +43,7 @@ internal class ChatProtocol(private val koinApp: KoinApplication = wcKoinApp) : 
         }
     }
 
+    @Deprecated("ChatSDK has been deprecated")
     @Throws(IllegalStateException::class)
     override fun setChatDelegate(delegate: ChatInterface.ChatDelegate): Unit = wrapWithEngineInitializationCheck() {
         scope.launch {
@@ -59,6 +61,7 @@ internal class ChatProtocol(private val koinApp: KoinApplication = wcKoinApp) : 
         }
     }
 
+    @Deprecated("ChatSDK has been deprecated")
     @Throws(IllegalStateException::class)
     override fun resolve(resolve: Chat.Params.Resolve, listener: Chat.Listeners.Resolve) = protocolFunction(listener::onError) {
         chatEngine.resolveAccount(
@@ -68,66 +71,79 @@ internal class ChatProtocol(private val koinApp: KoinApplication = wcKoinApp) : 
         )
     }
 
+    @Deprecated("ChatSDK has been deprecated")
     @Throws(IllegalStateException::class)
     override fun goPrivate(goPrivate: Chat.Params.GoPrivate, onSuccess: () -> Unit, onError: (Chat.Model.Error) -> Unit) = protocolFunction(onError) {
         chatEngine.goPrivate(goPrivate.account.toCommon(), { onSuccess() }, { error -> onError(Chat.Model.Error(error)) })
     }
 
+    @Deprecated("ChatSDK has been deprecated")
     @Throws(IllegalStateException::class)
     override fun goPublic(goPublic: Chat.Params.GoPublic, onSuccess: (String) -> Unit, onError: (Chat.Model.Error) -> Unit) = protocolFunction(onError) {
         chatEngine.goPublic(goPublic.account.toCommon(), { inviteKey -> onSuccess(inviteKey) }, { error -> onError(Chat.Model.Error(error)) })
     }
 
+    @Deprecated("ChatSDK has been deprecated")
     @Throws(IllegalStateException::class)
     override fun invite(invite: Chat.Params.Invite, onSuccess: (Long) -> Unit, onError: (Chat.Model.Error) -> Unit) = protocolFunction(onError) {
         scope.launch { chatEngine.invite(invite.toCommon(), { inviteId -> onSuccess(inviteId) }, { error -> onError(Chat.Model.Error(error)) }) }
     }
 
+    @Deprecated("ChatSDK has been deprecated")
     @Throws(IllegalStateException::class)
     override fun accept(accept: Chat.Params.Accept, onSuccess: (String) -> Unit, onError: (Chat.Model.Error) -> Unit) = protocolFunction(onError) {
         chatEngine.accept(accept.inviteId, { threadTopic -> onSuccess(threadTopic) }, { error -> onError(Chat.Model.Error(error)) })
     }
 
+    @Deprecated("ChatSDK has been deprecated")
     @Throws(IllegalStateException::class)
     override fun reject(reject: Chat.Params.Reject, onSuccess: () -> Unit, onError: (Chat.Model.Error) -> Unit) = protocolFunction(onError) {
         chatEngine.reject(reject.inviteId, onSuccess) { error -> onError(Chat.Model.Error(error)) }
     }
 
+    @Deprecated("ChatSDK has been deprecated")
     @Throws(IllegalStateException::class)
     override fun message(message: Chat.Params.Message, onSuccess: () -> Unit, onError: (Chat.Model.Error) -> Unit) = protocolFunction(onError) {
         chatEngine.message(message.topic, message.toCommon(), onSuccess) { error -> onError(Chat.Model.Error(error)) }
     }
 
+    @Deprecated("ChatSDK has been deprecated")
     @Throws(IllegalStateException::class)
     override fun ping(ping: Chat.Params.Ping, onSuccess: (String) -> Unit, onError: (Chat.Model.Error) -> Unit) = protocolFunction(onError) {
         chatEngine.ping(ping.topic, onSuccess = { topic -> onSuccess(topic) }, { error -> onError(Chat.Model.Error(error)) })
     }
 
+    @Deprecated("ChatSDK has been deprecated")
     @Throws(IllegalStateException::class)
     override fun leave(leave: Chat.Params.Leave, onError: (Chat.Model.Error) -> Unit) = protocolFunction(onError) {
         chatEngine.leave(leave.topic) { error -> onError(Chat.Model.Error(error)) }
     }
 
+    @Deprecated("ChatSDK has been deprecated")
     @Throws(IllegalStateException::class)
     override fun getReceivedInvites(getReceivedInvites: Chat.Params.GetReceivedInvites): Map<Long, Chat.Model.Invite.Received> = wrapWithEngineInitializationCheck() {
         chatEngine.getReceivedInvites(getReceivedInvites.account.value).mapValues { (_, invite) -> invite.toClient() }
     }
 
+    @Deprecated("ChatSDK has been deprecated")
     @Throws(IllegalStateException::class)
     override fun getSentInvites(getSentInvites: Chat.Params.GetSentInvites): Map<Long, Chat.Model.Invite.Sent> = wrapWithEngineInitializationCheck() {
         chatEngine.getSentInvites(getSentInvites.account.value).mapValues { (_, invite) -> invite.toClient() }
     }
 
+    @Deprecated("ChatSDK has been deprecated")
     @Throws(IllegalStateException::class)
     override fun getThreads(getThreads: Chat.Params.GetThreads): Map<String, Chat.Model.Thread> = wrapWithEngineInitializationCheck() {
         chatEngine.getThreads(getThreads.account.value).mapValues { (_, thread) -> thread.toClient() }
     }
 
+    @Deprecated("ChatSDK has been deprecated")
     @Throws(IllegalStateException::class)
     override fun getMessages(getMessages: Chat.Params.GetMessages): List<Chat.Model.Message> = wrapWithEngineInitializationCheck() {
         chatEngine.getMessages(getMessages.topic).map { message -> message.toClient() }.sortedBy { message -> message.timestamp }
     }
 
+    @Deprecated("ChatSDK has been deprecated")
     @Throws(IllegalStateException::class)
     override fun register(register: Chat.Params.Register, listener: Chat.Listeners.Register) = protocolFunction(listener::onError) {
         chatEngine.register(
@@ -139,6 +155,7 @@ internal class ChatProtocol(private val koinApp: KoinApplication = wcKoinApp) : 
         )
     }
 
+    @Deprecated("ChatSDK has been deprecated")
     @Throws(IllegalStateException::class)
     override fun unregister(unregister: Chat.Params.Unregister, listener: Chat.Listeners.Unregister) = protocolFunction(listener::onError) {
         chatEngine.unregister(
@@ -147,7 +164,6 @@ internal class ChatProtocol(private val koinApp: KoinApplication = wcKoinApp) : 
             { throwable -> listener.onError(Chat.Model.Error(throwable)) },
         )
     }
-
 
     @Throws(IllegalStateException::class)
     private fun <R> wrapWithEngineInitializationCheck(block: () -> R): R {

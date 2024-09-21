@@ -13,10 +13,12 @@ import com.walletconnect.web3.modal.ui.previews.MultipleComponentsPreview
 import com.walletconnect.web3.modal.ui.previews.UiModePreview
 import com.walletconnect.web3.modal.ui.theme.ProvideWeb3ModalThemeComposition
 
+@Deprecated("com.walletconnect.web3.modal.ui.components.ConnectButtonSize has been deprecated. Please use com.reown.appkit.modal.ui.components.ConnectButtonSize instead from - https://github.com/reown-com/reown-kotlin")
 enum class ConnectButtonSize {
     NORMAL, SMALL
 }
 
+@Deprecated("com.walletconnect.web3.modal.ui.components.ConnectButton has been deprecated. Please use com.reown.appkit.modal.ui.components.ConnectButton instead from - https://github.com/reown-com/reown-kotlin")
 @Composable
 fun ConnectButton(
     state: Web3ModalState,

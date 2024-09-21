@@ -13,4 +13,5 @@ enum class SignatureType(override val header: String) : ISignatureType {
     EIP191("eip191"), EIP1271("eip1271");
 }
 
+@Deprecated("com.walletconnect.sign.client.utils.CacaoSigner has been deprecated. Please use com.reown.sign.client.utils.CacaoSigner instead from - https://github.com/reown-com/reown-kotlin")
 object CacaoSigner : CacaoSignerInterface<Sign.Model.Cacao.Signature>

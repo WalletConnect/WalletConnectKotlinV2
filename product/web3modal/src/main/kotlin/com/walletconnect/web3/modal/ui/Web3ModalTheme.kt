@@ -9,6 +9,7 @@ import com.walletconnect.web3.modal.ui.theme.LocalCustomComposition
 import com.walletconnect.web3.modal.ui.theme.defaultDarkWeb3ModalColors
 import com.walletconnect.web3.modal.ui.theme.defaultLightWeb3ModalColors
 
+@Deprecated("com.walletconnect.web3.modal.ui.Web3ModalTheme has been deprecated. Please use com.reown.appkit.modal.ui.AppKitTheme instead from - https://github.com/reown-com/reown-kotlin")
 @Composable
 fun Web3ModalTheme(
     mode: Web3ModalTheme.Mode = Web3ModalTheme.Mode.AUTO,
@@ -28,6 +29,7 @@ fun Web3ModalTheme(
     }
 }
 
+@Deprecated("com.walletconnect.web3.modal.ui.Web3ModalTheme has been deprecated. Please use com.reown.appkit.modal.ui.AppKitTheme instead from - https://github.com/reown-com/reown-kotlin")
 object Web3ModalTheme {
 
     fun provideLightWeb3ModalColors(

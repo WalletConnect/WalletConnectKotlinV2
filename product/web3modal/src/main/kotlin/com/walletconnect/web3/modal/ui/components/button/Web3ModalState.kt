@@ -31,6 +31,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
+@Deprecated("com.walletconnect.web3.modal.ui.components.button.rememberWeb3ModalState has been deprecated. Please use com.reown.appkit.modal.ui.components.button.rememberAppKitState instead from - https://github.com/reown-com/reown-kotlin",
+    ReplaceWith("rememberAppKitState(navController)")
+)
 @Composable
 fun rememberWeb3ModalState(
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
@@ -41,6 +44,7 @@ fun rememberWeb3ModalState(
     }
 }
 
+@Deprecated("com.walletconnect.web3.modal.ui.components.button.Web3ModalState has been deprecated. Please use com.reown.appkit.modal.ui.components.button.AppKitState instead from - https://github.com/reown-com/reown-kotlin")
 class Web3ModalState(
     coroutineScope: CoroutineScope,
     private val navController: NavController

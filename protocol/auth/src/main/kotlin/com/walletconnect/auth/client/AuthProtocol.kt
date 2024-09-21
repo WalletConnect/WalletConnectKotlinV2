@@ -23,6 +23,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.koin.core.KoinApplication
 
+@Deprecated("AuthSDK has been deprecated")
 internal class AuthProtocol(private val koinApp: KoinApplication = wcKoinApp) : AuthInterface {
     private lateinit var authEngine: AuthEngine
 

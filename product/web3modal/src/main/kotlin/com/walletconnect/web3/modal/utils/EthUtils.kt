@@ -1,5 +1,6 @@
 package com.walletconnect.web3.modal.utils
 
+@Deprecated("com.walletconnect.web3.modal.utils.EthUtils has been deprecated. Please use com.reown.appkit.utils.EthUtils instead from - https://github.com/reown-com/reown-kotlin")
 object EthUtils {
     const val walletSwitchEthChain = "wallet_switchEthereumChain"
     const val walletAddEthChain = "wallet_addEthereumChain"
