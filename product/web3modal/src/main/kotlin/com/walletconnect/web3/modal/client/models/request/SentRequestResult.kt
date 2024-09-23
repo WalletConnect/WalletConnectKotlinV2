@@ -3,6 +3,7 @@ package com.walletconnect.web3.modal.client.models.request
 import com.walletconnect.sign.client.Sign
 import com.walletconnect.web3.modal.engine.coinbase.CoinbaseResult
 
+@Deprecated("com.walletconnect.web3.modal.client.models.request.SentRequestResult has been deprecated. Please use com.reown.appkit.client.models.request.SentRequestResult instead from - https://github.com/reown-com/reown-kotlin")
 sealed class SentRequestResult {
     abstract val method: String
     abstract val params: String

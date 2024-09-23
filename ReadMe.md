@@ -1,10 +1,11 @@
 ![WalletConnect V2](/docs/walletconnect-banner.svg)
 
-# **WalletConnect - Kotlin**
+# **Deprecated - WalletConnect - Kotlin**
+WalletConnect Inc is now Reown. As part of this transition, we are deprecating a number of repositories/packages across our supported platforms, and transitioning to their equivalents published under the Reown organization.
 
-The communications protocol for web3, WalletConnect brings the ecosystem together by enabling hundreds of wallets and apps to securely connect and interact. This repository contains Kotlin implementation of
-WalletConnect v2 protocols for Android applications.
-
+This repository is now considered deprecated and will reach End-of-Life on February 17th 2025. For more details, including migration guides please see: https://docs.reown.com/advanced/walletconnect-deprecations
+ 
+---
 ####
 
 ## BOM Instructions:
@@ -23,6 +24,7 @@ dependencies {
 
 | BOM                                                                                     | [Core SDK](core/android) | [Sign SDK](protocol/sign) | [Auth SDK](protocol/auth) | [Chat SDK](protocol/chat) | [Notify SDK](protocol/notify) | [web3wallet](product/web3wallet) | [web3modal](product/web3modal) | [WalletConnectModal](product/walletconnectmodal) |
 |-----------------------------------------------------------------------------------------|--------------------------|---------------------------|---------------------------|---------------------------|:------------------------------|----------------------------------|--------------------------------|--------------------------------------------------|
+| 1.35.2                                                                                  | 1.35.2                   | 2.35.2                    | 1.28.10                   | 1.0.0.beta37              | 1.3.11                        | 1.35.2                           | 1.6.6                          | 1.5.11                                           |
 | 1.35.1                                                                                  | 1.35.1                   | 2.35.1                    | 1.28.9                    | 1.0.0.beta36              | 1.3.10                        | 1.35.1                           | 1.6.5                          | 1.5.10                                           |
 | 1.35.0                                                                                  | 1.35.0                   | 2.35.0                    | 1.28.8                    | 1.0.0.beta35              | 1.3.9                         | 1.35.0                           | 1.6.4                          | 1.5.9                                            |
 | 1.34.1                                                                                  | 1.34.1                   | 2.34.1                    | 1.28.7                    | 1.0.0.beta34              | 1.3.8                         | 1.34.1                           | 1.6.3                          | 1.5.8                                            |

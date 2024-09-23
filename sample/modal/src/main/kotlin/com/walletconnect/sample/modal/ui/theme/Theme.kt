@@ -6,12 +6,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
@@ -31,6 +26,7 @@ internal val lightColorScheme = lightColors(
     onPrimary = Color(0xFF141414)
 )
 
+@Deprecated("com.walletconnect.web3.modal.ui.theme.WalletConnectTheme has been deprecated. Please use com.reown.appkit.modal.ui.theme.WalletConnectTheme instead from - https://github.com/reown-com/reown-kotlin")
 @Composable
 fun WalletConnectTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
