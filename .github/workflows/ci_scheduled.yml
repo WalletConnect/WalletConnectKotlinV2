@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Run Relay CI
         env:
@@ -46,7 +46,7 @@ jobs:
 #     name: ${{ matrix.conf.name }}
 #     runs-on: self-hosted
 #     steps:
-#       - uses: actions/checkout@v3
+#       - uses: actions/checkout@v4
 
 #       - name: Run instrumented tests
 #         uses: ./.github/actions/ci_instrumented_tests
@@ -65,7 +65,7 @@ jobs:
     if: failure()
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Send GitHub Action trigger data to Slack workflow
         id: slack
